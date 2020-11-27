@@ -16,6 +16,7 @@ macro(add_detray_test TESTNAME FILES LIBRARIES)
     add_test(unit_test_${TESTNAME} ${TESTNAME})
 endmacro()
 
+add_subdirectory(core)
 if(DETRAY_EIGEN_PLUGIN)
     add_subdirectory(eigen)
 endif()
