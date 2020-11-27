@@ -48,7 +48,7 @@ jobs:
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C Release
-      
+
   macos:
     runs-on: macos-10.15
 
@@ -57,7 +57,7 @@ jobs:
 
     - name: Install Dependencies
       # Install CMake, Eigen3, Ninja 
-      run: sudo brew install cmake eigen ninja
+      run: brew install cmake eigen ninja
 
     - name: Initialize Submodules      
       run: cd $GITHUB_WORKSPACE; git submodule update --init
