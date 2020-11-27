@@ -8,7 +8,7 @@ on:
       - 'release/**'
 
 jobs:
-  linux_release:
+  ubuntu:
     runs-on: ubuntu-latest
 
     steps:
