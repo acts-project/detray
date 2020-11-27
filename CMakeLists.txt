@@ -10,7 +10,9 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 # find_package(Visionaray)
 
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
-option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" On)
+option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" Off)
+
+option(DETRAY_TESTS "Enable unit tests" On)
 
 if(DETRAY_EIGEN_PLUGIN)
     find_package(Eigen3 REQUIRED)
@@ -31,4 +33,8 @@ set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
 add_subdirectory(core)
 add_subdirectory(plugins)
 add_subdirectory(examples)
-add_subdirectory(tests)
+
+if(DETRAY_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
