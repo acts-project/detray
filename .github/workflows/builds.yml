@@ -13,11 +13,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install dependencies
+    - name: Install Dependencies
       # Install Eigen 
       run: sudo apt-get install libeigen3-dev
 
-    - name: Initialize submodules      
+    - name: Initialize Submodules      
       run: cd $GITHUB_WORKSPACE; git submodule update --init
        
     - name: Create Build Environment
