@@ -8,17 +8,12 @@
 
 using namespace detray;
 
-using scalar = plugin::scalar;
+using point2 = plugin::cartesian2::point2;
 
-// Two-dimensional definitions
-using vector2 = plugin::vector2;
-using point2 = plugin::vector2;
-using point2pol = plugin::point2pol;
-using point2cyl = plugin::point2cyl;
 // Three-dimensional definitions
-using vector3 = plugin::vector3;
-using point3 = plugin::point3;
 using transform3 = plugin::transform3;
+using vector3 = plugin::transform3::vector3;
+using point3 = plugin::transform3::point3;
 using context = plugin::transform3::context;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
@@ -41,7 +36,7 @@ TEST(plugin, surface)
 // This tests the construction of a intresection
 TEST(plugin, intersection)
 {
-    using intersection = intersection<scalar, vector3, vector2>;
+    using intersection = intersection<scalar, point3, point2>;
 
     intersection i0 = {2., point3(0.3, 0.5, 0.7), std::nullopt};
 
@@ -49,13 +44,12 @@ TEST(plugin, intersection)
 
     intersection invalid;
 
-    std::vector<intersection> intersections = { invalid, i0, i1 };
+    std::vector<intersection> intersections = {invalid, i0, i1};
     std::sort(intersections.begin(), intersections.end());
 
     ASSERT_NEAR(intersections[0].path, 1.7, epsilon);
     ASSERT_NEAR(intersections[1].path, 2, epsilon);
     ASSERT_TRUE(std::isinf(intersections[2].path));
-
 }
 
 // Google Test can be run manually from the main() function

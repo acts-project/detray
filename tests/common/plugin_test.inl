@@ -2,50 +2,50 @@
 #include <climits>
 
 /// @note plugin has to be defined with a preprocessor command
-
 using namespace detray;
 
-using scalar = plugin::scalar;
-
 // Two-dimensional definitions
-using vector2 = plugin::vector2;
-using point2 = plugin::vector2;
-using point2pol = plugin::point2pol;
-using point2cyl = plugin::point2cyl;
+using point2cart = plugin::cartesian2::point2;
+using point2pol  = plugin::polar2::point2;
+using point2cyl  = plugin::cylindrical2::point2;
+plugin::cartesian2 cartesian2;
+plugin::polar2 polar2;
+plugin::cylindrical2 cylindrical2;
+
 // Three-dimensional definitions
-using vector3 = plugin::vector3;
-using point3 = plugin::point3;
 using transform3 = plugin::transform3;
+using vector3 = plugin::transform3::vector3;
+using point3 = plugin::transform3::point3;
 using context = plugin::transform3::context;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;
 
-// This defines the vector2 test suite
-TEST(plugin, vector2)
+// This defines the local frame test suite
+TEST(plugin, local_vectors)
 {
     // Construction
-    vector2 vA(0., 1.);
+    point2cart vA(0., 1.);
     ASSERT_EQ(vA[0], 0.);
     ASSERT_EQ(vA[1], 1.);
 
     // Assignment
-    vector2 vB = vA;
+    point2cart vB = vA;
     ASSERT_EQ(vB[0], 0.);
     ASSERT_EQ(vB[1], 1.);
 
     // Addition
-    vector2 vC = vA + vB;
+    point2cart vC = vA + vB;
     ASSERT_EQ(vC[0], 0.);
     ASSERT_EQ(vC[1], 2.);
 
     // Multiplication by scalar
-    vector2 vC2 = vC * 2.;
+    point2cart vC2 = vC * 2.;
     ASSERT_EQ(vC2[0], 0.);
     ASSERT_EQ(vC2[1], 4.);
 
     // Cast operations to phi, theta, eta, perp
-    vector2 vD(1., 1.);
+    point2cart vD(1., 1.);
     scalar phi = getter::phi(vD);
     ASSERT_NEAR(phi, M_PI_4, epsilon);
 
@@ -141,7 +141,7 @@ TEST(plugin, transform3)
     // Test constructor from t, z, x
     transform3 trf(t, z, x, ctx);
 
-    const auto rot = getter::rotation(trf, ctx);
+    const auto rot = trf.rotation(ctx);
     ASSERT_NEAR(rot(0, 0), x[0], epsilon);
     ASSERT_NEAR(rot(1, 0), x[1], epsilon);
     ASSERT_NEAR(rot(2, 0), x[2], epsilon);
@@ -152,17 +152,17 @@ TEST(plugin, transform3)
     ASSERT_NEAR(rot(1, 2), z[1], epsilon);
     ASSERT_NEAR(rot(2, 2), z[2], epsilon);
 
-    auto trn = getter::translation(trf, ctx);
+    auto trn = trf.translation(ctx);
     ASSERT_NEAR(trn[0], 2., epsilon);
     ASSERT_NEAR(trn[1], 3., epsilon);
     ASSERT_NEAR(trn[2], 4., epsilon);
 
     // Test constructor from matrix
-    auto m44 = getter::matrix(trf, ctx);
+    auto m44 = trf.matrix(ctx);
     transform3 trfm(m44, ctx);
 
     // Re-evaluate rot and trn
-    auto rotm = getter::rotation(trf, ctx);
+    auto rotm = trf.rotation(ctx);
     ASSERT_NEAR(rotm(0, 0), x[0], epsilon);
     ASSERT_NEAR(rotm(1, 0), x[1], epsilon);
     ASSERT_NEAR(rotm(2, 0), x[2], epsilon);
@@ -173,14 +173,14 @@ TEST(plugin, transform3)
     ASSERT_NEAR(rotm(1, 2), z[1], epsilon);
     ASSERT_NEAR(rotm(2, 2), z[2], epsilon);
 
-    auto trnm = getter::translation(trf, ctx);
+    auto trnm = trf.translation(ctx);
     ASSERT_NEAR(trnm[0], 2., epsilon);
     ASSERT_NEAR(trnm[1], 3., epsilon);
     ASSERT_NEAR(trnm[2], 4., epsilon);
 }
 
 // This test global coordinate transforms
-TEST(plugin, globalframes)
+TEST(plugin, global_transformations)
 {
     context ctx; 
 
@@ -193,15 +193,15 @@ TEST(plugin, globalframes)
 
     // Check that local origin translates into global translation
     point3 lzero(0.,0.,0.);
-    auto gzero = transform::lpoint3_to_gpoint3(trf, lzero, ctx);
+    auto gzero = trf.point_to_global(lzero, ctx);
     ASSERT_NEAR(gzero[0], t[0], epsilon);
     ASSERT_NEAR(gzero[1], t[1], epsilon);
     ASSERT_NEAR(gzero[2], t[2], epsilon);
 
     // Check a round trip for point
     point3 lpoint(3.,4.,5.);
-    auto gpoint = transform::lpoint3_to_gpoint3(trf, lpoint, ctx);
-    auto lpoint_r = transform::gpoint3_to_lpoint3(trf, gpoint, ctx);
+    auto gpoint = trf.point_to_global(lpoint, ctx);
+    auto lpoint_r = trf.point_to_local(gpoint, ctx);
     ASSERT_NEAR(lpoint[0], lpoint_r[0], isclose);
     ASSERT_NEAR(lpoint[1], lpoint_r[1], isclose);
     ASSERT_NEAR(lpoint[2], lpoint_r[2], isclose);
@@ -212,15 +212,15 @@ TEST(plugin, globalframes)
     transform3 ttrf(t, ctx);
 
     vector3 gvector(1.,1.,1);
-    auto lvector = transform::gvector3_to_lvector3(ttrf, gvector, ctx);
+    auto lvector = ttrf.vector_to_local(gvector, ctx);
     ASSERT_NEAR(gvector[0], lvector[0], isclose);
     ASSERT_NEAR(gvector[1], lvector[1], isclose);
     ASSERT_NEAR(gvector[2], lvector[2], isclose);
 
     // Check a round trip for vector
     vector3 lvectorB(7.,8.,9);        
-    vector3 gvectorB = transform::lvector3_to_gvector3(trf, lvectorB, ctx);
-    vector3 lvectorC = transform::gvector3_to_lvector3(trf, gvectorB, ctx);
+    vector3 gvectorB = trf.vector_to_local(lvectorB, ctx);
+    vector3 lvectorC = trf.vector_to_global(gvectorB, ctx);
     ASSERT_NEAR(lvectorB[0], lvectorC[0], isclose);
     ASSERT_NEAR(lvectorB[1], lvectorC[1], isclose);
     ASSERT_NEAR(lvectorB[2], lvectorC[2], isclose);
@@ -228,17 +228,17 @@ TEST(plugin, globalframes)
 }
 
 // This test local coordinate transforms
-TEST(plugin, localframes)
+TEST(plugin, local_transformations)
 {
-    point2 cartesian2(3.,3.);
-    point3 cartesian3(3.,3.,5.);
+    point2cart p2(3.,3.);
+    point3 p3(3.,3.,5.);
 
-    point2 cart2from3 = transform::point3_to_point2(cartesian3);
-    ASSERT_NEAR(cartesian2[0], cart2from3[0], epsilon);
-    ASSERT_NEAR(cartesian2[1], cart2from3[1], epsilon);
+    auto cart2fromp3 = cartesian2(p3);
+    ASSERT_NEAR(p2[0], cart2fromp3[0], epsilon);
+    ASSERT_NEAR(p2[1], cart2fromp3[1], epsilon);
 
-    point2pol polfrom2 = transform::point_to_point2pol(cartesian2);
-    point2pol polfrom3 = transform::point_to_point2pol(cartesian3);
+    auto polfrom2 = polar2(p2);
+    auto polfrom3 = polar2(p3);
 
     // Check r-phi 
     ASSERT_NEAR(polfrom2[0], sqrt(18.), isclose);
