@@ -4,6 +4,7 @@
 #include <Eigen/Geometry>
 
 #include <any>
+#include <tuple>
 #include <cmath>
 
 namespace detray
@@ -141,7 +142,7 @@ namespace detray
             return v.norm();
         }
 
-        /** This method retrieves rotation of a transform
+        /** This method retrieves the rotation of a transform
          * 
          * @param trf the input transform 
          * @param ctx the context object
@@ -153,15 +154,41 @@ namespace detray
             return trf.contextual(ctx).matrix().block<3, 3>(0, 0).eval();
         }
 
+      /** This method retrieves the translation of a transform
+         * 
+         * @param trf the input transform 
+         * @param ctx the context object
+         * 
+         * @note this is a contextual method
+         **/
         auto translation(const eigen::transform3 &trf, const eigen::transform3::context &ctx)
         {
             return trf.contextual(ctx).matrix().block<3, 1>(0, 3).eval();
         }
 
+       /** This method retrieves the 4x4 matrix of a transform
+         * 
+         * @param trf the input transform 
+         * @param ctx the context object
+         * 
+         * @note this is a contextual method
+         **/
         auto matrix(const eigen::transform3 &trf, const eigen::transform3::context &ctx)
         {
             return trf.contextual(ctx).matrix();
         }
+
+
+        /** This method retrieves a column from a matrix
+         * 
+         * @param m the input matrix 
+         **/
+        template <typename kCOLS, typename kROWS, typename derived_type>
+        auto block(const Eigen::MatrixBase<derived_type> &m, unsigned int col, unsigned int row)
+        {
+            return m.template block<kCOLS,kROWS>(col, row);
+        }
+
 
     } // namespace getter
 

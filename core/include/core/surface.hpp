@@ -28,6 +28,14 @@ namespace detray
         surface(const surface& lhs) = default;
         surface() = delete;
 
+        /** Return the transform type */
+        const transform_type& transform() const 
+        { return _trf; }
+
+        /** Return the transform type */
+        const source_type& source() const 
+        { return _src; }
+
     private:
         transform_type _trf;
         source_type _src;
