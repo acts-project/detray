@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/intersection.hpp"
+
 #include <cmath>
 #include <climits>
 
@@ -13,8 +15,8 @@ namespace detray
     template <typename scalar_type>
     struct rectangle2
     {
-        scalar_type h0 = std::numeric_limits<scalar_type>::infinity();
-        scalar_type h1 = std::numeric_limits<scalar_type>::infinity();
+        scalar_type _h0 = std::numeric_limits<scalar_type>::infinity();
+        scalar_type _h1 = std::numeric_limits<scalar_type>::infinity();
 
         /** Mask operation 
          * 
@@ -25,11 +27,11 @@ namespace detray
          * @param t0 is the tolerance in local 0
          * @param t1 is the tolerance in local 1
          * 
-         * @return a bool that is ture if inside
+         * @return an intersection status e_inside / e_outside
          **/
         template <typename point2_type>
-        bool operator()(const point2_type& p, scalar_type t0=0., scalar_type t1=0.) const{
-            return std::abs(p[0]) <= h0+t0 and std::abs(p[1]) <= h1+t1;
+        intersection_status operator()(const point2_type& p, scalar_type t0=0., scalar_type t1=0.) const{
+            return ( std::abs(p[0]) <= _h0+t0 and std::abs(p[1]) <= _h1+t1) ? e_inside : e_outside;
         }
     };
     

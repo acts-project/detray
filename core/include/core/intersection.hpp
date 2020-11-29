@@ -2,37 +2,50 @@
 
 #include <climits>
 #include <optional>
+#include <tuple>
 
 namespace detray
 {
+
+    /** Intersection status: outside, missed, insidem, hit ( w/o maks status) */
+    enum intersection_status : int
+    {
+        e_outside = -1, //!< surface hit but outside
+        e_missed = 0,   //!< surface missed
+        e_hit = 1,      //!< surface hit but status not checked
+        e_inside = 2    //!< surface hit and inside confirmed
+    };
+
     /** This templated class holds the intersection information
      * 
      * @tparam scalar_type is the type of the used scalar for intersecting
-     * @tparam gvector_type is the type of global intsersection vector
-     * @tparam lvector_type is the type of the local intersection vector
+     * @tparam point3_type is the type of global intsersection vector
+     * @tparam point2_type is the type of the local intersection vector
      * 
      **/
-    template <typename scalar_type, typename gvector_type, typename lvector_type>
+    template <typename scalar_type, typename point3_type, typename point2_type>
     struct intersection
     {
-        scalar_type path = std::numeric_limits<scalar_type>::infinity();
-        std::optional<gvector_type> point3 = std::nullopt;
-        std::optional<lvector_type> point2 = std::nullopt;
+
+        scalar_type _path = std::numeric_limits<scalar_type>::infinity();
+        std::optional<point3_type> _point3 = std::nullopt;
+        std::optional<point2_type> _point2 = std::nullopt;
+        intersection_status _status = e_missed;
 
         /** @param rhs is the right hand side intersection for comparison 
          **/
         bool operator<(
-            const intersection<scalar_type, gvector_type, lvector_type> &rhs) const
+            const intersection<scalar_type, point3_type, point2_type> &rhs) const
         {
-            return (path < rhs.path);
+            return (_path < rhs._path);
         }
 
         /** @param rhs is the left hand side intersection for comparison 
          **/
         bool operator>(
-           const intersection<scalar_type, gvector_type, lvector_type> &rhs) const
+            const intersection<scalar_type, point3_type, point2_type> &rhs) const
         {
-            return (path > rhs.path);
+            return (_path > rhs._path);
         }
     };
 

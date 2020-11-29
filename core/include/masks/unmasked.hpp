@@ -1,10 +1,13 @@
 #pragma once
 
+#include "core/intersection.hpp"
+
 #include <climits>
+#include <optional>
 
 namespace detray
 {
-    template <typename scalar_type>
+    template <typename scalar_type = std::nullopt_t>
     struct unmasked
     {
         
@@ -18,9 +21,9 @@ namespace detray
          * @return a bool that is ture if inside
          **/
         template <typename point2_type>
-        bool operator()(const point2_type & /*ignored*/) const
+        intersection_status operator()(const point2_type & /*ignored*/) const
         {
-            return true;
+            return e_hit;
         }
 
         /** Mask operation 

@@ -76,7 +76,7 @@ namespace detray
          * 
          * @param m the input matrix 
          **/
-        template <typename kCOLS, typename kROWS, typename derived_type>
+        template <unsigned int kCOLS, unsigned int kROWS, typename derived_type>
         auto block(const Eigen::MatrixBase<derived_type> &m, unsigned int col, unsigned int row)
         {
             return m.template block<kCOLS, kROWS>(col, row);
@@ -132,8 +132,6 @@ namespace detray
             /** Constructor with arguments: matrix 
              * 
              * @param mat is the full 4x4 matrix 
-             * 
-             * @note this is a contextual method
              **/
             transform3(const matrix44 &m, const context & /*ctx*/)
             {
@@ -146,7 +144,7 @@ namespace detray
              * 
              * @note this is a contextual method
              **/
-            auto rotation(const context & /*ctx*/)
+            auto rotation(const context & /*ctx*/) const
             {
                 return _data.matrix().block<3, 3>(0, 0).eval();
             }
@@ -157,7 +155,7 @@ namespace detray
              * 
              * @note this is a contextual method
              **/
-            auto translation(const context & /*ctx*/)
+            auto translation(const context & /*ctx*/) const
             {
                 return _data.matrix().block<3, 1>(0, 3).eval();
             }
@@ -168,7 +166,7 @@ namespace detray
              * 
              * @note this is a contextual method
              **/
-            auto matrix(const context & /*ctx*/)
+            auto matrix(const context & /*ctx*/) const
             {
                 return _data.matrix();
             }
@@ -178,7 +176,7 @@ namespace detray
              * @note this is a contextual method 
              **/
             template <typename derived_type>
-            const auto point_to_global(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/)
+            const auto point_to_global(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -191,7 +189,7 @@ namespace detray
              * @note this is a contextual method 
              **/
             template <typename derived_type>
-            const auto point_to_local(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/)
+            const auto point_to_local(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -204,7 +202,7 @@ namespace detray
              * @note this is a contextual method 
              **/
             template <typename derived_type>
-            const auto vector_to_global(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/)
+            const auto vector_to_global(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -217,7 +215,7 @@ namespace detray
              * @note this is a contextual method 
              **/
             template <typename derived_type>
-            const auto vector_to_local(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/)
+            const auto vector_to_local(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -235,7 +233,7 @@ namespace detray
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
              */
             template <typename derived_type>
-            const auto operator()(const Eigen::MatrixBase<derived_type> &v)
+            const auto operator()(const Eigen::MatrixBase<derived_type> &v) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -252,7 +250,7 @@ namespace detray
 
             /** This method transform from a point from 2D or 3D cartesian frame to a 2D polar point */
             template <typename derived_type>
-            const auto operator()(const Eigen::MatrixBase<derived_type> &v)
+            const auto operator()(const Eigen::MatrixBase<derived_type> &v) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -269,7 +267,7 @@ namespace detray
 
             /** This method transform from a point from 2 3D cartesian frame to a 2D cylindrical point */
             template <typename derived_type>
-            const auto operator()(const Eigen::MatrixBase<derived_type> &v)
+            const auto operator()(const Eigen::MatrixBase<derived_type> &v) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -298,30 +296,32 @@ namespace detray
 
         /** Dot product between two input vectors
          * 
-         * @tparam derived_type is the matrix template
+         * @tparam derived_type_lhs is the first matrix (epresseion) template
+         * @tparam derived_type_rhs is the second matrix (epresseion) template
          * 
          * @param a the first input vector
          * @param b the second input vector
          * 
          * @return the scalar dot product value 
          **/
-        template <typename derived_type>
-        auto dot(const Eigen::MatrixBase<derived_type> &a, const Eigen::MatrixBase<derived_type> &b)
+        template <typename derived_type_lhs, typename derived_type_rhs>
+        auto dot(const Eigen::MatrixBase<derived_type_lhs> &a, const Eigen::MatrixBase<derived_type_rhs> &b)
         {
             return a.dot(b);
         }
 
         /** Cross product between two input vectors
          * 
-         * @tparam derived_type is the matrix template
-         * 
+         * @tparam derived_type_lhs is the first matrix (epresseion) template
+         * @tparam derived_type_rhs is the second matrix (epresseion) template
+         *           
          * @param a the first input vector
          * @param b the second input vector
          * 
          * @return a vector (expression) representing the cross product
          **/
-        template <typename derived_type>
-        auto cross(const Eigen::MatrixBase<derived_type> &a, const Eigen::MatrixBase<derived_type> &b)
+        template <typename derived_type_lhs, typename derived_type_rhs>
+        auto cross(const Eigen::MatrixBase<derived_type_lhs> &a, const Eigen::MatrixBase<derived_type_rhs> &b)
         {
             return a.cross(b);
         }

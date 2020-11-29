@@ -12,11 +12,15 @@ install(TARGETS detray_core
 )
 
 install(
+  DIRECTORY include/core
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(
   DIRECTORY include/masks
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(
-  DIRECTORY include/core
+  DIRECTORY include/tools
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_library(detray::core ALIAS detray_core)

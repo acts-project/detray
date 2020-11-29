@@ -14,11 +14,11 @@ TEST(mask, rectangle2)
 
     rectangle2<scalar> r2 = {1., 9.3};
 
-    ASSERT_TRUE(r2(p2_in));
-    ASSERT_TRUE(r2(p2_edge));
-    ASSERT_FALSE(r2(p2_out));
-    // Move out in with tolerance
-    ASSERT_TRUE(r2(p2_out, 1., 0.5));
+    ASSERT_TRUE(r2(p2_in) == intersection_status::e_inside);
+    ASSERT_TRUE(r2(p2_edge) == intersection_status::e_inside);
+    ASSERT_TRUE(r2(p2_out) == intersection_status::e_outside);
+    // Move outside point inside using a tolerance
+    ASSERT_TRUE(r2(p2_out, 1., 0.5) == intersection_status::e_inside);
 }
 
 // Google Test can be run manually from the main() function

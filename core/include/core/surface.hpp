@@ -11,8 +11,11 @@ namespace detray
      */
     template <typename transform_type, typename source_type = int>
     class surface
-    {
+    {        
     public:
+        /** Broadcast the transform type */
+        using transform3 = transform_type;
+
         /** Only allowed parameter constructor
          * 
          * @param trf the transform for positioning and 3D local frame 
