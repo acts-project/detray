@@ -14,11 +14,26 @@ namespace detray
      */
     struct planar_intersector
     {
-        /** A representation that is not bound to a local frame
+        
+         /** A representation that is not bound to a local frame
          */
         struct unbound
         {
             using point2 = int;
+
+             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
+              * including the contextual transform into the local 3D frame
+              * 
+              * @tparam the type of the surface from which also point3 and context type can be deduced
+              * 
+              */
+            template <typename surface_type>
+            const std::optional<point2> operator()(const surface_type & /*ignored*/, 
+                                                   const typename surface_type::transform3::point3 & /*ignored*/,
+                                                   const typename surface_type::transform3::context & /*ignored*/) const
+            {
+                return std::nullopt;
+            }
 
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
              */
@@ -73,7 +88,7 @@ namespace detray
                 intersection is;
                 is._path = vector::dot(sn, (st - ro)) / (denom);
                 is._point3 = ro + is._path * rd;
-                is._point2 = local(is._point3);
+                is._point2 = local(s, is._point3, ctx);
                 is._status = mask(is._point2);
 
                 return is;

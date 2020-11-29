@@ -37,9 +37,9 @@ TEST(plugin, translated_plane)
     planar_intersector pi;
 
     auto hit0 = pi.intersect(shifted_plane, point3{2.,1.,0.}, vector3{0.,0.,1.}, ctx);
-    ASSERT_NEAR(hit0._point3.value()[0], 2., epsilon);
-    ASSERT_NEAR(hit0._point3.value()[1], 1., epsilon);
-    ASSERT_NEAR(hit0._point3.value()[2], 10., epsilon);
+    ASSERT_NEAR(hit0._point3[0], 2., epsilon);
+    ASSERT_NEAR(hit0._point3[1], 1., epsilon);
+    ASSERT_NEAR(hit0._point3[2], 10., epsilon);
 }
 
 // Google Test can be run manually from the main() function

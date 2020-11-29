@@ -28,7 +28,9 @@ namespace detray
     {
 
         scalar_type _path = std::numeric_limits<scalar_type>::infinity();
-        std::optional<point3_type> _point3 = std::nullopt;
+        point3_type _point3 = point3_type(std::numeric_limits<scalar_type>::infinity(),
+                                          std::numeric_limits<scalar_type>::infinity(),
+                                          std::numeric_limits<scalar_type>::infinity());
         std::optional<point2_type> _point2 = std::nullopt;
         intersection_status _status = e_missed;
 

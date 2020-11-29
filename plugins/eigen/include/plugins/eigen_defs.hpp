@@ -230,6 +230,20 @@ namespace detray
         {
             using point2 = Eigen::Matrix<scalar, 2, 1>;
 
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
+              * including the contextual transform into the local 3D frame
+              * 
+              * @tparam the type of the surface from which also point3 and context type can be deduced
+              * 
+              */
+            template <typename surface_type>
+            const auto operator()(const surface_type &s,
+                                  const typename surface_type::transform3::point3 &p,
+                                  const typename surface_type::transform3::context &ctx) const
+            {
+                return operator()(s.point_to_local(p, ctx));
+            }
+
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
              */
             template <typename derived_type>
@@ -248,6 +262,20 @@ namespace detray
         {
             using point2 = Eigen::Matrix<scalar, 2, 1>;
 
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
+              * including the contextual transform into the local 3D frame
+              * 
+              * @tparam the type of the surface from which also point3 and context type can be deduced
+              * 
+              */
+            template <typename surface_type>
+            const auto operator()(const surface_type &s,
+                                  const typename surface_type::transform3::point3 &p,
+                                  const typename surface_type::transform3::context &ctx) const
+            {
+                return operator()(s.point_to_local(p, ctx));
+            }
+
             /** This method transform from a point from 2D or 3D cartesian frame to a 2D polar point */
             template <typename derived_type>
             const auto operator()(const Eigen::MatrixBase<derived_type> &v) const
@@ -265,6 +293,20 @@ namespace detray
         {
             using point2 = Eigen::Matrix<scalar, 2, 1>;
 
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
+              * including the contextual transform into the local 3D frame
+              * 
+              * @tparam the type of the surface from which also point3 and context type can be deduced
+              * 
+              */
+            template <typename surface_type>
+            const auto operator()(const surface_type &s,
+                                  const typename surface_type::transform3::point3 &p,
+                                  const typename surface_type::transform3::context &ctx) const
+            {
+                return operator()(s.point_to_local(p, ctx));
+            }
+            
             /** This method transform from a point from 2 3D cartesian frame to a 2D cylindrical point */
             template <typename derived_type>
             const auto operator()(const Eigen::MatrixBase<derived_type> &v) const
