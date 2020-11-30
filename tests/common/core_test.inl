@@ -30,7 +30,7 @@ TEST(plugin, surface)
     point3 t(2., 3., 4.);
     transform3 trf(t, z, x, ctx);
 
-    surface s(std::move(trf), 1);
+    surface s(std::move(trf),-1,-1);
 }
 
 // This tests the construction of a intresection
@@ -38,7 +38,7 @@ TEST(plugin, intersection)
 {
     using intersection = intersection<scalar, point3, point2>;
 
-    intersection i0 = {2., point3(0.3, 0.5, 0.7), std::nullopt, intersection_status::e_hit};
+    intersection i0 = {2., point3(0.3, 0.5, 0.7), point2(0.2, 0.4), intersection_status::e_hit};
 
     intersection i1 = {1.7, point3(0.2, 0.3, 0.), point2(0.2, 0.4), intersection_status::e_inside};
 

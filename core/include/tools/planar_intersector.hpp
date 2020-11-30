@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <climits>
+#include <optional>
 
 #include "core/intersection.hpp"
 #include "core/surface.hpp"
@@ -55,9 +56,9 @@ namespace detray
          * @param ro the origin of the ray
          * @param rd the direction of the ray
          * @param ctx the context of the call
+         * @param local to the local local frame 
          * 
          * Non-contextual part:
-         * @param local the local local frame 
          * @param mask the local mask 
          * 
          * @return the intersection with optional parameters
@@ -89,7 +90,7 @@ namespace detray
                 is._path = vector::dot(sn, (st - ro)) / (denom);
                 is._point3 = ro + is._path * rd;
                 is._point2 = local(s, is._point3, ctx);
-                is._status = mask(is._point2);
+                is._status = mask(is._point2.value_or(point2()));
 
                 return is;
             }

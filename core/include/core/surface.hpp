@@ -7,23 +7,25 @@ namespace detray
     /** Templated surface class
      * 
      * @tparam transform_type the type of the global 3D to local 3D frame
-     * @tparam source_type the type of the Source representation 
+     * @tparam mask_link the type of the maks/maskj link representation
+     * @tparam source_link the type of the source/source link representation 
      */
-    template <typename transform_type, typename source_type = int>
+    template <typename transform_type, typename mask_link = int, typename source_link = int>
     class surface
     {        
     public:
         /** Broadcast the transform type */
         using transform3 = transform_type;
 
-        /** Only allowed parameter constructor
+        /** Constructor with full arguments
          * 
          * @param trf the transform for positioning and 3D local frame 
-         * @param src the source object this surface is representing
+         * @param msk thie mask/mask link for this surface 
+         * @param src the source object/source link this surface is representing
          * 
          **/
-        surface(transform_type &&trf, source_type &&src)
-            : _trf(std::move(trf)), _src(std::move(src))
+        surface(transform_type &&trf, mask_link&& mask, source_link &&src)
+            : _trf(std::move(trf)), _mask(mask), _src(std::move(src))
         {
         }        
 
@@ -36,12 +38,17 @@ namespace detray
         { return _trf; }
 
         /** Return the transform type */
-        const source_type& source() const 
+        const mask_link& maks() const 
+        { return _mask; }
+
+        /** Return the source/source link type */
+        const source_link& source() const 
         { return _src; }
 
     private:
         transform_type _trf;
-        source_type _src;
+        mask_link _mask;
+        source_link _src;
 
     };
 } // namespace detray

@@ -6,8 +6,8 @@ using namespace detray;
 
 // Two-dimensional definitions
 using point2cart = plugin::cartesian2::point2;
-using point2pol  = plugin::polar2::point2;
-using point2cyl  = plugin::cylindrical2::point2;
+using point2pol = plugin::polar2::point2;
+using point2cyl = plugin::cylindrical2::point2;
 plugin::cartesian2 cartesian2;
 plugin::polar2 polar2;
 plugin::cylindrical2 cylindrical2;
@@ -182,7 +182,7 @@ TEST(plugin, transform3)
 // This test global coordinate transforms
 TEST(plugin, global_transformations)
 {
-    context ctx; 
+    context ctx;
 
     // Preparatioon work
     vector3 z = vector::normalize(vector3(3., 2., 1.));
@@ -192,14 +192,14 @@ TEST(plugin, global_transformations)
     transform3 trf(t, z, x, ctx);
 
     // Check that local origin translates into global translation
-    point3 lzero(0.,0.,0.);
+    point3 lzero(0., 0., 0.);
     auto gzero = trf.point_to_global(lzero, ctx);
     ASSERT_NEAR(gzero[0], t[0], epsilon);
     ASSERT_NEAR(gzero[1], t[1], epsilon);
     ASSERT_NEAR(gzero[2], t[2], epsilon);
 
     // Check a round trip for point
-    point3 lpoint(3.,4.,5.);
+    point3 lpoint(3., 4., 5.);
     auto gpoint = trf.point_to_global(lpoint, ctx);
     auto lpoint_r = trf.point_to_local(gpoint, ctx);
     ASSERT_NEAR(lpoint[0], lpoint_r[0], isclose);
@@ -211,27 +211,26 @@ TEST(plugin, global_transformations)
     point3 tt(2., 3., 4.);
     transform3 ttrf(t, ctx);
 
-    vector3 gvector(1.,1.,1);
+    vector3 gvector(1., 1., 1);
     auto lvector = ttrf.vector_to_local(gvector, ctx);
     ASSERT_NEAR(gvector[0], lvector[0], isclose);
     ASSERT_NEAR(gvector[1], lvector[1], isclose);
     ASSERT_NEAR(gvector[2], lvector[2], isclose);
 
     // Check a round trip for vector
-    vector3 lvectorB(7.,8.,9);        
+    vector3 lvectorB(7., 8., 9);
     vector3 gvectorB = trf.vector_to_local(lvectorB, ctx);
     vector3 lvectorC = trf.vector_to_global(gvectorB, ctx);
     ASSERT_NEAR(lvectorB[0], lvectorC[0], isclose);
     ASSERT_NEAR(lvectorB[1], lvectorC[1], isclose);
     ASSERT_NEAR(lvectorB[2], lvectorC[2], isclose);
-
 }
 
 // This test local coordinate transforms
 TEST(plugin, local_transformations)
 {
-    point2cart p2(3.,3.);
-    point3 p3(3.,3.,5.);
+    point2cart p2(3., 3.);
+    point3 p3(3., 3., 5.);
 
     auto cart2fromp3 = cartesian2(p3);
     ASSERT_NEAR(p2[0], cart2fromp3[0], epsilon);
@@ -240,14 +239,13 @@ TEST(plugin, local_transformations)
     auto polfrom2 = polar2(p2);
     auto polfrom3 = polar2(p3);
 
-    // Check r-phi 
+    // Check r-phi
     ASSERT_NEAR(polfrom2[0], sqrt(18.), isclose);
     ASSERT_NEAR(polfrom2[1], M_PI_4, isclose);
 
     // Need to be identical
     ASSERT_NEAR(polfrom2[0], polfrom3[0], epsilon);
     ASSERT_NEAR(polfrom2[1], polfrom3[1], epsilon);
-
 }
 
 // Google Test can be run manually from the main() function

@@ -32,7 +32,6 @@ set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
 
 add_subdirectory(core)
 add_subdirectory(plugins)
-add_subdirectory(examples)
 
 if(DETRAY_TESTS)
     enable_testing()

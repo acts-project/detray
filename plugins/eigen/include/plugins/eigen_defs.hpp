@@ -6,6 +6,7 @@
 #include <any>
 #include <tuple>
 #include <cmath>
+#include <iostream>
 
 namespace detray
 {
@@ -241,7 +242,7 @@ namespace detray
                                   const typename surface_type::transform3::point3 &p,
                                   const typename surface_type::transform3::context &ctx) const
             {
-                return operator()(s.point_to_local(p, ctx));
+                return operator()(s.transform().point_to_local(p, ctx));
             }
 
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
@@ -252,7 +253,7 @@ namespace detray
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
                 static_assert(rows == 3 and cols == 1, "transform::point3_to_point2(v) requires a (3,1) matrix");
-                return v.template segment<2>(0);
+                return (v.template segment<2>(0)).eval();
             }
         };
 
@@ -273,7 +274,7 @@ namespace detray
                                   const typename surface_type::transform3::point3 &p,
                                   const typename surface_type::transform3::context &ctx) const
             {
-                return operator()(s.point_to_local(p, ctx));
+                return operator()(s.transform().point_to_local(p, ctx));
             }
 
             /** This method transform from a point from 2D or 3D cartesian frame to a 2D polar point */
@@ -304,9 +305,9 @@ namespace detray
                                   const typename surface_type::transform3::point3 &p,
                                   const typename surface_type::transform3::context &ctx) const
             {
-                return operator()(s.point_to_local(p, ctx));
+                return operator()(s.transform().point_to_local(p, ctx));
             }
-            
+
             /** This method transform from a point from 2 3D cartesian frame to a 2D cylindrical point */
             template <typename derived_type>
             const auto operator()(const Eigen::MatrixBase<derived_type> &v) const
