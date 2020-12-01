@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdlib>
-#include <filesystem>
+#include <ios>
 
 // This tests the reading of the Track ML detector
 TEST(eigen, read_tml_detector)
@@ -23,7 +23,7 @@ TEST(eigen, read_tml_detector)
 
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
     if (env_d_d == nullptr){
-        throw std::filesystem::filesystem_error("Test data directory not found. Please set DETRAY_TEST_DATA_DIR.", std::error_code());
+        throw std::ios_base::failure("Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
     }
     auto data_directory = std::string(env_d_d);
     auto detector = read_csv<transform3>(data_directory+std::string("/tml-detector.csv"));
