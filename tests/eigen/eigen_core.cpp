@@ -3,7 +3,7 @@
  * 
  * (c) 2020 CERN for the benefit of the ACTS project
  * 
- * Licenced under: Apache-2, see LICENSE file
+ * Mozilla Public License Version 2.0
  */
 
 #include <gtest/gtest.h>
