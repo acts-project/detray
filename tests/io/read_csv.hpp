@@ -101,9 +101,9 @@ namespace detray
 
             std::array<scalar, 16> matrix_array = {x0, y0, z0, t0, x1, y1, z1, t1, x2, y2, z2, t2, 0., 0., 0., 1.};
 
-            float mhx_miny = std::atof(split_strings[16].c_str());
-            float mhx_maxy = std::atof(split_strings[17].c_str());
-            float mhy = std::atof(split_strings[18].c_str());
+            float mhx_miny = std::atof(split_strings[17].c_str());
+            float mhx_maxy = std::atof(split_strings[18].c_str());
+            float mhy = std::atof(split_strings[19].c_str());
             std::array<scalar, 3> mask = {mhx_miny, mhx_maxy, mhy};
 
             context default_context;

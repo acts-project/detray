@@ -11,6 +11,8 @@
 #include "tools/planar_intersector.hpp"
 #include "../io/read_csv.hpp"
 
+#include <fstream>
+
 using namespace detray;
 
 using transform3 = eigen::transform3;
@@ -19,8 +21,9 @@ using vector3 = transform3::vector3;
 using context = transform3::context;
 using surface = surface<transform3>;
 
-unsigned int theta_steps = 10;
-unsigned int phi_steps = 10;
+unsigned int theta_steps = 100;
+unsigned int phi_steps = 100;
+bool stream_file = false;
 
 eigen::cartesian2 cartesian2;
 
@@ -41,6 +44,13 @@ auto detector = read_from_file();
 // This test runs intersection with all surfaces of the TrackML detector
 static void BM_INTERSECT_ALL(benchmark::State &state)
 {
+
+    std::ofstream hit_out;
+    if (stream_file)
+    {
+        hit_out.open("tml_hits.csv");
+    }
+
     unsigned int hits_inside = 0;
     unsigned int hits_outside = 0;
     unsigned int hits_missed = 0;
@@ -78,6 +88,10 @@ static void BM_INTERSECT_ALL(benchmark::State &state)
                             if (hit._status == e_inside)
                             {
                                 ++hits_inside;
+                                if (stream_file)
+                                {
+                                    hit_out << hit._point3[0] << "," << hit._point3[1] << "," << hit._point3[2] << "\n";
+                                }
                             }
                             else if (hit._status == e_outside)
                             {
@@ -92,6 +106,10 @@ static void BM_INTERSECT_ALL(benchmark::State &state)
                 }
             }
         }
+    }
+    if (stream_file)
+    {
+        hit_out.close();
     }
 }
 
