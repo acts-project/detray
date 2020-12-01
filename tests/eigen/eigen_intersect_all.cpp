@@ -24,14 +24,23 @@ unsigned int phi_steps = 10;
 
 eigen::cartesian2 cartesian2;
 
-auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
-auto data_directory = std::string(env_d_d);
-auto detector = read_csv<transform3>(data_directory + std::string("/tml-detector.csv"));
+/** Read the detector from file */
+auto read_from_file()
+{
+    auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
+    if (env_d_d == nullptr)
+    {
+        throw std::ios_base::failure("Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
+    }
+    auto data_directory = std::string(env_d_d);
+    return read_csv<transform3>(data_directory + std::string("/tml-detector.csv"));
+};
+
+auto detector = read_from_file();
 
 // This test runs intersection with all surfaces of the TrackML detector
 static void BM_INTERSECT_ALL(benchmark::State &state)
 {
-
     unsigned int hits_inside = 0;
     unsigned int hits_outside = 0;
     unsigned int hits_missed = 0;
