@@ -4,6 +4,7 @@
 #include <Eigen/Geometry>
 
 #include <any>
+#include <array>
 #include <tuple>
 #include <cmath>
 #include <iostream>
@@ -132,12 +133,26 @@ namespace detray
 
             /** Constructor with arguments: matrix 
              * 
-             * @param mat is the full 4x4 matrix 
+             * @param m is the full 4x4 matrix 
              **/
             transform3(const matrix44 &m, const context & /*ctx*/)
             {
                 _data.matrix() = m;
             }
+
+            /** Constructor with arguments: matrix as std::aray of scalar
+             * 
+             * @param ma is the full 4x4 matrix asa 16 array
+             **/
+            transform3(const std::array<scalar, 16> &ma, const context & /*ctx*/)
+            {
+                _data.matrix() << ma[0], ma[1], ma[2], ma[3], ma[4], ma[5], ma[6], ma[7],
+                ma[8], ma[9], ma[10], ma[11], ma[12], ma[13], ma[14], ma[15];
+            }
+
+            /** Default contructors */
+            transform3(const transform3& rhs) = default;
+            ~transform3() = default;
 
             /** This method retrieves the rotation of a transform
              * 

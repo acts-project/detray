@@ -7,8 +7,6 @@ project(detray VERSION 0.0 LANGUAGES CXX)
 
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
-# find_package(Visionaray)
-
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" Off)
 

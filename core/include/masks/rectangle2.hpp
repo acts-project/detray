@@ -1,7 +1,14 @@
+/** Detray library, part of the ACTS project (R&D line)
+ * 
+ * (c) 2020 CERN for the benefit of the ACTS project
+ * 
+ * Licenced under: Apache-2, see LICENSE file
+ */
 #pragma once
 
 #include "core/intersection.hpp"
 
+#include <array>
 #include <cmath>
 #include <climits>
 
@@ -15,8 +22,9 @@ namespace detray
     template <typename scalar_type>
     struct rectangle2
     {
-        scalar_type _h0 = std::numeric_limits<scalar_type>::infinity();
-        scalar_type _h1 = std::numeric_limits<scalar_type>::infinity();
+        std::array<scalar_type,2> _h = 
+            { std::numeric_limits<scalar_type>::infinity(),
+              std::numeric_limits<scalar_type>::infinity() };
 
         /** Mask operation 
          * 
@@ -31,8 +39,31 @@ namespace detray
          **/
         template <typename point2_type>
         intersection_status operator()(const point2_type& p, scalar_type t0=0., scalar_type t1=0.) const{
-            return ( std::abs(p[0]) <= _h0+t0 and std::abs(p[1]) <= _h1+t1) ? e_inside : e_outside;
+            return ( std::abs(p[0]) <= _h[0]+t0 and std::abs(p[1]) <= _h[1]+t1) ? e_inside : e_outside;
         }
+
+
+        /** Equality operator from an array, convenience function
+         * 
+         * @param rhs is the rectangle to be compared with
+         * 
+         * checks identity within epsilon and @return s a boolean*
+         **/
+        bool operator==(const std::array<scalar_type, 2>& rhs){
+            return (std::abs(_h[0]-rhs[0]) < std::numeric_limits<scalar_type>::epsilon()
+                and std::abs(_h[1]-rhs[1]) < std::numeric_limits<scalar_type>::epsilon());
+        }
+
+        /** Equality operator 
+         * 
+         * @param rhs is the rectangle to be compared with
+         * 
+         * checks identity within epsilon and @return s a boolean*
+         **/
+        bool operator==(const rectangle2<scalar_type>& rhs){
+            return operator==(rhs._h);
+        }
+
     };
     
 } // namespace detray

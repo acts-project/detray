@@ -1,3 +1,10 @@
+/** Detray library, part of the ACTS project (R&D line)
+ * 
+ * (c) 2020 CERN for the benefit of the ACTS project
+ * 
+ * Licenced under: Apache-2, see LICENSE file
+ */
+
 #include <cmath>
 #include <climits>
 
@@ -162,7 +169,7 @@ TEST(plugin, transform3)
     transform3 trfm(m44, ctx);
 
     // Re-evaluate rot and trn
-    auto rotm = trf.rotation(ctx);
+    auto rotm = trfm.rotation(ctx);
     ASSERT_NEAR(rotm(0, 0), x[0], epsilon);
     ASSERT_NEAR(rotm(1, 0), x[1], epsilon);
     ASSERT_NEAR(rotm(2, 0), x[2], epsilon);
@@ -173,10 +180,32 @@ TEST(plugin, transform3)
     ASSERT_NEAR(rotm(1, 2), z[1], epsilon);
     ASSERT_NEAR(rotm(2, 2), z[2], epsilon);
 
-    auto trnm = trf.translation(ctx);
+    auto trnm = trfm.translation(ctx);
     ASSERT_NEAR(trnm[0], 2., epsilon);
     ASSERT_NEAR(trnm[1], 3., epsilon);
     ASSERT_NEAR(trnm[2], 4., epsilon);
+
+    // Check a contruction from an array[16]
+    std::array<scalar, 16> matray = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0};
+    transform3 trfma(matray, ctx);
+
+    // Re-evaluate rot and trn
+    auto rotma = trfma.rotation(ctx);
+    ASSERT_NEAR(rotma(0, 0), 1., epsilon);
+    ASSERT_NEAR(rotma(1, 0), 0., epsilon);
+    ASSERT_NEAR(rotma(2, 0), 0., epsilon);
+    ASSERT_NEAR(rotma(0, 1), 0., epsilon);
+    ASSERT_NEAR(rotma(1, 1), 1., epsilon);
+    ASSERT_NEAR(rotma(2, 1), 0., epsilon);
+    ASSERT_NEAR(rotma(0, 2), 0., epsilon);
+    ASSERT_NEAR(rotma(1, 2), 0., epsilon);
+    ASSERT_NEAR(rotma(2, 2), 1., epsilon);
+
+    auto trnma = trfma.translation(ctx);
+    ASSERT_NEAR(trnma[0], 0., epsilon);
+    ASSERT_NEAR(trnma[1], 0., epsilon);
+    ASSERT_NEAR(trnma[2], 0., epsilon);
+
 }
 
 // This test global coordinate transforms

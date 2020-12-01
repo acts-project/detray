@@ -1,8 +1,13 @@
+/** Detray library, part of the ACTS project (R&D line)
+ * 
+ * (c) 2020 CERN for the benefit of the ACTS project
+ * 
+ * Licenced under: Apache-2, see LICENSE file
+ */
 #pragma once
 
 #include "core/intersection.hpp"
 
-#include <climits>
 #include <optional>
 
 namespace detray
