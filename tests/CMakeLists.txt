@@ -1,8 +1,9 @@
+enable_testing()
+
 add_subdirectory(common)
 add_subdirectory(io)
 
 if(DETRAY_UNIT_TESTS)
-    enable_testing()
     add_subdirectory(unit_tests)
 endif()
 

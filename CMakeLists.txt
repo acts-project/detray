@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.11)
 
 project(detray VERSION 0.0 LANGUAGES CXX)
 
+enable_testing()
+
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)

@@ -21,5 +21,6 @@ endmacro()
 
 add_subdirectory(core)
 if(DETRAY_EIGEN_PLUGIN)
+    enable_testing()
     add_subdirectory(eigen)
 endif()

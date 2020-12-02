@@ -1,3 +1,5 @@
+enable_testing()
+
 add_detray_test(eigen_plugin
                 eigen_plugin.cpp
                 detray::eigen)
