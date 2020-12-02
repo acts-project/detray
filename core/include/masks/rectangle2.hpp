@@ -11,13 +11,12 @@
 #include <array>
 #include <cmath>
 #include <climits>
-#include <iostream>
 
 namespace detray
 {
     /** This is a simple 2-dimensional mask for a regular rectangle
      * 
-     * It is defined by half length in local0 coord inate_h[0] and local1 _h[1], 
+     * It is defined by half length in local0 coordinates _h[0] and _h[1], 
      * and can be checked with a tolerance in t0 and t1.
      **/
     template <typename scalar_type>

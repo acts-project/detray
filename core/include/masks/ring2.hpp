@@ -11,21 +11,19 @@
 #include <array>
 #include <cmath>
 #include <climits>
-#include <iostream>
 
 namespace detray
 {
-    /** This is a simple 2-dimensional mask for a regular trapezoid
+    /** This is a simple 2-dimensional mask for a closed ring
      * 
-     * It is defined by half lengths in local0 coordinate _h[0] and _h[1] at
-     * -/+ half length in the local1 coordinate _h[2]
+     * It is defined by the two radii _r[0] and  _r[1], 
+     * and can be checked with a tolerance in t0 and t1.
      **/
     template <typename scalar_type>
-    struct trapezoid2
+    struct ring2
     {
-        std::array<scalar_type, 3> _h =
-            {std::numeric_limits<scalar_type>::infinity(),
-             std::numeric_limits<scalar_type>::infinity(),
+        std::array<scalar_type, 2> _r =
+            {0.,
              std::numeric_limits<scalar_type>::infinity()};
 
         /** Mask operation 
@@ -35,15 +33,15 @@ namespace detray
          * 
          * @param p the point to be checked
          * @param t0 is the tolerance in local 0
-         * @param t1 is the tolerance in local 1
+         * @param t1 is the tolerance in local 1 and is ignored
          * 
          * @return an intersection status e_inside / e_outside
          **/
         template <typename point2_type>
-        intersection_status operator()(const point2_type &p, scalar_type t0 = 0., scalar_type t1 = 0.) const
+        intersection_status operator()(const point2_type &p, scalar_type t0 = 0., scalar_type /*ignored*/) const
         {
-            scalar_type rel_y = (_h[2] + p[1])/(2 * _h[2]);
-            return (std::abs(p[0]) <= _h[0] + rel_y * (_h[1] - _h[0]) + t0  and std::abs(p[1]) <= _h[2] + t1) ? e_inside : e_outside;
+            scalar_type r = vector::perp(2);
+            return (r + t0 > _r[0] and r < _r[1] + t0) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -52,9 +50,9 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const std::array<scalar_type, 3> &rhs)
+        bool operator==(const std::array<scalar_type, 2> &rhs)
         {
-            return (std::abs(_h[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_h[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_h[2] - rhs[2]) < std::numeric_limits<scalar_type>::epsilon());
+            return (std::abs(_r[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_r[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon());
         }
 
         /** Equality operator 
@@ -63,7 +61,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const trapezoid2<scalar_type> &rhs)
+        bool operator==(const rectangle2<scalar_type> &rhs)
         {
             return operator==(rhs._h);
         }

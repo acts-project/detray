@@ -13,7 +13,3 @@ add_detray_test(eigen_planar_intersection
 add_detray_test(eigen_read_detector
                 eigen_read_detector.cpp
                 detray::eigen)
-
-add_detray_benchmark(eigen_intersect_all
-                eigen_intersect_all.cpp
-                detray::eigen)

@@ -5,14 +5,14 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "masks/rectangle2.hpp"
 #include "test_defs.hpp"
+#include "masks/rectangle2.hpp"
 
 #include <gtest/gtest.h>
 
 using namespace detray;
 
-// This tests the construction of a surface
+// This tests the basic function of a rectangle
 TEST(mask, rectangle2)
 {
     point2 p2_in = {0.5, -9.};

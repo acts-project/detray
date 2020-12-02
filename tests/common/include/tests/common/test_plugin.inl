@@ -8,6 +8,8 @@
 #include <cmath>
 #include <climits>
 
+#include <gtest/gtest.h>
+
 /// @note plugin has to be defined with a preprocessor command
 using namespace detray;
 
