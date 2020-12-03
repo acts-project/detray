@@ -40,7 +40,9 @@ namespace detray
          * @return an intersection status e_inside / e_outside
          **/
         template <typename point2_type>
-        intersection_status operator()(const point2_type &p, scalar_type t0 = 0., scalar_type t1 = 0.) const
+        intersection_status operator()(const point2_type &p, 
+                                       scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(), 
+                                       scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
             scalar_type rel_y = (_h[2] + p[1])/(2 * _h[2]);
             return (std::abs(p[0]) <= _h[0] + rel_y * (_h[1] - _h[0]) + t0  and std::abs(p[1]) <= _h[2] + t1) ? e_inside : e_outside;
@@ -67,6 +69,23 @@ namespace detray
         {
             return operator==(rhs._h);
         }
+
+        /** Access operator - non-const
+         * @return the reference to the member variable
+         */
+        scalar_type &operator[](unsigned int value_index)
+        {
+            return _h[value_index];
+        }
+
+        /** Access operator - non-const
+         * @return a copy of the member variable
+         */
+        scalar_type operator[](unsigned int value_index) const
+        {
+            return _h[value_index];
+        }
+
     };
 
 } // namespace detray

@@ -5,12 +5,15 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "test_defs.hpp"
+#include "tests/common/test_defs.hpp"
 #include "masks/rectangle2.hpp"
+
+#include <climits>
 
 #include <gtest/gtest.h>
 
 using namespace detray;
+using namespace plugin;
 
 // This tests the basic function of a rectangle
 TEST(mask, rectangle2)
@@ -19,7 +22,13 @@ TEST(mask, rectangle2)
     point2 p2_edge = {1., 9.3};
     point2 p2_out = {1.5, -9.};
 
-    rectangle2<scalar> r2 = {1., 9.3};
+    scalar hx = 1.;
+    scalar hy = 9.3;
+
+    rectangle2<scalar> r2 = {hx, hy};
+
+    ASSERT_EQ(r2[0], hx);
+    ASSERT_EQ(r2[1], hy);
 
     ASSERT_TRUE(r2(p2_in) == intersection_status::e_inside);
     ASSERT_TRUE(r2(p2_edge) == intersection_status::e_inside);

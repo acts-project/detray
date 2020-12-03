@@ -9,6 +9,8 @@
 #include <cmath>
 #include <iostream>
 
+#define plugin eigen
+
 namespace detray
 {
     using scalar = float;
@@ -78,10 +80,10 @@ namespace detray
          * 
          * @param m the input matrix 
          **/
-        template <unsigned int kCOLS, unsigned int kROWS, typename derived_type>
-        auto block(const Eigen::MatrixBase<derived_type> &m, unsigned int col, unsigned int row)
+        template <unsigned int kROWS, unsigned int kCOLS, typename derived_type>
+        auto block(const Eigen::MatrixBase<derived_type> &m, unsigned int row, unsigned int col)
         {
-            return m.template block<kCOLS, kROWS>(col, row);
+            return m.template block<kROWS, kCOLS>(row, col);
         }
 
     } // namespace getter

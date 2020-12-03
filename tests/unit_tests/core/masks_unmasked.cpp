@@ -6,11 +6,12 @@
  */
 
 #include "masks/unmasked.hpp"
-#include "test_defs.hpp"
+#include "tests/common/test_defs.hpp"
 
 #include <gtest/gtest.h>
 
 using namespace detray;
+using namespace plugin;
 
 // This tests the construction of a surface
 TEST(mask, unmasked)
@@ -18,7 +19,6 @@ TEST(mask, unmasked)
     point2 p2 = {0.5, -9.};
 
     unmasked<scalar> u;
-
     ASSERT_TRUE(u(p2));
     ASSERT_TRUE(u(p2, 1.));
     ASSERT_TRUE(u(p2, 1., 2.));

@@ -6,11 +6,12 @@
  */
 
 #include "masks/trapezoid2.hpp"
-#include "test_defs.hpp"
+#include "tests/common/test_defs.hpp"
 
 #include <gtest/gtest.h>
 
 using namespace detray;
+using namespace plugin;
 
 // This tests the basic function of a trapezoid
 TEST(mask, trapezoid2)
@@ -19,7 +20,15 @@ TEST(mask, trapezoid2)
     point2 p2_edge = {2.5, 1.};
     point2 p2_out = {3., 1.5};
 
-    trapezoid2<scalar> t2 = {1., 3., 2.};
+    scalar hx_miny = 1.;
+    scalar hx_maxy = 3.;
+    scalar hy = 2.;
+
+    trapezoid2<scalar> t2 = {hx_miny, hx_maxy, hy};
+
+    ASSERT_EQ(t2[0], hx_miny);
+    ASSERT_EQ(t2[1], hx_maxy);
+    ASSERT_EQ(t2[2], hy);
 
     ASSERT_TRUE(t2(p2_in) == intersection_status::e_inside);
     ASSERT_TRUE(t2(p2_edge) == intersection_status::e_inside);

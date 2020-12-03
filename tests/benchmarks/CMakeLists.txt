@@ -10,6 +10,7 @@ macro(add_detray_benchmark TESTNAME FILES PLUGIN_LIBRARY)
         ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/tests/data)
 endmacro()
 
+add_subdirectory(core)
 if(DETRAY_EIGEN_PLUGIN)
     add_subdirectory(eigen)
 endif()

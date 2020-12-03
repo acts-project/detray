@@ -38,10 +38,12 @@ namespace detray
          * @return an intersection status e_inside / e_outside
          **/
         template <typename point2_type>
-        intersection_status operator()(const point2_type &p, scalar_type t0 = 0., scalar_type /*ignored*/) const
+        intersection_status operator()(const point2_type &p,
+                                       scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
+                                       scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
-            scalar_type r = vector::perp(2);
-            return (r + t0 > _r[0] and r < _r[1] + t0) ? e_inside : e_outside;
+            scalar_type r = vector::perp(p - point2_type{t0, t1});
+            return (r + t0 >= _r[0] and r <= _r[1] + t0) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -61,10 +63,25 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const rectangle2<scalar_type> &rhs)
+        bool operator==(const ring2<scalar_type> &rhs)
         {
-            return operator==(rhs._h);
+            return operator==(rhs._r);
         }
+
+        /** Access operator - non-const
+         * @return the reference to the member variable
+         */
+        scalar_type& operator[](unsigned int value_index) {
+            return _r[value_index];
+        }
+
+        /** Access operator - non-const
+         * @return a copy of the member variable
+         */
+        scalar_type operator[](unsigned int value_index) const {
+            return _r[value_index];
+        }
+
     };
 
 } // namespace detray

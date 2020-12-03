@@ -4,41 +4,102 @@
 #include "SVector.h"
 
 #include <any>
+#include <array>
+#include <tuple>
 #include <cmath>
+#include <iostream>
 
 namespace detray
 {
-    // eigen definitions
-    namespace smatrix
+    using scalar = float;
+
+    using namespace ROOT;
+
+    // smatrix getter methdos
+    namespace getter
     {
-        // Primitives definition
-        using scalar = float;
-        using vector2 = SVector<scalar, 2>;
-        using point2 = vector2;
-        using point2pol = SVector<scalar, 2>;
-        using point2cyl = SVector<scalar, 2>;
-        using vector3 = SVector<scalar, 3>;
-        using point3 = SVector<scalar, 3>;
+        /** This method retrieves phi from a vector, vector base with rows > 2
+         * 
+         * @param v the input vector 
+         **/
+        template <unsigned int kDIM>
+        auto phi(const SVector<scalar, kDIM> &v) noexcept
+        {
+            static_assert(kDIM >= 2, "vector::phi() required rows >= 2.");
+            return std::atan2(v[0], v[1]);
+        }
 
-        // Context definition
-        using context = std::any;
+        /** This method retrieves theta from a vector, vector base with rows >= 3
+         * 
+         * @param v the input vector 
+         **/
+        template <unsigned int kDIM>
+        auto theta(const SVector<scalar, kDIM> &v) noexcept
+        {
+            static_assert(kDIM > 2, "vector::theta() required rows > 2.");
+            return std::atan2(std::sqrt(v[0] * v[0] + v[1] * v[1]), v[2]);
+        }
 
+        /** This method retrieves the norm of a vector, no dimension restriction
+         * 
+         * @param v the input vector 
+         **/
+        template <unsigned int kDIM>
+        auto norm(const SVector<scalar, kDIM> &v)
+        {
+            return ROOT::Math::Dot(v, v);
+        }
+
+        /** This method retrieves the pseudo-rapidity from a vector or vector base with rows >= 3
+         * 
+         * @param v the input vector 
+         **/
+        template <unsigned int kDIM>
+        auto eta(const SVector<scalar, kDIM> &v) noexcept
+        {
+            static_assert(kDIM > 2, "vector::eta() required rows > 2.");
+            return std::atanh(v[2] / norm(v));
+        }
+
+        /** This method retrieves the perpenticular magnitude of a vector with rows >= 2
+         * 
+         * @param v the input vector 
+         **/
+        template <unsigned int kDIM>
+        auto perp(const SVector<scalar, kDIM> &v) noexcept
+        {
+            static_assert(kDIM >= 2, "vector::perp() required rows >= 2.");
+            return std::sqrt(v[0] * v[0] + v[1] * v[1]);
+        }
+
+        /** This method retrieves a column from a matrix
+         * 
+         * @param m the input matrix 
+         **/
+        template <unsigned int kROWS, unsigned int kCOLS, typename matrix_type>
+        auto block(const matrix_type &m, unsigned int row, unsigned int col)
+        {
+            return m.template Sub < SMatrixk<scalar, kROWS, kCOLS>(row, col);
+        }
+
+    } // namespace getter
+
+    // eigen definitions
+    namespace eigen
+    {
         /** Transform wrapper class to ensure standard API within differnt plugins
+         * 
          **/
         struct transform3
         {
+            using vector3 = SVector<scalar, 3>;
+            using point3 = vector3;
+            using context = std::any;
 
             ROOT::Math::SMatrix<scalar, 4, 4> _data = ROOT::Math : SMatrix<scalar, 3, 3>(SMatrixIdentity);
 
             using matrix44 = decltype(_data);
             using matrix33 = ROOT::Math::SMatrix<scalar, 3, 3>;
-
-            /** The contextual transform interface, ignored for the moment
-             **/
-            auto contextual(const context & /*ignored*/) const
-            {
-                return _data;
-            }
 
             /** Contructor with arguments: t, z, x, ctx
              * 
@@ -49,11 +110,19 @@ namespace detray
              **/
             transform3(const vector3 &t, const vector3 &z, const vector3 &x, const context & /*ctx*/)
             {
-                auto y = z.cross(x);
-                _data.Place_in_col<smatrix::scalar, 3>(x, 0, 0);
-                _data.Place_in_col<smatrix::scalar, 3>(y, 0, 1);
-                _data.Place_in_col<smatrix::scalar, 3>(z, 0, 2);
-                _data.Place_in_col<smatrix::scalar, 3>(t, 0, 3);
+                auto y = Math::Cross(z, x);
+                _data(0, 0) = x[0];
+                _data(1, 0) = x[1];
+                _data(2, 0) = x[2];
+                _data(0, 1) = y[0];
+                _data(1, 1) = y[1];
+                _data(2, 1) = y[2];
+                _data(0, 2) = z[0];
+                _data(1, 2) = z[1];
+                _data(2, 2) = z[2];
+                _data(0, 3) = t[0];
+                _data(1, 3) = t[1];
+                _data(2, 3) = t[2];
             }
 
             /** Constructor with arguments: translation
@@ -62,190 +131,256 @@ namespace detray
              **/
             transform3(const vector3 &t, const context & /*ctx*/)
             {
-                _data.Place_in_col<3, 1>(t, 0, 3);
+                _data(0, 3) = t[0];
+                _data(1, 3) = t[1];
+                _data(2, 3) = t[2];
             }
 
             /** Constructor with arguments: matrix 
              * 
-             * @param mat is the full 4x4 matrix 
+             * @param m is the full 4x4 matrix 
              **/
             transform3(const matrix44 &m, const context & /*ctx*/)
             {
                 _data = m;
             }
+
+            /** Constructor with arguments: matrix as std::aray of scalar
+             * 
+             * @param ma is the full 4x4 matrix asa 16 array
+             **/
+            transform3(const std::array<scalar, 16> &ma, const context & /*ctx*/)
+            {
+
+                _data(0, 0) = ma[0];
+                _data(1, 0) = ma[4];
+                _data(2, 0) = ma[8];
+                _data(3, 0) = ma[12];
+                _data(0, 1) = ma[1];
+                _data(1, 1) = ma[5];
+                _data(2, 1) = ma[9];
+                _data(3, 1) = ma[13];
+                _data(0, 2) = ma[2];
+                _data(1, 2) = ma[6];
+                _data(2, 2) = ma[10];
+                _data(3, 2) = ma[14];
+                _data(0, 3) = ma[3];
+                _data(1, 3) = ma[7];
+                _data(2, 3) = ma[11];
+                _data(3, 3) = ma[15];
+
+                _data.matrix() << ma[0], ma[1], ma[2], ma[3], ma[4], ma[5], ma[6], ma[7],
+                    ma[8], ma[9], ma[10], ma[11], ma[12], ma[13], ma[14], ma[15];
+            }
+
+            /** Default contructors */
+            transform3(const transform3 &rhs) = default;
+            ~transform3() = default;
+
+            /** This method retrieves the rotation of a transform
+             * 
+             * @param ctx the context object
+             * 
+             * @note this is a contextual method
+             **/
+            auto rotation(const context & /*ctx*/) const
+            {
+                return _data.Sub<SMatrix<scalar, 3, 3>>(0, 0);
+            }
+
+            /** This method retrieves the translation of a transform
+             * 
+             * @param ctx the context object
+             * 
+             * @note this is a contextual method
+             **/
+            auto translation(const context & /*ctx*/) const
+            {
+                return _data.Sub<SMatrix<scalar, 3, 1>>;
+            }
+
+            /** This method retrieves the 4x4 matrix of a transform
+             * 
+             * @param ctx the context object
+             * 
+             * @note this is a contextual method
+             **/
+            auto matrix(const context & /*ctx*/) const
+            {
+                return _data;
+            }
+
+            /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame
+             * 
+             * @note this is a contextual method 
+             **/
+            const auto point_to_global(const point3 &v, const eigen::transform3::context & /*ctx*/) const
+            {
+                return (rotation(ctx) * v + translation(ctx));
+            }
+
+            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
+             * 
+             * @note this is a contextual method 
+             **/
+            const auto point_to_local(onst point3 &v, , const eigen::transform3::context & /*ctx*/) const
+            {
+                return;
+            }
+
+            /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame
+             * 
+             * @note this is a contextual method 
+             **/
+            const auto vector_to_global(const vector3 &v, const eigen::transform3::context & /*ctx*/) const
+            {
+                return (rotation(ctx) * v);
+            }
+
+            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
+             * 
+             * @note this is a contextual method 
+             **/
+            const auto vector_to_local(const vector3 &v, const eigen::transform3::context & /*ctx*/) const
+            {
+                return (Math::Transpose(rotation(ctx)) * v);
+            }
         };
 
-    } // namespace smatrix
+        /** Non-contextual local frame projection into a cartesian coordinate frame
+         */
+        struct cartesian2
+        {
+            using point2 = SVector<scalar, 2>;
 
-    // Getter methdos
-    namespace getter
-    {
-        /** This method retrieves phi from a vector, vector base with rows > 2
-         * 
-         * @param v the input vector 
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
+              * including the contextual transform into the local 3D frame
+              * 
+              * @tparam the type of the surface from which also point3 and context type can be deduced
+              * 
+              */
+            template <typename surface_type>
+            const auto operator()(const surface_type &s,
+                                  const typename surface_type::transform3::point3 &p,
+                                  const typename surface_type::transform3::context &ctx) const
+            {
+                return operator()(s.transform().point_to_local(p, ctx));
+            }
+
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
+             */
+            typename<typename point3_type> const auto operator()(const point_type &v) const
+            {
+                return (v.template Sub<SVector<scalar, 2>>(0));
+            }
+        };
+
+        /** Non-contextual local frame projection into a polar coordinate frame
          **/
-        template <typename kROWS>
-        smatrix::scalar phi(const ROOT::Math::SVector<smatrix::scalar, kROWS> &v) noexcept
+        struct polar2
         {
-            static_assert(kROWS >= 2, "vector::phi() required rows >= 2.");
-            return std::atan2(v[0], v[1]);
-        }
+            using point2 = SVector<scalar, 2>;
 
-        /** This method retrieves theta from a vector, vector base with rows >= 3
-         * 
-         * @param v the input vector 
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
+              * including the contextual transform into the local 3D frame
+              * 
+              * @tparam the type of the surface from which also point3 and context type can be deduced
+              * 
+              */
+            template <typename surface_type>
+            const auto operator()(const surface_type &s,
+                                  const typename surface_type::transform3::point3 &p,
+                                  const typename surface_type::transform3::context &ctx) const
+            {
+                return operator()(s.transform().point_to_local(p, ctx));
+            }
+
+            /** This method transform from a point from 2D or 3D cartesian frame to a 2D polar point */
+            template <typename point3_type>
+            const auto operator()(const point3_type > &v) const
+            {
+                return point2{getter::perp(v), getter::phi(v)};
+            }
+        };
+
+        /** Non-contextual local frame projection into a polar coordinate frame
          **/
-        template <typename kROWS>
-        smatrix::scalar theta(const ROOT::Math::SVector<smatrix::scalar, kROWS> &v) noexcept
+        struct cylindrical2
         {
-            static_assert(kROWS >= 2, "vector::theta() required rows >= 3.");
-            return std::atan2(std::sqrt(v[0] * v[0] + v[1] * v[1]), v[2]);
-        }
+            using point2 = SVector<scalar, 2>;
 
-        /** This method retrieves the pseudo-rapidity from a vector or vector base with rows >= 3
-         * 
-         * @param v the input vector 
-         **/
-        template <typename kROWS>
-        smatrix::scalar eta(const ROOT::Math::SVector<smatrix::scalar, kROWS> &v) noexcept
-        {
-            static_assert(kROWS >= 2, "vector::eta() required rows >= 3.");
-            return std::atanh(v[2] / v.norm());
-        }
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
+              * including the contextual transform into the local 3D frame
+              * 
+              * @tparam the type of the surface from which also point3 and context type can be deduced
+              * 
+              */
+            template <typename surface_type>
+            const auto operator()(const surface_type &s,
+                                  const typename surface_type::transform3::point3 &p,
+                                  const typename surface_type::transform3::context &ctx) const
+            {
+                return operator()(s.transform().point_to_local(p, ctx));
+            }
 
-        /** This method retrieves the perpenticular magnitude of a vector with rows >= 2
-         * 
-         * @param v the input vector 
-         **/
-        template <typename kROWS>
-        smatrix::scalar perp(const ROOT::Math::SVector<smatrix::scalar, kROWS> &v) noexcept
-        {
-            static_assert(kROWS >= 2, "vector::perp() required rows >= 2.");
-            return std::sqrt(v[0] * v[0] + v[1] * v[1]);
-        }
+            /** This method transform from a point from 2 3D cartesian frame to a 2D cylindrical point */
+            template <typename point3_type>
+            const auto operator()(const point3_type &v) const
+            {
+                return point2{getter::perp(v) * getter::phi(v), v[2]};
+            }
+        };
 
-        /** This method retrieves the norm of a vector, no dimension restriction
-         * 
-         * @param v the input vector 
-         **/
-        template <typename kROWS>
-        smatrix::scalar norm(const ROOT::Math::SVector<smatrix::scalar, kROWS> &v)
-        {
-            return ROOT::Math::Mag(v);
-        }
-
-        /** This method retrieves rotation of a transform
-         * 
-         * @param trf the input transform 
-         * @param ctx the context object
-         * 
-         * @note this is a contextual method
-         **/
-        auto rotation(const smatrix::transform3 &trf, const smatrix::context &ctx)
-        {
-            return trf.contextual(ctx).Sub<smatrix::matrix33>(0, 0);
-        }
-
-        auto translation(const smatrix::transform3 &trf, const smatrix::context &ctx)
-        {
-            return trf.contextual(ctx).Sub<smatrix::vector3>(0, 3);
-        }
-
-        auto matrix(const smatrix::transform3 &trf, const smatrix::context &ctx)
-        {
-            return trf.contextual(ctx);
-        }
-
-    } // namespace getter
+    } // namespace eigen
 
     // Non-contextual vector transfroms
     namespace vector
     {
 
-        template <typename kROWS>
-        auto normalize(const ROOT::Math::SVector<smatrix::scalar, kROWS> &v)
+        /** Get a normalized version of the input vector
+         * 
+         * @tparam derived_type is the matrix template
+         * 
+         * @param v the input vector
+         **/
+        template <typename vector_type>
+        auto normalize(const vector_type &v)
         {
-            return v.Unit();
+            return Math::Unit(v);
         }
 
-        template <typename kROWS>
-        auto dot(const ROOT::Math::SVector<smatrix::scalar, kROWS> &a, const ROOT::Math::SVector < smatrix::scalar, kROWS> &b)
+        /** Dot product between two input vectors
+         * 
+         * @tparam derived_type_lhs is the first matrix (epresseion) template
+         * @tparam derived_type_rhs is the second matrix (epresseion) template
+         * 
+         * @param a the first input vector
+         * @param b the second input vector
+         * 
+         * @return the scalar dot product value 
+         **/
+        template <typename vector3_type>
+        auto dot(const vector3_type &a, const vector3_type &b)
         {
-            return a.dot(b);
+            return Math::Dot(a, b);
         }
 
-        template <typename kROWS>
-        auto cross(const ROOT::Math::SVector<smatrix::scalar, kROWS> &a, const ROOT::Math::SVector<smatrix::scalar, kROWS> &b)
+        /** Cross product between two input vectors
+         * 
+         * @tparam derived_type_lhs is the first matrix (epresseion) template
+         * @tparam derived_type_rhs is the second matrix (epresseion) template
+         *           
+         * @param a the first input vector
+         * @param b the second input vector
+         * 
+         * @return a vector (expression) representing the cross product
+         **/
+        template <typename vector3_type>
+        auto dot(const vector3_type &a, const vector3_type &b)
         {
-            return a.cross(b);
+            return Math::Cross(a, b);
         }
+
     } // namespace vector
-
-    // Contextual and non-contextual transform operations
-    namespace transform
-    {
-
-        /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame
-         * 
-         * @note this is a contextual method 
-         * */
-        const auto lpoint3_to_gpoint3(const smatrix::transform3 &trf, const smatrix::point3 &v, const smatrix::context &ctx)
-        {
-            auto cmatrix = getter::matrix(trf, ctx);
-            return cmatrix.Sub<transform3::matrix33>(cmatrix, 0,0) * v + cmatrix.Sub<smatrix::vector3>(cmatrix, 0, 3);
-        }
-
-        /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame
-        * 
-        * @note this is a contextual method 
-        * */
-        const auto lvector3_to_gvector3(const smatrix::transform3 &trf, const smatrix::vector3 &v, const smatrix::context &ctx)
-        {
-            static_assert(kROWS == 3, "transform::lvector3_to_gvector3(v) requires a (3,1) matrix");
-            return (trf.contextual(ctx).linear() * v).eval();
-        }
-
-        /** This method transform from a point from the global 3D cartesian frame to the local 3D cartesian frame
-         * 
-         * @note this is a contextual method 
-         * */
-        const auto gpoint3_to_lpoint3(const smatrix::transform3 &trf, const smatrix::point3 &v, const smatrix::context &ctx)
-        {
-            return (trf.contextual(ctx).inverse() * v).eval();
-        }
-
-        /** This method transform from a vector from the global 3D cartesian frame to the global 3D cartesian frame
-        * 
-        * @note this is a contextual method 
-        * */
-        const auto gvector3_to_lvector3(const smatrix::transform3 &trf, const smatrix::vector3 &v, const smatrix::context &ctx)
-        {
-            return (trf.contextual(ctx).inverse().linear() * v).eval();
-        }
-
-        /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
-        * */
-        const auto point3_to_point2(const smatrix::point3 &v)
-        {
-            static_assert(kROWS == 3, "transform::point3_to_point2(v) requires a (3,1) matrix");
-            return v.template segment<2>(0);
-        }
-
-        /** This method transform from a point from 2D or 3D cartesian frame to a 2D polar point */
-        template <typename kROWS>
-        smatrix::point2pol point_to_point2pol(const ROOT::Math::SVector<smatrix::scalar, kROWS> &v)
-        {
-            static_assert(kROWS >= 2, "transform::point_to_point2pol(v) requires a (>2,1) matrix");
-            return {getter::perp(v), getter::phi(v)};
-        }
-
-        /** This method transform from a point from 2 3D cartesian frame to a 2D cylindrical point */
-        const smatrix::point2cyl point3_to_point2cyl(const smatrix::point3 &v)
-        {
-            static_assert(kROWS, "transform::point3_to_point2cyl(v) requires a a (3,1) matrix");
-            return {getter::perp(v) * getter::phi(v), v[2]};
-        }
-
-    } // namespace transform
 
 } // namespace detray
