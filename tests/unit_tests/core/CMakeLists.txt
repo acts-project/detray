@@ -12,3 +12,9 @@ add_detray_test(masks_trapezoid2
 
 add_detray_test(masks_unmasked
                 masks_unmasked.cpp detray::core)
+
+add_detray_test(utils_enumerate
+                utils_enumerate.cpp detray::core)
+
+add_detray_test(utils_quadratic_equation
+                utils_quadratic_equation.cpp detray::core)
