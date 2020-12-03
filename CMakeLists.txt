@@ -8,6 +8,9 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" Off)
+if(DETRAY_CUSTOM_SCALARTYPE)
+    message(STATUS "Building with custom scalar type: "${ACTS_CUSTOM_SCALARTYPE} )
+endif()
 
 option(DETRAY_UNIT_TESTS "Enable unit tests" On)
 option(DETRAY_BENCHMARKS "Enable benchmark tests" On)

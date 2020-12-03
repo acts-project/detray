@@ -6,6 +6,12 @@ target_include_directories(detray_tests_common
     $<INSTALL_INTERFACE:include>
 )
 
+if(DETRAY_CUSTOM_SCALARTYPE)
+  target_compile_definitions(
+    detray_eigen
+    PUBLIC -DDETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE})
+endif()
+
 install(
   DIRECTORY include/common
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tests)

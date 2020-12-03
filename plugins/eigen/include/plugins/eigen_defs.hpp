@@ -9,11 +9,17 @@
 #include <cmath>
 #include <iostream>
 
+#ifdef DETRAY_CUSTOM_SCALARTYPE
+using detray_scalar = DETRAY_CUSTOM_SCALARTYPE;
+#else
+using detray_scalar = double;
+#endif
+
 #define plugin eigen
 
 namespace detray
 {
-    using scalar = float;
+    using scalar = detray_scalar;
 
     // eigen getter methdos
     namespace getter
