@@ -12,7 +12,7 @@ install(
 if(DETRAY_CUSTOM_SCALARTYPE)
   target_compile_definitions(
     detray_eigen
-    PUBLIC -DDETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE})
+    INTERFACE -DDETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE})
 endif()
 
 add_library(detray::eigen ALIAS detray_eigen)

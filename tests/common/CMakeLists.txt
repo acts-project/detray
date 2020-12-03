@@ -8,8 +8,8 @@ target_include_directories(detray_tests_common
 
 if(DETRAY_CUSTOM_SCALARTYPE)
   target_compile_definitions(
-    detray_eigen
-    PUBLIC -DDETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE})
+    detray_tests_common
+    INTERFACE -DDETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE})
 endif()
 
 install(
