@@ -19,8 +19,7 @@
 /// @note plugin has to be defined with a preprocessor command
 using namespace detray;
 
-// Two-dimensional definitions
-using point2cart = plugin::cartesian2::point2;
+// Two-dimensional bound frame to surface
 plugin::cartesian2 cartesian2;
 
 // Three-dimensional definitions

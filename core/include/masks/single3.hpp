@@ -11,19 +11,19 @@
 
 #include <cmath>
 #include <climits>
+#include <iostream>
 
 namespace detray
 {
-    /** This is a simple mask for a full cylinder
+    /** This is a simple mask for single parameter bound mask
      * 
      * It is defined by r and the half length.
      **/
-    template <typename scalar_type>
-    struct cylinder3
+    template <typename scalar_type, unsigned int kPAR>
+    struct single3
     {
-        darray<scalar_type, 2> _v =
-            {std::numeric_limits<scalar_type>::infinity(),
-             std::numeric_limits<scalar_type>::infinity()};
+        darray<scalar_type, 1> _v =
+            {std::numeric_limits<scalar_type>::infinity()};
 
         /** Mask operation 
          * 
@@ -38,15 +38,9 @@ namespace detray
          **/
         template <typename point3_type>
         intersection_status operator()(const point3_type &p,
-                                       scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
-                                       scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
-        {
-            scalar_type r = getter::perp(p);
-            if (std::abs(r - _v[0]) >= t0 + 5 * std::numeric_limits<scalar_type>::epsilon())
-            {
-                return e_missed;
-            }
-            return (std::abs(p[2]) <= _v[1] + t1) ? e_inside : e_outside;
+                                       scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
+        {     
+            return (std::abs(p[kPAR]) <= _v[0] + t) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -57,7 +51,7 @@ namespace detray
          **/
         bool operator==(const darray<scalar_type, 2> &rhs)
         {
-            return (std::abs(_v[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_v[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon());
+            return (std::abs(_v[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon());
         }
 
         /** Equality operator 
@@ -66,7 +60,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const cylinder3<scalar_type> &rhs)
+        bool operator==(const single3<scalar_type, kPAR> &rhs)
         {
             return operator==(rhs._v);
         }

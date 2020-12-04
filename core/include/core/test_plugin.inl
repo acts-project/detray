@@ -190,7 +190,7 @@ TEST(plugin, transform3)
     ASSERT_NEAR(trnm[2], 4., epsilon);
 
     // Check a contruction from an array[16]
-    darray<scalar, 16> matray = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0};
+    darray<<scalar, 16> matray = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0};
     transform3 trfma(matray, ctx);
 
     // Re-evaluate rot and trn

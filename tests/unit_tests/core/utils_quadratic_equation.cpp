@@ -5,7 +5,6 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <vector>
 
 #include "utils/quadratic_equation.hpp"
 #include "tests/common/test_defs.hpp"

@@ -54,7 +54,7 @@ TEST(plugin, intersection)
     intersection invalid;
     ASSERT_TRUE(invalid._status == intersection_status::e_missed);
 
-    std::vector<intersection> intersections = {invalid, i0, i1};
+    dvector<intersection> intersections = {invalid, i0, i1};
     std::sort(intersections.begin(), intersections.end());
 
     ASSERT_NEAR(intersections[0]._path, 1.7, epsilon);

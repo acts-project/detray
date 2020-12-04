@@ -7,7 +7,8 @@
 
 #pragma once
 
-#include <array>
+
+#include "utils/containers.hpp"
 #include <cmath>
 
 #ifdef DETRAY_CUSTOM_SCALARTYPE
@@ -24,11 +25,11 @@ namespace detray
 
     namespace test
     {
-        using point2 = std::array<scalar, 2>;
-        using point3 = std::array<scalar, 3>;
+        using point2 = darray<scalar, 2>;
+        using point3 = darray<scalar, 3>;
     } // namespace test
 
-    namespace vector
+    namespace getter
     {
 
         /** Define the perpendicular length 

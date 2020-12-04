@@ -6,16 +6,14 @@
 #include <Eigen/Geometry>
 
 #include <any>
-#include <tuple>
 #include <cmath>
+#include <iostream>
 
 #ifdef DETRAY_CUSTOM_SCALARTYPE
 using detray_scalar = DETRAY_CUSTOM_SCALARTYPE;
 #else
 using detray_scalar = double;
 #endif
-
-#define plugin eigen
 
 namespace detray
 {
@@ -28,47 +26,29 @@ namespace detray
          * 
          * @param v the input vector 
          **/
-        template <typename derived_type>
-        auto phi(const Eigen::MatrixBase<derived_type> &v) noexcept
+        template <typename vector_type>
+        auto phi(const vector_type &v) noexcept
         {
-            constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
-            static_assert(rows >= 2, "vector::phi() required rows >= 2.");
-            return std::atan2(v[1], v[0]);
+            return std::atan2(v[0], v[1]);
         }
 
         /** This method retrieves theta from a vector, vector base with rows >= 3
          * 
          * @param v the input vector 
          **/
-        template <typename derived_type>
-        auto theta(const Eigen::MatrixBase<derived_type> &v) noexcept
+        template <typename vector_type>
+        auto theta(const vector_type &v) noexcept
         {
-            constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
-            static_assert(rows >= 2, "vector::theta() required rows >= 3.");
             return std::atan2(std::sqrt(v[0] * v[0] + v[1] * v[1]), v[2]);
-        }
-
-        /** This method retrieves the pseudo-rapidity from a vector or vector base with rows >= 3
-         * 
-         * @param v the input vector 
-         **/
-        template <typename derived_type>
-        auto eta(const Eigen::MatrixBase<derived_type> &v) noexcept
-        {
-            constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
-            static_assert(rows >= 2, "vector::eta() required rows >= 3.");
-            return std::atanh(v[2] / v.norm());
         }
 
         /** This method retrieves the perpenticular magnitude of a vector with rows >= 2
          * 
          * @param v the input vector 
          **/
-        template <typename derived_type>
-        auto perp(const Eigen::MatrixBase<derived_type> &v) noexcept
+        template <typename vector_type>
+        auto perp(const vector_type &v) noexcept
         {
-            constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
-            static_assert(rows >= 2, "vector::perp() required rows >= 2.");
             return std::sqrt(v[0] * v[0] + v[1] * v[1]);
         }
 
@@ -76,20 +56,44 @@ namespace detray
          * 
          * @param v the input vector 
          **/
-        template <typename derived_type>
-        auto norm(const Eigen::MatrixBase<derived_type> &v)
+        auto norm(const std::array<scalar, 2> &v)
         {
-            return v.norm();
+            return perp(v);
+        }
+
+        /** This method retrieves the norm of a vector, no dimension restriction
+         * 
+         * @param v the input vector 
+         **/
+        auto norm(const std::array<scalar, 3> &v)
+        {
+            return std::sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+        }
+
+        /** This method retrieves the pseudo-rapidity from a vector or vector base with rows >= 3
+         * 
+         * @param v the input vector 
+         **/
+        template <typename vector_type>
+        auto eta(const vector_type &v) noexcept
+        {
+            return std::atanh(v[2] / norm(v));
         }
 
         /** This method retrieves a column from a matrix
          * 
          * @param m the input matrix 
          **/
-        template <unsigned int kROWS, unsigned int kCOLS, typename derived_type>
-        auto block(const Eigen::MatrixBase<derived_type> &m, unsigned int row, unsigned int col)
+        template <unsigned int kROWS, unsigned int kCOLS, typename matrix_type>
+        auto block(const Eigen::MatrixBase<derived_type> &m, unsigned int row, unsigned int col) noexcept
         {
-            return m.template block<kROWS, kCOLS>(row, col);
+            std::array< std::array<float, kROWS>, kCOLS> submatrix;
+            for (unsigned int icol = col; icol < col+kCOLS; ++icol){
+                for (unsigned int irow = row, irow < row +kCOLS; ++irow){
+                    submatrix[icol-col][irow-row] = m[icol][irow];
+                }
+            }
+            
         }
 
     } // namespace getter
@@ -102,14 +106,9 @@ namespace detray
          **/
         struct transform3
         {
-            using vector3 = Eigen::Matrix<scalar, 3, 1>;
+            using vector3 = std::array<scalar, 3>;
             using point3 = vector3;
             using context = std::any;
-
-            Eigen::Transform<scalar, 3, Eigen::Affine> _data =
-                Eigen::Transform<scalar, 3, Eigen::Affine>::Identity();
-
-            using matrix44 = Eigen::Transform<scalar, 3, Eigen::Affine>::MatrixType;
 
             /** Contructor with arguments: t, z, x, ctx
              * 
@@ -152,14 +151,13 @@ namespace detray
              * 
              * @param ma is the full 4x4 matrix asa 16 array
              **/
-            transform3(const darray<scalar, 16> &ma, const context & /*ctx*/)
+            transform3(const std::array<scalar, 16> &ma, const context & /*ctx*/)
             {
                 _data.matrix() << ma[0], ma[1], ma[2], ma[3], ma[4], ma[5], ma[6], ma[7],
                 ma[8], ma[9], ma[10], ma[11], ma[12], ma[13], ma[14], ma[15];
             }
 
             /** Default contructors */
-            transform3() = default;
             transform3(const transform3& rhs) = default;
             ~transform3() = default;
 
@@ -336,7 +334,6 @@ namespace detray
             template <typename derived_type>
             const auto operator()(const Eigen::MatrixBase<derived_type> &v) const
             {
-
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
                 static_assert(rows == 3 and cols == 1, "transform::point3_to_point2cyl(v) requires a a (3,1) matrix");

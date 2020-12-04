@@ -6,9 +6,12 @@
  */
 #pragma once
 
+#include "utils/containers.hpp"
+
 #include <cmath>
 #include <tuple>
 #include <algorithm>
+#include <iostream>
 
 namespace detray
 {
@@ -18,11 +21,11 @@ namespace detray
     template <typename scalar_type>
     struct quadratic_equation
     {
-        std::array<scalar_type, 3> _params = {0., 0., 0.};
+        darray<scalar_type, 3> _params = {0., 0., 0.};
 
         /** Solve the quadratic equation 
          **/
-        std::tuple<int, std::array<scalar_type, 2>>
+        std::tuple<int, darray<scalar_type, 2>>
         operator()() const
         {
             scalar_type discriminant = _params[1] * _params[1] - 4 * _params[0] * _params[2];
@@ -37,7 +40,7 @@ namespace detray
                                                                 : -std::sqrt(discriminant)));
                 scalar_type first = q / _params[0];
                 scalar_type second = _params[2] / q;
-                std::array<scalar_type, 2> poles = {first, second};
+                darray<scalar_type, 2> poles = {first, second};
                 std::sort(poles.begin(), poles.end());
                 return {solutions, poles};
             }

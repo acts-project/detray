@@ -16,7 +16,6 @@
 #include <string>
 #include <stdexcept>
 #include <sstream>
-#include <utility>
 
 /// @note plugin has to be defined with a preprocessor command
 

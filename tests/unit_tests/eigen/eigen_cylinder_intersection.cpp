@@ -4,5 +4,6 @@
  * 
  * Mozilla Public License Version 2.0
  */
-#pragma once
 
+#include "plugins/eigen_defs.hpp"
+#include "tests/common/test_cylinder_intersection.inl"

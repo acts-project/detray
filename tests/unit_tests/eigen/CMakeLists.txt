@@ -8,6 +8,10 @@ add_detray_test(eigen_core
                 eigen_core.cpp
                 detray::eigen)
 
+add_detray_test(eigen_cylinder_intersection
+                eigen_cylinder_intersection.cpp
+                detray::eigen)
+
 add_detray_test(eigen_planar_intersection
                 eigen_planar_intersection.cpp
                 detray::eigen)

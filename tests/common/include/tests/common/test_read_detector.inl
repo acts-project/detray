@@ -29,7 +29,7 @@ TEST(plugin, read_tml_detector)
 
     ASSERT_EQ(detector.volumes.size(), 9);
 
-    std::array<size_t, 9> expected_layers = { 7, 4, 7, 6, 4, 6, 6, 2, 6 };    
+    darray<size_t, 9> expected_layers = { 7, 4, 7, 6, 4, 6, 6, 2, 6 };    
     for ( auto [ iv, volume ] : enumerate(detector.volumes)){
         ASSERT_EQ(volume.layers.size(), expected_layers[iv]);
     }
