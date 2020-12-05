@@ -18,7 +18,6 @@
 
 #include <gtest/gtest.h>
 
-
 /// @note plugin has to be defined with a preprocessor command
 using namespace detray;
 
@@ -40,7 +39,7 @@ TEST(plugin, translated_cylinder)
     // Create a shifted plane
     transform3 shifted(vector3{3., 2., 10.}, ctx);
     cylinder_surface shifted_cylinder(std::move(shifted), 1, 1);
-    cylinder3<scalar> cylinder = { 4., 10.};
+    cylinder3<scalar> cylinder = {4., 10.};
     cylinder_intersector ci;
 
     // Unbound local frame test
@@ -62,9 +61,7 @@ TEST(plugin, translated_cylinder)
     ASSERT_TRUE(hit_bound._point2 != std::nullopt);
     ASSERT_NEAR(hit_bound._point2.value()[0], 0., isclose);
     ASSERT_NEAR(hit_bound._point2.value()[1], -5., isclose);
-
 }
-
 
 // This defines the local frame test suite
 TEST(plugin, concentric_cylinders)
@@ -77,8 +74,8 @@ TEST(plugin, concentric_cylinders)
     scalar hz = 10.;
     transform3 identity(vector3{0., 0., 0.}, ctx);
     cylinder_surface plain(std::move(identity), 1, 1);
-    cylinder3<scalar> cylinder = { r, hz };
-    single3<scalar,2> halflength = { hz };
+    cylinder3<scalar> cylinder = {r, hz};
+    single3<scalar, 2> halflength = {hz};
     cylinder_intersector ci;
     concentric_cylinder_intersector cci;
 
@@ -93,16 +90,17 @@ TEST(plugin, concentric_cylinders)
     ASSERT_TRUE(hit_cylinrical._status == intersection_status::e_inside);
     ASSERT_TRUE(hit_cocylinrical._status == intersection_status::e_inside);
 
-    ASSERT_NEAR(hit_cylinrical._point3[0], hit_cocylinrical._point3[0], epsilon);
-    ASSERT_NEAR(hit_cylinrical._point3[1], hit_cocylinrical._point3[1], epsilon);
-    ASSERT_NEAR(hit_cylinrical._point3[2], hit_cocylinrical._point3[2], epsilon);
+    ASSERT_NEAR(getter::perp(hit_cylinrical._point3), r, isclose);
+    ASSERT_NEAR(getter::perp(hit_cocylinrical._point3), r, isclose);
+
+    ASSERT_NEAR(hit_cylinrical._point3[0], hit_cocylinrical._point3[0], isclose);
+    ASSERT_NEAR(hit_cylinrical._point3[1], hit_cocylinrical._point3[1], isclose);
+    ASSERT_NEAR(hit_cylinrical._point3[2], hit_cocylinrical._point3[2], isclose);
     ASSERT_TRUE(hit_cylinrical._point2 != std::nullopt);
     ASSERT_TRUE(hit_cocylinrical._point2 != std::nullopt);
-    ASSERT_NEAR(hit_cylinrical._point2.value()[0], hit_cocylinrical._point2.value()[0], epsilon);
-    ASSERT_NEAR(hit_cylinrical._point2.value()[1], hit_cocylinrical._point2.value()[1], epsilon);
-
+    ASSERT_NEAR(hit_cylinrical._point2.value()[0], hit_cocylinrical._point2.value()[0], isclose);
+    ASSERT_NEAR(hit_cylinrical._point2.value()[1], hit_cocylinrical._point2.value()[1], isclose);
 }
-
 
 // Google Test can be run manually from the main() function
 // or, it can be linked to the gtest_main library for an already

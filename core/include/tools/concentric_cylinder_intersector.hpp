@@ -57,7 +57,7 @@ namespace detray
             using point2 = typename local_type::point2;
             using intersection = intersection<scalar, point3, point2>;
 
-            // Two points on the line
+            // Two points on the line, thes are in the cylinder frame
             const auto &l0 = ro;
             const auto l1 = ro + rd;
 
@@ -66,16 +66,14 @@ namespace detray
 
             unsigned int _x = swap_x_y ? 1 : 0;
             unsigned int _y = swap_x_y ? 0 : 1;
-
             scalar k = (l0[_y] - l1[_y]) / (l0[_x] - l1[_x]);
             scalar d = l1[_y] - k * l1[_x];
 
-            quadratic_equation<scalar> qe = {(1 + k * k), 2 * k, d * d - r * r};
+            quadratic_equation<scalar> qe = {(1 + k * k), 2 * k * d, d * d - r * r};
             auto qe_solution = qe();
 
             if (std::get<0>(qe_solution) > 0)
             {
-
                 darray<point3, 2> candidates;
                 auto u01 = std::get<1>(qe_solution);
                 darray<scalar, 2> t01 = {0., 0.};
@@ -98,7 +96,7 @@ namespace detray
                     intersection is;
                     is._point3 = candidates[cindex];
                     is._path = t01[cindex];
-                    is._point2 = std::nullopt;
+                    is._point2 = point2{r*getter::phi(is._point3), is._point3[2]};
                     is._status = mask(is._point3);
                     return is;
                 }
