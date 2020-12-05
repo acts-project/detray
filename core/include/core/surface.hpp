@@ -43,7 +43,11 @@ namespace detray
         const transform_type& transform() const 
         { return _trf; }
 
-        /** Return the transform type */
+        /** Access to the maks  */
+        mask_link& mask() 
+        { return _mask; }
+
+        /** Return the mask */
         const mask_link& mask() const 
         { return _mask; }
 
