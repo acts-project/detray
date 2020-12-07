@@ -1,3 +1,6 @@
+add_detray_test(core_portal
+                core_portal.cpp detray::core)
+
 add_detray_test(masks_cylinder3
                 masks_cylinder3.cpp detray::core)
 

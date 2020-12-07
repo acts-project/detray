@@ -13,6 +13,15 @@
 namespace detray
 {
 
+    /** Intersection direction with respect to the
+     * normal of the surface
+     */
+    enum intersection_direction : int
+    {
+        e_opposite = -1, //!< opposite the surface normal at the intersection
+        e_along = 1      //!< along the surface normal at the intersection
+    };
+
     /** Intersection status: outside, missed, insidem, hit ( w/o maks status) */
     enum intersection_status : int
     {
@@ -34,8 +43,8 @@ namespace detray
     {
 
         scalar_type _path = std::numeric_limits<scalar_type>::infinity();
-        point3_type _point3 = point3_type(std::numeric_limits<scalar_type>::infinity(), 
-                                          std::numeric_limits<scalar_type>::infinity(), 
+        point3_type _point3 = point3_type(std::numeric_limits<scalar_type>::infinity(),
+                                          std::numeric_limits<scalar_type>::infinity(),
                                           std::numeric_limits<scalar_type>::infinity());
         std::optional<point2_type> _point2 = std::nullopt;
         intersection_status _status = e_missed;

@@ -22,4 +22,5 @@ namespace detray
     template <typename key_type, typename value_type>
     using dmap = std::map<key_type, value_type>;
 
+
 } // namespace detray
