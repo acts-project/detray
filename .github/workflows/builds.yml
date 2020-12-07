@@ -73,6 +73,11 @@ jobs:
       shell: bash
       run: ctest -C Release      
 
+    - name: Run Benchmarks
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: export DETRAY_TEST_DATA_DIR=${GITHUB_WORKSPACE}/tests/data; source $GITHUB_WORKSPACE/tests/scripts/run_benchmarks.sh
+
   ubuntu_debug:
     runs-on: ubuntu-latest
 

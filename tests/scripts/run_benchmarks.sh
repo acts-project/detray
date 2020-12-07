@@ -1,4 +1,8 @@
 #!/bin/bash
 
-./tests/benchmarks/eigen/eigen_intersect_surfaces --benchmark_format=json | tee eigen_intersect_surfaces.json
-./tests/benchmarks/eigen/eigen_intersect_all --benchmark_format=json | tee eigen_intersect_all.json
+echo "Running core.benchmarks ..."
+./tests/benchmarks/eigen/core_masks
+
+echo "Running eigen.benchmarks ..."
+./tests/benchmarks/eigen/eigen_intersect_surfaces
+./tests/benchmarks/eigen/eigen_intersect_all
