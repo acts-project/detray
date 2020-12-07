@@ -53,6 +53,8 @@ TEST(core, portal_single_mask)
     point3 along_hit = {1., 2., 3.};
     point3 opposite_hit = {4., 5., 6.};
 
+    ASSERT_EQ(single_portal.surface(), 0);
+
     ASSERT_EQ(single_portal.along(along_hit), 7);
     EXPECT_THROW(single_portal.along(opposite_hit), std::invalid_argument);
 
@@ -77,10 +79,12 @@ TEST(core, portal_multi_mask)
     offset_container opposite_offset = {-1, -8, 42};
 
     portal<unsigned int, mask_container, offset_container> multi_portal(
-        0, std::move(along_container), std::move(along_offset), std::move(opposite_container), std::move(opposite_offset));
+        1, std::move(along_container), std::move(along_offset), std::move(opposite_container), std::move(opposite_offset));
 
     point3 along_hit = {1., 2., 3.};
     point3 opposite_hit = {4., 5., 6.};
+
+    ASSERT_EQ(multi_portal.surface(), 1);
 
     ASSERT_EQ(multi_portal.along(along_hit), 8); // includes offset
     EXPECT_THROW(multi_portal.along(opposite_hit), std::invalid_argument);

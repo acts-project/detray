@@ -19,6 +19,7 @@ namespace detray
     enum intersection_direction : int
     {
         e_opposite = -1, //!< opposite the surface normal at the intersection
+        e_undefined = 0, //!< the undefined direction at intersection
         e_along = 1      //!< along the surface normal at the intersection
     };
 
@@ -48,6 +49,7 @@ namespace detray
                                           std::numeric_limits<scalar_type>::infinity());
         std::optional<point2_type> _point2 = std::nullopt;
         intersection_status _status = e_missed;
+        intersection_direction _direction = e_undefined;
 
         /** @param rhs is the right hand side intersection for comparison 
          **/
