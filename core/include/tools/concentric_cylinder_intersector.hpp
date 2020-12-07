@@ -98,6 +98,8 @@ namespace detray
                     is._path = t01[cindex];
                     is._point2 = point2{r*getter::phi(is._point3), is._point3[2]};
                     is._status = mask(is._point3);
+                    scalar rdir = getter::perp(is._point3 + 10 * std::numeric_limits<scalar>::epsilon() * rd);
+                    is._direction = rdir > r ? e_along : e_opposite;
                     return is;
                 }
             }

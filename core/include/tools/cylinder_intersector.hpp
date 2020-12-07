@@ -42,7 +42,7 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename surface_type, typename local_type, typename mask_type >
+        template <typename surface_type, typename local_type, typename mask_type>
         intersection<scalar, typename surface_type::transform3::point3, typename local_type::point2>
         intersect(const surface_type &s,
                   const typename surface_type::transform3::point3 &ro,
@@ -80,7 +80,10 @@ namespace detray
                     is._path = t;
                     is._point3 = ro + is._path * rd;
                     is._point2 = local(s, is._point3, ctx);
-                    is._status = mask(s.transform().point_to_local(is._point3, ctx));
+                    auto local3 = s.transform().point_to_local(is._point3, ctx);
+                    is._status = mask(local3);
+                    scalar rdr = getter::perp(local3 + 10 * std::numeric_limits<scalar>::epsilon() * rd);
+                    is._direction = rdr > r ? e_along : e_opposite;
                     return is;
                 }
             }

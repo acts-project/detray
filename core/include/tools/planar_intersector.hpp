@@ -69,6 +69,7 @@ namespace detray
                 is._point3 = ro + is._path * rd;
                 is._point2 = local(s, is._point3, ctx);
                 is._status = mask(is._point2.value_or(point2()));
+                is._direction = denom > 0 ? e_along : e_opposite;
 
                 return is;
             }

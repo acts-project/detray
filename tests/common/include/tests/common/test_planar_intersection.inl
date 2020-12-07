@@ -45,6 +45,7 @@ TEST(plugin, translated_plane)
 
     auto hit_unbound = pi.intersect(shifted_plane, point3{2., 1., 0.}, vector3{0., 0., 1.}, ctx);
     ASSERT_TRUE(hit_unbound._status == intersection_status::e_hit);
+    ASSERT_TRUE(hit_unbound._direction == intersection_direction::e_along);
     // Global intersection information
     ASSERT_NEAR(hit_unbound._point3[0], 2., epsilon);
     ASSERT_NEAR(hit_unbound._point3[1], 1., epsilon);

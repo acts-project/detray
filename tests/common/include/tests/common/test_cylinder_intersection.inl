@@ -89,6 +89,8 @@ TEST(plugin, concentric_cylinders)
 
     ASSERT_TRUE(hit_cylinrical._status == intersection_status::e_inside);
     ASSERT_TRUE(hit_cocylinrical._status == intersection_status::e_inside);
+    ASSERT_TRUE(hit_cylinrical._direction == intersection_direction::e_along);
+    ASSERT_TRUE(hit_cocylinrical._direction == intersection_direction::e_along);
 
     ASSERT_NEAR(getter::perp(hit_cylinrical._point3), r, isclose);
     ASSERT_NEAR(getter::perp(hit_cocylinrical._point3), r, isclose);
