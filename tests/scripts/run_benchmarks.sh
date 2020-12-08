@@ -1,7 +1,12 @@
 #!/bin/bash
 
-export lastcommit =`git log -n1 | head -n1 | cut -b 8-14`
-echo "Benchmark nalysis of commit ${lastcommit}"
+export PWD=`pwd`
+cd ${GITHUB_WORKSPACE}
+export LASTCOMMIT =`git log -n1 | head -n1 | cut -b 8-14`
+echo "Benchmark nalysis of commit ${LASTCOMMIT}"
+cd ${PWD}
+
+export DETRAY_TEST_DATA_DIR=${GITHUB_WORKSPACE}/tests/data;
 
 echo "Running core.benchmarks ..."
 ./bin/core_masks --benchmark_out=core_masks.csv --benchmark_out_format=csv
