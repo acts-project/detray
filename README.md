@@ -8,3 +8,7 @@ a geometry without polymorphic inheritance structure.
 ### Repository structure
 
 The code for defining detector surfaces is within the `core` directory, the algebra plugins are in the `plugin` directory, and tests are all within the `test` library.
+
+### Benchmark Monitoring
+
+A simple regression benchmark monitoring using `google/benchmark` runs on merge into master, the results are shown on https://asalzburger.github.io/detray/.
