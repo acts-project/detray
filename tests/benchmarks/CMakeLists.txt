@@ -8,6 +8,7 @@ macro(add_detray_benchmark TESTNAME FILES PLUGIN_LIBRARY)
     #add_test(benchmark_${TESTNAME} ${TESTNAME})
     #set_tests_properties(benchmark_${TESTNAME} PROPERTIES 
     #    ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/tests/data)
+    install(TARGETS ${TESTNAME} RUNTIME DESTINATION bin)
 endmacro()
 
 add_subdirectory(core)

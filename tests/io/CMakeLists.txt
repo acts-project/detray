@@ -12,8 +12,4 @@ if(DETRAY_CUSTOM_SCALARTYPE)
     INTERFACE -DDETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE})
 endif()
 
-install(
-  DIRECTORY include/io
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/tests)
-
 add_library(detray::tests_io ALIAS detray_tests_io)
