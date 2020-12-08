@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-benchmarks = pd.read_csv('benchmarks/benchmarks_history.csv')
+benchmarks = pd.read_csv('benchmarks_history.csv')
 unqiue_benchmarks = benchmarks.name.unique()
 
 for ub in unqiue_benchmarks:
