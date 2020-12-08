@@ -1,9 +1,11 @@
 #!/bin/bash
 
+echo "===> CI Benchmark running script for detray"
+
 export PWD_BUILD=$(pwd)
 cd ${GITHUB_WORKSPACE}
 export LASTCOMMIT=$(git log -n1 | head -n1 | cut -b 8-14)
-echo "===> Benchmark pipeline of commit ${LASTCOMMIT}"
+echo "===> Benchmark pipeline for commit ${LASTCOMMIT}"
 cd ${PWD_BUILD}
 
 export DETRAY_TEST_DATA_DIR=${GITHUB_WORKSPACE}/tests/data
@@ -51,5 +53,4 @@ git config --local user.email "action@github.com"
 git config --local user.name "GitHub Action"
 git add archive/benchmarks/benchmarks_history.csv
 git add figures/*.png
-git commit -m"updating benchmark data for commit ${LASTCOMMIT}"
-
+git commit -m"updating benchmark data for commit ${LASTCOMMIT}" -a
