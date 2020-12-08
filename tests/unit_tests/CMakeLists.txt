@@ -14,7 +14,7 @@ macro(add_detray_test TESTNAME FILES PLUGIN_LIBRARY)
     target_link_libraries(${TESTNAME} detray::core detray::tests_common detray::tests_io)
     target_link_libraries(${TESTNAME} ${PLUGIN_LIBRARY})
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-    add_test(unit_test_${TESTNAME} ${TESTNAME})
+    add_test(unit_test_${TESTNAME} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TESTNAME})
     set_tests_properties(unit_test_${TESTNAME} PROPERTIES 
         ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/tests/data)
 endmacro()
