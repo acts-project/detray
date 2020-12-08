@@ -1,12 +1,12 @@
 #!/bin/bash
 
-echo "after...$(pwd)"
+echo "before...$(pwd)"
 ls -l
-export PWD=$(pwd)
+export PWD_BUILD=$(pwd)
 cd ${GITHUB_WORKSPACE}
 export LASTCOMMIT=$(git log -n1 | head -n1 | cut -b 8-14)
 echo "Benchmark analysis of commit ${LASTCOMMIT}"
-cd ${PWD}
+cd ${PWD_BUILD}
 
 echo "after...$(pwd)"
 ls -l 
