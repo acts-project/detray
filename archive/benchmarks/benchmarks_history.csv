@@ -1,1 +1,10 @@
 commit,group,name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,label,error_occurred,error_message
+3109c27,"core","BM_RECTANGLE2_MASK",1,6.08652e+08,6.08262e+08,ns,,,,,
+3109c27,"core","BM_TRAPEZOID2_MASK",1,1.76546e+09,1.76536e+09,ns,,,,,
+3109c27,"core","BM_DISC2_MASK",1,6.32828e+09,6.32713e+09,ns,,,,,
+3109c27,"core","BM_RING2_MASK",1,6.35745e+09,6.35693e+09,ns,,,,,
+3109c27,"core","BM_CYLINDER3_MASK",1,6.9747e+08,6.9747e+08,ns,,,,,
+3109c27,"eigen","BM_INTERSECT_PLANES",22,3.23514e+07,3.23502e+07,ns,,,,,
+3109c27,"eigen","BM_INTERSECT_CYLINDERS",1,1.62518e+09,1.62492e+09,ns,,,,,
+3109c27,"eigen","BM_INTERSECT_CONCETRIC_CYLINDERS",1,6.15033e+08,6.15018e+08,ns,,,,,
+3109c27,"eigen","BM_INTERSECT_ALL",1,1.11646e+10,1.11643e+10,ns,,,,,
