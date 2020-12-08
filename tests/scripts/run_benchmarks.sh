@@ -1,10 +1,15 @@
 #!/bin/bash
 
+echo "after...$(pwd)"
+ls -l
 export PWD=$(pwd)
 cd ${GITHUB_WORKSPACE}
 export LASTCOMMIT=$(git log -n1 | head -n1 | cut -b 8-14)
-echo "Benchmark nalysis of commit ${LASTCOMMIT}"
+echo "Benchmark analysis of commit ${LASTCOMMIT}"
 cd ${PWD}
+
+echo "after...$(pwd)"
+ls -l 
 
 export DETRAY_TEST_DATA_DIR=${GITHUB_WORKSPACE}/tests/data
 
