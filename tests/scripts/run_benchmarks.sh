@@ -45,7 +45,11 @@ python3 -i analyze_benchmarks.py
 
 echo "===> Prepare for uploading results ..."
 cp benchmarks_history.csv ${GITHUB_WORKSPACE}/archive/benchmarks/benchmarks_history.csv
+cp *.png  ${GITHUB_WORKSPACE}/figures/.
 cd ${GITHUB_WORKSPACE}
+git config --local user.email "action@github.com"
+git config --local user.name "GitHub Action"
 git add archive/benchmarks/benchmarks_history.csv
+git add figures/*.png
 git commit -m"updating benchmark data for commit ${LASTCOMMIT}"
 
