@@ -34,6 +34,7 @@ pip3 install matplotlib numpy pandas
 echo "===> Download benchmark history ..."
 
 cd ${GITHUB_WORKSPACE} 
+git fetch
 git checkout -b gh-pages origin/gh-pages
 cp archive/benchmarks/benchmarks_history.csv ${PWD_BUILD}/.
 cd ${PWD_BUILD}
