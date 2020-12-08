@@ -16,7 +16,7 @@ echo "===> Running eigen.benchmarks ..."
 ./bin/eigen_intersect_all --benchmark_out=eigen_intersect_all.csv --benchmark_out_format=csv
 
 echo "===> Extracting benchmark results ..."
-cat core_masks.csv | tail -n6  > core_masks_cropped.csv 
+cat core_masks.csv | tail -n5  > core_masks_cropped.csv 
 cat eigen_intersect_surfaces.csv | tail -f -n3 > eigen_intersect_surfaces_cropped.csv
 cat eigen_intersect_all.csv | tail -f -n1 > eigen_intersect_all_cropped.csv
 sed -i -e 's/"BM_/'$LASTCOMMIT',"core","BM_/g' core_masks_cropped.csv
