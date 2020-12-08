@@ -1,24 +1,32 @@
 #!/bin/bash
 
-echo "before...$(pwd)"
-ls -l
 export PWD_BUILD=$(pwd)
 cd ${GITHUB_WORKSPACE}
 export LASTCOMMIT=$(git log -n1 | head -n1 | cut -b 8-14)
-echo "Benchmark analysis of commit ${LASTCOMMIT}"
+echo "===> Benchmark pipeline of commit ${LASTCOMMIT}"
 cd ${PWD_BUILD}
-
-echo "after...$(pwd)"
-ls -l 
 
 export DETRAY_TEST_DATA_DIR=${GITHUB_WORKSPACE}/tests/data
 
-echo "Running core.benchmarks ..."
+echo "===> Running core.benchmarks ..."
 ./bin/core_masks --benchmark_out=core_masks.csv --benchmark_out_format=csv
 
-echo "Running eigen.benchmarks ..."
+echo "===> Running eigen.benchmarks ..."
 ./bin/eigen_intersect_surfaces --benchmark_out=eigen_intersect_surfaces.csv --benchmark_out_format=csv
 ./bin/eigen_intersect_all --benchmark_out=eigen_intersect_all.csv --benchmark_out_format=csv
 
-echo "Install components for benchmark analysis ..."
+echo "===> Extracting benchmark results ..."
+cat core_masks.csv | tail -n6  > core_masks_cropped.csv 
+cat eigen_intersect_surfaces.csv | tail -f -n3 > eigen_intersect_surfaces_cropped.csv
+cat eigen_intersect_all.csv | tail -f -n1 > eigen_intersect_all_cropped.csv
+sed -i -e 's/"BM_/'$LASTCOMMIT',"core","BM_/g' core_masks_cropped.csv
+sed -i -e 's/"BM_/'$LASTCOMMIT',"eigen","BM_/g' eigen_intersect_surfaces_cropped.csv
+sed -i -e 's/"BM_/'$LASTCOMMIT',"eigen","BM_/g' eigen_intersect_all_cropped.csv
+cat core_masks_cropped.csv > benchmark_${LASTCOMMIT}.csv
+cat eigen_intersect_surfaces_cropped.csv >> benchmark_${LASTCOMMIT}.csv
+cat eigen_intersect_all_cropped.csv >> benchmark_${LASTCOMMIT}.csv
+
+cat benchmark_${LASTCOMMIT}.csv
+
+echo "===> Install components for benchmark analysis ..."
 pip3 install matplotlib numpy pandas
