@@ -8,7 +8,7 @@ echo "Running eigen.benchmarks ..."
 ./bin/eigen_intersect_all
 
 echo "Install componetns for benchmark analysis ..."
-python --version 
-pip install matplotlib
+python3 --version 
+pip3 install matplotlib
 
 
