@@ -30,3 +30,17 @@ cat benchmark_${LASTCOMMIT}.csv
 
 echo "===> Install components for benchmark analysis ..."
 pip3 install matplotlib numpy pandas
+
+echo "===> Download benchmark history ..."
+
+cd ${GITHUB_WORKSPACE} 
+git checkout -b gh-pages origin/gh-pages
+cp archive/benchmarks/benchmarks_history.csv ${PWD_BUILD}/.
+cd ${PWD_BUILD}
+cat benchmark_${LASTCOMMIT}.csv >> benchmarks_history.csv
+
+echo "===> Running benchmark analysis ..."
+
+echo "===> Prepare for uploading results ..."
+cp benchmarks_history.csv ${GITHUB_WORKSPACE}/archive/benchmarks/benchmarks_history.csv
+
