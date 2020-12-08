@@ -76,7 +76,7 @@ jobs:
     - name: Run Benchmarks
       working-directory: ${{runner.workspace}}/build
       shell: bash
-      run: cp $GITHUB_WORKSPACE/tests/scripts/* .; ./run_benchmarks.sh
+      run: cp $GITHUB_WORKSPACE/tests/scripts/* .; source ./run_benchmarks.sh
 
   ubuntu_debug:
     runs-on: ubuntu-latest
