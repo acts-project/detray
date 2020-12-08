@@ -41,7 +41,11 @@ cd ${PWD_BUILD}
 cat benchmark_${LASTCOMMIT}.csv >> benchmarks_history.csv
 
 echo "===> Running benchmark analysis ..."
+python3 -i analyze_benchmarks.py
 
 echo "===> Prepare for uploading results ..."
 cp benchmarks_history.csv ${GITHUB_WORKSPACE}/archive/benchmarks/benchmarks_history.csv
+cd ${GITHUB_WORKSPACE}
+git add archive/benchmarks/benchmarks_history.csv
+git commit -m"updating benchmark data for commit ${LASTCOMMIT}"
 
