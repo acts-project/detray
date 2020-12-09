@@ -200,7 +200,7 @@ namespace detray
              * 
              * @note this is a contextual method
              **/
-            auto matrix(const context & /*ctx*/) const
+            const auto& matrix(const context & /*ctx*/) const
             {
                 return _data.matrix();
             }
@@ -210,7 +210,7 @@ namespace detray
              * @note this is a contextual method 
              **/
             template <typename derived_type>
-            const auto point_to_global(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
+            auto point_to_global(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -223,7 +223,7 @@ namespace detray
              * @note this is a contextual method 
              **/
             template <typename derived_type>
-            const auto point_to_local(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
+            auto point_to_local(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -236,7 +236,7 @@ namespace detray
              * @note this is a contextual method 
              **/
             template <typename derived_type>
-            const auto vector_to_global(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
+            auto vector_to_global(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -249,7 +249,7 @@ namespace detray
              * @note this is a contextual method 
              **/
             template <typename derived_type>
-            const auto vector_to_local(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
+            auto vector_to_local(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;

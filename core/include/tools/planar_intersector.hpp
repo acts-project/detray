@@ -56,7 +56,7 @@ namespace detray
             using intersection = intersection<scalar, point3, point2>;
 
             // Retrieve the surface normal & translation (context resolved)
-            auto sm = s.transform().matrix(ctx);
+            const auto& sm = s.transform().matrix(ctx);
             auto sn = getter::block<3, 1>(sm, 0, 2);
             auto st = getter::block<3, 1>(sm, 0, 3);
 

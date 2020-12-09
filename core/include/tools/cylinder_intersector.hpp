@@ -57,7 +57,7 @@ namespace detray
             using intersection = intersection<scalar, point3, point2>;
 
             scalar r = mask[0];
-            auto m = s.transform().matrix(ctx);
+            const auto& m = s.transform().matrix(ctx);
             auto sz = getter::block<3, 1>(m, 0, 2);
             auto sc = getter::block<3, 1>(m, 0, 3);
 
