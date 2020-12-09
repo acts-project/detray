@@ -109,6 +109,9 @@ namespace detray
             Eigen::Transform<scalar, 3, Eigen::Affine> _data =
                 Eigen::Transform<scalar, 3, Eigen::Affine>::Identity();
 
+            Eigen::Transform<scalar, 3, Eigen::Affine> _data_inv =
+                Eigen::Transform<scalar, 3, Eigen::Affine>::Identity();
+
             using matrix44 = Eigen::Transform<scalar, 3, Eigen::Affine>::MatrixType;
 
             /** Contructor with arguments: t, z, x, ctx
@@ -127,6 +130,8 @@ namespace detray
                 matrix.block<3, 1>(0, 1) = y;
                 matrix.block<3, 1>(0, 2) = z;
                 matrix.block<3, 1>(0, 3) = t;
+
+                _data_inv = _data.inverse();
             }
 
             /** Constructor with arguments: translation
@@ -137,6 +142,8 @@ namespace detray
             {
                 auto &matrix = _data.matrix();
                 matrix.block<3, 1>(0, 3) = t;
+
+                _data_inv = _data.inverse();
             }
 
             /** Constructor with arguments: matrix 
@@ -155,12 +162,14 @@ namespace detray
             transform3(const darray<scalar, 16> &ma, const context & /*ctx*/)
             {
                 _data.matrix() << ma[0], ma[1], ma[2], ma[3], ma[4], ma[5], ma[6], ma[7],
-                ma[8], ma[9], ma[10], ma[11], ma[12], ma[13], ma[14], ma[15];
+                    ma[8], ma[9], ma[10], ma[11], ma[12], ma[13], ma[14], ma[15];
+
+                _data_inv = _data.inverse();
             }
 
             /** Default contructors */
             transform3() = default;
-            transform3(const transform3& rhs) = default;
+            transform3(const transform3 &rhs) = default;
             ~transform3() = default;
 
             /** This method retrieves the rotation of a transform
@@ -219,7 +228,7 @@ namespace detray
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
                 static_assert(rows == 3 and cols == 1, "transform::point_to_local(v) requires a (3,1) matrix");
-                return (_data.inverse() * v).eval();
+                return (_data_inv * v).eval();
             }
 
             /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame
@@ -245,7 +254,7 @@ namespace detray
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
                 static_assert(rows == 3 and cols == 1, "transform::vector_to_local(v) requires a (3,1) matrix");
-                return (_data.inverse().linear() * v).eval();
+                return (_data_inv.linear() * v).eval();
             }
         };
 
