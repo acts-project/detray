@@ -180,7 +180,7 @@ namespace detray
              **/
             auto rotation(const context & /*ctx*/) const
             {
-                return _data.matrix().block<3, 3>(0, 0).eval();
+                return _data.matrix().block<3, 3>(0, 0);
             }
 
             /** This method retrieves the translation of a transform
@@ -191,7 +191,7 @@ namespace detray
              **/
             auto translation(const context & /*ctx*/) const
             {
-                return _data.matrix().block<3, 1>(0, 3).eval();
+                return _data.matrix().block<3, 1>(0, 3);
             }
 
             /** This method retrieves the 4x4 matrix of a transform
@@ -281,7 +281,7 @@ namespace detray
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
              */
             template <typename derived_type>
-            const auto operator()(const Eigen::MatrixBase<derived_type> &v) const
+            auto operator()(const Eigen::MatrixBase<derived_type> &v) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
