@@ -78,11 +78,11 @@ namespace plugin
 
                     vector3 dir(cos_phi * sin_theta, sin_phi * sin_theta, cos_theta);
 
-                    for (auto volume : detector.volumes)
+                    for (auto& volume : detector.volumes)
                     {
-                        for (auto layer : volume.layers)
+                        for (auto& layer : volume.layers)
                         {
-                            for (auto surface : layer.surfaces)
+                            for (auto& surface : layer.surfaces)
                             {
                                 auto mask = layer.rectangle_masks[surface.mask()];
                                 auto hit = pi.intersect(surface, ori, dir, ctx, cartesian2, mask);
