@@ -6,8 +6,5 @@
  */
 
 #include "plugins/eigen_defs.hpp"
-
-#define plugin eigen
-
 #include "tests/common/benchmark_intersect_surfaces.inl"
 
