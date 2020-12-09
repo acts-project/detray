@@ -215,7 +215,7 @@ namespace detray
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
                 static_assert(rows == 3 and cols == 1, "transform::point_to_global(v) requires a (3,1) matrix");
-                return (_data * v).eval();
+                return (_data * v);
             }
 
             /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
@@ -228,7 +228,7 @@ namespace detray
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
                 static_assert(rows == 3 and cols == 1, "transform::point_to_local(v) requires a (3,1) matrix");
-                return (_data_inv * v).eval();
+                return (_data_inv * v);
             }
 
             /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame
@@ -241,7 +241,7 @@ namespace detray
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
                 static_assert(rows == 3 and cols == 1, "transform::vector_to_global(v) requires a (3,1) matrix");
-                return (_data.linear() * v).eval();
+                return (_data.linear() * v);
             }
 
             /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
@@ -254,7 +254,7 @@ namespace detray
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
                 static_assert(rows == 3 and cols == 1, "transform::vector_to_local(v) requires a (3,1) matrix");
-                return (_data_inv.linear() * v).eval();
+                return (_data_inv.linear() * v);
             }
         };
 
