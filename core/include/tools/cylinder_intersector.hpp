@@ -58,8 +58,8 @@ namespace detray
 
             scalar r = mask[0];
             const auto& m = s.transform().matrix(ctx);
-            auto sz = getter::block<3, 1>(m, 0, 2);
-            auto sc = getter::block<3, 1>(m, 0, 3);
+            auto sz = getter::vector<3>(m, 0, 2);
+            auto sc = getter::vector<3>(m, 0, 3);
 
             vector3 pc_cross_sz = vector::cross(ro - sc, sz);
             vector3 rd_cross_sz = vector::cross(rd, sz);

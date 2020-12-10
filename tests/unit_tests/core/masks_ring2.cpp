@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using namespace plugin;
+using namespace __plugin;
 
 // This tests the basic function of a rectangle
 TEST(mask, ring2)

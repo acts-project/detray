@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using namespace plugin;
+using namespace __plugin;
 
 // This tests the construction of a surface
 TEST(mask, unmasked)

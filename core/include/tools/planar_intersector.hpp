@@ -57,8 +57,8 @@ namespace detray
 
             // Retrieve the surface normal & translation (context resolved)
             const auto& sm = s.transform().matrix(ctx);
-            auto sn = getter::block<3, 1>(sm, 0, 2);
-            auto st = getter::block<3, 1>(sm, 0, 3);
+            auto sn = getter::vector<3>(sm, 0, 2);
+            auto st = getter::vector<3>(sm, 0, 3);
 
             // Intersection code
             scalar denom = vector::dot(rd, sn);

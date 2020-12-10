@@ -16,7 +16,7 @@ namespace detray
 {
     using namespace vector;
 
-    using transform3 = plugin::transform3;
+    using transform3 = __plugin::transform3;
     using point3 = transform3::point3;
     using vector3 = transform3::vector3;
     using context = transform3::context;

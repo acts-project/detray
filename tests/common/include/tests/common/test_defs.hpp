@@ -17,7 +17,7 @@ using detray_scalar = DETRAY_CUSTOM_SCALARTYPE;
 using detray_scalar = double;
 #endif
 
-#define plugin test
+#define __plugin test
 
 namespace detray
 {

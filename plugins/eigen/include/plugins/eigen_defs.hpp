@@ -15,7 +15,7 @@ using detray_scalar = DETRAY_CUSTOM_SCALARTYPE;
 using detray_scalar = double;
 #endif
 
-#define plugin eigen
+#define __plugin eigen
 
 namespace detray
 {
@@ -80,6 +80,16 @@ namespace detray
         auto norm(const Eigen::MatrixBase<derived_type> &v)
         {
             return v.norm();
+        }
+
+        /** This method retrieves a column from a matrix
+         * 
+         * @param m the input matrix 
+         **/
+        template <unsigned int kROWS, typename derived_type>
+        auto vector(const Eigen::MatrixBase<derived_type> &m, unsigned int row, unsigned int col)
+        {
+            return m.template block<kROWS, 1>(row, col);
         }
 
         /** This method retrieves a column from a matrix
@@ -153,6 +163,8 @@ namespace detray
             transform3(const matrix44 &m, const context & /*ctx*/)
             {
                 _data.matrix() = m;
+                
+                _data_inv = _data.inverse();
             }
 
             /** Constructor with arguments: matrix as std::aray of scalar

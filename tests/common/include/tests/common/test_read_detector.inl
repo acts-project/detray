@@ -14,10 +14,10 @@
 
 
 // This tests the reading of the Track ML detector
-TEST(plugin, read_tml_detector)
+TEST(__plugin, read_tml_detector)
 { 
     using namespace detray;
-    using transform3 = plugin::transform3;
+    using transform3 = __plugin::transform3;
     using surface = surface<transform3>;
 
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");

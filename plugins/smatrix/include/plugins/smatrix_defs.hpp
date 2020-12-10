@@ -177,8 +177,6 @@ namespace detray
                 _data(2, 3) = ma[11];
                 _data(3, 3) = ma[15];
 
-                _data.matrix() << ma[0], ma[1], ma[2], ma[3], ma[4], ma[5], ma[6], ma[7],
-                    ma[8], ma[9], ma[10], ma[11], ma[12], ma[13], ma[14], ma[15];
             }
 
             /** Default contructors */

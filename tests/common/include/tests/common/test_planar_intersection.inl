@@ -16,23 +16,23 @@
 #include <gtest/gtest.h>
 
 
-/// @note plugin has to be defined with a preprocessor command
+/// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
 // Two-dimensional bound frame to surface
-plugin::cartesian2 cartesian2;
+__plugin::cartesian2 cartesian2;
 
 // Three-dimensional definitions
-using transform3 = plugin::transform3;
-using vector3 = plugin::transform3::vector3;
-using point3 = plugin::transform3::point3;
-using context = plugin::transform3::context;
+using transform3 = __plugin::transform3;
+using vector3 = __plugin::transform3::vector3;
+using point3 = __plugin::transform3::point3;
+using context = __plugin::transform3::context;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;
 
 // This defines the local frame test suite
-TEST(plugin, translated_plane)
+TEST(__plugin, translated_plane)
 {
     context ctx;
     using plane_surface = surface<transform3, int, int>;

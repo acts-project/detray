@@ -18,20 +18,20 @@
 
 #include <gtest/gtest.h>
 
-/// @note plugin has to be defined with a preprocessor command
+/// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
 // Three-dimensional definitions
-using transform3 = plugin::transform3;
-using vector3 = plugin::transform3::vector3;
-using point3 = plugin::transform3::point3;
-using context = plugin::transform3::context;
+using transform3 = __plugin::transform3;
+using vector3 = __plugin::transform3::vector3;
+using point3 = __plugin::transform3::point3;
+using context = __plugin::transform3::context;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;
 
 // This defines the local frame test suite
-TEST(plugin, translated_cylinder)
+TEST(__plugin, translated_cylinder)
 {
     context ctx;
     using cylinder_surface = surface<transform3, int, int>;
@@ -52,7 +52,7 @@ TEST(plugin, translated_cylinder)
     ASSERT_TRUE(hit_unbound._point2 == std::nullopt);
 
     // The same but bound
-    plugin::cylindrical2 cylindrical2;
+    __plugin::cylindrical2 cylindrical2;
     auto hit_bound = ci.intersect(shifted_cylinder, point3{3., 2., 5.}, vector3{1., 0., 0.}, ctx, cylindrical2, cylinder);
     ASSERT_TRUE(hit_bound._status == intersection_status::e_inside);
     ASSERT_NEAR(hit_bound._point3[0], 7., epsilon);
@@ -64,7 +64,7 @@ TEST(plugin, translated_cylinder)
 }
 
 // This defines the local frame test suite
-TEST(plugin, concentric_cylinders)
+TEST(__plugin, concentric_cylinders)
 {
     context ctx;
     using cylinder_surface = surface<transform3, int, int>;
@@ -83,7 +83,7 @@ TEST(plugin, concentric_cylinders)
     point3 dir = vector::normalize(vector3{1., 1., 1.});
 
     // The same but bound
-    plugin::cylindrical2 cylindrical2;
+    __plugin::cylindrical2 cylindrical2;
     auto hit_cylinrical = ci.intersect(plain, ori, dir, ctx, cylindrical2, cylinder);
     auto hit_cocylinrical = cci.intersect(plain, r, ori, dir, ctx, cylindrical2, halflength);
 

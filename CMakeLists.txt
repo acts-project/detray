@@ -6,6 +6,7 @@ enable_testing()
 
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
+option(DETRAY_ARRAY_PLUGIN "Build std::array math plugin" On)
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" Off)
 if(DETRAY_CUSTOM_SCALARTYPE)

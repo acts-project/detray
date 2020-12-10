@@ -14,7 +14,7 @@
 
 using namespace detray;
 
-using transform3 = plugin::transform3;
+using transform3 = __plugin::transform3;
 using point3 = transform3::point3;
 using vector3 = transform3::vector3;
 using context = transform3::context;
@@ -24,7 +24,7 @@ unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
 bool stream_file = false;
 
-plugin::cartesian2 cartesian2;
+__plugin::cartesian2 cartesian2;
 
 /** Read the detector from file */
 auto read_from_file()
@@ -40,7 +40,7 @@ auto read_from_file()
 
 auto detector = read_from_file();
 
-namespace plugin
+namespace __plugin
 {
     // This test runs intersection with all surfaces of the TrackML detector
     static void BM_INTERSECT_ALL(benchmark::State &state)
@@ -58,7 +58,7 @@ namespace plugin
         planar_intersector pi;
         context ctx;
 
-        point3 ori(0., 0., 0.);
+        point3 ori = {0., 0., 0.};
 
         for (auto _ : state)
         {
@@ -76,13 +76,13 @@ namespace plugin
                     double sin_phi = std::sin(phi);
                     double cos_phi = std::cos(phi);
 
-                    vector3 dir(cos_phi * sin_theta, sin_phi * sin_theta, cos_theta);
+                    vector3 dir = {cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
 
-                    for (auto& volume : detector.volumes)
+                    for (auto &volume : detector.volumes)
                     {
-                        for (auto& layer : volume.layers)
+                        for (auto &layer : volume.layers)
                         {
-                            for (auto& surface : layer.surfaces)
+                            for (auto &surface : layer.surfaces)
                             {
                                 auto mask = layer.rectangle_masks[surface.mask()];
                                 auto hit = pi.intersect(surface, ori, dir, ctx, cartesian2, mask);
@@ -116,6 +116,6 @@ namespace plugin
 
     BENCHMARK(BM_INTERSECT_ALL);
 
-} // namespace plugin
+} // namespace __plugin
 
 BENCHMARK_MAIN();

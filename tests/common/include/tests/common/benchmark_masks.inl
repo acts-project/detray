@@ -17,7 +17,7 @@
 #include <benchmark/benchmark.h>
 
 using namespace detray;
-using namespace plugin;
+using namespace __plugin;
 
 unsigned int steps_x3 = 1000;
 unsigned int steps_y3 = 1000;

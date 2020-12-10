@@ -13,22 +13,22 @@
 
 #include <gtest/gtest.h>
 
-/// @note plugin has to be defined with a preprocessor command
+/// @note __plugin has to be defined with a preprocessor command
 
 using namespace detray;
 
-using point2 = plugin::cartesian2::point2;
+using point2 = __plugin::cartesian2::point2;
 
 // Three-dimensional definitions
-using transform3 = plugin::transform3;
-using vector3 = plugin::transform3::vector3;
-using point3 = plugin::transform3::point3;
-using context = plugin::transform3::context;
+using transform3 = __plugin::transform3;
+using vector3 = __plugin::transform3::vector3;
+using point3 = __plugin::transform3::point3;
+using context = __plugin::transform3::context;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
 // This tests the construction of a surface
-TEST(plugin, surface)
+TEST(__plugin, surface)
 {
     context ctx;
 
@@ -43,7 +43,7 @@ TEST(plugin, surface)
 }
 
 // This tests the construction of a intresection
-TEST(plugin, intersection)
+TEST(__plugin, intersection)
 {
     using intersection = intersection<scalar, point3, point2>;
 
