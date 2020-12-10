@@ -5,7 +5,6 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "tests/common/test_defs.hpp"
 #include "masks/cylinder3.hpp"
 
 #include <gtest/gtest.h>
@@ -16,6 +15,8 @@ using namespace __plugin;
 // This tests the basic function of a rectangle
 TEST(mask, cylinder3)
 {
+    using point3 = __plugin::transform3::point3;
+
     scalar r = 3.;
     scalar hz = 4.;
 

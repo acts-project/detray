@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "tests/common/test_defs.hpp"
-#include "tests/common/benchmark_masks.inl"
+#include "plugins/eigen_defs.hpp"
+#include "tests/common/masks_containers.inl"

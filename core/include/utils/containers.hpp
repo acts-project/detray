@@ -10,6 +10,7 @@
 #include <array>
 #include <vector>
 #include <map>
+#include <tuple>
 
 namespace detray
 {
@@ -21,6 +22,9 @@ namespace detray
 
     template <typename key_type, typename value_type>
     using dmap = std::map<key_type, value_type>;
+
+    template< class... types>
+    using dtuple = std::tuple<types ...>;
 
 
 } // namespace detray

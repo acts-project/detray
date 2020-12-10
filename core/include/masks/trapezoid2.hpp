@@ -8,6 +8,7 @@
 
 #include "core/intersection.hpp"
 #include "utils/containers.hpp"
+#include "tools/planar_intersector.hpp"
 
 #include <cmath>
 #include <climits>
@@ -20,7 +21,7 @@ namespace detray
      * It is defined by half lengths in local0 coordinate _h[0] and _h[1] at
      * -/+ half length in the local1 coordinate _h[2]
      **/
-    template <typename scalar_type>
+    template <typename scalar_type, typename intersector_type = planar_intersector>
     struct trapezoid2
     {
         darray<scalar_type, 3> _h =
@@ -85,6 +86,9 @@ namespace detray
         {
             return _h[value_index];
         }
+
+        /** Return an associated intersector type */
+        intersector_type intersector() { return intersector_type{}; };
 
     };
 

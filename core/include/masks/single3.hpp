@@ -8,6 +8,7 @@
 
 #include "core/intersection.hpp"
 #include "utils/containers.hpp"
+#include "tools/planar_intersector.hpp"
 
 #include <cmath>
 #include <climits>
@@ -17,9 +18,8 @@ namespace detray
 {
     /** This is a simple mask for single parameter bound mask
      * 
-     * It is defined by r and the half length.
      **/
-    template <typename scalar_type, unsigned int kPAR>
+    template <typename scalar_type, unsigned int kPAR, typename intersector_type = planar_intersector>
     struct single3
     {
         darray<scalar_type, 1> _v =
@@ -80,6 +80,9 @@ namespace detray
         {
             return _v[value_index];
         }
+
+        /** Return an associated intersector type */
+        intersector_type intersector() { return intersector_type{}; };
     };
 
 } // namespace detray

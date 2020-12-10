@@ -8,6 +8,7 @@
 
 #include "core/intersection.hpp"
 #include "utils/containers.hpp"
+#include "tools/cylinder_intersector.hpp"
 
 #include <cmath>
 #include <climits>
@@ -18,7 +19,7 @@ namespace detray
      * 
      * It is defined by r and the half length.
      **/
-    template <typename scalar_type>
+    template <typename scalar_type, typename intersector_type = detray::cylinder_intersector>
     struct cylinder3
     {
         darray<scalar_type, 2> _v =
@@ -86,6 +87,10 @@ namespace detray
         {
             return _v[value_index];
         }
+
+        /** Return an associated intersector type */
+        intersector_type intersector() { return intersector_type{}; };
+
     };
 
 } // namespace detray

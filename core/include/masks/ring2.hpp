@@ -8,6 +8,7 @@
 
 #include "core/intersection.hpp"
 #include "utils/containers.hpp"
+#include "tools/planar_intersector.hpp"
 
 #include <cmath>
 #include <climits>
@@ -19,7 +20,7 @@ namespace detray
      * It is defined by the two radii _r[0] and  _r[1], 
      * and can be checked with a tolerance in t0 and t1.
      **/
-    template <typename scalar_type>
+    template <typename scalar_type, typename intersector_type = planar_intersector>
     struct ring2
     {
         darray<scalar_type, 2> _r =
@@ -81,6 +82,9 @@ namespace detray
         scalar_type operator[](unsigned int value_index) const {
             return _r[value_index];
         }
+
+        /** Return an associated intersector type */
+        intersector_type intersector() { return intersector_type{}; };
 
     };
 

@@ -11,7 +11,6 @@ macro(add_detray_benchmark TESTNAME FILES PLUGIN_LIBRARY)
     install(TARGETS ${TESTNAME} RUNTIME DESTINATION bin)
 endmacro()
 
-add_subdirectory(core)
 if(DETRAY_ARRAY_PLUGIN)
     add_subdirectory(array)
 endif()

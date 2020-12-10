@@ -6,7 +6,6 @@
  */
 
 #include "masks/unmasked.hpp"
-#include "tests/common/test_defs.hpp"
 
 #include <gtest/gtest.h>
 
@@ -16,7 +15,7 @@ using namespace __plugin;
 // This tests the construction of a surface
 TEST(mask, unmasked)
 {
-    point2 p2 = {0.5, -9.};
+    __plugin::cartesian2::point2 p2 = {0.5, -9.};
 
     unmasked<scalar> u;
     ASSERT_TRUE(u(p2));

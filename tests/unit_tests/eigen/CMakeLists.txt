@@ -1,5 +1,26 @@
 enable_testing()
 
+add_detray_test(eigen_masks_container
+                eigen_masks_container.cpp detray::eigen)
+
+add_detray_test(eigen_cylinder3
+                eigen_cylinder3.cpp detray::eigen)
+
+add_detray_test(eigen_rectangle2
+                eigen_rectangle2.cpp detray::eigen)
+
+add_detray_test(eigen_ring2
+                eigen_ring2.cpp detray::eigen)
+
+add_detray_test(eigen_single3
+                eigen_single3.cpp detray::eigen)
+
+add_detray_test(eigen_trapezoid2
+                eigen_trapezoid2.cpp detray::eigen)
+
+add_detray_test(eigen_unmasked
+                eigen_unmasked.cpp detray::eigen)
+
 add_detray_test(eigen_plugin
                 eigen_plugin.cpp
                 detray::eigen)

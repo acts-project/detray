@@ -8,18 +8,19 @@
 
 #include "core/intersection.hpp"
 #include "utils/containers.hpp"
+#include "tools/planar_intersector.hpp"
 
 #include <cmath>
 #include <climits>
 
-namespace detray
-{
+namespace detray {
+
     /** This is a simple 2-dimensional mask for a regular rectangle
      * 
      * It is defined by half length in local0 coordinates _h[0] and _h[1], 
      * and can be checked with a tolerance in t0 and t1.
      **/
-    template <typename scalar_type>
+    template <typename scalar_type, typename intersector_type = planar_intersector >
     struct rectangle2
     {
         darray<scalar_type, 2> _h =
@@ -82,6 +83,10 @@ namespace detray
         {
             return _h[value_index];
         }
+
+        /** Return an associated intersector type */
+        intersector_type intersector() { return intersector_type{}; };
+
     };
 
 } // namespace detray

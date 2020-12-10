@@ -25,7 +25,7 @@ namespace detray
 
         /** Solve the quadratic equation 
          **/
-        std::tuple<int, darray<scalar_type, 2>>
+        dtuple<int, darray<scalar_type, 2>>
         operator()() const
         {
             scalar_type discriminant = _params[1] * _params[1] - 4 * _params[0] * _params[2];

@@ -6,7 +6,6 @@
  */
 
 #include "masks/trapezoid2.hpp"
-#include "tests/common/test_defs.hpp"
 
 #include <gtest/gtest.h>
 
@@ -16,6 +15,9 @@ using namespace __plugin;
 // This tests the basic function of a trapezoid
 TEST(mask, trapezoid2)
 {
+
+    using point2 = __plugin::cartesian2::point2;
+
     point2 p2_in = {1., -0.5};
     point2 p2_edge = {2.5, 1.};
     point2 p2_out = {3., 1.5};

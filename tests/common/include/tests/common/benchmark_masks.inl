@@ -34,6 +34,8 @@ namespace
     static void BM_RECTANGLE2_MASK(benchmark::State &state)
     {
 
+        using point2 = __plugin::cartesian2::point2;
+
         rectangle2<scalar> r = {3, 4};
 
         scalar world = 10.;
@@ -76,6 +78,8 @@ namespace
     // This test runs intersection a trapezoid2 mask operation
     static void BM_TRAPEZOID2_MASK(benchmark::State &state)
     {
+
+        using point2 = __plugin::cartesian2::point2;
 
         trapezoid2<scalar> t = {2, 3, 4};
 
@@ -120,6 +124,8 @@ namespace
     static void BM_RING2_MASK(benchmark::State &state)
     {
 
+        using point2 = __plugin::cartesian2::point2;
+
         ring2<scalar> r = {0., 5.};
 
         scalar world = 10.;
@@ -162,6 +168,8 @@ namespace
     static void BM_DISC2_MASK(benchmark::State &state)
     {
 
+        using point2 = __plugin::cartesian2::point2;
+
         ring2<scalar> r = {2., 5.};
 
         scalar world = 10.;
@@ -203,6 +211,7 @@ namespace
     // This test runs masking operations on a cylinder3 mask
     static void BM_CYLINDER3_MASK(benchmark::State &state)
     {
+        using point3 = __plugin::transform3::point3;
 
         cylinder3<scalar> c = {3., 5.};
 
