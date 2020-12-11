@@ -4,7 +4,7 @@
 
 ### intersection benchmarks
 
-The following benchmarks test the surface intersections
+The following benchmarks test the surface intersections, the x-axis are commits in time, so want to see a negative gradient.
 
 #### This tests shows the intersections with all sensitive surfaces of the TrackML detector:
 ![All Surfaces Benchmark](figures/BM_INTERSECT_ALL.png)
