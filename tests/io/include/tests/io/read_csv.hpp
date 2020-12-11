@@ -24,12 +24,15 @@
 namespace detray
 {
 
+    using rectangles = dvector<rectangle2<scalar>>;
+    using trapezoids = dvector<trapezoid2<scalar>>;
+
     template <typename surface_type>
     struct csv_layer
     {
         dvector<surface_type> surfaces;
-        dvector<rectangle2<scalar>> rectangle_masks;
-        dvector<trapezoid2<scalar>> trapezoid_masks;
+        dtuple<rectangles,trapezoids> masks;
+
     };
 
     template <typename surface_type>
@@ -66,8 +69,6 @@ namespace detray
 
         using context = typename transform_type::context;
         using surface = surface<transform_type, darray<unsigned int, 2>, unsigned int>;
-        using rectangle2 = rectangle2<scalar>;
-        using trapezoid2 = trapezoid2<scalar>;
 
         struct surface_info
         {
@@ -142,10 +143,12 @@ namespace detray
                 {
                     darray<unsigned int, 2> mask_index = {};
                     if (mvalue.mask_info[0]==mvalue.mask_info[1]){
-                        auto mask_group_index = find_mask_index<rectangle2, darray<scalar, 2>>(layer.rectangle_masks, {mvalue.mask_info[0], mvalue.mask_info[2]}); 
+                        using rectangle = rectangles::value_type;
+                        auto mask_group_index = find_mask_index<rectangle, darray<scalar, 2>>(std::get<rectangles>(layer.masks), {mvalue.mask_info[0], mvalue.mask_info[2]}); 
                         mask_index = {0, static_cast<unsigned int>(mask_group_index)};               
                     } else {
-                        auto mask_group_index = find_mask_index<trapezoid2, darray<scalar, 3>>(layer.trapezoid_masks, mvalue.mask_info); 
+                        using trapezoid = trapezoids::value_type;
+                        auto mask_group_index = find_mask_index<trapezoid, darray<scalar, 3>>(std::get<trapezoids>(layer.masks), mvalue.mask_info); 
                         mask_index = {1, static_cast<unsigned int>(mask_group_index)};               
                     }
                     layer.surfaces.push_back(surface(std::move(mvalue.transform_info), std::move(mask_index), std::move(mvalue.source_info)));

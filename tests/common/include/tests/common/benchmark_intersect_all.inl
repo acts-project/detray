@@ -94,10 +94,10 @@ namespace __plugin
                                 auto group_index = surface.mask()[0];                                
                                 auto mask_index = surface.mask()[1];
                                 if (group_index == 0){
-                                    auto mask = layer.rectangle_masks[mask_index];
+                                    auto mask = std::get<0>(layer.masks)[mask_index];
                                     hit = mask.intersector().intersect(surface, ori, dir, ctx, cartesian2, mask);
                                 } else {
-                                    auto mask = layer.trapezoid_masks[mask_index];
+                                    auto mask = std::get<1>(layer.masks)[mask_index];
                                     hit = mask.intersector().intersect(surface, ori, dir, ctx, cartesian2, mask);
                                 }
 
