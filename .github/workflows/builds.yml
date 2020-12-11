@@ -26,7 +26,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release 
+      run: cmake $GITHUB_WORKSPACE -DDETRAY_EIGEN_PLUGIN=On -DCMAKE_BUILD_TYPE=Release 
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -64,7 +64,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DDETRAY_CUSTOM_SCALARTYPE=float
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DDETRAY_EIGEN_PLUGIN=On -DDETRAY_CUSTOM_SCALARTYPE=float
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -99,7 +99,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Debug -DDETRAY_BENCHMARKS=Off
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Debug -DDETRAY_EIGEN_PLUGIN=On -DDETRAY_BENCHMARKS=Off
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -129,7 +129,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DDETRAY_BENCHMARKS=Off
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DDETRAY_EIGEN_PLUGIN=On -DDETRAY_BENCHMARKS=Off
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
