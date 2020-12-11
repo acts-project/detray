@@ -5,6 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
+#include "core/intersection.hpp"
 #include "tools/planar_intersector.hpp"
 #include "tests/io/read_csv.hpp"
 
@@ -20,11 +21,15 @@ using vector3 = transform3::vector3;
 using context = transform3::context;
 using surface = surface<transform3>;
 
+__plugin::cartesian2 cartesian2;
+using point2 = __plugin::cartesian2::point2;
+
+using planar_intersection = intersection<scalar,point3,point2>;
+
 unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
-bool stream_file = false;
+bool stream_file = true;
 
-__plugin::cartesian2 cartesian2;
 
 /** Read the detector from file */
 auto read_from_file()
@@ -83,9 +88,19 @@ namespace __plugin
                         {
                             for (auto &surface : layer.surfaces)
                             {
+                             
+                                planar_intersection hit;
+
+                                auto group_index = surface.mask()[0];                                
                                 auto mask_index = surface.mask()[1];
-                                auto mask = layer.rectangle_masks[mask_index];
-                                auto hit = mask.intersector().intersect(surface, ori, dir, ctx, cartesian2, mask);
+                                if (group_index == 0){
+                                    auto mask = layer.rectangle_masks[mask_index];
+                                    hit = mask.intersector().intersect(surface, ori, dir, ctx, cartesian2, mask);
+                                } else {
+                                    auto mask = layer.trapezoid_masks[mask_index];
+                                    hit = mask.intersector().intersect(surface, ori, dir, ctx, cartesian2, mask);
+                                }
+
                                 if (hit._status == e_inside)
                                 {
                                     ++hits_inside;

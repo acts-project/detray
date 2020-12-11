@@ -44,6 +44,21 @@ namespace detray
         dvector<csv_volume<surface_type>> volumes;
     };
 
+    template <typename mask_type, typename array_type>
+    auto find_mask_index(dvector<mask_type> &masks, const array_type &mask_input)
+    {
+        for (auto [i, m] : enumerate(masks))
+        {
+            if (m == mask_input)
+            {
+                return i;
+            }
+        }
+        auto i = masks.size();
+        mask_type n = {mask_input};
+        masks.push_back(n);
+        return i;
+    };
 
     template <typename transform_type>
     csv_detector<surface<transform_type, darray<unsigned int, 2>, unsigned int>> read_csv(std::string filename)
@@ -121,31 +136,20 @@ namespace detray
             csv_volume<surface> volume;
             for (auto [lkey, lvalue] : vvalue)
             {
-                dvector<rectangle2> rectangle_masks;
-
-                auto find_mask_index = [](dvector<rectangle2> &masks, const darray<scalar, 2> &mask_input) -> size_t {
-                    for (auto [ i, rect ] : enumerate(masks)){
-                        if (rect == mask_input){
-                            return i;
-                        }
-                    }
-                    auto i = masks.size();
-                    rectangle2 r = { mask_input };
-                    masks.push_back(r);
-                    return i;
-                };
 
                 csv_layer<surface> layer;
                 for (auto [mkey, mvalue] : lvalue)
                 {
-                    //if (mvalue.mask_info[0]==mvalue.mask_info[1]){
-                    //
-                    //}
-                    auto mask_group_index = find_mask_index(rectangle_masks, { mvalue.mask_info[0], mvalue.mask_info[2]} );
-                    darray<unsigned int, 2>  mask_index = { 0, static_cast<unsigned int>(mask_group_index) };
+                    darray<unsigned int, 2> mask_index = {};
+                    if (mvalue.mask_info[0]==mvalue.mask_info[1]){
+                        auto mask_group_index = find_mask_index<rectangle2, darray<scalar, 2>>(layer.rectangle_masks, {mvalue.mask_info[0], mvalue.mask_info[2]}); 
+                        mask_index = {0, static_cast<unsigned int>(mask_group_index)};               
+                    } else {
+                        auto mask_group_index = find_mask_index<trapezoid2, darray<scalar, 3>>(layer.trapezoid_masks, mvalue.mask_info); 
+                        mask_index = {1, static_cast<unsigned int>(mask_group_index)};               
+                    }
                     layer.surfaces.push_back(surface(std::move(mvalue.transform_info), std::move(mask_index), std::move(mvalue.source_info)));
                 }
-                layer.rectangle_masks = rectangle_masks;
                 volume.layers.push_back(std::move(layer));
             }
             detector.volumes.push_back(volume);
