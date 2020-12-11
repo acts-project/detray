@@ -10,6 +10,8 @@ cd ${PWD_BUILD}
 
 export DETRAY_TEST_DATA_DIR=${GITHUB_WORKSPACE}/tests/data
 
+touch benchmark_${LASTCOMMIT}.csv
+
 for group in eigen array ; do
     echo "===> Running ${group}.benchmarks ..."
     ./bin/${group}_masks --benchmark_out=${group}_masks.csv --benchmark_out_format=csv
@@ -23,7 +25,7 @@ for group in eigen array ; do
     sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_masks_cropped.csv
     sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_intersect_surfaces_cropped.csv
     sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_intersect_all_cropped.csv
-    cat ${group}_masks_cropped.csv > benchmark_${LASTCOMMIT}.csv
+    cat ${group}_masks_cropped.csv >> benchmark_${LASTCOMMIT}.csv
     cat ${group}_intersect_surfaces_cropped.csv >> benchmark_${LASTCOMMIT}.csv
     cat ${group}_intersect_all_cropped.csv >> benchmark_${LASTCOMMIT}.csv
 done
