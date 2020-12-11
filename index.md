@@ -10,7 +10,7 @@ The following benchmarks test the surface intersections
 ![All Surfaces Benchmark](figures/BM_INTERSECT_ALL.png)
 
 #### This tests shows the intersection with concentric cylinders
-Cylinders are (positioned at (0,0,0) and not rotated wrt the global frame
+Cylinders are positioned at (0,0,0) and not rotated wrt the global frame
 ![Concentric Cylinder Benchmark](figures/BM_INTERSECT_CONCETRIC_CYLINDERS.png)
 
 #### This tests shows the intersection with arbitrary cylinders
