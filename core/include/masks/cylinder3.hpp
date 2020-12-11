@@ -17,9 +17,12 @@ namespace detray
 {
     /** This is a simple mask for a full cylinder
      * 
+     * @tparam scalar_type the primitive scalar type
+     * @tparam kRadialCheck is a boolean to steer wheter the radius compatibility needs to be checked
+     * 
      * It is defined by r and the half length.
      **/
-    template <typename scalar_type, typename intersector_type = detray::cylinder_intersector>
+    template <typename scalar_type, bool kRadialCheck = true, typename intersector_type = detray::cylinder_intersector>
     struct cylinder3
     {
         darray<scalar_type, 2> _v =
@@ -42,10 +45,13 @@ namespace detray
                                        scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
-            scalar_type r = getter::perp(p);
-            if (std::abs(r - _v[0]) >= t0 + 5 * std::numeric_limits<scalar_type>::epsilon())
+            if (kRadialCheck)
             {
-                return e_missed;
+                scalar_type r = getter::perp(p);
+                if (std::abs(r - _v[0]) >= t0 + 5 * std::numeric_limits<scalar_type>::epsilon())
+                {
+                    return e_missed;
+                }
             }
             return (std::abs(p[2]) <= _v[1] + t1) ? e_inside : e_outside;
         }
@@ -90,7 +96,6 @@ namespace detray
 
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
-
     };
 
 } // namespace detray

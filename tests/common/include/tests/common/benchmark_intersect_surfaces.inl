@@ -45,7 +45,6 @@ namespace __plugin
         unsigned int sfhit = 0;
         unsigned int sfmiss = 0;
 
-        planar_intersector pi;
         rectangle2<scalar> rect = {10., 20.};
 
         context ctx;
@@ -72,6 +71,7 @@ namespace __plugin
 
                     for (auto plane : planes)
                     {
+                        auto pi = rect.intersector();
                         auto is = pi.intersect(plane, ori, dir, ctx, cart2, rect);
                         if (is._status == e_inside)
                         {
@@ -101,11 +101,11 @@ namespace __plugin
         unsigned int sfhit = 0;
         unsigned int sfmiss = 0;
 
-        cylinder_intersector ci;
-        dvector<cylinder3<scalar>> cylinders;
+        using cylinder_mask = cylinder3<scalar,false,cylinder_intersector>;
+        dvector<cylinder_mask> cylinders;
         for (auto r : dists)
         {
-            cylinders.push_back(cylinder3<scalar>{r, 10.});
+            cylinders.push_back(cylinder_mask{r, 10.});
         }
 
         context ctx;
@@ -133,6 +133,7 @@ namespace __plugin
 
                     for (auto cylinder : cylinders)
                     {
+                        auto ci = cylinder.intersector();
                         auto is = ci.intersect(plain, ori, dir, ctx, cyl2, cylinder);
                         if (is._status == e_inside)
                         {
@@ -161,11 +162,11 @@ namespace __plugin
         unsigned int sfhit = 0;
         unsigned int sfmiss = 0;
 
-        concentric_cylinder_intersector cci;
-        dvector<single3<scalar, 2>> cylinder_halfs;
+        using cylinder_mask = cylinder3<scalar,false,concentric_cylinder_intersector>;
+        dvector<cylinder_mask> cylinders;
         for (auto r : dists)
         {
-            cylinder_halfs.push_back(single3<scalar, 2>{10.});
+            cylinders.push_back(cylinder_mask{r, 10.});
         }
 
         context ctx;
@@ -191,9 +192,10 @@ namespace __plugin
 
                     vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
 
-                    for (auto [ic, cylinder_half] : enumerate(cylinder_halfs))
+                    for (auto cylinder : cylinders)
                     {
-                        auto is = cci.intersect(plain, dists[ic], ori, dir, ctx, cyl2, cylinder_half);
+                        auto cci = cylinder.intersector();
+                        auto is = cci.intersect(plain, ori, dir, ctx, cyl2, cylinder);
                         if (is._status == e_inside)
                         {
                             ++sfhit;

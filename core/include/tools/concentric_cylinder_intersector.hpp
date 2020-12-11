@@ -45,7 +45,7 @@ namespace detray
          **/
         template <typename surface_type, typename local_type, typename mask_type>
         intersection<scalar, typename surface_type::transform3::point3, typename local_type::point2>
-        intersect(const surface_type &s, scalar r,
+        intersect(const surface_type &s,
                   const typename surface_type::transform3::point3 &ro,
                   const typename surface_type::transform3::vector3 &rd,
                   const typename surface_type::transform3::context &ctx,
@@ -56,6 +56,8 @@ namespace detray
             using vector3 = typename surface_type::transform3::vector3;
             using point2 = typename local_type::point2;
             using intersection = intersection<scalar, point3, point2>;
+
+            scalar r = mask[0];
 
             // Two points on the line, thes are in the cylinder frame
             const auto &l0 = ro;

@@ -15,7 +15,7 @@ namespace detray
     template <typename scalar_type = std::nullopt_t>
     struct unmasked
     {
-        
+                
         /** Mask operation 
          * 
          * @tparam point_type is the type of the point to be checked w.r.t. to
@@ -60,6 +60,7 @@ namespace detray
         {
             return true;
         }
+
     };
 
 } // namespace detray

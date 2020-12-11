@@ -74,8 +74,7 @@ TEST(__plugin, concentric_cylinders)
     scalar hz = 10.;
     transform3 identity(vector3{0., 0., 0.}, ctx);
     cylinder_surface plain(std::move(identity), 1, 1);
-    cylinder3<scalar> cylinder = {r, hz};
-    single3<scalar, 2> halflength = {hz};
+    cylinder3<scalar,false> cylinder = {r, hz};
     cylinder_intersector ci;
     concentric_cylinder_intersector cci;
 
@@ -85,7 +84,7 @@ TEST(__plugin, concentric_cylinders)
     // The same but bound
     __plugin::cylindrical2 cylindrical2;
     auto hit_cylinrical = ci.intersect(plain, ori, dir, ctx, cylindrical2, cylinder);
-    auto hit_cocylinrical = cci.intersect(plain, r, ori, dir, ctx, cylindrical2, halflength);
+    auto hit_cocylinrical = cci.intersect(plain, ori, dir, ctx, cylindrical2, cylinder);
 
     ASSERT_TRUE(hit_cylinrical._status == intersection_status::e_inside);
     ASSERT_TRUE(hit_cocylinrical._status == intersection_status::e_inside);

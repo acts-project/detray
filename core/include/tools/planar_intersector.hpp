@@ -22,7 +22,7 @@ namespace detray
      */
     struct planar_intersector
     {
-        
+
         /** Intersection method for planar surfaces
          * 
          * @tparam surface_type The surface type to be intersected
@@ -56,7 +56,7 @@ namespace detray
             using intersection = intersection<scalar, point3, point2>;
 
             // Retrieve the surface normal & translation (context resolved)
-            const auto& sm = s.transform().matrix(ctx);
+            const auto &sm = s.transform().matrix(ctx);
             auto sn = getter::vector<3>(sm, 0, 2);
             auto st = getter::vector<3>(sm, 0, 3);
 
