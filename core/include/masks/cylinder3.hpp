@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <climits>
+#include <optional>
 
 namespace detray
 {
@@ -22,15 +23,29 @@ namespace detray
      * 
      * It is defined by r and the half length.
      **/
-    template <typename scalar_type, 
-              bool kRadialCheck = true, 
+    template <typename scalar_type,
+              bool kRadialCheck = true,
               typename intersector_type = detray::cylinder_intersector,
-              unsigned int kMaskIdentifier=3>
+              typename links_type = bool,
+              unsigned int kMaskIdentifier = 3>
     struct cylinder3
     {
         darray<scalar_type, 2> _v =
             {std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity()};
+
+        links_type _links;
+
+        /** Assignment operator from an array, convenience function
+         * 
+         * @param rhs is the right hand side object
+         **/
+        cylinder3<scalar_type, kRadialCheck, intersector_type, links_type, kMaskIdentifier>&
+        operator=(const darray<scalar_type, 2> &rhs)
+        {
+            _v = rhs;
+            return (*this);
+        }
 
         /** Mask operation 
          * 
@@ -100,8 +115,11 @@ namespace detray
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
 
-        /** Mask identifier */
-        static unsigned int mask_identifier() { return kMaskIdentifier; }
+        /** Return the mask identifier */
+        constexpr unsigned int mask_identifier() { return kMaskIdentifier; }
+
+        /** Return the volume link */
+        const links_type& links() const { return _links; }
     };
 
 } // namespace detray

@@ -18,18 +18,32 @@ namespace detray
 {
     /** This is a simple 2-dimensional mask for a regular trapezoid
      * 
-     * It is defined by half lengths in local0 coordinate _h[0] and _h[1] at
-     * -/+ half length in the local1 coordinate _h[2]
+     * It is defined by half lengths in local0 coordinate _v[0] and _v[1] at
+     * -/+ half length in the local1 coordinate _v[2]
      **/
     template <typename scalar_type, 
-              typename intersector_type = planar_intersector, 
+              typename intersector_type = planar_intersector,
+              typename links_type = bool,
               unsigned int kMaskIdentifier=1>
     struct trapezoid2
     {
-        darray<scalar_type, 3> _h =
+        darray<scalar_type, 3> _v =
             {std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity()};
+
+        links_type _links;
+
+        /** Assignment operator from an array, convenience function
+         * 
+         * @param rhs is the right hand side object
+         **/
+        trapezoid2<scalar_type, intersector_type, links_type, kMaskIdentifier>&
+        operator=(const darray<scalar_type, 3> &rhs)
+        {
+            _v = rhs;
+            return (*this);
+        }
 
         /** Mask operation 
          * 
@@ -47,8 +61,8 @@ namespace detray
                                        scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(), 
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
-            scalar_type rel_y = (_h[2] + p[1])/(2 * _h[2]);
-            return (std::abs(p[0]) <= _h[0] + rel_y * (_h[1] - _h[0]) + t0  and std::abs(p[1]) <= _h[2] + t1) ? e_inside : e_outside;
+            scalar_type rel_y = (_v[2] + p[1])/(2 * _v[2]);
+            return (std::abs(p[0]) <= _v[0] + rel_y * (_v[1] - _v[0]) + t0  and std::abs(p[1]) <= _v[2] + t1) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -59,7 +73,7 @@ namespace detray
          **/
         bool operator==(const darray<scalar_type, 3> &rhs)
         {
-            return (std::abs(_h[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_h[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_h[2] - rhs[2]) < std::numeric_limits<scalar_type>::epsilon());
+            return (std::abs(_v[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_v[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_v[2] - rhs[2]) < std::numeric_limits<scalar_type>::epsilon());
         }
 
         /** Equality operator 
@@ -70,7 +84,7 @@ namespace detray
          **/
         bool operator==(const trapezoid2<scalar_type> &rhs)
         {
-            return operator==(rhs._h);
+            return operator==(rhs._v);
         }
 
         /** Access operator - non-const
@@ -78,7 +92,7 @@ namespace detray
          */
         scalar_type &operator[](unsigned int value_index)
         {
-            return _h[value_index];
+            return _v[value_index];
         }
 
         /** Access operator - non-const
@@ -86,14 +100,17 @@ namespace detray
          */
         scalar_type operator[](unsigned int value_index) const
         {
-            return _h[value_index];
+            return _v[value_index];
         }
 
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
 
         /** Mask identifier */
-        static unsigned int mask_identifier() { return kMaskIdentifier; }
+        constexpr unsigned int mask_identifier() { return kMaskIdentifier; }
+
+        /** Return the volume link */
+        const links_type& links() const { return _links; }
     };
 
 } // namespace detray

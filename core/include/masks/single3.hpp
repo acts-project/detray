@@ -20,13 +20,27 @@ namespace detray
      * 
      **/
     template <typename scalar_type, 
-              unsigned int kPAR, 
+              unsigned int kCheckIndex, 
               typename intersector_type = planar_intersector, 
+              typename links_type = bool,
               unsigned int kMaskIdentifier=4>
     struct single3
     {
         darray<scalar_type, 1> _v =
             {std::numeric_limits<scalar_type>::infinity()};
+
+        links_type _links;
+
+        /** Assignment operator from an array, convenience function
+         * 
+         * @param rhs is the right hand side object
+         **/
+        single3<scalar_type, kCheckIndex, intersector_type, links_type, kMaskIdentifier>&
+        operator=(const darray<scalar_type, 1> &rhs)
+        {
+            _v = rhs;
+            return (*this);
+        }
 
         /** Mask operation 
          * 
@@ -43,7 +57,7 @@ namespace detray
         intersection_status operator()(const point3_type &p,
                                        scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
         {     
-            return (std::abs(p[kPAR]) <= _v[0] + t) ? e_inside : e_outside;
+            return (std::abs(p[kCheckIndex]) <= _v[0] + t) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -63,7 +77,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const single3<scalar_type, kPAR> &rhs)
+        bool operator==(const single3<scalar_type, kCheckIndex> &rhs)
         {
             return operator==(rhs._v);
         }
@@ -88,7 +102,10 @@ namespace detray
         intersector_type intersector() { return intersector_type{}; };
 
         /** Mask identifier */
-        static unsigned int mask_identifier() { return kMaskIdentifier; }
+        constexpr unsigned int mask_identifier() { return kMaskIdentifier; }
+
+        /** Return the volume link */
+        const links_type& links() const { return _links; }
     };
 
 } // namespace detray

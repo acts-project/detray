@@ -17,17 +17,31 @@ namespace detray
 {
     /** This is a simple 2-dimensional mask for a closed ring
      * 
-     * It is defined by the two radii _r[0] and  _r[1], 
+     * It is defined by the two radii _v[0] and  _v[1], 
      * and can be checked with a tolerance in t0 and t1.
      **/
     template <typename scalar_type, 
               typename intersector_type = planar_intersector, 
+              typename links_type = bool,
               unsigned int kMaskIdentifier=2>
     struct ring2
     {
-        darray<scalar_type, 2> _r =
+        darray<scalar_type, 2> _v =
             {0.,
              std::numeric_limits<scalar_type>::infinity()};
+
+        links_type _links;
+
+        /** Assignment operator from an array, convenience function
+         * 
+         * @param rhs is the right hand side object
+         **/
+        ring2<scalar_type, intersector_type, links_type, kMaskIdentifier>&
+        operator=(const darray<scalar_type, 2> &rhs)
+        {
+            _v = rhs;
+            return (*this);
+        }
 
         /** Mask operation 
          * 
@@ -46,7 +60,7 @@ namespace detray
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
             scalar_type r = getter::perp(p - point2_type{t0, t1});
-            return (r + t0 >= _r[0] and r <= _r[1] + t0) ? e_inside : e_outside;
+            return (r + t0 >= _v[0] and r <= _v[1] + t0) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -57,7 +71,7 @@ namespace detray
          **/
         bool operator==(const darray<scalar_type, 2> &rhs)
         {
-            return (std::abs(_r[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_r[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon());
+            return (std::abs(_v[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_v[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon());
         }
 
         /** Equality operator 
@@ -68,28 +82,31 @@ namespace detray
          **/
         bool operator==(const ring2<scalar_type> &rhs)
         {
-            return operator==(rhs._r);
+            return operator==(rhs._v);
         }
 
         /** Access operator - non-const
          * @return the reference to the member variable
          */
         scalar_type& operator[](unsigned int value_index) {
-            return _r[value_index];
+            return _v[value_index];
         }
 
         /** Access operator - non-const
          * @return a copy of the member variable
          */
         scalar_type operator[](unsigned int value_index) const {
-            return _r[value_index];
+            return _v[value_index];
         }
 
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
 
         /** Mask identifier */
-        static unsigned int mask_identifier() { return kMaskIdentifier; }
+        constexpr unsigned int mask_identifier() { return kMaskIdentifier; }
+
+        /** Return the volume link */
+        const links_type& links() const { return _links; }
     };
 
 } // namespace detray
