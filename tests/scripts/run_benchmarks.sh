@@ -10,21 +10,23 @@ cd ${PWD_BUILD}
 
 export DETRAY_TEST_DATA_DIR=${GITHUB_WORKSPACE}/tests/data
 
-echo "===> Running eigen.benchmarks ..."
-./bin/eigen_masks --benchmark_out=eigen_masks.csv --benchmark_out_format=csv
-./bin/eigen_intersect_surfaces --benchmark_out=eigen_intersect_surfaces.csv --benchmark_out_format=csv
-./bin/eigen_intersect_all --benchmark_out=eigen_intersect_all.csv --benchmark_out_format=csv
+for group in eigen array ; do
+    echo "===> Running ${group}.benchmarks ..."
+    ./bin/${group}_masks --benchmark_out=${group}_masks.csv --benchmark_out_format=csv
+    ./bin/${group}_intersect_surfaces --benchmark_out=${group}_intersect_surfaces.csv --benchmark_out_format=csv
+    ./bin/${group}_intersect_all --benchmark_out=${group}_intersect_all.csv --benchmark_out_format=csv
 
-echo "===> Extracting benchmark results ..."
-cat eigen_masks.csv | tail -n5  > eigen_masks_cropped.csv 
-cat eigen_intersect_surfaces.csv | tail -f -n3 > eigen_intersect_surfaces_cropped.csv
-cat eigen_intersect_all.csv | tail -f -n1 > eigen_intersect_all_cropped.csv
-sed -i -e 's/"BM_/'$LASTCOMMIT',"eigen","BM_/g' eigen_masks_cropped.csv
-sed -i -e 's/"BM_/'$LASTCOMMIT',"eigen","BM_/g' eigen_intersect_surfaces_cropped.csv
-sed -i -e 's/"BM_/'$LASTCOMMIT',"eigen","BM_/g' eigen_intersect_all_cropped.csv
-cat eigen_masks_cropped.csv > benchmark_${LASTCOMMIT}.csv
-cat eigen_intersect_surfaces_cropped.csv >> benchmark_${LASTCOMMIT}.csv
-cat eigen_intersect_all_cropped.csv >> benchmark_${LASTCOMMIT}.csv
+    echo "===> Extracting benchmark results ..."
+    cat ${group}_masks.csv | tail -n5  > ${group}_masks_cropped.csv 
+    cat ${group}_intersect_surfaces.csv | tail -f -n3 > ${group}_intersect_surfaces_cropped.csv
+    cat ${group}_intersect_all.csv | tail -f -n1 > ${group}_intersect_all_cropped.csv
+    sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_masks_cropped.csv
+    sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_intersect_surfaces_cropped.csv
+    sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_intersect_all_cropped.csv
+    cat ${group}_masks_cropped.csv > benchmark_${LASTCOMMIT}.csv
+    cat ${group}_intersect_surfaces_cropped.csv >> benchmark_${LASTCOMMIT}.csv
+    cat ${group}_intersect_all_cropped.csv >> benchmark_${LASTCOMMIT}.csv
+done
 
 cat benchmark_${LASTCOMMIT}.csv
 
