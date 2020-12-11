@@ -19,7 +19,10 @@ namespace detray
     /** This is a simple mask for single parameter bound mask
      * 
      **/
-    template <typename scalar_type, unsigned int kPAR, typename intersector_type = planar_intersector>
+    template <typename scalar_type, 
+              unsigned int kPAR, 
+              typename intersector_type = planar_intersector, 
+              unsigned int kMaskIdentifier=4>
     struct single3
     {
         darray<scalar_type, 1> _v =
@@ -83,6 +86,9 @@ namespace detray
 
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
+
+        /** Mask identifier */
+        static unsigned int mask_identifier() { return kMaskIdentifier; }
     };
 
 } // namespace detray

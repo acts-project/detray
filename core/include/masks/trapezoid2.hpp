@@ -21,7 +21,9 @@ namespace detray
      * It is defined by half lengths in local0 coordinate _h[0] and _h[1] at
      * -/+ half length in the local1 coordinate _h[2]
      **/
-    template <typename scalar_type, typename intersector_type = planar_intersector>
+    template <typename scalar_type, 
+              typename intersector_type = planar_intersector, 
+              unsigned int kMaskIdentifier=1>
     struct trapezoid2
     {
         darray<scalar_type, 3> _h =
@@ -90,6 +92,8 @@ namespace detray
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
 
+        /** Mask identifier */
+        static unsigned int mask_identifier() { return kMaskIdentifier; }
     };
 
 } // namespace detray

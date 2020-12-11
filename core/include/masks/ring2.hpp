@@ -20,7 +20,9 @@ namespace detray
      * It is defined by the two radii _r[0] and  _r[1], 
      * and can be checked with a tolerance in t0 and t1.
      **/
-    template <typename scalar_type, typename intersector_type = planar_intersector>
+    template <typename scalar_type, 
+              typename intersector_type = planar_intersector, 
+              unsigned int kMaskIdentifier=2>
     struct ring2
     {
         darray<scalar_type, 2> _r =
@@ -86,6 +88,8 @@ namespace detray
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
 
+        /** Mask identifier */
+        static unsigned int mask_identifier() { return kMaskIdentifier; }
     };
 
 } // namespace detray

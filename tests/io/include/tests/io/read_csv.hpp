@@ -9,6 +9,7 @@
 
 #include "core/surface.hpp"
 #include "masks/rectangle2.hpp"
+#include "masks/trapezoid2.hpp"
 #include "utils/containers.hpp"
 #include "utils/enumerate.hpp"
 
@@ -28,7 +29,7 @@ namespace detray
     {
         dvector<surface_type> surfaces;
         dvector<rectangle2<scalar>> rectangle_masks;
-        //dvector<trapezoid2> trapezoid_masks;
+        dvector<trapezoid2<scalar>> trapezoid_masks;
     };
 
     template <typename surface_type>
@@ -43,13 +44,15 @@ namespace detray
         dvector<csv_volume<surface_type>> volumes;
     };
 
+
     template <typename transform_type>
-    csv_detector<surface<transform_type, unsigned int, unsigned int>> read_csv(std::string filename)
+    csv_detector<surface<transform_type, darray<unsigned int, 2>, unsigned int>> read_csv(std::string filename)
     {
 
         using context = typename transform_type::context;
-        using surface = surface<transform_type, unsigned int, unsigned int>;
+        using surface = surface<transform_type, darray<unsigned int, 2>, unsigned int>;
         using rectangle2 = rectangle2<scalar>;
+        using trapezoid2 = trapezoid2<scalar>;
 
         struct surface_info
         {
@@ -135,8 +138,12 @@ namespace detray
                 csv_layer<surface> layer;
                 for (auto [mkey, mvalue] : lvalue)
                 {
-                    auto maks_index = find_mask_index(rectangle_masks, { mvalue.mask_info[0], mvalue.mask_info[2]} );
-                    layer.surfaces.push_back(surface(std::move(mvalue.transform_info), std::move(maks_index), std::move(mvalue.source_info)));
+                    //if (mvalue.mask_info[0]==mvalue.mask_info[1]){
+                    //
+                    //}
+                    auto mask_group_index = find_mask_index(rectangle_masks, { mvalue.mask_info[0], mvalue.mask_info[2]} );
+                    darray<unsigned int, 2>  mask_index = { 0, static_cast<unsigned int>(mask_group_index) };
+                    layer.surfaces.push_back(surface(std::move(mvalue.transform_info), std::move(mask_index), std::move(mvalue.source_info)));
                 }
                 layer.rectangle_masks = rectangle_masks;
                 volume.layers.push_back(std::move(layer));

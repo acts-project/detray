@@ -55,7 +55,6 @@ namespace __plugin
         unsigned int hits_inside = 0;
         unsigned int hits_outside = 0;
         unsigned int hits_missed = 0;
-        planar_intersector pi;
         context ctx;
 
         point3 ori = {0., 0., 0.};
@@ -84,8 +83,9 @@ namespace __plugin
                         {
                             for (auto &surface : layer.surfaces)
                             {
-                                auto mask = layer.rectangle_masks[surface.mask()];
-                                auto hit = pi.intersect(surface, ori, dir, ctx, cartesian2, mask);
+                                auto mask_index = surface.mask()[1];
+                                auto mask = layer.rectangle_masks[mask_index];
+                                auto hit = mask.intersector().intersect(surface, ori, dir, ctx, cartesian2, mask);
                                 if (hit._status == e_inside)
                                 {
                                     ++hits_inside;

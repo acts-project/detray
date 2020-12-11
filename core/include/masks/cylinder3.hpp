@@ -22,7 +22,10 @@ namespace detray
      * 
      * It is defined by r and the half length.
      **/
-    template <typename scalar_type, bool kRadialCheck = true, typename intersector_type = detray::cylinder_intersector>
+    template <typename scalar_type, 
+              bool kRadialCheck = true, 
+              typename intersector_type = detray::cylinder_intersector,
+              unsigned int kMaskIdentifier=3>
     struct cylinder3
     {
         darray<scalar_type, 2> _v =
@@ -96,6 +99,9 @@ namespace detray
 
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
+
+        /** Mask identifier */
+        static unsigned int mask_identifier() { return kMaskIdentifier; }
     };
 
 } // namespace detray
