@@ -7,6 +7,10 @@
 The following benchmarks test the surface intersections, the x-axis are commits in time, so want to see a negative gradient.
 
 #### This tests shows the intersections with all sensitive surfaces of the TrackML detector:
+
+It performs 10000 tracks with each track trying to intersect all surfaces int he TrackML detector without preselection.
+
+![TML Intersections](figures/TML_INTERSECT_ALL.png)
 ![All Surfaces Benchmark](figures/BM_INTERSECT_ALL.png)
 
 #### This tests shows the intersection with concentric cylinders
