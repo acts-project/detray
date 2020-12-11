@@ -28,7 +28,7 @@ using planar_intersection = intersection<scalar,point3,point2>;
 
 unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
-bool stream_file = true;
+bool stream_file = false;
 
 
 /** Read the detector from file */
