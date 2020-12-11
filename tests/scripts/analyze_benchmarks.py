@@ -10,6 +10,10 @@ for bench in benchmarks :
         maxl = max(maxl, len(gbench[1]))
     for gbench in gbenchmarks :
         curl = len(gbench[1])
+        if gbench[0] == 'core' : # core tests are discontinued
+            crange = range(0, curl)
+        else :
+            crange = range(maxl-curl, maxl)
         plt.plot(range(maxl-curl, maxl), gbench[1]['cpu_time'], marker="o", label=gbench[0])
     plt.legend()
     plt.savefig(bench[0] + '.png', format='png')
