@@ -34,7 +34,6 @@ namespace detray
         using portal_range = std::array<guaranteed_index, 2>;
         using portal_links = dtuple<guaranteed_index, portal_range>;
         using portal_surface = surface<transform_type, portal_links>;
-        using portal_surface_range = std::array<guaranteed_index, 2>;
 
         dtuple<portal_cylinders, portal_discs> _portals;
         dvector<portal_surface> _portal_surfaces;
@@ -42,7 +41,7 @@ namespace detray
 
         struct volume
         {
-            portal_surface_range portal_surface_range = {0, 0};
+            portal_range portal_surface_range = {0, 0};
             guaranteed_index volume_index = 0;
         };
 
@@ -70,13 +69,12 @@ namespace detray
             return {type, range};
         }
 
-        guaranteed_index add_portal_surface(portal_surface&& psurface) 
+        guaranteed_index add_portal_surface(portal_surface &&psurface)
         {
-          guaranteed_index this_index = _portal_surfaces.size();
-          _portal_surfaces.push_back(std::move(psurface));
-          return this_index;
-        } 
-
+            guaranteed_index this_index = _portal_surfaces.size();
+            _portal_surfaces.push_back(std::move(psurface));
+            return this_index;
+        }
     };
 
 } // namespace detray
