@@ -16,7 +16,7 @@ namespace detray
      * @tparam mask_link the type of the maks/maskj link representation
      * @tparam source_link the type of the source/source link representation 
      */
-    template <typename transform_type, typename mask_link = int, typename source_link = int>
+    template <typename transform_type, typename mask_link = int, typename source_link = bool>
     class surface
     {        
     public:

@@ -39,7 +39,7 @@ TEST(__plugin, translated_cylinder)
     // Create a shifted plane
     transform3 shifted(vector3{3., 2., 10.}, ctx);
     cylinder_surface shifted_cylinder(std::move(shifted), 1, 1);
-    cylinder3<scalar> cylinder = {4., 10.};
+    cylinder3<scalar> cylinder = {4., -10., 10.};
     cylinder_intersector ci;
 
     // Unbound local frame test
@@ -74,7 +74,7 @@ TEST(__plugin, concentric_cylinders)
     scalar hz = 10.;
     transform3 identity(vector3{0., 0., 0.}, ctx);
     cylinder_surface plain(std::move(identity), 1, 1);
-    cylinder3<scalar,false> cylinder = {r, hz};
+    cylinder3<scalar,false> cylinder = {r, -hz, hz};
     cylinder_intersector ci;
     concentric_cylinder_intersector cci;
 

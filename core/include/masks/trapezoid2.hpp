@@ -18,30 +18,32 @@ namespace detray
 {
     /** This is a simple 2-dimensional mask for a regular trapezoid
      * 
-     * It is defined by half lengths in local0 coordinate _v[0] and _v[1] at
-     * -/+ half length in the local1 coordinate _v[2]
+     * It is defined by half lengths in local0 coordinate _values[0] and _values[1] at
+     * -/+ half length in the local1 coordinate _values[2]
      **/
-    template <typename scalar_type, 
+    template <typename scalar_type,
               typename intersector_type = planar_intersector,
               typename links_type = bool,
-              unsigned int kMaskIdentifier=1>
+              unsigned int kMaskIdentifier = 1>
     struct trapezoid2
     {
-        darray<scalar_type, 3> _v =
+        darray<scalar_type, 3> _values =
             {std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity()};
 
         links_type _links;
 
+        static constexpr unsigned int mask_identifier = kMaskIdentifier;
+
         /** Assignment operator from an array, convenience function
          * 
          * @param rhs is the right hand side object
          **/
-        trapezoid2<scalar_type, intersector_type, links_type, kMaskIdentifier>&
+        trapezoid2<scalar_type, intersector_type, links_type, kMaskIdentifier> &
         operator=(const darray<scalar_type, 3> &rhs)
         {
-            _v = rhs;
+            _values = rhs;
             return (*this);
         }
 
@@ -57,12 +59,12 @@ namespace detray
          * @return an intersection status e_inside / e_outside
          **/
         template <typename point2_type>
-        intersection_status operator()(const point2_type &p, 
-                                       scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(), 
+        intersection_status operator()(const point2_type &p,
+                                       scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
-            scalar_type rel_y = (_v[2] + p[1])/(2 * _v[2]);
-            return (std::abs(p[0]) <= _v[0] + rel_y * (_v[1] - _v[0]) + t0  and std::abs(p[1]) <= _v[2] + t1) ? e_inside : e_outside;
+            scalar_type rel_y = (_values[2] + p[1]) / (2 * _values[2]);
+            return (std::abs(p[0]) <= _values[0] + rel_y * (_values[1] - _values[0]) + t0 and std::abs(p[1]) <= _values[2] + t1) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -73,7 +75,7 @@ namespace detray
          **/
         bool operator==(const darray<scalar_type, 3> &rhs)
         {
-            return (std::abs(_v[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_v[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_v[2] - rhs[2]) < std::numeric_limits<scalar_type>::epsilon());
+            return (_values == rhs);
         }
 
         /** Equality operator 
@@ -84,7 +86,7 @@ namespace detray
          **/
         bool operator==(const trapezoid2<scalar_type> &rhs)
         {
-            return operator==(rhs._v);
+            return operator==(rhs._values);
         }
 
         /** Access operator - non-const
@@ -92,7 +94,7 @@ namespace detray
          */
         scalar_type &operator[](unsigned int value_index)
         {
-            return _v[value_index];
+            return _values[value_index];
         }
 
         /** Access operator - non-const
@@ -100,17 +102,14 @@ namespace detray
          */
         scalar_type operator[](unsigned int value_index) const
         {
-            return _v[value_index];
+            return _values[value_index];
         }
 
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
 
-        /** Mask identifier */
-        constexpr unsigned int mask_identifier() { return kMaskIdentifier; }
-
         /** Return the volume link */
-        const links_type& links() const { return _links; }
+        const links_type &links() const { return _links; }
     };
 
 } // namespace detray

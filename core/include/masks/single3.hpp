@@ -26,10 +26,12 @@ namespace detray
               unsigned int kMaskIdentifier=4>
     struct single3
     {
-        darray<scalar_type, 1> _v =
+        darray<scalar_type, 1> _values=
             {std::numeric_limits<scalar_type>::infinity()};
 
         links_type _links;
+
+        static constexpr unsigned int mask_identifier = kMaskIdentifier;
 
         /** Assignment operator from an array, convenience function
          * 
@@ -38,7 +40,7 @@ namespace detray
         single3<scalar_type, kCheckIndex, intersector_type, links_type, kMaskIdentifier>&
         operator=(const darray<scalar_type, 1> &rhs)
         {
-            _v = rhs;
+            _values= rhs;
             return (*this);
         }
 
@@ -57,7 +59,7 @@ namespace detray
         intersection_status operator()(const point3_type &p,
                                        scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
         {     
-            return (std::abs(p[kCheckIndex]) <= _v[0] + t) ? e_inside : e_outside;
+            return (std::abs(p[kCheckIndex]) <= _values[0] + t) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -68,7 +70,7 @@ namespace detray
          **/
         bool operator==(const darray<scalar_type, 2> &rhs)
         {
-            return (std::abs(_v[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon());
+            return (_values== rhs);
         }
 
         /** Equality operator 
@@ -79,7 +81,7 @@ namespace detray
          **/
         bool operator==(const single3<scalar_type, kCheckIndex> &rhs)
         {
-            return operator==(rhs._v);
+            return operator==(rhs._values);
         }
 
         /** Access operator - non-const
@@ -87,7 +89,7 @@ namespace detray
          */
         scalar_type &operator[](unsigned int value_index)
         {
-            return _v[value_index];
+            return _values[value_index];
         }
 
         /** Access operator - non-const
@@ -95,14 +97,11 @@ namespace detray
          */
         scalar_type operator[](unsigned int value_index) const
         {
-            return _v[value_index];
+            return _values[value_index];
         }
 
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
-
-        /** Mask identifier */
-        constexpr unsigned int mask_identifier() { return kMaskIdentifier; }
 
         /** Return the volume link */
         const links_type& links() const { return _links; }

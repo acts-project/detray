@@ -25,10 +25,11 @@ TEST(mask, cylinder3)
     point3 p3_out = {static_cast<scalar>(r / std::sqrt(2.)), static_cast<scalar>(r / std::sqrt(2.)), 4.5};
     point3 p3_off = {1., 1., -9.};
 
-    cylinder3<scalar> c = {r, hz};
+    cylinder3<scalar> c = {r, -hz, hz};
 
     ASSERT_EQ(c[0], r);
-    ASSERT_EQ(c[1], hz);
+    ASSERT_EQ(c[1], -hz);
+    ASSERT_EQ(c[2], hz);
 
     ASSERT_TRUE(c(p3_in) == intersection_status::e_inside);
     ASSERT_TRUE(c(p3_edge) == intersection_status::e_inside);

@@ -17,7 +17,7 @@ namespace detray {
 
     /** This is a simple 2-dimensional mask for a regular rectangle
      * 
-     * It is defined by half length in local0 coordinates _v[0] and _v[1], 
+     * It is defined by half length in local0 coordinates _values[0] and _values[1], 
      * and can be checked with a tolerance in t0 and t1.
      **/
     template <typename scalar_type, 
@@ -26,11 +26,13 @@ namespace detray {
               unsigned int kMaskIdentifier=0>
     struct rectangle2
     {
-        darray<scalar_type, 2> _v =
+        darray<scalar_type, 2> _values=
             {std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity()};
 
         links_type _links;
+
+        static constexpr unsigned int mask_identifier = kMaskIdentifier;
 
         /** Assignment operator from an array, convenience function
          * 
@@ -39,7 +41,7 @@ namespace detray {
         rectangle2<scalar_type, intersector_type, links_type, kMaskIdentifier>&
         operator=(const darray<scalar_type, 2> &rhs)
         {
-            _v = rhs;
+            _values= rhs;
             return (*this);
         }
 
@@ -59,7 +61,7 @@ namespace detray {
                                        scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
-            return (std::abs(p[0]) <= _v[0] + t0 and std::abs(p[1]) <= _v[1] + t1) ? e_inside : e_outside;
+            return (std::abs(p[0]) <= _values[0] + t0 and std::abs(p[1]) <= _values[1] + t1) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -70,7 +72,7 @@ namespace detray {
          **/
         bool operator==(const darray<scalar_type, 2> &rhs)
         {
-            return (std::abs(_v[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_v[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon());
+            return (_values== rhs);
         }
 
         /** Equality operator 
@@ -81,7 +83,7 @@ namespace detray {
          **/
         bool operator==(const rectangle2<scalar_type> &rhs)
         {
-            return operator==(rhs._v);
+            return operator==(rhs._values);
         }
 
         /** Access operator - non-const
@@ -89,7 +91,7 @@ namespace detray {
          */
         scalar_type &operator[](unsigned int value_index)
         {
-            return _v[value_index];
+            return _values[value_index];
         }
 
         /** Access operator - non-const
@@ -97,14 +99,11 @@ namespace detray {
          */
         scalar_type operator[](unsigned int value_index) const
         {
-            return _v[value_index];
+            return _values[value_index];
         }
 
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
-
-        /** Mask identifier */
-        constexpr unsigned int mask_identifier() { return kMaskIdentifier; }
 
         /** Return the volume link */
         const links_type& links() const { return _links; }

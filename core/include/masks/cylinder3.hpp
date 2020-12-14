@@ -30,20 +30,23 @@ namespace detray
               unsigned int kMaskIdentifier = 3>
     struct cylinder3
     {
-        darray<scalar_type, 2> _v =
+        darray<scalar_type, 3> _values =
             {std::numeric_limits<scalar_type>::infinity(),
+             -std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity()};
 
         links_type _links;
+
+        static constexpr unsigned int mask_identifier = kMaskIdentifier;
 
         /** Assignment operator from an array, convenience function
          * 
          * @param rhs is the right hand side object
          **/
-        cylinder3<scalar_type, kRadialCheck, intersector_type, links_type, kMaskIdentifier>&
-        operator=(const darray<scalar_type, 2> &rhs)
+        cylinder3<scalar_type, kRadialCheck, intersector_type, links_type, kMaskIdentifier> &
+        operator=(const darray<scalar_type, 3> &rhs)
         {
-            _v = rhs;
+            _values = rhs;
             return (*this);
         }
 
@@ -66,12 +69,12 @@ namespace detray
             if (kRadialCheck)
             {
                 scalar_type r = getter::perp(p);
-                if (std::abs(r - _v[0]) >= t0 + 5 * std::numeric_limits<scalar_type>::epsilon())
+                if (std::abs(r - _values[0]) >= t0 + 5 * std::numeric_limits<scalar_type>::epsilon())
                 {
                     return e_missed;
                 }
             }
-            return (std::abs(p[2]) <= _v[1] + t1) ? e_inside : e_outside;
+            return (_values[1] - t1 <= p[2] and p[2] <= _values[2] + t1) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -80,9 +83,9 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const darray<scalar_type, 2> &rhs)
+        bool operator==(const darray<scalar_type, 3> &rhs)
         {
-            return (std::abs(_v[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_v[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon());
+            return (_values == rhs);
         }
 
         /** Equality operator 
@@ -93,7 +96,7 @@ namespace detray
          **/
         bool operator==(const cylinder3<scalar_type> &rhs)
         {
-            return operator==(rhs._v);
+            return operator==(rhs._values);
         }
 
         /** Access operator - non-const
@@ -101,7 +104,7 @@ namespace detray
          */
         scalar_type &operator[](unsigned int value_index)
         {
-            return _v[value_index];
+            return _values[value_index];
         }
 
         /** Access operator - non-const
@@ -109,17 +112,14 @@ namespace detray
          */
         scalar_type operator[](unsigned int value_index) const
         {
-            return _v[value_index];
+            return _values[value_index];
         }
 
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
 
-        /** Return the mask identifier */
-        constexpr unsigned int mask_identifier() { return kMaskIdentifier; }
-
         /** Return the volume link */
-        const links_type& links() const { return _links; }
+        const links_type &links() const { return _links; }
     };
 
 } // namespace detray

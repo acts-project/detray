@@ -105,7 +105,7 @@ namespace __plugin
         dvector<cylinder_mask> cylinders;
         for (auto r : dists)
         {
-            cylinders.push_back(cylinder_mask{r, 10.});
+            cylinders.push_back(cylinder_mask{r, -10., 10.});
         }
 
         context ctx;
@@ -166,7 +166,7 @@ namespace __plugin
         dvector<cylinder_mask> cylinders;
         for (auto r : dists)
         {
-            cylinders.push_back(cylinder_mask{r, 10.});
+            cylinders.push_back(cylinder_mask{r, -10., 10.});
         }
 
         context ctx;

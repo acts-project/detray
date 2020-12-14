@@ -17,7 +17,7 @@ namespace detray
 {
     /** This is a simple 2-dimensional mask for a closed ring
      * 
-     * It is defined by the two radii _v[0] and  _v[1], 
+     * It is defined by the two radii _values[0] and  _values[1], 
      * and can be checked with a tolerance in t0 and t1.
      **/
     template <typename scalar_type, 
@@ -26,11 +26,13 @@ namespace detray
               unsigned int kMaskIdentifier=2>
     struct ring2
     {
-        darray<scalar_type, 2> _v =
+        darray<scalar_type, 2> _values=
             {0.,
              std::numeric_limits<scalar_type>::infinity()};
 
         links_type _links;
+
+        static constexpr unsigned int mask_identifier = kMaskIdentifier;
 
         /** Assignment operator from an array, convenience function
          * 
@@ -39,7 +41,7 @@ namespace detray
         ring2<scalar_type, intersector_type, links_type, kMaskIdentifier>&
         operator=(const darray<scalar_type, 2> &rhs)
         {
-            _v = rhs;
+            _values= rhs;
             return (*this);
         }
 
@@ -60,7 +62,7 @@ namespace detray
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
             scalar_type r = getter::perp(p - point2_type{t0, t1});
-            return (r + t0 >= _v[0] and r <= _v[1] + t0) ? e_inside : e_outside;
+            return (r + t0 >= _values[0] and r <= _values[1] + t0) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -71,7 +73,7 @@ namespace detray
          **/
         bool operator==(const darray<scalar_type, 2> &rhs)
         {
-            return (std::abs(_v[0] - rhs[0]) < std::numeric_limits<scalar_type>::epsilon() and std::abs(_v[1] - rhs[1]) < std::numeric_limits<scalar_type>::epsilon());
+            return (_values== rhs);
         }
 
         /** Equality operator 
@@ -82,28 +84,25 @@ namespace detray
          **/
         bool operator==(const ring2<scalar_type> &rhs)
         {
-            return operator==(rhs._v);
+            return operator==(rhs._values);
         }
 
         /** Access operator - non-const
          * @return the reference to the member variable
          */
         scalar_type& operator[](unsigned int value_index) {
-            return _v[value_index];
+            return _values[value_index];
         }
 
         /** Access operator - non-const
          * @return a copy of the member variable
          */
         scalar_type operator[](unsigned int value_index) const {
-            return _v[value_index];
+            return _values[value_index];
         }
 
         /** Return an associated intersector type */
         intersector_type intersector() { return intersector_type{}; };
-
-        /** Mask identifier */
-        constexpr unsigned int mask_identifier() { return kMaskIdentifier; }
 
         /** Return the volume link */
         const links_type& links() const { return _links; }
