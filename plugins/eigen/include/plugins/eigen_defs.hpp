@@ -163,7 +163,7 @@ namespace detray
             transform3(const matrix44 &m, const context & /*ctx*/)
             {
                 _data.matrix() = m;
-                
+
                 _data_inv = _data.inverse();
             }
 
@@ -183,6 +183,12 @@ namespace detray
             transform3() = default;
             transform3(const transform3 &rhs) = default;
             ~transform3() = default;
+
+            /** Equality operator */
+            bool operator==(const transform3 &rhs) const
+            {
+                return (_data.isApprox(rhs._data));
+            }
 
             /** This method retrieves the rotation of a transform
              * 
@@ -212,7 +218,7 @@ namespace detray
              * 
              * @note this is a contextual method
              **/
-            const auto& matrix(const context & /*ctx*/) const
+            const auto &matrix(const context & /*ctx*/) const
             {
                 return _data.matrix();
             }

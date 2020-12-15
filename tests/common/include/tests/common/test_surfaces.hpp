@@ -37,7 +37,7 @@ namespace detray
         {
             vector3 t = d * direction;
             transform3 trf(t, z, x, ctx);
-            return_surfaces.push_back(surface<transform3>{std::move(trf), std::move(0), std::move(0)});
+            return_surfaces.push_back(surface<transform3>{std::move(trf), 0, 0, false});
         }
         return return_surfaces;
     }

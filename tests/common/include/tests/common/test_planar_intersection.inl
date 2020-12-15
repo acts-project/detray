@@ -39,7 +39,7 @@ TEST(__plugin, translated_plane)
 
     // Create a shifted plane
     transform3 shifted(vector3{3., 2., 10.}, ctx);
-    plane_surface shifted_plane(std::move(shifted), 1, 1);
+    plane_surface shifted_plane(std::move(shifted), 1, 1, false);
 
     planar_intersector pi;
 

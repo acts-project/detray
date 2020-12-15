@@ -311,6 +311,12 @@ namespace detray
             transform3(const transform3 &rhs) = default;
             ~transform3() = default;
 
+            /** Equality operator */
+            bool operator==(const transform3 &rhs) const
+            {
+                return (_data == rhs._data);
+            }
+
             /** The determinant of a 4x4 matrix
              * 
              * @param m is the matrix

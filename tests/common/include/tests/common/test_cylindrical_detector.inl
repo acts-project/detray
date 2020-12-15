@@ -31,9 +31,9 @@ constexpr scalar isclose = 1e-5;
 TEST(__plugin, cylindrical_detector)
 {
 
-    using portal_range = darray<int, 2>;
-    using portal_links = dtuple<unsigned int, portal_range>;
-    using surface = surface<transform3, portal_links, unsigned int>;
+    // using portal_range = darray<int, 2>;
+    // /using portal_links = dtuple<unsigned int, portal_range>;
+    // using surface = surface<transform3, portal_links, unsigned int>;
     using detector = cylindrical_detector<transform3>;
 
     context ctx;
@@ -44,27 +44,36 @@ TEST(__plugin, cylindrical_detector)
     scalar p_radius = 120.;
     scalar p_barrel = 400.;
 
-    detector::portal_cylinder_mask bp_cylinder_ecn = {{bp_radius, -0.5 * bp_length, -0.5 * p_barrel}, {0, 1}};
-    detector::portal_cylinder_mask bp_cylinder_b = {{bp_radius, -0.5 * p_barrel, 0.5 * p_barrel}, {0, 2}};
-    detector::portal_cylinder_mask bp_cylinder_ecp = {{bp_radius, 0.5 * p_barrel, 0.5 * bp_length}, {0, 3}};
+    detector::portal_cylinder_mask bp_c_ecn = {{bp_radius, -0.5 * bp_length, -0.5 * p_barrel}, {0, 1}};
+    detector::portal_cylinder_mask bp_c_b = {{bp_radius, -0.5 * p_barrel, 0.5 * p_barrel}, {0, 2}};
+    detector::portal_cylinder_mask bp_c_ecp = {{bp_radius, 0.5 * p_barrel, 0.5 * bp_length}, {0, 3}};
     detector::portal_disc_mask bp_n_disc = {{0., 23.}, {-1, 0}};
     detector::portal_disc_mask bp_p_disc = {{0., 23.}, {0, -1}};
 
-    unsigned int sfcoutner = 0;
-
+    // An inner volume: call it pb
     detector::volume bp;
     bp.volume_index = 0;
-    dvector<detector::portal_cylinder_mask> bp_p_portals = {bp_cylinder_ecn, bp_cylinder_b, bp_cylinder_ecp};
-    auto bp_b_portal_links = d.add_portals<detector::portal_cylinder_mask>(bp_p_portals);
-    detector::portal_surface bp_b(std::move(transform3{}), std::move(bp_b_portal_links), std::move(false));
-    detector::guaranteed_index start_index = d.add_portal_surface(std::move(bp_b));
-    auto bp_ecn_portal_links = d.add_portals<detector::portal_disc_mask>({bp_n_disc});
-    detector::portal_surface bp_ecn(std::move(transform3(vector3(0., 0., 0.5 * bp_length), ctx)), std::move(bp_ecn_portal_links), std::move(false));
-    detector::guaranteed_index current_index = d.add_portal_surface(std::move(bp_ecn));
-    auto bp_ecp_portal_links = d.add_portals<detector::portal_disc_mask>({bp_p_disc});
-    detector::portal_surface bp_ecp(std::move(transform3(vector3(0., 0., 0.5 * bp_length), ctx)), std::move(bp_ecp_portal_links), std::move(false));
-    current_index = d.add_portal_surface(std::move(bp_ecp));
-    bp.portal_surface_range = {start_index, current_index};
+    // Create the cylinder portal links
+    dvector<detector::portal_cylinder_mask> bp_c_portals = {bp_c_ecn, bp_c_b, bp_c_ecp};
+    d.add_portal_surface<detector::portal_cylinder_mask>(std::move(transform3{}), bp_c_portals, bp);
+    d.add_volume(bp);
+    
+    // detector::portal_surface bp_b(std::move(transform3{}), std::move(bp_b_portal_links), std::move(false));
+    // bp.portal_surface_indices.push_back{d.add_portal_surface(std::move(bp_b))};
+    // Create the negative portal links
+    // auto bp_ecn_portal_links = d.add_portals<detector::portal_disc_mask>({bp_n_disc});
+    // detector::portal_surface bp_ecn(std::move(transform3(vector3(0., 0., 0.5 * bp_length), ctx)), std::move(bp_ecn_portal_links), std::move(false));
+    // detector::guaranteed_index current_index = d.add_portal_surface(std::move(bp_ecn));
+    // Create the positive portal links
+    // auto bp_ecp_portal_links = d.add_portals<detector::portal_disc_mask>({bp_p_disc});
+    // detector::portal_surface bp_ecp(std::move(transform3(vector3(0., 0., 0.5 * bp_length), ctx)), std::move(bp_ecp_portal_links), std::move(false));
+    /// current_index = d.add_portal_surface(std::move(bp_ecp));
+    // bp.portal_surface_range = {start_index, current_index};
+    // Add the volume
+    // d.add_volume(std::move(bp));
+    // A wrapping volume
+    detector::volume px;
+
 }
 
 // Google Test can be run manually from the main() function

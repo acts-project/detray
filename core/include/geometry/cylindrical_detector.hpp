@@ -19,62 +19,79 @@
 namespace detray
 {
 
-    template <typename transform_type, typename source_link = bool>
-    struct cylindrical_detector
+    template <typename transform_type>
+    class cylindrical_detector
     {
+
+    public:
+        // Indexing
         using optional_index = int;
         using guaranteed_index = unsigned long;
 
-        using portal_destinations = darray<int, 2>;
+        /** Nested volume struct */
+        struct volume
+        {
+            dvector<guaranteed_index> portal_surface_indices = {};
+            guaranteed_index volume_index = 0;
+        };
+
+        // Portal handling
+        using portal_destinations = darray<optional_index, 2>;
         using portal_cylinder_mask = cylinder3<scalar, false, concentric_cylinder_intersector, portal_destinations>;
         using portal_cylinders = dvector<portal_cylinder_mask>;
         using portal_disc_mask = ring2<scalar, planar_intersector, portal_destinations>;
         using portal_discs = dvector<portal_disc_mask>;
-        using portal_type_map = dmap<unsigned int, guaranteed_index>;
-        using portal_range = std::array<guaranteed_index, 2>;
+        using portal_type_map = dmap<guaranteed_index, guaranteed_index>;
+        using portal_range = darray<guaranteed_index, 2>;
         using portal_links = dtuple<guaranteed_index, portal_range>;
-        using portal_surface = surface<transform_type, portal_links>;
+        using portal_surface = surface<transform_type, portal_links, guaranteed_index>;
 
+        // Member & method section: for portals
+    private:
         dtuple<portal_cylinders, portal_discs> _portals;
         dvector<portal_surface> _portal_surfaces;
         portal_type_map _portal_types = {{portal_cylinder_mask::mask_identifier, 0}, {portal_disc_mask::mask_identifier, 1}};
 
-        struct volume
-        {
-            portal_range portal_surface_range = {0, 0};
-            guaranteed_index volume_index = 0;
-        };
-
-        //using mask_index = std::array<int, 2>;
-
-        //dvector<volume> _volumes;
-        //dvector<surface> _surfaces;
-
+    public:
         /** Method to add a list of portals to the portal tuple
          * 
          * @tparam portal_type the type of the portal mask
          * 
+         * @param transform the transform of the portal surface
          * @param portals the vector of portal masks
-         * 
-         * It @returns an indexed portal group
+         * @param volume to which this portal belongs to
          **/
         template <typename portal_type>
-        portal_links add_portals(const dvector<portal_type> &portals)
+        void add_portal_surface(transform_type &&transform, const dvector<portal_type> &portals, volume &volume)
         {
+            // Get the boundary group, record the index and insert the portals
             auto &group = std::get<dvector<portal_type>>(_portals);
             guaranteed_index index_start = group.size();
-            portal_range range = {index_start, index_start + portals.size()};
             group.insert(group.end(), portals.begin(), portals.end());
+            // Create a range of portal masks
+            portal_range range = {index_start, index_start + portals.size()};
             guaranteed_index type = _portal_types.find(portal_type::mask_identifier)->first;
-            return {type, range};
+            // Record the portal index
+            volume.portal_surface_indices.push_back(_portal_surfaces.size());
+            guaranteed_index index = volume.volume_index;
+            portal_links links = {type, range};
+            _portal_surfaces.push_back(portal_surface(std::move(transform), std::move(links), std::move(index), false));
         }
 
-        guaranteed_index add_portal_surface(portal_surface &&psurface)
+        // Member & method section for volumes
+    private:
+        dvector<volume> _volumes;
+
+    public:
+        /** Add a volume to the detector 
+         * 
+         * @tparam volume the volume to be added to the detector
+         **/
+        void add_volume(const volume &volume)
         {
-            guaranteed_index this_index = _portal_surfaces.size();
-            _portal_surfaces.push_back(std::move(psurface));
-            return this_index;
+            _volumes.push_back(volume);
         }
+
     };
 
 } // namespace detray

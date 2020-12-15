@@ -109,7 +109,7 @@ namespace __plugin
         }
 
         context ctx;
-        surface<transform3> plain(std::move(transform3()), 0, 0);
+        surface<transform3> plain(std::move(transform3()), 0, 0, false);
 
         point3 ori = {0., 0., 0.};
 
@@ -170,7 +170,7 @@ namespace __plugin
         }
 
         context ctx;
-        surface<transform3> plain(std::move(transform3()), 0, 0);
+        surface<transform3> plain(std::move(transform3()), 0, 0, false);
 
         point3 ori = {0., 0., 0.};
 

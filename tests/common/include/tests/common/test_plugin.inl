@@ -152,6 +152,8 @@ TEST(__plugin, transform3)
     // Test constructor from t, z, x
     transform3 trf(t, z, x, ctx);
 
+    ASSERT_TRUE(trf == trf);
+
     const auto rot = trf.rotation(ctx);
     #ifndef __plugin_without_matrix_element_accessor
     ASSERT_NEAR(rot(0, 0), x[0], epsilon);

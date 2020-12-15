@@ -39,7 +39,7 @@ TEST(__plugin, surface)
     point3 t(2., 3., 4.);
     transform3 trf(t, z, x, ctx);
 
-    surface s(std::move(trf),-1,-1);
+    surface s(std::move(trf), -1, -1, false);
 }
 
 // This tests the construction of a intresection
