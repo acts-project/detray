@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SMatrix.h"
-#include "SVector.h"
+#include "Math/SMatrix.h"
+#include "Math/SVector.h"
 
 #include <any>
 #include <array>
