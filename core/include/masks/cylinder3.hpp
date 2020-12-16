@@ -30,7 +30,10 @@ namespace detray
               unsigned int kMaskIdentifier = 3>
     struct cylinder3
     {
-        darray<scalar_type, 3> _values =
+
+        using mask_values = darray<scalar_type, 3>;
+
+        mask_values _values =
             {std::numeric_limits<scalar_type>::infinity(),
              -std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity()};

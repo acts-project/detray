@@ -27,7 +27,9 @@ namespace detray
               unsigned int kMaskIdentifier = 1>
     struct trapezoid2
     {
-        darray<scalar_type, 3> _values =
+        using mask_values = darray<scalar_type, 3>;
+
+        mask_values _values =
             {std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity()};

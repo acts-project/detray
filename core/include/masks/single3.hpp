@@ -26,7 +26,10 @@ namespace detray
               unsigned int kMaskIdentifier=4>
     struct single3
     {
-        darray<scalar_type, 1> _values=
+
+        using mask_values = darray<scalar_type, 1>;
+
+        mask_values _values=
             {std::numeric_limits<scalar_type>::infinity()};
 
         links_type _links;

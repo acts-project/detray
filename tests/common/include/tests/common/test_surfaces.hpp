@@ -42,4 +42,41 @@ namespace detray
         return return_surfaces;
     }
 
+    /** This method creates a barrel description of surfaces */
+    dtuple<darray<scalar, 2>, dvector<transform3>> barrel_description(scalar r,
+                                                                  scalar stagger_r,
+                                                                  unsigned int n_phi,
+                                                                  scalar tilt_phi,
+                                                                  scalar overlap_rphi,
+                                                                  scalar barrel_z,
+                                                                  scalar stagger_z,
+                                                                  unsigned int n_z)
+{
+    context ctx;
+
+    // Estimate module dimensions
+    scalar module_lx = 2 * r * M_PI * (1 + overlap_rphi) / n_phi;
+    scalar module_ly = (barrel_z + (n_z - 1) * stagger_z) / n_z;
+    darray<scalar, 2> rectangle_bounds = {0.5 * module_lx, 0.5 * module_ly};
+
+    dvector<transform3> transforms;
+    scalar phi_step = 2 * M_PI / n_phi;
+    scalar z_step = module_ly - stagger_z;
+    scalar z_start = -0.5*n_z*(module_ly - stagger_z);
+    for (unsigned int iz = 0; iz < n_z; ++iz)
+    {
+        scalar z_pos = z_start + iz * z_step;
+        for (unsigned int iphi = 0; iphi < n_phi; ++iphi)
+        {
+            scalar phi = -M_PI + iphi * phi_step;
+            scalar r_addon = (iphi%2) ? stagger_r : 0.;
+            point3 p = {r_addon * std::cos(phi), r_addon * std::sin(phi), z_pos};
+            vector3 z = {std::cos(phi + tilt_phi), std::sin(phi + tilt_phi), 0.};
+            vector3 x = {z[1], -z[0], 0.};
+            transforms.push_back(transform3(p, z, x, ctx));
+        }
+    }
+    return {rectangle_bounds, transforms};
+}
+
 } // namespace detray

@@ -13,20 +13,23 @@
 #include <cmath>
 #include <climits>
 
-namespace detray {
+namespace detray
+{
 
     /** This is a simple 2-dimensional mask for a regular rectangle
      * 
      * It is defined by half length in local0 coordinates _values[0] and _values[1], 
      * and can be checked with a tolerance in t0 and t1.
      **/
-    template <typename scalar_type, 
-              typename intersector_type = planar_intersector, 
+    template <typename scalar_type,
+              typename intersector_type = planar_intersector,
               typename links_type = bool,
-              unsigned int kMaskIdentifier=0>
+              unsigned int kMaskIdentifier = 0>
     struct rectangle2
     {
-        darray<scalar_type, 2> _values=
+        using mask_values = darray<scalar_type, 2>;
+
+        mask_values _values =
             {std::numeric_limits<scalar_type>::infinity(),
              std::numeric_limits<scalar_type>::infinity()};
 
@@ -38,10 +41,10 @@ namespace detray {
          * 
          * @param rhs is the right hand side object
          **/
-        rectangle2<scalar_type, intersector_type, links_type, kMaskIdentifier>&
+        rectangle2<scalar_type, intersector_type, links_type, kMaskIdentifier> &
         operator=(const darray<scalar_type, 2> &rhs)
         {
-            _values= rhs;
+            _values = rhs;
             return (*this);
         }
 
@@ -72,7 +75,7 @@ namespace detray {
          **/
         bool operator==(const darray<scalar_type, 2> &rhs)
         {
-            return (_values== rhs);
+            return (_values == rhs);
         }
 
         /** Equality operator 
@@ -106,7 +109,7 @@ namespace detray {
         intersector_type intersector() { return intersector_type{}; };
 
         /** Return the volume link */
-        const links_type& links() const { return _links; }
+        const links_type &links() const { return _links; }
     };
 
 } // namespace detray

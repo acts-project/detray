@@ -20,15 +20,15 @@ namespace detray
      * It is defined by the two radii _values[0] and  _values[1], 
      * and can be checked with a tolerance in t0 and t1.
      **/
-    template <typename scalar_type, 
-              typename intersector_type = planar_intersector, 
+    template <typename scalar_type,
+              typename intersector_type = planar_intersector,
               typename links_type = bool,
-              unsigned int kMaskIdentifier=2>
+              unsigned int kMaskIdentifier = 2>
     struct ring2
     {
-        darray<scalar_type, 2> _values=
-            {0.,
-             std::numeric_limits<scalar_type>::infinity()};
+        using mask_values = darray<scalar_type, 2>;
+
+        mask_values _values = {0., std::numeric_limits<scalar_type>::infinity()};
 
         links_type _links;
 
@@ -38,10 +38,10 @@ namespace detray
          * 
          * @param rhs is the right hand side object
          **/
-        ring2<scalar_type, intersector_type, links_type, kMaskIdentifier>&
+        ring2<scalar_type, intersector_type, links_type, kMaskIdentifier> &
         operator=(const darray<scalar_type, 2> &rhs)
         {
-            _values= rhs;
+            _values = rhs;
             return (*this);
         }
 
@@ -73,7 +73,7 @@ namespace detray
          **/
         bool operator==(const darray<scalar_type, 2> &rhs)
         {
-            return (_values== rhs);
+            return (_values == rhs);
         }
 
         /** Equality operator 
@@ -90,14 +90,16 @@ namespace detray
         /** Access operator - non-const
          * @return the reference to the member variable
          */
-        scalar_type& operator[](unsigned int value_index) {
+        scalar_type &operator[](unsigned int value_index)
+        {
             return _values[value_index];
         }
 
         /** Access operator - non-const
          * @return a copy of the member variable
          */
-        scalar_type operator[](unsigned int value_index) const {
+        scalar_type operator[](unsigned int value_index) const
+        {
             return _values[value_index];
         }
 
@@ -105,7 +107,7 @@ namespace detray
         intersector_type intersector() { return intersector_type{}; };
 
         /** Return the volume link */
-        const links_type& links() const { return _links; }
+        const links_type &links() const { return _links; }
     };
 
 } // namespace detray
