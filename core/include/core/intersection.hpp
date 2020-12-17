@@ -8,6 +8,7 @@
 
 #include <climits>
 #include <tuple>
+#include <optional>
 
 namespace detray
 {
