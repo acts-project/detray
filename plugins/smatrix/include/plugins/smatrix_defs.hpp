@@ -274,8 +274,6 @@ namespace detray
              **/
             const point3 point_to_global(const point3 &v, const smatrix::transform3::context & ctx) const
             {
-                constexpr int rows = v.kSize;
-                static_assert(rows == 3, "transform::point_to_global(v) requires a 3 vector");
                 return translation(ctx) + (rotation_inv(ctx) * v);
             }
 
@@ -285,8 +283,6 @@ namespace detray
              **/
             const point3 point_to_local(const point3 &v, const smatrix::transform3::context & ctx) const
             {
-                constexpr int rows = v.kSize;
-                static_assert(rows == 3, "transform::point_to_local(v) requires a 3 vector");
                 return translation_inv(ctx) + (rotation_inv(ctx) * v);
             }
 
@@ -296,8 +292,6 @@ namespace detray
              **/
             const point3 vector_to_global(const vector3 &v, const smatrix::transform3::context & ctx) const
             {
-                constexpr int rows = v.kSize;
-                static_assert(rows == 3, "transform::vector_to_global(v) requires a 3 vector");
                 return rotation(ctx) * v;
             }
 
@@ -307,8 +301,6 @@ namespace detray
              **/
             const point3 vector_to_local(const vector3 &v, const smatrix::transform3::context & ctx) const
             {
-                constexpr int rows = v.kSize;
-                static_assert(rows == 3, "transform::vector_to_local(v) requires a 3 vector"); 
                 return rotation_inv(ctx) * v;
             }
         };
@@ -337,8 +329,6 @@ namespace detray
              */
             template<typename point3_type> const auto operator()(const point3_type &v) const
             {
-                constexpr int rows = v.kSize;
-                static_assert(rows >= 2, "transform::point3_to_point2(v) requires a 3 vector");
                 return v.template Sub<SVector<scalar, 2> >(0);
             }
         };
