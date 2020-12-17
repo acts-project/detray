@@ -31,7 +31,7 @@ namespace detray
          * @param v the input vector 
          **/
         template <unsigned int kDIM>
-        auto phi(const ROOT::Math::SVector<scalar, kDIM> &v) noexcept
+        auto phi(const SVector<scalar, kDIM> &v) noexcept
         {
             static_assert(kDIM >= 2, "vector::phi() required rows >= 2.");
             return std::atan2(v[0], v[1]);
@@ -42,7 +42,7 @@ namespace detray
          * @param v the input vector 
          **/
         template <unsigned int kDIM>
-        auto theta(const ROOT::Math::SVector<scalar, kDIM> &v) noexcept
+        auto theta(const SVector<scalar, kDIM> &v) noexcept
         {
             static_assert(kDIM > 2, "vector::theta() required rows > 2.");
             return std::atan2(std::sqrt(v[0] * v[0] + v[1] * v[1]), v[2]);
@@ -53,7 +53,7 @@ namespace detray
          * @param v the input vector 
          **/
         template <unsigned int kDIM>
-        auto norm(const ROOT::Math::SVector<scalar, kDIM> &v)
+        auto norm(const SVector<scalar, kDIM> &v)
         {
             return ROOT::Math::Dot(v, v);
         }
@@ -63,7 +63,7 @@ namespace detray
          * @param v the input vector 
          **/
         template <unsigned int kDIM>
-        auto eta(const ROOT::Math::SVector<scalar, kDIM> &v) noexcept
+        auto eta(const SVector<scalar, kDIM> &v) noexcept
         {
             static_assert(kDIM > 2, "vector::eta() required rows > 2.");
             return std::atanh(v[2] / norm(v));
@@ -74,7 +74,7 @@ namespace detray
          * @param v the input vector 
          **/
         template <unsigned int kDIM>
-        auto perp(const ROOT::Math::SVector<scalar, kDIM> &v) noexcept
+        auto perp(const SVector<scalar, kDIM> &v) noexcept
         {
             static_assert(kDIM >= 2, "vector::perp() required rows >= 2.");
             return std::sqrt(v[0] * v[0] + v[1] * v[1]);
@@ -110,15 +110,15 @@ namespace detray
          **/
         struct transform3
         {
-            using vector3 = ROOT::Math::SVector<scalar, 3>;
+            using vector3 = SVector<scalar, 3>;
             using point3 = vector3;
             using context = std::any;
 
-            ROOT::Math::SMatrix<scalar, 4, 4> _data = ROOT::Math::SMatrixIdentity();
-            ROOT::Math::SMatrix<scalar, 4, 4> _data_inv = ROOT::Math::SMatrixIdentity();
+            SMatrix<scalar, 4, 4> _data = ROOT::Math::SMatrixIdentity();
+            SMatrix<scalar, 4, 4> _data_inv = ROOT::Math::SMatrixIdentity();
 
             using matrix44 = decltype(_data);
-            using matrix33 = ROOT::Math::SMatrix<scalar, 3, 3>;
+            using matrix33 = SMatrix<scalar, 3, 3>;
 
             /** Contructor with arguments: t, z, x, ctx
              * 
@@ -129,7 +129,7 @@ namespace detray
              **/
             transform3(const vector3 &t, const vector3 &z, const vector3 &x, const context & /*ctx*/)
             {
-                auto y = ROOT::Math::Cross(z, x);
+                auto y = Cross(z, x);
                 _data(0, 0) = x[0];
                 _data(1, 0) = x[1];
                 _data(2, 0) = x[2];
@@ -221,7 +221,7 @@ namespace detray
              **/
             auto rotation(const context & /*ctx*/) const
             {
-                return (_data.Sub<ROOT::Math::SMatrix<scalar, 3, 3> >(0, 0));
+                return (_data.Sub<SMatrix<scalar, 3, 3> >(0, 0));
             }
 
             /** This method retrieves the translation of a transform
@@ -232,7 +232,7 @@ namespace detray
              **/
             auto translation(const context & /*ctx*/) const
             {
-                return (_data.SubCol<SVector<scalar, 3> >(0, 3));
+                return (_data.SubCol<SVector<scalar, 3> >(3, 0));
             }
 
             /** This method retrieves the 4x4 matrix of a transform
@@ -254,7 +254,7 @@ namespace detray
              **/
             auto translation_inv(const context & /*ctx*/) const
             {
-                return (_data_inv.SubCol<SVector<scalar, 3> >(0, 3));
+                return (_data_inv.SubCol<SVector<scalar, 3> >(3, 0));
             }
             
             /** This method retrieves the rotation of a transform
@@ -265,51 +265,51 @@ namespace detray
              **/
             auto rotation_inv(const context & /*ctx*/) const
             {
-                return (_data_inv.Sub<ROOT::Math::SMatrix<scalar, 3, 3> >(0, 0));
+                return (_data_inv.Sub<SMatrix<scalar, 3, 3> >(0, 0));
             }
 
             /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame
              * 
              * @note this is a contextual method 
              **/
-            const auto point_to_global(const point3 &v, const smatrix::transform3::context & ctx) const
+            const point3 point_to_global(const point3 &v, const smatrix::transform3::context & ctx) const
             {
                 constexpr int rows = v.kSize;
                 static_assert(rows == 3, "transform::point_to_global(v) requires a 3 vector");
-                return (translation(ctx) + (rotation_inv(ctx) * v));
+                return translation(ctx) + (rotation_inv(ctx) * v);
             }
 
             /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
              * 
              * @note this is a contextual method 
              **/
-            const auto point_to_local(const point3 &v, const smatrix::transform3::context & ctx) const
+            const point3 point_to_local(const point3 &v, const smatrix::transform3::context & ctx) const
             {
                 constexpr int rows = v.kSize;
                 static_assert(rows == 3, "transform::point_to_local(v) requires a 3 vector");
-                return (translation_inv(ctx) + (rotation_inv(ctx) * v));
+                return translation_inv(ctx) + (rotation_inv(ctx) * v);
             }
 
             /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame
              * 
              * @note this is a contextual method 
              **/
-            const auto vector_to_global(const vector3 &v, const smatrix::transform3::context & ctx) const
+            const point3 vector_to_global(const vector3 &v, const smatrix::transform3::context & ctx) const
             {
                 constexpr int rows = v.kSize;
                 static_assert(rows == 3, "transform::vector_to_global(v) requires a 3 vector");
-                return (rotation(ctx) * v);
+                return rotation(ctx) * v;
             }
 
             /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
              * 
              * @note this is a contextual method 
              **/
-            const auto vector_to_local(const vector3 &v, const smatrix::transform3::context & ctx) const
+            const point3 vector_to_local(const vector3 &v, const smatrix::transform3::context & ctx) const
             {
                 constexpr int rows = v.kSize;
                 static_assert(rows == 3, "transform::vector_to_local(v) requires a 3 vector"); 
-                return (rotation_inv(ctx) * v);
+                return rotation_inv(ctx) * v;
             }
         };
 
@@ -317,7 +317,7 @@ namespace detray
          */
         struct cartesian2
         {
-            using point2 = ROOT::Math::SVector<scalar, 2>;
+            using point2 = SVector<scalar, 2>;
 
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
               * including the contextual transform into the local 3D frame
@@ -335,12 +335,10 @@ namespace detray
 
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
              */
-            template<typename point3_type> const auto operator()(const point3_type &v_expr) const
+            template<typename point3_type> const auto operator()(const point3_type &v) const
             {
-                constexpr int rows = v_expr.kRows;
+                constexpr int rows = v.kSize;
                 static_assert(rows >= 2, "transform::point3_to_point2(v) requires a 3 vector");
-                // TODO: ugly, do without copy
-                ROOT::Math::SVector<scalar, rows> v(v_expr);
                 return v.template Sub<SVector<scalar, 2> >(0);
             }
         };
@@ -349,7 +347,7 @@ namespace detray
          **/
         struct polar2
         {
-            using point2 = ROOT::Math::SVector<scalar, 2>;
+            using point2 = SVector<scalar, 2>;
 
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
               * including the contextual transform into the local 3D frame
@@ -377,7 +375,7 @@ namespace detray
          **/
         struct cylindrical2
         {
-            using point2 = ROOT::Math::SVector<scalar, 2>;
+            using point2 = SVector<scalar, 2>;
 
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
               * including the contextual transform into the local 3D frame
