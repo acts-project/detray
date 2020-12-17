@@ -12,6 +12,7 @@
 
 #include "core/intersection.hpp"
 #include "core/surface.hpp"
+#include "core/track.hpp"
 #include "utils/quadratic_equation.hpp"
 #include "utils/unbound.hpp"
 #include "masks/unmasked.hpp"
@@ -23,6 +24,32 @@ namespace detray
      */
     struct concentric_cylinder_intersector
     {
+        
+        /** Intersection method for cylindrical surfaces
+         * 
+         * @tparam surface_type The surface type to be intersected
+         * @tparam local_type The local frame type to be intersected
+         * @tparam mask_type The mask type applied to the local frame
+         * 
+         * Contextual part:
+         * @param s the surface to be intersected
+         * @param t the track information
+         * @param local to the local local frame 
+         * 
+         * Non-contextual part:
+         * @param mask the local mask 
+         * 
+         * @return the intersection with optional parameters
+         **/
+        template <typename surface_type, typename local_type, typename mask_type>
+        intersection<scalar, typename surface_type::transform3::point3, typename local_type::point2>
+        intersect(const surface_type &s,
+                  const track<typename surface_type::transform3> &t,
+                  const local_type &local,
+                  const mask_type &mask) const
+        {
+            return intersect(s, t.pos, t.dir, t.ctx, local, mask);
+        }
 
         /** Intersection method for cylindrical surfaces
          * 
@@ -32,7 +59,6 @@ namespace detray
          * 
          * Contextual part:
          * @param s the surface to be intersected
-         * @param r the radius of the surface
          * @param ro the origin of the ray
          * @param rd the direction of the ray
          * @param ctx the context of the call

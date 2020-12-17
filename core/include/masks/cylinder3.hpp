@@ -119,7 +119,7 @@ namespace detray
         }
 
         /** Return an associated intersector type */
-        intersector_type intersector() { return intersector_type{}; };
+        intersector_type intersector() const { return intersector_type{}; };
 
         /** Return the volume link */
         const links_type &links() const { return _links; }

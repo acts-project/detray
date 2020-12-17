@@ -7,7 +7,6 @@
 #pragma once
 
 #include <climits>
-#include <optional>
 #include <tuple>
 
 namespace detray
@@ -47,9 +46,11 @@ namespace detray
         point3_type _point3 = point3_type{std::numeric_limits<scalar_type>::infinity(),
                                           std::numeric_limits<scalar_type>::infinity(),
                                           std::numeric_limits<scalar_type>::infinity()};
+        
         std::optional<point2_type> _point2 = std::nullopt;
         intersection_status _status = e_missed;
         intersection_direction _direction = e_undefined;
+        int _index = -1;
 
         /** @param rhs is the right hand side intersection for comparison 
          **/

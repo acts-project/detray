@@ -33,10 +33,9 @@ using detector = cylindrical_detector<transform3>;
 detector d;
 context ctx;
 
-// This defines the local frame test suite
+// This test constructs a dimple cylindrical detector
 TEST(__plugin, cylindrical_detector)
 {
-
     // An inner volume: call it pb
     scalar bp_radius = 29.;
     scalar bp_length = 1000.;
@@ -69,6 +68,10 @@ TEST(__plugin, cylindrical_detector)
     d.add_portal_surface<detector::portal_cylinder_mask>(std::move(transform3()), {px_ecn_inner, px_ecn_outer}, px_ecn);
     d.add_portal_surface<detector::portal_disc_mask>(std::move(transform3(vector3(0., 0., -0.5 * bp_length), ctx)), {px_ecn_ecn}, px_ecn);
     d.add_portal_surface<detector::portal_disc_mask>(std::move(transform3(vector3(0., 0., -0.5 * px_barrel), ctx)), {px_ecn_ecp}, px_ecn);
+    auto endcap_n = endcap_description(29, 50, -px_barrel - 25., 1., 6, 0.2);
+    d.add_internal_surfaces<detector::trapezoid_mask>(std::get<dvector<transform3>>(endcap_n),
+                                                      std::get<detector::trapezoid_mask::mask_values>(endcap_n),
+                                                      px_ecn);
 
     detector::volume &px_b = d.new_volume({px_inner_radius, px_outer_radius, -px_barrel, px_barrel});
     detector::portal_cylinder_mask px_b_inner = {{px_inner_radius, -px_barrel, px_barrel}, {0, 2}};
@@ -79,8 +82,9 @@ TEST(__plugin, cylindrical_detector)
     d.add_portal_surface<detector::portal_disc_mask>(std::move(transform3(vector3(0., 0., -0.5 * px_barrel), ctx)), {px_b_ecn}, px_b);
     d.add_portal_surface<detector::portal_disc_mask>(std::move(transform3(vector3(0., 0., +0.5 * px_barrel), ctx)), {px_b_ecp}, px_b);
     auto barrel = barrel_description(33, 1., 12, 0.12, 0.2, 600, 2., 7);
-    darray<scalar,2> rectangle_vaues = std::get<darray<scalar,2>>(barrel);
-    d.add_internal_surfaces<detector::rectangle_mask>(std::get<dvector<transform3>>(barrel), rectangle_vaues, px_b);
+    d.add_internal_surfaces<detector::rectangle_mask>(std::get<dvector<transform3>>(barrel), 
+                                                      std::get<detector::rectangle_mask::mask_values>(barrel), 
+                                                      px_b);
 
     detector::volume &px_ecp = d.new_volume({px_inner_radius, px_outer_radius, px_barrel, bp_length});
     detector::portal_cylinder_mask px_ecp_inner = {{px_inner_radius, px_barrel, bp_length}, {0, 3}};
@@ -90,6 +94,33 @@ TEST(__plugin, cylindrical_detector)
     d.add_portal_surface<detector::portal_cylinder_mask>(std::move(transform3()), {px_ecp_inner, px_ecp_outer}, px_ecp);
     d.add_portal_surface<detector::portal_disc_mask>(std::move(transform3(vector3(0., 0., 0.5 * px_barrel), ctx)), {px_ecp_ecn}, px_ecp);
     d.add_portal_surface<detector::portal_disc_mask>(std::move(transform3(vector3(0., 0., 0.5 * bp_length), ctx)), {px_ecp_ecp}, px_ecp);
+    auto endcap_p = endcap_description(29, 50, px_barrel + 25., 1., 6, 0.2);
+    d.add_internal_surfaces<detector::trapezoid_mask>(std::get<dvector<transform3>>(endcap_p),
+                                                      std::get<detector::trapezoid_mask::mask_values>(endcap_p),
+                                                      px_ecp);
+
+}
+
+
+// This test navigates through a cylindrical detector
+TEST(__plugin, navigate_cylindrical_detector)
+{
+    detector::navigation_state navigation;
+    navigation.volume_index = 0; // this will have to be found out by the detector... octotree?
+
+    // Starting form 0,0,0 with direction (1,1,1).normalized
+    track<transform3> track;
+    track.pos = { 0., 0., 0.};
+    track.dir = { 1./std::sqrt(3), 1./std::sqrt(3), 1./std::sqrt(3) };
+    // Target to next
+    ASSERT_TRUE(d.target(navigation, track) == detector::navigation_status::e_towards_surface);
+    track.pos = track.pos + navigation.distance_to_next * track.dir;
+    ASSERT_TRUE(d.status(navigation, track, true) == detector::navigation_status::e_on_surface);
+    // Let's target again
+    ASSERT_TRUE(d.target(navigation, track) == detector::navigation_status::e_towards_portal);
+    track.pos = track.pos + navigation.distance_to_next * track.dir;
+    ASSERT_TRUE(d.status(navigation, track, true) == detector::navigation_status::e_on_portal);
+
 }
 
 // Google Test can be run manually from the main() function
