@@ -48,7 +48,7 @@ namespace detray
                   const local_type &local,
                   const mask_type &mask) const
         {
-            return intersect(s, t.pos, t.dir, t.ctx, local, mask);
+            return intersect(s, t.pos, t.dir, t.ctx, local, mask, t.overstep_tolerance);
         }
 
         /** Intersection method for cylindrical surfaces
@@ -76,7 +76,8 @@ namespace detray
                   const typename surface_type::transform3::vector3 &rd,
                   const typename surface_type::transform3::context &ctx,
                   const local_type &local,
-                  const mask_type &mask) const
+                  const mask_type &mask,
+                  scalar overstep_tolerance = 0.) const
         {
             using point3 = typename surface_type::transform3::point3;
             using vector3 = typename surface_type::transform3::vector3;

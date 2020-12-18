@@ -11,7 +11,6 @@
 #include <cmath>
 #include <tuple>
 #include <algorithm>
-#include <iostream>
 
 namespace detray
 {

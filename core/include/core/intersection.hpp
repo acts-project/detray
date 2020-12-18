@@ -18,8 +18,8 @@ namespace detray
      */
     enum intersection_direction : int
     {
-        e_opposite = -1, //!< opposite the surface normal at the intersection
-        e_undefined = 0, //!< the undefined direction at intersection
+        e_undefined = -1, //!< the undefined direction at intersection
+        e_opposite = 0, //!< opposite the surface normal at the intersection
         e_along = 1      //!< along the surface normal at the intersection
     };
 

@@ -19,12 +19,11 @@
 
 namespace detray
 {
-
     /** This is an intersector struct for a concetric cylinder surface
      */
     struct concentric_cylinder_intersector
     {
-        
+
         /** Intersection method for cylindrical surfaces
          * 
          * @tparam surface_type The surface type to be intersected
@@ -48,7 +47,7 @@ namespace detray
                   const local_type &local,
                   const mask_type &mask) const
         {
-            return intersect(s, t.pos, t.dir, t.ctx, local, mask);
+            return intersect(s, t.pos, t.dir, t.ctx, local, mask, t.overstep_tolerance);
         }
 
         /** Intersection method for cylindrical surfaces
@@ -76,7 +75,8 @@ namespace detray
                   const typename surface_type::transform3::vector3 &rd,
                   const typename surface_type::transform3::context &ctx,
                   const local_type &local,
-                  const mask_type &mask) const
+                  const mask_type &mask,
+                  scalar overstep_tolerance = 0.) const
         {
             using point3 = typename surface_type::transform3::point3;
             using vector3 = typename surface_type::transform3::vector3;
@@ -116,17 +116,18 @@ namespace detray
                 t01[1] = (candidates[1][_x] - ro[_x]) / rd[_x];
                 candidates[1][2] = ro[2] + t01[1] * rd[2];
 
-                // chosse the index, take the smaller positive one
-                int cindex = (t01[0] < t01[1] and t01[0] > 0.) ? 0 : (t01[0] < 0. and t01[1] > 0. ? 1 : -1);
-
-                if (cindex > 0)
+                // Chose the index, take the smaller positive one
+                int cindex = (t01[0] < t01[1] and t01[0] > overstep_tolerance) ? 0
+                                                                               : (t01[0] < overstep_tolerance and t01[1] > 0. ? 1 : 0);
+                if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance)
                 {
                     intersection is;
                     is._point3 = candidates[cindex];
                     is._path = t01[cindex];
-                    is._point2 = point2{r*getter::phi(is._point3), is._point3[2]};
+
+                    is._point2 = point2{r * getter::phi(is._point3), is._point3[2]};
                     is._status = mask(is._point3);
-                    scalar rdir = getter::perp(is._point3 + 10 * std::numeric_limits<scalar>::epsilon() * rd);
+                    scalar rdir = getter::perp(is._point3 + 0.1 * rd);
                     is._direction = rdir > r ? e_along : e_opposite;
                     return is;
                 }

@@ -17,7 +17,6 @@
 
 #include <cmath>
 #include <climits>
-#include <iostream>
 
 namespace detray
 {
@@ -26,7 +25,7 @@ namespace detray
     class cylindrical_detector
     {
 
-    public:
+        public:
         // Algebra
         using point3 = typename transform_type::point3;
         using vector3 = typename transform_type::vector3;
@@ -55,17 +54,18 @@ namespace detray
         private:
             dvector<guaranteed_index> _portal_surface_indices = {};
             dvector<surface_finder> _portal_surface_finder = {};
-            dvector<guaranteed_index> _internal_surface_indices = {};
-            dvector<surface_finder> _internal_surface_finder = {};
-            guaranteed_index _volume_index = 0;
+            dvector<guaranteed_index> _surface_indices = {};
+            dvector<surface_finder> _surface_finder = {};
+            guaranteed_index _index = 0;
 
+            std::string _name = "unknown";
             darray<scalar, 4> _volume_bounds = {0,
                                                 std::numeric_limits<scalar>::infinity(),
                                                 -std::numeric_limits<scalar>::infinity(),
                                                 std::numeric_limits<scalar>::infinity()};
 
-            volume(const darray<scalar, 4> &bounds)
-                : _volume_bounds(bounds)
+            volume(const std::string &name, const darray<scalar, 4> &bounds)
+                : _name(name), _volume_bounds(bounds)
             {
             }
         };
@@ -74,20 +74,18 @@ namespace detray
          * 
          * Volumes are a container of boundary surface indices and contained surface indices
          **/
-    private:
         dvector<volume> _volumes;
 
-    public:
         /** Add a volume to the detector 
          * 
          * @tparam bounds are the cylindrical bounds of the volume
          **/
-        volume &new_volume(const darray<scalar, 4> &bounds)
+        volume &new_volume(const std::string &name, const darray<scalar, 4> &bounds)
         {
-            volume vol(bounds);
-            vol._volume_index = _volumes.size();
+            volume vol(name, bounds);
+            vol._index = _volumes.size();
             _volumes.push_back(vol);
-            return _volumes[vol._volume_index];
+            return _volumes[vol._index];
         }
 
         /** Portal section ******************************************************
@@ -95,21 +93,20 @@ namespace detray
          * Portals are masks that are applied to surfaces and then point to volumes
          * 
          **/
-        using portal_destinations = darray<optional_index, 2>;
+        using portal_links = darray<optional_index, 2>;
 
-        using portal_rectangle_mask = rectangle2<scalar, planar_intersector, portal_destinations>;
+        using portal_rectangle_mask = rectangle2<scalar, planar_intersector, portal_links>;
         using portal_rectangles = dvector<portal_rectangle_mask>;
-        using protal_trapezoid_mask = trapezoid2<scalar, planar_intersector, portal_destinations>;
+        using protal_trapezoid_mask = trapezoid2<scalar, planar_intersector, portal_links>;
         using portal_trapezoids = dvector<protal_trapezoid_mask>;
-        using portal_cylinder_mask = cylinder3<scalar, false, concentric_cylinder_intersector, portal_destinations>;
+        using portal_cylinder_mask = cylinder3<scalar, false, concentric_cylinder_intersector, portal_links>;
         using portal_cylinders = dvector<portal_cylinder_mask>;
-        using portal_disc_mask = ring2<scalar, planar_intersector, portal_destinations>;
+        using portal_disc_mask = ring2<scalar, planar_intersector, portal_links>;
         using portal_discs = dvector<portal_disc_mask>;
         using portal_type_map = dmap<guaranteed_index, guaranteed_index>;
         using portal_surface = surface<transform_type, typed_guaranteed_range, guaranteed_index>;
 
         // Member & method section: for portals
-    private:
         dvector<portal_surface> _portal_surfaces;
         dtuple<portal_rectangles, portal_trapezoids, portal_cylinders, portal_discs> _portals;
         portal_type_map _portal_types = {{rectangle_mask::mask_identifier, 0},
@@ -117,7 +114,6 @@ namespace detray
                                          {cylinder_mask::mask_identifier, 2},
                                          {disc_mask::mask_identifier, 3}};
 
-    public:
         /** Method to add a list of portals to the portal tuple
          * 
          * @tparam portal_type the type of the portal mask
@@ -139,7 +135,7 @@ namespace detray
             guaranteed_index type = _portal_types.find(portal_type::mask_identifier)->second;
             // Record the portal index
             volume._portal_surface_indices.push_back(_portal_surfaces.size());
-            guaranteed_index volume_index = volume._volume_index;
+            guaranteed_index volume_index = volume._index;
             typed_guaranteed_range links = {type, range};
             _portal_surfaces.push_back(portal_surface(std::move(transform), std::move(links), std::move(volume_index), false));
         }
@@ -157,20 +153,19 @@ namespace detray
         using trapezoids = dvector<trapezoid_mask>;
         using cylinders = dvector<cylinder_mask>;
         using discs = dvector<disc_mask>;
+        using surface_links = bool;
 
         using surface_type_map = dmap<guaranteed_index, guaranteed_index>;
-        using internal_surface = surface<transform_type, typed_guaranteed_range, guaranteed_index>;
+        using surface = surface<transform_type, typed_guaranteed_range, guaranteed_index>;
 
         // Member & method section: for portals
-    private:
-        dvector<internal_surface> _internal_surfaces;
-        dtuple<rectangles, trapezoids, cylinders, discs> _internal_masks;
-        surface_type_map _internal_types = {{rectangle_mask::mask_identifier, 0},
+        dvector<surface> _surfaces;
+        dtuple<rectangles, trapezoids, cylinders, discs> _surface_masks;
+        surface_type_map _surface_types = {{rectangle_mask::mask_identifier, 0},
                                             {trapezoid_mask::mask_identifier, 1},
                                             {cylinder_mask::mask_identifier, 2},
                                             {disc_mask::mask_identifier, 3}};
 
-    public:
         /** Method to add a list of portals to the portal tuple
          * 
          * @tparam portal_type the type of the portal mask
@@ -180,22 +175,21 @@ namespace detray
          * @param volume to which this portal belongs to
          **/
         template <typename mask_type>
-        void add_internal_surfaces(dvector<transform_type> transforms, const typename mask_type::mask_values &mask_values, volume &volume)
+        void add_surfaces(dvector<transform_type> transforms, const typename mask_type::mask_values &mask_values, volume &volume)
         {
             // Get the boundary group, record the index and insert the portals
-            auto &mask_group = std::get<dvector<mask_type>>(_internal_masks);
+            auto &mask_group = std::get<dvector<mask_type>>(_surface_masks);
             guaranteed_index mask_index = mask_group.size();
             mask_type mask;
             mask = mask_values;
             mask_group.push_back(std::move(mask));
-            guaranteed_index type = _internal_types.find(mask_type::mask_identifier)->second;
+            guaranteed_index type = _surface_types.find(mask_type::mask_identifier)->second;
             typed_guaranteed_range typed_mask_range = {type, {mask_index, mask_index}};
-            // Record the portal index
-            volume._internal_surface_indices.push_back(_internal_surfaces.size());
-            guaranteed_index volume_index = volume._volume_index;
+            guaranteed_index volume_index = volume._index;
             for (auto transform : transforms)
             {
-                _internal_surfaces.push_back(internal_surface(std::move(transform), std::move(typed_mask_range), std::move(volume_index), false));
+                volume._surface_indices.push_back(_surfaces.size());
+                _surfaces.push_back(surface(std::move(transform), std::move(typed_mask_range), std::move(volume_index), false));
             }
         }
 
@@ -209,46 +203,58 @@ namespace detray
             e_on_portal = 3,
         };
 
+        template <typename surface_type, typename candidate_type, typename links_type>
+        struct navigation_kernel
+        {
+            const surface_type *on = nullptr;
+            dvector<candidate_type> candidates = {};
+            typename dvector<candidate_type>::iterator next = candidates.end();
+            links_type links;
+        };
+
         struct navigation_state
         {
-            // Internal surface navigation
-            const internal_surface *surface = nullptr;
-            dvector<surface_intersection> surface_candidates = {};
-            typename dvector<surface_intersection>::iterator surface_iterator = surface_candidates.end();
-            // Portal navigation
-            const portal_surface *portal = nullptr;
-            dvector<surface_intersection> portal_candidates = {};
-            typename dvector<surface_intersection>::iterator portal_iterator = portal_candidates.end();
+            // For the surfaces
+            navigation_kernel<surface, surface_intersection, surface_links> surfaces;
+            // For the portals
+            navigation_kernel<portal_surface, surface_intersection, portal_links> portals;
+            // Volume navigation @todo switch to navigation_kernel as well
+            int volume_index = -1;
             // Distance to next
             scalar distance_to_next = std::numeric_limits<scalar>::infinity();
-            // Volume navigation
-            optional_index volume_index = -1;
         };
 
         __plugin::cartesian2 cart2;
         __plugin::polar2 pol2;
         __plugin::cylindrical2 cyl2;
 
-        template <typename surface_type, typename local_type, typename mask_group, typename mask_range>
-        bool update_intersection_by_mask(surface_intersection &sfi, track<transform_type> &track, const surface_type &surface, const local_type &local, const mask_group &masks, const mask_range &range)
+        template <typename surface_type, typename links_type, typename local_type, typename mask_group, typename mask_range>
+        bool update_intersection_by_mask(surface_intersection &sfi,
+                                         links_type &links,
+                                         track<transform_type> &track,
+                                         const surface_type &surface,
+                                         const local_type &local,
+                                         const mask_group &masks,
+                                         const mask_range &range)
         {
-            // std::cout << "--- retrieved mask range is " << range[0] << ", " << range[1] << std::endl;
             for (guaranteed_index i = range[0]; i <= range[1]; ++i)
             {
-                // std::cout << "---- attempt for mask " << i << std::endl;
                 auto &mask = masks[i];
                 auto is = mask.intersector();
                 sfi = is.intersect(surface, track, local, mask);
                 if (sfi._status == e_inside)
                 {
+                    links = mask.links();
                     return true;
                 }
             }
             return false;
         }
 
-        template <typename surface_container, typename mask_type_map, typename mask_container>
-        bool update_intersection(surface_intersection &sfi, track<transform_type> &track,
+        template <typename surface_container, typename links_type, typename mask_type_map, typename mask_container>
+        bool update_intersection(surface_intersection &sfi,
+                                 links_type &links,
+                                 track<transform_type> &track,
                                  const surface_container &surfaces,
                                  const mask_type_map &mask_types,
                                  const mask_container &masks,
@@ -259,99 +265,98 @@ namespace detray
             const auto &typed_mask_range = surface.mask();
             if (std::get<0>(typed_mask_range) == 0)
             {
-                // std::cout << "-- trying rectangle -- " << std::endl;
                 const auto &mask_group = std::get<0>(masks);
-                return update_intersection_by_mask(sfi, track, surface, cart2, mask_group, std::get<1>(typed_mask_range));
+                return update_intersection_by_mask(sfi, links, track, surface, cart2, mask_group, std::get<1>(typed_mask_range));
             }
             else if (std::get<0>(typed_mask_range) == 1)
             {
-                //std::cout << "-- trying trapezoid -- " << std::endl;
                 const auto &mask_group = std::get<1>(masks);
-                return update_intersection_by_mask(sfi, track, surface, cart2, mask_group, std::get<1>(typed_mask_range));
+                return update_intersection_by_mask(sfi, links, track, surface, cart2, mask_group, std::get<1>(typed_mask_range));
             }
             else if (std::get<0>(typed_mask_range) == 2)
             {
-                //std::cout << "-- trying cylinder -- " << std::endl;
                 const auto &mask_group = std::get<2>(masks);
-                return update_intersection_by_mask(sfi, track, surface, cyl2, mask_group, std::get<1>(typed_mask_range));
+                return update_intersection_by_mask(sfi, links, track, surface, cyl2, mask_group, std::get<1>(typed_mask_range));
             }
             else if (std::get<0>(typed_mask_range) == 3)
             {
-                //std::cout << "-- trying disc -- " << std::endl;
                 const auto &mask_group = std::get<3>(masks);
-                return update_intersection_by_mask(sfi, track, surface, cart2, mask_group, std::get<1>(typed_mask_range));
+                return update_intersection_by_mask(sfi, links, track, surface, cart2, mask_group, std::get<1>(typed_mask_range));
             }
             return false;
         }
 
         navigation_status status(navigation_state &navigation, track<transform_type> &track, bool trust = false)
         {
-            //std::cout << "--> status() " << std::endl;
             if (trust)
             {
                 // Trust the stepper towards the internal surface
-                if (navigation.surface_iterator != navigation.surface_candidates.end())
+                if (navigation.surfaces.next != navigation.surfaces.candidates.end())
                 {
-                    navigation.surface = &(_internal_surfaces[(*navigation.surface_iterator)._index]);
-                    // std::cout << "--- On surface, trying next ... " << std::endl;
-                    ++navigation.surface_iterator;
+                    navigation.surfaces.on = &(_surfaces[(*navigation.surfaces.next)._index]);
+                    ++navigation.surfaces.next;
                     return e_on_surface;
                 }
 
                 // Trust the stepper towards the portal surface
-                if (navigation.portal_iterator != navigation.portal_candidates.end())
+                if (navigation.portals.next != navigation.portals.candidates.end())
                 {
-                    navigation.portal = &(_portal_surfaces[(*navigation.portal_iterator)._index]);   
-                    // std::cout << "--- On portal, moving to next volume " << std::endl;                 
-                    navigation.portal_candidates.clear();
+                    navigation.portals.on = &(_portal_surfaces[(*navigation.portals.next)._index]);
+                    auto attached_direction = (*navigation.portals.next)._direction;
+                    navigation.volume_index = navigation.portals.links[attached_direction];
+                    navigation.portals.candidates.clear();
                     return e_on_portal;
                 }
             }
             return e_unknown;
         }
 
-        // Navigation target function
+        /** Target function of the navigator
+         * 
+         * @tparam track is the track templated on the transform
+         * 
+         * @param navigation is the navigation cache
+         * @param track is the current track information
+         * @param trust is a flag indicating if you can trust the navigation stream
+         * 
+         * @return a navigaiton status
+         **/
         navigation_status target(navigation_state &navigation, track<transform_type> &track, bool trust = false)
         {
-            // std::cout << "--> target() " << std::endl;
             if (navigation.volume_index >= 0)
             {
                 // Volume information
                 const auto &volume = _volumes[navigation.volume_index];
                 // Fresh volume call
-                if (navigation.surface_candidates.empty() and navigation.portal_candidates.empty())
+                if (navigation.surfaces.candidates.empty() and navigation.portals.candidates.empty())
                 {
-                    // std::cout << "--- Fresh volume call --- " << std::endl;
                     // This is the code without surface_finder (start version for the moment)
-                    navigation.surface_candidates.reserve(volume._internal_surface_indices.size());
-                    for (auto isi : volume._internal_surface_indices)
+                    navigation.surfaces.candidates.reserve(volume._surface_indices.size());
+                    for (auto isi : volume._surface_indices)
                     {
                         surface_intersection sfi;
                         sfi._index = isi;
-                        update_intersection(sfi, track, _internal_surfaces, _internal_types, _internal_masks);
+                        update_intersection(sfi, navigation.surfaces.links, track, _surfaces, _surface_types, _surface_masks);
                         if (sfi._status == e_inside and sfi._path > track.overstep_tolerance)
                         {
-                            navigation.surface_candidates.push_back(std::move(sfi));
+                            navigation.surfaces.candidates.push_back(std::move(sfi));
                         }
                     }
-                    // std::cout << "--- Found " << navigation.surface_candidates.size() << " surface candidates " << std::endl;
-                    if (not navigation.surface_candidates.empty())
+                    if (not navigation.surfaces.candidates.empty())
                     {
-                        std::sort(navigation.surface_candidates.begin(), navigation.surface_candidates.end());
-                        navigation.surface_iterator = navigation.surface_candidates.begin();
-                        navigation.distance_to_next = (*navigation.surface_iterator)._path;
+                        std::sort(navigation.surfaces.candidates.begin(), navigation.surfaces.candidates.end());
+                        navigation.surfaces.next = navigation.surfaces.candidates.begin();
+                        navigation.distance_to_next = (*navigation.surfaces.next)._path;
                         // we need to sort them still
-                        // std::cout << "--- targetting surface candidate  " << std::endl;
                         return e_towards_surface;
                     }
                 }
-                else if (navigation.surface_iterator == navigation.surface_candidates.end())
+                else if (navigation.surfaces.next == navigation.surfaces.candidates.end())
                 {
-                    navigation.surface_candidates.clear();
-                    navigation.surface_iterator = navigation.surface_candidates.end();
-                    // std::cout << "--- No more surface candidates, get portal candidates" << std::endl;
+                    navigation.surfaces.candidates.clear();
+                    navigation.surfaces.next = navigation.surfaces.candidates.end();
                     // This is the code without portal_finder (start verison for the moment)
-                    navigation.portal_candidates.reserve(volume._portal_surface_indices.size());
+                    navigation.portals.candidates.reserve(volume._portal_surface_indices.size());
                     bool portal_hit = false;
                     for (auto psi : volume._portal_surface_indices)
                     {
@@ -359,17 +364,17 @@ namespace detray
                         sfi._index = psi;
                         if (not portal_hit)
                         {
-                            update_intersection(sfi, track, _portal_surfaces, _portal_types, _portals);
+                            update_intersection(sfi, navigation.portals.links, track, _portal_surfaces, _portal_types, _portals);
                             portal_hit = (sfi._status == e_inside and sfi._path > track.overstep_tolerance);
-                            if (portal_hit){
+                            if (portal_hit)
+                            {
                                 // That's not the full story, we should keep all boundaries
-                                navigation.portal_candidates.push_back(std::move(sfi));
+                                navigation.portals.candidates.push_back(std::move(sfi));
                             }
                         }
                     }
-                    navigation.portal_iterator = navigation.portal_candidates.begin();
-                    navigation.distance_to_next = (*navigation.portal_iterator)._path;
-                    // std::cout << "--- targetting portal candidate " << std::endl;
+                    navigation.portals.next = navigation.portals.candidates.begin();
+                    navigation.distance_to_next = (*navigation.portals.next)._path;
                     return e_towards_portal;
                 }
             }

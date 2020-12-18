@@ -125,8 +125,8 @@ namespace detray
             for (unsigned int iphi = 0; iphi < n_phi; ++iphi)
             {
                 scalar phi = -M_PI + iphi * phi_step;
-                scalar r_addon = (iphi % 2) ? -stagger_r : stagger_r;
-                point3 p = {r_addon * std::cos(phi), r_addon * std::sin(phi), z_pos};
+                scalar r_addon = (iz % 2) ? -stagger_r : stagger_r;
+                point3 p = {(r+r_addon) * std::cos(phi), (r+r_addon) * std::sin(phi), z_pos};
                 vector3 z = {std::cos(phi + tilt_phi), std::sin(phi + tilt_phi), 0.};
                 vector3 x = {z[1], -z[0], 0.};
                 transforms.push_back(transform3(p, z, x, ctx));

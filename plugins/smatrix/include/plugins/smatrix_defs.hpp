@@ -7,7 +7,6 @@
 #include <array>
 #include <tuple>
 #include <cmath>
-#include <iostream>
 
 #ifdef DETRAY_CUSTOM_SCALARTYPE
 using detray_scalar = DETRAY_CUSTOM_SCALARTYPE;
