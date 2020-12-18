@@ -156,10 +156,10 @@ namespace detray
         using surface_links = bool;
 
         using surface_type_map = dmap<guaranteed_index, guaranteed_index>;
-        using surface = surface<transform_type, typed_guaranteed_range, guaranteed_index>;
+        using detector_surface = surface<transform_type, typed_guaranteed_range, guaranteed_index>;
 
         // Member & method section: for portals
-        dvector<surface> _surfaces;
+        dvector<detector_surface> _surfaces;
         dtuple<rectangles, trapezoids, cylinders, discs> _surface_masks;
         surface_type_map _surface_types = {{rectangle_mask::mask_identifier, 0},
                                             {trapezoid_mask::mask_identifier, 1},
@@ -189,7 +189,7 @@ namespace detray
             for (auto transform : transforms)
             {
                 volume._surface_indices.push_back(_surfaces.size());
-                _surfaces.push_back(surface(std::move(transform), std::move(typed_mask_range), std::move(volume_index), false));
+                _surfaces.push_back(detector_surface(std::move(transform), std::move(typed_mask_range), std::move(volume_index), false));
             }
         }
 
@@ -215,7 +215,7 @@ namespace detray
         struct navigation_state
         {
             // For the surfaces
-            navigation_kernel<surface, surface_intersection, surface_links> surfaces;
+            navigation_kernel<detector_surface, surface_intersection, surface_links> surfaces;
             // For the portals
             navigation_kernel<portal_surface, surface_intersection, portal_links> portals;
             // Volume navigation @todo switch to navigation_kernel as well

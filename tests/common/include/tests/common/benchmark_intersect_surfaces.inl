@@ -30,8 +30,6 @@ __plugin::cylindrical2 cyl2;
 unsigned int theta_steps = 1000;
 unsigned int phi_steps = 1000;
 
-bool screen_output = false;
-
 dvector<scalar> dists = {1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
 
 auto planes = planes_along_direction(dists, vector::normalize(vector3{1., 1., 1.}));
@@ -84,11 +82,6 @@ namespace __plugin
                     }
                 }
             }
-        }
-
-        if (screen_output)
-        {
-            std::cout << "Surfaces inside / outside : " << sfhit << " / " << sfmiss << std::endl;
         }
     }
 
@@ -147,11 +140,6 @@ namespace __plugin
                 }
             }
         }
-
-        if (screen_output)
-        {
-            std::cout << "Surfaces inside / outside : " << sfhit << " / " << sfmiss << std::endl;
-        }
     }
 
     BENCHMARK(BM_INTERSECT_CYLINDERS);
@@ -207,11 +195,6 @@ namespace __plugin
                     }
                 }
             }
-        }
-
-        if (screen_output)
-        {
-            std::cout << "Surfaces inside / outside : " << sfhit << " / " << sfmiss << std::endl;
         }
     }
 
