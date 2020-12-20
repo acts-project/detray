@@ -303,7 +303,7 @@ namespace detray
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
-                static_assert(rows == 3 and cols == 1, "transform::point3_to_point2(v) requires a (3,1) matrix");
+                static_assert(rows == 3 and cols == 1, "transform::point3_topoint2(v) requires a (3,1) matrix");
                 return (v.template segment<2>(0)).eval();
             }
         };
@@ -334,7 +334,7 @@ namespace detray
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
-                static_assert(rows >= 2 and cols == 1, "transform::point_to_point2pol(v) requires a (>2,1) matrix");
+                static_assert(rows >= 2 and cols == 1, "transform::point_topoint2pol(v) requires a (>2,1) matrix");
                 return point2{getter::perp(v), getter::phi(v)};
             }
         };
@@ -366,7 +366,7 @@ namespace detray
 
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
-                static_assert(rows == 3 and cols == 1, "transform::point3_to_point2cyl(v) requires a a (3,1) matrix");
+                static_assert(rows == 3 and cols == 1, "transform::point3_topoint2cyl(v) requires a a (3,1) matrix");
                 return point2{getter::perp(v) * getter::phi(v), v[2]};
             }
         };

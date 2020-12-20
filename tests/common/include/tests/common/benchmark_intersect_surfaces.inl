@@ -71,7 +71,7 @@ namespace __plugin
                     {
                         auto pi = rect.intersector();
                         auto is = pi.intersect(plane, ori, dir, ctx, cart2, rect);
-                        if (is._status == e_inside)
+                        if (is.status == e_inside)
                         {
                             ++sfhit;
                         }
@@ -128,7 +128,7 @@ namespace __plugin
                     {
                         auto ci = cylinder.intersector();
                         auto is = ci.intersect(plain, ori, dir, ctx, cyl2, cylinder);
-                        if (is._status == e_inside)
+                        if (is.status == e_inside)
                         {
                             ++sfhit;
                         }
@@ -184,7 +184,7 @@ namespace __plugin
                     {
                         auto cci = cylinder.intersector();
                         auto is = cci.intersect(plain, ori, dir, ctx, cyl2, cylinder);
-                        if (is._status == e_inside)
+                        if (is.status == e_inside)
                         {
                             ++sfhit;
                         }

@@ -122,13 +122,13 @@ namespace detray
                 if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance)
                 {
                     intersection is;
-                    is._point3 = candidates[cindex];
-                    is._path = t01[cindex];
+                    is.point3 = candidates[cindex];
+                    is.path = t01[cindex];
 
-                    is._point2 = point2{r * getter::phi(is._point3), is._point3[2]};
-                    is._status = mask(is._point3);
-                    scalar rdir = getter::perp(is._point3 + 0.1 * rd);
-                    is._direction = rdir > r ? e_along : e_opposite;
+                    is.point2 = point2{r * getter::phi(is.point3), is.point3[2]};
+                    is.status = mask(is.point3);
+                    scalar rdir = getter::perp(is.point3 + 0.1 * rd);
+                    is.direction = rdir > r ? e_along : e_opposite;
                     return is;
                 }
             }

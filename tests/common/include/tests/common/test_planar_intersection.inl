@@ -44,48 +44,48 @@ TEST(__plugin, translated_plane)
     planar_intersector pi;
 
     auto hit_unbound = pi.intersect(shifted_plane, point3{2., 1., 0.}, vector3{0., 0., 1.}, ctx);
-    ASSERT_TRUE(hit_unbound._status == intersection_status::e_hit);
-    ASSERT_TRUE(hit_unbound._direction == intersection_direction::e_along);
+    ASSERT_TRUE(hit_unbound.status == intersection_status::e_hit);
+    ASSERT_TRUE(hit_unbound.direction == intersectiondirection::e_along);
     // Global intersection information
-    ASSERT_NEAR(hit_unbound._point3[0], 2., epsilon);
-    ASSERT_NEAR(hit_unbound._point3[1], 1., epsilon);
-    ASSERT_NEAR(hit_unbound._point3[2], 10., epsilon);
-    ASSERT_TRUE(hit_unbound._point2 == std::nullopt);
+    ASSERT_NEAR(hit_unbound.point3[0], 2., epsilon);
+    ASSERT_NEAR(hit_unbound.point3[1], 1., epsilon);
+    ASSERT_NEAR(hit_unbound.point3[2], 10., epsilon);
+    ASSERT_TRUE(hit_unbound.point2 == std::nullopt);
 
     // The same test but bound to local frame
     auto hit_bound = pi.intersect(shifted_plane, point3{2., 1., 0.}, vector3{0., 0., 1.}, ctx, cartesian2);
-    ASSERT_TRUE(hit_bound._status == intersection_status::e_hit);
+    ASSERT_TRUE(hit_bound.status == intersection_status::e_hit);
     // Global intersection information - unchanged
-    ASSERT_NEAR(hit_bound._point3[0], 2., epsilon);
-    ASSERT_NEAR(hit_bound._point3[1], 1., epsilon);
-    ASSERT_NEAR(hit_bound._point3[2], 10., epsilon);
+    ASSERT_NEAR(hit_bound.point3[0], 2., epsilon);
+    ASSERT_NEAR(hit_bound.point3[1], 1., epsilon);
+    ASSERT_NEAR(hit_bound.point3[2], 10., epsilon);
     // Local intersection infoimation
-    ASSERT_NEAR(hit_bound._point2.value()[0], -1., epsilon);
-    ASSERT_NEAR(hit_bound._point2.value()[1], -1., epsilon);
+    ASSERT_NEAR(hit_bound.point2.value()[0], -1., epsilon);
+    ASSERT_NEAR(hit_bound.point2.value()[1], -1., epsilon);
 
     // The same test but bound to local frame & masked - inside
     rectangle2<scalar> rect_for_inside = {3., 3.};
     auto hit_bound_inside = pi.intersect(shifted_plane, point3{2., 1., 0.}, vector3{0., 0., 1.}, ctx, cartesian2, rect_for_inside);
-    ASSERT_TRUE(hit_bound_inside._status == intersection_status::e_inside);
+    ASSERT_TRUE(hit_bound_inside.status == intersection_status::e_inside);
     // Global intersection information - unchanged
-    ASSERT_NEAR(hit_bound_inside._point3[0], 2., epsilon);
-    ASSERT_NEAR(hit_bound_inside._point3[1], 1., epsilon);
-    ASSERT_NEAR(hit_bound_inside._point3[2], 10., epsilon);
+    ASSERT_NEAR(hit_bound_inside.point3[0], 2., epsilon);
+    ASSERT_NEAR(hit_bound_inside.point3[1], 1., epsilon);
+    ASSERT_NEAR(hit_bound_inside.point3[2], 10., epsilon);
     // Local intersection infoimation - unchanged
-    ASSERT_NEAR(hit_bound_inside._point2.value()[0], -1., epsilon);
-    ASSERT_NEAR(hit_bound_inside._point2.value()[1], -1., epsilon);
+    ASSERT_NEAR(hit_bound_inside.point2.value()[0], -1., epsilon);
+    ASSERT_NEAR(hit_bound_inside.point2.value()[1], -1., epsilon);
 
     // The same test but bound to local frame & masked - outside
     rectangle2<scalar> rect_for_outside = {0.5, 3.5};
     auto hit_bound_outside = pi.intersect(shifted_plane, point3{2., 1., 0.}, vector3{0., 0., 1.}, ctx, cartesian2, rect_for_outside);
-    ASSERT_TRUE(hit_bound_outside._status == intersection_status::e_outside);
+    ASSERT_TRUE(hit_bound_outside.status == intersection_status::e_outside);
     // Global intersection information - unchanged
-    ASSERT_NEAR(hit_bound_outside._point3[0], 2., epsilon);
-    ASSERT_NEAR(hit_bound_outside._point3[1], 1., epsilon);
-    ASSERT_NEAR(hit_bound_outside._point3[2], 10., epsilon);
+    ASSERT_NEAR(hit_bound_outside.point3[0], 2., epsilon);
+    ASSERT_NEAR(hit_bound_outside.point3[1], 1., epsilon);
+    ASSERT_NEAR(hit_bound_outside.point3[2], 10., epsilon);
     // Local intersection infoimation - unchanged
-    ASSERT_NEAR(hit_bound_outside._point2.value()[0], -1., epsilon);
-    ASSERT_NEAR(hit_bound_outside._point2.value()[1], -1., epsilon);
+    ASSERT_NEAR(hit_bound_outside.point2.value()[0], -1., epsilon);
+    ASSERT_NEAR(hit_bound_outside.point2.value()[1], -1., epsilon);
 }
 
 // Google Test can be run manually from the main() function

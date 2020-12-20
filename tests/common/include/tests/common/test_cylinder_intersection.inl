@@ -45,22 +45,22 @@ TEST(__plugin, translated_cylinder)
     // Unbound local frame test
     unbound ub;
     auto hit_unbound = ci.intersect(shifted_cylinder, point3{3., 2., 5.}, vector3{1., 0., 0.}, ctx, ub, cylinder);
-    ASSERT_TRUE(hit_unbound._status == intersection_status::e_inside);
-    ASSERT_NEAR(hit_unbound._point3[0], 7., epsilon);
-    ASSERT_NEAR(hit_unbound._point3[1], 2., epsilon);
-    ASSERT_NEAR(hit_unbound._point3[2], 5., epsilon);
-    ASSERT_TRUE(hit_unbound._point2 == std::nullopt);
+    ASSERT_TRUE(hit_unbound.status== intersection_status::e_inside);
+    ASSERT_NEAR(hit_unbound.point3[0], 7., epsilon);
+    ASSERT_NEAR(hit_unbound.point3[1], 2., epsilon);
+    ASSERT_NEAR(hit_unbound.point3[2], 5., epsilon);
+    ASSERT_TRUE(hit_unbound.point2 == std::nullopt);
 
     // The same but bound
     __plugin::cylindrical2 cylindrical2;
     auto hit_bound = ci.intersect(shifted_cylinder, point3{3., 2., 5.}, vector3{1., 0., 0.}, ctx, cylindrical2, cylinder);
-    ASSERT_TRUE(hit_bound._status == intersection_status::e_inside);
-    ASSERT_NEAR(hit_bound._point3[0], 7., epsilon);
-    ASSERT_NEAR(hit_bound._point3[1], 2., epsilon);
-    ASSERT_NEAR(hit_bound._point3[2], 5., epsilon);
-    ASSERT_TRUE(hit_bound._point2 != std::nullopt);
-    ASSERT_NEAR(hit_bound._point2.value()[0], 0., isclose);
-    ASSERT_NEAR(hit_bound._point2.value()[1], -5., isclose);
+    ASSERT_TRUE(hit_bound.status== intersection_status::e_inside);
+    ASSERT_NEAR(hit_bound.point3[0], 7., epsilon);
+    ASSERT_NEAR(hit_bound.point3[1], 2., epsilon);
+    ASSERT_NEAR(hit_bound.point3[2], 5., epsilon);
+    ASSERT_TRUE(hit_bound.point2 != std::nullopt);
+    ASSERT_NEAR(hit_bound.point2.value()[0], 0., isclose);
+    ASSERT_NEAR(hit_bound.point2.value()[1], -5., isclose);
 }
 
 // This defines the local frame test suite
@@ -86,21 +86,21 @@ TEST(__plugin, concentric_cylinders)
     auto hit_cylinrical = ci.intersect(plain, ori, dir, ctx, cylindrical2, cylinder);
     auto hit_cocylinrical = cci.intersect(plain, ori, dir, ctx, cylindrical2, cylinder);
 
-    ASSERT_TRUE(hit_cylinrical._status == intersection_status::e_inside);
-    ASSERT_TRUE(hit_cocylinrical._status == intersection_status::e_inside);
-    ASSERT_TRUE(hit_cylinrical._direction == intersection_direction::e_along);
-    ASSERT_TRUE(hit_cocylinrical._direction == intersection_direction::e_along);
+    ASSERT_TRUE(hit_cylinrical.status== intersection_status::e_inside);
+    ASSERT_TRUE(hit_cocylinrical.status== intersection_status::e_inside);
+    ASSERT_TRUE(hit_cylinrical.direction == intersectiondirection::e_along);
+    ASSERT_TRUE(hit_cocylinrical.direction == intersectiondirection::e_along);
 
-    ASSERT_NEAR(getter::perp(hit_cylinrical._point3), r, isclose);
-    ASSERT_NEAR(getter::perp(hit_cocylinrical._point3), r, isclose);
+    ASSERT_NEAR(getter::perp(hit_cylinrical.point3), r, isclose);
+    ASSERT_NEAR(getter::perp(hit_cocylinrical.point3), r, isclose);
 
-    ASSERT_NEAR(hit_cylinrical._point3[0], hit_cocylinrical._point3[0], isclose);
-    ASSERT_NEAR(hit_cylinrical._point3[1], hit_cocylinrical._point3[1], isclose);
-    ASSERT_NEAR(hit_cylinrical._point3[2], hit_cocylinrical._point3[2], isclose);
-    ASSERT_TRUE(hit_cylinrical._point2 != std::nullopt);
-    ASSERT_TRUE(hit_cocylinrical._point2 != std::nullopt);
-    ASSERT_NEAR(hit_cylinrical._point2.value()[0], hit_cocylinrical._point2.value()[0], isclose);
-    ASSERT_NEAR(hit_cylinrical._point2.value()[1], hit_cocylinrical._point2.value()[1], isclose);
+    ASSERT_NEAR(hit_cylinrical.point3[0], hit_cocylinrical.point3[0], isclose);
+    ASSERT_NEAR(hit_cylinrical.point3[1], hit_cocylinrical.point3[1], isclose);
+    ASSERT_NEAR(hit_cylinrical.point3[2], hit_cocylinrical.point3[2], isclose);
+    ASSERT_TRUE(hit_cylinrical.point2 != std::nullopt);
+    ASSERT_TRUE(hit_cocylinrical.point2 != std::nullopt);
+    ASSERT_NEAR(hit_cylinrical.point2.value()[0], hit_cocylinrical.point2.value()[0], isclose);
+    ASSERT_NEAR(hit_cylinrical.point2.value()[1], hit_cocylinrical.point2.value()[1], isclose);
 }
 
 // Google Test can be run manually from the main() function

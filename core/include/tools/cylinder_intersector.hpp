@@ -106,13 +106,13 @@ namespace detray
                 if (t > 0)
                 {
                     intersection is;
-                    is._path = t;
-                    is._point3 = ro + is._path * rd;
-                    is._point2 = local(s, is._point3, ctx);
-                    auto local3 = s.transform().point_to_local(is._point3, ctx);
-                    is._status = mask(local3);
+                    is.path = t;
+                    is.point3 = ro + is.path * rd;
+                    is.point2 = local(s, is.point3, ctx);
+                    auto local3 = s.transform().point_to_local(is.point3, ctx);
+                    is.status = mask(local3);
                     scalar rdr = getter::perp(local3 + 10 * std::numeric_limits<scalar>::epsilon() * rd);
-                    is._direction = rdr > r ? e_along : e_opposite;
+                    is.direction = rdr > r ? e_along : e_opposite;
                     return is;
                 }
             }
