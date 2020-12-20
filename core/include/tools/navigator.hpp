@@ -260,9 +260,9 @@ namespace detray
                     const auto &portal_masks = navigation.detector.portal_masks();
 
                     // This is the code without portal_finder (start verison for the moment)
-                    navigation.portals.candidates.reserve(volume.portalsurface_indices.size());
+                    navigation.portals.candidates.reserve(volume.portal_surface_indices.size());
                     bool portal_hit = false;
-                    for (auto psi : volume.portalsurface_indices)
+                    for (auto psi : volume.portal_surface_indices)
                     {
                         surface_intersection sfi;
                         sfi.index = psi;

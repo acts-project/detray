@@ -43,15 +43,15 @@ namespace detray
         using typed_guaranteed_range = dtuple<guaranteed_index, guaranteed_range>;
 
         // Surface finding function
-        using surface_finder = std::function<const guaranteed_range &(const point3 &, const vector3 &, const vector3 &, scalar)>;
+        using object_finder = std::function<const dvector<guaranteed_index> &(const point3 &, const vector3 &, const vector3 &, scalar)>;
 
         /** Nested volume class */
         struct volume
         {
-            dvector<guaranteed_index> portalsurface_indices = {};
-            dvector<surface_finder> portalsurface_finder = {};
+            dvector<guaranteed_index> portal_surface_indices = {};
+            dvector<object_finder> portal_surface_finder = {};
             dvector<guaranteed_index> surface_indices = {};
-            dvector<surface_finder> surface_finder = {};
+            dvector<object_finder> surface_finder = {};
             guaranteed_index index = 0;
 
             std::string name = "unknown";
@@ -116,7 +116,7 @@ namespace detray
             guaranteed_range range = {index_start, index_end};
             guaranteed_index type = _portal_types.find(portal_type::mask_identifier)->second;
             // Record the portal index
-            volume.portalsurface_indices.push_back(_portal_surfaces.size());
+            volume.portal_surface_indices.push_back(_portal_surfaces.size());
             guaranteed_index volume_index = volume.index;
             typed_guaranteed_range links = {type, range};
             _portal_surfaces.push_back(portal_surface(std::move(transform), std::move(links), std::move(volume_index), false));
