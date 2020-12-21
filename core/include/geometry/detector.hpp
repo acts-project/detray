@@ -29,7 +29,6 @@ namespace detray
         // Algebra
         using point3 = typename transform_type::point3;
         using vector3 = typename transform_type::vector3;
-        using context = typename transform_type::context;
         using point2 = __plugin::cartesian2::point2;
         using transform3 = transform_type;
 

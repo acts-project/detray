@@ -105,7 +105,7 @@ namespace detray
             {
                 auto &mask = masks[i];
                 auto is = mask.intersector();
-                sfi = is.intersect(surface, track, local, mask);
+                sfi = is.intersect(surface.transform(), track, local, mask);
                 if (sfi.status == e_inside)
                 {
                     links = mask.links();

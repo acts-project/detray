@@ -5,7 +5,6 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "core/surface.hpp"
 #include "core/intersection.hpp"
 #include "masks/cylinder3.hpp"
 #include "masks/single3.hpp"
@@ -25,7 +24,6 @@ using namespace detray;
 using transform3 = __plugin::transform3;
 using vector3 = __plugin::transform3::vector3;
 using point3 = __plugin::transform3::point3;
-using context = __plugin::transform3::context;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;
@@ -33,18 +31,14 @@ constexpr scalar isclose = 1e-5;
 // This defines the local frame test suite
 TEST(__plugin, translated_cylinder)
 {
-    context ctx;
-    using cylinder_surface = surface<transform3, int, int>;
-
     // Create a shifted plane
-    transform3 shifted(vector3{3., 2., 10.}, ctx);
-    cylinder_surface shifted_cylinder(std::move(shifted), 1, 1, false);
+    transform3 shifted(vector3{3., 2., 10.});
     cylinder3<scalar> cylinder = {4., -10., 10.};
     cylinder_intersector ci;
 
     // Unbound local frame test
     unbound ub;
-    auto hit_unbound = ci.intersect(shifted_cylinder, point3{3., 2., 5.}, vector3{1., 0., 0.}, ctx, ub, cylinder);
+    auto hit_unbound = ci.intersect(shifted, point3{3., 2., 5.}, vector3{1., 0., 0.}, ub, cylinder);
     ASSERT_TRUE(hit_unbound.status== intersection_status::e_inside);
     ASSERT_NEAR(hit_unbound.point3[0], 7., epsilon);
     ASSERT_NEAR(hit_unbound.point3[1], 2., epsilon);
@@ -53,7 +47,7 @@ TEST(__plugin, translated_cylinder)
 
     // The same but bound
     __plugin::cylindrical2 cylindrical2;
-    auto hit_bound = ci.intersect(shifted_cylinder, point3{3., 2., 5.}, vector3{1., 0., 0.}, ctx, cylindrical2, cylinder);
+    auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.}, vector3{1., 0., 0.}, cylindrical2, cylinder);
     ASSERT_TRUE(hit_bound.status== intersection_status::e_inside);
     ASSERT_NEAR(hit_bound.point3[0], 7., epsilon);
     ASSERT_NEAR(hit_bound.point3[1], 2., epsilon);
@@ -66,14 +60,12 @@ TEST(__plugin, translated_cylinder)
 // This defines the local frame test suite
 TEST(__plugin, concentric_cylinders)
 {
-    context ctx;
     using cylinder_surface = surface<transform3, int, int>;
 
     // Create a shifted plane
     scalar r = 4.;
     scalar hz = 10.;
-    transform3 identity(vector3{0., 0., 0.}, ctx);
-    cylinder_surface plain(std::move(identity), 1, 1, false);
+    transform3 identity(vector3{0., 0., 0.});
     cylinder3<scalar,false> cylinder = {r, -hz, hz};
     cylinder_intersector ci;
     concentric_cylinder_intersector cci;
@@ -83,8 +75,8 @@ TEST(__plugin, concentric_cylinders)
 
     // The same but bound
     __plugin::cylindrical2 cylindrical2;
-    auto hit_cylinrical = ci.intersect(plain, ori, dir, ctx, cylindrical2, cylinder);
-    auto hit_cocylinrical = cci.intersect(plain, ori, dir, ctx, cylindrical2, cylinder);
+    auto hit_cylinrical = ci.intersect(identity, ori, dir, cylindrical2, cylinder);
+    auto hit_cocylinrical = cci.intersect(identity, ori, dir, cylindrical2, cylinder);
 
     ASSERT_TRUE(hit_cylinrical.status== intersection_status::e_inside);
     ASSERT_TRUE(hit_cocylinrical.status== intersection_status::e_inside);

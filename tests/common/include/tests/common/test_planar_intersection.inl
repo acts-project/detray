@@ -5,7 +5,6 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "core/surface.hpp"
 #include "core/intersection.hpp"
 #include "masks/rectangle2.hpp"
 #include "tools/planar_intersector.hpp"
@@ -26,7 +25,6 @@ __plugin::cartesian2 cartesian2;
 using transform3 = __plugin::transform3;
 using vector3 = __plugin::transform3::vector3;
 using point3 = __plugin::transform3::point3;
-using context = __plugin::transform3::context;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;
@@ -34,16 +32,11 @@ constexpr scalar isclose = 1e-5;
 // This defines the local frame test suite
 TEST(__plugin, translated_plane)
 {
-    context ctx;
-    using plane_surface = surface<transform3, int, int>;
-
     // Create a shifted plane
-    transform3 shifted(vector3{3., 2., 10.}, ctx);
-    plane_surface shifted_plane(std::move(shifted), 1, 1, false);
-
+    transform3 shifted(vector3{3., 2., 10.});
     planar_intersector pi;
 
-    auto hit_unbound = pi.intersect(shifted_plane, point3{2., 1., 0.}, vector3{0., 0., 1.}, ctx);
+    auto hit_unbound = pi.intersect(shifted, point3{2., 1., 0.}, vector3{0., 0., 1.});
     ASSERT_TRUE(hit_unbound.status == intersection_status::e_hit);
     ASSERT_TRUE(hit_unbound.direction == intersectiondirection::e_along);
     // Global intersection information
@@ -53,7 +46,7 @@ TEST(__plugin, translated_plane)
     ASSERT_TRUE(hit_unbound.point2 == std::nullopt);
 
     // The same test but bound to local frame
-    auto hit_bound = pi.intersect(shifted_plane, point3{2., 1., 0.}, vector3{0., 0., 1.}, ctx, cartesian2);
+    auto hit_bound = pi.intersect(shifted, point3{2., 1., 0.}, vector3{0., 0., 1.}, cartesian2);
     ASSERT_TRUE(hit_bound.status == intersection_status::e_hit);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound.point3[0], 2., epsilon);
@@ -65,7 +58,7 @@ TEST(__plugin, translated_plane)
 
     // The same test but bound to local frame & masked - inside
     rectangle2<scalar> rect_for_inside = {3., 3.};
-    auto hit_bound_inside = pi.intersect(shifted_plane, point3{2., 1., 0.}, vector3{0., 0., 1.}, ctx, cartesian2, rect_for_inside);
+    auto hit_bound_inside = pi.intersect(shifted, point3{2., 1., 0.}, vector3{0., 0., 1.}, cartesian2, rect_for_inside);
     ASSERT_TRUE(hit_bound_inside.status == intersection_status::e_inside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound_inside.point3[0], 2., epsilon);
@@ -77,7 +70,7 @@ TEST(__plugin, translated_plane)
 
     // The same test but bound to local frame & masked - outside
     rectangle2<scalar> rect_for_outside = {0.5, 3.5};
-    auto hit_bound_outside = pi.intersect(shifted_plane, point3{2., 1., 0.}, vector3{0., 0., 1.}, ctx, cartesian2, rect_for_outside);
+    auto hit_bound_outside = pi.intersect(shifted, point3{2., 1., 0.}, vector3{0., 0., 1.}, cartesian2, rect_for_outside);
     ASSERT_TRUE(hit_bound_outside.status == intersection_status::e_outside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound_outside.point3[0], 2., epsilon);

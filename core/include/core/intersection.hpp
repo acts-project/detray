@@ -19,8 +19,8 @@ namespace detray
     enum intersectiondirection : int
     {
         e_undefined = -1, //!< the undefined direction at intersection
-        e_opposite = 0, //!< opposite the surface normal at the intersection
-        e_along = 1      //!< along the surface normal at the intersection
+        e_opposite = 0,   //!< opposite the surface normal at the intersection
+        e_along = 1       //!< along the surface normal at the intersection
     };
 
     /** Intersection status: outside, missed, insidem, hit ( w/o maks status) */
@@ -45,9 +45,9 @@ namespace detray
 
         scalar_type path = std::numeric_limits<scalar_type>::infinity();
         point3_type point3 = point3_type{std::numeric_limits<scalar_type>::infinity(),
-                                          std::numeric_limits<scalar_type>::infinity(),
-                                          std::numeric_limits<scalar_type>::infinity()};
-        
+                                         std::numeric_limits<scalar_type>::infinity(),
+                                         std::numeric_limits<scalar_type>::infinity()};
+
         std::optional<point2_type> point2 = std::nullopt;
         intersection_status status = e_missed;
         intersectiondirection direction = e_undefined;

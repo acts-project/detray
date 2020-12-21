@@ -11,7 +11,6 @@
 #include <optional>
 
 #include "core/intersection.hpp"
-#include "core/surface.hpp"
 #include "core/track.hpp"
 #include "utils/quadratic_equation.hpp"
 #include "utils/unbound.hpp"
@@ -26,13 +25,13 @@ namespace detray
 
         /** Intersection method for cylindrical surfaces
          * 
-         * @tparam surface_type The surface type to be intersected
+         * @tparam transform_type The transform type of the surface to be intersected
          * @tparam local_type The local frame type to be intersected
          * @tparam mask_type The mask type applied to the local frame
          * 
          * Contextual part:
-         * @param s the surface to be intersected
-         * @param t the track information
+         * @param trf the transform of the surface surface to be intersected @note is ignored 
+         * @param track the track information
          * @param local to the local local frame 
          * 
          * Non-contextual part:
@@ -40,27 +39,26 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename surface_type, typename local_type, typename mask_type>
-        intersection<scalar, typename surface_type::transform3::point3, typename local_type::point2>
-        intersect(const surface_type &s,
-                  const track<typename surface_type::transform3> &t,
+        template <typename transform_type, typename local_type, typename mask_type>
+        intersection<scalar, typename transform_type::point3, typename local_type::point2>
+        intersect(const transform_type &trf,
+                  const track<transform_type> &track,
                   const local_type &local,
                   const mask_type &mask) const
         {
-            return intersect(s, t.pos, t.dir, t.ctx, local, mask, t.overstep_tolerance);
+            return intersect(trf, track.pos, track.dir, local, mask, track.overstep_tolerance);
         }
 
         /** Intersection method for cylindrical surfaces
          * 
-         * @tparam surface_type The surface type to be intersected
+         * @tparam transform_type The surface transform type to be intersected
          * @tparam local_type The local frame type to be intersected
          * @tparam mask_type The mask type applied to the local frame
          * 
          * Contextual part:
-         * @param s the surface to be intersected
+         * @param trf the transform of the surface to be intersected
          * @param ro the origin of the ray
          * @param rd the direction of the ray
-         * @param ctx the context of the call
          * @param local to the local local frame 
          * 
          * Non-contextual part:
@@ -68,20 +66,16 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename surface_type, typename local_type, typename mask_type>
-        intersection<scalar, typename surface_type::transform3::point3, typename local_type::point2>
-        intersect(const surface_type &s,
-                  const typename surface_type::transform3::point3 &ro,
-                  const typename surface_type::transform3::vector3 &rd,
-                  const typename surface_type::transform3::context &ctx,
+        template <typename transform_type, typename local_type, typename mask_type>
+        intersection<scalar, typename transform_type::point3, typename local_type::point2>
+        intersect(const transform_type &/*trf*/,
+                  const typename transform_type::point3 &ro,
+                  const typename transform_type::vector3 &rd,
                   const local_type &local,
                   const mask_type &mask,
                   scalar overstep_tolerance = 0.) const
         {
-            using point3 = typename surface_type::transform3::point3;
-            using vector3 = typename surface_type::transform3::vector3;
-            using point2 = typename local_type::point2;
-            using intersection = intersection<scalar, point3, point2>;
+            using intersection = intersection<scalar, typename transform_type::point3, typename local_type::point2>;
 
             scalar r = mask[0];
 
@@ -102,7 +96,7 @@ namespace detray
 
             if (std::get<0>(qe_solution) > 0)
             {
-                darray<point3, 2> candidates;
+                darray<typename transform_type::point3, 2> candidates;
                 auto u01 = std::get<1>(qe_solution);
                 darray<scalar, 2> t01 = {0., 0.};
 
@@ -125,7 +119,7 @@ namespace detray
                     is.point3 = candidates[cindex];
                     is.path = t01[cindex];
 
-                    is.point2 = point2{r * getter::phi(is.point3), is.point3[2]};
+                    is.point2 = typename local_type::point2{r * getter::phi(is.point3), is.point3[2]};
                     is.status = mask(is.point3);
                     scalar rdir = getter::perp(is.point3 + 0.1 * rd);
                     is.direction = rdir > r ? e_along : e_opposite;

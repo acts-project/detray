@@ -18,7 +18,6 @@ using namespace detray;
 using transform3 = __plugin::transform3;
 using point3 = transform3::point3;
 using vector3 = transform3::vector3;
-using context = transform3::context;
 using surface = surface<transform3>;
 
 __plugin::cartesian2 cartesian2;
@@ -59,7 +58,6 @@ namespace __plugin
         unsigned int hits_inside = 0;
         unsigned int hits_outside = 0;
         unsigned int hits_missed = 0;
-        context ctx;
 
         point3 ori = {0., 0., 0.};
 
@@ -95,12 +93,12 @@ namespace __plugin
                                 if (group_index == 0)
                                 {
                                     auto mask = std::get<0>(layer.masks)[mask_index];
-                                    hit = mask.intersector().intersect(surface, ori, dir, ctx, cartesian2, mask);
+                                    hit = mask.intersector().intersect(surface.transform(), ori, dir, cartesian2, mask);
                                 }
                                 else
                                 {
                                     auto mask = std::get<1>(layer.masks)[mask_index];
-                                    hit = mask.intersector().intersect(surface, ori, dir, ctx, cartesian2, mask);
+                                    hit = mask.intersector().intersect(surface.transform(), ori, dir, cartesian2, mask);
                                 }
 
                                 if (hit.status == e_inside)
