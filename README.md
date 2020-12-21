@@ -40,6 +40,7 @@ The following algebra plugins are avaiable and can be switched on/off
 | ---------|--------------|-----------------|--------------------------|
 | array | DETRAY_ARRAY_PLUGIN | On | - |
 | eigen | DETRAY_EIGEN_PLUGIN | Off | Eigen, http://eigen.tuxfamily.org/ |
+| smatrix | DETRAY_SMATRIX_PLUGIN | Off | ROOT, http://github.com/root-project |
 
 
 
