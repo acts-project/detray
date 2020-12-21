@@ -16,10 +16,10 @@ namespace detray
     /** Intersection direction with respect to the
      * normal of the surface
      */
-    enum intersection_direction : int
+    enum intersectiondirection : int
     {
-        e_opposite = -1, //!< opposite the surface normal at the intersection
-        e_undefined = 0, //!< the undefined direction at intersection
+        e_undefined = -1, //!< the undefined direction at intersection
+        e_opposite = 0, //!< opposite the surface normal at the intersection
         e_along = 1      //!< along the surface normal at the intersection
     };
 
@@ -43,22 +43,22 @@ namespace detray
     struct intersection
     {
 
-        scalar_type _path = std::numeric_limits<scalar_type>::infinity();
-        point3_type _point3 = point3_type{std::numeric_limits<scalar_type>::infinity(),
+        scalar_type path = std::numeric_limits<scalar_type>::infinity();
+        point3_type point3 = point3_type{std::numeric_limits<scalar_type>::infinity(),
                                           std::numeric_limits<scalar_type>::infinity(),
                                           std::numeric_limits<scalar_type>::infinity()};
         
-        std::optional<point2_type> _point2 = std::nullopt;
-        intersection_status _status = e_missed;
-        intersection_direction _direction = e_undefined;
-        int _index = -1;
+        std::optional<point2_type> point2 = std::nullopt;
+        intersection_status status = e_missed;
+        intersectiondirection direction = e_undefined;
+        int index = -1;
 
         /** @param rhs is the right hand side intersection for comparison 
          **/
         bool operator<(
             const intersection<scalar_type, point3_type, point2_type> &rhs) const
         {
-            return (_path < rhs._path);
+            return (path < rhs.path);
         }
 
         /** @param rhs is the left hand side intersection for comparison 
@@ -66,7 +66,7 @@ namespace detray
         bool operator>(
             const intersection<scalar_type, point3_type, point2_type> &rhs) const
         {
-            return (_path > rhs._path);
+            return (path > rhs.path);
         }
     };
 

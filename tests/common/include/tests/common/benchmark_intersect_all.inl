@@ -24,12 +24,11 @@ using surface = surface<transform3>;
 __plugin::cartesian2 cartesian2;
 using point2 = __plugin::cartesian2::point2;
 
-using planar_intersection = intersection<scalar,point3,point2>;
+using planar_intersection = intersection<scalar, point3, point2>;
 
 unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
 bool stream_file = false;
-
 
 /** Read the detector from file */
 auto read_from_file()
@@ -88,28 +87,31 @@ namespace __plugin
                         {
                             for (auto &surface : layer.surfaces)
                             {
-                             
+
                                 planar_intersection hit;
 
-                                auto group_index = surface.mask()[0];                                
+                                auto group_index = surface.mask()[0];
                                 auto mask_index = surface.mask()[1];
-                                if (group_index == 0){
+                                if (group_index == 0)
+                                {
                                     auto mask = std::get<0>(layer.masks)[mask_index];
                                     hit = mask.intersector().intersect(surface, ori, dir, ctx, cartesian2, mask);
-                                } else {
+                                }
+                                else
+                                {
                                     auto mask = std::get<1>(layer.masks)[mask_index];
                                     hit = mask.intersector().intersect(surface, ori, dir, ctx, cartesian2, mask);
                                 }
 
-                                if (hit._status == e_inside)
+                                if (hit.status == e_inside)
                                 {
                                     ++hits_inside;
                                     if (stream_file)
                                     {
-                                        hit_out << hit._point3[0] << "," << hit._point3[1] << "," << hit._point3[2] << "\n";
+                                        hit_out << hit.point3[0] << "," << hit.point3[1] << "," << hit.point3[2] << "\n";
                                     }
                                 }
-                                else if (hit._status == e_outside)
+                                else if (hit.status == e_outside)
                                 {
                                     ++hits_outside;
                                 }

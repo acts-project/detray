@@ -30,8 +30,6 @@ __plugin::cylindrical2 cyl2;
 unsigned int theta_steps = 1000;
 unsigned int phi_steps = 1000;
 
-bool screen_output = false;
-
 dvector<scalar> dists = {1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
 
 auto planes = planes_along_direction(dists, vector::normalize(vector3{1., 1., 1.}));
@@ -73,7 +71,7 @@ namespace __plugin
                     {
                         auto pi = rect.intersector();
                         auto is = pi.intersect(plane, ori, dir, ctx, cart2, rect);
-                        if (is._status == e_inside)
+                        if (is.status == e_inside)
                         {
                             ++sfhit;
                         }
@@ -84,11 +82,6 @@ namespace __plugin
                     }
                 }
             }
-        }
-
-        if (screen_output)
-        {
-            std::cout << "Surfaces inside / outside : " << sfhit << " / " << sfmiss << std::endl;
         }
     }
 
@@ -135,7 +128,7 @@ namespace __plugin
                     {
                         auto ci = cylinder.intersector();
                         auto is = ci.intersect(plain, ori, dir, ctx, cyl2, cylinder);
-                        if (is._status == e_inside)
+                        if (is.status == e_inside)
                         {
                             ++sfhit;
                         }
@@ -146,11 +139,6 @@ namespace __plugin
                     }
                 }
             }
-        }
-
-        if (screen_output)
-        {
-            std::cout << "Surfaces inside / outside : " << sfhit << " / " << sfmiss << std::endl;
         }
     }
 
@@ -196,7 +184,7 @@ namespace __plugin
                     {
                         auto cci = cylinder.intersector();
                         auto is = cci.intersect(plain, ori, dir, ctx, cyl2, cylinder);
-                        if (is._status == e_inside)
+                        if (is.status == e_inside)
                         {
                             ++sfhit;
                         }
@@ -207,11 +195,6 @@ namespace __plugin
                     }
                 }
             }
-        }
-
-        if (screen_output)
-        {
-            std::cout << "Surfaces inside / outside : " << sfhit << " / " << sfmiss << std::endl;
         }
     }
 

@@ -47,7 +47,7 @@ namespace detray
                   const local_type &local,
                   const mask_type &mask) const
         {
-            return intersect(s, t.pos, t.dir, t.ctx, local, mask);
+            return intersect(s, t.pos, t.dir, t.ctx, local, mask, t.overstep_tolerance);
         }
 
         /** Intersection method for planar surfaces
@@ -75,7 +75,8 @@ namespace detray
                   const typename surface_type::transform3::vector3 &rd,
                   const typename surface_type::transform3::context &ctx,
                   const local_type &local = local_type(),
-                  const mask_type &mask = mask_type()) const
+                  const mask_type &mask = mask_type(),
+                  scalar overstep_tolerance = 0.) const
         {
 
             using point3 = typename surface_type::transform3::point3;
@@ -92,12 +93,11 @@ namespace detray
             if (denom != 0.0)
             {
                 intersection is;
-                is._path = vector::dot(sn, (st - ro)) / (denom);
-                is._point3 = ro + is._path * rd;
-                is._point2 = local(s, is._point3, ctx);
-                is._status = mask(is._point2.value_or(point2()));
-                is._direction = denom > 0 ? e_along : e_opposite;
-
+                is.path = vector::dot(sn, (st - ro)) / (denom);
+                is.point3 = ro + is.path * rd;
+                is.point2 = local(s, is.point3, ctx);
+                is.status = mask(is.point2.value_or(point2()));
+                is.direction = denom > 0 ? e_along : e_opposite;
                 return is;
             }
             return intersection{};
