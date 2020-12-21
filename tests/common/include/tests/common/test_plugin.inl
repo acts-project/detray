@@ -27,7 +27,6 @@ __plugin::cylindrical2 cylindrical2;
 using transform3 = __plugin::transform3;
 using vector3 = __plugin::transform3::vector3;
 using point3 = __plugin::transform3::point3;
-using context = __plugin::transform3::context;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;
@@ -141,8 +140,6 @@ TEST(__plugin, getter)
 // This defines the transform3 test suite
 TEST(__plugin, transform3)
 {
-    context ctx;
-
     // Preparatioon work
     vector3 z = vector::normalize(vector3{3., 2., 1.});
     vector3 x = vector::normalize(vector3{2., -3., 0.});
@@ -150,11 +147,11 @@ TEST(__plugin, transform3)
     point3 t = {2., 3., 4.};
 
     // Test constructor from t, z, x
-    transform3 trf(t, z, x, ctx);
+    transform3 trf(t, z, x);
 
     ASSERT_TRUE(trf == trf);
 
-    const auto rot = trf.rotation(ctx);
+    const auto rot = trf.rotation();
     #ifndef __plugin_without_matrix_element_accessor
     ASSERT_NEAR(rot(0, 0), x[0], epsilon);
     ASSERT_NEAR(rot(1, 0), x[1], epsilon);
@@ -167,17 +164,17 @@ TEST(__plugin, transform3)
     ASSERT_NEAR(rot(2, 2), z[2], epsilon);
     #endif
 
-    auto trn = trf.translation(ctx);
+    auto trn = trf.translation();
     ASSERT_NEAR(trn[0], 2., epsilon);
     ASSERT_NEAR(trn[1], 3., epsilon);
     ASSERT_NEAR(trn[2], 4., epsilon);
 
     // Test constructor from matrix
-    auto m44 = trf.matrix(ctx);
-    transform3 trfm(m44, ctx);
+    auto m44 = trf.matrix();
+    transform3 trfm(m44);
 
     // Re-evaluate rot and trn
-    auto rotm = trfm.rotation(ctx);
+    auto rotm = trfm.rotation();
     #ifndef __plugin_without_matrix_element_accessor
     ASSERT_NEAR(rotm(0, 0), x[0], epsilon);
     ASSERT_NEAR(rotm(1, 0), x[1], epsilon);
@@ -190,18 +187,18 @@ TEST(__plugin, transform3)
     ASSERT_NEAR(rotm(2, 2), z[2], epsilon);
     #endif
 
-    auto trnm = trfm.translation(ctx);
+    auto trnm = trfm.translation();
     ASSERT_NEAR(trnm[0], 2., epsilon);
     ASSERT_NEAR(trnm[1], 3., epsilon);
     ASSERT_NEAR(trnm[2], 4., epsilon);
 
     // Check a contruction from an array[16]
     darray<scalar, 16> matray = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0};
-    transform3 trfma(matray, ctx);
+    transform3 trfma(matray);
 
     // Re-evaluate rot and trn
     #ifndef __plugin_without_matrix_element_accessor
-    auto rotma = trfma.rotation(ctx);
+    auto rotma = trfma.rotation();
     ASSERT_NEAR(rotma(0, 0), 1., epsilon);
     ASSERT_NEAR(rotma(1, 0), 0., epsilon);
     ASSERT_NEAR(rotma(2, 0), 0., epsilon);
@@ -213,7 +210,7 @@ TEST(__plugin, transform3)
     ASSERT_NEAR(rotma(2, 2), 1., epsilon);
     #endif
 
-    auto trnma = trfma.translation(ctx);
+    auto trnma = trfma.translation();
     ASSERT_NEAR(trnma[0], 0., epsilon);
     ASSERT_NEAR(trnma[1], 0., epsilon);
     ASSERT_NEAR(trnma[2], 0., epsilon);
@@ -223,26 +220,24 @@ TEST(__plugin, transform3)
 // This test global coordinate transforms
 TEST(__plugin, global_transformations)
 {
-    context ctx;
-
     // Preparatioon work
     vector3 z = vector::normalize(vector3{3., 2., 1.});
     vector3 x = vector::normalize(vector3{2., -3., 0.});
     vector3 y = vector::cross(z, x);
     point3 t = {2., 3., 4.};
-    transform3 trf(t, z, x, ctx);
+    transform3 trf(t, z, x);
 
     // Check that local origin translates into global translation
     point3 lzero = {0., 0., 0.};
-    auto gzero = trf.point_to_global(lzero, ctx);
+    auto gzero = trf.point_to_global(lzero);
     ASSERT_NEAR(gzero[0], t[0], epsilon);
     ASSERT_NEAR(gzero[1], t[1], epsilon);
     ASSERT_NEAR(gzero[2], t[2], epsilon);
 
     // Check a round trip for point
     point3 lpoint = {3., 4., 5.};
-    auto gpoint = trf.point_to_global(lpoint, ctx);
-    auto lpoint_r = trf.point_to_local(gpoint, ctx);
+    auto gpoint = trf.point_to_global(lpoint);
+    auto lpoint_r = trf.point_to_local(gpoint);
     ASSERT_NEAR(lpoint[0], lpoint_r[0], isclose);
     ASSERT_NEAR(lpoint[1], lpoint_r[1], isclose);
     ASSERT_NEAR(lpoint[2], lpoint_r[2], isclose);
@@ -250,18 +245,18 @@ TEST(__plugin, global_transformations)
     // Check a point versus vector transform
     // vector should not change if transformed by a pure translation
     point3 tt = {2., 3., 4.};
-    transform3 ttrf(t, ctx);
+    transform3 ttrf(t);
 
     vector3 gvector = {1., 1., 1};
-    auto lvector = ttrf.vector_to_local(gvector, ctx);
+    auto lvector = ttrf.vector_to_local(gvector);
     ASSERT_NEAR(gvector[0], lvector[0], isclose);
     ASSERT_NEAR(gvector[1], lvector[1], isclose);
     ASSERT_NEAR(gvector[2], lvector[2], isclose);
 
     // Check a round trip for vector
     vector3 lvectorB = {7., 8., 9};
-    vector3 gvectorB = trf.vector_to_local(lvectorB, ctx);
-    vector3 lvectorC = trf.vector_to_global(gvectorB, ctx);
+    vector3 gvectorB = trf.vector_to_local(lvectorB);
+    vector3 lvectorC = trf.vector_to_global(gvectorB);
     ASSERT_NEAR(lvectorB[0], lvectorC[0], isclose);
     ASSERT_NEAR(lvectorB[1], lvectorC[1], isclose);
     ASSERT_NEAR(lvectorB[2], lvectorC[2], isclose);

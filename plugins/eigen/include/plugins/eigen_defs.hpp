@@ -107,14 +107,11 @@ namespace detray
     // eigen definitions
     namespace eigen
     {
-        /** Transform wrapper class to ensure standard API within differnt plugins
-         * 
-         **/
+        /** Transform wrapper class to ensure standard API within differnt plugins */
         struct transform3
         {
             using vector3 = Eigen::Matrix<scalar, 3, 1>;
             using point3 = vector3;
-            using context = std::any;
 
             Eigen::Transform<scalar, 3, Eigen::Affine> _data =
                 Eigen::Transform<scalar, 3, Eigen::Affine>::Identity();
@@ -124,14 +121,14 @@ namespace detray
 
             using matrix44 = Eigen::Transform<scalar, 3, Eigen::Affine>::MatrixType;
 
-            /** Contructor with arguments: t, z, x, ctx
+            /** Contructor with arguments: t, z, x
              * 
              * @param t the translation (or origin of the new frame)
              * @param z the z axis of the new frame, normal vector for planes
              * @param x the x axis of the new frame
              * 
              **/
-            transform3(const vector3 &t, const vector3 &z, const vector3 &x, const context & /*ctx*/)
+            transform3(const vector3 &t, const vector3 &z, const vector3 &x)
             {
                 auto y = z.cross(x);
 
@@ -148,7 +145,7 @@ namespace detray
              *
              * @param t is the transform
              **/
-            transform3(const vector3 &t, const context & /*ctx*/)
+            transform3(const vector3 &t)
             {
                 auto &matrix = _data.matrix();
                 matrix.block<3, 1>(0, 3) = t;
@@ -160,7 +157,7 @@ namespace detray
              * 
              * @param m is the full 4x4 matrix 
              **/
-            transform3(const matrix44 &m, const context & /*ctx*/)
+            transform3(const matrix44 &m)
             {
                 _data.matrix() = m;
 
@@ -171,7 +168,7 @@ namespace detray
              * 
              * @param ma is the full 4x4 matrix asa 16 array
              **/
-            transform3(const darray<scalar, 16> &ma, const context & /*ctx*/)
+            transform3(const darray<scalar, 16> &ma)
             {
                 _data.matrix() << ma[0], ma[1], ma[2], ma[3], ma[4], ma[5], ma[6], ma[7],
                     ma[8], ma[9], ma[10], ma[11], ma[12], ma[13], ma[14], ma[15];
@@ -190,45 +187,27 @@ namespace detray
                 return (_data.isApprox(rhs._data));
             }
 
-            /** This method retrieves the rotation of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            auto rotation(const context & /*ctx*/) const
+            /** This method retrieves the rotation of a transform  **/
+            auto rotation() const
             {
                 return _data.matrix().block<3, 3>(0, 0);
             }
 
-            /** This method retrieves the translation of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            auto translation(const context & /*ctx*/) const
+            /** This method retrieves the translation of a transform **/
+            auto translation() const
             {
                 return _data.matrix().block<3, 1>(0, 3);
             }
 
-            /** This method retrieves the 4x4 matrix of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            const auto &matrix(const context & /*ctx*/) const
+            /** This method retrieves the 4x4 matrix of a transform */
+            const auto &matrix() const
             {
                 return _data.matrix();
             }
 
-            /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
+            /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame */
             template <typename derived_type>
-            auto point_to_global(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
+            auto point_to_global(const Eigen::MatrixBase<derived_type> &v) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -236,12 +215,9 @@ namespace detray
                 return (_data * v);
             }
 
-            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
+            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame */
             template <typename derived_type>
-            auto point_to_local(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
+            auto point_to_local(const Eigen::MatrixBase<derived_type> &v) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -249,12 +225,9 @@ namespace detray
                 return (_data_inv * v);
             }
 
-            /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
+            /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame */
             template <typename derived_type>
-            auto vector_to_global(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
+            auto vector_to_global(const Eigen::MatrixBase<derived_type> &v) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -262,12 +235,9 @@ namespace detray
                 return (_data.linear() * v);
             }
 
-            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
+            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame */
             template <typename derived_type>
-            auto vector_to_local(const Eigen::MatrixBase<derived_type> &v, const eigen::transform3::context & /*ctx*/) const
+            auto vector_to_local(const Eigen::MatrixBase<derived_type> &v) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
@@ -276,27 +246,17 @@ namespace detray
             }
         };
 
-        /** Non-contextual local frame projection into a cartesian coordinate frame
+        /** Local frame projection into a cartesian coordinate frame
          */
         struct cartesian2
         {
             using point2 = Eigen::Matrix<scalar, 2, 1>;
 
-            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
-              * including the contextual transform into the local 3D frame
-              * 
-              * @tparam the type of the surface from which also point3 and context type can be deduced
-              * 
-              */
-            template <typename surface_type>
-            const auto operator()(const surface_type &s,
-                                  const typename surface_type::transform3::point3 &p,
-                                  const typename surface_type::transform3::context &ctx) const
-            {
-                return operator()(s.transform().point_to_local(p, ctx));
-            }
-
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
+             *
+             * @param v the point in local frame
+             * 
+             * @return a local point2
              */
             template <typename derived_type>
             auto operator()(const Eigen::MatrixBase<derived_type> &v) const
@@ -306,62 +266,68 @@ namespace detray
                 static_assert(rows == 3 and cols == 1, "transform::point3_topoint2(v) requires a (3,1) matrix");
                 return (v.template segment<2>(0)).eval();
             }
+
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
+             * 
+             * @param trf the transform from global to local thredimensional frame
+             * @param p the point in global frame
+             * 
+             * @return a local point2
+             **/
+            auto operator()(const transform3 &trf,
+                            const transform3::point3 &p) const
+            {
+                return operator()(trf.point_to_local(p));
+            }
         };
 
-        /** Non-contextual local frame projection into a polar coordinate frame
-         **/
+        /** Local frame projection into a polar coordinate frame */
         struct polar2
         {
             using point2 = Eigen::Matrix<scalar, 2, 1>;
 
-            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
-              * including the contextual transform into the local 3D frame
-              * 
-              * @tparam the type of the surface from which also point3 and context type can be deduced
-              * 
-              */
-            template <typename surface_type>
-            const auto operator()(const surface_type &s,
-                                  const typename surface_type::transform3::point3 &p,
-                                  const typename surface_type::transform3::context &ctx) const
-            {
-                return operator()(s.transform().point_to_local(p, ctx));
-            }
-
-            /** This method transform from a point from 2D or 3D cartesian frame to a 2D polar point */
+            /** This method transform from a point from 2D or 3D cartesian frame to a 2D polar point
+             *              
+             * @param v the point in local frame
+             * 
+             * @return a local point2
+             */
             template <typename derived_type>
-            const auto operator()(const Eigen::MatrixBase<derived_type> &v) const
+            auto operator()(const Eigen::MatrixBase<derived_type> &v) const
             {
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
                 constexpr int cols = Eigen::MatrixBase<derived_type>::ColsAtCompileTime;
                 static_assert(rows >= 2 and cols == 1, "transform::point_topoint2pol(v) requires a (>2,1) matrix");
                 return point2{getter::perp(v), getter::phi(v)};
             }
+
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
+             * 
+             * @param trf the transform from global to local thredimensional frame
+             * @param p the point in global frame
+             * 
+             * @return a local point2
+             **/
+            auto operator()(const transform3 &trf,
+                            const transform3::point3 &p) const
+            {
+                return operator()(trf.point_to_local(p));
+            }
         };
 
-        /** Non-contextual local frame projection into a polar coordinate frame
-         **/
+        /** Local frame projection into a polar coordinate frame */
         struct cylindrical2
         {
             using point2 = Eigen::Matrix<scalar, 2, 1>;
 
-            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
-              * including the contextual transform into the local 3D frame
-              * 
-              * @tparam the type of the surface from which also point3 and context type can be deduced
-              * 
-              */
-            template <typename surface_type>
-            const auto operator()(const surface_type &s,
-                                  const typename surface_type::transform3::point3 &p,
-                                  const typename surface_type::transform3::context &ctx) const
-            {
-                return operator()(s.transform().point_to_local(p, ctx));
-            }
-
-            /** This method transform from a point from 2 3D cartesian frame to a 2D cylindrical point */
+            /** This method transform from a point from 2D or 3D cartesian frame to a 2D polar point
+             *              
+             * @param v the point in local frame
+             * 
+             * @return a local point2
+             */
             template <typename derived_type>
-            const auto operator()(const Eigen::MatrixBase<derived_type> &v) const
+            auto operator()(const Eigen::MatrixBase<derived_type> &v) const
             {
 
                 constexpr int rows = Eigen::MatrixBase<derived_type>::RowsAtCompileTime;
@@ -369,11 +335,24 @@ namespace detray
                 static_assert(rows == 3 and cols == 1, "transform::point3_topoint2cyl(v) requires a a (3,1) matrix");
                 return point2{getter::perp(v) * getter::phi(v), v[2]};
             }
+
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
+             * 
+             * @param trf the transform from global to local thredimensional frame
+             * @param p the point in global frame
+             * 
+             * @return a local point2
+             **/
+            auto operator()(const transform3 &trf,
+                            const transform3::point3 &p) const
+            {
+                return operator()(trf.point_to_local(p));
+            }
         };
 
     } // namespace eigen
 
-    // Non-contextual vector transfroms
+    // Vector transfroms
     namespace vector
     {
 

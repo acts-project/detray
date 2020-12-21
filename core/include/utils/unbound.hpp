@@ -11,8 +11,7 @@
 namespace detray
 {
 
-    /** A representation that is not bound to a local frame
-         */
+    /** A representation that is not bound to a local frame */
     struct unbound
     {
         using point2 = int;
@@ -23,10 +22,9 @@ namespace detray
               * @tparam the type of the surface from which also point3 and context type can be deduced
               * 
               */
-        template <typename surface_type>
-        const std::optional<point2> operator()(const surface_type & /*ignored*/,
-                                               const typename surface_type::transform3::point3 & /*ignored*/,
-                                               const typename surface_type::transform3::context & /*ignored*/) const
+        template <typename transform_type>
+        const std::optional<point2> operator()(const transform_type & /*ignored*/,
+                                               const typename transform_type::point3 & /*ignored*/) const
         {
             return std::nullopt;
         }

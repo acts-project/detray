@@ -14,18 +14,17 @@ namespace detray
 {
 
     /** Track struct for navigation through the detector */
-    template <typename transform_type>
+    template <typename transform_type, typename context_type = bool>
     struct track
     {
         using point3 = typename transform_type::point3;
         using vector3 = typename transform_type::vector3;
-        using context = typename transform_type::context;
 
         point3 pos = {0., 0., 0.};
         vector3 dir = {0., 0., 0.};
         vector3 bfield = {0., 0., 0.};
         scalar momentum = std::numeric_limits<scalar>::infinity();
-        context ctx;
+        context_type ctx;
 
         scalar overstep_tolerance = 0.;
     };

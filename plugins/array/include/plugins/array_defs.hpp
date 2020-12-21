@@ -60,7 +60,6 @@ namespace detray
         return {a[0] + b[0], a[1] + b[1], a[2] + b[2]};
     }
 
-    // first occurance of namespace vector
     namespace vector
     {
         /** Cross product between two input vectors - 3 Dim
@@ -184,21 +183,20 @@ namespace detray
         {
             using vector3 = std::array<scalar, 3>;
             using point3 = vector3;
-            using context = std::any;
 
             using matrix44 = std::array<std::array<scalar, 4>, 4>;
 
             matrix44 _data;
             matrix44 _data_inv;
 
-            /** Contructor with arguments: t, z, x, ctx
+            /** Contructor with arguments: t, z, x
              * 
              * @param t the translation (or origin of the new frame)
              * @param z the z axis of the new frame, normal vector for planes
              * @param x the x axis of the new frame
              * 
              **/
-            transform3(const vector3 &t, const vector3 &z, const vector3 &x, const context & /*ctx*/)
+            transform3(const vector3 &t, const vector3 &z, const vector3 &x)
             {
                 auto y = vector::cross(z, x);
                 _data[0][0] = x[0];
@@ -225,7 +223,7 @@ namespace detray
              *
              * @param t is the transform
              **/
-            transform3(const vector3 &t, const context & /*ctx*/)
+            transform3(const vector3 &t)
             {
                 _data[0][0] = 1.;
                 _data[0][1] = 0.;
@@ -251,7 +249,7 @@ namespace detray
              * 
              * @param m is the full 4x4 matrix 
              **/
-            transform3(const matrix44 &m, const context & /*ctx*/)
+            transform3(const matrix44 &m)
             {
                 _data = m;
             }
@@ -260,7 +258,7 @@ namespace detray
              * 
              * @param ma is the full 4x4 matrix 16 array
              **/
-            transform3(const std::array<scalar, 16> &ma, const context & /*ctx*/)
+            transform3(const std::array<scalar, 16> &ma)
             {
                 _data[0][0] = ma[0];
                 _data[0][1] = ma[4];
@@ -382,104 +380,80 @@ namespace detray
                                m[0][2] * v[0] + m[1][2] * v[1] + m[2][2] * v[2]};
             }
 
-            /** This method retrieves the rotation of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            auto rotation(const context & /*ctx*/) const
+            /** This method retrieves the rotation of a transform */
+            auto rotation() const
             {
                 return getter::block<3, 3>(_data, 0, 0);
             }
 
-            /** This method retrieves the translation of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            point3 translation(const context & /*ctx*/) const
+            /** This method retrieves the translation of a transform */
+            point3 translation() const
             {
                 return point3{_data[3][0], _data[3][1], _data[3][2]};
             }
 
-            /** This method retrieves the 4x4 matrix of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            const matrix44 &matrix(const context & /*ctx*/) const
+            /** This method retrieves the 4x4 matrix of a transform */
+            const matrix44 &matrix() const
             {
                 return _data;
             }
 
-            /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
+            /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame */
             template <typename point_type>
-            const point_type point_to_global(const point_type &v, const array::transform3::context & /*ctx*/) const
+            const point_type point_to_global(const point_type &v) const
             {
                 vector3 rg = rotate(_data, v);
                 return point3{rg[0] + _data[3][0], rg[1] + _data[3][1], rg[2] + _data[3][2]};
             }
 
-            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
+            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame */
             template <typename point_type>
-            const point_type point_to_local(const point_type &v, const array::transform3::context & /*ctx*/) const
+            const point_type point_to_local(const point_type &v) const
             {
                 vector3 rg = rotate(_data_inv, v);
                 return point3{rg[0] + _data_inv[3][0], rg[1] + _data_inv[3][1], rg[2] + _data_inv[3][2]};
             }
 
-            /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
+            /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame */
             template <typename vector_type>
-            const vector_type vector_to_global(const vector_type &v, const array::transform3::context & /*ctx*/) const
+            const vector_type vector_to_global(const vector_type &v) const
             {
                 return rotate(_data, v);
             }
 
-            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
+            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame */
             template <typename vector_type>
-            const auto vector_to_local(const vector_type &v, const array::transform3::context & /*ctx*/) const
+            const auto vector_to_local(const vector_type &v) const
             {
                 return rotate(_data_inv, v);
             }
         };
 
-        /** Non-contextual local frame projection into a cartesian coordinate frame
+        /** Frame projection into a cartesian coordinate frame
          */
         struct cartesian2
         {
             using point2 = std::array<scalar, 2>;
             using point3 = std::array<scalar, 3>;
 
-            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
-              * including the contextual transform into the local 3D frame
-              * 
-              * @tparam the type of the surface from which also point3 and context type can be deduced
-              * 
-              */
-            template <typename surface_type>
-            point2 operator()(const surface_type &s,
-                              const typename surface_type::transform3::point3 &p,
-                              const typename surface_type::transform3::context &ctx) const
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
+             * 
+             * @param trf the transform from global to local thredimensional frame
+             * @param p the point in global frame
+             * 
+             * @return a local point2
+             **/
+            point2 operator()(const transform3 &trf,
+                                  const transform3::point3 &p) const
             {
-                return operator()(s.transform().point_to_local(p, ctx));
+                return operator()(trf.point_to_local(p));
             }
 
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
+             *
+             * @param v the point in local frame
+             * 
+             * @return a local point2
              */
             point2 operator()(const point3 &v) const
             {
@@ -487,25 +461,23 @@ namespace detray
             }
         };
 
-        /** Non-contextual local frame projection into a polar coordinate frame
-         **/
+        /** Local frame projection into a polar coordinate frame */
         struct polar2
         {
             using point2 = std::array<scalar, 2>;
             using point3 = std::array<scalar, 3>;
 
-            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
-              * including the contextual transform into the local 3D frame
-              * 
-              * @tparam the type of the surface from which also point3 and context type can be deduced
-              * 
-              */
-            template <typename surface_type>
-            point2 operator()(const surface_type &s,
-                              const typename surface_type::transform3::point3 &p,
-                              const typename surface_type::transform3::context &ctx) const
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
+             * 
+             * @param trf the transform from global to local thredimensional frame
+             * @param p the point in global frame
+             * 
+             * @return a local point2
+             **/
+            point2 operator()(const transform3 &trf,
+                                  const transform3::point3 &p) const
             {
-                return operator()(s.transform().point_to_local(p, ctx));
+                return operator()(trf.point_to_local(p));
             }
 
             /** This method transform from a point from 2D or 3D cartesian frame to a 2D polar point */
@@ -516,29 +488,27 @@ namespace detray
             }
         };
 
-        /** Non-contextual local frame projection into a polar coordinate frame
-         **/
+        /** Local frame projection into a polar coordinate frame */
         struct cylindrical2
         {
             using point2 = std::array<scalar, 2>;
             using point3 = std::array<scalar, 3>;
 
-            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
-              * including the contextual transform into the local 3D frame
-              * 
-              * @tparam the type of the surface from which also point3 and context type can be deduced
-              * 
-              */
-            template <typename surface_type>
-            const auto operator()(const surface_type &s,
-                                  const typename surface_type::transform3::point3 &p,
-                                  const typename surface_type::transform3::context &ctx) const
+             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
+             * 
+             * @param trf the transform from global to local thredimensional frame
+             * @param p the point in global frame
+             * 
+             * @return a local point2
+             **/
+            point2 operator()(const transform3 &trf,
+                                  const transform3::point3 &p) const
             {
-                return operator()(s.transform().point_to_local(p, ctx));
+                return operator()(trf.point_to_local(p));
             }
 
             /** This method transform from a point from 2 3D cartesian frame to a 2D cylindrical point */
-            auto operator()(const point3 &v) const
+            point2 operator()(const point3 &v) const
             {
                 return point2{getter::perp(v) * getter::phi(v), v[2]};
             }
@@ -546,7 +516,7 @@ namespace detray
 
     } // namespace array
 
-    // Non-contextual vector transfroms
+    // Vector transfroms
     namespace vector
     {
 

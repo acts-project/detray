@@ -19,14 +19,11 @@ namespace detray
     using transform3 = __plugin::transform3;
     using point3 = transform3::point3;
     using vector3 = transform3::vector3;
-    using context = transform3::context;
 
     /** This method creates a number (distances.size()) planes along a direction 
     */
     dvector<surface<transform3>> planes_along_direction(dvector<scalar> distances, vector3 direction)
     {
-        context ctx;
-
         // Rotation matrix
         vector3 z = direction;
         vector3 x = normalize(vector3{0, -z[2], z[1]});
@@ -36,7 +33,7 @@ namespace detray
         for (auto &d : distances)
         {
             vector3 t = d * direction;
-            transform3 trf(t, z, x, ctx);
+            transform3 trf(t, z, x);
             return_surfaces.push_back(surface<transform3>{std::move(trf), 0, 0, false});
         }
         return return_surfaces;
@@ -61,8 +58,6 @@ namespace detray
                                                                       unsigned int n_phi_half,
                                                                       scalar overlap_phi)
     {
-        context ctx;
-
         scalar module_inner_lx = r_inner*M_PI *(1+overlap_phi)/(n_phi_half);
         scalar module_outer_lx = r_inner*M_PI *(1+overlap_phi)/(n_phi_half);
         scalar module_hy = 0.5*(r_outer - r_inner);
@@ -81,7 +76,7 @@ namespace detray
             point3 p = {r * cos_phi, r * sin_phi, z_pos + z_addon};           
             vector3 z = {0., 0., 1.};
             vector3 x = {-sin_phi, cos_phi, 0.};
-            transforms.push_back(transform3(p, z, x, ctx));
+            transforms.push_back(transform3(p, z, x));
         }
         return { trapezoid_values, transforms };
 
@@ -108,8 +103,6 @@ namespace detray
                                                                       scalar stagger_z,
                                                                       unsigned int n_z)
     {
-        context ctx;
-
         // Estimate module dimensions
         scalar module_lx = 2 * r * M_PI * (1 + overlap_rphi) / n_phi;
         scalar module_ly = (barrel_z + (n_z - 1) * stagger_z) / n_z;
@@ -129,7 +122,7 @@ namespace detray
                 point3 p = {(r+r_addon) * std::cos(phi), (r+r_addon) * std::sin(phi), z_pos};
                 vector3 z = {std::cos(phi + tilt_phi), std::sin(phi + tilt_phi), 0.};
                 vector3 x = {z[1], -z[0], 0.};
-                transforms.push_back(transform3(p, z, x, ctx));
+                transforms.push_back(transform3(p, z, x));
             }
         }
         return {rectangle_bounds, transforms};

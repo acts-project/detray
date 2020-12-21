@@ -22,7 +22,6 @@ using namespace detray;
 using transform3 = __plugin::transform3;
 using point3 = transform3::point3;
 using vector3 = transform3::vector3;
-using context = transform3::context;
 using plane_surface = surface<transform3>;
 __plugin::cartesian2 cart2;
 __plugin::cylindrical2 cyl2;
@@ -44,9 +43,6 @@ namespace __plugin
         unsigned int sfmiss = 0;
 
         rectangle2<scalar> rect = {10., 20.};
-
-        context ctx;
-
         point3 ori = {0., 0., 0.};
 
         for (auto _ : state)
@@ -70,7 +66,7 @@ namespace __plugin
                     for (auto plane : planes)
                     {
                         auto pi = rect.intersector();
-                        auto is = pi.intersect(plane, ori, dir, ctx, cart2, rect);
+                        auto is = pi.intersect(plane.transform(), ori, dir, cart2, rect);
                         if (is.status == e_inside)
                         {
                             ++sfhit;
@@ -101,7 +97,6 @@ namespace __plugin
             cylinders.push_back(cylinder_mask{r, -10., 10.});
         }
 
-        context ctx;
         surface<transform3> plain(std::move(transform3()), 0, 0, false);
 
         point3 ori = {0., 0., 0.};
@@ -127,7 +122,7 @@ namespace __plugin
                     for (auto cylinder : cylinders)
                     {
                         auto ci = cylinder.intersector();
-                        auto is = ci.intersect(plain, ori, dir, ctx, cyl2, cylinder);
+                        auto is = ci.intersect(plain.transform(), ori, dir, cyl2, cylinder);
                         if (is.status == e_inside)
                         {
                             ++sfhit;
@@ -157,7 +152,6 @@ namespace __plugin
             cylinders.push_back(cylinder_mask{r, -10., 10.});
         }
 
-        context ctx;
         surface<transform3> plain(std::move(transform3()), 0, 0, false);
 
         point3 ori = {0., 0., 0.};
@@ -183,7 +177,7 @@ namespace __plugin
                     for (auto cylinder : cylinders)
                     {
                         auto cci = cylinder.intersector();
-                        auto is = cci.intersect(plain, ori, dir, ctx, cyl2, cylinder);
+                        auto is = cci.intersect(plain.transform(), ori, dir, cyl2, cylinder);
                         if (is.status == e_inside)
                         {
                             ++sfhit;

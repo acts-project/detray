@@ -67,7 +67,6 @@ namespace detray
     csv_detector<surface<transform_type, darray<unsigned int, 2>, unsigned int, unsigned int>> read_csv(std::string filename)
     {
 
-        using context = typename transform_type::context;
         using surface = surface<transform_type, darray<unsigned int, 2>, unsigned int, unsigned int>;
 
         struct surface_info
@@ -126,8 +125,7 @@ namespace detray
             float mhy = std::atof(split_strings[19].c_str());
             darray<scalar, 3> mask = {mhx_miny, mhx_maxy, mhy};
 
-            context default_context;
-            read_surface_info[volume_id][layer_id].insert({module_id, {transform_type{matrix_array, default_context}, mask, geo_id}});
+            read_surface_info[volume_id][layer_id].insert({module_id, {transform_type{matrix_array}, mask, geo_id}});
         }
         csv_file.close();
 

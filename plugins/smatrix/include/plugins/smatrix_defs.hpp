@@ -78,7 +78,7 @@ namespace detray
             static_assert(kDIM >= 2, "vector::perp() required rows >= 2.");
             return std::sqrt(v[0] * v[0] + v[1] * v[1]);
         }
-        
+
         /** This method retrieves a column from a matrix
          * 
          * @param m the input matrix 
@@ -86,7 +86,7 @@ namespace detray
         template <unsigned int kROWS, typename matrix_type>
         auto vector(const matrix_type &m, unsigned int row, unsigned int col)
         {
-            return m.template SubCol<SVector<scalar, kROWS> > (col, row);
+            return m.template SubCol<SVector<scalar, kROWS>>(col, row);
         }
 
         /** This method retrieves a column from a matrix
@@ -96,7 +96,7 @@ namespace detray
         template <unsigned int kROWS, unsigned int kCOLS, typename matrix_type>
         auto block(const matrix_type &m, unsigned int row, unsigned int col)
         {
-            return m.template Sub <SMatrix<scalar, kROWS, kCOLS> >(row, col);
+            return m.template Sub<SMatrix<scalar, kROWS, kCOLS>>(row, col);
         }
 
     } // namespace getter
@@ -111,7 +111,6 @@ namespace detray
         {
             using vector3 = SVector<scalar, 3>;
             using point3 = vector3;
-            using context = std::any;
 
             SMatrix<scalar, 4, 4> _data = ROOT::Math::SMatrixIdentity();
             SMatrix<scalar, 4, 4> _data_inv = ROOT::Math::SMatrixIdentity();
@@ -119,14 +118,14 @@ namespace detray
             using matrix44 = decltype(_data);
             using matrix33 = SMatrix<scalar, 3, 3>;
 
-            /** Contructor with arguments: t, z, x, ctx
+            /** Contructor with arguments: t, z, x
              * 
              * @param t the translation (or origin of the new frame)
              * @param z the z axis of the new frame, normal vector for planes
              * @param x the x axis of the new frame
              * 
              **/
-            transform3(const vector3 &t, const vector3 &z, const vector3 &x, const context & /*ctx*/)
+            transform3(const vector3 &t, const vector3 &z, const vector3 &x)
             {
                 auto y = Cross(z, x);
                 _data(0, 0) = x[0];
@@ -141,7 +140,7 @@ namespace detray
                 _data(0, 3) = t[0];
                 _data(1, 3) = t[1];
                 _data(2, 3) = t[2];
-                
+
                 int ifail = 0;
                 _data_inv = _data.Inverse(ifail);
                 // This should be an exception, "transform3 could not be initialized. Matrix not invertible."
@@ -152,12 +151,12 @@ namespace detray
              *
              * @param t is the translation
              **/
-            transform3(const vector3 &t, const context & /*ctx*/)
+            transform3(const vector3 &t)
             {
                 _data(0, 3) = t[0];
                 _data(1, 3) = t[1];
                 _data(2, 3) = t[2];
-                
+
                 int ifail = 0;
                 _data_inv = _data.Inverse(ifail);
                 // This should be an exception, "transform3 could not be initialized. Matrix not invertible."
@@ -168,11 +167,11 @@ namespace detray
              * 
              * @param m is the full 4x4 matrix 
              **/
-            transform3(const matrix44 &m, const context & /*ctx*/)
+            transform3(const matrix44 &m)
             {
                 _data = m;
-                
-               int ifail = 0;
+
+                int ifail = 0;
                 _data_inv = _data.Inverse(ifail);
                 // This should be an exception, "transform3 could not be initialized. Matrix not invertible."
                 assert(ifail == 0);
@@ -182,7 +181,7 @@ namespace detray
              * 
              * @param ma is the full 4x4 matrix asa 16 array
              **/
-            transform3(const std::array<scalar, 16> &ma, const context & /*ctx*/)
+            transform3(const std::array<scalar, 16> &ma)
             {
 
                 _data(0, 0) = ma[0];
@@ -201,7 +200,7 @@ namespace detray
                 _data(1, 3) = ma[7];
                 _data(2, 3) = ma[11];
                 _data(3, 3) = ma[15];
-                
+
                 int ifail = 0;
                 _data_inv = _data.Inverse(ifail);
                 // This should be an exception, "transform3 could not be initialized. Matrix not invertible."
@@ -212,185 +211,159 @@ namespace detray
             transform3(const transform3 &rhs) = default;
             ~transform3() = default;
 
-            /** This method retrieves the rotation of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            auto rotation(const context & /*ctx*/) const
+            /** This method retrieves the rotation of a transform */
+            auto rotation() const
             {
-                return (_data.Sub<SMatrix<scalar, 3, 3> >(0, 0));
+                return (_data.Sub<SMatrix<scalar, 3, 3>>(0, 0));
             }
 
-            /** This method retrieves the translation of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            auto translation(const context & /*ctx*/) const
+            /** This method retrieves the translation of a transform */
+            auto translation() const
             {
-                return (_data.SubCol<SVector<scalar, 3> >(3, 0));
+                return (_data.SubCol<SVector<scalar, 3>>(3, 0));
             }
 
-            /** This method retrieves the 4x4 matrix of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            auto matrix(const context & /*ctx*/) const
+            /** This method retrieves the 4x4 matrix of a transform */
+            auto matrix() const
             {
                 return _data;
             }
-                     
-            /** This method retrieves the translation of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            auto translation_inv(const context & /*ctx*/) const
+
+            /** This method retrieves the translation of a transform */
+            auto translation_inv() const
             {
-                return (_data_inv.SubCol<SVector<scalar, 3> >(3, 0));
-            }
-            
-            /** This method retrieves the rotation of a transform
-             * 
-             * @param ctx the context object
-             * 
-             * @note this is a contextual method
-             **/
-            auto rotation_inv(const context & /*ctx*/) const
-            {
-                return (_data_inv.Sub<SMatrix<scalar, 3, 3> >(0, 0));
+                return (_data_inv.SubCol<SVector<scalar, 3>>(3, 0));
             }
 
-            /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
-            const point3 point_to_global(const point3 &v, const smatrix::transform3::context & ctx) const
+            /** This method retrieves the rotation of a transform */
+            auto rotation_inv() const
             {
-                return translation(ctx) + (rotation_inv(ctx) * v);
+                return (_data_inv.Sub<SMatrix<scalar, 3, 3>>(0, 0));
             }
 
-            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
-            const point3 point_to_local(const point3 &v, const smatrix::transform3::context & ctx) const
+            /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame */
+            const point3 point_to_global(const point3 &v) const
             {
-                return translation_inv(ctx) + (rotation_inv(ctx) * v);
+                return translation() + (rotation_inv() * v);
             }
 
-            /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
-            const point3 vector_to_global(const vector3 &v, const smatrix::transform3::context & ctx) const
+            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame */
+            const point3 point_to_local(const point3 &v) const
             {
-                return rotation(ctx) * v;
+                return translation_inv() + (rotation_inv() * v);
             }
 
-            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame
-             * 
-             * @note this is a contextual method 
-             **/
-            const point3 vector_to_local(const vector3 &v, const smatrix::transform3::context & ctx) const
+            /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame */
+            const point3 vector_to_global(const vector3 &v) const
             {
-                return rotation_inv(ctx) * v;
+                return rotation() * v;
+            }
+
+            /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame */
+            const point3 vector_to_local(const vector3 &v) const
+            {
+                return rotation_inv() * v;
             }
         };
 
-        /** Non-contextual local frame projection into a cartesian coordinate frame
-         */
+        /** Local frame projection into a cartesian coordinate frame */
         struct cartesian2
         {
             using point2 = SVector<scalar, 2>;
 
-            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
-              * including the contextual transform into the local 3D frame
-              * 
-              * @tparam the type of the surface from which also point3 and context type can be deduced
-              * 
-              */
-            template <typename surface_type>
-            const auto operator()(const surface_type &s,
-                                  const typename surface_type::transform3::point3 &p,
-                                  const typename surface_type::transform3::context &ctx) const
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
+             *
+             * @param v the point in local frame
+             * 
+             * @return a local point2
+             */
+            template <typename point3_type>
+            const auto operator()(const point3_type &v) const
             {
-                return operator()(s.transform().point_to_local(p, ctx));
+                return v.template Sub<SVector<scalar, 2>>(0);
             }
 
-            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
-             */
-            template<typename point3_type> const auto operator()(const point3_type &v) const
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
+             * 
+             * @param trf the transform from global to local thredimensional frame
+             * @param p the point in global frame
+             * 
+             * @return a local point2
+             **/
+            const auto operator()(const transform3 &trf,
+                                  const transform3::point3 &p) const
             {
-                return v.template Sub<SVector<scalar, 2> >(0);
+                return operator()(trf.point_to_local(p));
             }
         };
 
-        /** Non-contextual local frame projection into a polar coordinate frame
+        /** Local frame projection into a polar coordinate frame
          **/
         struct polar2
         {
             using point2 = SVector<scalar, 2>;
 
-            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
-              * including the contextual transform into the local 3D frame
-              * 
-              * @tparam the type of the surface from which also point3 and context type can be deduced
-              * 
-              */
-            template <typename surface_type>
-            const auto operator()(const surface_type &s,
-                                  const typename surface_type::transform3::point3 &p,
-                                  const typename surface_type::transform3::context &ctx) const
-            {
-                return operator()(s.transform().point_to_local(p, ctx));
-            }
-
-            /** This method transform from a point from 2D or 3D cartesian frame to a 2D polar point */
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
+             *
+             * @param v the point in local frame
+             * 
+             * @return a local point2
+             */
             template <typename point3_type>
             const auto operator()(const point3_type &v) const
             {
                 return point2{getter::perp(v), getter::phi(v)};
             }
+
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
+             * 
+             * @param trf the transform from global to local thredimensional frame
+             * @param p the point in global frame
+             * 
+             * @return a local point2
+             **/
+            const auto operator()(const transform3 &trf,
+                                  const transform3::point3 &p) const
+            {
+                return operator()(trf.point_to_local(p));
+            }
         };
 
-        /** Non-contextual local frame projection into a polar coordinate frame
+        /** Local frame projection into a polar coordinate frame
          **/
         struct cylindrical2
         {
             using point2 = SVector<scalar, 2>;
 
-            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
-              * including the contextual transform into the local 3D frame
-              * 
-              * @tparam the type of the surface from which also point3 and context type can be deduced
-              * 
-              */
-            template <typename surface_type>
-            const auto operator()(const surface_type &s,
-                                  const typename surface_type::transform3::point3 &p,
-                                  const typename surface_type::transform3::context &ctx) const
-            {
-                return operator()(s.transform().point_to_local(p, ctx));
-            }
-
-            /** This method transform from a point from 2 3D cartesian frame to a 2D cylindrical point */
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
+             *
+             * @param v the point in local frame
+             * 
+             * @return a local point2
+             */
             template <typename point3_type>
             const auto operator()(const point3_type &v) const
             {
                 return point2{getter::perp(v) * getter::phi(v), v[2]};
             }
+
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
+             * 
+             * @param trf the transform from global to local thredimensional frame
+             * @param p the point in global frame
+             * 
+             * @return a local point2
+             **/
+            const auto operator()(const transform3 &trf,
+                                  const transform3::point3 &p) const
+            {
+                return operator()(trf.point_to_local(p));
+            }
         };
 
-    } // namespace eigen
+    } // namespace smatrix
 
-    // Non-contextual vector transfroms
+    // Vector transfroms
     namespace vector
     {
 
@@ -415,7 +388,7 @@ namespace detray
          * @param b the second input vector
          * 
          * @return the scalar dot product value 
-         **/        
+         **/
         template <typename vector3_type, typename vecexpr3_type>
         auto dot(const vector3_type &a, const vecexpr3_type &b)
         {
