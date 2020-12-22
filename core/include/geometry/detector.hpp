@@ -55,9 +55,9 @@ namespace detray
 
             std::string name = "unknown";
             darray<scalar, 4> volume_bounds = {0,
-                                                std::numeric_limits<scalar>::infinity(),
-                                                -std::numeric_limits<scalar>::infinity(),
-                                                std::numeric_limits<scalar>::infinity()};
+                                               std::numeric_limits<scalar>::infinity(),
+                                               -std::numeric_limits<scalar>::infinity(),
+                                               std::numeric_limits<scalar>::infinity()};
 
             volume(const std::string &vname, const darray<scalar, 4> &bounds)
                 : name(vname), volume_bounds(bounds)
@@ -93,7 +93,7 @@ namespace detray
         using portal_disc_mask = ring2<scalar, planar_intersector, portal_links>;
         using portal_discs = dvector<portal_disc_mask>;
         using portal_type_map = dmap<guaranteed_index, guaranteed_index>;
-        using portal_surface = surface<transform_type, typed_guaranteed_range, guaranteed_index>;
+        using portal_surface = surface<guaranteed_index, typed_guaranteed_range, guaranteed_index>;
 
         /** Method to add a list of portals to the portal tuple
          * 
@@ -118,7 +118,10 @@ namespace detray
             volume.portal_surface_indices.push_back(_portal_surfaces.size());
             guaranteed_index volume_index = volume.index;
             typed_guaranteed_range links = {type, range};
-            _portal_surfaces.push_back(portal_surface(std::move(transform), std::move(links), std::move(volume_index), false));
+            // Record the transform index
+            guaranteed_index transform_index = _portal_transforms.size();
+            _portal_transforms.push_back(std::move(transform));
+            _portal_surfaces.push_back(portal_surface(std::move(transform_index), std::move(links), std::move(volume_index), false));
         }
 
         /** Internal surface section ***********************************************
@@ -137,7 +140,7 @@ namespace detray
         using surface_links = bool;
 
         using surface_type_map = dmap<guaranteed_index, guaranteed_index>;
-        using detector_surface = surface<transform_type, typed_guaranteed_range, guaranteed_index>;
+        using detector_surface = surface<guaranteed_index, typed_guaranteed_range, guaranteed_index>;
 
         /** Method to add a list of portals to the portal tuple
          * 
@@ -162,17 +165,23 @@ namespace detray
             for (auto transform : transforms)
             {
                 volume.surface_indices.push_back(_surfaces.size());
-                _surfaces.push_back(detector_surface(std::move(transform), std::move(typed_mask_range), std::move(volume_index), false));
+                guaranteed_index transform_index = _surface_transforms.size();
+                _surface_transforms.push_back(std::move(transform));
+                _surfaces.push_back(detector_surface(std::move(transform_index), std::move(typed_mask_range), std::move(volume_index), false));
             }
         }
 
         const dvector<volume> &volumes() const { return _volumes; }
+
+        const dvector<transform_type> &portal_transforms() const { return _portal_transforms; }
 
         const dvector<portal_surface> &portal_surfaces() const { return _portal_surfaces; }
 
         const auto &portal_masks() const { return _portal_masks; }
 
         const portal_type_map portal_types() const { return _portal_types; }
+
+        const dvector<transform_type> &surface_transforms() const { return _surface_transforms; }
 
         const dvector<detector_surface> &surfaces() const { return _surfaces; }
 
@@ -182,12 +191,14 @@ namespace detray
 
     private:
         dvector<volume> _volumes;
+        dvector<transform_type> _portal_transforms;
         dvector<portal_surface> _portal_surfaces;
         dtuple<portal_rectangles, portal_trapezoids, portal_cylinders, portal_discs> _portal_masks;
         portal_type_map _portal_types = {{rectangle_mask::mask_identifier, 0},
                                          {trapezoid_mask::mask_identifier, 1},
                                          {cylinder_mask::mask_identifier, 2},
                                          {disc_mask::mask_identifier, 3}};
+        dvector<transform_type> _surface_transforms; //!< @todo change to contextual container
         dvector<detector_surface> _surfaces;
         dtuple<rectangles, trapezoids, cylinders, discs> _surface_masks;
         surface_type_map _surface_types = {{rectangle_mask::mask_identifier, 0},

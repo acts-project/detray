@@ -9,13 +9,13 @@ namespace detray
 {
     template <typename detector_type>
     struct navigator
-    {        
+    {
         using detector_surface = typename detector_type::detector_surface;
         using surface_intersection = typename detector_type::surface_intersection;
         using surface_links = typename detector_type::surface_links;
         using portal_surface = typename detector_type::portal_surface;
         using portal_links = typename detector_type::portal_links;
-        using transform_type = typename detector_type::detector_surface::transform3;
+        using transform_type = typename detector_type::transform3;
 
         // Indexing
         using guaranteed_index = typename detector_type::guaranteed_index;
@@ -92,11 +92,11 @@ namespace detray
          * 
          * @return a boolean indicating if the update succeeded.
          **/
-        template <typename surface_type, typename links_type, typename local_type, typename mask_group, typename mask_range>
+        template <typename links_type, typename local_type, typename mask_group, typename mask_range>
         bool update_intersection_by_mask(surface_intersection &sfi,
                                          links_type &links,
-                                         track<typename surface_type::transform3> &track,
-                                         const surface_type &surface,
+                                         track<transform_type> &track,
+                                         const transform_type &trf,
                                          const local_type &local,
                                          const mask_group &masks,
                                          const mask_range &range)
@@ -105,7 +105,7 @@ namespace detray
             {
                 auto &mask = masks[i];
                 auto is = mask.intersector();
-                sfi = is.intersect(surface.transform(), track, local, mask);
+                sfi = is.intersect(trf, track, local, mask);
                 if (sfi.status == e_inside)
                 {
                     links = mask.links();
@@ -117,7 +117,7 @@ namespace detray
 
         /** Actual kernel method that updates the updates the intersections
          * 
-         * @tparam surface_container the container type of surfaces to be processed
+         * @tparam surface_type the type of surfaces to be processed
          * @tparam links_type the type of the links held by the masks
          * @tparam mask_type_map a mapping between indices and mask columsn in the tuple
          * @tparam mask_container the type of the tupled mask container
@@ -125,44 +125,45 @@ namespace detray
          * @param sfi is the surface intersection to be updated
          * @param links is the associated object link to be updated
          * @param track is the track information 
-         * @param surfaces is the surface container from which the surface is pulled
+         * @param trf is the transform of surface 
+         * @param surface  is the surface to be intersected
          * @param mask_types is the mapping between mask types and tuple entry
          * @param masks is the associated (and split out) mask group
          * @param trust is a boolean flag whether you can trust the last estimate already
          *
          * @return a boolean indicating if the update was successful
          **/
-        template <typename surface_container, typename links_type, typename mask_type_map, typename mask_container>
+        template <typename surface_type, typename links_type, typename mask_type_map, typename mask_container>
         bool update_intersection(surface_intersection &sfi,
                                  links_type &links,
                                  track<transform_type> &track,
-                                 const surface_container &surfaces,
+                                 const transform_type &trf,
+                                 const surface_type &surface,
                                  const mask_type_map &mask_types,
                                  const mask_container &masks,
                                  bool trust = false)
         {
             // That the guaranteed index in the container
-            const auto &surface = surfaces[sfi.index];
             const auto &typed_mask_range = surface.mask();
             if (std::get<0>(typed_mask_range) == 0)
             {
                 const auto &mask_group = std::get<0>(masks);
-                return update_intersection_by_mask(sfi, links, track, surface, cart2, mask_group, std::get<1>(typed_mask_range));
+                return update_intersection_by_mask(sfi, links, track, trf, cart2, mask_group, std::get<1>(typed_mask_range));
             }
             else if (std::get<0>(typed_mask_range) == 1)
             {
                 const auto &mask_group = std::get<1>(masks);
-                return update_intersection_by_mask(sfi, links, track, surface, cart2, mask_group, std::get<1>(typed_mask_range));
+                return update_intersection_by_mask(sfi, links, track, trf, cart2, mask_group, std::get<1>(typed_mask_range));
             }
             else if (std::get<0>(typed_mask_range) == 2)
             {
                 const auto &mask_group = std::get<2>(masks);
-                return update_intersection_by_mask(sfi, links, track, surface, cyl2, mask_group, std::get<1>(typed_mask_range));
+                return update_intersection_by_mask(sfi, links, track, trf, cyl2, mask_group, std::get<1>(typed_mask_range));
             }
             else if (std::get<0>(typed_mask_range) == 3)
             {
                 const auto &mask_group = std::get<3>(masks);
-                return update_intersection_by_mask(sfi, links, track, surface, cart2, mask_group, std::get<1>(typed_mask_range));
+                return update_intersection_by_mask(sfi, links, track, trf, cart2, mask_group, std::get<1>(typed_mask_range));
             }
             return false;
         }
@@ -179,8 +180,8 @@ namespace detray
         {
             if (trust)
             {
-                const auto& surfaces = navigation.detector.surfaces();
-                const auto& portal_surfaces = navigation.detector.portal_surfaces();
+                const auto &surfaces = navigation.detector.surfaces();
+                const auto &portal_surfaces = navigation.detector.portal_surfaces();
 
                 // Trust the stepper towards the internal surface
                 if (navigation.surfaces.next != navigation.surfaces.candidates.end())
@@ -216,7 +217,7 @@ namespace detray
         navigation_status target(navigation_state &navigation, track<transform_type> &track, bool trust = false)
         {
 
-            const auto& volumes = navigation.detector.volumes();
+            const auto &volumes = navigation.detector.volumes();
 
             if (navigation.volume_index >= 0)
             {
@@ -226,6 +227,7 @@ namespace detray
                 if (navigation.surfaces.candidates.empty() and navigation.portals.candidates.empty())
                 {
                     const auto &surfaces = navigation.detector.surfaces();
+                    const auto &surface_transforms = navigation.detector.surface_transforms();
                     const auto &surface_types = navigation.detector.surface_types();
                     const auto &surface_masts = navigation.detector.surface_masks();
 
@@ -235,7 +237,10 @@ namespace detray
                     {
                         surface_intersection sfi;
                         sfi.index = isi;
-                        update_intersection(sfi, navigation.surfaces.links, track, surfaces, surface_types, surface_masts);
+                        const auto &surface = surfaces[isi];
+                        // @todo this will become a contextual call
+                        const auto &surface_transform = surface_transforms[surface.transform()];
+                        update_intersection(sfi, navigation.surfaces.links, track, surface_transform, surface, surface_types, surface_masts);
                         if (sfi.status == e_inside and sfi.path > track.overstep_tolerance)
                         {
                             navigation.surfaces.candidates.push_back(std::move(sfi));
@@ -255,6 +260,7 @@ namespace detray
                     navigation.surfaces.candidates.clear();
                     navigation.surfaces.next = navigation.surfaces.candidates.end();
 
+                    const auto &portal_transforms = navigation.detector.portal_transforms();
                     const auto &portal_surfaces = navigation.detector.portal_surfaces();
                     const auto &portal_types = navigation.detector.portal_types();
                     const auto &portal_masks = navigation.detector.portal_masks();
@@ -268,7 +274,9 @@ namespace detray
                         sfi.index = psi;
                         if (not portal_hit)
                         {
-                            update_intersection(sfi, navigation.portals.links, track, portal_surfaces, portal_types, portal_masks);
+                            const auto &portal_surface = portal_surfaces[sfi.index];
+                            const auto &portal_transform = portal_transforms[portal_surface.transform()];
+                            update_intersection(sfi, navigation.portals.links, track, portal_transform, portal_surface, portal_types, portal_masks);
                             portal_hit = (sfi.status == e_inside and sfi.path > track.overstep_tolerance);
                             if (portal_hit)
                             {
