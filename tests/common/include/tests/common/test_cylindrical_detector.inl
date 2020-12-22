@@ -69,8 +69,8 @@ TEST(__plugin, cylindrical_detector)
     d.add_portal_surface<cdetector::portal_disc_mask>(std::move(transform3(vector3(0., 0., -0.5 * px_barrel))), {px_ecn_ecp}, px_ecn);
     auto endcap_n = endcap_description(29, 50, -px_barrel - 25., 1., 6, 0.2);
     d.add_surfaces<cdetector::trapezoid_mask>(std::get<dvector<transform3>>(endcap_n),
-                                             std::get<cdetector::trapezoid_mask::mask_values>(endcap_n),
-                                             px_ecn);
+                                              std::get<cdetector::trapezoid_mask::mask_values>(endcap_n),
+                                              px_ecn);
 
     cdetector::volume &px_b = d.new_volume("px_b", {px_inner_radius, px_outer_radius, -px_barrel, px_barrel});
     cdetector::portal_cylinder_mask px_b_inner = {{px_inner_radius, -px_barrel, px_barrel}, {0, 2}};
@@ -82,8 +82,8 @@ TEST(__plugin, cylindrical_detector)
     d.add_portal_surface<cdetector::portal_disc_mask>(std::move(transform3(vector3(0., 0., +0.5 * px_barrel))), {px_b_ecp}, px_b);
     auto barrel = barrel_description(33, 0.25, 12, 0.12, 0.25, 600, 2., 7);
     d.add_surfaces<cdetector::rectangle_mask>(std::get<dvector<transform3>>(barrel),
-                                             std::get<cdetector::rectangle_mask::mask_values>(barrel),
-                                             px_b);
+                                              std::get<cdetector::rectangle_mask::mask_values>(barrel),
+                                              px_b);
 
     cdetector::volume &px_ecp = d.new_volume("px_ecp", {px_inner_radius, px_outer_radius, px_barrel, bp_length});
     cdetector::portal_cylinder_mask px_ecp_inner = {{px_inner_radius, px_barrel, bp_length}, {0, 3}};
@@ -95,8 +95,8 @@ TEST(__plugin, cylindrical_detector)
     d.add_portal_surface<cdetector::portal_disc_mask>(std::move(transform3(vector3(0., 0., 0.5 * bp_length))), {px_ecp_ecp}, px_ecp);
     auto endcap_p = endcap_description(29, 50, px_barrel + 25., 1., 6, 0.2);
     d.add_surfaces<cdetector::trapezoid_mask>(std::get<dvector<transform3>>(endcap_p),
-                                             std::get<cdetector::trapezoid_mask::mask_values>(endcap_p),
-                                             px_ecp);
+                                              std::get<cdetector::trapezoid_mask::mask_values>(endcap_p),
+                                              px_ecp);
 }
 
 unsigned int theta_steps = 10;
@@ -109,6 +109,7 @@ TEST(__plugin, intersect_all_cylindrical_detector)
 
     cdetector::surface_intersection sfi;
     const auto &surfaces = d.surfaces();
+    const auto &surface_transforms = d.surface_transforms();
     const auto &stm = d.surface_types();
     const auto &msks = d.surface_masks();
     bool links = false;
@@ -140,7 +141,10 @@ TEST(__plugin, intersect_all_cylindrical_detector)
             for (unsigned int s = 0; s < surfaces.size(); ++s)
             {
                 sfi.index = s;
-                if (n.update_intersection(sfi, links, track, surfaces, stm, msks) and stream_file)
+                const auto &surface = surfaces[s];
+                const auto &transform = surface_transforms[surface.transform()];
+
+                if (n.update_intersection(sfi, links, track, transform, surface, stm, msks) and stream_file)
                 {
                     hit_out << sfi.point3[0] << "," << sfi.point3[1] << "," << sfi.point3[2] << "\n";
                 }
@@ -158,7 +162,7 @@ TEST(__plugin, navigate_cylindrical_detector)
 {
 
     navigator<cdetector> n;
-    navigator<cdetector> ::navigation_state navigation;
+    navigator<cdetector>::navigation_state navigation;
     navigation.detector = d;
     navigation.volume_index = 0; // this will have to be found out by the detector... octotree?
 
@@ -167,7 +171,7 @@ TEST(__plugin, navigate_cylindrical_detector)
     track.pos = {0., 0., 0.};
     track.dir = {1. / std::sqrt(3), 1. / std::sqrt(3), 1. / std::sqrt(3)};
     // Target to next
-    ASSERT_TRUE(n.target(navigation, track) == navigator<cdetector> ::navigation_status::e_towards_surface);
+    ASSERT_TRUE(n.target(navigation, track) == navigator<cdetector>::navigation_status::e_towards_surface);
     track.pos = track.pos + navigation.distance_to_next * track.dir;
     ASSERT_TRUE(n.status(navigation, track, true) == navigator<cdetector>::navigation_status::e_on_surface);
     // Let's target again

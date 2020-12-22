@@ -12,7 +12,7 @@ namespace detray
 {
     /** Templated surface class
      * 
-     * @tparam transform_link the type of the transform/transform link forglobal 3D to local 3D frame
+     * @tparam transform_link the type of the transform/transform link for global 3D to local 3D frame
      * @tparam mask_link the type of the mask/mask link representation
      * @tparam volume_link the typ eof the volume/volume link representation
      * @tparam source_link the type of the source/source link representation 
