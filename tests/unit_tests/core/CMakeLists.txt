@@ -1,3 +1,6 @@
+add_detray_test(grids_axis
+                grids_axis.cpp detray::core)
+
 add_detray_test(utils_enumerate
                 utils_enumerate.cpp detray::core)
 

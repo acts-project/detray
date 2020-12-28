@@ -12,6 +12,7 @@
 #include "masks/trapezoid2.hpp"
 #include "masks/cylinder3.hpp"
 #include "masks/ring2.hpp"
+#include "utils/indexing.hpp"
 #include "utils/containers.hpp"
 #include "tools/concentric_cylinder_intersector.hpp"
 
@@ -35,10 +36,8 @@ namespace detray
         using surface_intersection = intersection<scalar, point3, point2>;
 
         // Indexing
-        using optional_index = int;
-        using guaranteed_index = unsigned long;
+
         using typed_guaranteed_index = darray<guaranteed_index, 2>;
-        using guaranteed_range = darray<guaranteed_index, 2>;
         using typed_guaranteed_range = dtuple<guaranteed_index, guaranteed_range>;
 
         // Surface finding function
