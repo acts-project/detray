@@ -9,7 +9,6 @@
 
 #include "utils/indexing.hpp"
 
-#include <iostream>
 #include <algorithm>
 
 namespace detray
@@ -120,7 +119,10 @@ namespace detray
              **/
             guaranteed_range range(value_type v, unsigned int nhood) const
             {
-                return {0u, 0u};
+                guaranteed_index gbin = bin(v);
+                guaranteed_index min_bin = remap(gbin, -nhood);
+                guaranteed_index max_bin = remap(gbin, nhood);
+                return {min_bin, max_bin};
             }
 
             /** Access function to a zone with binned neighbourhood
@@ -132,11 +134,47 @@ namespace detray
              **/
             guaranteed_sequence zone(value_type v, unsigned int nhood) const
             {
-                // guaranteed_range nh_range = range(v, nhood);
-                // guaranteed_sequence sequence(static_cast<guaranteed_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
-                return {};
+                guaranteed_range nh_range = range(v, nhood);
+                if (nh_range[0] < nh_range[1])
+                {
+                    guaranteed_sequence sequence(static_cast<guaranteed_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
+                    guaranteed_index m = 0;
+                    std::for_each(sequence.begin(), sequence.end(), [&](auto &n) { n += m++; });
+                    return sequence;
+                }
+                guaranteed_index vl = static_cast<guaranteed_index>(kDIM - nh_range[0] + nh_range[1] + 1);
+                guaranteed_index mi = 0;
+                guaranteed_index mo = 0;
+                guaranteed_sequence sequence(static_cast<guaranteed_sequence::size_type>(vl), nh_range[0]);
+                std::for_each(sequence.begin(), sequence.end(), [&](auto &n) {
+                    n += mi++;
+                    if (n > kDIM - 1)
+                    {
+                        n = mo++;
+                    } });
+                return sequence;
             }
 
+            /** Helper function to remap onto a circular range 
+             * 
+             * @param ibin is the optional binning value
+             * @param shood is the sided neighbour hood
+             * 
+             * @return a guaranteed, remapped bin 
+             **/
+            guaranteed_index remap(guaranteed_index ibin, optional_index shood) const
+            {
+                optional_index opt_bin = ibin + shood;
+                if (opt_bin >= 0 and opt_bin < kDIM - 1)
+                {
+                    return static_cast<guaranteed_index>(opt_bin);
+                }
+                if (opt_bin < 0)
+                {
+                    return static_cast<guaranteed_index>(kDIM + opt_bin);
+                }
+                return static_cast<guaranteed_index>(opt_bin - kDIM);
+            }
         };
 
     } // namespace axis

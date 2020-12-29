@@ -54,13 +54,22 @@ TEST(grids, regular_circular_axis)
     EXPECT_EQ(full_pi.bin(M_PI - epsilon), 0u);
     EXPECT_EQ(full_pi.bin(M_PI + epsilon), 0u);
     EXPECT_EQ(full_pi.bin(0), 18u);
+    // Remap test
+    EXPECT_EQ(full_pi.remap(4, -1), 3u);
+    EXPECT_EQ(full_pi.remap(4, 1), 5u);
+    EXPECT_EQ(full_pi.remap(0, -1), 35);
+    EXPECT_EQ(full_pi.remap(0, -2), 34);
+    EXPECT_EQ(full_pi.remap(-1, -1), 34);
+    EXPECT_EQ(full_pi.remap(35, 1), 0);
     // Axis range access
-    guaranteed_range expected = {4u, 6u};
-    //EXPECT_EQ(ten_bins.zone(2., 1), expected);
-    //expected = {0u, 8u};
-    //EXPECT_EQ(ten_bins.zone(1., 4), expected);
-    //expected = { 3u, 9u};
-    //EXPECT_EQ(ten_bins.zone(5., 5), expected);
+
+    guaranteed_range expected_range = {35u, 1u};
+    EXPECT_EQ(full_pi.range(M_PI + epsilon, 1), expected_range);
+    expected_range = {34u, 2u};
+    EXPECT_EQ(full_pi.range(M_PI + epsilon, 2), expected_range);
+    // Zone test
+    guaranteed_sequence expected_zone = {34u, 35u, 0u, 1u, 2u};
+    EXPECT_EQ(full_pi.zone(M_PI + epsilon, 2), expected_zone);
 }
 
 // Google Test can be run manually from the main() function
