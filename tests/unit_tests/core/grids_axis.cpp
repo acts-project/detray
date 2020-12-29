@@ -37,7 +37,6 @@ TEST(grids, regular_closed_axis)
     EXPECT_EQ(ten_bins.zone(2., 1), expected_zone);
     expected_zone = {0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u};
     EXPECT_EQ(ten_bins.zone(1., 4), expected_zone);
-
 }
 
 TEST(grids, regular_circular_axis)
@@ -46,7 +45,9 @@ TEST(grids, regular_circular_axis)
 
     // Let's say 36 modules, but with 4 directly at 0, pi/2, pi, -pi2
     scalar half_module = 2 * M_PI_2 / 72;
-    axis::circular<36> full_pi = {-M_PI + half_module, M_PI - half_module};
+    scalar phi_min = -M_PI + half_module;
+    scalar phi_max = M_PI - half_module;
+    axis::circular<36> full_pi = {phi_min, phi_max};
     // N bins
     EXPECT_EQ(full_pi.bins, 36u);
     // Axis bin access

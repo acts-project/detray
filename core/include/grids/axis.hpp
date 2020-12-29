@@ -10,6 +10,7 @@
 #include "utils/indexing.hpp"
 
 #include <iostream>
+#include <algorithm>
 
 namespace detray
 {
