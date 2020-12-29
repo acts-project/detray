@@ -5,6 +5,11 @@
  * 
  * Mozilla Public License Version 2.0
  */
+
+#pragma once
+
+#include "utils/indexing.hpp"
+
 namespace detray
 {
     template <typename detector_type>
@@ -16,9 +21,6 @@ namespace detray
         using portal_surface = typename detector_type::portal_surface;
         using portal_links = typename detector_type::portal_links;
         using transform_type = typename detector_type::transform3;
-
-        // Indexing
-        using guaranteed_index = typename detector_type::guaranteed_index;
 
         /** Simple navigation status struct */
         enum navigation_status : int
@@ -143,7 +145,6 @@ namespace detray
                                  const mask_container &masks,
                                  bool trust = false)
         {
-            // That the guaranteed index in the container
             const auto &typed_mask_range = surface.mask();
             if (std::get<0>(typed_mask_range) == 0)
             {
