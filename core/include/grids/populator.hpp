@@ -9,6 +9,8 @@
 
 #include "utils/containers.hpp"
 
+#include <algorithm>
+
 namespace detray
 {
     /** A replace populator that swaps whatever current value in the 
