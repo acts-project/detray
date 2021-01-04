@@ -36,7 +36,6 @@ namespace detray
         using surface_intersection = intersection<scalar, point3, point2>;
 
         // Indexing
-
         using typed_guaranteed_index = darray<guaranteed_index, 2>;
         using typed_guaranteed_range = dtuple<guaranteed_index, guaranteed_range>;
 
