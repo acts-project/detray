@@ -28,6 +28,7 @@ namespace detray
     class grid2
     {
 
+    public:
         axis_p0_type _axis_p0;
         axis_p1_type _axis_p1;
         serializer_type _serializer;
@@ -40,49 +41,90 @@ namespace detray
          * @param axis_p1 is the axis in the second coordinate
          * 
          **/
-        grid2(axis_p0_type &&ap0, axis_p1_type &&ap1) : _axis_p0(std::move(_axis_p0)), _axis_p1(std::move(_axis_p1)) {}
+        grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1) : _axis_p0(std::move(axis_p0)), _axis_p1(std::move(axis_p1))
+        {
+            for (auto &d : _data_serialized)
+            {
+                d = _populator.init();
+            }
+        }
 
         /** Fill/populate operation
          * 
-         * @param fvalue is a single fill value to be filled
+         * @tparam point2_type the 2D local point type
+         * 
          * @param p2 the point in p2 local frame
+         * @param fvalue is a single fill value to be filled
          * 
          **/
         template <typename point2_type>
-        void populate(typename populator_type::bare_value &&fvalue, const point2_type &p2)
+        void populate(const point2_type &p2, typename populator_type::bare_value &&fvalue)
         {
-            auto sbin = _serializer.serialize({_axis_p0.bin(p2[0]), _axis_p1.bin(p2[1])});
-            _data_serialized[sbin] = _populator(_data_serialized[sbin], std::move(fvalue));
+            auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]));
+            _populator(_data_serialized[sbin], std::move(fvalue));
         }
 
         /** Return the value of a single bin 
          * 
-         * @param p2 is the local coordinate p2 type 
+         * @tparam point2_type the 2D local point type
+         * 
+         * @param p2 is point in the local frame
          * 
          * @return the const reference to the value in this bin 
          **/
         template <typename point2_type>
         const auto &bin(const point2_type &p2) const
         {
-            return _data_serialized[_serializer.serialize({_axis_p0.bin(p2[0]), _axis_p1.bin(p2[1])})];
+            return _data_serialized[_serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
         }
 
         /** Return the value of a single bin - non-const access
          * 
-         * @param p2 is the local coordinate p2 type 
+         * @tparam point2_type the 2D local point type
+         * 
+         * @param p2 is point in the local frame
          * 
          * @return the const reference to the value in this bin 
          **/
         template <typename point2_type>
         auto &bin(const point2_type &p2)
         {
-            return _data_serialized[_serializer.serialize({_axis_p0.bin(p2[0]), _axis_p1.bin(p2[1])})];
+            return _data_serialized[_serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
         }
 
+        /** Return a zone around a single bin 
+         * 
+         * The zone is done with a symmetric neighborhood around the bin which is defined by p2
+         *          
+         * @tparam point2_type the 2D local point type
+         * 
+         * @param p2 is point in the local frame
+         * @param nhood is the bin-wise neighborhood
+         * @param sort is a directive whether to sort or not
+         * 
+         * @return the sequence of values
+         **/
         template <typename point2_type>
-        dvector<typename populator_type::bare_value> zone(const point2_type &p2, const darray<unsigned int, 2> &nhood = {0, 0}) const
+        dvector<typename populator_type::bare_value> zone(const point2_type &p2, const darray<unsigned int, 2> &nhood = {0, 0}, bool sort = false) const
         {
-            return {};
+            auto zone0 = _axis_p0.zone(p2[0], nhood[0]);
+            auto zone1 = _axis_p1.zone(p2[1], nhood[1]);
+
+            dvector<typename populator_type::bare_value> zone;
+            for (const auto z1 : zone1)
+            {
+                for (const auto z0 : zone0)
+                {
+                    auto bindata = _data_serialized[_serializer.template serialize<axis_p0_type, axis_p1_type>(z0, z1)];
+                    auto bincontent = _populator.sequence(bindata);
+                    zone.insert(zone.end(), bincontent.begin(), bincontent.end());
+                }
+            }
+            if (sort)
+            {
+                std::sort(zone.begin(), zone.end());
+            }
+            return zone;
         }
     };
 
