@@ -17,7 +17,7 @@ using namespace detray;
 
 TEST(grids, replace_populator)
 {
-    replace_populator<guaranteed_index> replacer;
+    replace_populator<guaranteed_index, std::numeric_limits<guaranteed_index>::max()> replacer;
     guaranteed_index stored = 3;
     replacer(stored, 2);
     EXPECT_EQ(stored, 2u);
