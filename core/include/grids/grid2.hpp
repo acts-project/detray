@@ -43,10 +43,20 @@ namespace detray
          **/
         grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1) : _axis_p0(std::move(axis_p0)), _axis_p1(std::move(axis_p1))
         {
-            for (auto &d : _data_serialized)
+            for (auto &ds : _data_serialized)
             {
-                d = _populator.init();
+                ds = _populator.init();
             }
+        }
+
+        /** Allow for grid shift, when using a centralized store and indices
+        * 
+        * @param offset is the applied offset shift
+        * 
+        **/
+        void shift(const typename populator_type::bare_value &offset)
+        {
+            std::for_each(_data_serialized.begin(), _data_serialized.end(), [&](auto &ds) { _populator.shift(ds, offset); });
         }
 
         /** Fill/populate operation

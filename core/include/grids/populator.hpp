@@ -54,6 +54,17 @@ namespace detray
             return {};
         }
 
+        /** Shift operation for unified memory block
+         * 
+         * @param stored the stored value
+         * @param offset is the shift offset
+         * 
+         **/
+        void shift(store_value &stored, const bare_value &offset) const
+        {
+            stored += offset;
+        }
+
         /** Return an initialized bin value
          */
         store_value init() const
@@ -120,6 +131,17 @@ namespace detray
             return s;
         }
 
+        /** Shift operation for unified memory block
+         * 
+         * @param stored the stored value
+         * @param offset is the shift offset
+         * 
+         **/
+        void shift(store_value &stored, const bare_value &offset) const
+        {
+            std::for_each(stored.begin(), stored.end(), [&](auto &d) { d += offset; });
+        }
+
         /** Return an initialized bin value
          **/
         store_value init() const
@@ -170,6 +192,17 @@ namespace detray
         dvector<bare_value> sequence(store_value &stored) const
         {
             return stored;
+        }
+
+        /** Shift operation for unified memory block
+         * 
+         * @param stored the stored value
+         * @param offset is the shift offset
+         * 
+         **/
+        void shift(store_value &stored, const bare_value &offset) const
+        {
+            std::for_each(stored.begin(), stored.end(), [&](auto &d) { d += offset; });
         }
 
         /** Return an initialized bin value
