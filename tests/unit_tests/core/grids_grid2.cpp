@@ -210,6 +210,28 @@ TEST(grids, grid2_attach_populator)
     EXPECT_EQ(zone_test, zone_expected);
 }
 
+
+TEST(grids, grid2_shift)
+{
+    replace_populator<guaranteed_index, 0> replacer;
+    serializer2 serializer;
+
+    axis::closed<10> xaxis{-5., 5.};
+    axis::closed<10> yaxis{-5., 5.};
+
+    using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis), decltype(serializer)>;
+
+    grid2r g2(std::move(xaxis), std::move(yaxis));
+
+    // Test the initialization
+    test::point2 p = {-4.5, -4.5};
+    EXPECT_EQ(g2.bin(p), 0u);
+
+    g2.shift(8u);
+    EXPECT_EQ(g2.bin(p), 8u);
+
+}
+
 // Google Test can be run manually from the main() function
 // or, it can be linked to the gtest_main library for an already
 // set-up main() function primed to accept Google Test test cases.
