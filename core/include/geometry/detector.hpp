@@ -16,6 +16,7 @@
 #include "utils/containers.hpp"
 #include "tools/concentric_cylinder_intersector.hpp"
 
+#include <functional>
 #include <cmath>
 #include <climits>
 #include <string>
