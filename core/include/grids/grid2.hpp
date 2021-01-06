@@ -29,12 +29,6 @@ namespace detray
     {
 
     public:
-        axis_p0_type _axis_p0;
-        axis_p1_type _axis_p1;
-        serializer_type _serializer;
-        populator_type _populator;
-        darray<typename populator_type::store_value, axis_p0_type::bins * axis_p1_type::bins> _data_serialized;
-
         /** Constructor from axes (moved)
          * 
          * @param axis_p0 is the axis in the first coordinate
@@ -136,6 +130,28 @@ namespace detray
             }
             return zone;
         }
+
+        /** Const access to axis p0  */
+        const axis_p0_type &axis_p0() const { return _axis_p0; }
+
+        /** Const access to axis p1 */
+        const axis_p1_type &axis_p1() const { return _axis_p0; }
+
+        /* Copy of axes in a tuple */
+        dtuple<axis_p0_type, axis_p1_type> axes() const { return std::tie(_axis_p0, _axis_p1); }
+
+        /** Const acess to the serializer */
+        const serializer_type &serializer() const { return _serializer; }
+
+        /** Const acess to the polulator */
+        const populator_type &populator() const { return _populator; }
+
+    private:
+        darray<typename populator_type::store_value, axis_p0_type::axis_bins * axis_p1_type::axis_bins> _data_serialized;
+        axis_p0_type _axis_p0;
+        axis_p1_type _axis_p1;
+        serializer_type _serializer;
+        populator_type _populator;
     };
 
 } // namespace detray

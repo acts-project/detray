@@ -33,7 +33,7 @@ namespace detray
         template <typename faxis_type, typename saxis_type>
         guaranteed_index serialize(guaranteed_index fbin, guaranteed_index sbin) const
         {
-            guaranteed_index offset = sbin * faxis_type::bins;
+            guaranteed_index offset = sbin * faxis_type::axis_bins;
             return offset + fbin;
         }
 
@@ -47,8 +47,8 @@ namespace detray
         template <typename faxis_type, typename saxis_type>
         darray<guaranteed_index, 2> deserialize(guaranteed_index serialbin) const
         {
-            guaranteed_index sbin = static_cast<guaranteed_index>(serialbin/faxis_type::bins);
-            guaranteed_index fbin = serialbin - sbin * faxis_type::bins;
+            guaranteed_index sbin = static_cast<guaranteed_index>(serialbin/faxis_type::axis_bins);
+            guaranteed_index fbin = serialbin - sbin * faxis_type::axis_bins;
             return { fbin, sbin };
         }
     };

@@ -18,15 +18,25 @@
 
 #include <cmath>
 #include <climits>
+#include <string>
 
 namespace detray
 {
 
+    /** Detector representation in detray.
+     * 
+     * @tparam transform_type is the type of the underlying algebra transform
+     */
     template <typename transform_type>
     class detector
     {
 
     public:
+
+        /** Constructor with name */
+        detector(const std::string& name = "unkown") :
+         _name(name){}
+
         // Algebra
         using point3 = typename transform_type::point3;
         using vector3 = typename transform_type::vector3;
@@ -169,25 +179,38 @@ namespace detray
             }
         }
 
+        /** Const access method for the detector name */
+        const std::string& name() const { return _name; }
+
+        /** Const access for the volumes contained in this detector */
         const dvector<volume> &volumes() const { return _volumes; }
 
+        /** Const access for all portal transforms  */
         const dvector<transform_type> &portal_transforms() const { return _portal_transforms; }
 
+        /** Const access for all portal surfaces  */
         const dvector<portal_surface> &portal_surfaces() const { return _portal_surfaces; }
 
+        /** Const access for all portal masks  */
         const auto &portal_masks() const { return _portal_masks; }
 
+        /** Const access for all portal types */
         const portal_type_map portal_types() const { return _portal_types; }
 
+        /** Const access for all surface transforms  */
         const dvector<transform_type> &surface_transforms() const { return _surface_transforms; }
 
+        /** Const access for all surfaces */
         const dvector<detector_surface> &surfaces() const { return _surfaces; }
 
+        /** Const access for all surface masks */
         const auto &surface_masks() const { return _surface_masks; }
 
-        const portal_type_map surface_types() const { return _surface_types; }
+        /** Const access for all surface mask types */
+        const surface_type_map surface_types() const { return _surface_types; }
 
     private:
+        std::string _name = "unknown";
         dvector<volume> _volumes;
         dvector<transform_type> _portal_transforms;
         dvector<portal_surface> _portal_surfaces;

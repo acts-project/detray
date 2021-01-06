@@ -31,7 +31,9 @@ namespace detray
             value_type _min;
             value_type _max;
 
-            static constexpr unsigned int bins = kDIM;
+            static constexpr unsigned int axis_bins = kDIM;
+
+            static constexpr unsigned int axis_identifier = 0;
 
             /** Access function to a single bin from a value v
              * 
@@ -43,8 +45,8 @@ namespace detray
             {
                 optional_index ibin = static_cast<optional_index>((v - _min) / (_max - _min) * kDIM);
                 return (ibin >= 0 and ibin < kDIM) ? static_cast<guaranteed_index>(ibin)
-                       : ibin < 0                  ? 0
-                                                   : static_cast<guaranteed_index>(kDIM - 1);
+                                                   : ibin < 0 ? 0
+                                                              : static_cast<guaranteed_index>(kDIM - 1);
             }
 
             /** Access function to a range with binned neighbourhood
@@ -77,6 +79,9 @@ namespace detray
                 std::for_each(sequence.begin(), sequence.end(), [&](auto &n) { n += m++; });
                 return sequence;
             }
+
+            /** Copy the range zone */
+            darray<value_type, 2> range() const { return {_min, _max}; }
         };
 
         /** A regular circular axis.
@@ -94,7 +99,9 @@ namespace detray
             value_type _min;
             value_type _max;
 
-            static constexpr unsigned int bins = kDIM;
+            static constexpr unsigned int axis_bins = kDIM;
+
+            static constexpr unsigned int axis_identifier = 1;
 
             /** Access function to a single bin from a value v
              * 
@@ -106,8 +113,8 @@ namespace detray
             {
                 optional_index ibin = static_cast<optional_index>((v - _min) / (_max - _min) * kDIM);
                 return (ibin >= 0 and ibin < kDIM) ? static_cast<guaranteed_index>(ibin)
-                       : ibin < 0                  ? static_cast<guaranteed_index>(kDIM + ibin)
-                                                   : static_cast<guaranteed_index>(kDIM - ibin);
+                                                   : ibin < 0 ? static_cast<guaranteed_index>(kDIM + ibin)
+                                                              : static_cast<guaranteed_index>(kDIM - ibin);
             }
 
             /** Access function to a range with binned neighbourhood
@@ -175,6 +182,10 @@ namespace detray
                 }
                 return static_cast<guaranteed_index>(opt_bin - kDIM);
             }
+
+            /** Copy the range zone */
+            darray<value_type, 2> range() const { return {_min, _max}; }
+
         };
 
     } // namespace axis

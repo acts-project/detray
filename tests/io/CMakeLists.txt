@@ -13,3 +13,10 @@ if(DETRAY_CUSTOM_SCALARTYPE)
 endif()
 
 add_library(detray::tests_io ALIAS detray_tests_io)
+
+if (DETRAY_IO_JSON)
+    add_executable(json_write_detector json/write_detector)
+    target_link_libraries(json_write_detector detray::core detray::io detray::tests_common detray::tests_io detray::array)
+    add_executable(json_write_grid json/write_grid)
+    target_link_libraries(json_write_grid detray::core detray::io detray::tests_common detray::tests_io detray::array)
+endif()
