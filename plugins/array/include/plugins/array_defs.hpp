@@ -195,6 +195,8 @@ namespace detray
              * @param z the z axis of the new frame, normal vector for planes
              * @param x the x axis of the new frame
              * 
+             * @note y will be constructed by cross product
+             * 
              **/
             transform3(const vector3 &t, const vector3 &z, const vector3 &x)
             {
@@ -258,7 +260,7 @@ namespace detray
              * 
              * @param ma is the full 4x4 matrix 16 array
              **/
-            transform3(const std::array<scalar, 16> &ma)
+            transform3(const darray<scalar, 16> &ma)
             {
                 _data[0][0] = ma[0];
                 _data[0][1] = ma[4];

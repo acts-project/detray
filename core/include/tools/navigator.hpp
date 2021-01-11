@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "core/intersection.hpp"
+#include "core/track.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray
