@@ -33,7 +33,7 @@ TEST(grids, regular_closed_axis)
     expected_range = {3u, 9u};
     EXPECT_EQ(ten_bins.range(5., 5), expected_range);
     // Axis sequence access
-    guaranteed_sequence expected_zone = { 5u, 5u };
+    guaranteed_sequence expected_zone = { 5u };
     EXPECT_EQ(ten_bins.zone(2., 0), expected_zone);
     expected_zone = {4u, 5u, 6u};
     EXPECT_EQ(ten_bins.zone(2., 1), expected_zone);
