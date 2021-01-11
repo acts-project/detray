@@ -60,10 +60,17 @@ TEST(grids, grid2_replace_populator)
         }
     }
 
-    // A zone test
+    // A zone test w/o neighbour hood 
+    p = {-4.5, -4.5};
+    auto test = g2.zone(p, {0, 0}, true);
+    dvector<guaranteed_index> expect = { 100u };
+    EXPECT_EQ(test, expect);
+
+
+    // A zone test with neighbour hood
     p = {0.5, 0.5};
-    auto test = g2.zone(p, {1, 2}, true);
-    dvector<guaranteed_index> expect = {143u, 144u, 145u, 146u, 147u, 153u, 154u, 155u, 156u, 157u, 163u, 164u, 165u, 166u, 167u};
+    test = g2.zone(p, {1, 2}, true);
+    expect = {143u, 144u, 145u, 146u, 147u, 153u, 154u, 155u, 156u, 157u, 163u, 164u, 165u, 166u, 167u};
     EXPECT_EQ(test, expect);
 
     axis::circular<4> circular{-2., 2.};

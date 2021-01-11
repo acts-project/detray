@@ -33,10 +33,8 @@ namespace detray
     {
 
     public:
-
         /** Constructor with name */
-        detector(const std::string& name = "unkown") :
-         _name(name){}
+        detector(const std::string &name = "unkown") : _name(name) {}
 
         // Algebra
         using point3 = typename transform_type::point3;
@@ -51,15 +49,14 @@ namespace detray
         using typed_guaranteed_range = dtuple<guaranteed_index, guaranteed_range>;
 
         // Surface finding function
-        using object_finder = std::function<const dvector<guaranteed_index> &(const point3 &, const vector3 &, const vector3 &, scalar)>;
+        using local_object_finder = std::function<dvector<guaranteed_index>(const point2 &)>;
 
         /** Nested volume class */
         struct volume
         {
             dvector<guaranteed_index> portal_surface_indices = {};
-            dvector<object_finder> portal_surface_finder = {};
             dvector<guaranteed_index> surface_indices = {};
-            dvector<object_finder> surface_finder = {};
+            dvector<local_object_finder> surface_finder = {};
             guaranteed_index index = 0;
 
             std::string name = "unknown";
@@ -76,7 +73,11 @@ namespace detray
 
         /** Add a volume to the cdetector 
          * 
-         * @tparam bounds are the cylindrical bounds of the volume
+         * @param name the name of the new volume
+         * @param bounds are the cylindrical bounds of the volume
+         * 
+         * @return a (non-cost) reference to a new volume
+         * 
          **/
         volume &new_volume(const std::string &name, const darray<scalar, 4> &bounds)
         {
@@ -90,8 +91,11 @@ namespace detray
          * 
          * Portals are masks that are applied to surfaces and then point to volumes
          * 
+         * portal_links are [ opposite volume, along volume, grid surface ]
+         * 
+         * 
          **/
-        using portal_links = darray<optional_index, 2>;
+        using portal_links = darray<optional_index, 3>;
 
         using portal_rectangle_mask = rectangle2<scalar, planar_intersector, portal_links>;
         using portal_rectangles = dvector<portal_rectangle_mask>;
@@ -181,7 +185,7 @@ namespace detray
         }
 
         /** Const access method for the detector name */
-        const std::string& name() const { return _name; }
+        const std::string &name() const { return _name; }
 
         /** Const access for the volumes contained in this detector */
         const dvector<volume> &volumes() const { return _volumes; }
@@ -213,6 +217,7 @@ namespace detray
     private:
         std::string _name = "unknown";
         dvector<volume> _volumes;
+
         dvector<transform_type> _portal_transforms;
         dvector<portal_surface> _portal_surfaces;
         dtuple<portal_rectangles, portal_trapezoids, portal_cylinders, portal_discs> _portal_masks;
@@ -220,6 +225,16 @@ namespace detray
                                          {trapezoid_mask::mask_identifier, 1},
                                          {cylinder_mask::mask_identifier, 2},
                                          {disc_mask::mask_identifier, 3}};
+        /**
+        dvector<transform_type> _grid_transforms;
+        dvector<grid_surface> _grid_surfaces;
+        dtuple<grid_rectangles, grid_trapezoids, grid_cylinders, grid_discs> _grid_masks;
+        grid_type_map _grid_types = {{rectangle_mask::mask_identifier, 0},
+                                     {trapezoid_mask::mask_identifier, 1},
+                                     {cylinder_mask::mask_identifier, 2},
+                                     {disc_mask::mask_identifier, 3}};
+        */
+
         dvector<transform_type> _surface_transforms; //!< @todo change to contextual container
         dvector<detector_surface> _surfaces;
         dtuple<rectangles, trapezoids, cylinders, discs> _surface_masks;
