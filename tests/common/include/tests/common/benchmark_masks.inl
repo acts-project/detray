@@ -5,6 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
+#include "masks/annulus.hpp"
 #include "masks/cylinder3.hpp"
 #include "masks/rectangle2.hpp"
 #include "masks/trapezoid2.hpp"
@@ -256,11 +257,53 @@ namespace
         }
     }
 
+    // This test runs a annulus mask operation
+    static void BM_ANNULUS_MASK(benchmark::State &state)
+    {
+
+        using point2 = __plugin::cartesian2::point2;
+
+        annulus<scalar> ann = {2.5, 5., -0.64299, 4.13173, 1., 0.5};
+
+        scalar world = 10.;
+
+        scalar sx = world / steps_x2;
+        scalar sy = world / steps_y2;
+        unsigned long inside = 0;
+        unsigned long outside = 0;
+
+        for (auto _ : state)
+        {
+            for (unsigned int ix = 0; ix < steps_x2; ++ix)
+            {
+                scalar x = -0.5 * world + ix * sx;
+                for (unsigned int iy = 0; iy < steps_y2; ++iy)
+                {
+                    scalar y = -0.5 * world + iy * sy;
+                    if (ann(point2{x, y}) == e_inside)
+                    {
+                        ++inside;
+                    }
+                    else
+                    {
+                        ++outside;
+                    }
+                }
+            }
+        }
+        if (screen_output)
+        {
+            std::cout << "Annulus : Inside/outside ..." << inside << " / " << outside << " = "
+                      << static_cast<scalar>(inside) / static_cast<scalar>(outside) << std::endl;
+        }
+    }
+
     BENCHMARK(BM_RECTANGLE2_MASK);
     BENCHMARK(BM_TRAPEZOID2_MASK);
     BENCHMARK(BM_DISC2_MASK);
     BENCHMARK(BM_RING2_MASK);
     BENCHMARK(BM_CYLINDER3_MASK);
+    BENCHMARK(BM_ANNULUS_MASK);
 
 } // namespace
 
