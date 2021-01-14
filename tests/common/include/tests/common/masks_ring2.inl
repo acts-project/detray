@@ -19,7 +19,8 @@ TEST(mask, ring2)
 
     point2 p2_in = {0.5, -2.};
     point2 p2_edge = {0., 3.5};
-    point2 p2_out = {3.5, 3.5};
+    point2 p2_out = {3.6, 3.5};
+    point2 p2_out2 = {-3.6, 3.5};
 
     ring2<scalar> r2 = {0., 3.5};
 
@@ -29,6 +30,7 @@ TEST(mask, ring2)
     ASSERT_TRUE(r2(p2_in) == intersection_status::e_inside);
     ASSERT_TRUE(r2(p2_edge) == intersection_status::e_inside);
     ASSERT_TRUE(r2(p2_out) == intersection_status::e_outside);
+    ASSERT_TRUE(r2(p2_out2) == intersection_status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(r2(p2_out, 1.2, 1.2) == intersection_status::e_inside);
 }

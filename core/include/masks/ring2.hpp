@@ -61,8 +61,8 @@ namespace detray
                                        scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
-            scalar_type r = getter::perp(p - point2_type{t0, t1});
-            return (r + t0 >= _values[0] and r <= _values[1] + t0) ? e_inside : e_outside;
+            //scalar_type r = getter::perp(p - point2_type{t0, t1});
+            return (p[0] + t0 >= _values[0] and p[0] <= _values[1] + t0) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
