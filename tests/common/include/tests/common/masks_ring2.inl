@@ -15,24 +15,33 @@ using namespace __plugin;
 // This tests the basic function of a rectangle
 TEST(mask, ring2)
 {
-    using point2 = __plugin::polar2::point2;
+    using point2_pl = __plugin::polar2::point2;
+    using point2_c = __plugin::cartesian2::point2;
 
-    point2 p2_in = {0.5, -2.};
-    point2 p2_edge = {0., 3.5};
-    point2 p2_out = {3.6, 3.5};
-    point2 p2_out2 = {-3.6, 3.5};
+    point2_pl p2_pl_in = {0.5, -2.};
+    point2_pl p2_pl_edge = {0., 3.5};
+    point2_pl p2_pl_out = {3.6, 5.};
+
+    point2_c p2_c_in = {0.5, -2.};
+    point2_c p2_c_edge = {0., 3.5};
+    point2_c p2_c_out = {3.5, 3.5};
 
     ring2<scalar> r2 = {0., 3.5};
 
     ASSERT_EQ(r2[0], 0.);
     ASSERT_EQ(r2[1], 3.5);
 
-    ASSERT_TRUE(r2(p2_in) == intersection_status::e_inside);
-    ASSERT_TRUE(r2(p2_edge) == intersection_status::e_inside);
-    ASSERT_TRUE(r2(p2_out) == intersection_status::e_outside);
-    ASSERT_TRUE(r2(p2_out2) == intersection_status::e_outside);
+    ASSERT_TRUE(r2(p2_pl_in) == intersection_status::e_inside);
+    ASSERT_TRUE(r2(p2_pl_edge) == intersection_status::e_inside);
+    ASSERT_TRUE(r2(p2_pl_out) == intersection_status::e_outside);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(r2(p2_out, 1.2, 1.2) == intersection_status::e_inside);
+    ASSERT_TRUE(r2(p2_pl_out, 1.2, 1.2) == intersection_status::e_inside);
+
+    ASSERT_TRUE(r2.operator()<__plugin::cartesian2>(p2_c_in) == intersection_status::e_inside);
+    ASSERT_TRUE(r2.operator()<__plugin::cartesian2>(p2_c_edge) == intersection_status::e_inside);
+    ASSERT_TRUE(r2.operator()<__plugin::cartesian2>(p2_c_out) == intersection_status::e_outside);
+    // Move outside point inside using a tolerance
+    ASSERT_TRUE(r2.operator()<__plugin::cartesian2>(p2_c_out, 1.2, 1.2) == intersection_status::e_inside);
 }
 
 // Google Test can be run manually from the main() function
