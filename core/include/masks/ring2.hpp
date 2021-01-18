@@ -57,20 +57,6 @@ namespace detray
          * 
          * @return an intersection status e_inside / e_outside
          **/
-
-        /*template <typename local_type = __plugin::polar2>
-        intersection_status operator()(const typename local_type::point2 &p,
-                                       scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
-                                       scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
-        {
-            if (typeid(local_type) == typeid(__plugin::cartesian2)) {
-               std::cout << "Using cartesian coord." << std::endl;
-               scalar_type r = getter::perp(p);
-               return (r + t0 >= _values[0] and r <= _values[1] + t0) ? e_inside : e_outside;
-            }
-            std::cout << "Using non. cartesian coord." << std::endl;
-            return (p[0] + t0 >= _values[0] and p[0] <= _values[1] + t0) ? e_inside : e_outside;
-        }*/
         template<typename local_type>
         intersection_status is_inside(const typename local_type::point2 &p,
                                        scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
