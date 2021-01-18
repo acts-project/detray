@@ -92,7 +92,7 @@ namespace detray
                 is.path = vector::dot(sn, (st - ro)) / (denom);
                 is.point3 = ro + is.path * rd;
                 is.point2 = local(trf, is.point3);
-                is.status = mask(is.point2.value_or(typename local_type::point2()));
+                is.status = mask.template is_inside<local_type>(is.point2.value_or(typename local_type::point2()));
                 is.direction = denom > 0 ? e_along : e_opposite;
                 return is;
             }

@@ -52,18 +52,23 @@ namespace detray
          * 
          * @param p the point to be checked
          * @param t0 is the tolerance in local 0
-         * @param t1 is the tolerance in local 1 and is ignored
+         * @param t1 is the tolerance in local 1 and is ignored in polar coord.
          * 
          * @return an intersection status e_inside / e_outside
          **/
-        template <typename point2_type>
-        intersection_status operator()(const point2_type &p,
+        template<typename local_type>
+        intersection_status is_inside(const typename local_type::point2 &p,
                                        scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
-            scalar_type r = getter::perp(p - point2_type{t0, t1});
-            return (r + t0 >= _values[0] and r <= _values[1] + t0) ? e_inside : e_outside;
+            if (typeid(local_type) == typeid(__plugin::cartesian2)) {
+               scalar_type r = getter::perp(p);
+               return (r + t0 >= _values[0] and r <= _values[1] + t0) ? e_inside : e_outside;
+            }
+
+            return (p[0] + t0 >= _values[0] and p[0] <= _values[1] + t0) ? e_inside : e_outside;
         }
+
 
         /** Equality operator from an array, convenience function
          * 

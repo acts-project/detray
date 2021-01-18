@@ -104,7 +104,7 @@ namespace detray
                     is.point3 = ro + is.path * rd;
                     is.point2 = local(trf, is.point3);
                     auto local3 = trf.point_to_local(is.point3);
-                    is.status = mask(local3);
+                    is.status = mask.template is_inside<transform_type>(local3);
                     scalar rdr = getter::perp(local3 + 10 * std::numeric_limits<scalar>::epsilon() * rd);
                     is.direction = rdr > r ? e_along : e_opposite;
                     return is;

@@ -33,8 +33,8 @@ namespace
     // This test runs a rectangle2 maks test operation
     static void BM_RECTANGLE2_MASK(benchmark::State &state)
     {
-
-        using point2 = __plugin::cartesian2::point2;
+        using local_type = __plugin::cartesian2;
+        using point2 = local_type::point2;
 
         rectangle2<scalar> r = {3, 4};
 
@@ -55,7 +55,7 @@ namespace
                 for (unsigned int iy = 0; iy < steps_y2; ++iy)
                 {
                     scalar y = -0.5 * world + iy * sy;
-                    if (r(point2{x, y}) == e_inside)
+                    if (r.is_inside<local_type>(point2{x, y}) == e_inside)
                     {
                         ++inside;
                     }
@@ -78,8 +78,8 @@ namespace
     // This test runs intersection a trapezoid2 mask operation
     static void BM_TRAPEZOID2_MASK(benchmark::State &state)
     {
-
-        using point2 = __plugin::cartesian2::point2;
+        using local_type = __plugin::cartesian2;
+        using point2 = local_type::point2;
 
         trapezoid2<scalar> t = {2, 3, 4};
 
@@ -100,7 +100,7 @@ namespace
                 for (unsigned int iy = 0; iy < steps_y2; ++iy)
                 {
                     scalar y = -0.5 * world + iy * sy;
-                    if (t(point2{x, y}) == e_inside)
+                    if (t.is_inside<local_type>(point2{x, y}) == e_inside)
                     {
                         ++inside;
                     }
@@ -123,8 +123,8 @@ namespace
     // This test runs a ring2 mask operation
     static void BM_RING2_MASK(benchmark::State &state)
     {
-
-        using point2 = __plugin::cartesian2::point2;
+        using local_type = __plugin::cartesian2;
+        using point2 = local_type::point2;
 
         ring2<scalar> r = {0., 5.};
 
@@ -145,7 +145,7 @@ namespace
                 for (unsigned int iy = 0; iy < steps_y2; ++iy)
                 {
                     scalar y = -0.5 * world + iy * sy;
-                    if (r(point2{x, y}) == e_inside)
+                    if (r.is_inside<local_type>(point2{x, y}) == e_inside)
                     {
                         ++inside;
                     }
@@ -167,8 +167,8 @@ namespace
     // This test runs mask oeration on a disc2
     static void BM_DISC2_MASK(benchmark::State &state)
     {
-
-        using point2 = __plugin::cartesian2::point2;
+        using local_type = __plugin::cartesian2;
+        using point2 = local_type::point2;
 
         ring2<scalar> r = {2., 5.};
 
@@ -189,7 +189,7 @@ namespace
                 for (unsigned int iy = 0; iy < steps_y2; ++iy)
                 {
                     scalar y = -0.5 * world + iy * sy;
-                    if (r(point2{x, y}) == e_inside)
+                    if (r.is_inside<local_type>(point2{x, y}) == e_inside)
                     {
                         ++inside;
                     }
@@ -211,7 +211,8 @@ namespace
     // This test runs masking operations on a cylinder3 mask
     static void BM_CYLINDER3_MASK(benchmark::State &state)
     {
-        using point3 = __plugin::transform3::point3;
+        using local_type = __plugin::transform3;
+        using point3 = local_type::point3;
 
         cylinder3<scalar> c = {3., 5.};
 
@@ -236,7 +237,7 @@ namespace
                     {
                         scalar z = -0.5 * world + iz * sz;
 
-                        if (c(point3{x, y, z}, 0.1, 0.) == e_inside)
+                        if (c.is_inside<local_type>(point3{x, y, z}, 0.1, 0.) == e_inside)
                         {
                             ++inside;
                         }

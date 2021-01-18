@@ -57,8 +57,8 @@ namespace detray
          * 
          * @return an intersection status e_inside / e_outside
          **/
-        template <typename point3_type>
-        intersection_status operator()(const point3_type &p,
+        template <typename local_type>
+        intersection_status is_inside(const typename local_type::point3 &p,
                                        scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
         {     
             return (std::abs(p[kCheckIndex]) <= _values[0] + t) ? e_inside : e_outside;
