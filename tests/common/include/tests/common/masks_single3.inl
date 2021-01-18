@@ -17,7 +17,8 @@ using namespace __plugin;
 // This tests the basic function of a rectangle
 TEST(mask, single3_0)
 {
-    using point3 = __plugin::transform3::point3;
+    using local_type = __plugin::transform3;
+    using point3 = local_type::point3;
 
     point3 p3_in = {0.5, -9., 0.};
     point3 p3_edge = {1., 9.3, 2.};
@@ -28,17 +29,18 @@ TEST(mask, single3_0)
 
     ASSERT_EQ(m1_0[0], h0);
 
-    ASSERT_TRUE(m1_0(p3_in) == intersection_status::e_inside);
-    ASSERT_TRUE(m1_0(p3_edge) == intersection_status::e_inside);
-    ASSERT_TRUE(m1_0(p3_out) == intersection_status::e_outside);
+    ASSERT_TRUE(m1_0.is_inside<local_type>(p3_in) == intersection_status::e_inside);
+    ASSERT_TRUE(m1_0.is_inside<local_type>(p3_edge) == intersection_status::e_inside);
+    ASSERT_TRUE(m1_0.is_inside<local_type>(p3_out) == intersection_status::e_outside);
     // Move outside point inside using a tolerance - take t0 not t1
-    ASSERT_TRUE(m1_0(p3_out, 0.6) == intersection_status::e_inside);
+    ASSERT_TRUE(m1_0.is_inside<local_type>(p3_out, 0.6) == intersection_status::e_inside);
 }
 
 // This tests the basic function of a rectangle
 TEST(mask, single3_1)
 {
-    using point3 = __plugin::transform3::point3;
+    using local_type = __plugin::transform3;
+    using point3 = local_type::point3;
 
     point3 p3_in = {0.5, -9., 0.};
     point3 p3_edge = {1., 9.3, 2.};
@@ -49,17 +51,18 @@ TEST(mask, single3_1)
 
     ASSERT_EQ(m1_1[0], h1);
 
-    ASSERT_TRUE(m1_1(p3_in) == intersection_status::e_inside);
-    ASSERT_TRUE(m1_1(p3_edge) == intersection_status::e_inside);
-    ASSERT_TRUE(m1_1(p3_out) == intersection_status::e_outside);
+    ASSERT_TRUE(m1_1.is_inside<local_type>(p3_in) == intersection_status::e_inside);
+    ASSERT_TRUE(m1_1.is_inside<local_type>(p3_edge) == intersection_status::e_inside);
+    ASSERT_TRUE(m1_1.is_inside<local_type>(p3_out) == intersection_status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
-    ASSERT_TRUE(m1_1(p3_out, 0.6) == intersection_status::e_inside);
+    ASSERT_TRUE(m1_1.is_inside<local_type>(p3_out, 0.6) == intersection_status::e_inside);
 }
 
 // This tests the basic function of a rectangle
 TEST(mask, single3_2)
 {
-    using point3 = __plugin::transform3::point3;
+    using local_type = __plugin::transform3;
+    using point3 = local_type::point3;
 
     point3 p3_in = {0.5, -9., 0.};
     point3 p3_edge = {1., 9.3, 2.};
@@ -70,11 +73,11 @@ TEST(mask, single3_2)
 
     ASSERT_EQ(m1_2[0], h2);
 
-    ASSERT_TRUE(m1_2(p3_in) == intersection_status::e_inside);
-    ASSERT_TRUE(m1_2(p3_edge) == intersection_status::e_inside);
-    ASSERT_TRUE(m1_2(p3_out) == intersection_status::e_outside);
+    ASSERT_TRUE(m1_2.is_inside<local_type>(p3_in) == intersection_status::e_inside);
+    ASSERT_TRUE(m1_2.is_inside<local_type>(p3_edge) == intersection_status::e_inside);
+    ASSERT_TRUE(m1_2.is_inside<local_type>(p3_out) == intersection_status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
-    ASSERT_TRUE(m1_2(p3_out, 6.1) == intersection_status::e_inside);
+    ASSERT_TRUE(m1_2.is_inside<local_type>(p3_out, 6.1) == intersection_status::e_inside);
 }
 
 // Google Test can be run manually from the main() function

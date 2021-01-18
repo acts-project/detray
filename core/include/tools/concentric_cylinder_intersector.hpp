@@ -120,7 +120,7 @@ namespace detray
                     is.path = t01[cindex];
 
                     is.point2 = typename local_type::point2{r * getter::phi(is.point3), is.point3[2]};
-                    is.status = mask(is.point3);
+                    is.status = mask.template is_inside<transform_type>(is.point3);
                     scalar rdir = getter::perp(is.point3 + 0.1 * rd);
                     is.direction = rdir > r ? e_along : e_opposite;
                     return is;

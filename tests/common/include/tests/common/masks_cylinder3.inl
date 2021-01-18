@@ -15,7 +15,8 @@ using namespace __plugin;
 // This tests the basic function of a rectangle
 TEST(mask, cylinder3)
 {
-    using point3 = __plugin::transform3::point3;
+    using local_type = __plugin::transform3;
+    using point3 = local_type::point3;
 
     scalar r = 3.;
     scalar hz = 4.;
@@ -31,12 +32,12 @@ TEST(mask, cylinder3)
     ASSERT_EQ(c[1], -hz);
     ASSERT_EQ(c[2], hz);
 
-    ASSERT_TRUE(c(p3_in) == intersection_status::e_inside);
-    ASSERT_TRUE(c(p3_edge) == intersection_status::e_inside);
-    ASSERT_TRUE(c(p3_out) == intersection_status::e_outside);
-    ASSERT_TRUE(c(p3_off) == intersection_status::e_missed);
+    ASSERT_TRUE(c.is_inside<local_type>(p3_in) == intersection_status::e_inside);
+    ASSERT_TRUE(c.is_inside<local_type>(p3_edge) == intersection_status::e_inside);
+    ASSERT_TRUE(c.is_inside<local_type>(p3_out) == intersection_status::e_outside);
+    ASSERT_TRUE(c.is_inside<local_type>(p3_off) == intersection_status::e_missed);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(c(p3_out, 0., 0.6) == intersection_status::e_inside);
+    ASSERT_TRUE(c.is_inside<local_type>(p3_out, 0., 0.6) == intersection_status::e_inside);
 }
 
 // Google Test can be run manually from the main() function

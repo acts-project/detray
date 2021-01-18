@@ -15,12 +15,13 @@ using namespace __plugin;
 // This tests the construction of a surface
 TEST(mask, unmasked)
 {
-    __plugin::cartesian2::point2 p2 = {0.5, -9.};
+    using local_type = __plugin::cartesian2;
+    local_type::point2 p2 = {0.5, -9.};
 
     unmasked<scalar> u;
-    ASSERT_TRUE(u(p2));
-    ASSERT_TRUE(u(p2, 1.));
-    ASSERT_TRUE(u(p2, 1., 2.));
+    ASSERT_TRUE(u.is_inside<local_type>(p2));
+    ASSERT_TRUE(u.is_inside<local_type>(p2, 1.));
+    ASSERT_TRUE(u.is_inside<local_type>(p2, 1., 2.));
 
 }
 

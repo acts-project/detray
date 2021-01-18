@@ -25,8 +25,8 @@ namespace detray
          * 
          * @return a bool that is ture if inside
          **/
-        template <typename point_type>
-        intersection_status operator()(const point_type & /*ignored*/) const
+        template <typename local_type>
+        intersection_status is_inside(const typename local_type::point2 & /*ignored*/) const
         {
             return e_hit;
         }
@@ -40,8 +40,8 @@ namespace detray
          * 
          * @return a bool that is ture if inside
          **/
-        template <typename point_type>
-        bool operator()(const point_type & /*ignored*/, scalar_type /*ignored*/) const
+        template <typename local_type>
+        bool is_inside(const typename local_type::point2 & /*ignored*/, scalar_type /*ignored*/) const
         {
             return true;
         }
@@ -55,8 +55,8 @@ namespace detray
          * 
          * @return a bool that is ture if inside
          **/
-        template <typename point_type>
-        bool operator()(const point_type & /*ignored*/, scalar_type /*ignored*/, scalar_type /*ignored*/) const
+        template <typename local_type>
+        bool is_inside(const typename local_type::point2 & /*ignored*/, scalar_type /*ignored*/, scalar_type /*ignored*/) const
         {
             return true;
         }
