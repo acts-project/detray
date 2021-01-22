@@ -76,28 +76,48 @@ namespace detray
                                        scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
-            // transcription from ACTS AnnulusBounds
-            
-            // For a point p in local polar coordinates, rotate by avr phi
-            scalar_type p_phi = p[1] - _values[6];
+           // The two quantities to check: r^2 in module system, phi in strips system
 
-            // Check phi boundaries, which are well def. in local frame
-            if (p_phi < _values[2] - t1 || p_phi > _values[3] + t1) return e_outside;
+           // In cartesian coordinates go to modules system by shifting origin
+           if (typeid(local_type) == typeid(__plugin::cartesian2)) {
+              // Calculate radial coordinate in module system:
+              scalar_type x_mod = p[0] - _values[4];
+              scalar_type y_mod = p[1] - _values[5];
+              scalar_type r_mod2 = x_mod * x_mod + y_mod * y_mod;
 
-            // Now go to module frame to check r boundaries. Use the origin shift
-            // in polar coordinates for that
-            typename local_type::point2 shift_xy = {-1*_values[4], -1*_values[5]};
-            scalar_type shift_r   = getter::perp(shift_xy);
-            scalar_type shift_phi = getter::phi(shift_xy);
+              // apply tolerances
+              scalar_type minR_tol = _values[0] - t0;
+              scalar_type maxR_tol = _values[1] + t0;
 
-            scalar_type r_mod2 = shift_r * shift_r + p[0] * p[0] + 
-                                 2 * shift_r * p[0] * std::cos(p_phi - shift_phi);
+              if (r_mod2 < minR_tol*minR_tol or r_mod2 > maxR_tol*maxR_tol) return e_outside;
 
-            // apply tolerances
-            scalar_type minR_tol = _values[0] - t0;
-            scalar_type maxR_tol = _values[1] + t0;
+              scalar_type phi_strp = getter::phi(p) - _values[6];
+              // Check phi boundaries, which are well def. in local frame
+              return (phi_strp >= _values[2] - t1 and phi_strp <= _values[3] + t1) ? e_inside : e_outside;
+            }
+            // polar strip coordinates given
+            else {
+              // For a point p in local polar coordinates, rotate by avr phi
+              scalar_type phi_strp = p[1] - _values[6];
 
-            return (r_mod2 >= minR_tol*minR_tol and r_mod2 <= maxR_tol*maxR_tol) ? e_inside : e_outside;
+              // Check phi boundaries, which are well def. in local frame
+              if (phi_strp < _values[2] - t1 || phi_strp > _values[3] + t1) return e_outside;
+
+              // Now go to module frame to check r boundaries. Use the origin shift
+              // in polar coordinates for that
+              typename local_type::point2 shift_xy = {-1*_values[4], -1*_values[5]};
+              scalar_type shift_r   = getter::perp(shift_xy);
+              scalar_type shift_phi = getter::phi(shift_xy);
+
+              scalar_type r_mod2 = shift_r * shift_r + p[0] * p[0] + 
+                                   2 * shift_r * p[0] * std::cos(phi_strp - shift_phi);
+
+              // apply tolerances
+              scalar_type minR_tol = _values[0] - t0;
+              scalar_type maxR_tol = _values[1] + t0;
+
+              return (r_mod2 >= minR_tol*minR_tol and r_mod2 <= maxR_tol*maxR_tol) ? e_inside : e_outside;
+            }
         }
 
         /** Equality operator from an array, convenience function
