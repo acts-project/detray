@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "masks/annulus.hpp"
+#include "masks/annulus2.hpp"
 #include "masks/cylinder3.hpp"
 #include "masks/rectangle2.hpp"
 #include "masks/trapezoid2.hpp"
@@ -263,7 +263,7 @@ namespace
         using local_type = __plugin::cartesian2;
         using point2 = local_type::point2;
 
-        annulus<scalar> ann = {2.5, 5., -0.64299, 4.13173, 1., 0.5};
+        annulus2<scalar> ann = {2.5, 5., -0.64299, 4.13173, 1., 0.5};
 
         scalar world = 10.;
 

@@ -3,8 +3,8 @@ enable_testing()
 add_detray_test(eigen_masks_container
                 eigen_masks_container.cpp detray::eigen)
 
-add_detray_test(eigen_annulus
-                eigen_annulus.cpp detray::eigen)
+add_detray_test(eigen_annulus2
+                eigen_annulus2.cpp detray::eigen)
 
 add_detray_test(eigen_cylindrical_detector
                 eigen_cylindrical_detector.cpp detray::eigen)

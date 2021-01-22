@@ -6,4 +6,4 @@
  */
 
 #include "plugins/eigen_defs.hpp"
-#include "tests/common/masks_annulus.inl"
+#include "tests/common/masks_annulus2.inl"

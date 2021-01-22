@@ -35,8 +35,8 @@ namespace detray
     template <typename scalar_type,
               typename intersector_type = planar_intersector,
               typename links_type = bool,
-              unsigned int kMaskIdentifier = e_annulus>
-    struct annulus
+              unsigned int kMaskIdentifier = e_annulus2>
+    struct annulus2
     {
         using mask_values = darray<scalar_type, 7>;
 
@@ -53,7 +53,7 @@ namespace detray
          * 
          * @param rhs is the right hand side object
          **/
-        annulus<scalar_type, intersector_type, links_type, kMaskIdentifier> &
+        annulus2<scalar_type, intersector_type, links_type, kMaskIdentifier> &
         operator=(const darray<scalar_type, 7> &rhs)
         {
             _values = rhs;
@@ -117,7 +117,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const annulus<scalar_type> &rhs)
+        bool operator==(const annulus2<scalar_type> &rhs)
         {
             return operator==(rhs._values);
         }

@@ -16,7 +16,7 @@ namespace detray {
 		e_ring2 = 2,
 		e_cylinder3 = 3,
 		e_single3 = 4,
-		e_annulus = 5,
+		e_annulus2 = 5,
 	};
 
 } // namespace detray

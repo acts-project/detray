@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "masks/annulus.hpp"
+#include "masks/annulus2.hpp"
 
 #include <gtest/gtest.h>
 
@@ -13,7 +13,7 @@ using namespace detray;
 using namespace __plugin;
 
 // This tests the basic function of a rectangle
-TEST(mask, annulus)
+TEST(mask, annulus2)
 {
     using polar     = __plugin::polar2;
     using point2_pl = polar::point2;
@@ -39,7 +39,7 @@ TEST(mask, annulus)
         return point2_pl{r, phi};
     };
 
-    annulus<scalar> ann2 = {minR, maxR, minPhi, maxPhi, offset[0], offset[1]};
+    annulus2<scalar> ann2 = {minR, maxR, minPhi, maxPhi, offset[0], offset[1]};
 
     ASSERT_EQ(ann2[0], 7.2);
     ASSERT_EQ(ann2[1], 12.0);
