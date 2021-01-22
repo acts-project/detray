@@ -260,8 +260,8 @@ namespace
     // This test runs a annulus mask operation
     static void BM_ANNULUS_MASK(benchmark::State &state)
     {
-
-        using point2 = __plugin::cartesian2::point2;
+        using local_type = __plugin::cartesian2;
+        using point2 = local_type::point2;
 
         annulus<scalar> ann = {2.5, 5., -0.64299, 4.13173, 1., 0.5};
 
@@ -280,7 +280,7 @@ namespace
                 for (unsigned int iy = 0; iy < steps_y2; ++iy)
                 {
                     scalar y = -0.5 * world + iy * sy;
-                    if (ann(point2{x, y}) == e_inside)
+                    if (ann.is_inside<local_type>(point2{x, y}) == e_inside)
                     {
                         ++inside;
                     }

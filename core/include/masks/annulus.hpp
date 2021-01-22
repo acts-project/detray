@@ -67,14 +67,12 @@ namespace detray
          * 
          * @param p the point to be checked in local polar coord
          * @param t0 is the tolerance in minR
-         * @param t1 is the tolerance in maxR
-         * @param t2 is the tolerance in minPhi
-         * @param t2 is the tolerance in maxPhi
+         * @param t1 is the tolerance in minPhi
          * 
          * @return an intersection status e_inside / e_outside
          **/
-        template <typename point2_type>
-        intersection_status operator()(const point2_type &p,
+        template<typename local_type>
+        intersection_status is_inside(const typename local_type::point2 &p,
                                        scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
@@ -88,7 +86,7 @@ namespace detray
 
             // Now go to module frame to check r boundaries. Use the origin shift
             // in polar coordinates for that
-            point2_type shift_xy = {-1*_values[4], -1*_values[5]};
+            typename local_type::point2 shift_xy = {-1*_values[4], -1*_values[5]};
             scalar_type shift_r   = getter::perp(shift_xy);
             scalar_type shift_phi = getter::phi(shift_xy);
 

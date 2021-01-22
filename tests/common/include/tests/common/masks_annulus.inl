@@ -15,9 +15,9 @@ using namespace __plugin;
 // This tests the basic function of a rectangle
 TEST(mask, annulus)
 {
-    //using scalar = __plugin::scalar;
-    using point2_c    = __plugin::cartesian2::point2;
-    using point2_pol  = __plugin::polar2::point2;
+    using polar     = __plugin::polar2;
+    using point2_pl = polar::point2;
+    using point2_c  = __plugin::cartesian2::point2;
 
     scalar minR = 7.2;
     scalar maxR = 12.0;
@@ -32,11 +32,11 @@ TEST(mask, annulus)
     point2_c p2_out3 = {10., 10.};
     point2_c p2_out4 = {4., 10.};
 
-    auto toStripFrame = [&](const point2_pol& xy) -> point2_pol {
+    auto toStripFrame = [&](const point2_pl& xy) -> point2_pl {
         auto shifted = xy + offset;
         scalar r   = getter::perp(shifted);
         scalar phi = getter::phi(shifted);
-        return point2_pol{r, phi};
+        return point2_pl{r, phi};
     };
 
     annulus<scalar> ann2 = {minR, maxR, minPhi, maxPhi, offset[0], offset[1]};
@@ -49,11 +49,11 @@ TEST(mask, annulus)
     ASSERT_EQ(ann2[5], 2.0);
     ASSERT_EQ(ann2[6], 0.);
 
-    ASSERT_TRUE(ann2(toStripFrame(p2_in), 0., 0.) == intersection_status::e_inside);
-    ASSERT_TRUE(ann2(toStripFrame(p2_out1), 0., 0.) == intersection_status::e_outside);
-    ASSERT_TRUE(ann2(toStripFrame(p2_out2), 0., 0.) == intersection_status::e_outside);
-    ASSERT_TRUE(ann2(toStripFrame(p2_out3), 0., 0.) == intersection_status::e_outside);
-    ASSERT_TRUE(ann2(toStripFrame(p2_out4), 0., 0.) == intersection_status::e_outside);
+    ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_in), 0., 0.) == intersection_status::e_inside);
+    ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out1), 0., 0.) == intersection_status::e_outside);
+    ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out2), 0., 0.) == intersection_status::e_outside);
+    ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out3), 0., 0.) == intersection_status::e_outside);
+    ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out4), 0., 0.) == intersection_status::e_outside);
     // Move outside point inside using a tolerance
     //ASSERT_TRUE(ann2(toStripFrame(p2_out1), t0, t1, t2, t3) == intersection_status::e_outside);
 }
