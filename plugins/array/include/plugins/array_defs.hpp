@@ -88,7 +88,7 @@ namespace detray
         template <typename vector_type>
         auto phi(const vector_type &v) noexcept
         {
-            return std::atan2(v[0], v[1]);
+            return std::atan2(v[1], v[0]);
         }
 
         /** This method retrieves theta from a vector, vector base with rows >= 3
