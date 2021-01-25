@@ -42,13 +42,13 @@ TEST(mask, annulus2)
 
     annulus2<scalar> ann2 = {minR, maxR, minPhi, maxPhi, offset[0], offset[1]};
 
-    ASSERT_EQ(ann2[0], 7.2);
-    ASSERT_EQ(ann2[1], 12.0);
-    ASSERT_EQ(ann2[2], 0.74195);
-    ASSERT_EQ(ann2[3], 1.33970);
-    ASSERT_EQ(ann2[4], -2.0);
-    ASSERT_EQ(ann2[5], 2.0);
-    ASSERT_EQ(ann2[6], 0.);
+    ASSERT_EQ(ann2[0], static_cast<scalar>(7.2));
+    ASSERT_EQ(ann2[1], static_cast<scalar>(12.0));
+    ASSERT_EQ(ann2[2], static_cast<scalar>(0.74195));
+    ASSERT_EQ(ann2[3], static_cast<scalar>(1.33970));
+    ASSERT_EQ(ann2[4], static_cast<scalar>(-2.0));
+    ASSERT_EQ(ann2[5], static_cast<scalar>(2.0));
+    ASSERT_EQ(ann2[6], static_cast<scalar>(0.));
 
     ASSERT_TRUE(ann2.is_inside<cartesian>(p2_in + offset, 0., 0.) == intersection_status::e_inside);
     ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out1 + offset, 0., 0.) == intersection_status::e_outside);
