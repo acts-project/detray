@@ -61,7 +61,7 @@ namespace detray
                                        scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
                                        scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
         {
-            if (typeid(local_type) == typeid(__plugin::cartesian2)) {
+            if constexpr(std::is_same_v<local_type, __plugin::cartesian2>) {
                scalar_type r = getter::perp(p);
                return (r + t0 >= _values[0] and r <= _values[1] + t0) ? e_inside : e_outside;
             }
