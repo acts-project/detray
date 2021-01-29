@@ -79,7 +79,7 @@ namespace detray
            // The two quantities to check: r^2 in module system, phi in strips system
 
            // In cartesian coordinates go to modules system by shifting origin
-           if (typeid(local_type) == typeid(__plugin::cartesian2)) {
+           if constexpr(std::is_same_v<local_type, __plugin::cartesian2>) {
               // Calculate radial coordinate in module system:
               scalar_type x_mod = p[0] - _values[4];
               scalar_type y_mod = p[1] - _values[5];
