@@ -17,7 +17,7 @@ Testing and benchmarking is done with `googletest` and `google/benchmark`.
 Clone the repository and initialize the submodules (googletest, benchmark).
 
 ```shell
-git clone git@github.com:asalzburger/detray.git
+git clone git@github.com:acts-project/detray.git
 cd detray
 git submodule update --init
 ```
@@ -47,4 +47,4 @@ The following algebra plugins are avaiable and can be switched on/off
 
 ### Benchmark Monitoring
 
-A simple regression benchmark monitoring using `google/benchmark` runs on merge into master, the results are shown on https://asalzburger.github.io/detray/.
+A simple regression benchmark monitoring using `google/benchmark` runs on merge into master, the results are shown on https://acts-project.github.io/detray/.
