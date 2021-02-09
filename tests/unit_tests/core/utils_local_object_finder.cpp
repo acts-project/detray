@@ -27,7 +27,7 @@ using namespace detray;
 TEST(utils, local_object_finder)
 {
 
-    replace_populator<guaranteed_index, std::numeric_limits<guaranteed_index>::max()> replacer;
+    replace_populator<> replacer;
     serializer2 serializer;
 
     test::point2 p2 = { -4.5, -4.5 };
