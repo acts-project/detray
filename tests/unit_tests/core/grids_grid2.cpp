@@ -20,7 +20,7 @@ using namespace detray;
 
 TEST(grids, grid2_replace_populator)
 {
-    replace_populator<guaranteed_index, std::numeric_limits<guaranteed_index>::max()> replacer;
+    replace_populator<> replacer;
     serializer2 serializer;
 
     axis::closed<> xaxis{10, -5., 5.};
@@ -98,7 +98,7 @@ TEST(grids, grid2_replace_populator)
 TEST(grids, grid2_complete_populator)
 {
 
-    complete_populator<optional_index, -1, 3, false> completer;
+    complete_populator<3, false, optional_index, -1> completer;
     serializer2 serializer;
 
     axis::closed<> xaxis{2, -1., 1.};
@@ -167,7 +167,7 @@ TEST(grids, grid2_complete_populator)
 TEST(grids, grid2_attach_populator)
 {
 
-    attach_populator<guaranteed_index> attacher;
+    attach_populator<> attacher;
     serializer2 serializer;
 
     axis::closed<> xaxis{2, -1., 1.};
