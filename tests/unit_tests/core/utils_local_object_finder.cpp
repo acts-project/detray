@@ -32,8 +32,8 @@ TEST(utils, local_object_finder)
 
     test::point2 p2 = { -4.5, -4.5 };
 
-    axis::closed<10> xaxis{-5., 5.};
-    axis::closed<10> yaxis{-5., 5.};
+    axis::closed<> xaxis{10, -5., 5.};
+    axis::closed<> yaxis{10, -5., 5.};
     using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis), decltype(serializer)>;
 
     grid2r g2(std::move(xaxis), std::move(yaxis));

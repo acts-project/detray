@@ -24,8 +24,8 @@ int main(int argc, char **argv)
     serializer2 serializer;
 
     // A rectangular grid 
-    axis::closed<10> xaxis{-5., 5.};
-    axis::closed<10> yaxis{-5., 5.};
+    axis::closed<> xaxis{10, -5., 5.};
+    axis::closed<> yaxis{10, -5., 5.};
     using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis), decltype(serializer)>;
 
     grid2r gr(std::move(xaxis), std::move(yaxis));
@@ -35,8 +35,8 @@ int main(int argc, char **argv)
     output_file.close();
 
     // A polar sectoral grid
-    axis::closed<3> raxis{1., 5.};
-    axis::closed<10> phiaxis{-0.35, 0.35};
+    axis::closed<> raxis{3, 1., 5.};
+    axis::closed<> phiaxis{10, -0.35, 0.35};
 
     using grid2ps = grid2<decltype(replacer), decltype(raxis), decltype(phiaxis), decltype(serializer)>;
     grid2ps gps(std::move(raxis), std::move(phiaxis));
