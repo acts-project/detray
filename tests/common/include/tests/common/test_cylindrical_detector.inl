@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 
 unsigned int theta_steps = 10;
-unsigned int phi_steps = 10000;
+unsigned int phi_steps = 1000;
 bool stream_file = true;
 
 auto d = createDetector();

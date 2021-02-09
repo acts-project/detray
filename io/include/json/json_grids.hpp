@@ -30,7 +30,7 @@ namespace detray
         njson write_axis(const axis_type &a)
         {
             njson aj;
-            aj["bins"] = a.axis_bins;
+            aj["bins"] = a.bins;
             aj["identifier"] = a.axis_identifier;
             aj["range"] = a.range();
             return aj;

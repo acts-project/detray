@@ -23,8 +23,8 @@ TEST(grids, grid2_replace_populator)
     replace_populator<guaranteed_index, std::numeric_limits<guaranteed_index>::max()> replacer;
     serializer2 serializer;
 
-    axis::closed<10> xaxis{-5., 5.};
-    axis::closed<10> yaxis{-5., 5.};
+    axis::closed<> xaxis{10, -5., 5.};
+    axis::closed<> yaxis{10, -5., 5.};
     using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis), decltype(serializer)>;
 
     grid2r g2(std::move(xaxis), std::move(yaxis));
@@ -73,8 +73,8 @@ TEST(grids, grid2_replace_populator)
     expect = {143u, 144u, 145u, 146u, 147u, 153u, 154u, 155u, 156u, 157u, 163u, 164u, 165u, 166u, 167u};
     EXPECT_EQ(test, expect);
 
-    axis::circular<4> circular{-2., 2.};
-    axis::closed<5> closed{0., 5.};
+    axis::circular<> circular{4, -2., 2.};
+    axis::closed<> closed{5, 0., 5.};
     using grid2cc = grid2<decltype(replacer), decltype(circular), decltype(closed), decltype(serializer)>;
 
     grid2cc g2cc(std::move(circular), std::move(closed));
@@ -101,8 +101,8 @@ TEST(grids, grid2_complete_populator)
     complete_populator<optional_index, -1, 3, false> completer;
     serializer2 serializer;
 
-    axis::closed<2> xaxis{-1., 1.};
-    axis::closed<2> yaxis{-1., 1.};
+    axis::closed<> xaxis{2, -1., 1.};
+    axis::closed<> yaxis{2, -1., 1.};
     using grid2r = grid2<decltype(completer), decltype(xaxis), decltype(yaxis), decltype(serializer)>;
 
     grid2r g2(std::move(xaxis), std::move(yaxis));
@@ -170,8 +170,8 @@ TEST(grids, grid2_attach_populator)
     attach_populator<guaranteed_index> attacher;
     serializer2 serializer;
 
-    axis::closed<2> xaxis{-1., 1.};
-    axis::closed<2> yaxis{-1., 1.};
+    axis::closed<> xaxis{2, -1., 1.};
+    axis::closed<> yaxis{2, -1., 1.};
     using grid2r = grid2<decltype(attacher), decltype(xaxis), decltype(yaxis), decltype(serializer)>;
 
     grid2r g2(std::move(xaxis), std::move(yaxis));
@@ -223,8 +223,8 @@ TEST(grids, grid2_shift)
     replace_populator<guaranteed_index, 0> replacer;
     serializer2 serializer;
 
-    axis::closed<10> xaxis{-5., 5.};
-    axis::closed<10> yaxis{-5., 5.};
+    axis::closed<> xaxis{10, -5., 5.};
+    axis::closed<> yaxis{10, -5., 5.};
 
     using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis), decltype(serializer)>;
 
