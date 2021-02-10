@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include "utils/indexing.hpp"
+
 #include <tuple>
 
 namespace detray

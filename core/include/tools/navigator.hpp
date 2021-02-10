@@ -105,7 +105,7 @@ namespace detray
                                          const mask_group &masks,
                                          const mask_range &range)
         {
-            for (guaranteed_index i = range[0]; i <= range[1]; ++i)
+            for (dindex i = range[0]; i <= range[1]; ++i)
             {
                 auto &mask = masks[i];
                 auto is = mask.intersector();

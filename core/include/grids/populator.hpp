@@ -22,8 +22,8 @@ namespace detray
      * 
      * @note bare_value and store_value are identicial in this case
      **/
-    template <typename value_type = guaranteed_index, 
-              value_type kInvalid = std::numeric_limits<guaranteed_index>::max() >
+    template <typename value_type = dindex, 
+              value_type kInvalid = std::numeric_limits<dindex>::max() >
     struct replace_populator
     {
 
@@ -85,8 +85,8 @@ namespace detray
      **/
     template <unsigned int kDIM, 
               bool kSORT = false, 
-              typename value_type = guaranteed_index, 
-              value_type kInvalid = std::numeric_limits<guaranteed_index>::max()>
+              typename value_type = dindex, 
+              value_type kInvalid = std::numeric_limits<dindex>::max()>
     struct complete_populator
     {
 
@@ -168,7 +168,7 @@ namespace detray
      * 
      * @note bare_value and store_value are identicial in this case
      **/
-    template <bool kSORT = false, typename value_type = guaranteed_index>
+    template <bool kSORT = false, typename value_type = dindex>
     struct attach_populator
     {
 

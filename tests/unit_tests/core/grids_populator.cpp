@@ -18,7 +18,7 @@ using namespace detray;
 TEST(grids, replace_populator)
 {
     replace_populator<> replacer;
-    guaranteed_index stored = 3;
+    dindex stored = 3;
     replacer(stored, 2);
     EXPECT_EQ(stored, 2u);
 

@@ -41,14 +41,14 @@ TEST(utils, local_object_finder)
     g2.populate(p2, 8u);
 
 
-    dvector<guaranteed_index> expected = { 8u };
+    dvector<dindex> expected = { 8u };
     EXPECT_EQ(g2.zone(p2), expected);
 
     local_zone_finder<grid2r> local_zone(std::move(g2));
 
-    local_single_finder<guaranteed_index> local_single(8u);
+    local_single_finder<dindex> local_single(8u);
 
-    using local_finder = std::function< dvector<guaranteed_index>(const test::point2&) >;
+    using local_finder = std::function< dvector<dindex>(const test::point2&) >;
 
     std::vector<local_finder> local_finders = { local_zone, local_single };
 

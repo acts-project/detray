@@ -25,7 +25,7 @@ TEST(grids, serialize_deserialize)
     serializer2 ser2;
 
     // Serializing
-    guaranteed_index test = ser2.serialize(r6, c12, 0u, 0u);
+    dindex test = ser2.serialize(r6, c12, 0u, 0u);
     EXPECT_EQ(test, 0u);
     test = ser2.serialize(r6, c12, 5u, 0u);
     EXPECT_EQ(test, 5u);
@@ -35,8 +35,8 @@ TEST(grids, serialize_deserialize)
     EXPECT_EQ(test, 17u);
 
     // Deserialize
-    darray<guaranteed_index, 2> expected_array = {0u, 0u};
-    darray<guaranteed_index, 2> test_array = ser2.deserialize(r6, c12, 0u);
+    darray<dindex, 2> expected_array = {0u, 0u};
+    darray<dindex, 2> test_array = ser2.deserialize(r6, c12, 0u);
     EXPECT_EQ(test_array, expected_array);
     expected_array = {5u, 0u};
     test_array = ser2.deserialize(r6, c12, 5u);

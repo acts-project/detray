@@ -37,14 +37,14 @@ namespace detray
              * 
              * @param v is the value for the bin search
              * 
-             * As the axis is closed it @returns a guaranteed_index type
+             * As the axis is closed it @returns a dindex type
              **/
-            guaranteed_index bin(value_type v) const
+            dindex bin(value_type v) const
             {
-                optional_index ibin = static_cast<optional_index>((v - min) / (max - min) * bins);
-                return (ibin >= 0 and ibin < bins) ? static_cast<guaranteed_index>(ibin)
+                dindex ibin = static_cast<dindex>((v - min) / (max - min) * bins);
+                return (ibin >= 0 and ibin < bins) ? static_cast<dindex>(ibin)
                                                    : ibin < 0 ? 0
-                                                              : static_cast<guaranteed_index>(bins - 1);
+                                                              : static_cast<dindex>(bins - 1);
             }
 
             /** Access function to a range with binned neighbourhood
@@ -52,13 +52,13 @@ namespace detray
              * @param v is the value for the bin search
              * @param nhood is the neighbourhood size (+/-) 
              * 
-             * As the axis is closed it @returns a guaranteed_range
+             * As the axis is closed it @returns a dindex_range
              **/
-            guaranteed_range range(value_type v, unsigned int nhood) const
+            dindex_range range(value_type v, unsigned int nhood) const
             {
-                optional_index ibin = static_cast<optional_index>((v - min) / (max - min) * bins);
-                guaranteed_index min_bin = (ibin - nhood) >= 0 ? static_cast<guaranteed_index>(ibin - nhood) : 0;
-                guaranteed_index max_bin = (ibin + nhood) < bins ? static_cast<guaranteed_index>(ibin + nhood) : static_cast<guaranteed_index>(bins - 1);
+                dindex ibin = static_cast<dindex>((v - min) / (max - min) * bins);
+                dindex min_bin = (ibin - nhood) >= 0 ? static_cast<dindex>(ibin - nhood) : 0;
+                dindex max_bin = (ibin + nhood) < bins ? static_cast<dindex>(ibin + nhood) : static_cast<dindex>(bins - 1);
                 return {min_bin, max_bin};
             }
 
@@ -67,13 +67,13 @@ namespace detray
              * @param v is the value for the bin search
              * @param nhood is the neighbourhood size (+/-) 
              * 
-             * As the axis is closed it @returns a guaranteed_sequence
+             * As the axis is closed it @returns a dindex_sequence
              **/
-            guaranteed_sequence zone(value_type v, unsigned int nhood) const
+            dindex_sequence zone(value_type v, unsigned int nhood) const
             {
-                guaranteed_range nh_range = range(v, nhood);
-                guaranteed_sequence sequence(static_cast<guaranteed_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
-                guaranteed_index m = 0;
+                dindex_range nh_range = range(v, nhood);
+                dindex_sequence sequence(static_cast<dindex_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
+                dindex m = 0;
                 std::for_each(sequence.begin(), sequence.end(), [&](auto &n) { n += m++; });
                 return sequence;
             }
@@ -102,14 +102,14 @@ namespace detray
              * 
              * @param v is the value for the bin search
              * 
-             * As the axis is closed it @returns a guaranteed_index type
+             * As the axis is closed it @returns a dindex type
              **/
-            guaranteed_index bin(value_type v) const
+            dindex bin(value_type v) const
             {
-                optional_index ibin = static_cast<optional_index>((v - min) / (max - min) * bins);
-                return (ibin >= 0 and ibin < bins) ? static_cast<guaranteed_index>(ibin)
-                                                   : ibin < 0 ? static_cast<guaranteed_index>(bins + ibin)
-                                                              : static_cast<guaranteed_index>(bins - ibin);
+                dindex ibin = static_cast<dindex>((v - min) / (max - min) * bins);
+                return (ibin >= 0 and ibin < bins) ? static_cast<dindex>(ibin)
+                                                   : ibin < 0 ? static_cast<dindex>(bins + ibin)
+                                                              : static_cast<dindex>(bins - ibin);
             }
 
             /** Access function to a range with binned neighbourhood
@@ -117,13 +117,13 @@ namespace detray
              * @param v is the value for the bin search
              * @param nhood is the neighbourhood size (+/-) 
              * 
-             * As the axis is circular it @returns a guaranteed_range
+             * As the axis is circular it @returns a dindex_range
              **/
-            guaranteed_range range(value_type v, unsigned int nhood) const
+            dindex_range range(value_type v, unsigned int nhood) const
             {
-                guaranteed_index gbin = bin(v);
-                guaranteed_index min_bin = remap(gbin, -nhood);
-                guaranteed_index max_bin = remap(gbin, nhood);
+                dindex gbin = bin(v);
+                dindex min_bin = remap(gbin, -nhood);
+                dindex max_bin = remap(gbin, nhood);
                 return {min_bin, max_bin};
             }
 
@@ -132,22 +132,22 @@ namespace detray
              * @param v is the value for the bin search
              * @param nhood is the neighbourhood size (+/-) 
              * 
-             * As the axis is closed it @returns a guaranteed_sequence
+             * As the axis is closed it @returns a dindex_sequence
              **/
-            guaranteed_sequence zone(value_type v, unsigned int nhood) const
+            dindex_sequence zone(value_type v, unsigned int nhood) const
             {
-                guaranteed_range nh_range = range(v, nhood);
+                dindex_range nh_range = range(v, nhood);
                 if (nh_range[0] < nh_range[1])
                 {
-                    guaranteed_sequence sequence(static_cast<guaranteed_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
-                    guaranteed_index m = 0;
+                    dindex_sequence sequence(static_cast<dindex_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
+                    dindex m = 0;
                     std::for_each(sequence.begin(), sequence.end(), [&](auto &n) { n += m++; });
                     return sequence;
                 }
-                guaranteed_index vl = static_cast<guaranteed_index>(bins - nh_range[0] + nh_range[1] + 1);
-                guaranteed_index mi = 0;
-                guaranteed_index mo = 0;
-                guaranteed_sequence sequence(static_cast<guaranteed_sequence::size_type>(vl), nh_range[0]);
+                dindex vl = static_cast<dindex>(bins - nh_range[0] + nh_range[1] + 1);
+                dindex mi = 0;
+                dindex mo = 0;
+                dindex_sequence sequence(static_cast<dindex_sequence::size_type>(vl), nh_range[0]);
                 std::for_each(sequence.begin(), sequence.end(), [&](auto &n) {
                     n += mi++;
                     if (n > bins - 1)
@@ -162,20 +162,20 @@ namespace detray
              * @param ibin is the optional binning value
              * @param shood is the sided neighbour hood
              * 
-             * @return a guaranteed, remapped bin 
+             * @return an index, remapped bin 
              **/
-            guaranteed_index remap(guaranteed_index ibin, optional_index shood) const
+            dindex remap(dindex ibin, int shood) const
             {
-                optional_index opt_bin = ibin + shood;
+                int opt_bin = static_cast<int>(ibin) + shood;
                 if (opt_bin >= 0 and opt_bin < bins - 1)
                 {
-                    return static_cast<guaranteed_index>(opt_bin);
+                    return static_cast<dindex>(opt_bin);
                 }
                 if (opt_bin < 0)
                 {
-                    return static_cast<guaranteed_index>(bins + opt_bin);
+                    return static_cast<dindex>(bins + opt_bin);
                 }
-                return static_cast<guaranteed_index>(opt_bin - bins);
+                return static_cast<dindex>(opt_bin - bins);
             }
 
             /** Copy the range zone */

@@ -36,7 +36,7 @@ TEST(grids, grid2_replace_populator)
         for (unsigned int ib1 = 0; ib1 < 10; ++ib1)
         {
             p = {-4.5 + ib0, -4.5 + ib1};
-            EXPECT_EQ(g2.bin(p), std::numeric_limits<guaranteed_index>::max());
+            EXPECT_EQ(g2.bin(p), std::numeric_limits<dindex>::max());
         }
     }
 
@@ -63,7 +63,7 @@ TEST(grids, grid2_replace_populator)
     // A zone test w/o neighbour hood 
     p = {-4.5, -4.5};
     auto test = g2.zone(p, {0, 0}, true);
-    dvector<guaranteed_index> expect = { 100u };
+    dvector<dindex> expect = { 100u };
     EXPECT_EQ(test, expect);
 
 
@@ -98,7 +98,7 @@ TEST(grids, grid2_replace_populator)
 TEST(grids, grid2_complete_populator)
 {
 
-    complete_populator<3, false, optional_index, -1> completer;
+    complete_populator<3, false> completer;
     serializer2 serializer;
 
     axis::closed<> xaxis{2, -1., 1.};
@@ -109,7 +109,7 @@ TEST(grids, grid2_complete_populator)
 
     // Test the initialization
     test::point2 p = {-0.5, -0.5};
-    decltype(completer)::store_value invalid = {-1, -1, -1};
+    decltype(completer)::store_value invalid = {dindex_invalid, dindex_invalid, dindex_invalid};
     for (unsigned int ib0 = 0; ib0 < 2; ++ib0)
     {
         for (unsigned int ib1 = 0; ib1 < 2; ++ib1)
@@ -123,16 +123,16 @@ TEST(grids, grid2_complete_populator)
     p = {-0.5, -0.5};
     g2.populate(p, 4u);
 
-    decltype(completer)::store_value expected = {4u, -1, -1};
+    decltype(completer)::store_value expected = {4u, dindex_invalid, dindex_invalid};
     auto test = g2.bin(p);
     EXPECT_EQ(test, expected);
 
     auto zone_test = g2.zone(p, {0, 0});
-    dvector<optional_index> zone_expected = {4u};
+    dvector<dindex> zone_expected = {4u};
     EXPECT_EQ(zone_test, zone_expected);
 
     g2.populate(p, 2u);
-    expected = {4u, 2u, -1};
+    expected = {4u, 2u, dindex_invalid};
     test = g2.bin(p);
     EXPECT_EQ(test, expected);
 
@@ -196,7 +196,7 @@ TEST(grids, grid2_attach_populator)
     EXPECT_EQ(test, expected);
 
     auto zone_test = g2.zone(p, {0, 0});
-    dvector<guaranteed_index> zone_expected = {4u};
+    dvector<dindex> zone_expected = {4u};
     EXPECT_EQ(zone_test, zone_expected);
 
     p = {-0.5, 0.5};
@@ -220,7 +220,7 @@ TEST(grids, grid2_attach_populator)
 
 TEST(grids, grid2_shift)
 {
-    replace_populator<guaranteed_index, 0> replacer;
+    replace_populator<dindex, 0> replacer;
     serializer2 serializer;
 
     axis::closed<> xaxis{10, -5., 5.};

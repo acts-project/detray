@@ -6,7 +6,7 @@
  */
 
 #include "plugins/array_defs.hpp"
-#include "tests/common/test_detector.hpp"
+#include "tests/common/single_layer_detector.hpp"
 #include "json/json_core.hpp"
 
 #include <fstream>
@@ -17,7 +17,6 @@ int main(int argc, char **argv)
 
     std::ofstream output_file;
     output_file.open(d.name()+std::string(".json"));
-
     output_file << json::write_detector(d).dump(2);
 
     output_file.close();

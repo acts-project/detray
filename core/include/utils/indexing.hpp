@@ -8,13 +8,13 @@
 #pragma once
 
 #include "utils/containers.hpp"
+#include <limits>
 
 namespace detray
-{
-
-    using optional_index = int;
-    using guaranteed_index = unsigned long;
-    using guaranteed_range = darray<guaranteed_index, 2>;
-    using guaranteed_sequence = dvector<guaranteed_index>;
+{    
+    using dindex = unsigned long;
+    auto dindex_invalid = std::numeric_limits<dindex>::max();
+    using dindex_range = darray<dindex, 2>;
+    using dindex_sequence = dvector<dindex>;
 
 } // namespace detray
