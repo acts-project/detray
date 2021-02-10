@@ -17,6 +17,8 @@
 #include "utils/enumerate.hpp"
 #include "tools/local_object_finder.hpp"
 
+#include <functional>
+
 namespace detray
 {
     using namespace vector;
