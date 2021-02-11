@@ -17,8 +17,8 @@ using namespace detray;
 
 TEST(grids, replace_populator)
 {
-    replace_populator<guaranteed_index, std::numeric_limits<guaranteed_index>::max()> replacer;
-    guaranteed_index stored = 3;
+    replace_populator<> replacer;
+    dindex stored = 3;
     replacer(stored, 2);
     EXPECT_EQ(stored, 2u);
 
@@ -29,7 +29,7 @@ TEST(grids, replace_populator)
 TEST(grids, complete_populator)
 {
 
-    using cpopulator4 = complete_populator<guaranteed_index, std::numeric_limits<guaranteed_index>::max(), 4>;
+    using cpopulator4 = complete_populator<4>;
     cpopulator4 completer;
 
     cpopulator4::store_value stored = {cpopulator4::invalid_value, cpopulator4::invalid_value, cpopulator4::invalid_value, cpopulator4::invalid_value};
@@ -44,7 +44,7 @@ TEST(grids, complete_populator)
     completer(stored, 3);
     EXPECT_EQ(stored, test);
 
-    using sort_cpopulator4 = complete_populator<guaranteed_index, std::numeric_limits<guaranteed_index>::max(), 4, true>;
+    using sort_cpopulator4 = complete_populator<4, true>;
     sort_cpopulator4 sort_completer;
 
     test = { 0, 3, 9, 1000};
@@ -57,10 +57,10 @@ TEST(grids, complete_populator)
 TEST(grids, attach_populator)
 {
     // Attch populator without sorting
-    attach_populator<guaranteed_index> attacher;
-    attach_populator<guaranteed_index>::store_value stored = {3};
+    attach_populator<> attacher;
+    attach_populator<>::store_value stored = {3};
     attacher(stored, 2);
-    attach_populator<guaranteed_index>::store_value test = {3u, 2u};
+    attach_populator<>::store_value test = {3u, 2u};
     EXPECT_EQ(stored, test);
 
     attacher(stored, 42);
@@ -68,7 +68,7 @@ TEST(grids, attach_populator)
     EXPECT_EQ(stored, test);
 
     // Attach populator with sorting
-    attach_populator<guaranteed_index, true> sort_attacher;
+    attach_populator<true> sort_attacher;
     sort_attacher(stored, 11);
     test = {2u, 3u, 11u, 42u};
     EXPECT_EQ(stored, test);

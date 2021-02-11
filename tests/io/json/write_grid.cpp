@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     using namespace detray;
     std::ofstream output_file;
 
-    replace_populator<guaranteed_index, std::numeric_limits<guaranteed_index>::max()> replacer;
+    replace_populator<> replacer;
     serializer2 serializer;
 
     // A rectangular grid 

@@ -8,8 +8,10 @@
 #pragma once
 
 #include "utils/containers.hpp"
+#include "utils/indexing.hpp"
 
 #include <algorithm>
+#include <limits>
 
 namespace detray
 {
@@ -20,7 +22,8 @@ namespace detray
      * 
      * @note bare_value and store_value are identicial in this case
      **/
-    template <typename value_type, value_type kInvalid>
+    template <typename value_type = dindex, 
+              value_type kInvalid = std::numeric_limits<dindex>::max() >
     struct replace_populator
     {
 
@@ -76,11 +79,17 @@ namespace detray
     /** A complete populator that adds values to the internal
      * store array until it is completed, ignored afterwards.
      * 
+     * @tparam kDIM the dimension of the underlying stored array
+     * @tparam kSORT a sorting flag 
      * @tparam value_type the type of a single stored object
+     * @tparam kInvalid the chosen invalid type
      * 
      * @note bare_value and store_value are different in this case
      **/
-    template <typename value_type, value_type kInvalid, unsigned int kDIM, bool kSORT = false>
+    template <unsigned int kDIM, 
+              bool kSORT = false, 
+              typename value_type = dindex, 
+              value_type kInvalid = std::numeric_limits<dindex>::max() >
     struct complete_populator
     {
 
@@ -158,11 +167,12 @@ namespace detray
 
     /** An attach populator that adds the new value to the 
      * 
+     * @tparam kSORT the sorting directive
      * @tparam value_type the type of a single stored object
      * 
      * @note bare_value and store_value are identicial in this case
      **/
-    template <typename value_type, bool kSORT = false>
+    template <bool kSORT = false, typename value_type = dindex>
     struct attach_populator
     {
 

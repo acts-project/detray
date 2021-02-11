@@ -161,8 +161,12 @@ namespace detray
         /** Return an associated intersector type */
         intersector_type intersector() const { return intersector_type{}; };
 
-        /** Return the volume link */
+        /** Return the volume link - const reference */
         const links_type &links() const { return _links; }
+
+        /** Return the volume link - non-const access */
+        links_type &links() { return _links; }
+
     };
 
 } // namespace detray

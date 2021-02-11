@@ -33,14 +33,14 @@ namespace detray
          * @param fbin first bin
          * @param sbin second bin
          * 
-         * @return a guaranteed_index for the memory storage
+         * @return a dindex for the memory storage
          */
         template <typename faxis_type, typename saxis_type>
-        guaranteed_index serialize(const faxis_type& faxis, const saxis_type& /*saxis*/,
-                                   guaranteed_index fbin, guaranteed_index sbin) const
+        dindex serialize(const faxis_type& faxis, const saxis_type& /*saxis*/,
+                                   dindex fbin, dindex sbin) const
         {
 
-            guaranteed_index offset = sbin * faxis.bins;
+            dindex offset = sbin * faxis.bins;
             return offset + fbin;
         }
 
@@ -53,13 +53,13 @@ namespace detray
          * @param saxis the second axis, unused here
          * @param serialbin the serial bin 
          * 
-         * @return a 2-dim array of guaranteed_index 
+         * @return a 2-dim array of dindex 
          */
         template <typename faxis_type, typename saxis_type>
-        darray<guaranteed_index, 2> deserialize(const faxis_type& faxis, const saxis_type& /*saxis*/, guaranteed_index serialbin) const
+        darray<dindex, 2> deserialize(const faxis_type& faxis, const saxis_type& /*saxis*/, dindex serialbin) const
         {
-            guaranteed_index sbin = static_cast<guaranteed_index>(serialbin/faxis.bins);
-            guaranteed_index fbin = serialbin - sbin * faxis.bins;
+            dindex sbin = static_cast<dindex>(serialbin/faxis.bins);
+            dindex fbin = serialbin - sbin * faxis.bins;
             return { fbin, sbin };
         }
     };

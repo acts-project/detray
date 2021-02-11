@@ -6,9 +6,6 @@ add_detray_test(eigen_masks_container
 add_detray_test(eigen_annulus2
                 eigen_annulus2.cpp detray::eigen)
 
-add_detray_test(eigen_cylindrical_detector
-                eigen_cylindrical_detector.cpp detray::eigen)
-
 add_detray_test(eigen_cylinder3
                 eigen_cylinder3.cpp detray::eigen)
 
@@ -20,6 +17,9 @@ add_detray_test(eigen_ring2
 
 add_detray_test(eigen_single3
                 eigen_single3.cpp detray::eigen)
+
+add_detray_test(eigen_single_layer_detector
+                eigen_single_layer_detector.cpp detray::eigen)
 
 add_detray_test(eigen_trapezoid2
                 eigen_trapezoid2.cpp detray::eigen)

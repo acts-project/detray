@@ -26,14 +26,14 @@ TEST(grids, regular_closed_axis)
     EXPECT_EQ(ten_bins.bin(2.), 5u);
     EXPECT_EQ(ten_bins.bin(8.), 9u);
     // Axis range access
-    guaranteed_range expected_range = {4u, 6u};
+    dindex_range expected_range = {4u, 6u};
     EXPECT_EQ(ten_bins.range(2., 1), expected_range);
     expected_range = {0u, 8u};
     EXPECT_EQ(ten_bins.range(1., 4), expected_range);
     expected_range = {3u, 9u};
     EXPECT_EQ(ten_bins.range(5., 5), expected_range);
     // Axis sequence access
-    guaranteed_sequence expected_zone = { 5u };
+    dindex_sequence expected_zone = { 5u };
     EXPECT_EQ(ten_bins.zone(2., 0), expected_zone);
     expected_zone = {4u, 5u, 6u};
     EXPECT_EQ(ten_bins.zone(2., 1), expected_zone);
@@ -65,12 +65,12 @@ TEST(grids, regular_circular_axis)
     EXPECT_EQ(full_pi.remap(35, 1), 0);
     // Axis range access
 
-    guaranteed_range expected_range = {35u, 1u};
+    dindex_range expected_range = {35u, 1u};
     EXPECT_EQ(full_pi.range(M_PI + epsilon, 1), expected_range);
     expected_range = {34u, 2u};
     EXPECT_EQ(full_pi.range(M_PI + epsilon, 2), expected_range);
     // Zone test
-    guaranteed_sequence expected_zone = {34u, 35u, 0u, 1u, 2u};
+    dindex_sequence expected_zone = {34u, 35u, 0u, 1u, 2u};
     EXPECT_EQ(full_pi.zone(M_PI + epsilon, 2), expected_zone);
 }
 
