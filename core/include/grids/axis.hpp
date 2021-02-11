@@ -41,7 +41,7 @@ namespace detray
              **/
             dindex bin(value_type v) const
             {
-                dindex ibin = static_cast<dindex>((v - min) / (max - min) * bins);
+                int ibin = static_cast<int>((v - min) / (max - min) * bins);
                 return (ibin >= 0 and ibin < bins) ? static_cast<dindex>(ibin)
                                                    : ibin < 0 ? 0
                                                               : static_cast<dindex>(bins - 1);

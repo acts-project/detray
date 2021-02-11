@@ -56,7 +56,7 @@ cdetector createDetector() {
     auto barrel_transforms = std::get<1>(barrel_components);
     auto barrel_finders = std::get<2>(barrel_components);
 
-    auto barrel_finder_range = d.add_surface_finders(barrel_index, std::move(barrel_finders));
+    auto barrel_finder_range = d.add_surface_finders(std::move(barrel_finders));
 
     cdetector::portal_links barrel_inner_links = { dindex_invalid, (barrel_index), dindex_invalid, barrel_finder_range[0]};
     d.reuse_portal_surface(barrel_index, beampipe_portal_indices[0], barrel_inner_links);

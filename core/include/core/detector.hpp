@@ -152,11 +152,14 @@ namespace detray
         template <typename mask_type>
         void update_portal_links(mask_type& mask, portal_links additional_link) noexcept(false) {
             auto &mask_link = mask.links();
+            if (mask_link.size() != additional_link.size()){
+                throw std::runtime_error("detray::update_protal_links(...) called with inconsistent link numbers.");
+            }
             for (dindex il = 0; il < mask_link.size(); ++il){
                 auto& link  = mask_link[il];
                 auto& new_link = additional_link[il];
                 if (link != dindex_invalid and new_link != dindex_invalid ){
-                    std::string error_message = "update_portal_links(...) is trying to overwrite valid link "
+                    std::string error_message = "detray::update_portal_links(...) is trying to overwrite valid link "
                                   + std::to_string(link) + std::string(" with ") + std::to_string(new_link);
                     throw std::runtime_error(error_message);
                 }
@@ -211,7 +214,6 @@ namespace detray
 
         }
 
-
         /** Internal surface section ***********************************************
          * 
          * Internal surfaces are all kind of navigation surfaces within a volume
@@ -262,11 +264,9 @@ namespace detray
 
         /** Add surface finders to a volume
          *
-         * @param volume_index the volume index to which these finders should be added
          * @param surface_finders the local finders that are to be added to this volume
          */
-         dindex_range add_surface_finders(dindex volume_index, dvector<local_object_finder> surface_finders ){
-            auto &volume = _volumes[volume_index];
+         dindex_range add_surface_finders(dvector<local_object_finder> surface_finders ){
             dindex finder_start_index = _surface_finders.size();
             _surface_finders.insert(_surface_finders.begin(), surface_finders.begin(), surface_finders.end());
             return { finder_start_index, finder_start_index + surface_finders.size() };
