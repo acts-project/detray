@@ -9,6 +9,8 @@
 #include "grids/grid2.hpp"
 #include "grids/populator.hpp"
 #include "grids/serializer2.hpp"
+#include "tools/concentric_cylinder_intersector.hpp"
+#include "tools/planar_intersector.hpp"
 #include "tools/navigator.hpp"
 #include "tests/common/single_layer_detector.hpp"
 #include "tests/common/test_surfaces.hpp"
@@ -16,34 +18,41 @@
 #include <fstream>
 #include <cmath>
 #include <climits>
+#include <random>
 
 #include <gtest/gtest.h>
 
+bool write_files = true;
 
-// Test the basic building function
-TEST(__plugin, component_construction){
+scalar r = 32.;
+scalar vr_inner = 29.;
+scalar vr_outer = 36.;
+scalar vz_half = 400.;
+scalar r_stag = 0.25;
+unsigned int n_phi = 12;
+scalar t_phi = 0.12;
+scalar ov_rphi = 0.25;
+scalar z_length = 600.;
+scalar z_overlap = 2.;
+unsigned int n_z = 7;
 
-    scalar r = 32.;
-    scalar vr_inner = 29.;
-    scalar vr_outer = 36.;
-    scalar vz_half = 400.;
-    scalar r_stag = 0.25;
-    unsigned int n_phi = 12;
-    scalar t_phi = 0.12;
-    scalar ov_rphi = 0.25;
-    scalar z_length = 600.;
-    scalar z_overlap = 2.;
-    unsigned int n_z = 7;
-
-    // Retrieving the barrel components for testing
-    auto barrel_components 
+// Retrieving the barrel components for testing
+auto barrel_components 
         = detray::create_barrel_components(r, r_stag, n_phi, 
                                     t_phi, ov_rphi, z_length, z_overlap, n_z, 
                                         vr_inner, vr_outer, vz_half);
 
-    auto barrel_module = std::get<0>(barrel_components);
-    auto barrel_transforms = std::get<1>(barrel_components);
-    auto barrel_finders = std::get<2>(barrel_components);
+auto barrel_module = std::get<0>(barrel_components);
+auto barrel_transforms = std::get<1>(barrel_components);
+auto barrel_finders = std::get<2>(barrel_components);
+
+// Three-dimensional definitions
+using transform3 = __plugin::transform3;
+using vector3 = __plugin::transform3::vector3;
+using point3 = __plugin::transform3::point3;
+
+// Test the basic building function
+TEST(__plugin, component_construction){
 
     // Rectangular module parameters
     ASSERT_EQ(barrel_module.size(), 2u);
@@ -104,6 +113,7 @@ TEST(__plugin, component_construction){
     scalar z_step = 2 * barrel_module[1] - z_overlap;
     scalar phi_step = 2*M_PI/n_phi;
     unsigned int imod = 0;
+
     // Test teh entries of the inner/outer Barrel grids
     for (unsigned int iz = 0; iz < n_z; ++iz){
         for (unsigned int iphi = 0; iphi < n_phi; ++iphi){
@@ -140,13 +150,99 @@ TEST(__plugin, component_construction){
 }
 
 
-unsigned int theta_steps = 10;
-unsigned int phi_steps = 1000;
-bool stream_file = true;
-
+// Testing the local object finding
 auto d = createDetector();
 
-// This test navigates through a cylindrical detector
+TEST(__plugin, object_finding)
+{
+
+    std::ofstream search_points;
+    search_points.open("single_layer_search_points.csv");
+
+    std::ofstream confirmed_points;
+    confirmed_points.open("single_layer_confirmed_points.csv");
+
+    std::ofstream heuristic_points;
+    heuristic_points.open("single_layer_heuristic_points.csv");
+
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_real_distribution<scalar> dist_phi(-M_PI,M_PI);
+    std::uniform_real_distribution<scalar> dist_theta(0.1,M_PI-0.1);
+
+    transform3 identity(vector3{0., 0., 0.});
+    cylinder3<scalar,false> cylinder = {vr_inner, -vz_half, vz_half};
+
+    concentric_cylinder_intersector cci;
+    planar_intersector pi;
+
+    // Cylindrical and Cartesian local frames
+    __plugin::cylindrical2 cylindrical2;
+    __plugin::cartesian2 cart2;
+
+    vector3 ori = { 0., 0., 0. };
+
+    // Check if the finders make sense 
+    auto inner_finder = barrel_finders[0];
+
+    rectangle2<scalar> rect = { barrel_module[0], barrel_module[1]};
+
+    unsigned int tests = 100000;
+    for (unsigned int itest = 0; itest < tests; ++itest){
+        
+        scalar phi = dist_phi(rng);
+        scalar theta = dist_theta(rng);
+
+        scalar sin_phi = std::sin(phi);
+        scalar cos_phi = std::cos(phi);
+        scalar sin_theta = std::sin(theta);
+        scalar cos_theta = std::cos(theta);
+
+        point3 dir = vector3{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
+        auto hit_cocylindrical = cci.intersect(identity, ori, dir, cylindrical2, cylinder);
+        if (hit_cocylindrical.status == intersection_status::e_inside){
+            search_points 
+                << hit_cocylindrical.point3[0] << ", " 
+                << hit_cocylindrical.point3[1] << ", "
+                << hit_cocylindrical.point3[2] << "\n";  
+
+            auto transform_indices 
+                = inner_finder(hit_cocylindrical.point2.value(), {1,1});
+
+            // Now loop over the local candidates: fast case
+            for (auto tfi : transform_indices) {
+                 auto hit_plane 
+                    = pi.intersect(barrel_transforms[tfi], hit_cocylindrical.point3, dir, cart2, rect);
+                if (hit_plane.status == intersection_status::e_inside){
+                                confirmed_points 
+                << hit_plane.point3[0] << ", " 
+                << hit_plane.point3[1] << ", "
+                << hit_plane.point3[2] << "\n";  
+                }
+            }
+
+            // Now loop over all candidates: heuristic case, cross-check
+            for (unsigned int itf = 0; itf < barrel_transforms.size(); ++itf) {
+                 auto hit_plane_try 
+                    = pi.intersect(barrel_transforms[itf], hit_cocylindrical.point3, dir, cart2, rect);
+                if (hit_plane_try.status == intersection_status::e_inside and hit_plane_try.path > 0.){
+                heuristic_points 
+                << hit_plane_try.point3[0] << ", " 
+                << hit_plane_try.point3[1] << ", "
+                << hit_plane_try.point3[2] << "\n";  
+                }
+            }
+
+        }
+
+    }
+    search_points.close();
+    confirmed_points.close();
+    heuristic_points.close();
+}
+
+
+// This test the construction of the single layer detector
 TEST(__plugin, construction)
 {
     // Let's inspect the detector
@@ -155,7 +251,6 @@ TEST(__plugin, construction)
 
     // 6 portals: 2 bp ec, 1 shared, 2 barrrel ec, 1 barrel cover
     ASSERT_EQ(d.portal_surfaces().size(), 6u);
-
 }
 
 // Google Test can be run manually from the main() function
