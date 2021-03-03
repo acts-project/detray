@@ -29,7 +29,6 @@ namespace detray
     {
 
     public:
-
         using serialized_storage = dvector<typename populator_type::store_value>;
 
         /** Constructor from axes (moved)
@@ -40,7 +39,7 @@ namespace detray
          **/
         grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1) : _axis_p0(std::move(axis_p0)), _axis_p1(std::move(axis_p1))
         {
-            _data_serialized = serialized_storage(axis_p0.bins*axis_p1.bins, _populator.init());
+            _data_serialized = serialized_storage(axis_p0.bins * axis_p1.bins, _populator.init());
         }
 
         /** Allow for grid shift, when using a centralized store and indices
@@ -113,7 +112,7 @@ namespace detray
         {
             auto zone0 = _axis_p0.zone(p2[0], nhood[0]);
             auto zone1 = _axis_p1.zone(p2[1], nhood[1]);
-            
+
             dvector<typename populator_type::bare_value> zone;
             for (const auto z1 : zone1)
             {

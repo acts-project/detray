@@ -43,8 +43,8 @@ namespace detray
             {
                 int ibin = static_cast<int>((v - min) / (max - min) * bins);
                 return (ibin >= 0 and ibin < bins) ? static_cast<dindex>(ibin)
-                                                   : ibin < 0 ? 0
-                                                              : static_cast<dindex>(bins - 1);
+                       : ibin < 0                  ? 0
+                                                   : static_cast<dindex>(bins - 1);
             }
 
             /** Access function to a range with binned neighbourhood
@@ -111,8 +111,8 @@ namespace detray
             {
                 dindex ibin = static_cast<dindex>((v - min) / (max - min) * bins);
                 return (ibin >= 0 and ibin < bins) ? static_cast<dindex>(ibin)
-                                                   : ibin < 0 ? static_cast<dindex>(bins + ibin)
-                                                              : static_cast<dindex>(bins - ibin);
+                       : ibin < 0                  ? static_cast<dindex>(bins + ibin)
+                                                   : static_cast<dindex>(bins - ibin);
             }
 
             /** Access function to a range with binned neighbourhood
@@ -183,7 +183,6 @@ namespace detray
 
             /** Copy the range zone */
             darray<value_type, 2> range() const { return {min, max}; }
-
         };
 
     } // namespace axis
