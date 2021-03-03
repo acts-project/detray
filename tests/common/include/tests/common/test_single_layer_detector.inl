@@ -22,7 +22,7 @@
 
 #include <gtest/gtest.h>
 
-bool write_files = true;
+bool write_files = false;
 
 scalar r = 32.;
 scalar vr_inner = 29.;
@@ -163,13 +163,23 @@ TEST(__plugin, object_finding)
 {
 
     std::ofstream search_points;
-    search_points.open("single_layer_search_points.csv");
-
-    std::ofstream confirmed_points;
-    confirmed_points.open("single_layer_confirmed_points.csv");
-
     std::ofstream heuristic_points;
-    heuristic_points.open("single_layer_heuristic_points.csv");
+    std::ofstream confirmed_points;
+
+    if (write_files)
+    {
+        search_points.open("single_layer_search_points.csv");
+        search_points << "x,y,z"
+                      << "\n";
+
+        confirmed_points.open("single_layer_confirmed_points.csv");
+        confirmed_points << "x,y,z"
+                         << "\n";
+
+        heuristic_points.open("single_layer_heuristic_points.csv");
+        heuristic_points << "x,y,z"
+                         << "\n";
+    }
 
     std::random_device dev;
     std::mt19937 rng(dev());
@@ -194,6 +204,11 @@ TEST(__plugin, object_finding)
     rectangle2<scalar> rect = {barrel_module[0], barrel_module[1]};
 
     unsigned int tests = 100000;
+
+    // Cross check
+    unsigned int hit_modules_found = 0;
+    unsigned int hit_modules_heuristic = 0;
+
     for (unsigned int itest = 0; itest < tests; ++itest)
     {
 
@@ -209,10 +224,13 @@ TEST(__plugin, object_finding)
         auto hit_cocylindrical = cci.intersect(identity, ori, dir, cylindrical2, cylinder);
         if (hit_cocylindrical.status == intersection_status::e_inside)
         {
-            search_points
-                << hit_cocylindrical.point3[0] << ", "
-                << hit_cocylindrical.point3[1] << ", "
-                << hit_cocylindrical.point3[2] << "\n";
+            if (write_files)
+            {
+                search_points
+                    << hit_cocylindrical.point3[0] << ", "
+                    << hit_cocylindrical.point3[1] << ", "
+                    << hit_cocylindrical.point3[2] << "\n";
+            }
 
             auto transform_indices = inner_finder(hit_cocylindrical.point2.value(), {1, 1});
 
@@ -222,10 +240,14 @@ TEST(__plugin, object_finding)
                 auto hit_plane = pi.intersect(barrel_transforms[tfi], hit_cocylindrical.point3, dir, cart2, rect);
                 if (hit_plane.status == intersection_status::e_inside)
                 {
-                    confirmed_points
-                        << hit_plane.point3[0] << ", "
-                        << hit_plane.point3[1] << ", "
-                        << hit_plane.point3[2] << "\n";
+                    ++hit_modules_found;
+                    if (write_files)
+                    {
+                        confirmed_points
+                            << hit_plane.point3[0] << ", "
+                            << hit_plane.point3[1] << ", "
+                            << hit_plane.point3[2] << "\n";
+                    }
                 }
             }
 
@@ -235,17 +257,27 @@ TEST(__plugin, object_finding)
                 auto hit_plane_try = pi.intersect(barrel_transforms[itf], hit_cocylindrical.point3, dir, cart2, rect);
                 if (hit_plane_try.status == intersection_status::e_inside and hit_plane_try.path > 0.)
                 {
-                    heuristic_points
-                        << hit_plane_try.point3[0] << ", "
-                        << hit_plane_try.point3[1] << ", "
-                        << hit_plane_try.point3[2] << "\n";
+                    ++hit_modules_heuristic;
+                    if (write_files)
+                    {
+                        heuristic_points
+                            << hit_plane_try.point3[0] << ", "
+                            << hit_plane_try.point3[1] << ", "
+                            << hit_plane_try.point3[2] << "\n";
+                    }
                 }
             }
         }
     }
-    search_points.close();
-    confirmed_points.close();
-    heuristic_points.close();
+
+    if (write_files)
+    {
+        search_points.close();
+        confirmed_points.close();
+        heuristic_points.close();
+    }
+
+    ASSERT_EQ(hit_modules_found, hit_modules_heuristic);
 }
 
 // This test the construction of the single layer detector
