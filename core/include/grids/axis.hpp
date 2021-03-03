@@ -43,8 +43,8 @@ namespace detray
             {
                 int ibin = static_cast<int>((v - min) / (max - min) * bins);
                 return (ibin >= 0 and ibin < bins) ? static_cast<dindex>(ibin)
-                                                   : ibin < 0 ? 0
-                                                              : static_cast<dindex>(bins - 1);
+                       : ibin < 0                  ? 0
+                                                   : static_cast<dindex>(bins - 1);
             }
 
             /** Access function to a range with binned neighbourhood
@@ -56,9 +56,12 @@ namespace detray
              **/
             dindex_range range(value_type v, unsigned int nhood) const
             {
-                dindex ibin = static_cast<dindex>((v - min) / (max - min) * bins);
-                dindex min_bin = (ibin - nhood) >= 0 ? static_cast<dindex>(ibin - nhood) : 0;
-                dindex max_bin = (ibin + nhood) < bins ? static_cast<dindex>(ibin + nhood) : static_cast<dindex>(bins - 1);
+
+                int ibin = static_cast<int>((v - min) / (max - min) * bins);
+                int ibinmin = ibin - static_cast<int>(nhood);
+                int ibinmax = ibin + static_cast<int>(nhood);
+                dindex min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0;
+                dindex max_bin = (ibinmax < static_cast<int>(bins)) ? static_cast<dindex>(ibinmax) : static_cast<dindex>(bins - 1);
                 return {min_bin, max_bin};
             }
 
@@ -108,8 +111,8 @@ namespace detray
             {
                 dindex ibin = static_cast<dindex>((v - min) / (max - min) * bins);
                 return (ibin >= 0 and ibin < bins) ? static_cast<dindex>(ibin)
-                                                   : ibin < 0 ? static_cast<dindex>(bins + ibin)
-                                                              : static_cast<dindex>(bins - ibin);
+                       : ibin < 0                  ? static_cast<dindex>(bins + ibin)
+                                                   : static_cast<dindex>(bins - ibin);
             }
 
             /** Access function to a range with binned neighbourhood
@@ -122,8 +125,8 @@ namespace detray
             dindex_range range(value_type v, unsigned int nhood) const
             {
                 dindex gbin = bin(v);
-                dindex min_bin = remap(gbin, -nhood);
-                dindex max_bin = remap(gbin, nhood);
+                dindex min_bin = remap(gbin, -static_cast<int>(nhood));
+                dindex max_bin = remap(gbin, static_cast<int>(nhood));
                 return {min_bin, max_bin};
             }
 
@@ -167,7 +170,7 @@ namespace detray
             dindex remap(dindex ibin, int shood) const
             {
                 int opt_bin = static_cast<int>(ibin) + shood;
-                if (opt_bin >= 0 and opt_bin < bins - 1)
+                if (opt_bin >= 0 and opt_bin < bins)
                 {
                     return static_cast<dindex>(opt_bin);
                 }
@@ -180,7 +183,6 @@ namespace detray
 
             /** Copy the range zone */
             darray<value_type, 2> range() const { return {min, max}; }
-
         };
 
     } // namespace axis

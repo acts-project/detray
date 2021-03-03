@@ -37,7 +37,9 @@ namespace detray
     {
 
     public:
-        /** Constructor with name */
+        /** Constructor with name 
+         * @param name of the detector 
+        */
         detector(const std::string &name = "unkown") : _name(name) {}
 
         // Algebra
@@ -53,7 +55,7 @@ namespace detray
         using typed_dindex_range = dtuple<dindex, dindex_range>;
 
         // Surface finding function
-        using local_object_finder = std::function<dvector<dindex>(const point2 &)>;
+        using local_object_finder = std::function<dvector<dindex>(const point2 &, const darray<unsigned int, 2> &)>;
 
         /** Nested volume class */
         struct volume
@@ -87,7 +89,7 @@ namespace detray
             volume vol(name, bounds);
             vol.index = _volumes.size();
             _volumes.push_back(vol);
-            return vol.index ;
+            return vol.index;
         }
 
         /** Portal section ******************************************************
@@ -121,12 +123,12 @@ namespace detray
          * @returns the index of the newly added portal surface
          **/
         template <typename portal_type>
-        dindex 
+        dindex
         add_portal_surface(dindex volume_index, transform_type &&transform, const dvector<portal_type> &portals)
         {
             auto &volume = _volumes[volume_index];
             // Get the boundary group, record the index and insert the portals
-            auto &group = std::get<dvector<portal_type>>(_portal_masks);
+            auto &group = std::get<dvector<portal_type> >(_portal_masks);
             dindex index_start = group.size();
             dindex index_end = static_cast<dindex>(index_start + portals.size() - 1);
             group.insert(group.end(), portals.begin(), portals.end());
@@ -150,20 +152,23 @@ namespace detray
          *
          */
         template <typename mask_type>
-        void update_portal_links(mask_type& mask, portal_links additional_link) noexcept(false) {
+        void update_portal_links(mask_type &mask, portal_links additional_link) noexcept(false)
+        {
             auto &mask_link = mask.links();
-            if (mask_link.size() != additional_link.size()){
+            if (mask_link.size() != additional_link.size())
+            {
                 throw std::runtime_error("detray::update_protal_links(...) called with inconsistent link numbers.");
             }
-            for (dindex il = 0; il < mask_link.size(); ++il){
-                auto& link  = mask_link[il];
-                auto& new_link = additional_link[il];
-                if (link != dindex_invalid and new_link != dindex_invalid ){
-                    std::string error_message = "detray::update_portal_links(...) is trying to overwrite valid link "
-                                  + std::to_string(link) + std::string(" with ") + std::to_string(new_link);
+            for (dindex il = 0; il < mask_link.size(); ++il)
+            {
+                auto &link = mask_link[il];
+                auto &new_link = additional_link[il];
+                if (link != dindex_invalid and new_link != dindex_invalid)
+                {
+                    std::string error_message = "detray::update_portal_links(...) is trying to overwrite valid link " + std::to_string(link) + std::string(" with ") + std::to_string(new_link);
                     throw std::runtime_error(error_message);
                 }
-                link = (link == dindex_invalid ) ? new_link : link;
+                link = (link == dindex_invalid) ? new_link : link;
             }
         }
 
@@ -174,7 +179,8 @@ namespace detray
          * @param updated_link The new link to be added to the portal
          * 
          */
-        void reuse_portal_surface(dindex volume_index, dindex portal_index, portal_links additional_link) {
+        void reuse_portal_surface(dindex volume_index, dindex portal_index, portal_links additional_link)
+        {
             auto &volume = _volumes[volume_index];
             auto &portal = _portal_surfaces[portal_index];
 
@@ -186,32 +192,35 @@ namespace detray
             if (type_mask == 0)
             {
                 auto &mask_group = std::get<0>(_portal_masks);
-                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im){
+                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im)
+                {
                     update_portal_links(mask_group[im], additional_link);
                 }
             }
             else if (type_mask == 1)
             {
                 auto &mask_group = std::get<1>(_portal_masks);
-                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im){
+                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im)
+                {
                     update_portal_links(mask_group[im], additional_link);
                 }
             }
             else if (type_mask == 2)
             {
                 auto &mask_group = std::get<2>(_portal_masks);
-                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im){
+                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im)
+                {
                     update_portal_links(mask_group[im], additional_link);
                 }
             }
             else if (type_mask == 3)
             {
                 auto &mask_group = std::get<3>(_portal_masks);
-                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im){
+                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im)
+                {
                     update_portal_links(mask_group[im], additional_link);
                 }
             }
-
         }
 
         /** Internal surface section ***********************************************
@@ -246,7 +255,7 @@ namespace detray
         {
             auto &volume = _volumes[volume_index];
             // Get the boundary group, record the index and insert the portals
-            auto &mask_group = std::get<dvector<mask_type>>(_surface_masks);
+            auto &mask_group = std::get<dvector<mask_type> >(_surface_masks);
             dindex mask_index = mask_group.size();
             mask_type mask;
             mask = mask_values;
@@ -266,11 +275,12 @@ namespace detray
          *
          * @param surface_finders the local finders that are to be added to this volume
          */
-         dindex_range add_surface_finders(dvector<local_object_finder> surface_finders ){
+        dindex_range add_surface_finders(dvector<local_object_finder> surface_finders)
+        {
             dindex finder_start_index = _surface_finders.size();
             _surface_finders.insert(_surface_finders.begin(), surface_finders.begin(), surface_finders.end());
-            return { finder_start_index, finder_start_index + surface_finders.size() };
-         }
+            return {finder_start_index, finder_start_index + surface_finders.size()};
+        }
 
         /** Const access method for the detector name */
         const std::string &name() const { return _name; }
@@ -323,7 +333,6 @@ namespace detray
                                            {disc_mask::mask_identifier, 3}};
 
         dvector<local_object_finder> _surface_finders = {};
-
     };
 
 } // namespace detray

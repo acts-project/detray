@@ -31,7 +31,7 @@ constexpr scalar isclose = 1e-5;
 // This defines the local frame test suite
 TEST(__plugin, translated_cylinder)
 {
-    // Create a shifted plane
+    // Create a translated cylinder and test untersection
     transform3 shifted(vector3{3., 2., 10.});
     cylinder3<scalar> cylinder = {4., -10., 10.};
     cylinder_intersector ci;
@@ -62,7 +62,7 @@ TEST(__plugin, concentric_cylinders)
 {
     using cylinder_surface = surface<transform3, int, int>;
 
-    // Create a shifted plane
+    // Create a concentric cylinder and test intersection
     scalar r = 4.;
     scalar hz = 10.;
     transform3 identity(vector3{0., 0., 0.});
@@ -76,23 +76,23 @@ TEST(__plugin, concentric_cylinders)
     // The same but bound
     __plugin::cylindrical2 cylindrical2;
     auto hit_cylinrical = ci.intersect(identity, ori, dir, cylindrical2, cylinder);
-    auto hit_cocylinrical = cci.intersect(identity, ori, dir, cylindrical2, cylinder);
+    auto hit_cocylindrical = cci.intersect(identity, ori, dir, cylindrical2, cylinder);
 
     ASSERT_TRUE(hit_cylinrical.status== intersection_status::e_inside);
-    ASSERT_TRUE(hit_cocylinrical.status== intersection_status::e_inside);
+    ASSERT_TRUE(hit_cocylindrical.status== intersection_status::e_inside);
     ASSERT_TRUE(hit_cylinrical.direction == intersectiondirection::e_along);
-    ASSERT_TRUE(hit_cocylinrical.direction == intersectiondirection::e_along);
+    ASSERT_TRUE(hit_cocylindrical.direction == intersectiondirection::e_along);
 
     ASSERT_NEAR(getter::perp(hit_cylinrical.point3), r, isclose);
-    ASSERT_NEAR(getter::perp(hit_cocylinrical.point3), r, isclose);
+    ASSERT_NEAR(getter::perp(hit_cocylindrical.point3), r, isclose);
 
-    ASSERT_NEAR(hit_cylinrical.point3[0], hit_cocylinrical.point3[0], isclose);
-    ASSERT_NEAR(hit_cylinrical.point3[1], hit_cocylinrical.point3[1], isclose);
-    ASSERT_NEAR(hit_cylinrical.point3[2], hit_cocylinrical.point3[2], isclose);
+    ASSERT_NEAR(hit_cylinrical.point3[0], hit_cocylindrical.point3[0], isclose);
+    ASSERT_NEAR(hit_cylinrical.point3[1], hit_cocylindrical.point3[1], isclose);
+    ASSERT_NEAR(hit_cylinrical.point3[2], hit_cocylindrical.point3[2], isclose);
     ASSERT_TRUE(hit_cylinrical.point2 != std::nullopt);
-    ASSERT_TRUE(hit_cocylinrical.point2 != std::nullopt);
-    ASSERT_NEAR(hit_cylinrical.point2.value()[0], hit_cocylinrical.point2.value()[0], isclose);
-    ASSERT_NEAR(hit_cylinrical.point2.value()[1], hit_cocylinrical.point2.value()[1], isclose);
+    ASSERT_TRUE(hit_cocylindrical.point2 != std::nullopt);
+    ASSERT_NEAR(hit_cylinrical.point2.value()[0], hit_cocylindrical.point2.value()[0], isclose);
+    ASSERT_NEAR(hit_cylinrical.point2.value()[1], hit_cocylindrical.point2.value()[1], isclose);
 }
 
 // Google Test can be run manually from the main() function
