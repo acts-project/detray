@@ -10,15 +10,20 @@
 
 namespace detray
 {
-    /** A zone finder based on a grid */
+    /** A zone finder based on a grid 
+     * 
+     * @tparam grit_type is the type of the underlying grid object 
+     */
     template <typename grid_type>
     struct local_zone_finder
     {
         grid_type _grid;
-        darray<unsigned int, 2> _nhood = {0, 0};
         bool _sort = true;
 
         /** Constructor from grid 
+         * 
+         * @param grid is the prepared object/index grid, it will be moved into the 
+         * the local finder object
          **/
         local_zone_finder(grid_type &&grid)
             : _grid(std::move(grid)) {}
@@ -31,10 +36,17 @@ namespace detray
          * @note return a zone around a bin
          **/
         template <typename point2_type>
-        auto operator()(const point2_type &p2) const
+        auto operator()(const point2_type &p2, const darray<unsigned int, 2> &nhood = {0, 0}) const
         {
-            return _grid.zone(p2, _nhood, _sort);
+            return _grid.zone(p2, nhood, _sort);
         }
+
+        /** Const access to the grid */
+        const grid_type& grid() const { return _grid; }
+
+        /** Non-const access to the grid */
+        grid_type& grid() { return _grid; }
+
     };
 
     /** A zone finder for a single object */
@@ -57,10 +69,11 @@ namespace detray
          * @note return always the same bin 
          **/
         template <typename point2_type>
-        dvector<value_type> operator()(const point2_type &p2) const
+        dvector<value_type> operator()(const point2_type &p2, const darray<unsigned int, 2> &nhood = {0, 0}) const
         {
             return _value;
         }
+
     };
 
 } // namespace detray

@@ -37,7 +37,9 @@ namespace detray
     {
 
     public:
-        /** Constructor with name */
+        /** Constructor with name 
+         * @param name of the detector 
+        */
         detector(const std::string &name = "unkown") : _name(name) {}
 
         // Algebra
@@ -53,7 +55,7 @@ namespace detray
         using typed_dindex_range = dtuple<dindex, dindex_range>;
 
         // Surface finding function
-        using local_object_finder = std::function<dvector<dindex>(const point2 &)>;
+        using local_object_finder = std::function<dvector<dindex>(const point2 &, const darray<unsigned int,2 > &)>;
 
         /** Nested volume class */
         struct volume

@@ -113,15 +113,16 @@ namespace detray
         {
             auto zone0 = _axis_p0.zone(p2[0], nhood[0]);
             auto zone1 = _axis_p1.zone(p2[1], nhood[1]);
-
+            
             dvector<typename populator_type::bare_value> zone;
             for (const auto z1 : zone1)
             {
                 for (const auto z0 : zone0)
                 {
-                    auto bindata = _data_serialized[_serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, z0, z1)];
-                    auto bincontent = _populator.sequence(bindata);
-                    zone.insert(zone.end(), bincontent.begin(), bincontent.end());
+                    auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, z0, z1);
+                    auto bin_data = _data_serialized[sbin];
+                    auto bin_content = _populator.sequence(bin_data);
+                    zone.insert(zone.end(), bin_content.begin(), bin_content.end());
                 }
             }
             if (sort)
@@ -135,7 +136,7 @@ namespace detray
         const axis_p0_type &axis_p0() const { return _axis_p0; }
 
         /** Const access to axis p1 */
-        const axis_p1_type &axis_p1() const { return _axis_p0; }
+        const axis_p1_type &axis_p1() const { return _axis_p1; }
 
         /* Copy of axes in a tuple */
         dtuple<axis_p0_type, axis_p1_type> axes() const { return std::tie(_axis_p0, _axis_p1); }
