@@ -18,8 +18,8 @@ add_detray_test(eigen_ring2
 add_detray_test(eigen_single3
                 eigen_single3.cpp detray::eigen)
 
-add_detray_test(eigen_single_layer_detector
-                eigen_single_layer_detector.cpp detray::eigen)
+add_detray_test(eigen_single_layer_components
+                eigen_single_layer_components.cpp detray::eigen)
 
 add_detray_test(eigen_trapezoid2
                 eigen_trapezoid2.cpp detray::eigen)
