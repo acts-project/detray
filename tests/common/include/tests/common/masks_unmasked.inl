@@ -19,10 +19,9 @@ TEST(mask, unmasked)
     local_type::point2 p2 = {0.5, -9.};
 
     unmasked<scalar> u;
-    ASSERT_TRUE(u.is_inside<local_type>(p2));
-    ASSERT_TRUE(u.is_inside<local_type>(p2, 1.));
-    ASSERT_TRUE(u.is_inside<local_type>(p2, 1., 2.));
-
+    ASSERT_TRUE(u.is_inside<local_type>(p2) == e_hit);
+    ASSERT_TRUE(u.is_inside<local_type>(p2, true) == e_hit);
+    ASSERT_TRUE(u.is_inside<local_type>(p2, false) == e_missed);
 }
 
 // Google Test can be run manually from the main() function

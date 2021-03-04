@@ -37,6 +37,7 @@ namespace detray
          * 
          * Non-contextual part:
          * @param mask the local mask 
+         * @param tolerance is the mask specific tolerance
          * 
          * @return the intersection with optional parameters
          **/
@@ -45,9 +46,10 @@ namespace detray
         intersect(const transform_type &trf,
                   const track<transform_type> &track,
                   const local_type &local,
-                  const mask_type &mask) const
+                  const mask_type &mask,
+                  const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon) const
         {
-            return intersect(trf, track.pos, track.dir, local, mask, track.overstep_tolerance);
+            return intersect(trf, track.pos, track.dir, local, mask, tolerance, track.overstep_tolerance);
         }
 
         /** Intersection method for cylindrical surfaces
@@ -64,6 +66,8 @@ namespace detray
          * 
          * Non-contextual part:
          * @param mask the local mask 
+         * @param tolerance is the mask specific tolerance
+         * @param overstep_tolerance  is the stepping specific tolerance
          * 
          * @return the intersection with optional parameters
          **/
@@ -74,6 +78,7 @@ namespace detray
                   const typename transform_type::vector3 &rd,
                   const local_type &local,
                   const mask_type &mask,
+                  const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon,
                   scalar overstep_tolerance = 0.) const
         {
             using intersection = intersection<scalar, typename transform_type::point3, typename local_type::point2>;
@@ -104,7 +109,7 @@ namespace detray
                     is.point3 = ro + is.path * rd;
                     is.point2 = local(trf, is.point3);
                     auto local3 = trf.point_to_local(is.point3);
-                    is.status = mask.template is_inside<transform_type>(local3);
+                    is.status = mask.template is_inside<transform_type>(local3, tolerance);
                     scalar rdr = getter::perp(local3 + 10 * std::numeric_limits<scalar>::epsilon() * rd);
                     is.direction = rdr > r ? e_along : e_opposite;
                     return is;

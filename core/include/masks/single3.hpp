@@ -26,6 +26,8 @@ namespace detray
     struct single3
     {
 
+        using mask_tolerance = scalar_type;
+
         using mask_values = darray<scalar_type, 1>;
 
         mask_values _values=
@@ -34,6 +36,8 @@ namespace detray
         links_type _links;
 
         static constexpr unsigned int mask_identifier = kMaskIdentifier;
+
+        static constexpr mask_tolerance within_epsilon = std::numeric_limits<scalar_type>::epsilon();
 
         /** Assignment operator from an array, convenience function
          * 
@@ -49,17 +53,16 @@ namespace detray
         /** Mask operation 
          * 
          * @tparam point3_type is the type of the point to be checked w.r.t. to
-         * the mask bounds, it's assumed to be within the cylinder 3D frame
+         * the mask bounds
          * 
          * @param p the point to be checked
-         * @param t0 is the tolerance in local 0 (radius)
-         * @param t1 is the tolerance in local 1 (z)
+         * @param t is the tolerance of the single parameter
          * 
          * @return an intersection status e_inside / e_outside
          **/
         template <typename local_type>
         intersection_status is_inside(const typename local_type::point3 &p,
-                                       scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
+                                      const mask_tolerance& t = within_epsilon) const
         {     
             return (std::abs(p[kCheckIndex]) <= _values[0] + t) ? e_inside : e_outside;
         }
