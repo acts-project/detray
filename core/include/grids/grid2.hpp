@@ -114,6 +114,7 @@ namespace detray
             auto zone1 = _axis_p1.zone(p2[1], nhood[1]);
 
             dvector<typename populator_type::bare_value> zone;
+            zone.reserve(10);
             for (const auto z1 : zone1)
             {
                 for (const auto z0 : zone0)
