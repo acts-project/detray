@@ -37,13 +37,13 @@ TEST(mask, ring2)
     ASSERT_TRUE(r2.is_inside<polar>(p2_pl_edge) == intersection_status::e_inside);
     ASSERT_TRUE(r2.is_inside<polar>(p2_pl_out) == intersection_status::e_outside);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(r2.is_inside<polar>(p2_pl_out, 1.2, 1.2) == intersection_status::e_inside);
+    ASSERT_TRUE(r2.is_inside<polar>(p2_pl_out, 1.2) == intersection_status::e_inside);
 
     ASSERT_TRUE(r2.is_inside<cartesian>(p2_c_in) == intersection_status::e_inside);
     ASSERT_TRUE(r2.is_inside<cartesian>(p2_c_edge) == intersection_status::e_inside);
     ASSERT_TRUE(r2.is_inside<cartesian>(p2_c_out) == intersection_status::e_outside);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(r2.is_inside<cartesian>(p2_c_out, 1.45, 1.45) == intersection_status::e_inside);
+    ASSERT_TRUE(r2.is_inside<cartesian>(p2_c_out, 1.45) == intersection_status::e_inside);
 }
 
 // Google Test can be run manually from the main() function

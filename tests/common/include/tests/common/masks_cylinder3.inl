@@ -37,7 +37,7 @@ TEST(mask, cylinder3)
     ASSERT_TRUE(c.is_inside<local_type>(p3_out) == intersection_status::e_outside);
     ASSERT_TRUE(c.is_inside<local_type>(p3_off) == intersection_status::e_missed);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(c.is_inside<local_type>(p3_out, 0., 0.6) == intersection_status::e_inside);
+    ASSERT_TRUE(c.is_inside<local_type>(p3_out, {0., 0.6}) == intersection_status::e_inside);
 }
 
 // Google Test can be run manually from the main() function

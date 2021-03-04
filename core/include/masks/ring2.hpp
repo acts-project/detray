@@ -26,6 +26,8 @@ namespace detray
               unsigned int kMaskIdentifier = 2>
     struct ring2
     {
+        using mask_tolerance = scalar_type;
+
         using mask_values = darray<scalar_type, 2>;
 
         mask_values _values = {0., std::numeric_limits<scalar_type>::infinity()};
@@ -33,6 +35,9 @@ namespace detray
         links_type _links;
 
         static constexpr unsigned int mask_identifier = kMaskIdentifier;
+
+        static constexpr mask_tolerance within_epsilon 
+            = std::numeric_limits<scalar_type>::epsilon();
 
         /** Assignment operator from an array, convenience function
          * 
@@ -51,22 +56,20 @@ namespace detray
          * the mask bounds
          * 
          * @param p the point to be checked
-         * @param t0 is the tolerance in local 0
-         * @param t1 is the tolerance in local 1 and is ignored in polar coord.
+         * @param t is the tolerance in r
          * 
          * @return an intersection status e_inside / e_outside
          **/
         template<typename local_type>
         intersection_status is_inside(const typename local_type::point2 &p,
-                                       scalar_type t0 = std::numeric_limits<scalar_type>::epsilon(),
-                                       scalar_type t1 = std::numeric_limits<scalar_type>::epsilon()) const
+                                      const mask_tolerance &t = within_epsilon) const
         {
             if constexpr(std::is_same_v<local_type, __plugin::cartesian2>) {
                scalar_type r = getter::perp(p);
-               return (r + t0 >= _values[0] and r <= _values[1] + t0) ? e_inside : e_outside;
+               return (r + t >= _values[0] and r <= _values[1] + t) ? e_inside : e_outside;
             }
 
-            return (p[0] + t0 >= _values[0] and p[0] <= _values[1] + t0) ? e_inside : e_outside;
+            return (p[0] + t >= _values[0] and p[0] <= _values[1] + t) ? e_inside : e_outside;
         }
 
 

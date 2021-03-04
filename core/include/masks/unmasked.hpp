@@ -15,7 +15,11 @@ namespace detray
     template <typename scalar_type = std::nullopt_t>
     struct unmasked
     {
-                
+
+        using mask_tolerance = bool;
+
+        static constexpr mask_tolerance within_epsilon = true;
+
         /** Mask operation 
          * 
          * @tparam point_type is the type of the point to be checked w.r.t. to
@@ -26,9 +30,10 @@ namespace detray
          * @return a bool that is ture if inside
          **/
         template <typename local_type>
-        intersection_status is_inside(const typename local_type::point2 & /*ignored*/) const
+        intersection_status is_inside(const typename local_type::point2 & /*ignored*/,
+                                      const mask_tolerance& t = within_epsilon) const
         {
-            return e_hit;
+            return t ? e_hit : e_missed;
         }
 
         /** Mask operation 

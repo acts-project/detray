@@ -36,6 +36,7 @@ namespace detray
          * 
          * Non-contextual part:
          * @param mask the local mask 
+         * @param tolerance is the mask specific tolerance
          * 
          * @return the intersection with optional parameters
          **/
@@ -44,7 +45,8 @@ namespace detray
         intersect(const transform_type &trf,
                   const track<transform_type> &track,
                   const local_type &local,
-                  const mask_type &mask) const
+                  const mask_type &mask,
+                  const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon) const
         {
             return intersect(trf, track.pos, track.dir, local, mask, track.overstep_tolerance);
         }
@@ -63,16 +65,19 @@ namespace detray
          * 
          * Non-contextual part:
          * @param mask the local mask 
+         * @param tolerance is the mask specific tolerance
+         * @param overstep_tolerance  is the stepping specific tolerance
          * 
          * @return the intersection with optional parameters
          **/
         template <typename transform_type, typename local_type, typename mask_type>
         intersection<scalar, typename transform_type::point3, typename local_type::point2>
-        intersect(const transform_type &/*trf*/,
+        intersect(const transform_type & /*trf*/,
                   const typename transform_type::point3 &ro,
                   const typename transform_type::vector3 &rd,
                   const local_type &local,
                   const mask_type &mask,
+                  const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon,
                   scalar overstep_tolerance = 0.) const
         {
             using intersection = intersection<scalar, typename transform_type::point3, typename local_type::point2>;

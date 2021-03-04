@@ -238,7 +238,7 @@ namespace
                     {
                         scalar z = -0.5 * world + iz * sz;
 
-                        if (c.is_inside<local_type>(point3{x, y, z}, 0.1, 0.) == e_inside)
+                        if (c.is_inside<local_type>(point3{x, y, z}, {0.1, 0.}) == e_inside)
                         {
                             ++inside;
                         }
