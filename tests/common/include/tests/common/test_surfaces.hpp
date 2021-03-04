@@ -46,51 +46,99 @@ namespace detray
         return return_surfaces;
     }
 
+    using cylinder_point2 = __plugin::cylindrical2::point2;
+    using disc_point2 = __plugin::polar2::point2;
+    using endcap_surface_finder = std::function<dvector<dindex>(const disc_point2 &, const darray<unsigned int, 2> &)>;
+
     /** This method creates a barrel description of surfaces
      * 
-     * @param r_inner The inner radius of the endcap disc
-     * @param r_outer The outer radius of the endcap disc
-     * @param z_pos The nominal z position of the endcap disc
+     * @param inner_r The inner radius of the endcap disc
+     * @param outer_r The outer radius of the endcap disc
+     * @param pos_z The nominal z position of the endcap disc
      * @param stagger_z The possible staggering in z 
-     * @param n_phi_half The half number of modules in phi
+     * @param n_phi The number of modules in phi
      * @param overlap_phi The overlap in phi coverage (approximated)
+     * @param volume_inner_r the volume inner radius for the local finder
+     * @param volume_outer_r the volume outer radius for the local finder
+     * @param volumer_min_z the volume minimum z
+     * @param volume_max_z the volume maximumz
+     * @param transform_offset The offset for the transform grid
      * 
      * @returns a tuple for rectangle descriptions and transforms
      */
-    dtuple<darray<scalar, 3>, dvector<transform3> > endcap_description(scalar r_inner,
-                                                                       scalar r_outer,
-                                                                       scalar z_pos,
-                                                                       scalar stagger_z,
-                                                                       unsigned int n_phi_half,
-                                                                       scalar overlap_phi)
+    dtuple<darray<scalar, 3>, dvector<transform3>, dvector<endcap_surface_finder> >
+    create_endcap_components(scalar inner_r,
+                             scalar outer_r,
+                             scalar pos_z,
+                             scalar stagger_z,
+                             unsigned int n_phi,
+                             scalar overlap_phi,
+                             scalar volume_inner_r,
+                             scalar volume_outer_r,
+                             scalar volume_min_z,
+                             scalar volume_max_z,
+                             unsigned int transform_offset = 0)
     {
-        scalar module_inner_lx = r_inner * M_PI * (1 + overlap_phi) / (n_phi_half);
-        scalar module_outer_lx = r_inner * M_PI * (1 + overlap_phi) / (n_phi_half);
-        scalar module_hy = 0.5 * (r_outer - r_inner);
+        scalar module_inner_lx = 2 * inner_r * M_PI * (1 + overlap_phi) / (n_phi);
+        scalar module_outer_lx = 2 * outer_r * M_PI * (1 + overlap_phi) / (n_phi);
+        scalar module_hy = 0.5 * (outer_r - inner_r);
 
         darray<scalar, 3> trapezoid_values = {0.5 * module_inner_lx, 0.5 * module_outer_lx, module_hy};
-        scalar step_phi = M_PI / n_phi_half;
+        scalar step_phi = 2 * M_PI / n_phi;
         dvector<transform3> transforms;
 
-        scalar r = 0.5 * (r_inner + r_outer);
+        // Prepare the local finders
+        replace_populator<> replacer;
+        serializer2 serializer;
 
-        for (unsigned int iphi = 0; iphi < 2 * n_phi_half; ++iphi)
+        // Declare the inner, outer, ecn, ecp object finder
+        axis::circular<> rphi_axis_inner = {n_phi, -volume_inner_r * (M_PI + 0.5 * step_phi), volume_inner_r * (M_PI - 0.5 * step_phi)};
+        axis::closed<> z_axis_inner = {1, volume_min_z, volume_max_z};
+        axis::circular<> rphi_axis_outer = {n_phi, -volume_outer_r * (M_PI + 0.5 * step_phi), volume_outer_r * (M_PI - 0.5 * step_phi)};
+        axis::closed<> z_axis_outer = {1, volume_min_z, volume_max_z};
+        axis::closed<> r_axis_ecn = {1, volume_inner_r, volume_outer_r};
+        axis::circular<> phi_axis_ecn = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
+        axis::closed<> r_axis_ecp = {1, volume_inner_r, volume_outer_r};
+        axis::circular<> phi_axis_ecp = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
+
+        using cylinder_grid = grid2<decltype(replacer), decltype(rphi_axis_inner), decltype(z_axis_inner), decltype(serializer)>;
+        using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn), decltype(phi_axis_ecn), decltype(serializer)>;
+
+        cylinder_grid ec_grid_inner(std::move(rphi_axis_inner), std::move(z_axis_inner));
+        cylinder_grid ec_grid_outer(std::move(rphi_axis_outer), std::move(z_axis_inner));
+        disc_grid ec_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn));
+        disc_grid ec_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp));
+
+        scalar r = 0.5 * (inner_r + outer_r);
+
+        for (unsigned int iphi = 0; iphi < n_phi; ++iphi)
         {
             scalar phi = -M_PI + iphi * step_phi;
+
+            // Populate the grids
+            ec_grid_inner.populate(cylinder_point2{volume_inner_r * phi, pos_z}, transforms.size() + transform_offset);
+            ec_grid_outer.populate(cylinder_point2{volume_outer_r * phi, pos_z}, transforms.size() + transform_offset);
+            ec_grid_n.populate(disc_point2{r, phi}, transforms.size() + transform_offset);
+            ec_grid_p.populate(disc_point2{r, phi}, transforms.size() + transform_offset);
+
             scalar z_addon = (iphi % 2) ? -stagger_z : stagger_z;
             scalar cos_phi = std::cos(phi);
             scalar sin_phi = std::sin(phi);
-            point3 p = {r * cos_phi, r * sin_phi, z_pos + z_addon};
+            point3 p = {r * cos_phi, r * sin_phi, pos_z + z_addon};
             vector3 z = {0., 0., 1.};
-            vector3 x = {-sin_phi, cos_phi, 0.};
+            vector3 x = {sin_phi, -cos_phi, 0.};
             transforms.push_back(transform3(p, z, x));
         }
-        return {trapezoid_values, transforms};
+
+        local_zone_finder<cylinder_grid> inner_finder(std::move(ec_grid_inner));
+        local_zone_finder<cylinder_grid> outer_finder(std::move(ec_grid_outer));
+        local_zone_finder<disc_grid> ecn_finder(std::move(ec_grid_n));
+        local_zone_finder<disc_grid> ecp_finder(std::move(ec_grid_p));
+
+        return {trapezoid_values, transforms, {inner_finder, outer_finder, ecn_finder, ecp_finder}};
     }
 
-    using barrel_point2 = __plugin::cylindrical2::point2;
-    using endcap_point2 = __plugin::polar2::point2;
-    using barrel_surface_finder = std::function<dvector<dindex>(const barrel_point2 &, const darray<unsigned int, 2> &)>;
+    using barrel_surface_finder = std::function<dvector<dindex>(const cylinder_point2 &, const darray<unsigned int, 2> &)>;
 
     /** This method creates a barrel description of surfaces
      * 
@@ -104,6 +152,7 @@ namespace detray
      * @param volume_inner_r The volume inner r
      * @param volume_outer_r The volume outer r
      * @param volume_length_z The volume half length
+     * @param transform_offset The offset for the transform grid
      * 
      * @returns a tuple for rectangle descriptions, transforms, object finders
      */
@@ -118,7 +167,8 @@ namespace detray
                              unsigned int n_z,
                              scalar volume_inner_r,
                              scalar volume_outer_r,
-                             scalar volume_half_z)
+                             scalar volume_half_z,
+                             unsigned int transform_offset = 0)
     {
         // Estimate module dimensions
         scalar module_lx = 2 * r * M_PI * (1 + overlap_rphi) / n_phi;
@@ -145,13 +195,13 @@ namespace detray
         axis::closed<> r_axis_ecp = {1, volume_inner_r, volume_outer_r};
         axis::circular<> phi_axis_ecp = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
 
-        using barrel_grid = grid2<decltype(replacer), decltype(rphi_axis_inner), decltype(z_axis_inner), decltype(serializer)>;
-        using ec_grid = grid2<decltype(replacer), decltype(r_axis_ecn), decltype(phi_axis_ecn), decltype(serializer)>;
+        using cylinder_grid = grid2<decltype(replacer), decltype(rphi_axis_inner), decltype(z_axis_inner), decltype(serializer)>;
+        using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn), decltype(phi_axis_ecn), decltype(serializer)>;
 
-        barrel_grid barrel_grid_inner(std::move(rphi_axis_inner), std::move(z_axis_inner));
-        barrel_grid barrel_grid_outer(std::move(rphi_axis_outer), std::move(z_axis_inner));
-        ec_grid ec_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn));
-        ec_grid ec_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp));
+        cylinder_grid barrel_grid_inner(std::move(rphi_axis_inner), std::move(z_axis_inner));
+        cylinder_grid barrel_grid_outer(std::move(rphi_axis_outer), std::move(z_axis_inner));
+        disc_grid barrel_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn));
+        disc_grid barrel_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp));
 
         for (unsigned int iz = 0; iz < n_z; ++iz)
         {
@@ -160,15 +210,15 @@ namespace detray
             {
                 scalar phi = -M_PI + iphi * step_phi;
                 // Populate the grids
-                barrel_grid_inner.populate(barrel_point2{volume_inner_r * phi, pos_z}, transforms.size());
-                barrel_grid_outer.populate(barrel_point2{volume_outer_r * phi, pos_z}, transforms.size());
+                barrel_grid_inner.populate(cylinder_point2{volume_inner_r * phi, pos_z}, transforms.size() + transform_offset);
+                barrel_grid_outer.populate(cylinder_point2{volume_outer_r * phi, pos_z}, transforms.size() + transform_offset);
                 if (iz == 0)
                 {
-                    ec_grid_n.populate(endcap_point2{r, phi}, transforms.size());
+                    barrel_grid_n.populate(disc_point2{r, phi}, transforms.size() + transform_offset);
                 }
                 if (iz == n_z - 1)
                 {
-                    ec_grid_p.populate(endcap_point2{r, phi}, transforms.size());
+                    barrel_grid_p.populate(disc_point2{r, phi}, transforms.size() + transform_offset);
                 }
                 // Finally create the transform
                 scalar r_addon = (iz % 2) ? -stagger_r : stagger_r;
@@ -179,10 +229,10 @@ namespace detray
             }
         }
 
-        local_zone_finder<barrel_grid> inner_finder(std::move(barrel_grid_inner));
-        local_zone_finder<barrel_grid> outer_finder(std::move(barrel_grid_outer));
-        local_zone_finder<ec_grid> ecn_finder(std::move(ec_grid_n));
-        local_zone_finder<ec_grid> ecp_finder(std::move(ec_grid_p));
+        local_zone_finder<cylinder_grid> inner_finder(std::move(barrel_grid_inner));
+        local_zone_finder<cylinder_grid> outer_finder(std::move(barrel_grid_outer));
+        local_zone_finder<disc_grid> ecn_finder(std::move(barrel_grid_n));
+        local_zone_finder<disc_grid> ecp_finder(std::move(barrel_grid_p));
 
         return {rectangle_bounds, transforms, {inner_finder, outer_finder, ecn_finder, ecp_finder}};
     }
