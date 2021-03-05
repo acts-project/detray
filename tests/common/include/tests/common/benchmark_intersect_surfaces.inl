@@ -42,7 +42,7 @@ namespace __plugin
         unsigned int sfhit = 0;
         unsigned int sfmiss = 0;
 
-        rectangle2<scalar> rect = {10., 20.};
+        rectangle2<> rect = {10., 20.};
         point3 ori = {0., 0., 0.};
 
         for (auto _ : state)
@@ -90,7 +90,7 @@ namespace __plugin
         unsigned int sfhit = 0;
         unsigned int sfmiss = 0;
 
-        using cylinder_mask = cylinder3<scalar,false,cylinder_intersector>;
+        using cylinder_mask = cylinder3<false,cylinder_intersector>;
         dvector<cylinder_mask> cylinders;
         for (auto r : dists)
         {
@@ -145,7 +145,7 @@ namespace __plugin
         unsigned int sfhit = 0;
         unsigned int sfmiss = 0;
 
-        using cylinder_mask = cylinder3<scalar,false,concentric_cylinder_intersector>;
+        using cylinder_mask = cylinder3<false,concentric_cylinder_intersector>;
         dvector<cylinder_mask> cylinders;
         for (auto r : dists)
         {

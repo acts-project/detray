@@ -19,8 +19,8 @@ using namespace __plugin;
 // This tests the construction of a surface
 TEST(mask, tuple)
 {
-    using rectangle_masks = dvector<rectangle2<scalar>>;
-    using cylinder_masks = dvector<cylinder3<scalar>>;
+    using rectangle_masks = dvector<rectangle2<>>;
+    using cylinder_masks = dvector<cylinder3<>>;
 
     rectangle_masks rectangles;
     cylinder_masks cylinders;

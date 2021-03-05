@@ -26,7 +26,7 @@ TEST(mask, cylinder3)
     point3 p3_out = {static_cast<scalar>(r / std::sqrt(2.)), static_cast<scalar>(r / std::sqrt(2.)), 4.5};
     point3 p3_off = {1., 1., -9.};
 
-    cylinder3<scalar> c = {r, -hz, hz};
+    cylinder3<> c = {r, -hz, hz};
 
     ASSERT_EQ(c[0], r);
     ASSERT_EQ(c[1], -hz);

@@ -101,13 +101,13 @@ namespace detray
          **/
         using portal_links = darray<dindex, 4>;
 
-        using portal_rectangle_mask = rectangle2<scalar, planar_intersector, portal_links>;
+        using portal_rectangle_mask = rectangle2<planar_intersector, portal_links>;
         using portal_rectangles = dvector<portal_rectangle_mask>;
-        using protal_trapezoid_mask = trapezoid2<scalar, planar_intersector, portal_links>;
+        using protal_trapezoid_mask = trapezoid2<planar_intersector, portal_links>;
         using portal_trapezoids = dvector<protal_trapezoid_mask>;
-        using portal_cylinder_mask = cylinder3<scalar, false, concentric_cylinder_intersector, portal_links>;
+        using portal_cylinder_mask = cylinder3<false, concentric_cylinder_intersector, portal_links>;
         using portal_cylinders = dvector<portal_cylinder_mask>;
-        using portal_disc_mask = ring2<scalar, planar_intersector, portal_links>;
+        using portal_disc_mask = ring2<planar_intersector, portal_links>;
         using portal_discs = dvector<portal_disc_mask>;
         using portal_type_map = dmap<dindex, dindex>;
         using portal_surface = surface<dindex, typed_dindex_range, dindex>;
@@ -228,10 +228,10 @@ namespace detray
          * Internal surfaces are all kind of navigation surfaces within a volume
          * 
          **/
-        using rectangle_mask = rectangle2<scalar>;
-        using trapezoid_mask = trapezoid2<scalar>;
-        using cylinder_mask = cylinder3<scalar, false, concentric_cylinder_intersector>;
-        using disc_mask = ring2<scalar, planar_intersector>;
+        using rectangle_mask = rectangle2<>;
+        using trapezoid_mask = trapezoid2<>;
+        using cylinder_mask = cylinder3<false, concentric_cylinder_intersector>;
+        using disc_mask = ring2<planar_intersector>;
         using rectangles = dvector<rectangle_mask>;
         using trapezoids = dvector<trapezoid_mask>;
         using cylinders = dvector<cylinder_mask>;

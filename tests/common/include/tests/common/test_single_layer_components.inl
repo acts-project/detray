@@ -188,7 +188,7 @@ TEST(__plugin, barrel_object_finding)
     std::uniform_real_distribution<scalar> dist_theta(0.1, M_PI - 0.1);
 
     transform3 identity(vector3{0., 0., 0.});
-    cylinder3<scalar, false> cylinder = {vr_inner, -vz_half, vz_half};
+    cylinder3<false> cylinder = {vr_inner, -vz_half, vz_half};
 
     // Cylindrical and Cartesian local frames
     __plugin::cylindrical2 cylindrical2;
@@ -199,7 +199,7 @@ TEST(__plugin, barrel_object_finding)
     // Check if the finders make sense
     auto inner_finder = barrel_finders[0];
 
-    rectangle2<scalar> rect = {barrel_module[0], barrel_module[1]};
+    rectangle2<> rect = {barrel_module[0], barrel_module[1]};
 
     // Cross check
     unsigned int hit_modules_found = 0;
@@ -415,7 +415,7 @@ TEST(__plugin, endcap_object_finding)
     std::uniform_real_distribution<scalar> dist_theta(min_theta, max_theta);
 
     transform3 shift(vector3{0., 0., volume_min_z});
-    ring2<scalar> disc = {volume_inner_r, volume_outer_r};
+    ring2<> disc = {volume_inner_r, volume_outer_r};
 
     // Cylindrical and Cartesian local frames
     __plugin::cylindrical2 cylindrical2;
@@ -427,7 +427,7 @@ TEST(__plugin, endcap_object_finding)
     // Check if the finders make sense
     auto nec_finder = endcap_finders[2];
 
-    trapezoid2<scalar> trap = {endcap_module[0], endcap_module[1], endcap_module[2]};
+    trapezoid2<> trap = {endcap_module[0], endcap_module[1], endcap_module[2]};
 
     // Cross check
     unsigned int hit_modules_found = 0;

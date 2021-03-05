@@ -19,47 +19,50 @@ namespace detray
     /** This is a 2-dimensional mask for the annulus geometry that is
      *  e.g. used for the itk strip endcaps.
      * 
+     * @tparam intersector_type is a struct used for intersecting this cylinder
+     * @tparam links_type is an object where the mask can link to 
+     * @tparam kMaskIdentifier is a unique mask identifier in a program context
+     *
      * It is defined by the two radii _values[0] and  _values[1] in the polar
      * coordinate system of and endcap strip module, as well as the two phi 
      * boundaries, _values[2] and _values[3], that are only easily definable in 
      * the local strips system (relative to the average Phi along the 
      * strips r coordinate). Using a conversion between the two coordinate 
-     * systems, these boundaries can be checked with a tolerance in r (t0 and 
-     * t1), as well as phi (t3 and t3). 
+     * systems, these boundaries can be checked with a tolerance in r (t[0] and 
+     * t[1]), as well as phi (t[3] and t[3]). 
      * Due to the local polar coordinate system of the strips needing a 
      * different origin from the discs polar one, three additional conversion
      * parameters are included (_values[4], values[5], _values[6]).
      * Here, the first two are the origin shift in xy, while _values[6] is the 
      * average Phi angle mentioned above.
      **/
-    template <typename scalar_type,
-              typename intersector_type = planar_intersector,
+    template <typename intersector_type = planar_intersector,
               typename links_type = bool,
               unsigned int kMaskIdentifier = e_annulus2>
     struct annulus2
     {
-        using mask_tolerance = darray<scalar_type, 2>;
+        using mask_tolerance = darray<scalar, 2>;
 
-        using mask_values = darray<scalar_type, 7>;
+        using mask_values = darray<scalar, 7>;
 
-        mask_values _values = {0., std::numeric_limits<scalar_type>::infinity(),
-                               -std::numeric_limits<scalar_type>::infinity(),
-                               std::numeric_limits<scalar_type>::infinity(),
+        mask_values _values = {0., std::numeric_limits<scalar>::infinity(),
+                               -std::numeric_limits<scalar>::infinity(),
+                               std::numeric_limits<scalar>::infinity(),
                                0., 0., 0.};
 
         links_type _links;
 
         static constexpr unsigned int mask_identifier = kMaskIdentifier;
 
-        static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar_type>::epsilon(),
-                                                           std::numeric_limits<scalar_type>::epsilon()};
+        static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar>::epsilon(),
+                                                           std::numeric_limits<scalar>::epsilon()};
 
         /** Assignment operator from an array, convenience function
          * 
          * @param rhs is the right hand side object
          **/
-        annulus2<scalar_type, intersector_type, links_type, kMaskIdentifier> &
-        operator=(const darray<scalar_type, 7> &rhs)
+        annulus2<intersector_type, links_type, kMaskIdentifier> &
+        operator=(const darray<scalar, 7> &rhs)
         {
             _values = rhs;
             return (*this);
@@ -85,18 +88,18 @@ namespace detray
             if constexpr (std::is_same_v<local_type, __plugin::cartesian2>)
             {
                 // Calculate radial coordinate in module system:
-                scalar_type x_mod = p[0] - _values[4];
-                scalar_type y_mod = p[1] - _values[5];
-                scalar_type r_mod2 = x_mod * x_mod + y_mod * y_mod;
+                scalar x_mod = p[0] - _values[4];
+                scalar y_mod = p[1] - _values[5];
+                scalar r_mod2 = x_mod * x_mod + y_mod * y_mod;
 
                 // apply tolerances
-                scalar_type minR_tol = _values[0] - t[0];
-                scalar_type maxR_tol = _values[1] + t[0];
+                scalar minR_tol = _values[0] - t[0];
+                scalar maxR_tol = _values[1] + t[0];
 
                 if (r_mod2 < minR_tol * minR_tol or r_mod2 > maxR_tol * maxR_tol)
                     return e_outside;
 
-                scalar_type phi_strp = getter::phi(p) - _values[6];
+                scalar phi_strp = getter::phi(p) - _values[6];
                 // Check phi boundaries, which are well def. in local frame
                 return (phi_strp >= _values[2] - t[1] and phi_strp <= _values[3] + t[1]) ? e_inside : e_outside;
             }
@@ -104,7 +107,7 @@ namespace detray
             else
             {
                 // For a point p in local polar coordinates, rotate by avr phi
-                scalar_type phi_strp = p[1] - _values[6];
+                scalar phi_strp = p[1] - _values[6];
 
                 // Check phi boundaries, which are well def. in local frame
                 if (phi_strp < _values[2] - t[1] || phi_strp > _values[3] + t[1])
@@ -113,15 +116,15 @@ namespace detray
                 // Now go to module frame to check r boundaries. Use the origin shift
                 // in polar coordinates for that
                 typename local_type::point2 shift_xy = {-1 * _values[4], -1 * _values[5]};
-                scalar_type shift_r = getter::perp(shift_xy);
-                scalar_type shift_phi = getter::phi(shift_xy);
+                scalar shift_r = getter::perp(shift_xy);
+                scalar shift_phi = getter::phi(shift_xy);
 
-                scalar_type r_mod2 = shift_r * shift_r + p[0] * p[0] +
+                scalar r_mod2 = shift_r * shift_r + p[0] * p[0] +
                                      2 * shift_r * p[0] * std::cos(phi_strp - shift_phi);
 
                 // apply tolerances
-                scalar_type minR_tol = _values[0] - t[0];
-                scalar_type maxR_tol = _values[1] + t[0];
+                scalar minR_tol = _values[0] - t[0];
+                scalar maxR_tol = _values[1] + t[0];
 
                 return (r_mod2 >= minR_tol * minR_tol and r_mod2 <= maxR_tol * maxR_tol) ? e_inside : e_outside;
             }
@@ -133,7 +136,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const darray<scalar_type, 2> &rhs)
+        bool operator==(const darray<scalar, 2> &rhs)
         {
             return (_values == rhs);
         }
@@ -144,7 +147,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const annulus2<scalar_type> &rhs)
+        bool operator==(const annulus2<> &rhs)
         {
             return operator==(rhs._values);
         }
@@ -152,7 +155,7 @@ namespace detray
         /** Access operator - non-const
          * @return the reference to the member variable
          */
-        scalar_type &operator[](unsigned int value_index)
+        scalar &operator[](unsigned int value_index)
         {
             return _values[value_index];
         }
@@ -160,7 +163,7 @@ namespace detray
         /** Access operator - non-const
          * @return a copy of the member variable
          */
-        scalar_type operator[](unsigned int value_index) const
+        scalar operator[](unsigned int value_index) const
         {
             return _values[value_index];
         }
