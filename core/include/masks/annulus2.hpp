@@ -122,7 +122,7 @@ namespace detray
                 scalar r_mod2 = shift_r * shift_r + p[0] * p[0] +
                                      2 * shift_r * p[0] * std::cos(phi_strp - shift_phi);
 
-                // apply tolerances
+                // Apply tolerances
                 scalar minR_tol = _values[0] - t[0];
                 scalar maxR_tol = _values[1] + t[0];
 
