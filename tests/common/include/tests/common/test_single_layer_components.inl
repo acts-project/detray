@@ -23,6 +23,7 @@
 #include <gtest/gtest.h>
 
 bool write_files = false;
+bool test_against_all = true;
 unsigned int tests = 100000;
 
 scalar r = 32.;
@@ -248,18 +249,21 @@ TEST(__plugin, barrel_object_finding)
             }
 
             // Now loop over all candidates: heuristic case, cross-check
-            for (unsigned int itf = 0; itf < barrel_transforms.size(); ++itf)
+            if (test_against_all)
             {
-                auto hit_plane_try = pi.intersect(barrel_transforms[itf], hit_cocylindrical.point3, dir, cart2, rect);
-                if (hit_plane_try.status == intersection_status::e_inside and hit_plane_try.path > 0.)
+                for (unsigned int itf = 0; itf < barrel_transforms.size(); ++itf)
                 {
-                    ++hit_modules_heuristic;
-                    if (write_files)
+                    auto hit_plane_try = pi.intersect(barrel_transforms[itf], hit_cocylindrical.point3, dir, cart2, rect);
+                    if (hit_plane_try.status == intersection_status::e_inside and hit_plane_try.path > 0.)
                     {
-                        heuristic_points
-                            << hit_plane_try.point3[0] << ", "
-                            << hit_plane_try.point3[1] << ", "
-                            << hit_plane_try.point3[2] << "\n";
+                        ++hit_modules_heuristic;
+                        if (write_files)
+                        {
+                            heuristic_points
+                                << hit_plane_try.point3[0] << ", "
+                                << hit_plane_try.point3[1] << ", "
+                                << hit_plane_try.point3[2] << "\n";
+                        }
                     }
                 }
             }
@@ -273,7 +277,10 @@ TEST(__plugin, barrel_object_finding)
         heuristic_points.close();
     }
 
-    ASSERT_EQ(hit_modules_found, hit_modules_heuristic);
+    if (test_against_all)
+    {
+        ASSERT_EQ(hit_modules_found, hit_modules_heuristic);
+    }
 }
 
 scalar inner_r = 32.;
@@ -478,18 +485,21 @@ TEST(__plugin, endcap_object_finding)
         }
 
         // Now loop over all candidates: heuristic case, cross-check
-        for (unsigned int itf = 0; itf < endcap_transforms.size(); ++itf)
+        if (test_against_all)
         {
-            auto hit_plane_try = pi.intersect(endcap_transforms[itf], hit_disc.point3, dir, cart2, trap);
-            if (hit_plane_try.status == intersection_status::e_inside and hit_plane_try.path > 0.)
+            for (unsigned int itf = 0; itf < endcap_transforms.size(); ++itf)
             {
-                ++hit_modules_heuristic;
-                if (write_files)
+                auto hit_plane_try = pi.intersect(endcap_transforms[itf], hit_disc.point3, dir, cart2, trap);
+                if (hit_plane_try.status == intersection_status::e_inside and hit_plane_try.path > 0.)
                 {
-                    heuristic_points
-                        << hit_plane_try.point3[0] << ", "
-                        << hit_plane_try.point3[1] << ", "
-                        << hit_plane_try.point3[2] << "\n";
+                    ++hit_modules_heuristic;
+                    if (write_files)
+                    {
+                        heuristic_points
+                            << hit_plane_try.point3[0] << ", "
+                            << hit_plane_try.point3[1] << ", "
+                            << hit_plane_try.point3[2] << "\n";
+                    }
                 }
             }
         }
@@ -502,7 +512,10 @@ TEST(__plugin, endcap_object_finding)
         heuristic_points.close();
     }
 
-    ASSERT_EQ(hit_modules_found, hit_modules_heuristic);
+    if (test_against_all)
+    {
+        ASSERT_EQ(hit_modules_found, hit_modules_heuristic);
+    }
 }
 
 // Google Test can be run manually from the main() function
