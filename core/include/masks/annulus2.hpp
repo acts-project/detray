@@ -134,9 +134,8 @@ namespace detray
          * 
          * @param rhs is the rectangle to be compared with
          * 
-         * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const darray<scalar, 2> &rhs)
+        bool operator==(const darray<scalar, 7> &rhs)
         {
             return (_values == rhs);
         }
@@ -145,7 +144,6 @@ namespace detray
          * 
          * @param rhs is the rectangle to be compared with
          * 
-         * checks identity within epsilon and @return s a boolean*
          **/
         bool operator==(const annulus2<> &rhs)
         {
