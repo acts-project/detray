@@ -114,17 +114,36 @@ namespace detray
             auto zone1 = _axis_p1.zone(p2[1], nhood[1]);
 
             dvector<typename populator_type::bare_value> zone;
-            zone.reserve(10);
-            for (const auto z1 : zone1)
+
+            // Specialization for bare value equal to store value
+            if constexpr (std::is_same_v<typename populator_type::bare_value, typename populator_type::store_value>)
             {
-                for (const auto z0 : zone0)
+                unsigned int iz = 0;
+                zone = dvector<typename populator_type::bare_value>(zone0.size() * zone1.size(), {});
+                for (const auto z1 : zone1)
                 {
-                    auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, z0, z1);
-                    auto bin_data = _data_serialized[sbin];
-                    auto bin_content = _populator.sequence(bin_data);
-                    zone.insert(zone.end(), bin_content.begin(), bin_content.end());
+                    for (const auto z0 : zone0)
+                    {
+                        auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, z0, z1);
+                        zone[iz++] =  _data_serialized[sbin];
+                    }
                 }
             }
+            else
+            {
+                zone.reserve(10);
+                for (const auto z1 : zone1)
+                {
+                    for (const auto z0 : zone0)
+                    {
+                        auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, z0, z1);
+                        auto bin_data = _data_serialized[sbin];
+                        auto bin_content = _populator.sequence(bin_data);
+                        zone.insert(zone.end(), bin_content.begin(), bin_content.end());
+                    }
+                }
+            }
+
             if (sort)
             {
                 std::sort(zone.begin(), zone.end());
