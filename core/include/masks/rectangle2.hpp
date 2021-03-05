@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "masks/mask_identifier.hpp"
 #include "core/intersection.hpp"
 #include "utils/containers.hpp"
 #include "tools/planar_intersector.hpp"
@@ -18,36 +19,40 @@ namespace detray
 
     /** This is a simple 2-dimensional mask for a regular rectangle
      * 
+     * @tparam intersector_type is a struct used for intersecting this cylinder
+     * @tparam links_type is an object where the mask can link to 
+     * @tparam kMaskIdentifier is a unique mask identifier in a program context
+     * 
      * It is defined by half length in local0 coordinates _values[0] and _values[1], 
-     * and can be checked with a tolerance in t0 and t1.
+     * and can be checked with a tolerance in t[0] and t[1].
+     * 
      **/
-    template <typename scalar_type,
-              typename intersector_type = planar_intersector,
+    template <typename intersector_type = planar_intersector,
               typename links_type = bool,
-              unsigned int kMaskIdentifier = 0>
+              unsigned int kMaskIdentifier = e_rectangle2>
     struct rectangle2
     {
-        using mask_tolerance = darray<scalar_type, 2>;
+        using mask_tolerance = darray<scalar, 2>;
 
-        using mask_values = darray<scalar_type, 2>;
+        using mask_values = darray<scalar, 2>;
 
         mask_values _values =
-            {std::numeric_limits<scalar_type>::infinity(),
-             std::numeric_limits<scalar_type>::infinity()};
+            {std::numeric_limits<scalar>::infinity(),
+             std::numeric_limits<scalar>::infinity()};
 
         links_type _links;
 
         static constexpr unsigned int mask_identifier = kMaskIdentifier;
 
-        static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar_type>::epsilon(),
-                                                           std::numeric_limits<scalar_type>::epsilon()};
+        static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar>::epsilon(),
+                                                           std::numeric_limits<scalar>::epsilon()};
 
         /** Assignment operator from an array, convenience function
          * 
          * @param rhs is the right hand side object
          **/
-        rectangle2<scalar_type, intersector_type, links_type, kMaskIdentifier> &
-        operator=(const darray<scalar_type, 2> &rhs)
+        rectangle2<intersector_type, links_type, kMaskIdentifier> &
+        operator=(const darray<scalar, 2> &rhs)
         {
             _values = rhs;
             return (*this);
@@ -76,7 +81,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const darray<scalar_type, 2> &rhs)
+        bool operator==(const darray<scalar, 2> &rhs)
         {
             return (_values == rhs);
         }
@@ -87,7 +92,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const rectangle2<scalar_type> &rhs)
+        bool operator==(const rectangle2<> &rhs)
         {
             return operator==(rhs._values);
         }
@@ -95,7 +100,7 @@ namespace detray
         /** Access operator - non-const
          * @return the reference to the member variable
          */
-        scalar_type &operator[](unsigned int value_index)
+        scalar &operator[](unsigned int value_index)
         {
             return _values[value_index];
         }
@@ -103,7 +108,7 @@ namespace detray
         /** Access operator - non-const
          * @return a copy of the member variable
          */
-        scalar_type operator[](unsigned int value_index) const
+        scalar operator[](unsigned int value_index) const
         {
             return _values[value_index];
         }

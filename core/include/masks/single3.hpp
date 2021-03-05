@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "masks/mask_identifier.hpp"
 #include "core/intersection.hpp"
 #include "utils/containers.hpp"
 #include "tools/planar_intersector.hpp"
@@ -17,36 +18,40 @@ namespace detray
 {
     /** This is a simple mask for single parameter bound mask
      * 
+     * @tparam kCheckIndex is the index of the position on which the mask is applied
+     * @tparam intersector_type is a struct used for intersecting this cylinder
+     * @tparam links_type is an object where the mask can link to 
+     * @tparam kMaskIdentifier is a unique mask identifier in a program context
+     * 
      **/
-    template <typename scalar_type, 
-              unsigned int kCheckIndex, 
-              typename intersector_type = planar_intersector, 
+    template <unsigned int kCheckIndex,
+              typename intersector_type = planar_intersector,
               typename links_type = bool,
-              unsigned int kMaskIdentifier=4>
+              unsigned int kMaskIdentifier = e_single3>
     struct single3
     {
 
-        using mask_tolerance = scalar_type;
+        using mask_tolerance = scalar;
 
-        using mask_values = darray<scalar_type, 1>;
+        using mask_values = darray<scalar, 1>;
 
-        mask_values _values=
-            {std::numeric_limits<scalar_type>::infinity()};
+        mask_values _values =
+            {std::numeric_limits<scalar>::infinity()};
 
         links_type _links;
 
         static constexpr unsigned int mask_identifier = kMaskIdentifier;
 
-        static constexpr mask_tolerance within_epsilon = std::numeric_limits<scalar_type>::epsilon();
+        static constexpr mask_tolerance within_epsilon = std::numeric_limits<scalar>::epsilon();
 
         /** Assignment operator from an array, convenience function
          * 
          * @param rhs is the right hand side object
          **/
-        single3<scalar_type, kCheckIndex, intersector_type, links_type, kMaskIdentifier>&
-        operator=(const darray<scalar_type, 1> &rhs)
+        single3<kCheckIndex, intersector_type, links_type, kMaskIdentifier> &
+        operator=(const darray<scalar, 1> &rhs)
         {
-            _values= rhs;
+            _values = rhs;
             return (*this);
         }
 
@@ -62,8 +67,8 @@ namespace detray
          **/
         template <typename local_type>
         intersection_status is_inside(const typename local_type::point3 &p,
-                                      const mask_tolerance& t = within_epsilon) const
-        {     
+                                      const mask_tolerance &t = within_epsilon) const
+        {
             return (std::abs(p[kCheckIndex]) <= _values[0] + t) ? e_inside : e_outside;
         }
 
@@ -71,20 +76,18 @@ namespace detray
          * 
          * @param rhs is the rectangle to be compared with
          * 
-         * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const darray<scalar_type, 2> &rhs)
+        bool operator==(const darray<scalar, 1> &rhs)
         {
-            return (_values== rhs);
+            return (_values == rhs);
         }
 
         /** Equality operator 
          * 
          * @param rhs is the rectangle to be compared with
          * 
-         * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const single3<scalar_type, kCheckIndex> &rhs)
+        bool operator==(const single3<kCheckIndex> &rhs)
         {
             return operator==(rhs._values);
         }
@@ -92,7 +95,7 @@ namespace detray
         /** Access operator - non-const
          * @return the reference to the member variable
          */
-        scalar_type &operator[](unsigned int value_index)
+        scalar &operator[](unsigned int value_index)
         {
             return _values[value_index];
         }
@@ -100,7 +103,7 @@ namespace detray
         /** Access operator - non-const
          * @return a copy of the member variable
          */
-        scalar_type operator[](unsigned int value_index) const
+        scalar operator[](unsigned int value_index) const
         {
             return _values[value_index];
         }
@@ -113,7 +116,6 @@ namespace detray
 
         /** Return the volume link - non-const access */
         links_type &links() { return _links; }
-
     };
 
 } // namespace detray

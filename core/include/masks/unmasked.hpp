@@ -12,7 +12,6 @@
 
 namespace detray
 {
-    template <typename scalar_type = std::nullopt_t>
     struct unmasked
     {
 
@@ -46,7 +45,7 @@ namespace detray
          * @return a bool that is ture if inside
          **/
         template <typename local_type>
-        bool is_inside(const typename local_type::point2 & /*ignored*/, scalar_type /*ignored*/) const
+        bool is_inside(const typename local_type::point2 & /*ignored*/, scalar /*ignored*/) const
         {
             return true;
         }
@@ -61,7 +60,7 @@ namespace detray
          * @return a bool that is ture if inside
          **/
         template <typename local_type>
-        bool is_inside(const typename local_type::point2 & /*ignored*/, scalar_type /*ignored*/, scalar_type /*ignored*/) const
+        bool is_inside(const typename local_type::point2 & /*ignored*/, scalar /*ignored*/, scalar /*ignored*/) const
         {
             return true;
         }

@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "masks/mask_identifier.hpp"
 #include "core/intersection.hpp"
 #include "utils/containers.hpp"
 #include "tools/cylinder_intersector.hpp"
@@ -18,41 +19,42 @@ namespace detray
 {
     /** This is a simple mask for a full cylinder
      * 
-     * @tparam scalar_type the primitive scalar type
      * @tparam kRadialCheck is a boolean to steer wheter the radius compatibility needs to be checked
+     * @tparam intersector_type is a struct used for intersecting this cylinder
+     * @tparam links_type is an object where the mask can link to 
+     * @tparam kMaskIdentifier is a unique mask identifier in a program context
      * 
      * It is defined by r and the half length.
      **/
-    template <typename scalar_type,
-              bool kRadialCheck = true,
+    template <bool kRadialCheck = true,
               typename intersector_type = detray::cylinder_intersector,
               typename links_type = bool,
-              unsigned int kMaskIdentifier = 3>
+              unsigned int kMaskIdentifier = e_cylinder3>
     struct cylinder3
     {
 
-        using mask_tolerance = darray<scalar_type, 3>;
+        using mask_tolerance = darray<scalar, 3>;
 
-        using mask_values = darray<scalar_type, 3>;
+        using mask_values = darray<scalar, 3>;
 
         mask_values _values =
-            {std::numeric_limits<scalar_type>::infinity(),
-             -std::numeric_limits<scalar_type>::infinity(),
-             std::numeric_limits<scalar_type>::infinity()};
+            {std::numeric_limits<scalar>::infinity(),
+             -std::numeric_limits<scalar>::infinity(),
+             std::numeric_limits<scalar>::infinity()};
 
         links_type _links;
 
         static constexpr unsigned int mask_identifier = kMaskIdentifier;
 
-        static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar_type>::epsilon(),
-                                                           std::numeric_limits<scalar_type>::epsilon()};
+        static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar>::epsilon(),
+                                                          std::numeric_limits<scalar>::epsilon()};
 
         /** Assignment operator from an array, convenience function
          * 
          * @param rhs is the right hand side object
          **/
-        cylinder3<scalar_type, kRadialCheck, intersector_type, links_type, kMaskIdentifier> &
-        operator=(const darray<scalar_type, 3> &rhs)
+        cylinder3<kRadialCheck, intersector_type, links_type, kMaskIdentifier> &
+        operator=(const darray<scalar, 3> &rhs)
         {
             _values = rhs;
             return (*this);
@@ -74,8 +76,8 @@ namespace detray
         {
             if (kRadialCheck)
             {
-                scalar_type r = getter::perp(p);
-                if (std::abs(r - _values[0]) >= t[0] + 5 * std::numeric_limits<scalar_type>::epsilon())
+                scalar r = getter::perp(p);
+                if (std::abs(r - _values[0]) >= t[0] + 5 * std::numeric_limits<scalar>::epsilon())
                 {
                     return e_missed;
                 }
@@ -89,7 +91,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const darray<scalar_type, 3> &rhs)
+        bool operator==(const darray<scalar, 3> &rhs)
         {
             return (_values == rhs);
         }
@@ -100,7 +102,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const cylinder3<scalar_type> &rhs)
+        bool operator==(const cylinder3<> &rhs)
         {
             return operator==(rhs._values);
         }
@@ -108,7 +110,7 @@ namespace detray
         /** Access operator - non-const
          * @return the reference to the member variable
          */
-        scalar_type &operator[](unsigned int value_index)
+        scalar &operator[](unsigned int value_index)
         {
             return _values[value_index];
         }
@@ -116,7 +118,7 @@ namespace detray
         /** Access operator - non-const
          * @return a copy of the member variable
          */
-        scalar_type operator[](unsigned int value_index) const
+        scalar operator[](unsigned int value_index) const
         {
             return _values[value_index];
         }

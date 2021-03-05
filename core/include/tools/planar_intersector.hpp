@@ -70,7 +70,7 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename transform_type, typename local_type = unbound, typename mask_type = unmasked<>>
+        template <typename transform_type, typename local_type = unbound, typename mask_type = unmasked>
         intersection<scalar, typename transform_type::point3, typename local_type::point2>
         intersect(const transform_type &trf,
                   const typename transform_type::point3 &ro,
@@ -96,9 +96,8 @@ namespace detray
                 is.path = vector::dot(sn, (st - ro)) / (denom);
                 is.point3 = ro + is.path * rd;
                 is.point2 = local(trf, is.point3);
-                is.status 
-                    = mask.template is_inside<local_type>(
-                            is.point2.value_or(typename local_type::point2()), tolerance);
+                is.status = mask.template is_inside<local_type>(
+                    is.point2.value_or(typename local_type::point2()), tolerance);
                 is.direction = denom > 0 ? e_along : e_opposite;
                 return is;
             }

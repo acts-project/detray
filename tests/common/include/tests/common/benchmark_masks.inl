@@ -37,7 +37,7 @@ namespace
         using local_type = __plugin::cartesian2;
         using point2 = local_type::point2;
 
-        rectangle2<scalar> r = {3, 4};
+        rectangle2<> r = {3, 4};
 
         scalar world = 10.;
         scalar area = 4 * r[0] * r[1];
@@ -82,7 +82,7 @@ namespace
         using local_type = __plugin::cartesian2;
         using point2 = local_type::point2;
 
-        trapezoid2<scalar> t = {2, 3, 4};
+        trapezoid2<> t = {2, 3, 4};
 
         scalar world = 10.;
         scalar area = 2 * (t[0] + t[1]) * t[2];
@@ -127,7 +127,7 @@ namespace
         using local_type = __plugin::cartesian2;
         using point2 = local_type::point2;
 
-        ring2<scalar> r = {0., 5.};
+        ring2<> r = {0., 5.};
 
         scalar world = 10.;
         scalar area = r[1] * r[1] * M_PI;
@@ -171,7 +171,7 @@ namespace
         using local_type = __plugin::cartesian2;
         using point2 = local_type::point2;
 
-        ring2<scalar> r = {2., 5.};
+        ring2<> r = {2., 5.};
 
         scalar world = 10.;
         scalar area = (r[1] * r[1] - r[0] * r[0]) * M_PI;
@@ -215,7 +215,7 @@ namespace
         using local_type = __plugin::transform3;
         using point3 = local_type::point3;
 
-        cylinder3<scalar> c = {3., 5.};
+        cylinder3<> c = {3., 5.};
 
         scalar world = 10.;
 
@@ -263,7 +263,7 @@ namespace
         using local_type = __plugin::cartesian2;
         using point2 = local_type::point2;
 
-        annulus2<scalar> ann = {2.5, 5., -0.64299, 4.13173, 1., 0.5};
+        annulus2<> ann = {2.5, 5., -0.64299, 4.13173, 1., 0.5};
 
         scalar world = 10.;
 

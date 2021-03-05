@@ -18,7 +18,7 @@ TEST(mask, unmasked)
     using local_type = __plugin::cartesian2;
     local_type::point2 p2 = {0.5, -9.};
 
-    unmasked<scalar> u;
+    unmasked u;
     ASSERT_TRUE(u.is_inside<local_type>(p2) == e_hit);
     ASSERT_TRUE(u.is_inside<local_type>(p2, true) == e_hit);
     ASSERT_TRUE(u.is_inside<local_type>(p2, false) == e_missed);

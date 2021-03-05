@@ -24,8 +24,8 @@
 namespace detray
 {
 
-    using rectangles = dvector<rectangle2<scalar>>;
-    using trapezoids = dvector<trapezoid2<scalar>>;
+    using rectangles = dvector<rectangle2<>>;
+    using trapezoids = dvector<trapezoid2<>>;
 
     template <typename surface_type>
     struct csv_layer

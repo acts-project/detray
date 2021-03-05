@@ -26,7 +26,7 @@ TEST(mask, trapezoid2)
     scalar hx_maxy = 3.;
     scalar hy = 2.;
 
-    trapezoid2<scalar> t2 = {hx_miny, hx_maxy, hy};
+    trapezoid2<> t2 = {hx_miny, hx_maxy, hy};
 
     ASSERT_EQ(t2[0], hx_miny);
     ASSERT_EQ(t2[1], hx_maxy);
