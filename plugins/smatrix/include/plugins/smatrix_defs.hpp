@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils/containers.hpp"
+
 #include "Math/SMatrix.h"
 #include "Math/SVector.h"
 
@@ -25,15 +27,18 @@ namespace detray
     // smatrix getter methdos
     namespace getter
     {
+
         /** This method retrieves phi from a vector, vector base with rows > 2
          * 
          * @param v the input vector 
          **/
-        template <unsigned int kDIM>
-        auto phi(const SVector<scalar, kDIM> &v) noexcept
+        template <typename vec_expr_type>
+        auto phi(const vec_expr_type &v) noexcept
         {
-            static_assert(kDIM >= 2, "vector::phi() required rows >= 2.");
-            return std::atan2(v[0], v[1]);
+            //static_assert(kDIM >= 2, "vector::perp() required rows >= 2.");
+            scalar element0 = v.apply(0);
+            scalar element1 = v.apply(1);
+            return std::atan2(element1, element0);
         }
 
         /** This method retrieves theta from a vector, vector base with rows >= 3
@@ -43,7 +48,7 @@ namespace detray
         template <unsigned int kDIM>
         auto theta(const SVector<scalar, kDIM> &v) noexcept
         {
-            static_assert(kDIM > 2, "vector::theta() required rows > 2.");
+            static_assert(kDIM > 2, "vector::theta() required rows >= 3.");
             return std::atan2(std::sqrt(v[0] * v[0] + v[1] * v[1]), v[2]);
         }
 
@@ -54,7 +59,7 @@ namespace detray
         template <unsigned int kDIM>
         auto norm(const SVector<scalar, kDIM> &v)
         {
-            return ROOT::Math::Dot(v, v);
+            return std::sqrt(ROOT::Math::Dot(v, v));
         }
 
         /** This method retrieves the pseudo-rapidity from a vector or vector base with rows >= 3
@@ -64,7 +69,7 @@ namespace detray
         template <unsigned int kDIM>
         auto eta(const SVector<scalar, kDIM> &v) noexcept
         {
-            static_assert(kDIM > 2, "vector::eta() required rows > 2.");
+            static_assert(kDIM > 2, "vector::eta() required rows >= 3.");
             return std::atanh(v[2] / norm(v));
         }
 
@@ -72,11 +77,13 @@ namespace detray
          * 
          * @param v the input vector 
          **/
-        template <unsigned int kDIM>
-        auto perp(const SVector<scalar, kDIM> &v) noexcept
+        template <typename vec_expr_type>
+        auto perp(const vec_expr_type &v) noexcept
         {
-            static_assert(kDIM >= 2, "vector::perp() required rows >= 2.");
-            return std::sqrt(v[0] * v[0] + v[1] * v[1]);
+            //static_assert(kDIM >= 2, "vector::perp() required rows >= 2.");
+            scalar element0 = v.apply(0);
+            scalar element1 = v.apply(1);
+            return std::sqrt(element0 * element0 + element1 * element1);
         }
 
         /** This method retrieves a column from a matrix
@@ -128,6 +135,7 @@ namespace detray
             transform3(const vector3 &t, const vector3 &z, const vector3 &x)
             {
                 auto y = Cross(z, x);
+
                 _data(0, 0) = x[0];
                 _data(1, 0) = x[1];
                 _data(2, 0) = x[2];
@@ -208,8 +216,15 @@ namespace detray
             }
 
             /** Default contructors */
+            transform3() = default;
             transform3(const transform3 &rhs) = default;
             ~transform3() = default;
+
+            /** Equality operator */
+            bool operator==(const transform3 &rhs) const
+            {
+                return _data == rhs._data;
+            }
 
             /** This method retrieves the rotation of a transform */
             auto rotation() const
@@ -229,40 +244,38 @@ namespace detray
                 return _data;
             }
 
-            /** This method retrieves the translation of a transform */
-            auto translation_inv() const
-            {
-                return (_data_inv.SubCol<SVector<scalar, 3>>(3, 0));
-            }
-
-            /** This method retrieves the rotation of a transform */
-            auto rotation_inv() const
-            {
-                return (_data_inv.Sub<SMatrix<scalar, 3, 3>>(0, 0));
-            }
-
             /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame */
             const point3 point_to_global(const point3 &v) const
             {
-                return translation() + (rotation_inv() * v);
+               SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
+               vector_4.Place_at(v, 0);
+               vector_4[3] = static_cast<scalar>(1);
+               return SVector<scalar, 4> (_data * vector_4).template Sub<SVector<scalar, 3> >(0);
             }
 
             /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame */
             const point3 point_to_local(const point3 &v) const
             {
-                return translation_inv() + (rotation_inv() * v);
+               SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
+               vector_4.Place_at(v, 0);
+               vector_4[3] = static_cast<scalar>(1);
+               return SVector<scalar, 4> (_data_inv * vector_4).template Sub<SVector<scalar, 3> >(0);
             }
 
             /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame */
             const point3 vector_to_global(const vector3 &v) const
             {
-                return rotation() * v;
+               SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
+               vector_4.Place_at(v, 0);
+               return SVector<scalar, 4> (_data * vector_4).template Sub<SVector<scalar, 3> >(0);
             }
 
             /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame */
             const point3 vector_to_local(const vector3 &v) const
             {
-                return rotation_inv() * v;
+               SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
+               vector_4.Place_at(v, 0);
+               return SVector<scalar, 4> (_data_inv * vector_4).template Sub<SVector<scalar, 3> >(0);
             }
         };
 
@@ -405,8 +418,8 @@ namespace detray
          * 
          * @return a vector (expression) representing the cross product
          **/
-        template <typename vector3_type>
-        auto cross(const vector3_type &a, const vector3_type &b)
+        template <typename vector3_type, typename vecexpr3_type>
+        auto cross(const vecexpr3_type &a, const vector3_type &b)
         {
             return ROOT::Math::Cross(a, b);
         }

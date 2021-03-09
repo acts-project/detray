@@ -86,7 +86,7 @@ namespace detray
 
             // Two points on the line, thes are in the cylinder frame
             const auto &l0 = ro;
-            const auto l1 = ro + rd;
+            const auto l1 = typename transform_type::point3(ro + rd);
 
             // swap coorinates x/y for numerical stability
             bool swap_x_y = std::abs(rd[0]) < 1e-3;
