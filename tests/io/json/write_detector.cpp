@@ -7,7 +7,7 @@
 
 #include "plugins/array_defs.hpp"
 #include "tests/common/single_layer_detector.hpp"
-#include "json/json_core.hpp"
+#include "io/json_core.hpp"
 
 #include <fstream>
 

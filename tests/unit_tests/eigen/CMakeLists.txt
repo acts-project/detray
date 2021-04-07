@@ -35,6 +35,14 @@ add_detray_test(eigen_core
                 eigen_core.cpp
                 detray::eigen)
 
+add_detray_test(eigen_detector
+                eigen_detector.cpp
+                detray::eigen)
+
+add_detray_test(eigen_transform_store
+                eigen_transform_store.cpp
+                detray::eigen)
+
 add_detray_test(eigen_cylinder_intersection
                 eigen_cylinder_intersection.cpp
                 detray::eigen)
