@@ -54,8 +54,8 @@ namespace detray
 
         /// The Portal definition:
         ///  <transform_link, mask_link, volume_link, source_link >
-        using portal = surface<dindex, portal_mask_index, dindex, surface_source_link>;
-        using portals = dvector<portal>;
+        using portal_surface = surface<dindex, portal_mask_index, dindex, surface_source_link>;
+        using portals = dvector<portal_surface>;
 
         /// Surface components:
         /// - masks, with mask identifiers 0,1,2
@@ -68,8 +68,8 @@ namespace detray
 
         /// The Surface definition:
         ///  <transform_link, mask_link, volume_link, source_link >
-        using surface = surface<dindex, surface_mask_index, dindex, surface_source_link>;
-        using surfaces = dvector<surface>;
+        using detector_surface = surface<dindex, surface_mask_index, dindex, surface_source_link>;
+        using surfaces = dvector<detector_surface>;
 
         /// Nested volume struct that holds the local information of the
         /// volume and its portals.
