@@ -10,7 +10,7 @@
 #include "grids/grid2.hpp"
 #include "grids/populator.hpp"
 #include "grids/serializer2.hpp"
-#include "json/json_grids.hpp"
+#include "io/json_grids.hpp"
 
 #include <fstream>
 

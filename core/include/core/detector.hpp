@@ -8,6 +8,7 @@
 
 #include "core/intersection.hpp"
 #include "core/surface.hpp"
+#include "masks/annulus2.hpp"
 #include "masks/rectangle2.hpp"
 #include "masks/trapezoid2.hpp"
 #include "masks/cylinder3.hpp"
@@ -27,6 +28,13 @@
 
 namespace detray
 {
+
+    template <typename transform_type> using transform_store =  dvector<transform_type>;
+
+    using surface_rectangle = rectangle2<>;
+    using surface_trapezoid = trapezoid2<>;
+    using surface_annulus   = annulus2<>;
+
 
     /** Detector representation in detray.
      * 

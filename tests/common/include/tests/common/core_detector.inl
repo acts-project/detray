@@ -1,0 +1,64 @@
+/** Detray library, part of the ACTS project (R&D line)
+ * 
+ * (c) 2021 CERN for the benefit of the ACTS project
+ * 
+ * Mozilla Public License Version 2.0
+ */
+
+#include "core/proto_detector.hpp"
+#include "core/transform_store.hpp"
+
+#include <gtest/gtest.h>
+
+/// @note __plugin has to be defined with a preprocessor command
+
+// This tests the construction of a detector class
+TEST(__plugin, proto_detector)
+{
+    using namespace detray;
+    using namespace __plugin;
+
+    using detector = proto_detector<>;
+
+    static_transform_store::storage static_storage;   
+    static_transform_store::context ctx0;
+
+    detector::surface_masks masks;
+
+    /// Surface 0
+    transform3::point3 t0{0.,0.,0.};
+    transform3 tf0{t0};
+    static_storage.push_back(std::move(tf0));
+    detector::surface_rectangle rect = {-3.,3.};
+    std::get<detector::surface_rectangle::mask_identifier>(masks).push_back(rect);
+
+    /// Surface 1
+    transform3::point3 t1{1.,0.,0.};
+    transform3 tf1{t1};
+    static_storage.push_back(std::move(tf1));
+    detector::surface_annulus anns = {1.,2.,3.,4.,5.,6.,7.};
+    std::get<detector::surface_annulus::mask_identifier>(masks).push_back(anns);
+
+    /// Surface 2
+    transform3::point3 t2{2.,0.,0.};
+    transform3 tf2{t2};
+    static_storage.push_back(std::move(tf2));
+    detector::surface_trapezoid trap = {1.,2.,3.};
+    std::get<detector::surface_trapezoid::mask_identifier>(masks).push_back(trap);
+
+    detector d("test_detector");
+    auto& v = d.new_volume("test_volume"); 
+    v.add_contextual_transforms(ctx0, std::move(static_storage));
+
+}
+
+// Google Test can be run manually from the main() function
+// or, it can be linked to the gtest_main library for an already
+// set-up main() function primed to accept Google Test test cases.
+int main(int argc, char **argv)
+{
+    ::testing::InitGoogleTest(&argc, argv);
+
+    return RUN_ALL_TESTS();
+}
+

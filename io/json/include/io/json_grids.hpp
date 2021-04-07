@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "json/json_masks.hpp"
+#include "io/json_masks.hpp"
 
 #include <algorithm>
 
