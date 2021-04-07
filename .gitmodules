@@ -9,4 +9,4 @@
 	url = https://github.com/nlohmann/json.git
 [submodule "extern/dfelibs"]
 	path = extern/dfelibs
-	url = git@github.com:acts-project/dfelibs.git
+	url = https://github.com/acts-project/dfelibs.git
