@@ -1,3 +1,5 @@
+message(STATUS "Testing: 'detray' unit tests")
+
 mark_as_advanced(
     BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
     gmock_build_tests gtest_build_samples gtest_build_tests
@@ -8,9 +10,9 @@ include(GoogleTest)
 
 macro(add_detray_test TESTNAME FILES PLUGIN_LIBRARY)
     add_executable(${TESTNAME} ${FILES})
-    target_link_libraries(${TESTNAME} gtest gmock gtest_main)
-    target_link_libraries(${TESTNAME} detray::core detray::tests_common detray::tests_io)
-    target_link_libraries(${TESTNAME} ${PLUGIN_LIBRARY})
+    target_link_libraries(${TESTNAME} PRIVATE gtest gmock gtest_main)
+    target_link_libraries(${TESTNAME} PRIVATE detray::core detray::tests_common detray::tests_io)
+    target_link_libraries(${TESTNAME} PRIVATE  ${PLUGIN_LIBRARY} ${UNIT_TEST_EXTRA_LIBRARIES})
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
     add_test(unit_test_${TESTNAME} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TESTNAME})
     set_tests_properties(unit_test_${TESTNAME} PROPERTIES 

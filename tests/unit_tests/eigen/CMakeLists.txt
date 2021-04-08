@@ -54,3 +54,10 @@ add_detray_test(eigen_planar_intersection
 add_detray_test(eigen_read_detector
                 eigen_read_detector.cpp
                 detray::eigen)
+
+if (DETRAY_DISPLAY)
+    set(UNIT_TEST_EXTRA_LIBRARIES detray::display)
+    add_detray_test(eigen_display_masks
+                    eigen_display_masks.cpp
+                    detray::eigen)
+endif()

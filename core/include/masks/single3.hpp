@@ -21,13 +21,17 @@ namespace detray
      * @tparam kCheckIndex is the index of the position on which the mask is applied
      * @tparam intersector_type is a struct used for intersecting this cylinder
      * @tparam links_type is an object where the mask can link to 
-     * @tparam kMaskIdentifier is a unique mask identifier in a program context
+     * @tparam kMaskContext is a unique mask identifier in a certain context
+     * 
+     * @note  While the mask_context can change depending on the typed container
+     * structure the mask_identifier is a const expression that determines the
+     * mask type once for all.
      * 
      **/
     template <unsigned int kCheckIndex,
               typename intersector_type = planar_intersector,
               typename links_type = bool,
-              unsigned int kMaskIdentifier = e_single3>
+              unsigned int kMaskContext = e_single3>
     struct single3
     {
 
@@ -40,7 +44,9 @@ namespace detray
 
         links_type _links;
 
-        static constexpr unsigned int mask_identifier = kMaskIdentifier;
+        static constexpr unsigned int mask_context = kMaskContext;
+
+        static constexpr unsigned int mask_identifier = e_single3;
 
         static constexpr mask_tolerance within_epsilon = std::numeric_limits<scalar>::epsilon();
 
@@ -48,7 +54,7 @@ namespace detray
          * 
          * @param rhs is the right hand side object
          **/
-        single3<kCheckIndex, intersector_type, links_type, kMaskIdentifier> &
+        single3<kCheckIndex, intersector_type, links_type, kMaskContext> &
         operator=(const darray<scalar, 1> &rhs)
         {
             _values = rhs;
@@ -110,6 +116,9 @@ namespace detray
 
         /** Return an associated intersector type */
         intersector_type intersector() const { return intersector_type{}; };
+
+        /** Return the values */
+        const mask_values& values() const { return _values; }
 
         /** Return the volume link - const reference */
         const links_type &links() const { return _links; }

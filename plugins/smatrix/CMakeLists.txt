@@ -1,3 +1,5 @@
+message(STATUS "Building 'detray::smatrix' plugin")
+
 add_library(detray_smatrix INTERFACE)
 
 target_include_directories(detray_smatrix

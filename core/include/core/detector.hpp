@@ -142,7 +142,7 @@ namespace detray
             group.insert(group.end(), portals.begin(), portals.end());
             // Create a range of portal masks
             dindex_range range = {index_start, index_end};
-            dindex type = _portal_types.find(portal_type::mask_identifier)->second;
+            dindex type = _portal_types.find(portal_type::mask_context)->second;
             // Record the portal index
             volume.portal_surface_indices.push_back(_portal_surfaces.size());
             typed_dindex_range links = {type, range};
@@ -268,7 +268,7 @@ namespace detray
             mask_type mask;
             mask = mask_values;
             mask_group.push_back(std::move(mask));
-            dindex type = _surface_types.find(mask_type::mask_identifier)->second;
+            dindex type = _surface_types.find(mask_type::mask_context)->second;
             typed_dindex_range typed_mask_range = {type, {mask_index, mask_index}};
             for (auto transform : transforms)
             {
@@ -327,18 +327,18 @@ namespace detray
         dvector<transform_type> _portal_transforms;
         dvector<portal_surface> _portal_surfaces;
         dtuple<portal_rectangles, portal_trapezoids, portal_cylinders, portal_discs> _portal_masks;
-        portal_type_map _portal_types = {{rectangle_mask::mask_identifier, 0},
-                                         {trapezoid_mask::mask_identifier, 1},
-                                         {cylinder_mask::mask_identifier, 2},
-                                         {disc_mask::mask_identifier, 3}};
+        portal_type_map _portal_types = {{rectangle_mask::mask_context, 0},
+                                         {trapezoid_mask::mask_context, 1},
+                                         {cylinder_mask::mask_context, 2},
+                                         {disc_mask::mask_context, 3}};
 
         dvector<transform_type> _surface_transforms; //!< @todo change to contextual container
         dvector<detector_surface> _surfaces;
         dtuple<rectangles, trapezoids, cylinders, discs> _surface_masks;
-        surface_type_map _surface_types = {{rectangle_mask::mask_identifier, 0},
-                                           {trapezoid_mask::mask_identifier, 1},
-                                           {cylinder_mask::mask_identifier, 2},
-                                           {disc_mask::mask_identifier, 3}};
+        surface_type_map _surface_types = {{rectangle_mask::mask_context, 0},
+                                           {trapezoid_mask::mask_context, 1},
+                                           {cylinder_mask::mask_context, 2},
+                                           {disc_mask::mask_context, 3}};
 
         dvector<local_object_finder> _surface_finders = {};
     };

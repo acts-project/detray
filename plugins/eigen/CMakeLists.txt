@@ -1,5 +1,7 @@
 add_library(detray_eigen INTERFACE)
 
+message(STATUS "Building 'detray::eigen' plugin")
+
 target_include_directories(detray_eigen
   INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

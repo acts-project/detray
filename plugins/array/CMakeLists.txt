@@ -1,3 +1,5 @@
+message(STATUS "Building 'detray::array' plugin")
+
 add_library(detray_array INTERFACE)
 
 target_include_directories(detray_array

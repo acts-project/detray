@@ -21,15 +21,19 @@ namespace detray
      * 
      * @tparam intersector_type is a struct used for intersecting this cylinder
      * @tparam links_type is an object where the mask can link to 
-     * @tparam kMaskIdentifier is a unique mask identifier in a program context
+     * @tparam kMaskContext is a unique mask identifier in a certain context
      * 
      * It is defined by half length in local0 coordinates _values[0] and _values[1], 
      * and can be checked with a tolerance in t[0] and t[1].
      * 
+     * @note  While the mask_context can change depending on the typed container
+     * structure the mask_identifier is a const expression that determines the
+     * mask type once for all.
+     *  
      **/
     template <typename intersector_type = planar_intersector,
               typename links_type = bool,
-              unsigned int kMaskIdentifier = e_rectangle2>
+              unsigned int kMaskContext = e_rectangle2>
     struct rectangle2
     {
         using mask_tolerance = darray<scalar, 2>;
@@ -42,7 +46,9 @@ namespace detray
 
         links_type _links;
 
-        static constexpr unsigned int mask_identifier = kMaskIdentifier;
+        static constexpr unsigned int mask_context = kMaskContext;
+
+        static constexpr unsigned int mask_indentifier = e_rectangle2;
 
         static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar>::epsilon(),
                                                            std::numeric_limits<scalar>::epsilon()};
@@ -51,7 +57,7 @@ namespace detray
          * 
          * @param rhs is the right hand side object
          **/
-        rectangle2<intersector_type, links_type, kMaskIdentifier> &
+        rectangle2<intersector_type, links_type, kMaskContext> &
         operator=(const darray<scalar, 2> &rhs)
         {
             _values = rhs;
@@ -112,6 +118,9 @@ namespace detray
         {
             return _values[value_index];
         }
+
+        /** Return the values */
+        const mask_values& values() const { return _values; }
 
         /** Return an associated intersector type */
         intersector_type intersector() const { return intersector_type{}; };
