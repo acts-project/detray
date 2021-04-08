@@ -9,6 +9,8 @@
 
 #include "utils/containers.hpp"
 
+#include <cmath>
+
 namespace detray
 {
     using point3 = __plugin::transform3::point3;
@@ -122,7 +124,7 @@ namespace detray
             for (const auto &v : vertices)
             {
                 auto vg = tf.point_to_global(v);
-                scalar r = isnan(fixed_r) ? getter::perp(vg) : fixed_r;
+                scalar r = std::isnan(fixed_r) ? getter::perp(vg) : fixed_r;
                 x.push_back(r*getter::phi(vg));
                 y.push_back(vg[2]);
             }
