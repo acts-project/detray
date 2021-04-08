@@ -47,7 +47,7 @@ namespace detray
             njson mj;
             if (not masks.empty())
             {
-                mj["identifier"] = masks.begin()->mask_identifier;
+                mj["identifier"] = masks.begin()->mask_context;
                 njson mjs;
                 std::for_each(masks.begin(), masks.end(), [&](const auto &m) { mjs.push_back(write_mask(m)); });
                 mj["instances"] = mjs;

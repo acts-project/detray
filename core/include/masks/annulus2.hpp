@@ -21,7 +21,7 @@ namespace detray
      * 
      * @tparam intersector_type is a struct used for intersecting this cylinder
      * @tparam links_type is an object where the mask can link to 
-     * @tparam kMaskIdentifier is a unique mask identifier in a program context
+     * @tparam kMaskContext is a unique mask identifier in a certain context
      *
      * It is defined by the two radii _values[0] and  _values[1] in the polar
      * coordinate system of and endcap strip module, as well as the two phi 
@@ -35,10 +35,15 @@ namespace detray
      * parameters are included (_values[4], values[5], _values[6]).
      * Here, the first two are the origin shift in xy, while _values[6] is the 
      * average Phi angle mentioned above.
+     * 
+     * @note  While the mask_context can change depending on the typed container
+     * structure the mask_identifier is a const expression that determines the
+     * mask type once for all.
+     * 
      **/
     template <typename intersector_type = planar_intersector,
               typename links_type = bool,
-              unsigned int kMaskIdentifier = e_annulus2>
+              unsigned int kMaskContext = e_annulus2>
     struct annulus2
     {
         using mask_tolerance = darray<scalar, 2>;
@@ -52,7 +57,9 @@ namespace detray
 
         links_type _links;
 
-        static constexpr unsigned int mask_identifier = kMaskIdentifier;
+        static constexpr unsigned int mask_context = kMaskContext;
+
+        static constexpr unsigned int mask_identifier = e_annulus2;
 
         static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar>::epsilon(),
                                                            std::numeric_limits<scalar>::epsilon()};
@@ -61,7 +68,7 @@ namespace detray
          * 
          * @param rhs is the right hand side object
          **/
-        annulus2<intersector_type, links_type, kMaskIdentifier> &
+        annulus2<intersector_type, links_type, kMaskContext> &
         operator=(const darray<scalar, 7> &rhs)
         {
             _values = rhs;
@@ -168,6 +175,9 @@ namespace detray
 
         /** Return an associated intersector type */
         intersector_type intersector() const { return intersector_type{}; };
+
+        /** Return the values */
+        const mask_values& values() const { return _values; }
 
         /** Return the volume link - const reference */
         const links_type &links() const { return _links; }
