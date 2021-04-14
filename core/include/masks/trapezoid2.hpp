@@ -19,6 +19,7 @@ namespace detray
     /** This is a simple 2-dimensional mask for a regular trapezoid
      * 
      * @tparam intersector_type is a struct used for intersecting this cylinder
+     * @tparam local_type is the default local frame definition type
      * @tparam links_type is an object where the mask can link to 
      * @tparam kMaskContext is a unique mask identifier in a certain context
      *  
@@ -31,6 +32,7 @@ namespace detray
      *  
      **/
     template <typename intersector_type = planar_intersector,
+              typename local_type = __plugin::cartesian2,
               typename links_type = bool,
               unsigned int kMaskContext = e_trapezoid2>
     struct trapezoid2
@@ -46,19 +48,20 @@ namespace detray
 
         links_type _links;
 
+        local_type _local;
+
         static constexpr unsigned int mask_context = kMaskContext;
 
         static constexpr unsigned int mask_identifier = e_trapezoid2;
 
-        static constexpr mask_tolerance within_epsilon 
-            = { std::numeric_limits<scalar>::epsilon(), 
-                std::numeric_limits<scalar>::epsilon() };
+        static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar>::epsilon(),
+                                                          std::numeric_limits<scalar>::epsilon()};
 
         /** Assignment operator from an array, convenience function
          * 
          * @param rhs is the right hand side object
          **/
-        trapezoid2<intersector_type, links_type, kMaskContext> &
+        trapezoid2<intersector_type, local_type, links_type, kMaskContext> &
         operator=(const darray<scalar, 3> &rhs)
         {
             _values = rhs;
@@ -67,22 +70,20 @@ namespace detray
 
         /** Mask operation 
          * 
-         * @tparam point2_type is the type of the point to be checked w.r.t. to
-         * the mask bounds
+         * @tparam point2_type is the deduced type of the point to be checked 
+         * w.r.t. to the mask bounds
          * 
          * @param p the point to be checked
          * @param t us the tolerance tuple (l0,l1)
          * 
          * @return an intersection status e_inside / e_outside
          **/
-        template <typename local_type>
-        intersection_status is_inside(const typename local_type::point2 &p,
-                                      const mask_tolerance& t = within_epsilon) const
+        template <typename inside_local_type>
+        intersection_status is_inside(const typename inside_local_type::point2 &p,
+                                      const mask_tolerance &t = within_epsilon) const
         {
             scalar rel_y = (_values[2] + p[1]) / (2 * _values[2]);
-            return 
-                (std::abs(p[0]) <= _values[0] + rel_y * (_values[1] - _values[0]) + t[0] and std::abs(p[1]) <= _values[2] + t[1]) ? 
-                    e_inside : e_outside;
+            return (std::abs(p[0]) <= _values[0] + rel_y * (_values[1] - _values[0]) + t[0] and std::abs(p[1]) <= _values[2] + t[1]) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -127,14 +128,16 @@ namespace detray
         intersector_type intersector() const { return intersector_type{}; };
 
         /** Return the values */
-        const mask_values& values() const  { return _values; }
+        const mask_values &values() const { return _values; }
+
+        /** Return the local frame type - const access*/
+        const local_type &local() const { return _local; }
 
         /** Return the volume link - const reference */
         const links_type &links() const { return _links; }
 
         /** Return the volume link - non-const access */
         links_type &links() { return _links; }
-
     };
 
 } // namespace detray

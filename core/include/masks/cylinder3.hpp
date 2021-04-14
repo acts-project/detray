@@ -33,6 +33,7 @@ namespace detray
      **/
     template <bool kRadialCheck = true,
               typename intersector_type = detray::cylinder_intersector,
+              typename local_type = __plugin::cylindrical2,
               typename links_type = bool,
               unsigned int kMaskContext = e_cylinder3>
     struct cylinder3
@@ -49,6 +50,8 @@ namespace detray
 
         links_type _links;
 
+        local_type _local;
+
         static constexpr unsigned int mask_context = kMaskContext;
 
         static constexpr unsigned int mask_identifier = e_cylinder3;
@@ -60,7 +63,7 @@ namespace detray
          * 
          * @param rhs is the right hand side object
          **/
-        cylinder3<kRadialCheck, intersector_type, links_type, kMaskContext> &
+        cylinder3<kRadialCheck, intersector_type, local_type, links_type, kMaskContext> &
         operator=(const darray<scalar, 3> &rhs)
         {
             _values = rhs;
@@ -69,7 +72,7 @@ namespace detray
 
         /** Mask operation 
          * 
-         * @tparam point3_type is the type of the point to be checked w.r.t. to
+         * @tparam inside_local_type::point3 is the deduced type of the point to be checked w.r.t. to
          * the mask bounds, it's assumed to be within the cylinder 3D frame
          * 
          * @param p the point to be checked
@@ -77,8 +80,8 @@ namespace detray
          * 
          * @return an intersection status e_inside / e_outside
          **/
-        template <typename local_type>
-        intersection_status is_inside(const typename local_type::point3 &p,
+        template <typename inside_local_type>
+        intersection_status is_inside(const typename inside_local_type::point3 &p,
                                       const mask_tolerance &t = within_epsilon) const
         {
             if (kRadialCheck)
@@ -134,7 +137,10 @@ namespace detray
         intersector_type intersector() const { return intersector_type{}; };
 
         /** Return the values */
-        const mask_values& values() const { return _values; }
+        const mask_values &values() const { return _values; }
+
+        /** Return the local frame type - const access*/
+        const local_type &local() const { return _local; }
 
         /** Return the volume link - const reference */
         const links_type &links() const { return _links; }
