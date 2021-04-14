@@ -20,6 +20,7 @@ namespace detray
      *  e.g. used for the itk strip endcaps.
      * 
      * @tparam intersector_type is a struct used for intersecting this cylinder
+     * @tparam local_type is the default local type for this mask
      * @tparam links_type is an object where the mask can link to 
      * @tparam kMaskContext is a unique mask identifier in a certain context
      *
@@ -42,6 +43,7 @@ namespace detray
      * 
      **/
     template <typename intersector_type = planar_intersector,
+              typename local_type = __plugin::polar2,
               typename links_type = bool,
               unsigned int kMaskContext = e_annulus2>
     struct annulus2
@@ -57,6 +59,8 @@ namespace detray
 
         links_type _links;
 
+        local_type _local;
+
         static constexpr unsigned int mask_context = kMaskContext;
 
         static constexpr unsigned int mask_identifier = e_annulus2;
@@ -68,7 +72,7 @@ namespace detray
          * 
          * @param rhs is the right hand side object
          **/
-        annulus2<intersector_type, links_type, kMaskContext> &
+        annulus2<intersector_type, local_type, links_type, kMaskContext> &
         operator=(const darray<scalar, 7> &rhs)
         {
             _values = rhs;
@@ -77,22 +81,22 @@ namespace detray
 
         /** Mask operation 
          * 
-         * @tparam point2_type is the type of the point to be checked w.r.t. to
-         * the mask bounds
+         * @tparam inside_local_type::point2 is the deduced type of the point to be checked
+         * w.r.t. to the mask bounds
          * 
          * @param p the point to be checked in local polar coord
          * @param t is the tolerance in (r, phi)
          * 
          * @return an intersection status e_inside / e_outside
          **/
-        template <typename local_type>
-        intersection_status is_inside(const typename local_type::point2 &p,
+        template <typename inside_local_type>
+        intersection_status is_inside(const typename inside_local_type::point2 &p,
                                       const mask_tolerance &t = within_epsilon) const
         {
             // The two quantities to check: r^2 in module system, phi in strips system
 
             // In cartesian coordinates go to modules system by shifting origin
-            if constexpr (std::is_same_v<local_type, __plugin::cartesian2>)
+            if constexpr (std::is_same_v<inside_local_type, __plugin::cartesian2>)
             {
                 // Calculate radial coordinate in module system:
                 scalar x_mod = p[0] - _values[4];
@@ -122,7 +126,7 @@ namespace detray
 
                 // Now go to module frame to check r boundaries. Use the origin shift
                 // in polar coordinates for that
-                typename local_type::point2 shift_xy = {-1 * _values[4], -1 * _values[5]};
+                typename inside_local_type::point2 shift_xy = {-1 * _values[4], -1 * _values[5]};
                 scalar shift_r = getter::perp(shift_xy);
                 scalar shift_phi = getter::phi(shift_xy);
 
@@ -178,6 +182,9 @@ namespace detray
 
         /** Return the values */
         const mask_values& values() const { return _values; }
+
+        /** Return the local frame type - const access*/
+        const local_type& local() const { return _local; }
 
         /** Return the volume link - const reference */
         const links_type &links() const { return _links; }

@@ -109,13 +109,13 @@ namespace detray
          **/
         using portal_links = darray<dindex, 4>;
 
-        using portal_rectangle_mask = rectangle2<planar_intersector, portal_links>;
+        using portal_rectangle_mask = rectangle2<planar_intersector, __plugin::cartesian2 ,portal_links>;
         using portal_rectangles = dvector<portal_rectangle_mask>;
-        using protal_trapezoid_mask = trapezoid2<planar_intersector, portal_links>;
+        using protal_trapezoid_mask = trapezoid2<planar_intersector, __plugin::cartesian2, portal_links>;
         using portal_trapezoids = dvector<protal_trapezoid_mask>;
-        using portal_cylinder_mask = cylinder3<false, concentric_cylinder_intersector, portal_links>;
+        using portal_cylinder_mask = cylinder3<false, concentric_cylinder_intersector, __plugin::cylindrical2,  portal_links>;
         using portal_cylinders = dvector<portal_cylinder_mask>;
-        using portal_disc_mask = ring2<planar_intersector, portal_links>;
+        using portal_disc_mask = ring2<planar_intersector, __plugin::cartesian2, portal_links>;
         using portal_discs = dvector<portal_disc_mask>;
         using portal_type_map = dmap<dindex, dindex>;
         using portal_surface = surface<dindex, typed_dindex_range, dindex>;
