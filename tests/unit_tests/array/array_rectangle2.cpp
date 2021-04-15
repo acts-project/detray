@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/smatrix_defs.hpp"
-#include "tests/common/tools_cylinder_intersection.inl"
+#include "plugins/array_defs.hpp"
+#include "tests/common/masks_rectangle2.inl"

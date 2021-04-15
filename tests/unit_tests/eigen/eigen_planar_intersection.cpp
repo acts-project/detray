@@ -6,4 +6,4 @@
  */
 
 #include "plugins/eigen_defs.hpp"
-#include "tests/common/test_planar_intersection.inl"
+#include "tests/common/tools_planar_intersection.inl"
