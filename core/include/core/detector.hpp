@@ -56,7 +56,7 @@ namespace detray
         using point2 = __plugin::cartesian2::point2;
         using transform3 = transform_type;
 
-        using surface_intersection = intersection<scalar, point3, point2>;
+        using surface_intersection = intersection<point3, point2>;
 
         // Indexing
         using typed_dindex = darray<dindex, 2>;

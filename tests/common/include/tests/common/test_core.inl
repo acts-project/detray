@@ -42,7 +42,7 @@ TEST(__plugin, surface)
 // This tests the construction of a intresection
 TEST(__plugin, intersection)
 {
-    using intersection = intersection<scalar, point3, point2>;
+    using intersection = intersection<point3, point2>;
 
     intersection i0 = {2., point3(0.3, 0.5, 0.7), point2(0.2, 0.4), intersection_status::e_hit};
 
