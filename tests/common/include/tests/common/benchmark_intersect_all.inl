@@ -23,7 +23,7 @@ using surface = surface<transform3>;
 __plugin::cartesian2 cartesian2;
 using point2 = __plugin::cartesian2::point2;
 
-using planar_intersection = intersection<scalar, point3, point2>;
+using planar_intersection = intersection<point3, point2>;
 
 unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;

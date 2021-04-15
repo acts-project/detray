@@ -41,12 +41,12 @@ namespace detray
 
         using mask_values = darray<scalar, 1>;
 
+        using mask_links_type = links_type;
+
         mask_values _values =
             {std::numeric_limits<scalar>::infinity()};
 
         links_type _links;
-
-        local_type _local;
 
         static constexpr unsigned int mask_context = kMaskContext;
 
@@ -124,8 +124,8 @@ namespace detray
         /** Return the values */
         const mask_values &values() const { return _values; }
 
-        /** Return the local frame type - const access*/
-        const local_type &local() const { return _local; }
+        /** Return the local frame type */
+        local_type local() const { return local_type{}; }
 
         /** Return the volume link - const reference */
         const links_type &links() const { return _links; }

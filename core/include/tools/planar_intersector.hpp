@@ -27,6 +27,7 @@ namespace detray
         /** Intersection method for planar surfaces
          * 
          * @tparam transform_type The transform type of the surface to be intersected
+         * @tparam track_type The type of the track (which carries the context object)
          * @tparam local_type The local frame type to be intersected
          * @tparam mask_type The mask type applied to the local frame
          * 
@@ -41,10 +42,10 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename transform_type, typename local_type, typename mask_type>
-        intersection<scalar, typename transform_type::point3, typename local_type::point2>
+        template <typename transform_type, typename track_type, typename local_type, typename mask_type>
+        intersection<typename transform_type::point3, typename local_type::point2>
         intersect(const transform_type &trf,
-                  const track<transform_type> &track,
+                  const track_type &track,
                   const local_type &local,
                   const mask_type &mask,
                   const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon) const
@@ -71,7 +72,7 @@ namespace detray
          * @return the intersection with optional parameters
          **/
         template <typename transform_type, typename local_type = unbound, typename mask_type = unmasked>
-        intersection<scalar, typename transform_type::point3, typename local_type::point2>
+        intersection<typename transform_type::point3, typename local_type::point2>
         intersect(const transform_type &trf,
                   const typename transform_type::point3 &ro,
                   const typename transform_type::vector3 &rd,
@@ -81,7 +82,7 @@ namespace detray
                   scalar overstep_tolerance = 0.) const
         {
 
-            using intersection = intersection<scalar, typename transform_type::point3, typename local_type::point2>;
+            using intersection = intersection<typename transform_type::point3, typename local_type::point2>;
 
             // Retrieve the surface normal & translation (context resolved)
             const auto &sm = trf.matrix();

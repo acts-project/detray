@@ -1,13 +1,33 @@
 enable_testing()
 
-add_detray_test(eigen_masks_container
-                eigen_masks_container.cpp detray::eigen)
-
 add_detray_test(eigen_annulus2
                 eigen_annulus2.cpp detray::eigen)
 
 add_detray_test(eigen_cylinder3
                 eigen_cylinder3.cpp detray::eigen)
+
+add_detray_test(eigen_core
+                eigen_core.cpp
+                detray::eigen)
+
+add_detray_test(eigen_cylinder_intersection
+                eigen_cylinder_intersection.cpp
+                detray::eigen)
+
+add_detray_test(eigen_detector
+                eigen_detector.cpp
+                detray::eigen)
+
+add_detray_test(eigen_masks_container
+                eigen_masks_container.cpp detray::eigen)
+
+add_detray_test(eigen_intersection_kernel
+                eigen_intersection_kernel.cpp
+                detray::eigen)
+
+add_detray_test(eigen_read_detector
+                eigen_read_detector.cpp
+                detray::eigen)
 
 add_detray_test(eigen_rectangle2
                 eigen_rectangle2.cpp detray::eigen)
@@ -21,39 +41,24 @@ add_detray_test(eigen_single3
 add_detray_test(eigen_single_layer_components
                 eigen_single_layer_components.cpp detray::eigen)
 
+add_detray_test(eigen_transform_store
+                eigen_transform_store.cpp
+                detray::eigen)
+                
 add_detray_test(eigen_trapezoid2
                 eigen_trapezoid2.cpp detray::eigen)
 
 add_detray_test(eigen_unmasked
                 eigen_unmasked.cpp detray::eigen)
 
+ add_detray_test(eigen_planar_intersection
+                eigen_planar_intersection.cpp
+                detray::eigen)
+
 add_detray_test(eigen_plugin
                 eigen_plugin.cpp
                 detray::eigen)
 
-add_detray_test(eigen_core
-                eigen_core.cpp
-                detray::eigen)
-
-add_detray_test(eigen_detector
-                eigen_detector.cpp
-                detray::eigen)
-
-add_detray_test(eigen_transform_store
-                eigen_transform_store.cpp
-                detray::eigen)
-
-add_detray_test(eigen_cylinder_intersection
-                eigen_cylinder_intersection.cpp
-                detray::eigen)
-
-add_detray_test(eigen_planar_intersection
-                eigen_planar_intersection.cpp
-                detray::eigen)
-
-add_detray_test(eigen_read_detector
-                eigen_read_detector.cpp
-                detray::eigen)
 
 if (DETRAY_DISPLAY)
     set(UNIT_TEST_EXTRA_LIBRARIES detray::display)

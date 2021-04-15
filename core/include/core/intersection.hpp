@@ -34,19 +34,18 @@ namespace detray
 
     /** This templated class holds the intersection information
      * 
-     * @tparam scalar_type is the type of the used scalar for intersecting
      * @tparam point3_type is the type of global intsersection vector
      * @tparam point2_type is the type of the local intersection vector
      * 
      **/
-    template <typename scalar_type, typename point3_type, typename point2_type>
+    template <typename point3_type, typename point2_type>
     struct intersection
     {
 
-        scalar_type path = std::numeric_limits<scalar_type>::infinity();
-        point3_type point3 = point3_type{std::numeric_limits<scalar_type>::infinity(),
-                                         std::numeric_limits<scalar_type>::infinity(),
-                                         std::numeric_limits<scalar_type>::infinity()};
+        scalar path = std::numeric_limits<scalar>::infinity();
+        point3_type point3 = point3_type{std::numeric_limits<scalar>::infinity(),
+                                         std::numeric_limits<scalar>::infinity(),
+                                         std::numeric_limits<scalar>::infinity()};
 
         std::optional<point2_type> point2 = std::nullopt;
         intersection_status status = e_missed;
@@ -56,7 +55,7 @@ namespace detray
         /** @param rhs is the right hand side intersection for comparison 
          **/
         bool operator<(
-            const intersection<scalar_type, point3_type, point2_type> &rhs) const
+            const intersection<point3_type, point2_type> &rhs) const
         {
             return (path < rhs.path);
         }
@@ -64,7 +63,7 @@ namespace detray
         /** @param rhs is the left hand side intersection for comparison 
          **/
         bool operator>(
-            const intersection<scalar_type, point3_type, point2_type> &rhs) const
+            const intersection<point3_type, point2_type> &rhs) const
         {
             return (path > rhs.path);
         }
