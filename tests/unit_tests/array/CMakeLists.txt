@@ -1,8 +1,15 @@
 enable_testing()
 
-add_detray_test(array_plugin
-                array_plugin.cpp
-                detray::array)
+enable_testing()
 
-add_detray_test(array_annulus2
-                array_annulus2.cpp detray::array)
+foreach(etest ${all_unit_tests})
+    add_detray_test(array_${etest}
+                array_${etest}.cpp detray::array)
+endforeach(etest)
+
+if (DETRAY_DISPLAY)
+    set(UNIT_TEST_EXTRA_LIBRARIES detray::display)
+    add_detray_test(array_display_masks
+                    array_display_masks.cpp
+                    detray::array)
+endif()

@@ -371,8 +371,8 @@ TEST(__plugin, endcap_component_construction)
     {
         scalar phi = -M_PI + iphi * phi_step;
         pol_point2 pol2{r, phi};
-        cyl_point2 inner_p2(volume_inner_r * phi, pos_z);
-        cyl_point2 outer_p2(volume_outer_r * phi, pos_z);
+        cyl_point2 inner_p2{volume_inner_r * phi, pos_z};
+        cyl_point2 outer_p2{volume_outer_r * phi, pos_z};
 
         auto inner_zone = inner_finder(inner_p2, {1, 1});
         auto outer_zone = outer_finder(outer_p2, {1, 1});

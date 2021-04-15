@@ -30,10 +30,10 @@ constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 TEST(__plugin, surface)
 {
     // Preparatioon work, create a transform
-    vector3 z = vector::normalize(vector3(3., 2., 1.));
-    vector3 x = vector::normalize(vector3(2., -3., 0.));
+    vector3 z = vector::normalize(vector3{3., 2., 1.});
+    vector3 x = vector::normalize(vector3{2., -3., 0.});
     vector3 y = vector::cross(z, x);
-    point3 t(2., 3., 4.);
+    point3 t{2., 3., 4.};
     transform3 trf(t, z, x);
 
     surface s(std::move(trf), -1, -1, false);
@@ -44,9 +44,9 @@ TEST(__plugin, intersection)
 {
     using intersection = intersection<point3, point2>;
 
-    intersection i0 = {2., point3(0.3, 0.5, 0.7), point2(0.2, 0.4), intersection_status::e_hit};
+    intersection i0 = {2., point3{0.3, 0.5, 0.7}, point2{0.2, 0.4}, intersection_status::e_hit};
 
-    intersection i1 = {1.7, point3(0.2, 0.3, 0.), point2(0.2, 0.4), intersection_status::e_inside};
+    intersection i1 = {1.7, point3{0.2, 0.3, 0.}, point2{0.2, 0.4}, intersection_status::e_inside};
 
     intersection invalid;
     ASSERT_TRUE(invalid.status == intersection_status::e_missed);
