@@ -18,18 +18,19 @@ namespace detray
 
     using contour = darray<dvector<scalar>, 2>;
 
-    // Single view per module/surface
+    /// Single view per module/surface
     struct single_view
     {
 
-        /// A single view operator, no transform is done
-        ///
-        /// @param vertices the vertices of the surface
-        /// @param tf the (ignored) surface transform
-        ///
-        /// return a 2D contour array
+        /** A single view operator, no transform is done
+         *
+         * @param vertices the vertices of the surface
+         * @param tf the (ignored) surface transform
+         *
+         * @return a 2D contour array
+         */
         contour
-        operator()(const dvector<point3> &vertices, const transform3& /*tf*/) const
+        operator()(const dvector<point3> &vertices, const transform3 & /*tf*/) const
         {
 
             dvector<scalar> x;
@@ -49,12 +50,13 @@ namespace detray
     /// x-y projection view
     struct global_xy_view
     {
-        /// A global xy view operator, no transform is done
-        ///
-        /// @param vertices the vertices of the surface
-        /// @param tf the surface transform 
-        ///
-        /// @return a 2D contour array
+        /** A global xy view operator, no transform is done
+         *
+         * @param vertices the vertices of the surface
+         * @param tf the surface transform 
+         *
+         * @return a 2D contour array
+         */
         contour
         operator()(const dvector<point3> &vertices, const transform3 &tf) const
         {
@@ -73,16 +75,16 @@ namespace detray
         }
     };
 
-
     /// r-z projection view
     struct global_rz_view
     {
-        /// A global rz view operator, no transform is done
-        ///
-        /// @param vertices the vertices of the surface
-        /// @param tf the surface transform 
-        ///
-        /// @return a 2D contour array
+        /** A global rz view operator, no transform is done
+         *
+         * @param vertices the vertices of the surface
+         * @param tf the surface transform 
+         *
+         * @return a 2D contour array
+         */
         contour
         operator()(const dvector<point3> &vertices, const transform3 &tf) const
         {
@@ -110,9 +112,9 @@ namespace detray
         /// A view for a rphi-z projection
         ///
         /// @param vertices the vertices of the surface
-        /// @param tf the surface transform 
+        /// @param tf the surface transform
         ///
-        /// @return a 2D contour array 
+        /// @return a 2D contour array
         contour
         operator()(const dvector<point3> &vertices, const transform3 &tf) const
         {
@@ -125,7 +127,7 @@ namespace detray
             {
                 auto vg = tf.point_to_global(v);
                 scalar r = std::isnan(fixed_r) ? getter::perp(vg) : fixed_r;
-                x.push_back(r*getter::phi(vg));
+                x.push_back(r * getter::phi(vg));
                 y.push_back(vg[2]);
             }
             return {x, y};

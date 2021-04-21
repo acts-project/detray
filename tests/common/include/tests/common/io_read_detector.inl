@@ -26,12 +26,11 @@ TEST(__plugin, read_detector)
     }
     auto data_directory = std::string(env_d_d);
 
-    std::string surface_file = data_directory+std::string("tml.csv");
-    std::string surface_grid_file = data_directory+std::string("tml-surface-grids.csv");
-    std::string layer_volume_file = data_directory+std::string("tml-layer-volumes.csv");
+    std::string surface_file = data_directory + std::string("tml.csv");
+    std::string surface_grid_file = data_directory + std::string("tml-surface-grids.csv");
+    std::string layer_volume_file = data_directory + std::string("tml-layer-volumes.csv");
 
     auto d = detector_from_csv<static_transform_store>("tml", surface_file, surface_grid_file, layer_volume_file);
-
 }
 
 int main(int argc, char **argv)
@@ -40,4 +39,3 @@ int main(int argc, char **argv)
 
     return RUN_ALL_TESTS();
 }
-

@@ -19,8 +19,8 @@ using namespace detray;
 TEST(grids, serialize_deserialize)
 {
 
-    axis::closed<> r6{6, -3., 7.};
-    axis::circular<> c12{12, -3., 3.};
+    axis::regular r6{6, -3., 7.};
+    axis::circular c12{12, -3., 3.};
 
     serializer2 ser2;
 

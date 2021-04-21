@@ -40,7 +40,7 @@ namespace detray
                                    dindex fbin, dindex sbin) const
         {
 
-            dindex offset = sbin * faxis.bins;
+            dindex offset = sbin * faxis.bins();
             return offset + fbin;
         }
 
@@ -58,8 +58,8 @@ namespace detray
         template <typename faxis_type, typename saxis_type>
         darray<dindex, 2> deserialize(const faxis_type& faxis, const saxis_type& /*saxis*/, dindex serialbin) const
         {
-            dindex sbin = static_cast<dindex>(serialbin/faxis.bins);
-            dindex fbin = serialbin - sbin * faxis.bins;
+            dindex sbin = static_cast<dindex>(serialbin/faxis.bins());
+            dindex fbin = serialbin - sbin * faxis.bins();
             return { fbin, sbin };
         }
     };
