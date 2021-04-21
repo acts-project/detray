@@ -16,13 +16,13 @@ macro(add_detray_test TESTNAME FILES PLUGIN_LIBRARY)
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
     add_test(unit_test_${TESTNAME} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TESTNAME})
     set_tests_properties(unit_test_${TESTNAME} PROPERTIES 
-        ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/tests/data)
+        ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/data/)
 endmacro()
 
 set(all_unit_tests "plugin;core")
 list(APPEND all_unit_tests "annulus2;cylinder3;rectangle2;ring2;single3;unmasked;trapezoid2")
 list(APPEND all_unit_tests "cylinder_intersection;planar_intersection;intersection_kernel")
-list(APPEND all_unit_tests "detector;single_layer_components;read_detector")
+list(APPEND all_unit_tests "detector;single_layer_components")
 list(APPEND all_unit_tests "transform_store;masks_container")
 
 add_subdirectory(core)

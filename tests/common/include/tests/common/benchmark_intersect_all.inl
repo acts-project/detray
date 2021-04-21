@@ -38,7 +38,7 @@ auto read_from_file()
         throw std::ios_base::failure("Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
     }
     auto data_directory = std::string(env_d_d);
-    return read_csv<transform3>(data_directory + std::string("/tml-detector.csv"));
+    return read_csv<transform3>(data_directory + std::string("/tml-old.csv"));
 };
 
 auto detector = read_from_file();

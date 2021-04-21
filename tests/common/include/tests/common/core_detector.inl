@@ -47,14 +47,12 @@ TEST(__plugin, proto_detector)
     std::get<detector::surface_trapezoid::mask_context>(masks).push_back(trap);
 
     detector d("test_detector");
-    auto& v = d.new_volume("test_volume"); 
+    auto& v = d.new_volume("test_volume", {0.,10.,-5.,5.,-M_PI,M_PI}); 
     v.add_contextual_transforms(ctx0, std::move(static_storage));
 
 }
 
-// Google Test can be run manually from the main() function
-// or, it can be linked to the gtest_main library for an already
-// set-up main() function primed to accept Google Test test cases.
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

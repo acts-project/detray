@@ -24,7 +24,7 @@ namespace detray
         /** Broadcast the transform type */
         using transform3 = transform_link;
 
-        /** Constructor with full arguments
+        /** Constructor with full arguments - move semantics
          * 
          * @param trf the transform for positioning and 3D local frame 
          * @param msk the mask/mask link for this surface 
@@ -34,6 +34,19 @@ namespace detray
          **/
         surface(transform_link &&trf, mask_link &&mask, volume_link &&vol, source_link &&src)
             : _trf(std::move(trf)), _mask(std::move(mask)), _vol(std::move(vol)), _src(std::move(src))
+        {
+        }
+
+        /** Constructor with full arguments - copy semantics
+         * 
+         * @param trf the transform for positioning and 3D local frame 
+         * @param msk the mask/mask link for this surface 
+         * @param vol the volume link for this surface
+         * @param src the source object/source link this surface is representing
+         * 
+         **/
+        surface(const transform_link &trf, const mask_link &mask, const volume_link &vol, const source_link &src)
+            : _trf(trf), _mask(mask), _vol(vol), _src(src)
         {
         }
 

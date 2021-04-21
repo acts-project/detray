@@ -31,14 +31,17 @@ namespace detray
 
     /// Generate vertices, specialized for masks: annulus2
     ///
+    /// @note template types are simply forwarded to mask
+    ///
     /// @param sf is the surface that generates vertices
     /// @param ls is the number of line segments if
     ///
     /// @return a generated list of vertices
     template <typename intersector_type,
+              typename local_type,
               typename links_type,
               unsigned int kMaskContext>
-    dvector<point3> vertices(const annulus2<intersector_type, links_type, kMaskContext> &annulus_mask, unsigned int lseg)
+    dvector<point3> vertices(const annulus2<intersector_type, local_type, links_type, kMaskContext> &annulus_mask, unsigned int lseg)
     {
         using point2 = __plugin::cartesian2::point2;
 
@@ -110,14 +113,17 @@ namespace detray
 
     /// Generate vertices, specialized for masks: rectangle2
     ///
+    /// @note template types are simply forwarded to mask
+    ///
     /// @param sf is the surface that generates vertices
     /// @param ls is the number of line segments (ignored for rectangles)
     ///
     /// @return a generated list of vertices
     template <typename intersector_type,
+              typename local_type,
               typename links_type,
               unsigned int kMaskContext>
-    dvector<point3> vertices(const rectangle2<intersector_type, links_type, kMaskContext> &rectangle_mask, unsigned int /*ignored*/)
+    dvector<point3> vertices(const rectangle2<intersector_type, local_type, links_type, kMaskContext> &rectangle_mask, unsigned int /*ignored*/)
     {
         const auto &m_values = rectangle_mask.values();
         // left hand lower corner
@@ -139,23 +145,27 @@ namespace detray
     ///
     /// @return a generated list of vertices
     template <typename intersector_type,
+              typename local_type,
               typename links_type,
-              unsigned int kMaskContext>    
-    dvector<point3> vertices(const ring2<intersector_type, links_type, kMaskContext> &ring_mask, unsigned int lseg)
+              unsigned int kMaskContext>
+    dvector<point3> vertices(const ring2<intersector_type, local_type, links_type, kMaskContext> &ring_mask, unsigned int lseg)
     {
         return {};
     }
 
     /// Generate vertices, specialized for masks: trapezoid2
     ///
+    /// @note template types are simply forwarded to mask
+    ///
     /// @param sf is the surface that generates vertices
     /// @param ls is the number of line segments if, ignored
     ///
     /// @return a generated list of vertices
     template <typename intersector_type,
+              typename local_type,
               typename links_type,
-              unsigned int kMaskContext>       
-    dvector<point3> vertices(const trapezoid2<intersector_type, links_type, kMaskContext> &trapezoid_mask, unsigned int /* ignored */)
+              unsigned int kMaskContext>
+    dvector<point3> vertices(const trapezoid2<intersector_type, local_type, links_type, kMaskContext> &trapezoid_mask, unsigned int /* ignored */)
     {
 
         const auto &m_values = trapezoid_mask.values();
