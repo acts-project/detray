@@ -16,7 +16,7 @@ macro(add_detray_test TESTNAME FILES PLUGIN_LIBRARY)
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
     add_test(unit_test_${TESTNAME} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TESTNAME})
     set_tests_properties(unit_test_${TESTNAME} PROPERTIES 
-        ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/tests/data)
+        ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/data/)
 endmacro()
 
 set(all_unit_tests "plugin;core")
