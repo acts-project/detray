@@ -8,7 +8,7 @@ export LASTCOMMIT=$(git log -n1 | head -n1 | cut -b 8-14)
 echo "===> Benchmark pipeline for commit ${LASTCOMMIT}"
 cd ${PWD_BUILD}
 
-export DETRAY_TEST_DATA_DIR=${GITHUB_WORKSPACE}/tests/data
+export DETRAY_TEST_DATA_DIR=${GITHUB_WORKSPACE}/data/
 
 touch benchmark_${LASTCOMMIT}.csv
 
