@@ -39,9 +39,7 @@ TEST(mask, trapezoid2)
     ASSERT_TRUE(t2.is_inside<local_type>(p2_out, {1., 0.5}) == intersection_status::e_inside);
 }
 
-// Google Test can be run manually from the main() function
-// or, it can be linked to the gtest_main library for an already
-// set-up main() function primed to accept Google Test test cases.
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

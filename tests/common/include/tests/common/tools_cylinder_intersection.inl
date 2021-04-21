@@ -95,9 +95,7 @@ TEST(__plugin, concentric_cylinders)
     ASSERT_NEAR(hit_cylinrical.point2.value()[1], hit_cocylindrical.point2.value()[1], isclose);
 }
 
-// Google Test can be run manually from the main() function
-// or, it can be linked to the gtest_main library for an already
-// set-up main() function primed to accept Google Test test cases.
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

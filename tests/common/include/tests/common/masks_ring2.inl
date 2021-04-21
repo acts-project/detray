@@ -46,9 +46,7 @@ TEST(mask, ring2)
     ASSERT_TRUE(r2.is_inside<cartesian>(p2_c_out, 1.45) == intersection_status::e_inside);
 }
 
-// Google Test can be run manually from the main() function
-// or, it can be linked to the gtest_main library for an already
-// set-up main() function primed to accept Google Test test cases.
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

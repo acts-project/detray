@@ -1,20 +1,18 @@
 /** Detray library, part of the ACTS project (R&D line)
  * 
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2021 CERN for the benefit of the ACTS project
  * 
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-#include "definitions/algebra.hpp"
-#include "definitions/primitives.hpp"
-#include "geometry/detector.hpp"
-#include "geometry/grid.hpp"
+#include "core/proto_detector.hpp"
 
 #include <dfe/dfe_namedtuple.hpp>
 #include <dfe/dfe_io_dsv.hpp>
 
+#include <iostream>
 #include <fstream>
 #include <climits>
 #include <map>
@@ -73,65 +71,145 @@ namespace detray
 
   using surface_grid_reader = dfe::NamedTupleCsvReader<csv_surface_grid>;
 
+  struct csv_layer_volume
+  {
+    /// Surface identifier. Not available in the TrackML datasets.
+    uint64_t geometry_id;
+    /// Partially decoded surface identifier components.
+    uint32_t volume_id, layer_id;
+    /// The type of the surface bpounds object, determines the parameters filled
+    int volume_type;
+    float min_v0 = -1.f;
+    float max_v0 = -1.f;
+    float min_v1 = -1.f;
+    float max_v1 = -1.f;
+    float min_v2 = -1.f;
+    float max_v2 = -1.f;
+
+    DFE_NAMEDTUPLE(csv_layer_volume, geometry_id, volume_id, layer_id, min_v0,
+                   max_v0, min_v1, max_v1, min_v2, max_v2);
+  };
+
+  using layer_volume_reader = dfe::NamedTupleCsvReader<csv_layer_volume>;
 
   /// Function to read the detector from the CSV file
   ///
-  /// @param file_name the name of the file
+  /// @param detector_name is the name of the detector
+  /// @param surface_file_name is the name of the detector surface file
+  /// @param grid_file_name is the name of the surface grid file
   ///
   /// @return a drawable detector object
-  inline static detector_map
-  read_detector_map(const std::string &file_name, bool sensitives = true)
+  template <typename alignable_store = static_transform_store,
+            typename surface_source_link = dindex,
+            typename bounds_source_link = dindex>
+  proto_detector<alignable_store,
+                 surface_source_link,
+                 bounds_source_link>
+  detector_from_csv(const std::string &detector_name,
+                    const std::string &surface_file_name,
+                    const std::string &grid_file_name,
+                    const std::string &layer_volume_file_name)
   {
 
-/*
-    detector c_detector;
+    proto_detector d(detector_name);
 
-    surface_reader reader(file_name);
+    // Surface reading
+    surface_reader s_reader(surface_file_name);
     csv_surface io_surface;
-    while (reader.read(io_surface))
-    {
-      // Check if we already have a volume, otherwise create one
-      auto c_volume_itr = c_detector.find(io_surface.volume_id);
-      if (c_volume_itr == c_detector.end()){
-        volume n_volume;
-        n_volume.volume_id = io_surface.volume_id;
-        c_detector.insert({n_volume.volume_id, n_volume});
-        c_volume_itr = c_detector.find(io_surface.volume_id);
-      }
-      // Check if we already have a layer, otherwise create one
-      auto c_layer_itr = c_volume_itr->second.layers.find(io_surface.layer_id);
-      if (c_layer_itr == c_volume_itr->second.layers.end()){
-        layer n_layer;
-        n_layer.volume_id = io_surface.volume_id;
-        n_layer.layer_id = io_surface.layer_id;
-        c_volume_itr->second.layers.insert({n_layer.layer_id, n_layer});
-        c_layer_itr = c_volume_itr->second.layers.find(n_layer.layer_id);
-      } 
 
-      scalar layer_r_min = std::numeric_limits<scalar>::max();
-      scalar layer_z_min = std::numeric_limits<scalar>::max();
-      scalar layer_r_max = 0.;
-      scalar layer_z_max = 0.;
-      if (io_surface.module_id != 0 and sensitives)
+    // Surface grid reading
+    surface_grid_reader sg_reader(grid_file_name);
+    csv_surface_grid io_surface_grid;
+
+    // Layer volume reading
+    layer_volume_reader lv_reader(layer_volume_file_name);
+    csv_layer_volume io_layer_volume;
+
+    using volume_layer_index = std::pair<uint32_t, uint32_t>;
+    std::map<volume_layer_index, typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::volume *> volumes;
+
+    // We read in with a default context
+    typename alignable_store::storage surface_transform_storage;
+    typename alignable_store::context surface_default_context;
+
+    // Flushable containers
+    typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::volume *c_volume = nullptr;
+    typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surfaces c_surfaces;
+    typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks c_masks;
+
+    std::map<volume_layer_index, darray<scalar, 6> > volume_bounds;
+
+    // Pre-read the bounds values
+    while (lv_reader.read(io_layer_volume))
+    {
+      volume_layer_index c_index = {io_layer_volume.volume_id, io_layer_volume.layer_id};
+      darray<scalar, 6> c_bounds = {
+          io_layer_volume.min_v0,
+          io_layer_volume.max_v0,
+          io_layer_volume.min_v1,
+          io_layer_volume.max_v1,
+          io_layer_volume.min_v2,
+          io_layer_volume.max_v2,
+      };
+      volume_bounds[c_index] = c_bounds;
+    }
+
+    // Reading the surfaces
+    while (s_reader.read(io_surface))
+    {
+      volume_layer_index c_index = {io_surface.volume_id, io_surface.layer_id};
+      auto c_volume_itr = volumes.find(c_index);
+      if (c_volume_itr == volumes.end())
       {
-        aplot::surface surface;
-        surface.geometry_id = io_surface.geometry_id;
-        surface.volume_id = io_surface.volume_id;
-        surface.layer_id = io_surface.layer_id;
-        surface.module_id = io_surface.module_id;
-        // Transform
+        // Flush the former information
+        if (c_volume != nullptr and not surface_transform_storage.empty())
+        {
+          // Construction with move semantics
+          c_volume->add_contextual_transforms(surface_default_context, std::move(surface_transform_storage));
+          c_volume->add_surface_components(std::move(c_surfaces), std::move(c_masks));
+          // Get new clean containers
+          surface_transform_storage = typename alignable_store::storage();
+          c_surfaces =
+              typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surfaces();
+          c_masks =
+              typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks();
+        }
+
+        // Create a new volume & assign
+        std::string volume_name = detector_name;
+        volume_name += std::string("_vol_") + std::to_string(io_surface.volume_id);
+        volume_name += std::string("_lay_") + std::to_string(io_surface.layer_id);
+        // Find and fill the bounds
+        auto new_bounds = volume_bounds.find(c_index);
+        if (new_bounds == volume_bounds.end())
+        {
+          // Bounds not found, do not build the volume
+          continue;
+        }
+
+        auto &new_volume = d.new_volume(volume_name, new_bounds->second);
+        c_volume = &new_volume;
+        // Insert to volume map
+        volumes[c_index] = c_volume;
+      }
+      else
+      {
+        c_volume = c_volume_itr->second;
+      }
+
+      // Do not fill navigation layers
+      if (io_surface.layer_id % 2 == 0)
+      {
+
+        // Read the transform
         vector3 t{io_surface.cx, io_surface.cy, io_surface.cz};
         vector3 x{io_surface.rot_xu, io_surface.rot_yu, io_surface.rot_zu};
         vector3 z{io_surface.rot_xw, io_surface.rot_yw, io_surface.rot_zw};
-        surface.transform = transform3{t, z, x};
-        // Layer center positions for cylinder/disc detection
-        scalar r = getter::perp(t);
-        layer_r_min = std::min(layer_r_min, r);
-        layer_z_min = std::min(layer_z_min, z[2]);
-        layer_r_max = std::max(layer_r_max, r);
-        layer_z_max = std::max(layer_z_min, z[2]);
-        // bounds
-        surface.bounds_type = io_surface.bounds_type;
+        dindex transform_index = surface_transform_storage.size();
+        surface_transform_storage.push_back(transform3{t, z, x});
+
+        // Translate the mask & add it to the mask container
+        unsigned int bounds_type = io_surface.bounds_type;
         std::vector<scalar> bounds;
         bounds.push_back(io_surface.bound_param0);
         bounds.push_back(io_surface.bound_param1);
@@ -140,32 +218,87 @@ namespace detray
         bounds.push_back(io_surface.bound_param4);
         bounds.push_back(io_surface.bound_param5);
         bounds.push_back(io_surface.bound_param6);
-        surface.bounds = bounds;
-        // record it
-        c_layer_itr->second.surfaces.push_back(std::move(surface));
-      }
-      // Detect cylinder 
-      if ((layer_z_max-layer_z_min) > (layer_r_max-layer_r_min)){
-        c_layer_itr->second.type = 0;
-      } else {
-        c_layer_itr->second.type = 1;
-      }
 
+        // Acts naming convention for bounds
+        typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surface_mask_index
+            mask_index = {dindex_invalid, dindex_invalid};
+
+        if (bounds_type == 1)
+        {
+          // Cylinder bounds
+          constexpr auto cylinder_context = proto_detector<alignable_store,
+                                                           surface_source_link,
+                                                           bounds_source_link>::surface_cylinder::mask_context;
+
+          // Get the cylinder mask container
+          auto &cylinder_masks = std::get<cylinder_context>(c_masks);
+          dindex cylinder_index = cylinder_masks.size();
+          cylinder_masks.push_back({io_surface.bound_param0, io_surface.bound_param1});
+          // The read is valid: set the index
+          mask_index = {cylinder_context, cylinder_index};
+        }
+        else if (bounds_type == 3)
+        {
+          // Disc bounds
+        }
+        else if (bounds_type == 6)
+        {
+          // Rectangle bounds
+          constexpr auto rectangle_context = proto_detector<alignable_store,
+                                                            surface_source_link,
+                                                            bounds_source_link>::surface_rectangle::mask_context;
+
+          // Get the rectangle mask container
+          auto &rectangle_masks = std::get<rectangle_context>(c_masks);
+          dindex rectangle_index = rectangle_masks.size();
+          scalar half_x = 0.5 * (io_surface.bound_param2 - io_surface.bound_param0);
+          scalar half_y = 0.5 * (io_surface.bound_param3 - io_surface.bound_param1);
+          rectangle_masks.push_back({half_x, half_y});
+          // The read is valid: set the index
+          mask_index = {rectangle_context, rectangle_index};
+        }
+        else if (bounds_type == 7)
+        {
+          // Trapezoid bounds
+          constexpr auto trapezoid_context = proto_detector<alignable_store,
+                                                            surface_source_link,
+                                                            bounds_source_link>::surface_trapezoid::mask_context;
+          // Get the trapezoid mask container
+          auto &trapezoid_masks = std::get<trapezoid_context>(c_masks);
+          dindex trapezoid_index = trapezoid_masks.size();
+          trapezoid_masks.push_back({io_surface.bound_param0, io_surface.bound_param1, io_surface.bound_param2});
+          // The read is valid: set the index
+          mask_index = {trapezoid_context, trapezoid_index};
+        }
+        else if (bounds_type == 11)
+        {
+          // Annulus bounds
+          constexpr auto annulus_context = proto_detector<alignable_store,
+                                                          surface_source_link,
+                                                          bounds_source_link>::surface_annulus::mask_context;
+          // Get the trapezoid mask container
+          auto &annulus_masks = std::get<annulus_context>(c_masks);
+          dindex annulus_index = annulus_masks.size();
+          annulus_masks.push_back({io_surface.bound_param0,
+                                   io_surface.bound_param1,
+                                   io_surface.bound_param2,
+                                   io_surface.bound_param3,
+                                   io_surface.bound_param4,
+                                   io_surface.bound_param5,
+                                   io_surface.bound_param6});
+          // The read is valid: set the index
+          mask_index = {annulus_context, annulus_index};
+        }
+
+        // Fill the surface into the temporary container
+        if (mask_index[0] != dindex_invalid)
+        {
+          c_surfaces.push_back({transform_index, mask_index, c_volume->index(), io_surface.geometry_id});
+        }
+      } // end of exclusion for navigation layers
     }
-    return c_detector;
-    */
+
+    return d;
   }
 
-
-  /// Function to read the surface grid map from the CSV file
-  ///
-  /// @param file_name the name of the file
-  ///
-  /// @return a drawable detector object
-  inline static grid_map 
-  read_grid_map(const std::string& file_name){
-
-  }
-
-
-} // namespace aplot
+} // namespace detray

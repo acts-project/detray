@@ -21,6 +21,7 @@
 #include "tools/concentric_cylinder_intersector.hpp"
 
 #include <string>
+#include <sstream>
 
 namespace detray
 {
@@ -41,8 +42,8 @@ namespace detray
 
     public:
         /// Portals components:
-        /// - links:  opposite volume, along volume, opposite object finder, along volume finder
-        using portal_links = darray<dindex, 4>;
+        /// - links:  next volume, next object finder
+        using portal_links = darray<dindex, 2>;
         /// - masks, with mask identifiers 0, 1
         using portal_cylinder = cylinder3<false, concentric_cylinder_intersector, __plugin::cylindrical2, portal_links, 0>;
         using portal_disc = ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
@@ -62,9 +63,13 @@ namespace detray
         using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, bounds_source_link, 0>;
         using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, bounds_source_link, 1>;
         using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, bounds_source_link, 2>;
+        using surface_cylinder = cylinder3<true, cylinder_intersector, __plugin::cylindrical2, bounds_source_link, 3>;
         /// - mask index: type, entry
         using surface_mask_index = darray<dindex, 2>;
-        using surface_masks = dtuple<dvector<surface_rectangle>, dvector<surface_trapezoid>, dvector<surface_annulus> >;
+        using surface_masks = dtuple<dvector<surface_rectangle>,
+                                     dvector<surface_trapezoid>,
+                                     dvector<surface_annulus>,
+                                     dvector<surface_cylinder> >;
 
         /// The Surface definition:
         ///  <transform_link, mask_link, volume_link, source_link >
@@ -83,14 +88,26 @@ namespace detray
             volume() = delete;
 
             /// Allowed constructors
-            /// @param name the volume
-            volume(const std::string &name) : _name(name) {}
+            /// @param name of the volume - @note will be contructed boundless
+            volume(const std::string &name) : _name(name){};
+            /// @param name of the volume
+            /// @param bounds of the volume
+            volume(const std::string &name, const darray<scalar, 6> &bounds) : _name(name), _bounds(bounds){};
             volume(const volume &) = default;
+
+            /// @return the bounds - const access
+            const darray<scalar, 6> bounds() const { return _bounds; }
 
             /// @return the name
             const std::string &name() const { return _name; }
 
-            /// Add a new full set of alignable transforms
+            /// @return the index
+            dindex index() const { return _index; }
+
+            /// @return if the volume is empty or not
+            bool empty() const { return _surfaces.empty(); }
+
+            /// Add a new full set of alignable transforms - move semantics
             ///
             /// @param ctx The context of the call
             /// @param trfs The transform container, move semantics
@@ -103,7 +120,20 @@ namespace detray
                 _surface_transforms.add_contextual_transforms(ctx, std::move(trfs));
             }
 
-            /// Add the surfaces and their masks, move semantics
+            /// Add a new full set of alignable transforms - copy semantics
+            ///
+            /// @param ctx The context of the call
+            /// @param trfs The transform container, move semantics
+            ///
+            /// @note can throw an exception if input data is inconsistent
+            void add_contextual_transforms(
+                const typename alignable_store::context &ctx,
+                const typename alignable_store::storage &trfs) noexcept(false)
+            {
+                _surface_transforms.add_contextual_transforms(ctx, trfs);
+            }
+
+            /// Add the surfaces and their masks - move semantics
             ///
             /// @param surfaces The (complete) volume surfaces
             /// @param surface_masks The (complete) surface masks
@@ -111,6 +141,16 @@ namespace detray
             {
                 _surfaces = std::move(volume_surfaces);
                 _surface_masks = std::move(volume_surface_masks);
+            }
+
+            /// Add the surfaces and their masks - copy semantics
+            ///
+            /// @param surfaces The (complete) volume surfaces
+            /// @param surface_masks The (complete) surface masks
+            void add_surface_components(const surfaces &volume_surfaces, const surface_masks &volume_surface_masks)
+            {
+                _surfaces = volume_surfaces;
+                _surface_masks = volume_surface_masks;
             }
 
             /// Add the portals, their transforms and their masks, move semantics
@@ -130,7 +170,14 @@ namespace detray
         private:
             // Volume section
             std::string _name = "unknown";
-            dindex index = dindex_invalid;
+            dindex _index = dindex_invalid;
+
+            // Bounds section, default for r, z, phi
+            darray<scalar, 6> _bounds = {0.,
+                                         std::numeric_limits<scalar>::max(),
+                                         -std::numeric_limits<scalar>::max(),
+                                         std::numeric_limits<scalar>::max(),
+                                         -M_PI, M_PI};
 
             // Surface section
             surface_masks _surface_masks;
@@ -156,18 +203,38 @@ namespace detray
 
         /// Add a new volume and retrieve a reference to it
         ///
-        /// @param name the volume
-        volume &new_volume(const std::string &name)
+        /// @param name of the volume
+        /// @param bounds of the volume
+        ///
+        /// @return non-const reference of the new volume
+        volume &new_volume(const std::string &name, const darray<scalar, 6> &bounds)
         {
-            _volumes.push_back(std::move(volume(name)));
+            _volumes.push_back(std::move(volume(name, bounds)));
             dindex cvolume_idx = _volumes.size() - 1;
             volume &cvolume = _volumes[cvolume_idx];
-            cvolume.index = cvolume_idx;
+            cvolume._index = cvolume_idx;
             return cvolume;
         }
 
         /// @return the name of the detector
         const std::string &name() const { return _name; }
+
+        /// @return the contained volumes of the detector
+        const dvector<volume> volumes() const { return _volumes; }
+
+        /// Output to string
+        const std::string to_string() const
+        {
+
+            std::stringstream ss;
+            ss << "[>] Detector '" << _name << "' has " << _volumes.size() << " volumes." << std::endl;
+            for (const auto &v : _volumes)
+            {
+                ss << "[>>] Volume '" << v.name() << "'" << std::endl;
+                ss << "     contains " << v._surfaces.size() << " detector surfaces" << std::endl;
+            }
+            return ss.str();
+        };
 
     private:
         std::string _name = "unknown_detector";

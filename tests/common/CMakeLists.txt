@@ -1,5 +1,3 @@
-message(STATUS "Testing: 'detray' benchmarks")
-
 add_library(detray_tests_common INTERFACE)
 
 target_include_directories(detray_tests_common
