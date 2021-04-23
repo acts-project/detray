@@ -125,7 +125,7 @@ namespace detray
                     for (const auto z0 : zone0)
                     {
                         auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, z0, z1);
-                        zone[iz++] =  _data_serialized[sbin];
+                        zone[iz++] = _data_serialized[sbin];
                     }
                 }
             }

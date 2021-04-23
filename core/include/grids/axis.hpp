@@ -207,7 +207,9 @@ namespace detray
              **/
             dindex bin(scalar v) const
             {
-                return (std::lower_bound(boundaries.begin(), boundaries.end(), v) - boundaries.begin());
+                dindex ibin = std::lower_bound(boundaries.begin(), boundaries.end(), v) - boundaries.begin();
+                return ((ibin > 0 and ibin < boundaries.size()) ? --ibin : (ibin == 0) ? ibin
+                                                                                       : boundaries.size() - 2);
             }
 
             /** Access function to a range with binned neighbourhood

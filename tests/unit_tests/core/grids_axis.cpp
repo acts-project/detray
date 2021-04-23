@@ -33,7 +33,7 @@ TEST(grids, regular_closed_axis)
     expected_range = {3u, 9u};
     EXPECT_EQ(ten_bins.range(5., 5), expected_range);
     // Axis sequence access
-    dindex_sequence expected_zone = { 5u };
+    dindex_sequence expected_zone = {5u};
     EXPECT_EQ(ten_bins.zone(2., 0), expected_zone);
     expected_zone = {4u, 5u, 6u};
     EXPECT_EQ(ten_bins.zone(2., 1), expected_zone);
@@ -76,11 +76,39 @@ TEST(grids, regular_circular_axis)
 
 TEST(grids, irregular_closed_axis)
 {
+    axis::irregular nonreg{{-3., 1., 2, 4., 8., 12.}};
 
-    axis::irregular nonreg{ {-3., 1., 2, 4., 8., 12.} };
+    // Axis bin access
+    //
     // N bins
     EXPECT_EQ(nonreg.bins(), 5u);
+    // Bin tests
+    EXPECT_EQ(nonreg.bin(-2), 0u);
+    EXPECT_EQ(nonreg.bin(10), 4u);
+    // Underflow test
+    EXPECT_EQ(nonreg.bin(-4), 0u);
+    // Overflow test
+    EXPECT_EQ(nonreg.bin(14), 4u);
 
+    // Axis range access
+    dindex_range expected_range = {1u, 3u};
+    EXPECT_EQ(nonreg.range(3., 1), expected_range);
+
+    dindex_range expected_range_truncated_low = {0u, 1u};
+    EXPECT_EQ(nonreg.range(0., 1), expected_range_truncated_low);
+
+    dindex_range expected_range_truncated_high = {2u, 4u};
+    EXPECT_EQ(nonreg.range(10., 2), expected_range_truncated_high);
+
+    // Axis sequence access
+    dindex_sequence expected_zone = {1u, 2u, 3u};
+    EXPECT_EQ(nonreg.zone(3., 1), expected_zone);
+
+    dindex_sequence expected_zone_truncated_low = {0u, 1u};
+    EXPECT_EQ(nonreg.zone(0., 1), expected_zone_truncated_low);
+
+    dindex_sequence expected_zone_truncated_high = {2u, 3u, 4u};
+    EXPECT_EQ(nonreg.zone(10., 2), expected_zone_truncated_high);
 }
 
 int main(int argc, char **argv)

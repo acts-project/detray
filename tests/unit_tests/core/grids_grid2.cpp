@@ -60,12 +60,11 @@ TEST(grids, grid2_replace_populator)
         }
     }
 
-    // A zone test w/o neighbour hood 
+    // A zone test w/o neighbour hood
     p = {-4.5, -4.5};
     auto test = g2.zone(p, {0, 0}, true);
-    dvector<dindex> expect = { 100u };
+    dvector<dindex> expect = {100u};
     EXPECT_EQ(test, expect);
-
 
     // A zone test with neighbour hood
     p = {0.5, 0.5};
@@ -217,7 +216,6 @@ TEST(grids, grid2_attach_populator)
     EXPECT_EQ(zone_test, zone_expected);
 }
 
-
 TEST(grids, grid2_shift)
 {
     replace_populator<dindex, 0> replacer;
@@ -236,9 +234,24 @@ TEST(grids, grid2_shift)
 
     g2.shift(8u);
     EXPECT_EQ(g2.bin(p), 8u);
-
 }
 
+TEST(grids, grid2_irregular_replace)
+{
+    replace_populator<> replacer;
+    serializer2 serializer;
+
+    axis::irregular xaxis{{-3, -2., 1, 0.5, 0.7, 0.71, 4., 1000.}};
+    axis::irregular yaxis{{0.1, 0.8, 0.9, 10., 12., 15.}};
+
+    using grid2ir = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis), decltype(serializer)>;
+
+    grid2ir g2(std::move(xaxis), std::move(yaxis));
+
+    test::point2 p = {-0.5, 0.5};
+    g2.populate(p, 4u);
+    EXPECT_EQ(g2.bin(p), 4u);
+}
 
 int main(int argc, char **argv)
 {
