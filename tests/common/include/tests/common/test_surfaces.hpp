@@ -92,14 +92,14 @@ namespace detray
         serializer2 serializer;
 
         // Declare the inner, outer, ecn, ecp object finder
-        axis::circular<> rphi_axis_inner = {n_phi, -volume_inner_r * (M_PI + 0.5 * step_phi), volume_inner_r * (M_PI - 0.5 * step_phi)};
-        axis::closed<> z_axis_inner = {1, volume_min_z, volume_max_z};
-        axis::circular<> rphi_axis_outer = {n_phi, -volume_outer_r * (M_PI + 0.5 * step_phi), volume_outer_r * (M_PI - 0.5 * step_phi)};
-        axis::closed<> z_axis_outer = {1, volume_min_z, volume_max_z};
-        axis::closed<> r_axis_ecn = {1, volume_inner_r, volume_outer_r};
-        axis::circular<> phi_axis_ecn = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
-        axis::closed<> r_axis_ecp = {1, volume_inner_r, volume_outer_r};
-        axis::circular<> phi_axis_ecp = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
+        axis::circular rphi_axis_inner = {n_phi, -volume_inner_r * (M_PI + 0.5 * step_phi), volume_inner_r * (M_PI - 0.5 * step_phi)};
+        axis::regular z_axis_inner = {1, volume_min_z, volume_max_z};
+        axis::circular rphi_axis_outer = {n_phi, -volume_outer_r * (M_PI + 0.5 * step_phi), volume_outer_r * (M_PI - 0.5 * step_phi)};
+        axis::regular z_axis_outer = {1, volume_min_z, volume_max_z};
+        axis::regular r_axis_ecn = {1, volume_inner_r, volume_outer_r};
+        axis::circular phi_axis_ecn = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
+        axis::regular r_axis_ecp = {1, volume_inner_r, volume_outer_r};
+        axis::circular phi_axis_ecp = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
 
         using cylinder_grid = grid2<decltype(replacer), decltype(rphi_axis_inner), decltype(z_axis_inner), decltype(serializer)>;
         using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn), decltype(phi_axis_ecn), decltype(serializer)>;
@@ -186,14 +186,14 @@ namespace detray
         scalar start_z = -0.5 * (n_z - 1) * (module_ly - overlap_z);
 
         // Declare the inner, outer, ecn, ecp object finder
-        axis::circular<> rphi_axis_inner = {n_phi, -volume_inner_r * (M_PI + 0.5 * step_phi), volume_inner_r * (M_PI - 0.5 * step_phi)};
-        axis::closed<> z_axis_inner = {n_z, -0.5 * length_z, 0.5 * length_z};
-        axis::circular<> rphi_axis_outer = {n_phi, -volume_outer_r * (M_PI + 0.5 * step_phi), volume_outer_r * (M_PI - 0.5 * step_phi)};
-        axis::closed<> z_axis_outer = {n_z, -0.5 * length_z, 0.5 * length_z};
-        axis::closed<> r_axis_ecn = {1, volume_inner_r, volume_outer_r};
-        axis::circular<> phi_axis_ecn = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
-        axis::closed<> r_axis_ecp = {1, volume_inner_r, volume_outer_r};
-        axis::circular<> phi_axis_ecp = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
+        axis::circular rphi_axis_inner = {n_phi, -volume_inner_r * (M_PI + 0.5 * step_phi), volume_inner_r * (M_PI - 0.5 * step_phi)};
+        axis::regular z_axis_inner = {n_z, -0.5 * length_z, 0.5 * length_z};
+        axis::circular rphi_axis_outer = {n_phi, -volume_outer_r * (M_PI + 0.5 * step_phi), volume_outer_r * (M_PI - 0.5 * step_phi)};
+        axis::regular z_axis_outer = {n_z, -0.5 * length_z, 0.5 * length_z};
+        axis::regular r_axis_ecn = {1, volume_inner_r, volume_outer_r};
+        axis::circular phi_axis_ecn = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
+        axis::regular r_axis_ecp = {1, volume_inner_r, volume_outer_r};
+        axis::circular phi_axis_ecp = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
 
         using cylinder_grid = grid2<decltype(replacer), decltype(rphi_axis_inner), decltype(z_axis_inner), decltype(serializer)>;
         using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn), decltype(phi_axis_ecn), decltype(serializer)>;

@@ -72,8 +72,8 @@ TEST(__plugin, barrel_component_construction)
     auto nec_finder = barrel_finders[2];
     auto pec_finder = barrel_finders[3];
 
-    using cylinder_grid = grid2<replace_populator<>, axis::circular<>, axis::closed<>, serializer2>;
-    using disc_grid = grid2<replace_populator<>, axis::closed<>, axis::circular<>, serializer2>;
+    using cylinder_grid = grid2<replace_populator<>, axis::circular, axis::regular, serializer2>;
+    using disc_grid = grid2<replace_populator<>, axis::regular, axis::circular, serializer2>;
 
     using cylinder_finder = local_zone_finder<cylinder_grid>;
     using disc_finder = local_zone_finder<disc_grid>;
@@ -91,26 +91,26 @@ TEST(__plugin, barrel_component_construction)
     const auto &inner_grid = inner_local_finder->grid();
     auto inner_grid_axis_p0 = inner_grid.axis_p0();
     auto inner_grid_axis_p1 = inner_grid.axis_p1();
-    ASSERT_EQ(inner_grid_axis_p0.bins, n_phi);
-    ASSERT_EQ(inner_grid_axis_p1.bins, n_z);
+    ASSERT_EQ(inner_grid_axis_p0.bins(), n_phi);
+    ASSERT_EQ(inner_grid_axis_p1.bins(), n_z);
 
     const auto &outer_grid = outer_local_finder->grid();
     auto outer_grid_axis_p0 = outer_grid.axis_p0();
     auto outer_grid_axis_p1 = outer_grid.axis_p1();
-    ASSERT_EQ(outer_grid_axis_p0.bins, n_phi);
-    ASSERT_EQ(outer_grid_axis_p1.bins, n_z);
+    ASSERT_EQ(outer_grid_axis_p0.bins(), n_phi);
+    ASSERT_EQ(outer_grid_axis_p1.bins(), n_z);
 
     const auto &ndisc_grid = nec_local_finder->grid();
     auto ndisc_grid_axis_p0 = ndisc_grid.axis_p0();
     auto ndisc_grid_axis_p1 = ndisc_grid.axis_p1();
-    ASSERT_EQ(ndisc_grid_axis_p0.bins, 1u);
-    ASSERT_EQ(ndisc_grid_axis_p1.bins, n_phi);
+    ASSERT_EQ(ndisc_grid_axis_p0.bins(), 1u);
+    ASSERT_EQ(ndisc_grid_axis_p1.bins(), n_phi);
 
     const auto &pdisc_grid = pec_local_finder->grid();
     auto pdisc_grid_axis_p0 = pdisc_grid.axis_p0();
     auto pdisc_grid_axis_p1 = pdisc_grid.axis_p1();
-    ASSERT_EQ(pdisc_grid_axis_p0.bins, 1u);
-    ASSERT_EQ(pdisc_grid_axis_p1.bins, n_phi);
+    ASSERT_EQ(pdisc_grid_axis_p0.bins(), 1u);
+    ASSERT_EQ(pdisc_grid_axis_p1.bins(), n_phi);
 
     using cyl_point2 = __plugin::cylindrical2::point2;
     using pol_point2 = __plugin::polar2::point2;
@@ -319,8 +319,8 @@ TEST(__plugin, endcap_component_construction)
     auto nec_finder = endcap_finders[2];
     auto pec_finder = endcap_finders[3];
 
-    using cylinder_grid = grid2<replace_populator<>, axis::circular<>, axis::closed<>, serializer2>;
-    using disc_grid = grid2<replace_populator<>, axis::closed<>, axis::circular<>, serializer2>;
+    using cylinder_grid = grid2<replace_populator<>, axis::circular, axis::regular, serializer2>;
+    using disc_grid = grid2<replace_populator<>, axis::regular, axis::circular, serializer2>;
 
     using cylinder_finder = local_zone_finder<cylinder_grid>;
     using disc_finder = local_zone_finder<disc_grid>;
@@ -338,26 +338,26 @@ TEST(__plugin, endcap_component_construction)
     const auto &inner_grid = inner_local_finder->grid();
     auto inner_grid_axis_p0 = inner_grid.axis_p0();
     auto inner_grid_axis_p1 = inner_grid.axis_p1();
-    ASSERT_EQ(inner_grid_axis_p0.bins, n_phi_ec);
-    ASSERT_EQ(inner_grid_axis_p1.bins, 1u);
+    ASSERT_EQ(inner_grid_axis_p0.bins(), n_phi_ec);
+    ASSERT_EQ(inner_grid_axis_p1.bins(), 1u);
 
     const auto &outer_grid = outer_local_finder->grid();
     auto outer_grid_axis_p0 = outer_grid.axis_p0();
     auto outer_grid_axis_p1 = outer_grid.axis_p1();
-    ASSERT_EQ(outer_grid_axis_p0.bins, n_phi_ec);
-    ASSERT_EQ(outer_grid_axis_p1.bins, 1u);
+    ASSERT_EQ(outer_grid_axis_p0.bins(), n_phi_ec);
+    ASSERT_EQ(outer_grid_axis_p1.bins(), 1u);
 
     const auto &ndisc_grid = nec_local_finder->grid();
     auto ndisc_grid_axis_p0 = ndisc_grid.axis_p0();
     auto ndisc_grid_axis_p1 = ndisc_grid.axis_p1();
-    ASSERT_EQ(ndisc_grid_axis_p0.bins, 1u);
-    ASSERT_EQ(ndisc_grid_axis_p1.bins, n_phi_ec);
+    ASSERT_EQ(ndisc_grid_axis_p0.bins(), 1u);
+    ASSERT_EQ(ndisc_grid_axis_p1.bins(), n_phi_ec);
 
     const auto &pdisc_grid = pec_local_finder->grid();
     auto pdisc_grid_axis_p0 = pdisc_grid.axis_p0();
     auto pdisc_grid_axis_p1 = pdisc_grid.axis_p1();
-    ASSERT_EQ(pdisc_grid_axis_p0.bins, 1u);
-    ASSERT_EQ(pdisc_grid_axis_p1.bins, n_phi_ec);
+    ASSERT_EQ(pdisc_grid_axis_p0.bins(), 1u);
+    ASSERT_EQ(pdisc_grid_axis_p1.bins(), n_phi_ec);
 
     using cyl_point2 = __plugin::cylindrical2::point2;
     using pol_point2 = __plugin::polar2::point2;

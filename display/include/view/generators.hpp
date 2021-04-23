@@ -13,9 +13,14 @@ namespace detray
     using transform3 = __plugin::transform3;
     using point3 = transform3::point3;
 
-    /// Generate phi values
-    ///
-    /// @param
+    /** Generate phi values
+     *
+     * @param start_phi is the start for the arc generation
+     * @param end_phi is the end of the arc generation
+     * @param lseg is the number of segments used to gnerate the arc
+     * 
+     * @return a vector of phi values for the arc
+     */
     static inline dvector<scalar>
     phi_values(scalar start_phi, scalar end_phi, unsigned int lseg)
     {
@@ -29,14 +34,15 @@ namespace detray
         return values;
     }
 
-    /// Generate vertices, specialized for masks: annulus2
-    ///
-    /// @note template types are simply forwarded to mask
-    ///
-    /// @param sf is the surface that generates vertices
-    /// @param ls is the number of line segments if
-    ///
-    /// @return a generated list of vertices
+    /** Generate vertices, specialized for masks: annulus2
+     *
+     * @note template types are simply forwarded to mask
+     * 
+     * @param sf is the surface that generates vertices
+     * @param ls is the number of line segments if
+     *
+     * @return a generated list of vertices
+     */
     template <typename intersector_type,
               typename local_type,
               typename links_type,
@@ -57,7 +63,7 @@ namespace detray
 
         point2 origin_m = {origin_x, origin_y};
 
-        // find inner outer radius at edges in STRIP PC
+        /// Helper method: find inner outer radius at edges in STRIP PC
         auto circIx = [](scalar O_x, scalar O_y, scalar r, scalar phi) -> point2 {
             //                      _____________________________________________
             //                     /      2  2                    2    2  2    2
@@ -111,14 +117,15 @@ namespace detray
         return annulus_vertices;
     }
 
-    /// Generate vertices, specialized for masks: rectangle2
-    ///
-    /// @note template types are simply forwarded to mask
-    ///
-    /// @param sf is the surface that generates vertices
-    /// @param ls is the number of line segments (ignored for rectangles)
-    ///
-    /// @return a generated list of vertices
+    /** Generate vertices, specialized for masks: rectangle2
+     *
+     * @note template types are simply forwarded to mask
+     *
+     * @param sf is the surface that generates vertices
+     * @param ls is the number of line segments (ignored for rectangles)
+     *
+     * @return a generated list of vertices
+     */
     template <typename intersector_type,
               typename local_type,
               typename links_type,
@@ -138,12 +145,15 @@ namespace detray
         // Return the confining vertices
     }
 
-    /// Generate vertices, specialized for masks: ring2
-    ///
-    /// @param sf is the surface that generates vertices
-    /// @param ls is the number of line segments if
-    ///
-    /// @return a generated list of vertices
+    /** Generate vertices, specialized for masks: ring2
+     *
+     * @note template types are simply forwarded to mask
+     *
+     * @param sf is the surface that generates vertices
+     * @param ls is the number of line segments if
+     *
+     * @return a generated list of vertices
+     */
     template <typename intersector_type,
               typename local_type,
               typename links_type,
@@ -153,14 +163,15 @@ namespace detray
         return {};
     }
 
-    /// Generate vertices, specialized for masks: trapezoid2
-    ///
-    /// @note template types are simply forwarded to mask
-    ///
-    /// @param sf is the surface that generates vertices
-    /// @param ls is the number of line segments if, ignored
-    ///
-    /// @return a generated list of vertices
+    /** Generate vertices, specialized for masks: trapezoid2
+     *
+     * @note template types are simply forwarded to mask
+     *
+     * @param sf is the surface that generates vertices
+     * @param ls is the number of line segments if, ignored
+     * 
+     * @return a generated list of vertices
+     */
     template <typename intersector_type,
               typename local_type,
               typename links_type,

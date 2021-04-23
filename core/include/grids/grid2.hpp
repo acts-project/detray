@@ -39,7 +39,7 @@ namespace detray
          **/
         grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1) : _axis_p0(std::move(axis_p0)), _axis_p1(std::move(axis_p1))
         {
-            _data_serialized = serialized_storage(axis_p0.bins * axis_p1.bins, _populator.init());
+            _data_serialized = serialized_storage(axis_p0.bins() * axis_p1.bins(), _populator.init());
         }
 
         /** Allow for grid shift, when using a centralized store and indices
@@ -125,7 +125,7 @@ namespace detray
                     for (const auto z0 : zone0)
                     {
                         auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, z0, z1);
-                        zone[iz++] =  _data_serialized[sbin];
+                        zone[iz++] = _data_serialized[sbin];
                     }
                 }
             }

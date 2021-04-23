@@ -88,26 +88,41 @@ int main(int argc, char **argv)
                 }
             }
 
+            // Helper method to sort and rmove duplicates
+            auto sort_and_remove_duplicates = [](std::vector<dindex> &att) -> void {
+                std::sort(att.begin(), att.end());
+                att.erase(std::unique(att.begin(), att.end()), att.end());
+            };
+
+            std::cout << "[detray] Detector grid bins r_min " << r_min_attachments.size() << std::endl;
+            std::cout << "                            r_max " << r_max_attachments.size() << std::endl;
+            std::cout << "                            z_min " << z_min_attachments.size() << std::endl;
+            std::cout << "                            z_max " << z_max_attachments.size() << std::endl;
+
             if (argc > 5)
             {
                 // Drawing the lines for the grid search
                 for (auto [key, value] : r_min_attachments)
                 {
+                    sort_and_remove_duplicates(value);
                     auto l = line(rz_det[2], key, rz_det[3], key);
                     l->color("red");
                 }
                 for (auto [key, value] : r_max_attachments)
                 {
+                    sort_and_remove_duplicates(value);
                     auto l = line(rz_det[2], key, rz_det[3], key);
                     l->color("red");
                 }
                 for (auto [key, value] : z_min_attachments)
                 {
+                    sort_and_remove_duplicates(value);
                     auto l = line(key, rz_det[0], key, rz_det[1]);
                     l->color("red");
                 }
                 for (auto [key, value] : z_max_attachments)
                 {
+                    sort_and_remove_duplicates(value);
                     auto l = line(key, rz_det[0], key, rz_det[1]);
                     l->color("red");
                 }
