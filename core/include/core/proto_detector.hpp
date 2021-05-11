@@ -9,6 +9,10 @@
 #include "core/intersection.hpp"
 #include "core/surface.hpp"
 #include "core/transform_store.hpp"
+#include "grids/axis.hpp"
+#include "grids/grid2.hpp"
+#include "grids/serializer2.hpp"
+#include "grids/populator.hpp"
 #include "masks/annulus2.hpp"
 #include "masks/rectangle2.hpp"
 #include "masks/trapezoid2.hpp"
@@ -45,6 +49,9 @@ namespace detray
     {
 
     public:
+        /// Volume grid definition
+        using volume_grid = grid2<replace_populator<>, axis::irregular, axis::irregular, serializer2>;
+
         /// Portals components:
         /// - links:  next volume, next object finder
         using portal_links = darray<dindex, 2>;
@@ -53,7 +60,7 @@ namespace detray
         using portal_disc = ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
         // - mask index: type, first/last
         using portal_mask_index = darray<dindex, 3>;
-        using portal_masks = dtuple<dvector<portal_cylinder>, dvector<portal_disc> >;
+        using portal_masks = dtuple<dvector<portal_cylinder>, dvector<portal_disc>>;
         // - portal transforms, different from surfaces w/o alignment
         using portal_transforms = dvector<transform3>;
 
@@ -73,15 +80,17 @@ namespace detray
         using surface_masks = dtuple<dvector<surface_rectangle>,
                                      dvector<surface_trapezoid>,
                                      dvector<surface_annulus>,
-                                     dvector<surface_cylinder> >;
+                                     dvector<surface_cylinder>>;
 
-        /// The Surface definition:
-        ///  <transform_link, mask_link, volume_link, source_link >
+        /** The Surface definition:
+         *  <transform_link, mask_link, volume_link, source_link >
+         */
         using detector_surface = surface<dindex, surface_mask_index, dindex, surface_source_link>;
         using surfaces = dvector<detector_surface>;
 
-        /// Nested volume struct that holds the local information of the
-        /// volume and its portals.
+        /** Nested volume struct that holds the local information of the
+         * volume and its portals.
+         */
         class volume
         {
 
@@ -182,11 +191,12 @@ namespace detray
             }
 
         private:
-            // Volume section
+            /// Volume section: name
             std::string _name = "unknown";
+            /// Volume index
             dindex _index = dindex_invalid;
 
-            // Bounds section, default for r, z, phi
+            /// Bounds section, default for r, z, phi
             darray<scalar, 6> _bounds = {0.,
                                          std::numeric_limits<scalar>::max(),
                                          -std::numeric_limits<scalar>::max(),
@@ -232,12 +242,23 @@ namespace detray
         const std::string &name() const { return _name; }
 
         /** @return the contained volumes of the detector */
-        const dvector<volume> volumes() const { return _volumes; }
+        const dvector<volume> &volumes() const { return _volumes; }
+
+        /** Add the volume grid - move semantics 
+         * 
+         * @param v_grid the volume grid to be added
+         */
+        void add_volume_grid(volume_grid &&v_grid)
+        {
+            _volume_grid = std::move(v_grid);
+        }
+
+        /** @return the volume grid - const access */
+        const volume_grid &volume_search_grid() const { return _volume_grid; }
 
         /** Output to string */
         const std::string to_string() const
         {
-
             std::stringstream ss;
             ss << "[>] Detector '" << _name << "' has " << _volumes.size() << " volumes." << std::endl;
             for (const auto &v : _volumes)
@@ -251,6 +272,8 @@ namespace detray
     private:
         std::string _name = "unknown_detector";
         dvector<volume> _volumes = {};
+
+        volume_grid _volume_grid = volume_grid(std::move(axis::irregular{{}}), std::move(axis::irregular{{}}));
     };
 
 }

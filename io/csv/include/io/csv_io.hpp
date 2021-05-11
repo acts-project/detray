@@ -8,6 +8,10 @@
 #pragma once
 
 #include "core/proto_detector.hpp"
+#include "grids/axis.hpp"
+#include "grids/grid2.hpp"
+#include "grids/serializer2.hpp"
+#include "grids/populator.hpp"
 
 #include <dfe/dfe_namedtuple.hpp>
 #include <dfe/dfe_io_dsv.hpp>
@@ -137,7 +141,30 @@ namespace detray
     typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surfaces c_surfaces;
     typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks c_masks;
 
-    std::map<volume_layer_index, darray<scalar, 6> > volume_bounds;
+    std::map<volume_layer_index, darray<scalar, 6>> volume_bounds;
+
+    // Remember the r/z attachements
+    dmap<scalar, std::vector<dindex>> r_min_attachments;
+    dmap<scalar, std::vector<dindex>> z_min_attachments;
+    scalar r_max = 0;
+    scalar z_max = -std::numeric_limits<scalar>::max();
+
+    /** Helper method to attach volumes to bins
+     * 
+     * @param attachments The attachnment map
+     * @param value the (eventually new) value for insertion
+     * @param volume_index the index of the attached volume
+     */
+    auto attach_volume = [](dmap<scalar, std::vector<dindex>> &attachments, scalar value, dindex volume_index) -> void {
+      if (attachments.find(value) == attachments.end())
+      {
+        attachments[value] = {volume_index};
+      }
+      else
+      {
+        attachments[value].push_back(volume_index);
+      }
+    };
 
     // Pre-read the bounds values
     while (lv_reader.read(io_layer_volume))
@@ -183,11 +210,21 @@ namespace detray
         auto new_bounds = volume_bounds.find(c_index);
         if (new_bounds == volume_bounds.end())
         {
+
           // Bounds not found, do not build the volume
           continue;
         }
 
+        const auto &volume_bounds = new_bounds->second;
         auto &new_volume = d.new_volume(volume_name, new_bounds->second);
+
+        // RZ attachment storage
+        attach_volume(r_min_attachments, volume_bounds[0], new_volume.index());
+        attach_volume(z_min_attachments, volume_bounds[2], new_volume.index());
+
+        r_max = std::max(r_max, volume_bounds[1]);
+        z_max = std::max(z_max, volume_bounds[3]);
+
         c_volume = &new_volume;
         // Insert to volume map
         volumes[c_index] = c_volume;
@@ -297,6 +334,69 @@ namespace detray
         }
       } // end of exclusion for navigation layers
     }
+
+    /** Helper method to sort and rmove duplicates
+     * 
+     * @param att attribute vector for sorting and duplicate removal
+     * 
+     * @return the key values
+     */
+    auto
+        sort_and_remove_duplicates = [](dmap<scalar, std::vector<dindex>> &att) -> dvector<scalar> {
+      dvector<scalar> keys;
+      keys.reserve(att.size());
+      for (auto [key, value] : att)
+      {
+        keys.push_back(key);
+        std::sort(value.begin(), value.end());
+        value.erase(std::unique(value.begin(), value.end()), value.end());
+      }
+      return keys;
+    };
+
+    // Drawing the lines for the grid search
+    auto rs = sort_and_remove_duplicates(r_min_attachments);
+    rs.push_back(r_max);
+    auto zs = sort_and_remove_duplicates(z_min_attachments);
+    zs.push_back(z_max);
+
+    // Create axes and volume grid
+    axis::irregular raxis{{rs}};
+    axis::irregular zaxis{{zs}};
+
+    typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::volume_grid
+        v_grid(std::move(raxis), std::move(zaxis));
+
+    // A step into the volume (stepsilon), can be read in from the smallest difference
+    scalar stepsilon = 1.;
+
+    // Loop over the volumes and fill the volume grid
+    for (const auto &v : d.volumes())
+    {
+      // Get the volume bounds for fillind
+      const auto &v_bounds = v.bounds();
+
+      dindex irl = v_grid.axis_p0().bin(v_bounds[0] + stepsilon);
+      dindex irh = v_grid.axis_p0().bin(v_bounds[1] - stepsilon);
+      dindex izl = v_grid.axis_p1().bin(v_bounds[2] + stepsilon);
+      dindex izh = v_grid.axis_p1().bin(v_bounds[3] - stepsilon);
+      dindex volume_index = v.index();
+
+      auto r_low = v_grid.axis_p0().borders(irl)[0];
+      auto r_high = v_grid.axis_p0().borders(irh)[1];
+      auto z_low = v_grid.axis_p1().borders(izl)[0];
+      auto z_high = v_grid.axis_p1().borders(izh)[1];
+
+      for (dindex ir = irl; ir <= irh; ++ir)
+      {
+        for (dindex iz = izl; iz <= izh; ++iz)
+        {
+          v_grid.populate(ir, iz, std::move(volume_index));
+        }
+      }
+    }
+    // Add the volume grid to the detector
+    d.add_volume_grid(std::move(v_grid));
 
     return d;
   }
