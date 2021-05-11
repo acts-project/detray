@@ -9,6 +9,8 @@
 
 #include "utils/containers.hpp"
 
+#include <iostream>
+
 namespace detray
 {
 
@@ -39,7 +41,7 @@ namespace detray
          **/
         grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1) : _axis_p0(std::move(axis_p0)), _axis_p1(std::move(axis_p1))
         {
-            _data_serialized = serialized_storage(axis_p0.bins() * axis_p1.bins(), _populator.init());
+            _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
         }
 
         /** Allow for grid shift, when using a centralized store and indices
@@ -65,6 +67,30 @@ namespace detray
         {
             auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]));
             _populator(_data_serialized[sbin], std::move(fvalue));
+        }
+
+        /** Fill/populate operation - with bin entry
+         * 
+         * @param bin The two-dimensional bin2 
+         * @param fvalue is a single fill value to be filled
+         * 
+         **/
+        void populate(dindex bin0, dindex bin1, typename populator_type::bare_value &&fvalue)
+        {
+            auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, bin0, bin1);
+             _populator(_data_serialized[sbin], std::move(fvalue));
+        }
+
+        /** Return the value of a single bin - with direct bin acess
+         * 
+         * @param bin0 the index of bin 0
+         * @param bin1 the index of bin 1
+         * 
+         * @return the const reference to the value in this bin 
+         **/
+        const auto &bin(dindex bin0, dindex bin1) const
+        {
+            return _data_serialized[_serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, bin0, bin1)];
         }
 
         /** Return the value of a single bin 

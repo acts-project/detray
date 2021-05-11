@@ -80,7 +80,14 @@ namespace detray
                 return sequence;
             }
 
-            /** Copy the range zone */
+            /** @return the bin boundaries for a given bin */
+            darray<scalar, 2> borders(dindex ibin) const
+            {
+                scalar step = (max - min) / n_bins;
+                return {ibin * step, (ibin + 1) * step};
+            }
+
+            /** @return the range  */
             darray<scalar, 2> range() const { return {min, max}; }
         };
 
@@ -180,7 +187,14 @@ namespace detray
                 return static_cast<dindex>(opt_bin - n_bins);
             }
 
-            /** Copy the range zone */
+            /** @return the bin boundaries for a given bin */
+            darray<scalar, 2> borders(dindex ibin) const
+            {
+                scalar step = (max - min) / n_bins;
+                return {ibin * step, (ibin + 1) * step};
+            }
+
+            /** @return the range  */
             darray<scalar, 2> range() const { return {min, max}; }
         };
 
@@ -247,8 +261,18 @@ namespace detray
                 return sequence;
             }
 
-            /** Copy the range zone */
-            darray<scalar, 2> range() const { return {boundaries[0], boundaries[boundaries.size() - 1]}; }
+            /** @return the bin boundaries for a given bin */
+            darray<scalar, 2> borders(dindex ibin) const
+            {
+                return {boundaries[ibin], boundaries[ibin + 1]};
+            }
+
+            /** @return the range  */
+            darray<scalar, 2>
+            range() const
+            {
+                return {boundaries[0], boundaries[boundaries.size() - 1]};
+            }
         };
 
     } // namespace axis
