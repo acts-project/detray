@@ -65,7 +65,7 @@ namespace detray
         using portal_transforms = dvector<transform3>;
 
         /// The Portal definition:
-        ///  <transform_link, mask_link, volume_link, source_link >
+        ///  <transform_link, mask_index, volume_link, source_link >
         using portal_surface = surface<dindex, portal_mask_index, dindex, surface_source_link>;
         using portals = dvector<portal_surface>;
 
@@ -114,7 +114,7 @@ namespace detray
             volume(const volume &) = default;
 
             /** @return the bounds - const access */
-            const darray<scalar, 6> bounds() const { return _bounds; }
+            const darray<scalar, 6> &bounds() const { return _bounds; }
 
             /** @return the name */
             const std::string &name() const { return _name; }
@@ -241,8 +241,14 @@ namespace detray
         /** @return the name of the detector */
         const std::string &name() const { return _name; }
 
-        /** @return the contained volumes of the detector */
+        /** @return the contained volumes of the detector - const access */
         const dvector<volume> &volumes() const { return _volumes; }
+
+        /** @return the volume by @param volume_index - const access */
+        const volume &indexed_volume(dindex volume_index) const { return _volumes[volume_index]; }
+
+        /** @return the volume by @param volume_index - non-const access */
+        volume &indexed_volume(dindex volume_index) { return _volumes[volume_index]; }
 
         /** Add the volume grid - move semantics 
          * 
@@ -261,10 +267,11 @@ namespace detray
         {
             std::stringstream ss;
             ss << "[>] Detector '" << _name << "' has " << _volumes.size() << " volumes." << std::endl;
-            for (const auto &v : _volumes)
+            for (const auto& [i, v ] : enumerate(_volumes))
             {
-                ss << "[>>] Volume '" << v.name() << "'" << std::endl;
+                ss << "[>>] Volume at index " << i <<  " - name: '"  << v.name() << "'" << std::endl;
                 ss << "     contains " << v._surfaces.size() << " detector surfaces" << std::endl;
+                ss << "              " << v._portals.size() << " detector portals" << std::endl;
             }
             return ss.str();
         };

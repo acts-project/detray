@@ -8,6 +8,7 @@
 #pragma once
 
 #include "core/proto_detector.hpp"
+#include "core/volume_connector.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
 #include "grids/serializer2.hpp"
@@ -335,7 +336,7 @@ namespace detray
       } // end of exclusion for navigation layers
     }
 
-    /** Helper method to sort and rmove duplicates
+    /** Helper method to sort and remove duplicates
      * 
      * @param att attribute vector for sorting and duplicate removal
      * 
@@ -395,6 +396,10 @@ namespace detray
         }
       }
     }
+
+    // Connect the cylindrical volumes 
+    connect_cylindrical_volumes(d, v_grid);
+
     // Add the volume grid to the detector
     d.add_volume_grid(std::move(v_grid));
 

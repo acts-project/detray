@@ -36,7 +36,8 @@ int main(int argc, char **argv)
             std::string volumes = argv[4];
             auto d = detector_from_csv<static_transform_store>(name, surfaces, grids, volumes);
             std::cout << "[detray] Detector read successfully." << std::endl;
-            std::cout << "         Volumes : " << d.volumes().size() << std::endl;
+            std::cout << d.to_string() << std::endl;
+            // std::cout << "         Volumes : " << d.volumes().size() << std::endl;
             // Parse the volumes for r/z max dimensions - pre-loop
             const scalar scalar_limit = std::numeric_limits<scalar>::max();
             darray<scalar, 4> rz_det = {scalar_limit, 0., scalar_limit, -scalar_limit};
