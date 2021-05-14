@@ -10,3 +10,6 @@
 [submodule "extern/matplotplusplus"]
 	path = extern/matplotplusplus
 	url = https://github.com/alandefreitas/matplotplusplus.git
+[submodule "plugins/algebra_private"]
+	path = plugins/algebra_private
+	url = https://github.com/niermann999/algebra-plugins.git
