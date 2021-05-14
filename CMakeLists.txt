@@ -14,14 +14,21 @@ option(DETRAY_DISPLAY "Build matplot++ based display module" Off)
 
 if(DETRAY_CUSTOM_SCALARTYPE)
     message(STATUS "Building with custom scalar type: " ${ACTS_CUSTOM_SCALARTYPE})
+    set(ALGEBRA_CUSTOM_SCALARTYPE ${DETRAY_CUSTOM_SCALARTYPE})
+endif()
+
+if (DETRAY_ARRAY_PLUGIN)
+    set(INCLUDE_ARRAY_PLUGIN ON)
 endif()
 
 if (DETRAY_EIGEN_PLUGIN)
+    set(INCLUDE_EIGEN_PLUGIN ON)
     find_package(Eigen3 REQUIRED)
     include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 endif()
 
 if (DETRAY_SMATRIX_PLUGIN)
+    set(INCLUDE_SMATRIX_PLUGIN ON)
     find_package(ROOT REQUIRED COMPONENTS MathCore)
     include_directories(SYSTEM ${ROOT_INCLUDE_DIRS})
 endif()
