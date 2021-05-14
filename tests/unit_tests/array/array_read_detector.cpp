@@ -6,4 +6,4 @@
  */
 
 #include "plugins/array_defs.hpp"
-#include "tests/common/test_read_detector.inl"
+#include "tests/common/io_read_detector.inl"

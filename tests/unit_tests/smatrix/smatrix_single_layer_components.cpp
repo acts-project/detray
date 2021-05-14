@@ -6,4 +6,4 @@
  */
 
 #include "plugins/smatrix_defs.hpp"
-#include "tests/common/io_read_detector.inl"
+#include "tests/common/test_single_layer_components.inl"
