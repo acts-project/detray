@@ -49,8 +49,8 @@ namespace __plugin
         auto range0 = axis0.range();
         auto range1 = axis1.range();
 
-        scalar step0 = (range0[1]-range0[0])/itest;
-        scalar step1 = (range0[1]-range0[0])/itest;
+        scalar step0 = (range0[1] - range0[0]) / itest;
+        scalar step1 = (range0[1] - range0[0]) / itest;
 
         size_t successful = 0;
         size_t unsuccessful = 0;
@@ -59,11 +59,14 @@ namespace __plugin
         {
             for (unsigned int i0 = 0; i0 < itest; ++i0)
             {
-                transform3::vector3 rz(i0*step0, 0., i1*step1);
-                auto& v = d.indexed_volume(rz);
-                if (v.index() == dindex_invalid){
+                transform3::vector3 rz(i0 * step0, 0., i1 * step1);
+                auto &v = d.indexed_volume(rz);
+                if (v.index() == dindex_invalid)
+                {
                     ++unsuccessful;
-                } else {
+                }
+                else
+                {
                     ++successful;
                 }
             }
@@ -71,7 +74,6 @@ namespace __plugin
 
         std::cout << "Successful   : " << successful << std::endl;
         std::cout << "Unsuccessful : " << unsuccessful << std::endl;
-
     }
 
     BENCHMARK(BM_FIND_VOLUMES);
