@@ -247,6 +247,13 @@ namespace detray
         /** @return the volume by @param volume_index - const access */
         const volume &indexed_volume(dindex volume_index) const { return _volumes[volume_index]; }
 
+        /** @return the volume by @param position - const access */
+        const volume &indexed_volume(const point3& p) const {
+            point2 p2 = {getter::perp(p) , p[2]};
+            dindex volume_index = _volume_grid.bin(p2);
+            return _volumes[volume_index];
+        }
+
         /** @return the volume by @param volume_index - non-const access */
         volume &indexed_volume(dindex volume_index) { return _volumes[volume_index]; }
 
