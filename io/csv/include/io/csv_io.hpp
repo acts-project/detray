@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "core/proto_detector.hpp"
+#include "core/detector.hpp"
 #include "core/volume_connector.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
@@ -107,7 +107,7 @@ namespace detray
   template <typename alignable_store = static_transform_store,
             typename surface_source_link = dindex,
             typename bounds_source_link = dindex>
-  proto_detector<alignable_store,
+  detector<alignable_store,
                  surface_source_link,
                  bounds_source_link>
   detector_from_csv(const std::string &detector_name,
@@ -116,7 +116,7 @@ namespace detray
                     const std::string &layer_volume_file_name)
   {
 
-    proto_detector d(detector_name);
+    detector d(detector_name);
 
     // Surface reading
     surface_reader s_reader(surface_file_name);
@@ -131,16 +131,16 @@ namespace detray
     csv_layer_volume io_layer_volume;
 
     using volume_layer_index = std::pair<uint32_t, uint32_t>;
-    std::map<volume_layer_index, typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::volume *> volumes;
+    std::map<volume_layer_index, typename detector<alignable_store, surface_source_link, bounds_source_link>::volume *> volumes;
 
     // We read in with a default context
     typename alignable_store::storage surface_transform_storage;
     typename alignable_store::context surface_default_context;
 
     // Flushable containers
-    typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::volume *c_volume = nullptr;
-    typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::detector_surfaces c_surfaces;
-    typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks c_masks;
+    typename detector<alignable_store, surface_source_link, bounds_source_link>::volume *c_volume = nullptr;
+    typename detector<alignable_store, surface_source_link, bounds_source_link>::detector_surfaces c_surfaces;
+    typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks c_masks;
 
     std::map<volume_layer_index, darray<scalar, 6>> volume_bounds;
 
@@ -199,9 +199,9 @@ namespace detray
           // Get new clean containers
           surface_transform_storage = typename alignable_store::storage();
           c_surfaces =
-              typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::detector_surfaces();
+              typename detector<alignable_store, surface_source_link, bounds_source_link>::detector_surfaces();
           c_masks =
-              typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks();
+              typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks();
         }
 
         // Create a new volume & assign
@@ -259,13 +259,13 @@ namespace detray
         bounds.push_back(io_surface.bound_param6);
 
         // Acts naming convention for bounds
-        typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surface_mask_index
+        typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_mask_index
             mask_index = {dindex_invalid, dindex_invalid};
 
         if (bounds_type == 1)
         {
           // Cylinder bounds
-          constexpr auto cylinder_context = proto_detector<alignable_store,
+          constexpr auto cylinder_context = detector<alignable_store,
                                                            surface_source_link,
                                                            bounds_source_link>::surface_cylinder::mask_context;
 
@@ -283,7 +283,7 @@ namespace detray
         else if (bounds_type == 6)
         {
           // Rectangle bounds
-          constexpr auto rectangle_context = proto_detector<alignable_store,
+          constexpr auto rectangle_context = detector<alignable_store,
                                                             surface_source_link,
                                                             bounds_source_link>::surface_rectangle::mask_context;
 
@@ -299,7 +299,7 @@ namespace detray
         else if (bounds_type == 7)
         {
           // Trapezoid bounds
-          constexpr auto trapezoid_context = proto_detector<alignable_store,
+          constexpr auto trapezoid_context = detector<alignable_store,
                                                             surface_source_link,
                                                             bounds_source_link>::surface_trapezoid::mask_context;
           // Get the trapezoid mask container
@@ -312,7 +312,7 @@ namespace detray
         else if (bounds_type == 11)
         {
           // Annulus bounds
-          constexpr auto annulus_context = proto_detector<alignable_store,
+          constexpr auto annulus_context = detector<alignable_store,
                                                           surface_source_link,
                                                           bounds_source_link>::surface_annulus::mask_context;
           // Get the trapezoid mask container
@@ -367,7 +367,7 @@ namespace detray
     axis::irregular raxis{{rs}};
     axis::irregular zaxis{{zs}};
 
-    typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::volume_grid
+    typename detector<alignable_store, surface_source_link, bounds_source_link>::volume_grid
         v_grid(std::move(raxis), std::move(zaxis));
 
     // A step into the volume (stepsilon), can be read in from the smallest difference

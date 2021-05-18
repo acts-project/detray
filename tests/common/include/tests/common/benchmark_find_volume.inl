@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "core/proto_detector.hpp"
+#include "core/detector.hpp"
 #include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
 
