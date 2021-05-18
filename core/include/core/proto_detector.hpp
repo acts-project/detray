@@ -46,7 +46,7 @@ namespace detray
     template <typename alignable_store = static_transform_store,
               typename surface_source_link = dindex,
               typename bounds_source_link = dindex>
-    class detector
+    class proto_detector
     {
 
     public:
@@ -79,9 +79,9 @@ namespace detray
         /// - mask index: type, entry
         using surface_mask_index = darray<dindex, 2>;
         using surface_mask_container = dtuple<dvector<surface_rectangle>,
-                                              dvector<surface_trapezoid>,
-                                              dvector<surface_annulus>,
-                                              dvector<surface_cylinder>>;
+                                     dvector<surface_trapezoid>,
+                                     dvector<surface_annulus>,
+                                     dvector<surface_cylinder>>;
 
         /** The Surface definition:
          *  <transform_link, mask_link, volume_link, source_link >
@@ -95,7 +95,7 @@ namespace detray
         class volume
         {
 
-            friend class detector<alignable_store, surface_source_link, bounds_source_link>;
+            friend class proto_detector<alignable_store, surface_source_link, bounds_source_link>;
 
         public:
             /** Deleted constructor */
@@ -191,36 +191,14 @@ namespace detray
                 _portal_mask_container = std::move(volume_portal_mask_container);
             }
 
-            /** Indexed access to detector surfaces - const access 
-             * 
-             * @param surface_index is the index within this volume
-             * @note no range checking is done
-             * @return a const reference to a surface
-            */
-            const surface &indexed_surface(dindex surface_index) const
-            {
-                return _surfaces[surface_index];
-            }
+            /** Const Access to the detector surfaces */
+            const surface_container& surfaces() const { return _surfaces; }
 
-            /** @return the detector surfaces - const access */
-            const surface_container &surfaces() const { return _surfaces; }
+            /** Const Access to the surface transform store */
+            const alignable_store& surface_transforms() const { return _surface_transforms; }
 
-            /** @return the surface transform store - const access */
-            const alignable_store &surface_transforms() const { return _surface_transforms; }
-
-            /** @return the surface masks - const access */
-            const surface_mask_container &masks() const { return _surface_mask_container; }
-
-            /** Indexed access to the portals 
-             * 
-             * @param portal_index is the index of the portal within this volume
-             * @note no range checking is done 
-             * @return a const reference to a portal
-             */
-            const portal &indexed_portals(dindex portal_index) const
-            {
-                return _portals[portal_index];
-            }
+            /** Const Access to the surface masks */
+            const surface_mask_container& masks() const { return _surface_mask_container; }
 
         private:
             /// Volume section: name
@@ -249,10 +227,10 @@ namespace detray
         /** Allowed costructor
          * @param name the detector
          */
-        detector(const std::string &name) : _name(name) {}
-        detector(const detector & /*ignored*/) = default;
-        detector() = delete;
-        ~detector() = default;
+        proto_detector(const std::string &name) : _name(name) {}
+        proto_detector(const proto_detector & /*ignored*/) = default;
+        proto_detector() = delete;
+        ~proto_detector() = default;
 
         /** Add a new volume and retrieve a reference to it
          *

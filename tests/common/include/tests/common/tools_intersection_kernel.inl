@@ -39,7 +39,7 @@ TEST(tools, intersection_kernel_single)
     using surface_concentric_cylinder = cylinder3<false, concentric_cylinder_intersector, __plugin::cylindrical2, mask_link, 4>;
     /// - mask index: type, entry
     using surface_mask_index = darray<dindex, 2>;
-    using surface_masks = dtuple<dvector<surface_rectangle>, 
+    using surface_mask_container = dtuple<dvector<surface_rectangle>, 
                                  dvector<surface_trapezoid>, 
                                  dvector<surface_annulus>, 
                                  dvector<surface_cylinder>,
@@ -47,8 +47,8 @@ TEST(tools, intersection_kernel_single)
 
     /// The Surface definition:
     ///  <transform_link, mask_link, volume_link, source_link >
-    using detector_surface = surface<dindex, surface_mask_index, dindex, surface_link>;
-    using detector_surfaces = dvector<detector_surface>;
+    using surface = surface<dindex, surface_mask_index, dindex, surface_link>;
+    using surface_container = dvector<surface>;
 
     using surface_intersection = intersection<point3, point2>;
 
@@ -65,15 +65,15 @@ TEST(tools, intersection_kernel_single)
     surface_rectangle first_rectangle = {10., 10.};
     surface_trapezoid second_trapezoid = {10., 20., 30.};
     surface_annulus thrid_annulus = {15., 55., 0.75, 1.95, 2., -2.};
-    surface_masks mask_store;
+    surface_mask_container mask_store;
     std::get<0>(mask_store).push_back(first_rectangle);
     std::get<1>(mask_store).push_back(second_trapezoid);
     std::get<2>(mask_store).push_back(thrid_annulus);
     // The surfaces and their store
-    detector_surface rectangle_surface(0u, {0, 0}, 0, 0);
-    detector_surface trapezoid_surface(1u, {1, 0}, 0, 1);
-    detector_surface annulus_surface(2u, {2, 0}, 0, 2);
-    detector_surfaces surfaces = {rectangle_surface, trapezoid_surface, annulus_surface};
+    surface rectangle_surface(0u, {0, 0}, 0, 0);
+    surface trapezoid_surface(1u, {1, 0}, 0, 1);
+    surface annulus_surface(2u, {2, 0}, 0, 2);
+    surface_container surfaces = {rectangle_surface, trapezoid_surface, annulus_surface};
 
     // Try the intersection - first one by one
 

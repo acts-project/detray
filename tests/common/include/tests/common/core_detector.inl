@@ -23,7 +23,7 @@ TEST(__plugin, detector)
     static_transform_store::storage static_storage;   
     static_transform_store::context ctx0;
 
-    detector::surface_masks masks;
+    detector::surface_mask_container masks;
 
     /// Surface 0
     transform3::point3 t0{0.,0.,0.};
