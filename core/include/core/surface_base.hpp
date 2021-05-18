@@ -10,7 +10,7 @@
 
 namespace detray
 {
-    /** Templated surface class
+    /** Templated surface base class for detector surfaces and portals
      * 
      * @tparam transform_link the type of the transform/transform link for global 3D to local 3D frame
      * @tparam mask_link the type of the mask/mask link representation
@@ -18,7 +18,7 @@ namespace detray
      * @tparam source_link the type of the source/source link representation 
      */
     template <typename transform_link, typename mask_link = int, typename volume_link = int, typename source_link = bool>
-    class surface
+    class surface_base
     {
     public:
         /** Broadcast the transform type */
@@ -32,7 +32,7 @@ namespace detray
          * @param src the source object/source link this surface is representing
          * 
          **/
-        surface(transform_link &&trf, mask_link &&mask, volume_link &&vol, source_link &&src)
+        surface_base(transform_link &&trf, mask_link &&mask, volume_link &&vol, source_link &&src)
             : _trf(std::move(trf)), _mask(std::move(mask)), _vol(std::move(vol)), _src(std::move(src))
         {
         }
@@ -45,20 +45,20 @@ namespace detray
          * @param src the source object/source link this surface is representing
          * 
          **/
-        surface(const transform_link &trf, const mask_link &mask, const volume_link &vol, const source_link &src)
+        surface_base(const transform_link &trf, const mask_link &mask, const volume_link &vol, const source_link &src)
             : _trf(trf), _mask(mask), _vol(vol), _src(src)
         {
         }
 
-        ~surface() = default;
-        surface(const surface &lhs) = default;
-        surface() = delete;
+        ~surface_base() = default;
+        surface_base(const surface_base &lhs) = default;
+        surface_base() = delete;
 
         /** Equality operator 
          * 
          * @param rhs is the right hand side to be compared to 
         */
-        bool operator==(const surface<transform_link, mask_link, source_link> &rhs) const
+        bool operator==(const surface_base<transform_link, mask_link, source_link> &rhs) const
         {
             return (_trf == rhs.__trf and _mask == rhs._mask and _vol == rhs._vol and _src == rhs._src);
         }
@@ -105,4 +105,5 @@ namespace detray
         volume_link _vol;
         source_link _src;
     };
+
 } // namespace detray

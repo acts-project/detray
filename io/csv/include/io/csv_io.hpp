@@ -139,8 +139,8 @@ namespace detray
 
     // Flushable containers
     typename detector<alignable_store, surface_source_link, bounds_source_link>::volume *c_volume = nullptr;
-    typename detector<alignable_store, surface_source_link, bounds_source_link>::detector_surfaces c_surfaces;
-    typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks c_masks;
+    typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_container c_surfaces;
+    typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_mask_container c_masks;
 
     std::map<volume_layer_index, darray<scalar, 6>> volume_bounds;
 
@@ -199,9 +199,9 @@ namespace detray
           // Get new clean containers
           surface_transform_storage = typename alignable_store::storage();
           c_surfaces =
-              typename detector<alignable_store, surface_source_link, bounds_source_link>::detector_surfaces();
+              typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_container();
           c_masks =
-              typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks();
+              typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_mask_container();
         }
 
         // Create a new volume & assign

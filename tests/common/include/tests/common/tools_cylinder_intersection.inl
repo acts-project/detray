@@ -60,7 +60,7 @@ TEST(__plugin, translated_cylinder)
 // This defines the local frame test suite
 TEST(__plugin, concentric_cylinders)
 {
-    using cylinder_surface = surface<transform3, int, int>;
+    using cylinder_surface = surface_base<transform3, int, int>;
 
     // Create a concentric cylinder and test intersection
     scalar r = 4.;

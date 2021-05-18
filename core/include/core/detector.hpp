@@ -1,13 +1,13 @@
 /** Detray library, part of the ACTS project (R&D line)
  * 
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2021 CERN for the benefit of the ACTS project
  * 
  * Mozilla Public License Version 2.0
  */
 #pragma once
 
 #include "core/intersection.hpp"
-#include "core/surface.hpp"
+#include "core/surface_base.hpp"
 #include "core/transform_store.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
@@ -61,14 +61,14 @@ namespace detray
         using portal_disc = ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
         // - mask index: type, first/last
         using portal_mask_index = darray<dindex, 3>;
-        using portal_masks = dtuple<dvector<portal_cylinder>, dvector<portal_disc>>;
+        using portal_mask_container = dtuple<dvector<portal_cylinder>, dvector<portal_disc>>;
         // - portal transforms, different from surfaces w/o alignment
         using portal_transforms = dvector<transform3>;
 
         /// The Portal definition:
         ///  <transform_link, mask_index, volume_link, source_link >
-        using portal_surface = surface<dindex, portal_mask_index, dindex, surface_source_link>;
-        using portals = dvector<portal_surface>;
+        using portal = surface_base<dindex, portal_mask_index, dindex, surface_source_link>;
+        using portals = dvector<portal>;
 
         /// Surface components:
         /// - masks, with mask identifiers 0,1,2
@@ -78,16 +78,16 @@ namespace detray
         using surface_cylinder = cylinder3<true, cylinder_intersector, __plugin::cylindrical2, bounds_source_link, 3>;
         /// - mask index: type, entry
         using surface_mask_index = darray<dindex, 2>;
-        using surface_masks = dtuple<dvector<surface_rectangle>,
-                                     dvector<surface_trapezoid>,
-                                     dvector<surface_annulus>,
-                                     dvector<surface_cylinder>>;
+        using surface_mask_container = dtuple<dvector<surface_rectangle>,
+                                              dvector<surface_trapezoid>,
+                                              dvector<surface_annulus>,
+                                              dvector<surface_cylinder>>;
 
         /** The Surface definition:
          *  <transform_link, mask_link, volume_link, source_link >
          */
-        using detector_surface = surface<dindex, surface_mask_index, dindex, surface_source_link>;
-        using detector_surfaces = dvector<detector_surface>;
+        using surface = surface_base<dindex, surface_mask_index, dindex, surface_source_link>;
+        using surface_container = dvector<surface>;
 
         /** Nested volume struct that holds the local information of the
          * volume and its portals.
@@ -157,48 +157,70 @@ namespace detray
             /** Add the surfaces and their masks - move semantics
              *
              * @param surfaces The (complete) volume surfaces
-             * @param surface_masks The (complete) surface masks
+             * @param surface_mask_container The (complete) surface masks
              */
-            void add_surface_components(detector_surfaces &&volume_surfaces, surface_masks &&volume_surface_masks)
+            void add_surface_components(surface_container &&volume_surfaces, surface_mask_container &&volume_surface_mask_container)
             {
                 _surfaces = std::move(volume_surfaces);
-                _surface_masks = std::move(volume_surface_masks);
+                _surface_mask_container = std::move(volume_surface_mask_container);
             }
 
             /** Add the surfaces and their masks - copy semantics
              *
              * @param surfaces The (complete) volume surfaces
-             * @param surface_masks The (complete) surface masks
+             * @param surface_mask_container The (complete) surface masks
              */
-            void add_surface_components(const detector_surfaces &volume_surfaces, const surface_masks &volume_surface_masks)
+            void add_surface_components(const surface_container &volume_surfaces, const surface_mask_container &volume_surface_mask_container)
             {
                 _surfaces = volume_surfaces;
-                _surface_masks = volume_surface_masks;
+                _surface_mask_container = volume_surface_mask_container;
             }
 
             /** Add the portals, their transforms and their masks, move semantics
              *
              * @param volume_portals The volume portals
              * @param volume_portal_transforms The (complete) portal transforms
-             * @param volume_portal_masks The (complete) portal masks
+             * @param volume_portal_mask_container The (complete) portal masks
              */
             void add_portal_components(portals &&volume_portals,
                                        portal_transforms &&volume_portal_transforms,
-                                       portal_masks &&volume_portal_masks)
+                                       portal_mask_container &&volume_portal_mask_container)
             {
                 _portals = std::move(volume_portals);
                 _portal_transforms = std::move(volume_portal_transforms);
-                _portal_masks = std::move(volume_portal_masks);
+                _portal_mask_container = std::move(volume_portal_mask_container);
             }
 
-            /** Const Access to the detector surfaces */
-            const detector_surfaces& surfaces() const { return _surfaces; }
+            /** Indexed access to detector surfaces - const access 
+             * 
+             * @param surface_index is the index within this volume
+             * @note no range checking is done
+             * @return a const reference to a surface
+            */
+            const surface &indexed_surface(dindex surface_index) const
+            {
+                return _surfaces[surface_index];
+            }
 
-            /** Const Access to the surface transform store */
-            const alignable_store& surface_transforms() const { return _surface_transforms; }
+            /** @return the detector surfaces - const access */
+            const surface_container &surfaces() const { return _surfaces; }
 
-            /** Const Access to the surface masks */
-            const surface_masks& masks() const { return _surface_masks; }
+            /** @return the surface transform store - const access */
+            const alignable_store &surface_transforms() const { return _surface_transforms; }
+
+            /** @return the surface masks - const access */
+            const surface_mask_container &masks() const { return _surface_mask_container; }
+
+            /** Indexed access to the portals 
+             * 
+             * @param portal_index is the index of the portal within this volume
+             * @note no range checking is done 
+             * @return a const reference to a portal
+             */
+            const portal &indexed_portals(dindex portal_index) const
+            {
+                return _portals[portal_index];
+            }
 
         private:
             /// Volume section: name
@@ -214,12 +236,12 @@ namespace detray
                                          -M_PI, M_PI};
 
             /// Surface section
-            surface_masks _surface_masks;
-            detector_surfaces _surfaces;
+            surface_mask_container _surface_mask_container;
+            surface_container _surfaces;
             alignable_store _surface_transforms;
 
             /// Portal section
-            portal_masks _portal_masks;
+            portal_mask_container _portal_mask_container;
             portals _portals;
             portal_transforms _portal_transforms;
         };

@@ -184,7 +184,7 @@ namespace detray
             auto &volume = d.indexed_volume(ref);
 
             typename detector_type::portals volume_portals;
-            typename detector_type::portal_masks volume_portal_masks;
+            typename detector_type::portal_mask_container volume_portal_mask_container;
             typename detector_type::portal_transforms volume_portal_transforms;
 
             // The bounds can be used for the mask and transform information
@@ -204,7 +204,7 @@ namespace detray
                     __plugin::transform3::vector3 _translation{0., 0., volume_bounds[bound_index]};
                     __plugin::transform3 _portal_transform(_translation);
                     // Get the mask context group and fill it
-                    auto &mask_group = std::get<detector_type::portal_disc::mask_context>(volume_portal_masks);
+                    auto &mask_group = std::get<detector_type::portal_disc::mask_context>(volume_portal_mask_container);
                     typename detector_type::portal_mask_index mask_index = {detector_type::portal_disc::mask_context, mask_group.size(), mask_group.size()};
                     // Create a stub mask for every unique index
                     for (auto &info_ : portals_info)
@@ -214,7 +214,7 @@ namespace detray
                         mask_group.push_back(_portal_disc);
                     }
                     // Create the portal
-                    typename detector_type::portal_surface _portal{volume_portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
+                    typename detector_type::portal _portal{volume_portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
                     volume_portals.push_back(std::move(_portal));
                     volume_portal_transforms.push_back(std::move(_portal_transform));
                 }
@@ -232,7 +232,7 @@ namespace detray
                     // This will be concentric targetted at nominal center
                     __plugin::transform3 _portal_transform;
                     // Get the mask context group and fill it
-                    auto &mask_group = std::get<detector_type::portal_cylinder::mask_context>(volume_portal_masks);
+                    auto &mask_group = std::get<detector_type::portal_cylinder::mask_context>(volume_portal_mask_container);
                     typename detector_type::portal_mask_index mask_index = {detector_type::portal_disc::mask_context, mask_group.size(), mask_group.size()};
                     for (auto &info_ : portals_info)
                     {
@@ -243,7 +243,7 @@ namespace detray
                         mask_group.push_back(_portal_cylinder);
                     }
                     // Create the portal
-                    typename detector_type::portal_surface _portal{volume_portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
+                    typename detector_type::portal _portal{volume_portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
                     volume_portals.push_back(std::move(_portal));
                     volume_portal_transforms.push_back(std::move(_portal_transform));
                 }
@@ -255,7 +255,7 @@ namespace detray
             add_disc_portals(right_portals_info, 3);
             add_cylinder_portal(lower_portals_info, 0);
 
-            volume.add_portal_components(std::move(volume_portals), std::move(volume_portal_transforms), std::move(volume_portal_masks));
+            volume.add_portal_components(std::move(volume_portals), std::move(volume_portal_transforms), std::move(volume_portal_mask_container));
         }
     }
 }

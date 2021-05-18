@@ -17,10 +17,10 @@ namespace detray
     template <typename detector_type>
     struct navigator
     {
-        using detector_surface = typename detector_type::detector_surface;
+        using surface = typename detector_type::surface;
         using surface_intersection = typename detector_type::surface_intersection;
         using surface_links = typename detector_type::surface_links;
-        using portal_surface = typename detector_type::portal_surface;
+        using portal = typename detector_type::portal;
         using portal_links = typename detector_type::portal_links;
         using transform_type = typename detector_type::transform3;
 
@@ -59,9 +59,9 @@ namespace detray
         struct navigation_state
         {
             // For the surfaces
-            navigation_kernel<detector_surface, surface_intersection, surface_links> surfaces;
+            navigation_kernel<surface, surface_intersection, surface_links> surfaces;
             // For the portals
-            navigation_kernel<portal_surface, surface_intersection, portal_links> portals;
+            navigation_kernel<portal, surface_intersection, portal_links> portals;
             // Volume navigation
             int volume_index = -1;
             // Distance to next
@@ -184,7 +184,7 @@ namespace detray
             if (trust)
             {
                 const auto &surfaces = navigation.detector.surfaces();
-                const auto &portal_surfaces = navigation.detector.portal_surfaces();
+                const auto &portals = navigation.detector.portals();
 
                 // Trust the stepper towards the internal surface
                 if (navigation.surfaces.next != navigation.surfaces.candidates.end())
@@ -197,7 +197,7 @@ namespace detray
                 // Trust the stepper towards the portal surface
                 if (navigation.portals.next != navigation.portals.candidates.end())
                 {
-                    navigation.portals.on = &(portal_surfaces[(*navigation.portals.next).index]);
+                    navigation.portals.on = &(portals[(*navigation.portals.next).index]);
                     auto attacheddirection = (*navigation.portals.next).direction;
                     navigation.volume_index = navigation.portals.links[attacheddirection];
                     navigation.portals.candidates.clear();
@@ -232,7 +232,7 @@ namespace detray
                     const auto &surfaces = navigation.detector.surfaces();
                     const auto &surface_transforms = navigation.detector.surface_transforms();
                     const auto &surface_types = navigation.detector.surface_types();
-                    const auto &surface_masts = navigation.detector.surface_masks();
+                    const auto &surface_masts = navigation.detector.surface_mask_container();
 
                     // This is the code without surface_finder (start version for the moment)
                     navigation.surfaces.candidates.reserve(volume.surface_indices.size());
@@ -264,22 +264,22 @@ namespace detray
                     navigation.surfaces.next = navigation.surfaces.candidates.end();
 
                     const auto &portal_transforms = navigation.detector.portal_transforms();
-                    const auto &portal_surfaces = navigation.detector.portal_surfaces();
+                    const auto &portals = navigation.detector.portals();
                     const auto &portal_types = navigation.detector.portal_types();
-                    const auto &portal_masks = navigation.detector.portal_masks();
+                    const auto &portal_mask_container = navigation.detector.portal_mask_container();
 
                     // This is the code without portal_finder (start verison for the moment)
-                    navigation.portals.candidates.reserve(volume.portal_surface_indices.size());
+                    navigation.portals.candidates.reserve(volume.portal_indices.size());
                     bool portal_hit = false;
-                    for (auto psi : volume.portal_surface_indices)
+                    for (auto psi : volume.portal_indices)
                     {
                         surface_intersection sfi;
                         sfi.index = psi;
                         if (not portal_hit)
                         {
-                            const auto &portal_surface = portal_surfaces[sfi.index];
-                            const auto &portal_transform = portal_transforms[portal_surface.transform()];
-                            update_intersection(sfi, navigation.portals.links, track, portal_transform, portal_surface, portal_types, portal_masks);
+                            const auto &portal = portals[sfi.index];
+                            const auto &portal_transform = portal_transforms[portal.transform()];
+                            update_intersection(sfi, navigation.portals.links, track, portal_transform, portal, portal_types, portal_mask_container);
                             portal_hit = (sfi.status == e_inside and sfi.path > track.overstep_tolerance);
                             if (portal_hit)
                             {
