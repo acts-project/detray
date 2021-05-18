@@ -8,6 +8,11 @@
 
 #include "core/intersection.hpp"
 #include "core/surface.hpp"
+#include "core/transform_store.hpp"
+#include "grids/axis.hpp"
+#include "grids/grid2.hpp"
+#include "grids/serializer2.hpp"
+#include "grids/populator.hpp"
 #include "masks/annulus2.hpp"
 #include "masks/rectangle2.hpp"
 #include "masks/trapezoid2.hpp"
@@ -16,331 +21,284 @@
 #include "utils/indexing.hpp"
 #include "utils/containers.hpp"
 #include "utils/enumerate.hpp"
+#include "tools/planar_intersector.hpp"
+#include "tools/cylinder_intersector.hpp"
 #include "tools/concentric_cylinder_intersector.hpp"
 
-#include <exception>
-#include <functional>
-#include <cmath>
-#include <climits>
 #include <string>
-
-#include <iostream>
+#include <sstream>
 
 namespace detray
 {
 
-    template <typename transform_type> using transform_store =  dvector<transform_type>;
+    // Algebra, point2 is not strongly typed
+    using point3 = __plugin::transform3::point3;
+    using vector3 = __plugin::transform3::vector3;
+    using point2 = __plugin::cartesian2::point2;
 
-    using surface_rectangle = rectangle2<>;
-    using surface_trapezoid = trapezoid2<>;
-    using surface_annulus   = annulus2<>;
-
-
-    /** Detector representation in detray.
+    /** Indexed detector definition.
+     *
+     * @tparam alignable_store the type of the transform store
+     * @tparam surface_source_link the type of the link to an external surface source
+     * @tparam bounds_source_link the type of the link to an external bounds source
      * 
-     * @tparam transform_type is the type of the underlying algebra transform
      */
-    template <typename transform_type>
+    template <typename alignable_store = static_transform_store,
+              typename surface_source_link = dindex,
+              typename bounds_source_link = dindex>
     class detector
     {
 
     public:
-        /** Constructor with name 
-         * @param name of the detector 
-        */
-        detector(const std::string &name = "unkown") : _name(name) {}
+        /// Volume grid definition
+        using volume_grid = grid2<replace_populator<>, axis::irregular, axis::irregular, serializer2>;
 
-        // Algebra
-        using point3 = typename transform_type::point3;
-        using vector3 = typename transform_type::vector3;
-        using point2 = __plugin::cartesian2::point2;
-        using transform3 = transform_type;
+        /// Portals components:
+        /// - links:  next volume, next object finder
+        using portal_links = darray<dindex, 2>;
+        /// - masks, with mask identifiers 0, 1
+        using portal_cylinder = cylinder3<false, concentric_cylinder_intersector, __plugin::cylindrical2, portal_links, 0>;
+        using portal_disc = ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
+        // - mask index: type, first/last
+        using portal_mask_index = darray<dindex, 3>;
+        using portal_masks = dtuple<dvector<portal_cylinder>, dvector<portal_disc>>;
+        // - portal transforms, different from surfaces w/o alignment
+        using portal_transforms = dvector<transform3>;
 
-        using surface_intersection = intersection<point3, point2>;
+        /// The Portal definition:
+        ///  <transform_link, mask_index, volume_link, source_link >
+        using portal_surface = surface<dindex, portal_mask_index, dindex, surface_source_link>;
+        using portals = dvector<portal_surface>;
 
-        // Indexing
-        using typed_dindex = darray<dindex, 2>;
-        using typed_dindex_range = dtuple<dindex, dindex_range>;
+        /// Surface components:
+        /// - masks, with mask identifiers 0,1,2
+        using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, bounds_source_link, 0>;
+        using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, bounds_source_link, 1>;
+        using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, bounds_source_link, 2>;
+        using surface_cylinder = cylinder3<true, cylinder_intersector, __plugin::cylindrical2, bounds_source_link, 3>;
+        /// - mask index: type, entry
+        using surface_mask_index = darray<dindex, 2>;
+        using surface_masks = dtuple<dvector<surface_rectangle>,
+                                     dvector<surface_trapezoid>,
+                                     dvector<surface_annulus>,
+                                     dvector<surface_cylinder>>;
 
-        // Surface finding function
-        using local_object_finder = std::function<dvector<dindex>(const point2 &, const darray<unsigned int, 2> &)>;
+        /** The Surface definition:
+         *  <transform_link, mask_link, volume_link, source_link >
+         */
+        using detector_surface = surface<dindex, surface_mask_index, dindex, surface_source_link>;
+        using detector_surfaces = dvector<detector_surface>;
 
-        /** Nested volume class */
-        struct volume
+        /** Nested volume struct that holds the local information of the
+         * volume and its portals.
+         */
+        class volume
         {
-            dvector<dindex> portal_surface_indices = {};
-            dvector<dindex> surface_indices = {};
-            dvector<dindex> surface_finder_indices = {};
-            dindex index = 0;
 
-            std::string name = "unknown";
-            darray<scalar, 4> volume_bounds = {0,
-                                               std::numeric_limits<scalar>::infinity(),
-                                               -std::numeric_limits<scalar>::infinity(),
-                                               std::numeric_limits<scalar>::infinity()};
+            friend class detector<alignable_store, surface_source_link, bounds_source_link>;
 
-            volume(const std::string &vname, const darray<scalar, 4> &bounds)
-                : name(vname), volume_bounds(bounds)
+        public:
+            /** Deleted constructor */
+            volume() = delete;
+
+            /** Allowed constructors
+             * @param name of the volume 
+             * 
+             * @note will be contructed boundless
+             */
+            volume(const std::string &name) : _name(name){};
+            /** Contructor with name and bounds 
+             * @param name of the volume
+             * @param bounds of the volume
+             */
+            volume(const std::string &name, const darray<scalar, 6> &bounds) : _name(name), _bounds(bounds){};
+            volume(const volume &) = default;
+
+            /** @return the bounds - const access */
+            const darray<scalar, 6> &bounds() const { return _bounds; }
+
+            /** @return the name */
+            const std::string &name() const { return _name; }
+
+            /** @return the index */
+            dindex index() const { return _index; }
+
+            /** @return if the volume is empty or not */
+            bool empty() const { return _surfaces.empty(); }
+
+            /** Add a new full set of alignable transforms - move semantics
+             *
+             * @param ctx The context of the call
+             * @param trfs The transform container, move semantics
+             *
+             * @note can throw an exception if input data is inconsistent
+             */
+            void add_contextual_transforms(
+                const typename alignable_store::context &ctx,
+                typename alignable_store::storage &&trfs) noexcept(false)
             {
+                _surface_transforms.add_contextual_transforms(ctx, std::move(trfs));
             }
+
+            /** Add a new full set of alignable transforms - copy semantics
+             *
+             * @param ctx The context of the call
+             * @param trfs The transform container, move semantics
+             *
+             * @note can throw an exception if input data is inconsistent
+             */
+            void add_contextual_transforms(
+                const typename alignable_store::context &ctx,
+                const typename alignable_store::storage &trfs) noexcept(false)
+            {
+                _surface_transforms.add_contextual_transforms(ctx, trfs);
+            }
+
+            /** Add the surfaces and their masks - move semantics
+             *
+             * @param surfaces The (complete) volume surfaces
+             * @param surface_masks The (complete) surface masks
+             */
+            void add_surface_components(detector_surfaces &&volume_surfaces, surface_masks &&volume_surface_masks)
+            {
+                _surfaces = std::move(volume_surfaces);
+                _surface_masks = std::move(volume_surface_masks);
+            }
+
+            /** Add the surfaces and their masks - copy semantics
+             *
+             * @param surfaces The (complete) volume surfaces
+             * @param surface_masks The (complete) surface masks
+             */
+            void add_surface_components(const detector_surfaces &volume_surfaces, const surface_masks &volume_surface_masks)
+            {
+                _surfaces = volume_surfaces;
+                _surface_masks = volume_surface_masks;
+            }
+
+            /** Add the portals, their transforms and their masks, move semantics
+             *
+             * @param volume_portals The volume portals
+             * @param volume_portal_transforms The (complete) portal transforms
+             * @param volume_portal_masks The (complete) portal masks
+             */
+            void add_portal_components(portals &&volume_portals,
+                                       portal_transforms &&volume_portal_transforms,
+                                       portal_masks &&volume_portal_masks)
+            {
+                _portals = std::move(volume_portals);
+                _portal_transforms = std::move(volume_portal_transforms);
+                _portal_masks = std::move(volume_portal_masks);
+            }
+
+            /** Const Access to the detector surfaces */
+            const detector_surfaces& surfaces() const { return _surfaces; }
+
+            /** Const Access to the surface transform store */
+            const alignable_store& surface_transforms() const { return _surface_transforms; }
+
+            /** Const Access to the surface masks */
+            const surface_masks& masks() const { return _surface_masks; }
+
+        private:
+            /// Volume section: name
+            std::string _name = "unknown";
+            /// Volume index
+            dindex _index = dindex_invalid;
+
+            /// Bounds section, default for r, z, phi
+            darray<scalar, 6> _bounds = {0.,
+                                         std::numeric_limits<scalar>::max(),
+                                         -std::numeric_limits<scalar>::max(),
+                                         std::numeric_limits<scalar>::max(),
+                                         -M_PI, M_PI};
+
+            /// Surface section
+            surface_masks _surface_masks;
+            detector_surfaces _surfaces;
+            alignable_store _surface_transforms;
+
+            /// Portal section
+            portal_masks _portal_masks;
+            portals _portals;
+            portal_transforms _portal_transforms;
         };
 
-        /** Add a volume to the cdetector 
-         * 
-         * @param name the name of the new volume
-         * @param bounds are the cylindrical bounds of the volume
-         * 
-         * @return the index of the new volume
-         **/
-        dindex new_volume(const std::string &name, const darray<scalar, 4> &bounds)
-        {
-            volume vol(name, bounds);
-            vol.index = _volumes.size();
-            _volumes.push_back(vol);
-            return vol.index;
-        }
-
-        /** Portal section ******************************************************
-         * 
-         * Portals are masks that are applied to surfaces and then point to volumes
-         * 
-         * portal_links are [ opposite volume, along volume, opposite object finder, along volume finder ]
-         * 
-         **/
-        using portal_links = darray<dindex, 4>;
-
-        using portal_rectangle_mask = rectangle2<planar_intersector, __plugin::cartesian2 ,portal_links>;
-        using portal_rectangles = dvector<portal_rectangle_mask>;
-        using protal_trapezoid_mask = trapezoid2<planar_intersector, __plugin::cartesian2, portal_links>;
-        using portal_trapezoids = dvector<protal_trapezoid_mask>;
-        using portal_cylinder_mask = cylinder3<false, concentric_cylinder_intersector, __plugin::cylindrical2,  portal_links>;
-        using portal_cylinders = dvector<portal_cylinder_mask>;
-        using portal_disc_mask = ring2<planar_intersector, __plugin::cartesian2, portal_links>;
-        using portal_discs = dvector<portal_disc_mask>;
-        using portal_type_map = dmap<dindex, dindex>;
-        using portal_surface = surface<dindex, typed_dindex_range, dindex>;
-
-        /** Method to add a list of portals to the portal tuple
-         * 
-         * @tparam portal_type the type of the portal mask
-         * 
-         * @param volume_index the volume index to which this portal should be added
-         * @param transform the transform of the portal surface
-         * @param portals the vector of portal masks
-         * 
-         * @returns the index of the newly added portal surface
-         **/
-        template <typename portal_type>
-        dindex
-        add_portal_surface(dindex volume_index, transform_type &&transform, const dvector<portal_type> &portals)
-        {
-            auto &volume = _volumes[volume_index];
-            // Get the boundary group, record the index and insert the portals
-            auto &group = std::get<dvector<portal_type> >(_portal_masks);
-            dindex index_start = group.size();
-            dindex index_end = static_cast<dindex>(index_start + portals.size() - 1);
-            group.insert(group.end(), portals.begin(), portals.end());
-            // Create a range of portal masks
-            dindex_range range = {index_start, index_end};
-            dindex type = _portal_types.find(portal_type::mask_context)->second;
-            // Record the portal index
-            volume.portal_surface_indices.push_back(_portal_surfaces.size());
-            typed_dindex_range links = {type, range};
-            // Record the transform index
-            dindex transform_index = _portal_transforms.size();
-            _portal_transforms.push_back(std::move(transform));
-            _portal_surfaces.push_back(portal_surface(std::move(transform_index), std::move(links), std::move(volume_index), false));
-            return transform_index;
-        }
-
-        /** Update portal links
-         *
-         * @param portal_mask The portal mask which will be updated
-         * @param additional_link The new link to be added to the portal
-         *
+        /** Allowed costructor
+         * @param name the detector
          */
-        template <typename mask_type>
-        void update_portal_links(mask_type &mask, portal_links additional_link) noexcept(false)
-        {
-            auto &mask_link = mask.links();
-            if (mask_link.size() != additional_link.size())
-            {
-                throw std::runtime_error("detray::update_protal_links(...) called with inconsistent link numbers.");
-            }
-            for (dindex il = 0; il < mask_link.size(); ++il)
-            {
-                auto &link = mask_link[il];
-                auto &new_link = additional_link[il];
-                if (link != dindex_invalid and new_link != dindex_invalid)
-                {
-                    std::string error_message = "detray::update_portal_links(...) is trying to overwrite valid link " + std::to_string(link) + std::string(" with ") + std::to_string(new_link);
-                    throw std::runtime_error(error_message);
-                }
-                link = (link == dindex_invalid) ? new_link : link;
-            }
-        }
+        detector(const std::string &name) : _name(name) {}
+        detector(const detector & /*ignored*/) = default;
+        detector() = delete;
+        ~detector() = default;
 
-        /** Re-use a portal surface, but set a new indexing.
-         * 
-         * @param volume_index to which this portal belongs to (now as well)
-         * @param portal_index The global portal index for this portal
-         * @param updated_link The new link to be added to the portal
-         * 
-         */
-        void reuse_portal_surface(dindex volume_index, dindex portal_index, portal_links additional_link)
-        {
-            auto &volume = _volumes[volume_index];
-            auto &portal = _portal_surfaces[portal_index];
-
-            volume.portal_surface_indices.push_back(portal_index);
-
-            const auto &typed_mask_range = portal.mask();
-            const auto &type_mask = std::get<0>(typed_mask_range);
-            const auto &mask_range = std::get<1>(typed_mask_range);
-            if (type_mask == 0)
-            {
-                auto &mask_group = std::get<0>(_portal_masks);
-                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im)
-                {
-                    update_portal_links(mask_group[im], additional_link);
-                }
-            }
-            else if (type_mask == 1)
-            {
-                auto &mask_group = std::get<1>(_portal_masks);
-                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im)
-                {
-                    update_portal_links(mask_group[im], additional_link);
-                }
-            }
-            else if (type_mask == 2)
-            {
-                auto &mask_group = std::get<2>(_portal_masks);
-                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im)
-                {
-                    update_portal_links(mask_group[im], additional_link);
-                }
-            }
-            else if (type_mask == 3)
-            {
-                auto &mask_group = std::get<3>(_portal_masks);
-                for (dindex im = mask_range[0]; im <= mask_range[1]; ++im)
-                {
-                    update_portal_links(mask_group[im], additional_link);
-                }
-            }
-        }
-
-        /** Internal surface section ***********************************************
-         * 
-         * Internal surfaces are all kind of navigation surfaces within a volume
-         * 
-         **/
-        using rectangle_mask = rectangle2<>;
-        using trapezoid_mask = trapezoid2<>;
-        using cylinder_mask = cylinder3<false, concentric_cylinder_intersector>;
-        using disc_mask = ring2<planar_intersector>;
-        using rectangles = dvector<rectangle_mask>;
-        using trapezoids = dvector<trapezoid_mask>;
-        using cylinders = dvector<cylinder_mask>;
-        using discs = dvector<disc_mask>;
-        using surface_links = bool;
-
-        using surface_type_map = dmap<dindex, dindex>;
-        using detector_surface = surface<dindex, typed_dindex_range, dindex>;
-
-        /** Method to add a list of portals to the portal tuple
-         * 
-         * @tparam mask_type the type of the portal mask
-         * 
-         * @param volume_index the volume index to which these surfaces should be added
-         * @param transform the transform of the portal surface
-         * @param portals the vector of portal masks
-         * 
-         **/
-        template <typename mask_type>
-        void add_surfaces(dindex volume_index, dvector<transform_type> transforms, const typename mask_type::mask_values &mask_values)
-        {
-            auto &volume = _volumes[volume_index];
-            // Get the boundary group, record the index and insert the portals
-            auto &mask_group = std::get<dvector<mask_type> >(_surface_masks);
-            dindex mask_index = mask_group.size();
-            mask_type mask;
-            mask = mask_values;
-            mask_group.push_back(std::move(mask));
-            dindex type = _surface_types.find(mask_type::mask_context)->second;
-            typed_dindex_range typed_mask_range = {type, {mask_index, mask_index}};
-            for (auto transform : transforms)
-            {
-                volume.surface_indices.push_back(_surfaces.size());
-                dindex transform_index = _surface_transforms.size();
-                _surface_transforms.push_back(std::move(transform));
-                _surfaces.push_back(detector_surface(std::move(transform_index), std::move(typed_mask_range), std::move(volume_index), false));
-            }
-        }
-
-        /** Add surface finders to a volume
+        /** Add a new volume and retrieve a reference to it
          *
-         * @param surface_finders the local finders that are to be added to this volume
+         * @param name of the volume
+         * @param bounds of the volume
+         *
+         * @return non-const reference of the new volume
          */
-        dindex_range add_surface_finders(dvector<local_object_finder> surface_finders)
+        volume &new_volume(const std::string &name, const darray<scalar, 6> &bounds)
         {
-            dindex finder_start_index = _surface_finders.size();
-            _surface_finders.insert(_surface_finders.begin(), surface_finders.begin(), surface_finders.end());
-            return {finder_start_index, finder_start_index + surface_finders.size()};
+            _volumes.push_back(std::move(volume(name, bounds)));
+            dindex cvolume_idx = _volumes.size() - 1;
+            volume &cvolume = _volumes[cvolume_idx];
+            cvolume._index = cvolume_idx;
+            return cvolume;
         }
 
-        /** Const access method for the detector name */
+        /** @return the name of the detector */
         const std::string &name() const { return _name; }
 
-        /** Const access for the volumes contained in this detector */
+        /** @return the contained volumes of the detector - const access */
         const dvector<volume> &volumes() const { return _volumes; }
 
-        /** Const access for all portal transforms  */
-        const dvector<transform_type> &portal_transforms() const { return _portal_transforms; }
+        /** @return the volume by @param volume_index - const access */
+        const volume &indexed_volume(dindex volume_index) const { return _volumes[volume_index]; }
 
-        /** Const access for all portal surfaces  */
-        const dvector<portal_surface> &portal_surfaces() const { return _portal_surfaces; }
+        /** @return the volume by @param position - const access */
+        const volume &indexed_volume(const point3 &p) const
+        {
+            point2 p2 = {getter::perp(p), p[2]};
+            dindex volume_index = _volume_grid.bin(p2);
+            return _volumes[volume_index];
+        }
 
-        /** Const access for all portal masks  */
-        const auto &portal_masks() const { return _portal_masks; }
+        /** @return the volume by @param volume_index - non-const access */
+        volume &indexed_volume(dindex volume_index) { return _volumes[volume_index]; }
 
-        /** Const access for all portal types */
-        const portal_type_map portal_types() const { return _portal_types; }
+        /** Add the volume grid - move semantics 
+         * 
+         * @param v_grid the volume grid to be added
+         */
+        void add_volume_grid(volume_grid &&v_grid)
+        {
+            _volume_grid = std::move(v_grid);
+        }
 
-        /** Const access for all surface transforms  */
-        const dvector<transform_type> &surface_transforms() const { return _surface_transforms; }
+        /** @return the volume grid - const access */
+        const volume_grid &volume_search_grid() const { return _volume_grid; }
 
-        /** Const access for all surfaces */
-        const dvector<detector_surface> &surfaces() const { return _surfaces; }
-
-        /** Const access for all surface masks */
-        const auto &surface_masks() const { return _surface_masks; }
-
-        /** Const access for all surface mask types */
-        const surface_type_map surface_types() const { return _surface_types; }
+        /** Output to string */
+        const std::string to_string() const
+        {
+            std::stringstream ss;
+            ss << "[>] Detector '" << _name << "' has " << _volumes.size() << " volumes." << std::endl;
+            for (const auto &[i, v] : enumerate(_volumes))
+            {
+                ss << "[>>] Volume at index " << i << " - name: '" << v.name() << "'" << std::endl;
+                ss << "     contains " << v._surfaces.size() << " detector surfaces" << std::endl;
+                ss << "              " << v._portals.size() << " detector portals" << std::endl;
+            }
+            return ss.str();
+        };
 
     private:
-        std::string _name = "unknown";
-        dvector<volume> _volumes;
+        std::string _name = "unknown_detector";
+        dvector<volume> _volumes = {};
 
-        dvector<transform_type> _portal_transforms;
-        dvector<portal_surface> _portal_surfaces;
-        dtuple<portal_rectangles, portal_trapezoids, portal_cylinders, portal_discs> _portal_masks;
-        portal_type_map _portal_types = {{rectangle_mask::mask_context, 0},
-                                         {trapezoid_mask::mask_context, 1},
-                                         {cylinder_mask::mask_context, 2},
-                                         {disc_mask::mask_context, 3}};
-
-        dvector<transform_type> _surface_transforms; //!< @todo change to contextual container
-        dvector<detector_surface> _surfaces;
-        dtuple<rectangles, trapezoids, cylinders, discs> _surface_masks;
-        surface_type_map _surface_types = {{rectangle_mask::mask_context, 0},
-                                           {trapezoid_mask::mask_context, 1},
-                                           {cylinder_mask::mask_context, 2},
-                                           {disc_mask::mask_context, 3}};
-
-        dvector<local_object_finder> _surface_finders = {};
+        volume_grid _volume_grid = volume_grid(std::move(axis::irregular{{}}), std::move(axis::irregular{{}}));
     };
 
-} // namespace detray
+}

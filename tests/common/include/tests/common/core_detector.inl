@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "core/proto_detector.hpp"
+#include "core/detector.hpp"
 #include "core/transform_store.hpp"
 
 #include <gtest/gtest.h>
@@ -13,12 +13,12 @@
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the construction of a detector class
-TEST(__plugin, proto_detector)
+TEST(__plugin, detector)
 {
     using namespace detray;
     using namespace __plugin;
 
-    using detector = proto_detector<>;
+    using detector = detector<>;
 
     static_transform_store::storage static_storage;   
     static_transform_store::context ctx0;
