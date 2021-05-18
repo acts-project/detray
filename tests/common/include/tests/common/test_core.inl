@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "core/surface.hpp"
+#include "core/surface_base.hpp"
 #include "core/intersection.hpp"
 
 #include <cmath>
@@ -26,8 +26,8 @@ using point3 = __plugin::transform3::point3;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
-// This tests the construction of a surface
-TEST(__plugin, surface)
+// This tests the construction of a surface_base object
+TEST(__plugin, surface_base)
 {
     // Preparatioon work, create a transform
     vector3 z = vector::normalize(vector3{3., 2., 1.});
@@ -36,7 +36,7 @@ TEST(__plugin, surface)
     point3 t{2., 3., 4.};
     transform3 trf(t, z, x);
 
-    surface s(std::move(trf), -1, -1, false);
+    surface_base s(std::move(trf), -1, -1, false);
 }
 
 // This tests the construction of a intresection

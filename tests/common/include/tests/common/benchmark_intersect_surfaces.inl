@@ -22,7 +22,7 @@ using namespace detray;
 using transform3 = __plugin::transform3;
 using point3 = transform3::point3;
 using vector3 = transform3::vector3;
-using plane_surface = surface<transform3>;
+using plane_surface = surface_base<transform3>;
 __plugin::cartesian2 cart2;
 __plugin::cylindrical2 cyl2;
 
@@ -97,7 +97,7 @@ namespace __plugin
             cylinders.push_back(cylinder_mask{r, -10., 10.});
         }
 
-        surface<transform3> plain(std::move(transform3()), 0, 0, false);
+        surface_base<transform3> plain(std::move(transform3()), 0, 0, false);
 
         point3 ori = {0., 0., 0.};
 
@@ -152,7 +152,7 @@ namespace __plugin
             cylinders.push_back(cylinder_mask{r, -10., 10.});
         }
 
-        surface<transform3> plain(std::move(transform3()), 0, 0, false);
+        surface_base<transform3> plain(std::move(transform3()), 0, 0, false);
 
         point3 ori = {0., 0., 0.};
 

@@ -19,7 +19,7 @@ using namespace detray;
 using transform3 = __plugin::transform3;
 using point3 = transform3::point3;
 using vector3 = transform3::vector3;
-using surface = surface<transform3>;
+using surface = surface_base<transform3>;
 
 __plugin::cartesian2 cartesian2;
 using point2 = __plugin::cartesian2::point2;

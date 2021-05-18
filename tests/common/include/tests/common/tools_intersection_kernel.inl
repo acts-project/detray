@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "core/surface.hpp"
+#include "core/surface_base.hpp"
 #include "core/track.hpp"
 #include "core/transform_store.hpp"
 #include "masks/masks.hpp"
@@ -47,7 +47,7 @@ TEST(tools, intersection_kernel_single)
 
     /// The Surface definition:
     ///  <transform_link, mask_link, volume_link, source_link >
-    using surface = surface<dindex, surface_mask_index, dindex, surface_link>;
+    using surface = surface_base<dindex, surface_mask_index, dindex, surface_link>;
     using surface_container = dvector<surface>;
 
     using surface_intersection = intersection<point3, point2>;

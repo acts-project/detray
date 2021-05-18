@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "core/surface.hpp"
+#include "core/surface_base.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
 #include "grids/serializer2.hpp"
@@ -29,19 +29,19 @@ namespace detray
 
     /** This method creates a number (distances.size()) planes along a direction 
     */
-    dvector<surface<transform3> > planes_along_direction(dvector<scalar> distances, vector3 direction)
+    dvector<surface_base<transform3> > planes_along_direction(dvector<scalar> distances, vector3 direction)
     {
         // Rotation matrix
         vector3 z = direction;
         vector3 x = normalize(vector3{0, -z[2], z[1]});
 
-        dvector<surface<transform3> > return_surfaces;
+        dvector<surface_base<transform3> > return_surfaces;
         return_surfaces.reserve(distances.size());
         for (auto &d : distances)
         {
             vector3 t = d * direction;
             transform3 trf(t, z, x);
-            return_surfaces.push_back(surface<transform3>{std::move(trf), 0, 0, false});
+            return_surfaces.push_back(surface_base<transform3>{std::move(trf), 0, 0, false});
         }
         return return_surfaces;
     }

@@ -1,13 +1,13 @@
 /** Detray library, part of the ACTS project (R&D line)
  * 
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2021 CERN for the benefit of the ACTS project
  * 
  * Mozilla Public License Version 2.0
  */
 #pragma once
 
 #include "core/intersection.hpp"
-#include "core/surface.hpp"
+#include "core/surface_base.hpp"
 #include "core/transform_store.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
@@ -67,7 +67,7 @@ namespace detray
 
         /// The Portal definition:
         ///  <transform_link, mask_index, volume_link, source_link >
-        using portal = surface<dindex, portal_mask_index, dindex, surface_source_link>;
+        using portal = surface_base<dindex, portal_mask_index, dindex, surface_source_link>;
         using portals = dvector<portal>;
 
         /// Surface components:
@@ -86,7 +86,7 @@ namespace detray
         /** The Surface definition:
          *  <transform_link, mask_link, volume_link, source_link >
          */
-        using surface = surface<dindex, surface_mask_index, dindex, surface_source_link>;
+        using surface = surface_base<dindex, surface_mask_index, dindex, surface_source_link>;
         using surface_container = dvector<surface>;
 
         /** Nested volume struct that holds the local information of the
