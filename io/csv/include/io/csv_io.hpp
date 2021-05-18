@@ -139,7 +139,7 @@ namespace detray
 
     // Flushable containers
     typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::volume *c_volume = nullptr;
-    typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surfaces c_surfaces;
+    typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::detector_surfaces c_surfaces;
     typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks c_masks;
 
     std::map<volume_layer_index, darray<scalar, 6>> volume_bounds;
@@ -156,7 +156,8 @@ namespace detray
      * @param value the (eventually new) value for insertion
      * @param volume_index the index of the attached volume
      */
-    auto attach_volume = [](dmap<scalar, std::vector<dindex>> &attachments, scalar value, dindex volume_index) -> void {
+    auto attach_volume = [](dmap<scalar, std::vector<dindex>> &attachments, scalar value, dindex volume_index) -> void
+    {
       if (attachments.find(value) == attachments.end())
       {
         attachments[value] = {volume_index};
@@ -198,7 +199,7 @@ namespace detray
           // Get new clean containers
           surface_transform_storage = typename alignable_store::storage();
           c_surfaces =
-              typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surfaces();
+              typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::detector_surfaces();
           c_masks =
               typename proto_detector<alignable_store, surface_source_link, bounds_source_link>::surface_masks();
         }
@@ -343,7 +344,8 @@ namespace detray
      * @return the key values
      */
     auto
-        sort_and_remove_duplicates = [](dmap<scalar, std::vector<dindex>> &att) -> dvector<scalar> {
+        sort_and_remove_duplicates = [](dmap<scalar, std::vector<dindex>> &att) -> dvector<scalar>
+    {
       dvector<scalar> keys;
       keys.reserve(att.size());
       for (auto [key, value] : att)
@@ -397,7 +399,7 @@ namespace detray
       }
     }
 
-    // Connect the cylindrical volumes 
+    // Connect the cylindrical volumes
     connect_cylindrical_volumes(d, v_grid);
 
     // Add the volume grid to the detector
