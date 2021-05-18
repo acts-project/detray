@@ -199,13 +199,13 @@ namespace detray
         const auto &mask_range = std::get<1>(mask_link);
 
         // Create a return intersection and run the variadic unrolling
-        auto reference_group = std::get<0>(masks);
-        typename decltype(reference_group)::value_type::mask_links_type result_links;
+        const auto &reference_group = std::get<0>(masks);
+        typename std::decay_t<decltype(reference_group)>::value_type::mask_links_type result_links;
         intersection<point3, point2> result_intersection;
 
         // Unroll the intersection depending on the mask container size
         unroll_intersect(result_intersection, result_links, track, ctf, masks, mask_range, mask_context,
-                         std::make_integer_sequence<dindex, std::tuple_size_v<mask_container> >{});
+                         std::make_integer_sequence<dindex, std::tuple_size_v<mask_container>>{});
         // Return the (eventually update) intersection and links
         return std::make_tuple(result_intersection, result_links);
     }
