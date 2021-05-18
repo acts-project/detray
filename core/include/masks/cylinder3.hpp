@@ -39,7 +39,7 @@ namespace detray
     struct cylinder3
     {
 
-        using mask_tolerance = darray<scalar, 3>;
+        using mask_tolerance = darray<scalar, 2>;
 
         using mask_values = darray<scalar, 3>;
 

@@ -22,6 +22,7 @@
 #include "utils/containers.hpp"
 #include "utils/enumerate.hpp"
 #include "tools/planar_intersector.hpp"
+#include "tools/cylinder_intersector.hpp"
 #include "tools/concentric_cylinder_intersector.hpp"
 
 #include <string>
@@ -86,7 +87,7 @@ namespace detray
          *  <transform_link, mask_link, volume_link, source_link >
          */
         using detector_surface = surface<dindex, surface_mask_index, dindex, surface_source_link>;
-        using surfaces = dvector<detector_surface>;
+        using detector_surfaces = dvector<detector_surface>;
 
         /** Nested volume struct that holds the local information of the
          * volume and its portals.
@@ -158,7 +159,7 @@ namespace detray
              * @param surfaces The (complete) volume surfaces
              * @param surface_masks The (complete) surface masks
              */
-            void add_surface_components(surfaces &&volume_surfaces, surface_masks &&volume_surface_masks)
+            void add_surface_components(detector_surfaces &&volume_surfaces, surface_masks &&volume_surface_masks)
             {
                 _surfaces = std::move(volume_surfaces);
                 _surface_masks = std::move(volume_surface_masks);
@@ -169,7 +170,7 @@ namespace detray
              * @param surfaces The (complete) volume surfaces
              * @param surface_masks The (complete) surface masks
              */
-            void add_surface_components(const surfaces &volume_surfaces, const surface_masks &volume_surface_masks)
+            void add_surface_components(const detector_surfaces &volume_surfaces, const surface_masks &volume_surface_masks)
             {
                 _surfaces = volume_surfaces;
                 _surface_masks = volume_surface_masks;
@@ -190,6 +191,15 @@ namespace detray
                 _portal_masks = std::move(volume_portal_masks);
             }
 
+            /** Const Access to the detector surfaces */
+            const detector_surfaces& surfaces() const { return _surfaces; }
+
+            /** Const Access to the surface transform store */
+            const alignable_store& surface_transforms() const { return _surface_transforms; }
+
+            /** Const Access to the surface masks */
+            const surface_masks& masks() const { return _surface_masks; }
+
         private:
             /// Volume section: name
             std::string _name = "unknown";
@@ -205,7 +215,7 @@ namespace detray
 
             /// Surface section
             surface_masks _surface_masks;
-            surfaces _surfaces;
+            detector_surfaces _surfaces;
             alignable_store _surface_transforms;
 
             /// Portal section

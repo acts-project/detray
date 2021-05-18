@@ -11,6 +11,8 @@
 #include "masks/masks.hpp"
 #include "tools/intersection_kernel.hpp"
 #include "tools/planar_intersector.hpp"
+#include "tools/cylinder_intersector.hpp"
+#include "tools/concentric_cylinder_intersector.hpp"
 #include "utils/enumerate.hpp"
 
 #include <gtest/gtest.h>
@@ -33,9 +35,15 @@ TEST(tools, intersection_kernel_single)
     using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, mask_link, 0>;
     using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, mask_link, 1>;
     using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, mask_link, 2>;
+    using surface_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, mask_link, 3>;
+    using surface_concentric_cylinder = cylinder3<false, concentric_cylinder_intersector, __plugin::cylindrical2, mask_link, 4>;
     /// - mask index: type, entry
     using surface_mask_index = darray<dindex, 2>;
-    using surface_masks = dtuple<dvector<surface_rectangle>, dvector<surface_trapezoid>, dvector<surface_annulus> >;
+    using surface_masks = dtuple<dvector<surface_rectangle>, 
+                                 dvector<surface_trapezoid>, 
+                                 dvector<surface_annulus>, 
+                                 dvector<surface_cylinder>,
+                                 dvector<surface_concentric_cylinder> >;
 
     /// The Surface definition:
     ///  <transform_link, mask_link, volume_link, source_link >

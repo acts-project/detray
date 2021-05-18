@@ -5,9 +5,10 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "core/intersection.hpp"
-#include "tools/planar_intersector.hpp"
-#include "tests/io/read_csv.hpp"
+#include "core/proto_detector.hpp"
+#include "core/transform_store.hpp"
+#include "io/csv_io.hpp"
+#include "tools/intersection_kernel.hpp"
 
 #include <fstream>
 
@@ -23,14 +24,12 @@ using surface = surface<transform3>;
 __plugin::cartesian2 cartesian2;
 using point2 = __plugin::cartesian2::point2;
 
-using planar_intersection = intersection<point3, point2>;
-
 unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
 bool stream_file = false;
 
 /** Read the detector from file */
-auto read_from_file()
+auto read_detector()
 {
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
     if (env_d_d == nullptr)
@@ -38,10 +37,15 @@ auto read_from_file()
         throw std::ios_base::failure("Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
     }
     auto data_directory = std::string(env_d_d);
-    return read_csv<transform3>(data_directory + std::string("/tml-old.csv"));
+
+    std::string name = "tml";
+    std::string surfaces = data_directory + "tml.csv";
+    std::string grids = data_directory + "tml-surface-grids.csv";
+    std::string volumes = data_directory + "tml-layer-volumes.csv";
+    return detray::detector_from_csv<static_transform_store>(name, surfaces, grids, volumes);
 };
 
-auto detector = read_from_file();
+auto d = read_detector();
 
 namespace __plugin
 {
@@ -55,14 +59,17 @@ namespace __plugin
             hit_out.open("tml_hits.csv");
         }
 
-        unsigned int hits_inside = 0;
-        unsigned int hits_outside = 0;
-        unsigned int hits_missed = 0;
+        unsigned int hits = 0;
+        unsigned int missed = 0;
 
         point3 ori = {0., 0., 0.};
 
         for (auto _ : state)
         {
+
+            track<transform3, static_transform_store::context> track;
+            track.pos = point3{0., 0., 0.};
+
             // Loops of theta values
             for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
             {
@@ -73,56 +80,40 @@ namespace __plugin
                 // Loops of phi values
                 for (unsigned int iphi = 0; iphi < phi_steps; ++iphi)
                 {
+                    // The direction
                     scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
                     double sin_phi = std::sin(phi);
                     double cos_phi = std::cos(phi);
+                    track.dir = {cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
 
-                    vector3 dir = {cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
-
-                    for (auto &volume : detector.volumes)
+                    // Loop over volumes
+                    for (const auto &v : d.volumes())
                     {
-                        for (auto &layer : volume.layers)
+                        // Loop over surfaces
+                        for (const auto &s : v.surfaces())
                         {
-                            for (auto &surface : layer.surfaces)
+                            auto sfi_surface = intersect(track, s, v.surface_transforms(), v.masks());
+
+                            const auto &sfi = std::get<0>(sfi_surface);
+                            if (sfi.status == intersection_status::e_inside)
                             {
-
-                                planar_intersection hit;
-
-                                auto group_index = surface.mask()[0];
-                                auto mask_index = surface.mask()[1];
-                                if (group_index == 0)
+                                if (stream_file)
                                 {
-                                    auto mask = std::get<0>(layer.masks)[mask_index];
-                                    hit = mask.intersector().intersect(surface.transform(), ori, dir, cartesian2, mask);
+                                    hit_out << sfi.point3[0] << "," << sfi.point3[1] << "," << sfi.point3[2] << "\n";
                                 }
-                                else
-                                {
-                                    auto mask = std::get<1>(layer.masks)[mask_index];
-                                    hit = mask.intersector().intersect(surface.transform(), ori, dir, cartesian2, mask);
-                                }
-
-                                if (hit.status == e_inside)
-                                {
-                                    ++hits_inside;
-                                    if (stream_file)
-                                    {
-                                        hit_out << hit.point3[0] << "," << hit.point3[1] << "," << hit.point3[2] << "\n";
-                                    }
-                                }
-                                else if (hit.status == e_outside)
-                                {
-                                    ++hits_outside;
-                                }
-                                else
-                                {
-                                    ++hits_missed;
-                                }
+                                ++hits;
+                            }
+                            else
+                            {
+                                ++missed;
                             }
                         }
                     }
                 }
             }
         }
+
+        std::cout << "[detray] hits / missed / total = " << hits << " / " << missed << " / " << hits + missed << std::endl;
         if (stream_file)
         {
             hit_out.close();

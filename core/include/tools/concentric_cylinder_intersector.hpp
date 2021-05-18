@@ -49,7 +49,7 @@ namespace detray
                   const mask_type &mask,
                   const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon) const
         {
-            return intersect(trf, track.pos, track.dir, local, mask, track.overstep_tolerance);
+            return intersect(trf, track.pos, track.dir, local, mask, tolerance, track.overstep_tolerance);
         }
 
         /** Intersection method for cylindrical surfaces

@@ -45,7 +45,7 @@ namespace detray
         template <typename transform_type, typename track_type, typename local_type, typename mask_type>
         intersection<typename transform_type::transform3::point3, typename local_type::point2>
         intersect(const transform_type &trf,
-                  const track<transform_type> &track,
+                  const track_type &track,
                   const local_type &local,
                   const mask_type &mask,
                   const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon) const
