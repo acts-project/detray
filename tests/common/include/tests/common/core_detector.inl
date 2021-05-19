@@ -26,21 +26,21 @@ TEST(__plugin, detector)
     detector::surface_mask_container masks;
 
     /// Surface 0
-    transform3::point3 t0{0.,0.,0.};
+    point3 t0{0.,0.,0.};
     transform3 tf0{t0};
     static_storage.push_back(std::move(tf0));
     detector::surface_rectangle rect = {-3.,3.};
     std::get<detector::surface_rectangle::mask_context>(masks).push_back(rect);
 
     /// Surface 1
-    transform3::point3 t1{1.,0.,0.};
+    point3 t1{1.,0.,0.};
     transform3 tf1{t1};
     static_storage.push_back(std::move(tf1));
     detector::surface_annulus anns = {1.,2.,3.,4.,5.,6.,7.};
     std::get<detector::surface_annulus::mask_context>(masks).push_back(anns);
 
     /// Surface 2
-    transform3::point3 t2{2.,0.,0.};
+    point3 t2{2.,0.,0.};
     transform3 tf2{t2};
     static_storage.push_back(std::move(tf2));
     detector::surface_trapezoid trap = {1.,2.,3.};

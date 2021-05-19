@@ -22,8 +22,8 @@ using namespace detray;
 
 // Three-dimensional definitions
 using transform3 = __plugin::transform3;
-using vector3 = __plugin::transform3::vector3;
-using point3 = __plugin::transform3::point3;
+using vector3 = __plugin::vector3;
+using point3 = __plugin::point3;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;
@@ -40,21 +40,21 @@ TEST(__plugin, translated_cylinder)
     unbound ub;
     auto hit_unbound = ci.intersect(shifted, point3{3., 2., 5.}, vector3{1., 0., 0.}, ub, cylinder);
     ASSERT_TRUE(hit_unbound.status== intersection_status::e_inside);
-    ASSERT_NEAR(hit_unbound.point3[0], 7., epsilon);
-    ASSERT_NEAR(hit_unbound.point3[1], 2., epsilon);
-    ASSERT_NEAR(hit_unbound.point3[2], 5., epsilon);
-    ASSERT_TRUE(hit_unbound.point2 == std::nullopt);
+    ASSERT_NEAR(hit_unbound.p3[0], 7., epsilon);
+    ASSERT_NEAR(hit_unbound.p3[1], 2., epsilon);
+    ASSERT_NEAR(hit_unbound.p3[2], 5., epsilon);
+    ASSERT_TRUE(hit_unbound.p2 == std::nullopt);
 
     // The same but bound
     __plugin::cylindrical2 cylindrical2;
     auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.}, vector3{1., 0., 0.}, cylindrical2, cylinder);
     ASSERT_TRUE(hit_bound.status== intersection_status::e_inside);
-    ASSERT_NEAR(hit_bound.point3[0], 7., epsilon);
-    ASSERT_NEAR(hit_bound.point3[1], 2., epsilon);
-    ASSERT_NEAR(hit_bound.point3[2], 5., epsilon);
-    ASSERT_TRUE(hit_bound.point2 != std::nullopt);
-    ASSERT_NEAR(hit_bound.point2.value()[0], 0., isclose);
-    ASSERT_NEAR(hit_bound.point2.value()[1], -5., isclose);
+    ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
+    ASSERT_NEAR(hit_bound.p3[1], 2., epsilon);
+    ASSERT_NEAR(hit_bound.p3[2], 5., epsilon);
+    ASSERT_TRUE(hit_bound.p2 != std::nullopt);
+    ASSERT_NEAR(hit_bound.p2.value()[0], 0., isclose);
+    ASSERT_NEAR(hit_bound.p2.value()[1], -5., isclose);
 }
 
 // This defines the local frame test suite
@@ -80,19 +80,19 @@ TEST(__plugin, concentric_cylinders)
 
     ASSERT_TRUE(hit_cylinrical.status== intersection_status::e_inside);
     ASSERT_TRUE(hit_cocylindrical.status== intersection_status::e_inside);
-    ASSERT_TRUE(hit_cylinrical.direction == intersectiondirection::e_along);
-    ASSERT_TRUE(hit_cocylindrical.direction == intersectiondirection::e_along);
+    ASSERT_TRUE(hit_cylinrical.direction == intersection_direction::e_along);
+    ASSERT_TRUE(hit_cocylindrical.direction == intersection_direction::e_along);
 
-    ASSERT_NEAR(getter::perp(hit_cylinrical.point3), r, isclose);
-    ASSERT_NEAR(getter::perp(hit_cocylindrical.point3), r, isclose);
+    ASSERT_NEAR(getter::perp(hit_cylinrical.p3), r, isclose);
+    ASSERT_NEAR(getter::perp(hit_cocylindrical.p3), r, isclose);
 
-    ASSERT_NEAR(hit_cylinrical.point3[0], hit_cocylindrical.point3[0], isclose);
-    ASSERT_NEAR(hit_cylinrical.point3[1], hit_cocylindrical.point3[1], isclose);
-    ASSERT_NEAR(hit_cylinrical.point3[2], hit_cocylindrical.point3[2], isclose);
-    ASSERT_TRUE(hit_cylinrical.point2 != std::nullopt);
-    ASSERT_TRUE(hit_cocylindrical.point2 != std::nullopt);
-    ASSERT_NEAR(hit_cylinrical.point2.value()[0], hit_cocylindrical.point2.value()[0], isclose);
-    ASSERT_NEAR(hit_cylinrical.point2.value()[1], hit_cocylindrical.point2.value()[1], isclose);
+    ASSERT_NEAR(hit_cylinrical.p3[0], hit_cocylindrical.p3[0], isclose);
+    ASSERT_NEAR(hit_cylinrical.p3[1], hit_cocylindrical.p3[1], isclose);
+    ASSERT_NEAR(hit_cylinrical.p3[2], hit_cocylindrical.p3[2], isclose);
+    ASSERT_TRUE(hit_cylinrical.p2 != std::nullopt);
+    ASSERT_TRUE(hit_cocylindrical.p2 != std::nullopt);
+    ASSERT_NEAR(hit_cylinrical.p2.value()[0], hit_cocylindrical.p2.value()[0], isclose);
+    ASSERT_NEAR(hit_cylinrical.p2.value()[1], hit_cocylindrical.p2.value()[1], isclose);
 }
 
 

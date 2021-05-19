@@ -18,7 +18,7 @@ using namespace __plugin;
 TEST(mask, single3_0)
 {
     using local_type = __plugin::transform3;
-    using point3 = local_type::point3;
+    using point3 = __plugin::point3;
 
     point3 p3_in = {0.5, -9., 0.};
     point3 p3_edge = {1., 9.3, 2.};
@@ -40,7 +40,7 @@ TEST(mask, single3_0)
 TEST(mask, single3_1)
 {
     using local_type = __plugin::transform3;
-    using point3 = local_type::point3;
+    using point3 = __plugin::point3;
 
     point3 p3_in = {0.5, -9., 0.};
     point3 p3_edge = {1., 9.3, 2.};
@@ -62,7 +62,7 @@ TEST(mask, single3_1)
 TEST(mask, single3_2)
 {
     using local_type = __plugin::transform3;
-    using point3 = local_type::point3;
+    using point3 = __plugin::point3;
 
     point3 p3_in = {0.5, -9., 0.};
     point3 p3_edge = {1., 9.3, 2.};

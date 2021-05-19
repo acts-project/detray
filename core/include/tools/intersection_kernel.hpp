@@ -21,8 +21,6 @@ namespace detray
 
     /// Transform definition
     using transform3 = __plugin::transform3;
-    using point3 = transform3::point3;
-    using point2 = __plugin::cartesian2::point2;
 
     /** Specialized method to update an intersection when the mask group is resolved
      * 
@@ -60,7 +58,7 @@ namespace detray
             }
         }
         typename mask_group::value_type::mask_links_type invalid_link;
-        intersection<point3, point2> invalid_intersection;
+        intersection invalid_intersection;
         return std::make_tuple(invalid_intersection, invalid_link);
     }
 
@@ -187,7 +185,7 @@ namespace detray
               typename transform_container,
               typename mask_container>
     const auto
-    intersect(const track<transform3, typename transform_container::context> &track,
+    intersect(const track<typename transform_container::context> &track,
               const surface_type &surface,
               const transform_container &contextual_transforms,
               const mask_container &masks)
@@ -201,7 +199,7 @@ namespace detray
         // Create a return intersection and run the variadic unrolling
         const auto &reference_group = std::get<0>(masks);
         typename std::decay_t<decltype(reference_group)>::value_type::mask_links_type result_links;
-        intersection<point3, point2> result_intersection;
+        intersection result_intersection;
 
         // Unroll the intersection depending on the mask container size
         unroll_intersect(result_intersection, result_links, track, ctf, masks, mask_range, mask_context,

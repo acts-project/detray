@@ -32,9 +32,9 @@ namespace detray
 {
 
     // Algebra, point2 is not strongly typed
-    using point3 = __plugin::transform3::point3;
-    using vector3 = __plugin::transform3::vector3;
-    using point2 = __plugin::cartesian2::point2;
+    using point3 = __plugin::point3;
+    using vector3 = __plugin::vector3;
+    using point2 = __plugin::point2;
 
     /** Indexed detector definition.
      *
@@ -50,6 +50,10 @@ namespace detray
     {
 
     public:
+
+        /// Forward the context
+        using context = typename alignable_store::context;
+
         /// Volume grid definition
         using volume_grid = grid2<replace_populator<>, axis::irregular, axis::irregular, serializer2>;
 
@@ -83,10 +87,11 @@ namespace detray
                                               dvector<surface_annulus>,
                                               dvector<surface_cylinder>>;
 
+        using surface_link = surface_source_link;
         /** The Surface definition:
          *  <transform_link, mask_link, volume_link, source_link >
          */
-        using surface = surface_base<dindex, surface_mask_index, dindex, surface_source_link>;
+        using surface = surface_base<dindex, surface_mask_index, dindex, surface_link>;
         using surface_container = dvector<surface>;
 
         /** Nested volume struct that holds the local information of the

@@ -17,12 +17,12 @@
 using namespace detray;
 
 using transform3 = __plugin::transform3;
-using point3 = transform3::point3;
-using vector3 = transform3::vector3;
+using point3 = point3;
+using vector3 = vector3;
 using surface = surface_base<transform3>;
 
 __plugin::cartesian2 cartesian2;
-using point2 = __plugin::cartesian2::point2;
+using point2 = __plugin::point2;
 
 unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
@@ -67,7 +67,7 @@ namespace __plugin
         for (auto _ : state)
         {
 
-            track<transform3, static_transform_store::context> track;
+            track<static_transform_store::context> track;
             track.pos = point3{0., 0., 0.};
 
             // Loops of theta values
@@ -99,7 +99,7 @@ namespace __plugin
                             {
                                 if (stream_file)
                                 {
-                                    hit_out << sfi.point3[0] << "," << sfi.point3[1] << "," << sfi.point3[2] << "\n";
+                                    hit_out << sfi.p3[0] << "," << sfi.p3[1] << "," << sfi.p3[2] << "\n";
                                 }
                                 ++hits;
                             }

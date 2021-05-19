@@ -24,9 +24,13 @@ namespace detray
     struct planar_intersector
     {
 
+        using transform3 = __plugin::transform3;
+        using point3 = __plugin::point3;
+        using vector3 = __plugin::vector3;
+        using point2 = __plugin::point2;
+
         /** Intersection method for planar surfaces
          * 
-         * @tparam transform_type The transform type of the surface to be intersected
          * @tparam track_type The type of the track (which carries the context object)
          * @tparam local_type The local frame type to be intersected
          * @tparam mask_type The mask type applied to the local frame
@@ -42,9 +46,9 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename transform_type, typename track_type, typename local_type, typename mask_type>
-        intersection<typename transform_type::point3, typename local_type::point2>
-        intersect(const transform_type &trf,
+        template <typename track_type, typename local_type, typename mask_type>
+        intersection
+        intersect(const transform3 &trf,
                   const track_type &track,
                   const local_type &local,
                   const mask_type &mask,
@@ -55,7 +59,6 @@ namespace detray
 
         /** Intersection method for planar surfaces
          * 
-         * @tparam transform_type The type of the transform ot the surface to be intersected
          * @tparam local_type The local frame type to be intersected
          * @tparam mask_type The mask type applied to the local frame
          * 
@@ -71,18 +74,16 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename transform_type, typename local_type = unbound, typename mask_type = unmasked>
-        intersection<typename transform_type::point3, typename local_type::point2>
-        intersect(const transform_type &trf,
-                  const typename transform_type::point3 &ro,
-                  const typename transform_type::vector3 &rd,
+        template <typename local_type = unbound, typename mask_type = unmasked>
+        intersection
+        intersect(const transform3 &trf,
+                  const point3 &ro,
+                  const vector3 &rd,
                   const local_type &local = local_type(),
                   const mask_type &mask = mask_type(),
                   const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon,
                   scalar overstep_tolerance = 0.) const
         {
-
-            using intersection = intersection<typename transform_type::point3, typename local_type::point2>;
 
             // Retrieve the surface normal & translation (context resolved)
             const auto &sm = trf.matrix();
@@ -95,10 +96,10 @@ namespace detray
             {
                 intersection is;
                 is.path = vector::dot(sn, (st - ro)) / (denom);
-                is.point3 = ro + is.path * rd;
-                is.point2 = local(trf, is.point3);
+                is.p3 = ro + is.path * rd;
+                is.p2 = local(trf, is.p3);
                 is.status = mask.template is_inside<local_type>(
-                    is.point2.value_or(typename local_type::point2()), tolerance);
+                    is.p2.value_or(point2()), tolerance);
                 is.direction = denom > 0 ? e_along : e_opposite;
                 return is;
             }

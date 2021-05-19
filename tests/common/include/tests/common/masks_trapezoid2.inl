@@ -16,7 +16,7 @@ using namespace __plugin;
 TEST(mask, trapezoid2)
 {
     using local_type = __plugin::cartesian2;
-    using point2 = local_type::point2;
+    using point2 =point2;
 
     point2 p2_in = {1., -0.5};
     point2 p2_edge = {2.5, 1.};

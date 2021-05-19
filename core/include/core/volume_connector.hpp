@@ -201,7 +201,7 @@ namespace detray
                 if (not portals_info.empty())
                 {
                     // The portal transfrom is given from the left
-                    __plugin::transform3::vector3 _translation{0., 0., volume_bounds[bound_index]};
+                    __plugin::vector3 _translation{0., 0., volume_bounds[bound_index]};
                     __plugin::transform3 _portal_transform(_translation);
                     // Get the mask context group and fill it
                     auto &mask_group = std::get<detector_type::portal_disc::mask_context>(volume_portal_mask_container);

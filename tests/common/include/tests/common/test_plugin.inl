@@ -16,17 +16,17 @@
 using namespace detray;
 
 // Two-dimensional definitions
-using point2cart = __plugin::cartesian2::point2;
-using point2pol = __plugin::polar2::point2;
-using point2cyl = __plugin::cylindrical2::point2;
+using point2cart = __plugin::point2;
+using point2pol = __plugin::point2;
+using point2cyl = __plugin::point2;
 __plugin::cartesian2 cartesian2;
 __plugin::polar2 polar2;
 __plugin::cylindrical2 cylindrical2;
 
 // Three-dimensional definitions
 using transform3 = __plugin::transform3;
-using vector3 = __plugin::transform3::vector3;
-using point3 = __plugin::transform3::point3;
+using vector3 = __plugin::vector3;
+using point3 = __plugin::point3;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;

@@ -17,7 +17,7 @@ using namespace __plugin;
 TEST(mask, rectangle2)
 {
     using local_type = __plugin::cartesian2;
-    using point2 = local_type::point2;
+    using point2 =point2;
 
     point2 p2_in = {0.5, -9.};
     point2 p2_edge = {1., 9.3};

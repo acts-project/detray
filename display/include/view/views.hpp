@@ -13,7 +13,7 @@
 
 namespace detray
 {
-    using point3 = __plugin::transform3::point3;
+    using point3 = __plugin::point3;
     using transform3 = __plugin::transform3;
 
     using contour = darray<dvector<scalar>, 2>;

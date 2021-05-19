@@ -24,8 +24,8 @@ namespace detray
     using namespace vector;
 
     using transform3 = __plugin::transform3;
-    using point3 = transform3::point3;
-    using vector3 = transform3::vector3;
+    using point3 = point3;
+    using vector3 = vector3;
 
     /** This method creates a number (distances.size()) planes along a direction 
     */
@@ -46,8 +46,8 @@ namespace detray
         return return_surfaces;
     }
 
-    using cylinder_point2 = __plugin::cylindrical2::point2;
-    using disc_point2 = __plugin::polar2::point2;
+    using cylinder_point2 = __plugin::point2;
+    using disc_point2 = __plugin::point2;
     using endcap_surface_finder = std::function<dvector<dindex>(const disc_point2 &, const darray<unsigned int, 2> &)>;
 
     /** This method creates a barrel description of surfaces

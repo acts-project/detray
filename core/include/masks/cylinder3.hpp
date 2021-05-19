@@ -81,7 +81,7 @@ namespace detray
          * @return an intersection status e_inside / e_outside
          **/
         template <typename inside_local_type>
-        intersection_status is_inside(const typename inside_local_type::point3 &p,
+        intersection_status is_inside(const point3 &p,
                                       const mask_tolerance &t = within_epsilon) const
         {
             if (kRadialCheck)

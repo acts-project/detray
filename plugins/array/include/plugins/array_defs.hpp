@@ -177,12 +177,15 @@ namespace detray
     // array definitions
     namespace array
     {
+
+        using vector3 = std::array<scalar, 3>;
+        using point3 = vector3;
+        using point2 = std::array<scalar, 2>;
+
         /** Transform wrapper class to ensure standard API within differnt plugins
          **/
         struct transform3
         {
-            using vector3 = std::array<scalar, 3>;
-            using point3 = vector3;
 
             using matrix44 = std::array<std::array<scalar, 4>, 4>;
 
@@ -435,9 +438,6 @@ namespace detray
          */
         struct cartesian2
         {
-            using point2 = std::array<scalar, 2>;
-            using point3 = std::array<scalar, 3>;
-
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
              * 
              * @param trf the transform from global to local thredimensional frame
@@ -446,7 +446,7 @@ namespace detray
              * @return a local point2
              **/
             point2 operator()(const transform3 &trf,
-                                  const transform3::point3 &p) const
+                              const point3 &p) const
             {
                 return operator()(trf.point_to_local(p));
             }
@@ -466,9 +466,6 @@ namespace detray
         /** Local frame projection into a polar coordinate frame */
         struct polar2
         {
-            using point2 = std::array<scalar, 2>;
-            using point3 = std::array<scalar, 3>;
-
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
              * 
              * @param trf the transform from global to local thredimensional frame
@@ -477,7 +474,7 @@ namespace detray
              * @return a local point2
              **/
             point2 operator()(const transform3 &trf,
-                                  const transform3::point3 &p) const
+                              const point3 &p) const
             {
                 return operator()(trf.point_to_local(p));
             }
@@ -493,10 +490,7 @@ namespace detray
         /** Local frame projection into a polar coordinate frame */
         struct cylindrical2
         {
-            using point2 = std::array<scalar, 2>;
-            using point3 = std::array<scalar, 3>;
-
-             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
+            /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame 
              * 
              * @param trf the transform from global to local thredimensional frame
              * @param p the point in global frame
@@ -504,7 +498,7 @@ namespace detray
              * @return a local point2
              **/
             point2 operator()(const transform3 &trf,
-                                  const transform3::point3 &p) const
+                              const point3 &p) const
             {
                 return operator()(trf.point_to_local(p));
             }
