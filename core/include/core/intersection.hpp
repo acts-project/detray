@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include "utils/indexing.hpp"
+
 #include <climits>
 #include <tuple>
 #include <optional>
@@ -13,10 +15,14 @@
 namespace detray
 {
 
+    using point3 = __plugin::point3;
+    using vector3 = __plugin::vector3;
+    using point2 = __plugin::point2;    
+
     /** Intersection direction with respect to the
      * normal of the surface
      */
-    enum intersectiondirection : int
+    enum intersection_direction : int
     {
         e_undefined = -1, //!< the undefined direction at intersection
         e_opposite = 0,   //!< opposite the surface normal at the intersection
@@ -34,28 +40,27 @@ namespace detray
 
     /** This templated class holds the intersection information
      * 
-     * @tparam point3_type is the type of global intsersection vector
-     * @tparam point2_type is the type of the local intersection vector
+     * @tparam point3 is the type of global intsersection vector
+     * @tparam point2 is the type of the local intersection vector
      * 
      **/
-    template <typename point3_type, typename point2_type>
     struct intersection
     {
 
         scalar path = std::numeric_limits<scalar>::infinity();
-        point3_type point3 = point3_type{std::numeric_limits<scalar>::infinity(),
+        point3 p3 = point3{std::numeric_limits<scalar>::infinity(),
                                          std::numeric_limits<scalar>::infinity(),
                                          std::numeric_limits<scalar>::infinity()};
 
-        std::optional<point2_type> point2 = std::nullopt;
+        std::optional<point2> p2 = std::nullopt;
         intersection_status status = e_missed;
-        intersectiondirection direction = e_undefined;
-        int index = -1;
+        intersection_direction direction = e_undefined;
+        dindex index = dindex_invalid;
 
         /** @param rhs is the right hand side intersection for comparison 
          **/
         bool operator<(
-            const intersection<point3_type, point2_type> &rhs) const
+            const intersection& rhs) const
         {
             return (path < rhs.path);
         }
@@ -63,7 +68,7 @@ namespace detray
         /** @param rhs is the left hand side intersection for comparison 
          **/
         bool operator>(
-            const intersection<point3_type, point2_type> &rhs) const
+            const intersection& rhs) const
         {
             return (path > rhs.path);
         }

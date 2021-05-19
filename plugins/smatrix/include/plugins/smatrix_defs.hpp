@@ -111,13 +111,15 @@ namespace detray
     // eigen definitions
     namespace smatrix
     {
+        using vector3 = SVector<scalar, 3>;
+        using point3 = vector3;
+        using vector2 = SVector<scalar, 2>;
+
         /** Transform wrapper class to ensure standard API within differnt plugins
          * 
          **/
         struct transform3
         {
-            using vector3 = SVector<scalar, 3>;
-            using point3 = vector3;
 
             SMatrix<scalar, 4, 4> _data = ROOT::Math::SMatrixIdentity();
             SMatrix<scalar, 4, 4> _data_inv = ROOT::Math::SMatrixIdentity();
@@ -247,43 +249,41 @@ namespace detray
             /** This method transform from a point from the local 3D cartesian frame to the global 3D cartesian frame */
             const point3 point_to_global(const point3 &v) const
             {
-               SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
-               vector_4.Place_at(v, 0);
-               vector_4[3] = static_cast<scalar>(1);
-               return SVector<scalar, 4> (_data * vector_4).template Sub<SVector<scalar, 3> >(0);
+                SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
+                vector_4.Place_at(v, 0);
+                vector_4[3] = static_cast<scalar>(1);
+                return SVector<scalar, 4>(_data * vector_4).template Sub<SVector<scalar, 3>>(0);
             }
 
             /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame */
             const point3 point_to_local(const point3 &v) const
             {
-               SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
-               vector_4.Place_at(v, 0);
-               vector_4[3] = static_cast<scalar>(1);
-               return SVector<scalar, 4> (_data_inv * vector_4).template Sub<SVector<scalar, 3> >(0);
+                SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
+                vector_4.Place_at(v, 0);
+                vector_4[3] = static_cast<scalar>(1);
+                return SVector<scalar, 4>(_data_inv * vector_4).template Sub<SVector<scalar, 3>>(0);
             }
 
             /** This method transform from a vector from the local 3D cartesian frame to the global 3D cartesian frame */
             const point3 vector_to_global(const vector3 &v) const
             {
-               SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
-               vector_4.Place_at(v, 0);
-               return SVector<scalar, 4> (_data * vector_4).template Sub<SVector<scalar, 3> >(0);
+                SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
+                vector_4.Place_at(v, 0);
+                return SVector<scalar, 4>(_data * vector_4).template Sub<SVector<scalar, 3>>(0);
             }
 
             /** This method transform from a vector from the global 3D cartesian frame into the local 3D cartesian frame */
             const point3 vector_to_local(const vector3 &v) const
             {
-               SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
-               vector_4.Place_at(v, 0);
-               return SVector<scalar, 4> (_data_inv * vector_4).template Sub<SVector<scalar, 3> >(0);
+                SVector<scalar, 4> vector_4 = SVector<scalar, 4>();
+                vector_4.Place_at(v, 0);
+                return SVector<scalar, 4>(_data_inv * vector_4).template Sub<SVector<scalar, 3>>(0);
             }
         };
 
         /** Local frame projection into a cartesian coordinate frame */
         struct cartesian2
         {
-            using point2 = SVector<scalar, 2>;
-
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
              *
              * @param v the point in local frame
@@ -304,7 +304,7 @@ namespace detray
              * @return a local point2
              **/
             const auto operator()(const transform3 &trf,
-                                  const transform3::point3 &p) const
+                                  const point3 &p) const
             {
                 return operator()(trf.point_to_local(p));
             }
@@ -314,8 +314,6 @@ namespace detray
          **/
         struct polar2
         {
-            using point2 = SVector<scalar, 2>;
-
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
              *
              * @param v the point in local frame
@@ -336,7 +334,7 @@ namespace detray
              * @return a local point2
              **/
             const auto operator()(const transform3 &trf,
-                                  const transform3::point3 &p) const
+                                  const point3 &p) const
             {
                 return operator()(trf.point_to_local(p));
             }
@@ -346,8 +344,6 @@ namespace detray
          **/
         struct cylindrical2
         {
-            using point2 = SVector<scalar, 2>;
-
             /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
              *
              * @param v the point in local frame
@@ -368,7 +364,7 @@ namespace detray
              * @return a local point2
              **/
             const auto operator()(const transform3 &trf,
-                                  const transform3::point3 &p) const
+                                  const point3 &p) const
             {
                 return operator()(trf.point_to_local(p));
             }

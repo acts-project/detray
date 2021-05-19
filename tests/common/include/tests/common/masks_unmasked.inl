@@ -16,7 +16,7 @@ using namespace __plugin;
 TEST(mask, unmasked)
 {
     using local_type = __plugin::cartesian2;
-    local_type::point2 p2 = {0.5, -9.};
+   point2 p2 = {0.5, -9.};
 
     unmasked u;
     ASSERT_TRUE(u.is_inside<local_type>(p2) == e_hit);

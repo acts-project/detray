@@ -81,8 +81,8 @@ namespace detray
 
         /** Mask operation 
          * 
-         * @tparam inside_local_type::point2 is the deduced type of the point to be checked
-         * w.r.t. to the mask bounds
+         * @tparam inside_local_type is the local type for checking, needs to be
+         * specificed 
          * 
          * @param p the point to be checked in local polar coord
          * @param t is the tolerance in (r, phi)
@@ -90,7 +90,7 @@ namespace detray
          * @return an intersection status e_inside / e_outside
          **/
         template <typename inside_local_type>
-        intersection_status is_inside(const typename inside_local_type::point2 &p,
+        intersection_status is_inside(const point2 &p,
                                       const mask_tolerance &t = within_epsilon) const
         {
             // The two quantities to check: r^2 in module system, phi in strips system
@@ -126,7 +126,7 @@ namespace detray
 
                 // Now go to module frame to check r boundaries. Use the origin shift
                 // in polar coordinates for that
-                typename inside_local_type::point2 shift_xy = {-1 * _values[4], -1 * _values[5]};
+                point2 shift_xy = {-1 * _values[4], -1 * _values[5]};
                 scalar shift_r = getter::perp(shift_xy);
                 scalar shift_phi = getter::phi(shift_xy);
 

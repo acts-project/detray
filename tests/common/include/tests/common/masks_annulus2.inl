@@ -17,27 +17,26 @@ TEST(mask, annulus2)
 {
     using polar     = __plugin::polar2;
     using cartesian = __plugin::cartesian2;
-    using point2_pl = polar::point2;
-    using point2_c  = cartesian::point2;
+    using point2    = __plugin::point2;
 
     scalar minR = 7.2;
     scalar maxR = 12.0;
     scalar minPhi = 0.74195;
     scalar maxPhi = 1.33970;
-    point2_c offset = {-2., 2.};
+    point2 offset = {-2., 2.};
 
     // points in cartesian module frame
-    point2_c p2_in   = {7., 7.};
-    point2_c p2_out1 = {5., 5.};
-    point2_c p2_out2 = {10., 3.};
-    point2_c p2_out3 = {10., 10.};
-    point2_c p2_out4 = {4., 10.};
+    point2 p2_in   = {7., 7.};
+    point2 p2_out1 = {5., 5.};
+    point2 p2_out2 = {10., 3.};
+    point2 p2_out3 = {10., 10.};
+    point2 p2_out4 = {4., 10.};
 
-    auto toStripFrame = [&](const point2_pl& xy) -> point2_pl {
+    auto toStripFrame = [&](const point2& xy) -> point2 {
         auto shifted = xy + offset;
         scalar r   = getter::perp(shifted);
         scalar phi = getter::phi(shifted);
-        return point2_pl{r, phi};
+        return point2{r, phi};
     };
 
     annulus2<> ann2 = {minR, maxR, minPhi, maxPhi, offset[0], offset[1]};

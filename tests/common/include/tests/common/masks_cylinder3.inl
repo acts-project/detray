@@ -16,7 +16,7 @@ using namespace __plugin;
 TEST(mask, cylinder3)
 {
     using local_type = __plugin::transform3;
-    using point3 = local_type::point3;
+    using point3 = __plugin::point3;
 
     scalar r = 3.;
     scalar hz = 4.;

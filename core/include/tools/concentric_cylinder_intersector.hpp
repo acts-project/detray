@@ -22,10 +22,15 @@ namespace detray
      */
     struct concentric_cylinder_intersector
     {
+        
+        using transform3 = __plugin::transform3;
+        using point3 = __plugin::point3;
+        using vector3 = __plugin::vector3;
+        using point2 = __plugin::point2;
+        using cylindrical2 = __plugin::cylindrical2;
 
         /** Intersection method for cylindrical surfaces
          * 
-         * @tparam transform_type The transform type of the surface to be intersected
          * @tparam track_type The type of the track caryying also the context object
          * @tparam local_type The local frame type to be intersected
          * @tparam mask_type The mask type applied to the local frame
@@ -41,9 +46,9 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename transform_type, typename track_type, typename local_type, typename mask_type>
-        intersection<typename transform_type::point3, typename local_type::point2>
-        intersect(const transform_type &trf,
+        template <typename track_type, typename local_type, typename mask_type>
+        intersection
+        intersect(const transform3 &trf,
                   const track_type &track,
                   const local_type &local,
                   const mask_type &mask,
@@ -54,7 +59,6 @@ namespace detray
 
         /** Intersection method for cylindrical surfaces
          * 
-         * @tparam transform_type The surface transform type to be intersected
          * @tparam local_type The local frame type to be intersected
          * @tparam mask_type The mask type applied to the local frame
          * 
@@ -71,23 +75,22 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename transform_type, typename local_type, typename mask_type>
-        intersection<typename transform_type::point3, typename local_type::point2>
-        intersect(const transform_type & /*trf*/,
-                  const typename transform_type::point3 &ro,
-                  const typename transform_type::vector3 &rd,
+        template <typename local_type, typename mask_type>
+        intersection
+        intersect(const transform3 & /*trf*/,
+                  const point3 &ro,
+                  const vector3 &rd,
                   const local_type &local,
                   const mask_type &mask,
                   const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon,
                   scalar overstep_tolerance = 0.) const
         {
-            using intersection = intersection<typename transform_type::point3, typename local_type::point2>;
 
             scalar r = mask[0];
 
             // Two points on the line, thes are in the cylinder frame
             const auto &l0 = ro;
-            const auto l1 = typename transform_type::point3(ro + rd);
+            const auto l1 = point3(ro + rd);
 
             // swap coorinates x/y for numerical stability
             bool swap_x_y = std::abs(rd[0]) < 1e-3;
@@ -102,7 +105,7 @@ namespace detray
 
             if (std::get<0>(qe_solution) > 0)
             {
-                darray<typename transform_type::point3, 2> candidates;
+                darray<point3, 2> candidates;
                 auto u01 = std::get<1>(qe_solution);
                 darray<scalar, 2> t01 = {0., 0.};
 
@@ -122,12 +125,12 @@ namespace detray
                 if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance)
                 {
                     intersection is;
-                    is.point3 = candidates[cindex];
+                    is.p3 = candidates[cindex];
                     is.path = t01[cindex];
 
-                    is.point2 = typename local_type::point2{r * getter::phi(is.point3), is.point3[2]};
-                    is.status = mask.template is_inside<transform_type>(is.point3);
-                    scalar rdir = getter::perp(is.point3 + 0.1 * rd);
+                    is.p2 = point2{r * getter::phi(is.p3), is.p3[2]};
+                    is.status = mask.template is_inside<cylindrical2>(is.p3);
+                    scalar rdir = getter::perp(is.p3 + 0.1 * rd);
                     is.direction = rdir > r ? e_along : e_opposite;
                     return is;
                 }

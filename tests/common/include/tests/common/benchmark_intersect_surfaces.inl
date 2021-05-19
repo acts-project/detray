@@ -20,8 +20,8 @@
 using namespace detray;
 
 using transform3 = __plugin::transform3;
-using point3 = transform3::point3;
-using vector3 = transform3::vector3;
+using point3 = point3;
+using vector3 = vector3;
 using plane_surface = surface_base<transform3>;
 __plugin::cartesian2 cart2;
 __plugin::cylindrical2 cyl2;

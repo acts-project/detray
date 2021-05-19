@@ -19,8 +19,8 @@
 using namespace detray;
 
 using transform3 = __plugin::transform3;
-using vector3 = __plugin::transform3::vector3;
-using point3 = __plugin::transform3::point3;
+using vector3 = __plugin::vector3;
+using point3 = __plugin::point3;
 
 
 TEST(display, annulus2)

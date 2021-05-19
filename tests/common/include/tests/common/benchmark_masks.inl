@@ -35,7 +35,7 @@ namespace
     static void BM_RECTANGLE2_MASK(benchmark::State &state)
     {
         using local_type = __plugin::cartesian2;
-        using point2 = local_type::point2;
+        using point2 = __plugin::point2;
 
         rectangle2<> r = {3, 4};
 
@@ -80,7 +80,7 @@ namespace
     static void BM_TRAPEZOID2_MASK(benchmark::State &state)
     {
         using local_type = __plugin::cartesian2;
-        using point2 = local_type::point2;
+        using point2 = __plugin::point2;
 
         trapezoid2<> t = {2, 3, 4};
 
@@ -125,7 +125,7 @@ namespace
     static void BM_RING2_MASK(benchmark::State &state)
     {
         using local_type = __plugin::cartesian2;
-        using point2 = local_type::point2;
+        using point2 = __plugin::point2;
 
         ring2<> r = {0., 5.};
 
@@ -169,7 +169,7 @@ namespace
     static void BM_DISC2_MASK(benchmark::State &state)
     {
         using local_type = __plugin::cartesian2;
-        using point2 = local_type::point2;
+        using point2 = __plugin::point2;
 
         ring2<> r = {2., 5.};
 
@@ -213,7 +213,7 @@ namespace
     static void BM_CYLINDER3_MASK(benchmark::State &state)
     {
         using local_type = __plugin::transform3;
-        using point3 = local_type::point3;
+        using point3 = __plugin::point3;
 
         cylinder3<> c = {3., 5.};
 
@@ -261,7 +261,7 @@ namespace
     static void BM_ANNULUS_MASK(benchmark::State &state)
     {
         using local_type = __plugin::cartesian2;
-        using point2 = local_type::point2;
+        using point2 = __plugin::point2;
 
         annulus2<> ann = {2.5, 5., -0.64299, 4.13173, 1., 0.5};
 

@@ -23,10 +23,15 @@ namespace detray
      */
     struct cylinder_intersector
     {
+        
+        using transform3 = __plugin::transform3;
+        using point3 = __plugin::point3;
+        using vector3 = __plugin::vector3;
+        using point2 = __plugin::point2;
+        using cylindrical2 = __plugin::cylindrical2;
 
         /** Intersection method for cylindrical surfaces
          * 
-         * @tparam transform_type The surface transform type to be intersected
          * @tparam track_type The type of the track carrying the context object
          * @tparam local_type The local frame type to be intersected
          * @tparam mask_type The mask type applied to the local frame
@@ -42,9 +47,9 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename transform_type, typename track_type, typename local_type, typename mask_type>
-        intersection<typename transform_type::transform3::point3, typename local_type::point2>
-        intersect(const transform_type &trf,
+        template <typename track_type, typename local_type, typename mask_type>
+        intersection
+        intersect(const transform3 &trf,
                   const track_type &track,
                   const local_type &local,
                   const mask_type &mask,
@@ -55,7 +60,6 @@ namespace detray
 
         /** Intersection method for cylindrical surfaces
          * 
-         * @tparam transform_type The transform type of the surface  to be intersected
          * @tparam local_type The local frame type to be intersected
          * @tparam mask_type The mask type applied to the local frame
          * 
@@ -72,17 +76,16 @@ namespace detray
          * 
          * @return the intersection with optional parameters
          **/
-        template <typename transform_type, typename local_type, typename mask_type>
-        intersection<typename transform_type::point3, typename local_type::point2>
-        intersect(const transform_type &trf,
-                  const typename transform_type::point3 &ro,
-                  const typename transform_type::vector3 &rd,
+        template <typename local_type, typename mask_type>
+        intersection
+        intersect(const transform3 &trf,
+                  const point3 &ro,
+                  const vector3 &rd,
                   const local_type &local,
                   const mask_type &mask,
                   const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon,
                   scalar overstep_tolerance = 0.) const
         {
-            using intersection = intersection<typename transform_type::point3, typename local_type::point2>;
 
             scalar r = mask[0];
 
@@ -90,8 +93,8 @@ namespace detray
             auto sz = getter::vector<3>(m, 0, 2);
             auto sc = getter::vector<3>(m, 0, 3);
 
-            typename transform_type::vector3 pc_cross_sz = vector::cross(ro - sc, sz);
-            typename transform_type::vector3 rd_cross_sz = vector::cross(rd, sz);
+            vector3 pc_cross_sz = vector::cross(ro - sc, sz);
+            vector3 rd_cross_sz = vector::cross(rd, sz);
             scalar a = vector::dot(rd_cross_sz, rd_cross_sz);
             double b = 2. * vector::dot(rd_cross_sz, pc_cross_sz);
             double c = vector::dot(pc_cross_sz, pc_cross_sz) - (r * r);
@@ -107,10 +110,10 @@ namespace detray
                 {
                     intersection is;
                     is.path = t;
-                    is.point3 = ro + is.path * rd;
-                    is.point2 = local(trf, is.point3);
-                    auto local3 = trf.point_to_local(is.point3);
-                    is.status = mask.template is_inside<transform_type>(local3, tolerance);
+                    is.p3 = ro + is.path * rd;
+                    is.p2 = local(trf, is.p3);
+                    auto local3 = trf.point_to_local(is.p3);
+                    is.status = mask.template is_inside<cylindrical2>(local3, tolerance);
                     scalar rdr = getter::perp(local3 + 10 * std::numeric_limits<scalar>::epsilon() * rd);
                     is.direction = rdr > r ? e_along : e_opposite;
                     return is;

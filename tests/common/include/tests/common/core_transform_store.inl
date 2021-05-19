@@ -25,17 +25,17 @@ TEST(__plugin, static_transform_store)
 
     ASSERT_EQ(static_store.size(ctx0), 0u);
 
-    transform3::point3 t0{0.,0.,0.};
+    point3 t0{0.,0.,0.};
     transform3 tf0{t0};
     static_store.push_back(ctx0, tf0);
     ASSERT_EQ(static_store.size(ctx0), 1u);
 
-    transform3::point3 t1{1.,0.,0.};
+    point3 t1{1.,0.,0.};
     transform3 tf1{t1};
     static_store.push_back(ctx1, tf1);
     ASSERT_EQ(static_store.size(ctx1), 2u);
 
-    transform3::point3 t2{2.,0.,0.};
+    point3 t2{2.,0.,0.};
     transform3 tf2{t2};
     static_store.push_back(ctx0, std::move(tf2));
     ASSERT_EQ(static_store.size(ctx0), 3u);

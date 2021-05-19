@@ -70,8 +70,7 @@ namespace detray
 
         /** Mask operation 
          * 
-         * @tparam point2_type is the deduced type of the point to be checked 
-         * w.r.t. to the mask bounds
+         * @tparam inside_local_type is the type of the local frame (ignored here)
          * 
          * @param p the point to be checked
          * @param t us the tolerance tuple (l0,l1)
@@ -79,7 +78,7 @@ namespace detray
          * @return an intersection status e_inside / e_outside
          **/
         template <typename inside_local_type>
-        intersection_status is_inside(const typename inside_local_type::point2 &p,
+        intersection_status is_inside(const point2 &p,
                                       const mask_tolerance &t = within_epsilon) const
         {
             scalar rel_y = (_values[2] + p[1]) / (2 * _values[2]);

@@ -14,11 +14,11 @@ namespace detray
 {
 
     /** Track struct for navigation through the detector */
-    template <typename transform_type, typename context_type = bool>
+    template <typename context_type = bool>
     struct track
     {
-        using point3 = typename transform_type::point3;
-        using vector3 = typename transform_type::vector3;
+        using point3 = __plugin::point3;
+        using vector3 = __plugin::vector3;
 
         point3 pos = {0., 0., 0.};
         vector3 dir = {0., 0., 0.};

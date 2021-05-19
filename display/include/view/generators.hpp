@@ -11,7 +11,7 @@ namespace detray
 {
 
     using transform3 = __plugin::transform3;
-    using point3 = transform3::point3;
+    using point3 = point3;
 
     /** Generate phi values
      *
@@ -49,7 +49,7 @@ namespace detray
               unsigned int kMaskContext>
     dvector<point3> vertices(const annulus2<intersector_type, local_type, links_type, kMaskContext> &annulus_mask, unsigned int lseg)
     {
-        using point2 = __plugin::cartesian2::point2;
+        using point2 = __plugin::point2;
 
         const auto &m_values = annulus_mask.values();
 

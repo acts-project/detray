@@ -67,8 +67,7 @@ namespace detray
 
         /** Mask operation 
          * 
-         * @tparam inside_local_type::point3 is the deduced type of the point to be checked 
-         * w.r.t. to the mask bounds
+         * @tparam inside_local_type is the global type for checking (ignored)
          * 
          * @param p the point to be checked
          * @param t is the tolerance of the single parameter
@@ -76,7 +75,7 @@ namespace detray
          * @return an intersection status e_inside / e_outside
          **/
         template <typename inside_local_type>
-        intersection_status is_inside(const typename inside_local_type::point3 &p,
+        intersection_status is_inside(const point3 &p,
                                       const mask_tolerance &t = within_epsilon) const
         {
             return (std::abs(p[kCheckIndex]) <= _values[0] + t) ? e_inside : e_outside;

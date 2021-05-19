@@ -17,12 +17,12 @@
 
 using namespace detray;
 
-using point2 = __plugin::cartesian2::point2;
+using point2 = __plugin::point2;
 
 // Three-dimensional definitions
 using transform3 = __plugin::transform3;
-using vector3 = __plugin::transform3::vector3;
-using point3 = __plugin::transform3::point3;
+using vector3 = __plugin::vector3;
+using point3 = __plugin::point3;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
@@ -42,7 +42,6 @@ TEST(__plugin, surface_base)
 // This tests the construction of a intresection
 TEST(__plugin, intersection)
 {
-    using intersection = intersection<point3, point2>;
 
     intersection i0 = {2., point3{0.3, 0.5, 0.7}, point2{0.2, 0.4}, intersection_status::e_hit};
 

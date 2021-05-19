@@ -17,16 +17,14 @@ TEST(mask, ring2)
 {
     using cartesian = __plugin::cartesian2;
     using polar     = __plugin::polar2;
-    using point2_pl = polar::point2;
-    using point2_c  = cartesian::point2;
 
-    point2_pl p2_pl_in = {0.5, -2.};
-    point2_pl p2_pl_edge = {0., 3.5};
-    point2_pl p2_pl_out = {3.6, 5.};
+    point2 p2_pl_in = {0.5, -2.};
+    point2 p2_pl_edge = {0., 3.5};
+    point2 p2_pl_out = {3.6, 5.};
 
-    point2_c p2_c_in = {0.5, -2.};
-    point2_c p2_c_edge = {0., 3.5};
-    point2_c p2_c_out = {3.5, 3.5};
+    point2 p2_c_in = {0.5, -2.};
+    point2 p2_c_edge = {0., 3.5};
+    point2 p2_c_out = {3.5, 3.5};
 
     ring2<> r2 = {0., 3.5};
 
