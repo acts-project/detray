@@ -144,7 +144,7 @@ namespace detray
             const auto &volume = detector.indexed_volume(track.pos);
             navigation.volume_index = volume.index();
 
-            // The navigation is not yet initialized, doing it now
+            // The navigation is not yet initialized, or you lost trust in it
             if (navigation.volume_index == dindex_invalid or navigation.trust_level == e_not)
             {
                 // First try to get the surface candidates
@@ -159,9 +159,12 @@ namespace detray
                     initialize_kernel(navigation.portal_kernel, track, volume.portals());
                     sort_and_set(navigation, navigation.portal_kernel);
                 }
+                // Before returning, run through the inspector
+                navigation.inspector(navigation);
                 return;
             }
 
+            /*
             if (navigation.trust_level == e_high)
             {
                 // Block to update current candidate
@@ -185,7 +188,7 @@ namespace detray
                     }
                 }
             }
-
+*/
             return;
         }
 
@@ -244,16 +247,51 @@ namespace detray
             }
         }
 
-        /** Helper method to check and set
-         *
-         * @param navigation is the state for setting the distance to next
-         * @param kernel is the kernel which should be updated
+        /** Helper method to the update the next candidate intersection 
+         * 
+         * @tparam kernel_t the type of the kernel: surfaces/portals
+         * @tparam constituents the type of the associated constituents
+         * 
+         * @param navigation [in, out] the navigation state
+         * @param kernel [in,out] the kernel to be checked/initialized 
+         * @param track the track information 
+         * @param constituens the constituents to be checked
+         * 
+         * @return The break condition
          */
-        template <typename kernel_t>
-        void check_and_set(navigation_state &navigation, kernel_t &kernel)
+        template <typename kernel_t, typename constituents_t>
+        bool update_kernel(navigation_state& navigation,
+                           kernel_t &kernel,
+                           const track<context> &track,
+                           const constituents_t &constituents)
         {
-            // Get the type of the kernel via a const expression
-            constexpr bool kType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_link>>);
+            // Block to update current candidate
+            if (kernel.next != kernel.candidates.end())
+            {
+                // Only update the last intersection
+                dindex si = kernel.next->index;
+                const auto &transforms = constituents.transforms();
+                const auto &masks = constituents.masks();
+                const auto &s = constituents.surfaces().indexed_object(si);
+                auto [sfi, link] = intersect(track, s, transforms, masks);
+                sfi.index = si;
+                if (sfi.status == e_inside)
+                {
+                    // Update the intersection
+                    (*kernel.next) = sfi;
+                    navigation.distance_to_next = sfi.path;
+                    // Trust fully again
+                    navigation.trust_level = e_full;
+                    return true;
+                }
+                // If not successful: increase and switch to next
+                ++kernel.next;
+                if (update_kernel(navigation, kernel, track, constituents))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /** Helper method to sort within the kernel 
@@ -265,14 +303,13 @@ namespace detray
         void sort_and_set(navigation_state &navigation, kernel_t &kernel)
         {
 
-            // Get the type of the kernel via a const expression
+            // Get the type of the kernel via a const expression at compile time
             constexpr bool kType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_link>>);
 
-            // Sort and set distance to next
+            // Sort and set distance to next & navigation status
             if (not kernel.candidates.empty())
             {
                 navigation.trust_level = e_full;
-                // Sort and set
                 std::sort(kernel.candidates.begin(), kernel.candidates.end());
                 kernel.next = kernel.candidates.begin();
                 navigation.distance_to_next = kernel.next->path;

@@ -39,7 +39,7 @@ namespace detray
 
         using mask_tolerance = scalar;
 
-        /// This mask has min, max to check on 
+        /// This mask has min, max to check on
         using mask_values = darray<scalar, 2>;
 
         using mask_links_type = links_type;
@@ -79,7 +79,7 @@ namespace detray
         intersection_status is_inside(const point3 &p,
                                       const mask_tolerance &t = within_epsilon) const
         {
-            return (_values[0] - t <= p[kCheckIndex] < _values[1] + t) ? e_inside : e_outside;
+            return (_values[0] - t <= p[kCheckIndex] and p[kCheckIndex] <= _values[1] + t) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function

@@ -27,7 +27,8 @@ TEST(mask, single3_0)
     scalar h0 = 1.;
     single3<0> m1_0 = {-h0, h0};
 
-    ASSERT_EQ(m1_0[0], h0);
+    ASSERT_EQ(m1_0[0], -h0);
+    ASSERT_EQ(m1_0[1], h0);
 
     ASSERT_TRUE(m1_0.is_inside<local_type>(p3_in) == intersection_status::e_inside);
     ASSERT_TRUE(m1_0.is_inside<local_type>(p3_edge) == intersection_status::e_inside);
@@ -49,7 +50,8 @@ TEST(mask, single3_1)
     scalar h1 = 9.3;
     single3<1> m1_1 = {-h1, h1};
 
-    ASSERT_EQ(m1_1[0], h1);
+    ASSERT_EQ(m1_1[0], -h1);
+    ASSERT_EQ(m1_1[1], h1);
 
     ASSERT_TRUE(m1_1.is_inside<local_type>(p3_in) == intersection_status::e_inside);
     ASSERT_TRUE(m1_1.is_inside<local_type>(p3_edge) == intersection_status::e_inside);
@@ -71,7 +73,8 @@ TEST(mask, single3_2)
     scalar h2 = 2.;
     single3<2> m1_2 = {-h2, h2};
 
-    ASSERT_EQ(m1_2[0], h2);
+    ASSERT_EQ(m1_2[0], -h2);
+    ASSERT_EQ(m1_2[1], h2);
 
     ASSERT_TRUE(m1_2.is_inside<local_type>(p3_in) == intersection_status::e_inside);
     ASSERT_TRUE(m1_2.is_inside<local_type>(p3_edge) == intersection_status::e_inside);
