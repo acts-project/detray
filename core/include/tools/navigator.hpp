@@ -150,43 +150,18 @@ namespace detray
                 // First try to get the surface candidates
                 if (not volume.empty())
                 {
-                    initialize_kernel(navigation.surface_kernel, track, volume.surfaces());
+                    initialize_kernel(navigation, navigation.surface_kernel, track, volume.surfaces());
                 }
                 // If no surfaces are to processed, initialize the portals
                 if (navigation.surface_kernel.candidates.empty())
                 {
-                    initialize_kernel(navigation.portal_kernel, track, volume.portals());
+                    initialize_kernel(navigation, navigation.portal_kernel, track, volume.portals());
                 }
                 // Before returning, run through the inspector
                 navigation.inspector(navigation);
                 return;
             }
 
-            /*
-            if (navigation.trust_level == e_high)
-            {
-                // Block to update current candidate
-                if (navigation.surface_kernel.next != navigation.surface_kernel.candidates.end())
-                {
-                    // Only update the last intersection
-                    dindex si = navigation.surface_kernel.next->index;
-                    const auto &tfs = volume.surfaces().transforms();
-                    const auto &msks = volume.surfaces().masks();
-                    const auto &s = volume.surfaces().indexed_object(si);
-                    auto [sfi, link] = intersect(track, s, tfs, msks);
-                    sfi.index = si;
-                    if (sfi.status == e_inside)
-                    {
-                        // Update the intersection
-                        (*navigation.surface_kernel.next) = sfi;
-                        navigation.distance_to_next = sfi.path;
-                        // Trust fully again
-                        navigation.trust_level = e_full;
-                        return;
-                    }
-                }
-            }
-*/
             return;
         }
 
@@ -245,7 +220,7 @@ namespace detray
                     kernel.candidates.push_back(sfi);
                 }
             }
-            sort_and_set(navigation, navigation.kernel);
+            sort_and_set(navigation, kernel);
         }
 
         /** Helper method to the update the next candidate intersection 
@@ -296,7 +271,7 @@ namespace detray
             }
             // Loop over all candidates and intersect again all candidates
             // - do this when your trust level is low
-            else if (navigation.trust_levl = e_fair)
+            else if (navigation.trust_levl == e_fair)
             {
                 for (const auto &c : kernel.candidates())
                 {
@@ -306,7 +281,7 @@ namespace detray
                     sfi.index = si;
                 }
                 sort_and_set(navigation, kernel);
-                if (navigation.trust_level = e_high){
+                if (navigation.trust_level == e_high){
                     return true;
                 }
             }
