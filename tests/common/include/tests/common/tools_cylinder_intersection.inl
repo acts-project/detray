@@ -6,8 +6,8 @@
  */
 
 #include "core/intersection.hpp"
+#include "core/surface_base.hpp"
 #include "masks/cylinder3.hpp"
-#include "masks/single3.hpp"
 #include "tools/concentric_cylinder_intersector.hpp"
 #include "tools/cylinder_intersector.hpp"
 #include "utils/unbound.hpp"

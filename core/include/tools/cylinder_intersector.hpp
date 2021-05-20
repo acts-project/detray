@@ -106,6 +106,7 @@ namespace detray
             {
                 auto t01 = std::get<1>(qe_solution);
                 scalar t = (t01[0] > 0.) ? t01[0] : t01[1];
+
                 if (t > 0)
                 {
                     intersection is;
@@ -114,7 +115,7 @@ namespace detray
                     is.p2 = local(trf, is.p3);
                     auto local3 = trf.point_to_local(is.p3);
                     is.status = mask.template is_inside<cylindrical2>(local3, tolerance);
-                    scalar rdr = getter::perp(local3 + 10 * std::numeric_limits<scalar>::epsilon() * rd);
+                    scalar rdr = getter::perp(local3 + 0.1 * rd);
                     is.direction = rdr > r ? e_along : e_opposite;
                     return is;
                 }
