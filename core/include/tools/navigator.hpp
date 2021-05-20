@@ -151,13 +151,11 @@ namespace detray
                 if (not volume.empty())
                 {
                     initialize_kernel(navigation.surface_kernel, track, volume.surfaces());
-                    sort_and_set(navigation, navigation.surface_kernel);
                 }
                 // If no surfaces are to processed, initialize the portals
                 if (navigation.surface_kernel.candidates.empty())
                 {
                     initialize_kernel(navigation.portal_kernel, track, volume.portals());
-                    sort_and_set(navigation, navigation.portal_kernel);
                 }
                 // Before returning, run through the inspector
                 navigation.inspector(navigation);
@@ -218,13 +216,15 @@ namespace detray
          * @tparam kernel_t the type of the kernel: surfaces/portals
          * @tparam constituents the type of the associated constituents
          * 
+         * @param navigation is the navigation cache object
          * @param kernel [in,out] the kernel to be checked/initialized 
          * @param track the track information 
          * @param constituens the constituents to be checked
          * 
          */
         template <typename kernel_t, typename constituents_t>
-        void initialize_kernel(kernel_t &kernel,
+        void initialize_kernel(navigation_state &navigation,
+                               kernel_t &kernel,
                                const track<context> &track,
                                const constituents_t &constituents)
         {
@@ -245,6 +245,7 @@ namespace detray
                     kernel.candidates.push_back(sfi);
                 }
             }
+            sort_and_set(navigation, navigation.kernel);
         }
 
         /** Helper method to the update the next candidate intersection 
@@ -260,18 +261,20 @@ namespace detray
          * @return The break condition
          */
         template <typename kernel_t, typename constituents_t>
-        bool update_kernel(navigation_state& navigation,
+        bool update_kernel(navigation_state &navigation,
                            kernel_t &kernel,
                            const track<context> &track,
                            const constituents_t &constituents)
         {
-            // Block to update current candidate
-            if (kernel.next != kernel.candidates.end())
+            const auto &transforms = constituents.transforms();
+            const auto &masks = constituents.masks();
+
+            // Update current candidate, or step further
+            // - do this only when you trust level is high
+            if (navigation.trust_evel == e_high and kernel.next != kernel.candidates.end())
             {
                 // Only update the last intersection
                 dindex si = kernel.next->index;
-                const auto &transforms = constituents.transforms();
-                const auto &masks = constituents.masks();
                 const auto &s = constituents.surfaces().indexed_object(si);
                 auto [sfi, link] = intersect(track, s, transforms, masks);
                 sfi.index = si;
@@ -291,6 +294,23 @@ namespace detray
                     return true;
                 }
             }
+            // Loop over all candidates and intersect again all candidates
+            // - do this when your trust level is low
+            else if (navigation.trust_levl = e_fair)
+            {
+                for (const auto &c : kernel.candidates())
+                {
+                    dindex si = c->index;
+                    const auto &s = constituents.surfaces().indexed_object(si);
+                    auto [sfi, link] = intersect(track, s, transforms, masks);
+                    sfi.index = si;
+                }
+                sort_and_set(navigation, kernel);
+                if (navigation.trust_level = e_high){
+                    return true;
+                }
+            }
+            // Let's run over the 
             return false;
         }
 
