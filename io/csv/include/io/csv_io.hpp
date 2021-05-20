@@ -108,8 +108,8 @@ namespace detray
             typename surface_source_link = dindex,
             typename bounds_source_link = dindex>
   detector<alignable_store,
-                 surface_source_link,
-                 bounds_source_link>
+           surface_source_link,
+           bounds_source_link>
   detector_from_csv(const std::string &detector_name,
                     const std::string &surface_file_name,
                     const std::string &grid_file_name,
@@ -133,7 +133,7 @@ namespace detray
     using volume_layer_index = std::pair<uint32_t, uint32_t>;
     std::map<volume_layer_index, typename detector<alignable_store, surface_source_link, bounds_source_link>::volume *> volumes;
 
-    // We read in with a default context
+    // Read in with a default context
     typename alignable_store::storage surface_transform_storage;
     typename alignable_store::context surface_default_context;
 
@@ -194,7 +194,7 @@ namespace detray
         if (c_volume != nullptr and not surface_transform_storage.empty())
         {
           // Construction with move semantics
-          c_volume->add_contextual_transforms(surface_default_context, std::move(surface_transform_storage));
+          c_volume->add_surface_transforms(surface_default_context, std::move(surface_transform_storage));
           c_volume->add_surface_components(std::move(c_surfaces), std::move(c_masks));
           // Get new clean containers
           surface_transform_storage = typename alignable_store::storage();
@@ -266,13 +266,13 @@ namespace detray
         {
           // Cylinder bounds
           constexpr auto cylinder_context = detector<alignable_store,
-                                                           surface_source_link,
-                                                           bounds_source_link>::surface_cylinder::mask_context;
+                                                     surface_source_link,
+                                                     bounds_source_link>::surface_cylinder::mask_context;
 
           // Get the cylinder mask container
           auto &cylinder_masks = std::get<cylinder_context>(c_masks);
           dindex cylinder_index = cylinder_masks.size();
-          cylinder_masks.push_back({io_surface.bound_param0, io_surface.bound_param1});
+          cylinder_masks.push_back({io_surface.bound_param0, io_surface.cz - io_surface.bound_param1, io_surface.cz + io_surface.bound_param1});
           // The read is valid: set the index
           mask_index = {cylinder_context, cylinder_index};
         }
@@ -284,8 +284,8 @@ namespace detray
         {
           // Rectangle bounds
           constexpr auto rectangle_context = detector<alignable_store,
-                                                            surface_source_link,
-                                                            bounds_source_link>::surface_rectangle::mask_context;
+                                                      surface_source_link,
+                                                      bounds_source_link>::surface_rectangle::mask_context;
 
           // Get the rectangle mask container
           auto &rectangle_masks = std::get<rectangle_context>(c_masks);
@@ -300,8 +300,8 @@ namespace detray
         {
           // Trapezoid bounds
           constexpr auto trapezoid_context = detector<alignable_store,
-                                                            surface_source_link,
-                                                            bounds_source_link>::surface_trapezoid::mask_context;
+                                                      surface_source_link,
+                                                      bounds_source_link>::surface_trapezoid::mask_context;
           // Get the trapezoid mask container
           auto &trapezoid_masks = std::get<trapezoid_context>(c_masks);
           dindex trapezoid_index = trapezoid_masks.size();
@@ -313,8 +313,8 @@ namespace detray
         {
           // Annulus bounds
           constexpr auto annulus_context = detector<alignable_store,
-                                                          surface_source_link,
-                                                          bounds_source_link>::surface_annulus::mask_context;
+                                                    surface_source_link,
+                                                    bounds_source_link>::surface_annulus::mask_context;
           // Get the trapezoid mask container
           auto &annulus_masks = std::get<annulus_context>(c_masks);
           dindex annulus_index = annulus_masks.size();

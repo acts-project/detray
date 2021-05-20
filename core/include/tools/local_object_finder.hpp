@@ -12,7 +12,7 @@ namespace detray
 {
     /** A zone finder based on a grid 
      * 
-     * @tparam grit_type is the type of the underlying grid object 
+     * @tparam grid_type is the type of the underlying grid object 
      */
     template <typename grid_type>
     struct local_zone_finder
@@ -32,6 +32,8 @@ namespace detray
          * 
          * @tparam point2_type the type of the point for the finding request
          * @param p2 the local 2d point for the grid
+         * 
+         * This method will create a vector and fill it
          * 
          * @note return a zone around a bin
          **/

@@ -83,18 +83,6 @@ namespace detray
             _data = std::move(trfs);
         }
 
-        /** Add a new bunch of (contextual) transforms - copy semantics
-         *
-         * @param ctx The context of the call (ignored)
-         * @param trfs The transform container, move semantics
-         *
-         * @note in general can throw an exception
-         */
-        void add_contextual_transforms(const context & /*ctx*/, const storage &trfs) noexcept(false)
-        {
-            _data = trfs;
-        }
-
         /** Get the contextual transform
          *
          * @param ctx The context of the call (ignored)

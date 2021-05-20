@@ -41,6 +41,7 @@ namespace detray
 
         using mask_tolerance = darray<scalar, 2>;
 
+        // This masks checks on: radius, -z, +z
         using mask_values = darray<scalar, 3>;
 
         using mask_links_type = links_type;

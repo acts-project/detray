@@ -13,11 +13,7 @@
 #include "grids/grid2.hpp"
 #include "grids/serializer2.hpp"
 #include "grids/populator.hpp"
-#include "masks/annulus2.hpp"
-#include "masks/rectangle2.hpp"
-#include "masks/trapezoid2.hpp"
-#include "masks/cylinder3.hpp"
-#include "masks/ring2.hpp"
+#include "masks/masks.hpp"
 #include "utils/indexing.hpp"
 #include "utils/containers.hpp"
 #include "utils/enumerate.hpp"
@@ -50,8 +46,8 @@ namespace detray
     {
 
     public:
-
-        /// Forward the context
+        /// Forward the alignable container and context
+        using transform_store = alignable_store;
         using context = typename alignable_store::context;
 
         /// Volume grid definition
@@ -61,25 +57,24 @@ namespace detray
         /// - links:  next volume, next object finder
         using portal_links = darray<dindex, 2>;
         /// - masks, with mask identifiers 0, 1
-        using portal_cylinder = cylinder3<false, concentric_cylinder_intersector, __plugin::cylindrical2, portal_links, 0>;
+        using portal_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, portal_links, 0>;
         using portal_disc = ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
         // - mask index: type, first/last
         using portal_mask_index = darray<dindex, 3>;
         using portal_mask_container = dtuple<dvector<portal_cylinder>, dvector<portal_disc>>;
-        // - portal transforms, different from surfaces w/o alignment
-        using portal_transforms = dvector<transform3>;
 
-        /// The Portal definition:
-        ///  <transform_link, mask_index, volume_link, source_link >
+        /** The Portal definition:
+         *  <transform_link, mask_index, volume_link, source_link >
+         */
         using portal = surface_base<dindex, portal_mask_index, dindex, surface_source_link>;
-        using portals = dvector<portal>;
+        using portal_container = dvector<portal>;
 
         /// Surface components:
         /// - masks, with mask identifiers 0,1,2
         using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, bounds_source_link, 0>;
         using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, bounds_source_link, 1>;
         using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, bounds_source_link, 2>;
-        using surface_cylinder = cylinder3<true, cylinder_intersector, __plugin::cylindrical2, bounds_source_link, 3>;
+        using surface_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, bounds_source_link, 3>;
         /// - mask index: type, entry
         using surface_mask_index = darray<dindex, 2>;
         using surface_mask_container = dtuple<dvector<surface_rectangle>,
@@ -103,6 +98,40 @@ namespace detray
             friend class detector<alignable_store, surface_source_link, bounds_source_link>;
 
         public:
+            /** Object holder class to synchronize access 
+             * 
+             * @tparam object_t the object type, either surface or portal
+             * @tparam object_masks_t the mask container for the objects
+             * 
+             */
+            template <typename object_t, typename object_masks_t>
+            class constituents
+            {
+
+                friend class volume;
+
+            private:
+                dvector<object_t> _objects;
+                object_masks_t _masks;
+                transform_store _transforms;
+
+            public:
+                /** @return an indexed object with @param object_index - const access */
+                const object_t &indexed_object(dindex object_index) const
+                {
+                    return _objects[object_index];
+                }
+
+                /** @return all the objects - const access */
+                const dvector<object_t> &objects() const { return _objects; }
+
+                /** @return the object masks - const access */
+                const object_masks_t &masks() const { return _masks; }
+
+                /** @return the object transforms = const access */
+                const transform_store &transforms() const { return _transforms; }
+            };
+
             /** Deleted constructor */
             volume() = delete;
 
@@ -129,34 +158,20 @@ namespace detray
             dindex index() const { return _index; }
 
             /** @return if the volume is empty or not */
-            bool empty() const { return _surfaces.empty(); }
+            bool empty() const { return _surfaces.objects().empty(); }
 
-            /** Add a new full set of alignable transforms - move semantics
+            /** Add a new full set of alignable transforms for surfaces - move semantics
              *
              * @param ctx The context of the call
              * @param trfs The transform container, move semantics
              *
              * @note can throw an exception if input data is inconsistent
              */
-            void add_contextual_transforms(
+            void add_surface_transforms(
                 const typename alignable_store::context &ctx,
                 typename alignable_store::storage &&trfs) noexcept(false)
             {
-                _surface_transforms.add_contextual_transforms(ctx, std::move(trfs));
-            }
-
-            /** Add a new full set of alignable transforms - copy semantics
-             *
-             * @param ctx The context of the call
-             * @param trfs The transform container, move semantics
-             *
-             * @note can throw an exception if input data is inconsistent
-             */
-            void add_contextual_transforms(
-                const typename alignable_store::context &ctx,
-                const typename alignable_store::storage &trfs) noexcept(false)
-            {
-                _surface_transforms.add_contextual_transforms(ctx, trfs);
+                _surfaces._transforms.add_contextual_transforms(ctx, std::move(trfs));
             }
 
             /** Add the surfaces and their masks - move semantics
@@ -164,68 +179,43 @@ namespace detray
              * @param surfaces The (complete) volume surfaces
              * @param surface_mask_container The (complete) surface masks
              */
-            void add_surface_components(surface_container &&volume_surfaces, surface_mask_container &&volume_surface_mask_container)
+            void add_surface_components(surface_container &&volume_surfaces, surface_mask_container &&volume_surface_masks)
             {
-                _surfaces = std::move(volume_surfaces);
-                _surface_mask_container = std::move(volume_surface_mask_container);
+                _surfaces._objects = std::move(volume_surfaces);
+                _surfaces._masks = std::move(volume_surface_masks);
             }
 
-            /** Add the surfaces and their masks - copy semantics
-             *
-             * @param surfaces The (complete) volume surfaces
-             * @param surface_mask_container The (complete) surface masks
-             */
-            void add_surface_components(const surface_container &volume_surfaces, const surface_mask_container &volume_surface_mask_container)
-            {
-                _surfaces = volume_surfaces;
-                _surface_mask_container = volume_surface_mask_container;
-            }
+            /** @return all surfaces - const access */
+            const auto& surfaces() const { return _surfaces; }
 
             /** Add the portals, their transforms and their masks, move semantics
              *
-             * @param volume_portals The volume portals
-             * @param volume_portal_transforms The (complete) portal transforms
-             * @param volume_portal_mask_container The (complete) portal masks
+             * @param portals The volume (complete set of) portals
+             * @param portal_masks The (complete set of) portal masks
              */
-            void add_portal_components(portals &&volume_portals,
-                                       portal_transforms &&volume_portal_transforms,
-                                       portal_mask_container &&volume_portal_mask_container)
+            void add_portal_components(portal_container &&portals,
+                                       portal_mask_container &&portal_masks)
             {
-                _portals = std::move(volume_portals);
-                _portal_transforms = std::move(volume_portal_transforms);
-                _portal_mask_container = std::move(volume_portal_mask_container);
+                _portals._objects = std::move(portals);
+                _portals._masks = std::move(portal_masks);
             }
 
-            /** Indexed access to detector surfaces - const access 
-             * 
-             * @param surface_index is the index within this volume
-             * @note no range checking is done
-             * @return a const reference to a surface
-            */
-            const surface &indexed_surface(dindex surface_index) const
-            {
-                return _surfaces[surface_index];
-            }
-
-            /** @return the detector surfaces - const access */
-            const surface_container &surfaces() const { return _surfaces; }
-
-            /** @return the surface transform store - const access */
-            const alignable_store &surface_transforms() const { return _surface_transforms; }
-
-            /** @return the surface masks - const access */
-            const surface_mask_container &masks() const { return _surface_mask_container; }
-
-            /** Indexed access to the portals 
-             * 
-             * @param portal_index is the index of the portal within this volume
-             * @note no range checking is done 
-             * @return a const reference to a portal
+            /** Add a new full set of alignable transforms for portals - move semantics
+             *
+             * @param ctx The context of the call
+             * @param portal_transforms The transform container, move semantics
+             *
+             * @note can throw an exception if input data is inconsistent
              */
-            const portal &indexed_portals(dindex portal_index) const
+            void add_portal_transforms(
+                const typename alignable_store::context &ctx,
+                typename alignable_store::storage &&portal_transforms) noexcept(false)
             {
-                return _portals[portal_index];
+                _portals._transforms.add_contextual_transforms(ctx, std::move(portal_transforms));
             }
+
+            /** @return all portals - const access */
+            const auto& portals() const { return _portals; }
 
         private:
             /// Volume section: name
@@ -241,14 +231,10 @@ namespace detray
                                          -M_PI, M_PI};
 
             /// Surface section
-            surface_mask_container _surface_mask_container;
-            surface_container _surfaces;
-            alignable_store _surface_transforms;
+            constituents<surface, surface_mask_container> _surfaces;
 
             /// Portal section
-            portal_mask_container _portal_mask_container;
-            portals _portals;
-            portal_transforms _portal_transforms;
+            constituents<portal, portal_mask_container> _portals;
         };
 
         /** Allowed costructor
@@ -315,8 +301,8 @@ namespace detray
             for (const auto &[i, v] : enumerate(_volumes))
             {
                 ss << "[>>] Volume at index " << i << " - name: '" << v.name() << "'" << std::endl;
-                ss << "     contains " << v._surfaces.size() << " detector surfaces" << std::endl;
-                ss << "              " << v._portals.size() << " detector portals" << std::endl;
+                ss << "     contains " << v._surfaces.objects().size() << " detector surfaces" << std::endl;
+                ss << "              " << v._portals.objects().size() << " detector portals" << std::endl;
             }
             return ss.str();
         };

@@ -5,9 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "masks/cylinder3.hpp"
-#include "masks/rectangle2.hpp"
-#include "masks/single3.hpp"
+#include "masks/masks.hpp"
 #include "tests/common/test_surfaces.hpp"
 #include "tools/concentric_cylinder_intersector.hpp"
 #include "tools/cylinder_intersector.hpp"

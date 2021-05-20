@@ -179,7 +179,7 @@ namespace detray
      * @param contextual_transform the transform container
      * @param mask_container the tuple mask container to for the intersection
      * 
-     * @return a boolean indicating if the update was successful
+     * @return an intersection and the link to the result
     **/
     template <typename surface_type,
               typename transform_container,
@@ -207,5 +207,4 @@ namespace detray
         // Return the (eventually update) intersection and links
         return std::make_tuple(result_intersection, result_links);
     }
-
 }

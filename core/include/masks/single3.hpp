@@ -39,7 +39,8 @@ namespace detray
 
         using mask_tolerance = scalar;
 
-        using mask_values = darray<scalar, 1>;
+        /// This mask has min, max to check on
+        using mask_values = darray<scalar, 2>;
 
         using mask_links_type = links_type;
 
@@ -59,7 +60,7 @@ namespace detray
          * @param rhs is the right hand side object
          **/
         single3<kCheckIndex, intersector_type, local_type, links_type, kMaskContext> &
-        operator=(const darray<scalar, 1> &rhs)
+        operator=(const darray<scalar, 2> &rhs)
         {
             _values = rhs;
             return (*this);
@@ -78,7 +79,7 @@ namespace detray
         intersection_status is_inside(const point3 &p,
                                       const mask_tolerance &t = within_epsilon) const
         {
-            return (std::abs(p[kCheckIndex]) <= _values[0] + t) ? e_inside : e_outside;
+            return (_values[0] - t <= p[kCheckIndex] and p[kCheckIndex] <= _values[1] + t) ? e_inside : e_outside;
         }
 
         /** Equality operator from an array, convenience function
@@ -86,7 +87,7 @@ namespace detray
          * @param rhs is the rectangle to be compared with
          * 
          **/
-        bool operator==(const darray<scalar, 1> &rhs)
+        bool operator==(const darray<scalar, 2> &rhs)
         {
             return (_values == rhs);
         }

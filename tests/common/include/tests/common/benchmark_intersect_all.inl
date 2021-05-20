@@ -89,10 +89,12 @@ namespace __plugin
                     // Loop over volumes
                     for (const auto &v : d.volumes())
                     {
+                        const auto& surfaces = v.surfaces(); 
+
                         // Loop over surfaces
-                        for (const auto &s : v.surfaces())
+                        for (const auto &s : surfaces.objects())
                         {
-                            auto sfi_surface = intersect(track, s, v.surface_transforms(), v.masks());
+                            auto sfi_surface = intersect(track, s, surfaces.transforms(), surfaces.masks());
 
                             const auto &sfi = std::get<0>(sfi_surface);
                             if (sfi.status == intersection_status::e_inside)

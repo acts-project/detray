@@ -98,7 +98,7 @@ namespace detray
      * with r an range that can be accessed with r[0] and r[1]
      * 
      * @note sequence({2,4}) will produce { 2, 3, 4 }
-=     * 
+     * 
      **/
     constexpr auto sequence(darray<dindex, 2> iterable)
     {
