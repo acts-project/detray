@@ -13,6 +13,8 @@
 
 #include <cmath>
 #include <climits>
+#include <string>
+#include <sstream>
 
 namespace detray
 {
@@ -66,7 +68,7 @@ namespace detray
         static constexpr unsigned int mask_identifier = e_annulus2;
 
         static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar>::epsilon(),
-                                                           std::numeric_limits<scalar>::epsilon()};
+                                                          std::numeric_limits<scalar>::epsilon()};
 
         /** Assignment operator from an array, convenience function
          * 
@@ -131,7 +133,7 @@ namespace detray
                 scalar shift_phi = getter::phi(shift_xy);
 
                 scalar r_mod2 = shift_r * shift_r + p[0] * p[0] +
-                                     2 * shift_r * p[0] * std::cos(phi_strp - shift_phi);
+                                2 * shift_r * p[0] * std::cos(phi_strp - shift_phi);
 
                 // Apply tolerances
                 scalar minR_tol = _values[0] - t[0];
@@ -181,7 +183,7 @@ namespace detray
         intersector_type intersector() const { return intersector_type{}; };
 
         /** Return the values */
-        const mask_values& values() const { return _values; }
+        const mask_values &values() const { return _values; }
 
         /** Return the local frame type */
         local_type local() const { return local_type{}; }
@@ -191,6 +193,18 @@ namespace detray
 
         /** Return the volume link - non-const access */
         links_type &links() { return _links; }
+
+        /** Transform to a string for output debugging */
+        std::string to_string() const
+        {
+            std::stringstream ss;
+            ss << "annulus2," << kMaskContext;
+            for (const auto &v : _values)
+            {
+                ss << "," << v;
+            }
+            return ss.str();
+        }
     };
 
 } // namespace detray

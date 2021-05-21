@@ -59,8 +59,8 @@ namespace detray
         /// - masks, with mask identifiers 0, 1
         using portal_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, portal_links, 0>;
         using portal_disc = ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
-        // - mask index: type, first/last
-        using portal_mask_index = darray<dindex, 3>;
+        // - mask index: type, { first/last }
+        using portal_mask_index = dtuple<dindex, darray<dindex,2> >;
         using portal_mask_container = dtuple<dvector<portal_cylinder>, dvector<portal_disc>>;
 
         /** The Portal definition:
@@ -70,11 +70,13 @@ namespace detray
         using portal_container = dvector<portal>;
 
         /// Surface components:
+        /// - surface links
+        using surface_links = darray<dindex, 1>;
         /// - masks, with mask identifiers 0,1,2
-        using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, bounds_source_link, 0>;
-        using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, bounds_source_link, 1>;
-        using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, bounds_source_link, 2>;
-        using surface_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, bounds_source_link, 3>;
+        using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, surface_links, 0>;
+        using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, surface_links, 1>;
+        using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, surface_links, 2>;
+        using surface_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, surface_links, 3>;
         /// - mask index: type, entry
         using surface_mask_index = darray<dindex, 2>;
         using surface_mask_container = dtuple<dvector<surface_rectangle>,

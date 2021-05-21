@@ -13,6 +13,8 @@
 
 #include <cmath>
 #include <climits>
+#include <sstream>
+#include <string>
 
 namespace detray
 {
@@ -137,6 +139,18 @@ namespace detray
 
         /** Return the volume link - non-const access */
         links_type &links() { return _links; }
+
+        /** Transform to a string for output debugging */
+        std::string to_string() const
+        {
+            std::stringstream ss;
+            ss << "trapezoid2," << kMaskContext;
+            for (const auto &v : _values)
+            {
+                ss << "," << v;
+            }
+            return ss.str();
+        }
     };
 
 } // namespace detray

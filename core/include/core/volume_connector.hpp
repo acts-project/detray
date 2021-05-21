@@ -205,12 +205,12 @@ namespace detray
                     __plugin::transform3 _portal_transform(_translation);
                     // Get the mask context group and fill it
                     auto &mask_group = std::get<detector_type::portal_disc::mask_context>(portal_masks);
-                    typename detector_type::portal_mask_index mask_index = {detector_type::portal_disc::mask_context, mask_group.size(), mask_group.size()};
+                    typename detector_type::portal_mask_index mask_index = {detector_type::portal_disc::mask_context, { mask_group.size(), mask_group.size() } };
                     // Create a stub mask for every unique index
                     for (auto &info_ : portals_info)
                     {
                         typename detector_type::portal_disc _portal_disc = {std::get<0>(info_), {std::get<1>(info_), dindex_invalid}};
-                        mask_index[2] = mask_group.size();
+                        std::get<1>(mask_index)[1] = mask_group.size();
                         mask_group.push_back(_portal_disc);
                     }
                     // Create the portal
@@ -233,13 +233,14 @@ namespace detray
                     __plugin::transform3 _portal_transform;
                     // Get the mask context group and fill it
                     auto &mask_group = std::get<detector_type::portal_cylinder::mask_context>(portal_masks);
-                    typename detector_type::portal_mask_index mask_index = {detector_type::portal_disc::mask_context, mask_group.size(), mask_group.size()};
+
+                    typename detector_type::portal_mask_index mask_index = {detector_type::portal_cylinder::mask_context, { mask_group.size(), mask_group.size() } };
                     for (auto &info_ : portals_info)
                     {
                         const auto cylinder_range = std::get<0>(info_);
                         darray<scalar, 3> cylinder_bounds = {volume_bounds[bound_index], cylinder_range[0], cylinder_range[1]};
                         typename detector_type::portal_cylinder _portal_cylinder = {cylinder_bounds, {std::get<1>(info_), dindex_invalid}};
-                        mask_index[2] = mask_group.size();
+                        std::get<1>(mask_index)[1] = mask_group.size();
                         mask_group.push_back(_portal_cylinder);
                     }
                     // Create the portal
