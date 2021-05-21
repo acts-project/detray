@@ -9,6 +9,7 @@
 #include "core/intersection.hpp"
 
 #include <optional>
+#include <string>
 
 namespace detray
 {
@@ -63,6 +64,12 @@ namespace detray
         bool is_inside(const point2 & /*ignored*/, scalar /*ignored*/, scalar /*ignored*/) const
         {
             return true;
+        }
+
+        /** Transform to a string for output debugging */
+        std::string to_string() const
+        {
+            return "unmasked";
         }
 
     };

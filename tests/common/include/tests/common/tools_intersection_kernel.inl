@@ -24,7 +24,7 @@ using namespace __plugin;
 TEST(tools, intersection_kernel_single)
 {
     /// Surface components:
-    using mask_link = dindex;
+    using mask_link = darray<dindex, 1>;
     using surface_link = dindex;
     /// - masks, with mask identifiers 0,1,2
     using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, mask_link, 0>;
@@ -34,11 +34,11 @@ TEST(tools, intersection_kernel_single)
     using surface_concentric_cylinder = cylinder3<false, concentric_cylinder_intersector, __plugin::cylindrical2, mask_link, 4>;
     /// - mask index: type, entry
     using surface_mask_index = darray<dindex, 2>;
-    using surface_mask_container = dtuple<dvector<surface_rectangle>, 
-                                 dvector<surface_trapezoid>, 
-                                 dvector<surface_annulus>, 
-                                 dvector<surface_cylinder>,
-                                 dvector<surface_concentric_cylinder> >;
+    using surface_mask_container = dtuple<dvector<surface_rectangle>,
+                                          dvector<surface_trapezoid>,
+                                          dvector<surface_annulus>,
+                                          dvector<surface_cylinder>,
+                                          dvector<surface_concentric_cylinder>>;
 
     /// The Surface definition:
     ///  <transform_link, mask_link, volume_link, source_link >
@@ -75,7 +75,8 @@ TEST(tools, intersection_kernel_single)
     track.dir = vector::normalize(vector3{0.01, 0.01, 10.});
 
     // Quick helper to check for within epsilon
-    auto within_epsilon = [](const point3 &a, const point3 &b, scalar epsilon) -> bool {
+    auto within_epsilon = [](const point3 &a, const point3 &b, scalar epsilon) -> bool
+    {
         return (std::abs(a[0] - b[0]) < epsilon && std::abs(a[1] - b[1]) < epsilon && std::abs(a[2] - b[2]) < epsilon);
     };
 
@@ -116,7 +117,6 @@ TEST(tools, intersection_kernel_single)
 
     return;
 }
-
 
 int main(int argc, char **argv)
 {

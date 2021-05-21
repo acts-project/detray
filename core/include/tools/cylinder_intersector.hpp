@@ -105,9 +105,8 @@ namespace detray
             if (std::get<0>(qe_solution) > 0)
             {
                 auto t01 = std::get<1>(qe_solution);
-                scalar t = (t01[0] > 0.) ? t01[0] : t01[1];
-
-                if (t > 0)
+                scalar t = (t01[0] >= 0.) ? t01[0] : t01[1];
+                if (t >= 0.)
                 {
                     intersection is;
                     is.path = t;

@@ -113,7 +113,9 @@ namespace detray
   detector_from_csv(const std::string &detector_name,
                     const std::string &surface_file_name,
                     const std::string &grid_file_name,
-                    const std::string &layer_volume_file_name)
+                    const std::string &layer_volume_file_name,
+                    scalar r_sync_tolerance = 0.,
+                    scalar z_sync_tolerance = 0.)
   {
 
     detector d(detector_name);
@@ -182,6 +184,9 @@ namespace detray
       };
       volume_bounds[c_index] = c_bounds;
     }
+
+    // Synchronize close-by volume bounds
+
 
     // Reading the surfaces
     while (s_reader.read(io_surface))

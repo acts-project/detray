@@ -56,6 +56,7 @@ namespace detray
         intersection_status status = e_missed;
         intersection_direction direction = e_undefined;
         dindex index = dindex_invalid;
+        dindex link = dindex_invalid;
 
         /** @param rhs is the right hand side intersection for comparison 
          **/
