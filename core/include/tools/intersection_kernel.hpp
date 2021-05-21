@@ -52,17 +52,17 @@ namespace detray
             const auto &mask = masks[i];
             auto local = mask.local();
             auto sfi = mask.intersector().intersect(trf, track, local, mask);
-            std::cout << " ---- test portal link ---- " << std::endl; 
+            //std::cout << " ---- test portal link ---- " << std::endl; 
             if (sfi.status == e_inside)
             {
                 auto valid_link = mask.links();
-                std::cout << " - sucessful maks is " << mask.to_string() << std::endl;
-                std::cout << " - successful link is " << valid_link[0] << std::endl;
+                //std::cout << " - sucessful maks is " << mask.to_string() << std::endl;
+                //std::cout << " - successful link is " << valid_link[0] << std::endl;
                 return std::make_tuple(sfi, valid_link);
             } else {
                 auto valid_link = mask.links();
-                std::cout << " - un-sucessful maks is " << mask.to_string() << std::endl;
-                std::cout << " - un-successful link is " << valid_link[0] << std::endl;
+                //std::cout << " - un-sucessful maks is " << mask.to_string() << std::endl;
+                //std::cout << " - un-successful link is " << valid_link[0] << std::endl;
             }
         }
         typename mask_group::value_type::mask_links_type invalid_link;

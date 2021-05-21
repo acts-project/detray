@@ -142,8 +142,6 @@ TEST(__plugin, navigator)
     // ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.volume_index, 25u);
 
-    std::cout << " The new volume has " << d.indexed_volume(25u).surfaces().objects().size() << " candidate surfaces " << std::endl;
-
     // ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
 
 
