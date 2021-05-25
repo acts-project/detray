@@ -14,7 +14,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the base functionality of the line stepper
-TEST(__plugin, line_stepper)
+TEST(ALGEBRA_PLUGIN, line_stepper)
 {
     using namespace detray;
     using namespace __plugin;

@@ -30,7 +30,7 @@ constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;
 
 // This defines the local frame test suite
-TEST(__plugin, translated_plane)
+TEST(ALGEBRA_PLUGIN, translated_plane)
 {
     // Create a shifted plane
     transform3 shifted(vector3{3., 2., 10.});

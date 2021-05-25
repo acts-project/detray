@@ -32,7 +32,7 @@ constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;
 
 // This defines the local frame test suite
-TEST(__plugin, local_vectors)
+TEST(ALGEBRA_PLUGIN, local_vectors)
 {
     // Construction
     point2cart vA{0., 1.};
@@ -71,7 +71,7 @@ TEST(__plugin, local_vectors)
 }
 
 // This defines the vector3 test suite
-TEST(__plugin, vector3)
+TEST(ALGEBRA_PLUGIN, vector3)
 {
     // Construction
     vector3 vA{0., 1., 2.};
@@ -116,7 +116,7 @@ TEST(__plugin, vector3)
 }
 
 // This defines the vector operation test suite
-TEST(__plugin, getter)
+TEST(ALGEBRA_PLUGIN, getter)
 {
     vector3 v3{1., 1., 1.};
 
@@ -138,7 +138,7 @@ TEST(__plugin, getter)
 }
 
 // This defines the transform3 test suite
-TEST(__plugin, transform3)
+TEST(ALGEBRA_PLUGIN, transform3)
 {
     // Preparatioon work
     vector3 z = vector::normalize(vector3{3., 2., 1.});
@@ -218,7 +218,7 @@ TEST(__plugin, transform3)
 }
 
 // This test global coordinate transforms
-TEST(__plugin, global_transformations)
+TEST(ALGEBRA_PLUGIN, global_transformations)
 {
     // Preparatioon work
     vector3 z = vector::normalize(vector3{3., 2., 1.});
@@ -263,7 +263,7 @@ TEST(__plugin, global_transformations)
 }
 
 // This test local coordinate transforms
-TEST(__plugin, local_transformations)
+TEST(ALGEBRA_PLUGIN, local_transformations)
 {
     point2cart p2 = {3., 3.};
     point3 p3 = {3., 3., 5.};

@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/array_defs.hpp"
+#include "plugins/algebra/array_container.hpp"
 #include "tests/common/masks_trapezoid2.inl"

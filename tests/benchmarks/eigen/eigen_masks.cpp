@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/eigen_defs.hpp"
+#include "plugins/algebra/eigen_container.hpp"
 #include "tests/common/benchmark_masks.inl"

@@ -23,6 +23,8 @@ using vector3 = vector3;
 using surface = surface_base<transform3>;
 
 __plugin::cartesian2 cartesian2;
+using point2 = __plugin::cartesian2::point2;
+
 using point2 = __plugin::point2;
 
 unsigned int theta_steps = 100;
@@ -38,18 +40,22 @@ auto read_detector()
         throw std::ios_base::failure("Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
     }
     auto data_directory = std::string(env_d_d);
+<<<<<<< HEAD
 
     std::string name = "tml";
     std::string surfaces = data_directory + "tml.csv";
     std::string grids = data_directory + "tml-surface-grids.csv";
     std::string volumes = data_directory + "tml-layer-volumes.csv";
     return detray::detector_from_csv<static_transform_store>(name, surfaces, grids, volumes);
+=======
+    return detray::read_csv<transform3>(data_directory + std::string("/tml-old.csv"));
+>>>>>>> ed131bd... Use the algebra-plugin repository for array, eigen and smatrix
 };
 
 auto d = read_detector();
 
-namespace __plugin
-{
+//namespace __plugin
+//{
     // This test runs intersection with all surfaces of the TrackML detector
     static void BM_INTERSECT_ALL(benchmark::State &state)
     {
@@ -125,6 +131,6 @@ namespace __plugin
 
     BENCHMARK(BM_INTERSECT_ALL);
 
-} // namespace __plugin
+//} // namespace __plugin
 
 BENCHMARK_MAIN();

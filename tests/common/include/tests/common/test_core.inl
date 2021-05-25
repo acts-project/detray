@@ -27,7 +27,7 @@ using point3 = __plugin::point3;
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
 // This tests the construction of a surface_base object
-TEST(__plugin, surface_base)
+TEST(ALGEBRA_PLUGIN, surface_base)
 {
     // Preparatioon work, create a transform
     vector3 z = vector::normalize(vector3{3., 2., 1.});
@@ -40,7 +40,7 @@ TEST(__plugin, surface_base)
 }
 
 // This tests the construction of a intresection
-TEST(__plugin, intersection)
+TEST(ALGEBRA_PLUGIN, intersection)
 {
 
     intersection i0 = {2., point3{0.3, 0.5, 0.7}, point2{0.2, 0.4}, intersection_status::e_hit};

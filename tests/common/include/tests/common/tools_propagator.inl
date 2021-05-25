@@ -17,7 +17,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the basic functionality of the propagator
-TEST(__plugin, propagator)
+TEST(ALGEBRA_PLUGIN, propagator)
 {
     using namespace detray;
     using namespace __plugin;
