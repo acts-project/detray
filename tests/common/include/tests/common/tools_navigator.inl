@@ -16,7 +16,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the construction and general methods of the navigator
-TEST(__plugin, navigator)
+TEST(ALGEBRA_PLUGIN, navigator)
 {
     using namespace detray;
 

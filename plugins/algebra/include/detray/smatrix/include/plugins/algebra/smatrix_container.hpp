@@ -1,6 +1,8 @@
 
 #include "algebra/containers/smatrix.hpp"
 
+#define ALGEBRA_PLUGIN smatrix
+
 namespace detray {
 
     using scalar = algebra::scalar;

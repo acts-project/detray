@@ -1,6 +1,8 @@
 
 #include "algebra/containers/eigen.hpp"
 
+#define ALGEBRA_PLUGIN eigen
+
 namespace detray {
 
     using scalar = algebra::scalar;

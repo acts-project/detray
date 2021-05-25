@@ -1,6 +1,8 @@
 
 #include "algebra/containers/array.hpp"
 
+#define ALGEBRA_PLUGIN array
+
 namespace detray {
 
     using scalar = algebra::scalar;
