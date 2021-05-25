@@ -148,8 +148,8 @@ namespace detray
             {
                 ss << "," << v;
             }
-                        return ss.str();
-        }        
+            return ss.str();
+        }
     };
 
 } // namespace detray

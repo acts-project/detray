@@ -171,6 +171,11 @@ namespace detray
     };
 
     // Pre-read the bounds values
+    dmap<scalar, scalar> z_min_layer_volumes;
+    dmap<scalar, scalar> z_max_layer_volumes;
+    dmap<scalar, scalar> r_min_layer_volumes;
+    dmap<scalar, scalar> r_max_layer_volumes;
+
     while (lv_reader.read(io_layer_volume))
     {
       volume_layer_index c_index = {io_layer_volume.volume_id, io_layer_volume.layer_id};
@@ -183,10 +188,89 @@ namespace detray
           io_layer_volume.max_v2,
       };
       volume_bounds[c_index] = c_bounds;
+
+      // Register low, high volume
+      if (io_layer_volume.layer_id % 2 == 0)
+      {
+        z_min_layer_volumes[io_layer_volume.min_v1] = io_layer_volume.min_v1;
+        z_max_layer_volumes[-1. * io_layer_volume.max_v1] = io_layer_volume.max_v1;
+        r_min_layer_volumes[io_layer_volume.min_v0] = io_layer_volume.min_v0;
+        r_max_layer_volumes[-1. * io_layer_volume.max_v0] = io_layer_volume.max_v0;
+      }
     }
 
-    // Synchronize close-by volume bounds
+    /** Helper function to cluster boundaries 
+     * 
+     * @param boundaries is the unclustered boundaries map
+     * @param tolerance is the tolerance parameter in which a cluster can lie
+     * @param flip is a reverse flag for upper boundaries
+     * 
+     */
+    auto cluster_boundaries = [&](dmap<scalar, scalar> &boundaries, scalar tolerance, int flip = 1) -> void
+    {
+      scalar last_ = std::numeric_limits<scalar>::max();
+      for (auto &[key, boundary] : boundaries)
+      {
+        if (std::abs(last_ - flip * key) < tolerance)
+        {
+          boundary = last_;
+        }
+        last_ = boundary;
+      }
+    };
 
+    // Cluster boundary synchronization
+    cluster_boundaries(z_min_layer_volumes, 5.);
+    cluster_boundaries(z_max_layer_volumes, 5., -1);
+    cluster_boundaries(r_min_layer_volumes, 5.);
+    cluster_boundaries(r_max_layer_volumes, 5., -1);
+
+    /** Helper function to find and replace in case
+     * 
+     * @param value is the value in question
+     * @param value_map is the map for the replacement value
+     * 
+     **/
+    auto find_and_replace = [](scalar &value, const dmap<scalar, scalar> &value_map) -> void
+    {
+      // synchronize lower bound
+      if (value_map.find(value) != value_map.end())
+      {
+        value = value_map.find(value)->second;
+      }
+    };
+
+    /** Helper function to return syncrhonized boundary objects
+     * 
+     * @param bounds the unsynchronized bounds object
+     * @param gap_volume an indicator if its a gap volume 
+     **/
+    auto synchronize_bounds = [&](const darray<scalar, 6> &bounds, bool gap_volume) -> darray<scalar, 6>
+    {
+      scalar r_min = bounds[0];
+      scalar r_max = bounds[1];
+      scalar z_min = bounds[2];
+      scalar z_max = bounds[3];
+      scalar phi_min = bounds[4];
+      scalar phi_max = bounds[5];
+
+      if (not gap_volume)
+      {
+        find_and_replace(r_min, r_min_layer_volumes);
+        find_and_replace(r_max, r_max_layer_volumes);
+        find_and_replace(z_min, z_min_layer_volumes);
+        find_and_replace(z_max, z_max_layer_volumes);
+      }
+      else
+      {
+        find_and_replace(r_min, r_max_layer_volumes);
+        find_and_replace(r_max, r_min_layer_volumes);
+        find_and_replace(z_min, z_max_layer_volumes);
+        find_and_replace(z_max, z_min_layer_volumes);
+      }
+
+      return {r_min, r_max, z_min, z_max, phi_min, phi_max};
+    };
 
     // Reading the surfaces
     while (s_reader.read(io_surface))
@@ -217,13 +301,16 @@ namespace detray
         auto new_bounds = volume_bounds.find(c_index);
         if (new_bounds == volume_bounds.end())
         {
-
           // Bounds not found, do not build the volume
           continue;
         }
 
-        const auto &volume_bounds = new_bounds->second;
-        auto &new_volume = d.new_volume(volume_name, new_bounds->second);
+        const auto &unsynchronized_volume_bounds = new_bounds->second;
+        // Check if you need to synchronize
+        bool is_gap = (io_surface.layer_id % 2 != 0);
+        auto volume_bounds = synchronize_bounds(unsynchronized_volume_bounds, is_gap);
+
+        auto &new_volume = d.new_volume(volume_name, volume_bounds);
 
         // RZ attachment storage
         attach_volume(r_min_attachments, volume_bounds[0], new_volume.index());
