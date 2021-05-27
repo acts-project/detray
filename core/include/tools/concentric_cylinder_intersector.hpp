@@ -22,7 +22,7 @@ namespace detray
      */
     struct concentric_cylinder_intersector
     {
-        
+
         using transform3 = __plugin::transform3;
         using point3 = __plugin::point3;
         using vector3 = __plugin::vector3;
@@ -103,7 +103,7 @@ namespace detray
             quadratic_equation<scalar> qe = {(1 + k * k), 2 * k * d, d * d - r * r};
             auto qe_solution = qe();
 
-            if (std::get<0>(qe_solution) > 0)
+            if (std::get<0>(qe_solution) > overstep_tolerance)
             {
                 darray<point3, 2> candidates;
                 auto u01 = std::get<1>(qe_solution);
@@ -121,7 +121,7 @@ namespace detray
 
                 // Chose the index, take the smaller positive one
                 int cindex = (t01[0] < t01[1] and t01[0] > overstep_tolerance) ? 0
-                                                                               : (t01[0] < overstep_tolerance and t01[1] > 0. ? 1 : 0);
+                                                                               : (t01[0] < overstep_tolerance and t01[1] > overstep_tolerance ? 1 : 0);
                 if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance)
                 {
                     intersection is;

@@ -100,7 +100,7 @@ namespace detray
                 is.p2 = local(trf, is.p3);
                 is.status = mask.template is_inside<local_type>(
                     is.p2.value_or(point2()), tolerance);
-                is.direction = denom > 0 ? e_along : e_opposite;
+                is.direction = is.path > overstep_tolerance ? e_along : e_opposite;
                 return is;
             }
             return intersection{};

@@ -11,7 +11,6 @@
 #include "io/csv_io.hpp"
 #include "tools/navigator.hpp"
 
-#include <iostream>
 #include <gtest/gtest.h>
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -44,6 +43,7 @@ TEST(__plugin, navigator)
     traj.dir = vector::normalize(vector3{1., 1., 0.});
     traj.ctx = static_transform_store::context{};
     traj.momentum = 100.;
+    traj.overstep_tolerance = -1e-5;
 
     detray_navigator::navigation_state state;
 
@@ -106,6 +106,7 @@ TEST(__plugin, navigator)
     traj.pos = traj.pos + state.distance_to_next * traj.dir;
     state.trust_level = detray_navigator::navigation_trust_level::e_high_trust;
     n.status(state, traj);
+
     // The status is: on surface
     ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_surface);
     ASSERT_EQ(state.volume_index, 0u);

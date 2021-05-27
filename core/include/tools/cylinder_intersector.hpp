@@ -23,7 +23,7 @@ namespace detray
      */
     struct cylinder_intersector
     {
-        
+
         using transform3 = __plugin::transform3;
         using point3 = __plugin::point3;
         using vector3 = __plugin::vector3;
@@ -104,8 +104,8 @@ namespace detray
             if (std::get<0>(qe_solution) > 0)
             {
                 auto t01 = std::get<1>(qe_solution);
-                scalar t = (t01[0] >= 0.) ? t01[0] : t01[1];
-                if (t >= 0.)
+                scalar t = (t01[0] > overstep_tolerance ) ? t01[0] : t01[1];
+                if (t > overstep_tolerance)
                 {
                     intersection is;
                     is.path = t;
