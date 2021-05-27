@@ -95,8 +95,8 @@ namespace detray
             vector3 pc_cross_sz = vector::cross(ro - sc, sz);
             vector3 rd_cross_sz = vector::cross(rd, sz);
             scalar a = vector::dot(rd_cross_sz, rd_cross_sz);
-            double b = 2. * vector::dot(rd_cross_sz, pc_cross_sz);
-            double c = vector::dot(pc_cross_sz, pc_cross_sz) - (r * r);
+            scalar b = 2. * vector::dot(rd_cross_sz, pc_cross_sz);
+            scalar c = vector::dot(pc_cross_sz, pc_cross_sz) - (r * r);
 
             quadratic_equation<scalar> qe = {a, b, c};
             auto qe_solution = qe();

@@ -27,7 +27,7 @@ namespace
         {
             for (unsigned int itest = 0; itest < 1000000; ++itest)
             {
-                test::point2 p = {(rand() % 50) * 0.5, (rand() % 120) * 0.5};
+                test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5), static_cast<scalar>((rand() % 120) * 0.5)};
             }
         }
     }
@@ -48,7 +48,7 @@ namespace
         {
             for (unsigned int itest = 0; itest < 1000000; ++itest)
             {
-                test::point2 p = {(rand() % 50) * 0.5, (rand() % 120) * 0.5};
+                test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5), static_cast<scalar>((rand() % 120) * 0.5)};
                 g2r.bin(p);
             }
         }
@@ -60,7 +60,7 @@ namespace
         {
             for (unsigned int itest = 0; itest < 1000000; ++itest)
             {
-                test::point2 p = {(rand() % 50) * 0.5, (rand() % 120) * 0.5};
+                test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5), static_cast<scalar>((rand() % 120) * 0.5)};
                 g2r.zone(p, {2, 2});
             }
         }
@@ -100,7 +100,7 @@ namespace
         {
             for (unsigned int itest = 0; itest < 1000000; ++itest)
             {
-                test::point2 p = {(rand() % 50) * 0.5, (rand() % 120) * 0.5};
+                test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5), static_cast<scalar>((rand() % 120) * 0.5)};
                 g2irr.bin(p);
             }
         }
@@ -112,7 +112,7 @@ namespace
         {
             for (unsigned int itest = 0; itest < 1000000; ++itest)
             {
-                test::point2 p = {(rand() % 50) * 0.5, (rand() % 120) * 0.5};
+                test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5), static_cast<scalar>((rand() % 120) * 0.5)};
                 g2irr.zone(p, {2, 2});
             }
         }
