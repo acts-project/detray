@@ -35,7 +35,7 @@ TEST(grids, grid2_replace_populator)
     {
         for (unsigned int ib1 = 0; ib1 < 10; ++ib1)
         {
-            p = {-4.5 + ib0, -4.5 + ib1};
+            p = {static_cast<scalar>(-4.5 + ib0), static_cast<scalar>(-4.5 + ib1)};
             EXPECT_EQ(g2.bin(p), std::numeric_limits<dindex>::max());
         }
     }
@@ -53,7 +53,7 @@ TEST(grids, grid2_replace_populator)
         {
             for (unsigned int ib1 = 0; ib1 < 10; ++ib1)
             {
-                p = {-4.5 + ib0, -4.5 + ib1};
+                p = {static_cast<scalar>(-4.5 + ib0), static_cast<scalar>(-4.5 + ib1)};
                 g2.populate(p, counter);
                 EXPECT_EQ(g2.bin(p), counter++);
             }
@@ -82,7 +82,7 @@ TEST(grids, grid2_replace_populator)
     {
         for (unsigned ici = 0; ici < 4; ++ici)
         {
-            p = {-1.5 + ici, 0.5 + icl};
+            p = {static_cast<scalar>(-1.5 + ici), static_cast<scalar>(0.5 + icl)};
             g2cc.populate(p, counter++);
         }
     }
@@ -113,7 +113,7 @@ TEST(grids, grid2_complete_populator)
     {
         for (unsigned int ib1 = 0; ib1 < 2; ++ib1)
         {
-            p = {-0.5 + ib0, -0.5 + ib1};
+            p = {static_cast<scalar>(-0.5 + ib0), static_cast<scalar>(-0.5 + ib1)};
             EXPECT_EQ(g2.bin(p), invalid);
         }
     }
@@ -182,7 +182,7 @@ TEST(grids, grid2_attach_populator)
     {
         for (unsigned int ib1 = 0; ib1 < 2; ++ib1)
         {
-            p = {-0.5 + ib0, -0.5 + ib1};
+            p = {static_cast<scalar>(-0.5 + ib0), static_cast<scalar>(-0.5 + ib1)};
             EXPECT_EQ(g2.bin(p), invalid);
         }
     }

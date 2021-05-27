@@ -29,13 +29,13 @@ namespace detray
 
     /** This method creates a number (distances.size()) planes along a direction 
     */
-    dvector<surface_base<transform3> > planes_along_direction(dvector<scalar> distances, vector3 direction)
+    dvector<surface_base<transform3>> planes_along_direction(dvector<scalar> distances, vector3 direction)
     {
         // Rotation matrix
         vector3 z = direction;
         vector3 x = normalize(vector3{0, -z[2], z[1]});
 
-        dvector<surface_base<transform3> > return_surfaces;
+        dvector<surface_base<transform3>> return_surfaces;
         return_surfaces.reserve(distances.size());
         for (auto &d : distances)
         {
@@ -66,7 +66,7 @@ namespace detray
      * 
      * @returns a tuple for rectangle descriptions and transforms
      */
-    dtuple<darray<scalar, 3>, dvector<transform3>, dvector<endcap_surface_finder> >
+    dtuple<darray<scalar, 3>, dvector<transform3>, dvector<endcap_surface_finder>>
     create_endcap_components(scalar inner_r,
                              scalar outer_r,
                              scalar pos_z,
@@ -79,11 +79,11 @@ namespace detray
                              scalar volume_max_z,
                              unsigned int transform_offset = 0)
     {
-        scalar module_inner_lx = 2 * inner_r * M_PI * (1 + overlap_phi) / (n_phi);
-        scalar module_outer_lx = 2 * outer_r * M_PI * (1 + overlap_phi) / (n_phi);
+        scalar module_inner_lx = 2. * inner_r * M_PI * (1. + overlap_phi) / (n_phi);
+        scalar module_outer_lx = 2. * outer_r * M_PI * (1. + overlap_phi) / (n_phi);
         scalar module_hy = 0.5 * (outer_r - inner_r);
 
-        darray<scalar, 3> trapezoid_values = {0.5 * module_inner_lx, 0.5 * module_outer_lx, module_hy};
+        darray<scalar, 3> trapezoid_values = {static_cast<scalar>(0.5 * module_inner_lx), static_cast<scalar>(0.5 * module_outer_lx), module_hy};
         scalar step_phi = 2 * M_PI / n_phi;
         dvector<transform3> transforms;
 
@@ -92,14 +92,22 @@ namespace detray
         serializer2 serializer;
 
         // Declare the inner, outer, ecn, ecp object finder
-        axis::circular rphi_axis_inner = {n_phi, -volume_inner_r * (M_PI + 0.5 * step_phi), volume_inner_r * (M_PI - 0.5 * step_phi)};
+        axis::circular rphi_axis_inner = {n_phi,
+                                          static_cast<scalar>(-volume_inner_r * (M_PI + 0.5 * step_phi)),
+                                          static_cast<scalar>(volume_inner_r * (M_PI - 0.5 * step_phi))};
         axis::regular z_axis_inner = {1, volume_min_z, volume_max_z};
-        axis::circular rphi_axis_outer = {n_phi, -volume_outer_r * (M_PI + 0.5 * step_phi), volume_outer_r * (M_PI - 0.5 * step_phi)};
+        axis::circular rphi_axis_outer = {n_phi,
+                                          static_cast<scalar>(-volume_outer_r * (M_PI + 0.5 * step_phi)),
+                                          static_cast<scalar>(volume_outer_r * (M_PI - 0.5 * step_phi))};
         axis::regular z_axis_outer = {1, volume_min_z, volume_max_z};
         axis::regular r_axis_ecn = {1, volume_inner_r, volume_outer_r};
-        axis::circular phi_axis_ecn = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
+        axis::circular phi_axis_ecn = {n_phi,
+                                       static_cast<scalar>(-M_PI - 0.5 * step_phi),
+                                       static_cast<scalar>(M_PI - 0.5 * step_phi)};
         axis::regular r_axis_ecp = {1, volume_inner_r, volume_outer_r};
-        axis::circular phi_axis_ecp = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
+        axis::circular phi_axis_ecp = {n_phi,
+                                       static_cast<scalar>(-M_PI - 0.5 * step_phi),
+                                       static_cast<scalar>(M_PI - 0.5 * step_phi)};
 
         using cylinder_grid = grid2<decltype(replacer), decltype(rphi_axis_inner), decltype(z_axis_inner), decltype(serializer)>;
         using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn), decltype(phi_axis_ecn), decltype(serializer)>;
@@ -156,7 +164,7 @@ namespace detray
      * 
      * @returns a tuple for rectangle descriptions, transforms, object finders
      */
-    dtuple<darray<scalar, 2>, dvector<transform3>, dvector<barrel_surface_finder> >
+    dtuple<darray<scalar, 2>, dvector<transform3>, dvector<barrel_surface_finder>>
     create_barrel_components(scalar r,
                              scalar stagger_r,
                              unsigned int n_phi,
@@ -173,7 +181,7 @@ namespace detray
         // Estimate module dimensions
         scalar module_lx = 2 * r * M_PI * (1 + overlap_rphi) / n_phi;
         scalar module_ly = (length_z + (n_z - 1) * overlap_z) / n_z;
-        darray<scalar, 2> rectangle_bounds = {0.5 * module_lx, 0.5 * module_ly};
+        darray<scalar, 2> rectangle_bounds = {static_cast<scalar>(0.5 * module_lx), static_cast<scalar>(0.5 * module_ly)};
 
         // Prepare the local finders
         replace_populator<> replacer;
@@ -186,14 +194,22 @@ namespace detray
         scalar start_z = -0.5 * (n_z - 1) * (module_ly - overlap_z);
 
         // Declare the inner, outer, ecn, ecp object finder
-        axis::circular rphi_axis_inner = {n_phi, -volume_inner_r * (M_PI + 0.5 * step_phi), volume_inner_r * (M_PI - 0.5 * step_phi)};
-        axis::regular z_axis_inner = {n_z, -0.5 * length_z, 0.5 * length_z};
-        axis::circular rphi_axis_outer = {n_phi, -volume_outer_r * (M_PI + 0.5 * step_phi), volume_outer_r * (M_PI - 0.5 * step_phi)};
-        axis::regular z_axis_outer = {n_z, -0.5 * length_z, 0.5 * length_z};
+        axis::circular rphi_axis_inner = {n_phi,
+                                          static_cast<scalar>(-volume_inner_r * (M_PI + 0.5 * step_phi)),
+                                          static_cast<scalar>(volume_inner_r * (M_PI - 0.5 * step_phi))};
+        axis::regular z_axis_inner = {n_z, static_cast<scalar>(-0.5 * length_z), static_cast<scalar>(0.5 * length_z)};
+        axis::circular rphi_axis_outer = {n_phi,
+                                          static_cast<scalar>(-volume_outer_r * (M_PI + 0.5 * step_phi)),
+                                          static_cast<scalar>(volume_outer_r * (M_PI - 0.5 * step_phi))};
+        axis::regular z_axis_outer = {n_z, static_cast<scalar>(-0.5 * length_z), static_cast<scalar>(0.5 * length_z)};
         axis::regular r_axis_ecn = {1, volume_inner_r, volume_outer_r};
-        axis::circular phi_axis_ecn = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
+        axis::circular phi_axis_ecn = {n_phi,
+                                       static_cast<scalar>(-M_PI - 0.5 * step_phi),
+                                       static_cast<scalar>(M_PI - 0.5 * step_phi)};
         axis::regular r_axis_ecp = {1, volume_inner_r, volume_outer_r};
-        axis::circular phi_axis_ecp = {n_phi, -M_PI - 0.5 * step_phi, M_PI - 0.5 * step_phi};
+        axis::circular phi_axis_ecp = {n_phi,
+                                       static_cast<scalar>(-M_PI - 0.5 * step_phi),
+                                       static_cast<scalar>(M_PI - 0.5 * step_phi)};
 
         using cylinder_grid = grid2<decltype(replacer), decltype(rphi_axis_inner), decltype(z_axis_inner), decltype(serializer)>;
         using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn), decltype(phi_axis_ecn), decltype(serializer)>;

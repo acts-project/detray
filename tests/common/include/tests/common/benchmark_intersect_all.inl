@@ -74,22 +74,22 @@ namespace __plugin
             for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
             {
                 scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
-                double sin_theta = std::sin(theta);
-                double cos_theta = std::cos(theta);
+                scalar sin_theta = std::sin(theta);
+                scalar cos_theta = std::cos(theta);
 
                 // Loops of phi values
                 for (unsigned int iphi = 0; iphi < phi_steps; ++iphi)
                 {
                     // The direction
                     scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-                    double sin_phi = std::sin(phi);
-                    double cos_phi = std::cos(phi);
+                    scalar sin_phi = std::sin(phi);
+                    scalar cos_phi = std::cos(phi);
                     track.dir = {cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
 
                     // Loop over volumes
                     for (const auto &v : d.volumes())
                     {
-                        const auto& surfaces = v.surfaces(); 
+                        const auto &surfaces = v.surfaces();
 
                         // Loop over surfaces
                         for (const auto &s : surfaces.objects())

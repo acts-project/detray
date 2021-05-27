@@ -23,7 +23,7 @@ namespace detray
      */
     struct cylinder_intersector
     {
-        
+
         using transform3 = __plugin::transform3;
         using point3 = __plugin::point3;
         using vector3 = __plugin::vector3;
@@ -88,7 +88,6 @@ namespace detray
         {
 
             scalar r = mask[0];
-
             const auto &m = trf.matrix();
             auto sz = getter::vector<3>(m, 0, 2);
             auto sc = getter::vector<3>(m, 0, 3);
@@ -96,8 +95,8 @@ namespace detray
             vector3 pc_cross_sz = vector::cross(ro - sc, sz);
             vector3 rd_cross_sz = vector::cross(rd, sz);
             scalar a = vector::dot(rd_cross_sz, rd_cross_sz);
-            double b = 2. * vector::dot(rd_cross_sz, pc_cross_sz);
-            double c = vector::dot(pc_cross_sz, pc_cross_sz) - (r * r);
+            scalar b = 2. * vector::dot(rd_cross_sz, pc_cross_sz);
+            scalar c = vector::dot(pc_cross_sz, pc_cross_sz) - (r * r);
 
             quadratic_equation<scalar> qe = {a, b, c};
             auto qe_solution = qe();
@@ -105,8 +104,8 @@ namespace detray
             if (std::get<0>(qe_solution) > 0)
             {
                 auto t01 = std::get<1>(qe_solution);
-                scalar t = (t01[0] >= 0.) ? t01[0] : t01[1];
-                if (t >= 0.)
+                scalar t = (t01[0] > overstep_tolerance ) ? t01[0] : t01[1];
+                if (t > overstep_tolerance)
                 {
                     intersection is;
                     is.path = t;

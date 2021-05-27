@@ -49,15 +49,15 @@ namespace __plugin
             for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
             {
                 scalar theta = 0.85 + itheta * 0.2 / theta_steps;
-                double sin_theta = std::sin(theta);
-                double cos_theta = std::cos(theta);
+                scalar sin_theta = std::sin(theta);
+                scalar cos_theta = std::cos(theta);
 
                 // Loops of phi values
                 for (unsigned int iphi = 0; iphi < phi_steps; ++iphi)
                 {
                     scalar phi = 0.7 + iphi * 0.2 / phi_steps;
-                    double sin_phi = std::sin(phi);
-                    double cos_phi = std::cos(phi);
+                    scalar sin_phi = std::sin(phi);
+                    scalar cos_phi = std::cos(phi);
 
                     vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
 
@@ -88,7 +88,7 @@ namespace __plugin
         unsigned int sfhit = 0;
         unsigned int sfmiss = 0;
 
-        using cylinder_mask = cylinder3<false,cylinder_intersector>;
+        using cylinder_mask = cylinder3<false, cylinder_intersector>;
         dvector<cylinder_mask> cylinders;
         for (auto r : dists)
         {
@@ -105,15 +105,15 @@ namespace __plugin
             for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
             {
                 scalar theta = 0.85 + itheta * 0.2 / theta_steps;
-                double sin_theta = std::sin(theta);
-                double cos_theta = std::cos(theta);
+                scalar sin_theta = std::sin(theta);
+                scalar cos_theta = std::cos(theta);
 
                 // Loops of phi values
                 for (unsigned int iphi = 0; iphi < phi_steps; ++iphi)
                 {
                     scalar phi = 0.7 + iphi * 0.2 / phi_steps;
-                    double sin_phi = std::sin(phi);
-                    double cos_phi = std::cos(phi);
+                    scalar sin_phi = std::sin(phi);
+                    scalar cos_phi = std::cos(phi);
 
                     vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
 
@@ -143,7 +143,7 @@ namespace __plugin
         unsigned int sfhit = 0;
         unsigned int sfmiss = 0;
 
-        using cylinder_mask = cylinder3<false,concentric_cylinder_intersector>;
+        using cylinder_mask = cylinder3<false, concentric_cylinder_intersector>;
         dvector<cylinder_mask> cylinders;
         for (auto r : dists)
         {
@@ -160,15 +160,15 @@ namespace __plugin
             for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
             {
                 scalar theta = 0.85 + itheta * 0.2 / theta_steps;
-                double sin_theta = std::sin(theta);
-                double cos_theta = std::cos(theta);
+                scalar sin_theta = std::sin(theta);
+                scalar cos_theta = std::cos(theta);
 
                 // Loops of phi values
                 for (unsigned int iphi = 0; iphi < phi_steps; ++iphi)
                 {
                     scalar phi = 0.7 + iphi * 0.2 / phi_steps;
-                    double sin_phi = std::sin(phi);
-                    double cos_phi = std::cos(phi);
+                    scalar sin_phi = std::sin(phi);
+                    scalar cos_phi = std::cos(phi);
 
                     vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
 
