@@ -17,7 +17,6 @@
 #include <dfe/dfe_namedtuple.hpp>
 #include <dfe/dfe_io_dsv.hpp>
 
-#include <iostream>
 #include <fstream>
 #include <climits>
 #include <map>
@@ -198,7 +197,6 @@ namespace detray
         r_max_layer_volumes[-1. * io_layer_volume.max_v0] = io_layer_volume.max_v0;
       }
     }
-
     /** Helper function to cluster boundaries 
      * 
      * @param boundaries is the unclustered boundaries map
@@ -208,9 +206,15 @@ namespace detray
      */
     auto cluster_boundaries = [&](dmap<scalar, scalar> &boundaries, scalar tolerance, int flip = 1) -> void
     {
+
       scalar last_ = std::numeric_limits<scalar>::max();
       for (auto &[key, boundary] : boundaries)
       {
+        // Do not adust the last one for max values
+        if (flip < 0 and key == boundaries.begin()->first){
+          continue;
+        }
+
         if (std::abs(last_ - flip * key) < tolerance)
         {
           boundary = last_;
@@ -225,18 +229,18 @@ namespace detray
     cluster_boundaries(r_min_layer_volumes, 5.);
     cluster_boundaries(r_max_layer_volumes, 5., -1);
 
-    /** Helper function to find and replace in case
+    /** Helper functions to find and replace in case
      * 
      * @param value is the value in question
      * @param value_map is the map for the replacement value
      * 
      **/
-    auto find_and_replace = [](scalar &value, const dmap<scalar, scalar> &value_map) -> void
+    auto find_and_replace = [](scalar &value, const dmap<scalar, scalar> &value_map, int flip = 1) -> void
     {
       // synchronize lower bound
-      if (value_map.find(value) != value_map.end())
+      if (value_map.find(flip * value) != value_map.end())
       {
-        value = value_map.find(value)->second;
+        value = value_map.find(flip * value)->second;
       }
     };
 
@@ -257,16 +261,26 @@ namespace detray
       if (not gap_volume)
       {
         find_and_replace(r_min, r_min_layer_volumes);
-        find_and_replace(r_max, r_max_layer_volumes);
+        find_and_replace(r_max, r_max_layer_volumes, -1);
         find_and_replace(z_min, z_min_layer_volumes);
-        find_and_replace(z_max, z_max_layer_volumes);
+        find_and_replace(z_max, z_max_layer_volumes, -1);
       }
       else
       {
-        find_and_replace(r_min, r_max_layer_volumes);
-        find_and_replace(r_max, r_min_layer_volumes);
-        find_and_replace(z_min, z_max_layer_volumes);
-        find_and_replace(z_max, z_min_layer_volumes);
+        if (std::abs(z_max + z_min) < 0.1)
+        {
+          find_and_replace(r_min, r_max_layer_volumes, -1);
+          find_and_replace(r_max, r_min_layer_volumes);
+          find_and_replace(z_min, z_min_layer_volumes);
+          find_and_replace(z_max, z_max_layer_volumes, -1);
+        }
+        else
+        {
+          find_and_replace(r_min, r_min_layer_volumes);
+          find_and_replace(r_max, r_max_layer_volumes, -1);
+          find_and_replace(z_min, z_max_layer_volumes, -1);
+          find_and_replace(z_max, z_min_layer_volumes);
+        }
       }
 
       return {r_min, r_max, z_min, z_max, phi_min, phi_max};
