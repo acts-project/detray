@@ -273,8 +273,8 @@ int main(int argc, char **argv)
                             scalar vol_zmax = z_axis.borders(e[1])[1];
                             std::cout << "     Volume " << vidx << " with rmin/rmax = " << vol_rmin << ", " << vol_rmax << std::endl;
                             std::cout << "            " << vidx << " with zmin/zmax = " << vol_zmin << ", " << vol_zmax << std::endl;
-                            std::cout << "            " << vidx << " from  = " << b[0] << ", " << b[1] << std::endl;
-                            std::cout << "            " << vidx << " to    = " << e[0] << ", " << e[1] << std::endl;
+                            std::cout << "            " << vidx << " from  = (" << b[0] << ", " << b[1] << ")" << std::endl;
+                            std::cout << "            " << vidx << " to    = (" << e[0] << ", " << e[1] << ")" << std::endl;
                             auto vis_vol = rectangle(vol_zmin, vol_rmin, vol_zmax - vol_zmin, vol_rmax - vol_rmin, 0);
                         }
                     }

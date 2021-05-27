@@ -303,8 +303,11 @@ namespace detray
             for (const auto &[i, v] : enumerate(_volumes))
             {
                 ss << "[>>] Volume at index " << i << " - name: '" << v.name() << "'" << std::endl;
-                ss << "     contains " << v._surfaces.objects().size() << " detector surfaces" << std::endl;
-                ss << "              " << v._portals.objects().size() << " detector portals" << std::endl;
+                ss << "     contains    " << v._surfaces.objects().size() << " detector surfaces" << std::endl;
+                ss << "                 " << v._portals.objects().size() << " detector portals" << std::endl;
+                ss << "     bounds r = (" << v._bounds[0] << ", " << v._bounds[1] << ")" << std::endl;
+                ss << "            z = (" << v._bounds[2] << ", " << v._bounds[3] << ")" << std::endl;
+
             }
             return ss.str();
         };
