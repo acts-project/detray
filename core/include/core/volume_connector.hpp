@@ -38,7 +38,7 @@ namespace detray
          * @param volume_index the volume index for this seed
          *        to avoid duplicate entries
          * 
-         * @note seeds are only set in bottom left corners
+         * @note seeds are only set in bottom left corners of blocks
          **/
         auto add_new_seed = [&](const darray<dindex, 2> &seed, dindex volume_index) -> void {
             if (volume_index == dindex_invalid)
@@ -67,6 +67,9 @@ namespace detray
             auto seed = seeds[iseed];
             const auto &ref = volume_grid.bin(seed[0], seed[1]);
 
+            // Build and add the portal surfaces
+            auto &volume = d.indexed_volume(ref);
+
             // Collect portals per seed
             dvector<dtuple<darray<scalar, 2>, dindex>> left_portals_info;
             dvector<dtuple<darray<scalar, 2>, dindex>> upper_portals_info;
@@ -85,6 +88,7 @@ namespace detray
                                dvector<dtuple<darray<scalar, 2>, dindex>> &portals_info,
                                int peek,
                                bool add_seed = false) -> darray<dindex, 2> {
+
                 // Test entry
                 auto test = volume_grid.bin(seed[0], seed[1]);
                 // Low/high 
@@ -95,6 +99,7 @@ namespace detray
                 dindex last_portal_dest = seed[1] > 0 ? volume_grid.bin(seed[0], seed[1] + peek) : dindex_invalid;
                 while ((ref == test) and ++seed[0] < axis_r.bins())
                 {
+                    high = axis_r.borders(seed[0]);
                     test = (seed[0] + 1 < axis_r.bins()) ? volume_grid.bin(seed[0], seed[1]) : dindex_invalid;
                     // Peek outside and see if the portal destination has changed
                     dindex portal_dest = seed[1] > 0 ? volume_grid.bin(seed[0], seed[1] + peek) : dindex_invalid;
@@ -133,6 +138,7 @@ namespace detray
                                   dvector<dtuple<darray<scalar, 2>, dindex>> &portals_info,
                                   int peek,
                                   bool add_seed = false) -> darray<dindex, 2> {
+
                 // Test, low and high at seed position
                 auto test = volume_grid.bin(seed[0], seed[1]);
                 // Low/high 
@@ -144,11 +150,13 @@ namespace detray
                 // Seed setting loop as well
                 while (ref == test and ++seed[1] < axis_z.bins())
                 {
+                    high = axis_z.borders(seed[1]);
                     test = volume_grid.bin(seed[0], seed[1]);
                     // Peek outside and see if the portal destination has changed
                     dindex portal_dest = (seed[0] < axis_r.bins()) ? volume_grid.bin(seed[0] + peek, seed[1]) : dindex_invalid;
                     if (portal_dest != last_portal_dest)
                     {
+
                         // Record the boundary
                         portals_info.push_back({{low[0], high[0]}, last_portal_dest});
                         // low is the new high
@@ -179,9 +187,6 @@ namespace detray
             auto bottom_right = walk_right(seed, lower_portals_info, false, -1);
             // Walk up from the bottom right corner
             walk_up(bottom_right, right_portals_info, false, 1);
-        
-            // Build and add the portal surfaces
-            auto &volume = d.indexed_volume(ref);
 
             typename detector_type::portal_container portals;
             typename detector_type::portal_mask_container portal_masks;

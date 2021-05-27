@@ -47,7 +47,6 @@ TEST(__plugin, navigator)
 
     detray_navigator::navigation_state state;
 
-/**
     // Check that the state is unitialized
     // Volume is invalid
     ASSERT_EQ(state.volume_index, dindex_invalid);
@@ -130,21 +129,63 @@ TEST(__plugin, navigator)
     // Now step towards the portal
     traj.pos = traj.pos + state.distance_to_next * traj.dir;
     n.status(state, traj);
-    // The status is: on portal
+    // The status is: on portal - points towards volume 16
     ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_portal);
-    ASSERT_EQ(state.volume_index, 25u);
+    ASSERT_EQ(state.volume_index, 16u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_no_trust);
 
-    // Let's target now
+    // Let's target now - new volume should be volume 16 and is empty
     n.target(state, traj);
-    // The status remains: towards surface
-    // ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
-    ASSERT_EQ(state.volume_index, 25u);
+    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_portal);
+    ASSERT_EQ(state.volume_index, 16u);
+    ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
 
-    // ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
-    */
+    // Jump to the next portal
+    traj.pos = traj.pos + state.distance_to_next * traj.dir;
+    n.status(state, traj);
+    // The status is: on portal - points towards volume 17
+    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_portal);
+    ASSERT_EQ(state.volume_index, 17u);
+    ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
+    ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
+    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_no_trust);
+
+    // Let's target now - new volume should be volume 16 and is empty
+    n.target(state, traj);
+    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
+    ASSERT_EQ(state.volume_index, 17u);
+    ASSERT_EQ(state.surface_kernel.candidates.size(), 4u);
+    ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 4u);
+    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
+
+    // Intersect the remaining ones
+    for (unsigned int is = 0; is < 3; ++is){
+        // Step towards the surface        
+        traj.pos = traj.pos + state.distance_to_next * traj.dir;
+        n.status(state, traj);
+        // The status is: on portal - points towards volume 17
+        ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_surface);
+        ASSERT_EQ(state.volume_index, 17u);
+        // We should have switched by one
+        ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 3u-is);
+        ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_high_trust);
+
+        n.target(state, traj);
+        ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
+        ASSERT_EQ(state.volume_index, 17u);
+        ASSERT_EQ(state.surface_kernel.candidates.size(), 4u);
+        ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 3u-is);
+        ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
+    }
+
+    // Surface kernel is now exhausted, status call should invalidate 
+    traj.pos = traj.pos + state.distance_to_next * traj.dir;
+    n.status(state, traj);
+    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_surface);
+    n.target(state, traj);
+    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_portal);
 
 }
 

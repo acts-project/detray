@@ -241,6 +241,17 @@ namespace detray
                 // Portals are present
                 update_kernel(navigation, portal_kernel, track, volume.portals());
             }
+            else if (navigation.trust_level == e_no_trust)
+            {
+                // First try to get the surface candidates
+                initialize_kernel(navigation, surface_kernel, track, volume.surfaces());
+                // If no surfaces are to processed, initialize the portals
+                if (surface_kernel.empty())
+                {
+                    initialize_kernel(navigation, portal_kernel, track, volume.portals(), navigation.status == e_on_portal);
+                    check_volume_switch(navigation);
+                }
+            }
             navigation.inspector(navigation);
         }
 
@@ -253,13 +264,15 @@ namespace detray
          * @param kernel [in,out] the kernel to be checked/initialized 
          * @param track the track information 
          * @param constituens the constituents to be checked
+         * @param on_object ignores on surface solution
          * 
          */
         template <typename kernel_t, typename constituents_t>
         void initialize_kernel(navigation_state &navigation,
                                kernel_t &kernel,
                                const track<context> &track,
-                               const constituents_t &constituents)
+                               const constituents_t &constituents,
+                               bool on_object = false)
         {
 
             // Get the type of the kernel via a const expression at compile time
@@ -282,7 +295,12 @@ namespace detray
                 auto [sfi, link] = intersect(track, object, transforms, masks);
                 sfi.index = si;
                 sfi.link = link[0];
-                if (sfi.status == e_inside)
+                // Ignore negative solutions - except overstep limit
+                if (sfi.path < track.overstep_tolerance) {
+                    continue;
+                }
+                // Accept if inside, but not if the same object is excluded
+                if (sfi.status == e_inside and (not on_object or std::abs(sfi.path) > navigation.on_surface_tolerance))
                 {
                     navigation.status = kSurfaceType ? e_towards_surface : e_towards_portal;
                     kernel.candidates.push_back(sfi);
@@ -338,7 +356,7 @@ namespace detray
                     // Update the intersection with a new one
                     (*kernel.next) = sfi;
                     navigation.distance_to_next = sfi.path;
-                    if (sfi.path < navigation.on_surface_tolerance)
+                    if (std::abs(sfi.path) < navigation.on_surface_tolerance)
                     {
                         navigation.status = kSurfaceType ? e_on_surface : e_on_portal;
                         navigation.current_index = si;

@@ -88,7 +88,6 @@ namespace detray
         {
 
             scalar r = mask[0];
-
             const auto &m = trf.matrix();
             auto sz = getter::vector<3>(m, 0, 2);
             auto sc = getter::vector<3>(m, 0, 3);
