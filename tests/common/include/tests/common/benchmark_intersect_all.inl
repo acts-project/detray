@@ -10,6 +10,7 @@
 #include "io/csv_io.hpp"
 #include "tools/intersection_kernel.hpp"
 
+#include <iostream>
 #include <fstream>
 
 #include <benchmark/benchmark.h>

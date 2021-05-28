@@ -15,8 +15,6 @@
 #include <utility>
 #include <tuple>
 
-#include <iostream>
-
 namespace detray
 {
 

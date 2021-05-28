@@ -21,7 +21,7 @@ endmacro()
 
 set(all_unit_tests "plugin;core")
 list(APPEND all_unit_tests "annulus2;cylinder3;rectangle2;ring2;single3;unmasked;trapezoid2")
-list(APPEND all_unit_tests "line_stepper;navigator;cylinder_intersection;planar_intersection;intersection_kernel")
+list(APPEND all_unit_tests "propagator;line_stepper;navigator;cylinder_intersection;planar_intersection;intersection_kernel")
 list(APPEND all_unit_tests "detector;transform_store;masks_container")
 
 add_subdirectory(core)

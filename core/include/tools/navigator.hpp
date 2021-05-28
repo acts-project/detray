@@ -1,4 +1,3 @@
-
 /** Detray library, part of the ACTS project (R&D line)
  * 
  * (c) 2021 CERN for the benefit of the ACTS project
@@ -103,32 +102,43 @@ namespace detray
 
         /** A navigation state object used to cache the information of the
          * current navigation stream.
+         * 
+         * It requires to have a scalar represenation to be used for a stepper
          **/
-        struct navigation_state
+        struct state
         {
-            /// Kernel for the surfaces
+            /** Kernel for the surfaces */
             navigation_kernel<surface, intersection, surface_link> surface_kernel;
-            /// Kernel the portals
+            /** Kernel for the portals */
             navigation_kernel<portal, intersection, portal_links> portal_kernel;
 
-            // Volume navigation
+            /** Volume navigation: index */
             dindex volume_index = dindex_invalid;
 
-            /// Distance to next
+            /**  Distance to next - will be casted into a scalar with call operator  */
             scalar distance_to_next = std::numeric_limits<scalar>::infinity();
-            /// The on surface tolerance
+            /** The on surface tolerance */
             scalar on_surface_tolerance = 1e-5;
 
-            /// The inspector type of this navigation engine
+            /** The inspector type of this navigation engine */
             inspector_type inspector;
 
-            /// The navigation status
+            /**  The navigation status */
             navigation_status status = e_unknown;
-            /// If a surface / portal is reached
+
+            /** If a surface / portal is reached */
             dindex current_index = dindex_invalid;
 
-            /// The navigation trust level
+            /** The navigation trust level */
             navigation_trust_level trust_level = e_no_trust;
+
+            /** Scalar representation of the navigation state,
+             * @returns distance to next
+             **/
+            scalar operator()() const {
+                return distance_to_next;
+            }
+
         };
 
         __plugin::cartesian2 cart2;
@@ -146,14 +156,15 @@ namespace detray
 
         /** Navigation status() call which established the current navigation information.
          * 
-         * @param navigation is the navigation cache object
-         * @param track is the track infromation
-         * @param trust is a boolean that indicates if you can trust already the last estimate
+         * @param navigation [in, out] is the navigation cache object
+         * @param track [in] is the track infromation
          * 
-         * @return a navigation status to be further decoded 
+         * @return a heartbeat to indicate if the navigation is still alive
          **/
-        void status(navigation_state &navigation, const track<context> &track)
+        bool status(state &navigation, const track<context> &track) const
         {
+            bool heartbeat = true;
+
             // Retrieve the volume & set index
             // Retrieve the volume, either from valid index or through global search
             const auto &volume = (navigation.volume_index != dindex_invalid) ? detector.indexed_volume(navigation.volume_index)
@@ -172,25 +183,25 @@ namespace detray
                 if (surface_kernel.empty())
                 {
                     initialize_kernel(navigation, portal_kernel, track, volume.portals());
-                    check_volume_switch(navigation);
+                    heartbeat = check_volume_switch(navigation);
                 }
                 // Before returning, run through the inspector
                 navigation.inspector(navigation);
-                return;
+                return heartbeat;
             }
 
             // Update the surface kernel
             if (not is_exhausted(surface_kernel) and update_kernel(navigation, surface_kernel, track, volume.surfaces()))
             {
                 navigation.inspector(navigation);
-                return;
+                return heartbeat;
             }
 
             // Update the portal kernel
             update_kernel(navigation, portal_kernel, track, volume.portals());
-            check_volume_switch(navigation);
+            heartbeat = check_volume_switch(navigation);
             navigation.inspector(navigation);
-            return;
+            return heartbeat;
         }
 
         /** Target function of the navigator, finds the next candidates 
@@ -199,14 +210,17 @@ namespace detray
          * @param navigation is the navigation cache
          * @param track is the current track information
          * 
-         * @return a navigaiton status
+         * @return a heartbeat to indicate if the navigation is still alive
          **/
-        void target(navigation_state &navigation, const track<context> &track)
+        bool target(state &navigation, const track<context> &track) const
         {
+
+            bool heartbeat = true;
+
             // Full trust level from target() call
             if (navigation.trust_level == e_full_trust)
             {
-                return;
+                return heartbeat;
             }
 
             // Retrieve the volume, either from valid index or through global search
@@ -230,12 +244,12 @@ namespace detray
                         navigation.trust_level = e_no_trust;
                         update_kernel(navigation, portal_kernel, track, volume.portals());
                         navigation.inspector(navigation);
-                        return;
+                        return heartbeat;
                     }
                     else if (update_kernel(navigation, surface_kernel, track, volume.surfaces()))
                     {
                         navigation.inspector(navigation);
-                        return;
+                        return heartbeat;
                     }
                 }
                 // Portals are present
@@ -249,10 +263,11 @@ namespace detray
                 if (surface_kernel.empty())
                 {
                     initialize_kernel(navigation, portal_kernel, track, volume.portals(), navigation.status == e_on_portal);
-                    check_volume_switch(navigation);
+                    heartbeat = check_volume_switch(navigation);
                 }
             }
             navigation.inspector(navigation);
+            return heartbeat;
         }
 
         /** Helper method to intersect all objects of a constituents store
@@ -268,11 +283,11 @@ namespace detray
          * 
          */
         template <typename kernel_t, typename constituents_t>
-        void initialize_kernel(navigation_state &navigation,
+        void initialize_kernel(state &navigation,
                                kernel_t &kernel,
                                const track<context> &track,
                                const constituents_t &constituents,
-                               bool on_object = false)
+                               bool on_object = false) const
         {
 
             // Get the type of the kernel via a const expression at compile time
@@ -296,7 +311,8 @@ namespace detray
                 sfi.index = si;
                 sfi.link = link[0];
                 // Ignore negative solutions - except overstep limit
-                if (sfi.path < track.overstep_tolerance) {
+                if (sfi.path < track.overstep_tolerance)
+                {
                     continue;
                 }
                 // Accept if inside, but not if the same object is excluded
@@ -319,13 +335,13 @@ namespace detray
          * @param track the track information 
          * @param constituens the constituents to be checked
          * 
-         * @return The break condition
+         * @return A boolean condition 
          */
         template <typename kernel_t, typename constituents_t>
-        bool update_kernel(navigation_state &navigation,
+        bool update_kernel(state &navigation,
                            kernel_t &kernel,
                            const track<context> &track,
-                           const constituents_t &constituents)
+                           const constituents_t &constituents) const
         {
 
             // If the kernel is empty - intitalize it
@@ -413,7 +429,7 @@ namespace detray
          * @param kernel is the kernel which should be updated
          */
         template <typename kernel_t>
-        void sort_and_set(navigation_state &navigation, kernel_t &kernel)
+        void sort_and_set(state &navigation, kernel_t &kernel) const
         {
             // Get the type of the kernel via a const expression at compile time
             constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_link>>);
@@ -438,18 +454,22 @@ namespace detray
         /** Helper method to check and perform a volume switch
          *
          * @param navigation is the navigation state 
+         * 
+         * @return a flag if the volume navigation is still heartbeat
          */
-        void check_volume_switch(navigation_state &navigation)
+        bool check_volume_switch(state &navigation) const
         {
             // On a portal: switch volume index and (re-)initialize
             if (navigation.status == e_on_portal)
             {
-                // Set volume index to the next volume provided by the portal
-                navigation.volume_index = navigation.portal_kernel.next->link;
+                // Set volume index to the next volume provided by the portal, avoid setting to same
+                navigation.volume_index =
+                    (navigation.portal_kernel.next->link != navigation.volume_index) ? navigation.portal_kernel.next->link : dindex_invalid;
                 navigation.surface_kernel.clear();
                 navigation.portal_kernel.clear();
                 navigation.trust_level = e_no_trust;
             }
+            return (navigation.volume_index != dindex_invalid);
         }
 
         /** Helper method to check if a kernel is exhaused 
@@ -460,7 +480,7 @@ namespace detray
          * @return true if the kernel is exhaused 
          */
         template <typename kernel_t>
-        bool is_exhausted(const kernel_t &kernel)
+        bool is_exhausted(const kernel_t &kernel) const
         {
             return (kernel.next == kernel.candidates.end());
         }
