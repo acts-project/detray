@@ -13,6 +13,8 @@
 #include "utils/enumerate.hpp"
 #include "tools/intersection_kernel.hpp"
 
+#include <algorithm>
+
 namespace detray
 {
 
