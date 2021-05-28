@@ -34,9 +34,9 @@ TEST(__plugin, line_stepper)
     lstate._s = 10.;
     lstepper.step(lstate);
 
-    ASSERT_DOUBLE_EQ(traj.pos[0],  10. / sqrt(2) );
-    ASSERT_DOUBLE_EQ(traj.pos[1],  10. / sqrt(2) );
-    ASSERT_DOUBLE_EQ(traj.pos[2], 0.);
+    ASSERT_FLOAT_EQ(traj.pos[0],  10. / sqrt(2) );
+    ASSERT_FLOAT_EQ(traj.pos[1],  10. / sqrt(2) );
+    ASSERT_FLOAT_EQ(traj.pos[2], 0.);
 
 
 }
