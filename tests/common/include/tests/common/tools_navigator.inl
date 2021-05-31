@@ -43,7 +43,7 @@ TEST(__plugin, navigator)
     traj.dir = vector::normalize(vector3{1., 1., 0.});
     traj.ctx = static_transform_store::context{};
     traj.momentum = 100.;
-    traj.overstep_tolerance = -1e-5;
+    traj.overstep_tolerance = -1e-4;
 
     detray_navigator::state state;
 

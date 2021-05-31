@@ -12,7 +12,6 @@
 #include "utils/indexing.hpp"
 #include "utils/enumerate.hpp"
 #include "tools/intersection_kernel.hpp"
-
 #include <algorithm>
 
 namespace detray
@@ -122,8 +121,8 @@ namespace detray
 
             /**  Distance to next - will be casted into a scalar with call operator  */
             scalar distance_to_next = std::numeric_limits<scalar>::infinity();
-            /** The on surface tolerance */
-            scalar on_surface_tolerance = 1e-5;
+            /** The on surface tolerance - permille */
+            scalar on_surface_tolerance = 1e-3;
 
             /** The inspector type of this navigation engine */
             inspector_type inspector;

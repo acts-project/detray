@@ -44,7 +44,7 @@ TEST(__plugin, propagator)
     traj.dir = vector::normalize(vector3{1., 1., 0.});
     traj.ctx = static_transform_store::context{};
     traj.momentum = 100.;
-    traj.overstep_tolerance = -1e-5;
+    traj.overstep_tolerance = -1e-4;
 
     using detray_stepper = line_stepper<detray_track>;
 
