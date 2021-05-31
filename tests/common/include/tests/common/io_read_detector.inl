@@ -31,6 +31,8 @@ TEST(__plugin, read_detector)
     std::string layer_volume_file = data_directory + std::string("tml-layer-volumes.csv");
 
     auto d = detector_from_csv<static_transform_store>("tml", surface_file, surface_grid_file, layer_volume_file);
+
+    std::cout << d.to_string() << std::endl;
 }
 
 int main(int argc, char **argv)

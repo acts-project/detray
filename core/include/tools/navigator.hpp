@@ -92,6 +92,9 @@ namespace detray
             /** Indicate that the kernel is empty */
             bool empty() const { return candidates.empty(); }
 
+            /** Forward the kernel size */
+            size_t size() const { return candidates.size(); }
+
             /** Clear the kernel */
             void clear()
             {
@@ -165,6 +168,7 @@ namespace detray
          **/
         bool status(state &navigation, const track<context> &track) const
         {
+
             bool heartbeat = true;
 
             // Retrieve the volume & set index
@@ -216,7 +220,6 @@ namespace detray
          **/
         bool target(state &navigation, const track<context> &track) const
         {
-
             bool heartbeat = true;
 
             // Full trust level from target() call
@@ -227,12 +230,11 @@ namespace detray
 
             // Retrieve the volume, either from valid index or through global search
             const auto &volume = (navigation.volume_index != dindex_invalid) ? detector.indexed_volume(navigation.volume_index)
-                                                                             : detector.indexed_volume(track.pos);
+                                                                             : detector.indexed_volume(track.pos);          
             navigation.volume_index = volume.index();
             // Retrieve the kernels
             auto &surface_kernel = navigation.surface_kernel;
             auto &portal_kernel = navigation.portal_kernel;
-
             // High targetting level
             if (navigation.trust_level == e_high_trust)
             {
@@ -260,10 +262,14 @@ namespace detray
             else if (navigation.trust_level == e_no_trust)
             {
                 // First try to get the surface candidates
-                initialize_kernel(navigation, surface_kernel, track, volume.surfaces());
+                if (not is_exhausted(surface_kernel)){
+                    initialize_kernel(navigation, surface_kernel, track, volume.surfaces());
+                }
                 // If no surfaces are to processed, initialize the portals
                 if (surface_kernel.empty())
                 {
+                    
+
                     initialize_kernel(navigation, portal_kernel, track, volume.portals(), navigation.status == e_on_portal);
                     heartbeat = check_volume_switch(navigation);
                 }
