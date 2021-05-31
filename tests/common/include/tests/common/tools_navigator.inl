@@ -175,20 +175,22 @@ TEST(__plugin, navigator)
     ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_no_trust);
 
-    // Let's target now - new volume should be volume 16 and is empty
+    // Let's target now - new volume should be volume 17 and should not be empty
     heartbeat = n.target(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.volume_index, 17u);
+
+    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 4u);
     ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 4u);
     ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
 
     // Intersect the remaining ones
-    for (unsigned int is = 0; is < 3; ++is){
-        // Step towards the surface        
+    for (unsigned int is = 0; is < 3; ++is)
+    {
+        // Step towards the surface
         traj.pos = traj.pos + state() * traj.dir;
         heartbeat = n.status(state, traj);
         // Test that the navigator has a heartbeat
@@ -198,7 +200,7 @@ TEST(__plugin, navigator)
         ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_surface);
         ASSERT_EQ(state.volume_index, 17u);
         // We should have switched by one
-        ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 3u-is);
+        ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 3u - is);
         ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_high_trust);
 
         heartbeat = n.target(state, traj);
@@ -208,11 +210,11 @@ TEST(__plugin, navigator)
         ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
         ASSERT_EQ(state.volume_index, 17u);
         ASSERT_EQ(state.surface_kernel.candidates.size(), 4u);
-        ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 3u-is);
+        ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 3u - is);
         ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
     }
 
-    // Surface kernel is now exhausted, status call should invalidate 
+    // Surface kernel is now exhausted, status call should invalidate
     traj.pos = traj.pos + state() * traj.dir;
     heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
@@ -244,8 +246,7 @@ TEST(__plugin, navigator)
     heartbeat = n.status(late_state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_EQ(late_state.status, detray_navigator::navigation_status::e_on_portal);
-    ASSERT_FALSE(heartbeat);
-
+    ASSERT_TRUE(heartbeat);
 }
 
 int main(int argc, char **argv)

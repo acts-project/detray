@@ -262,9 +262,7 @@ namespace detray
             else if (navigation.trust_level == e_no_trust)
             {
                 // First try to get the surface candidates
-                if (not is_exhausted(surface_kernel)){
-                    initialize_kernel(navigation, surface_kernel, track, volume.surfaces());
-                }
+                initialize_kernel(navigation, surface_kernel, track, volume.surfaces());
                 // If no surfaces are to processed, initialize the portals
                 if (surface_kernel.empty())
                 {
