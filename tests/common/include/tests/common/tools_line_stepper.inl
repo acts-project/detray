@@ -31,12 +31,20 @@ TEST(__plugin, line_stepper)
     line_stepper<detray_track>::state lstate(traj);
 
     line_stepper<detray_track> lstepper;
-    lstate._s = 10.;
-    lstepper.step(lstate);
+    bool heartbeat = lstepper.step(lstate, 10.);
+    ASSERT_TRUE(heartbeat);
 
     ASSERT_FLOAT_EQ(traj.pos[0],  10. / sqrt(2) );
     ASSERT_FLOAT_EQ(traj.pos[1],  10. / sqrt(2) );
     ASSERT_FLOAT_EQ(traj.pos[2], 0.);
+
+    // Step with limit
+    lstate.set_limit(20.);
+    heartbeat = lstepper.step(lstate, 10.);
+    ASSERT_TRUE(heartbeat);
+
+    heartbeat = lstepper.step(lstate, 10.);
+    ASSERT_FALSE(heartbeat);
 
 
 }

@@ -9,8 +9,6 @@
 
 #include "utils/containers.hpp"
 
-#include <iostream>
-
 namespace detray
 {
 

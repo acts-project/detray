@@ -86,7 +86,6 @@ namespace detray
                   const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon,
                   scalar overstep_tolerance = 0.) const
         {
-
             scalar r = mask[0];
             const auto &m = trf.matrix();
             auto sz = getter::vector<3>(m, 0, 2);
@@ -104,7 +103,7 @@ namespace detray
             if (std::get<0>(qe_solution) > 0)
             {
                 auto t01 = std::get<1>(qe_solution);
-                scalar t = (t01[0] > overstep_tolerance ) ? t01[0] : t01[1];
+                scalar t = (t01[0] > overstep_tolerance) ? t01[0] : t01[1];
                 if (t > overstep_tolerance)
                 {
                     intersection is;
