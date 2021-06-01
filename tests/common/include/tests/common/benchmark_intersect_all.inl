@@ -9,6 +9,9 @@
 #include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
 #include "tools/intersection_kernel.hpp"
+#include "tools/line_stepper.hpp"
+#include "tools/navigator.hpp"
+#include "tools/propagator.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -124,6 +127,65 @@ namespace __plugin
     }
 
     BENCHMARK(BM_INTERSECT_ALL);
+
+    // This test runs intersection with all surfaces using the propagator
+    static void BM_PROPAGATE_ALL(benchmark::State &state)
+    {
+
+        unsigned int hits = 0;
+        unsigned int missed = 0;
+
+        point3 ori = {0., 0., 0.};
+
+        // Create the navigator
+        using detray_navigator = navigator<decltype(d)>;
+        using detray_track = track<static_transform_store::context>;
+
+        detray_track traj;
+        traj.pos = {0., 0., 0.};
+        traj.ctx = static_transform_store::context{};
+        traj.momentum = 100.;
+        traj.overstep_tolerance = -1e-4;
+        traj.path_limit = 1000.;
+
+        using detray_stepper = line_stepper<detray_track>;
+
+        detray_stepper s;
+        detray_navigator n(std::move(d));
+
+        using detray_propagator = propagator<detray_stepper, detray_navigator>;
+        detray_propagator p(std::move(s), std::move(n));
+
+        void_track_inspector vi;
+
+        for (auto _ : state)
+        {
+
+            // Loops of theta values
+            for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
+            {
+                scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
+                scalar sin_theta = std::sin(theta);
+                scalar cos_theta = std::cos(theta);
+
+                // Loops of phi values
+                for (unsigned int iphi = 0; iphi < phi_steps; ++iphi)
+                {
+                    // The direction
+                    scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
+                    scalar sin_phi = std::sin(phi);
+                    scalar cos_phi = std::cos(phi);
+                    traj.dir = {1., 0., 0. }; // {cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
+
+                    auto end = p.propagate(traj, vi);
+
+
+                }
+            }
+        }
+    }
+
+    BENCHMARK(BM_PROPAGATE_ALL);
 
 } // namespace __plugin
 

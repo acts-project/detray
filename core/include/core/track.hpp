@@ -27,6 +27,7 @@ namespace detray
         context_type ctx;
 
         scalar overstep_tolerance = 0.;
+        scalar path_limit = std::numeric_limits<scalar>::max();
     };
 
 } // namespace detray

@@ -30,7 +30,7 @@ namespace detray
             scalar _pl = std::numeric_limits<scalar>::max(); //!< Remaining path limit
 
             state() = delete;
-            state(track_type& t) : _track(t) {}
+            state(track_type& t) : _track(t), _pl(t.path_limit) {}
 
 
             /** @return the step and heartbeat given a step length s */
