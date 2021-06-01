@@ -11,3 +11,7 @@ endif()
 if (DETRAY_SMATRIX_PLUGIN)
     add_subdirectory(smatrix)
 endif()
+
+if (DETRAY_VC_ALGEBRA_PLUGIN)
+    add_subdirectory(vc)
+endif()
