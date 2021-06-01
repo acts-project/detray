@@ -1,7 +1,5 @@
 enable_testing()
 
-set(PLUGIN_EXTRA_LIBRARIES ROOT::MathCore)
-
 foreach(etest ${all_unit_tests})
     add_detray_test(smatrix_${etest}
                     smatrix_${etest}.cpp 

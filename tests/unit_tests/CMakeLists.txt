@@ -10,7 +10,6 @@ include(GoogleTest)
 
 macro(add_detray_test TESTNAME FILES PLUGIN_LIBRARY)
     add_executable(${TESTNAME} ${FILES})
-    target_link_libraries(${TESTNAME} PRIVATE ${PLUGIN_EXTRA_LIBRARIES})
     target_link_libraries(${TESTNAME} PRIVATE gtest gmock gtest_main)
     target_link_libraries(${TESTNAME} PRIVATE detray::core detray::io detray::tests_common)
     target_link_libraries(${TESTNAME} PRIVATE  ${PLUGIN_LIBRARY} ${UNIT_TEST_EXTRA_LIBRARIES})

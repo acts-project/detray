@@ -17,6 +17,6 @@ if(ALGEBRA_CUSTOM_SCALARTYPE)
     INTERFACE -DALGEBRA_CUSTOM_SCALARTYPE=${ALGEBRA_CUSTOM_SCALARTYPE})
 endif()
 
-target_link_libraries(detray_smatrix INTERFACE algebra::smatrix)
+target_link_libraries(detray_smatrix INTERFACE algebra::smatrix ROOT::MathCore)
 
 add_library(detray::smatrix ALIAS detray_smatrix)

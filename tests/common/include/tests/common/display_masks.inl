@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 
 /// @note __plugin has to be defined with a preprocessor command
-//using namespace detray;
+using namespace detray;
 
 using transform3 = __plugin::transform3;
 using vector3 = __plugin::vector3;

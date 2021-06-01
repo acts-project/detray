@@ -9,7 +9,3 @@ add_detray_benchmark(smatrix_intersect_surfaces
 add_detray_benchmark(smatrix_masks
                      smatrix_masks.cpp
                      detray::smatrix)
-
-target_link_libraries(smatrix_intersect_all ROOT::MathCore)
-target_link_libraries(smatrix_intersect_surfaces ROOT::MathCore)
-target_link_libraries(smatrix_masks ROOT::MathCore)
