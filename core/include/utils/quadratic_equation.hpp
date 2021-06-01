@@ -6,8 +6,6 @@
  */
 #pragma once
 
-#include "utils/containers.hpp"
-
 #include <cmath>
 #include <tuple>
 #include <algorithm>

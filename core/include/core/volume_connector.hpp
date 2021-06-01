@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include "utils/containers.hpp"
-
 namespace detray
 {
     /// Connector method for cylindrical volumes without phi separation

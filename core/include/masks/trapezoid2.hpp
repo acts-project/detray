@@ -8,7 +8,6 @@
 
 #include "masks/mask_identifier.hpp"
 #include "core/intersection.hpp"
-#include "utils/containers.hpp"
 #include "tools/planar_intersector.hpp"
 
 #include <cmath>
