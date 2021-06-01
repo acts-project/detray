@@ -1,3 +1,5 @@
+add_subdirectory(algebra-plugins)
+
 if (DETRAY_UNIT_TESTS)
     add_subdirectory(googletest)
 endif()

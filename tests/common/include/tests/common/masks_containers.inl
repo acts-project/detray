@@ -9,7 +9,6 @@
 #include "masks/trapezoid2.hpp"
 #include "masks/cylinder3.hpp"
 #include "masks/single3.hpp"
-#include "utils/containers.hpp"
 
 #include <gtest/gtest.h>
 

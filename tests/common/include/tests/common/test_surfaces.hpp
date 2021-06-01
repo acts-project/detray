@@ -12,7 +12,6 @@
 #include "grids/grid2.hpp"
 #include "grids/serializer2.hpp"
 #include "grids/populator.hpp"
-#include "utils/containers.hpp"
 #include "utils/indexing.hpp"
 #include "utils/enumerate.hpp"
 #include "tools/local_object_finder.hpp"
