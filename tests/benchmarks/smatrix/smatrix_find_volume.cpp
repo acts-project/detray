@@ -6,4 +6,4 @@
  */
 
 #include "plugins/algebra/smatrix_definitions.hpp"
-#include "tests/common/test_cylindrical_detector.inl"
+#include "tests/common/benchmark_find_volume.inl"

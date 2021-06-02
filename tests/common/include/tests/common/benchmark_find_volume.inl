@@ -59,7 +59,7 @@ namespace __plugin
         {
             for (unsigned int i0 = 0; i0 < itest; ++i0)
             {
-                vector3 rz(i0 * step0, 0., i1 * step1);
+                vector3 rz {i0 * step0, 0., i1 * step1};
                 auto &v = d.indexed_volume(rz);
                 if (v.index() == dindex_invalid)
                 {
