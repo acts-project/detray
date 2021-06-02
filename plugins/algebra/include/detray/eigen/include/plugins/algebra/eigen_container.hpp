@@ -1,5 +1,5 @@
 
-#include "algebra/containers/eigen.hpp"
+#include "algebra/definitions/eigen.hpp"
 
 #define ALGEBRA_PLUGIN eigen
 

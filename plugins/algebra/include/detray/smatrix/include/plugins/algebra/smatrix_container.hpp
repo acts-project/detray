@@ -1,5 +1,5 @@
 
-#include "algebra/containers/smatrix.hpp"
+#include "algebra/definitions/smatrix.hpp"
 
 #define ALGEBRA_PLUGIN smatrix
 
