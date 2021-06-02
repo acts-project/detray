@@ -13,7 +13,7 @@ option(DETRAY_IO_JSON "Build JSON IO module" On)
 option(DETRAY_DISPLAY "Build matplot++ based display module" Off)
 
 if(DETRAY_CUSTOM_SCALARTYPE)
-    message(STATUS "Building with custom scalar type: " ${ACTS_CUSTOM_SCALARTYPE})
+    message(STATUS "Building with custom scalar type: " ${DETRAY_CUSTOM_SCALARTYPE})
     set(ALGEBRA_PLUGIN_CUSTOM_SCALARTYPE ${DETRAY_CUSTOM_SCALARTYPE})
 endif()
 
