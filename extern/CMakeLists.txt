@@ -1,4 +1,4 @@
-add_subdirectory(algebra-dev)
+add_subdirectory(algebra-plugins)
 
 if (DETRAY_UNIT_TESTS)
     add_subdirectory(googletest)
