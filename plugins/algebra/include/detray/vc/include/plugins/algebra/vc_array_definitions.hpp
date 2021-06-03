@@ -1,4 +1,4 @@
-#include "algebra/containers/vc_array.hpp"
+#include "algebra/definitions/vc_array.hpp"
 
 #define ALGEBRA_PLUGIN vc_array
 

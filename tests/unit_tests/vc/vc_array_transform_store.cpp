@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/algebra/vc_array_container.hpp"
+#include "plugins/algebra/vc_array_definitions.hpp"
 #include "tests/common/core_transform_store.inl"
