@@ -5,7 +5,7 @@ project(detray VERSION 0.1 LANGUAGES CXX)
 option(CMAKE_WARN_DEPRECATED "Not warning for deprecation in cmake" Off)
 enable_testing()
 
-option(DETRAY_ARRAY_PLUGIN "Build std::array math plugin" Off)
+option(DETRAY_ARRAY_PLUGIN "Build std::array math plugin" On)
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" Off)
 option(DETRAY_IO_CSV "Build CSV IO module" On)
