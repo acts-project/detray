@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/eigen_defs.hpp"
+#include "plugins/algebra/eigen_definitions.hpp"
 #include "tests/common/masks_ring2.inl"

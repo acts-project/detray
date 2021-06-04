@@ -15,7 +15,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the construction of a detector class
-TEST(__plugin, read_detector)
+TEST(ALGEBRA_PLUGIN, read_detector)
 {
     using namespace detray;
 

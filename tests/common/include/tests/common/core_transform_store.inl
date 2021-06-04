@@ -12,7 +12,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the construction of a static transform store
-TEST(__plugin, static_transform_store)
+TEST(ALGEBRA_PLUGIN, static_transform_store)
 {
     using namespace detray;
     using namespace __plugin;

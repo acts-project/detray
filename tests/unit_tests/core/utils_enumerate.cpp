@@ -5,10 +5,9 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "utils/indexing.hpp"
-#include "utils/containers.hpp"
-#include "utils/enumerate.hpp"
 #include "tests/common/test_defs.hpp"
+#include "utils/indexing.hpp"
+#include "utils/enumerate.hpp"
 
 #include <gtest/gtest.h>
 

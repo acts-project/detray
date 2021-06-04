@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/array_defs.hpp"
-#include "tests/common/test_plugin.inl"
+#include "plugins/algebra/smatrix_definitions.hpp"
+#include "tests/common/test_single_layer_components.inl"

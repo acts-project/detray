@@ -11,10 +11,12 @@ install(
   DIRECTORY include/plugins
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-if(DETRAY_CUSTOM_SCALARTYPE)
+if(ALGEBRA_CUSTOM_SCALARTYPE)
   target_compile_definitions(
     detray_array
-    INTERFACE -DDETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE})
+    INTERFACE -DALGEBRA_CUSTOM_SCALARTYPE=${ALGEBRA_CUSTOM_SCALARTYPE})
 endif()
+
+target_link_libraries(detray_array INTERFACE algebra::array)
 
 add_library(detray::array ALIAS detray_array)

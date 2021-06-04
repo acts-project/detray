@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/smatrix_defs.hpp"
-#include "tests/common/test_read_detector.inl"
+#include "plugins/algebra/smatrix_definitions.hpp"
+#include "tests/common/io_read_detector.inl"

@@ -11,4 +11,12 @@ install(
   DIRECTORY include/plugins
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+if(ALGEBRA_CUSTOM_SCALARTYPE)
+  target_compile_definitions(
+    detray_smatrix
+    INTERFACE -DALGEBRA_CUSTOM_SCALARTYPE=${ALGEBRA_CUSTOM_SCALARTYPE})
+endif()
+
+target_link_libraries(detray_smatrix INTERFACE algebra::smatrix ROOT::MathCore)
+
 add_library(detray::smatrix ALIAS detray_smatrix)

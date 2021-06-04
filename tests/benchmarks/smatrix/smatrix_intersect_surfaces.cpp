@@ -5,6 +5,6 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/smatrix_defs.hpp"
+#include "plugins/algebra/smatrix_definitions.hpp"
 #include "tests/common/benchmark_intersect_surfaces.inl"
 

@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/eigen_defs.hpp"
-#include "tests/common/test_plugin.inl"
+#include "plugins/algebra/array_definitions.hpp"
+#include "tests/common/benchmark_find_volume.inl"

@@ -8,7 +8,6 @@
 #pragma once
 
 #include "utils/indexing.hpp"
-#include "utils/containers.hpp"
 
 #include <algorithm>
 

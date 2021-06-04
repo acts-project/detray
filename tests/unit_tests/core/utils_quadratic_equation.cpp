@@ -6,8 +6,8 @@
  */
 
 
-#include "utils/quadratic_equation.hpp"
 #include "tests/common/test_defs.hpp"
+#include "utils/quadratic_equation.hpp"
 
 #include <gtest/gtest.h>
 

@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/array_defs.hpp"
+#include "plugins/algebra/array_definitions.hpp"
 #include "tests/common/benchmark_intersect_all.inl"

@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include "utils/containers.hpp"
 #include <limits>
 
 namespace detray

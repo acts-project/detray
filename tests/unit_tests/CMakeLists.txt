@@ -19,7 +19,7 @@ macro(add_detray_test TESTNAME FILES PLUGIN_LIBRARY)
         ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/data/)
 endmacro()
 
-set(all_unit_tests "plugin;core")
+set(all_unit_tests "core")
 list(APPEND all_unit_tests "annulus2;cylinder3;rectangle2;ring2;single3;unmasked;trapezoid2")
 list(APPEND all_unit_tests "propagator;line_stepper;navigator;cylinder_intersection;planar_intersection;intersection_kernel")
 list(APPEND all_unit_tests "detector;transform_store;masks_container")

@@ -15,7 +15,6 @@
 #include "grids/populator.hpp"
 #include "masks/masks.hpp"
 #include "utils/indexing.hpp"
-#include "utils/containers.hpp"
 #include "utils/enumerate.hpp"
 #include "tools/planar_intersector.hpp"
 #include "tools/cylinder_intersector.hpp"

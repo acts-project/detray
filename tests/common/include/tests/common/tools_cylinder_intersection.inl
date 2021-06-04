@@ -29,7 +29,7 @@ constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar isclose = 1e-5;
 
 // This defines the local frame test suite
-TEST(__plugin, translated_cylinder)
+TEST(ALGEBRA_PLUGIN, translated_cylinder)
 {
     // Create a translated cylinder and test untersection
     transform3 shifted(vector3{3., 2., 10.});
@@ -58,7 +58,7 @@ TEST(__plugin, translated_cylinder)
 }
 
 // This defines the local frame test suite
-TEST(__plugin, concentric_cylinders)
+TEST(ALGEBRA_PLUGIN, concentric_cylinders)
 {
     using cylinder_surface = surface_base<transform3, int, int>;
 
