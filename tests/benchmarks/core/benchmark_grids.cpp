@@ -20,6 +20,8 @@ using namespace __plugin;
 namespace
 {
 
+    darray<dindex, 2> zone22 = { 2u, 2u };
+
     // This runs a reference test with random numbers only
     static void BM_RERERENCE_GRID(benchmark::State &state)
     {
@@ -61,7 +63,7 @@ namespace
             for (unsigned int itest = 0; itest < 1000000; ++itest)
             {
                 test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5), static_cast<scalar>((rand() % 120) * 0.5)};
-                g2r.zone(p, {2, 2});
+                g2r.zone(p, {zone22, zone22});
             }
         }
     }
@@ -113,7 +115,7 @@ namespace
             for (unsigned int itest = 0; itest < 1000000; ++itest)
             {
                 test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5), static_cast<scalar>((rand() % 120) * 0.5)};
-                g2irr.zone(p, {2, 2});
+                g2irr.zone(p, {zone22, zone22});
             }
         }
     }

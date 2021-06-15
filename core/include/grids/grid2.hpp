@@ -28,6 +28,13 @@ namespace detray
 
     public:
         using serialized_storage = dvector<typename populator_type::store_value>;
+        using point2 = __plugin::point2;
+
+        template <typename neighbor_t>
+        using neighborhood = darray<darray<neighbor_t, 2>, 2>;
+
+        static constexpr darray<dindex, 2> hermit1 = {0u, 0u};
+        static constexpr neighborhood<dindex> hermit2 = {hermit1, hermit1};
 
         /** Constructor from axes (moved)
          * 
@@ -47,7 +54,8 @@ namespace detray
         **/
         void shift(const typename populator_type::bare_value &offset)
         {
-            std::for_each(_data_serialized.begin(), _data_serialized.end(), [&](auto &ds) { _populator.shift(ds, offset); });
+            std::for_each(_data_serialized.begin(), _data_serialized.end(), [&](auto &ds)
+                          { _populator.shift(ds, offset); });
         }
 
         /** Fill/populate operation
@@ -74,7 +82,7 @@ namespace detray
         void populate(dindex bin0, dindex bin1, typename populator_type::bare_value &&fvalue)
         {
             auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, bin0, bin1);
-             _populator(_data_serialized[sbin], std::move(fvalue));
+            _populator(_data_serialized[sbin], std::move(fvalue));
         }
 
         /** Return the value of a single bin - with direct bin acess
@@ -91,46 +99,38 @@ namespace detray
 
         /** Return the value of a single bin 
          * 
-         * @tparam point2_type the 2D local point type
-         * 
          * @param p2 is point in the local frame
          * 
          * @return the const reference to the value in this bin 
          **/
-        template <typename point2_type>
-        const auto &bin(const point2_type &p2) const
+        const auto &bin(const point2 &p2) const
         {
             return _data_serialized[_serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
         }
 
         /** Return the value of a single bin - non-const access
          * 
-         * @tparam point2_type the 2D local point type
-         * 
          * @param p2 is point in the local frame
          * 
          * @return the const reference to the value in this bin 
          **/
-        template <typename point2_type>
-        auto &bin(const point2_type &p2)
+        auto &bin(const point2 &p2)
         {
             return _data_serialized[_serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
         }
 
-        /** Return a zone around a single bin 
+        /** Return a zone around a single bin, either with binned or scalar neighborhood
          * 
-         * The zone is done with a symmetric neighborhood around the bin which is defined by p2
-         *          
-         * @tparam point2_type the 2D local point type
+         * The zone is done with a neighborhood around the bin which is defined by p2
          * 
          * @param p2 is point in the local frame
-         * @param nhood is the bin-wise neighborhood
+         * @param nhood is the binned/scalar neighborhood
          * @param sort is a directive whether to sort or not
          * 
          * @return the sequence of values
          **/
-        template <typename point2_type>
-        dvector<typename populator_type::bare_value> zone(const point2_type &p2, const darray<unsigned int, 2> &nhood = {0, 0}, bool sort = false) const
+        template <typename neighbor_t>
+        dvector<typename populator_type::bare_value> zone_t(const point2 &p2, const neighborhood<neighbor_t> &nhood, bool sort) const
         {
             auto zone0 = _axis_p0.zone(p2[0], nhood[0]);
             auto zone1 = _axis_p1.zone(p2[1], nhood[1]);
@@ -171,6 +171,36 @@ namespace detray
                 std::sort(zone.begin(), zone.end());
             }
             return zone;
+        }
+
+        /** Return a zone around a single bin, either with binned neighborhood
+         * 
+         * The zone is done with a neighborhood around the bin which is defined by p2
+         * 
+         * @param p2 is point in the local frame
+         * @param nhood is the binned neighborhood
+         * @param sort is a directive whether to sort or not
+         * 
+         * @return the sequence of values
+         **/
+        dvector<typename populator_type::bare_value> zone(const point2 &p2, const neighborhood<dindex> &nhood = hermit2, bool sort = false) const
+        {
+            return zone_t<dindex>(p2, nhood, sort);
+        }
+
+        /** Return a zone around a single bin, either with scalar neighborhood
+         * 
+         * The zone is done with a neighborhood around the bin which is defined by p2
+         * 
+         * @param p2 is point in the local frame
+         * @param nhood is the binned neighborhood
+         * @param sort is a directive whether to sort or not
+         * 
+         * @return the sequence of values
+         **/
+        dvector<typename populator_type::bare_value> zone(const point2 &p2, const neighborhood<scalar> &nhood, bool sort = false) const
+        {
+            return zone_t<scalar>(p2, nhood, sort);
         }
 
         /** Const access to axis p0  */

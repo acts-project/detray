@@ -46,49 +46,94 @@ namespace detray
                                                      : static_cast<dindex>(n_bins - 1);
             }
 
-            /** Access function to a range with binned neighbourhood
+            /** Access function to a range with binned neighborhood
              * 
              * @param v is the value for the bin search
-             * @param nhood is the neighbourhood size (+/-) 
+             * @param nhood is the neighborhood range (in #bins)
              * 
              * As the axis is closed it @returns a dindex_range
              **/
-            dindex_range range(scalar v, unsigned int nhood) const
+            dindex_range range(scalar v, const darray<dindex,2>& nhood = { 0u, 0u} ) const
             {
 
                 int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
-                int ibinmin = ibin - static_cast<int>(nhood);
-                int ibinmax = ibin + static_cast<int>(nhood);
+                int ibinmin = ibin - static_cast<int>(nhood[0]);
+                int ibinmax = ibin + static_cast<int>(nhood[1]);
                 dindex min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0;
                 dindex max_bin = (ibinmax < static_cast<int>(n_bins)) ? static_cast<dindex>(ibinmax) : static_cast<dindex>(n_bins - 1);
                 return {min_bin, max_bin};
             }
 
-            /** Access function to a zone with binned neighbourhood
+            /** Access function to a range with scalar neighborhood
              * 
              * @param v is the value for the bin search
-             * @param nhood is the neighbourhood size (+/-) 
+             * @param nhood is the neighborhood range (scalar)
+             * 
+             * As the axis is closed it @returns a dindex_range
+             **/
+            dindex_range range(scalar v, const darray<scalar,2>& nhood) const
+            {
+                int nbin = static_cast<int>((v - nhood[0] - min) / (max - min) * n_bins);
+                int pbin = static_cast<int>((v + nhood[1] - min) / (max - min) * n_bins);
+                dindex min_bin = (nbin >= 0) ? static_cast<dindex>(nbin) : 0;
+                dindex max_bin = (pbin < static_cast<int>(n_bins)) ? static_cast<dindex>(pbin) : static_cast<dindex>(n_bins - 1);
+                return {min_bin, max_bin};
+            }
+
+            /** Access function to a zone with binned neighborhood
+             * 
+             * 
+             * @tparam neighbor_t is the neighborhood size
+             * 
+             * @param v is the value for the bin search
+             * @param nhood is the neighborhood range (in #bins)
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, unsigned int nhood) const
+            template <typename neighbor_t>
+            dindex_sequence zone_t(scalar v, const darray<neighbor_t,2>& nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
                 dindex_sequence sequence(static_cast<dindex_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
                 dindex m = 0;
-                std::for_each(sequence.begin(), sequence.end(), [&](auto &n) { n += m++; });
+                std::for_each(sequence.begin(), sequence.end(), [&](auto &n)
+                              { n += m++; });
                 return sequence;
             }
 
-            /** @return the bin boundaries for a given bin */
+            /** Access function to a zone with binned neighborhood
+             * 
+             * @param v is the value for the bin search
+             * @param nhood is the neighborhood range (#bins) 
+             * 
+             * As the axis is closed it @returns a dindex_sequence
+             **/
+            dindex_sequence zone(scalar v, const darray<dindex,2>& nhood) const
+            {
+                return zone_t<dindex>(v, nhood);
+            }
+
+            /** Access function to a zone with scalar neighborhood
+             * 
+             * @param v is the value for the bin search
+             * @param nhood is the neighborhood range (scalar) 
+             * 
+             * As the axis is closed it @returns a dindex_sequence
+             **/
+            dindex_sequence zone(scalar v, const darray<scalar,2>& nhood) const
+            {
+                return zone_t<scalar>(v, nhood);
+            }
+
+            /** @return the bin boundaries for a given @param ibin */
             darray<scalar, 2> borders(dindex ibin) const
             {
                 scalar step = (max - min) / n_bins;
                 return {ibin * step, (ibin + 1) * step};
             }
 
-            /** @return the range  */
-            darray<scalar, 2> range() const { return {min, max}; }
+            /** @return the axis span [min, max) */
+            darray<scalar, 2> span() const { return {min, max}; }
         };
 
         /** A regular circular axis.
@@ -121,49 +166,93 @@ namespace detray
                                                      : static_cast<dindex>(n_bins - ibin);
             }
 
-            /** Access function to a range with binned neighbourhood
-             * 
+            /** Access function to a range with binned neighborhood
+             *               
              * @param v is the value for the bin search
-             * @param nhood is the neighbourhood size (+/-) 
+             * @param nhood is the  neighborhood range (in #bins) 
              * 
              * As the axis is circular it @returns a dindex_range
              **/
-            dindex_range range(scalar v, unsigned int nhood) const
+            dindex_range range(scalar v, const darray<dindex,2> nhood = {0u, 0u}) const
             {
                 dindex gbin = bin(v);
-                dindex min_bin = remap(gbin, -static_cast<int>(nhood));
-                dindex max_bin = remap(gbin, static_cast<int>(nhood));
+                dindex min_bin = remap(gbin, -static_cast<int>(nhood[0]));
+                dindex max_bin = remap(gbin, static_cast<int>(nhood[1]));
                 return {min_bin, max_bin};
             }
 
-            /** Access function to a zone with binned neighbourhood
+            /** Access function to a range with scalar neighborhood
              * 
              * @param v is the value for the bin search
-             * @param nhood is the neighbourhood size (+/-) 
+             * @param nhood is the neighborhood range (scalar) 
+             * 
+             * As the axis is circular it @returns a dindex_range
+             **/
+            dindex_range range(scalar v, const darray<scalar,2>& nhood) const
+            {
+                dindex nbin = bin(v - nhood[0]);
+                dindex pbin = bin(v + nhood[1]);
+                return {nbin, pbin};
+            }
+
+            /** Access function to a zone with binned/scalar neighborhood
+             * 
+             * @tparam neighbor_t is the neighborhood size
+             * 
+             * @param v is the value for the bin search
+             * @param nhood is the neighborhood range (in #bins/scalar) 
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, unsigned int nhood) const
+            template <typename neighbor_t>
+            dindex_sequence zone_t(scalar v, const darray<neighbor_t,2>& nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
                 if (nh_range[0] < nh_range[1])
                 {
                     dindex_sequence sequence(static_cast<dindex_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
                     dindex m = 0;
-                    std::for_each(sequence.begin(), sequence.end(), [&](auto &n) { n += m++; });
+                    std::for_each(sequence.begin(), sequence.end(), [&](auto &n)
+                                  { n += m++; });
                     return sequence;
                 }
                 dindex vl = static_cast<dindex>(n_bins - nh_range[0] + nh_range[1] + 1);
                 dindex mi = 0;
                 dindex mo = 0;
                 dindex_sequence sequence(static_cast<dindex_sequence::size_type>(vl), nh_range[0]);
-                std::for_each(sequence.begin(), sequence.end(), [&](auto &n) {
-                    n += mi++;
-                    if (n > n_bins - 1)
-                    {
-                        n = mo++;
-                    } });
+                std::for_each(sequence.begin(), sequence.end(), [&](auto &n)
+                              {
+                                  n += mi++;
+                                  if (n > n_bins - 1)
+                                  {
+                                      n = mo++;
+                                  }
+                              });
                 return sequence;
+            }
+
+            /** Access function to a zone with binned neighborhood
+             * 
+             * @param v is the value for the bin search
+             * @param nhood is the neighborhood range (#bins) 
+             * 
+             * As the axis is closed it @returns a dindex_sequence
+             **/
+            dindex_sequence zone(scalar v, const darray<dindex,2>& nhood) const
+            {
+                return zone_t<dindex>(v, nhood);
+            }
+
+            /** Access function to a zone with scalar neighborhood
+             * 
+             * @param v is the value for the bin search
+             * @param nhood is the neighborhood range (scalar) 
+             * 
+             * As the axis is closed it @returns a dindex_sequence
+             **/
+            dindex_sequence zone(scalar v, const darray<scalar,2>& nhood) const
+            {
+                return zone_t<scalar>(v, nhood);
             }
 
             /** Helper function to remap onto a circular range 
@@ -187,7 +276,7 @@ namespace detray
                 return static_cast<dindex>(opt_bin - n_bins);
             }
 
-            /** @return the bin boundaries for a given bin */
+            /** @return the bin boundaries for a given @param ibin */
             darray<scalar, 2> borders(dindex ibin) const
             {
                 scalar step = (max - min) / n_bins;
@@ -195,7 +284,7 @@ namespace detray
             }
 
             /** @return the range  */
-            darray<scalar, 2> range() const { return {min, max}; }
+            darray<scalar, 2> span() const { return {min, max}; }
         };
 
         /** An iregular circular axis.
@@ -226,42 +315,84 @@ namespace detray
                                                                                        : boundaries.size() - 2);
             }
 
-            /** Access function to a range with binned neighbourhood
+            /** Access function to a range with binned neighborhood
              * 
              * @param v is the value for the bin search
-             * @param nhood is the neighbourhood size (+/-) 
+             * @param nhood is the neighborhood range (#bins) 
              * 
              * As the axis is closed it @returns a dindex_range
              **/
-            dindex_range range(scalar v, unsigned int nhood) const
+            dindex_range range(scalar v, const darray<dindex,2>& nhood = {0u,0u}) const
             {
 
-                unsigned int ibin = bin(v);
+                dindex ibin = bin(v);
                 int bins = boundaries.size() - 1;
-                int ibinmin = ibin - static_cast<int>(nhood);
-                int ibinmax = ibin + static_cast<int>(nhood);
+                int ibinmin = ibin - static_cast<int>(nhood[0]);
+                int ibinmax = ibin + static_cast<int>(nhood[1]);
                 dindex min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0;
                 dindex max_bin = (ibinmax < static_cast<int>(bins)) ? static_cast<dindex>(ibinmax) : static_cast<dindex>(bins - 1);
                 return {min_bin, max_bin};
             }
 
-            /** Access function to a zone with binned neighbourhood
+            /** Access function to a range with scalar neighborhood
              * 
              * @param v is the value for the bin search
-             * @param nhood is the neighbourhood size (+/-) 
+             * @param nhood is the neighborhood range (scalar) 
+             * 
+             * As the axis is closed it @returns a dindex_range
+             **/
+            dindex_range range(scalar v, const darray<scalar,2>& nhood) const
+            {
+                dindex nbin = bin(v - nhood[0]);
+                dindex pbin = bin(v + nhood[1]);
+                return {nbin, pbin};
+            }
+
+            /** Access function to a zone with binned/scalar neighborhood
+             * 
+             * @tparam neighbor_t is the neighborhood type
+             * 
+             * @param v is the value for the bin search
+             * @param nhood is the neighborhood range (binned/scalar)
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, unsigned int nhood) const
+            template <typename neighbor_t>
+            dindex_sequence zone_t(scalar v, const darray<neighbor_t,2> nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
                 dindex_sequence sequence(static_cast<dindex_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
                 dindex m = 0;
-                std::for_each(sequence.begin(), sequence.end(), [&](auto &n) { n += m++; });
+                std::for_each(sequence.begin(), sequence.end(), [&](auto &n)
+                              { n += m++; });
                 return sequence;
             }
 
-            /** @return the bin boundaries for a given bin */
+            /** Access function to a zone with binned neighborhood
+             * 
+             * @param v is the value for the bin search
+             * @param nhood is the neighborhood range (#bins) 
+             * 
+             * As the axis is closed it @returns a dindex_sequence
+             **/
+            dindex_sequence zone(scalar v, const darray<dindex,2>& nhood = {0,0}) const
+            {
+                return zone_t<dindex>(v, nhood);
+            }
+
+            /** Access function to a zone with scalar neighborhood
+             * 
+             * @param v is the value for the bin search
+             * @param nhood is the neighborhood range (scalar) 
+             * 
+             * As the axis is closed it @returns a dindex_sequence
+             **/
+            dindex_sequence zone(scalar v, const darray<scalar,2>& nhood) const
+            {
+                return zone_t<scalar>(v, nhood);
+            }
+
+            /** @return the bin boundaries for a given @param ibin */
             darray<scalar, 2> borders(dindex ibin) const
             {
                 return {boundaries[ibin], boundaries[ibin + 1]};
@@ -269,7 +400,7 @@ namespace detray
 
             /** @return the range  */
             darray<scalar, 2>
-            range() const
+            span() const
             {
                 return {boundaries[0], boundaries[boundaries.size() - 1]};
             }

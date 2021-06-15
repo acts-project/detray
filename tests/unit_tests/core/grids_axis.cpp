@@ -25,20 +25,24 @@ TEST(grids, regular_closed_axis)
     EXPECT_EQ(ten_bins.bin(-4.), 0u);
     EXPECT_EQ(ten_bins.bin(2.), 5u);
     EXPECT_EQ(ten_bins.bin(8.), 9u);
-    // Axis range access
+    // Axis range access - binned 
+    darray<dindex, 2> hermit = {0u, 0u};
+    darray<dindex, 2> zone11 = {1u, 1u};
+    darray<dindex, 2> zone44 = {4u, 4u};   
+    darray<dindex, 2> zone55 = {5u, 5u};  
     dindex_range expected_range = {4u, 6u};
-    EXPECT_EQ(ten_bins.range(2., 1), expected_range);
+    EXPECT_EQ(ten_bins.range(2., zone11), expected_range);
     expected_range = {0u, 8u};
-    EXPECT_EQ(ten_bins.range(1., 4), expected_range);
+    EXPECT_EQ(ten_bins.range(1., zone44), expected_range);
     expected_range = {3u, 9u};
-    EXPECT_EQ(ten_bins.range(5., 5), expected_range);
-    // Axis sequence access
+    EXPECT_EQ(ten_bins.range(5., zone55), expected_range);
+    // Axis sequence access - binned
     dindex_sequence expected_zone = {5u};
-    EXPECT_EQ(ten_bins.zone(2., 0), expected_zone);
+    EXPECT_EQ(ten_bins.zone(2., hermit), expected_zone);
     expected_zone = {4u, 5u, 6u};
-    EXPECT_EQ(ten_bins.zone(2., 1), expected_zone);
+    EXPECT_EQ(ten_bins.zone(2., zone11), expected_zone);
     expected_zone = {0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u};
-    EXPECT_EQ(ten_bins.zone(1., 4), expected_zone);
+    EXPECT_EQ(ten_bins.zone(1., zone44), expected_zone);
 }
 
 TEST(grids, regular_circular_axis)
@@ -52,7 +56,7 @@ TEST(grids, regular_circular_axis)
     axis::circular full_pi = {36, phi_min, phi_max};
     // N bins
     EXPECT_EQ(full_pi.bins(), 36u);
-    // Axis bin access
+    // Axis bin access 
     EXPECT_EQ(full_pi.bin(M_PI - epsilon), 0u);
     EXPECT_EQ(full_pi.bin(M_PI + epsilon), 0u);
     EXPECT_EQ(full_pi.bin(0), 18u);
@@ -63,15 +67,18 @@ TEST(grids, regular_circular_axis)
     EXPECT_EQ(full_pi.remap(0, -2), 34);
     EXPECT_EQ(full_pi.remap(-1, -1), 34);
     EXPECT_EQ(full_pi.remap(35, 1), 0);
-    // Axis range access
 
-    dindex_range expected_range = {35u, 1u};
-    EXPECT_EQ(full_pi.range(M_PI + epsilon, 1), expected_range);
+    // Axis range access - binned
+    darray<dindex, 2> hermit = {0u, 0u};
+    darray<dindex, 2> zone11 = {1u, 1u};
+    darray<dindex, 2> zone22 = {2u, 2u};
+    dindex_range expected_range = {35u, 1u};    
+    EXPECT_EQ(full_pi.range(M_PI + epsilon, zone11), expected_range);
     expected_range = {34u, 2u};
-    EXPECT_EQ(full_pi.range(M_PI + epsilon, 2), expected_range);
+    EXPECT_EQ(full_pi.range(M_PI + epsilon, zone22), expected_range);
     // Zone test
     dindex_sequence expected_zone = {34u, 35u, 0u, 1u, 2u};
-    EXPECT_EQ(full_pi.zone(M_PI + epsilon, 2), expected_zone);
+    EXPECT_EQ(full_pi.zone(M_PI + epsilon, zone22), expected_zone);
 }
 
 TEST(grids, irregular_closed_axis)
@@ -90,25 +97,30 @@ TEST(grids, irregular_closed_axis)
     // Overflow test
     EXPECT_EQ(nonreg.bin(14), 4u);
 
-    // Axis range access
+    // Axis range access - binned 
+
+    darray<dindex, 2> hermit = {0u, 0u};
+    darray<dindex, 2> zone11 = {1u, 1u};
+    darray<dindex, 2> zone22 = {2u, 2u};    
     dindex_range expected_range = {1u, 3u};
-    EXPECT_EQ(nonreg.range(3., 1), expected_range);
+
+    EXPECT_EQ(nonreg.range(3., zone11), expected_range);
 
     dindex_range expected_range_truncated_low = {0u, 1u};
-    EXPECT_EQ(nonreg.range(0., 1), expected_range_truncated_low);
+    EXPECT_EQ(nonreg.range(0., zone11), expected_range_truncated_low);
 
     dindex_range expected_range_truncated_high = {2u, 4u};
-    EXPECT_EQ(nonreg.range(10., 2), expected_range_truncated_high);
+    EXPECT_EQ(nonreg.range(10., zone22), expected_range_truncated_high);
 
     // Axis sequence access
     dindex_sequence expected_zone = {1u, 2u, 3u};
-    EXPECT_EQ(nonreg.zone(3., 1), expected_zone);
+    EXPECT_EQ(nonreg.zone(3., zone11), expected_zone);
 
     dindex_sequence expected_zone_truncated_low = {0u, 1u};
-    EXPECT_EQ(nonreg.zone(0., 1), expected_zone_truncated_low);
+    EXPECT_EQ(nonreg.zone(0., zone11), expected_zone_truncated_low);
 
     dindex_sequence expected_zone_truncated_high = {2u, 3u, 4u};
-    EXPECT_EQ(nonreg.zone(10., 2), expected_zone_truncated_high);
+    EXPECT_EQ(nonreg.zone(10., zone22), expected_zone_truncated_high);
 }
 
 int main(int argc, char **argv)
