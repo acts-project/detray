@@ -69,8 +69,8 @@ TEST(grids, grid2_replace_populator)
     // A zone test with neighbour hood
     p = {0.5, 0.5};
 
-    darray<dindex, 2> zone11 = { 1u, 1u };
-    darray<dindex, 2> zone22 = { 2u, 2u };
+    darray<dindex, 2> zone11 = {1u, 1u};
+    darray<dindex, 2> zone22 = {2u, 2u};
 
     test = g2.zone(p, {zone11, zone22}, true);
     expect = {143u, 144u, 145u, 146u, 147u, 153u, 154u, 155u, 156u, 157u, 163u, 164u, 165u, 166u, 167u};
@@ -93,7 +93,7 @@ TEST(grids, grid2_replace_populator)
 
     // A zone test for circular testing
     p = {1.5, 2.5};
-    test = g2cc.zone(p, { zone11, zone11}, true);
+    test = g2cc.zone(p, {zone11, zone11}, true);
     expect = {4u, 6u, 7u, 8u, 10u, 11u, 12u, 14u, 15u};
     EXPECT_EQ(test, expect);
 }
@@ -149,8 +149,8 @@ TEST(grids, grid2_complete_populator)
     test = g2.bin(p);
     EXPECT_EQ(test, expected);
 
-    darray<dindex, 2> zone00 = { 0u, 0u };
-    darray<dindex, 2> zone11 = { 1u, 1u };
+    darray<dindex, 2> zone00 = {0u, 0u};
+    darray<dindex, 2> zone11 = {1u, 1u};
 
     // Zone test of a complete bin
     zone_test = g2.zone(p, {zone00, zone00});
@@ -218,7 +218,7 @@ TEST(grids, grid2_attach_populator)
     test = g2.bin(p);
     EXPECT_EQ(test, expected);
 
-    darray<dindex, 2> zone11 = { 1u, 1u };
+    darray<dindex, 2> zone11 = {1u, 1u};
 
     zone_test = g2.zone(p, {zone11, zone11}, true);
     zone_expected = {1u, 4u, 7u, 9u};

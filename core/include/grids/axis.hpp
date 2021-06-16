@@ -53,7 +53,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<dindex,2>& nhood = { 0u, 0u} ) const
+            dindex_range range(scalar v, const darray<dindex, 2> &nhood = {0u, 0u}) const
             {
 
                 int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
@@ -71,7 +71,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<scalar,2>& nhood) const
+            dindex_range range(scalar v, const darray<scalar, 2> &nhood) const
             {
                 int nbin = static_cast<int>((v - nhood[0] - min) / (max - min) * n_bins);
                 int pbin = static_cast<int>((v + nhood[1] - min) / (max - min) * n_bins);
@@ -91,7 +91,7 @@ namespace detray
              * As the axis is closed it @returns a dindex_sequence
              **/
             template <typename neighbor_t>
-            dindex_sequence zone_t(scalar v, const darray<neighbor_t,2>& nhood) const
+            dindex_sequence zone_t(scalar v, const darray<neighbor_t, 2> &nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
                 dindex_sequence sequence(static_cast<dindex_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
@@ -108,7 +108,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<dindex,2>& nhood) const
+            dindex_sequence zone(scalar v, const darray<dindex, 2> &nhood) const
             {
                 return zone_t<dindex>(v, nhood);
             }
@@ -120,7 +120,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<scalar,2>& nhood) const
+            dindex_sequence zone(scalar v, const darray<scalar, 2> &nhood) const
             {
                 return zone_t<scalar>(v, nhood);
             }
@@ -163,7 +163,7 @@ namespace detray
                 dindex ibin = static_cast<dindex>((v - min) / (max - min) * n_bins);
                 return (ibin >= 0 and ibin < n_bins) ? static_cast<dindex>(ibin)
                        : ibin < 0                    ? static_cast<dindex>(n_bins + ibin)
-                                                     : static_cast<dindex>(n_bins - ibin);
+                                                     : static_cast<dindex>(ibin - n_bins);
             }
 
             /** Access function to a range with binned neighborhood
@@ -173,7 +173,7 @@ namespace detray
              * 
              * As the axis is circular it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<dindex,2> nhood = {0u, 0u}) const
+            dindex_range range(scalar v, const darray<dindex, 2> nhood = {0u, 0u}) const
             {
                 dindex gbin = bin(v);
                 dindex min_bin = remap(gbin, -static_cast<int>(nhood[0]));
@@ -188,7 +188,7 @@ namespace detray
              * 
              * As the axis is circular it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<scalar,2>& nhood) const
+            dindex_range range(scalar v, const darray<scalar, 2> &nhood) const
             {
                 dindex nbin = bin(v - nhood[0]);
                 dindex pbin = bin(v + nhood[1]);
@@ -205,7 +205,7 @@ namespace detray
              * As the axis is closed it @returns a dindex_sequence
              **/
             template <typename neighbor_t>
-            dindex_sequence zone_t(scalar v, const darray<neighbor_t,2>& nhood) const
+            dindex_sequence zone_t(scalar v, const darray<neighbor_t, 2> &nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
                 if (nh_range[0] < nh_range[1])
@@ -238,7 +238,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<dindex,2>& nhood) const
+            dindex_sequence zone(scalar v, const darray<dindex, 2> &nhood) const
             {
                 return zone_t<dindex>(v, nhood);
             }
@@ -250,7 +250,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<scalar,2>& nhood) const
+            dindex_sequence zone(scalar v, const darray<scalar, 2> &nhood) const
             {
                 return zone_t<scalar>(v, nhood);
             }
@@ -322,7 +322,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<dindex,2>& nhood = {0u,0u}) const
+            dindex_range range(scalar v, const darray<dindex, 2> &nhood = {0u, 0u}) const
             {
 
                 dindex ibin = bin(v);
@@ -341,7 +341,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<scalar,2>& nhood) const
+            dindex_range range(scalar v, const darray<scalar, 2> &nhood) const
             {
                 dindex nbin = bin(v - nhood[0]);
                 dindex pbin = bin(v + nhood[1]);
@@ -358,7 +358,7 @@ namespace detray
              * As the axis is closed it @returns a dindex_sequence
              **/
             template <typename neighbor_t>
-            dindex_sequence zone_t(scalar v, const darray<neighbor_t,2> nhood) const
+            dindex_sequence zone_t(scalar v, const darray<neighbor_t, 2> nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
                 dindex_sequence sequence(static_cast<dindex_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
@@ -375,7 +375,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<dindex,2>& nhood = {0,0}) const
+            dindex_sequence zone(scalar v, const darray<dindex, 2> &nhood = {0, 0}) const
             {
                 return zone_t<dindex>(v, nhood);
             }
@@ -387,7 +387,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<scalar,2>& nhood) const
+            dindex_sequence zone(scalar v, const darray<scalar, 2> &nhood) const
             {
                 return zone_t<scalar>(v, nhood);
             }
