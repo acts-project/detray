@@ -46,8 +46,8 @@ namespace __plugin
         const auto &axis0 = volume_grid.axis_p0();
         const auto &axis1 = volume_grid.axis_p1();
 
-        auto range0 = axis0.range();
-        auto range1 = axis1.range();
+        auto range0 = axis0.span();
+        auto range1 = axis1.span();
 
         scalar step0 = (range0[1] - range0[0]) / itest;
         scalar step1 = (range0[1] - range0[0]) / itest;

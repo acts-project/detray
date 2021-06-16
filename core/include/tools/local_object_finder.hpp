@@ -20,6 +20,8 @@ namespace detray
         grid_type _grid;
         bool _sort = true;
 
+        using point2 = __plugin::point2;
+
         /** Constructor from grid 
          * 
          * @param grid is the prepared object/index grid, it will be moved into the 
@@ -28,17 +30,30 @@ namespace detray
         local_zone_finder(grid_type &&grid)
             : _grid(std::move(grid)) {}
 
-        /** Call operator for the object search 
+        /** Call operator for the object search with binned neighborhood
          * 
-         * @tparam point2_type the type of the point for the finding request
          * @param p2 the local 2d point for the grid
+         * @param nhood the local binned neighborhood
          * 
          * This method will create a vector and fill it
          * 
-         * @note return a zone around a bin
+         * @note return a binned zone around a bin
          **/
-        template <typename point2_type>
-        auto operator()(const point2_type &p2, const darray<unsigned int, 2> &nhood = {0, 0}) const
+        auto operator()(const point2 &p2, const typename grid_type::template neighborhood<dindex>& nhood = grid_type::hermit2) const
+        {
+            return _grid.zone(p2, nhood, _sort);
+        }
+
+        /** Call operator for the object search with scalar neighborhood
+         * 
+         * @param p2 the local 2d point for the grid
+         * @param nhood the local scalar neighborhood
+         * 
+         * This method will create a vector and fill it
+         * 
+         * @note return a binned zone around a bin
+         **/
+        auto operator()(const point2 &p2, const typename grid_type::template neighborhood<scalar>& nhood ) const
         {
             return _grid.zone(p2, nhood, _sort);
         }

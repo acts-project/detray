@@ -26,6 +26,8 @@ namespace detray
     using point3 = point3;
     using vector3 = vector3;
 
+    using binned_neighborhood = darray<darray<dindex, 2>, 2>;
+
     /** This method creates a number (distances.size()) planes along a direction 
     */
     dvector<surface_base<transform3>> planes_along_direction(dvector<scalar> distances, vector3 direction)
@@ -47,7 +49,7 @@ namespace detray
 
     using cylinder_point2 = __plugin::point2;
     using disc_point2 = __plugin::point2;
-    using endcap_surface_finder = std::function<dvector<dindex>(const disc_point2 &, const darray<unsigned int, 2> &)>;
+    using endcap_surface_finder = std::function<dvector<dindex>(const disc_point2 &, const binned_neighborhood &)>;
 
     /** This method creates a barrel description of surfaces
      * 
@@ -145,7 +147,7 @@ namespace detray
         return {trapezoid_values, transforms, {inner_finder, outer_finder, ecn_finder, ecp_finder}};
     }
 
-    using barrel_surface_finder = std::function<dvector<dindex>(const cylinder_point2 &, const darray<unsigned int, 2> &)>;
+    using barrel_surface_finder = std::function<dvector<dindex>(const cylinder_point2 &, const binned_neighborhood &)>;
 
     /** This method creates a barrel description of surfaces
      * 
