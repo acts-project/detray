@@ -40,7 +40,10 @@ namespace detray
      */
     template <typename alignable_store = static_transform_store,
               typename surface_source_link = dindex,
-              typename bounds_source_link = dindex>
+              typename bounds_source_link = dindex,
+              template <typename, unsigned int> class array_type = darray,
+              template <typename ...> class tuple_type = dtuple,
+              template <typename> class vector_type = dvector>
     class detector
     {
 
@@ -53,42 +56,48 @@ namespace detray
         using volume_grid = grid2<replace_populator<>, axis::irregular, axis::irregular, serializer2>;
 
         /// Portals components:
-        /// - links:  next volume, next object finder
-        using portal_links = darray<dindex, 2>;
+        /// - links:  next volume, next (local) object finder
+        using portal_links = array_type<dindex, 2>;
         /// - masks, with mask identifiers 0, 1
         using portal_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, portal_links, 0>;
         using portal_disc = ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
         // - mask index: type, { first/last }
-        using portal_mask_index = dtuple<dindex, darray<dindex,2> >;
-        using portal_mask_container = dtuple<dvector<portal_cylinder>, dvector<portal_disc>>;
+        using portal_mask_index = tuple_type<dindex, array_type<dindex,2> >;
+        using portal_mask_container = tuple_type<vector_type<portal_cylinder>, vector_type<portal_disc>>;
 
         /** The Portal definition:
          *  <transform_link, mask_index, volume_link, source_link >
+         * 
+         * transform_link: index into the transform container
+         * mask_index: typed index into the mask container
+         * volume_link: index of the volume this portal belongs to
+         * source_link: some link to an eventual exernal representation
+         * 
          */
         using portal = surface_base<dindex, portal_mask_index, dindex, surface_source_link>;
-        using portal_container = dvector<portal>;
+        using portal_container = vector_type<portal>;
 
         /// Surface components:
         /// - surface links
-        using surface_links = darray<dindex, 1>;
+        using surface_links = array_type<dindex, 1>;
         /// - masks, with mask identifiers 0,1,2
         using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, surface_links, 0>;
         using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, surface_links, 1>;
         using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, surface_links, 2>;
         using surface_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, surface_links, 3>;
         /// - mask index: type, entry
-        using surface_mask_index = darray<dindex, 2>;
-        using surface_mask_container = dtuple<dvector<surface_rectangle>,
-                                              dvector<surface_trapezoid>,
-                                              dvector<surface_annulus>,
-                                              dvector<surface_cylinder>>;
+        using surface_mask_index = array_type<dindex, 2>;
+        using surface_mask_container = tuple_type<vector_type<surface_rectangle>,
+                                              vector_type<surface_trapezoid>,
+                                              vector_type<surface_annulus>,
+                                              vector_type<surface_cylinder>>;
 
         using surface_link = surface_source_link;
         /** The Surface definition:
          *  <transform_link, mask_link, volume_link, source_link >
          */
         using surface = surface_base<dindex, surface_mask_index, dindex, surface_link>;
-        using surface_container = dvector<surface>;
+        using surface_container = vector_type<surface>;
 
         /** Nested volume struct that holds the local information of the
          * volume and its portals.
@@ -112,7 +121,7 @@ namespace detray
                 friend class volume;
 
             private:
-                dvector<object_t> _objects;
+                vector_type<object_t> _objects;
                 object_masks_t _masks;
                 transform_store _transforms;
 
@@ -124,7 +133,7 @@ namespace detray
                 }
 
                 /** @return all the objects - const access */
-                const dvector<object_t> &objects() const { return _objects; }
+                const vector_type<object_t> &objects() const { return _objects; }
 
                 /** @return the object masks - const access */
                 const object_masks_t &masks() const { return _masks; }
@@ -146,11 +155,11 @@ namespace detray
              * @param name of the volume
              * @param bounds of the volume
              */
-            volume(const std::string &name, const darray<scalar, 6> &bounds) : _name(name), _bounds(bounds){};
+            volume(const std::string &name, const array_type<scalar, 6> &bounds) : _name(name), _bounds(bounds){};
             volume(const volume &) = default;
 
             /** @return the bounds - const access */
-            const darray<scalar, 6> &bounds() const { return _bounds; }
+            const array_type<scalar, 6> &bounds() const { return _bounds; }
 
             /** @return the name */
             const std::string &name() const { return _name; }
@@ -225,7 +234,7 @@ namespace detray
             dindex _index = dindex_invalid;
 
             /// Bounds section, default for r, z, phi
-            darray<scalar, 6> _bounds = {0.,
+            array_type<scalar, 6> _bounds = {0.,
                                          std::numeric_limits<scalar>::max(),
                                          -std::numeric_limits<scalar>::max(),
                                          std::numeric_limits<scalar>::max(),
@@ -253,7 +262,7 @@ namespace detray
          *
          * @return non-const reference of the new volume
          */
-        volume &new_volume(const std::string &name, const darray<scalar, 6> &bounds)
+        volume &new_volume(const std::string &name, const array_type<scalar, 6> &bounds)
         {
             _volumes.push_back(std::move(volume(name, bounds)));
             dindex cvolume_idx = _volumes.size() - 1;
@@ -266,7 +275,7 @@ namespace detray
         const std::string &name() const { return _name; }
 
         /** @return the contained volumes of the detector - const access */
-        const dvector<volume> &volumes() const { return _volumes; }
+        const vector_type<volume> &volumes() const { return _volumes; }
 
         /** @return the volume by @param volume_index - const access */
         const volume &indexed_volume(dindex volume_index) const { return _volumes[volume_index]; }
@@ -313,7 +322,7 @@ namespace detray
 
     private:
         std::string _name = "unknown_detector";
-        dvector<volume> _volumes = {};
+        vector_type<volume> _volumes = {};
 
         volume_grid _volume_grid = volume_grid(std::move(axis::irregular{{}}), std::move(axis::irregular{{}}));
     };
