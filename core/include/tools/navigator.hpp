@@ -80,12 +80,15 @@ namespace detray
          * @tparam links_type the type of the links the candidate is holding
          * 
          **/
-        template <typename object_type, typename candidate_type, typename links_type>
+        template <typename object_type, 
+                  typename candidate_type, 
+                  typename links_type,
+                  template <typename> class vector_type = dvector>
         struct navigation_kernel
         {
             const object_type *on = nullptr;
-            dvector<candidate_type> candidates = {};
-            typename dvector<candidate_type>::iterator next = candidates.end();
+            vector_type<candidate_type> candidates = {};
+            typename vector_type<candidate_type>::iterator next = candidates.end();
             links_type links;
 
             /** Indicate that the kernel is empty */

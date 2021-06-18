@@ -35,12 +35,13 @@ namespace detray
     template <typename intersector_type = planar_intersector,
               typename local_type = __plugin::cartesian2,
               typename links_type = bool,
-              unsigned int kMaskContext = e_ring2>
+              unsigned int kMaskContext = e_ring2,
+              template <typename, unsigned int> class array_type = darray>
     struct ring2
     {
         using mask_tolerance = scalar;
 
-        using mask_values = darray<scalar, 2>;
+        using mask_values = array_type<scalar, 2>;
 
         using mask_links_type = links_type;
 
@@ -59,7 +60,7 @@ namespace detray
          * @param rhs is the right hand side object
          **/
         ring2<intersector_type, local_type, links_type, kMaskContext> &
-        operator=(const darray<scalar, 2> &rhs)
+        operator=(const array_type<scalar, 2> &rhs)
         {
             _values = rhs;
             return (*this);
@@ -93,7 +94,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const darray<scalar, 2> &rhs)
+        bool operator==(const array_type<scalar, 2> &rhs)
         {
             return (_values == rhs);
         }

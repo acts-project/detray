@@ -36,14 +36,15 @@ namespace detray
               typename intersector_type = detray::cylinder_intersector,
               typename local_type = __plugin::cylindrical2,
               typename links_type = bool,
-              unsigned int kMaskContext = e_cylinder3>
+              unsigned int kMaskContext = e_cylinder3,
+              template <typename, unsigned int> class array_type = darray>
     struct cylinder3
     {
 
-        using mask_tolerance = darray<scalar, 2>;
+        using mask_tolerance = array_type<scalar, 2>;
 
         // This masks checks on: radius, -z, +z
-        using mask_values = darray<scalar, 3>;
+        using mask_values = array_type<scalar, 3>;
 
         using mask_links_type = links_type;
 
@@ -66,7 +67,7 @@ namespace detray
          * @param rhs is the right hand side object
          **/
         cylinder3<kRadialCheck, intersector_type, local_type, links_type, kMaskContext> &
-        operator=(const darray<scalar, 3> &rhs)
+        operator=(const array_type<scalar, 3> &rhs)
         {
             _values = rhs;
             return (*this);
@@ -103,7 +104,7 @@ namespace detray
          * 
          * checks identity within epsilon and @return s a boolean*
          **/
-        bool operator==(const darray<scalar, 3> &rhs)
+        bool operator==(const array_type<scalar, 3> &rhs)
         {
             return (_values == rhs);
         }

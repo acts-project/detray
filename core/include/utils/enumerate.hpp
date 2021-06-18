@@ -99,7 +99,8 @@ namespace detray
      * @note sequence({2,4}) will produce { 2, 3, 4 }
      * 
      **/
-    constexpr auto sequence(darray<dindex, 2> iterable)
+    template<template <typename, unsigned int> class array_type = darray>
+    constexpr auto sequence(array_type<dindex, 2> iterable)
     {
 
         struct iterator
@@ -120,11 +121,11 @@ namespace detray
         };
         struct iterable_wrapper
         {
-            darray<dindex, 2> iterable;
+            array_type<dindex, 2> iterable;
             auto begin() { return iterator{iterable[0], iterable[1]}; }
             auto end() { return iterator{iterable[1] + 1, iterable[1] + 1}; }
         };
-        return iterable_wrapper{std::forward<darray<dindex, 2> >(iterable)};
+        return iterable_wrapper{std::forward<array_type<dindex, 2> >(iterable)};
     }
 
 } // namespace detray

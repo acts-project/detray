@@ -17,12 +17,16 @@ namespace detray
     /// @param d [in,out] the detector to which the portal surfaces are added
     /// @param volume_grid [in] the indexed volume grid
     ///
-    template <typename detector_type, typename grid_type>
+    template <typename detector_type, 
+              typename grid_type,
+              template <typename, unsigned int> class array_type = darray,
+              template <typename ...> class tuple_type = dtuple,
+              template <typename> class vector_type = dvector>
     void connect_cylindrical_volumes(detector_type &d, const grid_type &volume_grid)
     {
         // The grid is populated, now create portal surfaces
         // Start from left bottom corner (0,0)
-        dvector<darray<dindex, 2>> seeds = {{0, 0}};
+        vector_type<array_type<dindex, 2>> seeds = {{0, 0}};
         dmap<dindex, dindex> seed_map;
 
         // The axes are used quite a bit
@@ -38,7 +42,7 @@ namespace detray
          * 
          * @note seeds are only set in bottom left corners of blocks
          **/
-        auto add_new_seed = [&](const darray<dindex, 2> &seed, dindex volume_index) -> void {
+        auto add_new_seed = [&](const array_type<dindex, 2> &seed, dindex volume_index) -> void {
             if (volume_index == dindex_invalid)
             {
                 return;
@@ -69,10 +73,10 @@ namespace detray
             auto &volume = d.indexed_volume(ref);
 
             // Collect portals per seed
-            dvector<dtuple<darray<scalar, 2>, dindex>> left_portals_info;
-            dvector<dtuple<darray<scalar, 2>, dindex>> upper_portals_info;
-            dvector<dtuple<darray<scalar, 2>, dindex>> right_portals_info;
-            dvector<dtuple<darray<scalar, 2>, dindex>> lower_portals_info;
+            vector_type<tuple_type<array_type<scalar, 2>, dindex>> left_portals_info;
+            vector_type<tuple_type<array_type<scalar, 2>, dindex>> upper_portals_info;
+            vector_type<tuple_type<array_type<scalar, 2>, dindex>> right_portals_info;
+            vector_type<tuple_type<array_type<scalar, 2>, dindex>> lower_portals_info;
 
             /// Helper method for walking up along the bins
             ///
@@ -82,13 +86,13 @@ namespace detray
             /// @param add_seed is a boolean whether new seeds should be added
             ///
             /// @return the end position of the the walk (inside position)
-            auto walk_up = [&](darray<dindex, 2> start_bin,
-                               dvector<dtuple<darray<scalar, 2>, dindex>> &portals_info,
+            auto walk_up = [&](array_type<dindex, 2> start_bin,
+                               vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info,
                                int peek,
-                               bool add_seed = false) -> darray<dindex, 2> {
+                               bool add_seed = false) -> array_type<dindex, 2> {
 
                 auto running_bin = start_bin;
-                darray<dindex, 2> last_added = {dindex_invalid, dindex_invalid};
+                array_type<dindex, 2> last_added = {dindex_invalid, dindex_invalid};
                 // Test entry
                 auto test = volume_grid.bin(running_bin[0], running_bin[1]);
                 // Low/high 
@@ -139,14 +143,14 @@ namespace detray
             /// @param walk_only is a boolean whether to actually add boundaries or not
             ///
             /// @return the end position of the the walk (inside position)
-            auto walk_right = [&](const darray<dindex, 2>& start_bin,
-                                  dvector<dtuple<darray<scalar, 2>, dindex>> &portals_info,
+            auto walk_right = [&](const array_type<dindex, 2>& start_bin,
+                                  vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info,
                                   int peek,
                                   bool add_seed = false,
-                                  bool walk_only = false) -> darray<dindex, 2> {
+                                  bool walk_only = false) -> array_type<dindex, 2> {
 
                 auto running_bin = start_bin;
-                darray<dindex, 2> last_added = {dindex_invalid, dindex_invalid};
+                array_type<dindex, 2> last_added = {dindex_invalid, dindex_invalid};
 
                 // Test, low and high at seed position
                 auto test = volume_grid.bin(running_bin[0], running_bin[1]);
@@ -212,7 +216,7 @@ namespace detray
              * @param bound_index The access for the boundary parameter
              * 
              **/
-            auto add_disc_portals = [&](dvector<dtuple<darray<scalar, 2>, dindex>> &portals_info, dindex bound_index) -> void {
+            auto add_disc_portals = [&](vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info, dindex bound_index) -> void {
                 // Fill in the left side portals
                 if (not portals_info.empty())
                 {
@@ -241,7 +245,7 @@ namespace detray
              * @param portals_info 
              * @param bound_index
              **/
-            auto add_cylinder_portal = [&](dvector<dtuple<darray<scalar, 2>, dindex>> &portals_info, dindex bound_index) -> void {
+            auto add_cylinder_portal = [&](vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info, dindex bound_index) -> void {
                 // Fill in the upper side portals
                 if (not portals_info.empty())
                 {
@@ -254,7 +258,7 @@ namespace detray
                     for (auto &info_ : portals_info)
                     {
                         const auto cylinder_range = std::get<0>(info_);
-                        darray<scalar, 3> cylinder_bounds = {volume_bounds[bound_index], cylinder_range[0], cylinder_range[1]};
+                        array_type<scalar, 3> cylinder_bounds = {volume_bounds[bound_index], cylinder_range[0], cylinder_range[1]};
                         typename detector_type::portal_cylinder _portal_cylinder = {cylinder_bounds, {std::get<1>(info_), dindex_invalid}};
                         std::get<1>(mask_index)[1] = mask_group.size();
                         mask_group.push_back(_portal_cylinder);

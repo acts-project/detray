@@ -67,7 +67,9 @@ namespace detray
     };
 
     /** A zone finder for a single object */
-    template <typename value_type, class vector_type = dvector<value_type>>
+    template <typename value_type, 
+              typename vector_type = dvector<value_type>, 
+              template <typename, unsigned int> class array_type = darray>
     struct local_single_finder
     {
         //using value_type = typename container::value_type;
@@ -86,7 +88,7 @@ namespace detray
          * @note return always the same bin 
          **/
         template <typename point2_type>
-        vector_type operator()(const point2_type &p2, const darray<unsigned int, 2> &nhood = {0, 0}) const
+        vector_type operator()(const point2_type &p2, const array_type<unsigned int, 2> &nhood = {0, 0}) const
         {
             return _value;
         }
