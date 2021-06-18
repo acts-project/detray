@@ -49,7 +49,7 @@ TEST(tools, intersection_kernel_single)
     transform3 rectangle_transform(point3{0., 0., 10.});
     transform3 trapezoid_transform(point3{0., 0., 20.});
     transform3 annulus_transform(point3{0., -20., 30.});
-    static_transform_store::context static_context;
+    static_transform_store<>::context static_context;
     static_transform_store transform_store;
     transform_store.push_back(static_context, rectangle_transform);
     transform_store.push_back(static_context, trapezoid_transform);

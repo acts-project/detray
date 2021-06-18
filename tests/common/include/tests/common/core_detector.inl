@@ -20,8 +20,8 @@ TEST(ALGEBRA_PLUGIN, detector)
 
     using detector = detector<>;
 
-    static_transform_store::storage static_storage;
-    static_transform_store::context ctx0;
+    static_transform_store<>::storage static_storage;
+    static_transform_store<>::context ctx0;
 
     detector::surface_mask_container masks;
 

@@ -30,7 +30,7 @@ TEST(ALGEBRA_PLUGIN, read_detector)
     std::string surface_grid_file = data_directory + std::string("tml-surface-grids.csv");
     std::string layer_volume_file = data_directory + std::string("tml-layer-volumes.csv");
 
-    auto d = detector_from_csv<static_transform_store>("tml", surface_file, surface_grid_file, layer_volume_file);
+    auto d = detector_from_csv<static_transform_store<>>("tml", surface_file, surface_grid_file, layer_volume_file);
 
     std::cout << d.to_string() << std::endl;
 }

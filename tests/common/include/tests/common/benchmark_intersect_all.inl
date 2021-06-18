@@ -43,7 +43,7 @@ auto read_detector()
     std::string surfaces = data_directory + "tml.csv";
     std::string grids = data_directory + "tml-surface-grids.csv";
     std::string volumes = data_directory + "tml-layer-volumes.csv";
-    return detray::detector_from_csv<static_transform_store>(name, surfaces, grids, volumes);
+    return detray::detector_from_csv<static_transform_store<>>(name, surfaces, grids, volumes);
 };
 
 auto d = read_detector();
@@ -68,7 +68,7 @@ namespace __plugin
         for (auto _ : state)
         {
 
-            track<static_transform_store::context> track;
+            track<static_transform_store<>::context> track;
             track.pos = point3{0., 0., 0.};
 
             // Loops of theta values

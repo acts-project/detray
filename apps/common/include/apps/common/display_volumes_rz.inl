@@ -34,7 +34,7 @@ int main(int argc, char **argv)
             std::string surfaces = argv[2];
             std::string grids = argv[3];
             std::string volumes = argv[4];
-            auto d = detector_from_csv<static_transform_store>(name, surfaces, grids, volumes);
+            auto d = detector_from_csv<static_transform_store<>>(name, surfaces, grids, volumes);
             std::cout << "[detray] Detector read successfully." << std::endl;
             std::cout << d.to_string() << std::endl;
             // std::cout << "         Volumes : " << d.volumes().size() << std::endl;

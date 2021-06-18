@@ -17,9 +17,9 @@ TEST(ALGEBRA_PLUGIN, static_transform_store)
     using namespace detray;
     using namespace __plugin;
 
-    static_transform_store static_store;   
-    static_transform_store::context ctx0;
-    static_transform_store::context ctx1;
+    static_transform_store<> static_store;   
+    static_transform_store<>::context ctx0;
+    static_transform_store<>::context ctx1;
 
     ASSERT_TRUE(static_store.empty(ctx0));
 
