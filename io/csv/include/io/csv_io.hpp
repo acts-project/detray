@@ -103,7 +103,7 @@ namespace detray
   /// @param grid_file_name is the name of the surface grid file
   ///
   /// @return a drawable detector object
-  template <typename alignable_store = static_transform_store,
+  template <typename alignable_store = static_transform_store<>,
             typename surface_source_link = dindex,
             typename bounds_source_link = dindex>
   detector<alignable_store,

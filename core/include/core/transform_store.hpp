@@ -14,6 +14,7 @@ namespace detray
     using transform3 = __plugin::transform3;
 
     /** A static inplementation of an alignable transform store */
+    template < template <typename> class vector_type = dvector>
     class static_transform_store
     {
     public:
@@ -22,7 +23,7 @@ namespace detray
         {
         };
 
-        using storage = dvector<transform3>;
+        using storage = vector_type<transform3>;
 
         /** Reserve memory : Contextual STL like API
          *
@@ -94,7 +95,7 @@ namespace detray
 
     private:
         /** Common to surfaces & portals: transform store */
-        dvector<transform3> _data;
+        vector_type<transform3> _data;
     };
 
 } // namespace detray

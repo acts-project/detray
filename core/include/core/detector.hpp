@@ -38,7 +38,7 @@ namespace detray
      * @tparam bounds_source_link the type of the link to an external bounds source
      * 
      */
-    template <typename alignable_store = static_transform_store,
+    template <typename alignable_store = static_transform_store<>,
               typename surface_source_link = dindex,
               typename bounds_source_link = dindex,
               template <typename, unsigned int> class array_type = darray,

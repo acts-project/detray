@@ -19,12 +19,12 @@ TEST(ALGEBRA_PLUGIN, line_stepper)
     using namespace detray;
     using namespace __plugin;
 
-    using detray_track = track<static_transform_store::context>;
+    using detray_track = track<static_transform_store<>::context>;
 
     detray_track traj;
     traj.pos = {0., 0., 0.};
     traj.dir = vector::normalize(vector3{1., 1., 0.});
-    traj.ctx = static_transform_store::context{};
+    traj.ctx = static_transform_store<>::context{};
     traj.momentum = 100.;
     traj.overstep_tolerance = -1e-5;
 
