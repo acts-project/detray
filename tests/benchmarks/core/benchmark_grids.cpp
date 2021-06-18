@@ -38,8 +38,8 @@ namespace
     serializer2 serializer;
 
     // TrackML detector has 25 x 60 cells int he detector grid
-    axis::regular xaxisr = axis::regular{25, 0., 25.};
-    axis::regular yaxisr = axis::regular{60, 0., 60.};
+    axis::regular<> xaxisr = axis::regular<>{25, 0., 25.};
+    axis::regular<> yaxisr = axis::regular<>{60, 0., 60.};
     using grid2r = grid2<decltype(replacer), decltype(xaxisr), decltype(yaxisr), decltype(serializer)>;
     grid2r g2r(std::move(xaxisr), std::move(yaxisr));
 
@@ -85,8 +85,8 @@ namespace
             yboundaries.push_back(i);
         }
 
-        axis::irregular xaxisir{xboundaries};
-        axis::irregular yaxisir{yboundaries};
+        axis::irregular<> xaxisir{xboundaries};
+        axis::irregular<> yaxisir{yboundaries};
 
         using grid2ir = grid2<decltype(replacer), decltype(xaxisir), decltype(yaxisir), decltype(serializer)>;
 

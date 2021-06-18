@@ -18,7 +18,7 @@ using namespace detray;
 TEST(grids, regular_closed_axis)
 {
 
-    axis::regular ten_bins{10, -3., 7.};
+    axis::regular<> ten_bins{10, -3., 7.};
     // N bins
     EXPECT_EQ(ten_bins.bins(), 10u);
     // Axis bin access
@@ -86,7 +86,7 @@ TEST(grids, regular_circular_axis)
     scalar half_module = 2 * M_PI_2 / 72;
     scalar phi_min = -M_PI + half_module;
     scalar phi_max = M_PI - half_module;
-    axis::circular full_pi = {36, phi_min, phi_max};
+    axis::circular<> full_pi = {36, phi_min, phi_max};
     // N bins
     EXPECT_EQ(full_pi.bins(), 36u);
     // Axis bin access
@@ -139,7 +139,7 @@ TEST(grids, regular_circular_axis)
 
 TEST(grids, irregular_closed_axis)
 {
-    axis::irregular nonreg{{-3., 1., 2, 4., 8., 12.}};
+    axis::irregular<> nonreg{{-3., 1., 2, 4., 8., 12.}};
 
     // Axis bin access
     //

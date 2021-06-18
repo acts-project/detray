@@ -22,18 +22,21 @@ namespace detray
     template <typename populator_type,
               typename axis_p0_type,
               typename axis_p1_type,
-              typename serializer_type>
+              typename serializer_type,
+              template <typename, unsigned int> class array_type = darray,
+              template <typename ...> class tuple_type = dtuple,
+              template <typename> class vector_type = dvector>
     class grid2
     {
 
     public:
-        using serialized_storage = dvector<typename populator_type::store_value>;
+        using serialized_storage = vector_type<typename populator_type::store_value>;
         using point2 = __plugin::point2;
 
         template <typename neighbor_t>
-        using neighborhood = darray<darray<neighbor_t, 2>, 2>;
+        using neighborhood = array_type<array_type<neighbor_t, 2>, 2>;
 
-        static constexpr darray<dindex, 2> hermit1 = {0u, 0u};
+        static constexpr array_type<dindex, 2> hermit1 = {0u, 0u};
         static constexpr neighborhood<dindex> hermit2 = {hermit1, hermit1};
 
         /** Constructor from axes (moved)
@@ -130,18 +133,18 @@ namespace detray
          * @return the sequence of values
          **/
         template <typename neighbor_t>
-        dvector<typename populator_type::bare_value> zone_t(const point2 &p2, const neighborhood<neighbor_t> &nhood, bool sort) const
+        vector_type<typename populator_type::bare_value> zone_t(const point2 &p2, const neighborhood<neighbor_t> &nhood, bool sort) const
         {
             auto zone0 = _axis_p0.zone(p2[0], nhood[0]);
             auto zone1 = _axis_p1.zone(p2[1], nhood[1]);
 
-            dvector<typename populator_type::bare_value> zone;
+            vector_type<typename populator_type::bare_value> zone;
 
             // Specialization for bare value equal to store value
             if constexpr (std::is_same_v<typename populator_type::bare_value, typename populator_type::store_value>)
             {
                 unsigned int iz = 0;
-                zone = dvector<typename populator_type::bare_value>(zone0.size() * zone1.size(), {});
+                zone = vector_type<typename populator_type::bare_value>(zone0.size() * zone1.size(), {});
                 for (const auto z1 : zone1)
                 {
                     for (const auto z0 : zone0)
@@ -183,7 +186,7 @@ namespace detray
          * 
          * @return the sequence of values
          **/
-        dvector<typename populator_type::bare_value> zone(const point2 &p2, const neighborhood<dindex> &nhood = hermit2, bool sort = false) const
+        vector_type<typename populator_type::bare_value> zone(const point2 &p2, const neighborhood<dindex> &nhood = hermit2, bool sort = false) const
         {
             return zone_t<dindex>(p2, nhood, sort);
         }
@@ -198,7 +201,7 @@ namespace detray
          * 
          * @return the sequence of values
          **/
-        dvector<typename populator_type::bare_value> zone(const point2 &p2, const neighborhood<scalar> &nhood, bool sort = false) const
+        vector_type<typename populator_type::bare_value> zone(const point2 &p2, const neighborhood<scalar> &nhood, bool sort = false) const
         {
             return zone_t<scalar>(p2, nhood, sort);
         }
@@ -210,7 +213,7 @@ namespace detray
         const axis_p1_type &axis_p1() const { return _axis_p1; }
 
         /* Copy of axes in a tuple */
-        dtuple<axis_p0_type, axis_p1_type> axes() const { return std::tie(_axis_p0, _axis_p1); }
+        tuple_type<axis_p0_type, axis_p1_type> axes() const { return std::tie(_axis_p0, _axis_p1); }
 
         /** Const acess to the serializer */
         const serializer_type &serializer() const { return _serializer; }
