@@ -8,6 +8,7 @@
 
 #include "utils/indexing.hpp"
 
+#include <type_traits>
 #include <tuple>
 
 namespace detray
@@ -99,8 +100,9 @@ namespace detray
      * @note sequence({2,4}) will produce { 2, 3, 4 }
      * 
      **/
-    template<template <typename, unsigned int> class array_type = darray>
-    constexpr auto sequence(array_type<dindex, 2> iterable)
+    template <typename array_type, 
+              typename = std::enable_if_t<std::conditional_t<std::is_array_v<array_type>, std::extent<array_type>, std::tuple_size<array_type>>::value == 2U> >
+    constexpr auto sequence(array_type iterable)
     {
 
         struct iterator
@@ -121,11 +123,11 @@ namespace detray
         };
         struct iterable_wrapper
         {
-            array_type<dindex, 2> iterable;
-            auto begin() { return iterator{iterable[0], iterable[1]}; }
-            auto end() { return iterator{iterable[1] + 1, iterable[1] + 1}; }
+            array_type _iterable;
+            auto begin() { return iterator{_iterable[0], _iterable[1]}; }
+            auto end() { return iterator{_iterable[1] + 1, _iterable[1] + 1}; }
         };
-        return iterable_wrapper{std::forward<array_type<dindex, 2> >(iterable)};
+        return iterable_wrapper{std::forward<array_type>(iterable)};
     }
 
 } // namespace detray
