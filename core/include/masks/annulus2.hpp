@@ -46,12 +46,13 @@ namespace detray
     template <typename intersector_type = planar_intersector,
               typename local_type = __plugin::polar2,
               typename links_type = bool,
-              unsigned int kMaskContext = e_annulus2>
+              unsigned int kMaskContext = e_annulus2,
+              template <typename, unsigned int> class array_type = darray>
     struct annulus2
     {
-        using mask_tolerance = darray<scalar, 2>;
+        using mask_tolerance = array_type<scalar, 2>;
 
-        using mask_values = darray<scalar, 7>;
+        using mask_values = array_type<scalar, 7>;
 
         using mask_links_type = links_type;
 
@@ -74,7 +75,7 @@ namespace detray
          * @param rhs is the right hand side object
          **/
         annulus2<intersector_type, local_type, links_type, kMaskContext> &
-        operator=(const darray<scalar, 7> &rhs)
+        operator=(const array_type<scalar, 7> &rhs)
         {
             _values = rhs;
             return (*this);
@@ -147,7 +148,7 @@ namespace detray
          * @param rhs is the rectangle to be compared with
          * 
          **/
-        bool operator==(const darray<scalar, 7> &rhs)
+        bool operator==(const array_type<scalar, 7> &rhs)
         {
             return (_values == rhs);
         }

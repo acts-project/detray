@@ -20,6 +20,7 @@ namespace detray
 {
     /** This is an intersector struct for a concetric cylinder surface
      */
+    template<template <typename, unsigned int> class array_type = darray>
     struct concentric_cylinder_intersector
     {
 
@@ -105,9 +106,9 @@ namespace detray
 
             if (std::get<0>(qe_solution) > overstep_tolerance)
             {
-                darray<point3, 2> candidates;
+                array_type<point3, 2> candidates;
                 auto u01 = std::get<1>(qe_solution);
-                darray<scalar, 2> t01 = {0., 0.};
+                array_type<scalar, 2> t01 = {0., 0.};
 
                 candidates[0][_x] = u01[0];
                 candidates[0][_y] = k * u01[0] + d;

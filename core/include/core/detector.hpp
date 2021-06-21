@@ -53,7 +53,7 @@ namespace detray
         using context = typename alignable_store::context;
 
         /// Volume grid definition
-        using volume_grid = grid2<replace_populator<>, axis::irregular, axis::irregular, serializer2>;
+        using volume_grid = grid2<replace_populator<>, axis::irregular<>, axis::irregular<>, serializer2>;
 
         /// Portals components:
         /// - links:  next volume, next (local) object finder

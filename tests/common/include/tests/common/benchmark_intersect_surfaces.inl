@@ -158,7 +158,7 @@ namespace __plugin
         unsigned int sfhit = 0;
         unsigned int sfmiss = 0;
 
-        using cylinder_mask = cylinder3<false, concentric_cylinder_intersector>;
+        using cylinder_mask = cylinder3<false, concentric_cylinder_intersector<>>;
         dvector<cylinder_mask> cylinders;
         for (auto r : dists)
         {

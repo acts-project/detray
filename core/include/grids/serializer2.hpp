@@ -54,8 +54,9 @@ namespace detray
          * 
          * @return a 2-dim array of dindex 
          */
-        template <typename faxis_type, typename saxis_type>
-        darray<dindex, 2> deserialize(const faxis_type& faxis, const saxis_type& /*saxis*/, dindex serialbin) const
+        template <typename faxis_type, typename saxis_type,
+                  template <typename, unsigned int> class array_type = darray>
+        array_type<dindex, 2> deserialize(const faxis_type& faxis, const saxis_type& /*saxis*/, dindex serialbin) const
         {
             dindex sbin = static_cast<dindex>(serialbin/faxis.bins());
             dindex fbin = serialbin - sbin * faxis.bins();

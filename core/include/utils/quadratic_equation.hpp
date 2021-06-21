@@ -15,14 +15,16 @@ namespace detray
 
     /** Struct to solve a quadratic equation of type p[0] * x^2 + p[1] * x + p[2] = 0 
      */
-    template <typename scalar_type>
+    template <typename scalar_type,
+              template <typename, unsigned int> class array_type = darray,
+              template <typename ...> class tuple_type = dtuple>
     struct quadratic_equation
     {
-        darray<scalar_type, 3> _params = {0., 0., 0.};
+        array_type<scalar_type, 3> _params = {0., 0., 0.};
 
         /** Solve the quadratic equation 
          **/
-        dtuple<int, darray<scalar_type, 2>>
+        tuple_type<int, array_type<scalar_type, 2>>
         operator()() const
         {
             scalar_type discriminant = _params[1] * _params[1] - 4 * _params[0] * _params[2];
@@ -37,7 +39,7 @@ namespace detray
                                                                 : -std::sqrt(discriminant)));
                 scalar_type first = q / _params[0];
                 scalar_type second = _params[2] / q;
-                darray<scalar_type, 2> poles = {first, second};
+                array_type<scalar_type, 2> poles = {first, second};
                 std::sort(poles.begin(), poles.end());
                 return {solutions, poles};
             }

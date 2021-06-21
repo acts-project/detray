@@ -12,7 +12,8 @@ namespace detray
 {
 
     /** Line stepper implementation */
-    template <typename track_type>
+    template <typename track_type,
+              template <typename ...> class tuple_type = dtuple>
     struct line_stepper {
 
         /** State struct holding the track 
@@ -32,7 +33,7 @@ namespace detray
 
 
             /** @return the step and heartbeat given a step length s */
-            dtuple<scalar, bool> step(scalar s) {
+            tuple_type<scalar, bool> step(scalar s) {
                 _pl = (s > _pl) ? s - _pl : _pl - s;
                 const bool heartbeat = (_pl > 0.);
                 return std::tie(std::min(s,_pl), heartbeat);

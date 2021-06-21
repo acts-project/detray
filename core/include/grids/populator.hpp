@@ -22,7 +22,8 @@ namespace detray
      * @note bare_value and store_value are identicial in this case
      **/
     template <typename value_type = dindex, 
-              value_type kInvalid = std::numeric_limits<dindex>::max() >
+              value_type kInvalid = std::numeric_limits<dindex>::max(),
+              template <typename> class vector_type = dvector>
     struct replace_populator
     {
 
@@ -47,7 +48,7 @@ namespace detray
          * 
          * @return a sequence of bare values
          */
-        dvector<bare_value> sequence(store_value &stored) const
+        vector_type<bare_value> sequence(store_value &stored) const
         {
             if (stored != kInvalid)
             {
@@ -88,14 +89,16 @@ namespace detray
     template <unsigned int kDIM, 
               bool kSORT = false, 
               typename value_type = dindex, 
-              value_type kInvalid = std::numeric_limits<dindex>::max() >
+              value_type kInvalid = std::numeric_limits<dindex>::max(),
+              template <typename, unsigned int> class array_type = darray,
+              template <typename> class vector_type = dvector>
     struct complete_populator
     {
 
         static constexpr value_type invalid_value = kInvalid;
 
         using bare_value = value_type;
-        using store_value = darray<bare_value, kDIM>;
+        using store_value = array_type<bare_value, kDIM>;
 
         /** Complete the stored value with a new bare value
          * 
@@ -125,9 +128,9 @@ namespace detray
          * 
          * @return a sequence of bare values, @note it will ignore invalid entries
          */
-        dvector<bare_value> sequence(store_value &stored) const
+        vector_type<bare_value> sequence(store_value &stored) const
         {
-            dvector<bare_value> s;
+            vector_type<bare_value> s;
             s.reserve(kDIM);
             for (const auto &val : stored)
             {
@@ -171,12 +174,14 @@ namespace detray
      * 
      * @note bare_value and store_value are identicial in this case
      **/
-    template <bool kSORT = false, typename value_type = dindex>
+    template <bool kSORT = false, 
+              typename value_type = dindex,
+              template <typename> class vector_type = dvector>
     struct attach_populator
     {
 
         using bare_value = value_type;
-        using store_value = dvector<bare_value>;
+        using store_value = vector_type<bare_value>;
 
         /** Add a new value to the stored value
          * 
@@ -198,7 +203,7 @@ namespace detray
          * 
          * @return a sequence of bare values
          */
-        dvector<bare_value> sequence(store_value &stored) const
+        vector_type<bare_value> sequence(store_value &stored) const
         {
             return stored;
         }

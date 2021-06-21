@@ -21,6 +21,7 @@ namespace detray
          * The axis is closed, i.e. each underflow bin is mapped to 0
          * and henceforth each overflow bin is mapped to bins-1
          */
+        template<template <typename, unsigned int> class array_type = darray>
         struct regular
         {
             dindex n_bins;
@@ -53,7 +54,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<dindex, 2> &nhood = {0u, 0u}) const
+            dindex_range range(scalar v, const array_type<dindex, 2> &nhood = {0u, 0u}) const
             {
 
                 int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
@@ -71,7 +72,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<scalar, 2> &nhood) const
+            dindex_range range(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 int nbin = static_cast<int>((v - nhood[0] - min) / (max - min) * n_bins);
                 int pbin = static_cast<int>((v + nhood[1] - min) / (max - min) * n_bins);
@@ -91,7 +92,7 @@ namespace detray
              * As the axis is closed it @returns a dindex_sequence
              **/
             template <typename neighbor_t>
-            dindex_sequence zone_t(scalar v, const darray<neighbor_t, 2> &nhood) const
+            dindex_sequence zone_t(scalar v, const array_type<neighbor_t, 2> &nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
                 dindex_sequence sequence(static_cast<dindex_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
@@ -108,7 +109,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<dindex, 2> &nhood) const
+            dindex_sequence zone(scalar v, const array_type<dindex, 2> &nhood) const
             {
                 return zone_t<dindex>(v, nhood);
             }
@@ -120,26 +121,27 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<scalar, 2> &nhood) const
+            dindex_sequence zone(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 return zone_t<scalar>(v, nhood);
             }
 
             /** @return the bin boundaries for a given @param ibin */
-            darray<scalar, 2> borders(dindex ibin) const
+            array_type<scalar, 2> borders(dindex ibin) const
             {
                 scalar step = (max - min) / n_bins;
                 return {ibin * step, (ibin + 1) * step};
             }
 
             /** @return the axis span [min, max) */
-            darray<scalar, 2> span() const { return {min, max}; }
+            array_type<scalar, 2> span() const { return {min, max}; }
         };
 
         /** A regular circular axis.
          * 
          * The axis is circular, i.e. the underflow bins map into the circular sequence
          */
+        template<template <typename, unsigned int> class array_type = darray>
         struct circular
         {
 
@@ -173,7 +175,7 @@ namespace detray
              * 
              * As the axis is circular it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<dindex, 2> nhood = {0u, 0u}) const
+            dindex_range range(scalar v, const array_type<dindex, 2> nhood = {0u, 0u}) const
             {
                 dindex gbin = bin(v);
                 dindex min_bin = remap(gbin, -static_cast<int>(nhood[0]));
@@ -188,7 +190,7 @@ namespace detray
              * 
              * As the axis is circular it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<scalar, 2> &nhood) const
+            dindex_range range(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 dindex nbin = bin(v - nhood[0]);
                 dindex pbin = bin(v + nhood[1]);
@@ -205,7 +207,7 @@ namespace detray
              * As the axis is closed it @returns a dindex_sequence
              **/
             template <typename neighbor_t>
-            dindex_sequence zone_t(scalar v, const darray<neighbor_t, 2> &nhood) const
+            dindex_sequence zone_t(scalar v, const array_type<neighbor_t, 2> &nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
                 if (nh_range[0] < nh_range[1])
@@ -238,7 +240,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<dindex, 2> &nhood) const
+            dindex_sequence zone(scalar v, const array_type<dindex, 2> &nhood) const
             {
                 return zone_t<dindex>(v, nhood);
             }
@@ -250,7 +252,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<scalar, 2> &nhood) const
+            dindex_sequence zone(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 return zone_t<scalar>(v, nhood);
             }
@@ -277,14 +279,14 @@ namespace detray
             }
 
             /** @return the bin boundaries for a given @param ibin */
-            darray<scalar, 2> borders(dindex ibin) const
+            array_type<scalar, 2> borders(dindex ibin) const
             {
                 scalar step = (max - min) / n_bins;
                 return {ibin * step, (ibin + 1) * step};
             }
 
             /** @return the range  */
-            darray<scalar, 2> span() const { return {min, max}; }
+            array_type<scalar, 2> span() const { return {min, max}; }
         };
 
         /** An iregular circular axis.
@@ -292,10 +294,12 @@ namespace detray
          * The axis is closed, i.e. the underflow is mapped into the first,
          * the overflow is mapped into the last.
          */
+        template<template <typename> class vector_type = dvector,
+                 template <typename, unsigned int> class array_type = darray>
         struct irregular
         {
 
-            dvector<scalar> boundaries;
+            vector_type<scalar> boundaries;
 
             static constexpr unsigned int axis_identifier = 2;
 
@@ -322,7 +326,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<dindex, 2> &nhood = {0u, 0u}) const
+            dindex_range range(scalar v, const array_type<dindex, 2> &nhood = {0u, 0u}) const
             {
 
                 dindex ibin = bin(v);
@@ -341,7 +345,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
-            dindex_range range(scalar v, const darray<scalar, 2> &nhood) const
+            dindex_range range(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 dindex nbin = bin(v - nhood[0]);
                 dindex pbin = bin(v + nhood[1]);
@@ -358,7 +362,7 @@ namespace detray
              * As the axis is closed it @returns a dindex_sequence
              **/
             template <typename neighbor_t>
-            dindex_sequence zone_t(scalar v, const darray<neighbor_t, 2> nhood) const
+            dindex_sequence zone_t(scalar v, const array_type<neighbor_t, 2> nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
                 dindex_sequence sequence(static_cast<dindex_sequence::size_type>(nh_range[1] - nh_range[0] + 1), nh_range[0]);
@@ -375,7 +379,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<dindex, 2> &nhood = {0, 0}) const
+            dindex_sequence zone(scalar v, const array_type<dindex, 2> &nhood = {0, 0}) const
             {
                 return zone_t<dindex>(v, nhood);
             }
@@ -387,19 +391,19 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
-            dindex_sequence zone(scalar v, const darray<scalar, 2> &nhood) const
+            dindex_sequence zone(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 return zone_t<scalar>(v, nhood);
             }
 
             /** @return the bin boundaries for a given @param ibin */
-            darray<scalar, 2> borders(dindex ibin) const
+            array_type<scalar, 2> borders(dindex ibin) const
             {
                 return {boundaries[ibin], boundaries[ibin + 1]};
             }
 
             /** @return the range  */
-            darray<scalar, 2>
+            array_type<scalar, 2>
             span() const
             {
                 return {boundaries[0], boundaries[boundaries.size() - 1]};
