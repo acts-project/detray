@@ -80,8 +80,8 @@ namespace detray
          * @tparam links_type the type of the links the candidate is holding
          * 
          **/
-        template <typename object_type, 
-                  typename candidate_type, 
+        template <typename object_type,
+                  typename candidate_type,
                   typename links_type,
                   template <typename> class vector_type = dvector>
         struct navigation_kernel
@@ -142,10 +142,10 @@ namespace detray
             /** Scalar representation of the navigation state,
              * @returns distance to next
              **/
-            scalar operator()() const {
+            scalar operator()() const
+            {
                 return distance_to_next;
             }
-
         };
 
         __plugin::cartesian2 cart2;
@@ -232,7 +232,7 @@ namespace detray
 
             // Retrieve the volume, either from valid index or through global search
             const auto &volume = (navigation.volume_index != dindex_invalid) ? detector.indexed_volume(navigation.volume_index)
-                                                                             : detector.indexed_volume(track.pos);          
+                                                                             : detector.indexed_volume(track.pos);
             navigation.volume_index = volume.index();
             // Retrieve the kernels
             auto &surface_kernel = navigation.surface_kernel;
@@ -268,7 +268,6 @@ namespace detray
                 // If no surfaces are to processed, initialize the portals
                 if (surface_kernel.empty())
                 {
-                    
 
                     initialize_kernel(navigation, portal_kernel, track, volume.portals(), navigation.status == e_on_portal);
                     heartbeat = check_volume_switch(navigation);
@@ -312,7 +311,9 @@ namespace detray
             const auto &transforms = constituents.transforms();
             const auto &masks = constituents.masks();
             // Loop over all indexed surfaces, intersect and fill
-            for (auto si : sequence({0, n_objects - 1}))
+            // @todo - will come from the local object finder
+            darray<dindex, 2> surface_range = {0, n_objects - 1};
+            for (auto si : sequence(surface_range))
             {
                 const auto &object = constituents.indexed_object(si);
                 auto [sfi, link] = intersect(track, object, transforms, masks);
