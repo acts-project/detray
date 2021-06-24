@@ -18,6 +18,11 @@ namespace detray {
     template< class... types>
     using dtuple = algebra::tuple_s<types ...>;
 
+    using algebra::operator*;
+    using algebra::operator/;
+    using algebra::operator+;
+    using algebra::operator-;
+
     namespace getter = algebra::getter;
     namespace vector = algebra::vector;
 

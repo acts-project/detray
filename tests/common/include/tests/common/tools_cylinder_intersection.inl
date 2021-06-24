@@ -26,6 +26,7 @@ using vector3 = __plugin::vector3;
 using point3 = __plugin::point3;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
+constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
 constexpr scalar isclose = 1e-5;
 
 // This defines the local frame test suite
@@ -43,7 +44,8 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder)
     ASSERT_NEAR(hit_unbound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_unbound.p3[1], 2., epsilon);
     ASSERT_NEAR(hit_unbound.p3[2], 5., epsilon);
-    ASSERT_TRUE(hit_unbound.p2 == std::nullopt);
+    ASSERT_TRUE(hit_unbound.p2[0] == not_defined
+                && hit_unbound.p2[1] == not_defined);
 
     // The same but bound
     __plugin::cylindrical2 cylindrical2;
@@ -52,9 +54,10 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder)
     ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_bound.p3[1], 2., epsilon);
     ASSERT_NEAR(hit_bound.p3[2], 5., epsilon);
-    ASSERT_TRUE(hit_bound.p2 != std::nullopt);
-    ASSERT_NEAR(hit_bound.p2.value()[0], 0., isclose);
-    ASSERT_NEAR(hit_bound.p2.value()[1], -5., isclose);
+    ASSERT_TRUE(hit_bound.p2[0] != not_defined
+                && hit_bound.p2[1] != not_defined);
+    ASSERT_NEAR(hit_bound.p2[0], 0., isclose);
+    ASSERT_NEAR(hit_bound.p2[1], -5., isclose);
 }
 
 // This defines the local frame test suite
@@ -89,10 +92,12 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders)
     ASSERT_NEAR(hit_cylinrical.p3[0], hit_cocylindrical.p3[0], isclose);
     ASSERT_NEAR(hit_cylinrical.p3[1], hit_cocylindrical.p3[1], isclose);
     ASSERT_NEAR(hit_cylinrical.p3[2], hit_cocylindrical.p3[2], isclose);
-    ASSERT_TRUE(hit_cylinrical.p2 != std::nullopt);
-    ASSERT_TRUE(hit_cocylindrical.p2 != std::nullopt);
-    ASSERT_NEAR(hit_cylinrical.p2.value()[0], hit_cocylindrical.p2.value()[0], isclose);
-    ASSERT_NEAR(hit_cylinrical.p2.value()[1], hit_cocylindrical.p2.value()[1], isclose);
+    ASSERT_TRUE(hit_cylinrical.p2[0] != not_defined
+                && hit_cylinrical.p2[1] != not_defined);
+    ASSERT_TRUE(hit_cocylindrical.p2[0] != not_defined
+                && hit_cocylindrical.p2[1] != not_defined);
+    ASSERT_NEAR(hit_cylinrical.p2[0], hit_cocylindrical.p2[0], isclose);
+    ASSERT_NEAR(hit_cylinrical.p2[1], hit_cocylindrical.p2[1], isclose);
 }
 
 

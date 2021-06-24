@@ -21,17 +21,19 @@ namespace detray
         /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame,
          * including the contextual transform into the local 3D frame
          **/
-        const std::optional<point2> operator()(const transform3 & /*ignored*/,
+        const point2 operator()(const transform3 & /*ignored*/,
                                                const point3 & /*ignored*/) const
         {
-            return std::nullopt;
+            return {std::numeric_limits<scalar>::infinity(),
+                    std::numeric_limits<scalar>::infinity()};
         }
 
         /** This method transform from a point from the global 3D cartesian frame to the local 2D cartesian frame
              */
-        const std::optional<point2> operator()(const point3 & /*ignored*/) const
+        const point2 operator()(const point3 & /*ignored*/) const
         {
-            return std::nullopt;
+            return {std::numeric_limits<scalar>::infinity(),
+                    std::numeric_limits<scalar>::infinity()};
         }
     };
 } // namespace detray
