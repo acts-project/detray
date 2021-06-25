@@ -24,7 +24,11 @@ using plane_surface = surface_base<transform3>;
 __plugin::cartesian2 cart2;
 __plugin::cylindrical2 cyl2;
 
+#ifdef DETRAY_BENCHMARKS_REP
+unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
+#else
 unsigned int gbench_repetitions = 0;
+#endif
 
 unsigned int theta_steps = 1000;
 unsigned int phi_steps = 1000;
@@ -69,6 +73,9 @@ namespace __plugin
                     {
                         auto pi = rect.intersector();
                         auto is = pi.intersect(plane.transform(), ori, dir, cart2, rect);
+                        
+                        benchmark::DoNotOptimize(sfhit);
+                        benchmark::DoNotOptimize(sfmiss);
                         if (is.status == e_inside)
                         {
                             ++sfhit;
@@ -85,9 +92,12 @@ namespace __plugin
     }
 
     BENCHMARK(BM_INTERSECT_PLANES)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
     ->Repetitions(gbench_repetitions)
-    ->DisplayAggregatesOnly(true)
-    ->ThreadPerCpu();
+    ->DisplayAggregatesOnly(true);
 
     // This test runs intersection with all surfaces of the TrackML detector
     static void BM_INTERSECT_CYLINDERS(benchmark::State &state)
@@ -132,6 +142,9 @@ namespace __plugin
                     {
                         auto ci = cylinder.intersector();
                         auto is = ci.intersect(plain.transform(), ori, dir, cyl2, cylinder);
+                        
+                        benchmark::DoNotOptimize(sfhit);
+                        benchmark::DoNotOptimize(sfmiss);
                         if (is.status == e_inside)
                         {
                             ++sfhit;
@@ -148,9 +161,12 @@ namespace __plugin
     }
 
     BENCHMARK(BM_INTERSECT_CYLINDERS)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
     ->Repetitions(gbench_repetitions)
-    ->DisplayAggregatesOnly(true)
-    ->ThreadPerCpu();
+    ->DisplayAggregatesOnly(true);
 
     // This test runs intersection with all surfaces of the TrackML detector
     static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state)
@@ -171,9 +187,6 @@ namespace __plugin
 
         for (auto _ : state)
         {
-            benchmark::DoNotOptimize(sfhit);
-            benchmark::DoNotOptimize(sfmiss);
-
             // Loops of theta values
             for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
             {
@@ -194,6 +207,9 @@ namespace __plugin
                     {
                         auto cci = cylinder.intersector();
                         auto is = cci.intersect(plain.transform(), ori, dir, cyl2, cylinder);
+
+                        benchmark::DoNotOptimize(sfhit);
+                        benchmark::DoNotOptimize(sfmiss);
                         if (is.status == e_inside)
                         {
                             ++sfhit;
@@ -210,9 +226,12 @@ namespace __plugin
     }
 
     BENCHMARK(BM_INTERSECT_CONCETRIC_CYLINDERS)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
     ->Repetitions(gbench_repetitions)
-    ->DisplayAggregatesOnly(true)
-    ->ThreadPerCpu();
+    ->DisplayAggregatesOnly(true);
 
 } // namespace __plugin
 
