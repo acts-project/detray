@@ -16,6 +16,28 @@
 namespace detray
 {
 
+    /** Static draw function for vertices 
+     * 
+     * @param vertices the vertices generated from the mask
+     * @param tf is the transform where the surface is placed
+     * @param st is the style class for the grid
+     * @param view is the view type for the display
+     * 
+     */
+    template <typename vertex_container_type, typename view_t = single_view>
+    static inline void draw_vertices(const vertex_container_type &vertices,
+                                     const transform3 &tf,
+                                     const style &st,
+                                     const view_t &view = view_t())
+    {
+        // Create a view of the vertices
+        auto [x, y] = view(vertices, tf);
+        auto filled_area = matplot::fill(x, y, "w");
+
+        filled_area->color(st.fill_color);
+        filled_area->line_width(st.line_width);
+    }
+
     /** Static draw function for the surface (components)
      *   
      * @param maks is the mask of the surface to be drawn
@@ -24,10 +46,10 @@ namespace detray
      * @param view is the view type for the display
      */
     template <typename mask_type, typename view_t = single_view>
-    static inline void draw(const mask_type &mask,
-                            const transform3 &tf,
-                            const style &st,
-                            const view_t &view = view_t())
+    static inline void draw_mask(const mask_type &mask,
+                                 const transform3 &tf,
+                                 const style &st,
+                                 const view_t &view = view_t())
     {
         // Create a view of the vertices
         auto [x, y] = view(vertices(mask, st.segments), tf);
@@ -63,12 +85,6 @@ namespace detray
         {
             matplot::cla();
         }
-    }
-
-    /** Show what's currently to show */
-    void show()
-    {
-        matplot::show();
     }
 
 } // namespace aplot

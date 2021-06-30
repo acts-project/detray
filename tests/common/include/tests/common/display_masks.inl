@@ -22,7 +22,6 @@ using transform3 = __plugin::transform3;
 using vector3 = __plugin::vector3;
 using point3 = __plugin::point3;
 
-
 TEST(display, annulus2)
 {
     detray::global_xy_view gxy;
@@ -31,11 +30,10 @@ TEST(display, annulus2)
     transform3 transform{};
     annulus2<> annulus = {7.2, 12.0, 0.74195, 1.33970, 0., -2., 2.};
 
-    color c = {0.2, 0.8, 0.6, 0.9 };
+    color c = {0.2, 0.8, 0.6, 0.9};
     display(false);
-    draw(annulus, transform, style{c}, gxy);
+    draw_mask(annulus, transform, style{c}, gxy);
     save("annulus.png");
-
 }
 
 TEST(display, rectangle2)
@@ -44,15 +42,13 @@ TEST(display, rectangle2)
 
     // First rectangle
     transform3 transform{};
-    rectangle2<> rectangle = {3.,4.};
+    rectangle2<> rectangle = {3., 4.};
 
-    color c = {0.5, 0.2, 0.6, 0.9 };
+    color c = {0.5, 0.2, 0.6, 0.9};
     display(false);
-    draw(rectangle, transform, style{c}, gxy);
+    draw_mask(rectangle, transform, style{c}, gxy);
     save("rectangle.png");
-
 }
-
 
 TEST(display, trapezoid2)
 {
@@ -60,16 +56,13 @@ TEST(display, trapezoid2)
 
     // First rectangle
     transform3 transform{};
-    trapezoid2<> trapezoid = {3.,4.,5.};
+    trapezoid2<> trapezoid = {3., 4., 5.};
 
-    color c = {0.5, 0.4, 0.4, 0.9 };
+    color c = {0.5, 0.4, 0.4, 0.9};
     display(false);
-    draw(trapezoid, transform, style{c}, gxy);
+    draw_mask(trapezoid, transform, style{c}, gxy);
     save("trapezoid.png");
-
 }
-
-
 
 int main(int argc, char **argv)
 {
@@ -77,4 +70,3 @@ int main(int argc, char **argv)
 
     return RUN_ALL_TESTS();
 }
-

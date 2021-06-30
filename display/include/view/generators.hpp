@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 #include "masks/masks.hpp"
 
 namespace detray
@@ -33,7 +35,6 @@ namespace detray
         }
         return values;
     }
-
     /** Generate vertices, specialized for masks: annulus2
      *
      * @note template types are simply forwarded to mask
@@ -64,7 +65,8 @@ namespace detray
         point2 origin_m = {origin_x, origin_y};
 
         /// Helper method: find inner outer radius at edges in STRIP PC
-        auto circIx = [](scalar O_x, scalar O_y, scalar r, scalar phi) -> point2 {
+        auto circIx = [](scalar O_x, scalar O_y, scalar r, scalar phi) -> point2
+        {
             //                      _____________________________________________
             //                     /      2  2                    2    2  2    2
             //     O_x + O_y*m - \/  - O_x *m  + 2*O_x*O_y*m - O_y  + m *r  + r
@@ -115,6 +117,26 @@ namespace detray
         }
 
         return annulus_vertices;
+    }
+
+    /** Generate vertices, spacialized for masks: cylinder3
+     *
+     * @note template types are simply forwarded to mask
+     * 
+     * @param sf is the surface that generates vertices
+     * @param ls is the number of line segments if
+     *
+     * @return a generated list of vertices
+     */
+    template <bool kRadialCheck,
+              typename intersector_type,
+              typename local_type,
+              typename links_type,
+              unsigned int kMaskContext>
+    dvector<point3> vertices(const cylinder3<kRadialCheck, intersector_type, local_type, links_type, kMaskContext> &annulus_mask, unsigned int lseg)
+    {
+
+        return {};
     }
 
     /** Generate vertices, specialized for masks: rectangle2
@@ -190,6 +212,102 @@ namespace detray
         point3 lh_uc = {-m_values[1], m_values[2], 0.};
         // Return the confining vertices
         return {lh_lc, rh_lc, rh_uc, lh_uc};
+    }
+
+    /** Specialized method to generate vertices per maks group
+    * 
+    * @tparam mask_group is the type of the split out mask group from all masks
+    * @tparam mask_range is the type of the according mask range object
+    * 
+    * @param masks is the associated (and split out) mask group
+    * @param range is the range list of masks to be processed
+    * 
+    * @return a jagged vector of points of the mask vertices (one per maks)
+     **/
+    template <typename mask_group,
+              typename mask_range>
+    auto vertices_for_mask_group(const mask_group &masks,
+                                 const mask_range &range,
+                                 dindex n_segments = 1)
+    {
+        dvector<dvector<point3>> mask_vertices = {};
+        for (auto i : sequence(range))
+        {
+            const auto &mask = masks[i];
+            mask_vertices.push_back(vertices(mask, n_segments));
+        }
+        return mask_vertices;
+    }
+
+    /** Variadic unrolled intersection - last entry 
+     * 
+     * @tparam mask_container is the type of the type of the mask container
+     * @tparam mask_range is the mask range type 
+     * @tparam last_mask_context is the last mask group context 
+     * 
+     * @param masks the masks container 
+     * @param range the range within the mask group to be checked
+     * @param mask_context the last mask group context 
+     *
+     * @return a jagged vector of points of the mask vertices (one per maks)
+     **/
+    template <typename mask_container,
+              typename mask_range,
+              dindex last_mask_context>
+    auto vertices_for_last_mask_group(
+        const mask_container &masks,
+        const mask_range &range,
+        dindex mask_context)
+    {
+        dvector<dvector<point3>> mask_vertices = {};
+        if (mask_context == last_mask_context)
+        {
+            mask_vertices = vertices_for_mask_group(std::get<last_mask_context>(masks), range);
+        }
+        return mask_vertices;
+    }
+
+    /** Variadic unrolled intersection - any integer sequence
+     * 
+     * @tparam mask_container is the type of the type of the mask container
+     * @tparam mask_range is the mask range type 
+     * @tparam first_mask_context is the first mask group context 
+     * 
+     * @param masks the masks container 
+     * @param range the range within the mask group to be checked
+     * @param mask_context the last mask group context 
+     * @param available_contices the mask contices to be checked
+     *
+     * @return a jagged vector of points of the mask vertices (one per maks)
+    **/
+    template <typename mask_container,
+              typename mask_range,
+              dindex first_mask_context,
+              dindex... remaining_mask_context>
+    auto unroll_masks_for_vertices(
+        const mask_container &masks,
+        const mask_range &range,
+        dindex mask_context,
+        std::integer_sequence<dindex, first_mask_context, remaining_mask_context...> available_contices)
+    {
+        // Pick the first one for interseciton
+        if (mask_context == first_mask_context)
+        {
+            return vertices_for_mask_group(std::get<first_mask_context>(masks), range);
+        }
+        // The reduced integer sequence
+        std::integer_sequence<dindex, remaining_mask_context...> remaining;
+        // Unroll as long as you have at least 2 entries
+        if constexpr (remaining.size() > 1)
+        {
+            auto mask_vertices = unroll_masks_for_vertices(masks, range, mask_context, remaining);
+            if (not mask_vertices.empty())
+            {
+                return mask_vertices;
+            }
+        }
+        // Last chance - intersect the last index if possible
+        return vertices_for_last_mask_group<mask_container, mask_range, std::tuple_size_v<mask_container> - 1>(masks, range, mask_context);
     }
 
 } // namespace detray
