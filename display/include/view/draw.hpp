@@ -38,9 +38,9 @@ namespace detray
         filled_area->line_width(st.line_width);
     }
 
-    /** Static draw function for the surface (components)
+    /** Static draw function for masks 
      *   
-     * @param maks is the mask of the surface to be drawn
+     * @param mask is the mask of the surface to be drawn
      * @param tf is the transform where the surface is placed
      * @param st is the style class for the grid
      * @param view is the view type for the display
@@ -87,4 +87,4 @@ namespace detray
         }
     }
 
-} // namespace aplot
+} // namespace detray

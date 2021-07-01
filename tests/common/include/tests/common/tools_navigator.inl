@@ -31,17 +31,18 @@ TEST(ALGEBRA_PLUGIN, navigator)
     std::string surface_grid_file = data_directory + std::string("tml-surface-grids.csv");
     std::string layer_volume_file = data_directory + std::string("tml-layer-volumes.csv");
 
-    auto d = detector_from_csv<static_transform_store<>>("tml", surface_file, surface_grid_file, layer_volume_file);
+    auto d = detector_from_csv<>("tml", surface_file, surface_grid_file, layer_volume_file);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
+    using detray_context = decltype(d)::transform_store::context;
 
     detray_navigator n(std::move(d));
 
-    track<static_transform_store<>::context> traj;
+    track<detray_context> traj;
     traj.pos = {0., 0., 0.};
     traj.dir = vector::normalize(vector3{1., 1., 0.});
-    traj.ctx = static_transform_store<>::context{};
+    traj.ctx = detray_context{};
     traj.momentum = 100.;
     traj.overstep_tolerance = -1e-4;
 
