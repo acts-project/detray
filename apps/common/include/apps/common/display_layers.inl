@@ -48,7 +48,7 @@ int main(int argc, char **argv)
             std::string surfaces = argv[2];
             std::string grids = argv[3];
             std::string volumes = argv[4];
-            auto d = detector_from_csv<static_transform_store<>>(name, surfaces, grids, volumes);
+            auto d = detector_from_csv<>(name, surfaces, grids, volumes);
             std::cout << "[detray] Detector read successfully." << std::endl;
             std::cout << d.to_string() << std::endl;
 
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
             surface_style.fill_color = {0.5, 0.1, 0.6, 0.6};
             surface_style.line_width = 1;
 
-            static_transform_store<>::context s_context;
+            decltype(d)::transform_store::context s_context;
 
             // Loop over the volumes
             for (const auto [iv, v] : enumerate(d.volumes()))

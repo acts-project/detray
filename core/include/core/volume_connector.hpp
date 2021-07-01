@@ -12,17 +12,15 @@ namespace detray
     /// Connector method for cylindrical volumes without phi separation
     ///
     /// @tparam detector_type is the type of the detector for the volume access
-    /// @tparam grid_type is the type of the grid for axes acces and search
     ///
     /// @param d [in,out] the detector to which the portal surfaces are added
     /// @param volume_grid [in] the indexed volume grid
     ///
-    template <typename detector_type, 
-              typename grid_type,
+    template <typename detector_type,
               template <typename, unsigned int> class array_type = darray,
-              template <typename ...> class tuple_type = dtuple,
+              template <typename...> class tuple_type = dtuple,
               template <typename> class vector_type = dvector>
-    void connect_cylindrical_volumes(detector_type &d, const grid_type &volume_grid)
+    void connect_cylindrical_volumes(detector_type &d, const typename detector_type::volume_grid &volume_grid)
     {
         // The grid is populated, now create portal surfaces
         // Start from left bottom corner (0,0)
@@ -42,7 +40,8 @@ namespace detray
          * 
          * @note seeds are only set in bottom left corners of blocks
          **/
-        auto add_new_seed = [&](const array_type<dindex, 2> &seed, dindex volume_index) -> void {
+        auto add_new_seed = [&](const array_type<dindex, 2> &seed, dindex volume_index) -> void
+        {
             if (volume_index == dindex_invalid)
             {
                 return;
@@ -89,29 +88,29 @@ namespace detray
             auto walk_up = [&](array_type<dindex, 2> start_bin,
                                vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info,
                                int peek,
-                               bool add_seed = false) -> array_type<dindex, 2> {
-
+                               bool add_seed = false) -> array_type<dindex, 2>
+            {
                 auto running_bin = start_bin;
                 array_type<dindex, 2> last_added = {dindex_invalid, dindex_invalid};
                 // Test entry
                 auto test = volume_grid.bin(running_bin[0], running_bin[1]);
-                // Low/high 
+                // Low/high
                 auto low = axis_r.borders(running_bin[0]);
                 auto high = axis_r.borders(running_bin[0]);
                 //  1 - Left walk up
                 // First peek to the to the left for portal desitnations
-                dindex last_portal_dest = (running_bin[1] > 0 and running_bin[1] <  axis_r.bins()) ? volume_grid.bin(running_bin[0], running_bin[1] + peek) : dindex_invalid;
+                dindex last_portal_dest = (running_bin[1] > 0 and running_bin[1] < axis_r.bins()) ? volume_grid.bin(running_bin[0], running_bin[1] + peek) : dindex_invalid;
                 while ((ref == test) and ++running_bin[0] < axis_r.bins())
                 {
                     high = axis_r.borders(running_bin[0]);
                     test = (seed[0] + 1 < axis_r.bins()) ? volume_grid.bin(running_bin[0], running_bin[1]) : dindex_invalid;
                     // Peek outside and see if the portal destination has changed
-                    dindex portal_dest = (running_bin[1] > 0 and running_bin[1] <  axis_r.bins()) ? volume_grid.bin(running_bin[0], running_bin[1] + peek) : dindex_invalid;
+                    dindex portal_dest = (running_bin[1] > 0 and running_bin[1] < axis_r.bins()) ? volume_grid.bin(running_bin[0], running_bin[1] + peek) : dindex_invalid;
                     if (portal_dest != last_portal_dest)
                     {
                         // Record the boundary
                         portals_info.push_back({{low[0], high[0]}, last_portal_dest});
-                        last_added = { running_bin[0]-1, running_bin[1] };
+                        last_added = {running_bin[0] - 1, running_bin[1]};
                         // low is the new high
                         low = high;
                         last_portal_dest = portal_dest;
@@ -126,7 +125,8 @@ namespace detray
                 }
                 // By this we undo the overstepping in the loop (either by grid boundary or ref/test fail)
                 high = axis_r.borders(--running_bin[0]);
-                if (last_added != running_bin){
+                if (last_added != running_bin)
+                {
                     portals_info.push_back({{low[0], high[1]}, last_portal_dest});
                 }
 
@@ -143,18 +143,18 @@ namespace detray
             /// @param walk_only is a boolean whether to actually add boundaries or not
             ///
             /// @return the end position of the the walk (inside position)
-            auto walk_right = [&](const array_type<dindex, 2>& start_bin,
+            auto walk_right = [&](const array_type<dindex, 2> &start_bin,
                                   vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info,
                                   int peek,
                                   bool add_seed = false,
-                                  bool walk_only = false) -> array_type<dindex, 2> {
-
+                                  bool walk_only = false) -> array_type<dindex, 2>
+            {
                 auto running_bin = start_bin;
                 array_type<dindex, 2> last_added = {dindex_invalid, dindex_invalid};
 
                 // Test, low and high at seed position
                 auto test = volume_grid.bin(running_bin[0], running_bin[1]);
-                // Low/high 
+                // Low/high
                 auto low = axis_z.borders(running_bin[1]);
                 auto high = axis_z.borders(running_bin[1]);
 
@@ -170,9 +170,10 @@ namespace detray
                     if (portal_dest != last_portal_dest)
                     {
                         // Record the boundary
-                        if (not walk_only){
+                        if (not walk_only)
+                        {
                             portals_info.push_back({{low[0], high[0]}, last_portal_dest});
-                            last_added = { running_bin[0], running_bin[1]-1 };
+                            last_added = {running_bin[0], running_bin[1] - 1};
                         }
                         // low is the new high
                         low = high;
@@ -187,7 +188,8 @@ namespace detray
                 }
                 // By this we undo the overstepping (see above)
                 high = axis_z.borders(--running_bin[1]);
-                if (not walk_only and last_added != running_bin){
+                if (not walk_only and last_added != running_bin)
+                {
                     portals_info.push_back({{low[0], high[1]}, last_portal_dest});
                 }
                 // The new bin position after walk
@@ -216,7 +218,8 @@ namespace detray
              * @param bound_index The access for the boundary parameter
              * 
              **/
-            auto add_disc_portals = [&](vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info, dindex bound_index) -> void {
+            auto add_disc_portals = [&](vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info, dindex bound_index) -> void
+            {
                 // Fill in the left side portals
                 if (not portals_info.empty())
                 {
@@ -225,7 +228,7 @@ namespace detray
                     __plugin::transform3 _portal_transform(_translation);
                     // Get the mask context group and fill it
                     auto &mask_group = std::get<detector_type::portal_disc::mask_context>(portal_masks);
-                    typename detector_type::portal_mask_index mask_index = {detector_type::portal_disc::mask_context, { mask_group.size(), mask_group.size() } };
+                    typename detector_type::portal_mask_index mask_index = {detector_type::portal_disc::mask_context, {mask_group.size(), mask_group.size()}};
                     // Create a stub mask for every unique index
                     for (auto &info_ : portals_info)
                     {
@@ -245,7 +248,8 @@ namespace detray
              * @param portals_info 
              * @param bound_index
              **/
-            auto add_cylinder_portal = [&](vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info, dindex bound_index) -> void {
+            auto add_cylinder_portal = [&](vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info, dindex bound_index) -> void
+            {
                 // Fill in the upper side portals
                 if (not portals_info.empty())
                 {
@@ -254,7 +258,7 @@ namespace detray
                     // Get the mask context group and fill it
                     auto &mask_group = std::get<detector_type::portal_cylinder::mask_context>(portal_masks);
 
-                    typename detector_type::portal_mask_index mask_index = {detector_type::portal_cylinder::mask_context, { mask_group.size(), mask_group.size() } };
+                    typename detector_type::portal_mask_index mask_index = {detector_type::portal_cylinder::mask_context, {mask_group.size(), mask_group.size()}};
                     for (auto &info_ : portals_info)
                     {
                         const auto cylinder_range = std::get<0>(info_);
@@ -278,7 +282,7 @@ namespace detray
 
             // Create a transform store and add it
             typename detector_type::context default_context;
-            // All componnents are added 
+            // All componnents are added
             volume.add_portal_components(std::move(portals), std::move(portal_masks));
             volume.add_portal_transforms(default_context, std::move(portal_transforms));
         }

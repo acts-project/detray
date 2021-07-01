@@ -33,16 +33,17 @@ TEST(ALGEBRA_PLUGIN, propagator)
     std::string surface_grid_file = data_directory + std::string("tml-surface-grids.csv");
     std::string layer_volume_file = data_directory + std::string("tml-layer-volumes.csv");
 
-    auto d = detector_from_csv<static_transform_store<>>("tml", surface_file, surface_grid_file, layer_volume_file);
+    auto d = detector_from_csv<>("tml", surface_file, surface_grid_file, layer_volume_file);
 
     // Create the navigator
-    using detray_navigator = navigator<decltype(d)>;    
-    using detray_track = track<static_transform_store<>::context>;
+    using detray_navigator = navigator<decltype(d)>;
+    using detray_context = decltype(d)::transform_store::context;
+    using detray_track = track<detray_context>;
 
     detray_track traj;
     traj.pos = {0., 0., 0.};
     traj.dir = vector::normalize(vector3{1., 1., 0.});
-    traj.ctx = static_transform_store<>::context{};
+    traj.ctx = detray_context{};
     traj.momentum = 100.;
     traj.overstep_tolerance = -1e-4;
 
@@ -51,14 +52,12 @@ TEST(ALGEBRA_PLUGIN, propagator)
     detray_stepper s;
     detray_navigator n(std::move(d));
 
-    using detray_propagator = propagator<detray_stepper,detray_navigator>;
+    using detray_propagator = propagator<detray_stepper, detray_navigator>;
     detray_propagator p(std::move(s), std::move(n));
 
     void_track_inspector vi;
 
     auto end = p.propagate(traj, vi);
-
-
 }
 
 int main(int argc, char **argv)
@@ -67,4 +66,3 @@ int main(int argc, char **argv)
 
     return RUN_ALL_TESTS();
 }
-

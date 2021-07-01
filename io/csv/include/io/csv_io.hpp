@@ -13,88 +13,13 @@
 #include "grids/grid2.hpp"
 #include "grids/serializer2.hpp"
 #include "grids/populator.hpp"
+#include "io/csv_io_types.hpp"
 
-#include <dfe/dfe_namedtuple.hpp>
-#include <dfe/dfe_io_dsv.hpp>
-
-#include <fstream>
 #include <climits>
 #include <map>
 
 namespace detray
 {
-
-  struct csv_surface
-  {
-    /// Surface identifier. Not available in the TrackML datasets.
-    uint64_t geometry_id;
-    /// Partially decoded surface identifier components.
-    uint32_t volume_id, boundary_id, layer_id, module_id;
-    /// Center position components in mm.
-    scalar cx, cy, cz;
-    /// Rotation matrix components.
-    scalar rot_xu, rot_xv, rot_xw;
-    scalar rot_yu, rot_yv, rot_yw;
-    scalar rot_zu, rot_zv, rot_zw;
-    /// The type of the surface bpounds object, determines the parameters filled
-    int bounds_type;
-    scalar bound_param0 = -1.f;
-    scalar bound_param1 = -1.f;
-    scalar bound_param2 = -1.f;
-    scalar bound_param3 = -1.f;
-    scalar bound_param4 = -1.f;
-    scalar bound_param5 = -1.f;
-    scalar bound_param6 = -1.f;
-
-    DFE_NAMEDTUPLE(csv_surface, geometry_id, volume_id, boundary_id, layer_id,
-                   module_id, cx, cy, cz, rot_xu, rot_xv, rot_xw, rot_yu, rot_yv,
-                   rot_yw, rot_zu, rot_zv, rot_zw, bounds_type, bound_param0,
-                   bound_param1, bound_param2, bound_param3, bound_param4,
-                   bound_param5, bound_param6);
-  };
-
-  using surface_reader = dfe::NamedTupleCsvReader<csv_surface>;
-
-  struct csv_surface_grid
-  {
-    /// Surface identifier. Not available in the TrackML datasets.
-    uint64_t geometry_id;
-    /// Partially decoded surface identifier components.
-    uint32_t volume_id, layer_id, surface_id;
-    /// The number of bins in loc 0 / 1
-    int type_loc0 = -1;
-    int nbins_loc0 = -1;
-    scalar min_loc0, max_loc0;
-    int type_loc1 = -1;
-    int nbins_loc1 = -1;
-    scalar min_loc1, max_loc1;
-
-    DFE_NAMEDTUPLE(csv_surface_grid, geometry_id, volume_id, layer_id, surface_id, type_loc1, nbins_loc0, min_loc0,
-                   max_loc0, type_loc1, nbins_loc1, min_loc1, max_loc1);
-  };
-
-  using surface_grid_reader = dfe::NamedTupleCsvReader<csv_surface_grid>;
-
-  struct csv_layer_volume
-  {
-    /// Surface identifier. Not available in the TrackML datasets.
-    uint64_t geometry_id;
-    /// Partially decoded surface identifier components.
-    uint32_t volume_id, layer_id;
-    /// The type of the surface bpounds object, determines the parameters filled
-    int volume_type;
-    float min_v0 = -1.f;
-    float max_v0 = -1.f;
-    float min_v1 = -1.f;
-    float max_v1 = -1.f;
-    float min_v2 = -1.f;
-    float max_v2 = -1.f;
-
-    DFE_NAMEDTUPLE(csv_layer_volume, geometry_id, volume_id, layer_id, min_v0,
-                   max_v0, min_v1, max_v1, min_v2, max_v2);
-  };
-
-  using layer_volume_reader = dfe::NamedTupleCsvReader<csv_layer_volume>;
 
   /// Function to read the detector from the CSV file
   ///
@@ -103,12 +28,18 @@ namespace detray
   /// @param grid_file_name is the name of the surface grid file
   ///
   /// @return a drawable detector object
-  template <typename alignable_store = static_transform_store<>,
+  template <template <typename, unsigned int> class array_type = darray,
+            template <typename...> class tuple_type = dtuple,
+            template <typename> class vector_type = dvector,
+            typename alignable_store = static_transform_store<vector_type>,
             typename surface_source_link = dindex,
             typename bounds_source_link = dindex>
   detector<alignable_store,
            surface_source_link,
-           bounds_source_link>
+           bounds_source_link,
+           array_type,
+           tuple_type,
+           vector_type>
   detector_from_csv(const std::string &detector_name,
                     const std::string &surface_file_name,
                     const std::string &grid_file_name,
@@ -117,7 +48,9 @@ namespace detray
                     scalar z_sync_tolerance = 0.)
   {
 
-    detector d(detector_name);
+    using typed_detector = detector<alignable_store, surface_source_link, bounds_source_link, array_type, tuple_type, vector_type>;
+
+    typed_detector d(detector_name);
 
     // Surface reading
     surface_reader s_reader(surface_file_name);
@@ -132,22 +65,22 @@ namespace detray
     csv_layer_volume io_layer_volume;
 
     using volume_layer_index = std::pair<uint32_t, uint32_t>;
-    std::map<volume_layer_index, typename detector<alignable_store, surface_source_link, bounds_source_link>::volume *> volumes;
+    std::map<volume_layer_index, typename typed_detector::volume *> volumes;
 
     // Read in with a default context
     typename alignable_store::storage surface_transform_storage;
     typename alignable_store::context surface_default_context;
 
     // Flushable containers
-    typename detector<alignable_store, surface_source_link, bounds_source_link>::volume *c_volume = nullptr;
-    typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_container c_surfaces;
-    typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_mask_container c_masks;
+    typename typed_detector::volume *c_volume = nullptr;
+    typename typed_detector::surface_container c_surfaces;
+    typename typed_detector::surface_mask_container c_masks;
 
     std::map<volume_layer_index, darray<scalar, 6>> volume_bounds;
 
     // Remember the r/z attachements
-    dmap<scalar, std::vector<dindex>> r_min_attachments;
-    dmap<scalar, std::vector<dindex>> z_min_attachments;
+    std::map<scalar, std::vector<dindex>> r_min_attachments;
+    std::map<scalar, std::vector<dindex>> z_min_attachments;
     scalar r_max = 0;
     scalar z_max = -std::numeric_limits<scalar>::max();
 
@@ -157,7 +90,7 @@ namespace detray
      * @param value the (eventually new) value for insertion
      * @param volume_index the index of the attached volume
      */
-    auto attach_volume = [](dmap<scalar, std::vector<dindex>> &attachments, scalar value, dindex volume_index) -> void
+    auto attach_volume = [](std::map<scalar, std::vector<dindex>> &attachments, scalar value, dindex volume_index) -> void
     {
       if (attachments.find(value) == attachments.end())
       {
@@ -169,11 +102,11 @@ namespace detray
       }
     };
 
-    // Pre-read the bounds values
-    dmap<scalar, scalar> z_min_layer_volumes;
-    dmap<scalar, scalar> z_max_layer_volumes;
-    dmap<scalar, scalar> r_min_layer_volumes;
-    dmap<scalar, scalar> r_max_layer_volumes;
+    // (A) Pre-read the bounds values
+    std::map<scalar, scalar> z_min_layer_volumes;
+    std::map<scalar, scalar> z_max_layer_volumes;
+    std::map<scalar, scalar> r_min_layer_volumes;
+    std::map<scalar, scalar> r_max_layer_volumes;
 
     while (lv_reader.read(io_layer_volume))
     {
@@ -204,14 +137,14 @@ namespace detray
      * @param flip is a reverse flag for upper boundaries
      * 
      */
-    auto cluster_boundaries = [&](dmap<scalar, scalar> &boundaries, scalar tolerance, int flip = 1) -> void
+    auto cluster_boundaries = [&](std::map<scalar, scalar> &boundaries, scalar tolerance, int flip = 1) -> void
     {
-
       scalar last_ = std::numeric_limits<scalar>::max();
       for (auto &[key, boundary] : boundaries)
       {
         // Do not adust the last one for max values
-        if (flip < 0 and key == boundaries.begin()->first){
+        if (flip < 0 and key == boundaries.begin()->first)
+        {
           continue;
         }
 
@@ -235,7 +168,7 @@ namespace detray
      * @param value_map is the map for the replacement value
      * 
      **/
-    auto find_and_replace = [](scalar &value, const dmap<scalar, scalar> &value_map, int flip = 1) -> void
+    auto find_and_replace = [](scalar &value, const std::map<scalar, scalar> &value_map, int flip = 1) -> void
     {
       // synchronize lower bound
       if (value_map.find(flip * value) != value_map.end())
@@ -286,7 +219,17 @@ namespace detray
       return {r_min, r_max, z_min, z_max, phi_min, phi_max};
     };
 
-    // Reading the surfaces
+    // Use the detectors surface finder
+    // using surface_finder = typed_detector::surface_finder;
+    //std::map<volume_layer_index, >
+
+    // (B) Pre-read the grids & create local object finders
+    while (sg_reader.read(io_surface_grid))
+    {
+      volume_layer_index c_index = {io_surface_grid.volume_id, io_surface_grid.layer_id};
+    }
+
+    // (C) Read the surfaces
     while (s_reader.read(io_surface))
     {
       volume_layer_index c_index = {io_surface.volume_id, io_surface.layer_id};
@@ -301,10 +244,8 @@ namespace detray
           c_volume->add_surface_components(std::move(c_surfaces), std::move(c_masks));
           // Get new clean containers
           surface_transform_storage = typename alignable_store::storage();
-          c_surfaces =
-              typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_container();
-          c_masks =
-              typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_mask_container();
+          c_surfaces = typename typed_detector::surface_container();
+          c_masks = typename typed_detector::surface_mask_container();
         }
 
         // Create a new volume & assign
@@ -365,15 +306,12 @@ namespace detray
         bounds.push_back(io_surface.bound_param6);
 
         // Acts naming convention for bounds
-        typename detector<alignable_store, surface_source_link, bounds_source_link>::surface_mask_index
-            mask_index = {dindex_invalid, dindex_invalid};
+        typename typed_detector::surface_mask_index mask_index = {dindex_invalid, dindex_invalid};
 
         if (bounds_type == 1)
         {
           // Cylinder bounds
-          constexpr auto cylinder_context = detector<alignable_store,
-                                                     surface_source_link,
-                                                     bounds_source_link>::surface_cylinder::mask_context;
+          constexpr auto cylinder_context = typed_detector::surface_cylinder::mask_context;
 
           // Get the cylinder mask container
           auto &cylinder_masks = std::get<cylinder_context>(c_masks);
@@ -389,9 +327,7 @@ namespace detray
         else if (bounds_type == 6)
         {
           // Rectangle bounds
-          constexpr auto rectangle_context = detector<alignable_store,
-                                                      surface_source_link,
-                                                      bounds_source_link>::surface_rectangle::mask_context;
+          constexpr auto rectangle_context = typed_detector::surface_rectangle::mask_context;
 
           // Get the rectangle mask container
           auto &rectangle_masks = std::get<rectangle_context>(c_masks);
@@ -405,9 +341,7 @@ namespace detray
         else if (bounds_type == 7)
         {
           // Trapezoid bounds
-          constexpr auto trapezoid_context = detector<alignable_store,
-                                                      surface_source_link,
-                                                      bounds_source_link>::surface_trapezoid::mask_context;
+          constexpr auto trapezoid_context = typed_detector::surface_trapezoid::mask_context;
           // Get the trapezoid mask container
           auto &trapezoid_masks = std::get<trapezoid_context>(c_masks);
           dindex trapezoid_index = trapezoid_masks.size();
@@ -418,9 +352,7 @@ namespace detray
         else if (bounds_type == 11)
         {
           // Annulus bounds
-          constexpr auto annulus_context = detector<alignable_store,
-                                                    surface_source_link,
-                                                    bounds_source_link>::surface_annulus::mask_context;
+          constexpr auto annulus_context = typed_detector::surface_annulus::mask_context;
           // Get the trapezoid mask container
           auto &annulus_masks = std::get<annulus_context>(c_masks);
           dindex annulus_index = annulus_masks.size();
@@ -440,6 +372,7 @@ namespace detray
         {
           c_surfaces.push_back({transform_index, mask_index, c_volume->index(), io_surface.geometry_id});
         }
+
       } // end of exclusion for navigation layers
     }
 
@@ -450,7 +383,7 @@ namespace detray
      * @return the key values
      */
     auto
-        sort_and_remove_duplicates = [](dmap<scalar, std::vector<dindex>> &att) -> dvector<scalar>
+        sort_and_remove_duplicates = [](std::map<scalar, std::vector<dindex>> &att) -> dvector<scalar>
     {
       dvector<scalar> keys;
       keys.reserve(att.size());
@@ -473,8 +406,7 @@ namespace detray
     axis::irregular raxis{{rs}};
     axis::irregular zaxis{{zs}};
 
-    typename detector<alignable_store, surface_source_link, bounds_source_link>::volume_grid
-        v_grid(std::move(raxis), std::move(zaxis));
+    typename typed_detector::volume_grid v_grid(std::move(raxis), std::move(zaxis));
 
     // A step into the volume (stepsilon), can be read in from the smallest difference
     scalar stepsilon = 1.;
@@ -506,7 +438,7 @@ namespace detray
     }
 
     // Connect the cylindrical volumes
-    connect_cylindrical_volumes(d, v_grid);
+    connect_cylindrical_volumes<typed_detector, array_type, tuple_type, vector_type>(d, v_grid);
 
     // Add the volume grid to the detector
     d.add_volume_grid(std::move(v_grid));

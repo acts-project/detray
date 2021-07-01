@@ -72,7 +72,9 @@ namespace detray
               template <typename, unsigned int> class array_type = darray>
     struct local_single_finder
     {
-        //using value_type = typename container::value_type;
+
+        using point2 = __plugin::point2;
+
         vector_type _value = {};
 
         /** Constructor from a single value */
@@ -87,8 +89,7 @@ namespace detray
          * @param p2 the local 2d point for the grid
          * @note return always the same bin 
          **/
-        template <typename point2_type>
-        vector_type operator()(const point2_type &p2, const array_type<unsigned int, 2> &nhood = {0, 0}) const
+        vector_type operator()(const point2 &p2, const array_type<unsigned int, 2> &nhood = {0, 0}) const
         {
             return _value;
         }
