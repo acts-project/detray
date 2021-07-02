@@ -26,6 +26,7 @@ int main(int argc, char **argv)
     using namespace detray;
     using namespace matplot;
 
+
     if (argc > 1)
     {
         std::string first_arg = argv[1];
@@ -59,7 +60,13 @@ int main(int argc, char **argv)
             surface_style.fill_color = {0.5, 0.1, 0.6, 0.6};
             surface_style.line_width = 1;
 
+            style grid_style;
+            grid_style.fill_color = {0., 1., 0., 0.};
+            grid_style.line_width = 1;
+
             decltype(d)::transform_store::context s_context;
+
+            auto surfaces_finders = d.surfaces_finders();
 
             // Loop over the volumes
             for (const auto [iv, v] : enumerate(d.volumes()))
@@ -114,6 +121,21 @@ int main(int argc, char **argv)
                         }
                     }
                 }
+
+                // Draw the surface finder grid
+                dindex surfaces_finder_entry = v.surfaces_finder_entry();
+
+                if (surfaces_finder_entry != dindex_invalid){
+                
+                    const auto& surface_finder = surfaces_finders[surfaces_finder_entry];
+                    if (not is_cylinder){
+                        const auto& r_phi_grid =  surface_finder.grid();
+                        draw_r_phi_grid(r_phi_grid, grid_style);
+                    } else {
+                
+                    }                
+                }
+
 
                 // Special functionality for single layers
                 //

@@ -21,7 +21,8 @@ namespace detray
          * The axis is closed, i.e. each underflow bin is mapped to 0
          * and henceforth each overflow bin is mapped to bins-1
          */
-        template<template <typename, unsigned int> class array_type = darray>
+        template <template <typename, unsigned int> class array_type = darray,
+                  template <typename> class vector_type = dvector>
         struct regular
         {
             dindex n_bins;
@@ -133,6 +134,19 @@ namespace detray
                 return {ibin * step, (ibin + 1) * step};
             }
 
+            /** @return the values of the borders */
+            vector_type<scalar> all_borders() const
+            {
+                vector_type<scalar> borders;
+                borders.reserve(n_bins + 1);
+                scalar step = (max - min) / n_bins;
+                for (dindex ib = 0; ib < n_bins + 1; ++ib)
+                {
+                    borders.push_back(min + ib * step);
+                }
+                return borders;
+            }
+
             /** @return the axis span [min, max) */
             array_type<scalar, 2> span() const { return {min, max}; }
         };
@@ -141,7 +155,8 @@ namespace detray
          * 
          * The axis is circular, i.e. the underflow bins map into the circular sequence
          */
-        template<template <typename, unsigned int> class array_type = darray>
+        template <template <typename, unsigned int> class array_type = darray,
+                  template <typename> class vector_type = dvector>
         struct circular
         {
 
@@ -285,6 +300,19 @@ namespace detray
                 return {ibin * step, (ibin + 1) * step};
             }
 
+            /** @return the values of the borders */
+            vector_type<scalar> all_borders() const
+            {
+                vector_type<scalar> borders;
+                borders.reserve(n_bins + 1);
+                scalar step = (max - min) / n_bins;
+                for (dindex ib = 0; ib < n_bins + 1; ++ib)
+                {
+                    borders.push_back(min + ib * step);
+                }
+                return borders;
+            }
+
             /** @return the range  */
             array_type<scalar, 2> span() const { return {min, max}; }
         };
@@ -294,8 +322,8 @@ namespace detray
          * The axis is closed, i.e. the underflow is mapped into the first,
          * the overflow is mapped into the last.
          */
-        template<template <typename> class vector_type = dvector,
-                 template <typename, unsigned int> class array_type = darray>
+        template <template <typename, unsigned int> class array_type = darray,
+                  template <typename> class vector_type = dvector>
         struct irregular
         {
 
@@ -400,6 +428,13 @@ namespace detray
             array_type<scalar, 2> borders(dindex ibin) const
             {
                 return {boundaries[ibin], boundaries[ibin + 1]};
+            }
+
+
+            /** @return the values of the borders of all bins */
+            vector_type<scalar> all_borders() const
+            {
+                return boundaries;
             }
 
             /** @return the range  */
