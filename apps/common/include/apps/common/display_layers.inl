@@ -54,7 +54,7 @@ int main(int argc, char **argv)
             std::cout << d.to_string() << std::endl;
 
             global_xy_view xy_view;
-            rphi_z_view rphi_view;
+            global_z_phi_view zphi_view;
 
             style surface_style;
             surface_style.fill_color = {0.5, 0.1, 0.6, 0.6};
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
                             }
                             else
                             {
-                                draw_vertices(vertices, transform, surface_style, rphi_view);
+                                draw_vertices(vertices, transform, surface_style, zphi_view);
                             }
                         }
                     }
@@ -127,12 +127,14 @@ int main(int argc, char **argv)
 
                 if (surfaces_finder_entry != dindex_invalid){
                 
-                    const auto& surface_finder = surfaces_finders[surfaces_finder_entry];
                     if (not is_cylinder){
+                        const auto& surface_finder = surfaces_finders[surfaces_finder_entry];
                         const auto& r_phi_grid =  surface_finder.grid();
                         draw_r_phi_grid(r_phi_grid, grid_style);
                     } else {
-                
+                        const auto& surface_finder = surfaces_finders[surfaces_finder_entry+2];
+                        const auto& z_phi_grid =  surface_finder.grid();
+                        draw_z_phi_grid(z_phi_grid, grid_style);
                     }                
                 }
 

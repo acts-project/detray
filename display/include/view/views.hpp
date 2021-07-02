@@ -103,6 +103,34 @@ namespace detray
         }
     };
 
+    // z-phi projection view
+    struct global_z_phi_view
+    {
+
+        /// A view for a z-phi projection
+        ///
+        /// @param vertices the vertices of the surface
+        /// @param tf the surface transform
+        ///
+        /// @return a 2D contour array
+        contour
+        operator()(const dvector<point3> &vertices, const transform3 &tf) const
+        {
+            dvector<scalar> z;
+            z.reserve(vertices.size());
+            dvector<scalar> phi;
+            phi.reserve(vertices.size());
+
+            for (const auto &v : vertices)
+            {
+                auto vg = tf.point_to_global(v);
+                z.push_back(vg[2]);
+                phi.push_back(getter::phi(vg));
+            }
+            return {z, phi};
+        }
+    };
+
     // rphi-z projection view
     struct rphi_z_view
     {
