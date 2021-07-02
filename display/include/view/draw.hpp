@@ -91,9 +91,52 @@ namespace detray
             scalar y1 = r_borders[r_borders.size() - 1] * sin_phi;
             if (i < static_cast<size_t>(phi_borders.size() - 1))
             {
-                auto phi_bin = matplot::line(x0, y0, x1, y1);
-                phi_bin->color(st.fill_color);
-                phi_bin->line_width(st.line_width);
+                auto phi_line = matplot::line(x0, y0, x1, y1);
+                phi_line->color(st.fill_color);
+                phi_line->line_width(st.line_width);
+            }
+        }
+    }
+
+
+    /** Static draw function for masks 
+     *   
+     * @param grid is the grid of the surface to be drawn
+     * @param st is the style class for the grid
+     * @param view is the view type for the display
+     */
+    template <typename grid_type>
+    static inline void draw_z_phi_grid(const grid_type &grid,
+                                       const style &st)
+    {
+        const auto &z_axis = grid.axis_p0();
+        auto z_borders = z_axis.all_borders();
+        for (auto z : z_borders)
+        {
+
+            scalar z0 = z;
+            scalar phi0 = -M_PI;
+            scalar z1 = z;
+            scalar phi1 = M_PI;
+            auto z_line = matplot::line(z0, phi0, z1, phi1);
+            z_line->color(st.fill_color);
+            z_line->line_width(st.line_width);
+        }
+
+        const auto &phi_axis = grid.axis_p1();
+        auto phi_borders = phi_axis.all_borders();
+        for (auto [i, phi] : enumerate(phi_borders))
+        {
+            scalar z0 = z_borders[0];
+            scalar phi0 = phi;
+            scalar z1 = z_borders[z_borders.size() - 1];
+            scalar phi1 = phi;
+
+            if (i < static_cast<size_t>(phi_borders.size() - 1))
+            {
+                auto phi_line = matplot::line(z0, phi0, z1, phi1);
+                phi_line->color(st.fill_color);
+                phi_line->line_width(st.line_width);
             }
         }
     }
