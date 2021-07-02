@@ -58,7 +58,7 @@ namespace detray
     int nbins_loc1 = -1;
     scalar min_loc1, max_loc1;
 
-    DFE_NAMEDTUPLE(csv_surface_grid, geometry_id, volume_id, layer_id, surface_id, type_loc1, nbins_loc0, min_loc0,
+    DFE_NAMEDTUPLE(csv_surface_grid, geometry_id, volume_id, layer_id, surface_id, type_loc0, nbins_loc0, min_loc0,
                    max_loc0, type_loc1, nbins_loc1, min_loc1, max_loc1);
   };
 

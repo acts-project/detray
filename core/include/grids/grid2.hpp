@@ -39,7 +39,18 @@ namespace detray
         static constexpr array_type<dindex, 2> hermit1 = {0u, 0u};
         static constexpr neighborhood<dindex> hermit2 = {hermit1, hermit1};
 
-        /** Constructor from axes (moved)
+        /** Constructor from axes - copy semantics
+         * 
+         * @param axis_p0 is the axis in the first coordinate
+         * @param axis_p1 is the axis in the second coordinate
+         * 
+         **/
+        grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1) : _axis_p0(axis_p0), _axis_p1(axis_p1)
+        {
+            _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
+        }
+
+        /** Constructor from axes - move semantics
          * 
          * @param axis_p0 is the axis in the first coordinate
          * @param axis_p1 is the axis in the second coordinate

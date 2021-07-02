@@ -145,7 +145,7 @@ namespace detray
         struct circular
         {
 
-            unsigned int n_bins;
+            dindex n_bins;
             scalar min;
             scalar max;
 

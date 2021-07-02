@@ -42,7 +42,7 @@ namespace detray
               typename surface_source_link = dindex,
               typename bounds_source_link = dindex,
               template <typename, unsigned int> class array_type = darray,
-              template <typename ...> class tuple_type = dtuple,
+              template <typename...> class tuple_type = dtuple,
               template <typename> class vector_type = dvector>
     class detector
     {
@@ -62,7 +62,7 @@ namespace detray
         using portal_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, portal_links, 0>;
         using portal_disc = ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
         // - mask index: type, { first/last }
-        using portal_mask_index = tuple_type<dindex, array_type<dindex,2> >;
+        using portal_mask_index = tuple_type<dindex, array_type<dindex, 2>>;
         using portal_mask_container = tuple_type<vector_type<portal_cylinder>, vector_type<portal_disc>>;
 
         /** The Portal definition:
@@ -88,9 +88,9 @@ namespace detray
         /// - mask index: type, entry
         using surface_mask_index = array_type<dindex, 2>;
         using surface_mask_container = tuple_type<vector_type<surface_rectangle>,
-                                              vector_type<surface_trapezoid>,
-                                              vector_type<surface_annulus>,
-                                              vector_type<surface_cylinder>>;
+                                                  vector_type<surface_trapezoid>,
+                                                  vector_type<surface_annulus>,
+                                                  vector_type<surface_cylinder>>;
 
         using surface_link = surface_source_link;
         /** The Surface definition:
@@ -98,6 +98,9 @@ namespace detray
          */
         using surface = surface_base<dindex, surface_mask_index, dindex, surface_link>;
         using surface_container = vector_type<surface>;
+
+        using surface_neighborhood = array_type<array_type<scalar, 2>, 2>;
+        using surface_finder = std::function<vector_type<dindex>(const point2 &, const surface_neighborhood &nhood)>;
 
         /** Nested volume struct that holds the local information of the
          * volume and its portals.
@@ -196,7 +199,7 @@ namespace detray
             }
 
             /** @return all surfaces - const access */
-            const auto& surfaces() const { return _surfaces; }
+            const auto &surfaces() const { return _surfaces; }
 
             /** Add the portals, their transforms and their masks, move semantics
              *
@@ -225,25 +228,25 @@ namespace detray
             }
 
             /** @return all portals - const access */
-            const auto& portals() const { return _portals; }
+            const auto &portals() const { return _portals; }
 
         private:
-            /// Volume section: name
+            /** Volume section: name */
             std::string _name = "unknown";
-            /// Volume index
+            /** Volume index */
             dindex _index = dindex_invalid;
 
-            /// Bounds section, default for r, z, phi
+            /** Bounds section, default for r, z, phi */
             array_type<scalar, 6> _bounds = {0.,
-                                         std::numeric_limits<scalar>::max(),
-                                         -std::numeric_limits<scalar>::max(),
-                                         std::numeric_limits<scalar>::max(),
-                                         -M_PI, M_PI};
+                                             std::numeric_limits<scalar>::max(),
+                                             -std::numeric_limits<scalar>::max(),
+                                             std::numeric_limits<scalar>::max(),
+                                             -M_PI, M_PI};
 
-            /// Surface section
+            /** Surface section */
             constituents<surface, surface_mask_container> _surfaces;
 
-            /// Portal section
+            /** Portal section */
             constituents<portal, portal_mask_container> _portals;
         };
 
@@ -303,6 +306,18 @@ namespace detray
         /** @return the volume grid - const access */
         const volume_grid &volume_search_grid() const { return _volume_grid; }
 
+        /** Add local surface finders linked to from the portals - move semantics
+         * 
+         * This connects portals and surface grids
+         */
+        void add_surface_finders(vector_type<surface_finder> &&surface_finders)
+        {
+            _surface_finders = std::move(surface_finders);
+        }
+
+        /** @return the surface finders - const access */
+        const vector_type<surface_finder>& surface_finders() const { return _surface_finders; }
+
         /** Output to string */
         const std::string to_string() const
         {
@@ -315,7 +330,6 @@ namespace detray
                 ss << "                 " << v._portals.objects().size() << " detector portals" << std::endl;
                 ss << "     bounds r = (" << v._bounds[0] << ", " << v._bounds[1] << ")" << std::endl;
                 ss << "            z = (" << v._bounds[2] << ", " << v._bounds[3] << ")" << std::endl;
-
             }
             return ss.str();
         };
@@ -323,6 +337,8 @@ namespace detray
     private:
         std::string _name = "unknown_detector";
         vector_type<volume> _volumes = {};
+
+        vector_type<surface_finder> _surface_finders;
 
         volume_grid _volume_grid = volume_grid(std::move(axis::irregular{{}}), std::move(axis::irregular{{}}));
     };
