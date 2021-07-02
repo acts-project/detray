@@ -14,32 +14,44 @@
 #include "grids/serializer2.hpp"
 #include "grids/populator.hpp"
 #include "io/csv_io_types.hpp"
+#include "tools/local_object_finder.hpp"
 
+#include <iostream>
 #include <climits>
 #include <map>
+#include <vector>
 
 namespace detray
 {
 
   /// Function to read the detector from the CSV file
   ///
+  /// @tparam array_type is the type of the array used for the detector class
+  /// @tparam tuple_type is the type of the tuple used for the detector class
+  /// @tparam vector_type is the type of the tuple used for the detector class
+  ///
+  /// All other container types are STL containers, as they do not leave the function
+  ///
   /// @param detector_name is the name of the detector
   /// @param surface_file_name is the name of the detector surface file
   /// @param grid_file_name is the name of the surface grid file
+  /// @param layer_volume_file_name is the name of the file containing layer/volume information
+  /// @param r_sync_tolerance is a tolerance to be for synching volumes in r
+  /// @param z_sync_tolerance is a toleranced to be used for synchinng volumes in z
   ///
-  /// @return a drawable detector object
+  /// @return a detector object
   template <template <typename, unsigned int> class array_type = darray,
             template <typename...> class tuple_type = dtuple,
             template <typename> class vector_type = dvector,
             typename alignable_store = static_transform_store<vector_type>,
             typename surface_source_link = dindex,
             typename bounds_source_link = dindex>
-  detector<alignable_store,
-           surface_source_link,
-           bounds_source_link,
-           array_type,
+  detector<array_type,
            tuple_type,
-           vector_type>
+           vector_type,
+           alignable_store,
+           surface_source_link,
+           bounds_source_link>
   detector_from_csv(const std::string &detector_name,
                     const std::string &surface_file_name,
                     const std::string &grid_file_name,
@@ -48,7 +60,7 @@ namespace detray
                     scalar z_sync_tolerance = 0.)
   {
 
-    using typed_detector = detector<alignable_store, surface_source_link, bounds_source_link, array_type, tuple_type, vector_type>;
+    using typed_detector = detector<array_type, tuple_type, vector_type, alignable_store, surface_source_link, bounds_source_link>;
 
     typed_detector d(detector_name);
 
@@ -76,7 +88,7 @@ namespace detray
     typename typed_detector::surface_container c_surfaces;
     typename typed_detector::surface_mask_container c_masks;
 
-    std::map<volume_layer_index, darray<scalar, 6>> volume_bounds;
+    std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
 
     // Remember the r/z attachements
     std::map<scalar, std::vector<dindex>> r_min_attachments;
@@ -111,7 +123,7 @@ namespace detray
     while (lv_reader.read(io_layer_volume))
     {
       volume_layer_index c_index = {io_layer_volume.volume_id, io_layer_volume.layer_id};
-      darray<scalar, 6> c_bounds = {
+      array_type<scalar, 6> c_bounds = {
           io_layer_volume.min_v0,
           io_layer_volume.max_v0,
           io_layer_volume.min_v1,
@@ -182,7 +194,7 @@ namespace detray
      * @param bounds the unsynchronized bounds object
      * @param gap_volume an indicator if its a gap volume 
      **/
-    auto synchronize_bounds = [&](const darray<scalar, 6> &bounds, bool gap_volume) -> darray<scalar, 6>
+    auto synchronize_bounds = [&](const array_type<scalar, 6> &bounds, bool gap_volume) -> array_type<scalar, 6>
     {
       scalar r_min = bounds[0];
       scalar r_max = bounds[1];
@@ -219,29 +231,81 @@ namespace detray
       return {r_min, r_max, z_min, z_max, phi_min, phi_max};
     };
 
-    // Use the detectors surface finder
-    // using surface_finder = typed_detector::surface_finder;
-    //std::map<volume_layer_index, >
+    // Create the surface finders & reserve
+    std::map<volume_layer_index, dindex> surface_finder_entries;
+
+    using surfaces_r_axis = typename typed_detector::surfaces_regular_axis;
+    using surfaces_z_axis = typename typed_detector::surfaces_regular_axis;
+    using surfaces_phi_axis = typename typed_detector::surfaces_circular_axis;
+
+    using surfaces_r_phi_grid = typename typed_detector::surfaces_regular_circular_grid;
+    using surfaces_z_phi_grid = typename typed_detector::surfaces_regular_circular_grid;
+    using surfaces_finder = typename typed_detector::surfaces_finder;
+
+    vector_type<surfaces_finder> detector_surfaces_finders;
 
     // (B) Pre-read the grids & create local object finders
     while (sg_reader.read(io_surface_grid))
     {
       volume_layer_index c_index = {io_surface_grid.volume_id, io_surface_grid.layer_id};
+      
+      surface_finder_entries[c_index] = detector_surfaces_finders.size();
+
+
+      bool is_disk = (io_surface_grid.type_loc0 == 3);
+
+      // Prepare z axis parameters
+      scalar z_min = is_disk ? std::numeric_limits<scalar>::min() : io_surface_grid.min_loc1;
+      scalar z_max = is_disk ? std::numeric_limits<scalar>::max() : io_surface_grid.max_loc1;
+      dindex z_bins = is_disk ? 1u : static_cast<dindex>(io_surface_grid.nbins_loc1);
+
+      // Prepare r axis parameters
+      scalar r_min = is_disk ? io_surface_grid.min_loc0 : 0.;
+      scalar r_max = is_disk ? io_surface_grid.max_loc0 : std::numeric_limits<scalar>::max();
+      dindex r_bins = is_disk ? static_cast<dindex>(io_surface_grid.nbins_loc0) : 1u;
+
+      // Prepare phi axis parameters
+      scalar phi_min = is_disk ? io_surface_grid.min_loc1 : io_surface_grid.min_loc0;
+      scalar phi_max = is_disk ? io_surface_grid.max_loc1 : io_surface_grid.max_loc0;
+      dindex phi_bins = is_disk ? static_cast<dindex>(io_surface_grid.nbins_loc1) : static_cast<dindex>(io_surface_grid.nbins_loc0);
+
+      surfaces_z_axis z_axis{z_bins, z_min, z_max};
+      surfaces_r_axis r_axis{r_bins, r_min, r_max};
+      surfaces_phi_axis phi_axis{phi_bins, phi_min, phi_max};
+
+      // negative / positive / inner / outer
+      surfaces_r_phi_grid rphi_grid_n(r_axis, phi_axis);
+      surfaces_r_phi_grid rphi_grid_p(r_axis, phi_axis);
+      surfaces_z_phi_grid zphi_grid_i{z_axis, phi_axis};
+      surfaces_z_phi_grid zphi_grid_o{z_axis, phi_axis};
+
+      // Create the local surface finders
+      surfaces_finder finder_n(std::move(rphi_grid_n));
+      surfaces_finder finder_p(std::move(rphi_grid_p));
+      surfaces_finder finder_i(std::move(zphi_grid_i));
+      surfaces_finder finder_o(std::move(zphi_grid_o));
+
+      detector_surfaces_finders.push_back(finder_n);
+      detector_surfaces_finders.push_back(finder_p);
+      detector_surfaces_finders.push_back(finder_i);
+      detector_surfaces_finders.push_back(finder_o);
+
     }
 
-    // (C) Read the surfaces
+    // (C) Read the surfaces and fill it
     while (s_reader.read(io_surface))
     {
       volume_layer_index c_index = {io_surface.volume_id, io_surface.layer_id};
       auto c_volume_itr = volumes.find(c_index);
       if (c_volume_itr == volumes.end())
       {
-        // Flush the former information
+        // Flush the former information / c_volume still points to the prior volume
         if (c_volume != nullptr and not surface_transform_storage.empty())
         {
           // Construction with move semantics
           c_volume->add_surface_transforms(surface_default_context, std::move(surface_transform_storage));
           c_volume->add_surface_components(std::move(c_surfaces), std::move(c_masks));
+
           // Get new clean containers
           surface_transform_storage = typename alignable_store::storage();
           c_surfaces = typename typed_detector::surface_container();
@@ -265,7 +329,14 @@ namespace detray
         bool is_gap = (io_surface.layer_id % 2 != 0);
         auto volume_bounds = synchronize_bounds(unsynchronized_volume_bounds, is_gap);
 
-        auto &new_volume = d.new_volume(volume_name, volume_bounds);
+        // Check if this volume has a surface finder entry associated
+        dindex surfaces_finder_entry = dindex_invalid;
+        auto surface_finder_itr = surface_finder_entries.find(c_index);
+        if (surface_finder_itr != surface_finder_entries.end()){
+          surfaces_finder_entry = surface_finder_itr->second;
+        }
+
+        auto &new_volume = d.new_volume(volume_name, volume_bounds, surfaces_finder_entry);
 
         // RZ attachment storage
         attach_volume(r_min_attachments, volume_bounds[0], new_volume.index());
@@ -376,6 +447,7 @@ namespace detray
       } // end of exclusion for navigation layers
     }
 
+
     /** Helper method to sort and remove duplicates
      * 
      * @param att attribute vector for sorting and duplicate removal
@@ -385,7 +457,7 @@ namespace detray
     auto
         sort_and_remove_duplicates = [](std::map<scalar, std::vector<dindex>> &att) -> dvector<scalar>
     {
-      dvector<scalar> keys;
+      std::vector<scalar> keys;
       keys.reserve(att.size());
       for (auto [key, value] : att)
       {
@@ -439,6 +511,9 @@ namespace detray
 
     // Connect the cylindrical volumes
     connect_cylindrical_volumes<typed_detector, array_type, tuple_type, vector_type>(d, v_grid);
+
+    // Add the surface finders to the detector
+    d.add_surfaces_finders(std::move(detector_surfaces_finders));
 
     // Add the volume grid to the detector
     d.add_volume_grid(std::move(v_grid));

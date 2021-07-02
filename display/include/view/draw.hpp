@@ -10,6 +10,7 @@
 #include "view/views.hpp"
 #include "view/generators.hpp"
 #include "style/styles.hpp"
+#include "utils/enumerate.hpp"
 
 #include <matplot/matplot.h>
 
@@ -57,6 +58,44 @@ namespace detray
 
         filled_area->color(st.fill_color);
         filled_area->line_width(st.line_width);
+    }
+
+    /** Static draw function for masks 
+     *   
+     * @param grid is the grid of the surface to be drawn
+     * @param st is the style class for the grid
+     * @param view is the view type for the display
+     */
+    template <typename grid_type>
+    static inline void draw_r_phi_grid(const grid_type &grid,
+                                       const style &st)
+    {
+        const auto &r_axis = grid.axis_p0();
+        auto r_borders = r_axis.all_borders();
+        for (auto r : r_borders)
+        {
+            auto r_line = matplot::rectangle(-r, -r, 2 * r, 2 * r, 1.);
+            r_line->color(st.fill_color);
+            r_line->line_width(st.line_width);
+        }
+
+        const auto &phi_axis = grid.axis_p1();
+        auto phi_borders = phi_axis.all_borders();
+        for (auto [i, phi] : enumerate(phi_borders))
+        {
+            scalar cos_phi = std::cos(phi);
+            scalar sin_phi = std::sin(phi);
+            scalar x0 = r_borders[0] * cos_phi;
+            scalar y0 = r_borders[0] * sin_phi;
+            scalar x1 = r_borders[r_borders.size() - 1] * cos_phi;
+            scalar y1 = r_borders[r_borders.size() - 1] * sin_phi;
+            if (i < static_cast<size_t>(phi_borders.size() - 1))
+            {
+                auto phi_bin = matplot::line(x0, y0, x1, y1);
+                phi_bin->color(st.fill_color);
+                phi_bin->line_width(st.line_width);
+            }
+        }
     }
 
     /** Set up a new display with dimensions and potentially wuite
