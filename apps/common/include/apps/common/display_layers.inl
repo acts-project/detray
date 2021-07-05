@@ -178,7 +178,15 @@ int main(int argc, char **argv)
                 }
                 std::string vol_lay_name = "lay_";
                 vol_lay_name += std::to_string(iv);
-                vol_lay_name += ".png";
+                vol_lay_name += ".svg";
+                if (is_cylinder){
+                    ax->xlabel("z [mm]");
+                    ax->ylabel("phi [rad]");
+                } else {
+                    ax->xlabel("x [mm]");
+                    ax->ylabel("y [mm]");
+                }
+
                 save(vol_lay_name, true);
             }
 
