@@ -128,16 +128,10 @@ namespace detray
         for (auto [i, phi] : enumerate(phi_borders))
         {
             scalar z0 = z_borders[0];
-            scalar phi0 = phi;
             scalar z1 = z_borders[z_borders.size() - 1];
-            scalar phi1 = phi;
-
-            if (i < static_cast<size_t>(phi_borders.size() - 1))
-            {
-                auto phi_line = matplot::line(z0, phi0, z1, phi1);
-                phi_line->color(st.fill_color);
-                phi_line->line_width(st.line_width);
-            }
+            auto phi_line = matplot::line(z0, phi, z1, phi);
+            phi_line->color(st.fill_color);
+            phi_line->line_width(st.line_width);
         }
     }
 
