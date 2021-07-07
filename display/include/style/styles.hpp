@@ -8,13 +8,17 @@
 
 #pragma once
 
-namespace detray {
+namespace detray
+{
 
     using color = darray<float, 4>;
 
-    struct style {
-        color fill_color = { 0., 1., 0., 0.};
+    /** Style class for drawing with matplot++ */
+    struct style
+    {
+        color fill_color = {0., 1., 0., 0.};
         scalar line_width = 0.;
+        std::string line_style = "-";
         unsigned int segments = 72;
     };
 

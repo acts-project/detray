@@ -11,7 +11,7 @@
 #include "io/csv_io.hpp"
 #include "utils/containers.hpp"
 #include "utils/enumerate.hpp"
-#include "view/generators.hpp"
+#include "utils/generators.hpp"
 #include "view/draw.hpp"
 #include "view/views.hpp"
 #include "style/styles.hpp"
@@ -144,9 +144,6 @@ int main(int argc, char **argv)
                 if (layer > 0)
                 {
 
-                    ax->parent()->quiet_mode(false);
-                    show();
-
                     // run option: mouse over parsing
                     if (mouse_over_mode)
                     {
@@ -186,8 +183,9 @@ int main(int argc, char **argv)
                     ax->xlabel("x [mm]");
                     ax->ylabel("y [mm]");
                 }
-
-                save(vol_lay_name, true);
+                matplot::axis(equal);
+                matplot::show();
+                save(vol_lay_name, false);
             }
 
             return 1;
