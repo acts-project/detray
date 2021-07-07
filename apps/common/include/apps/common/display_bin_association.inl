@@ -85,6 +85,11 @@ int main(int argc, char **argv)
             assoc_style.line_width = 1;
             assoc_style.line_style = "--";
 
+            // Grid drawing sections styles and addons
+            // - styles and addons are on faint grid, cell, assoc
+            std::vector<style> gstyles = {grid_style, cell_style, assoc_style};
+            std::vector<std::array<scalar, 4>> gadds = {grid_adds, cell_adds, assoc_adds};
+
             decltype(d)::transform_store::context s_context;
 
             center_of_gravity_inside cgs_assoc;
@@ -157,11 +162,7 @@ int main(int argc, char **argv)
                     }
                 }
 
-                // Grid drawing sections
-                // - styles and addons are on faint grid, cell, assoc
-                std::vector<style> gstyles = {grid_style, cell_style, assoc_style};
-                std::vector<std::array<scalar, 4>> gadds = {grid_adds, cell_adds, assoc_adds};
-
+                // Grid drawing section
                 for (auto [i, st] : enumerate(gstyles))
                 {
 
@@ -195,8 +196,33 @@ int main(int argc, char **argv)
                               st);
                 }
             }
+            else
+            {
 
-            const auto &cylinder_finder = surfaces_finders[finder_entry + 2];
+                const auto &cylinder_finder = surfaces_finders[finder_entry + 2];
+
+                const auto &cylinder_grid = cylinder_finder.grid();
+                auto z_borders = cylinder_grid.axis_p0().borders(bin_0);
+                auto phi_borders = cylinder_grid.axis_p1().borders(bin_1);
+
+                scalar z_min = z_borders[0];
+                scalar z_max = z_borders[1];
+                scalar phi_min = phi_borders[0];
+                scalar phi_max = phi_borders[1];
+
+                // Grid drawing section
+                for (auto [i, st] : enumerate(gstyles))
+                {
+                    // Create a view of the vertices
+                    std::vector<scalar> x = { z_min, z_max };
+                    std::vector<scalar> y = { phi_min, phi_max };
+                    auto filled_area = matplot::fill(x, y, "w");                                
+                    filled_area->color(st.fill_color);
+                    filled_area->line_width(st.line_width);
+
+                }
+
+            }
 
             std::string vol_lay_name = "bin_assoc_";
             vol_lay_name += std::to_string(lvol);

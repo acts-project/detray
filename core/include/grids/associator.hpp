@@ -52,7 +52,7 @@ namespace detray
     struct edges_intersect
     {
 
-        /** Call operator to the struct, allows to chain several chain operators together
+      /** Call operator to the struct, allows to chain several chain operators together
        * 
        * @param bin_contour The contour description of the bin -> target
        * @param surface_contour The contour description of the surface -> test
