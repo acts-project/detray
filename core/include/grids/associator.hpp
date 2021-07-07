@@ -34,6 +34,7 @@ namespace detray
 
             size_t i, j = 0;
             size_t num_points = bin_contour.size();
+
             bool inside = false;
             for (i = 0, j = num_points - 1; i < num_points; j = i++)
             {
