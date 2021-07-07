@@ -12,16 +12,57 @@ namespace detray
 
     using point2 = __plugin::point2;
 
-    /** Check if center of mass is inside the polygon */
-    struct center_of_gravity_inside
+    struct center_of_gravity_rectangle
     {
         /** Call operator to the struct, allows to chain several chain operators together
-     * 
-     * @param bin_contour The contour description of the bin -> target
-     * @param surface_contour The contour description of the surface -> test
-     * 
-     * @return whether this should be associated
-     */
+            * 
+            * @param bin_contour The contour description of the bin -> target
+            * @param surface_contour The contour description of the surface -> test
+            * 
+            * @note the bin_contour is asummed to be a rectangle
+            * 
+            * @return whether this should be associated
+            **/
+        bool operator()(const std::vector<point2> &bin_contour, const std::vector<point2> &surface_contour)
+        {
+            // Check if centre of gravity is inside bin
+            point2 cgs = {0., 0.};
+            for (const auto &svtx : surface_contour)
+            {
+                cgs = cgs + svtx;
+            }
+            cgs = 1. / surface_contour.size() * cgs;
+            scalar min_l0 = std::numeric_limits<scalar>::max();
+            scalar max_l0 = -std::numeric_limits<scalar>::max();
+            scalar min_l1 = std::numeric_limits<scalar>::max();
+            scalar max_l1 = -std::numeric_limits<scalar>::max();
+            for (const auto &b : bin_contour)
+            {
+                min_l0 = std::min(b[0], min_l0);
+                max_l0 = std::max(b[0], max_l0);
+                min_l1 = std::min(b[1], min_l1);
+                max_l1 = std::max(b[1], max_l1);
+            }
+
+            if (cgs[0] >= min_l0 and cgs[0] < max_l0 and cgs[1] >= min_l1 and cgs[1] < max_l1)
+            {
+                return true;
+            }
+
+            return false;
+        }
+    };
+
+    /** Check if center of mass is inside a generic polygon bin */
+    struct center_of_gravity_generic
+    {
+        /** Call operator to the struct, allows to chain several chain operators together
+        * 
+        * @param bin_contour The contour description of the bin -> target
+        * @param surface_contour The contour description of the surface -> test
+        * 
+        * @return whether this should be associated
+         */
         bool operator()(const std::vector<point2> &bin_contour, const std::vector<point2> &surface_contour)
         {
             // Check if centre of gravity is inside bin
@@ -53,7 +94,7 @@ namespace detray
     struct edges_intersect
     {
 
-      /** Call operator to the struct, allows to chain several chain operators together
+        /** Call operator to the struct, allows to chain several chain operators together
        * 
        * @param bin_contour The contour description of the bin -> target
        * @param surface_contour The contour description of the surface -> test

@@ -92,8 +92,7 @@ int main(int argc, char **argv)
 
             decltype(d)::transform_store::context s_context;
 
-            center_of_gravity_inside cgs_assoc;
-            edges_intersect edges_assoc;
+
 
             // Surface finders, volume, bounds
             auto surfaces_finders = d.surfaces_finders();
@@ -108,6 +107,9 @@ int main(int argc, char **argv)
 
             if (not is_cylinder)
             {
+
+                center_of_gravity_generic cgs_assoc;
+                edges_intersect edges_assoc;
 
                 const auto &disk_finder = surfaces_finders[finder_entry];
                 const auto &disk_grid = disk_finder.grid();
@@ -217,6 +219,8 @@ int main(int argc, char **argv)
 
                 std::vector<point2> bin_contour  = { p0_bin, p1_bin, p2_bin, p3_bin };
 
+                center_of_gravity_rectangle cgs_assoc;
+
                 // Loop over the surfaces within a volume
                 for (const auto &s : surfaces.objects())
                 {
@@ -242,13 +246,13 @@ int main(int argc, char **argv)
                         for (const auto &v : vertices)
                         {
                             auto vg = transform.point_to_global(v);
-                            surface_contour.push_back({vg[0], vg[1]});
+                            surface_contour.push_back({vg[2], std::atan2(vg[1],vg[0])});
                         }
 
                         if (not vertices.empty())
                         {
 
-                            style draw_style = (cgs_assoc(bin_contour, surface_contour) or edges_assoc(bin_contour, surface_contour))
+                            style draw_style = cgs_assoc(bin_contour, surface_contour)
                                                    ? selected_surface_style
                                                    : surface_style;
                                                    
