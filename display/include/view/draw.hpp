@@ -8,7 +8,7 @@
 #pragma once
 
 #include "view/views.hpp"
-#include "view/generators.hpp"
+#include "utils/generators.hpp"
 #include "style/styles.hpp"
 #include "utils/enumerate.hpp"
 
@@ -16,6 +16,48 @@
 
 namespace detray
 {
+
+    /** Static draw function for arcs 
+     * 
+     * @param x0 the x value of the first point
+     * @param y0 the y value of the first point
+     * @param x1 the x value of the second point
+     * @param y1 the y value of the second point
+     * @param st is the style class for the grid
+     * 
+     */
+    static inline void draw_line(scalar x0, scalar y0, scalar x1, scalar y1, const style &st)
+    {
+        auto line = matplot::line(x0, y0, x1, y1);
+        line->color(st.fill_color);
+        line->line_width(st.line_width);
+        line->line_style(st.line_style.c_str());
+    }
+
+    /** Static draw function for arcs 
+     * 
+     * @param c_x the x value of the center
+     * @param c_y the y value of the center
+     * @param R the Radius of the arc
+     * @param phi_min the min phi value
+     * @param phi_max the max phi valu 
+     * 
+     */
+    static inline void draw_arc(scalar c_x, scalar c_y, scalar R, scalar phi_min, scalar phi_max, const style &st)
+    {
+        matplot::hold(matplot::on);
+        std::vector<scalar> theta = matplot::linspace(phi_min, phi_max);
+        std::vector<scalar> x =
+            matplot::transform(theta, [=](auto theta)
+                               { return R * std::cos(theta) + c_x; });
+        std::vector<scalar> y =
+            matplot::transform(theta, [=](auto theta)
+                               { return R * std::sin(theta) + c_y; });
+        auto arc = matplot::plot(x, y);
+        arc->color(st.fill_color);
+        arc->line_width(st.line_width);
+        arc->line_style(st.line_style.c_str());
+    }
 
     /** Static draw function for vertices 
      * 
@@ -97,7 +139,6 @@ namespace detray
             }
         }
     }
-
 
     /** Static draw function for masks 
      *   

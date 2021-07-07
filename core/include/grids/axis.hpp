@@ -131,7 +131,7 @@ namespace detray
             array_type<scalar, 2> borders(dindex ibin) const
             {
                 scalar step = (max - min) / n_bins;
-                return {ibin * step, (ibin + 1) * step};
+                return {min + ibin * step, min + (ibin + 1) * step};
             }
 
             /** @return the values of the borders */
@@ -297,7 +297,7 @@ namespace detray
             array_type<scalar, 2> borders(dindex ibin) const
             {
                 scalar step = (max - min) / n_bins;
-                return {ibin * step, (ibin + 1) * step};
+                return {min + ibin * step, min + (ibin + 1) * step};
             }
 
             /** @return the values of the borders */

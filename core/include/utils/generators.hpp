@@ -13,7 +13,7 @@ namespace detray
 {
 
     using transform3 = __plugin::transform3;
-    using point3 = point3;
+    using point2 = __plugin::point2;
 
     /** Generate phi values
      *
@@ -50,7 +50,6 @@ namespace detray
               unsigned int kMaskContext>
     dvector<point3> vertices(const annulus2<intersector_type, local_type, links_type, kMaskContext> &annulus_mask, unsigned int lseg)
     {
-        using point2 = __plugin::point2;
 
         const auto &m_values = annulus_mask.values();
 
@@ -309,5 +308,35 @@ namespace detray
         // Last chance - intersect the last index if possible
         return vertices_for_last_mask_group<mask_container, mask_range, std::tuple_size_v<mask_container> - 1>(masks, range, mask_context);
     }
+
+    /** Create a r-phi polygon from principle parameters
+ * 
+ * @param rmin minum r parameter
+ * @param rmax maximum r parameter
+ * @param phimin minimum phi parameter
+ * @param phimax maximum phi parameters
+ * 
+ * @return a polygon representation of the bin
+ **/
+    std::vector<point2>
+    r_phi_polygon(scalar rmin, scalar rmax, scalar phimin, scalar phimax, unsigned int nsegments = 1)
+    {
+
+        std::vector<point2> r_phi_poly;
+        r_phi_poly.reserve(2 * nsegments + 2);
+
+        scalar cos_min_phi = std::cos(phimin);
+        scalar sin_min_phi = std::sin(phimin);
+        scalar cos_max_phi = std::cos(phimax);
+        scalar sin_max_phi = std::sin(phimax);
+
+        // @TODO add phi generators
+        r_phi_poly.push_back({rmin * cos_min_phi, rmin * sin_min_phi});
+        r_phi_poly.push_back({rmin * cos_max_phi, rmin * sin_max_phi});
+        r_phi_poly.push_back({rmax * cos_max_phi, rmax * sin_max_phi});
+        r_phi_poly.push_back({rmax * cos_min_phi, rmax * sin_min_phi});
+
+        return r_phi_poly;
+    };
 
 } // namespace detray
