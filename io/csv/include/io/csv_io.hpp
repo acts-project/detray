@@ -14,7 +14,7 @@
 #include "grids/serializer2.hpp"
 #include "grids/populator.hpp"
 #include "io/csv_io_types.hpp"
-#include "tools/local_object_finder.hpp"
+#include "tools/bin_association.hpp"
 
 #include <iostream>
 #include <climits>
@@ -248,9 +248,8 @@ namespace detray
     while (sg_reader.read(io_surface_grid))
     {
       volume_layer_index c_index = {io_surface_grid.volume_id, io_surface_grid.layer_id};
-      
-      surface_finder_entries[c_index] = detector_surfaces_finders.size();
 
+      surface_finder_entries[c_index] = detector_surfaces_finders.size();
 
       bool is_disk = (io_surface_grid.type_loc0 == 3);
 
@@ -279,17 +278,10 @@ namespace detray
       surfaces_z_phi_grid zphi_grid_i{z_axis, phi_axis};
       surfaces_z_phi_grid zphi_grid_o{z_axis, phi_axis};
 
-      // Create the local surface finders
-      surfaces_finder finder_n(std::move(rphi_grid_n));
-      surfaces_finder finder_p(std::move(rphi_grid_p));
-      surfaces_finder finder_i(std::move(zphi_grid_i));
-      surfaces_finder finder_o(std::move(zphi_grid_o));
-
-      detector_surfaces_finders.push_back(finder_n);
-      detector_surfaces_finders.push_back(finder_p);
-      detector_surfaces_finders.push_back(finder_i);
-      detector_surfaces_finders.push_back(finder_o);
-
+      detector_surfaces_finders.push_back(rphi_grid_n);
+      detector_surfaces_finders.push_back(rphi_grid_p);
+      detector_surfaces_finders.push_back(zphi_grid_i);
+      detector_surfaces_finders.push_back(zphi_grid_o);
     }
 
     // (C) Read the surfaces and fill it
@@ -332,7 +324,8 @@ namespace detray
         // Check if this volume has a surface finder entry associated
         dindex surfaces_finder_entry = dindex_invalid;
         auto surface_finder_itr = surface_finder_entries.find(c_index);
-        if (surface_finder_itr != surface_finder_entries.end()){
+        if (surface_finder_itr != surface_finder_entries.end())
+        {
           surfaces_finder_entry = surface_finder_itr->second;
         }
 
@@ -447,7 +440,6 @@ namespace detray
       } // end of exclusion for navigation layers
     }
 
-
     /** Helper method to sort and remove duplicates
      * 
      * @param att attribute vector for sorting and duplicate removal
@@ -483,7 +475,9 @@ namespace detray
     // A step into the volume (stepsilon), can be read in from the smallest difference
     scalar stepsilon = 1.;
 
-    // Loop over the volumes and fill the volume grid
+    // Loop over the volumes
+    // - fill the volume grid
+    // - run the bin association
     for (const auto &v : d.volumes())
     {
       // Get the volume bounds for fillind
@@ -500,11 +494,28 @@ namespace detray
       auto z_low = v_grid.axis_p1().borders(izl)[0];
       auto z_high = v_grid.axis_p1().borders(izh)[1];
 
+      bool is_cylinder = std::abs(v_bounds[1] - v_bounds[0]) < std::abs(v_bounds[3] - v_bounds[2]);
+
       for (dindex ir = irl; ir <= irh; ++ir)
       {
         for (dindex iz = izl; iz <= izh; ++iz)
         {
           v_grid.populate(ir, iz, std::move(volume_index));
+        }
+      }
+
+      dindex sfi = v.surfaces_finder_entry();
+      if (sfi != dindex_invalid)
+      {
+        if (not is_cylinder)
+        {
+          bin_association(surface_default_context, v, detector_surfaces_finders[sfi], {0.1, 0.1}, false);
+          detector_surfaces_finders[sfi + 1] = detector_surfaces_finders[sfi];
+        }
+        else
+        {
+          bin_association(surface_default_context, v, detector_surfaces_finders[sfi + 2], {0.1, 0.1}, false);
+          detector_surfaces_finders[sfi + 3] = detector_surfaces_finders[sfi + 2];
         }
       }
     }

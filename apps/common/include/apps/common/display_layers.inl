@@ -26,7 +26,6 @@ int main(int argc, char **argv)
     using namespace detray;
     using namespace matplot;
 
-
     if (argc > 1)
     {
         std::string first_arg = argv[1];
@@ -125,19 +124,20 @@ int main(int argc, char **argv)
                 // Draw the surface finder grid
                 dindex surfaces_finder_entry = v.surfaces_finder_entry();
 
-                if (surfaces_finder_entry != dindex_invalid){
-                
-                    if (not is_cylinder){
-                        const auto& surface_finder = surfaces_finders[surfaces_finder_entry];
-                        const auto& r_phi_grid =  surface_finder.grid();
-                        draw_r_phi_grid(r_phi_grid, grid_style);
-                    } else {
-                        const auto& surface_finder = surfaces_finders[surfaces_finder_entry+2];
-                        const auto& z_phi_grid =  surface_finder.grid();
-                        draw_z_phi_grid(z_phi_grid, grid_style);
-                    }                
-                }
+                if (surfaces_finder_entry != dindex_invalid)
+                {
 
+                    if (not is_cylinder)
+                    {
+                        const auto &r_phi_grid = surfaces_finders[surfaces_finder_entry];
+                        draw_r_phi_grid(r_phi_grid, grid_style);
+                    }
+                    else
+                    {
+                        const auto &z_phi_grid = surfaces_finders[surfaces_finder_entry + 2];
+                        draw_z_phi_grid(z_phi_grid, grid_style);
+                    }
+                }
 
                 // Special functionality for single layers
                 //
@@ -176,10 +176,13 @@ int main(int argc, char **argv)
                 std::string vol_lay_name = "lay_";
                 vol_lay_name += std::to_string(iv);
                 vol_lay_name += ".png";
-                if (is_cylinder){
+                if (is_cylinder)
+                {
                     ax->xlabel("z [mm]");
                     ax->ylabel("phi [rad]");
-                } else {
+                }
+                else
+                {
                     ax->xlabel("x [mm]");
                     ax->ylabel("y [mm]");
                     matplot::axis(equal);

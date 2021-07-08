@@ -13,7 +13,6 @@
 #include "utils/containers.hpp"
 #include "utils/enumerate.hpp"
 #include "utils/generators.hpp"
-#include "tools/bin_association.hpp"
 #include "view/draw.hpp"
 #include "view/views.hpp"
 #include "style/styles.hpp"
@@ -107,8 +106,7 @@ int main(int argc, char **argv)
             if (not is_cylinder)
             {
 
-                const auto &disk_finder = surfaces_finders[finder_entry];
-                const auto &disk_grid = disk_finder.grid();
+                const auto &disk_grid = surfaces_finders[finder_entry];
                 auto r_borders = disk_grid.axis_p0().borders(bin_0);
                 auto phi_borders = disk_grid.axis_p1().borders(bin_1);
 
@@ -117,12 +115,7 @@ int main(int argc, char **argv)
                 scalar phi_min = phi_borders[0];
                 scalar phi_max = phi_borders[1];
 
-                // Copy the grid so that we can run the bin association as a test
-                // @TODO remove after bin association is moved to detector construction
-                auto grid = disk_grid;
-                bin_association(s_context, lvolume, grid, {0.1, 0.1}, false);
-
-                const auto &bin_entry = grid.bin(bin_0, bin_1);
+                const auto &bin_entry = disk_grid.bin(bin_0, bin_1);
                 std::cout << "Disk grid - bin (" << bin_0 << ", " << bin_1 << ") = ";
                 for (auto b_e : bin_entry)
                 {
@@ -195,10 +188,7 @@ int main(int argc, char **argv)
             }
             else
             {
-
-                const auto &cylinder_finder = surfaces_finders[finder_entry + 2];
-
-                const auto &cylinder_grid = cylinder_finder.grid();
+                const auto &cylinder_grid = surfaces_finders[finder_entry + 2];
                 auto z_borders = cylinder_grid.axis_p0().borders(bin_0);
                 auto phi_borders = cylinder_grid.axis_p1().borders(bin_1);
 
@@ -207,12 +197,7 @@ int main(int argc, char **argv)
                 scalar phi_min = phi_borders[0];
                 scalar phi_max = phi_borders[1];
 
-                // Copy the grid so that we can run the bin association as a test
-                // @TODO remove after bin association is moved to detector construction
-                auto grid = cylinder_grid;
-                bin_association(s_context, lvolume, grid, {0.1, 0.1}, false);
-
-                const auto &bin_entry = grid.bin(bin_0, bin_1);
+                const auto &bin_entry = cylinder_grid.bin(bin_0, bin_1);
                 std::cout << "Cylinder grid - bin (" << bin_0 << ", " << bin_1 << ") = ";
                 for (auto b_e : bin_entry)
                 {

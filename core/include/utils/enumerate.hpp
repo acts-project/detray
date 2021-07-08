@@ -100,8 +100,8 @@ namespace detray
      * @note sequence({2,4}) will produce { 2, 3, 4 }
      * 
      **/
-    template <typename array_type, 
-              typename = std::enable_if_t<std::conditional_t<std::is_array_v<array_type>, std::extent<array_type>, std::tuple_size<array_type>>::value == 2U> >
+    template <typename array_type,
+              typename = std::enable_if_t<std::conditional_t<std::is_array_v<array_type>, std::extent<array_type>, std::tuple_size<array_type>>::value == 2U>>
     constexpr auto sequence(array_type iterable)
     {
 
