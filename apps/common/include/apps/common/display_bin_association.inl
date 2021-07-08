@@ -92,8 +92,6 @@ int main(int argc, char **argv)
 
             decltype(d)::transform_store::context s_context;
 
-
-
             // Surface finders, volume, bounds
             auto surfaces_finders = d.surfaces_finders();
             const auto &lvolume = d.indexed_volume(lvol);
@@ -109,7 +107,7 @@ int main(int argc, char **argv)
             {
 
                 center_of_gravity_generic cgs_assoc;
-                edges_intersect edges_assoc;
+                edges_intersect_generic edges_assoc;
 
                 const auto &disk_finder = surfaces_finders[finder_entry];
                 const auto &disk_grid = disk_finder.grid();
@@ -217,9 +215,10 @@ int main(int argc, char **argv)
                 point2 p2_bin = {z_max + gadds[2][0], phi_max + gadds[2][1]};
                 point2 p3_bin = {z_max + gadds[2][0], phi_min - gadds[2][1]};
 
-                std::vector<point2> bin_contour  = { p0_bin, p1_bin, p2_bin, p3_bin };
+                std::vector<point2> bin_contour = {p0_bin, p1_bin, p2_bin, p3_bin};
 
                 center_of_gravity_rectangle cgs_assoc;
+                edges_intersect_generic edges_assoc;
 
                 // Loop over the surfaces within a volume
                 for (const auto &s : surfaces.objects())
@@ -240,22 +239,69 @@ int main(int argc, char **argv)
                     for (auto &vertices : vertices_per_masks)
                     {
 
-                        // Create a surface contour
-                        std::vector<point2> surface_contour;
-                        surface_contour.reserve(vertices.size());
-                        for (const auto &v : vertices)
-                        {
-                            auto vg = transform.point_to_global(v);
-                            surface_contour.push_back({vg[2], std::atan2(vg[1],vg[0])});
-                        }
-
                         if (not vertices.empty())
                         {
+                            // Create a surface contour
+                            std::vector<point2> surface_contour;
+                            surface_contour.reserve(vertices.size());
+                            scalar phi_min = std::numeric_limits<scalar>::max();
+                            scalar phi_max = -std::numeric_limits<scalar>::max();
+                            // We poentially need the split vertices
+                            std::vector<point2> s_c_neg;
+                            std::vector<point2> s_c_pos;
+                            scalar z_min_neg = std::numeric_limits<scalar>::max();
+                            scalar z_max_neg = -std::numeric_limits<scalar>::max();
+                            scalar z_min_pos = std::numeric_limits<scalar>::max();
+                            scalar z_max_pos = -std::numeric_limits<scalar>::max();
 
-                            style draw_style = cgs_assoc(bin_contour, surface_contour)
-                                                   ? selected_surface_style
-                                                   : surface_style;
-                                                   
+                            for (const auto &v : vertices)
+                            {
+                                auto vg = transform.point_to_global(v);
+                                scalar phi = std::atan2(vg[1], vg[0]);
+                                phi_min = std::min(phi, phi_min);
+                                phi_max = std::max(phi, phi_max);
+                                surface_contour.push_back({vg[2], phi});
+                                if (phi < 0.)
+                                {
+                                    s_c_neg.push_back({vg[2], phi});
+                                    z_min_neg = std::min(vg[2], z_min_neg);
+                                    z_max_neg = std::max(vg[2], z_max_neg);
+                                }
+                                else
+                                {
+                                    s_c_pos.push_back({vg[2], phi});
+                                    z_min_pos = std::min(vg[2], z_min_pos);
+                                    z_max_pos = std::max(vg[2], z_max_pos);
+                                }
+                            }
+                            // Check for phi wrapping
+                            std::vector<std::vector<point2>> surface_contours;
+                            if (phi_max - phi_min > M_PI and phi_max * phi_min < 0.)
+                            {
+                                s_c_neg.push_back({z_max_neg, -M_PI});
+                                s_c_neg.push_back({z_min_neg, -M_PI});
+                                s_c_pos.push_back({z_max_pos, M_PI});
+                                s_c_pos.push_back({z_min_pos, M_PI});
+                                surface_contours = {s_c_neg, s_c_pos};
+                            }
+                            else
+                            {
+                                surface_contours = {surface_contour};
+                            }
+
+                            // Check the association (with potential splits)
+                            bool associated = false;
+                            for (const auto &s_c : surface_contours)
+                            {
+                                if (cgs_assoc(bin_contour, s_c) or edges_assoc(bin_contour, s_c))
+                                {
+                                    associated = true;
+                                    break;
+                                }
+                            }
+
+                            style draw_style = associated ? selected_surface_style : surface_style;
+
                             draw_vertices(vertices, transform, draw_style, zphi_view, true);
                         }
                     }
