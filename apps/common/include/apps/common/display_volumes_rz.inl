@@ -83,11 +83,12 @@ int main(int argc, char **argv)
             std::cout << "                            z_min " << z_min_attachments.size() << std::endl;
             std::cout << "                            z_max " << z_max_attachments.size() << std::endl;
 
-            auto ax = matplot::subplot({0.1, 0.1, 0.8, 0.8});
-            ax->parent()->quiet_mode(true);
-
             if (argc > 5)
             {
+
+                auto ax = matplot::subplot({0.1, 0.1, 0.8, 0.8});
+                ax->parent()->quiet_mode(true);
+
                 int base_draw_option = std::atoi(argv[5]);
 
                 // Draw first the detailed views
@@ -303,10 +304,10 @@ int main(int argc, char **argv)
                         }
                     }
                 }
-            }
 
-            ax->parent()->quiet_mode(false);
-            show();
+                ax->parent()->quiet_mode(false);
+                show();
+            }
 
             return 1;
         }
