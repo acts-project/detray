@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
             // Create a sub plot
             auto ax = matplot::subplot({0.1, 0.1, 0.65, 0.8});
-            ax->parent()->quiet_mode(false);
+            ax->parent()->quiet_mode(true);
 
             std::string name = first_arg;
             std::string surfaces_file = argv[2];
@@ -85,10 +85,12 @@ int main(int argc, char **argv)
             assoc_style.line_width = 1;
             assoc_style.line_style = "--";
 
-            decltype(d)::transform_store::context s_context;
+            // Grid drawing sections styles and addons
+            // - styles and addons are on faint grid, cell, assoc
+            std::vector<style> gstyles = {grid_style, cell_style, assoc_style};
+            std::vector<std::array<scalar, 4>> gadds = {grid_adds, cell_adds, assoc_adds};
 
-            center_of_gravity_inside cgs_assoc;
-            edges_intersect edges_assoc;
+            decltype(d)::transform_store::context s_context;
 
             // Surface finders, volume, bounds
             auto surfaces_finders = d.surfaces_finders();
@@ -103,6 +105,9 @@ int main(int argc, char **argv)
 
             if (not is_cylinder)
             {
+
+                center_of_gravity_generic cgs_assoc;
+                edges_intersect_generic edges_assoc;
 
                 const auto &disk_finder = surfaces_finders[finder_entry];
                 const auto &disk_grid = disk_finder.grid();
@@ -157,11 +162,7 @@ int main(int argc, char **argv)
                     }
                 }
 
-                // Grid drawing sections
-                // - styles and addons are on faint grid, cell, assoc
-                std::vector<style> gstyles = {grid_style, cell_style, assoc_style};
-                std::vector<std::array<scalar, 4>> gadds = {grid_adds, cell_adds, assoc_adds};
-
+                // Grid drawing section
                 for (auto [i, st] : enumerate(gstyles))
                 {
 
@@ -195,8 +196,131 @@ int main(int argc, char **argv)
                               st);
                 }
             }
+            else
+            {
 
-            const auto &cylinder_finder = surfaces_finders[finder_entry + 2];
+                const auto &cylinder_finder = surfaces_finders[finder_entry + 2];
+
+                const auto &cylinder_grid = cylinder_finder.grid();
+                auto z_borders = cylinder_grid.axis_p0().borders(bin_0);
+                auto phi_borders = cylinder_grid.axis_p1().borders(bin_1);
+
+                scalar z_min = z_borders[0];
+                scalar z_max = z_borders[1];
+                scalar phi_min = phi_borders[0];
+                scalar phi_max = phi_borders[1];
+
+                point2 p0_bin = {z_min - gadds[2][0], phi_min - gadds[2][1]};
+                point2 p1_bin = {z_min - gadds[2][0], phi_max + gadds[2][1]};
+                point2 p2_bin = {z_max + gadds[2][0], phi_max + gadds[2][1]};
+                point2 p3_bin = {z_max + gadds[2][0], phi_min - gadds[2][1]};
+
+                std::vector<point2> bin_contour = {p0_bin, p1_bin, p2_bin, p3_bin};
+
+                center_of_gravity_rectangle cgs_assoc;
+                edges_intersect_generic edges_assoc;
+
+                // Loop over the surfaces within a volume
+                for (const auto &s : surfaces.objects())
+                {
+                    dvector<point3> vertices = {};
+                    const auto &mask_link = s.mask();
+                    const auto &transform_link = s.transform();
+
+                    // Unroll the mask container and generate vertices
+                    const auto &transform = surface_transforms.contextual_transform(s_context, transform_link);
+
+                    const auto &mask_context = std::get<0>(mask_link);
+                    const auto &mask_range = std::get<1>(mask_link);
+
+                    auto vertices_per_masks = unroll_masks_for_vertices(surface_masks, mask_range, mask_context,
+                                                                        std::make_integer_sequence<dindex, std::tuple_size_v<decltype(d)::surface_mask_container>>{});
+
+                    for (auto &vertices : vertices_per_masks)
+                    {
+
+                        if (not vertices.empty())
+                        {
+                            // Create a surface contour
+                            std::vector<point2> surface_contour;
+                            surface_contour.reserve(vertices.size());
+                            scalar phi_min = std::numeric_limits<scalar>::max();
+                            scalar phi_max = -std::numeric_limits<scalar>::max();
+                            // We poentially need the split vertices
+                            std::vector<point2> s_c_neg;
+                            std::vector<point2> s_c_pos;
+                            scalar z_min_neg = std::numeric_limits<scalar>::max();
+                            scalar z_max_neg = -std::numeric_limits<scalar>::max();
+                            scalar z_min_pos = std::numeric_limits<scalar>::max();
+                            scalar z_max_pos = -std::numeric_limits<scalar>::max();
+
+                            for (const auto &v : vertices)
+                            {
+                                auto vg = transform.point_to_global(v);
+                                scalar phi = std::atan2(vg[1], vg[0]);
+                                phi_min = std::min(phi, phi_min);
+                                phi_max = std::max(phi, phi_max);
+                                surface_contour.push_back({vg[2], phi});
+                                if (phi < 0.)
+                                {
+                                    s_c_neg.push_back({vg[2], phi});
+                                    z_min_neg = std::min(vg[2], z_min_neg);
+                                    z_max_neg = std::max(vg[2], z_max_neg);
+                                }
+                                else
+                                {
+                                    s_c_pos.push_back({vg[2], phi});
+                                    z_min_pos = std::min(vg[2], z_min_pos);
+                                    z_max_pos = std::max(vg[2], z_max_pos);
+                                }
+                            }
+                            // Check for phi wrapping
+                            std::vector<std::vector<point2>> surface_contours;
+                            if (phi_max - phi_min > M_PI and phi_max * phi_min < 0.)
+                            {
+                                s_c_neg.push_back({z_max_neg, -M_PI});
+                                s_c_neg.push_back({z_min_neg, -M_PI});
+                                s_c_pos.push_back({z_max_pos, M_PI});
+                                s_c_pos.push_back({z_min_pos, M_PI});
+                                surface_contours = {s_c_neg, s_c_pos};
+                            }
+                            else
+                            {
+                                surface_contours = {surface_contour};
+                            }
+
+                            // Check the association (with potential splits)
+                            bool associated = false;
+                            for (const auto &s_c : surface_contours)
+                            {
+                                if (cgs_assoc(bin_contour, s_c) or edges_assoc(bin_contour, s_c))
+                                {
+                                    associated = true;
+                                    break;
+                                }
+                            }
+
+                            style draw_style = associated ? selected_surface_style : surface_style;
+
+                            draw_vertices(vertices, transform, draw_style, zphi_view, true);
+                        }
+                    }
+                }
+
+                // Grid drawing section
+                for (auto [i, st] : enumerate(gstyles))
+                {
+                    if (i > 0)
+                    {
+                        point2 p0 = {z_min - gadds[i][0], phi_min - gadds[i][1]};
+                        point2 p1 = {z_min - gadds[i][0], phi_max + gadds[i][1]};
+                        point2 p2 = {z_max + gadds[i][0], phi_max + gadds[i][1]};
+                        point2 p3 = {z_max + gadds[i][0], phi_min - gadds[i][1]};
+
+                        draw_polygon({p0, p1, p2, p3}, st);
+                    }
+                }
+            }
 
             std::string vol_lay_name = "bin_assoc_";
             vol_lay_name += std::to_string(lvol);
@@ -214,9 +338,8 @@ int main(int argc, char **argv)
             {
                 ax->xlabel("x [mm]");
                 ax->ylabel("y [mm]");
+                matplot::axis(equal);
             }
-
-            matplot::axis(equal);
 
             ax->parent()->quiet_mode(false);
             show();

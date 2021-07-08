@@ -41,6 +41,7 @@ namespace detray
      * @param R the Radius of the arc
      * @param phi_min the min phi value
      * @param phi_max the max phi valu 
+     * @param st is the style class for the grid
      * 
      */
     static inline void draw_arc(scalar c_x, scalar c_y, scalar R, scalar phi_min, scalar phi_max, const style &st)
@@ -59,22 +60,67 @@ namespace detray
         arc->line_style(st.line_style.c_str());
     }
 
+    /** Static draw function for a polygon
+     * 
+     * @param polygon the polygon points
+     * @param st is the style class for the grid
+     * 
+     */
+    static inline void draw_polygon(const std::vector<point2> &polygon, const style &st)
+    {
+        for (size_t j = 1; j <= polygon.size(); ++j)
+        {
+            size_t i = j - 1;
+            size_t jc = (j == polygon.size()) ? 0 : j;
+            auto line = matplot::line(polygon[i][0], polygon[i][1], polygon[jc][0], polygon[jc][1]);
+            line->color(st.fill_color);
+            line->line_width(st.line_width);
+            line->line_style(st.line_style.c_str());
+        }
+    }
+
     /** Static draw function for vertices 
      * 
      * @param vertices the vertices generated from the mask
      * @param tf is the transform where the surface is placed
      * @param st is the style class for the grid
      * @param view is the view type for the display
+     * @param phi_wrappping check for phi_wrappping in a z-phi view 
+     *                      (limited to 4 vertices)
      * 
      */
     template <typename vertex_container_type, typename view_t = single_view>
     static inline void draw_vertices(const vertex_container_type &vertices,
                                      const transform3 &tf,
                                      const style &st,
-                                     const view_t &view = view_t())
+                                     const view_t &view = view_t(),
+                                     bool phi_wrapping = false)
     {
+
         // Create a view of the vertices
         auto [x, y] = view(vertices, tf);
+
+        if (phi_wrapping and vertices.size() == 4){
+
+            // @note this assumes ordering of the x,y as given by the mask
+            if (std::abs(y[0] - y[1]) > M_PI  ){
+                
+                std::vector<scalar> x_up = { x[0], 0.5 * (x[0] + x[1]), 0.5 * (x[1] + x[2]), 0.5 * (x[2] + x[3]), x[3] }; 
+                std::vector<scalar> y_up = { y[0], M_PI, 2 * M_PI - y[0], M_PI, y[3] };
+                auto filled_area_up = matplot::fill(x_up, y_up, "w");
+                filled_area_up->color(st.fill_color);
+                filled_area_up->line_width(st.line_width);
+
+                std::vector<scalar> x_down = { x[1], 0.5 * (x[0] + x[1]), 0.5 * (x[1] + x[2]), 0.5 * (x[2] + x[3]), x[2] }; 
+                std::vector<scalar> y_down = { y[1], -2 * M_PI - y[1], -M_PI, -2 * M_PI - y[2], y[2] };
+                auto filled_area_down = matplot::fill(x_down, y_down, "w");
+                filled_area_down->color(st.fill_color);
+                filled_area_down->line_width(st.line_width);
+                return;
+            }
+
+        } 
+
         auto filled_area = matplot::fill(x, y, "w");
 
         filled_area->color(st.fill_color);
@@ -94,8 +140,9 @@ namespace detray
                                  const style &st,
                                  const view_t &view = view_t())
     {
+        auto contour = vertices(mask, st.segments);
         // Create a view of the vertices
-        auto [x, y] = view(vertices(mask, st.segments), tf);
+        auto [x, y] = view(contour, tf);
         auto filled_area = matplot::fill(x, y, "w");
 
         filled_area->color(st.fill_color);

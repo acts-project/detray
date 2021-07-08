@@ -57,7 +57,7 @@ int main(int argc, char **argv)
             global_z_phi_view zphi_view;
 
             style surface_style;
-            surface_style.fill_color = {0.5, 0.1, 0.6, 0.6};
+            surface_style.fill_color = {0.75, 0.1, 0.6, 0.6};
             surface_style.line_width = 1;
 
             style grid_style;
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
                             }
                             else
                             {
-                                draw_vertices(vertices, transform, surface_style, zphi_view);
+                                draw_vertices(vertices, transform, surface_style, zphi_view, true);
                             }
                         }
                     }
@@ -175,17 +175,17 @@ int main(int argc, char **argv)
                 }
                 std::string vol_lay_name = "lay_";
                 vol_lay_name += std::to_string(iv);
-                vol_lay_name += ".svg";
+                vol_lay_name += ".png";
                 if (is_cylinder){
                     ax->xlabel("z [mm]");
                     ax->ylabel("phi [rad]");
                 } else {
                     ax->xlabel("x [mm]");
                     ax->ylabel("y [mm]");
+                    matplot::axis(equal);
                 }
-                matplot::axis(equal);
                 matplot::show();
-                save(vol_lay_name, false);
+                save(vol_lay_name, true);
             }
 
             return 1;
