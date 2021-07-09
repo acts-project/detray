@@ -14,7 +14,7 @@
 #include "grids/serializer2.hpp"
 #include "grids/populator.hpp"
 #include "io/csv_io_types.hpp"
-#include "tools/local_object_finder.hpp"
+#include "tools/bin_association.hpp"
 
 #include <iostream>
 #include <climits>
@@ -54,8 +54,9 @@ namespace detray
            bounds_source_link>
   detector_from_csv(const std::string &detector_name,
                     const std::string &surface_file_name,
-                    const std::string &grid_file_name,
                     const std::string &layer_volume_file_name,
+                    const std::string &grid_file_name,
+                    const std::string &grid_entries_file_name,
                     scalar r_sync_tolerance = 0.,
                     scalar z_sync_tolerance = 0.)
   {
@@ -68,13 +69,13 @@ namespace detray
     surface_reader s_reader(surface_file_name);
     csv_surface io_surface;
 
-    // Surface grid reading
-    surface_grid_reader sg_reader(grid_file_name);
-    csv_surface_grid io_surface_grid;
-
     // Layer volume reading
     layer_volume_reader lv_reader(layer_volume_file_name);
     csv_layer_volume io_layer_volume;
+
+    // Surface grid reading
+    surface_grid_reader sg_reader(grid_file_name);
+    csv_surface_grid io_surface_grid;
 
     using volume_layer_index = std::pair<uint32_t, uint32_t>;
     std::map<volume_layer_index, typename typed_detector::volume *> volumes;
@@ -248,9 +249,8 @@ namespace detray
     while (sg_reader.read(io_surface_grid))
     {
       volume_layer_index c_index = {io_surface_grid.volume_id, io_surface_grid.layer_id};
-      
-      surface_finder_entries[c_index] = detector_surfaces_finders.size();
 
+      surface_finder_entries[c_index] = detector_surfaces_finders.size();
 
       bool is_disk = (io_surface_grid.type_loc0 == 3);
 
@@ -279,17 +279,10 @@ namespace detray
       surfaces_z_phi_grid zphi_grid_i{z_axis, phi_axis};
       surfaces_z_phi_grid zphi_grid_o{z_axis, phi_axis};
 
-      // Create the local surface finders
-      surfaces_finder finder_n(std::move(rphi_grid_n));
-      surfaces_finder finder_p(std::move(rphi_grid_p));
-      surfaces_finder finder_i(std::move(zphi_grid_i));
-      surfaces_finder finder_o(std::move(zphi_grid_o));
-
-      detector_surfaces_finders.push_back(finder_n);
-      detector_surfaces_finders.push_back(finder_p);
-      detector_surfaces_finders.push_back(finder_i);
-      detector_surfaces_finders.push_back(finder_o);
-
+      detector_surfaces_finders.push_back(rphi_grid_n);
+      detector_surfaces_finders.push_back(rphi_grid_p);
+      detector_surfaces_finders.push_back(zphi_grid_i);
+      detector_surfaces_finders.push_back(zphi_grid_o);
     }
 
     // (C) Read the surfaces and fill it
@@ -332,7 +325,8 @@ namespace detray
         // Check if this volume has a surface finder entry associated
         dindex surfaces_finder_entry = dindex_invalid;
         auto surface_finder_itr = surface_finder_entries.find(c_index);
-        if (surface_finder_itr != surface_finder_entries.end()){
+        if (surface_finder_itr != surface_finder_entries.end())
+        {
           surfaces_finder_entry = surface_finder_itr->second;
         }
 
@@ -447,7 +441,6 @@ namespace detray
       } // end of exclusion for navigation layers
     }
 
-
     /** Helper method to sort and remove duplicates
      * 
      * @param att attribute vector for sorting and duplicate removal
@@ -483,8 +476,15 @@ namespace detray
     // A step into the volume (stepsilon), can be read in from the smallest difference
     scalar stepsilon = 1.;
 
-    // Loop over the volumes and fill the volume grid
-    for (const auto &v : d.volumes())
+    // Run the bin association and write out
+    surface_grid_entries_writer sge_writer("grid-entries.csv");
+    bool write_grid_entries = (grid_entries_file_name.find("write") != std::string::npos);
+    bool read_grid_entries = not grid_entries_file_name.empty() and not write_grid_entries;;
+
+    // Loop over the volumes
+    // - fill the volume grid
+    // - run the bin association
+    for (auto [iv, v] : enumerate(d.volumes()))
     {
       // Get the volume bounds for fillind
       const auto &v_bounds = v.bounds();
@@ -500,11 +500,62 @@ namespace detray
       auto z_low = v_grid.axis_p1().borders(izl)[0];
       auto z_high = v_grid.axis_p1().borders(izh)[1];
 
+      bool is_cylinder = std::abs(v_bounds[1] - v_bounds[0]) < std::abs(v_bounds[3] - v_bounds[2]);
+
       for (dindex ir = irl; ir <= irh; ++ir)
       {
         for (dindex iz = izl; iz <= izh; ++iz)
         {
           v_grid.populate(ir, iz, std::move(volume_index));
+        }
+      }
+
+      dindex sfi = v.surfaces_finder_entry();
+      if (sfi != dindex_invalid and write_grid_entries)
+      {
+        auto &grid = is_cylinder ? detector_surfaces_finders[sfi + 2] : detector_surfaces_finders[sfi];
+        bin_association(surface_default_context, v, grid, {0.1, 0.1}, false);
+
+        csv_surface_grid_entry csv_ge;
+        csv_ge.detray_volume_id = static_cast<int>(iv);
+        size_t nbins0 = grid.axis_p0().bins();
+        size_t nbins1 = grid.axis_p1().bins();
+        for (size_t b0 = 0; b0 < nbins0; ++b0)
+        {
+          for (size_t b1 = 0; b1 < nbins1; ++b1)
+          {
+            csv_ge.detray_bin0 = b0;
+            csv_ge.detray_bin1 = b1;
+            for (auto e : grid.bin(b0, b1))
+            {
+              csv_ge.detray_entry = e;
+              sge_writer.append(csv_ge);
+            }
+          }
+        }
+      }
+    }
+
+    // Fast option, read the grid entries back in
+    if (read_grid_entries)
+    {
+
+      surface_grid_entries_reader sge_reader(grid_entries_file_name);
+      csv_surface_grid_entry surface_grid_entry;
+      while (sge_reader.read(surface_grid_entry))
+      {
+        // Get the volume bounds for fillind
+        const auto &v = d.indexed_volume(surface_grid_entry.detray_volume_id);
+        const auto &v_bounds = v.bounds();
+        dindex sfi = v.surfaces_finder_entry();
+        if (sfi != dindex_invalid)
+        {
+          bool is_cylinder = std::abs(v_bounds[1] - v_bounds[0]) < std::abs(v_bounds[3] - v_bounds[2]);
+          auto &grid = is_cylinder ? detector_surfaces_finders[sfi + 2] : detector_surfaces_finders[sfi];
+          // Fill the entry
+          grid.populate(static_cast<dindex>(surface_grid_entry.detray_bin0),
+                        static_cast<dindex>(surface_grid_entry.detray_bin1),
+                        static_cast<dindex>(surface_grid_entry.detray_entry));
         }
       }
     }

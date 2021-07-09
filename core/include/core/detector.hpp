@@ -52,9 +52,9 @@ namespace detray
               template <typename> class vector_type = dvector,
               typename alignable_store = static_transform_store<vector_type>,
               typename surface_source_link = dindex,
-              typename bounds_source_link = dindex,              
+              typename bounds_source_link = dindex,
               typename surfaces_populator_type = attach_populator<false, dindex, vector_type>,
-              typename surfaces_serializer_type = serializer2 >
+              typename surfaces_serializer_type = serializer2>
     class detector
     {
 
@@ -64,9 +64,9 @@ namespace detray
         using context = typename alignable_store::context;
 
         /// Volume grid definition
-        using volume_grid = grid2<replace_populator<dindex, std::numeric_limits<dindex>::max(), vector_type>, 
-                                  axis::irregular<array_type, vector_type>, 
-                                  axis::irregular<array_type, vector_type>, 
+        using volume_grid = grid2<replace_populator<dindex, std::numeric_limits<dindex>::max(), vector_type>,
+                                  axis::irregular<array_type, vector_type>,
+                                  axis::irregular<array_type, vector_type>,
                                   serializer2>;
 
         /// Portals components:
@@ -113,7 +113,6 @@ namespace detray
         using surface = surface_base<dindex, surface_mask_index, dindex, surface_link>;
         using surface_container = vector_type<surface>;
 
-
         using surfaces_regular_axis = axis::regular<array_type>;
         using surfaces_circular_axis = axis::circular<array_type>;
         using surfaces_regular_circular_grid = grid2<surfaces_populator_type,
@@ -124,7 +123,7 @@ namespace detray
                                                      tuple_type,
                                                      vector_type>;
 
-        using surfaces_finder = local_zone_finder<surfaces_regular_circular_grid>;
+        using surfaces_finder = surfaces_regular_circular_grid;
 
         /** Nested volume struct that holds the local information of the
          * volume and its portals.
@@ -132,11 +131,11 @@ namespace detray
         class volume
         {
 
-            friend class detector<array_type, 
+            friend class detector<array_type,
                                   tuple_type,
                                   vector_type,
-                                  alignable_store, 
-                                  surface_source_link, 
+                                  alignable_store,
+                                  surface_source_link,
                                   bounds_source_link,
                                   surfaces_populator_type,
                                   surfaces_serializer_type>;

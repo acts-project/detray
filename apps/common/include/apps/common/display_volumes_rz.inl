@@ -28,13 +28,16 @@ int main(int argc, char **argv)
             std::cout << "[detray] Usage: 'display_volumes_rz detector_name <surface_file> <grid_file> <volume_file>'" << std::endl;
             return 1;
         }
-        else if (argc > 4)
+        else if (argc > 5)
         {
             std::string name = first_arg;
-            std::string surfaces = argv[2];
-            std::string grids = argv[3];
-            std::string volumes = argv[4];
-            auto d = detector_from_csv<>(name, surfaces, grids, volumes);
+            std::string surfaces_file = argv[2];
+            std::string volumes_file = argv[3];
+            std::string grids_file = argv[4];
+            std::string grid_entries_file = argv[5];
+            
+            auto d = detector_from_csv<>(name, surfaces_file, volumes_file, grids_file, grid_entries_file);
+
             std::cout << "[detray] Detector read successfully." << std::endl;
             std::cout << d.to_string() << std::endl;
             // std::cout << "         Volumes : " << d.volumes().size() << std::endl;
@@ -83,18 +86,19 @@ int main(int argc, char **argv)
             std::cout << "                            z_min " << z_min_attachments.size() << std::endl;
             std::cout << "                            z_max " << z_max_attachments.size() << std::endl;
 
-            auto ax = matplot::subplot({0.1, 0.1, 0.8, 0.8});
-            ax->parent()->quiet_mode(true);
-
-            if (argc > 5)
+            if (argc > 6)
             {
-                int base_draw_option = std::atoi(argv[5]);
+
+                auto ax = matplot::subplot({0.1, 0.1, 0.8, 0.8});
+                ax->parent()->quiet_mode(true);
+
+                int base_draw_option = std::atoi(argv[6]);
 
                 // Draw first the detailed views
-                if (argc > 6)
+                if (argc > 7)
                 {
                     // drawing: base draw option
-                    int detail_draw_option = std::atoi(argv[6]);
+                    int detail_draw_option = std::atoi(argv[7]);
 
                     if (detail_draw_option == 1)
                     {
@@ -303,10 +307,10 @@ int main(int argc, char **argv)
                         }
                     }
                 }
-            }
 
-            ax->parent()->quiet_mode(false);
-            show();
+                ax->parent()->quiet_mode(false);
+                show();
+            }
 
             return 1;
         }

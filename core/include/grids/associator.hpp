@@ -94,8 +94,7 @@ namespace detray
         }
     };
 
-  
-    /** Check if the egdes of the bin and surface contour overlap */
+     /** Check if the egdes of the bin and surface contour overlap */
     struct edges_intersect_generic
     {
 

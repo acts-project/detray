@@ -45,18 +45,20 @@ int main(int argc, char **argv)
 
             std::string name = first_arg;
             std::string surfaces_file = argv[2];
-            std::string grids_file = argv[3];
-            std::string volumes_file = argv[4];
-            auto d = detector_from_csv<>(name, surfaces_file, grids_file, volumes_file);
+            std::string volumes_file = argv[3];
+            std::string grids_file = argv[4];
+            std::string grid_entries_file = argv[5];
+            
+            auto d = detector_from_csv<>(name, surfaces_file, volumes_file, grids_file, grid_entries_file);
             std::cout << "[detray] Detector read successfully." << std::endl;
 
             global_xy_view xy_view;
             global_z_phi_view zphi_view;
 
             // The layer, the bin
-            int lvol = atoi(argv[5]);
-            int bin_0 = atoi(argv[6]);
-            int bin_1 = atoi(argv[7]);
+            int lvol = atoi(argv[6]);
+            int bin_0 = atoi(argv[7]);
+            int bin_1 = atoi(argv[8]);
 
             // view field additions:
             std::array<scalar, 4> grid_adds = {0., 0.2, 20., 0.};
@@ -106,11 +108,7 @@ int main(int argc, char **argv)
             if (not is_cylinder)
             {
 
-                center_of_gravity_generic cgs_assoc;
-                edges_intersect_generic edges_assoc;
-
-                const auto &disk_finder = surfaces_finders[finder_entry];
-                const auto &disk_grid = disk_finder.grid();
+                const auto &disk_grid = surfaces_finders[finder_entry];
                 auto r_borders = disk_grid.axis_p0().borders(bin_0);
                 auto phi_borders = disk_grid.axis_p1().borders(bin_1);
 
@@ -119,13 +117,16 @@ int main(int argc, char **argv)
                 scalar phi_min = phi_borders[0];
                 scalar phi_max = phi_borders[1];
 
-                std::vector<point2> bin_contour = r_phi_polygon(r_min - assoc_adds[0],
-                                                                r_max + assoc_adds[2],
-                                                                phi_min - assoc_adds[1],
-                                                                phi_max + assoc_adds[3]);
+                const auto &bin_entry = disk_grid.bin(bin_0, bin_1);
+                std::cout << "Disk grid - bin (" << bin_0 << ", " << bin_1 << ") = ";
+                for (auto b_e : bin_entry)
+                {
+                    std::cout << b_e << ", ";
+                }
+                std::cout << std::endl;
 
                 // Loop over the surfaces within a volume
-                for (const auto &s : surfaces.objects())
+                for (auto [is, s] : enumerate(surfaces.objects()))
                 {
                     dvector<point3> vertices = {};
                     const auto &mask_link = s.mask();
@@ -144,16 +145,7 @@ int main(int argc, char **argv)
                     {
                         if (not vertices.empty())
                         {
-                            // Create a surface contour
-                            std::vector<point2> surface_contour;
-                            surface_contour.reserve(vertices.size());
-                            for (const auto &v : vertices)
-                            {
-                                auto vg = transform.point_to_global(v);
-                                surface_contour.push_back({vg[0], vg[1]});
-                            }
-
-                            style draw_style = (cgs_assoc(bin_contour, surface_contour) or edges_assoc(bin_contour, surface_contour))
+                            style draw_style = (std::find(bin_entry.begin(), bin_entry.end(), static_cast<dindex>(is)) != bin_entry.end())
                                                    ? selected_surface_style
                                                    : surface_style;
 
@@ -198,10 +190,7 @@ int main(int argc, char **argv)
             }
             else
             {
-
-                const auto &cylinder_finder = surfaces_finders[finder_entry + 2];
-
-                const auto &cylinder_grid = cylinder_finder.grid();
+                const auto &cylinder_grid = surfaces_finders[finder_entry + 2];
                 auto z_borders = cylinder_grid.axis_p0().borders(bin_0);
                 auto phi_borders = cylinder_grid.axis_p1().borders(bin_1);
 
@@ -210,18 +199,16 @@ int main(int argc, char **argv)
                 scalar phi_min = phi_borders[0];
                 scalar phi_max = phi_borders[1];
 
-                point2 p0_bin = {z_min - gadds[2][0], phi_min - gadds[2][1]};
-                point2 p1_bin = {z_min - gadds[2][0], phi_max + gadds[2][1]};
-                point2 p2_bin = {z_max + gadds[2][0], phi_max + gadds[2][1]};
-                point2 p3_bin = {z_max + gadds[2][0], phi_min - gadds[2][1]};
-
-                std::vector<point2> bin_contour = {p0_bin, p1_bin, p2_bin, p3_bin};
-
-                center_of_gravity_rectangle cgs_assoc;
-                edges_intersect_generic edges_assoc;
+                const auto &bin_entry = cylinder_grid.bin(bin_0, bin_1);
+                std::cout << "Cylinder grid - bin (" << bin_0 << ", " << bin_1 << ") = ";
+                for (auto b_e : bin_entry)
+                {
+                    std::cout << b_e << ", ";
+                }
+                std::cout << std::endl;
 
                 // Loop over the surfaces within a volume
-                for (const auto &s : surfaces.objects())
+                for (auto [is, s] : enumerate(surfaces.objects()))
                 {
                     dvector<point3> vertices = {};
                     const auto &mask_link = s.mask();
@@ -241,66 +228,11 @@ int main(int argc, char **argv)
 
                         if (not vertices.empty())
                         {
-                            // Create a surface contour
-                            std::vector<point2> surface_contour;
-                            surface_contour.reserve(vertices.size());
-                            scalar phi_min = std::numeric_limits<scalar>::max();
-                            scalar phi_max = -std::numeric_limits<scalar>::max();
-                            // We poentially need the split vertices
-                            std::vector<point2> s_c_neg;
-                            std::vector<point2> s_c_pos;
-                            scalar z_min_neg = std::numeric_limits<scalar>::max();
-                            scalar z_max_neg = -std::numeric_limits<scalar>::max();
-                            scalar z_min_pos = std::numeric_limits<scalar>::max();
-                            scalar z_max_pos = -std::numeric_limits<scalar>::max();
-
-                            for (const auto &v : vertices)
-                            {
-                                auto vg = transform.point_to_global(v);
-                                scalar phi = std::atan2(vg[1], vg[0]);
-                                phi_min = std::min(phi, phi_min);
-                                phi_max = std::max(phi, phi_max);
-                                surface_contour.push_back({vg[2], phi});
-                                if (phi < 0.)
-                                {
-                                    s_c_neg.push_back({vg[2], phi});
-                                    z_min_neg = std::min(vg[2], z_min_neg);
-                                    z_max_neg = std::max(vg[2], z_max_neg);
-                                }
-                                else
-                                {
-                                    s_c_pos.push_back({vg[2], phi});
-                                    z_min_pos = std::min(vg[2], z_min_pos);
-                                    z_max_pos = std::max(vg[2], z_max_pos);
-                                }
-                            }
-                            // Check for phi wrapping
-                            std::vector<std::vector<point2>> surface_contours;
-                            if (phi_max - phi_min > M_PI and phi_max * phi_min < 0.)
-                            {
-                                s_c_neg.push_back({z_max_neg, -M_PI});
-                                s_c_neg.push_back({z_min_neg, -M_PI});
-                                s_c_pos.push_back({z_max_pos, M_PI});
-                                s_c_pos.push_back({z_min_pos, M_PI});
-                                surface_contours = {s_c_neg, s_c_pos};
-                            }
-                            else
-                            {
-                                surface_contours = {surface_contour};
-                            }
 
                             // Check the association (with potential splits)
-                            bool associated = false;
-                            for (const auto &s_c : surface_contours)
-                            {
-                                if (cgs_assoc(bin_contour, s_c) or edges_assoc(bin_contour, s_c))
-                                {
-                                    associated = true;
-                                    break;
-                                }
-                            }
-
-                            style draw_style = associated ? selected_surface_style : surface_style;
+                            style draw_style = (std::find(bin_entry.begin(), bin_entry.end(), static_cast<dindex>(is)) != bin_entry.end())
+                                                   ? selected_surface_style
+                                                   : surface_style;
 
                             draw_vertices(vertices, transform, draw_style, zphi_view, true);
                         }
