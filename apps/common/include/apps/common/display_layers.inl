@@ -37,8 +37,8 @@ int main(int argc, char **argv)
         else if (argc > 5)
         {
 
-            int layer = argc > 5 ? atoi(argv[5]) : -1;
-            bool mouse_over_mode = argc > 6 ? true : false;
+            int layer = argc > 6 ? atoi(argv[6]) : -1;
+            bool mouse_over_mode = argc > 7 ? true : false;
 
             // Create a sub plot
             auto ax = matplot::subplot({0.1, 0.1, 0.65, 0.8});

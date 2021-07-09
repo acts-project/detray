@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "utils/indexing.hpp"
 #include <memory>
 
 namespace detray
@@ -17,12 +18,10 @@ namespace detray
      * @tparam volume_link the typ eof the volume/volume link representation
      * @tparam source_link the type of the source/source link representation 
      */
-    template <typename transform_link, typename mask_link = int, typename volume_link = int, typename source_link = bool>
+    template <typename transform_link, typename mask_link = dindex, typename volume_link = dindex, typename source_link = bool>
     class surface_base
     {
     public:
-        /** Broadcast the transform type */
-        using transform3 = transform_link;
 
         /** Constructor with full arguments - move semantics
          * 
