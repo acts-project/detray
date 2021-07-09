@@ -64,6 +64,22 @@ namespace detray
 
   using surface_grid_reader = dfe::NamedTupleCsvReader<csv_surface_grid>;
 
+
+  struct csv_surface_grid_entry
+  {
+    /// detray volume identifier
+    int detray_volume_id = -1;
+    int detray_bin0 = -1;
+    int detray_bin1 = -1;
+    int detray_entry = -1;
+
+    DFE_NAMEDTUPLE(csv_surface_grid_entry, detray_volume_id, detray_bin0, detray_bin1, detray_entry);
+  };
+
+  using surface_grid_entries_writer = dfe::NamedTupleCsvWriter<csv_surface_grid_entry>;
+  using surface_grid_entries_reader = dfe::NamedTupleCsvReader<csv_surface_grid_entry>;
+
+
   struct csv_layer_volume
   {
     /// Surface identifier. Not available in the TrackML datasets.

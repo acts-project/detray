@@ -54,8 +54,9 @@ namespace detray
            bounds_source_link>
   detector_from_csv(const std::string &detector_name,
                     const std::string &surface_file_name,
-                    const std::string &grid_file_name,
                     const std::string &layer_volume_file_name,
+                    const std::string &grid_file_name,
+                    const std::string &grid_entries_file_name,
                     scalar r_sync_tolerance = 0.,
                     scalar z_sync_tolerance = 0.)
   {
@@ -68,13 +69,13 @@ namespace detray
     surface_reader s_reader(surface_file_name);
     csv_surface io_surface;
 
-    // Surface grid reading
-    surface_grid_reader sg_reader(grid_file_name);
-    csv_surface_grid io_surface_grid;
-
     // Layer volume reading
     layer_volume_reader lv_reader(layer_volume_file_name);
     csv_layer_volume io_layer_volume;
+
+    // Surface grid reading
+    surface_grid_reader sg_reader(grid_file_name);
+    csv_surface_grid io_surface_grid;
 
     using volume_layer_index = std::pair<uint32_t, uint32_t>;
     std::map<volume_layer_index, typename typed_detector::volume *> volumes;
@@ -475,10 +476,15 @@ namespace detray
     // A step into the volume (stepsilon), can be read in from the smallest difference
     scalar stepsilon = 1.;
 
+    // Run the bin association and write out
+    surface_grid_entries_writer sge_writer("grid-entries.csv");
+    bool write_grid_entries = (grid_entries_file_name.find("write") != std::string::npos);
+    bool read_grid_entries = not grid_entries_file_name.empty() and not write_grid_entries;;
+
     // Loop over the volumes
     // - fill the volume grid
     // - run the bin association
-    for (const auto &v : d.volumes())
+    for (auto [iv, v] : enumerate(d.volumes()))
     {
       // Get the volume bounds for fillind
       const auto &v_bounds = v.bounds();
@@ -505,17 +511,51 @@ namespace detray
       }
 
       dindex sfi = v.surfaces_finder_entry();
-      if (sfi != dindex_invalid)
+      if (sfi != dindex_invalid and write_grid_entries)
       {
-        if (not is_cylinder)
+        auto &grid = is_cylinder ? detector_surfaces_finders[sfi + 2] : detector_surfaces_finders[sfi];
+        bin_association(surface_default_context, v, grid, {0.1, 0.1}, false);
+
+        csv_surface_grid_entry csv_ge;
+        csv_ge.detray_volume_id = static_cast<int>(iv);
+        size_t nbins0 = grid.axis_p0().bins();
+        size_t nbins1 = grid.axis_p1().bins();
+        for (size_t b0 = 0; b0 < nbins0; ++b0)
         {
-          bin_association(surface_default_context, v, detector_surfaces_finders[sfi], {0.1, 0.1}, false);
-          detector_surfaces_finders[sfi + 1] = detector_surfaces_finders[sfi];
+          for (size_t b1 = 0; b1 < nbins1; ++b1)
+          {
+            csv_ge.detray_bin0 = b0;
+            csv_ge.detray_bin1 = b1;
+            for (auto e : grid.bin(b0, b1))
+            {
+              csv_ge.detray_entry = e;
+              sge_writer.append(csv_ge);
+            }
+          }
         }
-        else
+      }
+    }
+
+    // Fast option, read the grid entries back in
+    if (read_grid_entries)
+    {
+
+      surface_grid_entries_reader sge_reader(grid_entries_file_name);
+      csv_surface_grid_entry surface_grid_entry;
+      while (sge_reader.read(surface_grid_entry))
+      {
+        // Get the volume bounds for fillind
+        const auto &v = d.indexed_volume(surface_grid_entry.detray_volume_id);
+        const auto &v_bounds = v.bounds();
+        dindex sfi = v.surfaces_finder_entry();
+        if (sfi != dindex_invalid)
         {
-          bin_association(surface_default_context, v, detector_surfaces_finders[sfi + 2], {0.1, 0.1}, false);
-          detector_surfaces_finders[sfi + 3] = detector_surfaces_finders[sfi + 2];
+          bool is_cylinder = std::abs(v_bounds[1] - v_bounds[0]) < std::abs(v_bounds[3] - v_bounds[2]);
+          auto &grid = is_cylinder ? detector_surfaces_finders[sfi + 2] : detector_surfaces_finders[sfi];
+          // Fill the entry
+          grid.populate(static_cast<dindex>(surface_grid_entry.detray_bin0),
+                        static_cast<dindex>(surface_grid_entry.detray_bin1),
+                        static_cast<dindex>(surface_grid_entry.detray_entry));
         }
       }
     }

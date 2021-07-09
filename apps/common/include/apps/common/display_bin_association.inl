@@ -45,18 +45,20 @@ int main(int argc, char **argv)
 
             std::string name = first_arg;
             std::string surfaces_file = argv[2];
-            std::string grids_file = argv[3];
-            std::string volumes_file = argv[4];
-            auto d = detector_from_csv<>(name, surfaces_file, grids_file, volumes_file);
+            std::string volumes_file = argv[3];
+            std::string grids_file = argv[4];
+            std::string grid_entries_file = argv[5];
+            
+            auto d = detector_from_csv<>(name, surfaces_file, volumes_file, grids_file, grid_entries_file);
             std::cout << "[detray] Detector read successfully." << std::endl;
 
             global_xy_view xy_view;
             global_z_phi_view zphi_view;
 
             // The layer, the bin
-            int lvol = atoi(argv[5]);
-            int bin_0 = atoi(argv[6]);
-            int bin_1 = atoi(argv[7]);
+            int lvol = atoi(argv[6]);
+            int bin_0 = atoi(argv[7]);
+            int bin_1 = atoi(argv[8]);
 
             // view field additions:
             std::array<scalar, 4> grid_adds = {0., 0.2, 20., 0.};

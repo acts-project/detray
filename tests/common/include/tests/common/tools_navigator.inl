@@ -28,10 +28,11 @@ TEST(ALGEBRA_PLUGIN, navigator)
     auto data_directory = std::string(env_d_d);
 
     std::string surface_file = data_directory + std::string("tml.csv");
-    std::string surface_grid_file = data_directory + std::string("tml-surface-grids.csv");
     std::string layer_volume_file = data_directory + std::string("tml-layer-volumes.csv");
+    std::string surface_grid_file = data_directory + std::string("tml-surface-grids.csv");
+    std::string surface_grid_entries_file = "";
 
-    auto d = detector_from_csv<>("tml", surface_file, surface_grid_file, layer_volume_file);
+    auto d = detector_from_csv<>("tml", surface_file, layer_volume_file, surface_grid_file, surface_grid_entries_file);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;

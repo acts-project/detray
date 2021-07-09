@@ -40,10 +40,11 @@ auto read_detector()
     auto data_directory = std::string(env_d_d);
 
     std::string name = "tml";
-    std::string surfaces = data_directory + "tml.csv";
-    std::string grids = data_directory + "tml-surface-grids.csv";
-    std::string volumes = data_directory + "tml-layer-volumes.csv";
-    return detray::detector_from_csv<>(name, surfaces, grids, volumes);
+    std::string surfaces = data_directory + "odd.csv";
+    std::string volumes = data_directory + "odd-layer-volumes.csv";
+    std::string grids = data_directory + "odd-surface-grids.csv";
+    std::string grid_entries = "";
+    return detray::detector_from_csv<>(name, surfaces, volumes, grids, grid_entries);
 };
 
 auto d = read_detector();

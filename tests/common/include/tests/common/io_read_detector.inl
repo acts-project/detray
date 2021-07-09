@@ -26,11 +26,12 @@ TEST(ALGEBRA_PLUGIN, read_detector)
     }
     auto data_directory = std::string(env_d_d);
 
-    std::string surface_file = data_directory + std::string("tml.csv");
-    std::string surface_grid_file = data_directory + std::string("tml-surface-grids.csv");
-    std::string layer_volume_file = data_directory + std::string("tml-layer-volumes.csv");
+    std::string surface_file = data_directory + std::string("odd.csv");
+    std::string layer_volume_file = data_directory + std::string("odd-layer-volumes.csv");
+    std::string surface_grid_file = data_directory + std::string("odd-surface-grids.csv");
+    std::string surface_grid_entries_file = "";
 
-    auto d = detector_from_csv<>("tml", surface_file, surface_grid_file, layer_volume_file);
+    auto d = detector_from_csv<>("odd", surface_file, layer_volume_file, surface_grid_file, surface_grid_entries_file);
 
     std::cout << d.to_string() << std::endl;
 }
