@@ -479,7 +479,8 @@ namespace detray
     // Run the bin association and write out
     surface_grid_entries_writer sge_writer("grid-entries.csv");
     bool write_grid_entries = (grid_entries_file_name.find("write") != std::string::npos);
-    bool read_grid_entries = not grid_entries_file_name.empty() and not write_grid_entries;;
+    bool read_grid_entries = not grid_entries_file_name.empty() and not write_grid_entries
+          and not (grid_entries_file_name.find("none") != std::string::npos);
 
     // Loop over the volumes
     // - fill the volume grid
