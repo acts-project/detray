@@ -5,9 +5,12 @@ project(detray VERSION 0.1 LANGUAGES CXX)
 option(CMAKE_WARN_DEPRECATED "Not warning for deprecation in cmake" Off)
 enable_testing()
 
+include(CMakeDependentOption)
+
 option(DETRAY_ARRAY_PLUGIN "Build std::array math plugin" On)
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" Off)
+option(DETRAY_VC_ALGEBRA_PLUGIN "Build vc based simd algebra math plugin" Off)
 option(DETRAY_IO_CSV "Build CSV IO module" On)
 option(DETRAY_IO_JSON "Build JSON IO module" On)
 option(DETRAY_DISPLAY "Build matplot++ based display module" Off)
@@ -33,8 +36,19 @@ if (DETRAY_SMATRIX_PLUGIN)
     include_directories(SYSTEM ${ROOT_INCLUDE_DIRS})
 endif()
 
+if (DETRAY_VC_ALGEBRA_PLUGIN)
+    set(ALGEBRA_PLUGIN_INCLUDE_VC ON)
+endif()
+
 option(DETRAY_UNIT_TESTS "Enable unit tests" On)
 option(DETRAY_BENCHMARKS "Enable benchmark tests" On)
+cmake_dependent_option(DETRAY_BENCHMARKS_MULTITHREAD "Enable multithreaded benchmarks" Off "DETRAY_BENCHMARKS" Off)
+if(DETRAY_BENCHMARKS_MULTITHREAD)
+    message(STATUS "Using multithreaded benchmarks")
+endif()
+if(DETRAY_BENCHMARKS AND DETRAY_BENCHMARKS_REP)
+    message(STATUS "Repetitions for benchmarks: " ${DETRAY_BENCHMARKS_REP})
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 

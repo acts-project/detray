@@ -25,6 +25,12 @@ using surface = surface_base<transform3>;
 __plugin::cartesian2 cartesian2;
 using point2 = __plugin::point2;
 
+#ifdef DETRAY_BENCHMARKS_REP
+unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
+#else
+unsigned int gbench_repetitions = 0;
+#endif
+
 unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
 bool stream_file = false;
@@ -55,12 +61,11 @@ namespace __plugin
     static void BM_INTERSECT_ALL(benchmark::State &state)
     {
 
-        std::ofstream hit_out;
+        /*std::ofstream hit_out;
         if (stream_file)
         {
             hit_out.open("tml_hits.csv");
-        }
-
+        }*/
         unsigned int hits = 0;
         unsigned int missed = 0;
 
@@ -70,8 +75,7 @@ namespace __plugin
 
         for (auto _ : state)
         {
-
-            track<detray_context> track;
+            track<static_transform_store<>::context> track;
             track.pos = point3{0., 0., 0.};
 
             // Loops of theta values
@@ -101,32 +105,46 @@ namespace __plugin
                             auto sfi_surface = intersect(track, s, surfaces.transforms(), surfaces.masks());
 
                             const auto &sfi = std::get<0>(sfi_surface);
+                            
+                            benchmark::DoNotOptimize(hits);
+                            benchmark::DoNotOptimize(missed);
                             if (sfi.status == intersection_status::e_inside)
                             {
+                                /* state.PauseTiming();
                                 if (stream_file)
                                 {
                                     hit_out << sfi.p3[0] << "," << sfi.p3[1] << "," << sfi.p3[2] << "\n";
                                 }
+                                state.ResumeTiming();*/
                                 ++hits;
                             }
                             else
                             {
                                 ++missed;
                             }
+                            benchmark::ClobberMemory();
                         }
                     }
                 }
             }
         }
 
+        #ifndef DETRAY_BENCHMARKS_MULTITHREAD
         std::cout << "[detray] hits / missed / total = " << hits << " / " << missed << " / " << hits + missed << std::endl;
-        if (stream_file)
+        #endif
+        /**if (stream_file)
         {
             hit_out.close();
-        }
+        }*/
     }
 
-    BENCHMARK(BM_INTERSECT_ALL);
+    BENCHMARK(BM_INTERSECT_ALL)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
+    ->Repetitions(gbench_repetitions)
+    ->DisplayAggregatesOnly(true);
 
 } // namespace __plugin
 

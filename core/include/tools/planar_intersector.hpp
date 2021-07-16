@@ -98,8 +98,7 @@ namespace detray
                 is.path = vector::dot(sn, (st - ro)) / (denom);
                 is.p3 = ro + is.path * rd;
                 is.p2 = local(trf, is.p3);
-                is.status = mask.template is_inside<local_type>(
-                    is.p2.value_or(point2()), tolerance);
+                is.status = mask.template is_inside<local_type>(is.p2, tolerance);
                 is.direction = is.path > overstep_tolerance ? e_along : e_opposite;
                 return is;
             }

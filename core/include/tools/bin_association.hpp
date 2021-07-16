@@ -187,7 +187,7 @@ namespace detray
 
                                 for (const auto &v : vertices)
                                 {
-                                    auto vg = transform.point_to_global(v);
+                                    const point3 vg = transform.point_to_global(v);
                                     scalar phi = std::atan2(vg[1], vg[0]);
                                     phi_min = std::min(phi, phi_min);
                                     phi_max = std::max(phi, phi_max);

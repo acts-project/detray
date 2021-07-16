@@ -16,6 +16,12 @@
 
 using namespace detray;
 
+#ifdef DETRAY_BENCHMARKS_REP
+unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
+#else
+unsigned int gbench_repetitions = 0;
+#endif
+
 /** Read the detector from file */
 auto read_detector()
 {
@@ -56,28 +62,44 @@ namespace __plugin
         size_t successful = 0;
         size_t unsuccessful = 0;
 
-        for (unsigned int i1 = 0; i1 < itest; ++i1)
+        for (auto _ : state)
         {
-            for (unsigned int i0 = 0; i0 < itest; ++i0)
+            for (unsigned int i1 = 0; i1 < itest; ++i1)
             {
-                vector3 rz {i0 * step0, 0., i1 * step1};
-                auto &v = d.indexed_volume(rz);
-                if (v.index() == dindex_invalid)
+                for (unsigned int i0 = 0; i0 < itest; ++i0)
                 {
-                    ++unsuccessful;
-                }
-                else
-                {
-                    ++successful;
+                    vector3 rz {i0 * step0, 0., i1 * step1};
+                    auto &v = d.indexed_volume(rz);
+
+                    benchmark::DoNotOptimize(successful);
+                    benchmark::DoNotOptimize(unsuccessful);
+                    if (v.index() == dindex_invalid)
+                    {
+                        ++unsuccessful;
+                    }
+                    else
+                    {
+                        ++successful;
+                    }
+                    benchmark::ClobberMemory();
                 }
             }
         }
 
+
+        #ifndef DETRAY_BENCHMARKS_MULTITHREAD
         std::cout << "Successful   : " << successful << std::endl;
         std::cout << "Unsuccessful : " << unsuccessful << std::endl;
+        #endif
     }
 
-    BENCHMARK(BM_FIND_VOLUMES);
+    BENCHMARK(BM_FIND_VOLUMES)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
+    ->Repetitions(gbench_repetitions)
+    ->DisplayAggregatesOnly(true);
 
 } // namespace __plugin
 

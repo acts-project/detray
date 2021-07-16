@@ -49,10 +49,11 @@ namespace detray
 
         scalar path = std::numeric_limits<scalar>::infinity();
         point3 p3 = point3{std::numeric_limits<scalar>::infinity(),
-                                         std::numeric_limits<scalar>::infinity(),
-                                         std::numeric_limits<scalar>::infinity()};
+                           std::numeric_limits<scalar>::infinity(),
+                           std::numeric_limits<scalar>::infinity()};
 
-        std::optional<point2> p2 = std::nullopt;
+        point2 p2 = {std::numeric_limits<scalar>::infinity(),
+                     std::numeric_limits<scalar>::infinity()};
         intersection_status status = e_missed;
         intersection_direction direction = e_undefined;
         dindex index = dindex_invalid;

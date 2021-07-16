@@ -20,6 +20,12 @@
 using namespace detray;
 using namespace __plugin;
 
+#ifdef DETRAY_BENCHMARKS_REP
+unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
+#else
+unsigned int gbench_repetitions = 0;
+#endif
+
 unsigned int steps_x3 = 1000;
 unsigned int steps_y3 = 1000;
 unsigned int steps_z3 = 1000;
@@ -31,6 +37,7 @@ bool screen_output = false;
 
 namespace
 {
+    
     // This test runs a rectangle2 maks test operation
     static void BM_RECTANGLE2_MASK(benchmark::State &state)
     {
@@ -56,6 +63,9 @@ namespace
                 for (unsigned int iy = 0; iy < steps_y2; ++iy)
                 {
                     scalar y = -0.5 * world + iy * sy;
+
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
                     if (r.is_inside<local_type>(point2{x, y}) == e_inside)
                     {
                         ++inside;
@@ -64,6 +74,7 @@ namespace
                     {
                         ++outside;
                     }
+                    benchmark::ClobberMemory();
                 }
             }
         }
@@ -101,6 +112,9 @@ namespace
                 for (unsigned int iy = 0; iy < steps_y2; ++iy)
                 {
                     scalar y = -0.5 * world + iy * sy;
+
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
                     if (t.is_inside<local_type>(point2{x, y}) == e_inside)
                     {
                         ++inside;
@@ -109,6 +123,7 @@ namespace
                     {
                         ++outside;
                     }
+                    benchmark::ClobberMemory();
                 }
             }
         }
@@ -146,6 +161,9 @@ namespace
                 for (unsigned int iy = 0; iy < steps_y2; ++iy)
                 {
                     scalar y = -0.5 * world + iy * sy;
+
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
                     if (r.is_inside<local_type>(point2{x, y}) == e_inside)
                     {
                         ++inside;
@@ -154,6 +172,7 @@ namespace
                     {
                         ++outside;
                     }
+                    benchmark::ClobberMemory();
                 }
             }
         }
@@ -190,6 +209,9 @@ namespace
                 for (unsigned int iy = 0; iy < steps_y2; ++iy)
                 {
                     scalar y = -0.5 * world + iy * sy;
+
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
                     if (r.is_inside<local_type>(point2{x, y}) == e_inside)
                     {
                         ++inside;
@@ -198,6 +220,7 @@ namespace
                     {
                         ++outside;
                     }
+                    benchmark::ClobberMemory();
                 }
             }
         }
@@ -238,6 +261,8 @@ namespace
                     {
                         scalar z = -0.5 * world + iz * sz;
 
+                        benchmark::DoNotOptimize(inside);
+                        benchmark::DoNotOptimize(outside);
                         if (c.is_inside<local_type>(point3{x, y, z}, {0.1, 0.}) == e_inside)
                         {
                             ++inside;
@@ -246,6 +271,7 @@ namespace
                         {
                             ++outside;
                         }
+                        benchmark::ClobberMemory();
                     }
                 }
             }
@@ -280,6 +306,9 @@ namespace
                 for (unsigned int iy = 0; iy < steps_y2; ++iy)
                 {
                     scalar y = -0.5 * world + iy * sy;
+
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
                     if (ann.is_inside<local_type>(point2{x, y}) == e_inside)
                     {
                         ++inside;
@@ -288,6 +317,7 @@ namespace
                     {
                         ++outside;
                     }
+                    benchmark::ClobberMemory();
                 }
             }
         }
@@ -298,12 +328,48 @@ namespace
         }
     }
 
-    BENCHMARK(BM_RECTANGLE2_MASK);
-    BENCHMARK(BM_TRAPEZOID2_MASK);
-    BENCHMARK(BM_DISC2_MASK);
-    BENCHMARK(BM_RING2_MASK);
-    BENCHMARK(BM_CYLINDER3_MASK);
-    BENCHMARK(BM_ANNULUS_MASK);
+    BENCHMARK(BM_RECTANGLE2_MASK)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
+    ->Repetitions(gbench_repetitions)
+    ->DisplayAggregatesOnly(true);
+    BENCHMARK(BM_TRAPEZOID2_MASK)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
+    ->Repetitions(gbench_repetitions)
+    ->DisplayAggregatesOnly(true);
+    BENCHMARK(BM_DISC2_MASK)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
+    ->Repetitions(gbench_repetitions)
+    ->DisplayAggregatesOnly(true);
+    BENCHMARK(BM_RING2_MASK)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
+    ->Repetitions(gbench_repetitions)
+    ->DisplayAggregatesOnly(true);
+    BENCHMARK(BM_CYLINDER3_MASK)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
+    ->Repetitions(gbench_repetitions)
+    ->DisplayAggregatesOnly(true);
+    BENCHMARK(BM_ANNULUS_MASK)
+    #ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+    #endif
+    ->Unit(benchmark::kMillisecond)
+    ->Repetitions(gbench_repetitions)
+    ->DisplayAggregatesOnly(true);
 
 } // namespace
 
