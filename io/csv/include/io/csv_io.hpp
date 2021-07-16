@@ -450,7 +450,7 @@ namespace detray
     auto
         sort_and_remove_duplicates = [](std::map<scalar, std::vector<dindex>> &att) -> dvector<scalar>
     {
-      std::vector<scalar> keys;
+      dvector<scalar> keys;
       keys.reserve(att.size());
       for (auto [key, value] : att)
       {
