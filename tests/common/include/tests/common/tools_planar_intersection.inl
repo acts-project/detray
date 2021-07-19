@@ -27,6 +27,7 @@ using vector3 = __plugin::vector3;
 using point3 = __plugin::point3;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
+constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
 constexpr scalar isclose = 1e-5;
 
 // This defines the local frame test suite
@@ -43,7 +44,8 @@ TEST(ALGEBRA_PLUGIN, translated_plane)
     ASSERT_NEAR(hit_unbound.p3[0], 2., epsilon);
     ASSERT_NEAR(hit_unbound.p3[1], 1., epsilon);
     ASSERT_NEAR(hit_unbound.p3[2], 10., epsilon);
-    ASSERT_TRUE(hit_unbound.p2 == std::nullopt);
+    ASSERT_TRUE(hit_unbound.p2[0] == not_defined
+                && hit_unbound.p2[1] == not_defined);
 
     // The same test but bound to local frame
     auto hit_bound = pi.intersect(shifted, point3{2., 1., 0.}, vector3{0., 0., 1.}, cartesian2);
@@ -53,8 +55,8 @@ TEST(ALGEBRA_PLUGIN, translated_plane)
     ASSERT_NEAR(hit_bound.p3[1], 1., epsilon);
     ASSERT_NEAR(hit_bound.p3[2], 10., epsilon);
     // Local intersection infoimation
-    ASSERT_NEAR(hit_bound.p2.value()[0], -1., epsilon);
-    ASSERT_NEAR(hit_bound.p2.value()[1], -1., epsilon);
+    ASSERT_NEAR(hit_bound.p2[0], -1., epsilon);
+    ASSERT_NEAR(hit_bound.p2[1], -1., epsilon);
 
     // The same test but bound to local frame & masked - inside
     rectangle2<> rect_for_inside = {3., 3.};
@@ -65,8 +67,8 @@ TEST(ALGEBRA_PLUGIN, translated_plane)
     ASSERT_NEAR(hit_bound_inside.p3[1], 1., epsilon);
     ASSERT_NEAR(hit_bound_inside.p3[2], 10., epsilon);
     // Local intersection infoimation - unchanged
-    ASSERT_NEAR(hit_bound_inside.p2.value()[0], -1., epsilon);
-    ASSERT_NEAR(hit_bound_inside.p2.value()[1], -1., epsilon);
+    ASSERT_NEAR(hit_bound_inside.p2[0], -1., epsilon);
+    ASSERT_NEAR(hit_bound_inside.p2[1], -1., epsilon);
 
     // The same test but bound to local frame & masked - outside
     rectangle2<> rect_for_outside = {0.5, 3.5};
@@ -77,8 +79,8 @@ TEST(ALGEBRA_PLUGIN, translated_plane)
     ASSERT_NEAR(hit_bound_outside.p3[1], 1., epsilon);
     ASSERT_NEAR(hit_bound_outside.p3[2], 10., epsilon);
     // Local intersection infoimation - unchanged
-    ASSERT_NEAR(hit_bound_outside.p2.value()[0], -1., epsilon);
-    ASSERT_NEAR(hit_bound_outside.p2.value()[1], -1., epsilon);
+    ASSERT_NEAR(hit_bound_outside.p2[0], -1., epsilon);
+    ASSERT_NEAR(hit_bound_outside.p2[1], -1., epsilon);
 }
 
 
