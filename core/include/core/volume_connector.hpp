@@ -22,6 +22,8 @@ namespace detray
               template <typename> class vector_type = dvector>
     void connect_cylindrical_volumes(detector_type &d, const typename detector_type::volume_grid &volume_grid)
     {
+        typename detector_type::context default_context;
+
         // The grid is populated, now create portal surfaces
         // Start from left bottom corner (0,0)
         vector_type<array_type<dindex, 2>> seeds = {{0, 0}};
@@ -237,7 +239,7 @@ namespace detray
                         mask_group.push_back(_portal_disc);
                     }
                     // Create the portal
-                    typename detector_type::portal _portal{portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
+                    typename detector_type::portal _portal{d.transform_index(default_context) + portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
                     portals.push_back(std::move(_portal));
                     portal_transforms.push_back(std::move(_portal_transform));
                 }
@@ -268,7 +270,7 @@ namespace detray
                         mask_group.push_back(_portal_cylinder);
                     }
                     // Create the portal
-                    typename detector_type::portal _portal{portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
+                    typename detector_type::portal _portal{d.transform_index(default_context) + portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
                     portals.push_back(std::move(_portal));
                     portal_transforms.push_back(std::move(_portal_transform));
                 }
@@ -281,10 +283,10 @@ namespace detray
             add_cylinder_portal(lower_portals_info, 0);
 
             // Create a transform store and add it
-            typename detector_type::context default_context;
             // All componnents are added
             volume.add_portal_components(std::move(portals), std::move(portal_masks));
-            volume.add_portal_transforms(default_context, std::move(portal_transforms));
+            //volume.add_portal_transforms(default_context, std::move(portal_transforms));
+            d.add_transforms(default_context, std::move(portal_transforms));
         }
     }
 }

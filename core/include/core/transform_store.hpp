@@ -25,6 +25,24 @@ namespace detray
 
         using storage = vector_type<transform3>;
 
+        /** Forward iterator : Contextual STL like API
+         *
+         * @param ctx The context of the call (ignored)
+         */
+        auto begin(const context & /*ctx*/) const ->decltype(auto)
+        {
+            return _data.begin();
+        }
+
+        /** Forward iterator : Contextual STL like API
+         *
+         * @param ctx The context of the call (ignored)
+         */
+        auto end(const context & /*ctx*/) const ->decltype(auto)
+        {
+            return _data.end();
+        }
+
         /** Reserve memory : Contextual STL like API
          *
          * @param ctx The context of the call (ignored)
@@ -58,7 +76,7 @@ namespace detray
         /** Size : Contextual STL like API
          * @param ctx The context of the call (ignored)
          */ 
-        size_t size(const context & /*ctx*/)
+        size_t size(const context & /*ctx*/) const
         {
             return _data.size();
         }
@@ -78,9 +96,22 @@ namespace detray
          *
          * @note in general can throw an exception
          */
-        void add_contextual_transforms(const context & /*ctx*/, storage &&trfs) noexcept(false)
+        void set_contextual_transforms(const context & /*ctx*/, storage &&trfs) noexcept(false)
         {
             _data = std::move(trfs);
+        }
+
+        /** Append a bunch of (contextual) transforms - move semantics
+         *
+         * @param ctx The context of the call (ignored)
+         * @param trfs The transform container, move semantics
+         *
+         * @note in general can throw an exception
+         */
+        void append_contextual_transforms(const context & /*ctx*/, storage &&trfs) noexcept(false)
+        {
+            _data.reserve(trfs.size());
+            _data.insert(_data.end(), std::make_move_iterator(trfs.begin()), std::make_move_iterator(trfs.end()));
         }
 
         /** Get the contextual transform

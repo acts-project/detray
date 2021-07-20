@@ -296,7 +296,8 @@ namespace detray
         if (c_volume != nullptr and not surface_transform_storage.empty())
         {
           // Construction with move semantics
-          c_volume->add_surface_transforms(surface_default_context, std::move(surface_transform_storage));
+          //c_volume->add_surface_transforms(surface_default_context, std::move(surface_transform_storage));
+          d.add_transforms(surface_default_context, std::move(surface_transform_storage));
           c_volume->add_surface_components(std::move(c_surfaces), std::move(c_masks));
 
           // Get new clean containers
@@ -435,7 +436,7 @@ namespace detray
         // Fill the surface into the temporary container
         if (mask_index[0] != dindex_invalid)
         {
-          c_surfaces.push_back({transform_index, mask_index, c_volume->index(), io_surface.geometry_id});
+          c_surfaces.push_back({d.transform_index(surface_default_context) + transform_index, mask_index, c_volume->index(), io_surface.geometry_id});
         }
 
       } // end of exclusion for navigation layers
@@ -487,7 +488,7 @@ namespace detray
     // - run the bin association
     for (auto [iv, v] : enumerate(d.volumes()))
     {
-      // Get the volume bounds for fillind
+      // Get the volume bounds for filling
       const auto &v_bounds = v.bounds();
 
       dindex irl = v_grid.axis_p0().bin(v_bounds[0] + stepsilon);

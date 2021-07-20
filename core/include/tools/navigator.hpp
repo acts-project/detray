@@ -308,7 +308,7 @@ namespace detray
                 return;
             }
             kernel.candidates.reserve(n_objects);
-            const auto &transforms = constituents.transforms();
+            const auto &transforms = constituents.transforms(track.ctx);
             const auto &masks = constituents.masks();
             // Loop over all indexed surfaces, intersect and fill
             // @todo - will come from the local object finder
@@ -363,7 +363,7 @@ namespace detray
             // Get the type of the kernel via a const expression at compile time
             constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_link>>);
 
-            const auto &transforms = constituents.transforms();
+            const auto &transforms = constituents.transforms(track.ctx);
             const auto &masks = constituents.masks();
 
             // Update current candidate, or step further
