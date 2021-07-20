@@ -22,7 +22,7 @@ namespace detray
               template <typename> class vector_type = dvector>
     void connect_cylindrical_volumes(detector_type &d, const typename detector_type::volume_grid &volume_grid)
     {
-        typename detector_type::context default_context;
+        typename detector_type::context default_context = {};
 
         // The grid is populated, now create portal surfaces
         // Start from left bottom corner (0,0)
@@ -285,8 +285,7 @@ namespace detray
             // Create a transform store and add it
             // All componnents are added
             volume.add_portal_components(std::move(portals), std::move(portal_masks));
-            //volume.add_portal_transforms(default_context, std::move(portal_transforms));
-            d.add_transforms(default_context, std::move(portal_transforms));
+            d.add_portal_transforms(default_context, volume, std::move(portal_transforms));
         }
     }
 }

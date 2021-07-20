@@ -131,6 +131,8 @@ TEST(ALGEBRA_PLUGIN, navigator)
     ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_high_trust);
 
     // New target call
+
+    std::cout << "This is the call:" << std::endl;
     heartbeat = n.target(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);

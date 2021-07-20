@@ -13,6 +13,7 @@
 #include "utils/enumerate.hpp"
 #include "tools/intersection_kernel.hpp"
 #include <algorithm>
+#include <iostream>
 
 namespace detray
 {
@@ -309,6 +310,7 @@ namespace detray
             }
             kernel.candidates.reserve(n_objects);
             const auto &transforms = constituents.transforms(track.ctx);
+            std::cout << "I'm here!" << std::endl;
             const auto &masks = constituents.masks();
             // Loop over all indexed surfaces, intersect and fill
             // @todo - will come from the local object finder
@@ -317,6 +319,7 @@ namespace detray
             {
                 const auto &object = constituents.indexed_object(si);
                 auto [sfi, link] = intersect(track, object, transforms, masks);
+
                 sfi.index = si;
                 sfi.link = link[0];
                 // Ignore negative solutions - except overstep limit
@@ -352,7 +355,6 @@ namespace detray
                            const track<context> &track,
                            const constituents_t &constituents) const
         {
-
             // If the kernel is empty - intitalize it
             if (kernel.empty())
             {

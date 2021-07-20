@@ -297,7 +297,7 @@ namespace detray
         {
           // Construction with move semantics
           //c_volume->add_surface_transforms(surface_default_context, std::move(surface_transform_storage));
-          d.add_transforms(surface_default_context, std::move(surface_transform_storage));
+          d.add_surface_transforms(surface_default_context, *c_volume, std::move(surface_transform_storage));
           c_volume->add_surface_components(std::move(c_surfaces), std::move(c_masks));
 
           // Get new clean containers

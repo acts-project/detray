@@ -76,7 +76,7 @@ namespace detray
         /** Size : Contextual STL like API
          * @param ctx The context of the call (ignored)
          */ 
-        size_t size(const context & /*ctx*/) const
+        const size_t size(const context & /*ctx*/) const
         {
             return _data.size();
         }
