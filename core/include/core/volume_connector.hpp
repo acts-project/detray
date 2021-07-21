@@ -239,7 +239,7 @@ namespace detray
                         mask_group.push_back(_portal_disc);
                     }
                     // Create the portal
-                    typename detector_type::portal _portal{d.transform_index(default_context) + portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
+                    typename detector_type::portal _portal{portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
                     portals.push_back(std::move(_portal));
                     portal_transforms.push_back(std::move(_portal_transform));
                 }
@@ -270,7 +270,7 @@ namespace detray
                         mask_group.push_back(_portal_cylinder);
                     }
                     // Create the portal
-                    typename detector_type::portal _portal{d.transform_index(default_context) + portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
+                    typename detector_type::portal _portal{portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
                     portals.push_back(std::move(_portal));
                     portal_transforms.push_back(std::move(_portal_transform));
                 }

@@ -16,7 +16,6 @@
 #include "io/csv_io_types.hpp"
 #include "tools/bin_association.hpp"
 
-#include <iostream>
 #include <climits>
 #include <map>
 #include <vector>
@@ -436,7 +435,7 @@ namespace detray
         {
           dindex transform_index = surface_transform_storage.size();
           surface_transform_storage.push_back(transform3{t, z, x});
-          c_surfaces.push_back({d.transform_index(surface_default_context) + transform_index, mask_index, c_volume->index(), io_surface.geometry_id});
+          c_surfaces.push_back({transform_index, mask_index, c_volume->index(), io_surface.geometry_id});
         }
 
       } // end of exclusion for navigation layers

@@ -110,7 +110,7 @@ namespace detray
          */
         void append_contextual_transforms(const context & /*ctx*/, storage &&trfs) noexcept(false)
         {
-            _data.reserve(trfs.size());
+            _data.reserve(_data.size() + trfs.size());
             _data.insert(_data.end(), std::make_move_iterator(trfs.begin()), std::make_move_iterator(trfs.end()));
         }
 

@@ -12,8 +12,8 @@
 #include "utils/indexing.hpp"
 #include "utils/enumerate.hpp"
 #include "tools/intersection_kernel.hpp"
+
 #include <algorithm>
-#include <iostream>
 
 namespace detray
 {
@@ -310,7 +310,6 @@ namespace detray
             }
             kernel.candidates.reserve(n_objects);
             const auto &transforms = constituents.transforms(track.ctx);
-            std::cout << "I'm here!" << std::endl;
             const auto &masks = constituents.masks();
             // Loop over all indexed surfaces, intersect and fill
             // @todo - will come from the local object finder
