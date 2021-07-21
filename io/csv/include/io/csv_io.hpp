@@ -357,8 +357,6 @@ namespace detray
         vector3 t{io_surface.cx, io_surface.cy, io_surface.cz};
         vector3 x{io_surface.rot_xu, io_surface.rot_yu, io_surface.rot_zu};
         vector3 z{io_surface.rot_xw, io_surface.rot_yw, io_surface.rot_zw};
-        dindex transform_index = surface_transform_storage.size();
-        surface_transform_storage.push_back(transform3{t, z, x});
 
         // Translate the mask & add it to the mask container
         unsigned int bounds_type = io_surface.bounds_type;
@@ -436,6 +434,8 @@ namespace detray
         // Fill the surface into the temporary container
         if (mask_index[0] != dindex_invalid)
         {
+          dindex transform_index = surface_transform_storage.size();
+          surface_transform_storage.push_back(transform3{t, z, x});
           c_surfaces.push_back({d.transform_index(surface_default_context) + transform_index, mask_index, c_volume->index(), io_surface.geometry_id});
         }
 
