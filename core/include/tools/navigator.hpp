@@ -318,7 +318,6 @@ namespace detray
             {
                 const auto &object = constituents.indexed_object(si);
                 auto [sfi, link] = intersect(track, object, transforms, masks);
-
                 sfi.index = si;
                 sfi.link = link[0];
                 // Ignore negative solutions - except overstep limit

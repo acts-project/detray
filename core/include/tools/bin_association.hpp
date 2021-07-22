@@ -43,7 +43,7 @@ namespace detray
 
         // Get surfaces, transforms and masks
         const auto &surfaces = volume.surfaces();
-        const auto surface_transforms = surfaces.transforms(context);
+        const auto &surface_transforms = surfaces.transforms(context);
         const auto &surface_masks = surfaces.masks();
 
         const auto &bounds = volume.bounds();
