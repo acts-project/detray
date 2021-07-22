@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray
@@ -18,9 +19,29 @@ namespace detray
     class static_transform_store
     {
     public:
+
+        /** Elementwise access. Needs []oprator for storage type for now */
+        inline auto operator[](const unsigned int i) { return _data[i]; }
+        inline auto operator[](const unsigned int i) const { return _data[i]; }
+
         /** Empty context type struct */
         struct context
         {
+        };
+
+        /** Helper struct to pass range and context */
+        template<typename range_iterator>
+        struct contextual_range {
+            using context = static_transform_store::context;
+            /*context ctx;*/
+
+            const range_iterator r;
+
+            inline auto begin() { return r.begin(); }
+            inline auto end() { return r.end(); }
+
+            inline auto operator[](const unsigned int i) { return *(r.begin() + i); }
+            inline auto operator[](const unsigned int i) const { return *(r.begin() + i); }
         };
 
         using storage = vector_type<transform3>;
@@ -41,6 +62,20 @@ namespace detray
         auto end(const context & /*ctx*/) const ->decltype(auto)
         {
             return _data.end();
+        }
+
+        /** Access to a predefined range of elements
+         *
+         * @tparam start start index of rage
+         * @tparam end end index of rage
+         *
+         * @param ctx The context of the call (ignored)
+         *
+         * @return range restricted iterator
+         */
+        const inline auto range(const size_t begin, const size_t end, const context & ctx) const
+        {
+            return contextual_range<decltype(range_iter(_data, dindex_range{begin, end}))>{range_iter(_data, dindex_range{begin, end})};
         }
 
         /** Reserve memory : Contextual STL like API

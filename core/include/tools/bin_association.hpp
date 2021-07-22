@@ -84,10 +84,9 @@ namespace detray
                     {
                         dvector<point3> vertices = {};
                         const auto &mask_link = s.mask();
-                        const auto &transform_link = s.transform();
 
                         // Unroll the mask container and generate vertices
-                        const auto &transform = surface_transforms.contextual_transform(context, transform_link);
+                        const auto &transform = surface_transforms[s.transform()];
 
                         const auto &mask_context = std::get<0>(mask_link);
                         const auto &mask_range = std::get<1>(mask_link);
@@ -156,10 +155,9 @@ namespace detray
                     {
                         dvector<point3> vertices = {};
                         const auto &mask_link = s.mask();
-                        const auto &transform_link = s.transform();
 
                         // Unroll the mask container and generate vertices
-                        const auto &transform = surface_transforms.contextual_transform(context, transform_link);
+                        const auto &transform = surface_transforms[s.transform()];
 
                         const auto &mask_context = std::get<0>(mask_link);
                         const auto &mask_range = std::get<1>(mask_link);

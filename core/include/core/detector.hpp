@@ -179,16 +179,11 @@ namespace detray
                  *
                  * @param ctx The context of the call
                  *
-                 * @return all surface transforms 
+                 * @return ranged iterator to the object transforms 
                  */
-                // TODO: Do index based!
-                const transform_store transforms(const context &ctx) const
+                const auto transforms(const context &ctx) const
                 {
-                    auto start_it = _volume->_detector->_transforms.begin(ctx) + _transform_index;
-                    auto trfs = typename transform_store::storage(start_it, start_it+ _objects.size());
-                    auto store = transform_store();
-                    store.set_contextual_transforms(ctx, std::move(trfs));
-                    return store;
+                    return _volume->_detector->_transforms.range(_transform_index, _transform_index + _objects.size(), ctx);
                 }
             };
 
@@ -378,8 +373,7 @@ namespace detray
         const vector_type<volume> &volumes() const { return _volumes; }
 
         /** @return the volume by @param volume_index - const access */
-        const volume &indexed_volume(dindex volume_index) const {
-             return _volumes[volume_index]; }
+        const volume &indexed_volume(dindex volume_index) const { return _volumes[volume_index]; }
 
         /** @return the volume by @param position - const access */
         const volume &indexed_volume(const point3 &p) const
@@ -390,8 +384,7 @@ namespace detray
         }
 
         /** @return the volume by @param volume_index - non-const access */
-        volume &indexed_volume(dindex volume_index) {
-            return _volumes[volume_index]; }
+        volume &indexed_volume(dindex volume_index) { return _volumes[volume_index]; }
 
         /** Add the volume grid - move semantics 
          * 
