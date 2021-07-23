@@ -76,7 +76,7 @@ namespace __plugin
 
         for (auto _ : state)
         {
-            track<static_transform_store<>::context> track;
+            track<detray_context> track;
             track.pos = point3{0., 0., 0.};
 
             // Loops of theta values

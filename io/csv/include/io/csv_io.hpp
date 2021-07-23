@@ -42,7 +42,7 @@ namespace detray
   template <template <typename, unsigned int> class array_type = darray,
             template <typename...> class tuple_type = dtuple,
             template <typename> class vector_type = dvector,
-            typename alignable_store = static_transform_store<vector_type>,
+            typename alignable_store = static_transform_store<vecm_vector>,
             typename surface_source_link = dindex,
             typename bounds_source_link = dindex>
   detector<array_type,
@@ -59,7 +59,6 @@ namespace detray
                     scalar r_sync_tolerance = 0.,
                     scalar z_sync_tolerance = 0.)
   {
-
     using typed_detector = detector<array_type, tuple_type, vector_type, alignable_store, surface_source_link, bounds_source_link>;
 
     typed_detector d(detector_name);
