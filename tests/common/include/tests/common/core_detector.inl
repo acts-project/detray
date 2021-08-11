@@ -20,35 +20,43 @@ TEST(ALGEBRA_PLUGIN, detector)
 
     using detector = detector<>;
 
-    static_transform_store<>::storage static_storage;
+
+    detector d("test_detector");
+
+    //static_transform_store<>::storage static_storage;
+    //static_storage.reserve(1);
     static_transform_store<>::context ctx0;
 
-    detector::surface_mask_container masks;
+    detector::transform_container static_storages;
+    detector::mask_container masks;
+    detector::link_container source_links{};
+    detector::surface_container surfaces;
+
+    auto &v = d.new_volume({0., 10., -5., 5., -M_PI, M_PI});
 
     /// Surface 0
     point3 t0{0., 0., 0.};
-    transform3 tf0{t0};
-    static_storage.push_back(std::move(tf0));
+    std::get<detector::e_rectangle2>(static_storages).emplace_back(t0);
     detector::surface_rectangle rect = {-3., 3.};
-    std::get<detector::surface_rectangle::mask_context>(masks).push_back(rect);
+    surfaces[detector::e_rectangle2] = {1, detector::e_rectangle2, {0, 1}, 0, dindex_invalid};
+    std::get<detector::e_rectangle2>(masks).push_back(rect);
+    d.add_surfaces(v, surfaces, masks, static_storages, source_links, ctx0);
 
     /// Surface 1
     point3 t1{1., 0., 0.};
-    transform3 tf1{t1};
-    static_storage.push_back(std::move(tf1));
+    std::get<detector::e_annulus2>(static_storages).emplace_back(t1);
     detector::surface_annulus anns = {1., 2., 3., 4., 5., 6., 7.};
-    std::get<detector::surface_annulus::mask_context>(masks).push_back(anns);
+    surfaces[detector::e_annulus2] = {1, detector::e_annulus2, {0, 1}, 1, dindex_invalid};
+    std::get<detector::e_annulus2>(masks).push_back(anns);
+    d.add_surfaces(v, surfaces, masks, static_storages, source_links, ctx0);
 
     /// Surface 2
     point3 t2{2., 0., 0.};
-    transform3 tf2{t2};
-    static_storage.push_back(std::move(tf2));
+    std::get<detector::e_trapezoid2>(static_storages).emplace_back(t2);
     detector::surface_trapezoid trap = {1., 2., 3.};
-    std::get<detector::surface_trapezoid::mask_context>(masks).push_back(trap);
-
-    detector d("test_detector");
-    auto &v = d.new_volume("test_volume", {0., 10., -5., 5., -M_PI, M_PI});
-    d.add_surface_transforms(ctx0, v, std::move(static_storage));
+    surfaces[detector::e_trapezoid2] = {1, detector::e_trapezoid2, {0, 1}, 2, dindex_invalid};
+    std::get<detector::e_trapezoid2>(masks).push_back(trap);
+    d.add_surfaces(v, surfaces, masks, static_storages, source_links, ctx0);
 }
 
 int main(int argc, char **argv)

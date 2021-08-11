@@ -30,14 +30,14 @@ namespace detray
         void operator()(const state_type & /*ignored*/) {}
     };
 
-    /** The navigator struct. 
+    /** The navigator struct.
      * 
-     * It follows the Acts::Navigator sturcture of sequence of
+     * It follows the Acts::Navigator structure of sequence of
      * - status()
      * - target()
      * calls.
      * 
-     * @tparam detector_tupe is the type of the detector
+     * @tparam detector_type is the type of the detector
      * @tparam inspector_type is a validation inspector 
      */
     template <typename detector_type, typename inspector_type = void_inspector>
@@ -90,7 +90,7 @@ namespace detray
             const object_type *on = nullptr;
             vector_type<candidate_type> candidates = {};
             typename vector_type<candidate_type>::iterator next = candidates.end();
-            links_type links;
+            /*links_type links;*/
 
             /** Indicate that the kernel is empty */
             bool empty() const { return candidates.empty(); }
@@ -103,7 +103,7 @@ namespace detray
             {
                 candidates.clear();
                 next = candidates.end();
-                links = links_type{};
+                /*links = links_type{};*/
                 on = nullptr;
             }
         };
@@ -117,14 +117,16 @@ namespace detray
         {
             /** Kernel for the surfaces */
             navigation_kernel<surface, intersection, surface_link> surface_kernel;
+
             /** Kernel for the portals */
             navigation_kernel<portal, intersection, portal_links> portal_kernel;
 
             /** Volume navigation: index */
             dindex volume_index = dindex_invalid;
 
-            /**  Distance to next - will be casted into a scalar with call operator  */
+            /**  Distance to next - will be cast into a scalar with call operator  */
             scalar distance_to_next = std::numeric_limits<scalar>::infinity();
+
             /** The on surface tolerance - permille */
             scalar on_surface_tolerance = 1e-3;
 
@@ -135,7 +137,9 @@ namespace detray
             navigation_status status = e_unknown;
 
             /** If a surface / portal is reached */
-            dindex current_index = dindex_invalid;
+            std::array<dindex, 3> current_index = {dindex_invalid,
+                                                   dindex_invalid,
+                                                   dindex_invalid};
 
             /** The navigation trust level */
             navigation_trust_level trust_level = e_no_trust;
@@ -162,7 +166,7 @@ namespace detray
          */
         navigator(detector_type &&d) : detector(std::move(d)) {}
 
-        /** Navigation status() call which established the current navigation information.
+        /** Navigation status() call which establishes the current navigation information.
          * 
          * @param navigation [in, out] is the navigation cache object
          * @param track [in] is the track infromation
@@ -176,9 +180,11 @@ namespace detray
 
             // Retrieve the volume & set index
             // Retrieve the volume, either from valid index or through global search
-            const auto &volume = (navigation.volume_index != dindex_invalid) ? detector.indexed_volume(navigation.volume_index)
-                                                                             : detector.indexed_volume(track.pos);
+            const auto &volume = (navigation.volume_index != dindex_invalid) ?
+                                   detector.volume_by_index(navigation.volume_index)
+                                 : detector.volume_by_pos(track.pos);
             navigation.volume_index = volume.index();
+
             // Retrieve the kernels
             auto &surface_kernel = navigation.surface_kernel;
             auto &portal_kernel = navigation.portal_kernel;
@@ -187,11 +193,11 @@ namespace detray
             if (navigation.volume_index == dindex_invalid or navigation.trust_level == e_no_trust)
             {
                 // First try to get the surface candidates
-                initialize_kernel(navigation, surface_kernel, track, volume.surfaces());
-                // If no surfaces are to processed, initialize the portals
+                initialize_kernel(navigation, surface_kernel, track, volume.surface_range());
+                // If no surfaces are to be processed, initialize the portals
                 if (surface_kernel.empty())
                 {
-                    initialize_kernel(navigation, portal_kernel, track, volume.portals());
+                    initialize_kernel(navigation, portal_kernel, track, volume.portal_range());
                     heartbeat = check_volume_switch(navigation);
                 }
                 // Before returning, run through the inspector
@@ -200,21 +206,21 @@ namespace detray
             }
 
             // Update the surface kernel
-            if (not is_exhausted(surface_kernel) and update_kernel(navigation, surface_kernel, track, volume.surfaces()))
+            if (not is_exhausted(surface_kernel) and update_kernel(navigation, surface_kernel, track, volume.surface_range()))
             {
                 navigation.inspector(navigation);
                 return heartbeat;
             }
 
             // Update the portal kernel
-            update_kernel(navigation, portal_kernel, track, volume.portals());
+            update_kernel(navigation, portal_kernel, track, volume.portal_range());
             heartbeat = check_volume_switch(navigation);
             navigation.inspector(navigation);
             return heartbeat;
         }
 
         /** Target function of the navigator, finds the next candidates 
-         *   and set the distance to next
+         *  and set the distance to next
          * 
          * @param navigation is the navigation cache
          * @param track is the current track information
@@ -232,9 +238,11 @@ namespace detray
             }
 
             // Retrieve the volume, either from valid index or through global search
-            const auto &volume = (navigation.volume_index != dindex_invalid) ? detector.indexed_volume(navigation.volume_index)
-                                                                             : detector.indexed_volume(track.pos);
+            const auto &volume = (navigation.volume_index != dindex_invalid) ?
+                                  detector.volume_by_index(navigation.volume_index)
+                                : detector.volume_by_pos(track.pos);
             navigation.volume_index = volume.index();
+
             // Retrieve the kernels
             auto &surface_kernel = navigation.surface_kernel;
             auto &portal_kernel = navigation.portal_kernel;
@@ -249,28 +257,28 @@ namespace detray
                         // Clear the surface kernel
                         surface_kernel.clear();
                         navigation.trust_level = e_no_trust;
-                        update_kernel(navigation, portal_kernel, track, volume.portals());
+                        update_kernel(navigation, portal_kernel, track, volume.portal_range());
                         navigation.inspector(navigation);
                         return heartbeat;
                     }
-                    else if (update_kernel(navigation, surface_kernel, track, volume.surfaces()))
+                    else if (update_kernel(navigation, surface_kernel, track, volume.surface_range()))
                     {
                         navigation.inspector(navigation);
                         return heartbeat;
                     }
                 }
                 // Portals are present
-                update_kernel(navigation, portal_kernel, track, volume.portals());
+                update_kernel(navigation, portal_kernel, track, volume.portal_range());
             }
             else if (navigation.trust_level == e_no_trust)
             {
                 // First try to get the surface candidates
-                initialize_kernel(navigation, surface_kernel, track, volume.surfaces());
+                initialize_kernel(navigation, surface_kernel, track, volume.surface_range());
                 // If no surfaces are to processed, initialize the portals
                 if (surface_kernel.empty())
                 {
 
-                    initialize_kernel(navigation, portal_kernel, track, volume.portals(), navigation.status == e_on_portal);
+                    initialize_kernel(navigation, portal_kernel, track, volume.portal_range(), navigation.status == e_on_portal);
                     heartbeat = check_volume_switch(navigation);
                 }
             }
@@ -290,36 +298,33 @@ namespace detray
          * @param on_object ignores on surface solution
          * 
          */
-        template <typename kernel_t, typename constituents_t>
+        template <typename kernel_t, typename range_t>
         void initialize_kernel(state &navigation,
                                kernel_t &kernel,
                                const track<context> &track,
-                               const constituents_t &constituents,
+                               const range_t &range,
                                bool on_object = false) const
         {
-
             // Get the type of the kernel via a const expression at compile time
             constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_link>>);
 
-            // Get the number of candidates & run them throuth the kernel
-            size_t n_objects = constituents.objects().size();
             // Return if you have no objects
-            if (n_objects == 0)
-            {
-                return;
-            }
-            kernel.candidates.reserve(n_objects);
-            const auto &transforms = constituents.transforms(track.ctx);
-            const auto &masks = constituents.masks();
+            if (range[1] - range[0] == 0) {  return; }
+
             // Loop over all indexed surfaces, intersect and fill
-            // @todo - will come from the local object finder
-            darray<dindex, 2> surface_range = {0, n_objects - 1};
-            for (auto si : sequence(surface_range))
-            {
-                const auto &object = constituents.indexed_object(si);
-                auto [sfi, link] = intersect(track, object, transforms, masks);
-                sfi.index = si;
-                sfi.link = link[0];
+            // @todo - will come from the local object finder (provide e.g. a neighbor mask)
+            const auto &surfaces   = detector.surfaces();
+            const auto &transforms = detector.transforms(track.ctx);
+            const auto &masks      = detector.masks();
+
+            // Move candidate decision into intersect() to prevent extra heap
+            // allocations for results container
+            auto sf_inters = intersect(track, surfaces, range, transforms,
+                                       masks);
+
+            kernel.candidates.reserve(sf_inters.size());
+
+            for (const auto &sfi : sf_inters) {
                 // Ignore negative solutions - except overstep limit
                 if (sfi.path < track.overstep_tolerance)
                 {
@@ -329,8 +334,11 @@ namespace detray
                 if (sfi.status == e_inside and (not on_object or std::abs(sfi.path) > navigation.on_surface_tolerance))
                 {
                     navigation.status = kSurfaceType ? e_towards_surface : e_towards_portal;
-                    kernel.candidates.push_back(sfi);
+                    kernel.candidates.emplace_back(sfi);
                 }
+            }
+            if (not kernel.candidates.empty()) {
+                navigation.status = kSurfaceType ? e_towards_surface : e_towards_portal;
             }
             sort_and_set(navigation, kernel);
         }
@@ -347,35 +355,35 @@ namespace detray
          * 
          * @return A boolean condition 
          */
-        template <typename kernel_t, typename constituents_t>
+        template <typename kernel_t, typename range_t>
         bool update_kernel(state &navigation,
                            kernel_t &kernel,
                            const track<context> &track,
-                           const constituents_t &constituents) const
+                           const range_t &range) const
         {
             // If the kernel is empty - intitalize it
             if (kernel.empty())
             {
-                initialize_kernel(navigation, kernel, track, constituents);
+                initialize_kernel(navigation, kernel, track, range);
                 return true;
             }
 
             // Get the type of the kernel via a const expression at compile time
             constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_link>>);
 
-            const auto &transforms = constituents.transforms(track.ctx);
-            const auto &masks = constituents.masks();
+            const auto &surfaces   = detector.surfaces();
+            const auto &transforms = detector.transforms(track.ctx);
+            const auto &masks      = detector.masks();
 
             // Update current candidate, or step further
             // - do this only when you trust level is high
+            // TODO: Rewrite this for parallel intersections
             if (navigation.trust_level >= e_high_trust and kernel.next != kernel.candidates.end())
             {
                 // Only update the last intersection
-                dindex si = kernel.next->index;
-                const auto &s = constituents.indexed_object(si);
-                auto [sfi, link] = intersect(track, s, transforms, masks);
-                sfi.index = si;
-                sfi.link = link[0];
+                auto sfi = intersect(track, kernel.next->index, surfaces,
+                                           transforms, masks);
+
                 if (sfi.status == e_inside)
                 {
                     // Update the intersection with a new one
@@ -384,7 +392,7 @@ namespace detray
                     if (std::abs(sfi.path) < navigation.on_surface_tolerance)
                     {
                         navigation.status = kSurfaceType ? e_on_surface : e_on_portal;
-                        navigation.current_index = si;
+                        navigation.current_index = sfi.index;
                         if (navigation.status != e_on_portal)
                         {
                             ++kernel.next;
@@ -402,7 +410,7 @@ namespace detray
                 }
                 // If not successful: increase and switch to next
                 ++kernel.next;
-                if (update_kernel(navigation, kernel, track, constituents))
+                if (update_kernel(navigation, kernel, track, range))
                 {
                     return true;
                 }
@@ -413,12 +421,9 @@ namespace detray
             {
                 for (auto &c : kernel.candidates)
                 {
-                    dindex si = c.index;
-                    const auto &s = constituents.indexed_object(si);
-                    auto [sfi, link] = intersect(track, s, transforms, masks);
+                    const auto sfi = intersect(track, c.index, surfaces,
+                                               transforms, masks);
                     c = sfi;
-                    c.index = si;
-                    c.link = link[0];
                 }
                 sort_and_set(navigation, kernel);
                 if (navigation.trust_level == e_high_trust)
@@ -455,7 +460,8 @@ namespace detray
                     navigation.status = kSurfaceType ? e_on_surface : e_on_portal;
                     navigation.current_index = kernel.next->index;
                 }
-                navigation.current_index = dindex_invalid;
+                navigation.current_index = {dindex_invalid, dindex_invalid,
+                                            dindex_invalid};
                 navigation.status = kSurfaceType ? e_towards_surface : e_towards_portal;
             }
         }
@@ -471,12 +477,25 @@ namespace detray
             // On a portal: switch volume index and (re-)initialize
             if (navigation.status == e_on_portal)
             {
-                // Set volume index to the next volume provided by the portal, avoid setting to same
-                navigation.volume_index =
-                    (navigation.portal_kernel.next->link != navigation.volume_index) ? navigation.portal_kernel.next->link : dindex_invalid;
+                // Set volume index to the next volume provided by the portal,
+                // avoid setting to same
+                const auto current_vol_idx = navigation.volume_index;
+                const auto &portal_batch   = detector.volume_by_index(
+                                                    current_vol_idx).portals();
+                const auto next_vol_idx = detector.get_geometry().next_volume(
+                                        portal_batch,
+                                        navigation.portal_kernel.next->index);
+
+                navigation.volume_index = next_vol_idx != current_vol_idx ?
+                                          next_vol_idx : dindex_invalid;
                 navigation.surface_kernel.clear();
                 navigation.portal_kernel.clear();
                 navigation.trust_level = e_no_trust;
+                /*navigation.volume_index =
+                    (navigation.portal_kernel.next->index != navigation.volume_index) ? navigation.portal_kernel.next->index : dindex_invalid;
+                navigation.surface_kernel.clear();
+                navigation.portal_kernel.clear();
+                navigation.trust_level = e_no_trust;*/
             }
             return (navigation.volume_index != dindex_invalid);
         }

@@ -12,6 +12,7 @@
 #include "utils/indexing.hpp"
 #include "utils/enumerate.hpp"
 
+#include <iostream>
 #include <utility>
 #include <tuple>
 
@@ -52,13 +53,14 @@ namespace detray
             auto sfi = mask.intersector().intersect(trf, track, local, mask);
             if (sfi.status == e_inside)
             {
-                auto valid_link = mask.links();
-                return std::make_tuple(sfi, valid_link);
+                //auto valid_link = mask.links();
+                return std::make_tuple(sfi, i);
             }
         }
-        typename mask_group::value_type::mask_links_type invalid_link;
+        //std::array<dindex, 3> invalid_link {dindex_invalid, dindex_invalid,
+        //                                    dindex_invalid};
         intersection invalid_intersection;
-        return std::make_tuple(invalid_intersection, invalid_link);
+        return std::make_tuple(invalid_intersection, dindex_invalid);
     }
 
     /** Variadic unrolled intersection - last entry 
@@ -98,7 +100,9 @@ namespace detray
         {
             auto isg = intersect_by_group(track, ctf, std::get<last_mask_context>(masks), range);
             intersection = std::get<0>(isg);
-            links = std::get<1>(isg);
+            links[2] = std::get<1>(isg);
+            intersection.index = links;
+
             return true;
         }
         return false;
@@ -145,7 +149,8 @@ namespace detray
         {
             auto isg = intersect_by_group(track, ctf, std::get<first_mask_context>(masks), range);
             intersection = std::get<0>(isg);
-            links = std::get<1>(isg);
+            links[2] = std::get<1>(isg);
+            intersection.index = links;
             return true;
         }
         // The reduced integer sequence
@@ -167,6 +172,46 @@ namespace detray
                               std::tuple_size_v<mask_container> - 1>(intersection, links, track, ctf, masks, range, mask_context);
     }
 
+    /** Actual kernel method that updates the intersections (single surface)
+     * 
+     * @tparam surface_type is The type of the surface container
+     * @tparam transform_container is the type of the transform container
+     * @tparam mask_container is the type of the type of the mask container
+     *
+     * @param track the track information including the contexts
+     * @param surface the surface type to be intersected
+     * @param contextual_transform the transform container
+     * @param mask_container the tuple mask container to for the intersection
+     * 
+     * @return an intersection and the link to the result
+    **/
+    /*template <typename surface_type,
+              typename transform_container,
+              typename mask_container>
+    const auto
+    intersect(const track<typename transform_container::context> &track,
+              const surface_type &surface,
+              const transform_container &contextual_transforms,
+              const mask_container &masks)
+    {
+        const auto &ctf = contextual_transforms[surface.transform()];
+        auto mask_link = surface.mask();
+        const auto &mask_context = mask_link.type;
+        const auto &mask_range = mask_link.range;
+
+        // Create a return intersection and run the variadic unrolling
+        const auto &reference_group = std::get<0>(masks);
+        typename std::decay_t<decltype(reference_group)>::value_type::mask_links_type result_links;
+        intersection result_intersection;
+
+        // Unroll the intersection depending on the mask container size
+        unroll_intersect(result_intersection, result_links, track, ctf, masks, mask_range, mask_context,
+                        std::make_integer_sequence<dindex, std::tuple_size_v<mask_container>>{});
+
+        // Return the (eventually update) intersection and links
+        return std::make_tuple(result_intersection, result_links);
+    }*/
+
     /** Actual kernel method that updates the updates the intersections
      * 
      * @tparam surface_type is The type of the surface container
@@ -180,7 +225,60 @@ namespace detray
      * 
      * @return an intersection and the link to the result
     **/
-    template <typename surface_type,
+    /*template <typename surface_container,
+              typename transform_container,
+              typename mask_container,
+              typename range_type>
+    const auto
+    intersect(const track<typename transform_container::context> &track,
+              const surface_container &surfaces,
+              const range_type surface_range,
+              const transform_container &contextual_transforms,
+              const mask_container &masks)
+    {
+
+        using link_type = typename std::decay_t<decltype(std::get<0>(masks))>::value_type::mask_links_type;
+
+        std::vector<std::tuple<intersection, link_type>> results;
+        results.reserve(surfaces.size());
+
+        for(dindex sf = surface_range.first; sf < surface_range.second; sf++) {
+            const auto &surface = surfaces[sf];
+            const auto &ctf = contextual_transforms[surface.transform()];
+            auto mask_link = surface.mask();
+            const auto &mask_context = std::get<0>(mask_link);
+            const auto &mask_range = std::get<1>(mask_link);
+
+            // Create a return intersection and run the variadic unrolling
+            const auto &reference_group = std::get<0>(masks); 
+            link_type result_links;
+            intersection result_intersection;
+
+            // Unroll the intersection depending on the mask container size
+            unroll_intersect(result_intersection, result_links, track, ctf, masks, mask_range, mask_context,
+                            std::make_integer_sequence<dindex, std::tuple_size_v<mask_container>>{});
+
+            results.emplace_back(std::make_tuple(result_intersection, result_links));
+        }
+
+        // Return the (eventually update) intersection and links
+        return results;
+    }*/
+
+    /** Actual kernel method that updates the intersections (single surface)
+     * 
+     * @tparam surface_type is The type of the surface container
+     * @tparam transform_container is the type of the transform container
+     * @tparam mask_container is the type of the type of the mask container
+     *
+     * @param track the track information including the contexts
+     * @param surface the surface type to be intersected
+     * @param contextual_transform the transform container
+     * @param mask_container the tuple mask container to for the intersection
+     * 
+     * @return an intersection and the link to the result
+    **/
+    /*template <typename surface_type,
               typename transform_container,
               typename mask_container>
     const auto
@@ -191,8 +289,8 @@ namespace detray
     {
         const auto &ctf = contextual_transforms[surface.transform()];
         auto mask_link = surface.mask();
-        const auto &mask_context = std::get<0>(mask_link);
-        const auto &mask_range = std::get<1>(mask_link);
+        const auto &mask_context = mask_link.type;
+        const auto &mask_range = mask_link.range;
 
         // Create a return intersection and run the variadic unrolling
         const auto &reference_group = std::get<0>(masks);
@@ -201,8 +299,113 @@ namespace detray
 
         // Unroll the intersection depending on the mask container size
         unroll_intersect(result_intersection, result_links, track, ctf, masks, mask_range, mask_context,
-                         std::make_integer_sequence<dindex, std::tuple_size_v<mask_container>>{});
+                        std::make_integer_sequence<dindex, std::tuple_size_v<mask_container>>{});
+
         // Return the (eventually update) intersection and links
         return std::make_tuple(result_intersection, result_links);
+    }*/
+
+    /** Actual kernel method that updates the updates the intersections
+     *
+     * @tparam surface_container is The type of the surface container
+     * @tparam transform_container is the type of the transform container
+     * @tparam mask_container is the type of the type of the mask container
+     * @tparam range_type is how ranges in the surface container are encoded
+     *
+     * @param track the track information including the contexts
+     * @param surfaces the surface type to be intersected
+     * @param contextual_transforms the transform container
+     * @param masks the tuple mask container to for the intersection
+     * 
+     * @return an intersection and the link to the result surface, relative
+     *         to the first surface in all batches
+     */
+    template <typename surface_container,
+              typename transform_container,
+              typename mask_container,
+              typename range_type>
+    const auto
+    intersect(const track<typename transform_container::context> &track,
+              const surface_container &surfaces,
+              const range_type surface_range,
+              const transform_container &contextual_transforms,
+              const mask_container &masks)
+    {
+        // Output intersections
+        std::vector<intersection> result_intersections;
+
+        // Run over all surface batches in range (each has a unique mask type)
+        for (auto sfbi : sequence(surface_range))
+        {
+            const auto &surface_batch = surfaces[sfbi];
+            dindex mask_type = surface_batch.mask_type;
+            result_intersections.reserve(result_intersections.size() 
+                                         + surface_batch.n_surfaces);
+
+            // Sequential intersections
+            for (size_t si = 0; si < surface_batch.n_surfaces; si++)
+            {
+                const auto &ctf = contextual_transforms[
+                                            surface_batch.transform_idx + si];
+                // Links the intersection to the surface {batch, surface, mask}
+                std::array<dindex, 3> result_link = {sfbi, si, dindex_invalid};
+                intersection result_sfi;
+
+                // Unroll the intersection depending on the mask container size
+                unroll_intersect(result_sfi, result_link, track, ctf,
+                                 masks, surface_batch.mask_range_by_surface(si),
+                                 mask_type, std::make_integer_sequence<dindex,
+                                 std::tuple_size_v<mask_container>>{});
+
+                result_intersections.emplace_back(result_sfi);
+            }
+        }
+        // no intersection was found
+        return result_intersections;
+    }
+
+    /** Actual kernel method that updates the updates the intersections
+     *
+     * @tparam surface_container is The type of the surface container
+     * @tparam transform_container is the type of the transform container
+     * @tparam mask_container is the type of the type of the mask container
+     * @tparam range_type is how ranges in the surface container are encoded
+     *
+     * @param track the track information including the contexts
+     * @param surfaces the surface type to be intersected
+     * @param contextual_transforms the transform container
+     * @param masks the tuple mask container to for the intersection
+     * 
+     * @return an intersection and the link to the result surface, relative
+     *         to the first surface in all batches
+     */
+    template <typename surface_container,
+              typename transform_container,
+              typename mask_container>
+    const auto
+    intersect(const track<typename transform_container::context> &track,
+              const std::array<dindex, 3> &sf_index,
+              const surface_container &surfaces,
+              const transform_container &contextual_transforms,
+              const mask_container &masks)
+    {
+        const auto &surface_batch = surfaces[sf_index[0]];
+        dindex mask_type          = surface_batch.mask_type;
+        const auto &ctf = contextual_transforms[surface_batch.transform_idx
+                                                + sf_index[1]];
+        const auto &mask_range    = surface_batch.mask_range_by_surface(sf_index[1]);
+
+        // Create a return intersection and run the variadic unrolling
+        intersection result_intersection;
+        result_intersection.index = sf_index;
+
+        // Unroll the intersection depending on the mask container size
+        unroll_intersect(result_intersection, result_intersection.index, track, ctf, masks, 
+                         mask_range, mask_type,
+                         std::make_integer_sequence<dindex,
+                         std::tuple_size_v<mask_container>>{});
+
+        // Return the (eventually update) intersection and links
+        return result_intersection;
     }
 }

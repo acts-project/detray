@@ -25,16 +25,18 @@ namespace detray
      *  - to a given grid.
      * 
      * @param context is the context to win which the association is done
-     * @param volume is the volume to which the volume belongs
+     * @param volume is the volume to which the surface belongs
      * @param grid is the grid that will be filled 
      * @param tolerance is the bin_tolerance in the two local coordinates
      * @param absolute_tolerance is an indicator if the tolerance is to be
      *        taken absolute or relative
      */
     template <typename context_type,
+              typename detector_type,
               typename volume_type,
               typename grid_type>
     static inline void bin_association(const context_type &context,
+                                       const detector_type &detector,
                                        const volume_type &volume,
                                        grid_type &grid,
                                        const std::array<scalar, 2> &bin_tolerance,
@@ -42,9 +44,10 @@ namespace detray
     {
 
         // Get surfaces, transforms and masks
-        const auto &surfaces = volume.surfaces();
-        const auto &surface_transforms = surfaces.transforms(context);
-        const auto &surface_masks = surfaces.masks();
+        const auto &surface_range = volume.surface_range();
+        const auto &surfaces = detector.surfaces();
+        const auto &surface_transforms = detector.transforms(context);
+        const auto &surface_masks = detector.masks();
 
         const auto &bounds = volume.bounds();
         bool is_cylinder = std::abs(bounds[1] - bounds[0]) < std::abs(bounds[3] - bounds[2]);
@@ -80,39 +83,52 @@ namespace detray
                                                                     phi_borders[1] + phi_add);
 
                     // Run through the surfaces and associate them by contour
-                    for (auto [is, s] : enumerate(surfaces.objects()))
+                    //for (auto [is, s] : enumerate(surfaces.objects()))
+                    for (auto sfb_idx : sequence(surface_range))
                     {
-                        dvector<point3> vertices = {};
-                        const auto &mask_link = s.mask();
+                        const auto &sf_batch = surfaces[sfb_idx];
+                        const auto &mask_context = sf_batch.mask_type;
+                        const auto &first_trsf = sf_batch.transform_idx;
 
-                        // Unroll the mask container and generate vertices
-                        const auto &transform = surface_transforms[s.transform()];
-
-                        const auto &mask_context = std::get<0>(mask_link);
-                        const auto &mask_range = std::get<1>(mask_link);
-
-                        auto vertices_per_masks = unroll_masks_for_vertices(surface_masks, mask_range, mask_context,
-                                                                            std::make_integer_sequence<dindex, std::tuple_size_v<decltype(sfm_copy)>>{});
-
-                        // Usually one mask per surface, but design allows - a single association  is sufficient though
-                        for (auto &vertices : vertices_per_masks)
+                        for (size_t isf = first_trsf;
+                            isf < first_trsf + sf_batch.n_surfaces; isf++)
                         {
-                            if (not vertices.empty())
+                            const auto &mask_range = sf_batch.mask_range_by_surface(isf);
+                            dvector<point3> vertices = {};
+                            //const auto &mask_link = s.mask();
+
+                            // Unroll the mask container and generate vertices
+                            const auto &transform = surface_transforms[first_trsf + isf];
+
+                            //const auto &mask_context = std::get<0>(mask_link);
+                            //const auto &mask_range = std::get<1>(mask_link);
+
+                            auto vertices_per_masks = unroll_masks_for_vertices(surface_masks,
+                                                                                mask_range,
+                                                                                mask_context,
+                                                                                std::make_integer_sequence<dindex,
+                                                                                std::tuple_size_v<decltype(sfm_copy)>>{});
+
+                            // Usually one mask per surface, but design allows - a single association  is sufficient though
+                            for (auto &vertices : vertices_per_masks)
                             {
-                                // Create a surface contour
-                                std::vector<point2> surface_contour;
-                                surface_contour.reserve(vertices.size());
-                                for (const auto &v : vertices)
+                                if (not vertices.empty())
                                 {
-                                    auto vg = transform.point_to_global(v);
-                                    surface_contour.push_back({vg[0], vg[1]});
-                                }
-                                // The association has worked
-                                if (cgs_assoc(bin_contour, surface_contour) or edges_assoc(bin_contour, surface_contour))
-                                {
-                                    dindex bin_index = is;
-                                    grid.populate(bin_0, bin_1, std::move(bin_index));
-                                    break;
+                                    // Create a surface contour
+                                    std::vector<point2> surface_contour;
+                                    surface_contour.reserve(vertices.size());
+                                    for (const auto &v : vertices)
+                                    {
+                                        auto vg = transform.point_to_global(v);
+                                        surface_contour.push_back({vg[0], vg[1]});
+                                    }
+                                    // The association has worked
+                                    if (cgs_assoc(bin_contour, surface_contour) or edges_assoc(bin_contour, surface_contour))
+                                    {
+                                        dindex bin_index = isf;
+                                        grid.populate(bin_0, bin_1, std::move(bin_index));
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -151,90 +167,100 @@ namespace detray
                     std::vector<point2> bin_contour = {p0_bin, p1_bin, p2_bin, p3_bin};
 
                     // Loop over the surfaces within a volume
-                    for (auto [is, s] : enumerate(surfaces.objects()))
+                    //for (auto [is, s] : enumerate(surfaces.objects()))
+                    for (auto sfb_idx : sequence(surface_range))
                     {
-                        dvector<point3> vertices = {};
-                        const auto &mask_link = s.mask();
+                        const auto &sf_batch = surfaces[sfb_idx];
+                        const auto &mask_context = sf_batch.mask_type;
+                        const auto &first_trsf = sf_batch.transform_idx;
 
-                        // Unroll the mask container and generate vertices
-                        const auto &transform = surface_transforms[s.transform()];
-
-                        const auto &mask_context = std::get<0>(mask_link);
-                        const auto &mask_range = std::get<1>(mask_link);
-
-                        auto vertices_per_masks = unroll_masks_for_vertices(surface_masks, mask_range, mask_context,
-                                                                            std::make_integer_sequence<dindex, std::tuple_size_v<decltype(sfm_copy)>>{});
-
-                        for (auto &vertices : vertices_per_masks)
+                        for (size_t isf = first_trsf;
+                            isf < first_trsf + sf_batch.n_surfaces; isf++)
                         {
+                            const auto &mask_range = sf_batch.mask_range_by_surface(isf);
+                            dvector<point3> vertices = {};
+                            //const auto &mask_link = s.mask();
 
-                            if (not vertices.empty())
+                            // Unroll the mask container and generate vertices
+                            const auto &transform = surface_transforms[first_trsf + isf];
+
+                            //const auto &mask_context = std::get<0>(mask_link);
+                            //const auto &mask_range = std::get<1>(mask_link);
+
+                            auto vertices_per_masks = unroll_masks_for_vertices(surface_masks, mask_range, mask_context,
+                                                                                std::make_integer_sequence<dindex, std::tuple_size_v<decltype(sfm_copy)>>{});
+
+                            for (auto &vertices : vertices_per_masks)
                             {
-                                // Create a surface contour
-                                std::vector<point2> surface_contour;
-                                surface_contour.reserve(vertices.size());
-                                scalar phi_min = std::numeric_limits<scalar>::max();
-                                scalar phi_max = -std::numeric_limits<scalar>::max();
-                                // We poentially need the split vertices
-                                std::vector<point2> s_c_neg;
-                                std::vector<point2> s_c_pos;
-                                scalar z_min_neg = std::numeric_limits<scalar>::max();
-                                scalar z_max_neg = -std::numeric_limits<scalar>::max();
-                                scalar z_min_pos = std::numeric_limits<scalar>::max();
-                                scalar z_max_pos = -std::numeric_limits<scalar>::max();
 
-                                for (const auto &v : vertices)
+                                if (not vertices.empty())
                                 {
-                                    const point3 vg = transform.point_to_global(v);
-                                    scalar phi = std::atan2(vg[1], vg[0]);
-                                    phi_min = std::min(phi, phi_min);
-                                    phi_max = std::max(phi, phi_max);
-                                    surface_contour.push_back({vg[2], phi});
-                                    if (phi < 0.)
+                                    // Create a surface contour
+                                    std::vector<point2> surface_contour;
+                                    surface_contour.reserve(vertices.size());
+                                    scalar phi_min = std::numeric_limits<scalar>::max();
+                                    scalar phi_max = -std::numeric_limits<scalar>::max();
+                                    // We poentially need the split vertices
+                                    std::vector<point2> s_c_neg;
+                                    std::vector<point2> s_c_pos;
+                                    scalar z_min_neg = std::numeric_limits<scalar>::max();
+                                    scalar z_max_neg = -std::numeric_limits<scalar>::max();
+                                    scalar z_min_pos = std::numeric_limits<scalar>::max();
+                                    scalar z_max_pos = -std::numeric_limits<scalar>::max();
+
+                                    for (const auto &v : vertices)
                                     {
-                                        s_c_neg.push_back({vg[2], phi});
-                                        z_min_neg = std::min(vg[2], z_min_neg);
-                                        z_max_neg = std::max(vg[2], z_max_neg);
+                                        const point3 vg = transform.point_to_global(v);
+                                        scalar phi = std::atan2(vg[1], vg[0]);
+                                        phi_min = std::min(phi, phi_min);
+                                        phi_max = std::max(phi, phi_max);
+                                        surface_contour.push_back({vg[2], phi});
+                                        if (phi < 0.)
+                                        {
+                                            s_c_neg.push_back({vg[2], phi});
+                                            z_min_neg = std::min(vg[2], z_min_neg);
+                                            z_max_neg = std::max(vg[2], z_max_neg);
+                                        }
+                                        else
+                                        {
+                                            s_c_pos.push_back({vg[2], phi});
+                                            z_min_pos = std::min(vg[2], z_min_pos);
+                                            z_max_pos = std::max(vg[2], z_max_pos);
+                                        }
+                                    }
+                                    // Check for phi wrapping
+                                    std::vector<std::vector<point2>> surface_contours;
+                                    if (phi_max - phi_min > M_PI and phi_max * phi_min < 0.)
+                                    {
+                                        s_c_neg.push_back({z_max_neg, -M_PI});
+                                        s_c_neg.push_back({z_min_neg, -M_PI});
+                                        s_c_pos.push_back({z_max_pos, M_PI});
+                                        s_c_pos.push_back({z_min_pos, M_PI});
+                                        surface_contours = {s_c_neg, s_c_pos};
                                     }
                                     else
                                     {
-                                        s_c_pos.push_back({vg[2], phi});
-                                        z_min_pos = std::min(vg[2], z_min_pos);
-                                        z_max_pos = std::max(vg[2], z_max_pos);
+                                        surface_contours = {surface_contour};
                                     }
-                                }
-                                // Check for phi wrapping
-                                std::vector<std::vector<point2>> surface_contours;
-                                if (phi_max - phi_min > M_PI and phi_max * phi_min < 0.)
-                                {
-                                    s_c_neg.push_back({z_max_neg, -M_PI});
-                                    s_c_neg.push_back({z_min_neg, -M_PI});
-                                    s_c_pos.push_back({z_max_pos, M_PI});
-                                    s_c_pos.push_back({z_min_pos, M_PI});
-                                    surface_contours = {s_c_neg, s_c_pos};
-                                }
-                                else
-                                {
-                                    surface_contours = {surface_contour};
-                                }
 
-                                // Check the association (with potential splits)
-                                bool associated = false;
-                                for (const auto &s_c : surface_contours)
-                                {
-                                    if (cgs_assoc(bin_contour, s_c) or edges_assoc(bin_contour, s_c))
+                                    // Check the association (with potential splits)
+                                    bool associated = false;
+                                    for (const auto &s_c : surface_contours)
                                     {
-                                        associated = true;
+                                        if (cgs_assoc(bin_contour, s_c) or edges_assoc(bin_contour, s_c))
+                                        {
+                                            associated = true;
+                                            break;
+                                        }
+                                    }
+
+                                    // Register if associated
+                                    if (associated)
+                                    {
+                                        dindex bin_index = isf;
+                                        grid.populate(bin_0, bin_1, std::move(bin_index));
                                         break;
                                     }
-                                }
-
-                                // Register if associated
-                                if (associated)
-                                {
-                                    dindex bin_index = is;
-                                    grid.populate(bin_0, bin_1, std::move(bin_index));
-                                    break;
                                 }
                             }
                         }

@@ -5,6 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
+#include "core/geometry.hpp"
 #include "core/surface_base.hpp"
 #include "core/track.hpp"
 #include "core/transform_store.hpp"
@@ -42,7 +43,11 @@ TEST(tools, intersection_kernel_single)
 
     /// The Surface definition:
     ///  <transform_link, mask_link, volume_link, source_link >
-    using surface = surface_base<dindex, surface_mask_index, dindex, surface_link>;
+    //using surface = surface_base<dindex, surface_mask_index, dindex, surface_link>;
+        /*template <template <typename, unsigned int> class array_type = darray,
+              template <typename> class vector_type = dvector,
+              typename surface_source_link = dindex>*/
+    using surface = index_graph_geometry<>::surface_batch;
     using surface_container = dvector<surface>;
 
     // The transforms & their store
@@ -63,10 +68,14 @@ TEST(tools, intersection_kernel_single)
     std::get<1>(mask_store).push_back(second_trapezoid);
     std::get<2>(mask_store).push_back(thrid_annulus);
     // The surfaces and their store
-    surface rectangle_surface(0u, {0, 0}, 0, 0);
+    surface rectangle_surface{1, 0, {0, 1}, 0, dindex_invalid};
+    surface trapezoid_surface{1, 1, {0, 1}, 1, dindex_invalid};
+    surface annulus_surface{1, 3, {0, 1}, 2, dindex_invalid};
+    surface_container surfaces = {rectangle_surface, trapezoid_surface, annulus_surface};
+    /*surface rectangle_surface(0u, {0, 0}, 0, 0);
     surface trapezoid_surface(1u, {1, 0}, 0, 1);
     surface annulus_surface(2u, {2, 0}, 0, 2);
-    surface_container surfaces = {rectangle_surface, trapezoid_surface, annulus_surface};
+    surface_container surfaces = {rectangle_surface, trapezoid_surface, annulus_surface};*/
 
     // Try the intersection - first one by one
 
@@ -104,11 +113,11 @@ TEST(tools, intersection_kernel_single)
 
     // Try the intersection - with automated dispatching via the kernel
     unsigned int it = 0;
-    for (const auto &surface : surfaces)
+    std::array<dindex, 2> range = {0, 3};
+    auto sfis = intersect(track, surfaces, range, transform_store, mask_store);
+    for (const auto &sfi : sfis)
     {
-        auto sfi_surface = intersect(track, surface, transform_store, mask_store);
-
-        const auto &sfi = std::get<0>(sfi_surface);
+        //const auto &sfi = std::get<0>(sfi_surface);
         result_points.push_back(sfi.p3);
 
         ASSERT_TRUE(within_epsilon(result_points[it], expected_points[it], 1e-7));

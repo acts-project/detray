@@ -11,8 +11,10 @@
 
 #include <benchmark/benchmark.h>
 
-#include <string>
+#include <ios>
 #include <iostream>
+#include <map>
+#include <string>
 
 using namespace detray;
 
@@ -37,7 +39,11 @@ auto read_detector()
     std::string volumes = data_directory + "odd-layer-volumes.csv";
     std::string grids = data_directory + "odd-surface-grids.csv";
     std::string grid_entries = "";
-    return detray::detector_from_csv<>(name, surfaces, volumes, grids, grid_entries);
+
+    std::map<dindex, std::string> name_map{};
+
+    return detray::detector_from_csv<>(name, surfaces, volumes, grids, 
+                                       grid_entries, name_map);
 };
 
 auto d = read_detector();
@@ -69,7 +75,7 @@ namespace __plugin
                 for (unsigned int i0 = 0; i0 < itest; ++i0)
                 {
                     vector3 rz {i0 * step0, 0., i1 * step1};
-                    auto &v = d.indexed_volume(rz);
+                    auto &v = d.volume_by_pos(rz);
 
                     benchmark::DoNotOptimize(successful);
                     benchmark::DoNotOptimize(unsuccessful);

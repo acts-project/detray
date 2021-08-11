@@ -9,8 +9,11 @@
 #include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
 
+#include <ios>
 #include <iostream>
 #include <gtest/gtest.h>
+#include <map>
+#include <string>
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -31,9 +34,11 @@ TEST(ALGEBRA_PLUGIN, read_detector)
     std::string surface_grid_file = data_directory + std::string("odd-surface-grids.csv");
     std::string surface_grid_entries_file = "";
 
-    auto d = detector_from_csv<>("odd", surface_file, layer_volume_file, surface_grid_file, surface_grid_entries_file);
+    std::map<dindex, std::string> name_map{};
 
-    std::cout << d.to_string() << std::endl;
+    auto d = detector_from_csv<>("odd", surface_file, layer_volume_file, surface_grid_file, surface_grid_entries_file, name_map);
+
+    std::cout << d.to_string(name_map) << std::endl;
 }
 
 int main(int argc, char **argv)

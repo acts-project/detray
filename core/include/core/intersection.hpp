@@ -38,7 +38,7 @@ namespace detray
         e_inside = 2    //!< surface hit and inside confirmed
     };
 
-    /** This templated class holds the intersection information
+    /** This struct holds the intersection information
      * 
      * @tparam point3 is the type of global intsersection vector
      * @tparam point2 is the type of the local intersection vector
@@ -56,8 +56,9 @@ namespace detray
                      std::numeric_limits<scalar>::infinity()};
         intersection_status status = e_missed;
         intersection_direction direction = e_undefined;
-        dindex index = dindex_invalid;
-        dindex link = dindex_invalid;
+        // Surface batch, surface in batch, mask in surfaces mask range
+        std::array<dindex, 3> index = {dindex_invalid, dindex_invalid};
+        //dindex link = dindex_invalid;
 
         /** @param rhs is the right hand side intersection for comparison 
          **/

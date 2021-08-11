@@ -10,8 +10,11 @@
 #include "io/csv_io.hpp"
 #include "tools/intersection_kernel.hpp"
 
+#include <ios>
 #include <iostream>
 #include <fstream>
+#include <map>
+#include <set>
 
 #include <benchmark/benchmark.h>
 
@@ -35,8 +38,10 @@ unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
 bool stream_file = false;
 
+std::map<dindex, std::string> name_map{};
+
 /** Read the detector from file */
-auto read_detector()
+auto read_detector(std::map<dindex, std::string> &name_map)
 {
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
     if (env_d_d == nullptr)
@@ -50,10 +55,12 @@ auto read_detector()
     std::string volumes = data_directory + "odd-layer-volumes.csv";
     std::string grids = data_directory + "odd-surface-grids.csv";
     std::string grid_entries = "";
-    return detray::detector_from_csv<>(name, surfaces, volumes, grids, grid_entries);
+
+    return detray::detector_from_csv<>(name, surfaces, volumes, grids,
+                                       grid_entries, name_map);
 };
 
-auto d = read_detector();
+auto d = read_detector(name_map);
 
 namespace __plugin
 {
@@ -74,13 +81,18 @@ namespace __plugin
         using detray_context = decltype(d)::transform_store::context;
         detray_context default_context;
 
+        const auto &surfaces = d.surfaces();
+        const auto &transforms = d.transforms(default_context);
+        const auto &masks = d.masks();
+
         for (auto _ : state)
         {
+            std::cout << d.to_string(name_map) << std::endl;
             track<detray_context> track;
             track.pos = point3{0., 0., 0.};
 
             // Loops of theta values
-            for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
+            /*for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
             {
                 scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
                 scalar sin_theta = std::sin(theta);
@@ -98,15 +110,12 @@ namespace __plugin
                     // Loop over volumes
                     for (const auto &v : d.volumes())
                     {
-                        const auto &surfaces = v.surfaces();
+                        const auto &surface_range = v.surface_range();
 
-                        // Loop over surfaces
-                        for (const auto &s : surfaces.objects())
+                        auto sf_inters = intersect(track, surfaces, surface_range, transforms, masks);
+
+                        for (const auto &sfi : sf_inters)
                         {
-                            auto sfi_surface = intersect(track, s, surfaces.transforms(default_context), surfaces.masks());
-
-                            const auto &sfi = std::get<0>(sfi_surface);
-                            
                             benchmark::DoNotOptimize(hits);
                             benchmark::DoNotOptimize(missed);
                             if (sfi.status == intersection_status::e_inside)
@@ -117,22 +126,23 @@ namespace __plugin
                                     hit_out << sfi.p3[0] << "," << sfi.p3[1] << "," << sfi.p3[2] << "\n";
                                 }
                                 state.ResumeTiming();*/
-                                ++hits;
+                                /*++hits;
                             }
                             else
                             {
                                 ++missed;
                             }
-                            benchmark::ClobberMemory();
+                            //benchmark::ClobberMemory();
                         }
+
                     }
                 }
-            }
+            }*/
         }
 
-        #ifndef DETRAY_BENCHMARKS_MULTITHREAD
+        /*#ifndef DETRAY_BENCHMARKS_MULTITHREAD
         std::cout << "[detray] hits / missed / total = " << hits << " / " << missed << " / " << hits + missed << std::endl;
-        #endif
+        #endif*/
         /**if (stream_file)
         {
             hit_out.close();

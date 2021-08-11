@@ -9,6 +9,8 @@
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
 
+#include <iterator>
+
 namespace detray
 {
 
@@ -21,8 +23,8 @@ namespace detray
     public:
 
         /** Elementwise access. Needs []oprator for storage type for now */
-        inline auto operator[](const unsigned int i) { return _data[i]; }
-        inline auto operator[](const unsigned int i) const { return _data[i]; }
+        auto operator[](const unsigned int i) { return _data[i]; }
+        auto operator[](const unsigned int i) const { return _data[i]; }
 
         /** Empty context type struct */
         struct context
@@ -37,11 +39,11 @@ namespace detray
 
             const range_iterator r;
 
-            inline auto begin() { return r.begin(); }
-            inline auto end() { return r.end(); }
+            auto begin() { return r.begin(); }
+            auto end() { return r.end(); }
 
-            inline auto operator[](const unsigned int i) { return *(r.begin() + i); }
-            inline auto operator[](const unsigned int i) const { return *(r.begin() + i); }
+            auto operator[](const unsigned int i) { return *(r.begin() + i); }
+            auto operator[](const unsigned int i) const { return *(r.begin() + i); }
         };
 
         using storage = vector_type<transform3>;
@@ -73,7 +75,7 @@ namespace detray
          *
          * @return range restricted iterator
          */
-        const inline auto range(const size_t begin, const size_t end, const context & ctx) const
+        const auto range(const size_t begin, const size_t end, const context & ctx) const
         {
             return contextual_range<decltype(range_iter(_data, dindex_range{begin, end}))>{range_iter(_data, dindex_range{begin, end})};
         }
@@ -143,10 +145,11 @@ namespace detray
          *
          * @note in general can throw an exception
          */
-        void append_contextual_transforms(const context & /*ctx*/, storage &&trfs) noexcept(false)
+        void append_contextual_transforms(const context & /*ctx*/, storage &trfs) noexcept(false)
         {
             _data.reserve(_data.size() + trfs.size());
-            _data.insert(_data.end(), std::make_move_iterator(trfs.begin()), std::make_move_iterator(trfs.end()));
+            _data.insert(_data.end(), std::iterator(trfs.begin()), 
+                                      std::iterator(trfs.end()));
         }
 
         /** Get the contextual transform
