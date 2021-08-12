@@ -87,12 +87,12 @@ namespace __plugin
 
         for (auto _ : state)
         {
-            std::cout << d.to_string(name_map) << std::endl;
+            //std::cout << d.to_string(name_map) << std::endl;
             track<detray_context> track;
             track.pos = point3{0., 0., 0.};
 
             // Loops of theta values
-            /*for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
+            for (unsigned int itheta = 0; itheta < theta_steps; ++itheta)
             {
                 scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
                 scalar sin_theta = std::sin(theta);
@@ -111,8 +111,8 @@ namespace __plugin
                     for (const auto &v : d.volumes())
                     {
                         const auto &surface_range = v.surface_range();
-
-                        auto sf_inters = intersect(track, surfaces, surface_range, transforms, masks);
+                        benchmark::DoNotOptimize(d.geometry().n_surfaces(v));
+                        /*auto sf_inters = intersect(track, surfaces, surface_range, transforms, masks);
 
                         for (const auto &sfi : sf_inters)
                         {
@@ -133,16 +133,16 @@ namespace __plugin
                                 ++missed;
                             }
                             //benchmark::ClobberMemory();
-                        }
+                        }*/
 
                     }
                 }
-            }*/
+            }
         }
 
-        /*#ifndef DETRAY_BENCHMARKS_MULTITHREAD
+        #ifndef DETRAY_BENCHMARKS_MULTITHREAD
         std::cout << "[detray] hits / missed / total = " << hits << " / " << missed << " / " << hits + missed << std::endl;
-        #endif*/
+        #endif
         /**if (stream_file)
         {
             hit_out.close();

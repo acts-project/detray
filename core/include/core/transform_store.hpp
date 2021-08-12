@@ -32,10 +32,9 @@ namespace detray
         };
 
         /** Helper struct to pass range and context */
-        template<typename range_iterator>
+        /*template<typename range_iterator>
         struct contextual_range {
             using context = static_transform_store::context;
-            /*context ctx;*/
 
             const range_iterator r;
 
@@ -44,7 +43,7 @@ namespace detray
 
             auto operator[](const unsigned int i) { return *(r.begin() + i); }
             auto operator[](const unsigned int i) const { return *(r.begin() + i); }
-        };
+        };*/
 
         using storage = vector_type<transform3>;
 
@@ -75,10 +74,10 @@ namespace detray
          *
          * @return range restricted iterator
          */
-        const auto range(const size_t begin, const size_t end, const context & ctx) const
+        /*const auto range(const size_t begin, const size_t end, const context & ctx) const
         {
             return contextual_range<decltype(range_iter(_data, dindex_range{begin, end}))>{range_iter(_data, dindex_range{begin, end})};
-        }
+        }*/
 
         /** Reserve memory : Contextual STL like API
          *
@@ -145,11 +144,10 @@ namespace detray
          *
          * @note in general can throw an exception
          */
-        void append_contextual_transforms(const context & /*ctx*/, storage &trfs) noexcept(false)
+        void append_contextual_transforms(const context & /*ctx*/, const storage &trfs) noexcept(false)
         {
             _data.reserve(_data.size() + trfs.size());
-            _data.insert(_data.end(), std::iterator(trfs.begin()), 
-                                      std::iterator(trfs.end()));
+            _data.insert(_data.end(), trfs.begin(), trfs.end());
         }
 
         /** Get the contextual transform

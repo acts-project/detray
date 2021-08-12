@@ -10,6 +10,7 @@
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
 
+#include <iostream>
 #include <iterator>
 #include <sstream>
 #include <string>
@@ -49,13 +50,8 @@ namespace detray
         using name_map = std::map<dindex, std::string>;
         using source_link = dindex;
 
-        // Index container used in volumes
+        // Index container used in volumes {first index, number of elements}
         using element_range = array_type<dindex, 2>;
-        enum range : unsigned int {
-            e_first = 0,
-            e_last = 1,
-            e_invalid = std::numeric_limits<unsigned int>::max(),
-        };
 
         /**
          * Half-edge in a volume graph with surface finders.
@@ -86,7 +82,7 @@ namespace detray
               * Start of the surface masks in the detector scope container
               * and number of masks per surface.
               */
-            element_range mask_range = {dindex_invalid, dindex_invalid};
+            element_range mask_range = {dindex_invalid, 0};
             /**
               * Start of the surface transforms in the detector scope
               * container
@@ -103,13 +99,13 @@ namespace detray
              *
              * @return the mask range in the detector container.
              */
-             element_range mask_range_by_surface(const dindex &surface_index)
-             const
-             {
-                 dindex first_mask = mask_range[0]
-                                     + mask_range[1] * surface_index;
-                 return {first_mask, first_mask + mask_range[1]};
-             }
+            element_range mask_range_by_surface(const dindex &surface_index)
+            const
+            {
+                dindex first_mask = mask_range[0]
+                                    + mask_range[1] * surface_index;
+                return {first_mask, first_mask + mask_range[1]};
+            }
         };
 
         /**
@@ -134,7 +130,7 @@ namespace detray
              * mask type. The number of portal links is included in the
              * surface batch.
              */
-            element_range surface_batches = {};
+            element_range surface_batches = {dindex_invalid, 0};
         };
 
         /**
@@ -143,10 +139,6 @@ namespace detray
          */
         struct volume
         {
-
-            //friend class index_graph_geometry<array_type, vector_type,
-            //                                  surface_source_link>;
-
             /** Deleted constructor */
             volume() = delete;
 
@@ -194,7 +186,7 @@ namespace detray
             void add_surfaces(element_range surface_range)
             {
                 // initialize volume
-                if (_surfaces[1] == dindex_invalid)
+                if (_surfaces[0] == dindex_invalid)
                 {
                     _surfaces[0] = surface_range[0];
                     _surfaces[1] = surface_range[1];
@@ -211,8 +203,6 @@ namespace detray
              * for portals
              *
              * @param portal_range Range of portal structs in portal container
-             * @param transform_range Minimal enclosing interval around portal
-             * surface transforms in detector transform store.
              */
             void add_portals(portal_batch portals)
             {
@@ -243,7 +233,7 @@ namespace detray
             dindex _index = dindex_invalid;
 
             /** Range of indices for surfaces in surfaces container */
-            element_range _surfaces = {};
+            element_range _surfaces = {dindex_invalid, 0};
 
             /** Range of indices for portals in portals container */
             portal_batch _portals = {};
@@ -251,9 +241,6 @@ namespace detray
             /** Index into the surface finder container */
             dindex _surfaces_finder = dindex_invalid;
         };
-
-        /** @return total number of nodes (volumes) */
-        const size_t n_volumes()  const { return _nodes.size(); }
 
         /**
          * Add a new volume and retrieve a reference to it.
@@ -277,6 +264,9 @@ namespace detray
             return cvolume;
         }
 
+        /** @return total number of nodes (volumes) */
+        const size_t n_volumes()  const { return _nodes.size(); }
+
         /** @return all volumes in the geometry - const access. */
         const vector_type<volume> &volumes() const { return _nodes; }
 
@@ -285,9 +275,6 @@ namespace detray
 
         /** @return the volume by @param volume_index - non-const access. */
         volume &volume_by_index(dindex volume_index) { return _nodes[volume_index]; }
-
-        /** @return all surface batches in geometry. */
-        const auto &surfaces() const { return _surfaces; }
 
         /** @return number of surface batches - const access. */
         const auto n_surface_batches() const { return _surfaces.size(); }
@@ -310,8 +297,14 @@ namespace detray
         /** @return number of surfaces */
         const dindex n_portals(const volume &v) const { return n_surfaces_in_range(v.portal_range()); }
 
+        /** @return all surface batches in geometry. */
+        const auto &surfaces() const { return _surfaces; }
+
         /** @return all graph edges - const access */
         const auto &edges() const { return _edges; }
+
+        /** @return all source links - const access */
+        const auto &source_links() const { return _source_links; }
 
         /**
          * Find the geometry graph edge for a given a certain surface and
@@ -362,9 +355,6 @@ namespace detray
                                             const std::array<dindex, 3> index)
         const { return get_edge(pb, index).next_obj_finder; }
 
-        /** @return all source links - const access */
-        const auto &source_links() const { return _source_links; }
-
         /**
           * Adds a number of detector/portal surfaces to a specific volume.
           *
@@ -372,24 +362,28 @@ namespace detray
           * @param surfaces The new surfaces
           * @param source_links All source links belonging to the surfaces
           */
-        void add_surfaces(volume& volume, surface_batch& surfaces,
+        void add_surfaces(volume& volume, vector_type<surface_batch>& surfaces,
                           vector_type<surface_source_link>& source_links,
                           bool is_portal_surfaces = false)
         {
             auto sf_start = _surfaces.size();
             auto sl_start = _source_links.size();
 
-            _surfaces.push_back(surfaces);
-
+            _surfaces.reserve(sf_start + surfaces.size());
+            _surfaces.insert(_surfaces.end(), surfaces.begin(), surfaces.end());
             _source_links.reserve(sl_start + source_links.size());
-            _source_links.insert(_source_links.end(), source_links.begin(),
-                                 source_links.end());
+            _source_links.insert(_source_links.end(), source_links.begin(), source_links.end());
 
             // Update source link start index to global container
-            surfaces.source_idx += sl_start;
+            for (auto &sf : surfaces)
+            {
+                sf.source_idx += sl_start;
+            }
 
-            //volume.add_surfaces({sf_start, sf_start + _surfaces.size()});
-            if (not is_portal_surfaces) { volume.add_surfaces({sf_start, 1}); }
+            if (not is_portal_surfaces)
+            {
+                volume.add_surfaces({sf_start, surfaces.size()});
+            }
         }
 
         /**
@@ -411,7 +405,7 @@ namespace detray
             _edges.insert(_edges.end(),  edges.begin(), edges.end());
 
             portals.half_edges += edg_start;
-
+            
             volume.add_portals(portals);
         }
 
@@ -439,20 +433,21 @@ namespace detray
             std::stringstream ss;
             for (const auto &[i, v] : enumerate(_nodes))
             {
-                ss << "[>>] Volume at index "  << i << " - name: '"
-                   << names[v.index()] << "'"  << std::endl;
+                ss << "[>>] Volume at index " << i
+                   << " - name: '"   << names[v.index()]
+                   << "'" << std::endl;
 
-                ss << "     contains    "      << v.n_surface_batches()
-                   << " surface batches (" << n_surfaces(v)
-                   << " detector surfaces)"    << std::endl;
+                ss << "     contains    "   << v.n_surface_batches()
+                   << " surface batches ("  << n_surfaces(v)
+                   << " detector surfaces)" << std::endl;
 
-                ss << "                 "      << v.n_portal_batches()
+                ss << "                 "         << v.n_portal_batches()
                    << " portal surface batches (" << n_portals(v)
-                   << " detector portals)"     << std::endl;
+                   << " detector portals)"        << std::endl;
                    
                 if (v.surfaces_finder_entry() != dindex_invalid)
                 {
-                    ss << "     finders idx " << v.surfaces_finder_entry()
+                    ss << "  sf finders idx " << v.surfaces_finder_entry()
                        << std::endl;
                 }
                 ss << "     bounds r = (" << v._bounds[0] << ", "

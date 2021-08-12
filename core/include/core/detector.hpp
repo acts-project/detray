@@ -23,7 +23,6 @@
 #include "tools/local_object_finder.hpp"
 
 #include <cassert>
-#include <iostream>
 #include <iterator>
 #include <string>
 #include <sstream>
@@ -58,15 +57,14 @@ namespace detray
               typename alignable_store = static_transform_store<vector_type>,
               typename surface_source_link = dindex,
               typename bounds_source_link = dindex,
-              typename geometry = index_graph_geometry<array_type, vector_type,
-                                                       dindex>,
+              typename geometry_t = index_graph_geometry<array_type, vector_type, dindex>,
               typename surfaces_populator_type = attach_populator<false, dindex, vector_type>,
               typename surfaces_serializer_type = serializer2>
     class detector
     {
 
     public:
-        enum mask_conatainer_index : unsigned int {
+        enum mask_container_index : unsigned int {
             e_mask_types = 5,
             e_rectangle2 = 0,
             e_trapezoid2 = 1,
@@ -80,11 +78,13 @@ namespace detray
         /// Forward the alignable container and context
         using transform_store = alignable_store;
         using context = typename alignable_store::context;
-        using portal  = typename geometry::portal_batch;
-        using surface = typename geometry::surface_batch;
-        using volume  = typename geometry::volume;
-        using source_link = typename geometry::source_link;
-        using mask_index = typename geometry::element_range;
+
+        // Geometry defined types
+        using portal  = typename geometry_t::portal_batch;
+        using surface = typename geometry_t::surface_batch;
+        using volume  = typename geometry_t::volume;
+        using source_link = typename geometry_t::source_link;
+        using mask_index = typename geometry_t::element_range;
 
         /// Volume grid definition
         using volume_grid = grid2<replace_populator<dindex, std::numeric_limits<dindex>::max(), vector_type>,
@@ -116,30 +116,10 @@ namespace detray
          * source_link: some link to an eventual exernal representation
          * 
          */
-        //using portal = surface_base<dindex, portal_mask_index, dindex, surface_source_link>;
-        /*struct portal 
-        { 
-            dindex next_volume = dindex_invalid;
-            dindex next_object_finder = dindex_invalid;
-            dindex surface_idx = dindex_invalid;
-            //surface_base<dindex, portal_mask_index, surface_source_link> surface;
-        };*/
 
         /// Surface components:
         /// - surface links
         using surface_links = array_type<dindex, 1>;
-        /// - masks, with mask identifiers 0,1,2
-        /*using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, surface_links, 0>;
-        using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, surface_links, 1>;
-        using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, surface_links, 2>;
-        using surface_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, surface_links, 3>;
-        using surface_disc = ring2<planar_intersector, __plugin::cartesian2, surface_links, 1>;
-        /// - mask index: type, entry
-        using surface_mask_index = array_type<dindex, 2>;
-        using surface_mask_container = tuple_type<vector_type<surface_rectangle>,
-                                                  vector_type<surface_trapezoid>,
-                                                  vector_type<surface_annulus>,
-                                                  vector_type<surface_cylinder>>;*/
 
         using surface_link = surface_source_link;
 
@@ -149,7 +129,7 @@ namespace detray
 
 
 
-        using portal_container = vector_type<typename geometry::half_edge>;
+        using portal_container = vector_type<typename geometry_t::half_edge>;
 
         using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, surface_links, 0>;
         using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, surface_links, 1>;
@@ -200,7 +180,7 @@ namespace detray
         /** Allowed costructor
          * @param name the detector
          */
-        detector(const std::string &name, geometry geo)
+        detector(const std::string &name, geometry_t geo)
             : _name(name), _geometry(std::move(geo)) {}
 
         /** Copy constructor makes sure the volumes belong to new detector.
@@ -211,21 +191,8 @@ namespace detray
         detector() = delete;
         ~detector() = default;
 
-        /** Add a new volume and retrieve a reference to it
-         *
-         * @param name of the volume
-         * @param bounds of the volume, they are expected to be already attaching
-         * @param surfaces_finder_entry of the volume, where to entry the surface finder 
-         *
-         * @return non-const reference of the new volume
-         */
-        volume &new_volume(const array_type<scalar, 6> &bounds, dindex surfaces_finder_entry = dindex_invalid)
-        {
-            return _geometry.new_volume(bounds, surfaces_finder_entry);
-        }
-
         /** @return the name of the detector */
-        const geometry &get_geometry() const { return _geometry; }
+        const geometry_t &geometry() const { return _geometry; }
 
         /** @return the name of the detector */
         const std::string &name() const { return _name; }
@@ -236,6 +203,9 @@ namespace detray
         /** @return the volume by @param volume_index - const access */
         const volume &volume_by_index(dindex volume_index) const { return _geometry.volume_by_index(volume_index); }
 
+        /** @return the volume by @param volume_index - non-const access */
+        volume &volume_by_index(dindex volume_index) { return _geometry.volume_by_index(volume_index); }
+
         /** @return the volume by @param position - const access */
         const volume &volume_by_pos(const point3 &p) const
         {
@@ -244,8 +214,17 @@ namespace detray
             return _geometry.volume_by_index(volume_index);
         }
 
-        /** @return the volume by @param volume_index - non-const access */
-        volume &volume_by_index(dindex volume_index) { return _geometry.volume_by_index(volume_index); }
+        /** @return all surfaces - const access */
+        const auto &surfaces() const { return _geometry.surfaces(); }
+
+        /** @return all surfaces - const access */
+        const auto &portals() const { return _geometry.edges(); }
+
+        /** @return all masks - const access */
+        const auto &masks() const { return _masks; }
+
+        /** @return all surfaces - const access */
+        const auto &transforms(const context &/*ctx*/) const { return _transforms; }
 
         /** Get the current transform index for surfaces
          *
@@ -254,6 +233,27 @@ namespace detray
          * @return Index to add new transforms at 
          */
         const unsigned int transform_index(const context &ctx) const { return _transforms.size(ctx); }
+
+        /** @return the volume grid - const access */
+        const volume_grid &volume_search_grid() const { return _volume_grid; }
+
+        /** @return the surface finders - const access */
+        const vector_type<surfaces_finder> &surfaces_finders() const { return _surfaces_finders; }
+
+        /** Add a new volume and retrieve a reference to it
+         *
+         * @param name of the volume
+         * @param bounds of the volume, they are expected to be already
+         *               attaching
+         * @param surfaces_finder_entry of the volume, where to entry the
+         *                              surface finder 
+         *
+         * @return non-const reference of the new volume
+         */
+        volume &new_volume(const array_type<scalar, 6> &bounds, dindex surfaces_finder_entry = dindex_invalid)
+        {
+            return _geometry.new_volume(bounds, surfaces_finder_entry);
+        }
 
         /**
          * Add a new full set of alignable transforms for surfaces
@@ -270,7 +270,7 @@ namespace detray
          * @note can throw an exception if input data is inconsistent
          */
         void add_surfaces(
-            volume volume,
+            volume &volume,
             surface_container &surfaces,
             mask_container &masks,
             transform_container &trfs,
@@ -279,53 +279,47 @@ namespace detray
             bool is_portal_surfaces = false) noexcept(false)
         {
             // Unroll the intersection depending on the mask container size
-            unroll_container_filling(surfaces, masks, trfs);
-            /*auto &dst_masks = std::get<mask_collection>(_masks);
+            vector_type<surface> valid_surfaces;
+            unroll_container_filling(surfaces, masks, trfs, valid_surfaces, ctx);
 
-            surfaces.mask_range[0] += dst_masks.size();
-            surfaces.mask_range[1] += dst_masks.size();
-            surfaces.transform_idx += transform_index(ctx);
-
-            add_transforms(ctx, std::move(trfs));
-            //add_masks<>(std::move(masks));
-
-            dst_masks.reserve(dst_masks.size() + masks.size());
-            dst_masks.insert(dst_masks.end(), masks.begin(), masks.end());*/
-
-            _geometry.add_surfaces(volume, surfaces[0], sc_links, is_portal_surfaces);
+            _geometry.add_surfaces(volume, valid_surfaces, sc_links, is_portal_surfaces);
         }
 
         /**
          * Add a new full set of alignable transforms for surfaces.
          *
          * @param volume The volume the portals belong to
+         * @param edges The connections between volumes
          * @param surfaces New portal surfaces that might need to be added
          * @param masks If we need new surfaces, add the masks
          * @param trfs If we need new surfaces, add the transforms
+         * @param sc_links Links to external source for surfaces
          *
          * @note can throw an exception if input data is inconsistent
-         * @note There can be no new surfaces if they are shared among portals
          */
         void add_portals(
             volume &volume,
-            vector_type<typename geometry::half_edge> &edges,
+            vector_type<typename geometry_t::half_edge> &edges,
             surface_container &surfaces,
             mask_container &masks,
             transform_container &trfs,
             link_container &sc_links) noexcept(false)
         {
             portal portals = { 0, {_geometry.n_surface_batches(),
-                                   surfaces.size()} };
+                                   _geometry.n_surface_batches()} };
 
+            // TODO: Put into geometry consistency check
             // Ensure that there is an edge for every mask
             unsigned int n_sfs = 0;
             for (const auto &sfb : surfaces) { n_sfs += sfb.mask_range[1]; }
             assert(n_sfs == edges.size());
 
             // TODO: Implement portal surface sharing
-            if (not surfaces.empty())
+            if (not sc_links.empty())
             {
-                //add_surfaces<decltype(std::get<0>(masks))>(volume, surfaces[1], std::get<0>(masks), trfs, sc_links, {}, true);
+                add_surfaces(volume, surfaces, masks, trfs, sc_links, {}, true);
+                // How many batches were added for the portals?
+                portals.surface_batches[1] = _geometry.n_surface_batches() - portals.surface_batches[0];
             }
 
             _geometry.add_portals(volume, portals, edges);
@@ -334,6 +328,7 @@ namespace detray
         /**
          * Add a new set of surface transforms to the store.
          *
+         * @param ctx The current context for the transforms
          * @param trfs The transforms that need to be added
          *
          * @note can throw an exception if input data is inconsistent
@@ -353,12 +348,6 @@ namespace detray
             _volume_grid = std::move(v_grid);
         }
 
-        /** @return the volume grid - const access */
-        const volume_grid &volume_search_grid() const { return _volume_grid; }
-
-        /** @return the surface finders - const access */
-        const vector_type<surfaces_finder> &surfaces_finders() const { return _surfaces_finders; }
-
         /**
          * Add local surface finders linked to from the portals
          * - move semantics
@@ -369,18 +358,6 @@ namespace detray
         {
             _surfaces_finders = std::move(surfaces_finders);
         }
-
-        /** @return all surfaces - const access */
-        const auto &surfaces() const { return _geometry.surfaces(); }
-
-        /** @return all surfaces - const access */
-        const auto &portals() const { return _geometry.edges(); }
-
-        /** @return all surfaces - const access */
-        const auto &transforms(const context &/*ctx*/) const { return _transforms; }
-
-        /** @return all masks - const access */
-        const auto &masks() const { return _masks; }
 
         /** @return Output to string */
         template<typename name_map>
@@ -402,23 +379,49 @@ namespace detray
         template <size_t current_idx = 0>
         void unroll_container_filling(surface_container &surfaces,
                                       mask_container &masks,
-                                      transform_container &trfs)
+                                      transform_container &trfs,
+                                      vector_type<surface> &valid_surfaces,
+                                      const typename alignable_store::context ctx = {})
         {
             auto surface_batch = surfaces[current_idx];
-            const auto &surface_masks      = std::get<current_idx>(masks);
-            const auto &surface_transforms = std::get<current_idx>(trfs);
+            // Skip uninitialized batches
+            if (surface_batch.n_surfaces != dindex_invalid)
+            {
+                const auto &surface_masks      = std::get<current_idx>(masks);
+                auto &detector_masks           = std::get<current_idx>(_masks);
+                const auto &surface_transforms = std::get<current_idx>(trfs);
 
-            // Fill into detectors containers
+                const auto first_mask = detector_masks.size();
+                const auto first_trsf = transform_index(ctx);
+
+                // Fill into detectors containers
+                detector_masks.reserve(first_mask + surface_masks.size());
+                detector_masks.insert(detector_masks.end(), surface_masks.begin(),
+                                      surface_masks.end());
+
+                _transforms.append_contextual_transforms(ctx, surface_transforms);
+
+                // Update batch
+                surface_batch.n_surfaces = surface_transforms.size();
+                surface_batch.mask_type = current_idx;
+                // Rather crash than invalid behaviour
+                surface_batch.mask_range[0] = surface_transforms.size() == 0 ?
+                                              dindex_invalid : surface_batch.mask_range[0] + first_mask;
+                surface_batch.transform_idx = surface_transforms.size() == 0 ?
+                                              dindex_invalid : surface_batch.transform_idx + first_trsf;
+
+                valid_surfaces.push_back(surface_batch);
+            }
 
             if constexpr (current_idx < std::tuple_size_v<mask_container> - 1) {
-                return unroll_container_filling<current_idx + 1> (surfaces, masks, trfs);
+                return unroll_container_filling<current_idx + 1> (surfaces, masks, trfs, valid_surfaces, ctx);
             }
         }
 
         std::string _name = "unknown";
 
         /** Geometry struct keeps the relations between geometry objects */
-        geometry _geometry{};
+        geometry_t _geometry{};
 
         /** Keeps all of the surfaces transform data in contiguous memory */
         transform_store _transforms{};

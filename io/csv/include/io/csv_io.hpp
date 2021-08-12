@@ -81,26 +81,13 @@ namespace detray
 
     // Read in with a default context
     typename alignable_store::context surface_default_context{};
-    typename alignable_store::storage cylinder_transform_storage;
-    typename alignable_store::storage rectangle_transform_storage;
-    typename alignable_store::storage trapezoid_transform_storage;
-    typename alignable_store::storage annulus_transform_storage;
-
-    std::array<typename alignable_store::storage, e_known_types> surfaces_transform_storages = {
-      rectangle_transform_storage,
-      trapezoid_transform_storage,
-      {},
-      cylinder_transform_storage,
-      {},
-      annulus_transform_storage
-    };
 
     // Flushable containers
     typename typed_detector::volume *c_volume = nullptr;
-    //typename typed_detector::surface_container c_surfaces;
-    //typename typed_detector::surface_mask_container c_masks;
+    typename typed_detector::surface_container c_surfaces;
     typename typed_detector::mask_container c_masks;
-    typename typed_detector::surface_container c_source_links;
+    typename typed_detector::transform_container c_transforms;
+    typename typed_detector::link_container c_source_links;
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
 
@@ -306,23 +293,15 @@ namespace detray
       if (c_volume_itr == volumes.end())
       {
         // Flush the former information / c_volume still points to the prior volume
-        if (c_volume != nullptr and not cylinder_transform_storage.empty())
+        if (c_volume != nullptr and not c_source_links.empty())
         {
-          // Construction with move semantics
-          //c_volume->add_surface_transforms(surface_default_context, std::move(surface_transform_storage));
-          typename typed_detector::surface surface_batch{};
-          surface_batch.n_surfaces = surfaces_transform_storages[typed_detector::e_rectangle2].size();
-          surface_batch.mask_type = typed_detector::e_rectangle2;
-          surface_batch.mask_range = {0, std::get<typed_detector::e_rectangle2>(c_masks).size()};
-          surface_batch.transform_idx =  0;
-          //d.add_surfaces<typename typed_detector::surface_cylinder>(*c_volume, surface_batch, std::get<e_cylinder3>(c_masks), std::move(cylinder_transform_storage));
-          //c_volume->add_surface_components(std::move(c_surfaces), std::move(c_masks));
+          d.add_surfaces(*c_volume, c_surfaces, c_masks, c_transforms, c_source_links, surface_default_context);
 
           // Get new clean containers
-          cylinder_transform_storage = typename alignable_store::storage();
-          //c_surfaces = typename typed_detector::surface_container();
-          //c_masks = typename typed_detector::surface_mask_container();
-          c_masks = typename typed_detector::mask_container();
+          c_surfaces     = typename typed_detector::surface_container();
+          c_masks        = typename typed_detector::mask_container();
+          c_transforms   = typename typed_detector::transform_container();
+          c_source_links = typename typed_detector::link_container();
         }
 
         // Find and fill the bounds
@@ -346,9 +325,9 @@ namespace detray
           surfaces_finder_entry = surface_finder_itr->second;
         }
 
+        // Create a new volume & assign
         auto &new_volume = d.new_volume(volume_bounds, surfaces_finder_entry);
 
-        // Create a new volume & assign
         std::string volume_name = detector_name;
         volume_name += std::string("_vol_") + std::to_string(io_surface.volume_id);
         volume_name += std::string("_lay_") + std::to_string(io_surface.layer_id);
@@ -391,22 +370,37 @@ namespace detray
         bounds.push_back(io_surface.bound_param6);
 
         // Acts naming convention for bounds
-        //typename typed_detector::surface_mask_index mask_index = {dindex_invalid, {dindex_invalid, dindex_invalid}};
-        typename typed_detector::mask_index mask_range = {dindex_invalid,
-                                                          dindex_invalid};
-        unsigned int mask_type = typed_detector::e_unknown;
         if (bounds_type == 1)
         {
           // Cylinder bounds
-          mask_type = typed_detector::e_cylinder3;
 
           // Get the cylinder mask container
           auto &cylinder_masks = std::get<typed_detector::e_cylinder3>(c_masks);
           dindex cylinder_index = cylinder_masks.size();
           cylinder_masks.push_back({io_surface.bound_param0, io_surface.cz - io_surface.bound_param1, io_surface.cz + io_surface.bound_param1});
-          // The read is valid: set the index
-          mask_range = {cylinder_index, cylinder_index};
-          //cylinder_transform_storage[mask_type].push_back(transform3{t, z, x});
+
+          // The read is valid: update batch
+          auto &cylinder_transforms = std::get<typed_detector::e_cylinder3>(c_transforms);
+          auto &previous_batch = c_surfaces[typed_detector::e_cylinder3];
+          if (previous_batch.n_surfaces != dindex_invalid)
+          {
+            // Read only one surface at a time
+            previous_batch.n_surfaces++;
+          }
+          else
+          {
+            c_surfaces[typed_detector::e_cylinder3] = {
+                        .n_surfaces = 1,
+                        .mask_type  = typed_detector::e_cylinder3,
+                        // Only one mask per detector surface here
+                        .mask_range = {cylinder_index, 1},
+                        .transform_idx = cylinder_transforms.size() - 1,
+                        .source_idx = c_source_links.size() - 1
+            };
+          }
+
+          cylinder_transforms.emplace_back(t, z, x);
+          c_source_links.push_back(dindex_invalid);
         }
         else if (bounds_type == 3)
         {
@@ -415,7 +409,6 @@ namespace detray
         else if (bounds_type == 6)
         {
           // Rectangle bounds
-          mask_type = e_rectangle2;
 
           // Get the rectangle mask container
           auto &rectangle_masks = std::get<typed_detector::e_rectangle2>(c_masks);
@@ -423,27 +416,67 @@ namespace detray
           scalar half_x = 0.5 * (io_surface.bound_param2 - io_surface.bound_param0);
           scalar half_y = 0.5 * (io_surface.bound_param3 - io_surface.bound_param1);
           rectangle_masks.push_back({half_x, half_y});
-          // The read is valid: set the index
-          mask_range = {rectangle_index, rectangle_index};
-          //rectangle_transform_storage[mask_type].push_back(transform3{t, z, x});
+
+          // The read is valid: update batch
+          auto &rectangle_transforms = std::get<typed_detector::e_rectangle2>(c_transforms);
+          auto &previous_batch = c_surfaces[typed_detector::e_rectangle2];
+          if (previous_batch.n_surfaces != dindex_invalid)
+          {
+            // Read only one surface at a time
+            previous_batch.n_surfaces++;
+          }
+          else
+          {
+            c_surfaces[typed_detector::e_rectangle2] = {
+                        .n_surfaces = 1,
+                        .mask_type  = typed_detector::e_rectangle2,
+                        // Only one mask per detector surface here
+                        .mask_range = {rectangle_index, 1},
+                        .transform_idx = rectangle_transforms.size() - 1,
+                        .source_idx = c_source_links.size() - 1
+            };
+          }
+
+          rectangle_transforms.emplace_back(t, z, x);
+          c_source_links.push_back(dindex_invalid);
         }
         else if (bounds_type == 7)
         {
           // Trapezoid bounds
-          mask_type = typed_detector::e_trapezoid2;
+          
           // Get the trapezoid mask container
           auto &trapezoid_masks = std::get<typed_detector::e_trapezoid2>(c_masks);
           dindex trapezoid_index = trapezoid_masks.size();
           trapezoid_masks.push_back({io_surface.bound_param0, io_surface.bound_param1, io_surface.bound_param2});
-          // The read is valid: set the index
-          mask_range = {trapezoid_index, trapezoid_index};
-          //trapezoid_transform_storage[mask_type].push_back(transform3{t, z, x});
+
+          // The read is valid: update the batch
+          auto &trapezoid_transforms = std::get<typed_detector::e_trapezoid2>(c_transforms);
+          auto &previous_batch = c_surfaces[typed_detector::e_trapezoid2];
+          if (previous_batch.n_surfaces != dindex_invalid)
+          {
+            // Read only one surface at a time
+            previous_batch.n_surfaces++;
+          }
+          else
+          {
+            c_surfaces[typed_detector::e_trapezoid2] = {
+                        .n_surfaces = 1,
+                        .mask_type  = typed_detector::e_trapezoid2,
+                        // Only one mask per detector surface here
+                        .mask_range = {trapezoid_index, 1},
+                        .transform_idx = trapezoid_transforms.size() - 1,
+                        .source_idx = c_source_links.size() - 1
+            };
+          }
+
+          trapezoid_transforms.emplace_back(t, z, x);
+          c_source_links.push_back(dindex_invalid);
         }
         else if (bounds_type == 11)
         {
           // Annulus bounds
-          mask_type = typed_detector::e_annulus2;
-          // Get the trapezoid mask container
+          
+          // Get the annulus mask container
           auto &annulus_masks = std::get<typed_detector::e_annulus2>(c_masks);
           dindex annulus_index = annulus_masks.size();
           annulus_masks.push_back({io_surface.bound_param0,
@@ -453,20 +486,29 @@ namespace detray
                                    io_surface.bound_param4,
                                    io_surface.bound_param5,
                                    io_surface.bound_param6});
-          // The read is valid: set the index
-          mask_range = {annulus_index, annulus_index};
-          //annulus_transform_storage[mask_type].push_back(transform3{t, z, x});
-        }
 
-        // Fill the surface into the temporary container
-        if (mask_range[0]!= dindex_invalid)
-        {
-          //dindex transform_index = surface_transform_storage.size();
-          surfaces_transform_storages[mask_type].push_back(transform3{t, z, x});
-          //surface_transform_storage.push_back(transform3{t, z, x});
-          //c_surfaces.push_back({transform_index, mask_index, c_volume->index(), io_surface.geometry_id});
+          // The read is valid: update the batch
+          auto &annulus_transforms = std::get<typed_detector::e_annulus2>(c_transforms);
+          auto &previous_batch = c_surfaces[typed_detector::e_annulus2];
+          if (previous_batch.n_surfaces != dindex_invalid)
+          {
+            // Read only one surface at a time
+            previous_batch.n_surfaces++;
+          }
+          else
+          {
+            c_surfaces[typed_detector::e_annulus2] = {
+                        .n_surfaces = 1,
+                        .mask_type  = typed_detector::e_annulus2,
+                        // Only one mask per detector surface here
+                        .mask_range = {annulus_index, 1},
+                        .transform_idx = annulus_transforms.size() - 1,
+                        .source_idx = c_source_links.size() - 1
+            };
+          }
+          annulus_transforms.emplace_back(t, z, x);
+          c_source_links.push_back(dindex_invalid);
         }
-
       } // end of exclusion for navigation layers
     }
 

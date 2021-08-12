@@ -23,8 +23,6 @@ TEST(ALGEBRA_PLUGIN, detector)
 
     detector d("test_detector");
 
-    //static_transform_store<>::storage static_storage;
-    //static_storage.reserve(1);
     static_transform_store<>::context ctx0;
 
     detector::transform_container static_storages;
@@ -42,7 +40,7 @@ TEST(ALGEBRA_PLUGIN, detector)
     std::get<detector::e_rectangle2>(masks).push_back(rect);
     d.add_surfaces(v, surfaces, masks, static_storages, source_links, ctx0);
 
-    /// Surface 1
+    /// Surface 1 + Surface 0
     point3 t1{1., 0., 0.};
     std::get<detector::e_annulus2>(static_storages).emplace_back(t1);
     detector::surface_annulus anns = {1., 2., 3., 4., 5., 6., 7.};
@@ -50,7 +48,7 @@ TEST(ALGEBRA_PLUGIN, detector)
     std::get<detector::e_annulus2>(masks).push_back(anns);
     d.add_surfaces(v, surfaces, masks, static_storages, source_links, ctx0);
 
-    /// Surface 2
+    /// Surface 2 + Surface 0 + Surface 1
     point3 t2{2., 0., 0.};
     std::get<detector::e_trapezoid2>(static_storages).emplace_back(t2);
     detector::surface_trapezoid trap = {1., 2., 3.};

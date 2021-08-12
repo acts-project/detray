@@ -479,10 +479,10 @@ namespace detray
             {
                 // Set volume index to the next volume provided by the portal,
                 // avoid setting to same
-                const auto current_vol_idx = navigation.volume_index;
+                const auto &current_vol_idx = navigation.volume_index;
                 const auto &portal_batch   = detector.volume_by_index(
                                                     current_vol_idx).portals();
-                const auto next_vol_idx = detector.get_geometry().next_volume(
+                const auto next_vol_idx = detector.geometry().next_volume(
                                         portal_batch,
                                         navigation.portal_kernel.next->index);
 

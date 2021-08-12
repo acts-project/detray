@@ -209,7 +209,7 @@ namespace detray
 
             //typename detector_type::portal_edges egdes;
             typename detector_type::portal_container portals;
-            typename detector_type::surface_container surfaces;
+            typename detector_type::surface_container surfaces{};
             typename detector_type::link_container source_links = {};
             typename detector_type::mask_container masks;
             typename detector_type::transform_container transforms;
@@ -250,15 +250,28 @@ namespace detray
                         // way
                         portals.push_back({std::get<1>(info_), dindex_invalid});
                     }
-                    // This is the surface batch for all disk portals
-                    typename detector_type::surface surface_batch = {};
-                    surface_batch.n_surfaces = 1;
-                    surface_batch.mask_type  = detector_type::e_ring2;
-                    surface_batch.mask_range = std::get<1>(mask_index);
-                    surface_batch.transform_idx = std::get<detector_type::e_cylinder3>(transforms).size();
+                    // Build the surface batch for all disc portals
+                    typename detector_type::surface surface_batch = {
+                        .n_surfaces = 1,
+                        .mask_type  = detector_type::e_ring2,
+                        .mask_range = std::get<1>(mask_index),
+                        .transform_idx = std::get<detector_type::e_ring2>(transforms).size(),
+                        .source_idx = source_links.size()
+                    };
+                    auto &previous_batch = surfaces[detector_type::e_ring2];
+                    if (previous_batch.n_surfaces != dindex_invalid)
+                    {
+                        previous_batch.n_surfaces += surface_batch.n_surfaces;
+                    }
+                    else
+                    {
+                        surfaces[detector_type::e_ring2] = surface_batch;
+                    }
 
+                    // Push data
                     std::get<detector_type::e_ring2>(transforms).push_back(_portal_transform);
                     surfaces[detector_type::e_ring2] = surface_batch;
+                    source_links.push_back(dindex_invalid);
                 }
             };
 
@@ -295,31 +308,36 @@ namespace detray
                         // way as the surfaces to association
                         portals.push_back({std::get<1>(info_), dindex_invalid});
                     }
+                    // Build the surface batch for all cylinder portals
+                    typename detector_type::surface surface_batch = {
+                        .n_surfaces = 1,
+                        .mask_type  = detector_type::e_cylinder3,
+                        .mask_range = std::get<1>(mask_index),
+                        .transform_idx = std::get<detector_type::e_cylinder3>(transforms).size(),
+                        .source_idx = source_links.size()
+                    };
+                    auto &previous_batch = surfaces[detector_type::e_cylinder3];
+                    if (previous_batch.n_surfaces != dindex_invalid)
+                    {
+                        previous_batch.n_surfaces += surface_batch.n_surfaces;
+                    }
+                    else
+                    {
+                        surfaces[detector_type::e_cylinder3] = surface_batch;
+                    }
 
-                    // This is the surface batch for all disk portals in info
-                    typename detector_type::surface surface_batch = {};
-                    surface_batch.n_surfaces = 1;
-                    surface_batch.mask_type  = detector_type::e_cylinder3;
-                    surface_batch.mask_range = std::get<1>(mask_index);
-                    surface_batch.transform_idx = std::get<detector_type::e_cylinder3>(transforms).size();
-
+                    // Push data
                     std::get<detector_type::e_cylinder3>(transforms).push_back(_portal_transform);
-                    surfaces[detector_type::e_cylinder3] = surface_batch;
+                    source_links.push_back(dindex_invalid);
                 }
             };
 
             // Add portals to the volume
             add_disc_portals(left_portals_info, 2);
             add_cylinder_portal(upper_portals_info, 1);
-            d.add_portals(volume, portals, surfaces, masks, transforms, source_links);
-            std::get<detector_type::e_ring2>(transforms).clear();
-            std::get<detector_type::e_cylinder3>(transforms).clear();
-            std::get<detector_type::e_ring2>(masks).clear();
-            std::get<detector_type::e_cylinder3>(masks).clear();
             add_disc_portals(right_portals_info, 3);
             add_cylinder_portal(lower_portals_info, 0);
 
-            // Add all portals to the geometry
             d.add_portals(volume, portals, surfaces, masks, transforms, source_links);
         }
     }
