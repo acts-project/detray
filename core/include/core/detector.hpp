@@ -23,6 +23,7 @@
 #include "tools/local_object_finder.hpp"
 
 #include <cassert>
+#include <iostream>
 #include <iterator>
 #include <string>
 #include <sstream>
@@ -158,13 +159,14 @@ namespace detray
 
         using surfaces_finder = surfaces_regular_circular_grid;
 
-        using surface_container = array_type<surface, e_mask_types>;
         using mask_container = tuple_type<vector_type<surface_rectangle>,
                                           vector_type<surface_trapezoid>,
                                           vector_type<surface_annulus>,
                                           vector_type<cylinder>,
                                           vector_type<disc>>;
 
+        // Temporary containers (sorted by mask type) to fill the detector
+        using surface_container = array_type<surface, e_mask_types>;
         using transform_container = tuple_type<
                                         typename alignable_store::storage,
                                         typename alignable_store::storage,
@@ -384,35 +386,37 @@ namespace detray
                                       const typename alignable_store::context ctx = {})
         {
             auto surface_batch = surfaces[current_idx];
-            // Skip uninitialized batches
+            // Skip uninitialized batches and empty batches
             if (surface_batch.n_surfaces != dindex_invalid)
             {
                 const auto &surface_masks      = std::get<current_idx>(masks);
                 auto &detector_masks           = std::get<current_idx>(_masks);
                 const auto &surface_transforms = std::get<current_idx>(trfs);
 
-                const auto first_mask = detector_masks.size();
-                const auto first_trsf = transform_index(ctx);
+                if (surface_transforms.size() != 0 and surface_masks.size() != 0)
+                {
+                    // Fill into detectors containers
+                    const auto first_mask = detector_masks.size();
+                    const auto first_trsf = transform_index(ctx);
 
-                // Fill into detectors containers
-                detector_masks.reserve(first_mask + surface_masks.size());
-                detector_masks.insert(detector_masks.end(), surface_masks.begin(),
-                                      surface_masks.end());
+                    detector_masks.reserve(first_mask + surface_masks.size());
+                    detector_masks.insert(detector_masks.end(), surface_masks.begin(),
+                                        surface_masks.end());
 
-                _transforms.append_contextual_transforms(ctx, surface_transforms);
+                    _transforms.append_contextual_transforms(ctx, surface_transforms);
 
-                // Update batch
-                surface_batch.n_surfaces = surface_transforms.size();
-                surface_batch.mask_type = current_idx;
-                // Rather crash than invalid behaviour
-                surface_batch.mask_range[0] = surface_transforms.size() == 0 ?
-                                              dindex_invalid : surface_batch.mask_range[0] + first_mask;
-                surface_batch.transform_idx = surface_transforms.size() == 0 ?
-                                              dindex_invalid : surface_batch.transform_idx + first_trsf;
+                    // Update batch
+                    surface_batch.n_surfaces = surface_transforms.size();
+                    surface_batch.mask_type = current_idx;
+                    surface_batch.mask_range[0] = surface_transforms.size() == 0 ?
+                                                dindex_invalid : surface_batch.mask_range[0] + first_mask;
+                    surface_batch.transform_idx = surface_transforms.size() == 0 ?
+                                                dindex_invalid : surface_batch.transform_idx + first_trsf;
 
-                valid_surfaces.push_back(surface_batch);
+                    valid_surfaces.push_back(surface_batch);
+                }
             }
-
+            // Next mask type
             if constexpr (current_idx < std::tuple_size_v<mask_container> - 1) {
                 return unroll_container_filling<current_idx + 1> (surfaces, masks, trfs, valid_surfaces, ctx);
             }
@@ -433,7 +437,6 @@ namespace detray
 
         volume_grid _volume_grid = volume_grid(std::move(axis::irregular{{}}),
                                                std::move(axis::irregular{{}}));
-
     };
 
 } // namespace detray

@@ -122,7 +122,7 @@ namespace detray
         {
             /**
              * Start index in the geometry owned edges container. The edges
-             * are sorted according to the surfaces.
+             * are sorted according to the surface masks.
              */
             dindex half_edges = dindex_invalid;
             /** 
@@ -206,7 +206,17 @@ namespace detray
              */
             void add_portals(portal_batch portals)
             {
-                _portals = portals;
+                // initialize volume
+                if (_portals.half_edges == dindex_invalid)
+                {
+                    _portals = portals;
+                }
+                // portal batch range has widened, but all initial indices are 
+                // the same
+                else
+                {
+                    _portals.surface_batches[1] += portals.surface_batches[1];
+                }
             }
 
             /**
@@ -371,6 +381,7 @@ namespace detray
 
             _surfaces.reserve(sf_start + surfaces.size());
             _surfaces.insert(_surfaces.end(), surfaces.begin(), surfaces.end());
+
             _source_links.reserve(sl_start + source_links.size());
             _source_links.insert(_source_links.end(), source_links.begin(), source_links.end());
 
@@ -380,6 +391,7 @@ namespace detray
                 sf.source_idx += sl_start;
             }
 
+            // Portal surfaces are recorded in the portal batch
             if (not is_portal_surfaces)
             {
                 volume.add_surfaces({sf_start, surfaces.size()});
@@ -466,15 +478,11 @@ namespace detray
         /** Source_links for surfaces. */
         vector_type<surface_source_link> _source_links = {};
 
-        /** The half-edges of the geometry graph. */
+        /** The half-edges of the geometry graph (volume portals). */
         vector_type<half_edge> _edges = {};
 
         /** Contains the geometrical relations encoded in volume nodes. */
-        #if DETRAY_CUSTOM_SCALAR_TYPE == float
-        alignas(64)
-        #endif
         vector_type<volume> _nodes = {};
-
     };
 
 }
