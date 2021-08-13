@@ -45,7 +45,7 @@ namespace detray
     {
 
         using surface = typename detector_type::surface;
-        using surface_link = typename detector_type::surface_link;
+        using surface_links = typename detector_type::surface_links;
 
         using portal = typename detector_type::portal;
         using portal_links = typename detector_type::portal_links;
@@ -116,7 +116,7 @@ namespace detray
         struct state
         {
             /** Kernel for the surfaces */
-            navigation_kernel<surface, intersection, surface_link> surface_kernel;
+            navigation_kernel<surface, intersection, surface_links> surface_kernel;
 
             /** Kernel for the portals */
             navigation_kernel<portal, intersection, portal_links> portal_kernel;
@@ -306,7 +306,7 @@ namespace detray
                                bool on_object = false) const
         {
             // Get the type of the kernel via a const expression at compile time
-            constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_link>>);
+            constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_links>>);
 
             // Return if you have no objects
             if (range[1] - range[0] == 0) {  return; }
@@ -369,7 +369,7 @@ namespace detray
             }
 
             // Get the type of the kernel via a const expression at compile time
-            constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_link>>);
+            constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_links>>);
 
             const auto &surfaces   = detector.surfaces();
             const auto &transforms = detector.transforms(track.ctx);
@@ -446,7 +446,7 @@ namespace detray
         void sort_and_set(state &navigation, kernel_t &kernel) const
         {
             // Get the type of the kernel via a const expression at compile time
-            constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_link>>);
+            constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, surface_links>>);
 
             // Sort and set distance to next & navigation status
             if (not kernel.candidates.empty())

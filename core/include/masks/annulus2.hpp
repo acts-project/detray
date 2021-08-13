@@ -22,7 +22,6 @@ namespace detray
      * 
      * @tparam intersector_type is a struct used for intersecting this cylinder
      * @tparam local_type is the default local type for this mask
-     * @tparam links_type is an object where the mask can link to 
      * @tparam kMaskContext is a unique mask identifier in a certain context
      *
      * It is defined by the two radii _values[0] and  _values[1] in the polar
@@ -45,7 +44,6 @@ namespace detray
      **/
     template <typename intersector_type = planar_intersector,
               typename local_type = __plugin::polar2,
-              typename links_type = bool,
               unsigned int kMaskContext = e_annulus2,
               template <typename, unsigned int> class array_type = darray>
     struct annulus2
@@ -54,18 +52,10 @@ namespace detray
 
         using mask_values = array_type<scalar, 7>;
 
-        using mask_links_type = links_type;
-
         mask_values _values = {0., std::numeric_limits<scalar>::infinity(),
                                -std::numeric_limits<scalar>::infinity(),
                                std::numeric_limits<scalar>::infinity(),
                                0., 0., 0.};
-
-        links_type _links;
-
-        static constexpr unsigned int mask_context = kMaskContext;
-
-        static constexpr unsigned int mask_identifier = e_annulus2;
 
         static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar>::epsilon(),
                                                           std::numeric_limits<scalar>::epsilon()};
@@ -74,7 +64,7 @@ namespace detray
          * 
          * @param rhs is the right hand side object
          **/
-        annulus2<intersector_type, local_type, links_type, kMaskContext> &
+        annulus2<intersector_type, local_type> &
         operator=(const array_type<scalar, 7> &rhs)
         {
             _values = rhs;
@@ -187,12 +177,6 @@ namespace detray
 
         /** Return the local frame type */
         local_type local() const { return local_type{}; }
-
-        /** Return the volume link - const reference */
-        const links_type &links() const { return _links; }
-
-        /** Return the volume link - non-const access */
-        links_type &links() { return _links; }
 
         /** Transform to a string for output debugging */
         std::string to_string() const

@@ -35,7 +35,7 @@ TEST(ALGEBRA_PLUGIN, detector)
     /// Surface 0
     point3 t0{0., 0., 0.};
     std::get<detector::e_rectangle2>(static_storages).emplace_back(t0);
-    detector::surface_rectangle rect = {-3., 3.};
+    detector::rectangle rect = {-3., 3.};
     surfaces[detector::e_rectangle2] = {1, detector::e_rectangle2, {0, 1}, 0, dindex_invalid};
     std::get<detector::e_rectangle2>(masks).push_back(rect);
     d.add_surfaces(v, surfaces, masks, static_storages, source_links, ctx0);
@@ -43,7 +43,7 @@ TEST(ALGEBRA_PLUGIN, detector)
     /// Surface 1 + Surface 0
     point3 t1{1., 0., 0.};
     std::get<detector::e_annulus2>(static_storages).emplace_back(t1);
-    detector::surface_annulus anns = {1., 2., 3., 4., 5., 6., 7.};
+    detector::annulus anns = {1., 2., 3., 4., 5., 6., 7.};
     surfaces[detector::e_annulus2] = {1, detector::e_annulus2, {0, 1}, 1, dindex_invalid};
     std::get<detector::e_annulus2>(masks).push_back(anns);
     d.add_surfaces(v, surfaces, masks, static_storages, source_links, ctx0);
@@ -51,7 +51,7 @@ TEST(ALGEBRA_PLUGIN, detector)
     /// Surface 2 + Surface 0 + Surface 1
     point3 t2{2., 0., 0.};
     std::get<detector::e_trapezoid2>(static_storages).emplace_back(t2);
-    detector::surface_trapezoid trap = {1., 2., 3.};
+    detector::trapezoid trap = {1., 2., 3.};
     surfaces[detector::e_trapezoid2] = {1, detector::e_trapezoid2, {0, 1}, 2, dindex_invalid};
     std::get<detector::e_trapezoid2>(masks).push_back(trap);
     d.add_surfaces(v, surfaces, masks, static_storages, source_links, ctx0);

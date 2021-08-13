@@ -24,22 +24,18 @@ using namespace __plugin;
 // This tests the construction of a surface
 TEST(tools, intersection_kernel_single)
 {
-    /// Surface components:
-    using mask_link = darray<dindex, 1>;
-    using surface_link = dindex;
     /// - masks, with mask identifiers 0,1,2
-    using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, mask_link, 0>;
-    using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, mask_link, 1>;
-    using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, mask_link, 2>;
-    using surface_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, mask_link, 3>;
-    using surface_concentric_cylinder = cylinder3<false, concentric_cylinder_intersector<>, __plugin::cylindrical2, mask_link, 4>;
-    /// - mask index: type, entry
-    using surface_mask_index = darray<dindex, 2>;
-    using surface_mask_container = dtuple<dvector<surface_rectangle>,
-                                          dvector<surface_trapezoid>,
-                                          dvector<surface_annulus>,
-                                          dvector<surface_cylinder>,
-                                          dvector<surface_concentric_cylinder>>;
+    using rectangle = rectangle2<planar_intersector, __plugin::cartesian2>;
+    using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2>;
+    using annulus = annulus2<planar_intersector, __plugin::cartesian2>;
+    using cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2>;
+    using concentric_cylinder = cylinder3<false, concentric_cylinder_intersector<>, __plugin::cylindrical2>;
+
+    using mask_container = dtuple<dvector<rectangle>,
+                                  dvector<trapezoid>,
+                                  dvector<annulus>,
+                                  dvector<cylinder>,
+                                  dvector<concentric_cylinder>>;
 
     /// The Surface definition:
     using surface = index_graph_geometry<>::surface_batch;
@@ -55,10 +51,10 @@ TEST(tools, intersection_kernel_single)
     transform_store.push_back(static_context, trapezoid_transform);
     transform_store.push_back(static_context, annulus_transform);
     // The masks & their store
-    surface_rectangle first_rectangle = {10., 10.};
-    surface_trapezoid second_trapezoid = {10., 20., 30.};
-    surface_annulus thrid_annulus = {15., 55., 0.75, 1.95, 2., -2.};
-    surface_mask_container mask_store;
+    rectangle first_rectangle = {10., 10.};
+    trapezoid second_trapezoid = {10., 20., 30.};
+    annulus thrid_annulus = {15., 55., 0.75, 1.95, 2., -2.};
+    mask_container mask_store;
     std::get<0>(mask_store).push_back(first_rectangle);
     std::get<1>(mask_store).push_back(second_trapezoid);
     std::get<2>(mask_store).push_back(thrid_annulus);

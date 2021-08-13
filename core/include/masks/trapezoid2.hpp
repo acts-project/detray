@@ -34,7 +34,7 @@ namespace detray
      **/
     template <typename intersector_type = planar_intersector,
               typename local_type = __plugin::cartesian2,
-              typename links_type = bool,
+              //typename links_type = bool,
               unsigned int kMaskContext = e_trapezoid2,
               template <typename, unsigned int> class array_type = darray>
     struct trapezoid2
@@ -43,18 +43,18 @@ namespace detray
 
         using mask_values = array_type<scalar, 3>;
 
-        using mask_links_type = links_type;
+        //using mask_links_type = links_type;
 
         mask_values _values =
             {std::numeric_limits<scalar>::infinity(),
              std::numeric_limits<scalar>::infinity(),
              std::numeric_limits<scalar>::infinity()};
 
-        links_type _links;
+        //links_type _links;
 
-        static constexpr unsigned int mask_context = kMaskContext;
+        //static constexpr unsigned int mask_context = kMaskContext;
 
-        static constexpr unsigned int mask_identifier = e_trapezoid2;
+        //static constexpr unsigned int mask_identifier = e_trapezoid2;
 
         static constexpr mask_tolerance within_epsilon = {std::numeric_limits<scalar>::epsilon(),
                                                           std::numeric_limits<scalar>::epsilon()};
@@ -63,7 +63,7 @@ namespace detray
          * 
          * @param rhs is the right hand side object
          **/
-        trapezoid2<intersector_type, local_type, links_type, kMaskContext> &
+        trapezoid2<intersector_type, local_type, kMaskContext> &
         operator=(const array_type<scalar, 3> &rhs)
         {
             _values = rhs;
@@ -135,10 +135,10 @@ namespace detray
         local_type local() const { return local_type{}; }
 
         /** Return the volume link - const reference */
-        const links_type &links() const { return _links; }
+        //const links_type &links() const { return _links; }
 
         /** Return the volume link - non-const access */
-        links_type &links() { return _links; }
+        //links_type &links() { return _links; }
 
         /** Transform to a string for output debugging */
         std::string to_string() const

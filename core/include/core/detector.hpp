@@ -23,7 +23,6 @@
 #include "tools/local_object_finder.hpp"
 
 #include <cassert>
-#include <iostream>
 #include <iterator>
 #include <string>
 #include <sstream>
@@ -65,14 +64,16 @@ namespace detray
     {
 
     public:
+        /** Encodes the position in a collection container for the respective
+            type. */
         enum mask_container_index : unsigned int {
             e_mask_types = 5,
             e_rectangle2 = 0,
             e_trapezoid2 = 1,
-            e_ring2 = 4,
-            e_cylinder3 = 3,
-            e_single3 = std::numeric_limits<unsigned int>::max(),
             e_annulus2 = 2,
+            e_cylinder3 = 3,
+            e_ring2 = 4,
+            e_single3 = std::numeric_limits<unsigned int>::max(),
             e_unknown = std::numeric_limits<unsigned int>::max(),
         };
 
@@ -80,72 +81,22 @@ namespace detray
         using transform_store = alignable_store;
         using context = typename alignable_store::context;
 
+
         // Geometry defined types
         using portal  = typename geometry_t::portal_batch;
         using surface = typename geometry_t::surface_batch;
         using volume  = typename geometry_t::volume;
-        using source_link = typename geometry_t::source_link;
         using mask_index = typename geometry_t::element_range;
+        // Link to an external source
+        using surface_links = typename geometry_t::source_link;
+        using portal_links = typename geometry_t::half_edge;
+
 
         /// Volume grid definition
         using volume_grid = grid2<replace_populator<dindex, std::numeric_limits<dindex>::max(), vector_type>,
                                   axis::irregular<array_type, vector_type>,
                                   axis::irregular<array_type, vector_type>,
                                   serializer2>;
-
-
-
-
-
-
-        /// Portals components:
-        /// - links:  next volume, next (local) object finder
-        using portal_links = array_type<dindex, 2>;
-        /// - masks, with mask identifiers 0, 1
-        using portal_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, portal_links, 0>;
-        using portal_disc = ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
-        // - mask index: type, { first/last }
-        using portal_mask_index = tuple_type<dindex, array_type<dindex, 2>>;
-        using portal_mask_container = tuple_type<vector_type<portal_cylinder>, vector_type<portal_disc>>;
-
-        /** The Portal definition:
-         *  <transform_link, mask_index, volume_link, source_link >
-         * 
-         * transform_link: index into the transform container
-         * mask_index: typed index into the mask container
-         * volume_link: index of the volume this portal belongs to
-         * source_link: some link to an eventual exernal representation
-         * 
-         */
-
-        /// Surface components:
-        /// - surface links
-        using surface_links = array_type<dindex, 1>;
-
-        using surface_link = surface_source_link;
-
-
-
-
-
-
-
-        using portal_container = vector_type<typename geometry_t::half_edge>;
-
-        using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, surface_links, 0>;
-        using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, surface_links, 1>;
-        using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, surface_links, 2>;
-        using cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, portal_links, 3>;
-        using disc = ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
-        
-
-        /** The Surface definition:
-         *  <transform_link, mask_link, volume_link, source_link >
-         */
-        //using surface = surface_base<dindex, surface_mask_index, /*dindex,*/ surface_link>;
-        // surface is a batch type
-        //using surface_container = vector_type<surface>;
-        using link_container = vector_type<source_link>;
 
         using surfaces_regular_axis = axis::regular<array_type>;
         using surfaces_circular_axis = axis::circular<array_type>;
@@ -159,13 +110,24 @@ namespace detray
 
         using surfaces_finder = surfaces_regular_circular_grid;
 
-        using mask_container = tuple_type<vector_type<surface_rectangle>,
-                                          vector_type<surface_trapezoid>,
-                                          vector_type<surface_annulus>,
+
+        // (Portal-)surface types (masks)
+        using rectangle = rectangle2<planar_intersector, __plugin::cartesian2>;
+        using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2>;
+        using annulus = annulus2<planar_intersector, __plugin::cartesian2>;
+        using cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2>;
+        using disc = ring2<planar_intersector, __plugin::cartesian2>;
+
+        // Container definitions
+        using link_container = vector_type<surface_links>;
+        using mask_container = tuple_type<vector_type<rectangle>,
+                                          vector_type<trapezoid>,
+                                          vector_type<annulus>,
                                           vector_type<cylinder>,
                                           vector_type<disc>>;
 
         // Temporary containers (sorted by mask type) to fill the detector
+        using portal_container = vector_type<portal_links>;
         using surface_container = array_type<surface, e_mask_types>;
         using transform_container = tuple_type<
                                         typename alignable_store::storage,

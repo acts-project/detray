@@ -10,7 +10,6 @@
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
 
-#include <iostream>
 #include <iterator>
 #include <sstream>
 #include <string>
@@ -104,7 +103,7 @@ namespace detray
             {
                 dindex first_mask = mask_range[0]
                                     + mask_range[1] * surface_index;
-                //std::cout << first_mask << ", " << first_mask + mask_range[1] << std::endl;
+                                    
                 return {first_mask, first_mask + mask_range[1]};
             }
         };

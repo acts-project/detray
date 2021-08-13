@@ -235,17 +235,15 @@ namespace detray
 
                     // Get the mask context group and fill it
                     auto &mask_group = std::get<detector_type::e_ring2>(masks);
-                    typename detector_type::portal_mask_index mask_index = {
-                        detector_type::e_ring2,
-                        {mask_group.size(), mask_group.size()}
-                    };
+                    typename detector_type::mask_index mask_index = {mask_group.size(), mask_group.size()};
+
                     // Create a stub mask for every unique index
                     for (auto &info_ : portals_info)
                     {
-                        typename detector_type::portal_disc _portal_disc = {std::get<0>(info_), {std::get<1>(info_), dindex_invalid}};
+                        typename detector_type::disc _portal_disc = {std::get<0>(info_)};
 
                         mask_group.push_back(_portal_disc);
-                        std::get<1>(mask_index)[1] = mask_group.size();
+                        mask_index[1] = mask_group.size() - mask_index[0];
                         // One edge for every portal surface, sorted the same
                         // way
                         portals.push_back({std::get<1>(info_), dindex_invalid});
@@ -254,7 +252,7 @@ namespace detray
                     typename detector_type::surface surface_batch = {
                         .n_surfaces = 1,
                         .mask_type  = detector_type::e_ring2,
-                        .mask_range = std::get<1>(mask_index),
+                        .mask_range = mask_index,
                         .transform_idx = std::get<detector_type::e_ring2>(transforms).size(),
                         .source_idx = source_links.size()
                     };
@@ -281,20 +279,17 @@ namespace detray
                     // Get the mask context group and fill it
                     auto &mask_group = std::get<detector_type::e_cylinder3>(masks);
 
-                    typename detector_type::portal_mask_index mask_index = {
-                        detector_type::e_cylinder3,
-                        {mask_group.size(), mask_group.size()}
-                    };
+                    typename detector_type::mask_index mask_index = {mask_group.size(), mask_group.size()};
 
                     for (auto &info_ : portals_info)
                     {
                         const auto cylinder_range = std::get<0>(info_);
                         array_type<scalar, 3> cylinder_bounds = {volume_bounds[bound_index], cylinder_range[0], cylinder_range[1]};
 
-                        typename detector_type::cylinder _portal_cylinder = {cylinder_bounds, {std::get<1>(info_), dindex_invalid}};
+                        typename detector_type::cylinder _portal_cylinder = {cylinder_bounds};
 
                         mask_group.push_back(_portal_cylinder);
-                        std::get<1>(mask_index)[1] = mask_group.size();
+                        mask_index[1] = mask_group.size() - mask_index[0];
                         // One edge for every portal surface, sorted the same
                         // way as the surfaces to association
                         portals.push_back({std::get<1>(info_), dindex_invalid});
@@ -303,7 +298,7 @@ namespace detray
                     typename detector_type::surface surface_batch = {
                         .n_surfaces = 1,
                         .mask_type  = detector_type::e_cylinder3,
-                        .mask_range = std::get<1>(mask_index),
+                        .mask_range = mask_index,
                         .transform_idx = std::get<detector_type::e_cylinder3>(transforms).size(),
                         .source_idx = source_links.size()
                     };

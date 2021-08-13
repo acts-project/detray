@@ -22,7 +22,6 @@ namespace detray
      * @tparam kCheckIndex is the index of the position on which the mask is applied
      * @tparam intersector_type is a struct used for intersecting this cylinder
      * @tparam local_type is the default local frame definition type
-     * @tparam links_type is an object where the mask can link to 
      * @tparam kMaskContext is a unique mask identifier in a certain context
      * 
      * @note  While the mask_context can change depending on the typed container
@@ -33,7 +32,6 @@ namespace detray
     template <unsigned int kCheckIndex,
               typename intersector_type = planar_intersector,
               typename local_type = __plugin::cartesian2,
-              typename links_type = bool,
               unsigned int kMaskContext = e_single3,
               template <typename, unsigned int> class array_type = darray>
     struct single3
@@ -44,16 +42,8 @@ namespace detray
         /// This mask has min, max to check on
         using mask_values = array_type<scalar, 2>;
 
-        using mask_links_type = links_type;
-
         mask_values _values =
             {std::numeric_limits<scalar>::infinity()};
-
-        links_type _links;
-
-        static constexpr unsigned int mask_context = kMaskContext;
-
-        static constexpr unsigned int mask_identifier = e_single3;
 
         static constexpr mask_tolerance within_epsilon = std::numeric_limits<scalar>::epsilon();
 
@@ -61,7 +51,7 @@ namespace detray
          * 
          * @param rhs is the right hand side object
          **/
-        single3<kCheckIndex, intersector_type, local_type, links_type, kMaskContext> &
+        single3<kCheckIndex, intersector_type, local_type> &
         operator=(const array_type<scalar, 2> &rhs)
         {
             _values = rhs;
@@ -128,12 +118,6 @@ namespace detray
 
         /** Return the local frame type */
         local_type local() const { return local_type{}; }
-
-        /** Return the volume link - const reference */
-        const links_type &links() const { return _links; }
-
-        /** Return the volume link - non-const access */
-        links_type &links() { return _links; }
 
         /** Transform to a string for output debugging */
         std::string to_string() const

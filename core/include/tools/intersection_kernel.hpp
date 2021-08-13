@@ -12,7 +12,6 @@
 #include "utils/indexing.hpp"
 #include "utils/enumerate.hpp"
 
-#include <iostream>
 #include <utility>
 #include <tuple>
 #include <typeinfo>
