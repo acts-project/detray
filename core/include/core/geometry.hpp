@@ -104,6 +104,7 @@ namespace detray
             {
                 dindex first_mask = mask_range[0]
                                     + mask_range[1] * surface_index;
+                //std::cout << first_mask << ", " << first_mask + mask_range[1] << std::endl;
                 return {first_mask, first_mask + mask_range[1]};
             }
         };
@@ -164,16 +165,22 @@ namespace detray
             bool empty() const { return _surfaces[1] == dindex_invalid; }
 
             /** @return number of surfaces */
-            const auto &n_surface_batches() const { return _surfaces[1]; }
+            const auto &surface_batches() const { return _surfaces; }
+
+            /** @return number of surfaces */
+            const auto n_surface_batches() const { return _surfaces[1]; }
 
             /** @return range in surfaces contianer */
-            const auto &surface_range() const { return _surfaces; }
+            const element_range surface_range() const { return {_surfaces[0], _surfaces[0] + _surfaces[1]}; }
+
+            /** @return number of portals */
+            const auto &portal_batches() const { return _portals; }
 
             /** @return number of portals */
             const auto &n_portal_batches() const { return _portals.surface_batches[1]; }
 
             /** @return range in surfaces contianer for volume portals */
-            const auto &portal_range() const { return _portals.surface_batches; }
+            const element_range portal_range() const { return {_portals.surface_batches[0], _portals.surface_batches[0] + _portals.surface_batches[1]}; }
 
             /** @return the portals themselves */
             const auto &portals() const { return _portals; }
@@ -265,7 +272,7 @@ namespace detray
         volume &new_volume(const array_type<scalar, 6> &bounds,
             dindex surfaces_finder_entry = dindex_invalid)
         {
-            _nodes.push_back(std::move(volume(bounds)));
+            _nodes.push_back(volume(bounds));
             dindex cvolume_idx = _nodes.size() - 1;
             volume &cvolume    = _nodes[cvolume_idx];
             cvolume._index     = cvolume_idx;
@@ -294,7 +301,7 @@ namespace detray
         {
             // Get the number of surfaces in every batch
             dindex n_sfs = 0;
-            for (size_t bi = range[0]; bi < range[0] + range[1]; bi++)
+            for (size_t bi = range[0]; bi < range[1]; bi++)
             {
                 n_sfs += _surfaces[bi].n_surfaces;
             }
@@ -324,7 +331,7 @@ namespace detray
          *
          * @return the graph (half) edge belonging to the index.
          */
-        const inline auto get_edge(const portal_batch &pb,
+        const inline auto &get_edge(const portal_batch &pb,
                                    const std::array<dindex, 3> &index) const
         {
             // Get the number of masks in the previous surface batches

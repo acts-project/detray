@@ -42,11 +42,6 @@ TEST(tools, intersection_kernel_single)
                                           dvector<surface_concentric_cylinder>>;
 
     /// The Surface definition:
-    ///  <transform_link, mask_link, volume_link, source_link >
-    //using surface = surface_base<dindex, surface_mask_index, dindex, surface_link>;
-        /*template <template <typename, unsigned int> class array_type = darray,
-              template <typename> class vector_type = dvector,
-              typename surface_source_link = dindex>*/
     using surface = index_graph_geometry<>::surface_batch;
     using surface_container = dvector<surface>;
 
@@ -72,10 +67,6 @@ TEST(tools, intersection_kernel_single)
     surface trapezoid_surface{1, 1, {0, 1}, 1, dindex_invalid};
     surface annulus_surface{1, 3, {0, 1}, 2, dindex_invalid};
     surface_container surfaces = {rectangle_surface, trapezoid_surface, annulus_surface};
-    /*surface rectangle_surface(0u, {0, 0}, 0, 0);
-    surface trapezoid_surface(1u, {1, 0}, 0, 1);
-    surface annulus_surface(2u, {2, 0}, 0, 2);
-    surface_container surfaces = {rectangle_surface, trapezoid_surface, annulus_surface};*/
 
     // Try the intersection - first one by one
 
@@ -89,35 +80,35 @@ TEST(tools, intersection_kernel_single)
         return (std::abs(a[0] - b[0]) < epsilon && std::abs(a[1] - b[1]) < epsilon && std::abs(a[2] - b[2]) < epsilon);
     };
 
+    std::array<dindex, 2> mask_range = {0, 1};
     // Intersect the first surface
-    auto sfi_rectangle = intersect_by_group(
-        track, rectangle_transform, std::get<0>(mask_store), 0);
+    auto sfi_rectangle = intersect(
+        track, 0, 0, mask_range, transform_store, mask_store);
 
     point3 expected_rectangle{0.01, 0.01, 10.};
-    ASSERT_TRUE(within_epsilon(std::get<0>(sfi_rectangle).p3, expected_rectangle, 1e-7));
+    ASSERT_TRUE(within_epsilon(sfi_rectangle.p3, expected_rectangle, 1e-7));
 
-    auto sfi_trapezoid = intersect_by_group(
-        track, trapezoid_transform, std::get<1>(mask_store), 0);
+    auto sfi_trapezoid = intersect(
+        track, 1, 1, mask_range, transform_store, mask_store);
 
     point3 expected_trapezoid{0.02, 0.02, 20.};
-    ASSERT_TRUE(within_epsilon(std::get<0>(sfi_trapezoid).p3, expected_trapezoid, 1e-7));
+    ASSERT_TRUE(within_epsilon(sfi_trapezoid.p3, expected_trapezoid, 1e-7));
 
-    auto sfi_annulus = intersect_by_group(
-        track, annulus_transform, std::get<2>(mask_store), 0);
+    auto sfi_annulus = intersect(
+        track, 2, 2, mask_range, transform_store, mask_store);
 
     point3 expected_annulus{0.03, 0.03, 30.};
-    ASSERT_TRUE(within_epsilon(std::get<0>(sfi_annulus).p3, expected_annulus, 1e-7));
+    ASSERT_TRUE(within_epsilon(sfi_annulus.p3, expected_annulus, 1e-7));
 
     std::vector<point3> expected_points = {expected_rectangle, expected_trapezoid, expected_annulus};
     std::vector<point3> result_points = {};
 
     // Try the intersection - with automated dispatching via the kernel
     unsigned int it = 0;
-    std::array<dindex, 2> range = {0, 3};
+    std::array<dindex, 2> range = {0, 2};
     auto sfis = intersect(track, surfaces, range, transform_store, mask_store);
     for (const auto &sfi : sfis)
     {
-        //const auto &sfi = std::get<0>(sfi_surface);
         result_points.push_back(sfi.p3);
 
         ASSERT_TRUE(within_epsilon(result_points[it], expected_points[it], 1e-7));

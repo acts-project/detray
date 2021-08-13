@@ -6,15 +6,14 @@
  */
 #pragma once
 
-#include <cmath>
-#include <climits>
-#include <optional>
-
 #include "core/intersection.hpp"
 #include "core/track.hpp"
 #include "utils/quadratic_equation.hpp"
 #include "utils/unbound.hpp"
 #include "masks/unmasked.hpp"
+
+#include <cmath>
+#include <climits>
 
 namespace detray
 {
@@ -86,7 +85,6 @@ namespace detray
                   const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon,
                   scalar overstep_tolerance = 0.) const
         {
-
             scalar r = mask[0];
 
             // Two points on the line, thes are in the cylinder frame

@@ -23,8 +23,8 @@ namespace detray
     public:
 
         /** Elementwise access. Needs []oprator for storage type for now */
-        auto operator[](const unsigned int i) { return _data[i]; }
-        auto operator[](const unsigned int i) const { return _data[i]; }
+        auto operator[](const unsigned int i) ->decltype(auto) { return _data[i]; }
+        auto operator[](const unsigned int i) const ->decltype(auto) { return _data[i]; }
 
         /** Empty context type struct */
         struct context
@@ -104,10 +104,10 @@ namespace detray
          * @param ctx The context of the call (ignored)
          * @param tcf The transform to be filled
          */
-        void push_back(const context & /*ctx*/, const transform3 &&tf)
-        {
+        //void push_back(const context & /*ctx*/, const transform3 &&tf)
+        /*{
             _data.push_back(std::move(tf));
-        }
+        }*/
 
         /** Size : Contextual STL like API
          * @param ctx The context of the call (ignored)

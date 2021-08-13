@@ -15,7 +15,8 @@ namespace detray
 {
 
   template<typename T>
-  using vecm_vector = vecmem::vector<T>;
+  //using vecm_vector = vecmem::vector<T>;
+  using vecm_vector = std::vector<T>;
 
   struct csv_surface
   {

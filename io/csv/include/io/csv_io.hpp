@@ -394,8 +394,8 @@ namespace detray
                         .mask_type  = typed_detector::e_cylinder3,
                         // Only one mask per detector surface here
                         .mask_range = {cylinder_index, 1},
-                        .transform_idx = cylinder_transforms.size() - 1,
-                        .source_idx = c_source_links.size() - 1
+                        .transform_idx = cylinder_transforms.size(),
+                        .source_idx = c_source_links.size()
             };
           }
 
@@ -432,8 +432,8 @@ namespace detray
                         .mask_type  = typed_detector::e_rectangle2,
                         // Only one mask per detector surface here
                         .mask_range = {rectangle_index, 1},
-                        .transform_idx = rectangle_transforms.size() - 1,
-                        .source_idx = c_source_links.size() - 1
+                        .transform_idx = rectangle_transforms.size(),
+                        .source_idx = c_source_links.size()
             };
           }
 
@@ -464,8 +464,8 @@ namespace detray
                         .mask_type  = typed_detector::e_trapezoid2,
                         // Only one mask per detector surface here
                         .mask_range = {trapezoid_index, 1},
-                        .transform_idx = trapezoid_transforms.size() - 1,
-                        .source_idx = c_source_links.size() - 1
+                        .transform_idx = trapezoid_transforms.size(),
+                        .source_idx = c_source_links.size()
             };
           }
 
@@ -502,8 +502,8 @@ namespace detray
                         .mask_type  = typed_detector::e_annulus2,
                         // Only one mask per detector surface here
                         .mask_range = {annulus_index, 1},
-                        .transform_idx = annulus_transforms.size() - 1,
-                        .source_idx = c_source_links.size() - 1
+                        .transform_idx = annulus_transforms.size(),
+                        .source_idx = c_source_links.size()
             };
           }
           annulus_transforms.emplace_back(t, z, x);

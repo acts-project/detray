@@ -87,8 +87,7 @@ namespace __plugin
 
         for (auto _ : state)
         {
-            //std::cout << d.to_string(name_map) << std::endl;
-            track<detray_context> track;
+            track<detray_context> track{};
             track.pos = point3{0., 0., 0.};
 
             // Loops of theta values
@@ -110,31 +109,35 @@ namespace __plugin
                     // Loop over volumes
                     for (const auto &v : d.volumes())
                     {
-                        const auto &surface_range = v.surface_range();
-                        benchmark::DoNotOptimize(d.geometry().n_surfaces(v));
-                        /*auto sf_inters = intersect(track, surfaces, surface_range, transforms, masks);
-
-                        for (const auto &sfi : sf_inters)
+                        const auto surface_range = v.surface_range();
+                        // Loop over the surfaces
+                        for (size_t sfbi = surface_range[0]; sfbi < surface_range[1]; sfbi++)
                         {
-                            benchmark::DoNotOptimize(hits);
-                            benchmark::DoNotOptimize(missed);
-                            if (sfi.status == intersection_status::e_inside)
+                            const auto &sf_batch = surfaces[sfbi];
+                            const dindex &mask_type = sf_batch.mask_type;
+                            for (size_t si = 0; si < sf_batch.n_surfaces; si++)
                             {
-                                /* state.PauseTiming();
-                                if (stream_file)
-                                {
-                                    hit_out << sfi.p3[0] << "," << sfi.p3[1] << "," << sfi.p3[2] << "\n";
-                                }
-                                state.ResumeTiming();*/
-                                /*++hits;
-                            }
-                            else
-                            {
-                                ++missed;
-                            }
-                            //benchmark::ClobberMemory();
-                        }*/
+                                const auto &mask_range = sf_batch.mask_range_by_surface(si);
+                                const auto sf_inters = intersect(track, sf_batch.transform_idx + si, mask_type, mask_range, transforms, masks);
 
+                                benchmark::DoNotOptimize(hits);
+                                benchmark::DoNotOptimize(missed);
+                                if (sf_inters.status == intersection_status::e_inside)
+                                {
+                                    /* state.PauseTiming();
+                                    if (stream_file)
+                                    {
+                                        hit_out << sfi.p3[0] << "," << sfi.p3[1] << "," << sfi.p3[2] << "\n";
+                                    }
+                                    state.ResumeTiming();*/
+                                    ++hits;
+                                }
+                                else
+                                {
+                                    ++missed;
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -14,7 +14,6 @@
 
 #include <cmath>
 #include <climits>
-#include <optional>
 
 namespace detray
 {
@@ -84,7 +83,6 @@ namespace detray
                   const typename mask_type::mask_tolerance &tolerance = mask_type::within_epsilon,
                   scalar overstep_tolerance = 0.) const
         {
-
             // Retrieve the surface normal & translation (context resolved)
             const auto &sm = trf.matrix();
             auto sn = getter::vector<3>(sm, 0, 2);
