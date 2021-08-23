@@ -103,7 +103,7 @@ namespace __plugin
                         // Loop over surfaces
                         for (const auto &s : surfaces.objects())
                         {
-                            auto sfi_surface = intersect(track, s, surfaces.transforms(default_context), surfaces.masks());
+                            auto sfi_surface = intersect(track, s, d.transforms(v.surface_range(), default_context), surfaces.masks());
 
                             const auto &sfi = std::get<0>(sfi_surface);
                             

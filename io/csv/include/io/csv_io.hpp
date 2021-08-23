@@ -515,7 +515,7 @@ namespace detray
       if (sfi != dindex_invalid and write_grid_entries)
       {
         auto &grid = is_cylinder ? detector_surfaces_finders[sfi + 2] : detector_surfaces_finders[sfi];
-        bin_association(surface_default_context, v, grid, {0.1, 0.1}, false);
+        bin_association(surface_default_context, d, v, grid, {0.1, 0.1}, false);
 
         csv_surface_grid_entry csv_ge;
         csv_ge.detray_volume_id = static_cast<int>(iv);

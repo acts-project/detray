@@ -32,9 +32,11 @@ namespace detray
      *        taken absolute or relative
      */
     template <typename context_type,
+              typename detector_type,
               typename volume_type,
               typename grid_type>
     static inline void bin_association(const context_type &context,
+                                       const detector_type &detector,
                                        const volume_type &volume,
                                        grid_type &grid,
                                        const std::array<scalar, 2> &bin_tolerance,
@@ -43,7 +45,7 @@ namespace detray
 
         // Get surfaces, transforms and masks
         const auto &surfaces = volume.surfaces();
-        const auto &surface_transforms = surfaces.transforms(context);
+        const auto &surface_transforms = detector.transforms(volume.surface_range(), context);
         const auto &surface_masks = surfaces.masks();
 
         const auto &bounds = volume.bounds();

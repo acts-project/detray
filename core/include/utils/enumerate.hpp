@@ -144,12 +144,12 @@ namespace detray
               typename = decltype(std::end(std::declval<container_type>())),
               typename array_type,
               typename = std::enable_if_t<std::conditional_t<std::is_array_v<array_type>, std::extent<array_type>, std::tuple_size<array_type>>::value == 2U>>
-    constexpr auto range_iter(const container_type &iterable, array_type &&range)
+    constexpr auto range_iter(const container_type &iterable, const array_type &range)
     {
         struct iterable_wrapper
         {
             const container_type &_iterable;
-            array_type _range;
+            const array_type &_range;
 
             inline auto begin() const {return _iterable.begin() + _range[0]; } 
 

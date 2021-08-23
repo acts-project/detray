@@ -20,7 +20,7 @@ namespace detray
     {
     public:
 
-        /** Elementwise access. Needs []oprator for storage type for now */
+        /** Elementwise access. Needs []operator for storage type for now */
         inline auto operator[](const unsigned int i) { return _data[i]; }
         inline auto operator[](const unsigned int i) const { return _data[i]; }
 
@@ -40,8 +40,8 @@ namespace detray
             inline auto begin() { return r.begin(); }
             inline auto end() { return r.end(); }
 
-            inline auto operator[](const unsigned int i) { return *(r.begin() + i); }
-            inline auto operator[](const unsigned int i) const { return *(r.begin() + i); }
+            inline decltype(auto) operator[](const dindex i) { return *(r.begin() + i); }
+            inline decltype(auto) operator[](const dindex i) const { return *(r.begin() + i); }
         };
 
         using storage = vector_type<transform3>;
@@ -76,6 +76,20 @@ namespace detray
         const inline auto range(const size_t begin, const size_t end, const context & ctx) const
         {
             return contextual_range<decltype(range_iter(_data, dindex_range{begin, end}))>{range_iter(_data, dindex_range{begin, end})};
+        }
+
+        /** Access to a predefined range of elements
+         *
+         * @tparam start start index of rage
+         * @tparam end end index of rage
+         *
+         * @param ctx The context of the call (ignored)
+         *
+         * @return range restricted iterator
+         */
+        const inline auto range(const dindex_range& range, const context & ctx) const
+        {
+            return contextual_range<decltype(range_iter(_data, range))>{range_iter(_data, range)};
         }
 
         /** Reserve memory : Contextual STL like API
@@ -124,19 +138,19 @@ namespace detray
             return _data.empty();
         }
 
-        /** Add a new bunch of (contextual) transforms - move semantics
+        /** Add a new bunch of transforms for a new context - move semantics
          *
          * @param ctx The context of the call (ignored)
          * @param trfs The transform container, move semantics
          *
          * @note in general can throw an exception
          */
-        void set_contextual_transforms(const context & /*ctx*/, storage &&trfs) noexcept(false)
+        void add_contextual_transforms(const context & /*ctx*/, storage &&trfs) noexcept(false)
         {
             _data = std::move(trfs);
         }
 
-        /** Append a bunch of (contextual) transforms - move semantics
+        /** Append a bunch of transforms to existing context - move semantics
          *
          * @param ctx The context of the call (ignored)
          * @param trfs The transform container, move semantics
