@@ -420,9 +420,9 @@ namespace detray
          *
          * @return ranged iterator to the object transforms 
          */
-        const auto transforms(const dindex_range& range, const context &ctx = {}) const
+        const auto transforms(const dindex_range range, const context &ctx = {}) const
         {
-            return _transforms.range(range, ctx);
+            return _transforms.range(std::move(range), ctx);
         }
 
         /** @return the surface finders - const access */

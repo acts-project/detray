@@ -84,9 +84,9 @@ namespace detray
          *
          * @return range restricted iterator
          */
-        const inline auto range(const dindex_range& range, const context & ctx) const
+        const inline auto range(const dindex_range&& range, const context & ctx) const
         {
-            return contextual_range<decltype(range_iter(_data, range))>{range_iter(_data, range)};
+            return contextual_range<decltype(range_iter(_data, std::move(range)))>{range_iter(_data, std::move(range))};
         }
 
         /** Reserve memory : Contextual STL like API
