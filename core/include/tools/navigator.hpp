@@ -287,6 +287,7 @@ namespace detray
          * @param kernel [in,out] the kernel to be checked/initialized 
          * @param track the track information 
          * @param constituens the constituents to be checked
+         * @param range the transform index range of the constituents
          * @param on_object ignores on surface solution
          * 
          */
@@ -345,6 +346,7 @@ namespace detray
          * @param kernel [in,out] the kernel to be checked/initialized 
          * @param track the track information 
          * @param constituens the constituents to be checked
+         * @param range the transform index range of the constituents
          * 
          * @return A boolean condition 
          */

@@ -21,8 +21,8 @@ namespace detray
     public:
 
         /** Elementwise access. Needs []operator for storage type for now */
-        inline auto operator[](const unsigned int i) { return _data[i]; }
-        inline auto operator[](const unsigned int i) const { return _data[i]; }
+        inline decltype(auto) operator[](const dindex i) { return _data[i]; }
+        inline decltype(auto) operator[](const dindex i) const { return _data[i]; }
 
         /** Empty context type struct */
         struct context
@@ -66,9 +66,8 @@ namespace detray
 
         /** Access to a predefined range of elements
          *
-         * @tparam start start index of rage
-         * @tparam end end index of rage
-         *
+         * @param start start index of rage
+         * @param end end index of rage
          * @param ctx The context of the call (ignored)
          *
          * @return range restricted iterator
@@ -80,9 +79,7 @@ namespace detray
 
         /** Access to a predefined range of elements
          *
-         * @tparam start start index of rage
-         * @tparam end end index of rage
-         *
+         * @param range index range in data store
          * @param ctx The context of the call (ignored)
          *
          * @return range restricted iterator

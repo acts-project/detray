@@ -217,11 +217,11 @@ namespace detray
 
             /** Set the index into the detector transform store for surfaces
              *
-             * @param idx Surface transform start index
+             * @param range Surface transform index range
              */
-            void set_surface_range(dindex_range &&range)
+            void set_surface_range(dindex_range range)
             {
-                _surface_range = std::move(range);
+                _surface_range = range;
             }
 
             /** Add the surfaces and their masks - move semantics
@@ -235,20 +235,20 @@ namespace detray
                 _surfaces._masks = std::move(volume_surface_masks);
             }
 
+            /** @return all surfaces - const access */
+            const auto &surfaces() const { return _surfaces; }
+
+            /** @return range of surface transforms - const access */
+            const auto &surface_range() const { return _surface_range; }
+
             /** Set the index into the detector transform store for portals
              *
-             * @param idx Portal transform start index
+             * @param range Portal transform index range
              */
             void set_portal_range(dindex_range range)
             {
                 _portal_range = range;
             }
-
-            /** @return all surfaces - const access */
-            const auto &surfaces() const { return _surfaces; }
-
-            /** @return all surfaces - const access */
-            const auto &surface_range() const { return _surface_range; }
 
             /** Add the portals, their transforms and their masks, move semantics
              *
@@ -265,7 +265,7 @@ namespace detray
             /** @return all portals - const access */
             const auto &portals() const { return _portals; }
 
-            /** @return all surfaces - const access */
+            /** @return range of portal transforms - const access */
             const auto &portal_range() const { return _portal_range; }
 
         private:
@@ -362,6 +362,7 @@ namespace detray
         /** Add a new full set of alignable transforms for surfaces - move semantics
          *
          * @param ctx The context of the call
+         * @param volume The volume we add the transforms to
          * @param trfs The transform container, move semantics
          *
          * @note can throw an exception if input data is inconsistent
@@ -378,6 +379,7 @@ namespace detray
         /** Add a new full set of alignable transforms for surfaces - move semantics
          *
          * @param ctx The context of the call
+         * @param volume The volume we add the transforms to
          * @param trfs The transform container, move semantics
          *
          * @note can throw an exception if input data is inconsistent
@@ -413,7 +415,7 @@ namespace detray
 
         /** Get all transform in an index range from the detector
          *
-         * @param range The range of surfaces in the transform store
+         * @param range The range of surfaces/portals in the transform store
          * @param ctx The context of the call
          *
          * @return ranged iterator to the object transforms 

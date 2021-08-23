@@ -25,7 +25,8 @@ namespace detray
      *  - to a given grid.
      * 
      * @param context is the context to win which the association is done
-     * @param volume is the volume to which the volume belongs
+     * @param detector is the detector to which the grid belongs
+     * @param volume is the volume to which the surfaces belong
      * @param grid is the grid that will be filled 
      * @param tolerance is the bin_tolerance in the two local coordinates
      * @param absolute_tolerance is an indicator if the tolerance is to be
