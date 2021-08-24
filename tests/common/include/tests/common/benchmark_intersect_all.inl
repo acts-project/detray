@@ -98,14 +98,14 @@ namespace __plugin
                     // Loop over volumes
                     for (const auto &v : d.volumes())
                     {
-                        const auto &surfaces = v.surfaces();
+                        const auto &surfaces = d.surfaces();
                         constexpr bool get_surface_masks = true;
                         const auto &masks = d.template masks<get_surface_masks>();
 
                         // Loop over surfaces
-                        for (const auto &s : surfaces.objects())
+                        for (auto si : sequence(v.surface_range()))
                         {
-                            auto sfi_surface = intersect(track, s, d.transforms(v.surface_range(), default_context), masks);
+                            auto sfi_surface = intersect(track, surfaces[si], d.transforms(v.surface_trf_range(), default_context), masks);
 
                             const auto &sfi = std::get<0>(sfi_surface);
                             
