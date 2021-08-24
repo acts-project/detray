@@ -235,8 +235,8 @@ namespace detray
                     for (auto &info_ : portals_info)
                     {
                         typename detector_type::portal_disc _portal_disc = {std::get<0>(info_), {std::get<1>(info_), dindex_invalid}};
-                        mask_group.push_back(_portal_disc);
                         std::get<1>(mask_index)[1] = mask_group.size();
+                        mask_group.push_back(_portal_disc);
                     }
                     // Create the portal
                     typename detector_type::portal _portal{portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
@@ -266,8 +266,8 @@ namespace detray
                         const auto cylinder_range = std::get<0>(info_);
                         array_type<scalar, 3> cylinder_bounds = {volume_bounds[bound_index], cylinder_range[0], cylinder_range[1]};
                         typename detector_type::portal_cylinder _portal_cylinder = {cylinder_bounds, {std::get<1>(info_), dindex_invalid}};
-                        mask_group.push_back(_portal_cylinder);
                         std::get<1>(mask_index)[1] = mask_group.size();
+                        mask_group.push_back(_portal_cylinder);
                     }
                     // Create the portal
                     typename detector_type::portal _portal{portal_transforms.size(), mask_index, volume.index(), dindex_invalid};
@@ -284,8 +284,8 @@ namespace detray
 
             // Create a transform store and add it
             // All componnents are added
-            constexpr bool is_surface_masks = false;
-            d.template add_masks<is_surface_masks>(portals, portal_masks);
+            constexpr bool add_surface_masks = false;
+            d.template add_masks<add_surface_masks>(portals, portal_masks);
             volume.add_portal_components(std::move(portals));
             d.add_portal_transforms(default_context, volume, std::move(portal_transforms));
         }

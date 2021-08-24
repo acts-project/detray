@@ -99,7 +99,8 @@ namespace __plugin
                     for (const auto &v : d.volumes())
                     {
                         const auto &surfaces = v.surfaces();
-                        const auto &masks = d.template masks<true>();
+                        constexpr bool get_surface_masks = true;
+                        const auto &masks = d.template masks<get_surface_masks>();
 
                         // Loop over surfaces
                         for (const auto &s : surfaces.objects())
