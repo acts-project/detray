@@ -427,7 +427,7 @@ namespace detray
             unroll_container_filling<0, object_container, mask_container, is_surface_masks>(objects, masks);
         }
 
-        /** Get @return all surface masks of a volume from the detector */
+        /** Get @return all surface/portal masks in the detector */
         template<bool is_surface_masks = true>
         const auto& masks() const
         {
@@ -459,6 +459,13 @@ namespace detray
 
                         detector_masks.reserve(first_mask + object_masks.size());
                         detector_masks.insert(detector_masks.end(), object_masks.begin(), object_masks.end());
+
+                        for (auto &obj : objects)
+                        {
+                            if (std::get<0>(obj.mask()) == current_idx) {
+                                std::get<1>(obj.mask()) += first_mask;
+                            }
+                        }
                     }
                     else
                     {
@@ -468,18 +475,14 @@ namespace detray
 
                         detector_masks.reserve(first_mask + object_masks.size());
                         detector_masks.insert(detector_masks.end(), object_masks.begin(), object_masks.end());
-                    }
 
-                    // Update batch
-                    for (auto &obj : objects)
-                    {
-                        if constexpr (is_surface_masks)
+                        for (auto &obj : objects)
                         {
-                            obj.mask()[1] += first_mask;
-                        }
-                        else{
-                            auto& portal_mask_index = std::get<1>(obj.mask());
-                            portal_mask_index[1] += first_mask;
+                            if (std::get<0>(obj.mask()) == current_idx) {
+                                auto& portal_mask_index = std::get<1>(obj.mask());
+                                portal_mask_index[0] += first_mask;
+                                portal_mask_index[1] += first_mask;
+                            }
                         }
                     }
                 }

@@ -269,7 +269,10 @@ namespace detray
                 // If no surfaces are to processed, initialize the portals
                 if (surface_kernel.empty())
                 {
-
+                    for (const auto& p : volume.portals().objects())
+                    {
+                        const auto& mask_link = p.mask();
+                    }
                     initialize_kernel(navigation, portal_kernel, track, volume.portals(), volume.portal_range(), navigation.status == e_on_portal);
                     heartbeat = check_volume_switch(navigation);
                 }
