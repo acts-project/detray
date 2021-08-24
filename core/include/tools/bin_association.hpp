@@ -47,7 +47,7 @@ namespace detray
         // Get surfaces, transforms and masks
         const auto &surfaces = volume.surfaces();
         const auto &surface_transforms = detector.transforms(volume.surface_range(), context);
-        const auto &surface_masks = surfaces.masks();
+        const auto &surface_masks = detector.masks();
 
         const auto &bounds = volume.bounds();
         bool is_cylinder = std::abs(bounds[1] - bounds[0]) < std::abs(bounds[3] - bounds[2]);

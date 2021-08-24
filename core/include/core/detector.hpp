@@ -159,7 +159,6 @@ namespace detray
             private:
 
                 vector_type<object_t> _objects;
-                object_masks_t _masks;
 
             public:
 
@@ -171,9 +170,6 @@ namespace detray
 
                 /** @return all the objects - const access */
                 const vector_type<object_t> &objects() const { return _objects; }
-
-                /** @return the object masks - const access */
-                const object_masks_t &masks() const { return _masks; }
             };
 
             /** Deleted constructor */
@@ -229,10 +225,9 @@ namespace detray
              * @param surfaces The (complete) volume surfaces
              * @param surface_mask_container The (complete) surface masks
              */
-            void add_surface_components(surface_container &&volume_surfaces, surface_mask_container &&volume_surface_masks)
+            void add_surface_components(surface_container &&volume_surfaces)
             {
                 _surfaces._objects = std::move(volume_surfaces);
-                _surfaces._masks = std::move(volume_surface_masks);
             }
 
             /** @return all surfaces - const access */
@@ -255,11 +250,9 @@ namespace detray
              * @param portals The volume (complete set of) portals
              * @param portal_masks The (complete set of) portal masks
              */
-            void add_portal_components(portal_container &&portals,
-                                       portal_mask_container &&portal_masks)
+            void add_portal_components(portal_container &&portals)
             {
                 _portals._objects = std::move(portals);
-                _portals._masks = std::move(portal_masks);
             }
 
             /** @return all portals - const access */
@@ -425,6 +418,78 @@ namespace detray
             return _transforms.range(std::move(range), ctx);
         }
 
+        /** Add new surface masks of a volume to the detector */
+        template<bool is_surface_masks = true,
+                 typename object_container,
+                 typename mask_container>
+        void add_masks(object_container &objects, mask_container &masks)
+        {
+            unroll_container_filling<0, object_container, mask_container, is_surface_masks>(objects, masks);
+        }
+
+        /** Get @return all surface masks of a volume from the detector */
+        template<bool is_surface_masks = true>
+        const auto& masks() const
+        {
+            if constexpr (is_surface_masks) { return _surface_masks; }
+            else { return _portal_masks; }
+        }
+
+        template <size_t current_idx = 0,
+                  typename object_container,
+                  typename mask_container,
+                  bool is_surface_masks>
+        void unroll_container_filling(object_container &objects,
+                                      mask_container &masks)
+        {
+            //auto object_batch = objects[current_idx];
+            // Skip empty batches
+            //if (not object_batch.empty())
+            //{
+                const auto &object_masks = std::get<current_idx>(masks);
+
+                if (object_masks.size() != 0)
+                {
+                    dindex first_mask = dindex_invalid;
+                    if constexpr (is_surface_masks)
+                    {
+                        auto& detector_masks = std::get<current_idx>(_surface_masks);
+                        // Fill into detectors containers
+                        first_mask = detector_masks.size();
+
+                        detector_masks.reserve(first_mask + object_masks.size());
+                        detector_masks.insert(detector_masks.end(), object_masks.begin(), object_masks.end());
+                    }
+                    else
+                    {
+                        auto& detector_masks = std::get<current_idx>(_portal_masks);
+                        // Fill into detectors containers
+                        first_mask = detector_masks.size();
+
+                        detector_masks.reserve(first_mask + object_masks.size());
+                        detector_masks.insert(detector_masks.end(), object_masks.begin(), object_masks.end());
+                    }
+
+                    // Update batch
+                    for (auto &obj : objects)
+                    {
+                        if constexpr (is_surface_masks)
+                        {
+                            obj.mask()[1] += first_mask;
+                        }
+                        else{
+                            auto& portal_mask_index = std::get<1>(obj.mask());
+                            portal_mask_index[1] += first_mask;
+                        }
+                    }
+                }
+            //}
+            // Next mask type
+            if constexpr (current_idx < std::tuple_size_v<mask_container> - 1) {
+                return unroll_container_filling<current_idx + 1, object_container, mask_container, is_surface_masks> (objects, masks);
+            }
+        }
+
         /** @return the surface finders - const access */
         const vector_type<surfaces_finder> &surfaces_finders() const { return _surfaces_finders; }
 
@@ -457,6 +522,10 @@ namespace detray
 
         /** Keeps all of the transform data in contiguous memory*/
         transform_store _transforms = {};
+
+        /** Surface and portal masks of the detector in contigous memory */
+        surface_mask_container _surface_masks = {};
+        portal_mask_container _portal_masks = {};
 
         vector_type<surfaces_finder> _surfaces_finders;
 

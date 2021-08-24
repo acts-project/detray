@@ -284,8 +284,10 @@ namespace detray
 
             // Create a transform store and add it
             // All componnents are added
-            volume.add_portal_components(std::move(portals), std::move(portal_masks));
+            volume.add_portal_components(std::move(portals));
             d.add_portal_transforms(default_context, volume, std::move(portal_transforms));
+            constexpr bool is_surface_masks = false;
+            d.template add_masks<is_surface_masks>(portals, portal_masks);
         }
     }
 }
