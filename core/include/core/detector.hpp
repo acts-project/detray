@@ -311,10 +311,10 @@ namespace detray
 
         /** Add a new full set of alignable transforms for surfaces of a volume
          *
-         * @param ctx The context of the call
          * @param volume The volume we add the transforms to
          * @param surfaces The surfaces in the volume
          * @param trfs The surface transforms (same number as surfaces)
+         * @param ctx The context of the call
          *
          * @note can throw an exception if input data is inconsistent
          */
@@ -329,6 +329,7 @@ namespace detray
             _transforms.append_contextual_transforms(ctx, std::move(trfs));
 
             volume.set_surface_range({_surfaces.size(), _surfaces.size() + surfaces.size()});
+
             _surfaces.reserve(_surfaces.size() + surfaces.size());
             _surfaces.insert(_surfaces.end(), surfaces.begin(), surfaces.end());
         }
@@ -343,10 +344,10 @@ namespace detray
 
         /** Add a new full set of alignable transforms for portals of a volume
          *
-         * @param ctx The context of the call
          * @param volume The volume we add the transforms to
          * @param portals The portals of the volume
          * @param trfs The portal transforms (same number as portals)
+         * @param ctx The context of the call
          *
          * @note can throw an exception if input data is inconsistent
          */
@@ -364,7 +365,7 @@ namespace detray
             _portals.insert(_portals.end(), portals.begin(), portals.end());
         }
 
-        /** Add new surface/portal masks of a volume to the detector
+        /** Add new surface/portal masks of a volume to the detector. This has to be called before surfaces are added, in order to update the mask links!
           *
           * @tparam is_surface_masks check whether we deal with surfaces or portals
           * @tparam object_container surfaces/portals for which the links are updated

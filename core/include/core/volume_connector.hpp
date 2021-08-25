@@ -284,9 +284,9 @@ namespace detray
 
             // Create a transform store and add it
             // All componnents are added
-            d.add_portals(volume, portals, portal_transforms, default_context);
             constexpr bool add_surface_masks = false;
             d.template add_masks<add_surface_masks>(portals, portal_masks);
+            d.add_portals(volume, portals, portal_transforms, default_context);
         }
     }
 }
