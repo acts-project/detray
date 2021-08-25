@@ -182,7 +182,7 @@ namespace detray
             dindex surfaces_finder_entry() const { return _surfaces_finder_entry; }
 
             /** @return if the volume is empty or not */
-            bool empty() const { return (_surfaces.objects().empty() and _portals.objects().empty()); }
+            bool empty() const { return ( _surface_range[1] - _surface_range[0] == 0 and _portal_range[1] - _portal_range[0] == 0); }
 
             /** Set the index into the detector surface container
              *
