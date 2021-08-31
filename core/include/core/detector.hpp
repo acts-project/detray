@@ -59,6 +59,9 @@ namespace detray
     {
 
     public:
+        /// The detector type
+        using detector_type = detector<array_type, tuple_type, vector_type, alignable_store, surface_source_link, bounds_source_link, surfaces_populator_type, surfaces_serializer_type>;
+
         /// Forward the alignable container and context
         using transform_store = alignable_store;
         using context = typename alignable_store::context;
@@ -154,11 +157,12 @@ namespace detray
                 friend class volume;
 
             private:
+
                 vector_type<object_t> _objects;
                 object_masks_t _masks;
-                transform_store _transforms;
 
             public:
+
                 /** @return an indexed object with @param object_index - const access */
                 const object_t &indexed_object(dindex object_index) const
                 {
@@ -170,26 +174,31 @@ namespace detray
 
                 /** @return the object masks - const access */
                 const object_masks_t &masks() const { return _masks; }
-
-                /** @return the object transforms = const access */
-                const transform_store &transforms() const { return _transforms; }
             };
 
             /** Deleted constructor */
             volume() = delete;
 
             /** Allowed constructors
-             * @param name of the volume 
+             * @param name of the volume
+             * @param d detector the volume belongs to
              * 
              * @note will be contructed boundless
              */
-            volume(const std::string &name) : _name(name){};
+            volume(const std::string &name) : _name(name){}
+
             /** Contructor with name and bounds 
              * @param name of the volume
              * @param bounds of the volume
+             * @param d detector the volume belongs to
              */
-            volume(const std::string &name, const array_type<scalar, 6> &bounds) : _name(name), _bounds(bounds){};
-            volume(const volume &) = default;
+            volume(const std::string &name, const array_type<scalar, 6> &bounds) : _name(name), _bounds(bounds) {}
+
+            /** Copy ctor makes sure constituents keep valid volume pointer
+             *
+             * @param other Volume to be copied
+             */
+            volume(const volume &other) = default;
 
             /** @return the bounds - const access */
             const array_type<scalar, 6> &bounds() const { return _bounds; }
@@ -204,20 +213,15 @@ namespace detray
             dindex surfaces_finder_entry() const { return _surfaces_finder_entry; }
 
             /** @return if the volume is empty or not */
-            bool empty() const { return _surfaces.objects().empty(); }
+            bool empty() const { return (_surfaces.objects().empty() and _portals.objects().empty()); }
 
-            /** Add a new full set of alignable transforms for surfaces - move semantics
+            /** Set the index into the detector transform store for surfaces
              *
-             * @param ctx The context of the call
-             * @param trfs The transform container, move semantics
-             *
-             * @note can throw an exception if input data is inconsistent
+             * @param range Surface transform index range
              */
-            void add_surface_transforms(
-                const typename alignable_store::context &ctx,
-                typename alignable_store::storage &&trfs) noexcept(false)
+            void set_surface_range(dindex_range range)
             {
-                _surfaces._transforms.add_contextual_transforms(ctx, std::move(trfs));
+                _surface_range = range;
             }
 
             /** Add the surfaces and their masks - move semantics
@@ -234,6 +238,18 @@ namespace detray
             /** @return all surfaces - const access */
             const auto &surfaces() const { return _surfaces; }
 
+            /** @return range of surface transforms - const access */
+            const auto &surface_range() const { return _surface_range; }
+
+            /** Set the index into the detector transform store for portals
+             *
+             * @param range Portal transform index range
+             */
+            void set_portal_range(dindex_range range)
+            {
+                _portal_range = range;
+            }
+
             /** Add the portals, their transforms and their masks, move semantics
              *
              * @param portals The volume (complete set of) portals
@@ -246,22 +262,11 @@ namespace detray
                 _portals._masks = std::move(portal_masks);
             }
 
-            /** Add a new full set of alignable transforms for portals - move semantics
-             *
-             * @param ctx The context of the call
-             * @param portal_transforms The transform container, move semantics
-             *
-             * @note can throw an exception if input data is inconsistent
-             */
-            void add_portal_transforms(
-                const typename alignable_store::context &ctx,
-                typename alignable_store::storage &&portal_transforms) noexcept(false)
-            {
-                _portals._transforms.add_contextual_transforms(ctx, std::move(portal_transforms));
-            }
-
             /** @return all portals - const access */
             const auto &portals() const { return _portals; }
+
+            /** @return range of portal transforms - const access */
+            const auto &portal_range() const { return _portal_range; }
 
         private:
             /** Volume section: name */
@@ -269,6 +274,10 @@ namespace detray
 
             /** Volume index */
             dindex _index = dindex_invalid;
+
+            /** Tranform ranges in the detector transform store */
+            dindex_range _surface_range = {dindex_invalid, dindex_invalid};
+            dindex_range _portal_range  = {dindex_invalid, dindex_invalid};
 
             /** Index into the surface finder container */
             dindex _surfaces_finder_entry = dindex_invalid;
@@ -291,7 +300,12 @@ namespace detray
          * @param name the detector
          */
         detector(const std::string &name) : _name(name) {}
-        detector(const detector & /*ignored*/) = default;
+
+        /** Copy constructor makes sure the volumes belong to new detector.
+         *
+         * @param other Detector to be copied
+         */
+        detector(const detector &other) = default;
         detector() = delete;
         ~detector() = default;
 
@@ -305,7 +319,7 @@ namespace detray
          */
         volume &new_volume(const std::string &name, const array_type<scalar, 6> &bounds, dindex surfaces_finder_entry = dindex_invalid)
         {
-            _volumes.push_back(std::move(volume(name, bounds)));
+            _volumes.emplace_back(name, bounds);
             dindex cvolume_idx = _volumes.size() - 1;
             volume &cvolume = _volumes[cvolume_idx];
             cvolume._index = cvolume_idx;
@@ -345,6 +359,40 @@ namespace detray
         /** @return the volume grid - const access */
         const volume_grid &volume_search_grid() const { return _volume_grid; }
 
+        /** Add a new full set of alignable transforms for surfaces - move semantics
+         *
+         * @param ctx The context of the call
+         * @param volume The volume we add the transforms to
+         * @param trfs The transform container, move semantics
+         *
+         * @note can throw an exception if input data is inconsistent
+         */
+        void add_surface_transforms(
+            const typename alignable_store::context &ctx,
+            volume &volume,
+            typename alignable_store::storage &&trfs) noexcept(false)
+        {
+            volume.set_surface_range(dindex_range{transform_index(ctx), transform_index(ctx) + trfs.size()});
+            _transforms.append_contextual_transforms(ctx, std::move(trfs));
+        }
+
+        /** Add a new full set of alignable transforms for surfaces - move semantics
+         *
+         * @param ctx The context of the call
+         * @param volume The volume we add the transforms to
+         * @param trfs The transform container, move semantics
+         *
+         * @note can throw an exception if input data is inconsistent
+         */
+        void add_portal_transforms(
+            const typename alignable_store::context &ctx,
+            volume &volume,
+            typename alignable_store::storage &&trfs) noexcept(false)
+        {
+            volume.set_portal_range({transform_index(ctx), transform_index(ctx)+ trfs.size()});
+            _transforms.append_contextual_transforms(ctx, std::move(trfs));
+        }
+
         /** Add local surface finders linked to from the portals - move semantics
          * 
          * This connects portals and surface grids
@@ -352,6 +400,29 @@ namespace detray
         void add_surfaces_finders(vector_type<surfaces_finder> &&surfaces_finders)
         {
             _surfaces_finders = std::move(surfaces_finders);
+        }
+
+        /** Get the current transform index
+         *
+         * @param ctx The context of the call
+         *
+         * @return Index to add new transforms at 
+         */
+        const unsigned int transform_index(const context &ctx) const
+        {
+            return _transforms.size(ctx);
+        }
+
+        /** Get all transform in an index range from the detector
+         *
+         * @param range The range of surfaces/portals in the transform store
+         * @param ctx The context of the call
+         *
+         * @return ranged iterator to the object transforms 
+         */
+        const auto transforms(const dindex_range range, const context &ctx = {}) const
+        {
+            return _transforms.range(std::move(range), ctx);
         }
 
         /** @return the surface finders - const access */
@@ -380,7 +451,12 @@ namespace detray
 
     private:
         std::string _name = "unknown_detector";
+
+        /** Contains the geometrical relations*/
         vector_type<volume> _volumes = {};
+
+        /** Keeps all of the transform data in contiguous memory*/
+        transform_store _transforms = {};
 
         vector_type<surfaces_finder> _surfaces_finders;
 

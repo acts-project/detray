@@ -25,16 +25,19 @@ namespace detray
      *  - to a given grid.
      * 
      * @param context is the context to win which the association is done
-     * @param volume is the volume to which the volume belongs
+     * @param detector is the detector to which the grid belongs
+     * @param volume is the volume to which the surfaces belong
      * @param grid is the grid that will be filled 
      * @param tolerance is the bin_tolerance in the two local coordinates
      * @param absolute_tolerance is an indicator if the tolerance is to be
      *        taken absolute or relative
      */
     template <typename context_type,
+              typename detector_type,
               typename volume_type,
               typename grid_type>
     static inline void bin_association(const context_type &context,
+                                       const detector_type &detector,
                                        const volume_type &volume,
                                        grid_type &grid,
                                        const std::array<scalar, 2> &bin_tolerance,
@@ -43,7 +46,7 @@ namespace detray
 
         // Get surfaces, transforms and masks
         const auto &surfaces = volume.surfaces();
-        const auto &surface_transforms = surfaces.transforms();
+        const auto &surface_transforms = detector.transforms(volume.surface_range(), context);
         const auto &surface_masks = surfaces.masks();
 
         const auto &bounds = volume.bounds();
@@ -84,10 +87,9 @@ namespace detray
                     {
                         dvector<point3> vertices = {};
                         const auto &mask_link = s.mask();
-                        const auto &transform_link = s.transform();
 
                         // Unroll the mask container and generate vertices
-                        const auto &transform = surface_transforms.contextual_transform(context, transform_link);
+                        const auto &transform = surface_transforms[s.transform()];
 
                         const auto &mask_context = std::get<0>(mask_link);
                         const auto &mask_range = std::get<1>(mask_link);
@@ -156,10 +158,9 @@ namespace detray
                     {
                         dvector<point3> vertices = {};
                         const auto &mask_link = s.mask();
-                        const auto &transform_link = s.transform();
 
                         // Unroll the mask container and generate vertices
-                        const auto &transform = surface_transforms.contextual_transform(context, transform_link);
+                        const auto &transform = surface_transforms[s.transform()];
 
                         const auto &mask_context = std::get<0>(mask_link);
                         const auto &mask_range = std::get<1>(mask_link);

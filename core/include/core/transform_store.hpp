@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray
@@ -18,12 +19,75 @@ namespace detray
     class static_transform_store
     {
     public:
+
+        /** Elementwise access. Needs []operator for storage type for now */
+        inline decltype(auto) operator[](const dindex i) { return _data[i]; }
+        inline decltype(auto) operator[](const dindex i) const { return _data[i]; }
+
         /** Empty context type struct */
         struct context
         {
         };
 
+        /** Helper struct to pass range and context */
+        template<typename range_iterator>
+        struct contextual_range {
+            using context = static_transform_store::context;
+            /*context ctx;*/
+
+            const range_iterator r;
+
+            inline auto begin() { return r.begin(); }
+            inline auto end() { return r.end(); }
+
+            inline decltype(auto) operator[](const dindex i) { return *(r.begin() + i); }
+            inline decltype(auto) operator[](const dindex i) const { return *(r.begin() + i); }
+        };
+
         using storage = vector_type<transform3>;
+
+        /** Forward iterator : Contextual STL like API
+         *
+         * @param ctx The context of the call (ignored)
+         */
+        auto begin(const context & /*ctx*/) const ->decltype(auto)
+        {
+            return _data.begin();
+        }
+
+        /** Forward iterator : Contextual STL like API
+         *
+         * @param ctx The context of the call (ignored)
+         */
+        auto end(const context & /*ctx*/) const ->decltype(auto)
+        {
+            return _data.end();
+        }
+
+        /** Access to a predefined range of elements
+         *
+         * @param start start index of rage
+         * @param end end index of rage
+         * @param ctx The context of the call (ignored)
+         *
+         * @return range restricted iterator
+         */
+        const inline auto range(const size_t begin, const size_t end, const context & ctx) const
+        {
+            return contextual_range<decltype(range_iter(_data, dindex_range{begin, end}))>{range_iter(_data, dindex_range{begin, end})};
+        }
+
+        /** Access to a predefined range of elements
+         *
+         * @param range index range in data store
+         * @param ctx The context of the call (ignored)
+         *
+         * @return range restricted iterator
+         */
+        const inline auto range(const dindex_range&& range, const context & ctx) const
+        {
+            return contextual_range<decltype(range_iter(_data, std::move(range)))>{range_iter(_data, std::move(range))};
+        }
 
         /** Reserve memory : Contextual STL like API
          *
@@ -58,7 +122,7 @@ namespace detray
         /** Size : Contextual STL like API
          * @param ctx The context of the call (ignored)
          */ 
-        size_t size(const context & /*ctx*/)
+        const size_t size(const context & /*ctx*/) const
         {
             return _data.size();
         }
@@ -71,7 +135,7 @@ namespace detray
             return _data.empty();
         }
 
-        /** Add a new bunch of (contextual) transforms - move semantics
+        /** Add a new bunch of transforms for a new context - move semantics
          *
          * @param ctx The context of the call (ignored)
          * @param trfs The transform container, move semantics
@@ -81,6 +145,19 @@ namespace detray
         void add_contextual_transforms(const context & /*ctx*/, storage &&trfs) noexcept(false)
         {
             _data = std::move(trfs);
+        }
+
+        /** Append a bunch of transforms to existing context - move semantics
+         *
+         * @param ctx The context of the call (ignored)
+         * @param trfs The transform container, move semantics
+         *
+         * @note in general can throw an exception
+         */
+        void append_contextual_transforms(const context & /*ctx*/, storage &&trfs) noexcept(false)
+        {
+            _data.reserve(_data.size() + trfs.size());
+            _data.insert(_data.end(), std::make_move_iterator(trfs.begin()), std::make_move_iterator(trfs.end()));
         }
 
         /** Get the contextual transform

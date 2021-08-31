@@ -51,11 +51,25 @@ TEST(utils, enumerate)
 
     dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}};
 
-    using container_type_iter = decltype(std::begin(std::declval<dvector<uint_holder>>()));
-
     for (auto [i, v] : enumerate(seq))
     {
         ASSERT_EQ(i, v.ui);
+    }
+}
+
+// This tests the restricted iterator
+TEST(utils, range)
+{
+    size_t begin = 1;
+    size_t end = 4;
+
+    dvector<int> seq = {0, 1, 2, 3, 4, 5};
+
+    size_t i = 1;
+    for (const auto &v : range_iter(seq, std::array<size_t, 2>{begin, end}))
+    {
+        ASSERT_NE(v, 5);
+        ASSERT_EQ(v, seq[i++]);
     }
 }
 
