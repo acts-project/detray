@@ -295,9 +295,9 @@ namespace detray
         if (c_volume != nullptr and not surface_transform_storage.empty())
         {
           // Construction with move semantics
-          //c_volume->add_surface_transforms(surface_default_context, std::move(surface_transform_storage));
           d.add_surface_transforms(surface_default_context, *c_volume, std::move(surface_transform_storage));
-          c_volume->add_surface_components(std::move(c_surfaces), std::move(c_masks));
+          d.add_masks(c_surfaces, c_masks);
+          c_volume->add_surface_components(std::move(c_surfaces));
 
           // Get new clean containers
           surface_transform_storage = typename alignable_store::storage();

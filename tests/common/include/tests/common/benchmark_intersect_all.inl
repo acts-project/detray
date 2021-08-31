@@ -99,11 +99,13 @@ namespace __plugin
                     for (const auto &v : d.volumes())
                     {
                         const auto &surfaces = v.surfaces();
+                        constexpr bool get_surface_masks = true;
+                        const auto &masks = d.template masks<get_surface_masks>();
 
                         // Loop over surfaces
                         for (const auto &s : surfaces.objects())
                         {
-                            auto sfi_surface = intersect(track, s, d.transforms(v.surface_range(), default_context), surfaces.masks());
+                            auto sfi_surface = intersect(track, s, d.transforms(v.surface_range(), default_context), masks);
 
                             const auto &sfi = std::get<0>(sfi_surface);
                             
