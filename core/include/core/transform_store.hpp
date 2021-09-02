@@ -104,6 +104,17 @@ namespace detray
          * @param ctx The context of the call (ignored)
          * @param tcf The transform to be filled
          */
+        template <class... Args>  
+        void emplace_back(const context & /*ctx*/, Args&&... args)
+        {
+            _data.emplace_back(std::forward<Args>(args)...);
+        }
+
+        /** Push back : Contextual STL like API, copy semantics
+         *
+         * @param ctx The context of the call (ignored)
+         * @param tcf The transform to be filled
+         */
         void push_back(const context & /*ctx*/, const transform3 &tf)
         {
             _data.push_back(tf);
@@ -133,6 +144,19 @@ namespace detray
         bool empty(const context & /*ctx*/)
         {
             return _data.empty();
+        }
+
+        /** Append a transform store to an existing one
+         *
+         * @param ctx The context of the call (ignored)
+         * @param other The transform store, move semantics
+         *
+         * @note in general can throw an exception
+         */
+        void append(const context & ctx, static_transform_store<vector_type> &&other) noexcept(false)
+        {
+            _data.reserve(_data.size() + other.size(ctx));
+            _data.insert(_data.end(), std::make_move_iterator(other.begin(ctx)), std::make_move_iterator(other.end(ctx)));
         }
 
         /** Add a new bunch of transforms for a new context - move semantics

@@ -21,6 +21,7 @@
 #include "tools/concentric_cylinder_intersector.hpp"
 #include "tools/local_object_finder.hpp"
 
+#include <iostream>
 #include <string>
 #include <sstream>
 
@@ -59,6 +60,21 @@ namespace detray
     {
 
     public:
+
+        /** Encodes the position in a collection container for the respective
+            mask type (not for portals for the moment). */
+        enum mask_container_index : unsigned int {
+            e_mask_types = 5,
+            e_rectangle2 = 0,
+            e_trapezoid2 = 1,
+            e_annulus2 = 2,
+            e_cylinder3 = 3,
+            e_ring2 = 4,
+            e_single3 = std::numeric_limits<unsigned int>::max(),
+            e_unknown = std::numeric_limits<unsigned int>::max(),
+        };
+
+
         /// The detector type
         using detector_type = detector<array_type, tuple_type, vector_type, alignable_store, surface_source_link, bounds_source_link, surfaces_populator_type, surfaces_serializer_type>;
 
@@ -128,6 +144,11 @@ namespace detray
 
         using surfaces_finder = surfaces_regular_circular_grid;
 
+        /** Temporary container structure that are used to fill the detector. The respective objects are sorted by mask type, so that they can be unrolled and filled in lockstep with the masks */
+        using surface_filling_container = array_type<vector_type<surface>, 5>;
+        using portal_filling_container = array_type<vector_type<portal>, 5>;
+        using transform_container = array_type<transform_store, 5>;
+
         /** Nested volume struct that holds the local information of the
          * volume and its portals.
          */
@@ -190,7 +211,13 @@ namespace detray
              */
             void set_surface_range(dindex_range range)
             {
-                _surface_range = range;
+                // No portal surfaces yet
+                if (_surface_range[0] == dindex_invalid) {
+                    _surface_range = range;
+                }
+                else {
+                    _surface_range[1] += range[1] - range[0];
+                }
             }
 
             /** @return range of surfaces- const access */
@@ -202,7 +229,13 @@ namespace detray
              */
             void set_portal_range(dindex_range range)
             {
-                _portal_range = range;
+                // No portal surfaces yet
+                if (_portal_range[0] == dindex_invalid) {
+                    _portal_range = range;
+                }
+                else {
+                    _portal_range[1] += range[1] - range[0];
+                }
             }
 
             /** @return range of portals - const access */
@@ -214,7 +247,13 @@ namespace detray
              */
             void set_surface_trf_range(dindex_range range)
             {
-                _surface_trf_range = range;
+                // No portal surfaces yet
+                if (_surface_trf_range[0] == dindex_invalid) {
+                    _surface_trf_range = range;
+                }
+                else {
+                    _surface_trf_range[1] += range[1] - range[0];
+                }
             }
 
             /** @return range of surface transforms - const access */
@@ -226,7 +265,13 @@ namespace detray
              */
             void set_portal_trf_range(dindex_range range)
             {
-                _portal_trf_range = range;
+                // No portal surfaces yet
+                if (_portal_trf_range[0] == dindex_invalid) {
+                    _portal_trf_range = range;
+                }
+                else {
+                    _portal_trf_range[1] += range[1] - range[0];
+                }
             }
 
             /** @return range of portal transforms - const access */
@@ -320,18 +365,13 @@ namespace detray
          */
         void add_surfaces(
             volume &volume,
-            surface_container &surfaces,
-            typename alignable_store::storage &trfs,
+            surface_filling_container &surfaces,
+            surface_mask_container &masks,
+            transform_container &trfs,
             const typename alignable_store::context ctx = {}) noexcept(false)
         {
-            //assert(portals.size() == trfs.size());
-            volume.set_surface_trf_range(dindex_range{transform_index(ctx), transform_index(ctx) + trfs.size()});
-            _transforms.append_contextual_transforms(ctx, std::move(trfs));
-
-            volume.set_surface_range({_surfaces.size(), _surfaces.size() + surfaces.size()});
-
-            _surfaces.reserve(_surfaces.size() + surfaces.size());
-            _surfaces.insert(_surfaces.end(), surfaces.begin(), surfaces.end());
+            constexpr bool add_surfaces = true;
+            unroll_container_filling<0, surface_filling_container, surface_mask_container, add_surfaces>(surfaces, masks, volume, trfs, ctx);
         }
 
         /** @return all surfaces/portals in the detector */
@@ -352,32 +392,13 @@ namespace detray
          * @note can throw an exception if input data is inconsistent
          */
         void add_portals(volume &volume,
-                         portal_container &portals,
-                         typename alignable_store::storage &trfs,
+                         portal_filling_container &portals,
+                         portal_mask_container &masks,
+                         transform_container &trfs,
                          const typename alignable_store::context &ctx) noexcept(false)
         {
-            //assert(portals.size() == trfs.size());
-            volume.set_portal_trf_range({transform_index(ctx), transform_index(ctx) + trfs.size()});
-            _transforms.append_contextual_transforms(ctx, std::move(trfs));
-
-            volume.set_portal_range({_portals.size(), _portals.size() + portals.size()});
-            _portals.reserve(_portals.size() + portals.size());
-            _portals.insert(_portals.end(), portals.begin(), portals.end());
-        }
-
-        /** Add new surface/portal masks of a volume to the detector. This has to be called before surfaces are added, in order to update the mask links!
-          *
-          * @tparam is_surface_masks check whether we deal with surfaces or portals
-          * @tparam object_container surfaces/portals for which the links are updated
-          * @tparam mask_container surface/portal masks, sorted by type
-          *
-          */
-        template<bool add_surface_masks = true,
-                 typename object_container,
-                 typename mask_container>
-        void add_masks(object_container &objects, mask_container &masks)
-        {
-            unroll_container_filling<0, object_container, mask_container, add_surface_masks>(objects, masks);
+            constexpr bool add_surfaces = false;
+            unroll_container_filling<0, portal_filling_container, portal_mask_container, add_surfaces>(portals, masks, volume, trfs, ctx);
         }
 
         /** Get @return all surface/portal masks in the detector */
@@ -388,7 +409,7 @@ namespace detray
             else { return _portal_masks; }
         }
 
-        /** Unrolls the mask container to fill masks according to type.
+        /** Unrolls the data containers according to mask type and fills the detector.
           *
           * @tparam current_idx the current mask context to be processed
           * @tparam object_container surfaces/portals for which the links are updated
@@ -399,58 +420,77 @@ namespace detray
         template <size_t current_idx = 0,
                   typename object_container,
                   typename mask_container,
-                  bool add_surface_masks>
+                  bool add_surfaces>
         void unroll_container_filling(object_container &objects,
-                                      mask_container &masks)
+                                      mask_container &masks,
+                                      volume &volume,
+                                      transform_container &trfs,
+                                      const typename alignable_store::context ctx = {})
         {
-            const auto &object_masks = std::get<current_idx>(masks);
+            auto &typed_objects            = objects[current_idx];
+            const auto &surface_transforms = trfs[current_idx];
+            // If you fill  surfaces, this is a surfaces container type
+            auto &object_masks             = std::get<current_idx>(masks);
 
-            // Skip empty mask types
-            if (object_masks.size() != 0)
+            if (surface_transforms.size(ctx) != 0 and not typed_objects.empty())
             {
-                // Current offset for the masks in the detector container
-                dindex mask_offset = dindex_invalid;
+                // Current offsets into detectors containers
+                const auto trsf_offset = transform_index(ctx);
+                _transforms.append(ctx, std::move(std::get<current_idx>(trfs)));
+
                 // Fill surface or portal container?
-                if constexpr (add_surface_masks)
+                if constexpr (add_surfaces)
                 {
+                    // Surface transforms for this volume
+                    volume.set_surface_trf_range(dindex_range{trsf_offset, transform_index(ctx)});
+
                     // Fill the correct mask type
-                    auto& detector_masks = std::get<current_idx>(_surface_masks);
-                    mask_offset = detector_masks.size();
+                    auto &detector_masks = std::get<current_idx>(_surface_masks);
+                    const dindex sf_mask_offset = detector_masks.size();
+                    detector_masks.reserve(sf_mask_offset + object_masks.size());
+                    detector_masks.insert(detector_masks.end(), object_masks.begin(), object_masks.end());
 
-                    detector_masks.reserve(mask_offset + object_masks.size());
-                        detector_masks.insert(detector_masks.end(), object_masks.begin(), object_masks.end());
-
-                    // Update the surfaces link
-                    for (auto &obj : objects)
+                    // Update the surfaces mask link
+                    for (auto &sf : typed_objects)
                     {
-                        if (std::get<0>(obj.mask()) == current_idx) {
-                            std::get<1>(obj.mask()) += mask_offset;
-                        }
+                        std::get<1>(sf.mask()) += sf_mask_offset;
                     }
+
+                    // Now put the surfaces into the detector, too
+                    _surfaces.reserve(_surfaces.size() + typed_objects.size());
+                    _surfaces.insert(_surfaces.end(), typed_objects.begin(), typed_objects.end());
+                    volume.set_surface_range({_surfaces.size() - typed_objects.size(), _surfaces.size()});
                 }
                 else
                 {
+                    // Portal transforms for this volume
+                    volume.set_portal_trf_range(dindex_range{trsf_offset, transform_index(ctx)});
+
                     // Fill the correct mask type
                     auto& detector_masks = std::get<current_idx>(_portal_masks);
-                    mask_offset = detector_masks.size();
+                    const dindex pt_mask_offset = detector_masks.size();
 
-                    detector_masks.reserve(mask_offset + object_masks.size());
+                    detector_masks.reserve(pt_mask_offset + object_masks.size());
                     detector_masks.insert(detector_masks.end(), object_masks.begin(), object_masks.end());
 
-                    // Update the portals links
-                    for (auto &obj : objects)
+                    // Update the portals mask links
+                    for (auto &obj : typed_objects)
                     {
-                        if (std::get<0>(obj.mask()) == current_idx) {
-                            auto& portal_mask_index = std::get<1>(obj.mask());
-                            portal_mask_index[0] += mask_offset;
-                            portal_mask_index[1] += mask_offset;
-                        }
+                        auto& portal_mask_index = std::get<1>(obj.mask());
+                        portal_mask_index[0] += pt_mask_offset;
+                        portal_mask_index[1] += pt_mask_offset;
                     }
+
+                    // Now put the portals into the detector, too
+                    _portals.reserve(_portals.size() + typed_objects.size());
+                    _portals.insert(_portals.end(), typed_objects.begin(), typed_objects.end());
+                    volume.set_portal_range({_portals.size() - typed_objects.size(), _portals.size()});
                 }
             }
             // Next mask type
-            if constexpr (current_idx < std::tuple_size_v<mask_container> - 1) {
-                return unroll_container_filling<current_idx + 1, object_container, mask_container, add_surface_masks> (objects, masks);
+            if constexpr (current_idx < std::tuple_size_v<mask_container> - 1)
+            {
+                return unroll_container_filling<current_idx + 1, object_container, mask_container, add_surfaces>(objects, masks, volume, trfs, ctx);
             }
         }
 
