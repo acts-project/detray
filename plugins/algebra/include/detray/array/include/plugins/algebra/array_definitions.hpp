@@ -1,5 +1,5 @@
 
-#include "algebra/definitions/array.hpp"
+#include "algebra/definitions/std_array.hpp"
 
 #define ALGEBRA_PLUGIN array
 
