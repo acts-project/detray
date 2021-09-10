@@ -8,6 +8,7 @@
 #pragma once
 
 #include "utils/indexing.hpp"
+#include "definitions/qualifiers.hpp"
 
 #include <algorithm>
 
@@ -32,6 +33,7 @@ namespace detray
             static constexpr unsigned int axis_identifier = 0;
 
             /** Return the number of bins */
+	    DETRAY_HOST_DEVICE
             dindex bins() const { return n_bins; }
 
             /** Access function to a single bin from a value v
@@ -40,6 +42,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex type
              **/
+	    DETRAY_HOST_DEVICE
             dindex bin(scalar v) const
             {
                 int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
@@ -55,6 +58,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
+	    DETRAY_HOST_DEVICE
             dindex_range range(scalar v, const array_type<dindex, 2> &nhood = {0u, 0u}) const
             {
 
@@ -73,6 +77,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
+	    DETRAY_HOST_DEVICE
             dindex_range range(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 int nbin = static_cast<int>((v - nhood[0] - min) / (max - min) * n_bins);
@@ -93,6 +98,7 @@ namespace detray
              * As the axis is closed it @returns a dindex_sequence
              **/
             template <typename neighbor_t>
+	    DETRAY_HOST_DEVICE
             dindex_sequence zone_t(scalar v, const array_type<neighbor_t, 2> &nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
@@ -110,6 +116,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
+	    DETRAY_HOST_DEVICE
             dindex_sequence zone(scalar v, const array_type<dindex, 2> &nhood) const
             {
                 return zone_t<dindex>(v, nhood);
@@ -122,12 +129,14 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
+	    DETRAY_HOST_DEVICE
             dindex_sequence zone(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 return zone_t<scalar>(v, nhood);
             }
 
             /** @return the bin boundaries for a given @param ibin */
+	    DETRAY_HOST_DEVICE
             array_type<scalar, 2> borders(dindex ibin) const
             {
                 scalar step = (max - min) / n_bins;
@@ -135,6 +144,7 @@ namespace detray
             }
 
             /** @return the values of the borders */
+	    DETRAY_HOST_DEVICE
             vector_type<scalar> all_borders() const
             {
                 vector_type<scalar> borders;
@@ -148,6 +158,7 @@ namespace detray
             }
 
             /** @return the axis span [min, max) */
+	    DETRAY_HOST_DEVICE
             array_type<scalar, 2> span() const { return {min, max}; }
         };
 
@@ -167,6 +178,7 @@ namespace detray
             static constexpr unsigned int axis_identifier = 1;
 
             /** Return the number of bins */
+	    DETRAY_HOST_DEVICE
             dindex bins() const { return n_bins; }
 
             /** Access function to a single bin from a value v
@@ -175,6 +187,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex type
              **/
+	    DETRAY_HOST_DEVICE
             dindex bin(scalar v) const
             {
                 dindex ibin = static_cast<dindex>((v - min) / (max - min) * n_bins);
@@ -190,6 +203,7 @@ namespace detray
              * 
              * As the axis is circular it @returns a dindex_range
              **/
+	    DETRAY_HOST_DEVICE
             dindex_range range(scalar v, const array_type<dindex, 2> nhood = {0u, 0u}) const
             {
                 dindex gbin = bin(v);
@@ -205,6 +219,7 @@ namespace detray
              * 
              * As the axis is circular it @returns a dindex_range
              **/
+	    DETRAY_HOST_DEVICE
             dindex_range range(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 dindex nbin = bin(v - nhood[0]);
@@ -222,6 +237,7 @@ namespace detray
              * As the axis is closed it @returns a dindex_sequence
              **/
             template <typename neighbor_t>
+	    DETRAY_HOST_DEVICE	    
             dindex_sequence zone_t(scalar v, const array_type<neighbor_t, 2> &nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
@@ -255,6 +271,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
+	    DETRAY_HOST_DEVICE	    
             dindex_sequence zone(scalar v, const array_type<dindex, 2> &nhood) const
             {
                 return zone_t<dindex>(v, nhood);
@@ -267,6 +284,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
+	    DETRAY_HOST_DEVICE	    
             dindex_sequence zone(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 return zone_t<scalar>(v, nhood);
@@ -279,6 +297,7 @@ namespace detray
              * 
              * @return an index, remapped bin 
              **/
+	    DETRAY_HOST_DEVICE	    
             dindex remap(dindex ibin, int shood) const
             {
                 int opt_bin = static_cast<int>(ibin) + shood;
@@ -294,6 +313,7 @@ namespace detray
             }
 
             /** @return the bin boundaries for a given @param ibin */
+	    DETRAY_HOST_DEVICE	    
             array_type<scalar, 2> borders(dindex ibin) const
             {
                 scalar step = (max - min) / n_bins;
@@ -301,6 +321,7 @@ namespace detray
             }
 
             /** @return the values of the borders */
+	    DETRAY_HOST_DEVICE	    
             vector_type<scalar> all_borders() const
             {
                 vector_type<scalar> borders;
@@ -314,6 +335,7 @@ namespace detray
             }
 
             /** @return the range  */
+	    DETRAY_HOST_DEVICE	    
             array_type<scalar, 2> span() const { return {min, max}; }
         };
 
@@ -332,6 +354,7 @@ namespace detray
             static constexpr unsigned int axis_identifier = 2;
 
             /** Return the number of bins */
+	    DETRAY_HOST_DEVICE	    
             dindex bins() const { return static_cast<dindex>(boundaries.size() - 1); }
 
             /** Access function to a single bin from a value v
@@ -340,6 +363,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex type
              **/
+	    DETRAY_HOST_DEVICE	    
             dindex bin(scalar v) const
             {
                 dindex ibin = std::lower_bound(boundaries.begin(), boundaries.end(), v) - boundaries.begin();
@@ -354,6 +378,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
+	    DETRAY_HOST_DEVICE	    
             dindex_range range(scalar v, const array_type<dindex, 2> &nhood = {0u, 0u}) const
             {
 
@@ -373,6 +398,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_range
              **/
+	    DETRAY_HOST_DEVICE	    
             dindex_range range(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 dindex nbin = bin(v - nhood[0]);
@@ -390,6 +416,7 @@ namespace detray
              * As the axis is closed it @returns a dindex_sequence
              **/
             template <typename neighbor_t>
+	    DETRAY_HOST_DEVICE
             dindex_sequence zone_t(scalar v, const array_type<neighbor_t, 2> nhood) const
             {
                 dindex_range nh_range = range(v, nhood);
@@ -407,6 +434,7 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
+	    DETRAY_HOST_DEVICE	    
             dindex_sequence zone(scalar v, const array_type<dindex, 2> &nhood = {0, 0}) const
             {
                 return zone_t<dindex>(v, nhood);
@@ -419,12 +447,14 @@ namespace detray
              * 
              * As the axis is closed it @returns a dindex_sequence
              **/
+	    DETRAY_HOST_DEVICE	    
             dindex_sequence zone(scalar v, const array_type<scalar, 2> &nhood) const
             {
                 return zone_t<scalar>(v, nhood);
             }
 
             /** @return the bin boundaries for a given @param ibin */
+	    DETRAY_HOST_DEVICE	    
             array_type<scalar, 2> borders(dindex ibin) const
             {
                 return {boundaries[ibin], boundaries[ibin + 1]};
@@ -432,12 +462,14 @@ namespace detray
 
 
             /** @return the values of the borders of all bins */
+	    DETRAY_HOST_DEVICE	    
             vector_type<scalar> all_borders() const
             {
                 return boundaries;
             }
 
             /** @return the range  */
+	    DETRAY_HOST_DEVICE	    
             array_type<scalar, 2>
             span() const
             {

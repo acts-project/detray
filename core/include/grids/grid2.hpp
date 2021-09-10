@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "definitions/qualifiers.hpp"
+
 namespace detray
 {
 
@@ -45,6 +47,7 @@ namespace detray
          * @param axis_p1 is the axis in the second coordinate
          * 
          **/
+	DETRAY_HOST_DEVICE
         grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1) : _axis_p0(axis_p0), _axis_p1(axis_p1)
         {
             _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
@@ -56,6 +59,7 @@ namespace detray
          * @param axis_p1 is the axis in the second coordinate
          * 
          **/
+	DETRAY_HOST_DEVICE	
         grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1) : _axis_p0(std::move(axis_p0)), _axis_p1(std::move(axis_p1))
         {
             _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
@@ -66,6 +70,7 @@ namespace detray
         * @param offset is the applied offset shift
         * 
         **/
+	DETRAY_HOST_DEVICE	
         void shift(const typename populator_type::bare_value &offset)
         {
             std::for_each(_data_serialized.begin(), _data_serialized.end(), [&](auto &ds)
@@ -80,6 +85,7 @@ namespace detray
          * @param fvalue is a single fill value to be filled
          * 
          **/
+	DETRAY_HOST_DEVICE	
         template <typename point2_type>
         void populate(const point2_type &p2, typename populator_type::bare_value &&fvalue)
         {
@@ -93,6 +99,7 @@ namespace detray
          * @param fvalue is a single fill value to be filled
          * 
          **/
+	DETRAY_HOST_DEVICE	
         void populate(dindex bin0, dindex bin1, typename populator_type::bare_value &&fvalue)
         {
             auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, bin0, bin1);
@@ -106,6 +113,7 @@ namespace detray
          * 
          * @return the const reference to the value in this bin 
          **/
+	DETRAY_HOST_DEVICE	
         const auto &bin(dindex bin0, dindex bin1) const
         {
             return _data_serialized[_serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, bin0, bin1)];
@@ -117,6 +125,7 @@ namespace detray
          * 
          * @return the const reference to the value in this bin 
          **/
+	DETRAY_HOST_DEVICE	
         const auto &bin(const point2 &p2) const
         {
             return _data_serialized[_serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
@@ -128,6 +137,7 @@ namespace detray
          * 
          * @return the const reference to the value in this bin 
          **/
+	DETRAY_HOST_DEVICE	
         auto &bin(const point2 &p2)
         {
             return _data_serialized[_serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
@@ -144,6 +154,7 @@ namespace detray
          * @return the sequence of values
          **/
         template <typename neighbor_t>
+	DETRAY_HOST_DEVICE
         vector_type<typename populator_type::bare_value> zone_t(const point2 &p2, const neighborhood<neighbor_t> &nhood, bool sort) const
         {
             auto zone0 = _axis_p0.zone(p2[0], nhood[0]);
@@ -197,6 +208,7 @@ namespace detray
          * 
          * @return the sequence of values
          **/
+	DETRAY_HOST_DEVICE	
         vector_type<typename populator_type::bare_value> zone(const point2 &p2, const neighborhood<dindex> &nhood = hermit2, bool sort = false) const
         {
             return zone_t<dindex>(p2, nhood, sort);
@@ -212,24 +224,30 @@ namespace detray
          * 
          * @return the sequence of values
          **/
+	DETRAY_HOST_DEVICE	
         vector_type<typename populator_type::bare_value> zone(const point2 &p2, const neighborhood<scalar> &nhood, bool sort = false) const
         {
             return zone_t<scalar>(p2, nhood, sort);
         }
 
         /** Const access to axis p0  */
+	DETRAY_HOST_DEVICE	
         const axis_p0_type &axis_p0() const { return _axis_p0; }
 
         /** Const access to axis p1 */
+	DETRAY_HOST_DEVICE	
         const axis_p1_type &axis_p1() const { return _axis_p1; }
 
         /* Copy of axes in a tuple */
+	DETRAY_HOST_DEVICE	
         tuple_type<axis_p0_type, axis_p1_type> axes() const { return std::tie(_axis_p0, _axis_p1); }
 
         /** Const acess to the serializer */
+	DETRAY_HOST_DEVICE	
         const serializer_type &serializer() const { return _serializer; }
 
         /** Const acess to the polulator */
+	DETRAY_HOST_DEVICE	
         const populator_type &populator() const { return _populator; }
 
     private:

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "utils/indexing.hpp"
+#include "definitions/qualifiers.hpp"
 
 #include <algorithm>
 
@@ -35,6 +36,7 @@ namespace detray
          * @return a dindex for the memory storage
          */
         template <typename faxis_type, typename saxis_type>
+	DETRAY_HOST_DEVICE
         dindex serialize(const faxis_type& faxis, const saxis_type& /*saxis*/,
                                    dindex fbin, dindex sbin) const
         {
@@ -56,6 +58,7 @@ namespace detray
          */
         template <typename faxis_type, typename saxis_type,
                   template <typename, unsigned int> class array_type = darray>
+	DETRAY_HOST_DEVICE
         array_type<dindex, 2> deserialize(const faxis_type& faxis, const saxis_type& /*saxis*/, dindex serialbin) const
         {
             dindex sbin = static_cast<dindex>(serialbin/faxis.bins());

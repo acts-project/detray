@@ -59,6 +59,11 @@ set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 
+# Set GPU-related options
+if(DETRAY_BUILD_CUDA)
+  enable_language(CUDA)
+endif()
+
 add_subdirectory(apps)
 add_subdirectory(core)
 add_subdirectory(extern)

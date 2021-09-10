@@ -8,6 +8,7 @@
 #pragma once
 
 #include "utils/indexing.hpp"
+#include "definitions/qualifiers.hpp"
 
 #include <algorithm>
 #include <limits>
@@ -37,6 +38,7 @@ namespace detray
          * @param stored the stored value for the population
          * @param bvalue the new value to be added
          **/
+	DETRAY_HOST_DEVICE	
         void operator()(store_value &stored, bare_value &&bvalue) const
         {
             stored = std::move(bvalue);
@@ -48,6 +50,7 @@ namespace detray
          * 
          * @return a sequence of bare values
          */
+	DETRAY_HOST_DEVICE	
         vector_type<bare_value> sequence(store_value &stored) const
         {
             if (stored != kInvalid)
@@ -63,6 +66,7 @@ namespace detray
          * @param offset is the shift offset
          * 
          **/
+	DETRAY_HOST_DEVICE	
         void shift(store_value &stored, const bare_value &offset) const
         {
             stored += offset;
@@ -70,6 +74,7 @@ namespace detray
 
         /** Return an initialized bin value
          */
+	DETRAY_HOST_DEVICE	
         store_value init() const
         {
             return kInvalid;
@@ -105,6 +110,7 @@ namespace detray
          * @param stored the stored value for the population
          * @param bvalue the new value to be added
          **/
+	DETRAY_HOST_DEVICE
         void operator()(store_value &stored, bare_value &&bvalue) const
         {
 
@@ -128,6 +134,7 @@ namespace detray
          * 
          * @return a sequence of bare values, @note it will ignore invalid entries
          */
+	DETRAY_HOST_DEVICE	
         vector_type<bare_value> sequence(store_value &stored) const
         {
             vector_type<bare_value> s;
@@ -148,6 +155,7 @@ namespace detray
          * @param offset is the shift offset
          * 
          **/
+	DETRAY_HOST_DEVICE	
         void shift(store_value &stored, const bare_value &offset) const
         {
             std::for_each(stored.begin(), stored.end(), [&](auto &d) { d += offset; });
@@ -155,6 +163,7 @@ namespace detray
 
         /** Return an initialized bin value
          **/
+	DETRAY_HOST_DEVICE	
         store_value init() const
         {
 
@@ -188,6 +197,7 @@ namespace detray
          * @param stored the stored value for the population
          * @param bvalue the new value to be added
          **/
+	DETRAY_HOST_DEVICE	
         void operator()(store_value &stored, bare_value &&bvalue) const
         {
             stored.push_back(bvalue);
@@ -203,6 +213,7 @@ namespace detray
          * 
          * @return a sequence of bare values
          */
+	DETRAY_HOST_DEVICE	
         vector_type<bare_value> sequence(store_value &stored) const
         {
             return stored;
@@ -214,6 +225,7 @@ namespace detray
          * @param offset is the shift offset
          * 
          **/
+	DETRAY_HOST_DEVICE
         void shift(store_value &stored, const bare_value &offset) const
         {
             std::for_each(stored.begin(), stored.end(), [&](auto &d) { d += offset; });
@@ -221,6 +233,7 @@ namespace detray
 
         /** Return an initialized bin value
          **/
+	DETRAY_HOST_DEVICE
         store_value init() const
         {
             return {};
