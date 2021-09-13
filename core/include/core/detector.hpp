@@ -21,7 +21,6 @@
 #include "tools/concentric_cylinder_intersector.hpp"
 #include "tools/local_object_finder.hpp"
 
-#include <iostream>
 #include <string>
 #include <sstream>
 
@@ -144,7 +143,10 @@ namespace detray
 
         using surfaces_finder = surfaces_regular_circular_grid;
 
-        /** Temporary container structure that are used to fill the detector. The respective objects are sorted by mask type, so that they can be unrolled and filled in lockstep with the masks */
+        /** Temporary container structures that are used to fill the detector. 
+         * The respective objects are sorted by mask type, so that they can be 
+         * unrolled and filled in lockstep with the masks
+         */
         using surface_filling_container = array_type<vector_type<surface>, 5>;
         using portal_filling_container = array_type<vector_type<portal>, 5>;
         using transform_container = array_type<transform_store, 5>;
@@ -154,7 +156,6 @@ namespace detray
          */
         class volume
         {
-
             friend class detector<array_type,
                                   tuple_type,
                                   vector_type,
@@ -203,7 +204,17 @@ namespace detray
             dindex surfaces_finder_entry() const { return _surfaces_finder_entry; }
 
             /** @return if the volume is empty or not */
-            bool empty() const { return ( _surface_range[1] - _surface_range[0] == 0 and _portal_range[1] - _portal_range[0] == 0); }
+            bool empty() const
+            {
+                return (is_empty_range(_surface_range) and
+                        is_empty_range(_portal_range));
+            }
+
+            /** @return the number of surfaces in the volume */
+            dindex n_surfaces() { return in_range(_surface_range); }
+
+            /** @return the number of surfaces in the volume */
+            const dindex n_surfaces() const { return in_range(_surface_range); }
 
             /** Set the index into the detector surface container
              *
@@ -211,17 +222,17 @@ namespace detray
              */
             void set_surface_range(dindex_range range)
             {
-                // No portal surfaces yet
-                if (_surface_range[0] == dindex_invalid) {
-                    _surface_range = range;
-                }
-                else {
-                    _surface_range[1] += range[1] - range[0];
-                }
+                update_range(_surface_range, std::move(range));
             }
 
             /** @return range of surfaces- const access */
             const auto &surface_range() const { return _surface_range; }
+
+            /** @return the number of portals of the volume */
+            dindex n_portals() { return in_range(_portal_range); }
+
+            /** @return the number of portals of the volume */
+            const dindex n_portals() const { return in_range(_portal_range); }
 
             /** Set the index into the detector portal container
              *
@@ -229,13 +240,7 @@ namespace detray
              */
             void set_portal_range(dindex_range range)
             {
-                // No portal surfaces yet
-                if (_portal_range[0] == dindex_invalid) {
-                    _portal_range = range;
-                }
-                else {
-                    _portal_range[1] += range[1] - range[0];
-                }
+                update_range(_portal_range, std::move(range));
             }
 
             /** @return range of portals - const access */
@@ -247,13 +252,7 @@ namespace detray
              */
             void set_surface_trf_range(dindex_range range)
             {
-                // No portal surfaces yet
-                if (_surface_trf_range[0] == dindex_invalid) {
-                    _surface_trf_range = range;
-                }
-                else {
-                    _surface_trf_range[1] += range[1] - range[0];
-                }
+                update_range(_surface_trf_range, std::move(range));
             }
 
             /** @return range of surface transforms - const access */
@@ -265,13 +264,7 @@ namespace detray
              */
             void set_portal_trf_range(dindex_range range)
             {
-                // No portal surfaces yet
-                if (_portal_trf_range[0] == dindex_invalid) {
-                    _portal_trf_range = range;
-                }
-                else {
-                    _portal_trf_range[1] += range[1] - range[0];
-                }
+                update_range(_portal_trf_range, std::move(range));
             }
 
             /** @return range of portal transforms - const access */
@@ -288,7 +281,7 @@ namespace detray
             dindex_range _surface_trf_range = {dindex_invalid, dindex_invalid};
             dindex_range _portal_trf_range  = {dindex_invalid, dindex_invalid};
 
-            /** INdex ranges in the detector surface/portal containers.*/
+            /** Index ranges in the detector surface/portal containers.*/
             dindex_range _surface_range = {dindex_invalid, dindex_invalid};
             dindex_range _portal_range  = {dindex_invalid, dindex_invalid};
 
@@ -301,6 +294,55 @@ namespace detray
                                              -std::numeric_limits<scalar>::max(),
                                              std::numeric_limits<scalar>::max(),
                                              -M_PI, M_PI};
+
+            /**
+             * @param range Any index range
+             *
+             * @return the number of indexed objects
+             */
+            inline dindex in_range(const dindex_range &range) { return range[1] - range[0]; }
+
+            /**
+             * @param range Any index range
+             *
+             * @return the number of indexed objects
+             */
+            inline const dindex in_range(const dindex_range &range) const { return range[1] - range[0]; }
+
+            /** Test whether a range is empty
+             *
+             * @param range Any index range
+             *
+             * @return boolean whether the range is empty
+             */
+            inline bool is_empty_range(const dindex_range &range) { return in_range(range) == 0; }
+
+            /** Test whether a range is empty - const
+             *
+             * @param range Any index range
+             *
+             * @return boolean whether the range is empty
+             */
+            inline const bool is_empty_range(const dindex_range &range) const { return in_range(range) == 0; }
+
+
+            /** Set or update a range
+             *
+             * @param range One of the volume member ranges
+             * @param other new index range
+             *
+             * @return boolean whether the range is empty
+             */
+            inline void update_range(dindex_range &range, dindex_range &&other)
+            {
+                // Range not set yet
+                if (range[0] == dindex_invalid) {
+                    range = other;
+                }
+                else {
+                    range[1] += other[1] - other[0];
+                }
+            }
         };
 
         /** Allowed costructor
@@ -414,7 +456,7 @@ namespace detray
           * @tparam current_idx the current mask context to be processed
           * @tparam object_container surfaces/portals for which the links are updated
           * @tparam mask_container surface/portal masks, sorted by type
-          * @tparam is_surface_masks check whether we deal with surfaces or portals
+          * @tparam add_surfaces check whether we deal with surfaces or portals
           *
           */
         template <size_t current_idx = 0,
@@ -427,10 +469,31 @@ namespace detray
                                       transform_container &trfs,
                                       const typename alignable_store::context ctx = {})
         {
-            auto &typed_objects            = objects[current_idx];
+            // Get the surfaces/portals for a mask type
+            auto &typed_objects = objects[current_idx];
+            // Get the corresponding transforms
             const auto &surface_transforms = trfs[current_idx];
-            // If you fill  surfaces, this is a surfaces container type
-            auto &object_masks             = std::get<current_idx>(masks);
+            // and the corresponding masks
+            auto &object_masks = std::get<current_idx>(masks);
+
+            // Fill object masks into the correct detector container
+            auto add_detector_masks = [&](auto &detector_container) -> dindex
+            {
+                auto &detector_masks = std::get<current_idx>(detector_container);
+                const dindex mask_offset = detector_masks.size();
+                detector_masks.reserve(mask_offset + object_masks.size());
+                detector_masks.insert(detector_masks.end(), object_masks.begin(), object_masks.end());
+
+                return mask_offset;
+            };
+
+            // Fill objects (surfaces or portals) into the detector container
+            auto add_detector_objects = [&](auto &detector_container)
+            {
+                detector_container.reserve(detector_container.size() + typed_objects.size());
+                detector_container.insert(detector_container.end(), typed_objects.begin(), typed_objects.end());
+            };
+
 
             if (surface_transforms.size(ctx) != 0 and not typed_objects.empty())
             {
@@ -444,11 +507,7 @@ namespace detray
                     // Surface transforms for this volume
                     volume.set_surface_trf_range(dindex_range{trsf_offset, transform_index(ctx)});
 
-                    // Fill the correct mask type
-                    auto &detector_masks = std::get<current_idx>(_surface_masks);
-                    const dindex sf_mask_offset = detector_masks.size();
-                    detector_masks.reserve(sf_mask_offset + object_masks.size());
-                    detector_masks.insert(detector_masks.end(), object_masks.begin(), object_masks.end());
+                    const auto sf_mask_offset = add_detector_masks(_surface_masks);
 
                     // Update the surfaces mask link
                     for (auto &sf : typed_objects)
@@ -456,9 +515,8 @@ namespace detray
                         std::get<1>(sf.mask()) += sf_mask_offset;
                     }
 
-                    // Now put the surfaces into the detector, too
-                    _surfaces.reserve(_surfaces.size() + typed_objects.size());
-                    _surfaces.insert(_surfaces.end(), typed_objects.begin(), typed_objects.end());
+                    // Now put the surfaces into the detector
+                    add_detector_objects(_surfaces);
                     volume.set_surface_range({_surfaces.size() - typed_objects.size(), _surfaces.size()});
                 }
                 else
@@ -467,11 +525,7 @@ namespace detray
                     volume.set_portal_trf_range(dindex_range{trsf_offset, transform_index(ctx)});
 
                     // Fill the correct mask type
-                    auto& detector_masks = std::get<current_idx>(_portal_masks);
-                    const dindex pt_mask_offset = detector_masks.size();
-
-                    detector_masks.reserve(pt_mask_offset + object_masks.size());
-                    detector_masks.insert(detector_masks.end(), object_masks.begin(), object_masks.end());
+                    const auto pt_mask_offset = add_detector_masks(_portal_masks);
 
                     // Update the portals mask links
                     for (auto &obj : typed_objects)
@@ -481,9 +535,8 @@ namespace detray
                         portal_mask_index[1] += pt_mask_offset;
                     }
 
-                    // Now put the portals into the detector, too
-                    _portals.reserve(_portals.size() + typed_objects.size());
-                    _portals.insert(_portals.end(), typed_objects.begin(), typed_objects.end());
+                    // Now put the portals into the detector
+                    add_detector_objects(_portals);
                     volume.set_portal_range({_portals.size() - typed_objects.size(), _portals.size()});
                 }
             }
@@ -552,8 +605,8 @@ namespace detray
             for (const auto &[i, v] : enumerate(_volumes))
             {
                 ss << "[>>] Volume at index " << i << " - name: '" << v.name() << "'" << std::endl;
-                ss << "     contains    " << v.surface_range()[1] - v.surface_range()[0] << " detector surfaces" << std::endl;
-                ss << "                 " << v.portal_range()[1] - v.portal_range()[0] << " detector portals" << std::endl;
+                ss << "     contains    " << v.n_surfaces() << " detector surfaces" << std::endl;
+                ss << "                 " << v.n_portals() << " detector portals" << std::endl;
                 if (v._surfaces_finder_entry != dindex_invalid)
                 {
                     ss << "     finders idx " << v._surfaces_finder_entry << std::endl;

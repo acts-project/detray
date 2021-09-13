@@ -85,9 +85,6 @@ namespace detray
 
     // Flushable containers
     typename typed_detector::volume *c_volume = nullptr;
-    /*typename typed_detector::surface_container c_surfaces;
-    typename typed_detector::surface_mask_container c_masks;*/
-
     typename typed_detector::surface_filling_container c_surfaces;
     typename typed_detector::surface_mask_container c_masks;
     typename typed_detector::transform_container c_transforms;

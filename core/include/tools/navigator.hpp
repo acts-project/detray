@@ -315,7 +315,6 @@ namespace detray
             const auto &masks = detector.template masks<kSurfaceType>();
             // Loop over all indexed surfaces, intersect and fill
             // @todo - will come from the local object finder
-            //darray<dindex, 2> surface_range = {0, n_objects - 1};
             for (auto si : sequence(obj_range))
             {
                 const auto &object = surfaces[si];

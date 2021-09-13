@@ -207,10 +207,6 @@ namespace detray
             // Walk up from the bottom right corner
             walk_up(bottom_right, right_portals_info, false, 1);
 
-            /*typename detector_type::portal_container portals;
-            typename detector_type::portal_mask_container portal_masks;
-            typename detector_type::transform_store::storage portal_transforms;*/
-
             typename detector_type::portal_filling_container portals = {};
             typename detector_type::portal_mask_container portal_masks;
             typename detector_type::transform_container portal_transforms;

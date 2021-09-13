@@ -99,10 +99,10 @@ namespace detray
             _data.reserve(n_size);
         }
 
-        /** Push back : Contextual STL like API, copy semantics
+        /** Emplace back : Contextual STL like API
          *
          * @param ctx The context of the call (ignored)
-         * @param tcf The transform to be filled
+         * @param args Constructor arguments
          */
         template <class... Args>  
         void emplace_back(const context & /*ctx*/, Args&&... args)
