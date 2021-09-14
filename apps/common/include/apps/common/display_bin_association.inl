@@ -102,8 +102,8 @@ int main(int argc, char **argv)
 
             dindex finder_entry = lvolume.surfaces_finder_entry();
             const auto &surfaces = lvolume.surfaces();
-            const auto &surface_transforms = surfaces.transforms();
-            const auto &surface_masks = surfaces.masks();
+            const auto &surface_transforms = d.transforms(lvolume.surface_range(), s_context);
+            const auto &surface_masks = d.masks();
 
             if (not is_cylinder)
             {
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
                     const auto &transform_link = s.transform();
 
                     // Unroll the mask container and generate vertices
-                    const auto &transform = surface_transforms.contextual_transform(s_context, transform_link);
+                    const auto &transform = surface_transforms[transform_link];
 
                     const auto &mask_context = std::get<0>(mask_link);
                     const auto &mask_range = std::get<1>(mask_link);
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
                     const auto &transform_link = s.transform();
 
                     // Unroll the mask container and generate vertices
-                    const auto &transform = surface_transforms.contextual_transform(s_context, transform_link);
+                    const auto &transform = surface_transforms[transform_link];
 
                     const auto &mask_context = std::get<0>(mask_link);
                     const auto &mask_range = std::get<1>(mask_link);
