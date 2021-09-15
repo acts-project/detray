@@ -103,9 +103,9 @@ namespace __plugin
                     for (const auto &v : d.volumes())
                     {
                         // Loop over surfaces
-                        for (size_t si = v.surface_range()[0]; si < v.surface_range()[1]; si++)
+                        for (size_t si = v.template range<get_surface_masks>()[0]; si < v.template range<get_surface_masks>()[1]; si++)
                         {
-                            auto sfi_surface = intersect(track, surfaces[si], d.transforms(v.surface_trf_range(), default_context), masks);
+                            auto sfi_surface = intersect(track, surfaces[si], d.transforms(v.template trf_range<get_surface_masks>(), default_context), masks);
 
                             const auto &sfi = std::get<0>(sfi_surface);
                             
