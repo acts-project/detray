@@ -1,3 +1,4 @@
+SET(ALGEBRA_PLUGIN_USE_VECMEM ON CACHE BOOL "Use Vecmem for array algebra")
 add_subdirectory(algebra-plugins)
 
 if (DETRAY_UNIT_TESTS)
