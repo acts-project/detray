@@ -419,6 +419,14 @@ namespace detray
         {
             unroll_container_filling<0, object_container, mask_container, add_surfaces>(surfaces, masks, volume, trfs, ctx);
         }
+        
+        /** @return all surfaces/portals in the detector */
+        template<bool get_surface = true>
+        const auto& surfaces() const
+        {
+            if constexpr (get_surface) { return _surfaces; }
+            else { return _portals; }
+        }
 
         /** Get @return all surface/portal masks in the detector */
         template<bool surface_masks = e_surface>
@@ -567,8 +575,6 @@ namespace detray
         {
             _surfaces_finders = std::move(surfaces_finders);
         }
-
-
 
         /** @return the surface finders - const access */
         const vector_type<surfaces_finder> &surfaces_finders() const { return _surfaces_finders; }
