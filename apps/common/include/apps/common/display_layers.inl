@@ -81,19 +81,21 @@ int main(int argc, char **argv)
                 // Switch 'quiet' mode on during drawing
                 const auto &bounds = v.bounds();
                 bool is_cylinder = std::abs(bounds[1] - bounds[0]) < std::abs(bounds[3] - bounds[2]);
+                const auto &sf_range = v. template range<>();
 
-                const auto &surfaces = v.surfaces();
-                const auto &volume_transforms = d.transforms(v.surface_range(), s_context);
+                const auto &surfaces = d.surfaces<>();
+                const auto &volume_transforms = d.transforms(sf_range, s_context);
                 const auto &volume_masks = d.masks();
 
-                if (surfaces.objects().empty())
+                if (v.empty())
                 {
                     continue;
                 }
 
                 // Loop over the surfaces within a volume
-                for (const auto &s : surfaces.objects())
+                for (dindex sfi = sf_range[0]; sfi < sf_range[1]; sfi++)
                 {
+                    const auto &s = surfaces[sfi];
                     dvector<point3> vertices = {};
                     const auto &mask_link = s.mask();
                     const auto &transform_link = s.transform();

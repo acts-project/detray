@@ -211,8 +211,7 @@ namespace detray
             /** @return if the volume is empty or not */
             bool empty() const
             {
-                return (is_empty_range(_surface_range) and
-                        is_empty_range(_portal_range));
+                return is_empty_range(_surface_range);
             }
 
             /** @return the number of surfaces in the volume */
