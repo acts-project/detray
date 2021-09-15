@@ -8,6 +8,8 @@ target_include_directories(detray_core
     $<INSTALL_INTERFACE:include>
 )
 
+target_link_libraries(detray_core INTERFACE vecmem::core)
+
 install(
   DIRECTORY include/core
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include <vecmem/memory/memory_resource.hpp>
+#include <vecmem/containers/vector.hpp>
+
 namespace detray
 {
 
@@ -45,7 +48,7 @@ namespace detray
          * @param axis_p1 is the axis in the second coordinate
          * 
          **/
-        grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1) : _axis_p0(axis_p0), _axis_p1(axis_p1)
+        grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1, vecmem::memory_resource* mr = nullptr) : _axis_p0(axis_p0), _axis_p1(axis_p1), _data_serialized(mr)
         {
             _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
         }
@@ -56,9 +59,9 @@ namespace detray
          * @param axis_p1 is the axis in the second coordinate
          * 
          **/
-        grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1) : _axis_p0(std::move(axis_p0)), _axis_p1(std::move(axis_p1))
+        grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1, vecmem::memory_resource* mr = nullptr) : _axis_p0(std::move(axis_p0)), _axis_p1(std::move(axis_p1)), _data_serialized(mr)
         {
-            _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
+	    _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
         }
 
         /** Allow for grid shift, when using a centralized store and indices
