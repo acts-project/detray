@@ -83,8 +83,8 @@ int main(int argc, char **argv)
                 bool is_cylinder = std::abs(bounds[1] - bounds[0]) < std::abs(bounds[3] - bounds[2]);
 
                 const auto &surfaces = v.surfaces();
-                const auto &volume_transforms = surfaces.transforms();
-                const auto &volume_masks = surfaces.masks();
+                const auto &volume_transforms = d.transforms(v.surface_range(), s_context);
+                const auto &volume_masks = d.masks();
 
                 if (surfaces.objects().empty())
                 {
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
                     const auto &transform_link = s.transform();
 
                     // Unroll the mask container and generate vertices
-                    const auto &transform = volume_transforms.contextual_transform(s_context, transform_link);
+                    const auto &transform = volume_transforms[transform_link];
 
                     const auto &mask_context = std::get<0>(mask_link);
                     const auto &mask_range = std::get<1>(mask_link);
