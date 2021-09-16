@@ -7,9 +7,6 @@ enable_testing()
 
 include(CMakeDependentOption)
 
-# Include the traccc CMake code.
-list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
-
 option(DETRAY_ARRAY_PLUGIN "Build std::array math plugin" On)
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" Off)
@@ -71,5 +68,3 @@ add_subdirectory(tests)
 if (DETRAY_DISPLAY)
     add_subdirectory(display)
 endif()
-
-include (traccc-dependencies)

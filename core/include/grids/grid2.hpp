@@ -61,6 +61,7 @@ namespace detray
          **/
         grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1, vecmem::memory_resource* mr = nullptr) : _axis_p0(std::move(axis_p0)), _axis_p1(std::move(axis_p1)), _data_serialized(mr)
         {
+	    
 	    _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
         }
 

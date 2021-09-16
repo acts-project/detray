@@ -11,6 +11,7 @@
 #include <vector>
 #include <map>
 #include <tuple>
+#include <vecmem/containers/vector.hpp>
 
 namespace detray
 {
@@ -18,7 +19,7 @@ namespace detray
     using darray = std::array<value_type, kDIM>;
 
     template <typename value_type>
-    using dvector = std::vector<value_type>;
+    using dvector = vecmem::vector<value_type>;
 
     template <typename key_type, typename value_type>
     using dmap = std::map<key_type, value_type>;
