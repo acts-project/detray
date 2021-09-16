@@ -47,7 +47,7 @@ namespace detray
               typename local_type = __plugin::polar2,
               typename links_type = bool,
               unsigned int kMaskContext = e_annulus2,
-              template <typename, unsigned int> class array_type = std::array>
+              template <typename, std::size_t> class array_type = std::array>
     struct annulus2
     {
         using mask_tolerance = array_type<scalar, 2>;
