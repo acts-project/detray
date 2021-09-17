@@ -64,13 +64,4 @@ namespace detray{
 
     }
     
-    template void test1<std::vector, int>(std::vector<int>& vec);
-    
-    template < template < typename > class vector_t, typename T>
-    void test1(vector_t<T>& vec){
-	vector_t<T> a;
-	printf("hi \n");
-    }
-    
-    
 } // namespace

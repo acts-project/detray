@@ -33,7 +33,4 @@ namespace detray{
 		   const axis_p0_type axis0,
 		   const axis_p1_type axis1);
     
-    template < template < typename > class vector_t, typename T >
-    void test1(vector_t< T >& vec);
-
 } // namespace detray
