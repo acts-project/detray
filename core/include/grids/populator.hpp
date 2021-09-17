@@ -8,6 +8,7 @@
 #pragma once
 
 #include "utils/indexing.hpp"
+#include "definitions/invalid_values.hpp"
 
 #include <algorithm>
 #include <limits>
@@ -22,16 +23,18 @@ namespace detray
      * @note bare_value and store_value are identicial in this case
      **/
     template <typename value_type = dindex, 
-              value_type kInvalid = std::numeric_limits<dindex>::max(),
               template <typename> class vector_type = dvector>
     struct replace_populator
     {
 
+	replace_populator(const value_type invalid = invalid_value<value_type>())
+	    : kInvalid(invalid) {}	    	    
+	
+	value_type kInvalid;
+	
         using bare_value = value_type;
         using store_value = value_type;
-
-        static constexpr value_type invalid_value = kInvalid;
-
+       	
         /** Swap the stored value with a new bare value
          * 
          * @param stored the stored value for the population
@@ -89,13 +92,14 @@ namespace detray
     template <unsigned int kDIM, 
               bool kSORT = false, 
               typename value_type = dindex, 
-              value_type kInvalid = std::numeric_limits<dindex>::max(),
               template <typename, unsigned int> class array_type = darray,
               template <typename> class vector_type = dvector>
     struct complete_populator
     {
+	complete_populator(const value_type invalid = invalid_value<value_type>())
+	    : kInvalid(invalid) {}	    	    
 
-        static constexpr value_type invalid_value = kInvalid;
+	value_type kInvalid;
 
         using bare_value = value_type;
         using store_value = array_type<bare_value, kDIM>;
@@ -179,6 +183,10 @@ namespace detray
               template <typename> class vector_type = dvector>
     struct attach_populator
     {
+	attach_populator(const value_type invalid = invalid_value<value_type>())
+	    : kInvalid(invalid) {}	    	    
+
+	value_type kInvalid;
 
         using bare_value = value_type;
         using store_value = vector_type<bare_value>;

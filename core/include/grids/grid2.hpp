@@ -9,6 +9,7 @@
 
 #include <vecmem/memory/memory_resource.hpp>
 #include <vecmem/containers/vector.hpp>
+#include "definitions/invalid_values.hpp"
 
 namespace detray
 {
@@ -33,6 +34,7 @@ namespace detray
     {
 
     public:
+	using value_type = typename populator_type::bare_value;
         using serialized_storage = vector_type<typename populator_type::store_value>;
         using point2 = __plugin::point2;
 
@@ -48,7 +50,13 @@ namespace detray
          * @param axis_p1 is the axis in the second coordinate
          * 
          **/
-        grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1, vecmem::memory_resource* mr = nullptr) : _axis_p0(axis_p0), _axis_p1(axis_p1), _data_serialized(mr)
+        grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
+	      const value_type kInvalid = invalid_value<value_type>(),
+	      vecmem::memory_resource* mr = nullptr)
+	    :_axis_p0(axis_p0),
+	     _axis_p1(axis_p1),
+	     _populator(kInvalid),
+	     _data_serialized(mr)
         {
             _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
         }
@@ -59,7 +67,13 @@ namespace detray
          * @param axis_p1 is the axis in the second coordinate
          * 
          **/
-        grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1, vecmem::memory_resource* mr = nullptr) : _axis_p0(std::move(axis_p0)), _axis_p1(std::move(axis_p1)), _data_serialized(mr)
+        grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1,
+	      const value_type kInvalid = invalid_value<value_type>(),
+	      vecmem::memory_resource* mr = nullptr)
+	    : _axis_p0(std::move(axis_p0)),
+	      _axis_p1(std::move(axis_p1)),
+	      _populator(kInvalid),
+	      _data_serialized(mr)
         {
 	    
 	    _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
@@ -84,7 +98,7 @@ namespace detray
          * @param fvalue is a single fill value to be filled
          * 
          **/
-        template <typename point2_type>
+	template <typename point2_type>
         void populate(const point2_type &p2, typename populator_type::bare_value &&fvalue)
         {
             auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]));
@@ -236,7 +250,7 @@ namespace detray
         /** Const acess to the polulator */
         const populator_type &populator() const { return _populator; }
 
-	const serialized_storage& data() const { return _data_serialized; }
+	serialized_storage& data() { return _data_serialized; }
 	
     private:
         serialized_storage _data_serialized;
@@ -246,26 +260,30 @@ namespace detray
         populator_type _populator;
     };
 
+
     template <typename populator_type,
               typename axis_p0_type,
               typename axis_p1_type,
               typename serializer_type,
               template <typename, unsigned int> class array_type = darray,
               template <typename ...> class tuple_type = dtuple,
-              template <typename> class vector_type = dvector>    
+              template <typename> class vector_type = dvector>
     struct grid2_data{
-	grid2_data(grid2<populator_type, axis_p0_type, axis_p1_type,
-		   serializer_type, array_type, tuple_type, vector_type>& grid):
+	grid2_data(grid2<populator_type,
+		   axis_p0_type,
+		   axis_p1_type,
+		   serializer_type,
+		   array_type,
+		   tuple_type,
+		   vector_type>& grid):
 	    _axis_p0(grid.axis_p0()),
-	    _axis_p1(grid.axis_p1())
-	{
-	    _data_serialized = vecmem::get_data(grid.date());
-	}
+	    _axis_p1(grid.axis_p1()),
+	    _data_serialized(vecmem::get_data(grid.data()))
+	{}
 	
 	vecmem::data::vector_view<typename populator_type::store_value> _data_serialized;
 	const axis_p0_type _axis_p0;
 	const axis_p1_type _axis_p1;
 
     };
-    
 } // namespace detray

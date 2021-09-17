@@ -227,7 +227,7 @@ TEST(grids, grid2_attach_populator)
 
 TEST(grids, grid2_shift)
 {
-    replace_populator<dindex, 0> replacer;
+    replace_populator<dindex> replacer(0);
     serializer2 serializer;
 
     axis::regular<> xaxis{10, -5., 5.};

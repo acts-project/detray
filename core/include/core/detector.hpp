@@ -67,7 +67,7 @@ namespace detray
         using context = typename alignable_store::context;
 
         /// Volume grid definition
-        using volume_grid = grid2<replace_populator<dindex, std::numeric_limits<dindex>::max(), vector_type>,
+        using volume_grid = grid2<replace_populator<dindex, vector_type>,
                                   axis::irregular<array_type, vector_type>,
                                   axis::irregular<array_type, vector_type>,
                                   serializer2>;

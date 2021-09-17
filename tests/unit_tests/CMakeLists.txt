@@ -37,3 +37,7 @@ endif()
 if(DETRAY_VC_ALGEBRA_PLUGIN)
     add_subdirectory(vc)
 endif()
+
+if(DETRAY_BUILD_CUDA)
+  add_subdirectory(cuda)
+endif()
