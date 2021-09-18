@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
 
@@ -15,6 +17,8 @@
 // This tests the construction of a detector class
 TEST(ALGEBRA_PLUGIN, detector)
 {
+    vecmem::host_memory_resource host_mr;
+    
     using namespace detray;
     using namespace __plugin;
 
@@ -46,7 +50,7 @@ TEST(ALGEBRA_PLUGIN, detector)
     detector::surface_trapezoid trap = {1., 2., 3.};
     std::get<detector::surface_trapezoid::mask_context>(masks).push_back(trap);
 
-    detector d("test_detector");
+    detector d("test_detector", host_mr);
     auto &v = d.new_volume("test_volume", {0., 10., -5., 5., -M_PI, M_PI});
     d.add_surface_transforms(ctx0, v, std::move(static_storage));
 }

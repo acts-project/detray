@@ -34,7 +34,7 @@ namespace detray
     {
 
     public:
-	using value_type = typename populator_type::bare_value;
+	using bare_value = typename populator_type::bare_value;
         using serialized_storage = vector_type<typename populator_type::store_value>;
         using point2 = __plugin::point2;
 
@@ -51,12 +51,12 @@ namespace detray
          * 
          **/
         grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
-	      const value_type kInvalid = invalid_value<value_type>(),
-	      vecmem::memory_resource* mr = nullptr)
+	      vecmem::memory_resource& mr,
+	      const bare_value kInvalid = invalid_value<bare_value>())
 	    :_axis_p0(axis_p0),
 	     _axis_p1(axis_p1),
-	     _populator(kInvalid),
-	     _data_serialized(mr)
+	     _data_serialized(&mr),
+	     _populator(kInvalid)
         {
             _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
         }
@@ -68,14 +68,13 @@ namespace detray
          * 
          **/
         grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1,
-	      const value_type kInvalid = invalid_value<value_type>(),
-	      vecmem::memory_resource* mr = nullptr)
+	      vecmem::memory_resource& mr,
+	      const bare_value kInvalid = invalid_value<bare_value>())
 	    : _axis_p0(std::move(axis_p0)),
 	      _axis_p1(std::move(axis_p1)),
 	      _populator(kInvalid),
-	      _data_serialized(mr)
-        {
-	    
+	      _data_serialized(&mr)
+        {	    
 	    _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(), _populator.init());
         }
 

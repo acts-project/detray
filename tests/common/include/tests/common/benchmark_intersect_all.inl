@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
@@ -38,6 +40,8 @@ bool stream_file = false;
 /** Read the detector from file */
 auto read_detector()
 {
+    vecmem::host_memory_resource host_mr;
+    
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
     if (env_d_d == nullptr)
     {
@@ -50,7 +54,7 @@ auto read_detector()
     std::string volumes = data_directory + "odd-layer-volumes.csv";
     std::string grids = data_directory + "odd-surface-grids.csv";
     std::string grid_entries = "";
-    return detray::detector_from_csv<>(name, surfaces, volumes, grids, grid_entries);
+    return detray::detector_from_csv<>(name, surfaces, volumes, grids, grid_entries, host_mr);
 };
 
 auto d = read_detector();

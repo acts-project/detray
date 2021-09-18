@@ -5,12 +5,6 @@
  * Mozilla Public License Version 2.0
  */
 
-// vecmem include
-#include <vecmem/memory/cuda/managed_memory_resource.hpp>
-#include <vecmem/memory/memory_resource.hpp>
-#include <vecmem/containers/vector.hpp>
-#include <vecmem/containers/device_vector.hpp>
-
 #include "tests/common/test_defs.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"

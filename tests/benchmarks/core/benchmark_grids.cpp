@@ -5,6 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <vecmem/memory/host_memory_resource.hpp>
 #include "tests/common/test_defs.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
@@ -19,7 +20,9 @@ using namespace __plugin;
 
 namespace
 {
-
+    // memory resource
+    vecmem::host_memory_resource host_mr;
+    
     darray<dindex, 2> zone22 = { 2u, 2u };
 
     // This runs a reference test with random numbers only
@@ -41,7 +44,7 @@ namespace
     axis::regular<> xaxisr = axis::regular<>{25, 0., 25.};
     axis::regular<> yaxisr = axis::regular<>{60, 0., 60.};
     using grid2r = grid2<decltype(replacer), decltype(xaxisr), decltype(yaxisr), decltype(serializer)>;
-    grid2r g2r(std::move(xaxisr), std::move(yaxisr));
+    grid2r g2r(std::move(xaxisr), std::move(yaxisr), host_mr);
 
     // This runs a reference test with a regular grid structure
     static void BM_REGULAR_GRID_BIN(benchmark::State &state)
@@ -90,7 +93,7 @@ namespace
 
         using grid2ir = grid2<decltype(replacer), decltype(xaxisir), decltype(yaxisir), decltype(serializer)>;
 
-        return grid2ir(std::move(xaxisir), std::move(yaxisir));
+        return grid2ir(std::move(xaxisir), std::move(yaxisir), host_mr);
     }
 
     auto g2irr = construct_irregular_grid();

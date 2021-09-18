@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <vecmem/memory/memory_resource.hpp>
+
 #include "core/detector.hpp"
 #include "core/volume_connector.hpp"
 #include "grids/axis.hpp"
@@ -56,13 +58,14 @@ namespace detray
                     const std::string &layer_volume_file_name,
                     const std::string &grid_file_name,
                     const std::string &grid_entries_file_name,
+		    vecmem::memory_resource& resource,
                     scalar r_sync_tolerance = 0.,
                     scalar z_sync_tolerance = 0.)
   {
 
     using typed_detector = detector<array_type, tuple_type, vector_type, alignable_store, surface_source_link, bounds_source_link>;
 
-    typed_detector d(detector_name);
+    typed_detector d(detector_name, resource);
 
     // Surface reading
     surface_reader s_reader(surface_file_name);
@@ -273,10 +276,10 @@ namespace detray
       surfaces_phi_axis phi_axis{phi_bins, phi_min, phi_max};
 
       // negative / positive / inner / outer
-      surfaces_r_phi_grid rphi_grid_n(r_axis, phi_axis);
-      surfaces_r_phi_grid rphi_grid_p(r_axis, phi_axis);
-      surfaces_z_phi_grid zphi_grid_i{z_axis, phi_axis};
-      surfaces_z_phi_grid zphi_grid_o{z_axis, phi_axis};
+      surfaces_r_phi_grid rphi_grid_n(r_axis, phi_axis, resource);
+      surfaces_r_phi_grid rphi_grid_p(r_axis, phi_axis, resource);
+      surfaces_z_phi_grid zphi_grid_i{z_axis, phi_axis, resource};
+      surfaces_z_phi_grid zphi_grid_o{z_axis, phi_axis, resource};
 
       detector_surfaces_finders.push_back(rphi_grid_n);
       detector_surfaces_finders.push_back(rphi_grid_p);
@@ -471,7 +474,7 @@ namespace detray
     axis::irregular raxis{{rs}};
     axis::irregular zaxis{{zs}};
 
-    typename typed_detector::volume_grid v_grid(std::move(raxis), std::move(zaxis));
+    typename typed_detector::volume_grid v_grid(std::move(raxis), std::move(zaxis), resource);
 
     // A step into the volume (stepsilon), can be read in from the smallest difference
     scalar stepsilon = 1.;

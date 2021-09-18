@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
 #include "core/track.hpp"
@@ -18,6 +20,8 @@
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, navigator)
 {
+    vecmem::host_memory_resource host_mr;
+    
     using namespace detray;
 
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
@@ -32,7 +36,7 @@ TEST(ALGEBRA_PLUGIN, navigator)
     std::string surface_grid_file = data_directory + std::string("tml-surface-grids.csv");
     std::string surface_grid_entries_file = "";
 
-    auto d = detector_from_csv<>("tml", surface_file, layer_volume_file, surface_grid_file, surface_grid_entries_file);
+    auto d = detector_from_csv<>("tml", surface_file, layer_volume_file, surface_grid_file, surface_grid_entries_file, host_mr);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;

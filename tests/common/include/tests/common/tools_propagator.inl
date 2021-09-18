@@ -5,6 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <vecmem/memory/host_memory_resource.hpp>
 #include "core/track.hpp"
 #include "core/transform_store.hpp"
 #include "tools/line_stepper.hpp"
@@ -19,6 +20,8 @@
 // This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator)
 {
+    vecmem::host_memory_resource host_mr;
+    
     using namespace detray;
     using namespace __plugin;
 
@@ -34,7 +37,7 @@ TEST(ALGEBRA_PLUGIN, propagator)
     std::string layer_volume_file = data_directory + std::string("odd-layer-volumes.csv");
     std::string surface_grid_entries_file = "";
 
-    auto d = detector_from_csv<>("odd", surface_file, layer_volume_file, surface_grid_file, surface_grid_entries_file);
+    auto d = detector_from_csv<>("odd", surface_file, layer_volume_file, surface_grid_file, surface_grid_entries_file, host_mr);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;

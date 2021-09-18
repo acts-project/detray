@@ -12,7 +12,7 @@
 
 #include <algorithm>
 #include <limits>
-
+#include <iostream>
 namespace detray
 {
     /** A replace populator that swaps whatever current value in the 

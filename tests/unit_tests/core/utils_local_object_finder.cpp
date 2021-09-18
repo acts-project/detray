@@ -5,6 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "tests/common/test_defs.hpp"
 #include "grids/axis.hpp"
@@ -25,6 +26,7 @@ using namespace detray;
 // This tests the convenience enumeration function
 TEST(utils, local_object_finder)
 {
+    vecmem::host_memory_resource host_mr;
 
     replace_populator<> replacer;
     serializer2 serializer;
@@ -35,7 +37,7 @@ TEST(utils, local_object_finder)
     axis::regular<> yaxis{10, -5., 5.};
     using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis), decltype(serializer)>;
 
-    grid2r g2(std::move(xaxis), std::move(yaxis));
+    grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     g2.populate(p2, 8u);
 

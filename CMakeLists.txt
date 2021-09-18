@@ -61,7 +61,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
 
 # Set GPU-related options
 if(DETRAY_BUILD_CUDA)
-  set( CMAKE_CUDA_STANDARD 17 )
+  set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
   enable_language(CUDA)
 endif()
 

@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include <vecmem/memory/memory_resource.hpp>
+
 #include "core/intersection.hpp"
 #include "core/surface_base.hpp"
 #include "core/transform_store.hpp"
@@ -289,7 +291,12 @@ namespace detray
         /** Allowed costructor
          * @param name the detector
          */
-        detector(const std::string &name) : _name(name) {}
+        detector(const std::string &name, vecmem::memory_resource& resource)
+	    : _name(name),
+	      _volume_grid(volume_grid(std::move(axis::irregular{{}}),
+				       std::move(axis::irregular{{}}),
+				       resource))
+	{}
 
         /** Copy constructor makes sure the volumes belong to new detector.
          *
@@ -543,7 +550,7 @@ namespace detray
 
         vector_type<surfaces_finder> _surfaces_finders;
 
-        volume_grid _volume_grid = volume_grid(std::move(axis::irregular{{}}), std::move(axis::irregular{{}}));
+        volume_grid _volume_grid;// = volume_grid(std::move(axis::irregular{{}}), std::move(axis::irregular{{}}));
     };
 
 }

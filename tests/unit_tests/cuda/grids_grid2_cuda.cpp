@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/memory/host_memory_resource.hpp>
 #include "grids_grid2_cuda_kernel.cuh"
 
 #include <iostream>
@@ -16,15 +18,16 @@ using namespace detray;
 
 TEST(grids, grid2_complete_populator)
 {
+    // memory resource
+    vecmem::host_memory_resource host_mr;
+    vecmem::cuda::managed_memory_resource mng_mr;
+    
     // axis
     axis::regular<> xaxis{7, -1., 6.};
     axis::regular<> yaxis{3, 0., 3.};
-    
-    // managed memory resource
-    vecmem::cuda::managed_memory_resource mng_mr;
 
     // declare grid
-    grid2r g2(std::move(xaxis), std::move(yaxis), test::point3{0,0,0}, &mng_mr);
+    grid2r g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0,0,0});
 
     // get grid_data
     grid2_data g2_data(g2);
