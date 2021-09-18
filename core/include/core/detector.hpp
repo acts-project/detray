@@ -550,7 +550,7 @@ namespace detray
 
         vector_type<surfaces_finder> _surfaces_finders;
 
-        volume_grid _volume_grid;// = volume_grid(std::move(axis::irregular{{}}), std::move(axis::irregular{{}}));
+        volume_grid _volume_grid;
     };
 
 }
