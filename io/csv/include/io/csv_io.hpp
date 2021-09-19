@@ -88,8 +88,9 @@ namespace detray
 
     // Flushable containers
     typename typed_detector::volume *c_volume = nullptr;
-    typename typed_detector::surface_container c_surfaces;
+    typename typed_detector::surface_filling_container c_surfaces;
     typename typed_detector::surface_mask_container c_masks;
+    typename typed_detector::transform_container c_transforms;
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
 
@@ -295,17 +296,13 @@ namespace detray
       if (c_volume_itr == volumes.end())
       {
         // Flush the former information / c_volume still points to the prior volume
-        if (c_volume != nullptr and not surface_transform_storage.empty())
+        if (c_volume != nullptr)
         {
-          // Construction with move semantics
-          d.add_surface_transforms(surface_default_context, *c_volume, std::move(surface_transform_storage));
-          d.add_masks(c_surfaces, c_masks);
-          c_volume->add_surface_components(std::move(c_surfaces));
+          d.add_surfaces(*c_volume, c_surfaces, c_masks, c_transforms,  surface_default_context);
 
-          // Get new clean containers
-          surface_transform_storage = typename alignable_store::storage();
-          c_surfaces = typename typed_detector::surface_container();
-          c_masks = typename typed_detector::surface_mask_container();
+          c_surfaces   = typename typed_detector::surface_filling_container();
+          c_masks      = typename typed_detector::surface_mask_container();
+          c_transforms = typename typed_detector::transform_container();
         }
 
         // Create a new volume & assign
@@ -376,15 +373,23 @@ namespace detray
 
         if (bounds_type == 1)
         {
-          // Cylinder bounds
+          // Cylinder Bounds
           constexpr auto cylinder_context = typed_detector::surface_cylinder::mask_context;
 
-          // Get the cylinder mask container
+          // Add a new cylinder mask
           auto &cylinder_masks = std::get<cylinder_context>(c_masks);
           dindex cylinder_index = cylinder_masks.size();
           cylinder_masks.push_back({io_surface.bound_param0, io_surface.cz - io_surface.bound_param1, io_surface.cz + io_surface.bound_param1});
           // The read is valid: set the index
           mask_index = {cylinder_context, cylinder_index};
+
+          // Build the cylinder transform
+          auto &cylinder_transforms = std::get<cylinder_context>(c_transforms);
+          cylinder_transforms.emplace_back(surface_default_context, t, z, x);
+
+          // Save the corresponding surface
+          auto &cylinder_surfaces = c_surfaces[cylinder_context];
+          cylinder_surfaces.emplace_back(cylinder_transforms.size(surface_default_context) - 1, mask_index, c_volume->index(), io_surface.geometry_id);
         }
         else if (bounds_type == 3)
         {
@@ -395,7 +400,7 @@ namespace detray
           // Rectangle bounds
           constexpr auto rectangle_context = typed_detector::surface_rectangle::mask_context;
 
-          // Get the rectangle mask container
+          // Add a new rectangle mask
           auto &rectangle_masks = std::get<rectangle_context>(c_masks);
           dindex rectangle_index = rectangle_masks.size();
           scalar half_x = 0.5 * (io_surface.bound_param2 - io_surface.bound_param0);
@@ -403,23 +408,40 @@ namespace detray
           rectangle_masks.push_back({half_x, half_y});
           // The read is valid: set the index
           mask_index = {rectangle_context, rectangle_index};
+
+          // Build the rectangle transform
+          auto &rectangle_transforms = std::get<rectangle_context>(c_transforms);
+          rectangle_transforms.emplace_back(surface_default_context, t, z, x);
+
+          // Save the corresponding surface
+          auto &rectangle_surfaces = c_surfaces[rectangle_context];
+          rectangle_surfaces.emplace_back(rectangle_transforms.size(surface_default_context) - 1, mask_index, c_volume->index(), io_surface.geometry_id);
         }
         else if (bounds_type == 7)
         {
           // Trapezoid bounds
           constexpr auto trapezoid_context = typed_detector::surface_trapezoid::mask_context;
-          // Get the trapezoid mask container
+          // Add a new trapezoid mask
           auto &trapezoid_masks = std::get<trapezoid_context>(c_masks);
           dindex trapezoid_index = trapezoid_masks.size();
           trapezoid_masks.push_back({io_surface.bound_param0, io_surface.bound_param1, io_surface.bound_param2});
           // The read is valid: set the index
           mask_index = {trapezoid_context, trapezoid_index};
+
+          // Build the trapezoid transform
+          auto &trapezoid_transforms = std::get<trapezoid_context>(c_transforms);
+          trapezoid_transforms.emplace_back(surface_default_context, t, z, x);
+
+          // Save the corresponding surface
+          auto &trapezoid_surfaces = c_surfaces[trapezoid_context];
+          trapezoid_surfaces.push_back({trapezoid_transforms.size(surface_default_context) - 1, mask_index, c_volume->index(), io_surface.geometry_id});
         }
         else if (bounds_type == 11)
         {
           // Annulus bounds
           constexpr auto annulus_context = typed_detector::surface_annulus::mask_context;
-          // Get the trapezoid mask container
+
+          // Add a new annulus mask
           auto &annulus_masks = std::get<annulus_context>(c_masks);
           dindex annulus_index = annulus_masks.size();
           annulus_masks.push_back({io_surface.bound_param0,
@@ -431,16 +453,15 @@ namespace detray
                                    io_surface.bound_param6});
           // The read is valid: set the index
           mask_index = {annulus_context, annulus_index};
-        }
 
-        // Fill the surface into the temporary container
-        if (mask_index[0] != dindex_invalid)
-        {
-          dindex transform_index = surface_transform_storage.size();
-          surface_transform_storage.push_back(transform3{t, z, x});
-          c_surfaces.push_back({transform_index, mask_index, c_volume->index(), io_surface.geometry_id});
-        }
+          // Build the annulus transform
+          auto &annulus_transforms = std::get<annulus_context>(c_transforms);
+          annulus_transforms.emplace_back(surface_default_context, t, z, x);
 
+          // Save the corresponding surface
+          auto &annulus_surfaces = c_surfaces[annulus_context];
+          annulus_surfaces.emplace_back(annulus_transforms.size(surface_default_context) - 1, mask_index, c_volume->index(), io_surface.geometry_id);
+        }
       } // end of exclusion for navigation layers
     }
 

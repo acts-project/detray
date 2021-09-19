@@ -40,6 +40,13 @@ TEST(ALGEBRA_PLUGIN, static_transform_store)
     static_store.push_back(ctx0, std::move(tf2));
     ASSERT_EQ(static_store.size(ctx0), 3u);
 
+    point3 t3{2.,0.,0.};
+    static_store.emplace_back(ctx0, std::move(t3));
+    ASSERT_EQ(static_store.size(ctx0), 4u);
+
+    static_store.emplace_back(ctx0);
+    ASSERT_EQ(static_store.size(ctx0), 5u);
+
 }
 
 
