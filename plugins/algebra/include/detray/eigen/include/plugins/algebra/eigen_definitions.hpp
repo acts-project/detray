@@ -1,5 +1,6 @@
 
 #include "algebra/definitions/eigen.hpp"
+#include "vecmem/containers/vector.hpp"
 
 #define ALGEBRA_PLUGIN eigen
 
@@ -11,8 +12,8 @@ namespace detray {
     using darray = std::array<value_type, kDIM>;
 
     template <typename value_type>
-    using dvector = algebra::vector_s<value_type>;
-
+    using dvector = vecmem::vector<value_type>;
+    
     template <typename key_type, typename value_type>
     using dmap = algebra::map_s<key_type, value_type>;
 
