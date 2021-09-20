@@ -45,7 +45,7 @@ namespace detray
     {
 
         // Get surfaces, transforms and masks
-        const auto &surfaces = volume.surfaces();
+        const auto &surfaces = detector.surfaces();
         const auto &surface_transforms = detector.transforms(volume.surface_range(), context);
         const auto &surface_masks = detector.masks();
 
@@ -83,8 +83,11 @@ namespace detray
                                                                     phi_borders[1] + phi_add);
 
                     // Run through the surfaces and associate them by contour
-                    for (auto [is, s] : enumerate(surfaces.objects()))
+                    const auto& sf_range = volume.surface_range();
+                    for (auto is = sf_range[0]; is < sf_range[1]; is++)
+                    //for (auto [is, s] : enumerate(surfaces.objects()))
                     {
+                        const auto& s = surfaces[is];
                         dvector<point3> vertices = {};
                         const auto &mask_link = s.mask();
 
@@ -154,8 +157,11 @@ namespace detray
                     std::vector<point2> bin_contour = {p0_bin, p1_bin, p2_bin, p3_bin};
 
                     // Loop over the surfaces within a volume
-                    for (auto [is, s] : enumerate(surfaces.objects()))
+                    const auto& sf_range = volume.surface_range();
+                    for (auto is = sf_range[0]; is < sf_range[1]; is++)
+                    //for (auto [is, s] : enumerate(surfaces.objects()))
                     {
+                        const auto& s = surfaces[is];
                         dvector<point3> vertices = {};
                         const auto &mask_link = s.mask();
 
