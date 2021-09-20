@@ -10,7 +10,7 @@
 #include <limits>
 
 namespace detray {
-
+    
     template< typename T >
     T invalid_value(){
 	return T::invalid_value();

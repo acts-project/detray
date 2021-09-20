@@ -6,7 +6,6 @@
  */
 
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
-#include <vecmem/memory/host_memory_resource.hpp>
 #include "grids_grid2_cuda_kernel.cuh"
 
 #include <iostream>
@@ -16,10 +15,9 @@
 
 using namespace detray;
 
-TEST(grids, grid2_complete_populator)
+TEST(grids_cuda, grid2_complete_populator)
 {
     // memory resource
-    vecmem::host_memory_resource host_mr;
     vecmem::cuda::managed_memory_resource mng_mr;
     
     // axis
@@ -45,7 +43,8 @@ TEST(grids, grid2_complete_populator)
     }
     
     // test grid_data in cuda
-    grid_test(g2_data._data_serialized, g2_data._axis_p0, g2_data._axis_p1);
+    //grid_test1(g2_data._data_serialized, g2_data._axis_p0, g2_data._axis_p1);
+    grid_test2(g2_data);
 
     auto x_interval = (xaxis.max - xaxis.min)/xaxis.n_bins;
     auto y_interval = (yaxis.max - yaxis.min)/yaxis.n_bins;	
@@ -68,7 +67,30 @@ TEST(grids, grid2_complete_populator)
 		EXPECT_EQ(pt, tp);
 	    }	    
 	}
-    }    
+    }
+
+    // test2 grid_data in cuda
+    grid_test2(g2_data);
+}
+
+TEST(grids_cuda, grid2_attach_populator){
+
+    // memory resource
+    vecmem::cuda::managed_memory_resource mng_mr;
+    
+    // axis
+    axis::regular<> xaxis{7, -1., 6.};
+    axis::regular<> yaxis{3, 0., 3.};
+
+    // declare grid
+    grid2r g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0,0,0});
+
+    // get grid_data
+    grid2_data g2_data(g2);
+
+
+
+
 }
 
 int main(int argc, char **argv)

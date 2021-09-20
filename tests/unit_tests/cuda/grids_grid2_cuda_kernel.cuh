@@ -20,11 +20,21 @@ namespace detray{
     
     using grid2r = grid2<populator_t, axis::regular<>, axis::regular<>, serializer2>;
 
+    using grid2r_data = grid2_data<populator_t, axis::regular<>, axis::regular<>, serializer2>;
+    
     template< typename value_type,
 	      typename axis_p0_type,
 	      typename axis_p1_type>
-    void grid_test(vecmem::data::vector_view<value_type> data_view,
-		   const axis_p0_type axis0,
-		   const axis_p1_type axis1);
+    void grid_test1(vecmem::data::vector_view<value_type> data_view,
+		    const axis_p0_type axis0,
+		    const axis_p1_type axis1);
+    
+    template <typename populator_type,
+              typename axis_p0_type,
+              typename axis_p1_type,
+              typename serializer_type>    
+    void grid_test2(grid2_data<populator_type, axis_p0_type, axis_p1_type, serializer_type >& grid_data);
+    
+
     
 } // namespace detray
