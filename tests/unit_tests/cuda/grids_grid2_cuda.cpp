@@ -70,7 +70,7 @@ TEST(grids_cuda, grid2_complete_populator)
 }
 
 TEST(grids_cuda, grid2_attach_populator){
-
+    /*
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
     
@@ -118,7 +118,7 @@ TEST(grids_cuda, grid2_attach_populator){
     grid2_data g2_data(g2);
 
     grid_test(g2_data);
-    
+    */
 }
 
 int main(int argc, char **argv)

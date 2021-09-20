@@ -193,7 +193,7 @@ namespace detray
 
         using bare_value = value_type;
         using store_value = vector_type<bare_value>;
-	//using serialized_storage = jagged_vector_type<store_value>;
+	using serialized_storage = jagged_vector_type<store_value>;
 	
         /** Add a new value to the stored value
          * 

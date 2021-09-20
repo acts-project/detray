@@ -18,11 +18,11 @@ namespace detray{
     // test instantiation for complete populator
     template void grid_test<grid2r_complete_data>(
         grid2r_complete_data& grid_data);
-
+    /*
     // test instantiation for attach populator
     template void grid_test<grid2r_attach_data>(
         grid2r_attach_data& grid_data);
-    
+    */
     // test function implementation
     template <typename grid2_data_t>    
     void grid_test(grid2_data_t& grid_data){
