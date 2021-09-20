@@ -8,11 +8,11 @@ namespace detray {
     using scalar = algebra::scalar;
 
     template <typename value_type, unsigned int kDIM>
-    using darray = algebra::array_s<value_type, kDIM>;
+    using darray = std::array<value_type, kDIM>;
 
     template <typename value_type>
-    using dvector = algebra::vector_s<value_type>;
-
+    using dvector = vecmem::vector<value_type>;
+    
     template <typename key_type, typename value_type>
     using dmap = algebra::map_s<key_type, value_type>;
 

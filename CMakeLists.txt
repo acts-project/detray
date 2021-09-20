@@ -8,6 +8,7 @@ enable_testing()
 include(CMakeDependentOption)
 
 option(DETRAY_ARRAY_PLUGIN "Build std::array math plugin" On)
+option(DETRAY_VECMEM_ARRAY_PLUGIN "Build vecmem::array math plugin" On)
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" Off)
 option(DETRAY_VC_ALGEBRA_PLUGIN "Build vc based simd algebra math plugin" Off)
@@ -22,6 +23,10 @@ endif()
 
 if (DETRAY_ARRAY_PLUGIN)
     set(ALGEBRA_PLUGIN_INCLUDE_ARRAY ON)
+endif()
+
+if (DETRAY_VECMEM_ARRAY_PLUGIN)
+    set(ALGEBRA_PLUGIN_INCLUDE_VECMEM ON)
 endif()
 
 if (DETRAY_EIGEN_PLUGIN)
