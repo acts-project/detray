@@ -25,7 +25,7 @@ TEST(grids_cuda, grid2_complete_populator)
     axis::regular<> yaxis{3, 0., 3.};
 
     // declare grid
-    grid2r g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0,0,0});
+    grid2r_complete g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0,0,0});
 
     // get grid_data
     grid2_data g2_data(g2);
@@ -44,7 +44,8 @@ TEST(grids_cuda, grid2_complete_populator)
     
     // test grid_data in cuda
     //grid_test1(g2_data._data_serialized, g2_data._axis_p0, g2_data._axis_p1);
-    grid_test2(g2_data);
+    //grid_test2(g2_data);
+    grid_test3(g2_data);
 
     auto x_interval = (xaxis.max - xaxis.min)/xaxis.n_bins;
     auto y_interval = (yaxis.max - yaxis.min)/yaxis.n_bins;	
@@ -83,13 +84,10 @@ TEST(grids_cuda, grid2_attach_populator){
     axis::regular<> yaxis{3, 0., 3.};
 
     // declare grid
-    grid2r g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0,0,0});
+    grid2r_complete g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0,0,0});
 
     // get grid_data
     grid2_data g2_data(g2);
-
-
-
 
 }
 

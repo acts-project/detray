@@ -130,4 +130,51 @@ namespace detray{
 	pt = test::point3{axis0.min + gid*x_interval, axis1.min + gid*y_interval, 0.5};	
     }
     
+    /*--------------------------------------------------
+      test function for the grid type template
+      --------------------------------------------------*/
+
+    // test3 kernel declaration
+    template <typename grid_data_t>
+    __global__ void grid_test3_kernel(grid_data_t grid_data);
+
+    // test2 instantiation
+    template void grid_test3<grid2r_complete_data>(
+        grid2r_complete_data& grid_data);
+    
+    template <typename grid2_data_t>    
+    void grid_test3(grid2_data_t& grid_data){
+
+	auto& data_view = grid_data._data_serialized;
+	const auto& axis0 = grid_data._axis_p0;
+	const auto& axis1 = grid_data._axis_p1;
+	
+	int num_blocks = axis0.bins() * axis1.bins();
+	
+	int num_threads = data_view.ptr()[0].size();
+	
+	grid_test2_kernel<<< num_blocks, num_threads >>>(grid_data);
+
+	// cuda error check
+	DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+	DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+	
+    }
+
+    template <typename grid_data_t>
+    __global__ void grid_test3_kernel(grid_data_t grid_data){
+	vecmem::device_vector<typename grid_data_t::populator_t::store_value> data_device(grid_data._data_serialized);
+	const auto& axis0 = grid_data._axis_p0;
+	const auto& axis1 = grid_data._axis_p1;
+
+	auto& pt = data_device[blockIdx.x][threadIdx.x];
+
+	auto x_interval = (axis0.max - axis0.min)/axis0.n_bins;
+	auto y_interval = (axis1.max - axis1.min)/axis1.n_bins;	
+
+	auto gid = threadIdx.x + blockIdx.x * blockDim.x;
+
+	pt = test::point3{axis0.min + gid*x_interval, axis1.min + gid*y_interval, 0.5};		
+    }
+    
 } // namespace

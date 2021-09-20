@@ -5,22 +5,11 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "tests/common/test_defs.hpp"
-#include "grids/axis.hpp"
-#include "grids/grid2.hpp"
-#include "grids/serializer2.hpp"
-#include "grids/populator.hpp"
-#include "utils/indexing.hpp"
+#include "grid_types.hpp"
 
 #pragma once
 
 namespace detray{
-
-    using populator_t = complete_populator<3, false, test::point3>;
-    
-    using grid2r = grid2<populator_t, axis::regular<>, axis::regular<>, serializer2>;
-
-    using grid2r_data = grid2_data<populator_t, axis::regular<>, axis::regular<>, serializer2>;
     
     template< typename value_type,
 	      typename axis_p0_type,
@@ -34,7 +23,9 @@ namespace detray{
               typename axis_p1_type,
               typename serializer_type>    
     void grid_test2(grid2_data<populator_type, axis_p0_type, axis_p1_type, serializer_type >& grid_data);
-    
 
+    template <typename grid2_data_t>    
+    void grid_test3(grid2_data_t& grid_data);
+    
     
 } // namespace detray

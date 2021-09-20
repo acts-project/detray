@@ -268,6 +268,9 @@ namespace detray
               template <typename ...> class tuple_type = dtuple,
               template <typename> class vector_type = dvector>
     struct grid2_data{
+
+	using populator_t = populator_type;
+	
 	grid2_data(grid2<populator_type,
 		   axis_p0_type,
 		   axis_p1_type,
