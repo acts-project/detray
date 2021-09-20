@@ -26,7 +26,7 @@ namespace detray
               template <typename> class vector_type = dvector>
     struct replace_populator
     {
-
+	
 	replace_populator(const value_type invalid = invalid_value<value_type>())
 	    : kInvalid(invalid) {}	    	    
 	
@@ -34,7 +34,8 @@ namespace detray
 	
         using bare_value = value_type;
         using store_value = value_type;
-       	
+	using serialized_storage = vector_type<store_value>;
+	
         /** Swap the stored value with a new bare value
          * 
          * @param stored the stored value for the population
@@ -103,7 +104,8 @@ namespace detray
 
         using bare_value = value_type;
         using store_value = array_type<bare_value, kDIM>;
-
+	using serialized_storage = vector_type<store_value>;
+	
         /** Complete the stored value with a new bare value
          * 
          * @param stored the stored value for the population
@@ -180,7 +182,8 @@ namespace detray
      **/
     template <bool kSORT = false, 
               typename value_type = dindex,
-              template <typename> class vector_type = dvector>
+              template <typename> class vector_type = dvector,
+	      template <typename> class jagged_vector_type = djagged_vector>
     struct attach_populator
     {
 	attach_populator(const value_type invalid = invalid_value<value_type>())
@@ -190,7 +193,8 @@ namespace detray
 
         using bare_value = value_type;
         using store_value = vector_type<bare_value>;
-
+	//using serialized_storage = jagged_vector_type<store_value>;
+	
         /** Add a new value to the stored value
          * 
          * @param stored the stored value for the population

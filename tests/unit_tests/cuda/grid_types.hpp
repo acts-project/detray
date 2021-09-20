@@ -16,15 +16,18 @@
 
 namespace detray{
 
-    using populator_t = complete_populator<3, false, test::point3>;
     using grid2r_complete = grid2<complete_populator<3, false, test::point3>,
 				  axis::regular<>,
 				  axis::regular<>,
 				  serializer2>;
 
-    using grid2r_complete_data = grid2_data<complete_populator<3, false, test::point3>,
-					    axis::regular<>,
-					    axis::regular<>,
-					    serializer2>;
+    using grid2r_complete_data = grid2_data<grid2r_complete>;
+
+    using grid2r_attach = grid2<attach_populator<false, test::point3>,
+				axis::regular<>,
+				axis::regular<>,
+				serializer2>;
+
+    using grid2r_attach_data = grid2_data<grid2r_attach>;
     
 } // namespace

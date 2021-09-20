@@ -43,9 +43,7 @@ TEST(grids_cuda, grid2_complete_populator)
     }
     
     // test grid_data in cuda
-    //grid_test1(g2_data._data_serialized, g2_data._axis_p0, g2_data._axis_p1);
-    //grid_test2(g2_data);
-    grid_test3(g2_data);
+    grid_test(g2_data);
 
     auto x_interval = (xaxis.max - xaxis.min)/xaxis.n_bins;
     auto y_interval = (yaxis.max - yaxis.min)/yaxis.n_bins;	
@@ -69,9 +67,6 @@ TEST(grids_cuda, grid2_complete_populator)
 	    }	    
 	}
     }
-
-    // test2 grid_data in cuda
-    grid_test2(g2_data);
 }
 
 TEST(grids_cuda, grid2_attach_populator){
@@ -83,12 +78,47 @@ TEST(grids_cuda, grid2_attach_populator){
     axis::regular<> xaxis{7, -1., 6.};
     axis::regular<> yaxis{3, 0., 3.};
 
+    auto x_interval = (xaxis.max - xaxis.min)/xaxis.n_bins;
+    auto y_interval = (yaxis.max - yaxis.min)/yaxis.n_bins;	
+    
     // declare grid
-    grid2r_complete g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0,0,0});
+    grid2r_attach g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0,0,0});
 
+    int n_size = 1;
+
+    // fill the grid
+    for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++){
+	for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++){
+	    for (int i_p = 0 ; i_p<n_size; i_p++){
+
+		auto bin_id = i_x + i_y * xaxis.bins();
+		auto gid = i_p + bin_id * n_size ;
+
+		test::point3 tp({xaxis.min + gid*x_interval,
+				 yaxis.min + gid*y_interval,
+				 0.5});		
+		g2.populate(i_x, i_y, std::move(tp));
+	    }
+	}
+    }
+
+    // read the grid
+    for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++){
+	for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++){
+	    
+	    auto& data = g2.bin(i_x,i_y);
+	    for (int i_p = 0 ; i_p<data.size(); i_p++){
+		auto& pt = data[i_p];
+		//std::cout << pt[0] << "  " << pt[1] << "  " << pt[2] << std::endl;
+	    }
+	}
+    }
+    
     // get grid_data
     grid2_data g2_data(g2);
 
+    grid_test(g2_data);
+    
 }
 
 int main(int argc, char **argv)

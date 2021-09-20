@@ -13,7 +13,7 @@
 
 namespace detray
 {
-
+       
     /** A two-dimensional grid for object storage
      * 
      * @tparam populator_type  is a prescription what to do when a bin gets pupulated, it broadcasts
@@ -34,7 +34,12 @@ namespace detray
     {
 
     public:
-	using bare_value = typename populator_type::bare_value;
+
+	using populator_t = populator_type;
+	using axis_p0_t = axis_p0_type;
+	using axis_p1_t = axis_p1_type;
+	
+	using bare_value = typename populator_type::bare_value;	
         using serialized_storage = vector_type<typename populator_type::store_value>;
         using point2 = __plugin::point2;
 
@@ -260,32 +265,23 @@ namespace detray
     };
 
 
-    template <typename populator_type,
-              typename axis_p0_type,
-              typename axis_p1_type,
-              typename serializer_type,
-              template <typename, unsigned int> class array_type = darray,
-              template <typename ...> class tuple_type = dtuple,
-              template <typename> class vector_type = dvector>
+    template <typename grid_t>
     struct grid2_data{
 
-	using populator_t = populator_type;
+	using populator_t = typename grid_t::populator_t;
+	using store_value_t = typename populator_t::store_value;
+	using axis_p0_t = typename grid_t::axis_p0_t;
+	using axis_p1_t = typename grid_t::axis_p1_t;
 	
-	grid2_data(grid2<populator_type,
-		   axis_p0_type,
-		   axis_p1_type,
-		   serializer_type,
-		   array_type,
-		   tuple_type,
-		   vector_type>& grid):
+	grid2_data(grid_t& grid):
 	    _axis_p0(grid.axis_p0()),
 	    _axis_p1(grid.axis_p1()),
 	    _data_serialized(vecmem::get_data(grid.data()))
 	{}
 	
-	vecmem::data::vector_view<typename populator_type::store_value> _data_serialized;
-	const axis_p0_type _axis_p0;
-	const axis_p1_type _axis_p1;
+	vecmem::data::vector_view<store_value_t> _data_serialized;
+	const axis_p0_t _axis_p0;
+	const axis_p1_t _axis_p1;
 
     };
 } // namespace detray

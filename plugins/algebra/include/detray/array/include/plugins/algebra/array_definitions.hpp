@@ -14,6 +14,9 @@ namespace detray {
     template <typename value_type>
     using dvector = vecmem::vector<value_type>;
 
+    template <typename value_type>
+    using djagged_vector = vecmem::jagged_vector<value_type>;
+    
     template <typename key_type, typename value_type>
     using dmap = algebra::map_s<key_type, value_type>;
 
