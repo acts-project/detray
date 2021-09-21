@@ -11,12 +11,8 @@
 #include "definitions/invalid_values.hpp"
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
-
-//#include <vecmem/containers/vector.hpp>
-//#include <vecmem/containers/jagged_vector.hpp>
-//#include <vecmem/containers/data/vector_buffer.hpp>
-//#include <vecmem/containers/data/jagged_vector_buffer.hpp>
-
+#include <vecmem/containers/data/vector_view.hpp>
+#include <vecmem/containers/data/jagged_vector_view.hpp>
 
 #include <algorithm>
 #include <limits>

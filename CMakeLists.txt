@@ -15,6 +15,7 @@ option(DETRAY_VC_ALGEBRA_PLUGIN "Build vc based simd algebra math plugin" Off)
 option(DETRAY_IO_CSV "Build CSV IO module" On)
 option(DETRAY_IO_JSON "Build JSON IO module" On)
 option(DETRAY_DISPLAY "Build matplot++ based display module" Off)
+option(DETRAY_BUILD_CUDA "Build the CUDA sources included in detray" Off)
 
 if(DETRAY_CUSTOM_SCALARTYPE)
     message(STATUS "Building with custom scalar type: " ${DETRAY_CUSTOM_SCALARTYPE})
