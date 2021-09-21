@@ -11,7 +11,7 @@ namespace detray {
     using darray = std::array<value_type, kDIM>;
 
     template <typename value_type>
-    using dvector = vecmem::vector<value_type>;
+    using dvector = algebra::vector_s<value_type>;
     
     template <typename key_type, typename value_type>
     using dmap = algebra::map_s<key_type, value_type>;
