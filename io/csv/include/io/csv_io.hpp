@@ -86,7 +86,7 @@ namespace detray
     // Flushable containers
     typename typed_detector::volume *c_volume = nullptr;
     typename typed_detector::surface_filling_container c_surfaces;
-    typename typed_detector::surface_mask_container c_masks;
+    typename typed_detector::mask_container c_masks;
     typename typed_detector::transform_container c_transforms;
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
@@ -298,7 +298,7 @@ namespace detray
           d.template add_objects<typed_detector::e_surface>(*c_volume, c_surfaces, c_masks, c_transforms,  surface_default_context);
 
           c_surfaces   = typename typed_detector::surface_filling_container();
-          c_masks      = typename typed_detector::surface_mask_container();
+          c_masks      = typename typed_detector::mask_container();
           c_transforms = typename typed_detector::transform_container();
         }
 

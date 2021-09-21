@@ -216,12 +216,11 @@ void connect_cylindrical_volumes(
         // Walk up from the bottom right corner
         walk_up(bottom_right, right_portals_info, false, 1);
 
-        typename detector_type::portal_filling_container portals = {};
-        typename detector_type::portal_mask_container portal_masks;
-        typename detector_type::transform_container portal_transforms;
-
         // The bounds can be used for the mask and transform information
         const auto &volume_bounds = volume.bounds();
+        typename detector_type::portal_filling_container portals = {};
+        typename detector_type::mask_container portal_masks;
+        typename detector_type::transform_container portal_transforms;
 
         /** Helper lambda to build disc portals
          *
