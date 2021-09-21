@@ -1,6 +1,5 @@
 
 #include "algebra/definitions/std_array.hpp"
-#include "vecmem/containers/vector.hpp"
 
 #define ALGEBRA_PLUGIN array
 
