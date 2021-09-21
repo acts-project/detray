@@ -282,8 +282,7 @@ namespace detray
 	    _data_serialized(populator_t::get_data(grid.data(), resource))
 	{}
 	
-	vector_view_t _data_serialized;
-	
+	vector_view_t _data_serialized;	
 	const axis_p0_t _axis_p0;
 	const axis_p1_t _axis_p1;
     };

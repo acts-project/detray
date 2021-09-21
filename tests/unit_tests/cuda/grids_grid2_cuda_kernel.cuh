@@ -5,14 +5,18 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "grid_types.hpp"
+#include "grids_types.hpp"
 
 #pragma once
 
 namespace detray{
 
+    // test function for replace populator
+    template <typename grid2_data_t>    
+    void grid_test1(grid2_data_t& grid_data);    
+    
     // test function for complete and attach populator
     template <typename grid2_data_t>    
-    void grid_test(grid2_data_t& grid_data);    
+    void grid_test2(grid2_data_t& grid_data);    
     
 } // namespace detray
