@@ -5,7 +5,10 @@
  * Mozilla Public License Version 2.0
  */
 
+// detray test
 #include "tests/common/test_defs.hpp"
+
+// detray core
 #include "grids/axis.hpp"
 #include "grids/serializer2.hpp"
 #include "utils/indexing.hpp"

@@ -5,8 +5,10 @@
  * Mozilla Public License Version 2.0
  */
 
-
+// detray test
 #include "tests/common/test_defs.hpp"
+
+// detray core
 #include "utils/quadratic_equation.hpp"
 
 #include <gtest/gtest.h>
