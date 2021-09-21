@@ -1,6 +1,5 @@
 
 #include "algebra/definitions/eigen.hpp"
-#include "vecmem/containers/vector.hpp"
 
 #define ALGEBRA_PLUGIN eigen
 
