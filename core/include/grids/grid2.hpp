@@ -8,7 +8,6 @@
 #pragma once
 
 #include <vecmem/memory/memory_resource.hpp>
-#include <vecmem/containers/vector.hpp>
 #include "definitions/invalid_values.hpp"
 
 namespace detray
@@ -40,7 +39,7 @@ namespace detray
 	using axis_p1_t = axis_p1_type;
 	
 	using bare_value = typename populator_type::bare_value;	
-        using serialized_storage = vector_type<typename populator_type::store_value>;
+        using serialized_storage = typename populator_t::serialized_storage;
         using point2 = __plugin::point2;
 
         template <typename neighbor_t>
@@ -265,23 +264,27 @@ namespace detray
     };
 
 
+    /** A two-dimensional grid data for gpu device usage
+     * 
+     * @tparam grid_t type of grid
+     **/    
     template <typename grid_t>
     struct grid2_data{
 
 	using populator_t = typename grid_t::populator_t;
-	using store_value_t = typename populator_t::store_value;
+	using vector_view_t = typename populator_t::vector_view_t;
 	using axis_p0_t = typename grid_t::axis_p0_t;
 	using axis_p1_t = typename grid_t::axis_p1_t;
 	
-	grid2_data(grid_t& grid):
+	grid2_data(grid_t& grid, vecmem::memory_resource* resource = nullptr):
 	    _axis_p0(grid.axis_p0()),
 	    _axis_p1(grid.axis_p1()),
-	    _data_serialized(vecmem::get_data(grid.data()))
+	    _data_serialized(populator_t::get_data(grid.data(), resource))
 	{}
 	
-	vecmem::data::vector_view<store_value_t> _data_serialized;
+	vector_view_t _data_serialized;
+	
 	const axis_p0_t _axis_p0;
 	const axis_p1_t _axis_p1;
-
     };
 } // namespace detray

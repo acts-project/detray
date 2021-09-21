@@ -15,6 +15,12 @@
 
 using namespace detray;
 
+TEST(grids_cuda, grid2_replace_populator){
+
+
+
+}
+
 TEST(grids_cuda, grid2_complete_populator)
 {
     // memory resource
@@ -70,7 +76,7 @@ TEST(grids_cuda, grid2_complete_populator)
 }
 
 TEST(grids_cuda, grid2_attach_populator){
-    /*
+    
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
     
@@ -84,15 +90,13 @@ TEST(grids_cuda, grid2_attach_populator){
     // declare grid
     grid2r_attach g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0,0,0});
 
-    int n_size = 1;
-
     // fill the grid
     for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++){
 	for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++){
-	    for (int i_p = 0 ; i_p<n_size; i_p++){
+	    for (int i_p = 0 ; i_p<n_points; i_p++){
 
 		auto bin_id = i_x + i_y * xaxis.bins();
-		auto gid = i_p + bin_id * n_size ;
+		auto gid = i_p + bin_id * n_points ;
 
 		test::point3 tp({xaxis.min + gid*x_interval,
 				 yaxis.min + gid*y_interval,
@@ -102,23 +106,30 @@ TEST(grids_cuda, grid2_attach_populator){
 	}
     }
 
-    // read the grid
+    grid2r_attach::populator_t::serialized_storage original_storage = g2.data();
+    
+    // get grid_data
+    grid2_data g2_data(g2, &mng_mr);
+
+    grid_test(g2_data);
+
+    // check if the vector remains the same
     for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++){
 	for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++){
+	    auto bin_id = i_x + i_y * xaxis.bins();
+	    auto& original_data = original_storage[bin_id];
 	    
 	    auto& data = g2.bin(i_x,i_y);
 	    for (int i_p = 0 ; i_p<data.size(); i_p++){
 		auto& pt = data[i_p];
-		//std::cout << pt[0] << "  " << pt[1] << "  " << pt[2] << std::endl;
+		auto& original_pt = original_data[i_p];
+		
+		EXPECT_EQ(pt[0], original_pt[0]);
+		EXPECT_EQ(pt[1], original_pt[1]);
+		EXPECT_EQ(pt[2], original_pt[2]);
 	    }
 	}
-    }
-    
-    // get grid_data
-    grid2_data g2_data(g2);
-
-    grid_test(g2_data);
-    */
+    }    
 }
 
 int main(int argc, char **argv)

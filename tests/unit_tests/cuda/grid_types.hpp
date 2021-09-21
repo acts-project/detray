@@ -16,7 +16,9 @@
 
 namespace detray{
 
-    using grid2r_complete = grid2<complete_populator<3, false, test::point3>,
+    static constexpr int n_points = 3;
+    
+    using grid2r_complete = grid2<complete_populator<n_points, false, test::point3>,
 				  axis::regular<>,
 				  axis::regular<>,
 				  serializer2>;

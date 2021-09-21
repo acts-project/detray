@@ -9,6 +9,14 @@
 
 #include "utils/indexing.hpp"
 #include "definitions/invalid_values.hpp"
+#include <vecmem/containers/device_vector.hpp>
+#include <vecmem/containers/jagged_device_vector.hpp>
+
+//#include <vecmem/containers/vector.hpp>
+//#include <vecmem/containers/jagged_vector.hpp>
+//#include <vecmem/containers/data/vector_buffer.hpp>
+//#include <vecmem/containers/data/jagged_vector_buffer.hpp>
+
 
 #include <algorithm>
 #include <limits>
@@ -35,6 +43,8 @@ namespace detray
         using bare_value = value_type;
         using store_value = value_type;
 	using serialized_storage = vector_type<store_value>;
+	using vector_view_t = vecmem::data::vector_view<store_value>;
+	using device_vector_t = vecmem::device_vector<store_value>;
 	
         /** Swap the stored value with a new bare value
          * 
@@ -78,6 +88,12 @@ namespace detray
         {
             return kInvalid;
         }
+
+	/** Return a vector view
+         **/
+	static vector_view_t get_data(serialized_storage& data, vecmem::memory_resource* resource = nullptr){
+	    return vecmem::get_data(data);
+	}
     };
 
     /** A complete populator that adds values to the internal
@@ -105,6 +121,8 @@ namespace detray
         using bare_value = value_type;
         using store_value = array_type<bare_value, kDIM>;
 	using serialized_storage = vector_type<store_value>;
+	using vector_view_t = vecmem::data::vector_view<store_value>;
+	using device_vector_t = vecmem::device_vector<store_value>;
 	
         /** Complete the stored value with a new bare value
          * 
@@ -171,6 +189,12 @@ namespace detray
             }
             return init_bin;
         }
+
+	/** Return a vector view
+         **/
+	static vector_view_t get_data(serialized_storage& data, vecmem::memory_resource* resource = nullptr){
+	    return vecmem::get_data(data);
+	}
     };
 
     /** An attach populator that adds the new value to the 
@@ -193,7 +217,9 @@ namespace detray
 
         using bare_value = value_type;
         using store_value = vector_type<bare_value>;
-	using serialized_storage = jagged_vector_type<store_value>;
+	using serialized_storage = jagged_vector_type<bare_value>;
+	using vector_view_t = vecmem::data::jagged_vector_view<bare_value>;
+	using device_vector_t = vecmem::jagged_device_vector<bare_value>;
 	
         /** Add a new value to the stored value
          * 
@@ -237,6 +263,12 @@ namespace detray
         {
             return {};
         }
+
+	/** Return a vector view
+         **/
+	static vector_view_t get_data(serialized_storage& data, vecmem::memory_resource* resource){
+	    return vecmem::get_data(data, resource);
+	}
     };
 
 } // namespace detray

@@ -18,22 +18,22 @@ namespace detray{
     // test instantiation for complete populator
     template void grid_test<grid2r_complete_data>(
         grid2r_complete_data& grid_data);
-    /*
+    
     // test instantiation for attach populator
     template void grid_test<grid2r_attach_data>(
         grid2r_attach_data& grid_data);
-    */
+    
     // test function implementation
     template <typename grid2_data_t>    
     void grid_test(grid2_data_t& grid_data){
 
-	auto& data_view = grid_data._data_serialized;
+	//auto& data_view = grid_data._data_serialized;
 	const auto& axis0 = grid_data._axis_p0;
 	const auto& axis1 = grid_data._axis_p1;
 	
 	int num_blocks = axis0.bins() * axis1.bins();
 	
-	int num_threads = data_view.ptr()[0].size();
+	int num_threads = n_points;
 	
 	grid_test_kernel<<< num_blocks, num_threads >>>(grid_data);
 
@@ -46,19 +46,20 @@ namespace detray{
     // test kernel implementation
     template <typename grid_data_t>
     __global__ void grid_test_kernel(grid_data_t grid_data){
-	vecmem::device_vector<typename grid_data_t::store_value_t> data_device(grid_data._data_serialized);
+	
+	typename grid_data_t::populator_t::device_vector_t data_device(grid_data._data_serialized);
 	const auto& axis0 = grid_data._axis_p0;
 	const auto& axis1 = grid_data._axis_p1;
-
-	auto& bin_data = data_device[blockIdx.x];
-	auto& pt = bin_data[threadIdx.x];
+	
+	auto& bin_data = data_device[blockIdx.x][threadIdx.x];
+	auto& pt = bin_data;
 
 	auto x_interval = (axis0.max - axis0.min)/axis0.n_bins;
 	auto y_interval = (axis1.max - axis1.min)/axis1.n_bins;	
 
 	auto gid = threadIdx.x + blockIdx.x * blockDim.x;
 
-	pt = test::point3{axis0.min + gid*x_interval, axis1.min + gid*y_interval, 0.5};		
+	pt = test::point3{axis0.min + gid*x_interval, axis1.min + gid*y_interval, 0.5};	       
     }
     
 } // namespace
