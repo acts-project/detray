@@ -367,6 +367,8 @@ namespace detray
 
         // Acts naming convention for bounds
         typename typed_detector::surface_mask_index mask_index = {dindex_invalid, dindex_invalid};
+        // A surface mask points back to the current volume
+        typename typed_detector::volume_links volume_links = {c_volume->index(), c_volume->index()};
 
         if (bounds_type == 1)
         {
@@ -376,7 +378,7 @@ namespace detray
           // Add a new cylinder mask
           auto &cylinder_masks = std::get<cylinder_context>(c_masks);
           dindex cylinder_index = cylinder_masks.size();
-          cylinder_masks.push_back({io_surface.bound_param0, io_surface.cz - io_surface.bound_param1, io_surface.cz + io_surface.bound_param1});
+          cylinder_masks.push_back({io_surface.bound_param0, io_surface.cz - io_surface.bound_param1, io_surface.cz + io_surface.bound_param1, volume_links});
           // The read is valid: set the index
           mask_index = {cylinder_context, cylinder_index};
 
@@ -402,7 +404,7 @@ namespace detray
           dindex rectangle_index = rectangle_masks.size();
           scalar half_x = 0.5 * (io_surface.bound_param2 - io_surface.bound_param0);
           scalar half_y = 0.5 * (io_surface.bound_param3 - io_surface.bound_param1);
-          rectangle_masks.push_back({half_x, half_y});
+          rectangle_masks.push_back({half_x, half_y, volume_links});
           // The read is valid: set the index
           mask_index = {rectangle_context, rectangle_index};
 
@@ -422,7 +424,7 @@ namespace detray
           // Add a new trapezoid mask
           auto &trapezoid_masks = std::get<trapezoid_context>(c_masks);
           dindex trapezoid_index = trapezoid_masks.size();
-          trapezoid_masks.push_back({io_surface.bound_param0, io_surface.bound_param1, io_surface.bound_param2});
+          trapezoid_masks.push_back({io_surface.bound_param0, io_surface.bound_param1, io_surface.bound_param2, volume_links});
           // The read is valid: set the index
           mask_index = {trapezoid_context, trapezoid_index};
 
@@ -448,7 +450,8 @@ namespace detray
                                    io_surface.bound_param3,
                                    io_surface.bound_param4,
                                    io_surface.bound_param5,
-                                   io_surface.bound_param6});
+                                   io_surface.bound_param6,
+                                   volume_links});
           // The read is valid: set the index
           mask_index = {annulus_context, annulus_index};
 

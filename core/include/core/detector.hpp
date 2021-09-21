@@ -80,67 +80,52 @@ class detector {
     };
 
     /// The detector type
-    using detector_type =
-        detector<array_type, tuple_type, vector_type, alignable_store,
-                 surface_source_link, bounds_source_link,
-                 surfaces_populator_type, surfaces_serializer_type>;
+    using detector_type = detector<array_type, tuple_type, vector_type, alignable_store, surface_source_link, bounds_source_link, surfaces_populator_type, surfaces_serializer_type>;
 
     /// Forward the alignable container and context
     using transform_store = alignable_store;
     using context = typename alignable_store::context;
 
     /// Volume grid definition
-    using volume_grid =
-        grid2<replace_populator<dindex, std::numeric_limits<dindex>::max(),
-                                vector_type>,
-              axis::irregular<array_type, vector_type>,
-              axis::irregular<array_type, vector_type>, serializer2>;
+    using volume_grid = grid2<replace_populator<dindex, std::numeric_limits<dindex>::max(), vector_type>,
+                                  axis::irregular<array_type, vector_type>,
+                                  axis::irregular<array_type, vector_type>,
+                                  serializer2>;
 
     /// Portals components:
     /// - links:  next volume, next (local) object finder
-    using portal_links = array_type<dindex, 2>;
+    using volume_links = array_type<dindex, 2>;
     /// - masks, with mask identifiers 0, 1
-    using portal_cylinder = cylinder3<false, cylinder_intersector,
-                                      __plugin::cylindrical2, portal_links, 0>;
-    using portal_disc =
-        ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
+    using portal_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, volume_links, 0>;
+    using portal_disc = ring2<planar_intersector, __plugin::cartesian2, volume_links, 1>;
     // - mask index: type, { first/last }
     using portal_mask_index = tuple_type<dindex, array_type<dindex, 2>>;
-    using portal_mask_container =
-        tuple_type<vector_type<portal_cylinder>, vector_type<portal_disc>>;
+    using portal_mask_container = tuple_type<vector_type<portal_cylinder>, vector_type<portal_disc>>;
 
     /** The Portal definition:
      *  <transform_link, mask_index, volume_link, source_link >
-     *
+     * 
      * transform_link: index into the transform container
      * mask_index: typed index into the mask container
      * volume_link: index of the volume this portal belongs to
      * source_link: some link to an eventual exernal representation
-     *
+     * 
      */
-    using portal =
-        surface_base<dindex, portal_mask_index, dindex, surface_source_link>;
+    using portal = surface_base<dindex, portal_mask_index, dindex, surface_source_link>;
     using portal_container = vector_type<portal>;
 
     /// Surface components:
-    /// - surface links
-    using surface_links = array_type<dindex, 1>;
     /// - masks, with mask identifiers 0,1,2
-    using surface_rectangle =
-        rectangle2<planar_intersector, __plugin::cartesian2, surface_links, 0>;
-    using surface_trapezoid =
-        trapezoid2<planar_intersector, __plugin::cartesian2, surface_links, 1>;
-    using surface_annulus =
-        annulus2<planar_intersector, __plugin::cartesian2, surface_links, 2>;
-    using surface_cylinder =
-        cylinder3<false, cylinder_intersector, __plugin::cylindrical2,
-                  surface_links, 3>;
+    using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, volume_links, 0>;
+    using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, volume_links, 1>;
+    using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, volume_links, 2>;
+    using surface_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, volume_links, 3>;
     /// - mask index: type, entry
     using surface_mask_index = array_type<dindex, 2>;
-    using surface_mask_container =
-        tuple_type<vector_type<surface_rectangle>,
-                   vector_type<surface_trapezoid>, vector_type<surface_annulus>,
-                   vector_type<surface_cylinder>>;
+    using surface_mask_container = tuple_type<vector_type<surface_rectangle>,
+                                                  vector_type<surface_trapezoid>,
+                                                  vector_type<surface_annulus>,
+                                                  vector_type<surface_cylinder>>;
 
     using surface_link = surface_source_link;
     /** The Surface definition:
@@ -180,11 +165,9 @@ class detector {
         /** Deleted constructor */
         volume() = delete;
 
-        /** Allowed constructors
-         * @param name of the volume
-         * @param d detector the volume belongs to
-         *
-         * @note will be contructed boundless
+
+        /** The Surface definition:
+         *  <transform_link, mask_link, volume_link, source_link >
          */
         volume(const std::string &name) : _name(name) {}
 
