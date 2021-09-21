@@ -373,7 +373,7 @@ namespace detray
         if (bounds_type == 1)
         {
           // Cylinder Bounds
-          constexpr auto cylinder_context = typed_detector::surface_cylinder::mask_context;
+          constexpr auto cylinder_context = typed_detector::cylinder::mask_context;
 
           // Add a new cylinder mask
           auto &cylinder_masks = std::get<cylinder_context>(c_masks);
@@ -397,7 +397,7 @@ namespace detray
         else if (bounds_type == 6)
         {
           // Rectangle bounds
-          constexpr auto rectangle_context = typed_detector::surface_rectangle::mask_context;
+          constexpr auto rectangle_context = typed_detector::rectangle::mask_context;
 
           // Add a new rectangle mask
           auto &rectangle_masks = std::get<rectangle_context>(c_masks);
@@ -419,7 +419,7 @@ namespace detray
         else if (bounds_type == 7)
         {
           // Trapezoid bounds
-          constexpr auto trapezoid_context = typed_detector::surface_trapezoid::mask_context;
+          constexpr auto trapezoid_context = typed_detector::trapezoid::mask_context;
 
           // Add a new trapezoid mask
           auto &trapezoid_masks = std::get<trapezoid_context>(c_masks);
@@ -439,7 +439,7 @@ namespace detray
         else if (bounds_type == 11)
         {
           // Annulus bounds
-          constexpr auto annulus_context = typed_detector::surface_annulus::mask_context;
+          constexpr auto annulus_context = typed_detector::annulus::mask_context;
 
           // Add a new annulus mask
           auto &annulus_masks = std::get<annulus_context>(c_masks);

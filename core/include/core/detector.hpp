@@ -95,9 +95,14 @@ class detector {
     /// Portals components:
     /// - links:  next volume, next (local) object finder
     using volume_links = array_type<dindex, 2>;
-    /// - masks, with mask identifiers 0, 1
-    using portal_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, volume_links, 4>;
-    using portal_disc = ring2<planar_intersector, __plugin::cartesian2, volume_links, 5>;
+
+    /// - mask types
+    using rectangle = rectangle2<planar_intersector, __plugin::cartesian2, volume_links, 0>;
+    using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, volume_links, 1>;
+    using annulus = annulus2<planar_intersector, __plugin::cartesian2, volume_links, 2>;
+    using cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, volume_links, 3>;
+    using disc = ring2<planar_intersector, __plugin::cartesian2, volume_links, 4>;
+
     // - mask index: type, { first/last }
     using portal_mask_index = tuple_type<dindex, array_type<dindex, 2>>;
 
@@ -115,43 +120,41 @@ class detector {
 
     /// Surface components:
     /// - masks, with mask identifiers 0,1,2
-    using surface_rectangle = rectangle2<planar_intersector, __plugin::cartesian2, volume_links, 0>;
-    using surface_trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, volume_links, 1>;
-    using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2, volume_links, 2>;
-    using surface_cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, volume_links, 3>;
+
     /// - mask index: type, entry
     using surface_mask_index = array_type<dindex, 2>;
-    using mask_container = tuple_type<vector_type<surface_rectangle>,
-                                      vector_type<surface_trapezoid>,
-                                      vector_type<surface_annulus>,
-                                      vector_type<surface_cylinder>,
-                                      vector_type<portal_cylinder>,
-                                      vector_type<portal_disc>>;
+    using mask_container = tuple_type<vector_type<rectangle>,
+                                      vector_type<trapezoid>,
+                                      vector_type<annulus>,
+                                      vector_type<cylinder>,
+                                      vector_type<disc>>;
 
     using surface_link = surface_source_link;
     /** The Surface definition:
      *  <transform_link, mask_link, volume_link, source_link >
      */
-    using surface =
-        surface_base<dindex, surface_mask_index, dindex, surface_link>;
+    using surface = surface_base<dindex, surface_mask_index, dindex, surface_link>;
     using surface_container = vector_type<surface>;
 
     using surfaces_regular_axis = axis::regular<array_type>;
     using surfaces_circular_axis = axis::circular<array_type>;
-    using surfaces_regular_circular_grid =
-        grid2<surfaces_populator_type, surfaces_regular_axis,
-              surfaces_circular_axis, surfaces_serializer_type, array_type,
-              tuple_type, vector_type>;
+    using surfaces_regular_circular_grid = grid2<surfaces_populator_type,
+                                                 surfaces_regular_axis,
+                                                 surfaces_circular_axis,
+                                                 surfaces_serializer_type,
+                                                 array_type,
+                                                 tuple_type,
+                                                 vector_type>;
 
     using surfaces_finder = surfaces_regular_circular_grid;
 
-    /** Temporary container structures that are used to fill the detector.
-     * The respective objects are sorted by mask type, so that they can be
+    /** Temporary container structures that are used to fill the detector. 
+     * The respective objects are sorted by mask type, so that they can be 
      * unrolled and filled in lockstep with the masks
      */
-    using surface_filling_container = array_type<vector_type<surface>, 6>;
-    using portal_filling_container = array_type<vector_type<portal>, 6>;
-    using transform_container = array_type<transform_store, 6>;
+    using surface_filling_container = array_type<vector_type<surface>, 5>;
+    using portal_filling_container = array_type<vector_type<portal>, 5>;
+    using transform_container = array_type<transform_store, 5>;
 
     /** Nested volume struct that holds the local information of the
      * volume and its portals.

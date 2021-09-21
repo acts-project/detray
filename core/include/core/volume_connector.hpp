@@ -239,90 +239,69 @@ void connect_cylindrical_volumes(
                                                volume_bounds[bound_index]};
 
                 // Get the mask context group and fill it
-                auto &disc_portal_transforms =
-                    std::get<detector_type::portal_disc::mask_context>(
-                        portal_transforms);
-                auto &disc_portals =
-                    std::get<detector_type::portal_disc::mask_context>(portals);
-                auto &mask_group =
-                    std::get<detector_type::portal_disc::mask_context>(
-                        portal_masks);
+                auto &disc_portal_transforms = std::get<detector_type::disc::mask_context>(portal_transforms);
+                auto &disc_portals = std::get<detector_type::disc::mask_context>(portals);
+                auto &mask_group   = std::get<detector_type::disc::mask_context>(portal_masks);
 
-                typename detector_type::portal_mask_index mask_index = {
-                    detector_type::portal_disc::mask_context,
-                    {mask_group.size(), mask_group.size()}};
+                typename detector_type::portal_mask_index mask_index = {detector_type::disc::mask_context, {mask_group.size(), mask_group.size()}};
                 // Create a stub mask for every unique index
-                for (auto &info_ : portals_info) {
-                    typename detector_type::portal_disc _portal_disc = {
-                        std::get<0>(info_),
-                        {std::get<1>(info_), dindex_invalid}};
+                for (auto &info_ : portals_info)
+                {
+                    typename detector_type::disc _portal_disc = {std::get<0>(info_), {std::get<1>(info_), dindex_invalid}};
                     std::get<1>(mask_index)[1] = mask_group.size();
-                    mask_group.push_back(_portal_disc);
+                        mask_group.push_back(_portal_disc);
                 }
                 // Create the portal
-                typename detector_type::portal _portal{
-                    disc_portal_transforms.size(default_context), mask_index,
-                    volume.index(), dindex_invalid};
+                typename detector_type::portal _portal{disc_portal_transforms.size(default_context), mask_index, volume.index(), dindex_invalid};
                 // Save the data
                 disc_portals.push_back(std::move(_portal));
-                disc_portal_transforms.emplace_back(default_context,
-                                                    _translation);
             }
-        };
+            disc_portal_transforms.emplace_back(default_context,
+                                                    _translation);
+        }
+    };
 
         /** Helper lambda for cylindrical portals
-         *
-         * @param portals_info
+         * 
+         * @param portals_info 
          * @param bound_index
          **/
-        auto add_cylinder_portal =
-            [&](vector_type<tuple_type<array_type<scalar, 2>, dindex>>
-                    &portals_info,
-                dindex bound_index) -> void {
+        auto add_cylinder_portal = [&](vector_type<tuple_type<array_type<scalar, 2>, dindex>> &portals_info, dindex bound_index) -> void
+        {
             // Fill in the upper side portals
-            if (not portals_info.empty()) {
+            if (not portals_info.empty())
+            {
                 // Get the mask context group and fill it
-                auto &cylinder_portal_transforms =
-                    std::get<detector_type::portal_cylinder::mask_context>(
-                        portal_transforms);
-                auto &cylinder_portals =
-                    std::get<detector_type::portal_cylinder::mask_context>(
-                        portals);
-                auto &mask_group =
-                    std::get<detector_type::portal_cylinder::mask_context>(
-                        portal_masks);
+                auto &cylinder_portal_transforms = std::get<detector_type::cylinder::mask_context>(portal_transforms);
+                auto &cylinder_portals = std::get<detector_type::cylinder::mask_context>(portals);
+                auto &mask_group   = std::get<detector_type::cylinder::mask_context>(portal_masks);
 
-                typename detector_type::portal_mask_index mask_index = {
-                    detector_type::portal_cylinder::mask_context,
-                    {mask_group.size(), mask_group.size()}};
-                for (auto &info_ : portals_info) {
+                typename detector_type::portal_mask_index mask_index = {detector_type::cylinder::mask_context, {mask_group.size(), mask_group.size()}};
+                for (auto &info_ : portals_info)
+                {
                     const auto cylinder_range = std::get<0>(info_);
-                    array_type<scalar, 3> cylinder_bounds = {
-                        volume_bounds[bound_index], cylinder_range[0],
-                        cylinder_range[1]};
-                    typename detector_type::portal_cylinder _portal_cylinder = {
-                        cylinder_bounds, {std::get<1>(info_), dindex_invalid}};
+                    array_type<scalar, 3> cylinder_bounds = {volume_bounds[bound_index], cylinder_range[0], cylinder_range[1]};
+                    typename detector_type::cylinder _portal_cylinder = {cylinder_bounds, {std::get<1>(info_), dindex_invalid}};
                     std::get<1>(mask_index)[1] = mask_group.size();
                     mask_group.push_back(_portal_cylinder);
                 }
                 // Create the portal
-                typename detector_type::portal _portal{
-                    cylinder_portal_transforms.size(default_context),
-                    mask_index, volume.index(), dindex_invalid};
+                typename detector_type::portal _portal{cylinder_portal_transforms.size(default_context), mask_index, volume.index(), dindex_invalid};
                 cylinder_portals.push_back(std::move(_portal));
-                // This will be concentric targetted at nominal center
-                cylinder_portal_transforms.emplace_back(default_context);
             }
-        };
+            // This will be concentric targetted at nominal center
+            cylinder_portal_transforms.emplace_back(default_context);
+        }
+    };
 
-        // Add portals to the volume
-        add_disc_portals(left_portals_info, 2);
-        add_cylinder_portal(upper_portals_info, 1);
-        add_disc_portals(right_portals_info, 3);
-        add_cylinder_portal(lower_portals_info, 0);
+    // Add portals to the volume
+    add_disc_portals(left_portals_info, 2);
+    add_cylinder_portal(upper_portals_info, 1);
+    add_disc_portals(right_portals_info, 3);
+    add_cylinder_portal(lower_portals_info, 0);
 
-        // Add portals to detector
-        d.template add_objects<detector_type::e_portal>(
+    // Add portals to detector
+    d.template add_objects<detector_type::e_portal>(
             volume, portals, portal_masks, portal_transforms, default_context);
     }
 }

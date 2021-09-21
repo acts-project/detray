@@ -27,21 +27,21 @@ TEST(ALGEBRA_PLUGIN, detector) {
 
     /// Surface 0
     point3 t0{0., 0., 0.};
-    trfs[detector::surface_rectangle::mask_context].emplace_back(ctx0, t0);
-    detector::surface_rectangle rect = {-3., 3.};
-    std::get<detector::surface_rectangle::mask_context>(masks).push_back(rect);
+    trfs[detector::rectangle::mask_context].emplace_back(ctx0, t0);
+    detector::rectangle rect = {-3., 3.};
+    std::get<detector::rectangle::mask_context>(masks).push_back(rect);
 
     /// Surface 1
     point3 t1{1., 0., 0.};
-    trfs[detector::surface_annulus::mask_context].emplace_back(ctx0, t1);
-    detector::surface_annulus anns = {1., 2., 3., 4., 5., 6., 7.};
-    std::get<detector::surface_annulus::mask_context>(masks).push_back(anns);
+    trfs[detector::annulus::mask_context].emplace_back(ctx0, t1);
+    detector::annulus anns = {1., 2., 3., 4., 5., 6., 7.};
+    std::get<detector::annulus::mask_context>(masks).push_back(anns);
 
     /// Surface 2
     point3 t2{2., 0., 0.};
-    trfs[detector::surface_trapezoid::mask_context].emplace_back(ctx0, t2);
-    detector::surface_trapezoid trap = {1., 2., 3.};
-    std::get<detector::surface_trapezoid::mask_context>(masks).push_back(trap);
+    trfs[detector::trapezoid::mask_context].emplace_back(ctx0, t2);
+    detector::trapezoid trap = {1., 2., 3.};
+    std::get<detector::trapezoid::mask_context>(masks).push_back(trap);
 
     detector d("test_detector");
     auto &v = d.new_volume("test_volume", {0., 10., -5., 5., -M_PI, M_PI});
