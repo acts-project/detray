@@ -37,11 +37,11 @@ unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
 bool stream_file = false;
 
+vecmem::host_memory_resource host_mr;
+
 /** Read the detector from file */
 auto read_detector()
-{
-    vecmem::host_memory_resource host_mr;
-    
+{    
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
     if (env_d_d == nullptr)
     {
