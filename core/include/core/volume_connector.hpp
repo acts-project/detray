@@ -288,7 +288,7 @@ namespace detray
             add_cylinder_portal(lower_portals_info, 0);
 
             // Add portals to detector
-            d.add_portals(volume, portals, portal_masks, portal_transforms,  default_context);
+            d.template add_objects<detector_type::e_portal>(volume, portals, portal_masks, portal_transforms, default_context);
         }
     }
 }

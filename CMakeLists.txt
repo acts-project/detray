@@ -14,10 +14,15 @@ option(DETRAY_VC_ALGEBRA_PLUGIN "Build vc based simd algebra math plugin" Off)
 option(DETRAY_IO_CSV "Build CSV IO module" On)
 option(DETRAY_IO_JSON "Build JSON IO module" On)
 option(DETRAY_DISPLAY "Build matplot++ based display module" Off)
+option(DETRAY_USE_VECMEM "Build with vecmem" On)
 
 if(DETRAY_CUSTOM_SCALARTYPE)
     message(STATUS "Building with custom scalar type: " ${DETRAY_CUSTOM_SCALARTYPE})
     set(ALGEBRA_PLUGIN_CUSTOM_SCALARTYPE ${DETRAY_CUSTOM_SCALARTYPE})
+endif()
+
+if (DETRAY_USE_VECMEM)
+  set(ALGEBRA_PLUGIN_USE_VECMEM ON)
 endif()
 
 if (DETRAY_ARRAY_PLUGIN)
