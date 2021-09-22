@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include "utils/containers.hpp"
-
 #include <cmath>
 
 namespace detray

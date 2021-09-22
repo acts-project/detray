@@ -9,7 +9,6 @@
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
-#include "utils/containers.hpp"
 
 #include <iostream>
 #include <climits>
