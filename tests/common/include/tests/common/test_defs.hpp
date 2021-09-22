@@ -43,7 +43,7 @@ namespace detray
 
     } // namespace vector
 
-    test::point2 operator-(const test::point2 &a, const test::point2 &b)
+    inline test::point2 operator-(const test::point2 &a, const test::point2 &b)
     {
         return {a[0] - b[0], a[1] - b[1]};
     }
