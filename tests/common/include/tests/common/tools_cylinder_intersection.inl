@@ -1,9 +1,14 @@
 /** Detray library, part of the ACTS project (R&D line)
- * 
+ *
  * (c) 2020 CERN for the benefit of the ACTS project
- * 
+ *
  * Mozilla Public License Version 2.0
  */
+
+#include <gtest/gtest.h>
+
+#include <climits>
+#include <cmath>
 
 #include "core/intersection.hpp"
 #include "core/surface_base.hpp"
@@ -11,11 +16,6 @@
 #include "tools/concentric_cylinder_intersector.hpp"
 #include "tools/cylinder_intersector.hpp"
 #include "utils/unbound.hpp"
-
-#include <cmath>
-#include <climits>
-
-#include <gtest/gtest.h>
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -30,8 +30,7 @@ constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
 constexpr scalar isclose = 1e-5;
 
 // This defines the local frame test suite
-TEST(ALGEBRA_PLUGIN, translated_cylinder)
-{
+TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // Create a translated cylinder and test untersection
     transform3 shifted(vector3{3., 2., 10.});
     cylinder3<> cylinder = {4., -10., 10.};
@@ -39,30 +38,31 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder)
 
     // Unbound local frame test
     unbound ub;
-    auto hit_unbound = ci.intersect(shifted, point3{3., 2., 5.}, vector3{1., 0., 0.}, ub, cylinder);
-    ASSERT_TRUE(hit_unbound.status== intersection_status::e_inside);
+    auto hit_unbound = ci.intersect(shifted, point3{3., 2., 5.},
+                                    vector3{1., 0., 0.}, ub, cylinder);
+    ASSERT_TRUE(hit_unbound.status == intersection_status::e_inside);
     ASSERT_NEAR(hit_unbound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_unbound.p3[1], 2., epsilon);
     ASSERT_NEAR(hit_unbound.p3[2], 5., epsilon);
-    ASSERT_TRUE(hit_unbound.p2[0] == not_defined
-                && hit_unbound.p2[1] == not_defined);
+    ASSERT_TRUE(hit_unbound.p2[0] == not_defined &&
+                hit_unbound.p2[1] == not_defined);
 
     // The same but bound
     __plugin::cylindrical2 cylindrical2;
-    auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.}, vector3{1., 0., 0.}, cylindrical2, cylinder);
-    ASSERT_TRUE(hit_bound.status== intersection_status::e_inside);
+    auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.},
+                                  vector3{1., 0., 0.}, cylindrical2, cylinder);
+    ASSERT_TRUE(hit_bound.status == intersection_status::e_inside);
     ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_bound.p3[1], 2., epsilon);
     ASSERT_NEAR(hit_bound.p3[2], 5., epsilon);
-    ASSERT_TRUE(hit_bound.p2[0] != not_defined
-                && hit_bound.p2[1] != not_defined);
+    ASSERT_TRUE(hit_bound.p2[0] != not_defined &&
+                hit_bound.p2[1] != not_defined);
     ASSERT_NEAR(hit_bound.p2[0], 0., isclose);
     ASSERT_NEAR(hit_bound.p2[1], -5., isclose);
 }
 
 // This defines the local frame test suite
-TEST(ALGEBRA_PLUGIN, concentric_cylinders)
-{
+TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     using cylinder_surface = surface_base<transform3, int, int>;
 
     // Create a concentric cylinder and test intersection
@@ -78,11 +78,13 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders)
 
     // The same but bound
     __plugin::cylindrical2 cylindrical2;
-    auto hit_cylinrical = ci.intersect(identity, ori, dir, cylindrical2, cylinder);
-    auto hit_cocylindrical = cci.intersect(identity, ori, dir, cylindrical2, cylinder);
+    auto hit_cylinrical =
+        ci.intersect(identity, ori, dir, cylindrical2, cylinder);
+    auto hit_cocylindrical =
+        cci.intersect(identity, ori, dir, cylindrical2, cylinder);
 
-    ASSERT_TRUE(hit_cylinrical.status== intersection_status::e_inside);
-    ASSERT_TRUE(hit_cocylindrical.status== intersection_status::e_inside);
+    ASSERT_TRUE(hit_cylinrical.status == intersection_status::e_inside);
+    ASSERT_TRUE(hit_cocylindrical.status == intersection_status::e_inside);
     ASSERT_TRUE(hit_cylinrical.direction == intersection_direction::e_along);
     ASSERT_TRUE(hit_cocylindrical.direction == intersection_direction::e_along);
 
@@ -92,17 +94,15 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders)
     ASSERT_NEAR(hit_cylinrical.p3[0], hit_cocylindrical.p3[0], isclose);
     ASSERT_NEAR(hit_cylinrical.p3[1], hit_cocylindrical.p3[1], isclose);
     ASSERT_NEAR(hit_cylinrical.p3[2], hit_cocylindrical.p3[2], isclose);
-    ASSERT_TRUE(hit_cylinrical.p2[0] != not_defined
-                && hit_cylinrical.p2[1] != not_defined);
-    ASSERT_TRUE(hit_cocylindrical.p2[0] != not_defined
-                && hit_cocylindrical.p2[1] != not_defined);
+    ASSERT_TRUE(hit_cylinrical.p2[0] != not_defined &&
+                hit_cylinrical.p2[1] != not_defined);
+    ASSERT_TRUE(hit_cocylindrical.p2[0] != not_defined &&
+                hit_cocylindrical.p2[1] != not_defined);
     ASSERT_NEAR(hit_cylinrical.p2[0], hit_cocylindrical.p2[0], isclose);
     ASSERT_NEAR(hit_cylinrical.p2[1], hit_cocylindrical.p2[1], isclose);
 }
 
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();

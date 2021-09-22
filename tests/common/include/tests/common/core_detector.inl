@@ -1,25 +1,24 @@
 /** Detray library, part of the ACTS project (R&D line)
- * 
+ *
  * (c) 2021 CERN for the benefit of the ACTS project
- * 
+ *
  * Mozilla Public License Version 2.0
  */
+
+#include <gtest/gtest.h>
 
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
 
-#include <gtest/gtest.h>
-
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the construction of a detector class
-TEST(ALGEBRA_PLUGIN, detector)
-{
+TEST(ALGEBRA_PLUGIN, detector) {
     using namespace detray;
     using namespace __plugin;
 
     using detector = detector<>;
-    
+
     static_transform_store<>::context ctx0;
 
     detector::transform_container trfs;
@@ -49,8 +48,7 @@ TEST(ALGEBRA_PLUGIN, detector)
     d.template add_objects<detector::e_surface>(v, surfaces, masks, trfs, ctx0);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();

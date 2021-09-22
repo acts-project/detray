@@ -1,7 +1,7 @@
 /** Detray library, part of the ACTS project (R&D line)
- * 
+ *
  * (c) 2020 CERN for the benefit of the ACTS project
- * 
+ *
  * Mozilla Public License Version 2.0
  */
 
@@ -9,17 +9,16 @@
 #include "tests/common/test_defs.hpp"
 
 // detray core
-#include "grids/axis.hpp"
-#include "utils/indexing.hpp"
-
 #include <gtest/gtest.h>
 
 #include <climits>
 
+#include "grids/axis.hpp"
+#include "utils/indexing.hpp"
+
 using namespace detray;
 
-TEST(grids, regular_closed_axis)
-{
+TEST(grids, regular_closed_axis) {
 
     axis::regular<> ten_bins{10, -3., 7.};
     // N bins
@@ -81,8 +80,7 @@ TEST(grids, regular_closed_axis)
     EXPECT_EQ(ten_bins.zone(2.5, szoneAll), expected_zone);
 }
 
-TEST(grids, regular_circular_axis)
-{
+TEST(grids, regular_circular_axis) {
     scalar epsilon = 10 * std::numeric_limits<scalar>::epsilon();
 
     // Let's say 36 modules, but with 4 directly at 0, pi/2, pi, -pi2
@@ -140,8 +138,7 @@ TEST(grids, regular_circular_axis)
     EXPECT_EQ(full_pi.zone(M_PI + epsilon, szone22), expected_zone);
 }
 
-TEST(grids, irregular_closed_axis)
-{
+TEST(grids, irregular_closed_axis) {
     axis::irregular<> nonreg{{-3., 1., 2, 4., 8., 12.}};
 
     // Axis bin access
@@ -201,8 +198,7 @@ TEST(grids, irregular_closed_axis)
     EXPECT_EQ(nonreg.zone(3., szone10), expected_zone);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();
