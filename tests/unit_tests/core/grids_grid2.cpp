@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 // detray test
 #include "tests/common/test_defs.hpp"
 

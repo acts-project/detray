@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <functional>
 #include <vecmem/memory/host_memory_resource.hpp>
+#include <functional>
 
 #include "core/surface_base.hpp"
 #include "grids/axis.hpp"
@@ -91,23 +91,15 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
     replace_populator<> replacer;
     serializer2 serializer;
 
-    // The detector transforms
-    dvector<transform3> transforms;
-    scalar step_phi = 2 * M_PI / n_phi;
-    scalar step_z = module_ly - overlap_z;
-    scalar start_z = -0.5 * (n_z - 1) * (module_ly - overlap_z);
-
     // Declare the inner, outer, ecn, ecp object finder
     axis::circular<> rphi_axis_inner = {
         n_phi, static_cast<scalar>(-volume_inner_r * (M_PI + 0.5 * step_phi)),
         static_cast<scalar>(volume_inner_r * (M_PI - 0.5 * step_phi))};
-    axis::regular<> z_axis_inner = {n_z, static_cast<scalar>(-0.5 * length_z),
-                                    static_cast<scalar>(0.5 * length_z)};
+    axis::regular<> z_axis_inner = {1, volume_min_z, volume_max_z};
     axis::circular<> rphi_axis_outer = {
         n_phi, static_cast<scalar>(-volume_outer_r * (M_PI + 0.5 * step_phi)),
         static_cast<scalar>(volume_outer_r * (M_PI - 0.5 * step_phi))};
-    axis::regular<> z_axis_outer = {n_z, static_cast<scalar>(-0.5 * length_z),
-                                    static_cast<scalar>(0.5 * length_z)};
+    axis::regular<> z_axis_outer = {1, volume_min_z, volume_max_z};
     axis::regular<> r_axis_ecn = {1, volume_inner_r, volume_outer_r};
     axis::circular<> phi_axis_ecn = {
         n_phi, static_cast<scalar>(-M_PI - 0.5 * step_phi),
@@ -121,16 +113,12 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
                                 decltype(z_axis_inner), decltype(serializer)>;
     using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn),
                             decltype(phi_axis_ecn), decltype(serializer)>;
-
-    cylinder_grid ec_grid_inner(std::move(rphi_axis_inner),
-                                std::move(z_axis_inner), host_mr);
-    cylinder_grid ec_grid_outer(std::move(rphi_axis_outer),
-                                std::move(z_axis_inner), host_mr);
-    disc_grid ec_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn),
-                        host_mr);
-    disc_grid ec_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp),
-                        host_mr);
-
+    
+    cylinder_grid ec_grid_inner(std::move(rphi_axis_inner), std::move(z_axis_inner), host_mr);
+    cylinder_grid ec_grid_outer(std::move(rphi_axis_outer), std::move(z_axis_inner), host_mr);
+    disc_grid ec_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn), host_mr);
+    disc_grid ec_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp), host_mr);
+    
     scalar r = 0.5 * (inner_r + outer_r);
 
     for (unsigned int iphi = 0; iphi < n_phi; ++iphi) {
@@ -232,15 +220,11 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
     using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn),
                             decltype(phi_axis_ecn), decltype(serializer)>;
 
-    cylinder_grid barrel_grid_inner(std::move(rphi_axis_inner),
-                                    std::move(z_axis_inner), host_mr);
-    cylinder_grid barrel_grid_outer(std::move(rphi_axis_outer),
-                                    std::move(z_axis_inner), host_mr);
-    disc_grid barrel_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn),
-                            host_mr);
-    disc_grid barrel_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp),
-                            host_mr);
-
+    cylinder_grid barrel_grid_inner(std::move(rphi_axis_inner), std::move(z_axis_inner), host_mr);
+    cylinder_grid barrel_grid_outer(std::move(rphi_axis_outer), std::move(z_axis_inner), host_mr);
+    disc_grid barrel_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn), host_mr);
+    disc_grid barrel_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp), host_mr);
+    
     for (unsigned int iz = 0; iz < n_z; ++iz) {
         scalar pos_z = start_z + iz * step_z;
         for (unsigned int iphi = 0; iphi < n_phi; ++iphi) {
