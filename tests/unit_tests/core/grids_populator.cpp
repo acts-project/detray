@@ -6,11 +6,13 @@
  */
 
 #include <gtest/gtest.h>
-
 #include <climits>
 
-#include "grids/populator.hpp"
+// detray test
 #include "tests/common/test_defs.hpp"
+
+// detray core
+#include "grids/populator.hpp"
 #include "utils/indexing.hpp"
 
 using namespace detray;

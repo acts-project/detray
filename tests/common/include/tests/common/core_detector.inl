@@ -49,7 +49,7 @@ TEST(ALGEBRA_PLUGIN, detector) {
 
     detector d("test_detector", host_mr);
     auto &v = d.new_volume("test_volume", {0., 10., -5., 5., -M_PI, M_PI});
-    d.add_surfaces(v, surfaces, masks, trfs, ctx0);
+    d.template add_objects<detector::e_surface>(v, surfaces, masks, trfs, ctx0);
 }
 
 int main(int argc, char **argv) {

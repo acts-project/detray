@@ -5,16 +5,18 @@
  * Mozilla Public License Version 2.0
  */
 
+// detray test
+#include "tests/common/test_defs.hpp"
+
+// detray core
 #include <gtest/gtest.h>
 
 #include <climits>
-#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
 #include "grids/populator.hpp"
 #include "grids/serializer2.hpp"
-#include "tests/common/test_defs.hpp"
 #include "utils/indexing.hpp"
 
 using namespace detray;

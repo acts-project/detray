@@ -17,7 +17,6 @@
 #include "grids/associator.hpp"
 #include "io/csv_io.hpp"
 #include "style/styles.hpp"
-#include "utils/containers.hpp"
 #include "utils/enumerate.hpp"
 #include "utils/generators.hpp"
 #include "view/draw.hpp"
@@ -101,11 +100,11 @@ int main(int argc, char **argv) {
             const auto &bounds = lvolume.bounds();
             bool is_cylinder = std::abs(bounds[1] - bounds[0]) <
                                std::abs(bounds[3] - bounds[2]);
+            const auto &sf_range = lvolume.template range<>();
 
             dindex finder_entry = lvolume.surfaces_finder_entry();
-            const auto &surfaces = lvolume.surfaces();
-            const auto &surface_transforms =
-                d.transforms(lvolume.surface_range(), s_context);
+            const auto &surfaces = d.surfaces();
+            const auto &surface_transforms = d.transforms(sf_range, s_context);
             const auto &surface_masks = d.masks();
 
             if (not is_cylinder) {
@@ -128,7 +127,8 @@ int main(int argc, char **argv) {
                 std::cout << std::endl;
 
                 // Loop over the surfaces within a volume
-                for (auto [is, s] : enumerate(surfaces.objects())) {
+                for (dindex sfi = sf_range[0]; sfi < sf_range[1]; sfi++) {
+                    const auto &s = surfaces[sfi];
                     dvector<point3> vertices = {};
                     const auto &mask_link = s.mask();
                     const auto &transform_link = s.transform();
@@ -148,8 +148,9 @@ int main(int argc, char **argv) {
                     for (auto &vertices : vertices_per_masks) {
                         if (not vertices.empty()) {
                             style draw_style =
-                                (std::find(bin_entry.begin(), bin_entry.end(),
-                                           static_cast<dindex>(is)) !=
+                                (std::find(
+                                     bin_entry.begin(), bin_entry.end(),
+                                     static_cast<dindex>(sfi - sf_range[0])) !=
                                  bin_entry.end())
                                     ? selected_surface_style
                                     : surface_style;
@@ -207,7 +208,8 @@ int main(int argc, char **argv) {
                 std::cout << std::endl;
 
                 // Loop over the surfaces within a volume
-                for (auto [is, s] : enumerate(surfaces.objects())) {
+                for (dindex sfi = sf_range[0]; sfi < sf_range[1]; sfi++) {
+                    const auto &s = surfaces[sfi];
                     dvector<point3> vertices = {};
                     const auto &mask_link = s.mask();
                     const auto &transform_link = s.transform();
@@ -230,8 +232,9 @@ int main(int argc, char **argv) {
 
                             // Check the association (with potential splits)
                             style draw_style =
-                                (std::find(bin_entry.begin(), bin_entry.end(),
-                                           static_cast<dindex>(is)) !=
+                                (std::find(
+                                     bin_entry.begin(), bin_entry.end(),
+                                     static_cast<dindex>(sfi - sf_range[0])) !=
                                  bin_entry.end())
                                     ? selected_surface_style
                                     : surface_style;

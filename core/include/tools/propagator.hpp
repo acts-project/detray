@@ -16,7 +16,7 @@ struct void_track_inspector {
 
     /** Void operator */
     template <typename track_t>
-    void operator()(const track_t& /*ignored*/) {
+    void operator()(const track_t & /*ignored*/) {
         return;
     }
 };
@@ -40,7 +40,7 @@ struct propagator {
      * @param n navigator
      * by move semantics
      **/
-    propagator(stepper_t&& s, navigator_t&& n)
+    propagator(stepper_t &&s, navigator_t &&n)
         : _stepper(std::move(s)), _navigator(std::move(n)) {}
 
     /** Propagate method
@@ -52,8 +52,8 @@ struct propagator {
      * @return a track at output
      */
     template <typename track_t, typename track_inspector_t>
-    track_t propagate(const track_t& t_in,
-                      track_inspector_t& t_inspector) const {
+    track_t propagate(const track_t &t_in,
+                      track_inspector_t &t_inspector) const {
 
         track_t t_out(t_in);
         typename stepper_t::state s_state(t_out);

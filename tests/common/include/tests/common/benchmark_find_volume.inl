@@ -27,7 +27,6 @@ vecmem::host_memory_resource host_mr;
 
 /** Read the detector from file */
 auto read_detector() {
-
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
     if (env_d_d == nullptr) {
         throw std::ios_base::failure(

@@ -21,14 +21,14 @@ struct line_stepper {
      */
     struct state {
 
-        track_type& _track;
+        track_type &_track;
 
         scalar _s = 0.;  //!< Next step
         scalar _pl =
             std::numeric_limits<scalar>::max();  //!< Remaining path limit
 
         state() = delete;
-        state(track_type& t) : _track(t) {}
+        state(track_type &t) : _track(t) {}
 
         /** @return the step and heartbeat given a step length s */
         tuple_type<scalar, bool> step(scalar s) {
@@ -41,7 +41,7 @@ struct line_stepper {
         void set_limit(scalar pl) { _pl = pl; }
 
         /** Call operator casts it itno a const track referenc on @return */
-        const track_type& operator()() const { return _track; }
+        const track_type &operator()() const { return _track; }
     };
 
     /** Take a step, regulared by a constrained step
@@ -51,7 +51,7 @@ struct line_stepper {
      *
      * @return returning the heartbeat, indicating if the stepping is alive
      */
-    bool step(state& s, scalar es) const {
+    bool step(state &s, scalar es) const {
         const auto [sl, heartbeat] = s.step(es);
         s._track.pos = s._track.pos + s._track.dir * sl;
         return heartbeat;

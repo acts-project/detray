@@ -7,7 +7,10 @@
 
 #include <gtest/gtest.h>
 
+// detray test
 #include "tests/common/test_defs.hpp"
+
+// detray core
 #include "utils/quadratic_equation.hpp"
 
 using namespace detray;

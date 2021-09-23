@@ -7,7 +7,10 @@
 
 #include <gtest/gtest.h>
 
+// detray test
 #include "tests/common/test_defs.hpp"
+
+// detray core
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
 

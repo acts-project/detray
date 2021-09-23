@@ -6,15 +6,17 @@
  */
 
 #include <gtest/gtest.h>
-
 #include <functional>
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// detray test
+#include "tests/common/test_defs.hpp"
+
+// detray core
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
 #include "grids/populator.hpp"
 #include "grids/serializer2.hpp"
-#include "tests/common/test_defs.hpp"
 #include "tools/local_object_finder.hpp"
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"

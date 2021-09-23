@@ -298,7 +298,7 @@ namespace detray
         // Flush the former information / c_volume still points to the prior volume
         if (c_volume != nullptr)
         {
-          d.add_surfaces(*c_volume, c_surfaces, c_masks, c_transforms,  surface_default_context);
+          d.template add_objects<typed_detector::e_surface>(*c_volume, c_surfaces, c_masks, c_transforms,  surface_default_context);
 
           c_surfaces   = typename typed_detector::surface_filling_container();
           c_masks      = typename typed_detector::surface_mask_container();
@@ -421,6 +421,7 @@ namespace detray
         {
           // Trapezoid bounds
           constexpr auto trapezoid_context = typed_detector::surface_trapezoid::mask_context;
+
           // Add a new trapezoid mask
           auto &trapezoid_masks = std::get<trapezoid_context>(c_masks);
           dindex trapezoid_index = trapezoid_masks.size();

@@ -6,12 +6,14 @@
  */
 
 #include <gtest/gtest.h>
-
 #include <climits>
 
+// detray test
+#include "tests/common/test_defs.hpp"
+
+// detray core
 #include "grids/axis.hpp"
 #include "grids/serializer2.hpp"
-#include "tests/common/test_defs.hpp"
 #include "utils/indexing.hpp"
 
 using namespace detray;

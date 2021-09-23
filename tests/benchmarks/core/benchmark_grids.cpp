@@ -8,12 +8,14 @@
 #include <benchmark/benchmark.h>
 
 #include <vecmem/memory/host_memory_resource.hpp>
+// detray test
+#include "tests/common/test_defs.hpp"
 
+// detray core
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
 #include "grids/populator.hpp"
 #include "grids/serializer2.hpp"
-#include "tests/common/test_defs.hpp"
 #include "utils/indexing.hpp"
 
 using namespace detray;

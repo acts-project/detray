@@ -14,7 +14,6 @@
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
-#include "utils/containers.hpp"
 
 int main(int argc, char **argv) {
     using namespace detray;

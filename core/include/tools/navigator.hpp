@@ -179,14 +179,16 @@ struct navigator {
         if (navigation.volume_index == dindex_invalid or
             navigation.trust_level == e_no_trust) {
             // First try to get the surface candidates
-            initialize_kernel(navigation, surface_kernel, track,
-                              volume.surface_range(),
-                              volume.surface_trf_range());
+            initialize_kernel(
+                navigation, surface_kernel, track,
+                volume.template range<detector_type::e_surface>(),
+                volume.template trf_range<detector_type::e_surface>());
             // If no surfaces are to processed, initialize the portals
             if (surface_kernel.empty()) {
-                initialize_kernel(navigation, portal_kernel, track,
-                                  volume.portal_range(),
-                                  volume.portal_trf_range());
+                initialize_kernel(
+                    navigation, portal_kernel, track,
+                    volume.template range<detector_type::e_portal>(),
+                    volume.template trf_range<detector_type::e_portal>());
                 heartbeat = check_volume_switch(navigation);
             }
             // Before returning, run through the inspector
@@ -196,15 +198,18 @@ struct navigator {
 
         // Update the surface kernel
         if (not is_exhausted(surface_kernel) and
-            update_kernel(navigation, surface_kernel, track,
-                          volume.surface_range(), volume.surface_trf_range())) {
+            update_kernel(
+                navigation, surface_kernel, track,
+                volume.template range<detector_type::e_surface>(),
+                volume.template trf_range<detector_type::e_surface>())) {
             navigation.inspector(navigation);
             return heartbeat;
         }
 
         // Update the portal kernel
-        update_kernel(navigation, portal_kernel, track, volume.portal_range(),
-                      volume.portal_trf_range());
+        update_kernel(navigation, portal_kernel, track,
+                      volume.template range<detector_type::e_portal>(),
+                      volume.template trf_range<detector_type::e_portal>());
         heartbeat = check_volume_switch(navigation);
         navigation.inspector(navigation);
         return heartbeat;
@@ -243,32 +248,39 @@ struct navigator {
                     // Clear the surface kernel
                     surface_kernel.clear();
                     navigation.trust_level = e_no_trust;
-                    update_kernel(navigation, portal_kernel, track,
-                                  volume.portal_range(),
-                                  volume.portal_trf_range());
+                    update_kernel(
+                        navigation, portal_kernel, track,
+                        volume.template range<detector_type::e_portal>(),
+                        volume.template trf_range<detector_type::e_portal>());
                     navigation.inspector(navigation);
                     return heartbeat;
-                } else if (update_kernel(navigation, surface_kernel, track,
-                                         volume.surface_range(),
-                                         volume.surface_trf_range())) {
+                } else if (update_kernel(
+                               navigation, surface_kernel, track,
+                               volume
+                                   .template range<detector_type::e_surface>(),
+                               volume.template trf_range<
+                                   detector_type::e_surface>())) {
                     navigation.inspector(navigation);
                     return heartbeat;
                 }
             }
             // Portals are present
             update_kernel(navigation, portal_kernel, track,
-                          volume.portal_range(), volume.portal_trf_range());
+                          volume.template range<detector_type::e_portal>(),
+                          volume.template trf_range<detector_type::e_portal>());
         } else if (navigation.trust_level == e_no_trust) {
             // First try to get the surface candidates
-            initialize_kernel(navigation, surface_kernel, track,
-                              volume.surface_range(),
-                              volume.surface_trf_range());
+            initialize_kernel(
+                navigation, surface_kernel, track,
+                volume.template range<detector_type::e_surface>(),
+                volume.template trf_range<detector_type::e_surface>());
             // If no surfaces are to processed, initialize the portals
             if (surface_kernel.empty()) {
-                initialize_kernel(navigation, portal_kernel, track,
-                                  volume.portal_range(),
-                                  volume.portal_trf_range(),
-                                  navigation.status == e_on_portal);
+                initialize_kernel(
+                    navigation, portal_kernel, track,
+                    volume.template range<detector_type::e_portal>(),
+                    volume.template trf_range<detector_type::e_portal>(),
+                    navigation.status == e_on_portal);
                 heartbeat = check_volume_switch(navigation);
             }
         }

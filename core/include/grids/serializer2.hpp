@@ -33,7 +33,7 @@ struct serializer2 {
      * @return a dindex for the memory storage
      */
     template <typename faxis_type, typename saxis_type>
-    dindex serialize(const faxis_type& faxis, const saxis_type& /*saxis*/,
+    dindex serialize(const faxis_type &faxis, const saxis_type & /*saxis*/,
                      dindex fbin, dindex sbin) const {
 
         dindex offset = sbin * faxis.bins();
@@ -53,8 +53,8 @@ struct serializer2 {
      */
     template <typename faxis_type, typename saxis_type,
               template <typename, unsigned int> class array_type = darray>
-    array_type<dindex, 2> deserialize(const faxis_type& faxis,
-                                      const saxis_type& /*saxis*/,
+    array_type<dindex, 2> deserialize(const faxis_type &faxis,
+                                      const saxis_type & /*saxis*/,
                                       dindex serialbin) const {
         dindex sbin = static_cast<dindex>(serialbin / faxis.bins());
         dindex fbin = serialbin - sbin * faxis.bins();

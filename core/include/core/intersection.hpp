@@ -57,11 +57,11 @@ struct intersection {
 
     /** @param rhs is the right hand side intersection for comparison
      **/
-    bool operator<(const intersection& rhs) const { return (path < rhs.path); }
+    bool operator<(const intersection &rhs) const { return (path < rhs.path); }
 
     /** @param rhs is the left hand side intersection for comparison
      **/
-    bool operator>(const intersection& rhs) const { return (path > rhs.path); }
+    bool operator>(const intersection &rhs) const { return (path > rhs.path); }
 };
 
 }  // namespace detray
