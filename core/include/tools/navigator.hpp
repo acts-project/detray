@@ -1,89 +1,91 @@
 /** Detray library, part of the ACTS project (R&D line)
- *
+ * 
  * (c) 2021 CERN for the benefit of the ACTS project
- *
+ * 
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-#include <algorithm>
-
 #include "core/intersection.hpp"
 #include "core/track.hpp"
-#include "tools/intersection_kernel.hpp"
-#include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
+#include "utils/enumerate.hpp"
+#include "tools/intersection_kernel.hpp"
 
-namespace detray {
+#include <algorithm>
 
-/** A void inpector that does nothing.
- *
- * Inspectors can be plugged in to understand the
- * the current navigation state information.
- *
- */
-struct void_inspector {
-    template <typename state_type>
-    void operator()(const state_type & /*ignored*/) {}
-};
-
-/** The navigator struct. 
- * 
- * It follows the Acts::Navigator sturcture of sequence of
- * - status()
- * - target()
- * calls.
- * 
- * @tparam detector_tupe is the type of the detector
- * @tparam inspector_type is a validation inspector 
- */
-template <typename detector_type, typename inspector_type = void_inspector>
-struct navigator
+namespace detray
 {
 
-    using surface = typename detector_type::surface;
-    using volume_link = typename detector_type::volume_links;
-
-    using portal = typename detector_type::portal;
-
-    using context = typename detector_type::context;
-
-    /** Navigation status flag */
-    enum navigation_status : int
-    {
-        e_on_target = -3,
-        e_abort = -2,
-        e_unknown = -1,
-        e_towards_surface = 0,
-        e_on_surface = 1,
-        e_towards_portal = 2,
-        e_on_portal = 3,
-    };
-
-    /** Navigation trust level */
-    enum navigation_trust_level : int
-    {
-        e_no_trust = 0,   // re-evalute the candidates all over
-        e_fair_trust = 1, // re-evaluate the distance & order of the (preselected) candidates
-        e_high_trust = 3, // re-evaluate the distance to the next candidate
-        e_full_trust = 4  // trust fully: distance & next candidate
-    };
-
-    /** A nested navigation kernel struct which can be used for surfaces, portals,
-     *  volumes a like.
-     *  
-     * @tparam object_type the type of the relevant object
-     * @tparam candidate_type the type of the candidates in the list
-     * @tparam links_type the type of the links the candidate is holding
+    /** A void inpector that does nothing.
      * 
-     **/
-    template <typename object_type,
-              typename candidate_type,
-              typename links_type,
-              template <typename> class vector_type = dvector>
-    struct navigation_kernel
+     * Inspectors can be plugged in to understand the
+     * the current navigation state information.
+     * 
+     */
+    struct void_inspector
     {
+        template <typename state_type>
+        void operator()(const state_type & /*ignored*/) {}
+    };
+
+    /** The navigator struct. 
+     * 
+     * It follows the Acts::Navigator sturcture of sequence of
+     * - status()
+     * - target()
+     * calls.
+     * 
+     * @tparam detector_tupe is the type of the detector
+     * @tparam inspector_type is a validation inspector 
+     */
+    template <typename detector_type, typename inspector_type = void_inspector>
+    struct navigator
+    {
+
+        using surface = typename detector_type::surface;
+        using volume_link = typename detector_type::volume_links;
+
+        using portal = typename detector_type::portal;
+
+        using context = typename detector_type::context;
+
+        /** Navigation status flag */
+        enum navigation_status : int
+        {
+            e_on_target = -3,
+            e_abort = -2,
+            e_unknown = -1,
+            e_towards_surface = 0,
+            e_on_surface = 1,
+            e_towards_portal = 2,
+            e_on_portal = 3,
+        };
+
+        /** Navigation trust level */
+        enum navigation_trust_level : int
+        {
+            e_no_trust = 0,   // re-evalute the candidates all over
+            e_fair_trust = 1, // re-evaluate the distance & order of the (preselected) candidates
+            e_high_trust = 3, // re-evaluate the distance to the next candidate
+            e_full_trust = 4  // trust fully: distance & next candidate
+        };
+
+        /** A nested navigation kernel struct which can be used for surfaces, portals,
+         *  volumes a like.
+         *  
+         * @tparam object_type the type of the relevant object
+         * @tparam candidate_type the type of the candidates in the list
+         * @tparam links_type the type of the links the candidate is holding
+         * 
+         **/
+        template <typename object_type,
+                  typename candidate_type,
+                  typename links_type,
+                  template <typename> class vector_type = dvector>
+        struct navigation_kernel
+        {
             const object_type *on = nullptr;
             vector_type<candidate_type> candidates = {};
             typename vector_type<candidate_type>::iterator next = candidates.end();
@@ -105,190 +107,175 @@ struct navigator
             }
         };
 
-    /** A navigation state object used to cache the information of the
-     * current navigation stream.
-     * 
-     * It requires to have a scalar represenation to be used for a stepper
-     **/
-    struct state
-    {
-        /** Kernel for the surfaces */
-        navigation_kernel<surface, intersection, volume_link> surface_kernel;
-        /** Kernel for the portals */
-        navigation_kernel<portal, intersection, volume_link> portal_kernel;
-
-        /** Volume navigation: index */
-        dindex volume_index = dindex_invalid;
-
-        /**  Distance to next - will be casted into a scalar with call operator  */
-        scalar distance_to_next = std::numeric_limits<scalar>::infinity();
-        /** The on surface tolerance - permille */
-        scalar on_surface_tolerance = 1e-3;
-
-        /** The inspector type of this navigation engine */
-        inspector_type inspector;
-
-        /**  The navigation status */
-        navigation_status status = e_unknown;
-
-        /** If a surface / portal is reached */
-        dindex current_index = dindex_invalid;
-
-        /** The navigation trust level */
-        navigation_trust_level trust_level = e_no_trust;
-
-        /** Scalar representation of the navigation state,
-         * @returns distance to next
+        /** A navigation state object used to cache the information of the
+         * current navigation stream.
+         * 
+         * It requires to have a scalar represenation to be used for a stepper
          **/
-        scalar operator()() const
+        struct state
         {
-            return distance_to_next;
-        }
-    };
+            /** Kernel for the surfaces */
+            navigation_kernel<surface, intersection, volume_link> surface_kernel;
+            /** Kernel for the portals */
+            navigation_kernel<portal, intersection, volume_link> portal_kernel;
 
-        /** The inspector type of this navigation engine */
-        inspector_type inspector;
+            /** Volume navigation: index */
+            dindex volume_index = dindex_invalid;
 
-        /**  The navigation status */
-        navigation_status status = e_unknown;
+            /**  Distance to next - will be casted into a scalar with call operator  */
+            scalar distance_to_next = std::numeric_limits<scalar>::infinity();
+            /** The on surface tolerance - permille */
+            scalar on_surface_tolerance = 1e-3;
 
-        /** If a surface / portal is reached */
-        dindex current_index = dindex_invalid;
+            /** The inspector type of this navigation engine */
+            inspector_type inspector;
 
-        /** The navigation trust level */
-        navigation_trust_level trust_level = e_no_trust;
+            /**  The navigation status */
+            navigation_status status = e_unknown;
 
-        /** Scalar representation of the navigation state,
-         * @returns distance to next
-         **/
-        scalar operator()() const { return distance_to_next; }
-    };
+            /** If a surface / portal is reached */
+            dindex current_index = dindex_invalid;
 
-    __plugin::cartesian2 cart2;
-    __plugin::polar2 pol2;
-    __plugin::cylindrical2 cyl2;
+            /** The navigation trust level */
+            navigation_trust_level trust_level = e_no_trust;
 
-    /// The detector in which we are moving
-    detector_type detector;
-
-    /** Constructor with move constructor
-     *
-     * @param d the detector for this navigator
-     */
-    navigator(detector_type &&d) : detector(std::move(d)) {}
-
-    /** Navigation status() call which established the current navigation
-     *information.
-     *
-     * @param navigation [in, out] is the navigation cache object
-     * @param track [in] is the track infromation
-     *
-     * @return a heartbeat to indicate if the navigation is still alive
-     **/
-    bool status(state &navigation, const track<context> &track) const {
-
-        bool heartbeat = true;
-
-        // Retrieve the volume & set index
-        // Retrieve the volume, either from valid index or through global search
-        const auto &volume =
-            (navigation.volume_index != dindex_invalid)
-                ? detector.indexed_volume(navigation.volume_index)
-                : detector.indexed_volume(track.pos);
-        navigation.volume_index = volume.index();
-        // Retrieve the kernels
-        auto &surface_kernel = navigation.surface_kernel;
-        auto &portal_kernel = navigation.portal_kernel;
-
-        // The navigation is not yet initialized, or you lost trust in it
-        if (navigation.volume_index == dindex_invalid or
-            navigation.trust_level == e_no_trust) {
-            // First try to get the surface candidates
-            initialize_kernel(
-                navigation, surface_kernel, track,
-                volume.template range<detector_type::e_surface>(),
-                volume.template trf_range<detector_type::e_surface>());
-            // If no surfaces are to processed, initialize the portals
-            if (surface_kernel.empty()) {
-                initialize_kernel(
-                    navigation, portal_kernel, track,
-                    volume.template range<detector_type::e_portal>(),
-                    volume.template trf_range<detector_type::e_portal>());
-                heartbeat = check_volume_switch(navigation);
+            /** Scalar representation of the navigation state,
+             * @returns distance to next
+             **/
+            scalar operator()() const
+            {
+                return distance_to_next;
             }
-            // Before returning, run through the inspector
+        };
+
+        __plugin::cartesian2 cart2;
+        __plugin::polar2 pol2;
+        __plugin::cylindrical2 cyl2;
+
+        /// The detector in which we are moving
+        detector_type detector;
+
+        /** Constructor with move constructor
+         * 
+         * @param d the detector for this navigator
+         */
+        navigator(detector_type &&d) : detector(std::move(d)) {}
+
+        /** Navigation status() call which established the current navigation information.
+         * 
+         * @param navigation [in, out] is the navigation cache object
+         * @param track [in] is the track infromation
+         * 
+         * @return a heartbeat to indicate if the navigation is still alive
+         **/
+        bool status(state &navigation, const track<context> &track) const
+        {
+
+            bool heartbeat = true;
+
+            // Retrieve the volume & set index
+            // Retrieve the volume, either from valid index or through global search
+            const auto &volume = (navigation.volume_index != dindex_invalid) ? detector.indexed_volume(navigation.volume_index)
+                                                                             : detector.indexed_volume(track.pos);
+            navigation.volume_index = volume.index();
+            // Retrieve the kernels
+            auto &surface_kernel = navigation.surface_kernel;
+            auto &portal_kernel = navigation.portal_kernel;
+
+            // The navigation is not yet initialized, or you lost trust in it
+            if (navigation.volume_index == dindex_invalid or navigation.trust_level == e_no_trust)
+            {
+                // First try to get the surface candidates
+                initialize_kernel(navigation, surface_kernel, track, volume.template range<detector_type::e_surface>(), volume.template trf_range<detector_type::e_surface>());
+                // If no surfaces are to processed, initialize the portals
+                if (surface_kernel.empty())
+                {
+                    initialize_kernel(navigation, portal_kernel, track, volume.template range<detector_type::e_portal>(), volume.template trf_range<detector_type::e_portal>());
+                    heartbeat = check_volume_switch(navigation);
+                }
+                // Before returning, run through the inspector
+                navigation.inspector(navigation);
+                return heartbeat;
+            }
+
+            // Update the surface kernel
+            if (not is_exhausted(surface_kernel) and update_kernel(navigation, surface_kernel, track, volume.template range<detector_type::e_surface>(), volume.template trf_range<detector_type::e_surface>()))
+            {
+                navigation.inspector(navigation);
+                return heartbeat;
+            }
+
+            // Update the portal kernel
+            update_kernel(navigation, portal_kernel, track, volume.template range<detector_type::e_portal>(), volume.template trf_range<detector_type::e_portal>());
+            heartbeat = check_volume_switch(navigation);
             navigation.inspector(navigation);
             return heartbeat;
         }
 
-        // Update the surface kernel
-        if (not is_exhausted(surface_kernel) and
-            update_kernel(
-                navigation, surface_kernel, track,
-                volume.template range<detector_type::e_surface>(),
-                volume.template trf_range<detector_type::e_surface>())) {
+        /** Target function of the navigator, finds the next candidates 
+         *   and set the distance to next
+         * 
+         * @param navigation is the navigation cache
+         * @param track is the current track information
+         * 
+         * @return a heartbeat to indicate if the navigation is still alive
+         **/
+        bool target(state &navigation, const track<context> &track) const
+        {
+            bool heartbeat = true;
+
+            // Full trust level from target() call
+            if (navigation.trust_level == e_full_trust)
+            {
+                return heartbeat;
+            }
+
+            // Retrieve the volume, either from valid index or through global search
+            const auto &volume = (navigation.volume_index != dindex_invalid) ? detector.indexed_volume(navigation.volume_index)
+                                                                             : detector.indexed_volume(track.pos);
+            navigation.volume_index = volume.index();
+            // Retrieve the kernels
+            auto &surface_kernel = navigation.surface_kernel;
+            auto &portal_kernel = navigation.portal_kernel;
+            // High targetting level
+            if (navigation.trust_level == e_high_trust)
+            {
+                // Surfaces are/were present
+                if (not surface_kernel.empty())
+                {
+                    if (is_exhausted(surface_kernel))
+                    {
+                        // Clear the surface kernel
+                        surface_kernel.clear();
+                        navigation.trust_level = e_no_trust;
+                        update_kernel(navigation, portal_kernel, track, volume.template range<detector_type::e_portal>(), volume.template trf_range<detector_type::e_portal>());
+                        navigation.inspector(navigation);
+                        return heartbeat;
+                    }
+                    else if (update_kernel(navigation, surface_kernel, track, volume.template range<detector_type::e_surface>(), volume.template trf_range<detector_type::e_surface>()))
+                    {
+                        navigation.inspector(navigation);
+                        return heartbeat;
+                    }
+                }
+                // Portals are present
+                update_kernel(navigation, portal_kernel, track, volume.template range<detector_type::e_portal>(), volume.template trf_range<detector_type::e_portal>());
+            }
+            else if (navigation.trust_level == e_no_trust)
+            {
+                // First try to get the surface candidates
+                initialize_kernel(navigation, surface_kernel, track, volume.template range<detector_type::e_surface>(), volume.template trf_range<detector_type::e_surface>());
+                // If no surfaces are to processed, initialize the portals
+                if (surface_kernel.empty())
+                {
+                    initialize_kernel(navigation, portal_kernel, track, volume.template range<detector_type::e_portal>(), volume.template trf_range<detector_type::e_portal>(), navigation.status == e_on_portal);
+                    heartbeat = check_volume_switch(navigation);
+                }
+            }
             navigation.inspector(navigation);
             return heartbeat;
         }
 
-<<<<<<< HEAD
-        // Update the portal kernel
-        update_kernel(navigation, portal_kernel, track,
-                      volume.template range<detector_type::e_portal>(),
-                      volume.template trf_range<detector_type::e_portal>());
-        heartbeat = check_volume_switch(navigation);
-        navigation.inspector(navigation);
-        return heartbeat;
-    }
-
-    /** Target function of the navigator, finds the next candidates
-     *   and set the distance to next
-     *
-     * @param navigation is the navigation cache
-     * @param track is the current track information
-     *
-     * @return a heartbeat to indicate if the navigation is still alive
-     **/
-    bool target(state &navigation, const track<context> &track) const {
-        bool heartbeat = true;
-
-        // Full trust level from target() call
-        if (navigation.trust_level == e_full_trust) {
-            return heartbeat;
-        }
-
-        // Retrieve the volume, either from valid index or through global search
-        const auto &volume =
-            (navigation.volume_index != dindex_invalid)
-                ? detector.indexed_volume(navigation.volume_index)
-                : detector.indexed_volume(track.pos);
-        navigation.volume_index = volume.index();
-        // Retrieve the kernels
-        auto &surface_kernel = navigation.surface_kernel;
-        auto &portal_kernel = navigation.portal_kernel;
-        // High targetting level
-        if (navigation.trust_level == e_high_trust) {
-            // Surfaces are/were present
-            if (not surface_kernel.empty()) {
-                if (is_exhausted(surface_kernel)) {
-                    // Clear the surface kernel
-                    surface_kernel.clear();
-                    navigation.trust_level = e_no_trust;
-                    update_kernel(
-                        navigation, portal_kernel, track,
-                        volume.template range<detector_type::e_portal>(),
-                        volume.template trf_range<detector_type::e_portal>());
-                    navigation.inspector(navigation);
-                    return heartbeat;
-                } else if (update_kernel(
-                               navigation, surface_kernel, track,
-                               volume
-                                   .template range<detector_type::e_surface>(),
-                               volume.template trf_range<
-                                   detector_type::e_surface>())) {
-                    navigation.inspector(navigation);
-                    return heartbeat;
-=======
         /** Helper method to intersect all objects of a surface/portal store
          * 
          * @tparam kernel_t the type of the kernel: surfaces/portals
@@ -343,146 +330,38 @@ struct navigator
                 {
                     navigation.status = kSurfaceType ? e_towards_surface : e_towards_portal;
                     kernel.candidates.push_back(sfi);
->>>>>>> ff4fb14 (Use same links type in surface and portal masks: surface links reference back to current volume)
                 }
             }
-            // Portals are present
-            update_kernel(navigation, portal_kernel, track,
-                          volume.template range<detector_type::e_portal>(),
-                          volume.template trf_range<detector_type::e_portal>());
-        } else if (navigation.trust_level == e_no_trust) {
-            // First try to get the surface candidates
-            initialize_kernel(
-                navigation, surface_kernel, track,
-                volume.template range<detector_type::e_surface>(),
-                volume.template trf_range<detector_type::e_surface>());
-            // If no surfaces are to processed, initialize the portals
-            if (surface_kernel.empty()) {
-                initialize_kernel(
-                    navigation, portal_kernel, track,
-                    volume.template range<detector_type::e_portal>(),
-                    volume.template trf_range<detector_type::e_portal>(),
-                    navigation.status == e_on_portal);
-                heartbeat = check_volume_switch(navigation);
-            }
+            sort_and_set(navigation, kernel);
         }
-        navigation.inspector(navigation);
-        return heartbeat;
-    }
 
-    /** Helper method to intersect all objects of a surface/portal store
-     *
-     * @tparam kernel_t the type of the kernel: surfaces/portals
-     * @tparam range the type of range in the detector data containers
-     *
-     * @param navigation is the navigation cache object
-     * @param kernel [in,out] the kernel to be checked/initialized
-     * @param track the track information
-     * @param obj_range the surface/portal index range in the detector cont
-     * @param trf_range the transform index range in the detector cont
-     * @param on_object ignores on surface solution
-     *
-     */
-    template <typename kernel_t, typename range_t>
-    void initialize_kernel(state &navigation, kernel_t &kernel,
+        /** Helper method to the update the next candidate intersection 
+         * 
+         * @tparam kernel_t the type of the kernel: surfaces/portals
+         * @tparam range the type of range in the detector data containers
+         * 
+         * @param navigation [in, out] the navigation state
+         * @param kernel [in,out] the kernel to be checked/initialized 
+         * @param track the track information
+         * @param obj_range the surface/portal index range in the detector cont
+         * @param trf_range the transform index range in the detector cont
+         * 
+         * @return A boolean condition 
+         */
+        template <typename kernel_t, typename range_t>
+        bool update_kernel(state &navigation,
+                           kernel_t &kernel,
                            const track<context> &track,
-                           const range_t &obj_range, const range_t &trf_range,
-                           bool on_object = false) const {
-
-        // Get the type of the kernel via a const expression at compile time
-        constexpr bool kSurfaceType =
-            (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
-                                                        surface_link>>);
-
-        // Get the number of candidates & run them throuth the kernel
-        size_t n_objects = obj_range[1] - obj_range[0];
-        // Return if you have no objects
-        if (n_objects == 0) {
-            return;
-        }
-        kernel.candidates.reserve(n_objects);
-        const auto &transforms = detector.transforms(trf_range, track.ctx);
-        const auto &surfaces = detector.template surfaces<kSurfaceType>();
-        const auto &masks = detector.template masks<kSurfaceType>();
-        // Loop over all indexed surfaces, intersect and fill
-        // @todo - will come from the local object finder
-        for (auto si : sequence(obj_range)) {
-            const auto &object = surfaces[si];
-            auto [sfi, link] = intersect(track, object, transforms, masks);
-            sfi.index = si;
-            sfi.link = link[0];
-            // Ignore negative solutions - except overstep limit
-            if (sfi.path < track.overstep_tolerance) {
-                continue;
+                           const range_t &obj_range,
+                           const range_t &trf_range) const
+        {
+            // If the kernel is empty - intitalize it
+            if (kernel.empty())
+            {
+                initialize_kernel(navigation, kernel, track, obj_range, trf_range);
+                return true;
             }
-            // Accept if inside, but not if the same object is excluded
-            if (sfi.status == e_inside and
-                (not on_object or
-                 std::abs(sfi.path) > navigation.on_surface_tolerance)) {
-                navigation.status =
-                    kSurfaceType ? e_towards_surface : e_towards_portal;
-                kernel.candidates.push_back(sfi);
-            }
-        }
-        sort_and_set(navigation, kernel);
-    }
 
-    /** Helper method to the update the next candidate intersection
-     *
-     * @tparam kernel_t the type of the kernel: surfaces/portals
-     * @tparam range the type of range in the detector data containers
-     *
-     * @param navigation [in, out] the navigation state
-     * @param kernel [in,out] the kernel to be checked/initialized
-     * @param track the track information
-     * @param obj_range the surface/portal index range in the detector cont
-     * @param trf_range the transform index range in the detector cont
-     *
-     * @return A boolean condition
-     */
-    template <typename kernel_t, typename range_t>
-    bool update_kernel(state &navigation, kernel_t &kernel,
-                       const track<context> &track, const range_t &obj_range,
-                       const range_t &trf_range) const {
-        // If the kernel is empty - intitalize it
-        if (kernel.empty()) {
-            initialize_kernel(navigation, kernel, track, obj_range, trf_range);
-            return true;
-        }
-
-<<<<<<< HEAD
-        // Get the type of the kernel via a const expression at compile time
-        constexpr bool kSurfaceType =
-            (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
-                                                        surface_link>>);
-
-        const auto &transforms = detector.transforms(trf_range, track.ctx);
-        const auto &surfaces = detector.template surfaces<kSurfaceType>();
-        const auto &masks = detector.template masks<kSurfaceType>();
-
-        // Update current candidate, or step further
-        // - do this only when you trust level is high
-        if (navigation.trust_level >= e_high_trust and
-            kernel.next != kernel.candidates.end()) {
-            // Only update the last intersection
-            dindex si = kernel.next->index;
-            const auto &s = surfaces[si];
-            auto [sfi, link] = intersect(track, s, transforms, masks);
-            sfi.index = si;
-            sfi.link = link[0];
-            if (sfi.status == e_inside) {
-                // Update the intersection with a new one
-                (*kernel.next) = sfi;
-                navigation.distance_to_next = sfi.path;
-                if (std::abs(sfi.path) < navigation.on_surface_tolerance) {
-                    navigation.status =
-                        kSurfaceType ? e_on_surface : e_on_portal;
-                    navigation.current_index = si;
-                    if (navigation.status != e_on_portal) {
-                        ++kernel.next;
-                        // Trust level is high
-                        navigation.trust_level = e_high_trust;
-=======
             // Get the type of the kernel via a const expression at compile time
             constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, volume_link>>);
 
@@ -521,39 +400,40 @@ struct navigator
                         navigation.status = kSurfaceType ? e_towards_surface : e_towards_portal;
                         // Trust fully again
                         navigation.trust_level = e_full_trust;
->>>>>>> ff4fb14 (Use same links type in surface and portal masks: surface links reference back to current volume)
                     }
-                } else {
-                    navigation.status =
-                        kSurfaceType ? e_towards_surface : e_towards_portal;
-                    // Trust fully again
-                    navigation.trust_level = e_full_trust;
+                    return true;
                 }
-                return true;
+                // If not successful: increase and switch to next
+                ++kernel.next;
+                if (update_kernel(navigation, kernel, track, obj_range, trf_range))
+                {
+                    return true;
+                }
             }
-            // If not successful: increase and switch to next
-            ++kernel.next;
-            if (update_kernel(navigation, kernel, track, obj_range,
-                              trf_range)) {
-                return true;
+            // Loop over all candidates and intersect again all candidates
+            // - do this when your trust level is low
+            else if (navigation.trust_level == e_fair_trust)
+            {
+                for (auto &c : kernel.candidates)
+                {
+                    dindex si = c.index;
+                    const auto &s = surfaces[si];
+                    auto [sfi, link] = intersect(track, s, transforms, masks);
+                    c = sfi;
+                    c.index = si;
+                    c.link = link[0];
+                }
+                sort_and_set(navigation, kernel);
+                if (navigation.trust_level == e_high_trust)
+                {
+                    return true;
+                }
             }
+            // This kernel is exhausted
+            kernel.next = kernel.candidates.end();
+            navigation.trust_level = e_no_trust;
+            return false;
         }
-<<<<<<< HEAD
-        // Loop over all candidates and intersect again all candidates
-        // - do this when your trust level is low
-        else if (navigation.trust_level == e_fair_trust) {
-            for (auto &c : kernel.candidates) {
-                dindex si = c.index;
-                const auto &s = surfaces[si];
-                auto [sfi, link] = intersect(track, s, transforms, masks);
-                c = sfi;
-                c.index = si;
-                c.link = link[0];
-            }
-            sort_and_set(navigation, kernel);
-            if (navigation.trust_level == e_high_trust) {
-                return true;
-=======
 
         /** Helper method to sort within the kernel 
          *
@@ -580,76 +460,42 @@ struct navigator
                 }
                 navigation.current_index = dindex_invalid;
                 navigation.status = kSurfaceType ? e_towards_surface : e_towards_portal;
->>>>>>> ff4fb14 (Use same links type in surface and portal masks: surface links reference back to current volume)
             }
         }
-        // This kernel is exhausted
-        kernel.next = kernel.candidates.end();
-        navigation.trust_level = e_no_trust;
-        return false;
-    }
 
-    /** Helper method to sort within the kernel
-     *
-     * @param navigation is the state for setting the distance to next
-     * @param kernel is the kernel which should be updated
-     */
-    template <typename kernel_t>
-    void sort_and_set(state &navigation, kernel_t &kernel) const {
-        // Get the type of the kernel via a const expression at compile time
-        constexpr bool kSurfaceType =
-            (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
-                                                        surface_link>>);
-
-        // Sort and set distance to next & navigation status
-        if (not kernel.candidates.empty()) {
-            navigation.trust_level = e_full_trust;
-            std::sort(kernel.candidates.begin(), kernel.candidates.end());
-            kernel.next = kernel.candidates.begin();
-            navigation.distance_to_next = kernel.next->path;
-            if (navigation.distance_to_next < navigation.on_surface_tolerance) {
-                navigation.status = kSurfaceType ? e_on_surface : e_on_portal;
-                navigation.current_index = kernel.next->index;
+        /** Helper method to check and perform a volume switch
+         *
+         * @param navigation is the navigation state 
+         * 
+         * @return a flag if the volume navigation is still heartbeat
+         */
+        bool check_volume_switch(state &navigation) const
+        {
+            // On a portal: switch volume index and (re-)initialize
+            if (navigation.status == e_on_portal)
+            {
+                // Set volume index to the next volume provided by the portal, avoid setting to same
+                navigation.volume_index =
+                    (navigation.portal_kernel.next->link != navigation.volume_index) ? navigation.portal_kernel.next->link : dindex_invalid;
+                navigation.surface_kernel.clear();
+                navigation.portal_kernel.clear();
+                navigation.trust_level = e_no_trust;
             }
-            navigation.current_index = dindex_invalid;
-            navigation.status =
-                kSurfaceType ? e_towards_surface : e_towards_portal;
+            return (navigation.volume_index != dindex_invalid);
         }
-    }
 
-    /** Helper method to check and perform a volume switch
-     *
-     * @param navigation is the navigation state
-     *
-     * @return a flag if the volume navigation is still heartbeat
-     */
-    bool check_volume_switch(state &navigation) const {
-        // On a portal: switch volume index and (re-)initialize
-        if (navigation.status == e_on_portal) {
-            // Set volume index to the next volume provided by the portal, avoid
-            // setting to same
-            navigation.volume_index =
-                (navigation.portal_kernel.next->link != navigation.volume_index)
-                    ? navigation.portal_kernel.next->link
-                    : dindex_invalid;
-            navigation.surface_kernel.clear();
-            navigation.portal_kernel.clear();
-            navigation.trust_level = e_no_trust;
+        /** Helper method to check if a kernel is exhaused 
+         * 
+         * @tparam kernel_t the type of the kernel
+         * @param kernel the kernel to be checked
+         * 
+         * @return true if the kernel is exhaused 
+         */
+        template <typename kernel_t>
+        bool is_exhausted(const kernel_t &kernel) const
+        {
+            return (kernel.next == kernel.candidates.end());
         }
-        return (navigation.volume_index != dindex_invalid);
-    }
+    };
 
-    /** Helper method to check if a kernel is exhaused
-     *
-     * @tparam kernel_t the type of the kernel
-     * @param kernel the kernel to be checked
-     *
-     * @return true if the kernel is exhaused
-     */
-    template <typename kernel_t>
-    bool is_exhausted(const kernel_t &kernel) const {
-        return (kernel.next == kernel.candidates.end());
-    }
-};
-
-}  // namespace detray
+} // namespace detray
