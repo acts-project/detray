@@ -366,7 +366,7 @@ namespace detray
         bounds.push_back(io_surface.bound_param6);
 
         // Acts naming convention for bounds
-        typename typed_detector::surface_mask_index mask_index = {dindex_invalid, dindex_invalid};
+        typename typed_detector::mask_index mask_index = {dindex_invalid, dindex_invalid};
         // A surface mask points back to the current volume
         typename typed_detector::volume_links volume_links = {c_volume->index(), c_volume->index()};
 

@@ -78,10 +78,6 @@ namespace detray
             e_portal = false,
         };
 
-
-        /// The detector type
-        using detector_type = detector<array_type, tuple_type, vector_type, alignable_store, surface_source_link, bounds_source_link, surfaces_populator_type, surfaces_serializer_type>;
-
         /// Forward the alignable container and context
         using transform_store = alignable_store;
         using context = typename alignable_store::context;
@@ -92,48 +88,43 @@ namespace detray
                                   axis::irregular<array_type, vector_type>,
                                   serializer2>;
 
-        /// Portals components:
-        /// - links:  next volume, next (local) object finder
-        using volume_links = array_type<dindex, 2>;
-
-        /// - mask types
-        using rectangle = rectangle2<planar_intersector, __plugin::cartesian2, volume_links, 0>;
-        using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, volume_links, 1>;
-        using annulus = annulus2<planar_intersector, __plugin::cartesian2, volume_links, 2>;
-        using cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, volume_links, 3>;
-        using disc = ring2<planar_intersector, __plugin::cartesian2, volume_links, 4>;
-        
-        // - mask index: type, { first/last }
-        using portal_mask_index = array_type<dindex, 2>;
-
-        /** The Portal definition:
+        /** The Surface definition:
          *  <transform_link, mask_index, volume_link, source_link >
-         * 
+         *
+         * volume index: volume the surface belongs to
          * transform_link: index into the transform container
          * mask_index: typed index into the mask container
-         * volume_link: index of the volume this portal belongs to
+         * volume_link: index of the volume this surface links to (same for surfaces)
          * source_link: some link to an eventual exernal representation
-         * 
+         *
          */
-        using portal = surface_base<dindex, portal_mask_index, dindex, surface_source_link>;
-        using portal_container = vector_type<portal>;
 
-        /// Surface components:
-        /// - masks, with mask identifiers 0,1,2
+        /// volume index: volume the surface belongs to
+        using volume_index = dindex;
+        /// transform link: transform entry belonging to surface
+        using transform_link = dindex;
+        /// volume links: next volume, next (local) object finder
+        using volume_links = array_type<dindex, 2>;
+        /// mask index: type, entry
+        using mask_index = array_type<dindex, 2>;
+        /// source link
+        using source_link = surface_source_link;
 
-        /// - mask index: type, entry
-        using surface_mask_index = array_type<dindex, 2>;
+        /// mask types
+        using rectangle = rectangle2<planar_intersector, __plugin::cartesian2, volume_links, e_rectangle2>;
+        using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, volume_links, e_trapezoid2>;
+        using annulus = annulus2<planar_intersector, __plugin::cartesian2, volume_links, e_annulus2>;
+        using cylinder = cylinder3<false, cylinder_intersector, __plugin::cylindrical2, volume_links, e_cylinder3>;
+        using disc = ring2<planar_intersector, __plugin::cartesian2, volume_links, e_ring2>;
+
         using mask_container = tuple_type<vector_type<rectangle>,
                                           vector_type<trapezoid>,
                                           vector_type<annulus>,
                                           vector_type<cylinder>,
                                           vector_type<disc>>;
 
-        using surface_link = surface_source_link;
-        /** The Surface definition:
-         *  <transform_link, mask_link, volume_link, source_link >
-         */
-        using surface = surface_base<dindex, surface_mask_index, dindex, surface_link>;
+        /// The Surface definition
+        using surface = surface_base<transform_link, mask_index, volume_index, source_link>;
         using surface_container = vector_type<surface>;
 
         using surfaces_regular_axis = axis::regular<array_type>;
@@ -153,7 +144,7 @@ namespace detray
          * unrolled and filled in lockstep with the masks
          */
         using surface_filling_container = array_type<vector_type<surface>, 5>;
-        using portal_filling_container = array_type<vector_type<portal>, 5>;
+        using portal_filling_container = array_type<vector_type<surface>, 5>;
         using transform_container = array_type<transform_store, 5>;
 
         /** Nested volume struct that holds the local information of the
@@ -161,14 +152,15 @@ namespace detray
          */
         class volume
         {
-            friend class detector<array_type,
-                                  tuple_type,
-                                  vector_type,
-                                  alignable_store,
-                                  surface_source_link,
-                                  bounds_source_link,
-                                  surfaces_populator_type,
-                                  surfaces_serializer_type>;
+
+        friend class detector<array_type,
+                              tuple_type,
+                              vector_type,
+                              alignable_store,
+                              surface_source_link,
+                              bounds_source_link,
+                              surfaces_populator_type,
+                              surfaces_serializer_type>;
 
         public:
 
@@ -608,7 +600,7 @@ namespace detray
 
         /** All surfaces and portals in the detector in contigous memory */
         surface_container _surfaces = {};
-        portal_container _portals = {};
+        surface_container _portals = {};
 
         /** Surface and portal masks of the detector in contigous memory */
         mask_container _masks = {};

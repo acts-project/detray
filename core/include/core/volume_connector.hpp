@@ -233,7 +233,7 @@ namespace detray
                     auto &disc_portals = std::get<detector_type::disc::mask_context>(portals);
                     auto &mask_group   = std::get<detector_type::disc::mask_context>(portal_masks);
                     
-                    typename detector_type::portal_mask_index mask_index = {detector_type::disc::mask_context, mask_group.size()};
+                    typename detector_type::mask_index mask_index = {detector_type::disc::mask_context, mask_group.size()};
                     // Create a stub mask for every unique index
                     for (auto &info_ : portals_info)
                     {
@@ -242,7 +242,7 @@ namespace detray
                         mask_group.push_back(_portal_disc);
 
                         // Create the portal
-                        typename detector_type::portal _portal{disc_portal_transforms.size(default_context), mask_index, volume.index(), dindex_invalid};
+                        typename detector_type::surface _portal{disc_portal_transforms.size(default_context), mask_index, volume.index(), dindex_invalid};
                         // Save the data
                         disc_portals.push_back(std::move(_portal));
                     }
@@ -265,7 +265,7 @@ namespace detray
                     auto &cylinder_portals = std::get<detector_type::cylinder::mask_context>(portals);
                     auto &mask_group   = std::get<detector_type::cylinder::mask_context>(portal_masks);
 
-                    typename detector_type::portal_mask_index mask_index = {detector_type::cylinder::mask_context, mask_group.size()};
+                    typename detector_type::mask_index mask_index = {detector_type::cylinder::mask_context, mask_group.size()};
                     for (auto &info_ : portals_info)
                     {
                         const auto cylinder_range = std::get<0>(info_);
@@ -275,7 +275,7 @@ namespace detray
                         mask_group.push_back(_portal_cylinder);
 
                         // Create the portal
-                        typename detector_type::portal _portal{cylinder_portal_transforms.size(default_context), mask_index, volume.index(), dindex_invalid};
+                        typename detector_type::surface _portal{cylinder_portal_transforms.size(default_context), mask_index, volume.index(), dindex_invalid};
                         cylinder_portals.push_back(std::move(_portal));
                     }
                     // This will be concentric targetted at nominal center

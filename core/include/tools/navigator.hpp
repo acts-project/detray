@@ -47,7 +47,7 @@ namespace detray
         using surface = typename detector_type::surface;
         using volume_link = typename detector_type::volume_links;
 
-        using portal = typename detector_type::portal;
+        using portal = typename detector_type::surface;
 
         using context = typename detector_type::context;
 
