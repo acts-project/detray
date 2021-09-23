@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <vecmem/memory/host_memory_resource.hpp>
 #include <functional>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/surface_base.hpp"
 #include "grids/axis.hpp"
@@ -113,12 +113,16 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
                                 decltype(z_axis_inner), decltype(serializer)>;
     using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn),
                             decltype(phi_axis_ecn), decltype(serializer)>;
-    
-    cylinder_grid ec_grid_inner(std::move(rphi_axis_inner), std::move(z_axis_inner), host_mr);
-    cylinder_grid ec_grid_outer(std::move(rphi_axis_outer), std::move(z_axis_inner), host_mr);
-    disc_grid ec_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn), host_mr);
-    disc_grid ec_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp), host_mr);
-    
+
+    cylinder_grid ec_grid_inner(std::move(rphi_axis_inner),
+                                std::move(z_axis_inner), host_mr);
+    cylinder_grid ec_grid_outer(std::move(rphi_axis_outer),
+                                std::move(z_axis_inner), host_mr);
+    disc_grid ec_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn),
+                        host_mr);
+    disc_grid ec_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp),
+                        host_mr);
+
     scalar r = 0.5 * (inner_r + outer_r);
 
     for (unsigned int iphi = 0; iphi < n_phi; ++iphi) {
@@ -220,11 +224,15 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
     using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn),
                             decltype(phi_axis_ecn), decltype(serializer)>;
 
-    cylinder_grid barrel_grid_inner(std::move(rphi_axis_inner), std::move(z_axis_inner), host_mr);
-    cylinder_grid barrel_grid_outer(std::move(rphi_axis_outer), std::move(z_axis_inner), host_mr);
-    disc_grid barrel_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn), host_mr);
-    disc_grid barrel_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp), host_mr);
-    
+    cylinder_grid barrel_grid_inner(std::move(rphi_axis_inner),
+                                    std::move(z_axis_inner), host_mr);
+    cylinder_grid barrel_grid_outer(std::move(rphi_axis_outer),
+                                    std::move(z_axis_inner), host_mr);
+    disc_grid barrel_grid_n(std::move(r_axis_ecn), std::move(phi_axis_ecn),
+                            host_mr);
+    disc_grid barrel_grid_p(std::move(r_axis_ecp), std::move(phi_axis_ecp),
+                            host_mr);
+
     for (unsigned int iz = 0; iz < n_z; ++iz) {
         scalar pos_z = start_z + iz * step_z;
         for (unsigned int iphi = 0; iphi < n_phi; ++iphi) {

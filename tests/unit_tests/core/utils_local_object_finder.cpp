@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <functional>
 #include <vecmem/memory/host_memory_resource.hpp>
 

@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <climits>
 
 // detray test
