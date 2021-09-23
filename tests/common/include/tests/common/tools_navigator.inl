@@ -1,42 +1,45 @@
 /** Detray library, part of the ACTS project (R&D line)
- * 
+ *
  * (c) 2021 CERN for the benefit of the ACTS project
- * 
+ *
  * Mozilla Public License Version 2.0
  */
+
+#include <gtest/gtest.h>
 
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/detector.hpp"
-#include "core/transform_store.hpp"
 #include "core/track.hpp"
+#include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
 #include "tools/navigator.hpp"
-
-#include <gtest/gtest.h>
 
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the construction and general methods of the navigator
-TEST(ALGEBRA_PLUGIN, navigator)
-{
+TEST(ALGEBRA_PLUGIN, navigator) {
     vecmem::host_memory_resource host_mr;
-    
+
     using namespace detray;
 
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
-    if (env_d_d == nullptr)
-    {
-        throw std::ios_base::failure("Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
+    if (env_d_d == nullptr) {
+        throw std::ios_base::failure(
+            "Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
     }
     auto data_directory = std::string(env_d_d);
 
     std::string surface_file = data_directory + std::string("tml.csv");
-    std::string layer_volume_file = data_directory + std::string("tml-layer-volumes.csv");
-    std::string surface_grid_file = data_directory + std::string("tml-surface-grids.csv");
+    std::string layer_volume_file =
+        data_directory + std::string("tml-layer-volumes.csv");
+    std::string surface_grid_file =
+        data_directory + std::string("tml-surface-grids.csv");
     std::string surface_grid_entries_file = "";
 
-    auto d = detector_from_csv<>("tml", surface_file, layer_volume_file, surface_grid_file, surface_grid_entries_file, host_mr);
+    auto d = detector_from_csv<>("tml", surface_file, layer_volume_file,
+                                 surface_grid_file, surface_grid_entries_file,
+                                 host_mr);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
@@ -61,7 +64,8 @@ TEST(ALGEBRA_PLUGIN, navigator)
     // No portal candidates
     ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
     // You can not trust the state
-    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_no_trust);
+    ASSERT_EQ(state.trust_level,
+              detray_navigator::navigation_trust_level::e_no_trust);
     // The status is unkown
     ASSERT_EQ(state.status, detray_navigator::navigation_status::e_unknown);
 
@@ -70,11 +74,13 @@ TEST(ALGEBRA_PLUGIN, navigator)
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
     // The status is towards surface
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
+    ASSERT_EQ(state.status,
+              detray_navigator::navigation_status::e_towards_surface);
     // Now the volume, surfaces are defined and are trust worthy
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
-    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
+    ASSERT_EQ(state.trust_level,
+              detray_navigator::navigation_trust_level::e_full_trust);
     ASSERT_TRUE(std::abs(state() - 19.) < 0.01);
     // Still no portals defined
     ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
@@ -84,10 +90,12 @@ TEST(ALGEBRA_PLUGIN, navigator)
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
     // The status remains: towards surface
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
+    ASSERT_EQ(state.status,
+              detray_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
-    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
+    ASSERT_EQ(state.trust_level,
+              detray_navigator::navigation_trust_level::e_full_trust);
     ASSERT_TRUE(std::abs(state() - 19.) < 0.01);
 
     // Let's make half the step towards the surface
@@ -98,22 +106,26 @@ TEST(ALGEBRA_PLUGIN, navigator)
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
     // The status remains: towards surface
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
+    ASSERT_EQ(state.status,
+              detray_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
     ASSERT_TRUE(std::abs(state() - 9.5) < 0.01);
     // Trust level is restored
-    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
+    ASSERT_EQ(state.trust_level,
+              detray_navigator::navigation_trust_level::e_full_trust);
 
     // Let's immediately target, nothing should change, as there is full trust
     heartbeat = n.target(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
     // The status remains: towards surface
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
+    ASSERT_EQ(state.status,
+              detray_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
-    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
+    ASSERT_EQ(state.trust_level,
+              detray_navigator::navigation_trust_level::e_full_trust);
     ASSERT_TRUE(std::abs(state() - 9.5) < 0.01);
 
     // Now step onto the surface
@@ -132,7 +144,8 @@ TEST(ALGEBRA_PLUGIN, navigator)
     const auto &surface = d.surfaces()[state.current_index];
     // Kernel is exhaused, and trust level is gone
     ASSERT_EQ(state.surface_kernel.next, state.surface_kernel.candidates.end());
-    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_high_trust);
+    ASSERT_EQ(state.trust_level,
+              detray_navigator::navigation_trust_level::e_high_trust);
 
     // New target call
     heartbeat = n.target(state, traj);
@@ -140,11 +153,13 @@ TEST(ALGEBRA_PLUGIN, navigator)
     ASSERT_TRUE(heartbeat);
 
     // The status is: towards portal
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_portal);
+    ASSERT_EQ(state.status,
+              detray_navigator::navigation_status::e_towards_portal);
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.portal_kernel.candidates.size(), 1u);
-    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
+    ASSERT_EQ(state.trust_level,
+              detray_navigator::navigation_trust_level::e_full_trust);
 
     // Now step towards the portal
     traj.pos = traj.pos + state() * traj.dir;
@@ -157,14 +172,16 @@ TEST(ALGEBRA_PLUGIN, navigator)
     ASSERT_EQ(state.volume_index, 16u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
-    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_no_trust);
+    ASSERT_EQ(state.trust_level,
+              detray_navigator::navigation_trust_level::e_no_trust);
 
     // Let's target now - new volume should be volume 16 and is empty
     heartbeat = n.target(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_portal);
+    ASSERT_EQ(state.status,
+              detray_navigator::navigation_status::e_towards_portal);
     ASSERT_EQ(state.volume_index, 16u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
 
@@ -179,7 +196,8 @@ TEST(ALGEBRA_PLUGIN, navigator)
     ASSERT_EQ(state.volume_index, 17u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
-    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_no_trust);
+    ASSERT_EQ(state.trust_level,
+              detray_navigator::navigation_trust_level::e_no_trust);
 
     // Let's target now - new volume should be volume 17 and should not be empty
     heartbeat = n.target(state, traj);
@@ -188,14 +206,17 @@ TEST(ALGEBRA_PLUGIN, navigator)
 
     ASSERT_EQ(state.volume_index, 17u);
 
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
+    ASSERT_EQ(state.status,
+              detray_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 4u);
-    ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 4u);
-    ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
+    ASSERT_EQ(std::distance(state.surface_kernel.next,
+                            state.surface_kernel.candidates.end()),
+              4u);
+    ASSERT_EQ(state.trust_level,
+              detray_navigator::navigation_trust_level::e_full_trust);
 
     // Intersect the remaining ones
-    for (unsigned int is = 0; is < 3; ++is)
-    {
+    for (unsigned int is = 0; is < 3; ++is) {
         // Step towards the surface
         traj.pos = traj.pos + state() * traj.dir;
         heartbeat = n.status(state, traj);
@@ -203,21 +224,29 @@ TEST(ALGEBRA_PLUGIN, navigator)
         ASSERT_TRUE(heartbeat);
 
         // The status is: on portal - points towards volume 17
-        ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_surface);
+        ASSERT_EQ(state.status,
+                  detray_navigator::navigation_status::e_on_surface);
         ASSERT_EQ(state.volume_index, 17u);
         // We should have switched by one
-        ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 3u - is);
-        ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_high_trust);
+        ASSERT_EQ(std::distance(state.surface_kernel.next,
+                                state.surface_kernel.candidates.end()),
+                  3u - is);
+        ASSERT_EQ(state.trust_level,
+                  detray_navigator::navigation_trust_level::e_high_trust);
 
         heartbeat = n.target(state, traj);
         // Test that the navigator has a heartbeat
         ASSERT_TRUE(heartbeat);
 
-        ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_surface);
+        ASSERT_EQ(state.status,
+                  detray_navigator::navigation_status::e_towards_surface);
         ASSERT_EQ(state.volume_index, 17u);
         ASSERT_EQ(state.surface_kernel.candidates.size(), 4u);
-        ASSERT_EQ(std::distance(state.surface_kernel.next, state.surface_kernel.candidates.end()), 3u - is);
-        ASSERT_EQ(state.trust_level, detray_navigator::navigation_trust_level::e_full_trust);
+        ASSERT_EQ(std::distance(state.surface_kernel.next,
+                                state.surface_kernel.candidates.end()),
+                  3u - is);
+        ASSERT_EQ(state.trust_level,
+                  detray_navigator::navigation_trust_level::e_full_trust);
     }
 
     // Surface kernel is now exhausted, status call should invalidate
@@ -231,7 +260,8 @@ TEST(ALGEBRA_PLUGIN, navigator)
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_towards_portal);
+    ASSERT_EQ(state.status,
+              detray_navigator::navigation_status::e_towards_portal);
 
     // Let's try to see if the heartbeat dies off at the end of world
     traj.pos = point3{1011, 0., 1355};
@@ -251,12 +281,12 @@ TEST(ALGEBRA_PLUGIN, navigator)
     traj.pos = traj.pos + late_state() * traj.dir;
     heartbeat = n.status(late_state, traj);
     // Test that the navigator has a heartbeat
-    ASSERT_EQ(late_state.status, detray_navigator::navigation_status::e_on_portal);
+    ASSERT_EQ(late_state.status,
+              detray_navigator::navigation_status::e_on_portal);
     ASSERT_TRUE(heartbeat);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();
