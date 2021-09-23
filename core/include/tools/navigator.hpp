@@ -310,8 +310,8 @@ namespace detray
             }
             kernel.candidates.reserve(n_objects);
             const auto &transforms = detector.transforms(trf_range, track.ctx);
-            const auto &surfaces = detector.template surfaces<kSurfaceType>();
-            const auto &masks = detector.template masks<kSurfaceType>();
+            const auto &surfaces = detector.surfaces();
+            const auto &masks = detector.masks();
             // Loop over all indexed surfaces, intersect and fill
             // @todo - will come from the local object finder
             for (auto si : sequence(obj_range))
@@ -366,8 +366,8 @@ namespace detray
             constexpr bool kSurfaceType = (std::is_same_v<kernel_t, navigation_kernel<surface, intersection, volume_link>>);
 
             const auto &transforms = detector.transforms(trf_range, track.ctx);
-            const auto &surfaces = detector.template surfaces<kSurfaceType>();
-            const auto &masks = detector.template masks<kSurfaceType>();
+            const auto &surfaces = detector.surfaces();
+            const auto &masks = detector.masks();
 
             // Update current candidate, or step further
             // - do this only when you trust level is high
