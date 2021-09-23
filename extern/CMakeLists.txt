@@ -1,13 +1,17 @@
 add_subdirectory(algebra-plugins)
 
 if (DETRAY_UNIT_TESTS)
-  if (NOT gtest)
+  if( TARGET "gtest")
+    message("gtest has been included already...")
+    return()
+  elseif()
     add_subdirectory(googletest)
   endif()
 endif()
 
 if (DETRAY_IO_CSV)
   if( TARGET "dfelibs" )
+    message("dfelibs has been included already...")
     return()
   elseif()
     add_subdirectory(dfelibs)    
