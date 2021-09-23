@@ -10,6 +10,11 @@ if (DETRAY_UNIT_TESTS)
 endif()
 
 if (DETRAY_IO_CSV)
+  if( TARGET "gtest")
+    message("gtest has been included already...")
+    return()
+  endif()
+  
   if( TARGET "dfelibs" )
     message("dfelibs has been included already...")
     return()
