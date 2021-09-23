@@ -8,7 +8,6 @@
 #pragma once
 
 #include <algorithm>
-#include <iostream>
 #include <limits>
 #include <vecmem/containers/data/jagged_vector_view.hpp>
 #include <vecmem/containers/data/vector_view.hpp>
