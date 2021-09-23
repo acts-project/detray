@@ -1,23 +1,25 @@
 /** Detray library, part of the ACTS project (R&D line)
- * 
+ *
  * (c) 2020 CERN for the benefit of the ACTS project
- * 
+ *
  * Mozilla Public License Version 2.0
  */
 
+// detray test
 #include "tests/common/test_defs.hpp"
-#include "grids/axis.hpp"
-#include "grids/serializer2.hpp"
-#include "utils/indexing.hpp"
 
+// detray core
 #include <gtest/gtest.h>
 
 #include <climits>
 
+#include "grids/axis.hpp"
+#include "grids/serializer2.hpp"
+#include "utils/indexing.hpp"
+
 using namespace detray;
 
-TEST(grids, serialize_deserialize)
-{
+TEST(grids, serialize_deserialize) {
 
     axis::regular<> r6{6, -3., 7.};
     axis::circular<> c12{12, -3., 3.};
@@ -49,9 +51,7 @@ TEST(grids, serialize_deserialize)
     EXPECT_EQ(test_array, expected_array);
 }
 
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();

@@ -1,17 +1,17 @@
 /** Detray library, part of the ACTS project (R&D line)
- * 
+ *
  * (c) 2020 CERN for the benefit of the ACTS project
- * 
+ *
  * Mozilla Public License Version 2.0
  */
 
-#include "core/surface_base.hpp"
-#include "core/intersection.hpp"
-
-#include <cmath>
-#include <climits>
-
 #include <gtest/gtest.h>
+
+#include <climits>
+#include <cmath>
+
+#include "core/intersection.hpp"
+#include "core/surface_base.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -27,8 +27,7 @@ using point3 = __plugin::point3;
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
 // This tests the construction of a surface_base object
-TEST(ALGEBRA_PLUGIN, surface_base)
-{
+TEST(ALGEBRA_PLUGIN, surface_base) {
     // Preparatioon work, create a transform
     vector3 z = vector::normalize(vector3{3., 2., 1.});
     vector3 x = vector::normalize(vector3{2., -3., 0.});
@@ -40,12 +39,13 @@ TEST(ALGEBRA_PLUGIN, surface_base)
 }
 
 // This tests the construction of a intresection
-TEST(ALGEBRA_PLUGIN, intersection)
-{
+TEST(ALGEBRA_PLUGIN, intersection) {
 
-    intersection i0 = {2., point3{0.3, 0.5, 0.7}, point2{0.2, 0.4}, intersection_status::e_hit};
+    intersection i0 = {2., point3{0.3, 0.5, 0.7}, point2{0.2, 0.4},
+                       intersection_status::e_hit};
 
-    intersection i1 = {1.7, point3{0.2, 0.3, 0.}, point2{0.2, 0.4}, intersection_status::e_inside};
+    intersection i1 = {1.7, point3{0.2, 0.3, 0.}, point2{0.2, 0.4},
+                       intersection_status::e_inside};
 
     intersection invalid;
     ASSERT_TRUE(invalid.status == intersection_status::e_missed);
@@ -58,9 +58,7 @@ TEST(ALGEBRA_PLUGIN, intersection)
     ASSERT_TRUE(std::isinf(intersections[2].path));
 }
 
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();

@@ -1,22 +1,24 @@
 /** Detray library, part of the ACTS project (R&D line)
- * 
+ *
  * (c) 2020 CERN for the benefit of the ACTS project
- * 
+ *
  * Mozilla Public License Version 2.0
  */
 
+// detray test
 #include "tests/common/test_defs.hpp"
-#include "grids/populator.hpp"
-#include "utils/indexing.hpp"
 
+// detray core
 #include <gtest/gtest.h>
 
 #include <climits>
 
+#include "grids/populator.hpp"
+#include "utils/indexing.hpp"
+
 using namespace detray;
 
-TEST(grids, replace_populator)
-{
+TEST(grids, replace_populator) {
     replace_populator<> replacer;
     dindex stored = 3;
     replacer(stored, 2);
@@ -26,14 +28,14 @@ TEST(grids, replace_populator)
     EXPECT_EQ(stored, 42u);
 }
 
-TEST(grids, complete_populator)
-{
+TEST(grids, complete_populator) {
 
     using cpopulator4 = complete_populator<4>;
     cpopulator4 completer;
 
-    cpopulator4::store_value stored = {cpopulator4::invalid_value, cpopulator4::invalid_value, cpopulator4::invalid_value, cpopulator4::invalid_value};
-
+    cpopulator4::store_value stored = {
+        cpopulator4::invalid_value, cpopulator4::invalid_value,
+        cpopulator4::invalid_value, cpopulator4::invalid_value};
 
     cpopulator4::store_value test = stored;
     test[0] = 9u;
@@ -47,15 +49,13 @@ TEST(grids, complete_populator)
     using sort_cpopulator4 = complete_populator<4, true>;
     sort_cpopulator4 sort_completer;
 
-    test = { 0, 3, 9, 1000};
+    test = {0, 3, 9, 1000};
     sort_completer(stored, 1000);
     sort_completer(stored, 0);
     EXPECT_EQ(stored, test);
-
 }
 
-TEST(grids, attach_populator)
-{
+TEST(grids, attach_populator) {
     // Attch populator without sorting
     attach_populator<> attacher;
     attach_populator<>::store_value stored = {3};
@@ -74,9 +74,7 @@ TEST(grids, attach_populator)
     EXPECT_EQ(stored, test);
 }
 
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();
