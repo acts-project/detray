@@ -8,11 +8,10 @@
 
 #include <matplot/matplot.h>
 
-#include <vecmem/memory/host_memory_resource.hpp>
-
 #include <climits>
 #include <fstream>
 #include <iostream>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
@@ -51,8 +50,9 @@ int main(int argc, char **argv) {
             std::string grids_file = argv[4];
             std::string grid_entries_file = argv[5];
 
-            auto d = detector_from_csv<>(name, surfaces_file, volumes_file,
-                                         grids_file, grid_entries_file, host_mr);
+            auto d =
+                detector_from_csv<>(name, surfaces_file, volumes_file,
+                                    grids_file, grid_entries_file, host_mr);
 
             std::cout << d.to_string() << std::endl;
 
