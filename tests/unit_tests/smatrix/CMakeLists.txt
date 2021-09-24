@@ -16,9 +16,8 @@ if (DETRAY_IO_CSV)
 endif()
 
 if (DETRAY_DISPLAY)
-    set(UNIT_TEST_EXTRA_LIBRARIES detray::display)
     add_detray_test(smatrix_display_masks
       smatrix_display_masks.cpp
       LINK_LIBRARIES
-      detray::smatrix)
+      detray::smatrix detray::display)
 endif()

@@ -8,6 +8,8 @@
 
 #include <matplot/matplot.h>
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include <climits>
 #include <iostream>
 
@@ -16,6 +18,8 @@
 #include "io/csv_io.hpp"
 
 int main(int argc, char **argv) {
+    vecmem::host_memory_resource host_mr;
+	
     using namespace detray;
     using namespace matplot;
 
@@ -34,7 +38,7 @@ int main(int argc, char **argv) {
             std::string grid_entries_file = argv[5];
 
             auto d = detector_from_csv<>(name, surfaces_file, volumes_file,
-                                         grids_file, grid_entries_file);
+                                         grids_file, grid_entries_file, host_mr);
 
             std::cout << "[detray] Detector read successfully." << std::endl;
             std::cout << d.to_string() << std::endl;
