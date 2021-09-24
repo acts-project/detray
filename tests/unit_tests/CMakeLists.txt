@@ -37,6 +37,8 @@ function(add_detray_test name)
   add_test( ${test_exe_name} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test_exe_name})
   #  COMMAND $<TARGET_FILE:${test_exe_name}> )
 
+  set_tests_properties(${test_exe_name} PROPERTIES ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/data/)
+  
 endfunction(add_detray_test)  
   
 set(all_unit_tests "core")
