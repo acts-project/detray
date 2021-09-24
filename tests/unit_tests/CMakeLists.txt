@@ -16,15 +16,15 @@ function(add_detray_test name)
   # Create the test executable.
   set( test_exe_name "detray_test_${name}" )
   add_executable(${test_exe_name} ${ARG_UNPARSED_ARGUMENTS})
+  target_link_libraries( ${test_exe_name} PRIVATE gtest gmock gtest_main)
+  target_link_libraries( ${test_exe_name} PRIVATE detray::core detray::io detray::tests_common)  
   if ( ARG_LINK_LIBRARIES )
     target_link_libraries( ${test_exe_name} PRIVATE ${ARG_LINK_LIBRARIES})
-    target_link_libraries( ${test_exe_name} PRIVATE detray::core detray::io detray::tests_common)
-    target_link_libraries( ${test_exe_name} PRIVATE gtest gmock gtest_main)
   endif()
-  foreach( _config "" "_DEBUG" "_RELEASE" "_MINSIZEREL" "_RELWITHDEBINFO" )
-    set_property( TARGET ${test_exe_name} PROPERTY
-      RUNTIME_OUTPUT_DIRECTORY${_config} "${CMAKE_BINARY_DIR}/test-bin" )
-  endforeach()
+  #foreach( _config "" "_DEBUG" "_RELEASE" "_MINSIZEREL" "_RELWITHDEBINFO" )
+  #  set_property( TARGET ${test_exe_name} PROPERTY
+  #    RUNTIME_OUTPUT_DIRECTORY${_config} "${CMAKE_BINARY_DIR}/test-bin" )
+  #endforeach()
 
   # Check if it is cuda test
   if(${test_exe_name} MATCHES ".*_cuda")
@@ -34,8 +34,8 @@ function(add_detray_test name)
   endif()
   
   # Run the executable as the test.
-  add_test( NAME ${test_exe_name}
-    COMMAND $<TARGET_FILE:${test_exe_name}> )
+  add_test( ${test_exe_name} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test_exe_name})
+  #  COMMAND $<TARGET_FILE:${test_exe_name}> )
 
 endfunction(add_detray_test)  
   
