@@ -9,8 +9,6 @@
 
 #include <cmath>
 
-#include "utils/containers.hpp"
-
 namespace detray {
 using point3 = __plugin::point3;
 using transform3 = __plugin::transform3;
