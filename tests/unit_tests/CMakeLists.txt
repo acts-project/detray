@@ -21,10 +21,10 @@ function(add_detray_test name)
   if ( ARG_LINK_LIBRARIES )
     target_link_libraries( ${test_exe_name} PRIVATE ${ARG_LINK_LIBRARIES})
   endif()
-  #foreach( _config "" "_DEBUG" "_RELEASE" "_MINSIZEREL" "_RELWITHDEBINFO" )
-  #  set_property( TARGET ${test_exe_name} PROPERTY
-  #    RUNTIME_OUTPUT_DIRECTORY${_config} "${CMAKE_BINARY_DIR}/test-bin" )
-  #endforeach()
+  foreach( _config "" "_DEBUG" "_RELEASE" "_MINSIZEREL" "_RELWITHDEBINFO" )
+    set_property( TARGET ${test_exe_name} PROPERTY
+      RUNTIME_OUTPUT_DIRECTORY${_config} "${CMAKE_BINARY_DIR}/test-bin" )
+  endforeach()
 
   # Check if it is cuda test
   if(${test_exe_name} MATCHES ".*_cuda")
@@ -34,8 +34,7 @@ function(add_detray_test name)
   endif()
   
   # Run the executable as the test.
-  add_test( ${test_exe_name} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test_exe_name})
-  #  COMMAND $<TARGET_FILE:${test_exe_name}> )
+  add_test( NAME ${test_exe_name} COMMAND $<TARGET_FILE:${test_exe_name}> )
 
   set_tests_properties(${test_exe_name} PROPERTIES ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/data/)
   
