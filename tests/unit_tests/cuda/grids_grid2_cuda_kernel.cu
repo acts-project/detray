@@ -114,4 +114,29 @@ __global__ void grid_test2_kernel(grid_data_t grid_data) {
                       axis1.min + gid * y_interval, 0.5};
 }
 
+
+__global__ void mem_test_kernel(vecmem::data::vector_view<int> vec_view);
+    
+void mem_test(vecmem::vector<int>& vec){
+    vecmem::data::vector_view<int> vec_view = vecmem::get_data(vec);
+
+    int num_blocks = 1;
+    int num_threads = 1;
+
+    // run the kernel
+    mem_test_kernel<<<num_blocks, num_threads>>>(vec_view);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());    
+}
+
+
+__global__ void mem_test_kernel(vecmem::data::vector_view<int> vec_view){
+
+    vecmem::device_vector<int> dev_vec(vec_view);
+
+    printf("%f \n", dev_vec[0]);
+}
+    
 }  // namespace detray

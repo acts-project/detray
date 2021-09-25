@@ -11,6 +11,8 @@
 #include <limits>
 #include <vecmem/containers/data/jagged_vector_view.hpp>
 #include <vecmem/containers/data/vector_view.hpp>
+#include <vecmem/containers/data/vector_buffer.hpp>
+#include <vecmem/containers/data/jagged_vector_buffer.hpp>
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
 
@@ -37,8 +39,10 @@ struct replace_populator {
     using store_value = value_type;
     using serialized_storage = vector_type<store_value>;
     using vector_view_t = vecmem::data::vector_view<store_value>;
+    using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
+    using buffer_size_t = typename vector_view_t::size_type;
     using device_vector_t = vecmem::device_vector<store_value>;
-
+    
     /** Swap the stored value with a new bare value
      *
      * @param stored the stored value for the population
@@ -106,8 +110,10 @@ struct complete_populator {
     using store_value = array_type<bare_value, kDIM>;
     using serialized_storage = vector_type<store_value>;
     using vector_view_t = vecmem::data::vector_view<store_value>;
+    using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
+    using buffer_size_t = typename vector_view_t::size_type;
     using device_vector_t = vecmem::device_vector<store_value>;
-
+    
     /** Complete the stored value with a new bare value
      *
      * @param stored the stored value for the population
@@ -193,8 +199,10 @@ struct attach_populator {
     using store_value = vector_type<bare_value>;
     using serialized_storage = jagged_vector_type<bare_value>;
     using vector_view_t = vecmem::data::jagged_vector_view<bare_value>;
+    using vector_buffer_t = vecmem::data::jagged_vector_buffer<bare_value>;
+    using buffer_size_t = std::vector< typename vector_view_t::size_type >;
     using device_vector_t = vecmem::jagged_device_vector<bare_value>;
-
+    
     /** Add a new value to the stored value
      *
      * @param stored the stored value for the population

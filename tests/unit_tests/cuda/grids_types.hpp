@@ -36,4 +36,6 @@ using grid2r_attach = grid2<attach_populator<false, test::point3>,
 
 using grid2r_attach_data = grid2_data<grid2r_attach>;
 
+using grid2r_attach_buffer = grid2_buffer<grid2r_attach>;
+
 }  // namespace detray

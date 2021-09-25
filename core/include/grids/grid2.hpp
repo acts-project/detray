@@ -288,9 +288,37 @@ struct grid2_data {
         : _axis_p0(grid.axis_p0()),
           _axis_p1(grid.axis_p1()),
           _data_serialized(populator_t::get_data(grid.data(), resource)) {}
-
+    
     vector_view_t _data_serialized;
     const axis_p0_t _axis_p0;
     const axis_p1_t _axis_p1;
 };
+
+/** A two-dimensional grid buffer for gpu device usage
+ *
+ * @tparam grid_t type of grid
+ **/
+template <typename grid_t>
+struct grid2_buffer {
+
+    using axis_p0_t = typename grid_t::axis_p0_t;
+    using axis_p1_t = typename grid_t::axis_p1_t;
+    using populator_t = typename grid_t::populator_t;
+    using vector_buffer_t = typename populator_t::vector_buffer_t;
+    using buffer_size_t = typename populator_t::buffer_size_t;    
+    
+    grid2_buffer(const axis_p0_t& axis_p0,
+		 const axis_p0_t& axis_p1,
+		 buffer_size_t& sizes,
+		 buffer_size_t& capacities,
+		 vecmem::memory_resource& resource)
+        : _axis_p0(axis_p0),
+          _axis_p1(axis_p1),
+          _buffer(sizes, capacities, resource) {}
+    
+    vector_buffer_t _buffer;
+    const axis_p0_t _axis_p0;
+    const axis_p1_t _axis_p1;
+};
+        
 }  // namespace detray

@@ -58,6 +58,21 @@ TEST(grids_cuda, grid2_replace_populator) {
             EXPECT_EQ(data, tp);
         }
     }
+
+    vecmem::vector<int> test_vec1{&mng_mr};
+    vecmem::vector<int> test_vec2 = { {1,2,3}, &mng_mr };
+
+    mem_test(test_vec2);
+    
+    test_vec1 = std::move(test_vec2);
+
+    mem_test(test_vec1);
+    
+    /*
+    for (auto& el: test_vec1){
+	std::cout << el << std::endl;
+    }
+    */
 }
 
 TEST(grids_cuda, grid2_complete_populator) {
@@ -168,6 +183,22 @@ TEST(grids_cuda, grid2_attach_populator) {
         }
     }
 }
+
+TEST(grids_cuda, grid2_buffer_attach_populator) {
+    // memory resource
+    vecmem::cuda::managed_memory_resource mng_mr;
+    
+    // axis
+    grid2r_attach_buffer::axis_p0_t xaxis{4, -1., 3.};
+    grid2r_attach_buffer::axis_p1_t yaxis{6, 0., 6.};    
+    grid2r_attach_buffer::buffer_size_t sizes({2,5,8});
+    grid2r_attach_buffer::buffer_size_t capacities({10,20,30});
+    
+    // declare grid buffer    
+    grid2r_attach_buffer g2_buffer(xaxis, yaxis, sizes, capacities, mng_mr);
+    
+}
+
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
