@@ -14,7 +14,7 @@
 #include "grids_grid2_cuda_kernel.cuh"
 
 using namespace detray;
-
+/*
 TEST(grids_cuda, grid2_replace_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
@@ -58,21 +58,6 @@ TEST(grids_cuda, grid2_replace_populator) {
             EXPECT_EQ(data, tp);
         }
     }
-
-    vecmem::vector<int> test_vec1{&mng_mr};
-    vecmem::vector<int> test_vec2 = { {1,2,3}, &mng_mr };
-
-    mem_test(test_vec2);
-    
-    test_vec1 = std::move(test_vec2);
-
-    mem_test(test_vec1);
-    
-    /*
-    for (auto& el: test_vec1){
-	std::cout << el << std::endl;
-    }
-    */
 }
 
 TEST(grids_cuda, grid2_complete_populator) {
@@ -183,22 +168,47 @@ TEST(grids_cuda, grid2_attach_populator) {
         }
     }
 }
+*/
 
+/**
+ * This test demonstrates how to call grid buffer without calling host grid
+ *object It is especially useful when you don't need to save the objects in host
+ *side (e.g. internal spacepoint creation in traccc)
+ **/
 TEST(grids_cuda, grid2_buffer_attach_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
-    
-    // axis
-    grid2r_attach_buffer::axis_p0_t xaxis{4, -1., 3.};
-    grid2r_attach_buffer::axis_p1_t yaxis{6, 0., 6.};    
-    grid2r_attach_buffer::buffer_size_t sizes({2,5,8});
-    grid2r_attach_buffer::buffer_size_t capacities({10,20,30});
-    
-    // declare grid buffer    
-    grid2r_attach_buffer g2_buffer(xaxis, yaxis, sizes, capacities, mng_mr);
-    
-}
 
+    // axes and dimension of buffer
+    grid2r_attach_buffer::axis_p0_t xaxis{2, -1., 3.};
+    grid2r_attach_buffer::axis_p1_t yaxis{2, 0., 6.};
+    grid2r_attach_buffer::buffer_size_t sizes({2, 5, 8, 10});
+    grid2r_attach_buffer::buffer_size_t capacities({10, 20, 30, 40});
+
+    // declare grid buffer
+    grid2r_attach_buffer g2_buffer(xaxis, yaxis, sizes, capacities, mng_mr);
+
+    auto& ptr = g2_buffer._buffer.m_ptr;
+    // Check if the initialization work well
+    // Non-zero starting size not working yet so intial argument for sizes is
+    // ignored (acts-projects/vecmem#95)
+    EXPECT_EQ(ptr[0].size(), 0);
+    EXPECT_EQ(ptr[1].size(), 0);
+    EXPECT_EQ(ptr[2].size(), 0);
+    EXPECT_EQ(ptr[0].capacity(), 10);
+    EXPECT_EQ(ptr[1].capacity(), 20);
+    EXPECT_EQ(ptr[2].capacity(), 30);
+
+    grid2r_attach_data g2_data(g2_buffer);
+
+    // fill each bin with 10 points
+    grid_buffer_test(g2_data);
+
+    // Check if each bin has 10 points
+    EXPECT_EQ(ptr[0].size(), 10);
+    EXPECT_EQ(ptr[1].size(), 10);
+    EXPECT_EQ(ptr[2].size(), 10);
+}
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

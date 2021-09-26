@@ -19,7 +19,8 @@ void grid_test1(grid2_data_t& grid_data);
 template <typename grid2_data_t>
 void grid_test2(grid2_data_t& grid_data);
 
-void mem_test(vecmem::vector<int>& vec);
+// test function for grid buffer with attach populator
+template <typename grid2_data_t>
+void grid_buffer_test(grid2_data_t& grid_data);
 
-    
 }  // namespace detray

@@ -9,14 +9,15 @@
 
 #include <algorithm>
 #include <limits>
-#include <vecmem/containers/data/jagged_vector_view.hpp>
-#include <vecmem/containers/data/vector_view.hpp>
-#include <vecmem/containers/data/vector_buffer.hpp>
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>
+#include <vecmem/containers/data/jagged_vector_view.hpp>
+#include <vecmem/containers/data/vector_buffer.hpp>
+#include <vecmem/containers/data/vector_view.hpp>
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
 
 #include "definitions/invalid_values.hpp"
+#include "definitions/qualifiers.hpp"
 #include "utils/indexing.hpp"
 namespace detray {
 /** A replace populator that swaps whatever current value in the
@@ -29,7 +30,7 @@ namespace detray {
 template <typename value_type = dindex,
           template <typename> class vector_type = dvector>
 struct replace_populator {
-
+    DETRAY_HOST_DEVICE
     replace_populator(const value_type invalid = invalid_value<value_type>())
         : kInvalid(invalid) {}
 
@@ -38,16 +39,17 @@ struct replace_populator {
     using bare_value = value_type;
     using store_value = value_type;
     using serialized_storage = vector_type<store_value>;
+
     using vector_view_t = vecmem::data::vector_view<store_value>;
     using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
     using buffer_size_t = typename vector_view_t::size_type;
-    using device_vector_t = vecmem::device_vector<store_value>;
-    
+
     /** Swap the stored value with a new bare value
      *
      * @param stored the stored value for the population
      * @param bvalue the new value to be added
      **/
+    DETRAY_HOST_DEVICE
     void operator()(store_value &stored, bare_value &&bvalue) const {
         stored = std::move(bvalue);
     }
@@ -58,6 +60,7 @@ struct replace_populator {
      *
      * @return a sequence of bare values
      */
+    DETRAY_HOST_DEVICE
     vector_type<bare_value> sequence(store_value &stored) const {
         if (stored != kInvalid) {
             return {stored};
@@ -71,16 +74,19 @@ struct replace_populator {
      * @param offset is the shift offset
      *
      **/
+    DETRAY_HOST_DEVICE
     void shift(store_value &stored, const bare_value &offset) const {
         stored += offset;
     }
 
     /** Return an initialized bin value
      */
+    DETRAY_HOST_DEVICE
     store_value init() const { return kInvalid; }
 
     /** Return a vector view
      **/
+    DETRAY_HOST
     static vector_view_t get_data(serialized_storage &data,
                                   vecmem::memory_resource *resource = nullptr) {
         return vecmem::get_data(data);
@@ -101,6 +107,7 @@ template <unsigned int kDIM, bool kSORT = false, typename value_type = dindex,
           template <typename, unsigned int> class array_type = darray,
           template <typename> class vector_type = dvector>
 struct complete_populator {
+    DETRAY_HOST_DEVICE
     complete_populator(const value_type invalid = invalid_value<value_type>())
         : kInvalid(invalid) {}
 
@@ -109,16 +116,17 @@ struct complete_populator {
     using bare_value = value_type;
     using store_value = array_type<bare_value, kDIM>;
     using serialized_storage = vector_type<store_value>;
+
     using vector_view_t = vecmem::data::vector_view<store_value>;
     using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
     using buffer_size_t = typename vector_view_t::size_type;
-    using device_vector_t = vecmem::device_vector<store_value>;
-    
+
     /** Complete the stored value with a new bare value
      *
      * @param stored the stored value for the population
      * @param bvalue the new value to be added
      **/
+    DETRAY_HOST_DEVICE
     void operator()(store_value &stored, bare_value &&bvalue) const {
 
         for (auto &val : stored) {
@@ -138,6 +146,7 @@ struct complete_populator {
      *
      * @return a sequence of bare values, @note it will ignore invalid entries
      */
+    DETRAY_HOST_DEVICE
     vector_type<bare_value> sequence(store_value &stored) const {
         vector_type<bare_value> s;
         s.reserve(kDIM);
@@ -155,6 +164,7 @@ struct complete_populator {
      * @param offset is the shift offset
      *
      **/
+    DETRAY_HOST_DEVICE
     void shift(store_value &stored, const bare_value &offset) const {
         std::for_each(stored.begin(), stored.end(),
                       [&](auto &d) { d += offset; });
@@ -162,6 +172,7 @@ struct complete_populator {
 
     /** Return an initialized bin value
      **/
+    DETRAY_HOST_DEVICE
     store_value init() const {
 
         store_value init_bin;
@@ -173,6 +184,7 @@ struct complete_populator {
 
     /** Return a vector view
      **/
+    DETRAY_HOST
     static vector_view_t get_data(serialized_storage &data,
                                   vecmem::memory_resource *resource = nullptr) {
         return vecmem::get_data(data);
@@ -190,6 +202,7 @@ template <bool kSORT = false, typename value_type = dindex,
           template <typename> class vector_type = dvector,
           template <typename> class jagged_vector_type = djagged_vector>
 struct attach_populator {
+    DETRAY_HOST_DEVICE
     attach_populator(const value_type invalid = invalid_value<value_type>())
         : kInvalid(invalid) {}
 
@@ -198,21 +211,32 @@ struct attach_populator {
     using bare_value = value_type;
     using store_value = vector_type<bare_value>;
     using serialized_storage = jagged_vector_type<bare_value>;
+
     using vector_view_t = vecmem::data::jagged_vector_view<bare_value>;
     using vector_buffer_t = vecmem::data::jagged_vector_buffer<bare_value>;
-    using buffer_size_t = std::vector< typename vector_view_t::size_type >;
-    using device_vector_t = vecmem::jagged_device_vector<bare_value>;
-    
-    /** Add a new value to the stored value
+    using buffer_size_t = std::vector<typename vector_view_t::size_type>;
+
+    /** Add a new value to the stored value - for host vector
      *
      * @param stored the stored value for the population
      * @param bvalue the new value to be added
      **/
+    DETRAY_HOST
     void operator()(store_value &stored, bare_value &&bvalue) const {
         stored.push_back(bvalue);
         if (kSORT) {
             std::sort(stored.begin(), stored.end());
         }
+    }
+
+    /** Add a new value to the stored value - for device vector
+     *
+     * @param stored the stored value for the population
+     * @param bvalue the new value to be added
+     **/
+    DETRAY_DEVICE
+    void operator()(store_value stored, bare_value &&bvalue) {
+        stored.push_back(bvalue);
     }
 
     /** Create a sequence of bare values, independent of the store_value.
@@ -221,6 +245,7 @@ struct attach_populator {
      *
      * @return a sequence of bare values
      */
+    DETRAY_HOST_DEVICE
     vector_type<bare_value> sequence(store_value &stored) const {
         return stored;
     }
@@ -231,6 +256,7 @@ struct attach_populator {
      * @param offset is the shift offset
      *
      **/
+    DETRAY_HOST_DEVICE
     void shift(store_value &stored, const bare_value &offset) const {
         std::for_each(stored.begin(), stored.end(),
                       [&](auto &d) { d += offset; });
@@ -238,10 +264,12 @@ struct attach_populator {
 
     /** Return an initialized bin value
      **/
+    DETRAY_HOST_DEVICE
     store_value init() const { return {}; }
 
     /** Return a vector view
      **/
+    DETRAY_HOST
     static vector_view_t get_data(serialized_storage &data,
                                   vecmem::memory_resource *resource) {
         return vecmem::get_data(data, resource);

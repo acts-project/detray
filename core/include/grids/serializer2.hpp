@@ -9,6 +9,7 @@
 
 #include <algorithm>
 
+#include "definitions/qualifiers.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray {
@@ -33,8 +34,9 @@ struct serializer2 {
      * @return a dindex for the memory storage
      */
     template <typename faxis_type, typename saxis_type>
-    dindex serialize(const faxis_type &faxis, const saxis_type & /*saxis*/,
-                     dindex fbin, dindex sbin) const {
+    DETRAY_HOST_DEVICE dindex serialize(const faxis_type &faxis,
+                                        const saxis_type & /*saxis*/,
+                                        dindex fbin, dindex sbin) const {
 
         dindex offset = sbin * faxis.bins();
         return offset + fbin;
@@ -53,9 +55,9 @@ struct serializer2 {
      */
     template <typename faxis_type, typename saxis_type,
               template <typename, unsigned int> class array_type = darray>
-    array_type<dindex, 2> deserialize(const faxis_type &faxis,
-                                      const saxis_type & /*saxis*/,
-                                      dindex serialbin) const {
+    DETRAY_HOST_DEVICE array_type<dindex, 2> deserialize(
+        const faxis_type &faxis, const saxis_type & /*saxis*/,
+        dindex serialbin) const {
         dindex sbin = static_cast<dindex>(serialbin / faxis.bins());
         dindex fbin = serialbin - sbin * faxis.bins();
         return {fbin, sbin};

@@ -34,6 +34,11 @@ using grid2r_complete_data = grid2_data<grid2r_complete>;
 using grid2r_attach = grid2<attach_populator<false, test::point3>,
                             axis::regular<>, axis::regular<>, serializer2>;
 
+using grid2r_attach_device =
+    grid2<attach_populator<false, test::point3, vecmem::device_vector,
+                           vecmem::jagged_device_vector>,
+          axis::regular<>, axis::regular<>, serializer2>;
+
 using grid2r_attach_data = grid2_data<grid2r_attach>;
 
 using grid2r_attach_buffer = grid2_buffer<grid2r_attach>;

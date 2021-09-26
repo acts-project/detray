@@ -12,9 +12,9 @@
 
 namespace detray {
 
-/*------------------------------------
-  test function for replace populator
-  ------------------------------------*/
+/*---------------------------------------------------
+  test function for grid data with replace populator
+  ---------------------------------------------------*/
 
 // test1 kernel declaration
 template <typename grid_data_t>
@@ -45,7 +45,7 @@ void grid_test1(grid2_data_t& grid_data) {
 // test2 kernel implementation
 template <typename grid_data_t>
 __global__ void grid_test1_kernel(grid_data_t grid_data) {
-
+    /*
     typename grid_data_t::populator_t::device_vector_t data_device(
         grid_data._data_serialized);
     const auto& axis0 = grid_data._axis_p0;
@@ -58,11 +58,12 @@ __global__ void grid_test1_kernel(grid_data_t grid_data) {
 
     pt = test::point3{axis0.min + threadIdx.x * x_interval,
                       axis1.min + threadIdx.x * y_interval, 0.5};
+    */
 }
 
-/*------------------------------------------------
-  test function for complete and attach populator
-  ------------------------------------------------*/
+/*---------------------------------------------------------------
+  test function for grid data with complete and attach populator
+  ---------------------------------------------------------------*/
 
 // test2 kernel declaration
 template <typename grid_data_t>
@@ -78,7 +79,6 @@ template void grid_test2<grid2r_attach_data>(grid2r_attach_data& grid_data);
 template <typename grid2_data_t>
 void grid_test2(grid2_data_t& grid_data) {
 
-    // auto& data_view = grid_data._data_serialized;
     const auto& axis0 = grid_data._axis_p0;
     const auto& axis1 = grid_data._axis_p1;
 
@@ -96,7 +96,7 @@ void grid_test2(grid2_data_t& grid_data) {
 // test2 kernel implementation
 template <typename grid_data_t>
 __global__ void grid_test2_kernel(grid_data_t grid_data) {
-
+    /*
     typename grid_data_t::populator_t::device_vector_t data_device(
         grid_data._data_serialized);
     const auto& axis0 = grid_data._axis_p0;
@@ -112,31 +112,56 @@ __global__ void grid_test2_kernel(grid_data_t grid_data) {
 
     pt = test::point3{axis0.min + gid * x_interval,
                       axis1.min + gid * y_interval, 0.5};
+    */
 }
 
+/*----------------------------------------------------
+  test function for grid buffer with attach populator
+  ----------------------------------------------------*/
 
-__global__ void mem_test_kernel(vecmem::data::vector_view<int> vec_view);
-    
-void mem_test(vecmem::vector<int>& vec){
-    vecmem::data::vector_view<int> vec_view = vecmem::get_data(vec);
+// buffer_test kernel declaration
+template <typename grid_data_t>
+__global__ void grid_buffer_test_kernel(grid_data_t grid_data);
 
-    int num_blocks = 1;
-    int num_threads = 1;
+// buffer_test instantiation for attach populator
+
+template void grid_buffer_test<grid2r_attach_data>(
+    grid2r_attach_data& grid_data);
+
+template <typename grid2_data_t>
+void grid_buffer_test(grid2_data_t& grid_data) {
+
+    const auto& axis0 = grid_data._axis_p0;
+    const auto& axis1 = grid_data._axis_p1;
+
+    dim3 block_dim(axis0.bins(), axis1.bins());
+    int thread_dim = 1;
 
     // run the kernel
-    mem_test_kernel<<<num_blocks, num_threads>>>(vec_view);
+    grid_buffer_test_kernel<<<block_dim, thread_dim>>>(grid_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
-    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());    
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
+// buffer_test kernel declaration
+template <typename grid_data_t>
+__global__ void grid_buffer_test_kernel(grid_data_t grid_data) {
 
-__global__ void mem_test_kernel(vecmem::data::vector_view<int> vec_view){
+    /*
+    using grid2_device_t = grid2<grid_data_t::populator_t,
+                                 grid_data_t::axis_p0_t, grid_data_t::axis_po_1,
+                                 grid_data_t::serializer_t>
+    */
+    // Let's try building the grid object
+    grid2r_attach_device g2_device(grid_data, test::point3{0, 0, 0});
 
-    vecmem::device_vector<int> dev_vec(vec_view);
-
-    printf("%f \n", dev_vec[0]);
+    // Fill with 10 points
+    for (int i = 0; i < 10; i++) {
+        auto pt = test::point3{0, 0, 0};
+        g2_device.populate(blockIdx.x, blockIdx.y, std::move(pt));
+    }
 }
-    
+
 }  // namespace detray
