@@ -14,7 +14,7 @@
 #include "grids_grid2_cuda_kernel.cuh"
 
 using namespace detray;
-/*
+
 TEST(grids_cuda, grid2_replace_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
@@ -26,12 +26,13 @@ TEST(grids_cuda, grid2_replace_populator) {
     auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
     auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
 
-    // declare grid
-    grid2r_replace g2(std::move(xaxis), std::move(yaxis), mng_mr,
-                      test::point3{0, 0, 0});
+    // declare host grid
+    grid2<host_replace, axis::regular<>, axis::regular<>, serializer2> g2(
+        std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0, 0, 0});
 
     // get grid_data
-    grid2_data g2_data(g2);
+    grid2_data<device_replace, axis::regular<>, axis::regular<>, serializer2>
+        g2_data(g2, mng_mr);
 
     // pre-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -43,8 +44,8 @@ TEST(grids_cuda, grid2_replace_populator) {
         }
     }
 
-    // run test function in cuda
-    grid_test1(g2_data);
+    // fill the grids
+    grid_replace_test(g2_data);
 
     // post-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -69,11 +70,8 @@ TEST(grids_cuda, grid2_complete_populator) {
     axis::regular<> yaxis{3, 0., 3.};
 
     // declare grid
-    grid2r_complete g2(std::move(xaxis), std::move(yaxis), mng_mr,
-                       test::point3{0, 0, 0});
-
-    // get grid_data
-    grid2_data g2_data(g2);
+    grid2<host_complete, axis::regular<>, axis::regular<>, serializer2> g2(
+        std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0, 0, 0});
 
     // pre-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -87,8 +85,12 @@ TEST(grids_cuda, grid2_complete_populator) {
         }
     }
 
-    // run test function in cuda
-    grid_test2(g2_data);
+    // get grid_data
+    grid2_data<device_complete, axis::regular<>, axis::regular<>, serializer2>
+        g2_data(g2, mng_mr);
+
+    // fill the grid
+    grid_complete_test(g2_data);
 
     auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
     auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
@@ -113,63 +115,6 @@ TEST(grids_cuda, grid2_complete_populator) {
     }
 }
 
-TEST(grids_cuda, grid2_attach_populator) {
-
-    // memory resource
-    vecmem::cuda::managed_memory_resource mng_mr;
-
-    // axis
-    axis::regular<> xaxis{4, -1., 3.};
-    axis::regular<> yaxis{6, 0., 6.};
-
-    auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
-    auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
-
-    // declare grid
-    grid2r_attach g2(std::move(xaxis), std::move(yaxis), mng_mr,
-                     test::point3{0, 0, 0});
-
-    // fill the grid
-    for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
-        for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
-            for (int i_p = 0; i_p < n_points; i_p++) {
-
-                auto bin_id = i_x + i_y * xaxis.bins();
-                auto gid = i_p + bin_id * n_points;
-
-                test::point3 tp({xaxis.min + gid * x_interval,
-                                 yaxis.min + gid * y_interval, 0.5});
-                g2.populate(i_x, i_y, std::move(tp));
-            }
-        }
-    }
-
-    grid2r_attach::populator_t::serialized_storage original_storage = g2.data();
-
-    // get grid_data
-    grid2_data g2_data(g2, &mng_mr);
-
-    // run test function in cuda
-    grid_test2(g2_data);
-
-    // check if the vector remains the same
-    for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
-        for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
-            auto bin_id = i_x + i_y * xaxis.bins();
-            auto& original_data = original_storage[bin_id];
-
-            auto& data = g2.bin(i_x, i_y);
-            for (int i_p = 0; i_p < data.size(); i_p++) {
-                auto& pt = data[i_p];
-                auto& original_pt = original_data[i_p];
-
-                EXPECT_EQ(pt, original_pt);
-            }
-        }
-    }
-}
-*/
-
 /**
  * This test demonstrates how to call grid buffer without calling host grid
  *object It is especially useful when you don't need to save the objects in host
@@ -179,35 +124,38 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    // axes and dimension of buffer
-    grid2r_attach_buffer::axis_p0_t xaxis{2, -1., 3.};
-    grid2r_attach_buffer::axis_p1_t yaxis{2, 0., 6.};
-    grid2r_attach_buffer::buffer_size_t sizes({2, 5, 8, 10});
-    grid2r_attach_buffer::buffer_size_t capacities({10, 20, 30, 40});
+    axis::regular<> xaxis{2, -1., 3.};
+    axis::regular<> yaxis{2, 0., 6.};
 
-    // declare grid buffer
-    grid2r_attach_buffer g2_buffer(xaxis, yaxis, sizes, capacities, mng_mr);
+    grid2_buffer<device_attach_populator<false, test::point3>, axis::regular<>,
+                 axis::regular<>, serializer2>
+        g2_buffer(xaxis, yaxis, {2, 5, 8, 10}, {100, 200, 300, 400}, mng_mr);
 
-    auto& ptr = g2_buffer._buffer.m_ptr;
     // Check if the initialization work well
-    // Non-zero starting size not working yet so intial argument for sizes is
+    // Non-zero starting size not working yet so initial argument for sizes is
     // ignored (acts-projects/vecmem#95)
+    auto& ptr = g2_buffer._buffer.m_ptr;
     EXPECT_EQ(ptr[0].size(), 0);
     EXPECT_EQ(ptr[1].size(), 0);
     EXPECT_EQ(ptr[2].size(), 0);
-    EXPECT_EQ(ptr[0].capacity(), 10);
-    EXPECT_EQ(ptr[1].capacity(), 20);
-    EXPECT_EQ(ptr[2].capacity(), 30);
+    EXPECT_EQ(ptr[3].size(), 0);
+    EXPECT_EQ(ptr[0].capacity(), 100);
+    EXPECT_EQ(ptr[1].capacity(), 200);
+    EXPECT_EQ(ptr[2].capacity(), 300);
+    EXPECT_EQ(ptr[3].capacity(), 400);
 
-    grid2r_attach_data g2_data(g2_buffer);
+    grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
+               axis::regular<>, serializer2>
+        g2_data(g2_buffer);
 
     // fill each bin with 10 points
-    grid_buffer_test(g2_data);
+    grid_attach_test(g2_data);
 
     // Check if each bin has 10 points
-    EXPECT_EQ(ptr[0].size(), 10);
-    EXPECT_EQ(ptr[1].size(), 10);
-    EXPECT_EQ(ptr[2].size(), 10);
+    EXPECT_EQ(ptr[0].size(), 100);
+    EXPECT_EQ(ptr[1].size(), 100);
+    EXPECT_EQ(ptr[2].size(), 100);
+    EXPECT_EQ(ptr[3].size(), 100);
 }
 
 int main(int argc, char** argv) {

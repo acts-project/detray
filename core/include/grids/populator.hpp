@@ -88,7 +88,7 @@ struct replace_populator {
      **/
     DETRAY_HOST
     static vector_view_t get_data(serialized_storage &data,
-                                  vecmem::memory_resource *resource = nullptr) {
+                                  vecmem::memory_resource &resource) {
         return vecmem::get_data(data);
     }
 };
@@ -121,23 +121,24 @@ struct complete_populator {
     using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
     using buffer_size_t = typename vector_view_t::size_type;
 
-    /** Complete the stored value with a new bare value
+    /** Complete the stored value with a new bare value - for host
      *
      * @param stored the stored value for the population
      * @param bvalue the new value to be added
      **/
     DETRAY_HOST_DEVICE
     void operator()(store_value &stored, bare_value &&bvalue) const {
-
         for (auto &val : stored) {
             if (val == kInvalid) {
                 val = bvalue;
                 break;
             }
         }
+#ifndef __CUDACC__
         if (kSORT) {
             std::sort(stored.begin(), stored.end());
         }
+#endif
     }
 
     /** Create a sequence of bare values, independent of the store_value.
@@ -186,7 +187,7 @@ struct complete_populator {
      **/
     DETRAY_HOST
     static vector_view_t get_data(serialized_storage &data,
-                                  vecmem::memory_resource *resource = nullptr) {
+                                  vecmem::memory_resource &resource) {
         return vecmem::get_data(data);
     }
 };
@@ -271,9 +272,41 @@ struct attach_populator {
      **/
     DETRAY_HOST
     static vector_view_t get_data(serialized_storage &data,
-                                  vecmem::memory_resource *resource) {
-        return vecmem::get_data(data, resource);
+                                  vecmem::memory_resource &resource) {
+        return vecmem::get_data(data, &resource);
     }
 };
+
+// convinient declaration for host replace populator
+template <typename value_type = dindex>
+using host_replace_populator = replace_populator<value_type>;
+
+// convinient declaration for device replace populator
+template <typename value_type = dindex>
+using device_replace_populator =
+    replace_populator<value_type, vecmem::device_vector>;
+
+// convinient declaration for host complete populator
+template <unsigned int kDIM, bool kSORT = false, typename value_type = dindex,
+          template <typename, unsigned int> class array_type = darray>
+using host_complete_populator =
+    complete_populator<kDIM, kSORT, value_type, array_type>;
+
+// convinient declaration for device complete populator
+template <unsigned int kDIM, bool kSORT = false, typename value_type = dindex,
+          template <typename, unsigned int> class array_type = darray>
+using device_complete_populator =
+    complete_populator<kDIM, kSORT, value_type, array_type,
+                       vecmem::device_vector>;
+
+// convinient declaration for host attach populator
+template <bool kSORT = false, typename value_type = dindex>
+using host_attach_populator = attach_populator<kSORT, value_type>;
+
+// convinient declaration for device attach populator
+template <bool kSORT = false, typename value_type = dindex>
+using device_attach_populator =
+    attach_populator<kSORT, value_type, vecmem::device_vector,
+                     vecmem::jagged_device_vector>;
 
 }  // namespace detray

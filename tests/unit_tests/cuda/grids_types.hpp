@@ -21,26 +21,14 @@ namespace detray {
 
 static constexpr int n_points = 3;
 
-using grid2r_replace = grid2<replace_populator<test::point3>, axis::regular<>,
-                             axis::regular<>, serializer2>;
+using host_replace = host_replace_populator<test::point3>;
+using device_replace = device_replace_populator<test::point3>;
 
-using grid2r_replace_data = grid2_data<grid2r_replace>;
+using host_complete = host_complete_populator<n_points, false, test::point3>;
+using device_complete =
+    device_complete_populator<n_points, false, test::point3>;
 
-using grid2r_complete = grid2<complete_populator<n_points, false, test::point3>,
-                              axis::regular<>, axis::regular<>, serializer2>;
-
-using grid2r_complete_data = grid2_data<grid2r_complete>;
-
-using grid2r_attach = grid2<attach_populator<false, test::point3>,
-                            axis::regular<>, axis::regular<>, serializer2>;
-
-using grid2r_attach_device =
-    grid2<attach_populator<false, test::point3, vecmem::device_vector,
-                           vecmem::jagged_device_vector>,
-          axis::regular<>, axis::regular<>, serializer2>;
-
-using grid2r_attach_data = grid2_data<grid2r_attach>;
-
-using grid2r_attach_buffer = grid2_buffer<grid2r_attach>;
+using host_attach = host_attach_populator<false, test::point3>;
+using device_attach = device_attach_populator<false, test::point3>;
 
 }  // namespace detray

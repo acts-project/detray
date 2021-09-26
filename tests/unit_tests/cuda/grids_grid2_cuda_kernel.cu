@@ -18,24 +18,26 @@ namespace detray {
 
 // test1 kernel declaration
 template <typename grid_data_t>
-__global__ void grid_test1_kernel(grid_data_t grid_data);
+__global__ void grid_replace_test_kernel(grid_data_t grid_data);
 
 // test1 instantiation for replace populator
-template void grid_test1<grid2r_replace_data>(grid2r_replace_data& grid_data);
+template void grid_replace_test<
+    grid2_data<device_replace, axis::regular<>, axis::regular<>, serializer2>>(
+    grid2_data<device_replace, axis::regular<>, axis::regular<>, serializer2>&
+        grid_data);
 
 // test2 function implementation
 template <typename grid2_data_t>
-void grid_test1(grid2_data_t& grid_data) {
+void grid_replace_test(grid2_data_t& grid_data) {
 
-    // auto& data_view = grid_data._data_serialized;
     const auto& axis0 = grid_data._axis_p0;
     const auto& axis1 = grid_data._axis_p1;
 
-    int num_blocks = 1;
-    int num_threads = axis0.bins() * axis1.bins();
+    int block_dim = 1;
+    dim3 thread_dim(axis0.bins(), axis1.bins());
 
     // run the kernel
-    grid_test1_kernel<<<num_blocks, num_threads>>>(grid_data);
+    grid_replace_test_kernel<<<block_dim, thread_dim>>>(grid_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -44,49 +46,56 @@ void grid_test1(grid2_data_t& grid_data) {
 
 // test2 kernel implementation
 template <typename grid_data_t>
-__global__ void grid_test1_kernel(grid_data_t grid_data) {
-    /*
-    typename grid_data_t::populator_t::device_vector_t data_device(
-        grid_data._data_serialized);
-    const auto& axis0 = grid_data._axis_p0;
-    const auto& axis1 = grid_data._axis_p1;
+__global__ void grid_replace_test_kernel(grid_data_t grid_data) {
 
-    auto& pt = data_device[threadIdx.x];
+    using grid2_device_t =
+        grid2<typename grid_data_t::populator_t,
+              typename grid_data_t::axis_p0_t, typename grid_data_t::axis_p1_t,
+              typename grid_data_t::serializer_t>;
+
+    // Let's try building the grid object
+    grid2_device_t g2_device(grid_data, test::point3{0, 0, 0});
+
+    const auto& axis0 = g2_device.axis_p0();
+    const auto& axis1 = g2_device.axis_p1();
 
     auto x_interval = (axis0.max - axis0.min) / axis0.n_bins;
     auto y_interval = (axis1.max - axis1.min) / axis1.n_bins;
 
-    pt = test::point3{axis0.min + threadIdx.x * x_interval,
-                      axis1.min + threadIdx.x * y_interval, 0.5};
-    */
+    auto gid = threadIdx.x + threadIdx.y * blockDim.x;
+    auto pt = test::point3{axis0.min + gid * x_interval,
+                           axis1.min + gid * y_interval, 0.5};
+
+    // replace the bin elements
+    g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
 }
 
 /*---------------------------------------------------------------
-  test function for grid data with complete and attach populator
+  test function for grid data with complete populator
   ---------------------------------------------------------------*/
 
 // test2 kernel declaration
 template <typename grid_data_t>
-__global__ void grid_test2_kernel(grid_data_t grid_data);
+__global__ void grid_complete_kernel(grid_data_t grid_data);
 
 // test2 instantiation for complete populator
-template void grid_test2<grid2r_complete_data>(grid2r_complete_data& grid_data);
-
-// test2 instantiation for attach populator
-template void grid_test2<grid2r_attach_data>(grid2r_attach_data& grid_data);
+template void grid_complete_test<
+    grid2_data<device_complete, axis::regular<>, axis::regular<>, serializer2>>(
+    grid2_data<device_complete, axis::regular<>, axis::regular<>, serializer2>&
+        grid_data);
 
 // test2 function implementation
 template <typename grid2_data_t>
-void grid_test2(grid2_data_t& grid_data) {
+void grid_complete_test(grid2_data_t& grid_data) {
 
     const auto& axis0 = grid_data._axis_p0;
     const auto& axis1 = grid_data._axis_p1;
 
-    int num_blocks = axis0.bins() * axis1.bins();
-    int num_threads = n_points;
+    int block_dim = 1;
+    dim3 thread_dim(axis0.bins(), axis1.bins());
 
     // run the kernel
-    grid_test2_kernel<<<num_blocks, num_threads>>>(grid_data);
+    grid_complete_kernel<<<block_dim, thread_dim>>>(grid_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -95,24 +104,31 @@ void grid_test2(grid2_data_t& grid_data) {
 
 // test2 kernel implementation
 template <typename grid_data_t>
-__global__ void grid_test2_kernel(grid_data_t grid_data) {
-    /*
-    typename grid_data_t::populator_t::device_vector_t data_device(
-        grid_data._data_serialized);
-    const auto& axis0 = grid_data._axis_p0;
-    const auto& axis1 = grid_data._axis_p1;
+__global__ void grid_complete_kernel(grid_data_t grid_data) {
 
-    auto& bin_data = data_device[blockIdx.x][threadIdx.x];
-    auto& pt = bin_data;
+    using grid2_device_t =
+        grid2<typename grid_data_t::populator_t,
+              typename grid_data_t::axis_p0_t, typename grid_data_t::axis_p1_t,
+              typename grid_data_t::serializer_t>;
+
+    // Let's try building the grid object
+    grid2_device_t g2_device(grid_data, test::point3{0, 0, 0});
+
+    const auto& axis0 = g2_device.axis_p0();
+    const auto& axis1 = g2_device.axis_p1();
 
     auto x_interval = (axis0.max - axis0.min) / axis0.n_bins;
     auto y_interval = (axis1.max - axis1.min) / axis1.n_bins;
 
-    auto gid = threadIdx.x + blockIdx.x * blockDim.x;
+    auto bin_id = threadIdx.x + threadIdx.y * blockDim.x;
 
-    pt = test::point3{axis0.min + gid * x_interval,
-                      axis1.min + gid * y_interval, 0.5};
-    */
+    for (int i_p = 0; i_p < n_points; i_p++) {
+        auto gid = i_p + bin_id * n_points;
+        auto pt = test::point3{axis0.min + gid * x_interval,
+                               axis1.min + gid * y_interval, 0.5};
+        // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
+        g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
+    }
 }
 
 /*----------------------------------------------------
@@ -121,24 +137,26 @@ __global__ void grid_test2_kernel(grid_data_t grid_data) {
 
 // buffer_test kernel declaration
 template <typename grid_data_t>
-__global__ void grid_buffer_test_kernel(grid_data_t grid_data);
+__global__ void grid_attach_test_kernel(grid_data_t grid_data);
 
 // buffer_test instantiation for attach populator
-
-template void grid_buffer_test<grid2r_attach_data>(
-    grid2r_attach_data& grid_data);
+template void
+grid_attach_test<grid2_data<device_attach_populator<false, test::point3>,
+                            axis::regular<>, axis::regular<>, serializer2>>(
+    grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
+               axis::regular<>, serializer2>& grid_data);
 
 template <typename grid2_data_t>
-void grid_buffer_test(grid2_data_t& grid_data) {
+void grid_attach_test(grid2_data_t& grid_data) {
 
     const auto& axis0 = grid_data._axis_p0;
     const auto& axis1 = grid_data._axis_p1;
 
     dim3 block_dim(axis0.bins(), axis1.bins());
-    int thread_dim = 1;
+    int thread_dim = 100;
 
     // run the kernel
-    grid_buffer_test_kernel<<<block_dim, thread_dim>>>(grid_data);
+    grid_attach_test_kernel<<<block_dim, thread_dim>>>(grid_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -147,20 +165,28 @@ void grid_buffer_test(grid2_data_t& grid_data) {
 
 // buffer_test kernel declaration
 template <typename grid_data_t>
-__global__ void grid_buffer_test_kernel(grid_data_t grid_data) {
+__global__ void grid_attach_test_kernel(grid_data_t grid_data) {
 
-    /*
-    using grid2_device_t = grid2<grid_data_t::populator_t,
-                                 grid_data_t::axis_p0_t, grid_data_t::axis_po_1,
-                                 grid_data_t::serializer_t>
-    */
+    using grid2_device_t =
+        grid2<typename grid_data_t::populator_t,
+              typename grid_data_t::axis_p0_t, typename grid_data_t::axis_p1_t,
+              typename grid_data_t::serializer_t>;
+
     // Let's try building the grid object
-    grid2r_attach_device g2_device(grid_data, test::point3{0, 0, 0});
+    grid2_device_t g2_device(grid_data, test::point3{0, 0, 0});
 
     // Fill with 10 points
-    for (int i = 0; i < 10; i++) {
-        auto pt = test::point3{0, 0, 0};
-        g2_device.populate(blockIdx.x, blockIdx.y, std::move(pt));
+    auto pt =
+        test::point3{1. * threadIdx.x, 1. * threadIdx.x, 1. * threadIdx.x};
+    g2_device.populate(blockIdx.x, blockIdx.y, std::move(pt));
+
+    __syncthreads();
+
+    if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0) {
+        auto pts = g2_device.bin(blockIdx.x, blockIdx.y);
+        for (int i = 0; i < 100; i++) {
+            printf("%f %f %f \n", pts[i][0], pts[i][1], pts[i][2]);
+        }
     }
 }
 

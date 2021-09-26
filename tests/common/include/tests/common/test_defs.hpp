@@ -9,6 +9,7 @@
 
 #include <cmath>
 
+#include "definitions/qualifiers.hpp"
 #include "utils/containers.hpp"
 
 #ifdef DETRAY_CUSTOM_SCALARTYPE
@@ -25,6 +26,7 @@ using scalar = detray_scalar;
 namespace test {
 using point2 = darray<scalar, 2>;
 using point3 = darray<scalar, 3>;
+
 }  // namespace test
 
 namespace getter {
@@ -41,6 +43,15 @@ scalar perp(const point_type &p) {
 
 inline test::point2 operator-(const test::point2 &a, const test::point2 &b) {
     return {a[0] - b[0], a[1] - b[1]};
+}
+
+DETRAY_HOST_DEVICE
+inline bool operator==(const test::point3 &lhs, const test::point3 &rhs) {
+    for (int i = 0; i < 3; i++) {
+        if (lhs[i] != rhs[i])
+            return false;
+    }
+    return true;
 }
 
 }  // namespace detray
