@@ -185,7 +185,7 @@ __global__ void grid_attach_test_kernel(grid_data_t grid_data) {
     if (threadIdx.x == 0 && blockIdx.x == 0 && blockIdx.y == 0) {
         auto pts = g2_device.bin(blockIdx.x, blockIdx.y);
         for (int i = 0; i < 100; i++) {
-            //printf("%f %f %f \n", pts[i][0], pts[i][1], pts[i][2]);
+            // printf("%f %f %f \n", pts[i][0], pts[i][1], pts[i][2]);
         }
     }
 }
