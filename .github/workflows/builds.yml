@@ -120,7 +120,9 @@ jobs:
         submodules: true      
 
     - name: Install Dependencies
-      run: apt-get install libeigen3-dev
+      run: >
+        apt-get install libeigen3-dev
+        apt-get -y install nvidia-driver-455
       
     - name: Configure CMake
       run: >
@@ -128,8 +130,8 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug \
           -DDETRAY_EIGEN_PLUGIN=On \
           -DDETRAY_BENCHMARKS=Off \
-          -DDETRAY_BUILD_CUDA=On \
-          -DCMAKE_CUDA_COMPILER=$(which nvcc)
+          -DCMAKE_CUDA_COMPILER=$(which nvcc) \
+          -DDETRAY_BUILD_CUDA=On 
 
     - name: Build
       run: cmake --build build -- -j$(nproc)
