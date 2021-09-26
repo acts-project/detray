@@ -123,11 +123,11 @@ jobs:
       run: apt-get install libeigen3-dev
       
     - name: Configure CMake
-      run: cmake -B build -S . \
-             -DCMAKE_BUILD_TYPE=Debug \
-             -DDETRAY_EIGEN_PLUGIN=On \
-             -DDETRAY_BENCHMARKS=Off \
-             -DDETRAY_BUILD_CUDA=On
+      run: > cmake -B build -S . \
+               -DCMAKE_BUILD_TYPE=Debug \
+               -DDETRAY_EIGEN_PLUGIN=On \
+               -DDETRAY_BENCHMARKS=Off \
+               -DDETRAY_BUILD_CUDA=On
 
     - name: Build
       run: cmake --build build -- -j$(nproc)
