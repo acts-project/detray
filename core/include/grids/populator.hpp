@@ -235,11 +235,12 @@ struct attach_populator {
      * @param stored the stored value for the population
      * @param bvalue the new value to be added
      **/
-    DETRAY_DEVICE
+    #if defined(__CUDACC__)
     void operator()(store_value stored, bare_value &&bvalue) {
         stored.push_back(bvalue);
     }
-
+    #endif
+    
     /** Create a sequence of bare values, independent of the store_value.
      *
      * @param stored the stored value
