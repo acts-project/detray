@@ -134,7 +134,9 @@ struct complete_populator {
                 break;
             }
         }
-#ifndef __CUDACC__
+        // no sort function in the cuda device
+        // maybe can use thrust sort function
+#if !defined(__CUDACC__)
         if (kSORT) {
             std::sort(stored.begin(), stored.end());
         }
@@ -230,13 +232,14 @@ struct attach_populator {
         }
     }
 
-/** Add a new value to the stored value - for device vector
- *
- * @param stored the stored value for the population
- * @param bvalue the new value to be added
- **/
-#if defined(__CUDACC__)
-    void operator()(store_value stored, bare_value &&bvalue) {
+    /** Add a new value to the stored value - for device vector
+     *
+     * @param stored the stored value for the population
+     * @param bvalue the new value to be added
+     **/
+#if defined(__CUDACC__)  // to resolve ambiguoty from host side
+    DETRAY_DEVICE
+    void operator()(store_value stored, bare_value &&bvalue) const {
         stored.push_back(bvalue);
     }
 #endif
