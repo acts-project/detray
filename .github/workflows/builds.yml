@@ -116,29 +116,23 @@ jobs:
     container: ghcr.io/acts-project/ubuntu2004_cuda:v13	
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: true      
 
     - name: Install Dependencies
       run: apt-get install libeigen3-dev
-
-    - name: Initialize Submodules      
-      run: cd $GITHUB_WORKSPACE; git submodule update --init
-       
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{runner.workspace}}/build
-
+      
     - name: Configure CMake
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Debug -DDETRAY_EIGEN_PLUGIN=On -DDETRAY_BENCHMARKS=Off -DDETRAY_BUILD_CUDA=On
+      run: cmake -B build -S . \
+             -DCMAKE_BUILD_TYPE=Debug \
+             -DDETRAY_EIGEN_PLUGIN=On
+             -DDETRAY_BENCHMARKS=Off
+             -DDETRAY_BUILD_CUDA=On
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
-      run: cmake --build . --config Debug
+      run: cmake --build build -- -j$(nproc)
 
     - name: Unit Tests
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
       run: ctest -C Debug
 
   macos:
