@@ -44,7 +44,7 @@ class index_geometry {
 
     public:
     // Known primitives
-    enum objects : bool {
+    enum known_objects : bool {
         e_surface = true,
         e_portal = false,
     };

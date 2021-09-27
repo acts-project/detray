@@ -68,7 +68,7 @@ class detector {
     using geometry = geometry_type;
     // enumeration of the geometry objects in the geometry (surfaces/portals
     // etc.)
-    using objects = typename geometry_type::objects;
+    using objects = typename geometry_type::known_objects;
     // geometry oject types
     using volume = typename geometry_type::volume;
     using portal = typename geometry_type::portal;
