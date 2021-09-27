@@ -291,15 +291,12 @@ class detector {
         // Get the corresponding transforms
         const auto &object_transforms = trfs[current_type];
         // and the corresponding masks
-        auto &object_masks = std::get<current_type>(masks);
+        auto &object_masks = masks.template group<current_type>();
 
         // Fill object masks into the correct detector container
-        auto add_detector_masks = [&](auto &detector_container) -> dindex {
-            auto &detector_masks = std::get<current_type>(detector_container);
-            const dindex mask_offset = detector_masks.size();
-            detector_masks.reserve(mask_offset + object_masks.size());
-            detector_masks.insert(detector_masks.end(), object_masks.begin(),
-                                  object_masks.end());
+        auto add_detector_masks = [&](auto &detector_masks) -> dindex {
+            const dindex mask_offset = detector_masks.template size<current_type>();
+            detector_masks.template add_masks<current_type>(object_masks);
 
             return mask_offset;
         };
@@ -342,7 +339,7 @@ class detector {
         }
 
         // Next mask type
-        if constexpr (current_type < std::tuple_size_v<mask_container> - 1) {
+        if constexpr (current_type < std::tuple_size_v<typename mask_container::mask_tuple> - 1) {
             return unroll_container_filling<current_type + 1, object_container,
                                             mask_container, transform_container,
                                             object_type>(volume, objects, masks,

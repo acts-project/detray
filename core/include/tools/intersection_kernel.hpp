@@ -81,7 +81,7 @@ bool last_intersect(intersection_type &intersection, links_type &links,
                     dindex mask_context) {
     if (mask_context == last_mask_context) {
         auto isg = intersect_by_group(
-            track, ctf, std::get<last_mask_context>(masks), range);
+            track, ctf, masks.template group<last_mask_context>(), range);
         intersection = std::get<0>(isg);
         links = std::get<1>(isg);
         return true;
@@ -121,7 +121,7 @@ bool unroll_intersect(
     // Pick the first one for interseciton
     if (mask_context == first_mask_context) {
         auto isg = intersect_by_group(
-            track, ctf, std::get<first_mask_context>(masks), range);
+            track, ctf, masks.template group<first_mask_context>(), range);
         intersection = std::get<0>(isg);
         links = std::get<1>(isg);
         return true;
@@ -138,7 +138,7 @@ bool unroll_intersect(
     // Last chance - intersect the last index if possible
     return last_intersect<intersection_type, links_type, track_type,
                           mask_container, mask_range,
-                          std::tuple_size_v<mask_container> - 1>(
+                          std::tuple_size_v<typename mask_container::mask_tuple> - 1>(
         intersection, links, track, ctf, masks, range, mask_context);
 }
 
@@ -167,7 +167,7 @@ const auto intersect(const track<typename transform_container::context> &track,
     const auto &mask_range = std::get<1>(mask_link);
 
     // Create a return intersection and run the variadic unrolling
-    const auto &reference_group = std::get<0>(masks);
+    const auto &reference_group = masks.template group<0>();
     typename std::decay_t<decltype(
         reference_group)>::value_type::mask_links_type result_links;
     intersection result_intersection;
@@ -176,8 +176,7 @@ const auto intersect(const track<typename transform_container::context> &track,
     unroll_intersect(
         result_intersection, result_links, track, ctf, masks, mask_range,
         mask_context,
-        std::make_integer_sequence<dindex,
-                                   std::tuple_size_v<mask_container>>{});
+        std::make_integer_sequence<dindex, std::tuple_size_v<typename mask_container::mask_tuple>>{});
     // Return the (eventually update) intersection and links
     return std::make_tuple(result_intersection, result_links);
 }

@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "core/surface_base.hpp"
+#include "core/mask_store.hpp"
 #include "masks/masks.hpp"
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
@@ -72,8 +73,10 @@ class index_geometry {
         ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
     // - mask index: type, { first/last }
     using portal_mask_index = tuple_type<dindex, array_type<dindex, 2>>;
-    using portal_mask_container =
-        tuple_type<vector_type<portal_cylinder>, vector_type<portal_disc>>;
+    //using portal_mask_container =
+    //    tuple_type<vector_type<portal_cylinder>, vector_type<portal_disc>>;
+
+    using portal_mask_container = mask_store<tuple_type, vector_type, portal_cylinder, portal_disc>;
 
     /** The Portal definition:
      *  <transform_link, mask_index, volume_link, source_link >
@@ -105,10 +108,11 @@ class index_geometry {
                   surface_links, e_cylinder3>;
     /// - mask index: type, entry
     using surface_mask_index = array_type<dindex, 2>;
-    using surface_mask_container =
+    /*using surface_mask_container =
         tuple_type<vector_type<surface_rectangle>,
                    vector_type<surface_trapezoid>, vector_type<surface_annulus>,
-                   vector_type<surface_cylinder>>;
+                   vector_type<surface_cylinder>>;*/
+    using surface_mask_container = mask_store<tuple_type, vector_type, surface_rectangle, surface_trapezoid, surface_annulus, surface_cylinder>;
 
     using surface_link = surface_source_link;
     /** The Surface definition:
