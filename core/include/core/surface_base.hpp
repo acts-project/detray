@@ -23,7 +23,6 @@ template <typename transform_link, typename mask_link = dindex,
           typename volume_link = dindex, typename source_link = bool>
 class surface_base {
     public:
-
     // Broadcast the type of links
     using links = volume_link;
 

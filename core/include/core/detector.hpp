@@ -10,19 +10,12 @@
 #include <string>
 
 #include "core/index_geometry.hpp"
-#include "core/intersection.hpp"
-#include "core/surface_base.hpp"
 #include "core/transform_store.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
 #include "grids/populator.hpp"
 #include "grids/serializer2.hpp"
-#include "tools/concentric_cylinder_intersector.hpp"
-#include "tools/cylinder_intersector.hpp"
 #include "tools/local_object_finder.hpp"
-#include "tools/planar_intersector.hpp"
-#include "utils/enumerate.hpp"
-#include "utils/indexing.hpp"
 
 namespace detray {
 
@@ -33,7 +26,7 @@ using point2 = __plugin::point2;
 
 /** The detector definition.
  *
- * This class is a heavy templated detector definition class, that sets the 
+ * This class is a heavy templated detector definition class, that sets the
  * interface between geometry, navigator and grid.
  *
  * @tparam array_type the type of the internal array, must have STL semantics
@@ -53,14 +46,14 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename> class vector_type = dvector,
           typename alignable_store = static_transform_store<vector_type>,
-          typename geometry_type = index_geometry<array_type, vector_type, tuple_type, dindex, dindex>,
+          typename geometry_type = index_geometry<array_type, vector_type,
+                                                  tuple_type, dindex, dindex>,
           typename surfaces_populator_type =
               attach_populator<false, dindex, vector_type>,
           typename surfaces_serializer_type = serializer2>
 class detector {
 
     public:
-
     /// Forward the alignable container and context
     using transform_store = alignable_store;
     using context = typename alignable_store::context;
@@ -68,12 +61,13 @@ class detector {
     /// Export geometry types
 
     /// Forward the alignable container and context
-    //using transform_store = typename geometry_type::transform_store;
-    //using context = typename geometry_type::transform_store::context;
+    // using transform_store = typename geometry_type::transform_store;
+    // using context = typename geometry_type::transform_store::context;
 
     /// Set the geometry types
     using geometry = geometry_type;
-    // enumeration of the geometry objects in the geometry (surfaces/portals etc.)
+    // enumeration of the geometry objects in the geometry (surfaces/portals
+    // etc.)
     using objects = typename geometry_type::objects;
     // geometry oject types
     using volume = typename geometry_type::volume;
@@ -81,7 +75,8 @@ class detector {
     using surface = typename geometry_type::surface;
 
     // Determined by the geometry, due to potentially different linking in masks
-    using surface_mask_container = typename geometry_type::surface_mask_container;
+    using surface_mask_container =
+        typename geometry_type::surface_mask_container;
     using portal_mask_container = typename geometry_type::portal_mask_container;
 
     // Source links of geometry objects, if detray acts as plugin
@@ -183,8 +178,7 @@ class detector {
     decltype(auto) masks() const {
         if constexpr (object_type) {
             return _surface_masks;
-        }
-        else {
+        } else {
             return _portal_masks;
         }
     }
@@ -211,8 +205,8 @@ class detector {
         return _transforms.range(std::move(range), ctx);
     }
 
-    /** Add a new full set of alignable transforms and masks for geometry 
-     * objects. These are added to the detector in one go to ensure constitent 
+    /** Add a new full set of alignable transforms and masks for geometry
+     * objects. These are added to the detector in one go to ensure constitent
      * indexing.
      *
      * @tparam current_type the current mask context to be processed
@@ -228,26 +222,29 @@ class detector {
      * @note can throw an exception if input data is inconsistent
      */
     template <objects object_type = objects::e_surface,
-              typename object_container,
-              typename mask_container,
+              typename object_container, typename mask_container,
               typename transform_container>
     inline void add_objects(
         volume &volume, object_container &objects, mask_container &masks,
         transform_container &trfs,
         const typename alignable_store::context ctx = {}) noexcept(false) {
-        unroll_container_filling<0, object_container, mask_container,        
-                                 transform_container, object_type>
-                                 (volume, objects, masks, trfs, ctx);
+        unroll_container_filling<0, object_container, mask_container,
+                                 transform_container, object_type>(
+            volume, objects, masks, trfs, ctx);
     }
 
+    /** Convenience function to add detector surfaces. See
+     * detector::add_objects(). */
     template <typename object_container>
     inline void add_surfaces(
-        volume &volume, object_container &surfaces, surface_mask_container &masks,
-        transform_container &trfs,
+        volume &volume, object_container &surfaces,
+        surface_mask_container &masks, transform_container &trfs,
         const typename alignable_store::context ctx = {}) noexcept(false) {
         add_objects<objects::e_surface>(volume, surfaces, masks, trfs, ctx);
     }
 
+    /** Convenience function to add detector portals. See
+     * detector::add_objects(). */
     template <typename object_container>
     inline void add_portals(
         volume &volume, object_container &portals, portal_mask_container &masks,
@@ -271,16 +268,13 @@ class detector {
      *
      * @note can throw an exception if input data is inconsistent
      */
-    template <size_t current_type = 0,
-              typename object_container,
-              typename mask_container,
-              typename transform_container,
+    template <size_t current_type = 0, typename object_container,
+              typename mask_container, typename transform_container,
               bool object_type = true>
-    inline void unroll_container_filling(volume &volume,
-                                  object_container &objects,
-                                  mask_container &masks,
-                                  transform_container &trfs,
-                                  const typename alignable_store::context ctx = {})  noexcept(false) {
+    inline void unroll_container_filling(
+        volume &volume, object_container &objects, mask_container &masks,
+        transform_container &trfs,
+        const typename alignable_store::context ctx = {}) noexcept(false) {
         // Get the surfaces/portals for a mask type
         auto &typed_objects = objects[current_type];
         // Get the corresponding transforms
@@ -305,7 +299,8 @@ class detector {
             _transforms.append(ctx, std::move(std::get<current_type>(trfs)));
 
             // Surface/portal transforms for this volume
-            volume.template set_trf_range<object_type>({trsf_offset, n_transforms(ctx)});
+            volume.template set_trf_range<object_type>(
+                {trsf_offset, n_transforms(ctx)});
             // Fill surface or portal container?
             if constexpr (object_type) {
                 // Fill the correct mask type
@@ -329,16 +324,15 @@ class detector {
             const auto n_objects = _geometry.template n_objects<object_type>();
             _geometry.template add_objects<object_type>(typed_objects);
 
-            volume.template set_range<object_type>({n_objects, n_objects + typed_objects.size()});
+            volume.template set_range<object_type>(
+                {n_objects, n_objects + typed_objects.size()});
         }
         // Next mask type
         if constexpr (current_type < std::tuple_size_v<mask_container> - 1) {
-            return unroll_container_filling<current_type + 1,
-                                            object_container,
-                                            mask_container,
-                                            transform_container,
-                                            object_type>(
-                volume, objects, masks, trfs, ctx);
+            return unroll_container_filling<current_type + 1, object_container,
+                                            mask_container, transform_container,
+                                            object_type>(volume, objects, masks,
+                                                         trfs, ctx);
         }
     }
 

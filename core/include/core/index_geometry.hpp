@@ -1,51 +1,48 @@
 /** Detray library, part of the ACTS project (R&D line)
- * 
+ *
  * (c) 2021 CERN for the benefit of the ACTS project
- * 
+ *
  * Mozilla Public License Version 2.0
  */
 #pragma once
-
-#include "core/surface_base.hpp"
-#include "masks/masks.hpp"
-#include "utils/enumerate.hpp"
-#include "utils/indexing.hpp"
 
 #include <iterator>
 #include <sstream>
 #include <string>
 #include <utility>
 
-namespace detray
-{
-    /**
-     * @brief Index geometry implementation
-     *
-     * This class provides a geometry that defines logic volumes which contain
-     * the detector surfaces, joined together by dedicated portal surfaces. It
-     * exports all types needed for navigation and strictly only keeps the
-     * index data (links) that define the geometry relations.
-     *
-     * @tparam array_type the type of the internal array, must have STL
-     *                    semantics
-     * @tparam vector_type the type of the internal array, must have STL
-     *                     semantics
-     * @tparam surface_source_link the type of the link to an external surface
-     *                             source
-     *
-     * @note The geometry knows nothing about coordinate systems. This is
-     *       handeled by geometry access objects (e.g. the grid).
-     */
-    template <template <typename, unsigned int> class array_type = darray,
-              template <typename> class vector_type = dvector,
-              template <typename...> class tuple_type = dtuple,
-              typename surface_source_link = dindex,
-              typename bounds_source_link = dindex>
-    class index_geometry
-    {
+#include "core/surface_base.hpp"
+#include "masks/masks.hpp"
+#include "utils/enumerate.hpp"
+#include "utils/indexing.hpp"
+
+namespace detray {
+/**
+ * @brief Index geometry implementation
+ *
+ * This class provides a geometry that defines logic volumes which contain
+ * the detector surfaces, joined together by dedicated portal surfaces. It
+ * exports all types needed for navigation and strictly only keeps the
+ * index data (links) that define the geometry relations.
+ *
+ * @tparam array_type the type of the internal array, must have STL
+ *                    semantics
+ * @tparam vector_type the type of the internal array, must have STL
+ *                     semantics
+ * @tparam surface_source_link the type of the link to an external surface
+ *                             source
+ *
+ * @note The geometry knows nothing about coordinate systems. This is
+ *       handeled by geometry access objects (e.g. the grid).
+ */
+template <template <typename, unsigned int> class array_type = darray,
+          template <typename> class vector_type = dvector,
+          template <typename...> class tuple_type = dtuple,
+          typename surface_source_link = dindex,
+          typename bounds_source_link = dindex>
+class index_geometry {
 
     public:
-
     // Known primitives
     enum objects : bool {
         e_surface = true,
@@ -88,8 +85,7 @@ namespace detray
      *
      */
     using bounds_link = bounds_source_link;
-    using portal =
-        surface_base<dindex, portal_mask_index, dindex, bounds_link>;
+    using portal = surface_base<dindex, portal_mask_index, dindex, bounds_link>;
     using portal_container = vector_type<portal>;
 
     /// Surface components:
@@ -97,11 +93,13 @@ namespace detray
     using surface_links = array_type<dindex, 1>;
     /// - masks, with mask identifiers 0,1,2
     using surface_rectangle =
-        rectangle2<planar_intersector, __plugin::cartesian2, surface_links, e_rectangle2>;
+        rectangle2<planar_intersector, __plugin::cartesian2, surface_links,
+                   e_rectangle2>;
     using surface_trapezoid =
-        trapezoid2<planar_intersector, __plugin::cartesian2, surface_links, e_trapezoid2>;
-    using surface_annulus =
-        annulus2<planar_intersector, __plugin::cartesian2, surface_links, e_annulus2>;
+        trapezoid2<planar_intersector, __plugin::cartesian2, surface_links,
+                   e_trapezoid2>;
+    using surface_annulus = annulus2<planar_intersector, __plugin::cartesian2,
+                                     surface_links, e_annulus2>;
     using surface_cylinder =
         cylinder3<false, cylinder_intersector, __plugin::cylindrical2,
                   surface_links, e_cylinder3>;
@@ -171,10 +169,14 @@ namespace detray
         inline void set_index(const dindex index) { _index = index; }
 
         /** @return the entry into the local surface finders */
-        inline dindex surfaces_finder_entry() const { return _surfaces_finder_entry; }
+        inline dindex surfaces_finder_entry() const {
+            return _surfaces_finder_entry;
+        }
 
         /** @param entry the entry into the local surface finders */
-        inline void set_surfaces_finder(const dindex entry) { _surfaces_finder_entry = entry; }
+        inline void set_surfaces_finder(const dindex entry) {
+            _surfaces_finder_entry = entry;
+        }
 
         /** @return if the volume is empty or not */
         inline bool empty() const { return is_empty_range(_surface_range); }
@@ -329,18 +331,21 @@ namespace detray
         }
     };
 
-
     /** @return total number of nodes (volumes) */
-    const size_t n_volumes()  const { return _volumes.size(); }
+    const size_t n_volumes() const { return _volumes.size(); }
 
     /** @return all volumes in the geometry - const access. */
     const auto &volumes() const { return _volumes; }
 
     /** @return the volume by @param volume_index - const access. */
-    inline const volume &volume_by_index(dindex volume_index) const { return _volumes[volume_index]; }
+    inline const volume &volume_by_index(dindex volume_index) const {
+        return _volumes[volume_index];
+    }
 
     /** @return the volume by @param volume_index - non-const access. */
-    inline volume &volume_by_index(dindex volume_index) { return _volumes[volume_index]; }
+    inline volume &volume_by_index(dindex volume_index) {
+        return _volumes[volume_index];
+    }
 
     /** Add a new volume and retrieve a reference to it
      *
@@ -352,8 +357,8 @@ namespace detray
      * @return non-const reference of the new volume
      */
     inline volume &new_volume(const std::string &name,
-                       const array_type<scalar, 6> &bounds,
-                       dindex surfaces_finder_entry = dindex_invalid) {
+                              const array_type<scalar, 6> &bounds,
+                              dindex surfaces_finder_entry = dindex_invalid) {
         _volumes.emplace_back(name, bounds);
         dindex cvolume_idx = _volumes.size() - 1;
         volume &cvolume = _volumes[cvolume_idx];
@@ -383,8 +388,7 @@ namespace detray
     }
 
     /** @return all surfaces/portals in the detector */
-    template <bool add_surface = true,
-              typename object_container>
+    template <bool add_surface = true, typename object_container>
     inline void add_objects(const object_container &objects) {
         if constexpr (add_surface) {
             _surfaces.reserve(_surfaces.size() + objects.size());
@@ -396,52 +400,47 @@ namespace detray
     }
 
     /**
-      * Print geometry if an external name map is provided for the volumes.
-      *
-      * @param names  Lookup for the names by volume index.
-      *
-      * @returns the geometry description as a string
-      */
+     * Print geometry if an external name map is provided for the volumes.
+     *
+     * @param names  Lookup for the names by volume index.
+     *
+     * @returns the geometry description as a string
+     */
     // TODO: remove names
     /*template <typename name_map>
     inline const std::string to_string(name_map &names) const*/
-    inline const std::string to_string() const
-    {
+    inline const std::string to_string() const {
         std::stringstream ss;
-        for (const auto &[i, v] : enumerate(_volumes))
-        {
-            ss << "[>>] Volume at index " << i
-               << " - name: '"   << v.name()
+        for (const auto &[i, v] : enumerate(_volumes)) {
+            ss << "[>>] Volume at index " << i << " - name: '" << v.name()
                << "'" << std::endl;
 
             ss << "     contains    " << v.template n_objects<e_surface>()
-               << " surfaces "        <<  std::endl;
+               << " surfaces " << std::endl;
 
             ss << "                 " << v.template n_objects<e_portal>()
-               << " portals "         << std::endl;
+               << " portals " << std::endl;
 
-            if (v.surfaces_finder_entry() != dindex_invalid)
-            {
+            if (v.surfaces_finder_entry() != dindex_invalid) {
                 ss << "  sf finders idx " << v.surfaces_finder_entry()
                    << std::endl;
             }
             const auto &bounds = v.bounds();
-            ss << "     bounds r = (" << bounds[0] << ", "
-               << bounds[1]    << ")" << std::endl;
-            ss << "            z = (" << bounds[2] << ", "
-               << bounds[3]    << ")" << std::endl;
+            ss << "     bounds r = (" << bounds[0] << ", " << bounds[1] << ")"
+               << std::endl;
+            ss << "            z = (" << bounds[2] << ", " << bounds[3] << ")"
+               << std::endl;
         }
         return ss.str();
     };
 
     private:
+    /** Contains the geometrical relations*/
+    vector_type<volume> _volumes = {};
 
-        /** Contains the geometrical relations*/
-        vector_type<volume> _volumes = {};
+    /** All surfaces and portals in the geometry in contigous memory */
+    surface_container _surfaces = {};
+    portal_container _portals = {};
+};
 
-        /** All surfaces and portals in the geometry in contigous memory */
-        surface_container _surfaces = {};
-        portal_container _portals = {};
-    };
-
-}
+}  // namespace detray
