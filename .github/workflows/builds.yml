@@ -121,6 +121,7 @@ jobs:
 
     - name: Install Dependencies
       run: >
+        apt-get -y update
         apt-get install libeigen3-dev
         apt-get -y install nvidia-driver-455
       
