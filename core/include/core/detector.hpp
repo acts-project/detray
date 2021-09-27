@@ -229,7 +229,8 @@ class detector {
      */
     template <objects object_type = objects::e_surface,
               typename object_container,
-              typename mask_container>
+              typename mask_container,
+              typename transform_container>
     inline void add_objects(
         volume &volume, object_container &objects, mask_container &masks,
         transform_container &trfs,
@@ -240,7 +241,7 @@ class detector {
     }
 
     template <typename object_container>
-    void add_surfaces(
+    inline void add_surfaces(
         volume &volume, object_container &surfaces, surface_mask_container &masks,
         transform_container &trfs,
         const typename alignable_store::context ctx = {}) noexcept(false) {
@@ -248,7 +249,7 @@ class detector {
     }
 
     template <typename object_container>
-    void add_portals(
+    inline void add_portals(
         volume &volume, object_container &portals, portal_mask_container &masks,
         transform_container &trfs,
         const typename alignable_store::context ctx = {}) noexcept(false) {
@@ -275,7 +276,7 @@ class detector {
               typename mask_container,
               typename transform_container,
               bool object_type = true>
-    ilnine void unroll_container_filling(volume &volume,
+    inline void unroll_container_filling(volume &volume,
                                   object_container &objects,
                                   mask_container &masks,
                                   transform_container &trfs,

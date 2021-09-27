@@ -323,7 +323,7 @@ void connect_cylindrical_volumes(
         add_cylinder_portal(lower_portals_info, 0);
 
         // Add portals to detector
-        d.template add_objects<detector_type::geometry::e_portal>(
+        d.add_portals(
             volume, portals, portal_masks, portal_transforms, default_context);
     }
 }
