@@ -57,7 +57,7 @@ auto d = read_detector();
 
 const auto &surfaces = d.surfaces();
 constexpr bool get_surface_masks = true;
-const auto &masks = d.template masks<get_surface_masks>();
+const auto &masks = d.template masks<decltype(d)::objects::e_surface>();
 
 namespace __plugin {
 // This test runs intersection with all surfaces of the TrackML detector

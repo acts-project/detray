@@ -73,13 +73,18 @@ class detector {
 
     /// Set the geometry types
     using geometry = geometry_type;
+    // enumeration of the geometry objects in the geometry (surfaces/portals etc.)
+    using objects = typename geometry_type::objects;
+    // geometry oject types
     using volume = typename geometry_type::volume;
     using portal = typename geometry_type::portal;
     using surface = typename geometry_type::surface;
 
+    // Determined by the geometry, due to potentially different linking in masks
     using surface_mask_container = typename geometry_type::surface_mask_container;
     using portal_mask_container = typename geometry_type::portal_mask_container;
 
+    // Source links of geometry objects, if detray acts as plugin
     using surface_source_link = typename geometry_type::surface_link;
     using bounds_source_link = typename geometry_type::bounds_link;
 
@@ -99,9 +104,10 @@ class detector {
               surfaces_circular_axis, surfaces_serializer_type, array_type,
               tuple_type, vector_type>;
 
+    // Neighborhood finder, using accelerator data structure
     using surfaces_finder = surfaces_regular_circular_grid;
 
-
+    // Temporary container struct, used to fill the detector data
     using transform_container = array_type<transform_store, 5>;
 
     /** Allowed costructor
@@ -173,7 +179,7 @@ class detector {
     const auto &masks() const {
         return _geometry.template <object_type>retrieve_masks(_masks);
     }*/
-    template <bool object_type = true>
+    template <objects object_type = objects::e_surface>
     decltype(auto) masks() const {
         if constexpr (object_type) {
             return _surface_masks;
@@ -221,17 +227,32 @@ class detector {
      *
      * @note can throw an exception if input data is inconsistent
      */
-    template <bool object_type = true,
+    template <objects object_type = objects::e_surface,
               typename object_container,
-              typename mask_container,
-              typename transform_container>
-    void add_objects(
+              typename mask_container>
+    inline void add_objects(
         volume &volume, object_container &objects, mask_container &masks,
         transform_container &trfs,
         const typename alignable_store::context ctx = {}) noexcept(false) {
         unroll_container_filling<0, object_container, mask_container,        
                                  transform_container, object_type>
                                  (volume, objects, masks, trfs, ctx);
+    }
+
+    template <typename object_container>
+    void add_surfaces(
+        volume &volume, object_container &surfaces, surface_mask_container &masks,
+        transform_container &trfs,
+        const typename alignable_store::context ctx = {}) noexcept(false) {
+        add_objects<objects::e_surface>(volume, surfaces, masks, trfs, ctx);
+    }
+
+    template <typename object_container>
+    void add_portals(
+        volume &volume, object_container &portals, portal_mask_container &masks,
+        transform_container &trfs,
+        const typename alignable_store::context ctx = {}) noexcept(false) {
+        add_objects<objects::e_portal>(volume, portals, masks, trfs, ctx);
     }
 
     /** Unrolls the data containers according to the mask type and fill the
@@ -254,7 +275,7 @@ class detector {
               typename mask_container,
               typename transform_container,
               bool object_type = true>
-    void unroll_container_filling(volume &volume,
+    ilnine void unroll_container_filling(volume &volume,
                                   object_container &objects,
                                   mask_container &masks,
                                   transform_container &trfs,

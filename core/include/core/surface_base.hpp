@@ -23,6 +23,10 @@ template <typename transform_link, typename mask_link = dindex,
           typename volume_link = dindex, typename source_link = bool>
 class surface_base {
     public:
+
+    // Broadcast the type of links
+    using links = volume_link;
+
     /** Constructor with full arguments - move semantics
      *
      * @param trf the transform for positioning and 3D local frame

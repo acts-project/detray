@@ -293,7 +293,7 @@ namespace detray
         // Flush the former information / c_volume still points to the prior volume
         if (c_volume != nullptr)
         {
-          d.template add_objects<typed_detector::geometry::e_surface>(*c_volume, c_surfaces, c_masks, c_transforms,  surface_default_context);
+          d.add_surfaces(*c_volume, c_surfaces, c_masks, c_transforms,  surface_default_context);
 
           c_surfaces   = typename typed_detector::geometry::surface_filling_container();
           c_masks      = typename typed_detector::geometry::surface_mask_container();

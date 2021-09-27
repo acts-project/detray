@@ -19,14 +19,12 @@
 namespace detray
 {
     /**
-     * @brief Indexed geometry implementation
+     * @brief Index geometry implementation
      *
-     * This class provides a geometry that treats volumes as graph nodes and
-     * portals as edges. It contains a vector_type of volumes and portals, as
-     * well as a vector of surfaces that either belong to a portal or are
-     * surfaces contained in a volume.
-     * All data in this geometry are either ranges or indices into the data
-     * structures of the detector.
+     * This class provides a geometry that defines logic volumes which contain
+     * the detector surfaces, joined together by dedicated portal surfaces. It
+     * exports all types needed for navigation and strictly only keeps the
+     * index data (links) that define the geometry relations.
      *
      * @tparam array_type the type of the internal array, must have STL
      *                    semantics
@@ -36,7 +34,7 @@ namespace detray
      *                             source
      *
      * @note The geometry knows nothing about coordinate systems. This is
-     *       handeled by dedicated geometry access objects.
+     *       handeled by geometry access objects (e.g. the grid).
      */
     template <template <typename, unsigned int> class array_type = darray,
               template <typename> class vector_type = dvector,
@@ -48,8 +46,14 @@ namespace detray
 
     public:
 
+    // Known primitives
+    enum objects : bool {
+        e_surface = true,
+        e_portal = false,
+    };
+
     /** Encodes the position in a collection container for the respective
-        mask type (not for portals for the moment). */
+        mask type . */
     enum mask_container_index : unsigned int {
         e_mask_types = 5,
         e_rectangle2 = 0,
@@ -59,12 +63,6 @@ namespace detray
         e_ring2 = 4,
         e_single3 = std::numeric_limits<unsigned int>::max(),
         e_unknown = std::numeric_limits<unsigned int>::max(),
-    };
-
-    // The geometry decides wich primitives to use
-    enum use_primitive : bool {
-        e_surface = true,
-        e_portal = false,
     };
 
     /// Portals components:
@@ -99,14 +97,14 @@ namespace detray
     using surface_links = array_type<dindex, 1>;
     /// - masks, with mask identifiers 0,1,2
     using surface_rectangle =
-        rectangle2<planar_intersector, __plugin::cartesian2, surface_links, 0>;
+        rectangle2<planar_intersector, __plugin::cartesian2, surface_links, e_rectangle2>;
     using surface_trapezoid =
-        trapezoid2<planar_intersector, __plugin::cartesian2, surface_links, 1>;
+        trapezoid2<planar_intersector, __plugin::cartesian2, surface_links, e_trapezoid2>;
     using surface_annulus =
-        annulus2<planar_intersector, __plugin::cartesian2, surface_links, 2>;
+        annulus2<planar_intersector, __plugin::cartesian2, surface_links, e_annulus2>;
     using surface_cylinder =
         cylinder3<false, cylinder_intersector, __plugin::cylindrical2,
-                  surface_links, 3>;
+                  surface_links, e_cylinder3>;
     /// - mask index: type, entry
     using surface_mask_index = array_type<dindex, 2>;
     using surface_mask_container =
@@ -122,7 +120,7 @@ namespace detray
         surface_base<dindex, surface_mask_index, dindex, surface_link>;
     using surface_container = vector_type<surface>;
 
-    /** Temporary container structures that are used to fill the detector.
+    /** Temporary container structures that are used to fill the geometry.
      * The respective objects are sorted by mask type, so that they can be
      * unrolled and filled in lockstep with the masks
      */
@@ -161,29 +159,29 @@ namespace detray
         volume(const volume &other) = default;
 
         /** @return the bounds - const access */
-        const array_type<scalar, 6> &bounds() const { return _bounds; }
+        inline const array_type<scalar, 6> &bounds() const { return _bounds; }
 
         /** @return the name */
-        const std::string &name() const { return _name; }
+        inline const std::string &name() const { return _name; }
 
         /** @return the index */
-        dindex index() const { return _index; }
+        inline dindex index() const { return _index; }
 
         /** @param index the index */
-        void set_index(const dindex index) { _index = index; }
+        inline void set_index(const dindex index) { _index = index; }
 
         /** @return the entry into the local surface finders */
-        dindex surfaces_finder_entry() const { return _surfaces_finder_entry; }
+        inline dindex surfaces_finder_entry() const { return _surfaces_finder_entry; }
 
         /** @param entry the entry into the local surface finders */
-        void set_surfaces_finder(const dindex entry) { _surfaces_finder_entry = entry; }
+        inline void set_surfaces_finder(const dindex entry) { _surfaces_finder_entry = entry; }
 
         /** @return if the volume is empty or not */
-        bool empty() const { return is_empty_range(_surface_range); }
+        inline bool empty() const { return is_empty_range(_surface_range); }
 
         /** @return the number of surfaces in the volume */
         template <bool primitive = e_surface>
-        dindex n_objects() {
+        inline dindex n_objects() {
             if constexpr (primitive) {
                 return n_in_range(_surface_range);
             } else {
@@ -193,7 +191,7 @@ namespace detray
 
         /** @return the number of surfaces in the volume */
         template <bool primitive = e_surface>
-        const dindex n_objects() const {
+        inline const dindex n_objects() const {
             if constexpr (primitive) {
                 return n_in_range(_surface_range);
             } else {
@@ -216,7 +214,7 @@ namespace detray
 
         /** @return range of surfaces- const access */
         template <bool surface_range = e_surface>
-        const auto &range() const {
+        inline const auto &range() const {
             if constexpr (surface_range) {
                 return _surface_range;
             } else {
@@ -229,7 +227,7 @@ namespace detray
 
         /** @return range of surface transforms - const access */
         template <bool surface_range = e_surface>
-        const auto &trf_range() const {
+        inline const auto &trf_range() const {
             if constexpr (surface_range) {
                 return _surface_trf_range;
             } else {
@@ -242,7 +240,7 @@ namespace detray
          * @param range Portal transform index range
          */
         template <bool surface_range = e_surface>
-        void set_trf_range(dindex_range range) {
+        inline void set_trf_range(dindex_range range) {
             if constexpr (surface_range) {
                 update_range(_surface_trf_range, std::move(range));
             } else {
