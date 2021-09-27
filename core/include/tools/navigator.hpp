@@ -172,6 +172,7 @@ struct navigator {
                 ? detector.volume_by_index(navigation.volume_index)
                 : detector.volume_by_pos(track.pos);
         navigation.volume_index = volume.index();
+
         // Retrieve the kernels
         auto &surface_kernel = navigation.surface_kernel;
         auto &portal_kernel = navigation.portal_kernel;
@@ -318,12 +319,13 @@ struct navigator {
             return;
         }
         kernel.candidates.reserve(n_objects);
-        const auto &transforms = detector.transforms(trf_range, track.ctx);
+        // const auto &transforms = detector.transforms(trf_range, track.ctx);
+        const auto &transforms = detector.transforms(track.ctx);
         const auto &surfaces = detector.template surfaces<kSurfaceType>();
         const auto &masks = detector.template masks<kSurfaceType>();
         // Loop over all indexed surfaces, intersect and fill
         // @todo - will come from the local object finder
-        for (auto si : sequence(obj_range)) {
+        for (size_t si = obj_range[0]; si < obj_range[1]; si++) {
             const auto &object = surfaces[si];
             auto [sfi, link] = intersect(track, object, transforms, masks);
             sfi.index = si;
@@ -374,7 +376,8 @@ struct navigator {
                 ? objects::e_surface
                 : objects::e_portal;
 
-        const auto &transforms = detector.transforms(trf_range, track.ctx);
+        // const auto &transforms = detector.transforms(trf_range, track.ctx);
+        const auto &transforms = detector.transforms(track.ctx);
         const auto &surfaces = detector.template surfaces<kSurfaceType>();
         const auto &masks = detector.template masks<kSurfaceType>();
 

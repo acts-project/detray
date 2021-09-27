@@ -100,12 +100,9 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                     // Loop over surfaces
                     for (size_t si = v.template range<get_surface_masks>()[0];
                          si < v.template range<get_surface_masks>()[1]; si++) {
-                        auto sfi_surface = intersect(
-                            track, surfaces[si],
-                            d.transforms(
-                                v.template trf_range<get_surface_masks>(),
-                                default_context),
-                            masks);
+                        auto sfi_surface =
+                            intersect(track, surfaces[si],
+                                      d.transforms(default_context), masks);
 
                         const auto &sfi = std::get<0>(sfi_surface);
 

@@ -104,7 +104,7 @@ class static_transform_store {
      * @param args Constructor arguments
      */
     template <class... Args>
-    void emplace_back(const context & /*ctx*/, Args &&... args) {
+    void emplace_back(const context & /*ctx*/, Args &&...args) {
         _data.emplace_back(std::forward<Args>(args)...);
     }
 

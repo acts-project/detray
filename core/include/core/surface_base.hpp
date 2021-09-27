@@ -68,6 +68,9 @@ class surface_base {
     }
 
     /** Return the transform type */
+    transform_link &transform() { return _trf; }
+
+    /** Return the transform type */
     const transform_link &transform() const { return _trf; }
 
     /** Access to the mask  */

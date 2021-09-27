@@ -205,6 +205,17 @@ class detector {
         return _transforms.range(std::move(range), ctx);
     }
 
+    /** Get all transform in an index range from the detector
+     *
+     * @param range The range of surfaces/portals in the transform store
+     * @param ctx The context of the call
+     *
+     * @return ranged iterator to the object transforms
+     */
+    const auto &transforms(const context &ctx = {}) const {
+        return _transforms;
+    }
+
     /** Add a new full set of alignable transforms and masks for geometry
      * objects. These are added to the detector in one go to ensure constitent
      * indexing.
@@ -309,6 +320,7 @@ class detector {
                 // Update the surfaces mask link
                 for (auto &sf : typed_objects) {
                     std::get<1>(sf.mask()) += sf_mask_offset;
+                    sf.transform() += trsf_offset;
                 }
             } else {
                 // Fill the correct mask type
@@ -318,6 +330,7 @@ class detector {
                     auto &portal_mask_index = std::get<1>(pt.mask());
                     portal_mask_index[0] += pt_mask_offset;
                     portal_mask_index[1] += pt_mask_offset;
+                    pt.transform() += trsf_offset;
                 }
             }
             // Now put the surfaces into the detector
@@ -327,6 +340,7 @@ class detector {
             volume.template set_range<object_type>(
                 {n_objects, n_objects + typed_objects.size()});
         }
+
         // Next mask type
         if constexpr (current_type < std::tuple_size_v<mask_container> - 1) {
             return unroll_container_filling<current_type + 1, object_container,
