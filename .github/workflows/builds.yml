@@ -120,11 +120,7 @@ jobs:
         submodules: true      
 
     - name: Install Dependencies
-      run: >
-        apt-get -y update;
-        apt-get install libeigen3-dev;
-        apt-get -y install nvidia-driver-455;
-        rmmod nvidia
+      run: apt-get install libeigen3-dev
       
     - name: Configure CMake
       run: >
