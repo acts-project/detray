@@ -134,8 +134,8 @@ jobs:
     - name: Build
       run: cmake --build build -- -j$(nproc)
 
-    - name: Unit Tests
-      run: CTEST_PARALLEL_LEVEL=$(nproc) cmake --build build -- test
+    #- name: Unit Tests
+    #  run: CTEST_PARALLEL_LEVEL=$(nproc) cmake --build build -- test
 
   macos:
     runs-on: macos-10.15
