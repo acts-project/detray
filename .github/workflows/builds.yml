@@ -123,7 +123,8 @@ jobs:
       run: >
         apt-get -y update;
         apt-get install libeigen3-dev;
-        apt-get -y install nvidia-driver-455
+        apt-get -y install nvidia-driver-455;
+	rmmod nvidia
       
     - name: Configure CMake
       run: >
