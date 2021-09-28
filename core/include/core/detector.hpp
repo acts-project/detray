@@ -10,6 +10,7 @@
 #include <string>
 
 #include "core/index_geometry.hpp"
+#include "core/simple_geometry.hpp"
 #include "core/transform_store.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
@@ -46,7 +47,9 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename> class vector_type = dvector,
           typename alignable_store = static_transform_store<vector_type>,
-          typename geometry_type = index_geometry<array_type, vector_type,
+          //typename geometry_type = index_geometry<array_type, vector_type,
+          //                                        tuple_type, dindex, dindex>,
+          typename geometry_type = simple_geometry<array_type, vector_type,
                                                   tuple_type, dindex, dindex>,
           typename surfaces_populator_type =
               attach_populator<false, dindex, vector_type>,
@@ -308,7 +311,7 @@ class detector {
             }
 
             // Now put the updates objects into the geometry
-            _geometry.add_objects(volume, typed_objects);
+            _geometry.template add_objects<object_type>(volume, typed_objects);
         }
 
         // Next mask type

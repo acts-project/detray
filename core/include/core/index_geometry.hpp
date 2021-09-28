@@ -437,25 +437,23 @@ class index_geometry {
      * @param volume the volume the objects belong to
      * @param surfaces the surfaces that will be filled into the volume
      */
-    inline void add_objects(volume &volume, const surface_container &surfaces) {
-        const auto offset = _surfaces.size();
-        _surfaces.reserve(_surfaces.size() + surfaces.size());
-        _surfaces.insert(_surfaces.end(), surfaces.begin(), surfaces.end());
+    template <bool add_surfaces = true,
+              typename object_container>
+    inline void add_objects(volume &volume, const object_container &objects) {
+        if constexpr (add_surfaces) {
+            const auto offset = _surfaces.size();
+            _surfaces.reserve(_surfaces.size() + objects.size());
+            _surfaces.insert(_surfaces.end(), objects.begin(), objects.end());
 
-        volume.template set_range<e_surface>({offset, _surfaces.size()});
-    }
+            volume.template set_range<e_surface>({offset, _surfaces.size()});
+        }
+        else {
+            const auto offset = _portals.size();
+            _portals.reserve(_portals.size() + objects.size());
+            _portals.insert(_portals.end(), objects.begin(), objects.end());
 
-    /** Add objects (surfaces/portals) to the geometry
-     *
-     * @param volume the volume the objects belong to
-     * @param portals the portals that will be filled into the volume
-     */
-    inline void add_objects(volume &volume, const portal_container &portals) {
-        const auto offset = _portals.size();
-        _portals.reserve(_portals.size() + portals.size());
-        _portals.insert(_portals.end(), portals.begin(), portals.end());
-
-        volume.template set_range<e_portal>({offset, _portals.size()});
+            volume.template set_range<e_portal>({offset, _portals.size()});
+        }
     }
 
     /**
