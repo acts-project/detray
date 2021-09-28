@@ -17,7 +17,7 @@
 #include <vecmem/containers/jagged_device_vector.hpp>
 
 #include "definitions/invalid_values.hpp"
-#include "definitions/qualifiers.hpp"
+#include "definitions/cuda_qualifiers.hpp"
 #include "utils/indexing.hpp"
 namespace detray {
 /** A replace populator that swaps whatever current value in the
