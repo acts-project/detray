@@ -9,8 +9,6 @@
 
 #include <limits>
 
-namespace detray {
-
 template <typename T>
 inline T invalid_value() {
     return T::invalid_value();
@@ -33,5 +31,3 @@ template <>
 inline long unsigned int invalid_value() {
     return std::numeric_limits<long unsigned int>::max();
 }
-
-}  // namespace detray
