@@ -12,7 +12,8 @@
 #include <utility>
 
 #include "core/mask_store.hpp"
-#include "core/surface_base.hpp"
+#include "geometry/surface_base.hpp"
+#include "geometry/volume.hpp"
 #include "masks/masks.hpp"
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
@@ -63,6 +64,9 @@ class index_geometry {
         e_single3 = std::numeric_limits<unsigned int>::max(),
         e_unknown = std::numeric_limits<unsigned int>::max(),
     };
+
+    // Volume type
+    using volume_type = volume<array_type>;
 
     /// Portals components:
     /// - links:  next volume, next (local) object finder
@@ -130,212 +134,6 @@ class index_geometry {
     using portal_filling_container =
         array_type<vector_type<portal>, e_mask_types>;
 
-    /** Nested volume struct that holds the local information of the
-     * volume and its portals.
-     */
-    class volume {
-
-        public:
-        /** Deleted constructor */
-        volume() = delete;
-
-        /** Allowed constructors
-         * @param name of the volume
-         * @param d detector the volume belongs to
-         *
-         * @note will be contructed boundless
-         */
-        volume(const std::string &name) : _name(name) {}
-
-        /** Contructor with name and bounds
-         * @param name of the volume
-         * @param bounds of the volume
-         * @param d detector the volume belongs to
-         */
-        volume(const std::string &name, const array_type<scalar, 6> &bounds)
-            : _name(name), _bounds(bounds) {}
-
-        /** Copy ctor makes sure constituents keep valid volume pointer
-         *
-         * @param other Volume to be copied
-         */
-        volume(const volume &other) = default;
-
-        /** @return the bounds - const access */
-        inline const array_type<scalar, 6> &bounds() const { return _bounds; }
-
-        /** @return the name */
-        inline const std::string &name() const { return _name; }
-
-        /** @return the index */
-        inline dindex index() const { return _index; }
-
-        /** @param index the index */
-        inline void set_index(const dindex index) { _index = index; }
-
-        /** @return the entry into the local surface finders */
-        inline dindex surfaces_finder_entry() const {
-            return _surfaces_finder_entry;
-        }
-
-        /** @param entry the entry into the local surface finders */
-        inline void set_surfaces_finder(const dindex entry) {
-            _surfaces_finder_entry = entry;
-        }
-
-        /** @return if the volume is empty or not */
-        inline bool empty() const { return is_empty_range(_surface_range); }
-
-        /** @return the number of surfaces in the volume */
-        template <bool primitive = e_surface>
-        inline dindex n_objects() {
-            if constexpr (primitive) {
-                return n_in_range(_surface_range);
-            } else {
-                return n_in_range(_portal_range);
-            }
-        }
-
-        /** @return the number of surfaces in the volume */
-        template <bool primitive = e_surface>
-        inline const dindex n_objects() const {
-            if constexpr (primitive) {
-                return n_in_range(_surface_range);
-            } else {
-                return n_in_range(_portal_range);
-            }
-        }
-
-        /** Set the index into the detector surface container
-         *
-         * @param range Surface index range
-         */
-        template <bool surface_range = e_surface>
-        inline void set_range(dindex_range range) {
-            if constexpr (surface_range) {
-                update_range(_surface_range, std::move(range));
-            } else {
-                update_range(_portal_range, std::move(range));
-            }
-        }
-
-        /** @return range of surfaces- const access */
-        template <bool surface_range = e_surface>
-        inline const auto &range() const {
-            if constexpr (surface_range) {
-                return _surface_range;
-            } else {
-                return _portal_range;
-            }
-        }
-
-        /** @return range of portals - const access */
-        // const auto &portal_range() const { return _portal_range; }
-
-        /** @return range of surface transforms - const access */
-        template <bool surface_range = e_surface>
-        inline const auto &trf_range() const {
-            if constexpr (surface_range) {
-                return _surface_trf_range;
-            } else {
-                return _portal_trf_range;
-            }
-        }
-
-        /** Set the index into the detector transform store for portals
-         *
-         * @param range Portal transform index range
-         */
-        template <bool surface_range = e_surface>
-        inline void set_trf_range(dindex_range range) {
-            if constexpr (surface_range) {
-                update_range(_surface_trf_range, std::move(range));
-            } else {
-                update_range(_portal_trf_range, std::move(range));
-            }
-        }
-
-        private:
-        /** Volume section: name */
-        std::string _name = "unknown";
-
-        /** Bounds section, default for r, z, phi */
-        array_type<scalar, 6> _bounds = {0.,
-                                         std::numeric_limits<scalar>::max(),
-                                         -std::numeric_limits<scalar>::max(),
-                                         std::numeric_limits<scalar>::max(),
-                                         -M_PI,
-                                         M_PI};
-
-        /** Volume index */
-        dindex _index = dindex_invalid;
-
-        /** Transform ranges in the detector transform store.*/
-        dindex_range _surface_trf_range = {dindex_invalid, dindex_invalid};
-        dindex_range _portal_trf_range = {dindex_invalid, dindex_invalid};
-
-        /** Index ranges in the detector surface/portal containers.*/
-        dindex_range _surface_range = {dindex_invalid, dindex_invalid};
-        dindex_range _portal_range = {dindex_invalid, dindex_invalid};
-
-        /** Index into the surface finder container */
-        dindex _surfaces_finder_entry = dindex_invalid;
-
-        /**
-         * @param range Any index range
-         *
-         * @return the number of indexed objects
-         */
-        inline dindex n_in_range(const dindex_range &range) {
-            return range[1] - range[0];
-        }
-
-        /**
-         * @param range Any index range
-         *
-         * @return the number of indexed objects
-         */
-        inline const dindex n_in_range(const dindex_range &range) const {
-            return range[1] - range[0];
-        }
-
-        /** Test whether a range is empty
-         *
-         * @param range Any index range
-         *
-         * @return boolean whether the range is empty
-         */
-        inline bool is_empty_range(const dindex_range &range) {
-            return n_in_range(range) == 0;
-        }
-
-        /** Test whether a range is empty - const
-         *
-         * @param range Any index range
-         *
-         * @return boolean whether the range is empty
-         */
-        inline const bool is_empty_range(const dindex_range &range) const {
-            return n_in_range(range) == 0;
-        }
-
-        /** Set or update a range
-         *
-         * @param range One of the volume member ranges
-         * @param other new index range
-         *
-         * @return boolean whether the range is empty
-         */
-        inline void update_range(dindex_range &range, dindex_range &&other) {
-            // Range not set yet
-            if (range[0] == dindex_invalid) {
-                range = other;
-            } else {
-                range[1] += other[1] - other[0];
-            }
-        }
-    };
-
     /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }
 
@@ -343,12 +141,12 @@ class index_geometry {
     const auto &volumes() const { return _volumes; }
 
     /** @return the volume by @param volume_index - const access. */
-    inline const volume &volume_by_index(dindex volume_index) const {
+    inline const volume_type &volume_by_index(dindex volume_index) const {
         return _volumes[volume_index];
     }
 
     /** @return the volume by @param volume_index - non-const access. */
-    inline volume &volume_by_index(dindex volume_index) {
+    inline volume_type &volume_by_index(dindex volume_index) {
         return _volumes[volume_index];
     }
 
@@ -361,12 +159,12 @@ class index_geometry {
      *
      * @return non-const reference of the new volume
      */
-    inline volume &new_volume(const std::string &name,
+    inline volume_type &new_volume(const std::string &name,
                               const array_type<scalar, 6> &bounds,
                               dindex surfaces_finder_entry = dindex_invalid) {
         _volumes.emplace_back(name, bounds);
         dindex cvolume_idx = _volumes.size() - 1;
-        volume &cvolume = _volumes[cvolume_idx];
+        volume_type &cvolume = _volumes[cvolume_idx];
         cvolume.set_index(cvolume_idx);
         cvolume.set_surfaces_finder(surfaces_finder_entry);
         return cvolume;
@@ -439,7 +237,7 @@ class index_geometry {
      */
     template <bool add_surfaces = true,
               typename object_container>
-    inline void add_objects(volume &volume, const object_container &objects) {
+    inline void add_objects(volume_type &volume, const object_container &objects) {
         if constexpr (add_surfaces) {
             const auto offset = _surfaces.size();
             _surfaces.reserve(_surfaces.size() + objects.size());
@@ -469,31 +267,14 @@ class index_geometry {
     inline const std::string to_string() const {
         std::stringstream ss;
         for (const auto &[i, v] : enumerate(_volumes)) {
-            ss << "[>>] Volume at index " << i << " - name: '" << v.name()
-               << "'" << std::endl;
-
-            ss << "     contains    " << v.template n_objects<e_surface>()
-               << " surfaces " << std::endl;
-
-            ss << "                 " << v.template n_objects<e_portal>()
-               << " portals " << std::endl;
-
-            if (v.surfaces_finder_entry() != dindex_invalid) {
-                ss << "  sf finders idx " << v.surfaces_finder_entry()
-                   << std::endl;
-            }
-            const auto &bounds = v.bounds();
-            ss << "     bounds r = (" << bounds[0] << ", " << bounds[1] << ")"
-               << std::endl;
-            ss << "            z = (" << bounds[2] << ", " << bounds[3] << ")"
-               << std::endl;
+            ss << "[>>] Volume at index " << i << ": " << v.to_string();
         }
         return ss.str();
     };
 
     private:
     /** Contains the geometrical relations*/
-    vector_type<volume> _volumes = {};
+    vector_type<volume_type> _volumes = {};
 
     /** All surfaces and portals in the geometry in contigous memory */
     surface_container _surfaces = {};

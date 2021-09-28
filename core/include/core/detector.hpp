@@ -9,8 +9,8 @@
 #include <sstream>
 #include <string>
 
-#include "core/index_geometry.hpp"
-#include "core/simple_geometry.hpp"
+//#include "geometry/index_geometry.hpp"
+#include "geometry/simple_geometry.hpp"
 #include "core/transform_store.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
@@ -74,7 +74,7 @@ class detector {
     using objects = typename geometry_type::known_objects;
     using mask_id = typename geometry_type::mask_id;
     // geometry oject types
-    using volume = typename geometry_type::volume;
+    using volume = typename geometry_type::volume_type;
     using portal = typename geometry_type::portal;
     using surface = typename geometry_type::surface;
 

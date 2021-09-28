@@ -11,7 +11,7 @@
 #include <cmath>
 
 #include "core/intersection.hpp"
-#include "core/surface_base.hpp"
+#include "geometry/surface_base.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

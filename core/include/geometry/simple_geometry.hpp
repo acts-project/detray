@@ -11,21 +11,24 @@
 #include <string>
 #include <utility>
 
-#include "core/index_geometry.hpp"
 #include "core/mask_store.hpp"
-#include "core/surface_base.hpp"
+#include "geometry/surface_base.hpp"
+#include "geometry/volume.hpp"
 #include "masks/masks.hpp"
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray {
 /**
- * @brief Index geometry implementation
+ * @brief Simple geometry implementation
  *
  * This class provides a geometry that defines logic volumes which contain
  * the detector surfaces, joined together by dedicated portal surfaces. It
  * exports all types needed for navigation and strictly only keeps the
- * index data (links) that define the geometry relations.
+ * index data (links) that define the geometry relations. The simple geometry
+ * itself makes no distinction between surfaces and portals. Both carry the 
+ * same link type: a portal points to the next volume, a surface to the current
+ * volume
  *
  * @tparam array_type the type of the internal array, must have STL
  *                    semantics
@@ -65,8 +68,8 @@ class simple_geometry {
         e_unknown = std::numeric_limits<unsigned int>::max(),
     };
 
-    // Reuse volume implementation
-    using volume = index_geometry<>::volume;
+    // Volume type
+    using volume_type = volume<array_type>;
 
     /// volume index: volume the surface belongs to
     using volume_index = dindex;
@@ -89,18 +92,15 @@ class simple_geometry {
                                  edge_links, e_trapezoid2>;
     using annulus = annulus2<planar_intersector, __plugin::cartesian2,
                              edge_links, e_annulus2>;
-    using cylinder =
-        cylinder3<false, cylinder_intersector, __plugin::cylindrical2,
-                         edge_links, e_cylinder3>;
-    using disc =
-        ring2<planar_intersector, __plugin::cartesian2, edge_links, e_ring2>;
+    using cylinder = cylinder3<false, cylinder_intersector,
+                                __plugin::cylindrical2, edge_links, e_cylinder3>;
+    using disc = ring2<planar_intersector, __plugin::cartesian2, edge_links, e_ring2>;
 
-    using mask_container =
-        mask_store<tuple_type, vector_type, rectangle,
+    using mask_container = mask_store<tuple_type, vector_type, rectangle,
                    trapezoid, annulus, cylinder, disc>;
 
     /** The Surface definition:
-     *  <transform_link, mask_link, volume_link, source_link, mask_link >
+     *  <transform_link, mask_link, volume_link, source_link, edge_link>
      */
     using surface =  surface_base<transform_link, mask_index, volume_index, source_link, edge_links>;
     using surface_container = vector_type<surface>;
@@ -123,12 +123,12 @@ class simple_geometry {
     const auto &volumes() const { return _volumes; }
 
     /** @return the volume by @param volume_index - const access. */
-    inline const volume &volume_by_index(dindex volume_index) const {
+    inline const volume_type &volume_by_index(dindex volume_index) const {
         return _volumes[volume_index];
     }
 
     /** @return the volume by @param volume_index - non-const access. */
-    inline volume &volume_by_index(dindex volume_index) {
+    inline volume_type &volume_by_index(dindex volume_index) {
         return _volumes[volume_index];
     }
 
@@ -141,12 +141,12 @@ class simple_geometry {
      *
      * @return non-const reference of the new volume
      */
-    inline volume &new_volume(const std::string &name,
+    inline volume_type &new_volume(const std::string &name,
                               const array_type<scalar, 6> &bounds,
                               dindex surfaces_finder_entry = dindex_invalid) {
         _volumes.emplace_back(name, bounds);
         dindex cvolume_idx = _volumes.size() - 1;
-        volume &cvolume = _volumes[cvolume_idx];
+        volume_type &cvolume = _volumes[cvolume_idx];
         cvolume.set_index(cvolume_idx);
         cvolume.set_surfaces_finder(surfaces_finder_entry);
         return cvolume;
@@ -154,15 +154,11 @@ class simple_geometry {
 
     /** @return all surfaces/portals in the geometry */
     template <bool get_surface = true>
-    inline size_t n_objects() const {
-        return _objects.size();
-    }
+    inline size_t n_objects() const { return _objects.size(); }
 
     /** @return all surfaces/portals in the geometry */
     template <bool get_surface = true>
-    inline const auto &objects() const {
-        return _objects;
-    }
+    inline const auto &objects() const { return _objects; }
 
     /** Update the mask links of an object when filling into a large container
      *
@@ -189,7 +185,7 @@ class simple_geometry {
      * @param surfaces the surfaces that will be filled into the volume
      */
     template <bool add_surfaces = true>
-    inline void add_objects(volume &volume, const surface_container &surfaces) {
+    inline void add_objects(volume_type &volume, const surface_container &surfaces) {
         const auto offset = _objects.size();
         _objects.reserve(_objects.size() + surfaces.size());
         _objects.insert(_objects.end(), surfaces.begin(), surfaces.end());
@@ -210,31 +206,14 @@ class simple_geometry {
     inline const std::string to_string() const {
         std::stringstream ss;
         for (const auto &[i, v] : enumerate(_volumes)) {
-            ss << "[>>] Volume at index " << i << " - name: '" << v.name()
-               << "'" << std::endl;
-
-            ss << "     contains    " << v.template n_objects<e_surface>()
-               << " surfaces " << std::endl;
-
-            ss << "                 " << v.template n_objects<e_portal>()
-               << " portals " << std::endl;
-
-            if (v.surfaces_finder_entry() != dindex_invalid) {
-                ss << "  sf finders idx " << v.surfaces_finder_entry()
-                   << std::endl;
-            }
-            const auto &bounds = v.bounds();
-            ss << "     bounds r = (" << bounds[0] << ", " << bounds[1] << ")"
-               << std::endl;
-            ss << "            z = (" << bounds[2] << ", " << bounds[3] << ")"
-               << std::endl;
+            ss << "[>>] Volume at index " << i << ": " << v.to_string();
         }
         return ss.str();
     };
 
     private:
     /** Contains the geometrical relations*/
-    vector_type<volume> _volumes = {};
+    vector_type<volume_type> _volumes = {};
 
     /** All surfaces and portals in the geometry in contigous memory */
     surface_container _objects = {};

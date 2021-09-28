@@ -9,7 +9,7 @@
 
 #include <functional>
 
-#include "core/surface_base.hpp"
+#include "geometry/surface_base.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
 #include "grids/populator.hpp"
