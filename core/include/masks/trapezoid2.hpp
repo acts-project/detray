@@ -90,7 +90,6 @@ struct trapezoid2 {
     template <typename inside_local_type>
     intersection_status is_inside(
         const point2 &p, const mask_tolerance &t = within_epsilon) const {
-        // scalar rel_y = (_values[2] + p[1]) * (1. / (2 * _values[2]));
         scalar rel_y = (_values[2] + p[1]) * _values[3];
         return (std::abs(p[0]) <=
                     _values[0] + rel_y * (_values[1] - _values[0]) + t[0] and
