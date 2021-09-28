@@ -23,7 +23,7 @@ TEST(ALGEBRA_PLUGIN, detector) {
     static_transform_store<>::context ctx0;
 
     detector::transform_container trfs;
-    geometry::surface_mask_container masks;
+    detector::mask_container masks;
     geometry::surface_filling_container surfaces = {};
 
     /// Surface 0

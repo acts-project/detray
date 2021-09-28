@@ -98,7 +98,7 @@ static inline void bin_association(const context_type &context,
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         surface_masks, mask_range, mask_context,
                         std::make_integer_sequence<
-                            dindex, std::tuple_size_v<typename detector_type::surface_mask_container::mask_tuple>>{});
+                            dindex, std::tuple_size_v<typename detector_type::mask_container::mask_tuple>>{});
 
                     // Usually one mask per surface, but design allows - a
                     // single association  is sufficient though
@@ -176,7 +176,7 @@ static inline void bin_association(const context_type &context,
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         surface_masks, mask_range, mask_context,
                         std::make_integer_sequence<
-                            dindex, std::tuple_size_v<typename detector_type::surface_mask_container::mask_tuple>>{});
+                            dindex, std::tuple_size_v<typename detector_type::mask_container::mask_tuple>>{});
 
                     for (auto &vertices : vertices_per_masks) {
 

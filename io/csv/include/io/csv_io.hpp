@@ -82,7 +82,7 @@ detector_from_csv(const std::string &detector_name,
     // Flushable containers
     typename typed_detector::volume *c_volume = nullptr;
     typename typed_detector::geometry::surface_filling_container c_surfaces;
-    typename typed_detector::geometry::surface_mask_container c_masks;
+    typename typed_detector::mask_container c_masks;
     typename typed_detector::transform_container c_transforms;
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
@@ -294,8 +294,7 @@ detector_from_csv(const std::string &detector_name,
 
                 c_surfaces = typename typed_detector::geometry::
                     surface_filling_container();
-                c_masks =
-                    typename typed_detector::geometry::surface_mask_container();
+                c_masks = typename typed_detector::mask_container();
                 c_transforms = typename typed_detector::transform_container();
             }
 
@@ -364,13 +363,13 @@ detector_from_csv(const std::string &detector_name,
             bounds.push_back(io_surface.bound_param6);
 
             // Acts naming convention for bounds
-            typename typed_detector::geometry::surface_mask_index mask_index = {
+            typename typed_detector::surface::mask_links mask_index = {
                 dindex_invalid, dindex_invalid};
 
             if (bounds_type == 1) {
                 // Cylinder Bounds
                 constexpr auto cylinder_id =
-                    typed_detector::geometry::surface_cylinder::mask_context;
+                    typed_detector::mask_id::e_cylinder3;
 
                 // Add a new cylinder mask
                 dindex cylinder_index = c_masks.template size<cylinder_id>();
@@ -392,8 +391,7 @@ detector_from_csv(const std::string &detector_name,
                 // Disc bounds
             } else if (bounds_type == 6) {
                 // Rectangle bounds
-                constexpr auto rectangle_id =
-                    typed_detector::geometry::surface_rectangle::mask_context;
+                constexpr auto rectangle_id = typed_detector::mask_id::e_rectangle2;
 
                 // Add a new rectangle mask
                 dindex rectangle_index = c_masks.template size<rectangle_id>();
@@ -419,7 +417,7 @@ detector_from_csv(const std::string &detector_name,
             } else if (bounds_type == 7) {
                 // Trapezoid bounds
                 constexpr auto trapezoid_id =
-                    typed_detector::geometry::surface_trapezoid::mask_context;
+                    typed_detector::mask_id::e_trapezoid2;
 
                 // Add a new trapezoid mask
                 dindex trapezoid_index = c_masks.template size<trapezoid_id>();
@@ -436,13 +434,12 @@ detector_from_csv(const std::string &detector_name,
 
                 // Save the corresponding surface
                 auto &trapezoid_surfaces = c_surfaces[trapezoid_id];
-                trapezoid_surfaces.push_back(
-                    {trapezoid_transforms.size(surface_default_context) - 1,
+                trapezoid_surfaces.push_back({trapezoid_transforms.size(surface_default_context) - 1,
                      mask_index, c_volume->index(), io_surface.geometry_id});
             } else if (bounds_type == 11) {
                 // Annulus bounds
                 constexpr auto annulus_id =
-                    typed_detector::geometry::surface_annulus::mask_context;
+                    typed_detector::mask_id::e_annulus2;
 
                 // Add a new annulus mask
                 dindex annulus_index = c_masks.template size<annulus_id>();

@@ -69,18 +69,17 @@ class detector {
     // enumeration of the geometry objects in the geometry (surfaces/portals
     // etc.)
     using objects = typename geometry_type::known_objects;
+    using mask_id = typename geometry_type::mask_id;
     // geometry oject types
     using volume = typename geometry_type::volume;
     using portal = typename geometry_type::portal;
     using surface = typename geometry_type::surface;
 
     // Determined by the geometry, due to potentially different linking in masks
-    using surface_mask_container =
-        typename geometry_type::surface_mask_container;
-    using portal_mask_container = typename geometry_type::portal_mask_container;
+    using mask_container = typename geometry_type::mask_container;
 
     // Source links of geometry objects, if detray acts as plugin
-    using surface_source_link = typename geometry_type::surface_link;
+    using surface_source_link = typename geometry_type::source_link;
     using bounds_source_link = typename geometry_type::bounds_link;
 
     /// Accelerator structure
@@ -103,7 +102,7 @@ class detector {
     using surfaces_finder = surfaces_regular_circular_grid;
 
     // Temporary container struct, used to fill the detector data
-    using transform_container = array_type<transform_store, 5>;
+    using transform_container = array_type<transform_store, 6>;
 
     /** Allowed costructor
      * @param name the detector
@@ -157,30 +156,27 @@ class detector {
         return _geometry.volume_by_index(volume_index);
     }
 
-    /** @return all surfaces/portals in the detector */
-    template <bool object_type = true>
-    decltype(auto) surfaces() const {
+    /** @return all objects of a given type */
+    template <objects object_type>
+    decltype(auto) get_objects() const {
         return _geometry.template objects<object_type>();
     }
 
-    /** @return all surfaces/portals in the detector */
-    template <bool object_type = false>
+    /** Convenience function:
+     * @return all surfaces in the detector */
+    decltype(auto) surfaces() const {
+        return _geometry.template objects<objects::e_surface>();
+    }
+
+    /** Convenience function:
+     * @return all portals in the detector */
     decltype(auto) portals() const {
-        return _geometry.template objects<object_type>();
+        return _geometry.template objects<objects::e_portal>();
     }
 
     /** Get @return all surface/portal masks in the geometry */
-    /*template <bool object_type = true>
-    const auto &masks() const {
-        return _geometry.template <object_type>retrieve_masks(_masks);
-    }*/
-    template <objects object_type = objects::e_surface>
     decltype(auto) masks() const {
-        if constexpr (object_type) {
-            return _surface_masks;
-        } else {
-            return _portal_masks;
-        }
+        return _masks;
     }
 
     /** Get the current number of transforms in the store
@@ -249,7 +245,7 @@ class detector {
     template <typename object_container>
     inline void add_surfaces(
         volume &volume, object_container &surfaces,
-        surface_mask_container &masks, transform_container &trfs,
+        mask_container &masks, transform_container &trfs,
         const typename alignable_store::context ctx = {}) noexcept(false) {
         add_objects<objects::e_surface>(volume, surfaces, masks, trfs, ctx);
     }
@@ -258,7 +254,7 @@ class detector {
      * detector::add_objects(). */
     template <typename object_container>
     inline void add_portals(
-        volume &volume, object_container &portals, portal_mask_container &masks,
+        volume &volume, object_container &portals, mask_container &masks,
         transform_container &trfs,
         const typename alignable_store::context ctx = {}) noexcept(false) {
         add_objects<objects::e_portal>(volume, portals, masks, trfs, ctx);
@@ -293,49 +289,27 @@ class detector {
         // and the corresponding masks
         auto &object_masks = masks.template group<current_type>();
 
-        // Fill object masks into the correct detector container
-        auto add_detector_masks = [&](auto &detector_masks) -> dindex {
-            const dindex mask_offset = detector_masks.template size<current_type>();
-            detector_masks.template add_masks<current_type>(object_masks);
-
-            return mask_offset;
-        };
-
         if (object_transforms.size(ctx) != 0 and not typed_objects.empty()) {
             // Current offsets into detectors containers
             const auto trsf_offset = n_transforms(ctx);
+            const auto mask_offset = _masks.template size<current_type>();
+
+            // Fill the correct mask type
+            _masks.template add_masks<current_type>(object_masks);
             _transforms.append(ctx, std::move(std::get<current_type>(trfs)));
 
             // Surface/portal transforms for this volume
             volume.template set_trf_range<object_type>(
                 {trsf_offset, n_transforms(ctx)});
-            // Fill surface or portal container?
-            if constexpr (object_type) {
-                // Fill the correct mask type
-                const auto sf_mask_offset = add_detector_masks(_surface_masks);
 
-                // Update the surfaces mask link
-                for (auto &sf : typed_objects) {
-                    std::get<1>(sf.mask()) += sf_mask_offset;
-                    sf.transform() += trsf_offset;
-                }
-            } else {
-                // Fill the correct mask type
-                const auto pt_mask_offset = add_detector_masks(_portal_masks);
-                // Update the portals mask links
-                for (auto &pt : typed_objects) {
-                    auto &portal_mask_index = std::get<1>(pt.mask());
-                    portal_mask_index[0] += pt_mask_offset;
-                    portal_mask_index[1] += pt_mask_offset;
-                    pt.transform() += trsf_offset;
-                }
+            // Update the surfaces mask link
+            for (auto &obj : typed_objects) {
+                _geometry.update_mask_link(obj, mask_offset);
+                _geometry.update_transform_link(obj, trsf_offset);
             }
-            // Now put the surfaces into the detector
-            const auto n_objects = _geometry.template n_objects<object_type>();
-            _geometry.template add_objects<object_type>(typed_objects);
 
-            volume.template set_range<object_type>(
-                {n_objects, n_objects + typed_objects.size()});
+            // Now put the updates objects into the geometry
+            _geometry.add_objects(volume, typed_objects);
         }
 
         // Next mask type
@@ -345,6 +319,7 @@ class detector {
                                             object_type>(volume, objects, masks,
                                                          trfs, ctx);
         }
+        // If no mask type fits, don't fill the data.
     }
 
     /** Add the volume grid - move semantics
@@ -393,8 +368,7 @@ class detector {
     transform_store _transforms = {};
 
     /** Surface and portal masks of the detector in contigous memory */
-    surface_mask_container _surface_masks = {};
-    portal_mask_container _portal_masks = {};
+    mask_container _masks = {};
 
     vector_type<surfaces_finder> _surfaces_finders;
 
