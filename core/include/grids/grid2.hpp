@@ -145,9 +145,16 @@ class grid2 {
      * @return the const reference to the value in this bin
      **/
     DETRAY_HOST_DEVICE
-    const auto bin(dindex bin0, dindex bin1) const {
+    const auto &bin(dindex bin0, dindex bin1) const {
         return _data_serialized[_serializer.template serialize<
             axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, bin0, bin1)];
+    }
+
+    DETRAY_HOST_DEVICE
+    const auto &bin(dindex gbin) const {
+        dindex bin0 = gbin % _axis_p0.bins();
+        dindex bin1 = gbin / _axis_p0.bins();
+        return bin(bin0, bin1);
     }
 
     /** Return the value of a single bin
@@ -283,6 +290,10 @@ class grid2 {
     tuple_type<axis_p0_type, axis_p1_type> axes() const {
         return std::tie(_axis_p0, _axis_p1);
     }
+
+    /* Get the total number of bins */
+    DETRAY_HOST_DEVICE
+    dindex nbins() const { return _axis_p0.bins() * _axis_p1.bins(); }
 
     /** Const acess to the serializer */
     DETRAY_HOST_DEVICE
