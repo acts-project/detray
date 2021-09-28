@@ -20,7 +20,8 @@ namespace detray {
  * @tparam source_link the type of the source/source link representation
  */
 template <typename transform_link, typename mask_link = dindex,
-          typename volume_link = dindex, typename source_link = bool, typename edge_link = dindex>
+          typename volume_link = dindex, typename source_link = bool,
+          typename edge_link = dindex>
 class surface_base {
     public:
     // Broadcast the type of links

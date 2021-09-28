@@ -66,7 +66,8 @@ struct cylinder3 {
      * @param half_length_1 half_length
      * @param half_length_2 half length
      */
-    cylinder3(scalar r, scalar half_length_1, scalar half_length_2 = 0.) : _values{r, half_length_1, half_length_2} {}
+    cylinder3(scalar r, scalar half_length_1, scalar half_length_2 = 0.)
+        : _values{r, half_length_1, half_length_2} {}
 
     /** Assignment operator from an array, convenience function
      *

@@ -175,9 +175,7 @@ class detector {
     }
 
     /** Get @return all surface/portal masks in the geometry */
-    decltype(auto) masks() const {
-        return _masks;
-    }
+    decltype(auto) masks() const { return _masks; }
 
     /** Get the current number of transforms in the store
      *
@@ -244,8 +242,8 @@ class detector {
      * detector::add_objects(). */
     template <typename object_container>
     inline void add_surfaces(
-        volume &volume, object_container &surfaces,
-        mask_container &masks, transform_container &trfs,
+        volume &volume, object_container &surfaces, mask_container &masks,
+        transform_container &trfs,
         const typename alignable_store::context ctx = {}) noexcept(false) {
         add_objects<objects::e_surface>(volume, surfaces, masks, trfs, ctx);
     }
@@ -313,7 +311,9 @@ class detector {
         }
 
         // Next mask type
-        if constexpr (current_type < std::tuple_size_v<typename mask_container::mask_tuple> - 1) {
+        if constexpr (current_type <
+                      std::tuple_size_v<typename mask_container::mask_tuple> -
+                          1) {
             return unroll_container_filling<current_type + 1, object_container,
                                             mask_container, transform_container,
                                             object_type>(volume, objects, masks,

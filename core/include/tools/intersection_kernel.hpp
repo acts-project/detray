@@ -37,9 +37,11 @@ using transform3 = __plugin::transform3;
  *
  * @return the surface intersection
  **/
-template <typename links_type = dindex, typename track_type, typename mask_group, typename mask_range>
+template <typename links_type = dindex, typename track_type,
+          typename mask_group, typename mask_range>
 inline auto intersect_by_group(const track_type &track, const transform3 &trf,
-                        const mask_group &masks, const mask_range &range) {
+                               const mask_group &masks,
+                               const mask_range &range) {
     for (auto i : sequence(range)) {
         const auto &mask = masks[i];
         auto local = mask.local();
@@ -47,16 +49,16 @@ inline auto intersect_by_group(const track_type &track, const transform3 &trf,
         if (sfi.status == e_inside) {
             links_type valid_link{};
             // If different link types are present in the container, the code
-            // will not compile, since in the unrolling the code to compare 
-            // e.g. surface links with portal masks will be generated, even 
-            // though that branch can never be reached. So make sure, that 
+            // will not compile, since in the unrolling the code to compare
+            // e.g. surface links with portal masks will be generated, even
+            // though that branch can never be reached. So make sure, that
             // links are only set, when they have same type.
             using mask_links = typename mask_group::value_type::mask_links_type;
             if constexpr (std::is_same_v<links_type, mask_links>) {
                 valid_link = mask.links();
             }
 
-            //links_type valid_link = mask.links();
+            // links_type valid_link = mask.links();
             return std::make_tuple(sfi, valid_link);
         }
     }
@@ -88,9 +90,9 @@ template <typename intersection_type, typename links_type, typename track_type,
           typename mask_container, typename mask_range,
           dindex last_mask_context>
 inline bool last_intersect(intersection_type &intersection, links_type &links,
-                    const track_type &track, const transform3 &ctf,
-                    const mask_container &masks, const mask_range &range,
-                    dindex mask_context) {
+                           const track_type &track, const transform3 &ctf,
+                           const mask_container &masks, const mask_range &range,
+                           dindex mask_context) {
     if (mask_context == last_mask_context) {
         auto isg = intersect_by_group<links_type>(
             track, ctf, masks.template group<last_mask_context>(), range);
@@ -148,9 +150,9 @@ inline bool unroll_intersect(
         }
     }
     // Last chance - intersect the last index if possible
-    return last_intersect<intersection_type, links_type, track_type,
-                          mask_container, mask_range,
-                          std::tuple_size_v<typename mask_container::mask_tuple> - 1>(
+    return last_intersect<
+        intersection_type, links_type, track_type, mask_container, mask_range,
+        std::tuple_size_v<typename mask_container::mask_tuple> - 1>(
         intersection, links, track, ctf, masks, range, mask_context);
 }
 
@@ -159,7 +161,7 @@ inline bool unroll_intersect(
  * @tparam surface_type is The type of the surface container
  * @tparam transform_container is the type of the transform container
  * @tparam mask_container is the type of the type of the mask container
- * @tparam link_type is the type of the geometry links, that belong to the 
+ * @tparam link_type is the type of the geometry links, that belong to the
  *         surface type
  *
  * @param track the track information including the contexts
@@ -175,8 +177,7 @@ template <typename surface_type, typename transform_container,
 const auto intersect(const track<typename transform_container::context> &track,
                      surface_type &surface,
                      const transform_container &contextual_transforms,
-                     const mask_container &masks,
-                     link_type &mask_links) {
+                     const mask_container &masks, link_type &mask_links) {
     const auto &ctf = contextual_transforms[surface.transform()];
     auto mask_link = surface.mask();
     const auto &mask_context = std::get<0>(mask_link);
@@ -189,8 +190,8 @@ const auto intersect(const track<typename transform_container::context> &track,
     unroll_intersect(
         result_intersection, mask_links, track, ctf, masks, mask_range,
         mask_context,
-        std::make_integer_sequence<dindex,
-                                   std::tuple_size_v<typename mask_container::mask_tuple>>{});
+        std::make_integer_sequence<
+            dindex, std::tuple_size_v<typename mask_container::mask_tuple>>{});
     // Return the (eventually update) intersection and links
     return result_intersection;
 }

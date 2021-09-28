@@ -63,7 +63,8 @@ struct trapezoid2 {
      * @param half_length_1 second half length in loc0
      * @param half_length_2 half length in loc1
      */
-    trapezoid2(scalar half_length_0, scalar half_length_1, scalar half_length_2) : _values{half_length_0, half_length_1, half_length_2} {}
+    trapezoid2(scalar half_length_0, scalar half_length_1, scalar half_length_2)
+        : _values{half_length_0, half_length_1, half_length_2} {}
 
     /** Assignment operator from an array, convenience function
      *

@@ -94,7 +94,7 @@ struct navigator {
         size_t size() const { return candidates.size(); }
 
         /** Return current links for one of the objects */
-        links_type& links() { return object_links; }
+        links_type &links() { return object_links; }
 
         /** Clear the kernel */
         void clear() {
@@ -330,7 +330,8 @@ struct navigator {
         // @todo - will come from the local object finder
         for (size_t si = obj_range[0]; si < obj_range[1]; si++) {
             const auto &object = surfaces[si];
-            auto sfi = intersect(track, object, transforms, masks, kernel.links());
+            auto sfi =
+                intersect(track, object, transforms, masks, kernel.links());
             sfi.index = si;
             sfi.link = kernel.links()[0];
             // Ignore negative solutions - except overstep limit
@@ -390,7 +391,7 @@ struct navigator {
             kernel.next != kernel.candidates.end()) {
             // Only update the last intersection
             dindex si = kernel.next->index;
-            const  auto &s = surfaces[si];
+            const auto &s = surfaces[si];
             auto sfi = intersect(track, s, transforms, masks, kernel.links());
             sfi.index = si;
             sfi.link = kernel.links()[0];
@@ -428,7 +429,8 @@ struct navigator {
             for (auto &c : kernel.candidates) {
                 dindex si = c.index;
                 auto &s = surfaces[si];
-                auto sfi= intersect(track, s, transforms, masks, kernel.links());
+                auto sfi =
+                    intersect(track, s, transforms, masks, kernel.links());
                 c = sfi;
                 c.index = si;
                 c.link = kernel.links()[0];

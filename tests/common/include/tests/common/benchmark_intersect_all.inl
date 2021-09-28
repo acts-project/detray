@@ -102,9 +102,9 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                     for (size_t si = v.template range<get_surface_masks>()[0];
                          si < v.template range<get_surface_masks>()[1]; si++) {
                         links_type links{};
-                        auto sfi =
-                            intersect(track, surfaces[si],
-                                      d.transforms(default_context), masks, links);
+                        auto sfi = intersect(track, surfaces[si],
+                                             d.transforms(default_context),
+                                             masks, links);
 
                         benchmark::DoNotOptimize(hits);
                         benchmark::DoNotOptimize(missed);

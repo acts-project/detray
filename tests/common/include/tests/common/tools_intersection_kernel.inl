@@ -40,12 +40,14 @@ TEST(tools, intersection_kernel_single) {
                   __plugin::cylindrical2, mask_link, 4>;
     /// - mask index: type, entry
     using surface_mask_index = darray<dindex, 2>;
-    using surface_mask_container = mask_store<std::tuple, std::vector, surface_rectangle, surface_trapezoid, surface_annulus>;
+    using surface_mask_container =
+        mask_store<std::tuple, std::vector, surface_rectangle,
+                   surface_trapezoid, surface_annulus>;
 
     /// The Surface definition:
     /// <transform_link, mask_link, volume_link, source_link, link_type_in_mask>
-    using surface =
-        surface_base<dindex, surface_mask_index, dindex, surface_link, mask_link>;
+    using surface = surface_base<dindex, surface_mask_index, dindex,
+                                 surface_link, mask_link>;
     using surface_container = dvector<surface>;
 
     // The transforms & their store
@@ -84,22 +86,22 @@ TEST(tools, intersection_kernel_single) {
     };
 
     // Intersect the first surface
-    auto sfi_rectangle = intersect_by_group<mask_link>(track, rectangle_transform,
-                                            mask_store.template group<0>(), 0);
+    auto sfi_rectangle = intersect_by_group<mask_link>(
+        track, rectangle_transform, mask_store.template group<0>(), 0);
 
     point3 expected_rectangle{0.01, 0.01, 10.};
     ASSERT_TRUE(within_epsilon(std::get<0>(sfi_rectangle).p3,
                                expected_rectangle, 1e-7));
 
-    auto sfi_trapezoid = intersect_by_group<mask_link>(track, trapezoid_transform,
-                                            mask_store.template group<1>(), 0);
+    auto sfi_trapezoid = intersect_by_group<mask_link>(
+        track, trapezoid_transform, mask_store.template group<1>(), 0);
 
     point3 expected_trapezoid{0.02, 0.02, 20.};
     ASSERT_TRUE(within_epsilon(std::get<0>(sfi_trapezoid).p3,
                                expected_trapezoid, 1e-7));
 
-    auto sfi_annulus = intersect_by_group<mask_link>(track, annulus_transform,
-                                          mask_store.template group<2>(), 0);
+    auto sfi_annulus = intersect_by_group<mask_link>(
+        track, annulus_transform, mask_store.template group<2>(), 0);
 
     point3 expected_annulus{0.03, 0.03, 30.};
     ASSERT_TRUE(
@@ -113,8 +115,7 @@ TEST(tools, intersection_kernel_single) {
     unsigned int it = 0;
     for (const auto &surface : surfaces) {
         mask_link link{};
-        auto sfi =
-            intersect(track, surface, transform_store, mask_store, link);
+        auto sfi = intersect(track, surface, transform_store, mask_store, link);
 
         result_points.push_back(sfi.p3);
 

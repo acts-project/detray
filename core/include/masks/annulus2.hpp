@@ -81,7 +81,10 @@ struct annulus2 {
      * @param shift_y origin shift loc1
      * @param avg_phi average phi value
      */
-    annulus2(scalar r_low, scalar r_high, scalar phi_low, scalar phi_high, scalar shift_x = 0., scalar shift_y = 0., scalar avg_phi = 0.) : _values{r_low, r_high, phi_low, phi_high, shift_x, shift_y, avg_phi} {}
+    annulus2(scalar r_low, scalar r_high, scalar phi_low, scalar phi_high,
+             scalar shift_x = 0., scalar shift_y = 0., scalar avg_phi = 0.)
+        : _values{r_low, r_high, phi_low, phi_high, shift_x, shift_y, avg_phi} {
+    }
 
     /** Assignment operator from an array, convenience function
      *

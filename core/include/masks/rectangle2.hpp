@@ -61,7 +61,8 @@ struct rectangle2 {
      * @param half_length_0 half length in loc0
      * @param half_length_1 half length in loc1
      */
-    rectangle2(scalar half_length_0, scalar half_length_1) : _values{half_length_0, half_length_1} {}
+    rectangle2(scalar half_length_0, scalar half_length_1)
+        : _values{half_length_0, half_length_1} {}
 
     /** Assignment operator from an array, convenience function
      *
