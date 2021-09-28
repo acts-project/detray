@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-#include "definitions/qualifiers.hpp"
+#include <definitions/qualifiers.hpp>
 #include "utils/indexing.hpp"
 
 namespace detray {
