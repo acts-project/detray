@@ -26,7 +26,7 @@ namespace detray {
  * the detector surfaces, joined together by dedicated portal surfaces. It
  * exports all types needed for navigation and strictly only keeps the
  * index data (links) that define the geometry relations. The simple geometry
- * itself makes no distinction between surfaces and portals. Both carry the 
+ * itself makes no distinction between surfaces and portals. Both carry the
  * same link type: a portal points to the next volume, a surface to the current
  * volume
  *
@@ -93,19 +93,21 @@ class simple_geometry {
     using annulus = annulus2<planar_intersector, __plugin::cartesian2,
                              edge_links, e_annulus2>;
     using cylinder = cylinder3<false, cylinder_intersector,
-                                __plugin::cylindrical2, edge_links, e_cylinder3>;
-    using disc = ring2<planar_intersector, __plugin::cartesian2, edge_links, e_ring2>;
+                               __plugin::cylindrical2, edge_links, e_cylinder3>;
+    using disc =
+        ring2<planar_intersector, __plugin::cartesian2, edge_links, e_ring2>;
 
     using mask_container = mask_store<tuple_type, vector_type, rectangle,
-                   trapezoid, annulus, cylinder, disc>;
+                                      trapezoid, annulus, cylinder, disc>;
 
     /** The Surface definition:
      *  <transform_link, mask_link, volume_link, source_link, edge_link>
      */
-    using surface =  surface_base<transform_link, mask_index, volume_index, source_link, edge_links>;
+    using surface = surface_base<transform_link, mask_index, volume_index,
+                                 source_link, edge_links>;
     using surface_container = vector_type<surface>;
     // No difference between surfaces and portals
-    using portal =  surface;
+    using portal = surface;
     using portal_container = surface_container;
 
     /** Temporary container structures that are used to fill the geometry.
@@ -141,9 +143,9 @@ class simple_geometry {
      *
      * @return non-const reference of the new volume
      */
-    inline volume_type &new_volume(const std::string &name,
-                              const array_type<scalar, 6> &bounds,
-                              dindex surfaces_finder_entry = dindex_invalid) {
+    inline volume_type &new_volume(
+        const std::string &name, const array_type<scalar, 6> &bounds,
+        dindex surfaces_finder_entry = dindex_invalid) {
         _volumes.emplace_back(name, bounds);
         dindex cvolume_idx = _volumes.size() - 1;
         volume_type &cvolume = _volumes[cvolume_idx];
@@ -154,11 +156,15 @@ class simple_geometry {
 
     /** @return all surfaces/portals in the geometry */
     template <bool get_surface = true>
-    inline size_t n_objects() const { return _objects.size(); }
+    inline size_t n_objects() const {
+        return _objects.size();
+    }
 
     /** @return all surfaces/portals in the geometry */
     template <bool get_surface = true>
-    inline const auto &objects() const { return _objects; }
+    inline const auto &objects() const {
+        return _objects;
+    }
 
     /** Update the mask links of an object when filling into a large container
      *
@@ -185,7 +191,8 @@ class simple_geometry {
      * @param surfaces the surfaces that will be filled into the volume
      */
     template <bool add_surfaces = true>
-    inline void add_objects(volume_type &volume, const surface_container &surfaces) {
+    inline void add_objects(volume_type &volume,
+                            const surface_container &surfaces) {
         const auto offset = _objects.size();
         _objects.reserve(_objects.size() + surfaces.size());
         _objects.insert(_objects.end(), surfaces.begin(), surfaces.end());

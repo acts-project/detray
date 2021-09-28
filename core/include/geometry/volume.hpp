@@ -10,13 +10,13 @@
 
 namespace detray {
 
-/** Volume class that holds the local information of the volume its surfaces 
+/** Volume class that holds the local information of the volume its surfaces
  * and portals. Everything is kept as index ranges in larger containers that are
  * owned by either the geometry or the detector implementations.
  *
  * @tparam array_type the type of the internal array, must have STL semantics
  */
-template<template <typename, unsigned int> class array_type = darray>
+template <template <typename, unsigned int> class array_type = darray>
 class volume {
 
     public:
@@ -127,9 +127,9 @@ class volume {
     }
 
     /** Set the index into the detector transform store for portals
-        *
-        * @param range Portal transform index range
-        */
+     *
+     * @param range Portal transform index range
+     */
     template <bool surface_range = true>
     inline void set_trf_range(dindex_range range) {
         if constexpr (surface_range) {
@@ -145,24 +145,22 @@ class volume {
      */
     inline const std::string to_string() const {
         std::stringstream ss;
-        ss << " - name: '" << name()
-            << "'" << std::endl;
+        ss << " - name: '" << name() << "'" << std::endl;
 
-        ss << "     contains    " << n_objects<true>()
-            << " surfaces " << std::endl;
+        ss << "     contains    " << n_objects<true>() << " surfaces "
+           << std::endl;
 
-        ss << "                 " << n_objects<false>()
-            << " portals "  << std::endl;
+        ss << "                 " << n_objects<false>() << " portals "
+           << std::endl;
 
         if (surfaces_finder_entry() != dindex_invalid) {
-            ss << "  sf finders idx " << surfaces_finder_entry()
-                << std::endl;
+            ss << "  sf finders idx " << surfaces_finder_entry() << std::endl;
         }
-        
+
         ss << "     bounds r = (" << _bounds[0] << ", " << _bounds[1] << ")"
-            << std::endl;
+           << std::endl;
         ss << "            z = (" << _bounds[2] << ", " << _bounds[3] << ")"
-            << std::endl;
+           << std::endl;
 
         return ss.str();
     };
@@ -173,11 +171,11 @@ class volume {
 
     /** Bounds section, default for r, z, phi */
     array_type<scalar, 6> _bounds = {0.,
-                                        std::numeric_limits<scalar>::max(),
-                                        -std::numeric_limits<scalar>::max(),
-                                        std::numeric_limits<scalar>::max(),
-                                        -M_PI,
-                                        M_PI};
+                                     std::numeric_limits<scalar>::max(),
+                                     -std::numeric_limits<scalar>::max(),
+                                     std::numeric_limits<scalar>::max(),
+                                     -M_PI,
+                                     M_PI};
 
     /** Volume index */
     dindex _index = dindex_invalid;
@@ -194,50 +192,50 @@ class volume {
     dindex _surfaces_finder_entry = dindex_invalid;
 
     /**
-        * @param range Any index range
-        *
-        * @return the number of indexed objects
-        */
+     * @param range Any index range
+     *
+     * @return the number of indexed objects
+     */
     inline dindex n_in_range(const dindex_range &range) {
         return range[1] - range[0];
     }
 
     /**
-        * @param range Any index range
-        *
-        * @return the number of indexed objects
-        */
+     * @param range Any index range
+     *
+     * @return the number of indexed objects
+     */
     inline const dindex n_in_range(const dindex_range &range) const {
         return range[1] - range[0];
     }
 
     /** Test whether a range is empty
-        *
-        * @param range Any index range
-        *
-        * @return boolean whether the range is empty
-        */
+     *
+     * @param range Any index range
+     *
+     * @return boolean whether the range is empty
+     */
     inline bool is_empty_range(const dindex_range &range) {
         return n_in_range(range) == 0;
     }
 
     /** Test whether a range is empty - const
-        *
-        * @param range Any index range
-        *
-        * @return boolean whether the range is empty
-        */
+     *
+     * @param range Any index range
+     *
+     * @return boolean whether the range is empty
+     */
     inline const bool is_empty_range(const dindex_range &range) const {
         return n_in_range(range) == 0;
     }
 
     /** Set or update a range
-        *
-        * @param range One of the volume member ranges
-        * @param other new index range
-        *
-        * @return boolean whether the range is empty
-        */
+     *
+     * @param range One of the volume member ranges
+     * @param other new index range
+     *
+     * @return boolean whether the range is empty
+     */
     inline void update_range(dindex_range &range, dindex_range &&other) {
         // Range not set yet
         if (range[0] == dindex_invalid) {

@@ -159,9 +159,9 @@ class index_geometry {
      *
      * @return non-const reference of the new volume
      */
-    inline volume_type &new_volume(const std::string &name,
-                              const array_type<scalar, 6> &bounds,
-                              dindex surfaces_finder_entry = dindex_invalid) {
+    inline volume_type &new_volume(
+        const std::string &name, const array_type<scalar, 6> &bounds,
+        dindex surfaces_finder_entry = dindex_invalid) {
         _volumes.emplace_back(name, bounds);
         dindex cvolume_idx = _volumes.size() - 1;
         volume_type &cvolume = _volumes[cvolume_idx];
@@ -235,17 +235,16 @@ class index_geometry {
      * @param volume the volume the objects belong to
      * @param surfaces the surfaces that will be filled into the volume
      */
-    template <bool add_surfaces = true,
-              typename object_container>
-    inline void add_objects(volume_type &volume, const object_container &objects) {
+    template <bool add_surfaces = true, typename object_container>
+    inline void add_objects(volume_type &volume,
+                            const object_container &objects) {
         if constexpr (add_surfaces) {
             const auto offset = _surfaces.size();
             _surfaces.reserve(_surfaces.size() + objects.size());
             _surfaces.insert(_surfaces.end(), objects.begin(), objects.end());
 
             volume.template set_range<e_surface>({offset, _surfaces.size()});
-        }
-        else {
+        } else {
             const auto offset = _portals.size();
             _portals.reserve(_portals.size() + objects.size());
             _portals.insert(_portals.end(), objects.begin(), objects.end());

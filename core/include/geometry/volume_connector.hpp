@@ -262,8 +262,8 @@ void connect_cylindrical_volumes(
 
                     // Create the portal
                     typename detector_type::portal _portal{
-                        disc_portal_transforms.size(default_context), mask_index,
-                        volume.index(), dindex_invalid};
+                        disc_portal_transforms.size(default_context),
+                        mask_index, volume.index(), dindex_invalid};
                     // Save the data
                     disc_portals.push_back(std::move(_portal));
                 }
