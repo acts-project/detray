@@ -9,8 +9,8 @@
 
 #include <vecmem/memory/memory_resource.hpp>
 
-#include "definitions/invalid_values.hpp"
 #include "definitions/cuda_qualifiers.hpp"
+#include "definitions/invalid_values.hpp"
 
 namespace detray {
 
