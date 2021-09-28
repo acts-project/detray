@@ -252,8 +252,8 @@ auto vertices_for_last_mask_group(const mask_container &masks,
                                   dindex mask_context) {
     dvector<dvector<point3>> mask_vertices = {};
     if (mask_context == last_mask_context) {
-        mask_vertices =
-            vertices_for_mask_group(masks.template group<last_mask_context>(), range);
+        mask_vertices = vertices_for_mask_group(
+            masks.template group<last_mask_context>(), range);
     }
     return mask_vertices;
 }
@@ -279,7 +279,8 @@ auto unroll_masks_for_vertices(
         available_contices) {
     // Pick the first one for interseciton
     if (mask_context == first_mask_context) {
-        return vertices_for_mask_group(masks.template group<first_mask_context>(), range);
+        return vertices_for_mask_group(
+            masks.template group<first_mask_context>(), range);
     }
     // The reduced integer sequence
     std::integer_sequence<dindex, remaining_mask_context...> remaining;
@@ -292,8 +293,9 @@ auto unroll_masks_for_vertices(
         }
     }
     // Last chance - intersect the last index if possible
-    return vertices_for_last_mask_group<mask_container, mask_range,
-                                        std::tuple_size_v<typename mask_container::mask_tuple> - 1>(
+    return vertices_for_last_mask_group<
+        mask_container, mask_range,
+        std::tuple_size_v<typename mask_container::mask_tuple> - 1>(
         masks, range, mask_context);
 }
 
