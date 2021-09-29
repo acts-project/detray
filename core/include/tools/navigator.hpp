@@ -76,10 +76,11 @@ struct navigator {
      * @tparam object_type the type of the relevant object
      * @tparam candidate_type the type of the candidates in the list
      * @tparam links_type the type of the links the candidate is holding
+     * @tparam object_id in case the objects have same type
      *
      **/
     template <typename object_type, typename candidate_type,
-              typename links_type,
+              typename links_type, objects object_id = objects::e_any,
               template <typename> class vector_type = dvector>
     struct navigation_kernel {
         const object_type *on = nullptr;
@@ -112,9 +113,9 @@ struct navigator {
      **/
     struct state {
         /** Kernel for the surfaces */
-        navigation_kernel<surface, intersection, surface_link> surface_kernel;
+        navigation_kernel<surface, intersection, surface_link, objects::e_surface> surface_kernel;
         /** Kernel for the portals */
-        navigation_kernel<portal, intersection, portal_links> portal_kernel;
+        navigation_kernel<portal, intersection, portal_links, objects::e_portal> portal_kernel;
 
         /** Volume navigation: index */
         dindex volume_index = dindex_invalid;

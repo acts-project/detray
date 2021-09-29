@@ -52,6 +52,7 @@ class simple_geometry {
     enum known_objects : bool {
         e_surface = true,
         e_portal = false,
+        e_any = false, // defaults to portal
     };
 
     /** Encodes the position in a collection container for the respective

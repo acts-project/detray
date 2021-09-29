@@ -230,7 +230,7 @@ class detector {
      *
      * @note can throw an exception if input data is inconsistent
      */
-    template <objects object_type = objects::e_surface,
+    template <objects object_type,
               typename object_container, typename mask_container,
               typename transform_container>
     inline void add_objects(
@@ -279,7 +279,7 @@ class detector {
      */
     template <size_t current_type = 0, typename object_container,
               typename mask_container, typename transform_container,
-              bool object_type = true>
+              objects object_type>
     inline void unroll_container_filling(
         volume &volume, object_container &objects, mask_container &masks,
         transform_container &trfs,
