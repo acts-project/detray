@@ -102,7 +102,7 @@ class detector {
     using surfaces_finder = surfaces_regular_circular_grid;
 
     // Temporary container struct, used to fill the detector data
-    using transform_container = array_type<transform_store, 6>;
+    using transform_container = array_type<transform_store, mask_id::e_mask_types>;
 
     /** Allowed costructor
      * @param name the detector

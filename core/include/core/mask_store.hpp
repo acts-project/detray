@@ -157,8 +157,7 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int current_index = 0>
-    inline void append_masks(
-        mask_store<vector_type, tuple_type, mask_types...> &&other) {
+    inline void append_masks(mask_store &&other) {
         // Add masks to current group
         auto &mask_group = std::get<current_index>(other);
         add_masks<current_index>(mask_group);
