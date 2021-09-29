@@ -135,6 +135,17 @@ class index_geometry {
     using portal_filling_container =
         array_type<vector_type<portal>, e_mask_types>;
 
+    /** Default constructor */
+    index_geometry() = default;
+    /** Default destructor */
+    ~index_geometry() = default;
+
+    /** Copy constructor
+     *
+     * @param other index_geometry to be copied
+     */
+    index_geometry(const index_geometry &other) = default;
+
     /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }
 

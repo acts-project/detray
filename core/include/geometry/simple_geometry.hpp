@@ -119,6 +119,18 @@ class simple_geometry {
         array_type<vector_type<surface>, e_mask_types>;
     using portal_filling_container = surface_filling_container;
 
+
+    /** Default constructor */
+    simple_geometry() = default;
+    /** Default destructor */
+    ~simple_geometry() = default;
+
+    /** Copy constructor
+     *
+     * @param other simple_geometry to be copied
+     */
+    simple_geometry(const simple_geometry &other) = default;
+
     /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }
 

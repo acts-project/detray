@@ -113,7 +113,7 @@ class detector {
      */
     detector(const std::string &name) : _name(name) {}
 
-    /** Copy constructor makes sure the volumes belong to new detector.
+    /** Copy constructor
      *
      * @param other Detector to be copied
      */
