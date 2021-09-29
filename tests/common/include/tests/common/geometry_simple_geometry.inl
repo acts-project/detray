@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "geometry/index_geometry.hpp"
+#include "geometry/simple_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -16,7 +16,7 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     using namespace detray;
     using namespace __plugin;
 
-    using geometry = index_geometry<>;
+    using geometry = simple_geometry<>;
     using surface = typename geometry::surface;
     using portal = typename geometry::portal;
 
@@ -40,9 +40,9 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
 
     /// volume 0
     /// volume portals
-    auto pt0 = portal(0, {geometry::e_portal_cylinder3, {0, 0}}, 0, 1);
-    auto pt1 = portal(1, {geometry::e_portal_ring2, {0, 0}}, 0, 2);
-    auto pt2 = portal(2, {geometry::e_portal_ring2, {1, 1}}, 0, 3);
+    auto pt0 = portal(0, {geometry::e_portal_cylinder3, 0}, 0, 1);
+    auto pt1 = portal(1, {geometry::e_portal_ring2, 0}, 0, 2);
+    auto pt2 = portal(2, {geometry::e_portal_ring2, 1}, 0, 3);
     /// Surface 0
     auto sf0 = surface(3, {geometry::e_rectangle2, 0}, 0, 4);
     /// Surface 1
@@ -50,8 +50,10 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
 
     /// volume 1
     /// volume portals
-    auto pt3 = portal(0, {geometry::e_portal_cylinder3, {0, 1}}, 1, 6);
-    auto pt4 = portal(1, {geometry::e_portal_ring2, {0, 1}}, 1, 7);
+    auto pt3 = portal(0, {geometry::e_portal_cylinder3, 0}, 1, 6);
+    auto pt4 = portal(0, {geometry::e_portal_cylinder3, 1}, 1, 6);
+    auto pt5 = portal(1, {geometry::e_portal_ring2, 0}, 1, 7);
+    auto pt6 = portal(1, {geometry::e_portal_ring2, 1}, 1, 7);
     /// Surface 2
     auto sf2 = surface(0, {geometry::e_rectangle2, 0}, 1, 8);
     /// Surface 3
@@ -66,31 +68,37 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
 
     // update transform links
     g.update_transform_link(pt3, trf_offset_vol1);
-    g.update_transform_link(pt4, trf_offset_vol1++);
+    g.update_transform_link(pt4, trf_offset_vol1);
+    g.update_transform_link(pt5, trf_offset_vol1);
+    g.update_transform_link(pt6, trf_offset_vol1++);
     g.update_transform_link(sf2, ++trf_offset_vol1);
     g.update_transform_link(sf3, trf_offset_vol1);
 
     ASSERT_EQ(pt3.transform(), 5);
-    ASSERT_EQ(pt4.transform(), 6);
+    ASSERT_EQ(pt4.transform(), 5);
+    ASSERT_EQ(pt5.transform(), 6);
+    ASSERT_EQ(pt6.transform(), 6);
     ASSERT_EQ(sf2.transform(), 7);
     ASSERT_EQ(sf3.transform(), 8);
 
     // update mask links
     g.update_mask_link(pt3, mask_offset_cyl);
-    g.update_mask_link(pt4, mask_offset_rg);
+    g.update_mask_link(pt4, mask_offset_cyl);
+    g.update_mask_link(pt5, mask_offset_rg);
+    g.update_mask_link(pt6, mask_offset_rg);
     g.update_mask_link(sf2, mask_offset_rect);
     g.update_mask_link(sf3, mask_offset_trap);
 
-    ASSERT_EQ(std::get<1>(pt3.mask())[0], 1);
-    ASSERT_EQ(std::get<1>(pt3.mask())[1], 2);
-    ASSERT_EQ(std::get<1>(pt4.mask())[0], 2);
-    ASSERT_EQ(std::get<1>(pt4.mask())[1], 3);
+    ASSERT_EQ(std::get<1>(pt3.mask()), 1);
+    ASSERT_EQ(std::get<1>(pt4.mask()), 2);
+    ASSERT_EQ(std::get<1>(pt5.mask()), 2);
+    ASSERT_EQ(std::get<1>(pt6.mask()), 3);
     ASSERT_EQ(std::get<1>(sf2.mask()), 1);
     ASSERT_EQ(std::get<1>(sf3.mask()), 1);
 
     /// fill surfaces and portals (through volume alias names)
     dvector<portal> portals_vol0 = {pt0, pt1, pt2};
-    dvector<portal> portals_vol1 = {pt3, pt4};
+    dvector<portal> portals_vol1 = {pt3, pt4, pt5, pt6};
     dvector<surface> surfaces_vol0 = {sf0, sf1};
     dvector<surface> surfaces_vol1 = {sf2, sf3};
 
@@ -100,17 +108,17 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     g.template add_objects<geometry::e_surface>(v3, surfaces_vol1);
 
     // Are the surfaces/portals filled correctly?
-    ASSERT_EQ(g.template n_objects<geometry::e_portal>(), 5);
-    ASSERT_EQ(g.template n_objects<geometry::e_surface>(), 4);
+    ASSERT_EQ(g.template n_objects<geometry::e_portal>(), 11);
+    ASSERT_EQ(g.template n_objects<geometry::e_surface>(), 11);
     
     // Are the ranges updated correctly?
     auto objects_range = darray<dindex, 2>{0, 3};
     ASSERT_TRUE(v2.template range<geometry::e_portal>() == objects_range);
-    objects_range = darray<dindex, 2>{0, 2};
-    ASSERT_TRUE(v2.template range<geometry::e_surface>() == objects_range);
     objects_range = darray<dindex, 2>{3, 5};
+    ASSERT_TRUE(v2.template range<geometry::e_surface>() == objects_range);
+    objects_range = darray<dindex, 2>{5, 9};
     ASSERT_TRUE(v3.template range<geometry::e_portal>() == objects_range);
-    objects_range = darray<dindex, 2>{2, 4};
+    objects_range = darray<dindex, 2>{9, 11};
     ASSERT_TRUE(v3.template range<geometry::e_surface>() == objects_range);
 }
 
