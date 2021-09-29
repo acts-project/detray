@@ -43,7 +43,7 @@ TEST(grids_cuda, grid2_replace_populator) {
     // get grid_data
     grid2_data<device_replace, axis::regular<>, axis::regular<>, serializer2>
         g2_data(g2, mng_mr);
-    
+
     // fill the grids
     grid_replace_test(g2_data);
 
