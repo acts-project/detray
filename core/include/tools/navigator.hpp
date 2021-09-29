@@ -312,7 +312,7 @@ struct navigator {
         // Get the type of the kernel via a const expression at compile time
         constexpr objects kSurfaceType =
             (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
-                                                        surface_link>>)
+                                                        surface_link, objects::e_surface>>)
                 ? objects::e_surface
                 : objects::e_portal;
 
@@ -344,7 +344,7 @@ struct navigator {
                 (not on_object or
                  std::abs(sfi.path) > navigation.on_surface_tolerance)) {
                 navigation.status =
-                    kSurfaceType ? e_towards_surface : e_towards_portal;
+                    kSurfaceType == objects::e_surface ? e_towards_surface : e_towards_portal;
                 kernel.candidates.push_back(sfi);
             }
         }
@@ -377,7 +377,7 @@ struct navigator {
         // Get the type of the kernel via a const expression at compile time
         constexpr objects kSurfaceType =
             (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
-                                                        surface_link>>)
+                                                        surface_link, objects::e_surface>>)
                 ? objects::e_surface
                 : objects::e_portal;
 
@@ -411,7 +411,7 @@ struct navigator {
                     }
                 } else {
                     navigation.status =
-                        kSurfaceType ? e_towards_surface : e_towards_portal;
+                        kSurfaceType == objects::e_surface ? e_towards_surface : e_towards_portal;
                     // Trust fully again
                     navigation.trust_level = e_full_trust;
                 }
@@ -457,7 +457,7 @@ struct navigator {
         // Get the type of the kernel via a const expression at compile time
         constexpr objects kSurfaceType =
             (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
-                                                        surface_link>>)
+                                                        surface_link, objects::e_surface>>)
                 ? objects::e_surface
                 : objects::e_portal;
 
@@ -473,7 +473,7 @@ struct navigator {
             }
             navigation.current_index = dindex_invalid;
             navigation.status =
-                kSurfaceType ? e_towards_surface : e_towards_portal;
+                kSurfaceType == objects::e_surface ? e_towards_surface : e_towards_portal;
         }
     }
 

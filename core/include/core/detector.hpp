@@ -9,9 +9,9 @@
 #include <sstream>
 #include <string>
 
-//#include "geometry/index_geometry.hpp"
 #include "core/transform_store.hpp"
-#include "geometry/simple_geometry.hpp"
+#include "geometry/index_geometry.hpp"
+//#include "geometry/simple_geometry.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
 #include "grids/populator.hpp"
@@ -47,10 +47,10 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename> class vector_type = dvector,
           typename alignable_store = static_transform_store<vector_type>,
-          // typename geometry_type = index_geometry<array_type, vector_type,
-          //                                        tuple_type, dindex, dindex>,
-          typename geometry_type = simple_geometry<array_type, vector_type,
-                                                   tuple_type, dindex, dindex>,
+          typename geometry_type = index_geometry<array_type, vector_type,
+                                                  tuple_type, dindex, dindex>,
+          //typename geometry_type = simple_geometry<array_type, vector_type,
+          //                                         tuple_type, dindex, dindex>,
           typename surfaces_populator_type =
               attach_populator<false, dindex, vector_type>,
           typename surfaces_serializer_type = serializer2>

@@ -245,7 +245,7 @@ void connect_cylindrical_volumes(
                     std::get<disc_id>(portal_transforms);
                 auto &disc_portals = std::get<disc_id>(portals);
 
-                typename detector_type::portal::mask_links mask_index = {
+                /*typename detector_type::portal::mask_links mask_index = {
                     disc_id, portal_masks.template size<disc_id>()};
                 // Create a stub mask for every unique index
                 for (auto &info_ : portals_info) {
@@ -266,9 +266,9 @@ void connect_cylindrical_volumes(
                         mask_index, volume.index(), dindex_invalid};
                     // Save the data
                     disc_portals.push_back(std::move(_portal));
-                }
+                }*/
 
-                /*typename detector_type::portal::mask_links mask_index = {
+                typename detector_type::portal::mask_links mask_index = {
                     disc_id,
                     {portal_masks.template size<disc_id>(),
                      portal_masks.template size<disc_id>()}};
@@ -290,7 +290,7 @@ void connect_cylindrical_volumes(
                     disc_portal_transforms.size(default_context), mask_index,
                     volume.index(), dindex_invalid};
                 // Save the data
-                disc_portals.push_back(std::move(_portal));*/
+                disc_portals.push_back(std::move(_portal));
                 disc_portal_transforms.emplace_back(default_context,
                                                     _translation);
             }
@@ -314,7 +314,7 @@ void connect_cylindrical_volumes(
                     std::get<cylinder_id>(portal_transforms);
                 auto &cylinder_portals = std::get<cylinder_id>(portals);
 
-                typename detector_type::portal::mask_links mask_index = {
+                /*typename detector_type::portal::mask_links mask_index = {
                     cylinder_id, portal_masks.template size<cylinder_id>()};
                 for (auto &info_ : portals_info) {
                     // Add new mask to container
@@ -335,9 +335,9 @@ void connect_cylindrical_volumes(
                         cylinder_portal_transforms.size(default_context),
                         mask_index, volume.index(), dindex_invalid};
                     cylinder_portals.push_back(std::move(_portal));
-                }
+                }*/
 
-                /*typename detector_type::portal::mask_links mask_index = {
+                typename detector_type::portal::mask_links mask_index = {
                     cylinder_id,
                     {portal_masks.template size<cylinder_id>(),
                      portal_masks.template size<cylinder_id>()}};
@@ -359,7 +359,7 @@ void connect_cylindrical_volumes(
                 typename detector_type::portal _portal{
                     cylinder_portal_transforms.size(default_context),
                     mask_index, volume.index(), dindex_invalid};
-                cylinder_portals.push_back(std::move(_portal));*/
+                cylinder_portals.push_back(std::move(_portal));
                 // This will be concentric targetted at nominal center
                 cylinder_portal_transforms.emplace_back(default_context);
             }
