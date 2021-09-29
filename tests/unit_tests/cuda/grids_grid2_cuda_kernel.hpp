@@ -19,8 +19,12 @@ void grid_replace_test(grid2_data_t& grid_data);
 template <typename grid2_data_t>
 void grid_complete_test(grid2_data_t& grid_data);
 
-// test function for grid buffer with attach populator
+// read test function for grid with attach populator
 template <typename grid2_data_t>
-void grid_attach_test(grid2_data_t& grid_data);
+void grid_attach_read_test(grid2_data_t& grid_data);
+
+// fill test function for grid buffer with attach populator
+template <typename grid2_data_t>
+void grid_attach_fill_test(grid2_data_t& grid_data);
 
 }  // namespace detray

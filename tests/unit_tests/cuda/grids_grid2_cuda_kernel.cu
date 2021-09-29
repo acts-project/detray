@@ -131,23 +131,73 @@ __global__ void grid_complete_kernel(grid_data_t grid_data) {
     }
 }
 
-/*----------------------------------------------------
-  test function for grid buffer with attach populator
-  ----------------------------------------------------*/
+/*---------------------------------------------------------
+  read test function for grid with attach populator
+  ---------------------------------------------------------*/
 
-// buffer_test kernel declaration
+// read_test kernel declaration
 template <typename grid_data_t>
-__global__ void grid_attach_test_kernel(grid_data_t grid_data);
+__global__ void grid_attach_read_test_kernel(grid_data_t grid_data);
 
-// buffer_test instantiation for attach populator
-template void
-grid_attach_test<grid2_data<device_attach_populator<false, test::point3>,
-                            axis::regular<>, axis::regular<>, serializer2>>(
+// read_test instantiation for attach populator
+template void grid_attach_read_test<
+    grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
+               axis::regular<>, serializer2>>(
     grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
                axis::regular<>, serializer2>& grid_data);
 
 template <typename grid2_data_t>
-void grid_attach_test(grid2_data_t& grid_data) {
+void grid_attach_read_test(grid2_data_t& grid_data) {
+
+    const auto& axis0 = grid_data._axis_p0;
+    const auto& axis1 = grid_data._axis_p1;
+
+    int block_dim = 1;
+    dim3 thread_dim(axis0.bins(), axis1.bins());
+
+    // run the kernel
+    grid_attach_read_test_kernel<<<block_dim, thread_dim>>>(grid_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+template <typename grid_data_t>
+__global__ void grid_attach_read_test_kernel(grid_data_t grid_data) {
+
+    using grid2_device_t =
+        grid2<typename grid_data_t::populator_t,
+              typename grid_data_t::axis_p0_t, typename grid_data_t::axis_p1_t,
+              typename grid_data_t::serializer_t>;
+
+    // Let's try building the grid object
+    grid2_device_t g2_device(grid_data, test::point3{0, 0, 0});
+
+    auto data = g2_device.bin(threadIdx.x, threadIdx.y);
+
+    for (auto& pt : data) {
+        // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
+    }
+}
+
+/*---------------------------------------------------------
+  fill test function for grid buffer with attach populator
+  ---------------------------------------------------------*/
+
+// buffer_test kernel declaration
+template <typename grid_data_t>
+__global__ void grid_attach_fill_test_kernel(grid_data_t grid_data);
+
+// buffer_test instantiation for attach populator
+template void grid_attach_fill_test<
+    grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
+               axis::regular<>, serializer2>>(
+    grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
+               axis::regular<>, serializer2>& grid_data);
+
+template <typename grid2_data_t>
+void grid_attach_fill_test(grid2_data_t& grid_data) {
 
     const auto& axis0 = grid_data._axis_p0;
     const auto& axis1 = grid_data._axis_p1;
@@ -156,7 +206,7 @@ void grid_attach_test(grid2_data_t& grid_data) {
     int thread_dim = 100;
 
     // run the kernel
-    grid_attach_test_kernel<<<block_dim, thread_dim>>>(grid_data);
+    grid_attach_fill_test_kernel<<<block_dim, thread_dim>>>(grid_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -165,7 +215,7 @@ void grid_attach_test(grid2_data_t& grid_data) {
 
 // buffer_test kernel declaration
 template <typename grid_data_t>
-__global__ void grid_attach_test_kernel(grid_data_t grid_data) {
+__global__ void grid_attach_fill_test_kernel(grid_data_t grid_data) {
 
     using grid2_device_t =
         grid2<typename grid_data_t::populator_t,
