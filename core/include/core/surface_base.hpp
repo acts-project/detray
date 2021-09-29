@@ -23,6 +23,9 @@ template <typename transform_link, typename mask_link = dindex,
           typename volume_link = dindex, typename source_link = bool>
 class surface_base {
     public:
+    // Broadcast the type of links
+    using links = volume_link;
+
     /** Constructor with full arguments - move semantics
      *
      * @param trf the transform for positioning and 3D local frame
@@ -63,6 +66,9 @@ class surface_base {
         return (_trf == rhs.__trf and _mask == rhs._mask and
                 _vol == rhs._vol and _src == rhs._src);
     }
+
+    /** Return the transform type */
+    transform_link &transform() { return _trf; }
 
     /** Return the transform type */
     const transform_link &transform() const { return _trf; }
