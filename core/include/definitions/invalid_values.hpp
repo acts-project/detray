@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <definitions/cuda_qualifiers.hpp>
 #include <limits>
 
 template <typename T>
