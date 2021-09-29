@@ -90,7 +90,7 @@ class grid2 {
     /** Constructor from grid data
      **/
     template <typename grid_data_t>
-    DETRAY_DEVICE grid2(grid_data_t &grid_data,
+    DETRAY_DEVICE grid2(grid_data_t grid_data,
                         const bare_value kInvalid = invalid_value<bare_value>())
         : _axis_p0(grid_data._axis_p0),
           _axis_p1(grid_data._axis_p1),
