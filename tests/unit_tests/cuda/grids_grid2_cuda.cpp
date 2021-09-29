@@ -30,10 +30,6 @@ TEST(grids_cuda, grid2_replace_populator) {
     grid2<host_replace, axis::regular<>, axis::regular<>, serializer2> g2(
         std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0, 0, 0});
 
-    // get grid_data
-    grid2_data<device_replace, axis::regular<>, axis::regular<>, serializer2>
-        g2_data(g2, mng_mr);
-
     // pre-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
         for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
@@ -44,6 +40,10 @@ TEST(grids_cuda, grid2_replace_populator) {
         }
     }
 
+    // get grid_data
+    grid2_data<device_replace, axis::regular<>, axis::regular<>, serializer2>
+        g2_data(g2, mng_mr);
+    
     // fill the grids
     grid_replace_test(g2_data);
 
