@@ -8,6 +8,8 @@
 
 #include <string>
 
+#include "utils/indexing.hpp"
+
 namespace detray {
 
 /** Volume class that holds the local information of the volume its surfaces
@@ -126,7 +128,7 @@ class volume {
         }
     }
 
-    /** Set the index into the detector surface container
+    /** Set the index into the geometry surface container
      *
      * @param range Surface index range
      */
