@@ -103,7 +103,7 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int mask_id, typename... bounds_type>
-    void add_mask(bounds_type &&...mask_bounds) noexcept(false) {
+    void add_mask(bounds_type &&... mask_bounds) noexcept(false) {
         // Get the mask group that will be updated
         auto &mask_group = std::get<mask_id>(_mask_tuple);
         // Construct new mask in place
