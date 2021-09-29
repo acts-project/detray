@@ -58,11 +58,16 @@ class volume {
         const bool is_eq_index = (_index == rhs._index);
         const bool is_eq_sf_range = (_surface_range == rhs._surface_range);
         const bool is_eq_pt_range = (_portal_range == rhs._portal_range);
-        const bool is_eq_sf_trf_range = (_surface_trf_range == rhs._surface_trf_range);
-        const bool is_eq_pt_trf_range = (_portal_trf_range == rhs._portal_trf_range);
-        const bool is_eq_sf_finder = (_surfaces_finder_entry == rhs._surfaces_finder_entry);
+        const bool is_eq_sf_trf_range =
+            (_surface_trf_range == rhs._surface_trf_range);
+        const bool is_eq_pt_trf_range =
+            (_portal_trf_range == rhs._portal_trf_range);
+        const bool is_eq_sf_finder =
+            (_surfaces_finder_entry == rhs._surfaces_finder_entry);
 
-        return (is_eq_bounds && is_eq_index && is_eq_sf_range && is_eq_pt_range && is_eq_sf_trf_range && is_eq_pt_trf_range && is_eq_sf_finder);
+        return (is_eq_bounds && is_eq_index && is_eq_sf_range &&
+                is_eq_pt_range && is_eq_sf_trf_range && is_eq_pt_trf_range &&
+                is_eq_sf_finder);
     }
 
     /** Equality operator of volumes, convenience function - const
@@ -76,11 +81,16 @@ class volume {
         const bool is_eq_index = (_index == rhs._index);
         const bool is_eq_sf_range = (_surface_range == rhs._surface_range);
         const bool is_eq_pt_range = (_portal_range == rhs._portal_range);
-        const bool is_eq_sf_trf_range = (_surface_trf_range == rhs._surface_trf_range);
-        const bool is_eq_pt_trf_range = (_portal_trf_range == rhs._portal_trf_range);
-        const bool is_eq_sf_finder = (_surfaces_finder_entry == rhs._surfaces_finder_entry);
+        const bool is_eq_sf_trf_range =
+            (_surface_trf_range == rhs._surface_trf_range);
+        const bool is_eq_pt_trf_range =
+            (_portal_trf_range == rhs._portal_trf_range);
+        const bool is_eq_sf_finder =
+            (_surfaces_finder_entry == rhs._surfaces_finder_entry);
 
-        return (is_eq_bounds && is_eq_index && is_eq_sf_range && is_eq_pt_range && is_eq_sf_trf_range && is_eq_pt_trf_range && is_eq_sf_finder);
+        return (is_eq_bounds && is_eq_index && is_eq_sf_range &&
+                is_eq_pt_range && is_eq_sf_trf_range && is_eq_pt_trf_range &&
+                is_eq_sf_finder);
     }
 
     /** @return the bounds - const access */

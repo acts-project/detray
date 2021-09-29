@@ -34,14 +34,12 @@ TEST(ALGEBRA_PLUGIN, detector) {
     /// Surface 1
     point3 t1{1., 0., 0.};
     trfs[geometry::e_annulus2].emplace_back(ctx0, t1);
-    masks.template add_mask<geometry::e_annulus2>(
-        1., 2., 3., 4., 5., 6., 7.);
+    masks.template add_mask<geometry::e_annulus2>(1., 2., 3., 4., 5., 6., 7.);
 
     /// Surface 2
     point3 t2{2., 0., 0.};
     trfs[geometry::e_trapezoid2].emplace_back(ctx0, t2);
-    masks.template add_mask<geometry::e_trapezoid2>(1., 2.,
-                                                                       3.);
+    masks.template add_mask<geometry::e_trapezoid2>(1., 2., 3.);
 
     detector d("test_detector");
     auto &v = d.new_volume("test_volume", {0., 10., -5., 5., -M_PI, M_PI});

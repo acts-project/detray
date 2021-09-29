@@ -52,7 +52,7 @@ class simple_geometry {
     enum known_objects : bool {
         e_surface = true,
         e_portal = false,
-        e_any = false, // defaults to portal
+        e_any = false,  // defaults to portal
     };
 
     /** Encodes the position in a collection container for the respective
@@ -118,7 +118,6 @@ class simple_geometry {
     using surface_filling_container =
         array_type<vector_type<surface>, e_mask_types>;
     using portal_filling_container = surface_filling_container;
-
 
     /** Default constructor */
     simple_geometry() = default;

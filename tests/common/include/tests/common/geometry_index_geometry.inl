@@ -102,7 +102,7 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     // Are the surfaces/portals filled correctly?
     ASSERT_EQ(g.template n_objects<geometry::e_portal>(), 5);
     ASSERT_EQ(g.template n_objects<geometry::e_surface>(), 4);
-    
+
     // Are the ranges updated correctly?
     auto objects_range = darray<dindex, 2>{0, 3};
     ASSERT_TRUE(v2.template range<geometry::e_portal>() == objects_range);

@@ -227,9 +227,8 @@ class detector {
      *
      * @note can throw an exception if input data is inconsistent
      */
-    template <objects object_type,
-              typename object_container, typename mask_container,
-              typename transform_container>
+    template <objects object_type, typename object_container,
+              typename mask_container, typename transform_container>
     inline void add_objects(
         volume &volume, object_container &objects, mask_container &masks,
         transform_container &trfs,
