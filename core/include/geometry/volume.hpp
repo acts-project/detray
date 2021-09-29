@@ -79,7 +79,7 @@ class volume {
         const bool is_eq_sf_finder = (_surfaces_finder_entry == rhs._surfaces_finder_entry);
 
         return (is_eq_bounds && is_eq_index && is_eq_sf_range && is_eq_pt_range && is_eq_sf_trf_range && is_eq_pt_trf_range && is_eq_sf_finder);
-     }
+    }
 
     /** @return the bounds - const access */
     inline const array_type<scalar, 6> &bounds() const { return _bounds; }
