@@ -67,7 +67,7 @@ static void BM_FIND_VOLUMES(benchmark::State &state) {
         for (unsigned int i1 = 0; i1 < itest; ++i1) {
             for (unsigned int i0 = 0; i0 < itest; ++i0) {
                 vector3 rz{i0 * step0, 0., i1 * step1};
-                auto &v = d.indexed_volume(rz);
+                auto &v = d.volume_by_pos(rz);
 
                 benchmark::DoNotOptimize(successful);
                 benchmark::DoNotOptimize(unsuccessful);

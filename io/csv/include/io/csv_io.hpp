@@ -48,8 +48,7 @@ template <template <typename, unsigned int> class array_type = darray,
           typename alignable_store = static_transform_store<vector_type>,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
-detector<array_type, tuple_type, vector_type, alignable_store,
-         surface_source_link, bounds_source_link>
+detector<array_type, tuple_type, vector_type, alignable_store>
 detector_from_csv(const std::string &detector_name,
                   const std::string &surface_file_name,
                   const std::string &layer_volume_file_name,
@@ -57,10 +56,8 @@ detector_from_csv(const std::string &detector_name,
                   const std::string &grid_entries_file_name,
                   vecmem::memory_resource &resource,
                   scalar r_sync_tolerance = 0., scalar z_sync_tolerance = 0.) {
-
     using typed_detector =
-        detector<array_type, tuple_type, vector_type, alignable_store,
-                 surface_source_link, bounds_source_link>;
+        detector<array_type, tuple_type, vector_type, alignable_store>;
 
     typed_detector d(detector_name, resource);
 
@@ -85,8 +82,8 @@ detector_from_csv(const std::string &detector_name,
 
     // Flushable containers
     typename typed_detector::volume *c_volume = nullptr;
-    typename typed_detector::surface_filling_container c_surfaces;
-    typename typed_detector::surface_mask_container c_masks;
+    typename typed_detector::geometry::surface_filling_container c_surfaces;
+    typename typed_detector::geometry::surface_mask_container c_masks;
     typename typed_detector::transform_container c_transforms;
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
@@ -293,13 +290,13 @@ detector_from_csv(const std::string &detector_name,
             // Flush the former information / c_volume still points to the prior
             // volume
             if (c_volume != nullptr) {
-                d.template add_objects<typed_detector::e_surface>(
-                    *c_volume, c_surfaces, c_masks, c_transforms,
-                    surface_default_context);
+                d.add_surfaces(*c_volume, c_surfaces, c_masks, c_transforms,
+                               surface_default_context);
 
-                c_surfaces =
-                    typename typed_detector::surface_filling_container();
-                c_masks = typename typed_detector::surface_mask_container();
+                c_surfaces = typename typed_detector::geometry::
+                    surface_filling_container();
+                c_masks =
+                    typename typed_detector::geometry::surface_mask_container();
                 c_transforms = typename typed_detector::transform_container();
             }
 
@@ -368,13 +365,13 @@ detector_from_csv(const std::string &detector_name,
             bounds.push_back(io_surface.bound_param6);
 
             // Acts naming convention for bounds
-            typename typed_detector::surface_mask_index mask_index = {
+            typename typed_detector::geometry::surface_mask_index mask_index = {
                 dindex_invalid, dindex_invalid};
 
             if (bounds_type == 1) {
                 // Cylinder Bounds
                 constexpr auto cylinder_context =
-                    typed_detector::surface_cylinder::mask_context;
+                    typed_detector::geometry::surface_cylinder::mask_context;
 
                 // Add a new cylinder mask
                 auto &cylinder_masks = std::get<cylinder_context>(c_masks);
@@ -402,7 +399,7 @@ detector_from_csv(const std::string &detector_name,
             } else if (bounds_type == 6) {
                 // Rectangle bounds
                 constexpr auto rectangle_context =
-                    typed_detector::surface_rectangle::mask_context;
+                    typed_detector::geometry::surface_rectangle::mask_context;
 
                 // Add a new rectangle mask
                 auto &rectangle_masks = std::get<rectangle_context>(c_masks);
@@ -429,7 +426,7 @@ detector_from_csv(const std::string &detector_name,
             } else if (bounds_type == 7) {
                 // Trapezoid bounds
                 constexpr auto trapezoid_context =
-                    typed_detector::surface_trapezoid::mask_context;
+                    typed_detector::geometry::surface_trapezoid::mask_context;
 
                 // Add a new trapezoid mask
                 auto &trapezoid_masks = std::get<trapezoid_context>(c_masks);
@@ -454,7 +451,7 @@ detector_from_csv(const std::string &detector_name,
             } else if (bounds_type == 11) {
                 // Annulus bounds
                 constexpr auto annulus_context =
-                    typed_detector::surface_annulus::mask_context;
+                    typed_detector::geometry::surface_annulus::mask_context;
 
                 // Add a new annulus mask
                 auto &annulus_masks = std::get<annulus_context>(c_masks);
@@ -584,7 +581,7 @@ detector_from_csv(const std::string &detector_name,
         while (sge_reader.read(surface_grid_entry)) {
             // Get the volume bounds for fillind
             const auto &v =
-                d.indexed_volume(surface_grid_entry.detray_volume_id);
+                d.volume_by_index(surface_grid_entry.detray_volume_id);
             const auto &v_bounds = v.bounds();
             dindex sfi = v.surfaces_finder_entry();
             if (sfi != dindex_invalid) {

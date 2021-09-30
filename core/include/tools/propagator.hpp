@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <iostream>
-
 namespace detray {
 
 /** A sterily track inspector instance */
