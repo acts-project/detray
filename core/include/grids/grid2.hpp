@@ -81,8 +81,8 @@ class grid2 {
           const bare_value kInvalid = invalid_value<bare_value>())
         : _axis_p0(std::move(axis_p0)),
           _axis_p1(std::move(axis_p1)),
-          _populator(kInvalid),
-          _data_serialized(&mr) {
+          _data_serialized(&mr),
+          _populator(kInvalid) {
         _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(),
                                               _populator.init());
     }
@@ -321,11 +321,11 @@ class grid2 {
     serialized_storage &data() { return _data_serialized; }
 
     private:
-    serialized_storage _data_serialized;
     axis_p0_type _axis_p0;
     axis_p1_type _axis_p1;
-    serializer_type _serializer;
+    serialized_storage _data_serialized;
     populator_type _populator;
+    serializer_type _serializer;
 };
 
 /** A two-dimensional grid buffer
