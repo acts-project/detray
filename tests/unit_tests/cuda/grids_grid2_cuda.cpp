@@ -34,7 +34,7 @@ TEST(grids_cuda, grid2_replace_populator) {
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
         for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
 
-            auto& data = g2.bin(i_x, i_y);
+            const auto& data = g2.bin(i_x, i_y);
 
             EXPECT_EQ(data, g2.populator().kInvalid);
         }
@@ -51,7 +51,7 @@ TEST(grids_cuda, grid2_replace_populator) {
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
         for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
             auto bin_id = i_x + i_y * xaxis.bins();
-            auto& data = g2.bin(i_x, i_y);
+            const auto& data = g2.bin(i_x, i_y);
 
             test::point3 tp({xaxis.min + bin_id * x_interval,
                              yaxis.min + bin_id * y_interval, 0.5});
@@ -77,7 +77,7 @@ TEST(grids_cuda, grid2_complete_populator) {
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
         for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
 
-            auto& data = g2.bin(i_x, i_y);
+            const auto& data = g2.bin(i_x, i_y);
 
             for (auto pt : data) {
                 EXPECT_EQ(pt, g2.populator().kInvalid);
@@ -99,7 +99,7 @@ TEST(grids_cuda, grid2_complete_populator) {
     for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
         for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
 
-            auto& data = g2.bin(i_x, i_y);
+            const auto& data = g2.bin(i_x, i_y);
 
             for (int i_p = 0; i_p < data.size(); i_p++) {
                 auto& pt = data[i_p];
