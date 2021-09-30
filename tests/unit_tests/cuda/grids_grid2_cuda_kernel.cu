@@ -141,9 +141,9 @@ __global__ void grid_attach_read_test_kernel(grid_data_t grid_data);
 
 // read_test instantiation for attach populator
 template void grid_attach_read_test<
-    grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
+    grid2_data<device_attach_populator<false, test::point3>, axis::circular<>,
                axis::regular<>, serializer2>>(
-    grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
+    grid2_data<device_attach_populator<false, test::point3>, axis::circular<>,
                axis::regular<>, serializer2>& grid_data);
 
 template <typename grid2_data_t>

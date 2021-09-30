@@ -145,13 +145,13 @@ class grid2 {
      * @return the const reference to the value in this bin
      **/
     DETRAY_HOST_DEVICE
-    const auto &bin(dindex bin0, dindex bin1) const {
+    const auto bin(dindex bin0, dindex bin1) const {
         return _data_serialized[_serializer.template serialize<
             axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, bin0, bin1)];
     }
 
     DETRAY_HOST_DEVICE
-    const auto &bin(dindex gbin) const {
+    const auto bin(dindex gbin) const {
         dindex bin0 = gbin % _axis_p0.bins();
         dindex bin1 = gbin / _axis_p0.bins();
         return bin(bin0, bin1);

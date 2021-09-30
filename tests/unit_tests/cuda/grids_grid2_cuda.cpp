@@ -115,6 +115,45 @@ TEST(grids_cuda, grid2_complete_populator) {
     }
 }
 
+TEST(grids_cuda, grid2_attach_populator) {
+
+    // memory resource
+    vecmem::cuda::managed_memory_resource mng_mr;
+
+    axis::circular<> xaxis{65, -M_PI, M_PI};
+    axis::regular<> yaxis{2, 0., 6.};
+
+    auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
+    auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
+
+    grid2<host_attach_populator<false, test::point3>, axis::circular<>,
+          axis::regular<>, serializer2>
+        g2(xaxis, yaxis, mng_mr, test::point3{0, 0, 0});
+
+    for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
+        for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
+
+            for (int i_p = 0; i_p < 100; i_p++) {
+
+                auto bin_id = i_x + i_y * xaxis.bins();
+                auto gid = i_p + bin_id * 100;
+
+                test::point3 tp({xaxis.min + gid * x_interval,
+                                 yaxis.min + gid * y_interval, 0.5});
+                g2.populate(i_x, i_y, std::move(tp));
+            }
+        }
+    }
+
+    // get grid_data
+    grid2_data<device_attach_populator<false, test::point3>, axis::circular<>,
+               axis::regular<>, serializer2>
+        g2_data(g2, mng_mr);
+
+    // Read the grid
+    grid_attach_read_test(g2_data);
+}
+
 /**
  * This test demonstrates how to call grid buffer without calling host grid
  *object It is especially useful when you don't need to save the objects in host
@@ -126,44 +165,6 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
 
     axis::regular<> xaxis{2, -1., 3.};
     axis::regular<> yaxis{2, 0., 6.};
-
-    auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
-    auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
-
-    /*------------------
-      grid read test
-      ------------------*/
-
-    grid2<host_attach_populator<false, test::point3>, axis::regular<>,
-          axis::regular<>, serializer2>
-        g2(xaxis, yaxis, mng_mr, test::point3{0, 0, 0});
-
-    for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
-        for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
-
-            for (int i_p = 0; i_p < 10; i_p++) {
-
-                auto bin_id = i_x + i_y * xaxis.bins();
-                auto gid = i_p + bin_id * 10;
-
-                test::point3 tp({xaxis.min + gid * x_interval,
-                                 yaxis.min + gid * y_interval, 0.5});
-                g2.populate(i_x, i_y, std::move(tp));
-            }
-        }
-    }
-
-    // get grid_data
-    grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
-               axis::regular<>, serializer2>
-        g2_data(g2, mng_mr);
-
-    // Read the grid
-    grid_attach_read_test(g2_data);
-
-    /*------------------
-      Buffer test
-      ------------------*/
 
     grid2_buffer<device_attach_populator<false, test::point3>, axis::regular<>,
                  axis::regular<>, serializer2>
@@ -184,10 +185,10 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
 
     grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
                axis::regular<>, serializer2>
-        g2_data_2(g2_buffer);
+        g2_data(g2_buffer);
 
     // fill each bin with 10 points
-    grid_attach_fill_test(g2_data_2);
+    grid_attach_fill_test(g2_data);
 
     // Check if each bin has 10 points
     EXPECT_EQ(ptr[0].size(), 100);
