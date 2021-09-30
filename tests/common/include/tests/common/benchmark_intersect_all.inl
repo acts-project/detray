@@ -57,7 +57,8 @@ auto d = read_detector();
 
 const auto &surfaces = d.surfaces();
 constexpr bool get_surface_masks = true;
-const auto &masks = d.template masks<decltype(d)::objects::e_surface>();
+const auto &masks = d.masks();
+using links_type = typename decltype(d)::geometry::surface_links;
 
 namespace __plugin {
 // This test runs intersection with all surfaces of the TrackML detector
@@ -100,11 +101,10 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                     // Loop over surfaces
                     for (size_t si = v.template range<get_surface_masks>()[0];
                          si < v.template range<get_surface_masks>()[1]; si++) {
-                        auto sfi_surface =
-                            intersect(track, surfaces[si],
-                                      d.transforms(default_context), masks);
-
-                        const auto &sfi = std::get<0>(sfi_surface);
+                        links_type links{};
+                        auto sfi = intersect(track, surfaces[si],
+                                             d.transforms(default_context),
+                                             masks, links);
 
                         benchmark::DoNotOptimize(hits);
                         benchmark::DoNotOptimize(missed);

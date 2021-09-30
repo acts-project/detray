@@ -53,6 +53,13 @@ struct ring2 {
     static constexpr mask_tolerance within_epsilon =
         std::numeric_limits<scalar>::epsilon();
 
+    /** Construction from boundary values
+     *
+     * @param r_low lower radial bound
+     * @param r_high upper radial bound
+     */
+    ring2(scalar r_low, scalar r_high) : _values{r_low, r_high} {}
+
     /** Assignment operator from an array, convenience function
      *
      * @param rhs is the right hand side object

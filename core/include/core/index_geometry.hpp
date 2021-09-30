@@ -11,6 +11,7 @@
 #include <string>
 #include <utility>
 
+#include "core/mask_store.hpp"
 #include "core/surface_base.hpp"
 #include "masks/masks.hpp"
 #include "utils/enumerate.hpp"
@@ -51,13 +52,14 @@ class index_geometry {
 
     /** Encodes the position in a collection container for the respective
         mask type . */
-    enum mask_container_index : unsigned int {
-        e_mask_types = 5,
+    enum mask_id : unsigned int {
+        e_mask_types = 6,
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
         e_annulus2 = 2,
         e_cylinder3 = 3,
-        e_ring2 = 4,
+        e_portal_cylinder3 = 4,
+        e_portal_ring2 = 5,
         e_single3 = std::numeric_limits<unsigned int>::max(),
         e_unknown = std::numeric_limits<unsigned int>::max(),
     };
@@ -66,14 +68,13 @@ class index_geometry {
     /// - links:  next volume, next (local) object finder
     using portal_links = array_type<dindex, 2>;
     /// - masks, with mask identifiers 0, 1
-    using portal_cylinder = cylinder3<false, cylinder_intersector,
-                                      __plugin::cylindrical2, portal_links, 0>;
-    using portal_disc =
-        ring2<planar_intersector, __plugin::cartesian2, portal_links, 1>;
+    using portal_cylinder =
+        cylinder3<false, cylinder_intersector, __plugin::cylindrical2,
+                  portal_links, e_portal_cylinder3>;
+    using portal_disc = ring2<planar_intersector, __plugin::cartesian2,
+                              portal_links, e_portal_ring2>;
     // - mask index: type, { first/last }
     using portal_mask_index = tuple_type<dindex, array_type<dindex, 2>>;
-    using portal_mask_container =
-        tuple_type<vector_type<portal_cylinder>, vector_type<portal_disc>>;
 
     /** The Portal definition:
      *  <transform_link, mask_index, volume_link, source_link >
@@ -85,7 +86,8 @@ class index_geometry {
      *
      */
     using bounds_link = bounds_source_link;
-    using portal = surface_base<dindex, portal_mask_index, dindex, bounds_link>;
+    using portal = surface_base<dindex, portal_mask_index, dindex, bounds_link,
+                                portal_links>;
     using portal_container = vector_type<portal>;
 
     /// Surface components:
@@ -105,25 +107,28 @@ class index_geometry {
                   surface_links, e_cylinder3>;
     /// - mask index: type, entry
     using surface_mask_index = array_type<dindex, 2>;
-    using surface_mask_container =
-        tuple_type<vector_type<surface_rectangle>,
-                   vector_type<surface_trapezoid>, vector_type<surface_annulus>,
-                   vector_type<surface_cylinder>>;
 
-    using surface_link = surface_source_link;
+    using mask_container =
+        mask_store<tuple_type, vector_type, surface_rectangle,
+                   surface_trapezoid, surface_annulus, surface_cylinder,
+                   portal_cylinder, portal_disc>;
+
+    using source_link = surface_source_link;
     /** The Surface definition:
      *  <transform_link, mask_link, volume_link, source_link >
      */
-    using surface =
-        surface_base<dindex, surface_mask_index, dindex, surface_link>;
+    using surface = surface_base<dindex, surface_mask_index, dindex,
+                                 source_link, surface_links>;
     using surface_container = vector_type<surface>;
 
     /** Temporary container structures that are used to fill the geometry.
      * The respective objects are sorted by mask type, so that they can be
      * unrolled and filled in lockstep with the masks
      */
-    using surface_filling_container = array_type<vector_type<surface>, 5>;
-    using portal_filling_container = array_type<vector_type<portal>, 5>;
+    using surface_filling_container =
+        array_type<vector_type<surface>, e_mask_types>;
+    using portal_filling_container =
+        array_type<vector_type<portal>, e_mask_types>;
 
     /** Nested volume struct that holds the local information of the
      * volume and its portals.
@@ -254,6 +259,14 @@ class index_geometry {
         /** Volume section: name */
         std::string _name = "unknown";
 
+        /** Bounds section, default for r, z, phi */
+        array_type<scalar, 6> _bounds = {0.,
+                                         std::numeric_limits<scalar>::max(),
+                                         -std::numeric_limits<scalar>::max(),
+                                         std::numeric_limits<scalar>::max(),
+                                         -M_PI,
+                                         M_PI};
+
         /** Volume index */
         dindex _index = dindex_invalid;
 
@@ -267,14 +280,6 @@ class index_geometry {
 
         /** Index into the surface finder container */
         dindex _surfaces_finder_entry = dindex_invalid;
-
-        /** Bounds section, default for r, z, phi */
-        array_type<scalar, 6> _bounds = {0.,
-                                         std::numeric_limits<scalar>::max(),
-                                         -std::numeric_limits<scalar>::max(),
-                                         std::numeric_limits<scalar>::max(),
-                                         -M_PI,
-                                         M_PI};
 
         /**
          * @param range Any index range
@@ -331,7 +336,7 @@ class index_geometry {
         }
     };
 
-    /** @return total number of nodes (volumes) */
+    /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }
 
     /** @return all volumes in the geometry - const access. */
@@ -367,7 +372,7 @@ class index_geometry {
         return cvolume;
     }
 
-    /** @return all surfaces/portals in the detector */
+    /** @return all surfaces/portals in the geometry */
     template <bool get_surface = true>
     inline size_t n_objects() const {
         if constexpr (get_surface) {
@@ -377,7 +382,7 @@ class index_geometry {
         }
     }
 
-    /** @return all surfaces/portals in the detector */
+    /** @return all surfaces/portals in the geometry */
     template <bool get_surface = true>
     inline const auto &objects() const {
         if constexpr (get_surface) {
@@ -387,16 +392,70 @@ class index_geometry {
         }
     }
 
-    /** @return all surfaces/portals in the detector */
-    template <bool add_surface = true, typename object_container>
-    inline void add_objects(const object_container &objects) {
-        if constexpr (add_surface) {
-            _surfaces.reserve(_surfaces.size() + objects.size());
-            _surfaces.insert(_surfaces.end(), objects.begin(), objects.end());
-        } else {
-            _portals.reserve(_portals.size() + objects.size());
-            _portals.insert(_portals.end(), objects.begin(), objects.end());
-        }
+    /** Update the mask link of a surface when filling into a large container
+     *
+     * @param sf the surface
+     * @param mask_offset the offset that will be added to the mask links
+     */
+    inline void update_mask_link(surface &sf, const dindex mask_offset) {
+        std::get<1>(sf.mask()) += mask_offset;
+    }
+
+    /** Update the mask links of a portal when filling into a large container
+     *
+     * @param pt the portal
+     * @param mask_offset the offset that will be added to the mask links
+     */
+    inline void update_mask_link(portal &pt, const dindex mask_offset) {
+        auto &portal_mask_index = std::get<1>(pt.mask());
+        portal_mask_index[0] += mask_offset;
+        portal_mask_index[1] += mask_offset;
+    }
+
+    /** Update the transform link of a surface when filling into a large
+     * container
+     *
+     * @param sf the surface
+     * @param trsf_offset the offset that will be added to the links
+     */
+    inline void update_transform_link(surface &sf, const dindex trsf_offset) {
+        sf.transform() += trsf_offset;
+    }
+
+    /** Update the transform link of a portal when filling into a large
+     * container
+     *
+     * @param pt the portal
+     * @param trsf_offset the offset that will be added to the links
+     */
+    inline void update_transform_link(portal &pt, const dindex trsf_offset) {
+        pt.transform() += trsf_offset;
+    }
+
+    /** Add objects (surfaces/portals) to the geometry
+     *
+     * @param volume the volume the objects belong to
+     * @param surfaces the surfaces that will be filled into the volume
+     */
+    inline void add_objects(volume &volume, const surface_container &surfaces) {
+        const auto offset = _surfaces.size();
+        _surfaces.reserve(_surfaces.size() + surfaces.size());
+        _surfaces.insert(_surfaces.end(), surfaces.begin(), surfaces.end());
+
+        volume.template set_range<e_surface>({offset, _surfaces.size()});
+    }
+
+    /** Add objects (surfaces/portals) to the geometry
+     *
+     * @param volume the volume the objects belong to
+     * @param portals the portals that will be filled into the volume
+     */
+    inline void add_objects(volume &volume, const portal_container &portals) {
+        const auto offset = _portals.size();
+        _portals.reserve(_portals.size() + portals.size());
+        _portals.insert(_portals.end(), portals.begin(), portals.end());
+
+        volume.template set_range<e_portal>({offset, _portals.size()});
     }
 
     /**

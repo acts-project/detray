@@ -71,6 +71,21 @@ struct annulus2 {
         std::numeric_limits<scalar>::epsilon(),
         std::numeric_limits<scalar>::epsilon()};
 
+    /** Construction from boundary values
+     *
+     * @param r_low lower r boundary
+     * @param r_high upper r boundary
+     * @param phi_low lower phi boundary
+     * @param phi_high upper phi boundary
+     * @param shift_x origin shift loc0
+     * @param shift_y origin shift loc1
+     * @param avg_phi average phi value
+     */
+    annulus2(scalar r_low, scalar r_high, scalar phi_low, scalar phi_high,
+             scalar shift_x = 0., scalar shift_y = 0., scalar avg_phi = 0.)
+        : _values{r_low, r_high, phi_low, phi_high, shift_x, shift_y, avg_phi} {
+    }
+
     /** Assignment operator from an array, convenience function
      *
      * @param rhs is the right hand side object

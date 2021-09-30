@@ -57,6 +57,15 @@ struct trapezoid2 {
         std::numeric_limits<scalar>::epsilon(),
         std::numeric_limits<scalar>::epsilon()};
 
+    /** Construction from boundary values
+     *
+     * @param half_length_0 first half length in loc0
+     * @param half_length_1 second half length in loc0
+     * @param half_length_2 half length in loc1
+     */
+    trapezoid2(scalar half_length_0, scalar half_length_1, scalar half_length_2)
+        : _values{half_length_0, half_length_1, half_length_2} {}
+
     /** Assignment operator from an array, convenience function
      *
      * @param rhs is the right hand side object
