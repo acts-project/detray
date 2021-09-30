@@ -152,8 +152,9 @@ class grid2 {
 
     DETRAY_HOST_DEVICE
     auto bin(dindex bin0, dindex bin1) {
-        return _data_serialized[_serializer.template serialize<
-            axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, bin0, bin1)];
+        return _data_serialized.at(
+            _serializer.template serialize<axis_p0_type, axis_p1_type>(
+                _axis_p0, _axis_p1, bin0, bin1));
     }
 
     DETRAY_HOST_DEVICE
