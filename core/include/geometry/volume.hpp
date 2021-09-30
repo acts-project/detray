@@ -58,16 +58,11 @@ class volume {
         const bool is_eq_index = (_index == rhs._index);
         const bool is_eq_sf_range = (_surface_range == rhs._surface_range);
         const bool is_eq_pt_range = (_portal_range == rhs._portal_range);
-        const bool is_eq_sf_trf_range =
-            (_surface_trf_range == rhs._surface_trf_range);
-        const bool is_eq_pt_trf_range =
-            (_portal_trf_range == rhs._portal_trf_range);
         const bool is_eq_sf_finder =
             (_surfaces_finder_entry == rhs._surfaces_finder_entry);
 
         return (is_eq_bounds && is_eq_index && is_eq_sf_range &&
-                is_eq_pt_range && is_eq_sf_trf_range && is_eq_pt_trf_range &&
-                is_eq_sf_finder);
+                is_eq_pt_range && is_eq_sf_finder);
     }
 
     /** Equality operator of volumes, convenience function - const
@@ -81,16 +76,11 @@ class volume {
         const bool is_eq_index = (_index == rhs._index);
         const bool is_eq_sf_range = (_surface_range == rhs._surface_range);
         const bool is_eq_pt_range = (_portal_range == rhs._portal_range);
-        const bool is_eq_sf_trf_range =
-            (_surface_trf_range == rhs._surface_trf_range);
-        const bool is_eq_pt_trf_range =
-            (_portal_trf_range == rhs._portal_trf_range);
         const bool is_eq_sf_finder =
             (_surfaces_finder_entry == rhs._surfaces_finder_entry);
 
         return (is_eq_bounds && is_eq_index && is_eq_sf_range &&
-                is_eq_pt_range && is_eq_sf_trf_range && is_eq_pt_trf_range &&
-                is_eq_sf_finder);
+                is_eq_pt_range && is_eq_sf_finder);
     }
 
     /** @return the bounds - const access */
@@ -161,32 +151,6 @@ class volume {
         }
     }
 
-    /** @return range of portals - const access */
-    // const auto &portal_range() const { return _portal_range; }
-
-    /** @return range of surface transforms - const access */
-    template <bool surface_range = true>
-    inline const auto &trf_range() const {
-        if constexpr (surface_range) {
-            return _surface_trf_range;
-        } else {
-            return _portal_trf_range;
-        }
-    }
-
-    /** Set the index into the detector transform store for portals
-     *
-     * @param range Portal transform index range
-     */
-    template <bool surface_range = true>
-    inline void set_trf_range(dindex_range range) {
-        if constexpr (surface_range) {
-            update_range(_surface_trf_range, std::move(range));
-        } else {
-            update_range(_portal_trf_range, std::move(range));
-        }
-    }
-
     /** Print volume.
      *
      * @returns the volume description as a string
@@ -227,10 +191,6 @@ class volume {
 
     /** Volume index */
     dindex _index = dindex_invalid;
-
-    /** Transform ranges in the detector transform store.*/
-    dindex_range _surface_trf_range = {dindex_invalid, dindex_invalid};
-    dindex_range _portal_trf_range = {dindex_invalid, dindex_invalid};
 
     /** Index ranges in the detector surface/portal containers.*/
     dindex_range _surface_range = {dindex_invalid, dindex_invalid};

@@ -296,10 +296,6 @@ class detector {
             _masks.template add_masks<current_type>(object_masks);
             _transforms.append(ctx, std::move(std::get<current_type>(trfs)));
 
-            // Surface/portal transforms for this volume
-            volume.template set_trf_range<object_type>(
-                {trsf_offset, n_transforms(ctx)});
-
             // Update the surfaces mask link
             for (auto &obj : typed_objects) {
                 _geometry.update_mask_link(obj, mask_offset);
