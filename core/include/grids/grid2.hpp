@@ -66,7 +66,7 @@ class grid2 {
           _data_serialized(&mr),
           _populator(kInvalid) {
         _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(),
-                                              _populator.init());
+                                              _populator.init(), &mr);
     }
 
     /** Constructor from axes - move semantics
