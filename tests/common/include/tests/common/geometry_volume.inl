@@ -24,7 +24,7 @@ TEST(ALGEBRA_PLUGIN, volume) {
 
     // Check construction, setters and getters
     darray<scalar, 6> bounds = {0., 10., -5., 5., -M_PI, M_PI};
-    volume v1 = volume("test_volume", bounds);
+    volume v1 = volume(bounds);
     v1.set_index(12345);
     v1.set_surfaces_finder(12);
 

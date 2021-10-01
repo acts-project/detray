@@ -127,11 +127,10 @@ class detector {
      *
      * @return non-const reference of the new volume
      */
-    volume &new_volume(const std::string &name,
-                       const array_type<scalar, 6> &bounds,
+    volume &new_volume(const array_type<scalar, 6> &bounds,
                        dindex surfaces_finder_entry = dindex_invalid) {
 
-        return _geometry.new_volume(name, bounds, surfaces_finder_entry);
+        return _geometry.new_volume(bounds, surfaces_finder_entry);
     }
 
     /** @return the name of the detector */
@@ -343,13 +342,14 @@ class detector {
     }
 
     /** Output to string */
-    const std::string to_string() const {
+    template <typename name_map>
+    const std::string to_string(const name_map &names) const {
         std::stringstream ss;
         ss << "[>] Detector '" << _name << "' has " << _geometry.n_volumes()
            << " volumes." << std::endl;
         ss << "    contains  " << _surfaces_finders.size()
            << " local surface finders." << std::endl;
-        ss << _geometry.to_string() << std::endl;
+        ss << _geometry.to_string(names) << std::endl;
 
         return ss.str();
     };

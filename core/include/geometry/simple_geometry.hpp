@@ -155,10 +155,9 @@ class simple_geometry {
      *
      * @return non-const reference of the new volume
      */
-    inline volume_type &new_volume(
-        const std::string &name, const array_type<scalar, 6> &bounds,
+    inline volume_type &new_volume(const array_type<scalar, 6> &bounds,
         dindex surfaces_finder_entry = dindex_invalid) {
-        _volumes.emplace_back(name, bounds);
+        _volumes.emplace_back(bounds);
         dindex cvolume_idx = _volumes.size() - 1;
         volume_type &cvolume = _volumes[cvolume_idx];
         cvolume.set_index(cvolume_idx);
@@ -219,13 +218,11 @@ class simple_geometry {
      *
      * @returns the geometry description as a string
      */
-    // TODO: remove names
-    /*template <typename name_map>
-    inline const std::string to_string(name_map &names) const*/
-    inline const std::string to_string() const {
+    template <typename name_map>
+    const std::string to_string(const name_map &names) const {
         std::stringstream ss;
         for (const auto &[i, v] : enumerate(_volumes)) {
-            ss << "[>>] Volume at index " << i << ": " << v.to_string();
+            ss << "[>>] Volume at index " << i << ": " << v.to_string(names);
         }
         return ss.str();
     };

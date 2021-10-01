@@ -8,6 +8,8 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <map>
+#include <string>
 
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
@@ -32,11 +34,12 @@ TEST(ALGEBRA_PLUGIN, read_detector) {
     std::string surface_grid_file =
         data_directory + std::string("odd-surface-grids.csv");
     std::string surface_grid_entries_file = "";
+    std::map<dindex, std::string> name_map{};
 
     auto d = detector_from_csv<>("odd", surface_file, layer_volume_file,
-                                 surface_grid_file, surface_grid_entries_file);
+                                 surface_grid_file, surface_grid_entries_file, name_map);
 
-    std::cout << d.to_string() << std::endl;
+    std::cout << d.to_string(name_map) << std::endl;
 }
 
 int main(int argc, char **argv) {

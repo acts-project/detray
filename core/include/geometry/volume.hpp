@@ -22,24 +22,20 @@ template <template <typename, unsigned int> class array_type = darray>
 class volume {
 
     public:
+
+    // In case the geometry needs to be printed
+    using name_map = std::map<dindex, std::string>;
+
     /** Deleted constructor */
     volume() = delete;
-
-    /** Allowed constructors
-     * @param name of the volume
-     * @param d detector the volume belongs to
-     *
-     * @note will be contructed boundless
-     */
-    volume(const std::string &name) : _name(name) {}
 
     /** Contructor with name and bounds
      * @param name of the volume
      * @param bounds of the volume
      * @param d detector the volume belongs to
      */
-    volume(const std::string &name, const array_type<scalar, 6> &bounds)
-        : _name(name), _bounds(bounds) {}
+    volume(const array_type<scalar, 6> &bounds)
+        : _bounds(bounds) {}
 
     /** Copy ctor makes sure constituents keep valid volume pointer
      *
@@ -87,7 +83,9 @@ class volume {
     inline const array_type<scalar, 6> &bounds() const { return _bounds; }
 
     /** @return the name */
-    inline const std::string &name() const { return _name; }
+    inline const std::string &name(const name_map &names) const {
+        return names.at(_index);
+    }
 
     /** @return the index */
     inline dindex index() const { return _index; }
@@ -155,9 +153,9 @@ class volume {
      *
      * @returns the volume description as a string
      */
-    inline const std::string to_string() const {
+    inline const std::string to_string(const name_map &names) const {
         std::stringstream ss;
-        ss << " - name: '" << name() << "'" << std::endl;
+        ss << " - name: '" << name(names) << "'" << std::endl;
 
         ss << "     contains    " << n_objects<true>() << " surfaces "
            << std::endl;
@@ -178,8 +176,12 @@ class volume {
     };
 
     private:
+
     /** Volume section: name */
     std::string _name = "unknown";
+
+    /** Volume index */
+    dindex _index = dindex_invalid;
 
     /** Bounds section, default for r, z, phi */
     array_type<scalar, 6> _bounds = {0.,
@@ -188,9 +190,6 @@ class volume {
                                      std::numeric_limits<scalar>::max(),
                                      -M_PI,
                                      M_PI};
-
-    /** Volume index */
-    dindex _index = dindex_invalid;
 
     /** Index ranges in the detector surface/portal containers.*/
     dindex_range _surface_range = {dindex_invalid, dindex_invalid};

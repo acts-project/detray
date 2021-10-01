@@ -7,6 +7,9 @@
 
 #include <gtest/gtest.h>
 
+#include <map>
+#include <string>
+
 #include "core/detector.hpp"
 #include "core/track.hpp"
 #include "core/transform_store.hpp"
@@ -32,9 +35,10 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     std::string surface_grid_file =
         data_directory + std::string("tml-surface-grids.csv");
     std::string surface_grid_entries_file = "";
+    std::map<dindex, std::string> name_map{};
 
     auto d = detector_from_csv<>("tml", surface_file, layer_volume_file,
-                                 surface_grid_file, surface_grid_entries_file);
+                                 surface_grid_file, surface_grid_entries_file, name_map);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;

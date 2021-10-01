@@ -27,8 +27,8 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     ASSERT_TRUE(g.template n_objects<geometry::e_portal>() == 0);
 
     // Add two volumes
-    auto &v0 = g.new_volume("test_volume_0", {0., 10., -5., 5., -M_PI, M_PI});
-    auto &v1 = g.new_volume("test_volume_1", {0., 5., -10., 10., -M_PI, M_PI});
+    auto &v0 = g.new_volume({0., 10., -5., 5., -M_PI, M_PI});
+    auto &v1 = g.new_volume({0., 5., -10., 10., -M_PI, M_PI});
 
     ASSERT_TRUE(g.n_volumes() == 2);
 

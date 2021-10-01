@@ -7,6 +7,9 @@
 
 #include <gtest/gtest.h>
 
+#include <map>
+#include <string>
+
 #include "core/track.hpp"
 #include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
@@ -34,9 +37,10 @@ TEST(ALGEBRA_PLUGIN, propagator) {
     std::string layer_volume_file =
         data_directory + std::string("odd-layer-volumes.csv");
     std::string surface_grid_entries_file = "";
+    std::map<dindex, std::string> name_map{};
 
     auto d = detector_from_csv<>("odd", surface_file, layer_volume_file,
-                                 surface_grid_file, surface_grid_entries_file);
+                                 surface_grid_file, surface_grid_entries_file, name_map);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
