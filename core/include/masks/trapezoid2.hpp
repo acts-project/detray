@@ -24,8 +24,9 @@ namespace detray {
  * @tparam kMaskContext is a unique mask identifier in a certain context
  *
  * It is defined by half lengths in local0 coordinate _values[0] and _values[1]
- *at
- * -/+ half length in the local1 coordinate _values[2]
+ * at -/+ half length in the local1 coordinate _values[2]. _values[3] contains
+ * the precomputed value of 1 / (2 * _values[2]), which avoids
+ * excessive floating point divisions.
  *
  * @note  While the mask_context can change depending on the typed container
  * structure the mask_identifier is a const expression that determines the
@@ -39,11 +40,12 @@ template <typename intersector_type = planar_intersector,
 struct trapezoid2 {
     using mask_tolerance = array_type<scalar, 2>;
 
-    using mask_values = array_type<scalar, 3>;
+    using mask_values = array_type<scalar, 4>;
 
     using mask_links_type = links_type;
 
     mask_values _values = {std::numeric_limits<scalar>::infinity(),
+                           std::numeric_limits<scalar>::infinity(),
                            std::numeric_limits<scalar>::infinity(),
                            std::numeric_limits<scalar>::infinity()};
 
@@ -64,7 +66,8 @@ struct trapezoid2 {
      * @param half_length_2 half length in loc1
      */
     trapezoid2(scalar half_length_0, scalar half_length_1, scalar half_length_2)
-        : _values{half_length_0, half_length_1, half_length_2} {}
+        : _values{half_length_0, half_length_1, half_length_2,
+                  static_cast<scalar>(1. / (2. * half_length_2))} {}
 
     /** Assignment operator from an array, convenience function
      *
@@ -88,7 +91,7 @@ struct trapezoid2 {
     template <typename inside_local_type>
     intersection_status is_inside(
         const point2 &p, const mask_tolerance &t = within_epsilon) const {
-        scalar rel_y = (_values[2] + p[1]) / (2 * _values[2]);
+        scalar rel_y = (_values[2] + p[1]) * _values[3];
         return (std::abs(p[0]) <=
                     _values[0] + rel_y * (_values[1] - _values[0]) + t[0] and
                 std::abs(p[1]) <= _values[2] + t[1])
