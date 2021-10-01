@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <map>
 #include <string>
 
 #include "utils/indexing.hpp"
@@ -13,8 +14,8 @@
 namespace detray {
 
 /** Volume class that holds the local information of the volume its surfaces
- * and portals. Everything is kept as index ranges in larger containers that are
- * owned by either the geometry or the detector implementations.
+ * and portals. Everything is kept as index ranges in larger containers that 
+ * are owned by either the geometry or the detector implementations.
  *
  * @tparam array_type the type of the internal array, must have STL semantics
  */
@@ -26,58 +27,11 @@ class volume {
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
 
-    /** Deleted constructor */
-    volume() = delete;
-
-    /** Contructor with name and bounds
-     * @param name of the volume
+    /** Contructor with bounds
      * @param bounds of the volume
-     * @param d detector the volume belongs to
      */
     volume(const array_type<scalar, 6> &bounds)
         : _bounds(bounds) {}
-
-    /** Copy ctor makes sure constituents keep valid volume pointer
-     *
-     * @param other Volume to be copied
-     */
-    volume(const volume &other) = default;
-
-    /** Equality operator of volumes, convenience function - const
-     *
-     * @param rhs is the volume to be compared with
-     *
-     * checks identity for all index ranges and bounds
-     **/
-    const bool operator==(const volume &rhs) const {
-        const bool is_eq_bounds = (_bounds == rhs._bounds);
-        const bool is_eq_index = (_index == rhs._index);
-        const bool is_eq_sf_range = (_surface_range == rhs._surface_range);
-        const bool is_eq_pt_range = (_portal_range == rhs._portal_range);
-        const bool is_eq_sf_finder =
-            (_surfaces_finder_entry == rhs._surfaces_finder_entry);
-
-        return (is_eq_bounds && is_eq_index && is_eq_sf_range &&
-                is_eq_pt_range && is_eq_sf_finder);
-    }
-
-    /** Equality operator of volumes, convenience function - const
-     *
-     * @param rhs is the volume to be compared with
-     *
-     * checks identity for all index ranges and bounds
-     **/
-    bool operator==(const volume &rhs) {
-        const bool is_eq_bounds = (_bounds == rhs._bounds);
-        const bool is_eq_index = (_index == rhs._index);
-        const bool is_eq_sf_range = (_surface_range == rhs._surface_range);
-        const bool is_eq_pt_range = (_portal_range == rhs._portal_range);
-        const bool is_eq_sf_finder =
-            (_surfaces_finder_entry == rhs._surfaces_finder_entry);
-
-        return (is_eq_bounds && is_eq_index && is_eq_sf_range &&
-                is_eq_pt_range && is_eq_sf_finder);
-    }
 
     /** @return the bounds - const access */
     inline const array_type<scalar, 6> &bounds() const { return _bounds; }
@@ -177,27 +131,6 @@ class volume {
 
     private:
 
-    /** Volume section: name */
-    std::string _name = "unknown";
-
-    /** Volume index */
-    dindex _index = dindex_invalid;
-
-    /** Bounds section, default for r, z, phi */
-    array_type<scalar, 6> _bounds = {0.,
-                                     std::numeric_limits<scalar>::max(),
-                                     -std::numeric_limits<scalar>::max(),
-                                     std::numeric_limits<scalar>::max(),
-                                     -M_PI,
-                                     M_PI};
-
-    /** Index ranges in the detector surface/portal containers.*/
-    dindex_range _surface_range = {dindex_invalid, dindex_invalid};
-    dindex_range _portal_range = {dindex_invalid, dindex_invalid};
-
-    /** Index into the surface finder container */
-    dindex _surfaces_finder_entry = dindex_invalid;
-
     /**
      * @param range Any index range
      *
@@ -251,6 +184,24 @@ class volume {
             range[1] += other[1] - other[0];
         }
     }
+
+    /** Bounds section, default for r, z, phi */
+    array_type<scalar, 6> _bounds = {0.,
+                                     std::numeric_limits<scalar>::max(),
+                                     -std::numeric_limits<scalar>::max(),
+                                     std::numeric_limits<scalar>::max(),
+                                     -M_PI,
+                                     M_PI};
+
+    /** Volume index */
+    dindex _index = dindex_invalid;
+
+    /** Index ranges in the detector surface/portal containers.*/
+    dindex_range _surface_range = {dindex_invalid, dindex_invalid};
+    dindex_range _portal_range = {dindex_invalid, dindex_invalid};
+
+    /** Index into the surface finder container */
+    dindex _surfaces_finder_entry = dindex_invalid;
 };
 
 }  // namespace detray

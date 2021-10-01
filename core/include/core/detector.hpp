@@ -33,9 +33,7 @@ using point2 = __plugin::point2;
  * @tparam tuple_type the type of the internal tuple, must have STL semantics
  * @tparam vector_type the type of the internal array, must have STL semantics
  * @tparam alignable_store the type of the transform store
- * @tparam surface_source_link the type of the link to an external surface
- * source
- * @tparam bounds_source_link the type of the link to an external bounds source
+ * @tparam geometry_type the geometry implementation to be used
  * @tparam surfaces_populator_type the type of populator used to fill the
  * surfaces grids
  * @tparam surfaces_serializer_type the type of the memory serializer for the
@@ -105,22 +103,17 @@ class detector {
     using transform_container =
         array_type<transform_store, mask_id::e_mask_types>;
 
+
+    detector() = delete;
+
     /** Allowed costructor
-     * @param name the detector
+     * @param name the detector name
      */
     detector(const std::string &name) : _name(name) {}
 
-    /** Copy constructor
-     *
-     * @param other Detector to be copied
-     */
-    detector(const detector &other) = default;
-    detector() = delete;
-    ~detector() = default;
 
     /** Add a new volume and retrieve a reference to it
      *
-     * @param name of the volume
      * @param bounds of the volume, they are expected to be already attaching
      * @param surfaces_finder_entry of the volume, where to entry the surface
      * finder

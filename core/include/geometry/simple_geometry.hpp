@@ -121,14 +121,12 @@ class simple_geometry {
 
     /** Default constructor */
     simple_geometry() = default;
-    /** Default destructor */
-    ~simple_geometry() = default;
 
     /** Copy constructor
      *
      * @param other simple_geometry to be copied
      */
-    simple_geometry(const simple_geometry &other) = default;
+    //simple_geometry(const simple_geometry &other) = default;
 
     /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }

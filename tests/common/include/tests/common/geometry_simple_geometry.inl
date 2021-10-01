@@ -27,16 +27,20 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     ASSERT_TRUE(g.template n_objects<geometry::e_portal>() == 0);
 
     // Add two volumes
-    auto &v0 = g.new_volume({0., 10., -5., 5., -M_PI, M_PI});
-    auto &v1 = g.new_volume({0., 5., -10., 10., -M_PI, M_PI});
+    darray<scalar, 6> bounds_0 = {0., 10., -5., 5., -M_PI, M_PI};
+    darray<scalar, 6> bounds_1 = {0., 5., -10., 10., -M_PI, M_PI};
+    auto &v0 = g.new_volume(bounds_0);
+    auto &v1 = g.new_volume(bounds_1);
 
     ASSERT_TRUE(g.n_volumes() == 2);
 
     auto &v2 = g.volume_by_index(0);
     auto &v3 = g.volume_by_index(1);
 
-    ASSERT_TRUE(v2 == v0);
-    ASSERT_TRUE(v3 == v1);
+    ASSERT_TRUE(v2.index() == 0);
+    ASSERT_TRUE(v3.index() == 1);
+    ASSERT_TRUE(v2.bounds() == bounds_0);
+    ASSERT_TRUE(v3.bounds() == bounds_1);
 
     /// volume 0
     /// volume portals
