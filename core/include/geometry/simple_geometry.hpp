@@ -126,7 +126,7 @@ class simple_geometry {
      *
      * @param other simple_geometry to be copied
      */
-    //simple_geometry(const simple_geometry &other) = default;
+    // simple_geometry(const simple_geometry &other) = default;
 
     /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }
@@ -153,7 +153,8 @@ class simple_geometry {
      *
      * @return non-const reference of the new volume
      */
-    inline volume_type &new_volume(const array_type<scalar, 6> &bounds,
+    inline volume_type &new_volume(
+        const array_type<scalar, 6> &bounds,
         dindex surfaces_finder_entry = dindex_invalid) {
         _volumes.emplace_back(bounds);
         dindex cvolume_idx = _volumes.size() - 1;

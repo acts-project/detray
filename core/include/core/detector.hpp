@@ -103,14 +103,12 @@ class detector {
     using transform_container =
         array_type<transform_store, mask_id::e_mask_types>;
 
-
     detector() = delete;
 
     /** Allowed costructor
      * @param name the detector name
      */
     detector(const std::string &name) : _name(name) {}
-
 
     /** Add a new volume and retrieve a reference to it
      *

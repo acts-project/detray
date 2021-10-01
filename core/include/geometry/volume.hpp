@@ -14,7 +14,7 @@
 namespace detray {
 
 /** Volume class that holds the local information of the volume its surfaces
- * and portals. Everything is kept as index ranges in larger containers that 
+ * and portals. Everything is kept as index ranges in larger containers that
  * are owned by either the geometry or the detector implementations.
  *
  * @tparam array_type the type of the internal array, must have STL semantics
@@ -23,15 +23,13 @@ template <template <typename, unsigned int> class array_type = darray>
 class volume {
 
     public:
-
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
 
     /** Contructor with bounds
      * @param bounds of the volume
      */
-    volume(const array_type<scalar, 6> &bounds)
-        : _bounds(bounds) {}
+    volume(const array_type<scalar, 6> &bounds) : _bounds(bounds) {}
 
     /** @return the bounds - const access */
     inline const array_type<scalar, 6> &bounds() const { return _bounds; }
@@ -130,7 +128,6 @@ class volume {
     };
 
     private:
-
     /**
      * @param range Any index range
      *

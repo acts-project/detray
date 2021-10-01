@@ -37,7 +37,8 @@ TEST(ALGEBRA_PLUGIN, read_detector) {
     std::map<dindex, std::string> name_map{};
 
     auto d = detector_from_csv<>("odd", surface_file, layer_volume_file,
-                                 surface_grid_file, surface_grid_entries_file, name_map);
+                                 surface_grid_file, surface_grid_entries_file,
+                                 name_map);
 
     std::cout << d.to_string(name_map) << std::endl;
 }

@@ -38,7 +38,8 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     std::map<dindex, std::string> name_map{};
 
     auto d = detector_from_csv<>("tml", surface_file, layer_volume_file,
-                                 surface_grid_file, surface_grid_entries_file, name_map);
+                                 surface_grid_file, surface_grid_entries_file,
+                                 name_map);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;

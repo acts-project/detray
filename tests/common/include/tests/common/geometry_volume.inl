@@ -7,8 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <string>
-
 #include "geometry/volume.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -44,16 +42,13 @@ TEST(ALGEBRA_PLUGIN, volume) {
     ASSERT_EQ(v1.template n_objects<surface>(), 6);
     ASSERT_EQ(v1.template n_objects<portal>(), 4);
 
-    // Check copy constructor and eq. operator
+    // Check copy constructor
     const auto v2 = volume(v1);
     ASSERT_TRUE(v2.index() == 12345);
     ASSERT_TRUE(v2.bounds() == bounds);
     ASSERT_TRUE(v2.surfaces_finder_entry() == 12);
     ASSERT_TRUE(v2.template range<surface>() == surface_range);
     ASSERT_TRUE(v2.template range<portal>() == portal_range);
-
-    //ASSERT_TRUE(v2 == v1);
-    //ASSERT_TRUE(v1 == v2);
 }
 
 int main(int argc, char **argv) {
