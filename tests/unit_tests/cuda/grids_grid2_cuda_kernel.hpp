@@ -5,11 +5,21 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "grids_types.hpp"
+// detray test
+#include "tests/common/test_defs.hpp"
+
+// detray core
+#include "grids/axis.hpp"
+#include "grids/grid2.hpp"
+#include "grids/populator.hpp"
+#include "grids/serializer2.hpp"
+#include "utils/indexing.hpp"
 
 #pragma once
 
 namespace detray {
+
+static constexpr int n_points = 3;
 
 // test function for replace populator
 template <typename grid2_data_t>

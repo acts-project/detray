@@ -21,10 +21,11 @@ template <typename grid_data_t>
 __global__ void grid_replace_test_kernel(grid_data_t grid_data);
 
 // test1 instantiation for replace populator
-template void grid_replace_test<
-    grid2_data<device_replace, axis::regular<>, axis::regular<>, serializer2>>(
-    grid2_data<device_replace, axis::regular<>, axis::regular<>, serializer2>&
-        grid_data);
+template void
+grid_replace_test<grid2_data<device_replace_populator<test::point3>,
+                             axis::regular<>, axis::regular<>, serializer2>>(
+    grid2_data<device_replace_populator<test::point3>, axis::regular<>,
+               axis::regular<>, serializer2>& grid_data);
 
 // test2 function implementation
 template <typename grid2_data_t>
@@ -80,9 +81,10 @@ __global__ void grid_complete_kernel(grid_data_t grid_data);
 
 // test2 instantiation for complete populator
 template void grid_complete_test<
-    grid2_data<device_complete, axis::regular<>, axis::regular<>, serializer2>>(
-    grid2_data<device_complete, axis::regular<>, axis::regular<>, serializer2>&
-        grid_data);
+    grid2_data<device_complete_populator<n_points, false, test::point3>,
+               axis::regular<>, axis::regular<>, serializer2>>(
+    grid2_data<device_complete_populator<n_points, false, test::point3>,
+               axis::regular<>, axis::regular<>, serializer2>& grid_data);
 
 // test2 function implementation
 template <typename grid2_data_t>

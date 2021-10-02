@@ -27,8 +27,9 @@ TEST(grids_cuda, grid2_replace_populator) {
     auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
 
     // declare host grid
-    grid2<host_replace, axis::regular<>, axis::regular<>, serializer2> g2(
-        std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0, 0, 0});
+    grid2<host_replace_populator<test::point3>, axis::regular<>,
+          axis::regular<>, serializer2>
+        g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0, 0, 0});
 
     // pre-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -41,7 +42,8 @@ TEST(grids_cuda, grid2_replace_populator) {
     }
 
     // get grid_data
-    grid2_data<device_replace, axis::regular<>, axis::regular<>, serializer2>
+    grid2_data<device_replace_populator<test::point3>, axis::regular<>,
+               axis::regular<>, serializer2>
         g2_data(g2, mng_mr);
 
     // fill the grids
@@ -70,8 +72,9 @@ TEST(grids_cuda, grid2_complete_populator) {
     axis::regular<> yaxis{3, 0., 3.};
 
     // declare grid
-    grid2<host_complete, axis::regular<>, axis::regular<>, serializer2> g2(
-        std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0, 0, 0});
+    grid2<host_complete_populator<n_points, false, test::point3>,
+          axis::regular<>, axis::regular<>, serializer2>
+        g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0, 0, 0});
 
     // pre-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -86,7 +89,8 @@ TEST(grids_cuda, grid2_complete_populator) {
     }
 
     // get grid_data
-    grid2_data<device_complete, axis::regular<>, axis::regular<>, serializer2>
+    grid2_data<device_complete_populator<n_points, false, test::point3>,
+               axis::regular<>, axis::regular<>, serializer2>
         g2_data(g2, mng_mr);
 
     // fill the grid
