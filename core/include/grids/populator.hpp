@@ -41,7 +41,7 @@ struct replace_populator {
     using serialized_storage = vector_type<store_value>;
 
     using vector_view_t = vecmem::data::vector_view<store_value>;
-    using vector_data_t = vecmem::data::vector_view<store_value>;    
+    using vector_data_t = vecmem::data::vector_view<store_value>;
     using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
     using buffer_size_t = typename vector_view_t::size_type;
 
@@ -119,7 +119,7 @@ struct complete_populator {
     using serialized_storage = vector_type<store_value>;
 
     using vector_view_t = vecmem::data::vector_view<store_value>;
-    using vector_data_t = vecmem::data::vector_view<store_value>;    
+    using vector_data_t = vecmem::data::vector_view<store_value>;
     using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
     using buffer_size_t = typename vector_view_t::size_type;
 
@@ -279,7 +279,7 @@ struct attach_populator {
      **/
     DETRAY_HOST
     static vector_data_t get_data(serialized_storage &data,
-                                  vecmem::memory_resource &resource){
+                                  vecmem::memory_resource &resource) {
         return vecmem::get_data(data, &resource);
     }
 };

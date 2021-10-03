@@ -90,7 +90,7 @@ class grid2 {
     /** Constructor from grid data
      **/
     template <typename grid_view_t>
-    DETRAY_DEVICE grid2(grid_view_t& grid_data,
+    DETRAY_DEVICE grid2(grid_view_t &grid_data,
                         const bare_value kInvalid = invalid_value<bare_value>())
         : _axis_p0(grid_data._axis_p0),
           _axis_p1(grid_data._axis_p1),
@@ -151,7 +151,7 @@ class grid2 {
     }
 
     DETRAY_HOST_DEVICE
-    auto bin(dindex bin0, dindex bin1) {	
+    auto bin(dindex bin0, dindex bin1) {
         return _data_serialized.at(
             _serializer.template serialize<axis_p0_type, axis_p1_type>(
                 _axis_p0, _axis_p1, bin0, bin1));
@@ -318,7 +318,7 @@ class grid2 {
     const populator_type &populator() const { return _populator; }
 
     DETRAY_HOST
-    serialized_storage& data() { return _data_serialized; }
+    serialized_storage &data() { return _data_serialized; }
 
     private:
     axis_p0_type _axis_p0;
@@ -391,8 +391,9 @@ struct grid2_view {
      * @param grid is the input grid from host
      * @param resource is the vecmem memory resource
      *
-     **/    
-    grid2_view(grid2_data<populator_t, axis_p0_t, axis_p1_t, serializer_t> &grid_data)
+     **/
+    grid2_view(
+        grid2_data<populator_t, axis_p0_t, axis_p1_t, serializer_t> &grid_data)
         : _axis_p0(grid_data._axis_p0),
           _axis_p1(grid_data._axis_p1),
           _data_view(grid_data._data) {}
@@ -401,17 +402,17 @@ struct grid2_view {
      *
      * @param grid_buffer is the input grid buffer
      **/
-    grid2_view(const grid2_buffer<populator_t, axis_p0_t, axis_p1_t, serializer_t>
-	       &grid_buffer)
+    grid2_view(const grid2_buffer<populator_t, axis_p0_t, axis_p1_t,
+                                  serializer_t> &grid_buffer)
         : _axis_p0(grid_buffer._axis_p0),
           _axis_p1(grid_buffer._axis_p1),
           _data_view(grid_buffer._buffer) {}
-    
+
     const axis_p0_t _axis_p0;
-    const axis_p1_t _axis_p1;        
+    const axis_p1_t _axis_p1;
     vector_view_t _data_view;
 };
-    
+
 /** A two-dimensional grid data for gpu device usage
  * @tparam populator_type  is a prescription what to do when a bin gets
  *pupulated, it broadcasts also the value type
@@ -440,10 +441,10 @@ struct grid2_data {
         : _axis_p0(grid.axis_p0()),
           _axis_p1(grid.axis_p1()),
           _data(grid2_t::populator_t::get_data(grid.data(), resource)) {}
-    
+
     vector_data_t _data;
     const axis_p0_t _axis_p0;
     const axis_p1_t _axis_p1;
 };
-    
+
 }  // namespace detray

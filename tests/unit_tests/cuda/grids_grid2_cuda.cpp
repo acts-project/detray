@@ -48,7 +48,7 @@ TEST(grids_cuda, grid2_replace_populator) {
     grid2_view<device_replace_populator<test::point3>, axis::regular<>,
                axis::regular<>, serializer2>
         g2_view(g2_data);
-    
+
     // fill the grids
     grid_replace_test(g2_view);
 
@@ -100,7 +100,6 @@ TEST(grids_cuda, grid2_complete_populator) {
                axis::regular<>, axis::regular<>, serializer2>
         g2_view(g2_data);
 
-    
     // fill the grid
     grid_complete_test(g2_view);
 
@@ -157,22 +156,22 @@ TEST(grids_cuda, grid2_attach_populator) {
         }
     }
 
-    // get grid_data    
+    // get grid_data
     grid2_data<device_attach_populator<false, test::point3>, axis::circular<>,
                axis::regular<>, serializer2>
         g2_data(g2, mng_mr);
-    // get grid_view    
+    // get grid_view
     grid2_view<device_attach_populator<false, test::point3>, axis::circular<>,
-               axis::regular<>, serializer2> g2_view(g2_data);
-    
+               axis::regular<>, serializer2>
+        g2_view(g2_data);
+
     // Read the grid
     grid_attach_read_test(g2_view);
 }
 
-
 /// This test demonstrates how to call grid buffer without calling host grid
-/// object It is especially useful when you don't need to save the objects in host
-/// side (e.g. internal spacepoint creation in traccc)
+/// object It is especially useful when you don't need to save the objects in
+/// host side (e.g. internal spacepoint creation in traccc)
 TEST(grids_cuda, grid2_buffer_attach_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
@@ -200,7 +199,7 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     grid2_view<device_attach_populator<false, test::point3>, axis::regular<>,
                axis::regular<>, serializer2>
         g2_view(g2_buffer);
-    
+
     // fill each bin with 10 points
     grid_attach_fill_test(g2_view);
 
@@ -210,4 +209,3 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     EXPECT_EQ(ptr[2].size(), 100);
     EXPECT_EQ(ptr[3].size(), 100);
 }
-

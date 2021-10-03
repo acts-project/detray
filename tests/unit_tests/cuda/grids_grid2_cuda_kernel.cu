@@ -173,15 +173,14 @@ __global__ void grid_attach_read_test_kernel(grid_view_t grid_view) {
               typename grid_view_t::axis_p0_t, typename grid_view_t::axis_p1_t,
               typename grid_view_t::serializer_t>;
 
-    // Let's try building the grid object    
+    // Let's try building the grid object
     grid2_device_t g2_device(grid_view, test::point3{0, 0, 0});
 
     auto data = g2_device.bin(threadIdx.x, threadIdx.y);
-    
+
     for (auto& pt : data) {
-	//printf("%f %f %f \n", pt[0], pt[1], pt[2]);
+        // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
     }
-    
 }
 
 /*---------------------------------------------------------
