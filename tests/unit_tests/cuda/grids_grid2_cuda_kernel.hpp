@@ -22,19 +22,19 @@ namespace detray {
 static constexpr int n_points = 3;
 
 // test function for replace populator
-template <typename grid2_data_t>
-void grid_replace_test(grid2_data_t& grid_data);
+template <typename grid2_view_t>
+void grid_replace_test(grid2_view_t& grid_view);
 
 // test function for complete populator
-template <typename grid2_data_t>
-void grid_complete_test(grid2_data_t& grid_data);
+template <typename grid2_view_t>
+void grid_complete_test(grid2_view_t& grid_view);
 
 // read test function for grid with attach populator
-template <typename grid2_data_t>
-void grid_attach_read_test(grid2_data_t& grid_data);
+template <typename grid2_view_t>
+void grid_attach_read_test(grid2_view_t& grid_view);
 
 // fill test function for grid buffer with attach populator
-template <typename grid2_data_t>
-void grid_attach_fill_test(grid2_data_t& grid_data);
+template <typename grid2_view_t>
+void grid_attach_fill_test(grid2_view_t& grid_data);
 
 }  // namespace detray

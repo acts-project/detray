@@ -17,28 +17,28 @@ namespace detray {
   ---------------------------------------------------*/
 
 // test1 kernel declaration
-template <typename grid_data_t>
-__global__ void grid_replace_test_kernel(grid_data_t grid_data);
+template <typename grid_view_t>
+__global__ void grid_replace_test_kernel(grid_view_t grid_view);
 
 // test1 instantiation for replace populator
 template void
-grid_replace_test<grid2_data<device_replace_populator<test::point3>,
+grid_replace_test<grid2_view<device_replace_populator<test::point3>,
                              axis::regular<>, axis::regular<>, serializer2>>(
-    grid2_data<device_replace_populator<test::point3>, axis::regular<>,
-               axis::regular<>, serializer2>& grid_data);
+    grid2_view<device_replace_populator<test::point3>, axis::regular<>,
+               axis::regular<>, serializer2>& grid_view);
 
 // test2 function implementation
-template <typename grid2_data_t>
-void grid_replace_test(grid2_data_t& grid_data) {
+template <typename grid2_view_t>
+void grid_replace_test(grid2_view_t& grid_view) {
 
-    const auto& axis0 = grid_data._axis_p0;
-    const auto& axis1 = grid_data._axis_p1;
+    const auto& axis0 = grid_view._axis_p0;
+    const auto& axis1 = grid_view._axis_p1;
 
     int block_dim = 1;
     dim3 thread_dim(axis0.bins(), axis1.bins());
 
     // run the kernel
-    grid_replace_test_kernel<<<block_dim, thread_dim>>>(grid_data);
+    grid_replace_test_kernel<<<block_dim, thread_dim>>>(grid_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -46,16 +46,16 @@ void grid_replace_test(grid2_data_t& grid_data) {
 }
 
 // test2 kernel implementation
-template <typename grid_data_t>
-__global__ void grid_replace_test_kernel(grid_data_t grid_data) {
+template <typename grid_view_t>
+__global__ void grid_replace_test_kernel(grid_view_t grid_view) {
 
     using grid2_device_t =
-        grid2<typename grid_data_t::populator_t,
-              typename grid_data_t::axis_p0_t, typename grid_data_t::axis_p1_t,
-              typename grid_data_t::serializer_t>;
+        grid2<typename grid_view_t::populator_t,
+              typename grid_view_t::axis_p0_t, typename grid_view_t::axis_p1_t,
+              typename grid_view_t::serializer_t>;
 
     // Let's try building the grid object
-    grid2_device_t g2_device(grid_data, test::point3{0, 0, 0});
+    grid2_device_t g2_device(grid_view, test::point3{0, 0, 0});
 
     const auto& axis0 = g2_device.axis_p0();
     const auto& axis1 = g2_device.axis_p1();
@@ -76,28 +76,28 @@ __global__ void grid_replace_test_kernel(grid_data_t grid_data) {
   ---------------------------------------------------------------*/
 
 // test2 kernel declaration
-template <typename grid_data_t>
-__global__ void grid_complete_kernel(grid_data_t grid_data);
+template <typename grid_view_t>
+__global__ void grid_complete_kernel(grid_view_t grid_view);
 
 // test2 instantiation for complete populator
 template void grid_complete_test<
-    grid2_data<device_complete_populator<n_points, false, test::point3>,
+    grid2_view<device_complete_populator<n_points, false, test::point3>,
                axis::regular<>, axis::regular<>, serializer2>>(
-    grid2_data<device_complete_populator<n_points, false, test::point3>,
-               axis::regular<>, axis::regular<>, serializer2>& grid_data);
+    grid2_view<device_complete_populator<n_points, false, test::point3>,
+               axis::regular<>, axis::regular<>, serializer2>& grid_view);
 
 // test2 function implementation
-template <typename grid2_data_t>
-void grid_complete_test(grid2_data_t& grid_data) {
+template <typename grid2_view_t>
+void grid_complete_test(grid2_view_t& grid_view) {
 
-    const auto& axis0 = grid_data._axis_p0;
-    const auto& axis1 = grid_data._axis_p1;
+    const auto& axis0 = grid_view._axis_p0;
+    const auto& axis1 = grid_view._axis_p1;
 
     int block_dim = 1;
     dim3 thread_dim(axis0.bins(), axis1.bins());
 
     // run the kernel
-    grid_complete_kernel<<<block_dim, thread_dim>>>(grid_data);
+    grid_complete_kernel<<<block_dim, thread_dim>>>(grid_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -105,16 +105,16 @@ void grid_complete_test(grid2_data_t& grid_data) {
 }
 
 // test2 kernel implementation
-template <typename grid_data_t>
-__global__ void grid_complete_kernel(grid_data_t grid_data) {
+template <typename grid_view_t>
+__global__ void grid_complete_kernel(grid_view_t grid_view) {
 
     using grid2_device_t =
-        grid2<typename grid_data_t::populator_t,
-              typename grid_data_t::axis_p0_t, typename grid_data_t::axis_p1_t,
-              typename grid_data_t::serializer_t>;
+        grid2<typename grid_view_t::populator_t,
+              typename grid_view_t::axis_p0_t, typename grid_view_t::axis_p1_t,
+              typename grid_view_t::serializer_t>;
 
     // Let's try building the grid object
-    grid2_device_t g2_device(grid_data, test::point3{0, 0, 0});
+    grid2_device_t g2_device(grid_view, test::point3{0, 0, 0});
 
     const auto& axis0 = g2_device.axis_p0();
     const auto& axis1 = g2_device.axis_p1();
@@ -138,49 +138,50 @@ __global__ void grid_complete_kernel(grid_data_t grid_data) {
   ---------------------------------------------------------*/
 
 // read_test kernel declaration
-template <typename grid_data_t>
-__global__ void grid_attach_read_test_kernel(grid_data_t grid_data);
+template <typename grid_view_t>
+__global__ void grid_attach_read_test_kernel(grid_view_t grid_view);
 
 // read_test instantiation for attach populator
 template void grid_attach_read_test<
-    grid2_data<device_attach_populator<false, test::point3>, axis::circular<>,
+    grid2_view<device_attach_populator<false, test::point3>, axis::circular<>,
                axis::regular<>, serializer2>>(
-    grid2_data<device_attach_populator<false, test::point3>, axis::circular<>,
-               axis::regular<>, serializer2>& grid_data);
+    grid2_view<device_attach_populator<false, test::point3>, axis::circular<>,
+               axis::regular<>, serializer2>& grid_view);
 
-template <typename grid2_data_t>
-void grid_attach_read_test(grid2_data_t& grid_data) {
+template <typename grid2_view_t>
+void grid_attach_read_test(grid2_view_t& grid_view) {
 
-    const auto& axis0 = grid_data._axis_p0;
-    const auto& axis1 = grid_data._axis_p1;
+    const auto& axis0 = grid_view._axis_p0;
+    const auto& axis1 = grid_view._axis_p1;
 
     int block_dim = 1;
     dim3 thread_dim(axis0.bins(), axis1.bins());
 
     // run the kernel
-    grid_attach_read_test_kernel<<<block_dim, thread_dim>>>(grid_data);
+    grid_attach_read_test_kernel<<<block_dim, thread_dim>>>(grid_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
-template <typename grid_data_t>
-__global__ void grid_attach_read_test_kernel(grid_data_t grid_data) {
+template <typename grid_view_t>
+__global__ void grid_attach_read_test_kernel(grid_view_t grid_view) {
 
     using grid2_device_t =
-        grid2<typename grid_data_t::populator_t,
-              typename grid_data_t::axis_p0_t, typename grid_data_t::axis_p1_t,
-              typename grid_data_t::serializer_t>;
+        grid2<typename grid_view_t::populator_t,
+              typename grid_view_t::axis_p0_t, typename grid_view_t::axis_p1_t,
+              typename grid_view_t::serializer_t>;
 
-    // Let's try building the grid object
-    grid2_device_t g2_device(grid_data, test::point3{0, 0, 0});
+    // Let's try building the grid object    
+    grid2_device_t g2_device(grid_view, test::point3{0, 0, 0});
 
     auto data = g2_device.bin(threadIdx.x, threadIdx.y);
-
+    
     for (auto& pt : data) {
-        // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
+	//printf("%f %f %f \n", pt[0], pt[1], pt[2]);
     }
+    
 }
 
 /*---------------------------------------------------------
@@ -188,27 +189,27 @@ __global__ void grid_attach_read_test_kernel(grid_data_t grid_data) {
   ---------------------------------------------------------*/
 
 // buffer_test kernel declaration
-template <typename grid_data_t>
-__global__ void grid_attach_fill_test_kernel(grid_data_t grid_data);
+template <typename grid_view_t>
+__global__ void grid_attach_fill_test_kernel(grid_view_t grid_view);
 
 // buffer_test instantiation for attach populator
 template void grid_attach_fill_test<
-    grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
+    grid2_view<device_attach_populator<false, test::point3>, axis::regular<>,
                axis::regular<>, serializer2>>(
-    grid2_data<device_attach_populator<false, test::point3>, axis::regular<>,
-               axis::regular<>, serializer2>& grid_data);
+    grid2_view<device_attach_populator<false, test::point3>, axis::regular<>,
+               axis::regular<>, serializer2>& grid_view);
 
-template <typename grid2_data_t>
-void grid_attach_fill_test(grid2_data_t& grid_data) {
+template <typename grid2_view_t>
+void grid_attach_fill_test(grid2_view_t& grid_view) {
 
-    const auto& axis0 = grid_data._axis_p0;
-    const auto& axis1 = grid_data._axis_p1;
+    const auto& axis0 = grid_view._axis_p0;
+    const auto& axis1 = grid_view._axis_p1;
 
     dim3 block_dim(axis0.bins(), axis1.bins());
     int thread_dim = 100;
 
     // run the kernel
-    grid_attach_fill_test_kernel<<<block_dim, thread_dim>>>(grid_data);
+    grid_attach_fill_test_kernel<<<block_dim, thread_dim>>>(grid_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -216,16 +217,16 @@ void grid_attach_fill_test(grid2_data_t& grid_data) {
 }
 
 // buffer_test kernel declaration
-template <typename grid_data_t>
-__global__ void grid_attach_fill_test_kernel(grid_data_t grid_data) {
+template <typename grid_view_t>
+__global__ void grid_attach_fill_test_kernel(grid_view_t grid_view) {
 
     using grid2_device_t =
-        grid2<typename grid_data_t::populator_t,
-              typename grid_data_t::axis_p0_t, typename grid_data_t::axis_p1_t,
-              typename grid_data_t::serializer_t>;
+        grid2<typename grid_view_t::populator_t,
+              typename grid_view_t::axis_p0_t, typename grid_view_t::axis_p1_t,
+              typename grid_view_t::serializer_t>;
 
     // Let's try building the grid object
-    grid2_device_t g2_device(grid_data, test::point3{0, 0, 0});
+    grid2_device_t g2_device(grid_view, test::point3{0, 0, 0});
 
     // Fill with 100 points
     auto pt =

@@ -41,6 +41,7 @@ struct replace_populator {
     using serialized_storage = vector_type<store_value>;
 
     using vector_view_t = vecmem::data::vector_view<store_value>;
+    using vector_data_t = vecmem::data::vector_view<store_value>;    
     using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
     using buffer_size_t = typename vector_view_t::size_type;
 
@@ -87,7 +88,7 @@ struct replace_populator {
     /** Return a vector view
      **/
     DETRAY_HOST
-    static vector_view_t get_data(serialized_storage &data,
+    static vector_data_t get_data(serialized_storage &data,
                                   vecmem::memory_resource &resource) {
         return vecmem::get_data(data);
     }
@@ -118,6 +119,7 @@ struct complete_populator {
     using serialized_storage = vector_type<store_value>;
 
     using vector_view_t = vecmem::data::vector_view<store_value>;
+    using vector_data_t = vecmem::data::vector_view<store_value>;    
     using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
     using buffer_size_t = typename vector_view_t::size_type;
 
@@ -188,7 +190,7 @@ struct complete_populator {
     /** Return a vector view
      **/
     DETRAY_HOST
-    static vector_view_t get_data(serialized_storage &data,
+    static vector_data_t get_data(serialized_storage &data,
                                   vecmem::memory_resource &resource) {
         return vecmem::get_data(data);
     }
@@ -216,6 +218,7 @@ struct attach_populator {
     using serialized_storage = jagged_vector_type<bare_value>;
 
     using vector_view_t = vecmem::data::jagged_vector_view<bare_value>;
+    using vector_data_t = vecmem::data::jagged_vector_data<bare_value>;
     using vector_buffer_t = vecmem::data::jagged_vector_buffer<bare_value>;
     using buffer_size_t = std::vector<typename vector_view_t::size_type>;
 
@@ -272,11 +275,11 @@ struct attach_populator {
     DETRAY_HOST_DEVICE
     store_value init() const { return {}; }
 
-    /** Return a vector view
+    /** Return a vector data
      **/
     DETRAY_HOST
-    static vector_view_t get_data(serialized_storage &data,
-                                  vecmem::memory_resource &resource) {
+    static vector_data_t get_data(serialized_storage &data,
+                                  vecmem::memory_resource &resource){
         return vecmem::get_data(data, &resource);
     }
 };
