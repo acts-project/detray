@@ -384,7 +384,6 @@ struct grid2_view {
     using axis_p0_t = axis_p0_type;
     using axis_p1_t = axis_p1_type;
     using vector_view_t = typename populator_t::vector_view_t;
-    using vector_data_t = typename populator_t::vector_data_t;
 
     /** Constructor from grid
      *
