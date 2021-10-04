@@ -42,7 +42,7 @@ struct regular {
     DETRAY_HOST_DEVICE
     dindex bin(scalar v) const {
         int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
-        return (ibin >= 0 and ibin < n_bins)
+        return (ibin >= 0 and ibin < static_cast<int>(n_bins))
                    ? static_cast<dindex>(ibin)
                    : ibin < 0 ? 0 : static_cast<dindex>(n_bins - 1);
     }
