@@ -36,7 +36,7 @@ auto read_detector() {
     std::string volumes = data_directory + "tml-layer-volumes.csv";
     std::string grids = data_directory + "tml-surface-grids.csv";
     std::string grid_entries = "";
-    //std::map<dindex, std::string> name_map{};
+    // std::map<dindex, std::string> name_map{};
 
     /*return detray::detector_from_csv<>(name, surfaces, volumes, grids,
                                        grid_entries, name_map);*/
@@ -45,17 +45,17 @@ auto read_detector() {
 };
 
 /** Intersect all portals in a detector with a given ray.
-  *
-  * @tparam detector_type the type of the detector
-  * 
-  * @param d the detector
-  * @param origin the origin of the ray in global coordinates
-  * @param direction the direction of the ray in global coordinater
-  *
-  * @return a sorted vector of volume indices with the corresponding 
-  *         intersections of the portals that were encountered
-  */
-template<typename detector_type>
+ *
+ * @tparam detector_type the type of the detector
+ *
+ * @param d the detector
+ * @param origin the origin of the ray in global coordinates
+ * @param direction the direction of the ray in global coordinater
+ *
+ * @return a sorted vector of volume indices with the corresponding
+ *         intersections of the portals that were encountered
+ */
+template <typename detector_type>
 auto shoot_ray(const detector_type &d, const std::pair<point3, point3> origin,
                const std::pair<point3, point3> direction) {
 
@@ -82,15 +82,18 @@ auto shoot_ray(const detector_type &d, const std::pair<point3, point3> origin,
         for (size_t pi = pt_range[0]; pi < pt_range[1]; pi++) {
             auto pti = intersect(ray, portals[pi], transforms, masks, links);
 
-            if (pti.status == intersection_status::e_inside && pti.direction == intersection_direction::e_along) {
+            if (pti.status == intersection_status::e_inside &&
+                pti.direction == intersection_direction::e_along) {
                 volume_record.emplace_back(v.index(), pti);
             }
         }
     }
 
     // Sort by distance to origin of the ray and then volume index
-    auto sort_path = [&](std::pair<dindex, intersection> a, std::pair<dindex, intersection> b) -> bool {
-        return (a.second.path == b.second.path) ? (a.first < b.first) : (a.second < b.second);
+    auto sort_path = [&](std::pair<dindex, intersection> a,
+                         std::pair<dindex, intersection> b) -> bool {
+        return (a.second.path == b.second.path) ? (a.first < b.first)
+                                                : (a.second < b.second);
     };
     std::sort(volume_record.begin(), volume_record.end(), sort_path);
 
@@ -98,36 +101,37 @@ auto shoot_ray(const detector_type &d, const std::pair<point3, point3> origin,
 };
 
 /** Check if a vector of volume portal intersections are connected.
-  *
-  * @tparam record_type container that contains volume idx, intersection pairs
-  * 
-  * @param volume_record the recorded portal crossings between volumes
-  * @param start_volume where the ray started
-  *
-  * @return a set of volume connections that were found by portal intersection
-  *         of a ray.
-  */
-template<typename record_type = dvector<std::pair<dindex, intersection>>>
+ *
+ * @tparam record_type container that contains volume idx, intersection pairs
+ *
+ * @param volume_record the recorded portal crossings between volumes
+ * @param start_volume where the ray started
+ *
+ * @return a set of volume connections that were found by portal intersection
+ *         of a ray.
+ */
+template <typename record_type = dvector<std::pair<dindex, intersection>>>
 auto check_record(const record_type &volume_record, dindex start_volume = 0) {
     std::set<std::pair<dindex, dindex>> valid_volumes = {};
 
     // Always read 2 elements from the sorted records vector
     struct record_doublet {
         // Two volume index, portal intersections
-        const typename record_type::value_type& lower, upper;
+        const typename record_type::value_type &lower, upper;
 
         // Is this doublet connected via the portal intersection?
-        inline bool operator()() const {return lower.second == upper.second;}
+        inline bool operator()() const { return lower.second == upper.second; }
     };
 
     // Don't look a start and end volume, as they are not connected at one side
     for (size_t rec = 0; rec < volume_record.size() - 1; rec += 2) {
         // Get 2 possibly connected entries
-        record_doublet doublet = {.lower = volume_record[rec], .upper = volume_record[rec + 1]};
+        record_doublet doublet = {.lower = volume_record[rec],
+                                  .upper = volume_record[rec + 1]};
 
-        /*std::cout << doublet.lower.first << " (" << doublet.lower.second.path << ")" << std::endl;
-        std::cout << doublet.upper.first << " (" << doublet.upper.second.path << ")" << std::endl;
-        std::cout << std::endl;*/
+        /*std::cout << doublet.lower.first << " (" << doublet.lower.second.path
+        << ")" << std::endl; std::cout << doublet.upper.first << " (" <<
+        doublet.upper.second.path << ")" << std::endl; std::cout << std::endl;*/
 
         if (doublet()) {
             // Insert into set of edges
@@ -137,18 +141,25 @@ auto check_record(const record_type &volume_record, dindex start_volume = 0) {
         else {
             std::cerr << "<<<<<<<<<<<<<<<" << std::endl;
 
-            std::cerr << "Ray terminated at portal x-ing " << (rec + 1) / 2 << ": (" << doublet.lower.first << ", "
-            << doublet.lower.second.path << ") <-> (" << doublet.upper.first
-            << ", " << doublet.upper.second.path << ")" << std::endl;
+            std::cerr << "Ray terminated at portal x-ing " << (rec + 1) / 2
+                      << ": (" << doublet.lower.first << ", "
+                      << doublet.lower.second.path << ") <-> ("
+                      << doublet.upper.first << ", "
+                      << doublet.upper.second.path << ")" << std::endl;
 
-            std::cerr << "Start volume : " << start_volume << ", leaves world at: (" << volume_record.front().first << ", " << volume_record.front().second.path << "), (" << volume_record.back().first << ", "
-            << volume_record.back().second.path << ")" << std::endl;
+            std::cerr << "Start volume : " << start_volume
+                      << ", leaves world at: (" << volume_record.front().first
+                      << ", " << volume_record.front().second.path << "), ("
+                      << volume_record.back().first << ", "
+                      << volume_record.back().second.path << ")" << std::endl;
 
             if (volume_record.front().second == doublet.lower.second) {
-                std::cerr << "=> Ray didn't leave start volume at " << volume_record.front().first << std::endl;
+                std::cerr << "=> Ray didn't leave start volume at "
+                          << volume_record.front().first << std::endl;
             }
             if (volume_record.back().second == doublet.upper.second) {
-                std::cerr << "=> Ray didn't leave world at " << volume_record.back().first << std::endl;
+                std::cerr << "=> Ray didn't leave world at "
+                          << volume_record.back().first << std::endl;
             }
 
             std::cerr << ">>>>>>>>>>>>>>>" << std::endl;
@@ -174,13 +185,13 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
     dindex start_index = d.volume_by_pos(ori.first).index();
     bool check_result = false;
 
-    // Loops of theta values
+    // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
         scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
         scalar sin_theta = std::sin(theta);
         scalar cos_theta = std::cos(theta);
 
-        // Loops of phi values
+        // Loops of phi values [-pi, pi]
         for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
             // The direction
             scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
@@ -191,20 +202,20 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
                 {0., 0., 0.});
 
             const auto volume_record = shoot_ray(d, ori, dir);
-            const auto volume_connections = check_record(volume_record, start_index);
+            const auto volume_connections =
+                check_record(volume_record, start_index);
 
             // All edges made it through the checking
-            check_result = (volume_record.size() - 1) / 2 == volume_connections.size();
+            check_result =
+                (volume_record.size() - 1) / 2 == volume_connections.size();
         }
     }
     // Did all rays pass?
     ASSERT_TRUE(check_result);
 }
 
-
 // This test runs intersection with all portals of the TrackML detector
-TEST(ALGEBRA_PLUGIN, random_rays) {
-}
+TEST(ALGEBRA_PLUGIN, random_rays) {}
 
 }  // namespace __plugin
 
