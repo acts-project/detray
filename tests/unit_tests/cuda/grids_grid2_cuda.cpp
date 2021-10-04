@@ -27,9 +27,8 @@ TEST(grids_cuda, grid2_replace_populator) {
     auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
 
     // declare host grid
-    grid2<host_replace_populator<test::point3>, axis::regular<>,
-          axis::regular<>, serializer2>
-        g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0, 0, 0});
+    host_grid2_replace g2(std::move(xaxis), std::move(yaxis), mng_mr,
+                          test::point3{0, 0, 0});
 
     // pre-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -42,12 +41,8 @@ TEST(grids_cuda, grid2_replace_populator) {
     }
 
     // get grid_data
-    grid2_data<device_replace_populator<test::point3>, axis::regular<>,
-               axis::regular<>, serializer2>
-        g2_data(g2, mng_mr);
-    grid2_view<device_replace_populator<test::point3>, axis::regular<>,
-               axis::regular<>, serializer2>
-        g2_view(g2_data);
+    auto g2_data = get_data(g2, mng_mr);
+    auto g2_view = get_view(g2_data);
 
     // fill the grids
     grid_replace_test(g2_view);
@@ -92,13 +87,8 @@ TEST(grids_cuda, grid2_complete_populator) {
     }
 
     // get grid_data
-    grid2_data<device_complete_populator<n_points, false, test::point3>,
-               axis::regular<>, axis::regular<>, serializer2>
-        g2_data(g2, mng_mr);
-
-    grid2_view<device_complete_populator<n_points, false, test::point3>,
-               axis::regular<>, axis::regular<>, serializer2>
-        g2_view(g2_data);
+    auto g2_data = get_data(g2, mng_mr);
+    auto g2_view = get_view(g2_data);
 
     // fill the grid
     grid_complete_test(g2_view);
@@ -137,9 +127,7 @@ TEST(grids_cuda, grid2_attach_populator) {
     auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
     auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
 
-    grid2<host_attach_populator<false, test::point3>, axis::circular<>,
-          axis::regular<>, serializer2>
-        g2(xaxis, yaxis, mng_mr, test::point3{0, 0, 0});
+    host_grid2_attach g2(xaxis, yaxis, mng_mr, test::point3{0, 0, 0});
 
     for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
         for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -157,13 +145,8 @@ TEST(grids_cuda, grid2_attach_populator) {
     }
 
     // get grid_data
-    grid2_data<device_attach_populator<false, test::point3>, axis::circular<>,
-               axis::regular<>, serializer2>
-        g2_data(g2, mng_mr);
-    // get grid_view
-    grid2_view<device_attach_populator<false, test::point3>, axis::circular<>,
-               axis::regular<>, serializer2>
-        g2_view(g2_data);
+    auto g2_data = get_data(g2, mng_mr);
+    auto g2_view = get_view(g2_data);
 
     // Read the grid
     grid_attach_read_test(g2_view);
@@ -176,12 +159,11 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    axis::regular<> xaxis{2, -1., 3.};
+    axis::circular<> xaxis{2, -1., 3.};
     axis::regular<> yaxis{2, 0., 6.};
 
-    grid2_buffer<device_attach_populator<false, test::point3>, axis::regular<>,
-                 axis::regular<>, serializer2>
-        g2_buffer(xaxis, yaxis, {2, 5, 8, 10}, {100, 200, 300, 400}, mng_mr);
+    grid2_buffer<host_grid2_attach> g2_buffer(xaxis, yaxis, {2, 5, 8, 10},
+                                              {100, 200, 300, 400}, mng_mr);
 
     // Check if the initialization work well
     // Non-zero starting size not working yet so initial argument for sizes is
@@ -196,14 +178,12 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     EXPECT_EQ(ptr[2].capacity(), 300);
     EXPECT_EQ(ptr[3].capacity(), 400);
 
-    grid2_view<device_attach_populator<false, test::point3>, axis::regular<>,
-               axis::regular<>, serializer2>
-        g2_view(g2_buffer);
+    auto g2_view = get_view(g2_buffer);
 
-    // fill each bin with 10 points
+    // fill each bin with 100 points
     grid_attach_fill_test(g2_view);
 
-    // Check if each bin has 10 points
+    // Check if each bin has 100 points
     EXPECT_EQ(ptr[0].size(), 100);
     EXPECT_EQ(ptr[1].size(), 100);
     EXPECT_EQ(ptr[2].size(), 100);

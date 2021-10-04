@@ -21,20 +21,38 @@ namespace detray {
 
 static constexpr int n_points = 3;
 
+using host_grid2_replace = grid2<host_replace_populator<test::point3>,
+                                 axis::regular<>, axis::regular<>, serializer2>;
+
+using device_grid2_replace =
+    grid2<device_replace_populator<test::point3>, axis::regular<>,
+          axis::regular<>, serializer2>;
+
+using host_grid2_complete =
+    grid2<host_complete_populator<n_points, false, test::point3>,
+          axis::regular<>, axis::regular<>, serializer2>;
+
+using device_grid2_complete =
+    grid2<device_complete_populator<n_points, false, test::point3>,
+          axis::regular<>, axis::regular<>, serializer2>;
+
+using host_grid2_attach = grid2<host_attach_populator<false, test::point3>,
+                                axis::circular<>, axis::regular<>, serializer2>;
+
+using device_grid2_attach =
+    grid2<device_attach_populator<false, test::point3>, axis::circular<>,
+          axis::regular<>, serializer2>;
+
 // test function for replace populator
-template <typename grid2_view_t>
-void grid_replace_test(grid2_view_t& grid_view);
+void grid_replace_test(grid2_view<host_grid2_replace>& grid_view);
 
 // test function for complete populator
-template <typename grid2_view_t>
-void grid_complete_test(grid2_view_t& grid_view);
+void grid_complete_test(grid2_view<host_grid2_complete>& grid_view);
 
 // read test function for grid with attach populator
-template <typename grid2_view_t>
-void grid_attach_read_test(grid2_view_t& grid_view);
+void grid_attach_read_test(grid2_view<host_grid2_attach>& grid_view);
 
 // fill test function for grid buffer with attach populator
-template <typename grid2_view_t>
-void grid_attach_fill_test(grid2_view_t& grid_data);
+void grid_attach_fill_test(grid2_view<host_grid2_attach>& grid_view);
 
 }  // namespace detray

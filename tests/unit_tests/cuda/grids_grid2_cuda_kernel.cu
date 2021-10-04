@@ -20,16 +20,8 @@ namespace detray {
 template <typename grid_view_t>
 __global__ void grid_replace_test_kernel(grid_view_t grid_view);
 
-// test1 instantiation for replace populator
-template void
-grid_replace_test<grid2_view<device_replace_populator<test::point3>,
-                             axis::regular<>, axis::regular<>, serializer2>>(
-    grid2_view<device_replace_populator<test::point3>, axis::regular<>,
-               axis::regular<>, serializer2>& grid_view);
-
 // test2 function implementation
-template <typename grid2_view_t>
-void grid_replace_test(grid2_view_t& grid_view) {
+void grid_replace_test(grid2_view<host_grid2_replace>& grid_view) {
 
     const auto& axis0 = grid_view._axis_p0;
     const auto& axis1 = grid_view._axis_p1;
@@ -49,13 +41,8 @@ void grid_replace_test(grid2_view_t& grid_view) {
 template <typename grid_view_t>
 __global__ void grid_replace_test_kernel(grid_view_t grid_view) {
 
-    using grid2_device_t =
-        grid2<typename grid_view_t::populator_t,
-              typename grid_view_t::axis_p0_t, typename grid_view_t::axis_p1_t,
-              typename grid_view_t::serializer_t>;
-
     // Let's try building the grid object
-    grid2_device_t g2_device(grid_view, test::point3{0, 0, 0});
+    device_grid2_replace g2_device(grid_view, test::point3{0, 0, 0});
 
     const auto& axis0 = g2_device.axis_p0();
     const auto& axis1 = g2_device.axis_p1();
@@ -79,16 +66,8 @@ __global__ void grid_replace_test_kernel(grid_view_t grid_view) {
 template <typename grid_view_t>
 __global__ void grid_complete_kernel(grid_view_t grid_view);
 
-// test2 instantiation for complete populator
-template void grid_complete_test<
-    grid2_view<device_complete_populator<n_points, false, test::point3>,
-               axis::regular<>, axis::regular<>, serializer2>>(
-    grid2_view<device_complete_populator<n_points, false, test::point3>,
-               axis::regular<>, axis::regular<>, serializer2>& grid_view);
-
 // test2 function implementation
-template <typename grid2_view_t>
-void grid_complete_test(grid2_view_t& grid_view) {
+void grid_complete_test(grid2_view<host_grid2_complete>& grid_view) {
 
     const auto& axis0 = grid_view._axis_p0;
     const auto& axis1 = grid_view._axis_p1;
@@ -108,13 +87,8 @@ void grid_complete_test(grid2_view_t& grid_view) {
 template <typename grid_view_t>
 __global__ void grid_complete_kernel(grid_view_t grid_view) {
 
-    using grid2_device_t =
-        grid2<typename grid_view_t::populator_t,
-              typename grid_view_t::axis_p0_t, typename grid_view_t::axis_p1_t,
-              typename grid_view_t::serializer_t>;
-
     // Let's try building the grid object
-    grid2_device_t g2_device(grid_view, test::point3{0, 0, 0});
+    device_grid2_complete g2_device(grid_view, test::point3{0, 0, 0});
 
     const auto& axis0 = g2_device.axis_p0();
     const auto& axis1 = g2_device.axis_p1();
@@ -141,15 +115,7 @@ __global__ void grid_complete_kernel(grid_view_t grid_view) {
 template <typename grid_view_t>
 __global__ void grid_attach_read_test_kernel(grid_view_t grid_view);
 
-// read_test instantiation for attach populator
-template void grid_attach_read_test<
-    grid2_view<device_attach_populator<false, test::point3>, axis::circular<>,
-               axis::regular<>, serializer2>>(
-    grid2_view<device_attach_populator<false, test::point3>, axis::circular<>,
-               axis::regular<>, serializer2>& grid_view);
-
-template <typename grid2_view_t>
-void grid_attach_read_test(grid2_view_t& grid_view) {
+void grid_attach_read_test(grid2_view<host_grid2_attach>& grid_view) {
 
     const auto& axis0 = grid_view._axis_p0;
     const auto& axis1 = grid_view._axis_p1;
@@ -168,13 +134,8 @@ void grid_attach_read_test(grid2_view_t& grid_view) {
 template <typename grid_view_t>
 __global__ void grid_attach_read_test_kernel(grid_view_t grid_view) {
 
-    using grid2_device_t =
-        grid2<typename grid_view_t::populator_t,
-              typename grid_view_t::axis_p0_t, typename grid_view_t::axis_p1_t,
-              typename grid_view_t::serializer_t>;
-
     // Let's try building the grid object
-    grid2_device_t g2_device(grid_view, test::point3{0, 0, 0});
+    device_grid2_attach g2_device(grid_view, test::point3{0, 0, 0});
 
     auto data = g2_device.bin(threadIdx.x, threadIdx.y);
 
@@ -191,15 +152,7 @@ __global__ void grid_attach_read_test_kernel(grid_view_t grid_view) {
 template <typename grid_view_t>
 __global__ void grid_attach_fill_test_kernel(grid_view_t grid_view);
 
-// buffer_test instantiation for attach populator
-template void grid_attach_fill_test<
-    grid2_view<device_attach_populator<false, test::point3>, axis::regular<>,
-               axis::regular<>, serializer2>>(
-    grid2_view<device_attach_populator<false, test::point3>, axis::regular<>,
-               axis::regular<>, serializer2>& grid_view);
-
-template <typename grid2_view_t>
-void grid_attach_fill_test(grid2_view_t& grid_view) {
+void grid_attach_fill_test(grid2_view<host_grid2_attach>& grid_view) {
 
     const auto& axis0 = grid_view._axis_p0;
     const auto& axis1 = grid_view._axis_p1;
@@ -219,13 +172,8 @@ void grid_attach_fill_test(grid2_view_t& grid_view) {
 template <typename grid_view_t>
 __global__ void grid_attach_fill_test_kernel(grid_view_t grid_view) {
 
-    using grid2_device_t =
-        grid2<typename grid_view_t::populator_t,
-              typename grid_view_t::axis_p0_t, typename grid_view_t::axis_p1_t,
-              typename grid_view_t::serializer_t>;
-
     // Let's try building the grid object
-    grid2_device_t g2_device(grid_view, test::point3{0, 0, 0});
+    device_grid2_attach g2_device(grid_view, test::point3{0, 0, 0});
 
     // Fill with 100 points
     auto pt =

@@ -16,8 +16,7 @@ namespace detray {
 
 /** Forward declaration of grid2_data
  **/
-template <typename populator_type, typename axis_p0_type, typename axis_p1_type,
-          typename serializer_type>
+template <typename grid_t>
 struct grid2_data;
 
 /** A two-dimensional grid for object storage
@@ -335,16 +334,13 @@ class grid2 {
  * @tparam tparam axis_p1_type the type of the second axis
  * @tparam serialzier_type  type of the serializer to the storage represenations
  **/
-template <typename populator_type, typename axis_p0_type, typename axis_p1_type,
-          typename serializer_type>
+template <typename grid_t>
 struct grid2_buffer {
 
-    using populator_t = populator_type;
-    using serializer_t = serializer_type;
-    using axis_p0_t = axis_p0_type;
-    using axis_p1_t = axis_p1_type;
-    using vector_buffer_t = typename populator_t::vector_buffer_t;
-    using buffer_size_t = typename populator_t::buffer_size_t;
+    using populator_t = typename grid_t::populator_t;
+    using serializer_t = typename grid_t::serializer_t;
+    using axis_p0_t = typename grid_t::axis_p0_t;
+    using axis_p1_t = typename grid_t::axis_p1_t;
 
     /** Constructor
      *
@@ -355,8 +351,9 @@ struct grid2_buffer {
      * @param resource is the vecmem memory resource
      *
      **/
-    grid2_buffer(const axis_p0_t &axis_p0, const axis_p0_t &axis_p1,
-                 buffer_size_t sizes, buffer_size_t capacities,
+    grid2_buffer(const axis_p0_t &axis_p0, const axis_p1_t &axis_p1,
+                 typename populator_t::buffer_size_t sizes,
+                 typename populator_t::buffer_size_t capacities,
                  vecmem::memory_resource &resource)
         : _axis_p0(axis_p0),
           _axis_p1(axis_p1),
@@ -364,9 +361,9 @@ struct grid2_buffer {
         // static_assert(axis_p0.bins()*axis_p1.bins() == _buffer.m_size);
     }
 
-    vector_buffer_t _buffer;
     const axis_p0_t _axis_p0;
     const axis_p1_t _axis_p1;
+    typename populator_t::vector_buffer_t _buffer;
 };
 
 /** A two-dimensional grid view for gpu device usage
@@ -376,23 +373,19 @@ struct grid2_buffer {
  * @tparam tparam axis_p1_type the type of the second axis
  * @tparam serialzier_type  type of the serializer to the storage represenations
  **/
-template <typename populator_type, typename axis_p0_type, typename axis_p1_type,
-          typename serializer_type>
+template <typename grid_t>
 struct grid2_view {
-    using populator_t = populator_type;
-    using serializer_t = serializer_type;
-    using axis_p0_t = axis_p0_type;
-    using axis_p1_t = axis_p1_type;
-    using vector_view_t = typename populator_t::vector_view_t;
+    using populator_t = typename grid_t::populator_t;
+    using serializer_t = typename grid_t::serializer_t;
+    using axis_p0_t = typename grid_t::axis_p0_t;
+    using axis_p1_t = typename grid_t::axis_p1_t;
 
-    /** Constructor from grid
+    /** Constructor from grid data
      *
-     * @param grid is the input grid from host
-     * @param resource is the vecmem memory resource
+     * @param grid data is the input grid data
      *
      **/
-    grid2_view(
-        grid2_data<populator_t, axis_p0_t, axis_p1_t, serializer_t> &grid_data)
+    grid2_view(const grid2_data<grid_t> &grid_data)
         : _axis_p0(grid_data._axis_p0),
           _axis_p1(grid_data._axis_p1),
           _data_view(grid_data._data) {}
@@ -401,15 +394,14 @@ struct grid2_view {
      *
      * @param grid_buffer is the input grid buffer
      **/
-    grid2_view(const grid2_buffer<populator_t, axis_p0_t, axis_p1_t,
-                                  serializer_t> &grid_buffer)
+    grid2_view(const grid2_buffer<grid_t> &grid_buffer)
         : _axis_p0(grid_buffer._axis_p0),
           _axis_p1(grid_buffer._axis_p1),
           _data_view(grid_buffer._buffer) {}
 
     const axis_p0_t _axis_p0;
     const axis_p1_t _axis_p1;
-    vector_view_t _data_view;
+    typename populator_t::vector_view_t _data_view;
 };
 
 /** A two-dimensional grid data for gpu device usage
@@ -419,15 +411,13 @@ struct grid2_view {
  * @tparam tparam axis_p1_type the type of the second axis
  * @tparam serialzier_type  type of the serializer to the storage represenations
  **/
-template <typename populator_type, typename axis_p0_type, typename axis_p1_type,
-          typename serializer_type>
+template <typename grid_t>
 struct grid2_data {
 
-    using populator_t = populator_type;
-    using serializer_t = serializer_type;
-    using axis_p0_t = axis_p0_type;
-    using axis_p1_t = axis_p1_type;
-    using vector_data_t = typename populator_t::vector_data_t;
+    using populator_t = typename grid_t::populator_t;
+    using serializer_t = typename grid_t::serializer_t;
+    using axis_p0_t = typename grid_t::axis_p0_t;
+    using axis_p1_t = typename grid_t::axis_p1_t;
 
     /** Constructor from grid
      *
@@ -435,15 +425,36 @@ struct grid2_data {
      * @param resource is the vecmem memory resource
      *
      **/
-    template <typename grid2_t>
-    grid2_data(grid2_t &grid, vecmem::memory_resource &resource)
+    grid2_data(grid_t &grid, vecmem::memory_resource &resource)
         : _axis_p0(grid.axis_p0()),
           _axis_p1(grid.axis_p1()),
-          _data(grid2_t::populator_t::get_data(grid.data(), resource)) {}
+          _data(populator_t::get_data(grid.data(), resource)) {}
 
-    vector_data_t _data;
     const axis_p0_t _axis_p0;
     const axis_p1_t _axis_p1;
+    typename populator_t::vector_data_t _data;
 };
+
+/** Get grid2_data from grid and memory resource
+ **/
+template <typename grid_t>
+inline grid2_data<grid_t> get_data(grid_t &grid,
+                                   vecmem::memory_resource &resource) {
+    return {grid, resource};
+}
+
+/** Get grid2_view from grid_data
+ **/
+template <typename grid_t>
+inline grid2_view<grid_t> get_view(grid2_data<grid_t> &grid_data) {
+    return {grid_data};
+}
+
+/** Get grid2_view from grid_buffer
+ **/
+template <typename grid_t>
+inline grid2_view<grid_t> get_view(grid2_buffer<grid_t> &grid_buffer) {
+    return {grid_buffer};
+}
 
 }  // namespace detray
