@@ -292,7 +292,7 @@ struct circular {
     DETRAY_HOST_DEVICE
     dindex remap(dindex ibin, int shood) const {
         int opt_bin = static_cast<int>(ibin) + shood;
-        if (opt_bin >= 0 and opt_bin < n_bins) {
+        if (opt_bin >= 0 and opt_bin < static_cast<int>(n_bins)) {
             return static_cast<dindex>(opt_bin);
         }
         if (opt_bin < 0) {
