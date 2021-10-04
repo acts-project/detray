@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include <iterator>
+#include <map>
 #include <sstream>
 #include <string>
 
@@ -48,7 +50,8 @@ template <template <typename, unsigned int> class array_type = darray,
                                                   tuple_type, dindex, dindex>,
           typename surfaces_populator_type =
               attach_populator<false, dindex, vector_type>,
-          typename surfaces_serializer_type = serializer2>
+          typename surfaces_serializer_type = serializer2,
+          typename name_map = std::map<dindex, std::string>>
 class detector {
 
     public:
@@ -108,7 +111,7 @@ class detector {
     /** Allowed costructor
      * @param name the detector name
      */
-    detector(const std::string &name) : _name(name) {}
+    detector(const std::string &name) : _name(_name) {}
 
     /** Add a new volume and retrieve a reference to it
      *
@@ -333,14 +336,34 @@ class detector {
     }
 
     /** Output to string */
-    template <typename name_map>
     const std::string to_string(const name_map &names) const {
         std::stringstream ss;
+
         ss << "[>] Detector '" << _name << "' has " << _geometry.n_volumes()
            << " volumes." << std::endl;
         ss << "    contains  " << _surfaces_finders.size()
            << " local surface finders." << std::endl;
-        ss << _geometry.to_string(names) << std::endl;
+
+        for (const auto &[i, v] : enumerate(_geometry.volumes())) {
+            ss << "[>>] Volume at index " << i << ": " << std::endl;
+            ss << " - name: '" << v.name(names) << "'" << std::endl;
+
+            ss << "     contains    " << v.template n_objects<true>() << " surfaces "
+               << std::endl;
+
+            ss << "                 " << v.template n_objects<false>() << " portals "
+               << std::endl;
+
+            if (v.surfaces_finder_entry() != dindex_invalid) {
+                ss << "  sf finders idx " << v.surfaces_finder_entry() << std::endl;
+            }
+
+            const auto& bounds = v.bounds();
+            ss << "     bounds r = (" << bounds[0] << ", " << bounds[1] << ")"
+               << std::endl;
+            ss << "            z = (" << bounds[2] << ", " << bounds[3] << ")"
+               << std::endl;
+        }
 
         return ss.str();
     };

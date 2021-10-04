@@ -6,9 +6,6 @@
  */
 #pragma once
 
-#include <map>
-#include <string>
-
 #include "utils/indexing.hpp"
 
 namespace detray {
@@ -101,33 +98,8 @@ class volume {
         }
     }
 
-    /** Print volume.
-     *
-     * @returns the volume description as a string
-     */
-    inline const std::string to_string(const name_map &names) const {
-        std::stringstream ss;
-        ss << " - name: '" << name(names) << "'" << std::endl;
-
-        ss << "     contains    " << n_objects<true>() << " surfaces "
-           << std::endl;
-
-        ss << "                 " << n_objects<false>() << " portals "
-           << std::endl;
-
-        if (surfaces_finder_entry() != dindex_invalid) {
-            ss << "  sf finders idx " << surfaces_finder_entry() << std::endl;
-        }
-
-        ss << "     bounds r = (" << _bounds[0] << ", " << _bounds[1] << ")"
-           << std::endl;
-        ss << "            z = (" << _bounds[2] << ", " << _bounds[3] << ")"
-           << std::endl;
-
-        return ss.str();
-    };
-
     private:
+
     /**
      * @param range Any index range
      *

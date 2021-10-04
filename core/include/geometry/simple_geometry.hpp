@@ -7,8 +7,6 @@
 #pragma once
 
 #include <iterator>
-#include <sstream>
-#include <string>
 #include <utility>
 
 #include "core/mask_store.hpp"
@@ -210,23 +208,8 @@ class simple_geometry {
         volume.template set_range<add_surfaces>({offset, _objects.size()});
     }
 
-    /**
-     * Print geometry if an external name map is provided for the volumes.
-     *
-     * @param names  Lookup for the names by volume index.
-     *
-     * @returns the geometry description as a string
-     */
-    template <typename name_map>
-    const std::string to_string(const name_map &names) const {
-        std::stringstream ss;
-        for (const auto &[i, v] : enumerate(_volumes)) {
-            ss << "[>>] Volume at index " << i << ": " << v.to_string(names);
-        }
-        return ss.str();
-    };
-
     private:
+
     /** Contains the geometrical relations*/
     vector_type<volume_type> _volumes = {};
 
