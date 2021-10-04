@@ -192,9 +192,8 @@ struct navigator {
                               volume.template range<objects::e_surface>());
             // If no surfaces are to processed, initialize the portals
             if (surface_kernel.empty()) {
-                initialize_kernel(
-                    navigation, portal_kernel, track,
-                    volume.template range<objects::e_portal>());
+                initialize_kernel(navigation, portal_kernel, track,
+                                  volume.template range<objects::e_portal>());
                 heartbeat = check_volume_switch(navigation);
             }
             // Before returning, run through the inspector
@@ -251,9 +250,8 @@ struct navigator {
                     // Clear the surface kernel
                     surface_kernel.clear();
                     navigation.trust_level = e_no_trust;
-                    update_kernel(
-                        navigation, portal_kernel, track,
-                        volume.template range<objects::e_portal>());
+                    update_kernel(navigation, portal_kernel, track,
+                                  volume.template range<objects::e_portal>());
                     navigation.inspector(navigation);
                     return heartbeat;
                 } else if (update_kernel(
@@ -272,10 +270,9 @@ struct navigator {
                               volume.template range<objects::e_surface>());
             // If no surfaces are to processed, initialize the portals
             if (surface_kernel.empty()) {
-                initialize_kernel(
-                    navigation, portal_kernel, track,
-                    volume.template range<objects::e_portal>(),
-                    navigation.status == e_on_portal);
+                initialize_kernel(navigation, portal_kernel, track,
+                                  volume.template range<objects::e_portal>(),
+                                  navigation.status == e_on_portal);
                 heartbeat = check_volume_switch(navigation);
             }
         }
@@ -358,7 +355,8 @@ struct navigator {
      */
     template <typename kernel_t, typename range_t>
     bool update_kernel(state &navigation, kernel_t &kernel,
-                       const track<context> &track, const range_t &obj_range) const {
+                       const track<context> &track,
+                       const range_t &obj_range) const {
         // If the kernel is empty - intitalize it
         if (kernel.empty()) {
             initialize_kernel(navigation, kernel, track, obj_range);
