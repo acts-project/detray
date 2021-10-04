@@ -323,7 +323,7 @@ class grid2 {
     DETRAY_HOST_DEVICE
     const populator_type &populator() const { return _populator; }
 
-    DETRAY_HOST
+    DETRAY_HOST_DEVICE
     serialized_storage &data() { return _data_serialized; }
 
     private:
