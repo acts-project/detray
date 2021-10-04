@@ -370,7 +370,6 @@ class detector {
     };
 
     private:
-
     std::string _name = "unknown_detector";
 
     /** Keeps the geometry object linking*/
