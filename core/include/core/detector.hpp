@@ -111,7 +111,7 @@ class detector {
     /** Allowed costructor
      * @param name the detector name
      */
-    detector(const std::string &name) : _name(_name) {}
+    detector(const std::string &name) : _name(name) {}
 
     /** Add a new volume and retrieve a reference to it
      *
@@ -370,6 +370,7 @@ class detector {
     };
 
     private:
+
     std::string _name = "unknown_detector";
 
     /** Keeps the geometry object linking*/
