@@ -99,7 +99,6 @@ class volume {
     }
 
     private:
-
     /**
      * @param range Any index range
      *

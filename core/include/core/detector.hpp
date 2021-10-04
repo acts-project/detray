@@ -348,17 +348,18 @@ class detector {
             ss << "[>>] Volume at index " << i << ": " << std::endl;
             ss << " - name: '" << v.name(names) << "'" << std::endl;
 
-            ss << "     contains    " << v.template n_objects<true>() << " surfaces "
-               << std::endl;
+            ss << "     contains    " << v.template n_objects<true>()
+               << " surfaces " << std::endl;
 
-            ss << "                 " << v.template n_objects<false>() << " portals "
-               << std::endl;
+            ss << "                 " << v.template n_objects<false>()
+               << " portals " << std::endl;
 
             if (v.surfaces_finder_entry() != dindex_invalid) {
-                ss << "  sf finders idx " << v.surfaces_finder_entry() << std::endl;
+                ss << "  sf finders idx " << v.surfaces_finder_entry()
+                   << std::endl;
             }
 
-            const auto& bounds = v.bounds();
+            const auto &bounds = v.bounds();
             ss << "     bounds r = (" << bounds[0] << ", " << bounds[1] << ")"
                << std::endl;
             ss << "            z = (" << bounds[2] << ", " << bounds[3] << ")"

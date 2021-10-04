@@ -209,7 +209,6 @@ class simple_geometry {
     }
 
     private:
-
     /** Contains the geometrical relations*/
     vector_type<volume_type> _volumes = {};
 
