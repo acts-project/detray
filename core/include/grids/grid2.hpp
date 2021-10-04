@@ -136,6 +136,13 @@ class grid2 {
         _populator(_data_serialized[sbin], std::move(fvalue));
     }
 
+    DETRAY_HOST_DEVICE
+    void populate(dindex gbin, typename populator_type::bare_value &&fvalue) {
+        dindex bin0 = gbin % _axis_p0.bins();
+        dindex bin1 = gbin / _axis_p0.bins();
+        populate(bin0, bin1, fvalue);
+    }
+
     /** Return the value of a single bin - with direct bin acess
      *
      * @param bin0 the index of bin 0
