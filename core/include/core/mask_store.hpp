@@ -13,7 +13,7 @@ namespace detray {
 
 /** A mask store that provides the correct mask containers to client classes. */
 template <template <typename...> class tuple_type = dtuple,
-          template <typename> class vector_type = dvector,
+          template <typename...> class vector_type = dvector,
           typename... mask_types>
 class mask_store {
 
