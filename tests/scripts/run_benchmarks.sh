@@ -39,6 +39,13 @@ echo "===> Download benchmark history ..."
 
 cd ${GITHUB_WORKSPACE} 
 git fetch
+cd extern/algebra-plugins
+git reset --hard origin/master
+cd -
+git clean -n
+git add extern/algebra-plugins
+git commit
+git submodule update --init --recursive
 git checkout -b gh-pages origin/gh-pages
 cp archive/benchmarks/benchmarks_history.csv ${PWD_BUILD}/.
 cd ${PWD_BUILD}
