@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <map>
 #include <set>
@@ -16,7 +17,6 @@
 #include <vector>
 
 #include "core/detector.hpp"
-#include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
 #include "tools/intersection_kernel.hpp"
 
@@ -82,6 +82,7 @@ auto shoot_ray(const detector_type &d, const std::pair<point3, point3> origin,
         for (size_t pi = pt_range[0]; pi < pt_range[1]; pi++) {
             auto pti = intersect(ray, portals[pi], transforms, masks, links);
 
+            //
             if (pti.status == intersection_status::e_inside &&
                 pti.direction == intersection_direction::e_along) {
                 volume_record.emplace_back(v.index(), pti);
@@ -92,8 +93,9 @@ auto shoot_ray(const detector_type &d, const std::pair<point3, point3> origin,
     // Sort by distance to origin of the ray and then volume index
     auto sort_path = [&](std::pair<dindex, intersection> a,
                          std::pair<dindex, intersection> b) -> bool {
-        return (a.second.path == b.second.path) ? (a.first < b.first)
-                                                : (a.second < b.second);
+        return (a.second.path == b.second.path)
+                   ? (b.first < a.first)
+                   : (b.second.path < a.second.path);
     };
     std::sort(volume_record.begin(), volume_record.end(), sort_path);
 
@@ -123,15 +125,24 @@ auto check_record(const record_type &volume_record, dindex start_volume = 0) {
         inline bool operator()() const { return lower.second == upper.second; }
     };
 
+    if ((volume_record.size() - 1) % 2) {
+        return valid_volumes;
+    }
+
+    // std::cerr << "<<<<<<<<<<<<<<<" << std::endl;
+
     // Don't look a start and end volume, as they are not connected at one side
-    for (size_t rec = 0; rec < volume_record.size() - 1; rec += 2) {
+    for (size_t rec = 1; rec < volume_record.size() - 1; rec += 2) {
+
         // Get 2 possibly connected entries
         record_doublet doublet = {.lower = volume_record[rec],
                                   .upper = volume_record[rec + 1]};
 
-        /*std::cout << doublet.lower.first << " (" << doublet.lower.second.path
-        << ")" << std::endl; std::cout << doublet.upper.first << " (" <<
-        doublet.upper.second.path << ")" << std::endl; std::cout << std::endl;*/
+        std::cout << doublet.lower.first << " (" << doublet.lower.second.path
+                  << ")" << std::endl;
+        std::cout << doublet.upper.first << " (" << doublet.upper.second.path
+                  << ")" << std::endl;
+        std::cout << std::endl;
 
         if (doublet()) {
             // Insert into set of edges
@@ -167,6 +178,7 @@ auto check_record(const record_type &volume_record, dindex start_volume = 0) {
             return valid_volumes;
         }
     }
+    // std::cerr << ">>>>>>>>>>>>>>>" << std::endl;
 
     return valid_volumes;
 }
