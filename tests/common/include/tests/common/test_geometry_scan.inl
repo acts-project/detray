@@ -168,8 +168,8 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
     unsigned int phi_steps = 100;
     const unsigned int itest = 10000;
 
-    const auto ori = std::make_pair<point3, point3>({0., 0., 0.}, {0., 0., 0.});
-    dindex start_index = d.volume_by_pos(ori.first).index();
+    const point3 ori{0., 0., 0.};
+    dindex start_index = d.volume_by_pos(ori).index();
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -183,9 +183,8 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
             scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
             scalar sin_phi = std::sin(phi);
             scalar cos_phi = std::cos(phi);
-            const auto dir = std::make_pair<point3, point3>(
-                {cos_phi * sin_theta, sin_phi * sin_theta, cos_theta},
-                {0., 0., 0.});
+            const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
+                             cos_theta};
 
             const auto volume_record = shoot_ray(d, ori, dir);
             const auto volume_connections =

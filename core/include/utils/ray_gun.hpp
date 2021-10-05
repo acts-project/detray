@@ -23,9 +23,8 @@ namespace detray {
  *         intersections of the portals that were encountered
  */
 template <typename detector_type>
-inline auto shoot_ray(const detector_type &d,
-                      const std::pair<point3, point3> origin,
-                      const std::pair<point3, point3> direction) {
+inline auto shoot_ray(const detector_type &d, const point3 &origin,
+                      const point3 &direction) {
 
     using object_id = typename detector_type::objects;
     using portal_links = typename detector_type::geometry::portal_links;
@@ -33,9 +32,7 @@ inline auto shoot_ray(const detector_type &d,
 
     detray_context default_context;
 
-    track<detray_context> ray;
-    ray.pos = origin.first;
-    ray.dir = direction.first;
+    track<detray_context> ray = {.pos = origin, .dir = direction};
 
     std::vector<std::pair<dindex, intersection>> volume_record;
 
