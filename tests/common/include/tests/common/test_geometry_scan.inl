@@ -44,6 +44,42 @@ auto read_detector() {
                                        grid_entries);
 };
 
+/** Check if a set of volume index pairs form a trace.
+ *
+ * @param volume_records the recorded portal crossings between volumes
+ * @param start_volume where the ray started
+ *
+ * @note Empty traces pass automatically.
+ *
+ * @return true if the volumes form a connected chain.
+ */
+inline bool trace_volumes(std::set<std::pair<dindex, dindex>> volume_records, dindex start_volume = 0) {
+
+    // Where are we on the trace?
+    dindex on_volume = start_volume;
+
+    // Init chain search
+    auto record = volume_records.begin();
+
+    while (record != volume_records.end()) {
+
+        // find connection record for the current volume
+        record = find_if(volume_records.begin(), volume_records.end(),
+        [&](const std::pair<dindex, dindex>& rec) -> bool {
+        return (rec.first == on_volume) or (rec.second == on_volume); });
+    
+        // update to next volume
+        on_volume = on_volume == record->first ? record->second : record->first;
+
+        // Don't search this key again -> only one potential key with current
+        // index left
+        volume_records.erase(record);
+        record = volume_records.begin();
+    }
+
+    return volume_records.empty();
+}
+
 /** Check if a vector of volume portal intersections are connected.
  *
  * @tparam record_type container that contains volume idx, intersection pairs
@@ -67,12 +103,13 @@ inline auto check_connectivity(const record_type &volume_record, dindex start_vo
         inline bool operator()() const { return lower.second == upper.second; }
     };
 
+    // Excluding the volume where we leave world, the rest should come in pairs
     if ((volume_record.size() - 1) % 2) {
         return valid_volumes;
     }
 
-    // Don't look a start and end volume, as they are not connected at one side
-    for (size_t rec = 1; rec < volume_record.size() - 1; rec += 2) {
+    // Don't look at the end volume, as it is not connected at one side
+    for (size_t rec = 0; rec < volume_record.size() - 1; rec += 2) {
 
         // Get 2 possibly connected entries
         record_doublet doublet = {.lower = volume_record[rec],
@@ -129,7 +166,6 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
 
     const auto ori = std::make_pair<point3, point3>({0., 0., 0.}, {0., 0., 0.});
     dindex start_index = d.volume_by_pos(ori.first).index();
-    bool check_result = false;
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -151,13 +187,12 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
             const auto volume_connections =
                 check_connectivity(volume_record, start_index);
 
+            // Something was wrong with the 'volume_record'
+            ASSERT_TRUE(not volume_connections.empty());
             // All edges made it through the checking
-            check_result =
-                (volume_record.size() - 1) / 2 == volume_connections.size();
+            ASSERT_TRUE(trace_volumes(volume_connections));
         }
     }
-    // Did all rays pass?
-    ASSERT_TRUE(check_result);
 }
 
 }  // namespace __plugin

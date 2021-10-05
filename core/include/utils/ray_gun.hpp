@@ -23,8 +23,9 @@ namespace detray {
  *         intersections of the portals that were encountered
  */
 template <typename detector_type>
-inline auto shoot_ray(const detector_type &d, const std::pair<point3, point3> origin,
-               const std::pair<point3, point3> direction) {
+inline auto shoot_ray(const detector_type &d,
+                      const std::pair<point3, point3> origin,
+                      const std::pair<point3, point3> direction) {
 
     using object_id = typename detector_type::objects;
     using portal_links = typename detector_type::geometry::portal_links;
@@ -60,9 +61,7 @@ inline auto shoot_ray(const detector_type &d, const std::pair<point3, point3> or
     // Sort by distance to origin of the ray and then volume index
     auto sort_path = [&](std::pair<dindex, intersection> a,
                          std::pair<dindex, intersection> b) -> bool {
-        return (a.second.path == b.second.path)
-                   ? (b.first < a.first)
-                   : (b.second.path < a.second.path);
+        return (a.second < b.second);
     };
     std::sort(volume_record.begin(), volume_record.end(), sort_path);
 
