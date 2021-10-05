@@ -53,7 +53,8 @@ auto read_detector() {
  *
  * @return true if the volumes form a connected chain.
  */
-inline bool trace_volumes(std::set<std::pair<dindex, dindex>> volume_records, dindex start_volume = 0) {
+inline bool trace_volumes(std::set<std::pair<dindex, dindex>> volume_records,
+                          dindex start_volume = 0) {
 
     // Where are we on the trace?
     dindex on_volume = start_volume;
@@ -65,9 +66,11 @@ inline bool trace_volumes(std::set<std::pair<dindex, dindex>> volume_records, di
 
         // find connection record for the current volume
         record = find_if(volume_records.begin(), volume_records.end(),
-        [&](const std::pair<dindex, dindex>& rec) -> bool {
-        return (rec.first == on_volume) or (rec.second == on_volume); });
-    
+                         [&](const std::pair<dindex, dindex> &rec) -> bool {
+                             return (rec.first == on_volume) or
+                                    (rec.second == on_volume);
+                         });
+
         // update to next volume
         on_volume = on_volume == record->first ? record->second : record->first;
 
@@ -91,7 +94,8 @@ inline bool trace_volumes(std::set<std::pair<dindex, dindex>> volume_records, di
  *         of a ray.
  */
 template <typename record_type = dvector<std::pair<dindex, intersection>>>
-inline auto check_connectivity(const record_type &volume_record, dindex start_volume = 0) {
+inline auto check_connectivity(const record_type &volume_record,
+                               dindex start_volume = 0) {
     std::set<std::pair<dindex, dindex>> valid_volumes = {};
 
     // Always read 2 elements from the sorted records vector
