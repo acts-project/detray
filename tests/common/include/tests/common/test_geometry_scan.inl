@@ -32,17 +32,17 @@ auto read_detector() {
     }
     auto data_directory = std::string(env_d_d);
 
-    std::string name = "odd";
+    /*std::string name = "odd";
     std::string surfaces = data_directory + "odd.csv";
     std::string volumes = data_directory + "odd-layer-volumes.csv";
     std::string grids = data_directory + "odd-surface-grids.csv";
-    std::string grid_entries = "";
+    std::string grid_entries = "";*/
 
-    /*std::string name = "tml";
+    std::string name = "tml";
     std::string surfaces = data_directory + "tml.csv";
     std::string volumes = data_directory + "tml-layer-volumes.csv";
     std::string grids = data_directory + "tml-surface-grids.csv";
-    std::string grid_entries = "";*/
+    std::string grid_entries = "";
     // std::map<dindex, std::string> name_map{};
 
     /*return detray::detector_from_csv<>(name, surfaces, volumes, grids,
