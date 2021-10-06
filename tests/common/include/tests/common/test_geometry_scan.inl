@@ -12,6 +12,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -31,11 +32,17 @@ auto read_detector() {
     }
     auto data_directory = std::string(env_d_d);
 
-    std::string name = "tml";
+    std::string name = "odd";
+    std::string surfaces = data_directory + "odd.csv";
+    std::string volumes = data_directory + "odd-layer-volumes.csv";
+    std::string grids = data_directory + "odd-surface-grids.csv";
+    std::string grid_entries = "";
+
+    /*std::string name = "tml";
     std::string surfaces = data_directory + "tml.csv";
     std::string volumes = data_directory + "tml-layer-volumes.csv";
     std::string grids = data_directory + "tml-surface-grids.csv";
-    std::string grid_entries = "";
+    std::string grid_entries = "";*/
     // std::map<dindex, std::string> name_map{};
 
     /*return detray::detector_from_csv<>(name, surfaces, volumes, grids,
@@ -55,14 +62,33 @@ auto read_detector() {
  */
 inline bool trace_volumes(std::set<std::pair<dindex, dindex>> volume_records,
                           dindex start_volume = 0) {
+    // Keep record of leftovers
+    std::stringstream record_stream;
 
     // Where are we on the trace?
     dindex on_volume = start_volume;
 
     // Init chain search
-    auto record = volume_records.begin();
+    // find connection record for the current volume
+    auto record = find_if(volume_records.begin(), volume_records.end(),
+                          [&](const std::pair<dindex, dindex> &rec) -> bool {
+                              return (rec.first == on_volume) or
+                                     (rec.second == on_volume);
+                          });
 
     while (record != volume_records.end()) {
+
+        record_stream << "On volume: " << on_volume << " and record ("
+                      << record->first << ", " << record->second << ")";
+
+        // update to next volume
+        on_volume = on_volume == record->first ? record->second : record->first;
+
+        record_stream << "-> next volume: " << on_volume << std::endl;
+
+        // Don't search this key again -> only one potential key with current
+        // index left
+        volume_records.erase(record);
 
         // find connection record for the current volume
         record = find_if(volume_records.begin(), volume_records.end(),
@@ -70,17 +96,17 @@ inline bool trace_volumes(std::set<std::pair<dindex, dindex>> volume_records,
                              return (rec.first == on_volume) or
                                     (rec.second == on_volume);
                          });
-
-        // update to next volume
-        on_volume = on_volume == record->first ? record->second : record->first;
-
-        // Don't search this key again -> only one potential key with current
-        // index left
-        volume_records.erase(record);
-        record = volume_records.begin();
     }
 
-    return volume_records.empty();
+    // There are unconnected elements left
+    if (not volume_records.empty()) {
+        std::cerr << "In trace finding: " << std::endl;
+        std::cerr << record_stream.str() << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
 
 /** Check if a vector of volume portal intersections are connected.
@@ -97,6 +123,7 @@ template <typename record_type = dvector<std::pair<dindex, intersection>>>
 inline auto check_connectivity(const record_type &volume_record,
                                dindex start_volume = 0) {
     std::set<std::pair<dindex, dindex>> valid_volumes = {};
+    std::stringstream record_stream;
 
     // Always read 2 elements from the sorted records vector
     struct record_doublet {
@@ -119,13 +146,22 @@ inline auto check_connectivity(const record_type &volume_record,
         record_doublet doublet = {.lower = volume_record[rec],
                                   .upper = volume_record[rec + 1]};
 
+        record_stream << doublet.lower.first << " ("
+                      << doublet.lower.second.path << ")" << std::endl;
+        record_stream << doublet.upper.first << " ("
+                      << doublet.upper.second.path << ")" << std::endl;
+
         if (doublet()) {
             // Insert into set of edges
             valid_volumes.emplace(doublet.lower.first, doublet.upper.first);
         }
         // Something went wrong
         else {
+            // Print search log
             std::cerr << "<<<<<<<<<<<<<<<" << std::endl;
+            std::cerr << "volume idx (distance from ray origin)\n" << std::endl;
+
+            std::cerr << record_stream.str() << std::endl;
 
             std::cerr << "Ray terminated at portal x-ing " << (rec + 1) / 2
                       << ": (" << doublet.lower.first << ", "
@@ -133,20 +169,13 @@ inline auto check_connectivity(const record_type &volume_record,
                       << doublet.upper.first << ", "
                       << doublet.upper.second.path << ")" << std::endl;
 
-            std::cerr << "Start volume : " << start_volume
-                      << ", leaves world at: (" << volume_record.front().first
-                      << ", " << volume_record.front().second.path << "), ("
-                      << volume_record.back().first << ", "
-                      << volume_record.back().second.path << ")" << std::endl;
-
-            if (volume_record.front().second == doublet.lower.second) {
-                std::cerr << "=> Ray didn't leave start volume at "
-                          << volume_record.front().first << std::endl;
-            }
-            if (volume_record.back().second == doublet.upper.second) {
-                std::cerr << "=> Ray didn't leave world at "
-                          << volume_record.back().first << std::endl;
-            }
+            std::cerr << "Start volume : " << start_volume << std::endl;
+            std::cerr << "- first intersection: ("
+                      << volume_record.front().first << ", "
+                      << volume_record.front().second.path << ")," << std::endl;
+            std::cerr << "- last intersection: (" << volume_record.back().first
+                      << ", " << volume_record.back().second.path << "),"
+                      << std::endl;
 
             std::cerr << ">>>>>>>>>>>>>>>" << std::endl;
 
@@ -190,8 +219,6 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
             const auto volume_connections =
                 check_connectivity(volume_record, start_index);
 
-            // Something was wrong with the 'volume_record'
-            ASSERT_TRUE(not volume_connections.empty());
             // All edges made it through the checking
             ASSERT_TRUE(trace_volumes(volume_connections));
         }
