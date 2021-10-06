@@ -55,7 +55,7 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
         }
     }
 
-    // Sort by distance to origin of the ray and then volume index
+    // Sort intersections by distance to origin of the ray
     auto sort_path = [&](std::pair<dindex, intersection> a,
                          std::pair<dindex, intersection> b) -> bool {
         return (a.second < b.second);
