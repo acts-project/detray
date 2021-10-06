@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include "core/mask_store.hpp"
 #include "core/surface_base.hpp"
 #include "core/track.hpp"
 #include "core/transform_store.hpp"
@@ -40,14 +41,13 @@ TEST(tools, intersection_kernel_single) {
     /// - mask index: type, entry
     using surface_mask_index = darray<dindex, 2>;
     using surface_mask_container =
-        dtuple<dvector<surface_rectangle>, dvector<surface_trapezoid>,
-               dvector<surface_annulus>, dvector<surface_cylinder>,
-               dvector<surface_concentric_cylinder>>;
+        mask_store<std::tuple, std::vector, surface_rectangle,
+                   surface_trapezoid, surface_annulus>;
 
     /// The Surface definition:
-    ///  <transform_link, mask_link, volume_link, source_link >
-    using surface =
-        surface_base<dindex, surface_mask_index, dindex, surface_link>;
+    /// <transform_link, mask_link, volume_link, source_link, link_type_in_mask>
+    using surface = surface_base<dindex, surface_mask_index, dindex,
+                                 surface_link, mask_link>;
     using surface_container = dvector<surface>;
 
     // The transforms & their store
@@ -60,13 +60,10 @@ TEST(tools, intersection_kernel_single) {
     transform_store.push_back(static_context, trapezoid_transform);
     transform_store.push_back(static_context, annulus_transform);
     // The masks & their store
-    surface_rectangle first_rectangle = {10., 10.};
-    surface_trapezoid second_trapezoid = {10., 20., 30.};
-    surface_annulus thrid_annulus = {15., 55., 0.75, 1.95, 2., -2.};
     surface_mask_container mask_store;
-    std::get<0>(mask_store).push_back(first_rectangle);
-    std::get<1>(mask_store).push_back(second_trapezoid);
-    std::get<2>(mask_store).push_back(thrid_annulus);
+    mask_store.template add_mask<0>(10., 10.);
+    mask_store.template add_mask<1>(10., 20., 30.);
+    mask_store.template add_mask<2>(15., 55., 0.75, 1.95, 2., -2.);
     // The surfaces and their store
     surface rectangle_surface(0u, {0, 0}, 0, 0);
     surface trapezoid_surface(1u, {1, 0}, 0, 1);
@@ -89,22 +86,22 @@ TEST(tools, intersection_kernel_single) {
     };
 
     // Intersect the first surface
-    auto sfi_rectangle = intersect_by_group(track, rectangle_transform,
-                                            std::get<0>(mask_store), 0);
+    auto sfi_rectangle = intersect_by_group<mask_link>(
+        track, rectangle_transform, mask_store.template group<0>(), 0);
 
     point3 expected_rectangle{0.01, 0.01, 10.};
     ASSERT_TRUE(within_epsilon(std::get<0>(sfi_rectangle).p3,
                                expected_rectangle, 1e-7));
 
-    auto sfi_trapezoid = intersect_by_group(track, trapezoid_transform,
-                                            std::get<1>(mask_store), 0);
+    auto sfi_trapezoid = intersect_by_group<mask_link>(
+        track, trapezoid_transform, mask_store.template group<1>(), 0);
 
     point3 expected_trapezoid{0.02, 0.02, 20.};
     ASSERT_TRUE(within_epsilon(std::get<0>(sfi_trapezoid).p3,
                                expected_trapezoid, 1e-7));
 
-    auto sfi_annulus = intersect_by_group(track, annulus_transform,
-                                          std::get<2>(mask_store), 0);
+    auto sfi_annulus = intersect_by_group<mask_link>(
+        track, annulus_transform, mask_store.template group<2>(), 0);
 
     point3 expected_annulus{0.03, 0.03, 30.};
     ASSERT_TRUE(
@@ -117,10 +114,9 @@ TEST(tools, intersection_kernel_single) {
     // Try the intersection - with automated dispatching via the kernel
     unsigned int it = 0;
     for (const auto &surface : surfaces) {
-        auto sfi_surface =
-            intersect(track, surface, transform_store, mask_store);
+        mask_link link{};
+        auto sfi = intersect(track, surface, transform_store, mask_store, link);
 
-        const auto &sfi = std::get<0>(sfi_surface);
         result_points.push_back(sfi.p3);
 
         ASSERT_TRUE(

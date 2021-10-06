@@ -49,8 +49,6 @@ static inline void bin_association(const context_type &context,
     bool is_cylinder =
         std::abs(bounds[1] - bounds[0]) < std::abs(bounds[3] - bounds[2]);
 
-    auto sfm_copy = surface_masks;
-
     const auto &axis_0 = grid.axis_p0();
     const auto &axis_1 = grid.axis_p1();
 
@@ -100,7 +98,9 @@ static inline void bin_association(const context_type &context,
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         surface_masks, mask_range, mask_context,
                         std::make_integer_sequence<
-                            dindex, std::tuple_size_v<decltype(sfm_copy)>>{});
+                            dindex, std::tuple_size_v<
+                                        typename detector_type::mask_container::
+                                            mask_tuple>>{});
 
                     // Usually one mask per surface, but design allows - a
                     // single association  is sufficient though
@@ -178,7 +178,9 @@ static inline void bin_association(const context_type &context,
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         surface_masks, mask_range, mask_context,
                         std::make_integer_sequence<
-                            dindex, std::tuple_size_v<decltype(sfm_copy)>>{});
+                            dindex, std::tuple_size_v<
+                                        typename detector_type::mask_container::
+                                            mask_tuple>>{});
 
                     for (auto &vertices : vertices_per_masks) {
 

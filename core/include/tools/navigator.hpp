@@ -43,10 +43,10 @@ struct navigator {
 
     using objects = typename detector_type::objects;
     using surface = typename detector_type::surface;
-    using surface_link = typename surface::links;
+    using surface_link = typename surface::edge_links;
 
     using portal = typename detector_type::portal;
-    using portal_links = typename portal::links;
+    using portal_links = typename portal::edge_links;
 
     using context = typename detector_type::context;
 
@@ -85,7 +85,7 @@ struct navigator {
         const object_type *on = nullptr;
         vector_type<candidate_type> candidates = {};
         typename vector_type<candidate_type>::iterator next = candidates.end();
-        links_type links;
+        links_type object_links;
 
         /** Indicate that the kernel is empty */
         bool empty() const { return candidates.empty(); }
@@ -93,11 +93,14 @@ struct navigator {
         /** Forward the kernel size */
         size_t size() const { return candidates.size(); }
 
+        /** Return current links for one of the objects */
+        links_type &links() { return object_links; }
+
         /** Clear the kernel */
         void clear() {
             candidates.clear();
             next = candidates.end();
-            links = links_type{};
+            object_links = links_type{};
             on = nullptr;
         }
     };
@@ -321,15 +324,16 @@ struct navigator {
         kernel.candidates.reserve(n_objects);
         // const auto &transforms = detector.transforms(trf_range, track.ctx);
         const auto &transforms = detector.transforms(track.ctx);
-        const auto &surfaces = detector.template surfaces<kSurfaceType>();
-        const auto &masks = detector.template masks<kSurfaceType>();
+        const auto &surfaces = detector.template get_objects<kSurfaceType>();
+        const auto &masks = detector.masks();
         // Loop over all indexed surfaces, intersect and fill
         // @todo - will come from the local object finder
         for (size_t si = obj_range[0]; si < obj_range[1]; si++) {
             const auto &object = surfaces[si];
-            auto [sfi, link] = intersect(track, object, transforms, masks);
+            auto sfi =
+                intersect(track, object, transforms, masks, kernel.links());
             sfi.index = si;
-            sfi.link = link[0];
+            sfi.link = kernel.links()[0];
             // Ignore negative solutions - except overstep limit
             if (sfi.path < track.overstep_tolerance) {
                 continue;
@@ -378,8 +382,8 @@ struct navigator {
 
         // const auto &transforms = detector.transforms(trf_range, track.ctx);
         const auto &transforms = detector.transforms(track.ctx);
-        const auto &surfaces = detector.template surfaces<kSurfaceType>();
-        const auto &masks = detector.template masks<kSurfaceType>();
+        const auto &surfaces = detector.template get_objects<kSurfaceType>();
+        const auto &masks = detector.masks();
 
         // Update current candidate, or step further
         // - do this only when you trust level is high
@@ -388,9 +392,9 @@ struct navigator {
             // Only update the last intersection
             dindex si = kernel.next->index;
             const auto &s = surfaces[si];
-            auto [sfi, link] = intersect(track, s, transforms, masks);
+            auto sfi = intersect(track, s, transforms, masks, kernel.links());
             sfi.index = si;
-            sfi.link = link[0];
+            sfi.link = kernel.links()[0];
             if (sfi.status == e_inside) {
                 // Update the intersection with a new one
                 (*kernel.next) = sfi;
@@ -424,11 +428,12 @@ struct navigator {
         else if (navigation.trust_level == e_fair_trust) {
             for (auto &c : kernel.candidates) {
                 dindex si = c.index;
-                const auto &s = surfaces[si];
-                auto [sfi, link] = intersect(track, s, transforms, masks);
+                auto &s = surfaces[si];
+                auto sfi =
+                    intersect(track, s, transforms, masks, kernel.links());
                 c = sfi;
                 c.index = si;
-                c.link = link[0];
+                c.link = kernel.links()[0];
             }
             sort_and_set(navigation, kernel);
             if (navigation.trust_level == e_high_trust) {

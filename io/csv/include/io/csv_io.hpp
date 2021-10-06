@@ -83,7 +83,7 @@ detector_from_csv(const std::string &detector_name,
     // Flushable containers
     typename typed_detector::volume *c_volume = nullptr;
     typename typed_detector::geometry::surface_filling_container c_surfaces;
-    typename typed_detector::geometry::surface_mask_container c_masks;
+    typename typed_detector::mask_container c_masks;
     typename typed_detector::transform_container c_transforms;
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
@@ -295,8 +295,7 @@ detector_from_csv(const std::string &detector_name,
 
                 c_surfaces = typename typed_detector::geometry::
                     surface_filling_container();
-                c_masks =
-                    typename typed_detector::geometry::surface_mask_container();
+                c_masks = typename typed_detector::mask_container();
                 c_transforms = typename typed_detector::transform_container();
             }
 
@@ -365,32 +364,30 @@ detector_from_csv(const std::string &detector_name,
             bounds.push_back(io_surface.bound_param6);
 
             // Acts naming convention for bounds
-            typename typed_detector::geometry::surface_mask_index mask_index = {
+            typename typed_detector::surface::mask_links mask_index = {
                 dindex_invalid, dindex_invalid};
 
             if (bounds_type == 1) {
                 // Cylinder Bounds
-                constexpr auto cylinder_context =
-                    typed_detector::geometry::surface_cylinder::mask_context;
+                constexpr auto cylinder_id =
+                    typed_detector::mask_id::e_cylinder3;
 
                 // Add a new cylinder mask
-                auto &cylinder_masks = std::get<cylinder_context>(c_masks);
-                dindex cylinder_index = cylinder_masks.size();
-                cylinder_masks.push_back(
-                    {io_surface.bound_param0,
-                     io_surface.cz - io_surface.bound_param1,
-                     io_surface.cz + io_surface.bound_param1});
+                dindex cylinder_index = c_masks.template size<cylinder_id>();
+                c_masks.template add_mask<cylinder_id>(
+                    io_surface.bound_param0,
+                    io_surface.cz - io_surface.bound_param1,
+                    io_surface.cz + io_surface.bound_param1);
                 // The read is valid: set the index
-                mask_index = {cylinder_context, cylinder_index};
+                mask_index = {cylinder_id, cylinder_index};
 
                 // Build the cylinder transform
-                auto &cylinder_transforms =
-                    std::get<cylinder_context>(c_transforms);
+                auto &cylinder_transforms = std::get<cylinder_id>(c_transforms);
                 cylinder_transforms.emplace_back(surface_default_context, t, z,
                                                  x);
 
                 // Save the corresponding surface
-                auto &cylinder_surfaces = c_surfaces[cylinder_context];
+                auto &cylinder_surfaces = c_surfaces[cylinder_id];
                 cylinder_surfaces.emplace_back(
                     cylinder_transforms.size(surface_default_context) - 1,
                     mask_index, c_volume->index(), io_surface.geometry_id);
@@ -398,80 +395,77 @@ detector_from_csv(const std::string &detector_name,
                 // Disc bounds
             } else if (bounds_type == 6) {
                 // Rectangle bounds
-                constexpr auto rectangle_context =
-                    typed_detector::geometry::surface_rectangle::mask_context;
+                constexpr auto rectangle_id =
+                    typed_detector::mask_id::e_rectangle2;
 
                 // Add a new rectangle mask
-                auto &rectangle_masks = std::get<rectangle_context>(c_masks);
-                dindex rectangle_index = rectangle_masks.size();
+                dindex rectangle_index = c_masks.template size<rectangle_id>();
                 scalar half_x =
                     0.5 * (io_surface.bound_param2 - io_surface.bound_param0);
                 scalar half_y =
                     0.5 * (io_surface.bound_param3 - io_surface.bound_param1);
-                rectangle_masks.push_back({half_x, half_y});
+                c_masks.template add_mask<rectangle_id>(half_x, half_y);
                 // The read is valid: set the index
-                mask_index = {rectangle_context, rectangle_index};
+                mask_index = {rectangle_id, rectangle_index};
 
                 // Build the rectangle transform
                 auto &rectangle_transforms =
-                    std::get<rectangle_context>(c_transforms);
+                    std::get<rectangle_id>(c_transforms);
                 rectangle_transforms.emplace_back(surface_default_context, t, z,
                                                   x);
 
                 // Save the corresponding surface
-                auto &rectangle_surfaces = c_surfaces[rectangle_context];
+                auto &rectangle_surfaces = c_surfaces[rectangle_id];
                 rectangle_surfaces.emplace_back(
                     rectangle_transforms.size(surface_default_context) - 1,
                     mask_index, c_volume->index(), io_surface.geometry_id);
             } else if (bounds_type == 7) {
                 // Trapezoid bounds
-                constexpr auto trapezoid_context =
-                    typed_detector::geometry::surface_trapezoid::mask_context;
+                constexpr auto trapezoid_id =
+                    typed_detector::mask_id::e_trapezoid2;
 
                 // Add a new trapezoid mask
-                auto &trapezoid_masks = std::get<trapezoid_context>(c_masks);
-                dindex trapezoid_index = trapezoid_masks.size();
-                trapezoid_masks.push_back({io_surface.bound_param0,
-                                           io_surface.bound_param1,
-                                           io_surface.bound_param2});
+                dindex trapezoid_index = c_masks.template size<trapezoid_id>();
+                c_masks.template add_mask<trapezoid_id>(
+                    io_surface.bound_param0, io_surface.bound_param1,
+                    io_surface.bound_param2);
+
                 // The read is valid: set the index
-                mask_index = {trapezoid_context, trapezoid_index};
+                mask_index = {trapezoid_id, trapezoid_index};
 
                 // Build the trapezoid transform
                 auto &trapezoid_transforms =
-                    std::get<trapezoid_context>(c_transforms);
+                    std::get<trapezoid_id>(c_transforms);
                 trapezoid_transforms.emplace_back(surface_default_context, t, z,
                                                   x);
 
                 // Save the corresponding surface
-                auto &trapezoid_surfaces = c_surfaces[trapezoid_context];
+                auto &trapezoid_surfaces = c_surfaces[trapezoid_id];
                 trapezoid_surfaces.push_back(
                     {trapezoid_transforms.size(surface_default_context) - 1,
                      mask_index, c_volume->index(), io_surface.geometry_id});
             } else if (bounds_type == 11) {
                 // Annulus bounds
-                constexpr auto annulus_context =
-                    typed_detector::geometry::surface_annulus::mask_context;
+                constexpr auto annulus_id = typed_detector::mask_id::e_annulus2;
 
                 // Add a new annulus mask
-                auto &annulus_masks = std::get<annulus_context>(c_masks);
-                dindex annulus_index = annulus_masks.size();
-                annulus_masks.push_back(
-                    {io_surface.bound_param0, io_surface.bound_param1,
-                     io_surface.bound_param2, io_surface.bound_param3,
-                     io_surface.bound_param4, io_surface.bound_param5,
-                     io_surface.bound_param6});
+                dindex annulus_index = c_masks.template size<annulus_id>();
+                c_masks.template add_mask<annulus_id>(
+                    io_surface.bound_param0, io_surface.bound_param1,
+                    io_surface.bound_param2, io_surface.bound_param3,
+                    io_surface.bound_param4, io_surface.bound_param5,
+                    io_surface.bound_param6);
+
                 // The read is valid: set the index
-                mask_index = {annulus_context, annulus_index};
+                mask_index = {annulus_id, annulus_index};
 
                 // Build the annulus transform
-                auto &annulus_transforms =
-                    std::get<annulus_context>(c_transforms);
+                auto &annulus_transforms = std::get<annulus_id>(c_transforms);
                 annulus_transforms.emplace_back(surface_default_context, t, z,
                                                 x);
 
                 // Save the corresponding surface
-                auto &annulus_surfaces = c_surfaces[annulus_context];
+                auto &annulus_surfaces = c_surfaces[annulus_id];
                 annulus_surfaces.emplace_back(
                     annulus_transforms.size(surface_default_context) - 1,
                     mask_index, c_volume->index(), io_surface.geometry_id);
