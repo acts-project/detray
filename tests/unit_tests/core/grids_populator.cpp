@@ -33,8 +33,9 @@ TEST(grids, complete_populator) {
     using cpopulator4 = complete_populator<4>;
     cpopulator4 completer;
 
-    cpopulator4::store_value stored = {completer.kInvalid, completer.kInvalid,
-                                       completer.kInvalid, completer.kInvalid};
+    cpopulator4::store_value stored = {completer.m_invalid, completer.m_invalid,
+                                       completer.m_invalid,
+                                       completer.m_invalid};
 
     cpopulator4::store_value test = stored;
     test[0] = 9u;

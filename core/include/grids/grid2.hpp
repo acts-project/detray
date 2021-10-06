@@ -59,11 +59,11 @@ class grid2 {
     DETRAY_HOST
     grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
           vecmem::memory_resource &mr,
-          const bare_value kInvalid = invalid_value<bare_value>())
+          const bare_value m_invalid = invalid_value<bare_value>())
         : _axis_p0(axis_p0),
           _axis_p1(axis_p1),
           _data_serialized(&mr),
-          _populator(kInvalid) {
+          _populator(m_invalid) {
         _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(),
                                               _populator.init(), &mr);
     }
@@ -77,11 +77,11 @@ class grid2 {
     DETRAY_HOST
     grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1,
           vecmem::memory_resource &mr,
-          const bare_value kInvalid = invalid_value<bare_value>())
+          const bare_value m_invalid = invalid_value<bare_value>())
         : _axis_p0(std::move(axis_p0)),
           _axis_p1(std::move(axis_p1)),
           _data_serialized(&mr),
-          _populator(kInvalid) {
+          _populator(m_invalid) {
         _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(),
                                               _populator.init());
     }
@@ -89,12 +89,12 @@ class grid2 {
     /** Constructor from grid data
      **/
     template <typename grid_view_t>
-    DETRAY_DEVICE grid2(grid_view_t &grid_data,
-                        const bare_value kInvalid = invalid_value<bare_value>())
+    DETRAY_DEVICE grid2(grid_view_t &grid_data, const bare_value m_invalid =
+                                                    invalid_value<bare_value>())
         : _axis_p0(grid_data._axis_p0),
           _axis_p1(grid_data._axis_p1),
           _data_serialized(grid_data._data_view),
-          _populator(kInvalid) {}
+          _populator(m_invalid) {}
 
     /** Allow for grid shift, when using a centralized store and indices
      *

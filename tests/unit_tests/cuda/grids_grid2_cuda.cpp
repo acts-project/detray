@@ -36,7 +36,7 @@ TEST(grids_cuda, grid2_replace_populator) {
 
             const auto& data = g2.bin(i_x, i_y);
 
-            EXPECT_EQ(data, g2.populator().kInvalid);
+            EXPECT_EQ(data, g2.populator().m_invalid);
         }
     }
 
@@ -81,7 +81,7 @@ TEST(grids_cuda, grid2_complete_populator) {
             const auto& data = g2.bin(i_x, i_y);
 
             for (auto pt : data) {
-                EXPECT_EQ(pt, g2.populator().kInvalid);
+                EXPECT_EQ(pt, g2.populator().m_invalid);
             }
         }
     }

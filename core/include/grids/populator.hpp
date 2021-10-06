@@ -32,9 +32,9 @@ template <typename value_type = dindex,
 struct replace_populator {
     DETRAY_HOST_DEVICE
     replace_populator(const value_type invalid = invalid_value<value_type>())
-        : kInvalid(invalid) {}
+        : m_invalid(invalid) {}
 
-    value_type kInvalid;
+    value_type m_invalid;
 
     using bare_value = value_type;
     using store_value = value_type;
@@ -63,7 +63,7 @@ struct replace_populator {
      */
     DETRAY_HOST_DEVICE
     vector_type<bare_value> sequence(store_value &stored) const {
-        if (stored != kInvalid) {
+        if (stored != m_invalid) {
             return {stored};
         }
         return {};
@@ -83,7 +83,7 @@ struct replace_populator {
     /** Return an initialized bin value
      */
     DETRAY_HOST_DEVICE
-    store_value init() const { return kInvalid; }
+    store_value init() const { return m_invalid; }
 
     /** Return a vector view
      **/
@@ -100,7 +100,7 @@ struct replace_populator {
  * @tparam kDIM the dimension of the underlying stored array
  * @tparam kSORT a sorting flag
  * @tparam value_type the type of a single stored object
- * @tparam kInvalid the chosen invalid type
+ * @tparam m_invalid the chosen invalid type
  *
  * @note bare_value and store_value are different in this case
  **/
@@ -110,9 +110,9 @@ template <unsigned int kDIM, bool kSORT = false, typename value_type = dindex,
 struct complete_populator {
     DETRAY_HOST_DEVICE
     complete_populator(const value_type invalid = invalid_value<value_type>())
-        : kInvalid(invalid) {}
+        : m_invalid(invalid) {}
 
-    value_type kInvalid;
+    value_type m_invalid;
 
     using bare_value = value_type;
     using store_value = array_type<bare_value, kDIM>;
@@ -131,7 +131,7 @@ struct complete_populator {
     DETRAY_HOST_DEVICE
     void operator()(store_value &stored, bare_value &&bvalue) const {
         for (auto &val : stored) {
-            if (val == kInvalid) {
+            if (val == m_invalid) {
                 val = bvalue;
                 break;
             }
@@ -156,7 +156,7 @@ struct complete_populator {
         vector_type<bare_value> s;
         s.reserve(kDIM);
         for (const auto &val : stored) {
-            if (val != kInvalid) {
+            if (val != m_invalid) {
                 s.push_back(val);
             }
         }
@@ -182,7 +182,7 @@ struct complete_populator {
 
         store_value init_bin;
         for (auto &val : init_bin) {
-            val = kInvalid;
+            val = m_invalid;
         }
         return init_bin;
     }
@@ -209,9 +209,9 @@ template <bool kSORT = false, typename value_type = dindex,
 struct attach_populator {
     DETRAY_HOST_DEVICE
     attach_populator(const value_type invalid = invalid_value<value_type>())
-        : kInvalid(invalid) {}
+        : m_invalid(invalid) {}
 
-    value_type kInvalid;
+    value_type m_invalid;
 
     using bare_value = value_type;
     using store_value = vector_type<bare_value>;
