@@ -164,11 +164,10 @@ class index_geometry {
     inline volume_type &new_volume(
         const array_type<scalar, 6> &bounds,
         dindex surfaces_finder_entry = dindex_invalid) {
-        _volumes.emplace_back(bounds);
-        dindex cvolume_idx = _volumes.size() - 1;
-        volume_type &cvolume = _volumes[cvolume_idx];
-        cvolume.set_index(cvolume_idx);
+        volume_type &cvolume = _volumes.emplace_back(bounds);
+        cvolume.set_index(_volumes.size() - 1);
         cvolume.set_surfaces_finder(surfaces_finder_entry);
+
         return cvolume;
     }
 
