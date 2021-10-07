@@ -8,9 +8,9 @@
 #include <gtest/gtest.h>
 
 #include "core/mask_store.hpp"
-#include "core/surface_base.hpp"
 #include "core/track.hpp"
 #include "core/transform_store.hpp"
+#include "geometry/surface_base.hpp"
 #include "masks/masks.hpp"
 #include "tools/concentric_cylinder_intersector.hpp"
 #include "tools/cylinder_intersector.hpp"

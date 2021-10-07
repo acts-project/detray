@@ -10,8 +10,8 @@
 #include <string>
 #include <vecmem/memory/memory_resource.hpp>
 
-#include "core/index_geometry.hpp"
 #include "core/transform_store.hpp"
+#include "geometry/index_geometry.hpp"
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
 #include "grids/populator.hpp"
@@ -72,7 +72,7 @@ class detector {
     using objects = typename geometry_type::known_objects;
     using mask_id = typename geometry_type::mask_id;
     // geometry oject types
-    using volume = typename geometry_type::volume;
+    using volume = typename geometry_type::volume_type;
     using portal = typename geometry_type::portal;
     using surface = typename geometry_type::surface;
 
@@ -113,7 +113,7 @@ class detector {
           _volume_grid(volume_grid(std::move(axis::irregular{{}}),
                                    std::move(axis::irregular{{}}), resource)) {}
 
-    /** Copy constructor makes sure the volumes belong to new detector.
+    /** Copy constructor
      *
      * @param other Detector to be copied
      */
@@ -230,9 +230,8 @@ class detector {
      *
      * @note can throw an exception if input data is inconsistent
      */
-    template <objects object_type = objects::e_surface,
-              typename object_container, typename mask_container,
-              typename transform_container>
+    template <objects object_type, typename object_container,
+              typename mask_container, typename transform_container>
     inline void add_objects(
         volume &volume, object_container &objects, mask_container &masks,
         transform_container &trfs,
@@ -279,7 +278,7 @@ class detector {
      */
     template <size_t current_type = 0, typename object_container,
               typename mask_container, typename transform_container,
-              bool object_type = true>
+              objects object_type>
     inline void unroll_container_filling(
         volume &volume, object_container &objects, mask_container &masks,
         transform_container &trfs,
@@ -311,7 +310,7 @@ class detector {
             }
 
             // Now put the updates objects into the geometry
-            _geometry.add_objects(volume, typed_objects);
+            _geometry.template add_objects<object_type>(volume, typed_objects);
         }
 
         // Next mask type

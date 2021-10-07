@@ -11,7 +11,7 @@
 #include <cmath>
 
 #include "core/intersection.hpp"
-#include "core/surface_base.hpp"
+#include "geometry/surface_base.hpp"
 #include "masks/cylinder3.hpp"
 #include "tools/concentric_cylinder_intersector.hpp"
 #include "tools/cylinder_intersector.hpp"

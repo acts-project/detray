@@ -94,7 +94,7 @@ struct cylinder3 {
     template <typename inside_local_type>
     intersection_status is_inside(
         const point3 &p, const mask_tolerance &t = within_epsilon) const {
-        if (kRadialCheck) {
+        if constexpr (kRadialCheck) {
             scalar r = getter::perp(p);
             if (std::abs(r - _values[0]) >=
                 t[0] + 5 * std::numeric_limits<scalar>::epsilon()) {
