@@ -28,20 +28,18 @@ TEST(ALGEBRA_PLUGIN, detector) {
 
     /// Surface 0
     point3 t0{0., 0., 0.};
-    trfs[geometry::surface_rectangle::mask_context].emplace_back(ctx0, t0);
-    masks.template add_mask<geometry::surface_rectangle::mask_context>(-3., 3.);
+    trfs[geometry::e_rectangle2].emplace_back(ctx0, t0);
+    masks.template add_mask<geometry::e_rectangle2>(-3., 3.);
 
     /// Surface 1
     point3 t1{1., 0., 0.};
-    trfs[geometry::surface_annulus::mask_context].emplace_back(ctx0, t1);
-    masks.template add_mask<geometry::surface_annulus::mask_context>(
-        1., 2., 3., 4., 5., 6., 7.);
+    trfs[geometry::e_annulus2].emplace_back(ctx0, t1);
+    masks.template add_mask<geometry::e_annulus2>(1., 2., 3., 4., 5., 6., 7.);
 
     /// Surface 2
     point3 t2{2., 0., 0.};
-    trfs[geometry::surface_trapezoid::mask_context].emplace_back(ctx0, t2);
-    masks.template add_mask<geometry::surface_trapezoid::mask_context>(1., 2.,
-                                                                       3.);
+    trfs[geometry::e_trapezoid2].emplace_back(ctx0, t2);
+    masks.template add_mask<geometry::e_trapezoid2>(1., 2., 3.);
 
     detector d("test_detector");
     auto &v = d.new_volume("test_volume", {0., 10., -5., 5., -M_PI, M_PI});

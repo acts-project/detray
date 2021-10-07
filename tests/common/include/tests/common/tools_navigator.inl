@@ -135,8 +135,6 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_TRUE(std::abs(state()) < state.on_surface_tolerance);
     ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_surface);
-    // Get the surface
-    const auto &surface = d.surfaces()[state.current_index];
     // Kernel is exhaused, and trust level is gone
     ASSERT_EQ(state.surface_kernel.next, state.surface_kernel.candidates.end());
     ASSERT_EQ(state.trust_level,

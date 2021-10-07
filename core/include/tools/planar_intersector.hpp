@@ -11,8 +11,8 @@
 #include <optional>
 
 #include "core/intersection.hpp"
-#include "core/surface_base.hpp"
 #include "core/track.hpp"
+#include "geometry/surface_base.hpp"
 #include "masks/unmasked.hpp"
 #include "utils/unbound.hpp"
 
