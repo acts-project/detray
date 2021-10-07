@@ -24,12 +24,14 @@ TEST(mask, trapezoid2) {
     scalar hx_miny = 1.;
     scalar hx_maxy = 3.;
     scalar hy = 2.;
+    scalar divisor = 1. / (2. * hy);
 
     trapezoid2<> t2 = {hx_miny, hx_maxy, hy};
 
     ASSERT_EQ(t2[0], hx_miny);
     ASSERT_EQ(t2[1], hx_maxy);
     ASSERT_EQ(t2[2], hy);
+    ASSERT_EQ(t2[3], divisor);
 
     ASSERT_TRUE(t2.is_inside<local_type>(p2_in) ==
                 intersection_status::e_inside);

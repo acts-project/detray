@@ -38,13 +38,13 @@ jobs:
       shell: bash
       run: ctest -C Release
 
-    - name: Run Benchmarks
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
-      run: cp $GITHUB_WORKSPACE/tests/scripts/* .; source ./run_benchmarks.sh
+    #- name: Run Benchmarks
+    #  working-directory: ${{runner.workspace}}/build
+    #  shell: bash
+    #  run: cp $GITHUB_WORKSPACE/tests/scripts/* .; source ./run_benchmarks.sh
 
-    - name: Upload Benchmark Results
-      run: git push 'https://asalzburger:${{ secrets.PERSONAL_GITHUB_TOKEN }}@github.com/asalzburger/detray.git' gh-pages:gh-pages
+    #- name: Upload Benchmark Results
+    #  run: git push 'https://asalzburger:${{ secrets.PERSONAL_GITHUB_TOKEN }}@github.com/asalzburger/detray.git' gh-pages:gh-pages
 
   ubuntu_float:
     runs-on: ubuntu-latest
@@ -76,10 +76,10 @@ jobs:
       shell: bash
       run: ctest -C Release      
 
-    - name: Run Benchmarks
-      working-directory: ${{runner.workspace}}/build
-      shell: bash
-      run: cp $GITHUB_WORKSPACE/tests/scripts/* .; source ./run_benchmarks.sh
+    #- name: Run Benchmarks
+    #  working-directory: ${{runner.workspace}}/build
+    #  shell: bash
+    #  run: cp $GITHUB_WORKSPACE/tests/scripts/* .; source ./run_benchmarks.sh
 
   ubuntu_debug:
     runs-on: ubuntu-latest

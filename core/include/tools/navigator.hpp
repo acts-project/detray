@@ -41,11 +41,12 @@ struct void_inspector {
 template <typename detector_type, typename inspector_type = void_inspector>
 struct navigator {
 
+    using objects = typename detector_type::objects;
     using surface = typename detector_type::surface;
-    using surface_link = typename detector_type::surface_link;
+    using surface_link = typename surface::edge_links;
 
     using portal = typename detector_type::portal;
-    using portal_links = typename detector_type::portal_links;
+    using portal_links = typename portal::edge_links;
 
     using context = typename detector_type::context;
 
@@ -75,16 +76,17 @@ struct navigator {
      * @tparam object_type the type of the relevant object
      * @tparam candidate_type the type of the candidates in the list
      * @tparam links_type the type of the links the candidate is holding
+     * @tparam object_id in case the objects have same type
      *
      **/
     template <typename object_type, typename candidate_type,
-              typename links_type,
+              typename links_type, objects object_id = objects::e_any,
               template <typename> class vector_type = dvector>
     struct navigation_kernel {
         const object_type *on = nullptr;
         vector_type<candidate_type> candidates = {};
         typename vector_type<candidate_type>::iterator next = candidates.end();
-        links_type links;
+        links_type object_links;
 
         /** Indicate that the kernel is empty */
         bool empty() const { return candidates.empty(); }
@@ -92,11 +94,14 @@ struct navigator {
         /** Forward the kernel size */
         size_t size() const { return candidates.size(); }
 
+        /** Return current links for one of the objects */
+        links_type &links() { return object_links; }
+
         /** Clear the kernel */
         void clear() {
             candidates.clear();
             next = candidates.end();
-            links = links_type{};
+            object_links = links_type{};
             on = nullptr;
         }
     };
@@ -108,9 +113,12 @@ struct navigator {
      **/
     struct state {
         /** Kernel for the surfaces */
-        navigation_kernel<surface, intersection, surface_link> surface_kernel;
+        navigation_kernel<surface, intersection, surface_link,
+                          objects::e_surface>
+            surface_kernel;
         /** Kernel for the portals */
-        navigation_kernel<portal, intersection, portal_links> portal_kernel;
+        navigation_kernel<portal, intersection, portal_links, objects::e_portal>
+            portal_kernel;
 
         /** Volume navigation: index */
         dindex volume_index = dindex_invalid;
@@ -168,9 +176,10 @@ struct navigator {
         // Retrieve the volume, either from valid index or through global search
         const auto &volume =
             (navigation.volume_index != dindex_invalid)
-                ? detector.indexed_volume(navigation.volume_index)
-                : detector.indexed_volume(track.pos);
+                ? detector.volume_by_index(navigation.volume_index)
+                : detector.volume_by_pos(track.pos);
         navigation.volume_index = volume.index();
+
         // Retrieve the kernels
         auto &surface_kernel = navigation.surface_kernel;
         auto &portal_kernel = navigation.portal_kernel;
@@ -179,16 +188,15 @@ struct navigator {
         if (navigation.volume_index == dindex_invalid or
             navigation.trust_level == e_no_trust) {
             // First try to get the surface candidates
-            initialize_kernel(
-                navigation, surface_kernel, track,
-                volume.template range<detector_type::e_surface>(),
-                volume.template trf_range<detector_type::e_surface>());
+            initialize_kernel(navigation, surface_kernel, track,
+                              volume.template range<objects::e_surface>(),
+                              volume.template trf_range<objects::e_surface>());
             // If no surfaces are to processed, initialize the portals
             if (surface_kernel.empty()) {
                 initialize_kernel(
                     navigation, portal_kernel, track,
-                    volume.template range<detector_type::e_portal>(),
-                    volume.template trf_range<detector_type::e_portal>());
+                    volume.template range<objects::e_portal>(),
+                    volume.template trf_range<objects::e_portal>());
                 heartbeat = check_volume_switch(navigation);
             }
             // Before returning, run through the inspector
@@ -198,18 +206,17 @@ struct navigator {
 
         // Update the surface kernel
         if (not is_exhausted(surface_kernel) and
-            update_kernel(
-                navigation, surface_kernel, track,
-                volume.template range<detector_type::e_surface>(),
-                volume.template trf_range<detector_type::e_surface>())) {
+            update_kernel(navigation, surface_kernel, track,
+                          volume.template range<objects::e_surface>(),
+                          volume.template trf_range<objects::e_surface>())) {
             navigation.inspector(navigation);
             return heartbeat;
         }
 
         // Update the portal kernel
         update_kernel(navigation, portal_kernel, track,
-                      volume.template range<detector_type::e_portal>(),
-                      volume.template trf_range<detector_type::e_portal>());
+                      volume.template range<objects::e_portal>(),
+                      volume.template trf_range<objects::e_portal>());
         heartbeat = check_volume_switch(navigation);
         navigation.inspector(navigation);
         return heartbeat;
@@ -234,8 +241,8 @@ struct navigator {
         // Retrieve the volume, either from valid index or through global search
         const auto &volume =
             (navigation.volume_index != dindex_invalid)
-                ? detector.indexed_volume(navigation.volume_index)
-                : detector.indexed_volume(track.pos);
+                ? detector.volume_by_index(navigation.volume_index)
+                : detector.volume_by_pos(track.pos);
         navigation.volume_index = volume.index();
         // Retrieve the kernels
         auto &surface_kernel = navigation.surface_kernel;
@@ -250,36 +257,34 @@ struct navigator {
                     navigation.trust_level = e_no_trust;
                     update_kernel(
                         navigation, portal_kernel, track,
-                        volume.template range<detector_type::e_portal>(),
-                        volume.template trf_range<detector_type::e_portal>());
+                        volume.template range<objects::e_portal>(),
+                        volume.template trf_range<objects::e_portal>());
                     navigation.inspector(navigation);
                     return heartbeat;
                 } else if (update_kernel(
                                navigation, surface_kernel, track,
+                               volume.template range<objects::e_surface>(),
                                volume
-                                   .template range<detector_type::e_surface>(),
-                               volume.template trf_range<
-                                   detector_type::e_surface>())) {
+                                   .template trf_range<objects::e_surface>())) {
                     navigation.inspector(navigation);
                     return heartbeat;
                 }
             }
             // Portals are present
             update_kernel(navigation, portal_kernel, track,
-                          volume.template range<detector_type::e_portal>(),
-                          volume.template trf_range<detector_type::e_portal>());
+                          volume.template range<objects::e_portal>(),
+                          volume.template trf_range<objects::e_portal>());
         } else if (navigation.trust_level == e_no_trust) {
             // First try to get the surface candidates
-            initialize_kernel(
-                navigation, surface_kernel, track,
-                volume.template range<detector_type::e_surface>(),
-                volume.template trf_range<detector_type::e_surface>());
+            initialize_kernel(navigation, surface_kernel, track,
+                              volume.template range<objects::e_surface>(),
+                              volume.template trf_range<objects::e_surface>());
             // If no surfaces are to processed, initialize the portals
             if (surface_kernel.empty()) {
                 initialize_kernel(
                     navigation, portal_kernel, track,
-                    volume.template range<detector_type::e_portal>(),
-                    volume.template trf_range<detector_type::e_portal>(),
+                    volume.template range<objects::e_portal>(),
+                    volume.template trf_range<objects::e_portal>(),
                     navigation.status == e_on_portal);
                 heartbeat = check_volume_switch(navigation);
             }
@@ -308,9 +313,12 @@ struct navigator {
                            bool on_object = false) const {
 
         // Get the type of the kernel via a const expression at compile time
-        constexpr bool kSurfaceType =
-            (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
-                                                        surface_link>>);
+        constexpr objects kSurfaceType =
+            (std::is_same_v<
+                kernel_t, navigation_kernel<surface, intersection, surface_link,
+                                            objects::e_surface>>)
+                ? objects::e_surface
+                : objects::e_portal;
 
         // Get the number of candidates & run them throuth the kernel
         size_t n_objects = obj_range[1] - obj_range[0];
@@ -319,16 +327,18 @@ struct navigator {
             return;
         }
         kernel.candidates.reserve(n_objects);
-        const auto &transforms = detector.transforms(trf_range, track.ctx);
-        const auto &surfaces = detector.template surfaces<kSurfaceType>();
-        const auto &masks = detector.template masks<kSurfaceType>();
+        // const auto &transforms = detector.transforms(trf_range, track.ctx);
+        const auto &transforms = detector.transforms(track.ctx);
+        const auto &surfaces = detector.template get_objects<kSurfaceType>();
+        const auto &masks = detector.masks();
         // Loop over all indexed surfaces, intersect and fill
         // @todo - will come from the local object finder
-        for (auto si : sequence(obj_range)) {
+        for (size_t si = obj_range[0]; si < obj_range[1]; si++) {
             const auto &object = surfaces[si];
-            auto [sfi, link] = intersect(track, object, transforms, masks);
+            auto sfi =
+                intersect(track, object, transforms, masks, kernel.links());
             sfi.index = si;
-            sfi.link = link[0];
+            sfi.link = kernel.links()[0];
             // Ignore negative solutions - except overstep limit
             if (sfi.path < track.overstep_tolerance) {
                 continue;
@@ -337,8 +347,9 @@ struct navigator {
             if (sfi.status == e_inside and
                 (not on_object or
                  std::abs(sfi.path) > navigation.on_surface_tolerance)) {
-                navigation.status =
-                    kSurfaceType ? e_towards_surface : e_towards_portal;
+                navigation.status = kSurfaceType == objects::e_surface
+                                        ? e_towards_surface
+                                        : e_towards_portal;
                 kernel.candidates.push_back(sfi);
             }
         }
@@ -369,13 +380,17 @@ struct navigator {
         }
 
         // Get the type of the kernel via a const expression at compile time
-        constexpr bool kSurfaceType =
-            (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
-                                                        surface_link>>);
+        constexpr objects kSurfaceType =
+            (std::is_same_v<
+                kernel_t, navigation_kernel<surface, intersection, surface_link,
+                                            objects::e_surface>>)
+                ? objects::e_surface
+                : objects::e_portal;
 
-        const auto &transforms = detector.transforms(trf_range, track.ctx);
-        const auto &surfaces = detector.template surfaces<kSurfaceType>();
-        const auto &masks = detector.template masks<kSurfaceType>();
+        // const auto &transforms = detector.transforms(trf_range, track.ctx);
+        const auto &transforms = detector.transforms(track.ctx);
+        const auto &surfaces = detector.template get_objects<kSurfaceType>();
+        const auto &masks = detector.masks();
 
         // Update current candidate, or step further
         // - do this only when you trust level is high
@@ -384,9 +399,9 @@ struct navigator {
             // Only update the last intersection
             dindex si = kernel.next->index;
             const auto &s = surfaces[si];
-            auto [sfi, link] = intersect(track, s, transforms, masks);
+            auto sfi = intersect(track, s, transforms, masks, kernel.links());
             sfi.index = si;
-            sfi.link = link[0];
+            sfi.link = kernel.links()[0];
             if (sfi.status == e_inside) {
                 // Update the intersection with a new one
                 (*kernel.next) = sfi;
@@ -401,8 +416,9 @@ struct navigator {
                         navigation.trust_level = e_high_trust;
                     }
                 } else {
-                    navigation.status =
-                        kSurfaceType ? e_towards_surface : e_towards_portal;
+                    navigation.status = kSurfaceType == objects::e_surface
+                                            ? e_towards_surface
+                                            : e_towards_portal;
                     // Trust fully again
                     navigation.trust_level = e_full_trust;
                 }
@@ -420,11 +436,12 @@ struct navigator {
         else if (navigation.trust_level == e_fair_trust) {
             for (auto &c : kernel.candidates) {
                 dindex si = c.index;
-                const auto &s = surfaces[si];
-                auto [sfi, link] = intersect(track, s, transforms, masks);
+                auto &s = surfaces[si];
+                auto sfi =
+                    intersect(track, s, transforms, masks, kernel.links());
                 c = sfi;
                 c.index = si;
-                c.link = link[0];
+                c.link = kernel.links()[0];
             }
             sort_and_set(navigation, kernel);
             if (navigation.trust_level == e_high_trust) {
@@ -445,9 +462,12 @@ struct navigator {
     template <typename kernel_t>
     void sort_and_set(state &navigation, kernel_t &kernel) const {
         // Get the type of the kernel via a const expression at compile time
-        constexpr bool kSurfaceType =
-            (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
-                                                        surface_link>>);
+        constexpr objects kSurfaceType =
+            (std::is_same_v<
+                kernel_t, navigation_kernel<surface, intersection, surface_link,
+                                            objects::e_surface>>)
+                ? objects::e_surface
+                : objects::e_portal;
 
         // Sort and set distance to next & navigation status
         if (not kernel.candidates.empty()) {
@@ -460,8 +480,9 @@ struct navigator {
                 navigation.current_index = kernel.next->index;
             }
             navigation.current_index = dindex_invalid;
-            navigation.status =
-                kSurfaceType ? e_towards_surface : e_towards_portal;
+            navigation.status = kSurfaceType == objects::e_surface
+                                    ? e_towards_surface
+                                    : e_towards_portal;
         }
     }
 

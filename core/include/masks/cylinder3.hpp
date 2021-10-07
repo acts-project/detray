@@ -60,6 +60,15 @@ struct cylinder3 {
         std::numeric_limits<scalar>::epsilon(),
         std::numeric_limits<scalar>::epsilon()};
 
+    /** Construction from boundary values
+     *
+     * @param r radius
+     * @param half_length_1 half_length
+     * @param half_length_2 half length
+     */
+    cylinder3(scalar r, scalar half_length_1, scalar half_length_2 = 0.)
+        : _values{r, half_length_1, half_length_2} {}
+
     /** Assignment operator from an array, convenience function
      *
      * @param rhs is the right hand side object
@@ -85,7 +94,7 @@ struct cylinder3 {
     template <typename inside_local_type>
     intersection_status is_inside(
         const point3 &p, const mask_tolerance &t = within_epsilon) const {
-        if (kRadialCheck) {
+        if constexpr (kRadialCheck) {
             scalar r = getter::perp(p);
             if (std::abs(r - _values[0]) >=
                 t[0] + 5 * std::numeric_limits<scalar>::epsilon()) {
