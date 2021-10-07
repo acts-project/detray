@@ -18,7 +18,10 @@
 #include <vector>
 
 #include "core/detector.hpp"
+#include "core/track.hpp"
 #include "io/csv_io.hpp"
+#include "tools/line_stepper.hpp"
+#include "tools/navigator.hpp"
 #include "utils/ray_gun.hpp"
 
 using namespace detray;
@@ -50,151 +53,41 @@ auto read_detector() {
                                surface_grid_file, surface_grid_entries_file);
 };
 
-/** Check if a set of volume index pairs form a trace.
- *
- * @param volume_records the recorded portal crossings between volumes
- * @param start_volume where the ray started
- *
- * @note Empty traces pass automatically.
- *
- * @return true if the volumes form a connected chain.
+/** A navigation inspector that relays information about the encountered
+ *  portals the way we need them to compare with the ray
  */
-inline bool trace_volumes(std::set<std::pair<dindex, dindex>> volume_records,
-                          dindex start_volume = 0) {
-    // Keep record of leftovers
-    std::stringstream record_stream;
-
-    // Where are we on the trace?
-    dindex on_volume = start_volume;
-
-    // Init chain search
-    // find connection record for the current volume
-    auto record = find_if(volume_records.begin(), volume_records.end(),
-                          [&](const std::pair<dindex, dindex> &rec) -> bool {
-                              return (rec.first == on_volume) or
-                                     (rec.second == on_volume);
-                          });
-
-    while (record != volume_records.end()) {
-
-        record_stream << "On volume: " << on_volume << " and record ("
-                      << record->first << ", " << record->second << ")";
-
-        // update to next volume
-        on_volume = on_volume == record->first ? record->second : record->first;
-
-        record_stream << "-> next volume: " << on_volume << std::endl;
-
-        // Don't search this key again -> only one potential key with current
-        // index left
-        volume_records.erase(record);
-
-        // find connection record for the current volume
-        record = find_if(volume_records.begin(), volume_records.end(),
-                         [&](const std::pair<dindex, dindex> &rec) -> bool {
-                             return (rec.first == on_volume) or
-                                    (rec.second == on_volume);
-                         });
+struct portal_inspector {
+    template <typename state_type>
+    auto operator()(const state_type &state) {
+        // on portal
+        /*if (state.status == 3) {
+            std::cout << "Hit portal" << std::endl;
+        }*/
+        std::cout << state.status << std::endl;
+        std::cout << state.volume_index << std::endl;
+        std::cout << state.distance_to_next << std::endl;
     }
-
-    // There are unconnected elements left
-    if (not volume_records.empty()) {
-        std::cerr << "In trace finding: " << std::endl;
-        std::cerr << record_stream.str() << std::endl;
-
-        return false;
-    }
-
-    return true;
-}
-
-/** Check if a vector of volume portal intersections are connected.
- *
- * @tparam record_type container that contains volume idx, intersection pairs
- *
- * @param volume_record the recorded portal crossings between volumes
- * @param start_volume where the ray started
- *
- * @return a set of volume connections that were found by portal intersection
- *         of a ray.
- */
-template <typename record_type = dvector<std::pair<dindex, intersection>>>
-inline auto check_connectivity(const record_type &volume_record,
-                               dindex start_volume = 0) {
-    std::set<std::pair<dindex, dindex>> valid_volumes = {};
-    std::stringstream record_stream;
-
-    // Always read 2 elements from the sorted records vector
-    struct record_doublet {
-        // Two volume index, portal intersections
-        const typename record_type::value_type &lower, upper;
-
-        // Is this doublet connected via the portal intersection?
-        inline bool operator()() const { return lower.second == upper.second; }
-    };
-
-    // Excluding the volume where we leave world, the rest should come in pairs
-    if ((volume_record.size() - 1) % 2) {
-        return valid_volumes;
-    }
-
-    // Don't look at the end volume, as it is not connected at one side
-    for (size_t rec = 0; rec < volume_record.size() - 1; rec += 2) {
-
-        // Get 2 possibly connected entries
-        record_doublet doublet = {.lower = volume_record[rec],
-                                  .upper = volume_record[rec + 1]};
-
-        record_stream << doublet.lower.first << " ("
-                      << doublet.lower.second.path << ")" << std::endl;
-        record_stream << doublet.upper.first << " ("
-                      << doublet.upper.second.path << ")" << std::endl;
-
-        if (doublet()) {
-            // Insert into set of edges
-            valid_volumes.emplace(doublet.lower.first, doublet.upper.first);
-        }
-        // Something went wrong
-        else {
-            // Print search log
-            std::cerr << "<<<<<<<<<<<<<<<" << std::endl;
-            std::cerr << "volume idx (distance from ray origin)\n" << std::endl;
-
-            std::cerr << record_stream.str() << std::endl;
-
-            std::cerr << "Ray terminated at portal x-ing " << (rec + 1) / 2
-                      << ": (" << doublet.lower.first << ", "
-                      << doublet.lower.second.path << ") <-> ("
-                      << doublet.upper.first << ", "
-                      << doublet.upper.second.path << ")" << std::endl;
-
-            std::cerr << "Start volume : " << start_volume << std::endl;
-            std::cerr << "- first intersection: ("
-                      << volume_record.front().first << ", "
-                      << volume_record.front().second.path << ")," << std::endl;
-            std::cerr << "- last intersection: (" << volume_record.back().first
-                      << ", " << volume_record.back().second.path << "),"
-                      << std::endl;
-
-            std::cerr << ">>>>>>>>>>>>>>>" << std::endl;
-
-            return valid_volumes;
-        }
-    }
-
-    return valid_volumes;
-}
+};
 
 auto d = read_detector();
 
-namespace __plugin {
+// Create the navigator
+using detray_context = decltype(d)::context;
+using detray_track = track<detray_context>;
+using detray_navigator = navigator<decltype(d), portal_inspector>;
+using detray_stepper = line_stepper<detray_track>;
+
+detray_navigator n(std::move(d));
+detray_stepper s;
 
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, ray_scan) {
 
-    unsigned int theta_steps = 100;
+    /*unsigned int theta_steps = 100;
     unsigned int phi_steps = 100;
-    const unsigned int itest = 10000;
+    const unsigned int itest = 10000;*/
+    unsigned int theta_steps = 1;
+    unsigned int phi_steps = 1;
 
     const point3 ori{0., 0., 0.};
     dindex start_index = d.volume_by_pos(ori).index();
@@ -215,16 +108,32 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
                              cos_theta};
 
             const auto volume_record = shoot_ray(d, ori, dir);
-            const auto volume_connections =
-                check_connectivity(volume_record, start_index);
 
-            // All edges made it through the checking
-            ASSERT_TRUE(trace_volumes(volume_connections));
+            // Now follow that ray and check, if we find the same
+            // volumes and distances along the way
+            track<detray_context> traj;
+            traj.pos = ori;
+            traj.dir = dir;
+            traj.ctx = detray_context{};
+            traj.momentum = 100.;
+            traj.overstep_tolerance = 0.;
+
+            detray_stepper::state s_state(traj);
+            detray_navigator::state n_state;
+
+            bool heartbeat = n.status(n_state, s_state());
+            // Run while there is a heartbeat
+            while (heartbeat) {
+                // (Re-)target
+                heartbeat &= n.target(n_state, s_state());
+                // Take the step
+                heartbeat &= s.step(s_state, n_state());
+                // And check the status
+                heartbeat &= n.status(n_state, s_state());
+            }
         }
     }
 }
-
-}  // namespace __plugin
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
