@@ -18,15 +18,15 @@
 
 namespace detray {
 /**
- * @brief Simple geometry implementation
+ * @brief Indexed geometry implementation that unifies surface and portal types
  *
  * This class provides a geometry that defines logic volumes which contain
- * the detector surfaces, joined together by dedicated portal surfaces. It
+ * the detector surfaces, joined together by conceptual portal surfaces. It
  * exports all types needed for navigation and strictly only keeps the
- * index data (links) that define the geometry relations. The simple geometry
- * itself makes no distinction between surfaces and portals. Both carry the
- * same link type: a portal points to the next volume, a surface to the current
- * volume
+ * index data (links) that define the geometry relations. This geometry
+ * implemenatation makes no distinction between surfaces and portals. Both
+ * carry the same link type: a portal points to the next volume, a surface to
+ * the current volume.
  *
  * @tparam array_type the type of the internal array, must have STL
  *                    semantics
@@ -43,7 +43,7 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
-class simple_geometry {
+class unified_index_geometry {
 
     public:
     // Known primitives
@@ -61,7 +61,7 @@ class simple_geometry {
         e_trapezoid2 = 1,
         e_annulus2 = 2,
         e_cylinder3 = 3,
-        e_portal_cylinder3 = 3,
+        e_portal_cylinder3 = 3,  // no distinction from surface cylinder
         e_portal_ring2 = 4,
         e_single3 = std::numeric_limits<unsigned int>::max(),
         e_unknown = std::numeric_limits<unsigned int>::max(),
@@ -118,13 +118,13 @@ class simple_geometry {
     using portal_filling_container = surface_filling_container;
 
     /** Default constructor */
-    simple_geometry() = default;
+    unified_index_geometry() = default;
 
     /** Copy constructor
      *
-     * @param other simple_geometry to be copied
+     * @param other unified_index_geometry to be copied
      */
-    // simple_geometry(const simple_geometry &other) = default;
+    // unified_index_geometry(const unified_index_geometry &other) = default;
 
     /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }

@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "geometry/simple_geometry.hpp"
+#include "geometry/unified_index_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -16,7 +16,7 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     using namespace detray;
     using namespace __plugin;
 
-    using geometry = simple_geometry<>;
+    using geometry = unified_index_geometry<>;
     using surface = typename geometry::surface;
     using portal = typename geometry::portal;
 
