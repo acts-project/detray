@@ -8,6 +8,7 @@
 #pragma once
 
 #include <algorithm>
+#include <iostream>
 
 #include "core/intersection.hpp"
 #include "core/track.hpp"
@@ -320,10 +321,12 @@ struct navigator {
         // @todo - will come from the local object finder
         for (size_t si = obj_range[0]; si < obj_range[1]; si++) {
             const auto &object = surfaces[si];
+            std::cout << "NAVIGATOR: Checking " << si << std::endl;
             auto sfi =
                 intersect(track, object, transforms, masks, kernel.links());
             sfi.index = si;
             sfi.link = kernel.links()[0];
+            std::cout << "NAVIGATOR: Current dist to " << si << ": " <<  sfi.path << std::endl;
             // Ignore negative solutions - except overstep limit
             if (sfi.path < track.overstep_tolerance) {
                 continue;
@@ -332,6 +335,7 @@ struct navigator {
             if (sfi.status == e_inside and
                 (not on_object or
                  std::abs(sfi.path) > navigation.on_surface_tolerance)) {
+                std::cout << "NAVIGATOR: Is inside " << si << std::endl;
                 navigation.status = kSurfaceType == objects::e_surface
                                         ? e_towards_surface
                                         : e_towards_portal;
@@ -381,11 +385,15 @@ struct navigator {
             kernel.next != kernel.candidates.end()) {
             // Only update the last intersection
             dindex si = kernel.next->index;
+            std::cout << "NAVIGATOR: Updating " << si << std::endl;
             const auto &s = surfaces[si];
             auto sfi = intersect(track, s, transforms, masks, kernel.links());
             sfi.index = si;
             sfi.link = kernel.links()[0];
+            std::cout << "NAVIGATOR: Current dist to " << si << ": " <<  sfi.path << std::endl;
             if (sfi.status == e_inside) {
+
+                std::cout << "NAVIGATOR: Is inside " << si << std::endl;
                 // Update the intersection with a new one
                 (*kernel.next) = sfi;
                 navigation.distance_to_next = sfi.path;
@@ -421,9 +429,8 @@ struct navigator {
                 auto &s = surfaces[si];
                 auto sfi =
                     intersect(track, s, transforms, masks, kernel.links());
-                c = sfi;
-                c.index = si;
-                c.link = kernel.links()[0];
+                sfi.index = si;
+                sfi.link = kernel.links()[0];
             }
             sort_and_set(navigation, kernel);
             if (navigation.trust_level == e_high_trust) {
@@ -478,6 +485,7 @@ struct navigator {
         // On a portal: switch volume index and (re-)initialize
         if (navigation.status == e_on_portal) {
             // Set volume index to the next volume provided by the portal, avoid
+            std::cout << "NAVIGATOR: next Volume : " << navigation.portal_kernel.next->link << std::endl;
             // setting to same
             navigation.volume_index =
                 (navigation.portal_kernel.next->link != navigation.volume_index)
