@@ -96,7 +96,7 @@ struct cylinder_intersector {
         if (std::get<0>(qe_solution) > 0) {
             auto t01 = std::get<1>(qe_solution);
             scalar t = (t01[0] > overstep_tolerance) ? t01[0] : t01[1];
-            if (t > overstep_tolerance) {
+            if (t > overstep_tolerance or std::abs(t) == 0) {
                 intersection is;
                 is.path = t;
                 is.p3 = ro + is.path * rd;
