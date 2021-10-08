@@ -7,12 +7,12 @@
 #pragma once
 
 #include <iterator>
+#include <map>
+#include <queue>
 #include <sstream>
 #include <string>
 #include <utility>
 
-#include "geometry/unified_index_geometry.hpp"
-#include "masks/masks.hpp"
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
 
@@ -21,35 +21,17 @@ namespace detray {
  * @brief Uses the geometry implementations to walk through their graph-like
  * structure breadth first.
  *
- * This class provides a geometry that defines logic volumes which contain
- * the detector surfaces, joined together by dedicated portal surfaces. It
- * exports all types needed for navigation and strictly only keeps the
- * index data (links) that define the geometry relations. The simple geometry
- * itself makes no distinction between surfaces and portals. Both carry the
- * same link type: a portal points to the next volume, a surface to the current
- * volume
+ * This class provides a graph algorithm that walk along the volumes of a given
+ * geomtery and uses the portals to check reachability between the volumes.
  *
- * @tparam array_type the type of the internal array, must have STL
- *                    semantics
- * @tparam vector_type the type of the internal array, must have STL
- *                     semantics
- * @tparam surface_source_link the type of the link to an external surface
- *                             source
+ * @tparam geometry the type of geometry we want to walk along.
  *
- * @note The geometry knows nothing about coordinate systems. This is
- *       handeled by geometry access objects (e.g. the grid).
+ * @note The geometry has to expose the volume/portal interface.
  */
-/*template <template <typename, unsigned int> class array_type = darray,
-          template <typename> class vector_type = dvector,
-          template <typename...> class tuple_type = dtuple,
-          typename geometry_type = simple_geometry<array_type, vector_type,
-                                                  tuple_type, dindex, dindex>>*/
-template<typename geometry,
-         template <typename> class vector_type = dvector>
+template <typename geometry, template <typename> class vector_type = dvector>
 class geometry_graph {
 
     public:
-
     // Objects ids of the geometry
     using object_id = typename geometry::known_objects;
 
@@ -63,11 +45,15 @@ class geometry_graph {
     geometry_graph() = delete;
 
     /** Build from existing nodes and edges, which are provide by the geometry.
-      *
-      * @param volumes geometry volumes that become the graph nodes
-      * @param portals geometry portals link volumes and become edges
-      */
-    geometry_graph(const vector_type<typename geometry::volume_type> &volumes, const vector_type<typename geometry::portal> &portals): _nodes(volumes), _edges(portals){}
+     *
+     * @param volumes geometry volumes that become the graph nodes
+     * @param portals geometry portals link volumes and become edges
+     */
+    geometry_graph(const vector_type<typename geometry::volume_type> &volumes,
+                   const vector_type<typename geometry::portal> &portals)
+        : _nodes(volumes), _edges(portals) {
+        build();
+    }
 
     /** Default destructor: we don't own anything */
     ~geometry_graph() = default;
@@ -79,14 +65,10 @@ class geometry_graph {
     const auto nodes() const { return _nodes; }
 
     /** @return all surfaces/portals in the geometry */
-    size_t n_edges() const {
-        return _edges.size();
-    }
+    size_t n_edges() const { return _edges.size(); }
 
     /** @return all surfaces/portals in the geometry */
-    const auto edges() const {
-        return _edges;
-    }
+    const auto edges() const { return _edges; }
 
     /**
      * Print geometry if an external name map is provided for the volumes.
@@ -97,19 +79,61 @@ class geometry_graph {
      */
     inline const std::string to_string() const {
         std::stringstream ss;
-        for (const auto &n : enumerate(_nodes)) {
+        for (const auto &n : _nodes) {
             ss << "[>>] Node with index " << n.index() << std::endl;
+            ss << " -> neighbors: " << n.index() << std::endl;
+            const auto &neighbors = adjaceny_list.at(n.index());
+            for (const auto &nbr : neighbors) {
+                ss << "    -> " << nbr << std::endl;
+            }
         }
         return ss.str();
     };
 
     private:
+    /** Walk through the nodes and fill adjacency list. Root node is always at
+     * zero.
+     */
+    void build() {
+        for (const auto &n : _nodes) {
+            const auto &edge_range = n.template range<object_id::e_portal>();
+            vector_type<dindex> neighbors = {};
+            std::cout << "on node " << n.index() << std::endl;
+            for (size_t edi = edge_range[0]; edi < edge_range[1]; edi++) {
+                std::cout << "portal " << edi << std::endl;
+                neighbors.push_back(_edges[edi].volume());
+            }
+            std::cout << "found neighbors " << neighbors.size() << std::endl;
+            adjaceny_list[n.index()] = neighbors;
+            std::cout << "adj list size: " << adjaceny_list.size() << std::endl;
+        }
+    }
+
+    void bfs() {
+        // Start at root
+        const auto &current = _nodes.front();
+
+        // Nodes to be visited
+        std::queue<node_t> node_queue;
+        node_queue.push(current);
+
+        // Visit adjacent nodes
+        do {
+            const auto &neighbors = adjaceny_list.at(current.index());
+            current = node_queue.pop();
+        } while (not node_queue.empty());
+    }
 
     /** Graph nodes */
-    const vector_type<node_t>& _nodes;
+    const vector_type<node_t> &_nodes;
 
     /** Graph edges */
-    const vector_type<edge_t>& _edges;
+    const vector_type<edge_t> &_edges;
+
+    /** Volume indices, where reachability was established. The source link
+     * is encoded as the position of the neigbor vector in the outer vector.
+     */
+    std::map<dindex, vector_type<dindex>> adjaceny_list = {};
 };
 
 }  // namespace detray

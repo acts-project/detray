@@ -7,7 +7,9 @@
 
 #include <gtest/gtest.h>
 
-#include "geometry/simple_geometry.hpp"
+#include <iostream>
+
+#include "geometry/unified_index_geometry.hpp"
 #include "tools/geometry_graph.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -17,18 +19,16 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     using namespace detray;
     using namespace __plugin;
 
-    using geometry = simple_geometry<>;
+    using geometry = unified_index_geometry<>;
     using portal = geometry::portal;
     using surface = geometry::surface;
     using graph = geometry_graph<geometry>;
 
     geometry geo = geometry();
-    graph g = graph(geo.volumes(), geo.template objects<geometry::e_portal>());
 
     // Add two volumes
-    auto &v0 = geo.new_volume("test_volume_0", {0., 10., -5., 5., -M_PI, M_PI});
-    auto &v1 =
-        geo.new_volume("test_volume_1", {0., 5., -10., 10., -M_PI, M_PI});
+    auto &v0 = geo.new_volume({0., 10., -5., 5., -M_PI, M_PI});
+    auto &v1 = geo.new_volume({0., 5., -10., 10., -M_PI, M_PI});
 
     /// volume 0
     /// volume portals
@@ -80,14 +80,24 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     dvector<surface> surfaces_vol0 = {sf0, sf1};
     dvector<surface> surfaces_vol1 = {sf2, sf3};
 
-    geo.template add_objects<geometry::e_portal>(v0, portals_vol0);
-    geo.template add_objects<geometry::e_surface>(v0, surfaces_vol0);
-    geo.template add_objects<geometry::e_portal>(v1, portals_vol1);
-    geo.template add_objects<geometry::e_surface>(v1, surfaces_vol1);
+    auto &v2 = geo.volume_by_index(0);
+    auto &v3 = geo.volume_by_index(1);
+    geo.template add_objects<geometry::e_portal>(v2, portals_vol0);
+    geo.template add_objects<geometry::e_surface>(v2, surfaces_vol0);
+    geo.template add_objects<geometry::e_portal>(v3, portals_vol1);
+    geo.template add_objects<geometry::e_surface>(v3, surfaces_vol1);
+
+    auto objects_range = darray<dindex, 2>{0, 3};
+    ASSERT_TRUE(v2.template range<geometry::e_portal>() == objects_range);
+
+    // Build the graph
+    graph g = graph(geo.volumes(), geo.template objects<geometry::e_portal>());
 
     // Is everything accessible from the graph?
     EXPECT_EQ(g.n_nodes(), geo.n_volumes());
     EXPECT_EQ(g.n_edges(), geo.template n_objects<geometry::e_portal>());
+
+    std::cout << g.to_string() << std::endl;
 }
 
 int main(int argc, char **argv) {
