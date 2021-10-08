@@ -51,6 +51,23 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     /// Surface 3
     auto sf3 = surface(1, {geometry::e_trapezoid2, 0}, 1, 9);
 
+    // Set the links between volumes {edge, surface_finder}
+    // Link to other volume
+    pt0.set_edge({1, 1});
+    pt1.set_edge({1, 1});
+    pt2.set_edge({1, 1});
+    // Link back to volume they belong to
+    sf0.set_edge({0, 0});
+    sf1.set_edge({0, 0});
+
+    pt3.set_edge({0, 0});
+    pt4.set_edge({0, 0});
+    pt5.set_edge({0, 0});
+    pt6.set_edge({0, 0});
+
+    sf2.set_edge({1, 1});
+    sf3.set_edge({1, 1});
+
     /// Correct links for volume 1
     dindex trf_offset_vol1 = 5;
     dindex mask_offset_cyl = 1;

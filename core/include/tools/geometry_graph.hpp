@@ -98,14 +98,11 @@ class geometry_graph {
         for (const auto &n : _nodes) {
             const auto &edge_range = n.template range<object_id::e_portal>();
             vector_type<dindex> neighbors = {};
-            std::cout << "on node " << n.index() << std::endl;
+
             for (size_t edi = edge_range[0]; edi < edge_range[1]; edi++) {
-                std::cout << "portal " << edi << std::endl;
-                neighbors.push_back(_edges[edi].volume());
+                neighbors.push_back(std::get<0>(_edges[edi].edge()));
             }
-            std::cout << "found neighbors " << neighbors.size() << std::endl;
             adjaceny_list[n.index()] = neighbors;
-            std::cout << "adj list size: " << adjaceny_list.size() << std::endl;
         }
     }
 
