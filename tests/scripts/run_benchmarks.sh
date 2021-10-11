@@ -41,12 +41,14 @@ cd ${GITHUB_WORKSPACE}
 git fetch
 cd extern/algebra-plugins
 git reset --hard origin/master
+git checkout -b gh-pages origin/gh-pages
+
 cd -
 git clean -n
 git add extern/algebra-plugins
 git commit
 git submodule update --init --recursive
-git checkout -b gh-pages origin/gh-pages
+
 cp archive/benchmarks/benchmarks_history.csv ${PWD_BUILD}/.
 cd ${PWD_BUILD}
 cat benchmark_${LASTCOMMIT}.csv >> benchmarks_history.csv
