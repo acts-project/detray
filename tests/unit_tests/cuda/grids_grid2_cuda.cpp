@@ -12,6 +12,7 @@
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "grids_grid2_cuda_kernel.hpp"
+#include "vecmem/utils/cuda/copy.hpp"
 
 using namespace detray;
 
@@ -153,6 +154,10 @@ TEST(grids_cuda, grid2_attach_populator) {
 /// object It is especially useful when you don't need to save the objects in
 /// host side (e.g. internal spacepoint creation in traccc)
 TEST(grids_cuda, grid2_buffer_attach_populator) {
+
+    // Helper object for performing memory copies.
+    vecmem::cuda::copy copy;
+
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
@@ -161,6 +166,7 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
 
     grid2_buffer<host_grid2_attach> g2_buffer(xaxis, yaxis, {2, 5, 8, 10},
                                               {100, 200, 300, 400}, mng_mr);
+    copy.setup(g2_buffer._buffer);
 
     // Check if the initialization work well
     // Non-zero starting size not working yet so initial argument for sizes is
@@ -178,9 +184,12 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     // fill each bin with 100 points
     grid_attach_fill_test(g2_buffer);
 
+    host_grid2_attach g2(xaxis, yaxis, mng_mr, test::point3{0, 0, 0});
+    copy(g2_buffer._buffer, g2.data());
+
     // Check if each bin has 100 points
-    EXPECT_EQ(ptr[0].size(), 100);
-    EXPECT_EQ(ptr[1].size(), 100);
-    EXPECT_EQ(ptr[2].size(), 100);
-    EXPECT_EQ(ptr[3].size(), 100);
+    EXPECT_EQ(g2.data()[0].size(), 100);
+    EXPECT_EQ(g2.data()[1].size(), 100);
+    EXPECT_EQ(g2.data()[2].size(), 100);
+    EXPECT_EQ(g2.data()[3].size(), 100);
 }
