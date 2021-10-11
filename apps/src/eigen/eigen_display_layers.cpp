@@ -5,5 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "apps/common/display_layers.inl"
+// algebra plugin header
 #include "plugins/algebra/eigen_definitions.hpp"
+// inline header
+#include "apps/common/display_layers.inl"
