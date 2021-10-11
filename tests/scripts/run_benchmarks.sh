@@ -46,9 +46,9 @@ git fetch --no-recurse-submodules
 cd extern/algebra-plugins
 git reset --hard origin/main
 cd -
-git clean -n
-git add extern/algebra-plugins
-git commit
+#git clean -n
+#git add extern/algebra-plugins
+#git commit
 git submodule update --init --recursive
 
 git checkout -b gh-pages origin/gh-pages
