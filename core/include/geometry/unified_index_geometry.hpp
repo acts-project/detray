@@ -7,8 +7,6 @@
 #pragma once
 
 #include <iterator>
-#include <sstream>
-#include <string>
 #include <utility>
 
 #include "core/mask_store.hpp"
@@ -20,15 +18,15 @@
 
 namespace detray {
 /**
- * @brief Simple geometry implementation
+ * @brief Indexed geometry implementation that unifies surface and portal types
  *
  * This class provides a geometry that defines logic volumes which contain
- * the detector surfaces, joined together by dedicated portal surfaces. It
+ * the detector surfaces, joined together by conceptual portal surfaces. It
  * exports all types needed for navigation and strictly only keeps the
- * index data (links) that define the geometry relations. The simple geometry
- * itself makes no distinction between surfaces and portals. Both carry the
- * same link type: a portal points to the next volume, a surface to the current
- * volume
+ * index data (links) that define the geometry relations. This geometry
+ * implemenatation makes no distinction between surfaces and portals. Both
+ * carry the same link type: a portal points to the next volume, a surface to
+ * the current volume.
  *
  * @tparam array_type the type of the internal array, must have STL
  *                    semantics
@@ -45,7 +43,7 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
-class simple_geometry {
+class unified_index_geometry {
 
     public:
     // Known primitives
@@ -63,7 +61,7 @@ class simple_geometry {
         e_trapezoid2 = 1,
         e_annulus2 = 2,
         e_cylinder3 = 3,
-        e_portal_cylinder3 = 3,
+        e_portal_cylinder3 = 3,  // no distinction from surface cylinder
         e_portal_ring2 = 4,
         e_single3 = std::numeric_limits<unsigned int>::max(),
         e_unknown = std::numeric_limits<unsigned int>::max(),
@@ -120,15 +118,13 @@ class simple_geometry {
     using portal_filling_container = surface_filling_container;
 
     /** Default constructor */
-    simple_geometry() = default;
-    /** Default destructor */
-    ~simple_geometry() = default;
+    unified_index_geometry() = default;
 
     /** Copy constructor
      *
-     * @param other simple_geometry to be copied
+     * @param other unified_index_geometry to be copied
      */
-    simple_geometry(const simple_geometry &other) = default;
+    // unified_index_geometry(const unified_index_geometry &other) = default;
 
     /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }
@@ -156,13 +152,12 @@ class simple_geometry {
      * @return non-const reference of the new volume
      */
     inline volume_type &new_volume(
-        const std::string &name, const array_type<scalar, 6> &bounds,
+        const array_type<scalar, 6> &bounds,
         dindex surfaces_finder_entry = dindex_invalid) {
-        _volumes.emplace_back(name, bounds);
-        dindex cvolume_idx = _volumes.size() - 1;
-        volume_type &cvolume = _volumes[cvolume_idx];
-        cvolume.set_index(cvolume_idx);
+        volume_type &cvolume = _volumes.emplace_back(bounds);
+        cvolume.set_index(_volumes.size() - 1);
         cvolume.set_surfaces_finder(surfaces_finder_entry);
+
         return cvolume;
     }
 
@@ -211,24 +206,6 @@ class simple_geometry {
 
         volume.template set_range<add_surfaces>({offset, _objects.size()});
     }
-
-    /**
-     * Print geometry if an external name map is provided for the volumes.
-     *
-     * @param names  Lookup for the names by volume index.
-     *
-     * @returns the geometry description as a string
-     */
-    // TODO: remove names
-    /*template <typename name_map>
-    inline const std::string to_string(name_map &names) const*/
-    inline const std::string to_string() const {
-        std::stringstream ss;
-        for (const auto &[i, v] : enumerate(_volumes)) {
-            ss << "[>>] Volume at index " << i << ": " << v.to_string();
-        }
-        return ss.str();
-    };
 
     private:
     /** Contains the geometrical relations*/
