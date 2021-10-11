@@ -123,8 +123,19 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     EXPECT_EQ(g.n_edges(), geo.template n_objects<geometry::e_portal>());
 
     std::cout << g.to_string() << std::endl;
+    std::cout << "Walking through geometry: " << std::endl;
+    g.bfs();
 
-    auto connections = g.find_reachable();
+    const auto &adj = g.adjacency_list();
+
+    // Volume 0 has 3 portals to volume 1
+    dvector<dindex> nbrs_v0 = {1, 1, 1};
+    // Volume 1 has 4 portals to volume 0
+    dvector<dindex> nbrs_v1 = {0, 0, 0, 0};
+
+    // Check this with graph
+    ASSERT_TRUE(adj.at(0) == nbrs_v0);
+    ASSERT_TRUE(adj.at(1) == nbrs_v1);
 }
 
 int main(int argc, char **argv) {
