@@ -44,15 +44,15 @@ using device_grid2_attach =
           axis::regular<>, serializer2>;
 
 // test function for replace populator
-void grid_replace_test(grid2_view<host_grid2_replace>& grid_view);
+void grid_replace_test(grid2_view<host_grid2_replace> grid_view);
 
 // test function for complete populator
-void grid_complete_test(grid2_view<host_grid2_complete>& grid_view);
+void grid_complete_test(grid2_view<host_grid2_complete> grid_view);
 
 // read test function for grid with attach populator
-void grid_attach_read_test(grid2_view<host_grid2_attach>& grid_view);
+void grid_attach_read_test(grid2_view<host_grid2_attach> grid_view);
 
 // fill test function for grid buffer with attach populator
-void grid_attach_fill_test(grid2_view<host_grid2_attach>& grid_view);
+void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view);
 
 }  // namespace detray

@@ -397,9 +397,10 @@ struct grid2_view {
           _axis_p1(grid_data._axis_p1),
           _data_view(grid_data._data) {}
 
-    /** Constructor from grid buffer
+    /** Constructor from grid data
      *
-     * @param grid_buffer is the input grid buffer
+     * @param grid data is the input grid data
+     *
      **/
     grid2_view(const grid2_buffer<grid_t> &grid_buffer)
         : _axis_p0(grid_buffer._axis_p0),
@@ -448,20 +449,6 @@ template <typename grid_t>
 inline grid2_data<grid_t> get_data(grid_t &grid,
                                    vecmem::memory_resource &resource) {
     return {grid, resource};
-}
-
-/** Get grid2_view from grid_data
- **/
-template <typename grid_t>
-inline grid2_view<grid_t> get_view(grid2_data<grid_t> &grid_data) {
-    return {grid_data};
-}
-
-/** Get grid2_view from grid_buffer
- **/
-template <typename grid_t>
-inline grid2_view<grid_t> get_view(grid2_buffer<grid_t> &grid_buffer) {
-    return {grid_buffer};
 }
 
 }  // namespace detray

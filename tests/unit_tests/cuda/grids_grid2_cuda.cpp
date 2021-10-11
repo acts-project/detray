@@ -42,10 +42,9 @@ TEST(grids_cuda, grid2_replace_populator) {
 
     // get grid_data
     auto g2_data = get_data(g2, mng_mr);
-    auto g2_view = get_view(g2_data);
 
     // fill the grids
-    grid_replace_test(g2_view);
+    grid_replace_test(g2_data);
 
     // post-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -88,10 +87,9 @@ TEST(grids_cuda, grid2_complete_populator) {
 
     // get grid_data
     auto g2_data = get_data(g2, mng_mr);
-    auto g2_view = get_view(g2_data);
 
     // fill the grid
-    grid_complete_test(g2_view);
+    grid_complete_test(g2_data);
 
     auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
     auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
@@ -146,10 +144,9 @@ TEST(grids_cuda, grid2_attach_populator) {
 
     // get grid_data
     auto g2_data = get_data(g2, mng_mr);
-    auto g2_view = get_view(g2_data);
 
     // Read the grid
-    grid_attach_read_test(g2_view);
+    grid_attach_read_test(g2_data);
 }
 
 /// This test demonstrates how to call grid buffer without calling host grid
@@ -178,10 +175,8 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     EXPECT_EQ(ptr[2].capacity(), 300);
     EXPECT_EQ(ptr[3].capacity(), 400);
 
-    auto g2_view = get_view(g2_buffer);
-
     // fill each bin with 100 points
-    grid_attach_fill_test(g2_view);
+    grid_attach_fill_test(g2_buffer);
 
     // Check if each bin has 100 points
     EXPECT_EQ(ptr[0].size(), 100);
