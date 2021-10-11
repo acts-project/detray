@@ -7,8 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <string>
-
 #include "geometry/volume.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -24,7 +22,7 @@ TEST(ALGEBRA_PLUGIN, volume) {
 
     // Check construction, setters and getters
     darray<scalar, 6> bounds = {0., 10., -5., 5., -M_PI, M_PI};
-    volume v1 = volume("test_volume", bounds);
+    volume v1 = volume(bounds);
     v1.set_index(12345);
     v1.set_surfaces_finder(12);
 
@@ -44,26 +42,13 @@ TEST(ALGEBRA_PLUGIN, volume) {
     ASSERT_EQ(v1.template n_objects<surface>(), 6);
     ASSERT_EQ(v1.template n_objects<portal>(), 4);
 
-    // Set transform ranges
-    dindex_range surface_trf_range{0, 45};
-    dindex_range portal_trf_range{28, 34};
-    v1.template set_trf_range<surface>(surface_trf_range);
-    v1.template set_trf_range<portal>(portal_trf_range);
-    ASSERT_TRUE(v1.template trf_range<surface>() == surface_trf_range);
-    ASSERT_TRUE(v1.template trf_range<portal>() == portal_trf_range);
-
-    // Check copy constructor and eq. operator
+    // Check copy constructor
     const auto v2 = volume(v1);
     ASSERT_TRUE(v2.index() == 12345);
     ASSERT_TRUE(v2.bounds() == bounds);
     ASSERT_TRUE(v2.surfaces_finder_entry() == 12);
     ASSERT_TRUE(v2.template range<surface>() == surface_range);
     ASSERT_TRUE(v2.template range<portal>() == portal_range);
-    ASSERT_TRUE(v2.template trf_range<surface>() == surface_trf_range);
-    ASSERT_TRUE(v2.template trf_range<portal>() == portal_trf_range);
-
-    ASSERT_TRUE(v2 == v1);
-    ASSERT_TRUE(v1 == v2);
 }
 
 int main(int argc, char **argv) {

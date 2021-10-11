@@ -54,6 +54,7 @@ detector_from_csv(const std::string &detector_name,
                   const std::string &layer_volume_file_name,
                   const std::string &grid_file_name,
                   const std::string &grid_entries_file_name,
+                  std::map<dindex, std::string> &name_map,
                   vecmem::memory_resource &resource,
                   scalar r_sync_tolerance = 0., scalar z_sync_tolerance = 0.) {
     using typed_detector =
@@ -299,12 +300,6 @@ detector_from_csv(const std::string &detector_name,
                 c_transforms = typename typed_detector::transform_container();
             }
 
-            // Create a new volume & assign
-            std::string volume_name = detector_name;
-            volume_name +=
-                std::string("_vol_") + std::to_string(io_surface.volume_id);
-            volume_name +=
-                std::string("_lay_") + std::to_string(io_surface.layer_id);
             // Find and fill the bounds
             auto new_bounds = volume_bounds.find(c_index);
             if (new_bounds == volume_bounds.end()) {
@@ -325,8 +320,16 @@ detector_from_csv(const std::string &detector_name,
                 surfaces_finder_entry = surface_finder_itr->second;
             }
 
+            std::string volume_name = detector_name;
+            volume_name +=
+                std::string("_vol_") + std::to_string(io_surface.volume_id);
+            volume_name +=
+                std::string("_lay_") + std::to_string(io_surface.layer_id);
+
             auto &new_volume =
-                d.new_volume(volume_name, volume_bounds, surfaces_finder_entry);
+                d.new_volume(volume_bounds, surfaces_finder_entry);
+
+            name_map[new_volume.index()] = volume_name;
 
             // RZ attachment storage
             attach_volume(r_min_attachments, volume_bounds[0],

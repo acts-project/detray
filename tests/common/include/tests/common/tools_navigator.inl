@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+#include <map>
+#include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/detector.hpp"
@@ -36,10 +38,11 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     std::string surface_grid_file =
         data_directory + std::string("tml-surface-grids.csv");
     std::string surface_grid_entries_file = "";
+    std::map<dindex, std::string> name_map{};
 
     auto d = detector_from_csv<>("tml", surface_file, layer_volume_file,
                                  surface_grid_file, surface_grid_entries_file,
-                                 host_mr);
+                                 name_map, host_mr);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
