@@ -39,6 +39,9 @@ echo "===> Download benchmark history ..."
 
 cd ${GITHUB_WORKSPACE}
 
+git config --local user.email "action@github.com"
+git config --local user.name "GitHub Action"
+
 git fetch --no-recurse-submodules
 cd extern/algebra-plugins
 git reset --hard origin/main
@@ -60,8 +63,6 @@ echo "===> Prepare for uploading results ..."
 cp benchmarks_history.csv ${GITHUB_WORKSPACE}/archive/benchmarks/benchmarks_history.csv
 cp *.png  ${GITHUB_WORKSPACE}/figures/.
 cd ${GITHUB_WORKSPACE}
-git config --global user.email "action@github.com"
-git config --global user.name "GitHub Action"
 git add archive/benchmarks/benchmarks_history.csv
 git add figures/*.png
 git commit -m"updating benchmark data for commit ${LASTCOMMIT}" -a
