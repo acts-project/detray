@@ -5,7 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-// algebra plugin header
 #include "plugins/algebra/eigen_definitions.hpp"
-// inline header
-#include "apps/common/display_volumes_rz.inl"
+#include "tests/common/geometry_volume.inl"

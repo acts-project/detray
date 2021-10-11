@@ -245,6 +245,29 @@ void connect_cylindrical_volumes(
                     std::get<disc_id>(portal_transforms);
                 auto &disc_portals = std::get<disc_id>(portals);
 
+                /*typename detector_type::portal::mask_links mask_index = {
+                    disc_id, portal_masks.template size<disc_id>()};
+                // Create a stub mask for every unique index
+                for (auto &info_ : portals_info) {
+                    // Add new mask to container
+                    std::get<1>(mask_index) =
+                        portal_masks.template size<disc_id>();
+
+                    portal_masks.template add_mask<disc_id>(
+                        std::get<0>(info_)[0], std::get<0>(info_)[1]);
+
+                    // Update mask link
+                    portal_masks.template group<disc_id>().back().links() = {
+                        std::get<1>(info_), dindex_invalid};
+
+                    // Create the portal
+                    typename detector_type::portal _portal{
+                        disc_portal_transforms.size(default_context),
+                        mask_index, volume.index(), dindex_invalid};
+                    // Save the data
+                    disc_portals.push_back(std::move(_portal));
+                }*/
+
                 typename detector_type::portal::mask_links mask_index = {
                     disc_id,
                     {portal_masks.template size<disc_id>(),
@@ -290,6 +313,29 @@ void connect_cylindrical_volumes(
                 auto &cylinder_portal_transforms =
                     std::get<cylinder_id>(portal_transforms);
                 auto &cylinder_portals = std::get<cylinder_id>(portals);
+
+                /*typename detector_type::portal::mask_links mask_index = {
+                    cylinder_id, portal_masks.template size<cylinder_id>()};
+                for (auto &info_ : portals_info) {
+                    // Add new mask to container
+                    const auto cylinder_range = std::get<0>(info_);
+                    std::get<1>(mask_index) =
+                        portal_masks.template size<cylinder_id>();
+
+                    portal_masks.template add_mask<cylinder_id>(
+                        volume_bounds[bound_index], cylinder_range[0],
+                        cylinder_range[1]);
+
+                    // Update masks links
+                    portal_masks.template group<cylinder_id>().back().links() =
+                        {std::get<1>(info_), dindex_invalid};
+
+                    // Create the portal
+                    typename detector_type::portal _portal{
+                        cylinder_portal_transforms.size(default_context),
+                        mask_index, volume.index(), dindex_invalid};
+                    cylinder_portals.push_back(std::move(_portal));
+                }*/
 
                 typename detector_type::portal::mask_links mask_index = {
                     cylinder_id,
