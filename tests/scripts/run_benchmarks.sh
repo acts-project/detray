@@ -40,7 +40,7 @@ echo "===> Download benchmark history ..."
 cd ${GITHUB_WORKSPACE} 
 git fetch --no-recurse-submodules
 cd extern/algebra-plugins
-git reset --hard origin/master
+git reset --hard origin/main
 
 cd -
 git clean -n
