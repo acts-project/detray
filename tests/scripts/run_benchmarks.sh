@@ -37,11 +37,11 @@ pip3 install matplotlib numpy pandas
 
 echo "===> Download benchmark history ..."
 
-cd ${GITHUB_WORKSPACE} 
+cd ${GITHUB_WORKSPACE}
+
 git fetch --no-recurse-submodules
 cd extern/algebra-plugins
 git reset --hard origin/main
-
 cd -
 git clean -n
 git add extern/algebra-plugins
