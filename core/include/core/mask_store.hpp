@@ -103,11 +103,12 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int mask_id, typename... bounds_type>
-    void add_mask(bounds_type &&... mask_bounds) noexcept(false) {
+    auto &add_mask(bounds_type &&... mask_bounds) noexcept(false) {
         // Get the mask group that will be updated
         auto &mask_group = std::get<mask_id>(_mask_tuple);
         // Construct new mask in place
-        mask_group.emplace_back(std::forward<bounds_type>(mask_bounds)...);
+        return mask_group.emplace_back(
+            std::forward<bounds_type>(mask_bounds)...);
     }
 
     /** Add a new bunch of masks

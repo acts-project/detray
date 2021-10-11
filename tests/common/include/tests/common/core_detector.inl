@@ -42,7 +42,7 @@ TEST(ALGEBRA_PLUGIN, detector) {
     masks.template add_mask<geometry::e_trapezoid2>(1., 2., 3.);
 
     detector d("test_detector");
-    auto &v = d.new_volume("test_volume", {0., 10., -5., 5., -M_PI, M_PI});
+    auto &v = d.new_volume({0., 10., -5., 5., -M_PI, M_PI});
     d.template add_objects<geometry::e_surface>(v, surfaces, masks, trfs, ctx0);
 }
 

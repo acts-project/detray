@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include <iterator>
+#include <map>
 #include <sstream>
 #include <string>
 
@@ -33,9 +35,7 @@ using point2 = __plugin::point2;
  * @tparam tuple_type the type of the internal tuple, must have STL semantics
  * @tparam vector_type the type of the internal array, must have STL semantics
  * @tparam alignable_store the type of the transform store
- * @tparam surface_source_link the type of the link to an external surface
- * source
- * @tparam bounds_source_link the type of the link to an external bounds source
+ * @tparam geometry_type the geometry implementation to be used
  * @tparam surfaces_populator_type the type of populator used to fill the
  * surfaces grids
  * @tparam surfaces_serializer_type the type of the memory serializer for the
@@ -50,7 +50,8 @@ template <template <typename, unsigned int> class array_type = darray,
                                                   tuple_type, dindex, dindex>,
           typename surfaces_populator_type =
               attach_populator<false, dindex, vector_type>,
-          typename surfaces_serializer_type = serializer2>
+          typename surfaces_serializer_type = serializer2,
+          typename name_map = std::map<dindex, std::string>>
 class detector {
 
     public:
@@ -105,33 +106,25 @@ class detector {
     using transform_container =
         array_type<transform_store, mask_id::e_mask_types>;
 
+    detector() = delete;
+
     /** Allowed costructor
-     * @param name the detector
+     * @param name the detector name
      */
     detector(const std::string &name) : _name(name) {}
 
-    /** Copy constructor
-     *
-     * @param other Detector to be copied
-     */
-    detector(const detector &other) = default;
-    detector() = delete;
-    ~detector() = default;
-
     /** Add a new volume and retrieve a reference to it
      *
-     * @param name of the volume
      * @param bounds of the volume, they are expected to be already attaching
      * @param surfaces_finder_entry of the volume, where to entry the surface
      * finder
      *
      * @return non-const reference of the new volume
      */
-    volume &new_volume(const std::string &name,
-                       const array_type<scalar, 6> &bounds,
+    volume &new_volume(const array_type<scalar, 6> &bounds,
                        dindex surfaces_finder_entry = dindex_invalid) {
 
-        return _geometry.new_volume(name, bounds, surfaces_finder_entry);
+        return _geometry.new_volume(bounds, surfaces_finder_entry);
     }
 
     /** @return the name of the detector */
@@ -296,10 +289,6 @@ class detector {
             _masks.template add_masks<current_type>(object_masks);
             _transforms.append(ctx, std::move(std::get<current_type>(trfs)));
 
-            // Surface/portal transforms for this volume
-            volume.template set_trf_range<object_type>(
-                {trsf_offset, n_transforms(ctx)});
-
             // Update the surfaces mask link
             for (auto &obj : typed_objects) {
                 _geometry.update_mask_link(obj, mask_offset);
@@ -347,13 +336,35 @@ class detector {
     }
 
     /** Output to string */
-    const std::string to_string() const {
+    const std::string to_string(const name_map &names) const {
         std::stringstream ss;
+
         ss << "[>] Detector '" << _name << "' has " << _geometry.n_volumes()
            << " volumes." << std::endl;
         ss << "    contains  " << _surfaces_finders.size()
            << " local surface finders." << std::endl;
-        ss << _geometry.to_string() << std::endl;
+
+        for (const auto &[i, v] : enumerate(_geometry.volumes())) {
+            ss << "[>>] Volume at index " << i << ": " << std::endl;
+            ss << " - name: '" << v.name(names) << "'" << std::endl;
+
+            ss << "     contains    " << v.template n_objects<true>()
+               << " surfaces " << std::endl;
+
+            ss << "                 " << v.template n_objects<false>()
+               << " portals " << std::endl;
+
+            if (v.surfaces_finder_entry() != dindex_invalid) {
+                ss << "  sf finders idx " << v.surfaces_finder_entry()
+                   << std::endl;
+            }
+
+            const auto &bounds = v.bounds();
+            ss << "     bounds r = (" << bounds[0] << ", " << bounds[1] << ")"
+               << std::endl;
+            ss << "            z = (" << bounds[2] << ", " << bounds[3] << ")"
+               << std::endl;
+        }
 
         return ss.str();
     };
