@@ -22,13 +22,21 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     using geometry = unified_index_geometry<>;
     using portal = geometry::portal;
     using surface = geometry::surface;
-    using graph = geometry_graph<geometry>;
+
+    /// Prints linking information for every node when visited
+    struct volume_printout {
+        void operator()(const geometry::volume_type &n) const {
+            std::cout << "On volume: " << n.index() << std::endl;
+        }
+    };
+
+    using graph = geometry_graph<geometry, volume_printout>;
 
     geometry geo = geometry();
 
     // Add two volumes
-    auto &v0 = geo.new_volume({0., 10., -5., 5., -M_PI, M_PI});
-    auto &v1 = geo.new_volume({0., 5., -10., 10., -M_PI, M_PI});
+    geo.new_volume({0., 10., -5., 5., -M_PI, M_PI});
+    geo.new_volume({0., 5., -10., 10., -M_PI, M_PI});
 
     /// volume 0
     /// volume portals
@@ -115,6 +123,8 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     EXPECT_EQ(g.n_edges(), geo.template n_objects<geometry::e_portal>());
 
     std::cout << g.to_string() << std::endl;
+
+    auto connections = g.find_reachable();
 }
 
 int main(int argc, char **argv) {

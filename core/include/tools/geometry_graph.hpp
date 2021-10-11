@@ -17,6 +17,15 @@
 #include "utils/indexing.hpp"
 
 namespace detray {
+
+/** Placeholder struct for the implementation of an inspection function
+ * that will be executed, when a node is visited.
+ */
+template <typename node_t>
+struct void_volume_inspector {
+    bool operator()(node_t &n) { return true; }
+};
+
 /**
  * @brief Uses the geometry implementations to walk through their graph-like
  * structure breadth first.
@@ -28,7 +37,10 @@ namespace detray {
  *
  * @note The geometry has to expose the volume/portal interface.
  */
-template <typename geometry, template <typename> class vector_type = dvector>
+template <typename geometry,
+          typename node_inspector =
+              void_volume_inspector<typename geometry::volume_type>,
+          template <typename> class vector_type = dvector>
 class geometry_graph {
 
     public:
@@ -40,6 +52,9 @@ class geometry_graph {
 
     // Graph edges
     using edge_t = typename geometry::portal;
+
+    // Node links: If two nodes are mutually reachable, dump their indices
+    using link_t = std::pair<dindex, dindex>;
 
     /** Default constructor */
     geometry_graph() = delete;
@@ -69,6 +84,13 @@ class geometry_graph {
 
     /** @return all surfaces/portals in the geometry */
     const auto edges() const { return _edges; }
+
+    /** @return a vector of node index pair, if nodes are mutually reachable.*/
+    auto find_reachable() {
+        vector_type<link_t> links = {};
+        bfs();
+        return links;
+    }
 
     /**
      * Print geometry if an external name map is provided for the volumes.
@@ -106,19 +128,41 @@ class geometry_graph {
         }
     }
 
-    void bfs() {
-        // Start at root
-        const auto &current = _nodes.front();
+    /** Walks breadth first through the geometry objects. */
+    void bfs() const {
+        // Do node inspection
+        const auto inspector = node_inspector();
 
-        // Nodes to be visited
-        std::queue<node_t> node_queue;
-        node_queue.push(current);
+        node_t const *current = nullptr;
+        vector_type<bool> visited(_nodes.size(), false);
 
-        // Visit adjacent nodes
-        do {
-            const auto &neighbors = adjaceny_list.at(current.index());
-            current = node_queue.pop();
-        } while (not node_queue.empty());
+        // Nodes to be visited. Start at first node
+        std::queue<node_t const *> node_queue;
+        node_queue.push(&(_nodes[0]));
+
+        // Visit adjacent nodes and check current one
+        while (not node_queue.empty()) {
+            // Inspect
+            current = node_queue.front();
+            if (visited[current->index()]) {
+                node_queue.pop();
+                continue;
+            }
+            inspector(*current);
+
+            // Visit neighbors
+            const auto &neighbors = adjaceny_list.at(current->index());
+            // Add neightbors to queue
+            for (const auto &nbr : neighbors) {
+                if (not visited[nbr]) {
+                    node_queue.push(&(_nodes[nbr]));
+                }
+            }
+
+            // This volume has been visited
+            visited[current->index()] = true;
+            node_queue.pop();
+        }
     }
 
     /** Graph nodes */
