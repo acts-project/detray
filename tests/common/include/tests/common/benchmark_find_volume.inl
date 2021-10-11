@@ -8,6 +8,7 @@
 #include <benchmark/benchmark.h>
 
 #include <iostream>
+#include <map>
 #include <string>
 
 #include "core/detector.hpp"
@@ -36,8 +37,10 @@ auto read_detector() {
     std::string volumes = data_directory + "odd-layer-volumes.csv";
     std::string grids = data_directory + "odd-surface-grids.csv";
     std::string grid_entries = "";
+    std::map<dindex, std::string> name_map{};
+
     return detray::detector_from_csv<>(name, surfaces, volumes, grids,
-                                       grid_entries);
+                                       grid_entries, name_map);
 };
 
 auto d = read_detector();

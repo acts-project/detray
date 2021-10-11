@@ -7,8 +7,6 @@
 #pragma once
 
 #include <iterator>
-#include <sstream>
-#include <string>
 #include <utility>
 
 #include "core/mask_store.hpp"
@@ -137,14 +135,6 @@ class index_geometry {
 
     /** Default constructor */
     index_geometry() = default;
-    /** Default destructor */
-    ~index_geometry() = default;
-
-    /** Copy constructor
-     *
-     * @param other index_geometry to be copied
-     */
-    index_geometry(const index_geometry &other) = default;
 
     /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }
@@ -172,13 +162,12 @@ class index_geometry {
      * @return non-const reference of the new volume
      */
     inline volume_type &new_volume(
-        const std::string &name, const array_type<scalar, 6> &bounds,
+        const array_type<scalar, 6> &bounds,
         dindex surfaces_finder_entry = dindex_invalid) {
-        _volumes.emplace_back(name, bounds);
-        dindex cvolume_idx = _volumes.size() - 1;
-        volume_type &cvolume = _volumes[cvolume_idx];
-        cvolume.set_index(cvolume_idx);
+        volume_type &cvolume = _volumes.emplace_back(bounds);
+        cvolume.set_index(_volumes.size() - 1);
         cvolume.set_surfaces_finder(surfaces_finder_entry);
+
         return cvolume;
     }
 
@@ -264,24 +253,6 @@ class index_geometry {
             volume.template set_range<e_portal>({offset, _portals.size()});
         }
     }
-
-    /**
-     * Print geometry if an external name map is provided for the volumes.
-     *
-     * @param names  Lookup for the names by volume index.
-     *
-     * @returns the geometry description as a string
-     */
-    // TODO: remove names
-    /*template <typename name_map>
-    inline const std::string to_string(name_map &names) const*/
-    inline const std::string to_string() const {
-        std::stringstream ss;
-        for (const auto &[i, v] : enumerate(_volumes)) {
-            ss << "[>>] Volume at index " << i << ": " << v.to_string();
-        }
-        return ss.str();
-    };
 
     private:
     /** Contains the geometrical relations*/
