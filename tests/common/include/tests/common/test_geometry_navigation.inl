@@ -79,14 +79,16 @@ struct print_inspector {
             std::cout << "-> " << sf_cand.path << std::endl;
         }
         if (not state.surface_kernel.empty())
-            std::cout << "=> next: " << state.surface_kernel.next->index << std::endl;
+            std::cout << "=> next: " << state.surface_kernel.next->index
+                      << std::endl;
 
         std::cout << "Portal candidates: " << std::endl;
         for (const auto &pt_cand : state.portal_kernel.candidates) {
             std::cout << "-> " << pt_cand.path << std::endl;
         }
         if (not state.portal_kernel.empty())
-            std::cout << "=> next: " << state.portal_kernel.next->index << std::endl;
+            std::cout << "=> next: " << state.portal_kernel.next->index
+                      << std::endl;
 
         switch (state.status) {
             case -3:
@@ -184,7 +186,7 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
 
             bool heartbeat = n.status(n_state, s_state());
             // Run while there is a heartbeat
-            //while (heartbeat) {
+            // while (heartbeat) {
             for (size_t n_steps = 0; n_steps < 10; n_steps++) {
                 // (Re-)target
                 heartbeat &= n.target(n_state, s_state());
