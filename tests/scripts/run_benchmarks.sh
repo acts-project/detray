@@ -37,8 +37,17 @@ pip3 install matplotlib numpy pandas
 
 echo "===> Download benchmark history ..."
 
-cd ${GITHUB_WORKSPACE} 
-git fetch
+cd ${GITHUB_WORKSPACE}
+
+git config --local user.email "action@github.com"
+git config --local user.name "GitHub Action"
+
+git fetch --no-recurse-submodules
+cd extern/algebra-plugins
+git reset --hard origin/main
+cd -
+git submodule update --init --recursive
+
 git checkout -b gh-pages origin/gh-pages
 cp archive/benchmarks/benchmarks_history.csv ${PWD_BUILD}/.
 cd ${PWD_BUILD}
@@ -51,8 +60,6 @@ echo "===> Prepare for uploading results ..."
 cp benchmarks_history.csv ${GITHUB_WORKSPACE}/archive/benchmarks/benchmarks_history.csv
 cp *.png  ${GITHUB_WORKSPACE}/figures/.
 cd ${GITHUB_WORKSPACE}
-git config --local user.email "action@github.com"
-git config --local user.name "GitHub Action"
 git add archive/benchmarks/benchmarks_history.csv
 git add figures/*.png
 git commit -m"updating benchmark data for commit ${LASTCOMMIT}" -a
