@@ -20,6 +20,7 @@
 #include "core/detector.hpp"
 #include "core/track.hpp"
 #include "io/csv_io.hpp"
+#include "tests/common/read_geometry.hpp"
 #include "tools/line_stepper.hpp"
 #include "tools/navigator.hpp"
 #include "utils/ray_gun.hpp"
@@ -78,14 +79,14 @@ struct print_inspector {
             std::cout << "-> " << sf_cand.path << std::endl;
         }
         if (not state.surface_kernel.empty())
-            std::cout << "=> " << state.surface_kernel.next->index << std::endl;
+            std::cout << "=> next: " << state.surface_kernel.next->index << std::endl;
 
         std::cout << "Portal candidates: " << std::endl;
         for (const auto &pt_cand : state.portal_kernel.candidates) {
             std::cout << "-> " << pt_cand.path << std::endl;
         }
         if (not state.portal_kernel.empty())
-            std::cout << "=> " << state.portal_kernel.next->index << std::endl;
+            std::cout << "=> next: " << state.portal_kernel.next->index << std::endl;
 
         switch (state.status) {
             case -3:
@@ -183,7 +184,8 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
 
             bool heartbeat = n.status(n_state, s_state());
             // Run while there is a heartbeat
-            while (heartbeat) {
+            //while (heartbeat) {
+            for (size_t n_steps = 0; n_steps < 10; n_steps++) {
                 // (Re-)target
                 heartbeat &= n.target(n_state, s_state());
                 // Take the step
