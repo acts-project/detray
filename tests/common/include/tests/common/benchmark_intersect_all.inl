@@ -46,22 +46,21 @@ auto read_detector() {
     }
     auto data_directory = std::string(env_d_d);
 
-    std::string name = "tml";
-    std::string surface_file = data_directory + "tml.csv";
-    std::string layer_volume_file = data_directory + "tml-layer-volumes.csv";
-    std::string surface_grid_file = data_directory + "tml-surface-grids.csv";
-    std::string surface_grid_entries_file = "";
-
     /*std::string name = "odd";
-    std::string surface_file = data_directory + std::string("odd.csv");
-    std::string layer_volume_file =
-        data_directory + std::string("odd-layer-volumes.csv");
-    std::string surface_grid_file =
-        data_directory + std::string("odd-surface-grids.csv");
-    std::string surface_grid_entries_file = "";*/
+    std::string surfaces = data_directory + "odd.csv";
+    std::string volumes = data_directory + "odd-layer-volumes.csv";
+    std::string grids = data_directory + "odd-surface-grids.csv";
+    std::string grid_entries = "";*/
 
-    return detector_from_csv<>(name, surface_file, layer_volume_file,
-                               surface_grid_file, surface_grid_entries_file);
+    std::string name = "tml";
+    std::string surfaces = data_directory + "tml.csv";
+    std::string volumes = data_directory + "tml-layer-volumes.csv";
+    std::string grids = data_directory + "tml-surface-grids.csv";
+    std::string grid_entries = "";
+    std::map<dindex, std::string> name_map{};
+
+    return detray::detector_from_csv<>(name, surfaces, volumes, grids,
+                                       grid_entries, name_map);
 };
 
 auto d = read_detector();

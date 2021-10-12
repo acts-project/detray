@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <iostream>
 #include <tuple>
 #include <utility>
 
@@ -47,7 +46,6 @@ inline auto intersect_by_group(const track_type &track, const transform3 &trf,
         const auto &mask = masks[i];
         auto local = mask.local();
         auto sfi = mask.intersector().intersect(trf, track, local, mask);
-        std::cout << "INTERSECTOR: " << sfi.path << std::endl;
         if (sfi.status == e_inside) {
             links_type valid_link{};
             // If different link types are present in the container, the code
@@ -58,7 +56,6 @@ inline auto intersect_by_group(const track_type &track, const transform3 &trf,
             using mask_links = typename mask_group::value_type::mask_links_type;
             if constexpr (std::is_same_v<links_type, mask_links>) {
                 valid_link = mask.links();
-                std::cout << "INTERSECTOR: volume link " << valid_link[0] << std::endl;
             }
 
             // links_type valid_link = mask.links();

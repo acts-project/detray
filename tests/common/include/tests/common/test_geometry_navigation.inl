@@ -35,22 +35,21 @@ auto read_detector() {
     }
     auto data_directory = std::string(env_d_d);
 
-    std::string name = "tml";
-    std::string surface_file = data_directory + "tml.csv";
-    std::string layer_volume_file = data_directory + "tml-layer-volumes.csv";
-    std::string surface_grid_file = data_directory + "tml-surface-grids.csv";
-    std::string surface_grid_entries_file = "";
-
     /*std::string name = "odd";
-    std::string surface_file = data_directory + std::string("odd.csv");
-    std::string layer_volume_file =
-        data_directory + std::string("odd-layer-volumes.csv");
-    std::string surface_grid_file =
-        data_directory + std::string("odd-surface-grids.csv");
-    std::string surface_grid_entries_file = "";*/
+    std::string surfaces = data_directory + "odd.csv";
+    std::string volumes = data_directory + "odd-layer-volumes.csv";
+    std::string grids = data_directory + "odd-surface-grids.csv";
+    std::string grid_entries = "";*/
 
-    return detector_from_csv<>(name, surface_file, layer_volume_file,
-                               surface_grid_file, surface_grid_entries_file);
+    std::string name = "tml";
+    std::string surfaces = data_directory + "tml.csv";
+    std::string volumes = data_directory + "tml-layer-volumes.csv";
+    std::string grids = data_directory + "tml-surface-grids.csv";
+    std::string grid_entries = "";
+    std::map<dindex, std::string> name_map{};
+
+    return detray::detector_from_csv<>(name, surfaces, volumes, grids,
+                                       grid_entries, name_map);
 };
 
 /** A navigation inspector that relays information about the encountered
@@ -58,15 +57,21 @@ auto read_detector() {
  */
 struct portal_inspector {
     template <typename state_type>
+    auto operator()(const state_type &state) {}
+};
+
+/** A navigation inspector that prints information about the current navigation
+ * state. Meant for debugging.
+ */
+struct print_inspector {
+    template <typename state_type>
     auto operator()(const state_type &state) {
-        // on portal
-        /*if (state.status == 3) {
-            std::cout << "Hit portal" << std::endl;
-        }*/
 
         std::cout << "Volume\t\t\t" << state.volume_index << std::endl;
-        std::cout << "surface kernel size\t\t\t" << state.surface_kernel.size() << std::endl;
-        std::cout << "portal kernel size\t\t\t" << state.portal_kernel.size() << std::endl;
+        std::cout << "surface kernel size\t\t\t" << state.surface_kernel.size()
+                  << std::endl;
+        std::cout << "portal kernel size\t\t\t" << state.portal_kernel.size()
+                  << std::endl;
 
         std::cout << "Surface candidates: " << std::endl;
         for (const auto &sf_cand : state.surface_kernel.candidates) {
@@ -81,23 +86,46 @@ struct portal_inspector {
         }
         if (not state.portal_kernel.empty())
             std::cout << "=> " << state.portal_kernel.next->index << std::endl;
-        
-        switch(state.status) {
-            case -3: std::cout << "status\t\t\ton_target" << std::endl; break;
-            case -2: std::cout << "status\t\t\tabort" << std::endl; break;
-            case -1: std::cout << "status\t\t\tunknowm" << std::endl; break;
-            case 0: std::cout << "status\t\t\ttowards_surface" << std::endl; break;
-            case 1: std::cout << "status\t\t\ton_surface" << std::endl; break;
-            case 2: std::cout << "status\t\t\ttowards_portal" << std::endl; break;
-            case 3: std::cout << "status\t\t\ton_portal" << std::endl; break;
+
+        switch (state.status) {
+            case -3:
+                std::cout << "status\t\t\ton_target" << std::endl;
+                break;
+            case -2:
+                std::cout << "status\t\t\tabort" << std::endl;
+                break;
+            case -1:
+                std::cout << "status\t\t\tunknowm" << std::endl;
+                break;
+            case 0:
+                std::cout << "status\t\t\ttowards_surface" << std::endl;
+                break;
+            case 1:
+                std::cout << "status\t\t\ton_surface" << std::endl;
+                break;
+            case 2:
+                std::cout << "status\t\t\ttowards_portal" << std::endl;
+                break;
+            case 3:
+                std::cout << "status\t\t\ton_portal" << std::endl;
+                break;
         };
         std::cout << "current object\t\t" << state.current_index << std::endl;
-        std::cout << "distance to next\t" << state.distance_to_next << std::endl;
-        switch(state.trust_level) {
-            case 0: std::cout << "trust\t\t\tno_trust" << std::endl; break;
-            case 1: std::cout << "trust\t\t\tfair_trust" << std::endl; break;
-            case 3: std::cout << "trust\t\t\thigh_trust" << std::endl; break;
-            case 4: std::cout << "trust\t\t\tfull_trust" << std::endl; break;
+        std::cout << "distance to next\t" << state.distance_to_next
+                  << std::endl;
+        switch (state.trust_level) {
+            case 0:
+                std::cout << "trust\t\t\tno_trust" << std::endl;
+                break;
+            case 1:
+                std::cout << "trust\t\t\tfair_trust" << std::endl;
+                break;
+            case 3:
+                std::cout << "trust\t\t\thigh_trust" << std::endl;
+                break;
+            case 4:
+                std::cout << "trust\t\t\tfull_trust" << std::endl;
+                break;
         };
         std::cout << std::endl;
     }
@@ -108,7 +136,7 @@ auto d = read_detector();
 // Create the navigator
 using detray_context = decltype(d)::context;
 using detray_track = track<detray_context>;
-using detray_navigator = navigator<decltype(d), portal_inspector>;
+using detray_navigator = navigator<decltype(d), print_inspector>;
 using detray_stepper = line_stepper<detray_track>;
 
 detray_navigator n(std::move(d));
@@ -117,15 +145,12 @@ detray_stepper s;
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, ray_scan) {
 
-    /*unsigned int theta_steps = 100;
+    unsigned int theta_steps = 100;
     unsigned int phi_steps = 100;
-    const unsigned int itest = 10000;*/
-    unsigned int theta_steps = 1;
-    unsigned int phi_steps = 1;
-    size_t n_steps = 5;
+    const unsigned int itest = 10000;
 
     const point3 ori{0., 0., 0.};
-    dindex start_index = d.volume_by_pos(ori).index();
+    dindex start_index = n.detector.volume_by_pos(ori).index();
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -142,14 +167,7 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
             const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                              cos_theta};
 
-            //const point3 dir{1, 0, 0};
-            //dir = vector::normalize(dir);
-
-            const auto volume_record = shoot_ray(d, ori, dir);
-
-            std::cout << "Expecting: " << std::endl;
-            for (const auto &rec : volume_record)
-                std::cout<< rec.first << ", " << rec.second.path << std::endl;
+            const auto volume_record = shoot_ray(n.detector, ori, dir);
 
             // Now follow that ray and check, if we find the same
             // volumes and distances along the way
@@ -158,29 +176,24 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
             traj.dir = dir;
             traj.ctx = detray_context{};
             traj.momentum = 100.;
-            traj.overstep_tolerance = 0.1;
+            traj.overstep_tolerance = -1e-4;
 
             detray_stepper::state s_state(traj);
             detray_navigator::state n_state;
 
-
-            std::cout << "INIT" << std::endl;
-            std::cout << "track pos: " << traj.pos[0] << ", " << traj.pos[1] << ", " << traj.pos[2] <<  std::endl;
             bool heartbeat = n.status(n_state, s_state());
             // Run while there is a heartbeat
             while (heartbeat) {
-            //for (size_t i = 0; i < n_steps; i++) {
-                std::cout << "TARGET" << std::endl;
                 // (Re-)target
                 heartbeat &= n.target(n_state, s_state());
                 // Take the step
-                std::cout << "STEP" << std::endl;
                 heartbeat &= s.step(s_state, n_state());
-                std::cout << "track pos: " << traj.pos[0] << ", " << traj.pos[1] << ", " << traj.pos[2] <<  std::endl;
                 // And check the status
-                std::cout << "STATUS" << std::endl;
                 heartbeat &= n.status(n_state, s_state());
             }
+            // EXPECT_EQ(n_state.current_index, volume_record.back().first);
+            // EXPECT_EQ(getter::norm(traj.pos),
+            // volume_record.back().second.path);
         }
     }
 }
