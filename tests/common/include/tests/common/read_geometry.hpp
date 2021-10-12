@@ -182,8 +182,11 @@ auto& add_cylinder_volume(volume_container_t& volumes, scalar min_r = 25.,
 /** Builds a simple detray geometry of the innermost tml layers. It contains:
  *
  * - a beampipe (r = 27mm, half_z = 500mm)
- * - a layer (r_min = 27mm, r_max = 38mm) with n rectangular modules at
- *   r = 32mm
+ * - a first layer (r_min = 27mm, r_max = 38mm, half_z = 500mm) with 224
+ *   rectangular () modules at r = 32mm
+ * - an empty layer (r_min = 38mm, r_max = 64mm, half_z = 500mm)
+ * - a second layer (r_min = 64mm, r_max = 80mm, half_z = 500mm) with 448
+ *   rectangular () modules at r = mm.
  *
  * @returns a tuple containing the geometry objects collections: [volumes,
  *          surfaces, transforms, cylinder masks (portals), rectangle masks
@@ -305,7 +308,8 @@ auto toy_geometry() {
     first_layer_inner_portal.set_edge({v.index() - 1, 0});
 
     // create module surfaces
-    auto [l1_mods, l1_trfs, l1_masks] = create_modules<surface, rectangle>();
+    auto [l1_mods, l1_trfs, l1_masks] = create_modules<surface, rectangle>(
+        8.4, 36., 0.145, 32., 2., 5., {16, 14});
 
     // update linking
     update_links(v, l1_mods, transforms.size(), rectangles.size());
@@ -315,45 +319,54 @@ auto toy_geometry() {
     rectangles.insert(rectangles.end(), l1_masks.begin(), l1_masks.end());
 
     //
-    // first gap
+    // gap layer
     //
 
     // build gap volume
-    v = add_cylinder_volume(volumes, first_layer_outer_r, second_layer_outer_r,
+    v = add_cylinder_volume(volumes, first_layer_outer_r, second_layer_inner_r,
                             detector_half_z);
 
     // inner and outer portal surface
     add_portal(v, first_layer_outer_r, detector_half_z);
-    add_portal(v, second_layer_outer_r, detector_half_z);
+    add_portal(v, second_layer_inner_r, detector_half_z);
 
     // Connect it to the first layer
     dindex current_portal = v.template range<for_portal>()[0];
-    auto& first_layer_outer_portal = surfaces[current_portal];
+    auto& first_layer_outer_portal = surfaces[current_portal - 1];
     first_layer_outer_portal.set_edge({v.index(), 0});
-    auto& first_gap_inner_portal = surfaces[++current_portal];
-    first_gap_inner_portal.set_edge({v.index() - 1, 0});
+    auto& gap_inner_portal = surfaces[current_portal];
+    gap_inner_portal.set_edge({v.index() - 1, 0});
 
-    /*
-      // First gap
-      ActsScalar secondLayerInnerR = 64.;
-      auto firstGapBounds = std::make_unique<CylinderVolumeBounds>(
-          firstLayerOuterR, secondLayerInnerR, detectorHalfZ);
-      auto firstGap = DetectorVolume::makeShared(
-          Transform3::Identity(), std::move(firstGapBounds), "BarrelGap0");
+    //
+    // second layer
+    //
 
-      // Second layer
-      ActsScalar secondLayerOuterR = 80.;
-      auto secondLayer = createBarrelVolume(secondLayerInnerR,
-      secondLayerOuterR, detectorHalfZ, "BarrelLayer1", 8.4, 36.,
-                                            0.145, 72., 2., 5., {32, 14});
+    // build the first layer volume
+    v = add_cylinder_volume(volumes, second_layer_inner_r, second_layer_outer_r,
+                            detector_half_z);
 
-      // The volumes in R
-      std::vector<std::shared_ptr<DetectorVolume>> barrelVolumes = {
-          beamPipe, firstLayer, firstGap, secondLayer};
+    // inner and outer portal surface
+    add_portal(v, second_layer_inner_r, detector_half_z);
+    add_portal(v, second_layer_outer_r, detector_half_z);
 
-      // Return the container in R
-      return CylindricalContainerHelper::containerInR(std::move(barrelVolumes),
-                                                      "BarrelWithTwoLayers");*/
+    // Connect it to the gap
+    current_portal = v.template range<for_portal>()[0];
+    auto& gap_outer_portal = surfaces[current_portal - 1];
+    gap_outer_portal.set_edge({v.index(), 0});
+    auto& second_gap_inner_portal = surfaces[current_portal];
+    second_gap_inner_portal.set_edge({v.index() - 1, 0});
+
+    // create module surfaces
+    auto [l2_mods, l2_trfs, l2_masks] = create_modules<surface, rectangle>(
+        8.4, 36., 0.145, 72., 2., 5., {32, 14});
+
+    // update linking
+    update_links(v, l2_mods, transforms.size(), rectangles.size());
+    // Append to collections
+    surfaces.insert(surfaces.end(), l2_mods.begin(), l2_mods.end());
+    transforms.insert(transforms.end(), l2_trfs.begin(), l2_trfs.end());
+    rectangles.insert(rectangles.end(), l2_masks.begin(), l2_masks.end());
+
     return std::make_tuple<volume_container, surface_container,
                            transf_container, cylinder_container,
                            rectangle_container>(

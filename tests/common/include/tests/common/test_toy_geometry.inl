@@ -17,11 +17,11 @@ auto [volumes, surfaces, transforms, cylinders, rectangles] = toy_geometry();
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check number of geomtery objects
-    EXPECT_EQ(volumes.size(), 3);
-    EXPECT_EQ(surfaces.size(), 229);
-    EXPECT_EQ(transforms.size(), 229);
-    EXPECT_EQ(cylinders.size(), 5);
-    EXPECT_EQ(rectangles.size(), 224);
+    EXPECT_EQ(volumes.size(), 4);
+    EXPECT_EQ(surfaces.size(), 679);
+    EXPECT_EQ(transforms.size(), 679);
+    EXPECT_EQ(cylinders.size(), 7);
+    EXPECT_EQ(rectangles.size(), 672);
 }
 
 int main(int argc, char **argv) {
