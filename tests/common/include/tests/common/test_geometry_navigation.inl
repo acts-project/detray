@@ -20,37 +20,12 @@
 #include "core/detector.hpp"
 #include "core/track.hpp"
 #include "io/csv_io.hpp"
+#include "tests/common/read_geometry.hpp"
 #include "tools/line_stepper.hpp"
 #include "tools/navigator.hpp"
 #include "utils/ray_gun.hpp"
 
 using namespace detray;
-
-/** Read the detector from file */
-auto read_detector() {
-    auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
-    if (env_d_d == nullptr) {
-        throw std::ios_base::failure(
-            "Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
-    }
-    auto data_directory = std::string(env_d_d);
-
-    /*std::string name = "odd";
-    std::string surfaces = data_directory + "odd.csv";
-    std::string volumes = data_directory + "odd-layer-volumes.csv";
-    std::string grids = data_directory + "odd-surface-grids.csv";
-    std::string grid_entries = "";*/
-
-    std::string name = "tml";
-    std::string surfaces = data_directory + "tml.csv";
-    std::string volumes = data_directory + "tml-layer-volumes.csv";
-    std::string grids = data_directory + "tml-surface-grids.csv";
-    std::string grid_entries = "";
-    std::map<dindex, std::string> name_map{};
-
-    return detray::detector_from_csv<>(name, surfaces, volumes, grids,
-                                       grid_entries, name_map);
-};
 
 /** A navigation inspector that relays information about the encountered
  *  portals the way we need them to compare with the ray
@@ -133,7 +108,7 @@ struct print_inspector {
     }
 };
 
-auto d = read_detector();
+auto [d, name_map] = detray_tests::read_from_csv(detray_tests::tml_files);
 
 // Create the navigator
 using detray_context = decltype(d)::context;
