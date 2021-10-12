@@ -11,6 +11,8 @@
 #include <climits>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <string>
 
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
@@ -46,9 +48,12 @@ int main(int argc, char **argv) {
             std::string volumes_file = argv[3];
             std::string grids_file = argv[4];
             std::string grid_entries_file = argv[5];
+            std::map<dindex, std::string> name_map{};
 
-            auto d = detector_from_csv<>(name, surfaces_file, volumes_file,
-                                         grids_file, grid_entries_file);
+            auto d =
+                detector_from_csv<>(name, surfaces_file, volumes_file,
+                                    grids_file, grid_entries_file, name_map);
+
             std::cout << "[detray] Detector read successfully." << std::endl;
 
             global_xy_view xy_view;
