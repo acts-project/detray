@@ -20,7 +20,6 @@
 #include "core/detector.hpp"
 #include "core/track.hpp"
 #include "io/csv_io.hpp"
-#include "tests/common/read_geometry.hpp"
 #include "tools/line_stepper.hpp"
 #include "tools/navigator.hpp"
 #include "utils/ray_gun.hpp"
