@@ -69,8 +69,17 @@ class surface_base {
     bool operator==(
         const surface_base<transform_link, mask_link, source_link> &rhs) const {
         return (_trf == rhs.__trf and _mask == rhs._mask and
-                _vol == rhs._vol and _src == rhs._src);
+                _vol == rhs._vol and _src == rhs._src and _edg == rhs._edg);
     }
+
+    /** Explicitly set edge, since not all geometries keep the links here */
+    void set_edge(const edge_link &edg) { _edg = edg; }
+
+    /** Access to the edge information (next volume etc.)  */
+    const edge_link &edge() const { return _edg; }
+
+    /** Return the edge information (next volume etc.)  */
+    edge_link &edge() { return _edg; }
 
     /** Return the transform type */
     transform_link &transform() { return _trf; }
@@ -98,6 +107,7 @@ class surface_base {
     mask_link _mask;
     volume_link _vol;
     source_link _src;
+    edge_link _edg;
 };
 
 }  // namespace detray

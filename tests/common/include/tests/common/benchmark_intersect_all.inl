@@ -38,7 +38,7 @@ unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
 bool stream_file = false;
 
-auto [d, name_map] = detray_tests::read_from_csv(detray_tests::tml_files);
+auto [d, name_map] = read_from_csv(tml_files);
 
 const auto &surfaces = d.surfaces();
 constexpr bool get_surface_masks = true;

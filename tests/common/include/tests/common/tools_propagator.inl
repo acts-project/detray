@@ -25,7 +25,7 @@ TEST(ALGEBRA_PLUGIN, propagator) {
     using namespace detray;
     using namespace __plugin;
 
-    auto [d, name_map] = detray_tests::read_from_csv(detray_tests::tml_files);
+    auto [d, name_map] = read_from_csv(tml_files);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;

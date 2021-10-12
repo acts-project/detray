@@ -11,18 +11,17 @@
 
 using namespace detray;
 
-auto [volumes, surfaces, transforms, cylinders, rectangles] =
-    detray_tests::toy_geometry();
+auto [volumes, surfaces, transforms, cylinders, rectangles] = toy_geometry();
 
-// This test runs intersection with all portals of the TrackML detector
-TEST(ALGEBRA_PLUGIN, ray_scan) {
+// This test check the building of the tml based toy geometry
+TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check number of geomtery objects
-    EXPECT_EQ(volumes.size(), 1);
-    EXPECT_EQ(surfaces.size(), 1);
-    EXPECT_EQ(transforms.size(), 1);
-    EXPECT_EQ(cylinders.size(), 1);
-    EXPECT_EQ(rectangles.size(), 0);
+    EXPECT_EQ(volumes.size(), 2);
+    EXPECT_EQ(surfaces.size(), 227);
+    EXPECT_EQ(transforms.size(), 227);
+    EXPECT_EQ(cylinders.size(), 3);
+    EXPECT_EQ(rectangles.size(), 224);
 }
 
 int main(int argc, char **argv) {

@@ -108,7 +108,7 @@ struct print_inspector {
     }
 };
 
-auto [d, name_map] = detray_tests::read_from_csv(detray_tests::tml_files);
+auto [d, name_map] = read_from_csv(tml_files);
 
 // Create the navigator
 using detray_context = decltype(d)::context;

@@ -22,7 +22,7 @@
 TEST(ALGEBRA_PLUGIN, read_detector) {
     using namespace detray;
 
-    auto [d, name_map] = detray_tests::read_from_csv(detray_tests::tml_files);
+    auto [d, name_map] = read_from_csv(tml_files);
 
     std::cout << d.to_string(name_map) << std::endl;
 }

@@ -24,7 +24,7 @@ unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
 unsigned int gbench_repetitions = 0;
 #endif
 
-auto [d, name_map] = detray_tests::read_from_csv(detray_tests::tml_files);
+auto [d, name_map] = read_from_csv(tml_files);
 const unsigned int itest = 10000;
 
 namespace __plugin {
