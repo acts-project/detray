@@ -35,7 +35,7 @@ detector_input_files tml_files = {"tml", "tml.csv", "tml-layer-volumes.csv",
                                   "tml-surface-grids.csv", ""};
 
 /** Read a detector from csv files */
-auto read_from_csv(detector_input_files &files) {
+auto read_from_csv(detector_input_files& files) {
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
     if (env_d_d == nullptr) {
         throw std::ios_base::failure(
@@ -57,29 +57,29 @@ auto read_from_csv(detector_input_files &files) {
 };
 
 /** Creates a number of pixel modules for the a cylindrical barrel region.
-  *
-  * @tparam surface_t The surface type that contains the container indices
-  * @tparam mask_t The geomterical boundaries of a surface (rectangles)
-  *
-  * @param m_half_x module half length in local x
-  * @param m_half_y module half length in local y
-  * @param m_tilt_phi phi tilt of the modules
-  * @param layer_r radius at which the modules are positioned in the volume
-  * @param radial_stagger module stagger in r
-  * @param l_overlap the z overlap of modules next in z
-  * @param binning phi, z bins of the surface grid
-  *
-  * @return a tuple that contains the surfaces (linking into the locally 
-  *         created container), the module transsforms and the surface masks.
-  */
-template<typename surface_t, typename mask_t>
-auto create_modules(
-    scalar m_half_x = 8.4, scalar m_half_y = 36., scalar m_tilt_phi = 0.145,
-    scalar layer_r = 32., scalar radial_stagger = 2.,
-    scalar l_overlap = 5., const std::pair<int, int> binning = {16, 14}) {
+ *
+ * @tparam surface_t The surface type that contains the container indices
+ * @tparam mask_t The geomterical boundaries of a surface (rectangles)
+ *
+ * @param m_half_x module half length in local x
+ * @param m_half_y module half length in local y
+ * @param m_tilt_phi phi tilt of the modules
+ * @param layer_r radius at which the modules are positioned in the volume
+ * @param radial_stagger module stagger in r
+ * @param l_overlap the z overlap of modules next in z
+ * @param binning phi, z bins of the surface grid
+ *
+ * @return a tuple that contains the surfaces (linking into the locally
+ *         created container), the module transsforms and the surface masks.
+ */
+template <typename surface_t, typename mask_t>
+auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
+                    scalar m_tilt_phi = 0.145, scalar layer_r = 32.,
+                    scalar radial_stagger = 2., scalar l_overlap = 5.,
+                    const std::pair<int, int> binning = {16, 14}) {
 
-    //using transform3 = __plugin::transform3;
-    //using point3 = __plugin::point3;
+    // using transform3 = __plugin::transform3;
+    // using point3 = __plugin::point3;
     /// mask index: type, range
     using mask_index = detray::darray<detray::dindex, 2>;
 
@@ -105,20 +105,22 @@ auto create_modules(
     scalar pi{static_cast<scalar>(M_PI)};
     scalar phi_step = scalar{2} * pi / (n_phi_bins);
     scalar min_phi = -pi + scalar{0.5} * phi_step;
-    scalar z_start = scalar{-0.5} * (n_z_bins - 1) * (scalar{2} * m_half_y - l_overlap);
+    scalar z_start =
+        scalar{-0.5} * (n_z_bins - 1) * (scalar{2} * m_half_y - l_overlap);
     scalar z_step = scalar{2} * std::abs(z_start) / (n_z_bins - 1);
 
     // loop over the bins
     for (size_t z_bin = 0; z_bin < size_t(n_z_bins); ++z_bin) {
-      // prepare z and r
-      scalar m_z = z_start + z_bin * z_step;
-      scalar m_r =
-          (z_bin % 2) != 0u ? layer_r - scalar{0.5} * radial_stagger : layer_r + scalar{0.5} * radial_stagger;
-      for (size_t phiBin = 0; phiBin < size_t(n_phi_bins); ++phiBin) {
-        // calculate the current phi value
-        scalar m_phi = min_phi + phiBin * phi_step;
-        m_centers.push_back(point3{m_r * std::cos(m_phi), m_r * std::sin(m_phi), m_z});
-      }
+        // prepare z and r
+        scalar m_z = z_start + z_bin * z_step;
+        scalar m_r = (z_bin % 2) != 0u ? layer_r - scalar{0.5} * radial_stagger
+                                       : layer_r + scalar{0.5} * radial_stagger;
+        for (size_t phiBin = 0; phiBin < size_t(n_phi_bins); ++phiBin) {
+            // calculate the current phi value
+            scalar m_phi = min_phi + phiBin * phi_step;
+            m_centers.push_back(
+                point3{m_r * std::cos(m_phi), m_r * std::sin(m_phi), m_z});
+        }
     }
 
     // Create geometry data
@@ -130,7 +132,8 @@ auto create_modules(
 
         // Surfaces with the linking into the local containers
         m_id = {0, masks.size()};
-        surfaces.emplace_back(transforms.size(), m_id, detray::dindex_invalid, detray::dindex_invalid);
+        surfaces.emplace_back(transforms.size(), m_id, detray::dindex_invalid,
+                              detray::dindex_invalid);
 
         // The rectangle bounds for this module
         masks.emplace_back(m_half_x, m_half_y);
@@ -150,25 +153,25 @@ auto create_modules(
     }
 
     return std::make_tuple<surface_container, trfs_container, mask_container>(
-    std::move(surfaces), std::move(transforms), std::move(masks));
+        std::move(surfaces), std::move(transforms), std::move(masks));
 }
 
 /** Add a single barrel layer volume to an existing collection.
-  *
-  * @param min_r minimal radius of volume
-  * @param max_r maximal radius of volume
-  * @param half_z half length in z of volume
-  *
-  * @return a detray cylinder volume
-  */
-template<typename volume_container_t>
-auto& add_cylinder_volume(volume_container_t &volumes,
-    scalar min_r = 25., scalar max_r = 40.,
-    scalar half_z = 500.) {
+ *
+ * @param min_r minimal radius of volume
+ * @param max_r maximal radius of volume
+ * @param half_z half length in z of volume
+ *
+ * @return a detray cylinder volume
+ */
+template <typename volume_container_t>
+auto& add_cylinder_volume(volume_container_t& volumes, scalar min_r = 25.,
+                          scalar max_r = 40., scalar half_z = 500.) {
 
     // The volume bounds
-    detray::darray<scalar, 6> bounds = {min_r, max_r, -half_z, half_z, -M_PI, M_PI};
-    
+    detray::darray<scalar, 6> bounds = {min_r,  max_r, -half_z,
+                                        half_z, -M_PI, M_PI};
+
     // Add the new volume to the collection
     auto& v = volumes.emplace_back(bounds);
     v.set_index(volumes.size() - 1);
@@ -177,15 +180,15 @@ auto& add_cylinder_volume(volume_container_t &volumes,
 }
 
 /** Builds a simple detray geometry of the innermost tml layers. It contains:
-  *
-  * - a beampipe (r = 27mm, half_z = 500mm)
-  * - a layer (r_min = 27mm, r_max = 38mm) with n rectangular modules at 
-  *   r = 32mm
-  *
-  * @returns a tuple containing the geometry objects collections: [volumes,
-  *          surfaces, transforms, cylinder masks (portals), rectangle masks 
-  *          (modules)]
-  */
+ *
+ * - a beampipe (r = 27mm, half_z = 500mm)
+ * - a layer (r_min = 27mm, r_max = 38mm) with n rectangular modules at
+ *   r = 32mm
+ *
+ * @returns a tuple containing the geometry objects collections: [volumes,
+ *          surfaces, transforms, cylinder masks (portals), rectangle masks
+ *          (modules)]
+ */
 auto toy_geometry() {
     constexpr bool for_surface = true;
     constexpr bool for_portal = false;
@@ -204,7 +207,7 @@ auto toy_geometry() {
     using source_link = detray::dindex;
 
     // The surface transforms
-    //using transform3 = __plugin::transform3;
+    // using transform3 = __plugin::transform3;
     // We have cylinder and rectangle surfaces
     using cylinder = detray::cylinder3<false, detray::cylinder_intersector,
                                        __plugin::cylindrical2, edge_links, 0>;
@@ -243,27 +246,30 @@ auto toy_geometry() {
     scalar second_layer_inner_r = 64.;
     scalar second_layer_outer_r = 80.;
 
-    /** Function that adds a cylinder portal with an identity transform to a 
-      * volume.
-      */
-    auto add_portal = [&](volume_type &vol, scalar r, scalar half_z) {
+    /** Function that adds a cylinder portal with an identity transform to a
+     * volume.
+     */
+    auto add_portal = [&](volume_type& vol, scalar r, scalar half_z) {
         cylinders.emplace_back(r, -half_z, half_z);
         transforms.emplace_back();  // identity
         m_id = {cylinders.size(), 0};
         surfaces.emplace_back(transforms.size(), m_id, vol.index(), 0);
-        vol.template set_range<for_portal>({surfaces.size() - 1, surfaces.size()});
+        vol.template set_range<for_portal>(
+            {surfaces.size() - 1, surfaces.size()});
     };
 
     /** Function that updates surface links when added to the global containers.
-      */
-    auto update_links = [&](volume_type &vol, surface_container& modules, dindex trfs_offset, dindex masks_offset) {
-        for (auto &sf : modules) {
+     */
+    auto update_links = [&](volume_type& vol, surface_container& modules,
+                            dindex trfs_offset, dindex masks_offset) {
+        for (auto& sf : modules) {
             sf.transform() += trfs_offset;
             std::get<1>(sf.mask()) += masks_offset;
             sf.volume() = vol.index();
         }
 
-        vol.template set_range<for_surface>({surfaces.size(), surfaces.size() + modules.size()});
+        vol.template set_range<for_surface>(
+            {surfaces.size(), surfaces.size() + modules.size()});
     };
 
     //
@@ -271,20 +277,22 @@ auto toy_geometry() {
     //
 
     // build the beampipe volume
-    volume_type &v = add_cylinder_volume(volumes, 0., beampipe_r, detector_half_z);
+    volume_type& v =
+        add_cylinder_volume(volumes, 0., beampipe_r, detector_half_z);
 
     // portal surface to first layer
     add_portal(v, beampipe_r, detector_half_z);
 
     // module surfaces
-    v.template set_range<for_surface>({0, 0}); // no modules
+    v.template set_range<for_surface>({0, 0});  // no modules
 
     //
     // first layer
     //
 
     // build the first layer volume
-    v = add_cylinder_volume(volumes, beampipe_r, first_layer_outer_r, detector_half_z);
+    v = add_cylinder_volume(volumes, beampipe_r, first_layer_outer_r,
+                            detector_half_z);
 
     // inner and outer portal surface
     add_portal(v, beampipe_r, detector_half_z);
@@ -293,8 +301,8 @@ auto toy_geometry() {
     // Connect it to the beampipe volume
     auto& beampipe_portal = surfaces.front();
     beampipe_portal.set_edge({v.index(), 0});
-    auto& first_vol_portal = surfaces[1];
-    first_vol_portal.set_edge({volumes.front().index(), 0});
+    auto& first_layer_inner_portal = surfaces[1];
+    first_layer_inner_portal.set_edge({v.index() - 1, 0});
 
     // create module surfaces
     auto [l1_mods, l1_trfs, l1_masks] = create_modules<surface, rectangle>();
@@ -306,39 +314,46 @@ auto toy_geometry() {
     transforms.insert(transforms.end(), l1_trfs.begin(), l1_trfs.end());
     rectangles.insert(rectangles.end(), l1_masks.begin(), l1_masks.end());
 
+    //
+    // first gap
+    //
 
-    /*std::shared_ptr<DetectorVolume> createCentralDetector(
-    ActsScalar detectorHalfZ = 500.) {
-  // Create the volume bounds
-  ActsScalar beamPipeR = 27.;
-  // Beam pipe volume
-  auto beamPipeBounds =
-      std::make_unique<CylinderVolumeBounds>(0., beamPipeR, detectorHalfZ);
-  auto beamPipe = DetectorVolume::makeShared(
-      Transform3::Identity(), std::move(beamPipeBounds), "BeamPipe");
-  // First layer
-  ActsScalar firstLayerOuterR = 38.;
-  auto firstLayer = createBarrelVolume(beamPipeR, firstLayerOuterR,
-                                       detectorHalfZ, "BarrelLayer0");
-  // First gap
-  ActsScalar secondLayerInnerR = 64.;
-  auto firstGapBounds = std::make_unique<CylinderVolumeBounds>(
-      firstLayerOuterR, secondLayerInnerR, detectorHalfZ);
-  auto firstGap = DetectorVolume::makeShared(
-      Transform3::Identity(), std::move(firstGapBounds), "BarrelGap0");
-  // Second layer
-  ActsScalar secondLayerOuterR = 80.;
-  auto secondLayer = createBarrelVolume(secondLayerInnerR, secondLayerOuterR,
-                                        detectorHalfZ, "BarrelLayer1", 8.4, 36.,
-                                        0.145, 72., 2., 5., {32, 14});
+    // build gap volume
+    v = add_cylinder_volume(volumes, first_layer_outer_r, second_layer_outer_r,
+                            detector_half_z);
 
-  // The volumes in R
-  std::vector<std::shared_ptr<DetectorVolume>> barrelVolumes = {
-      beamPipe, firstLayer, firstGap, secondLayer};
+    // inner and outer portal surface
+    add_portal(v, first_layer_outer_r, detector_half_z);
+    add_portal(v, second_layer_outer_r, detector_half_z);
 
-  // Return the container in R
-  return CylindricalContainerHelper::containerInR(std::move(barrelVolumes),
-                                                  "BarrelWithTwoLayers");*/
+    // Connect it to the first layer
+    dindex current_portal = v.template range<for_portal>()[0];
+    auto& first_layer_outer_portal = surfaces[current_portal];
+    first_layer_outer_portal.set_edge({v.index(), 0});
+    auto& first_gap_inner_portal = surfaces[++current_portal];
+    first_gap_inner_portal.set_edge({v.index() - 1, 0});
+
+    /*
+      // First gap
+      ActsScalar secondLayerInnerR = 64.;
+      auto firstGapBounds = std::make_unique<CylinderVolumeBounds>(
+          firstLayerOuterR, secondLayerInnerR, detectorHalfZ);
+      auto firstGap = DetectorVolume::makeShared(
+          Transform3::Identity(), std::move(firstGapBounds), "BarrelGap0");
+
+      // Second layer
+      ActsScalar secondLayerOuterR = 80.;
+      auto secondLayer = createBarrelVolume(secondLayerInnerR,
+      secondLayerOuterR, detectorHalfZ, "BarrelLayer1", 8.4, 36.,
+                                            0.145, 72., 2., 5., {32, 14});
+
+      // The volumes in R
+      std::vector<std::shared_ptr<DetectorVolume>> barrelVolumes = {
+          beamPipe, firstLayer, firstGap, secondLayer};
+
+      // Return the container in R
+      return CylindricalContainerHelper::containerInR(std::move(barrelVolumes),
+                                                      "BarrelWithTwoLayers");*/
     return std::make_tuple<volume_container, surface_container,
                            transf_container, cylinder_container,
                            rectangle_container>(
@@ -346,4 +361,4 @@ auto toy_geometry() {
         std::move(cylinders), std::move(rectangles));
 }
 
-}  // namespace detray_tests
+}  // namespace
