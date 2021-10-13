@@ -309,8 +309,9 @@ auto toy_geometry() {
     beampipe_portal.set_edge({layer_1.index(), dindex_invalid});
 
     dindex layer1_pt_index = layer_1.template range<for_portal>()[0];
+    ;
     auto& first_layer_inner_portal = surfaces[layer1_pt_index];
-    first_layer_inner_portal.set_edge({beampipe.index(), dindex_invalid});
+    first_layer_inner_portal.set_edge({layer_1.index() - 1, dindex_invalid});
 
     // create module surfaces
     auto [l1_mods, l1_trfs, l1_masks] = create_modules<surface, rectangle>(
@@ -342,7 +343,7 @@ auto toy_geometry() {
 
     dindex gap_pt_index = gap.template range<for_portal>()[0];
     auto& gap_inner_portal = surfaces[gap_pt_index];
-    gap_inner_portal.set_edge({layer_1.index(), dindex_invalid});
+    gap_inner_portal.set_edge({gap.index() - 1, dindex_invalid});
 
     //
     // second layer
@@ -363,7 +364,7 @@ auto toy_geometry() {
 
     dindex layer2_pt_index = layer_2.template range<for_portal>()[0];
     auto& second_layer_inner_portal = surfaces[layer2_pt_index];
-    second_layer_inner_portal.set_edge({gap.index(), dindex_invalid});
+    second_layer_inner_portal.set_edge({layer_2.index() - 1, dindex_invalid});
 
     auto& second_layer_outer_portal = surfaces[++layer2_pt_index];
     second_layer_outer_portal.set_edge({dindex_invalid, dindex_invalid});

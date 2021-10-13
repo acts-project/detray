@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+#include <iostream>
+
 #include "tests/common/read_geometry.hpp"
 
 using namespace detray;
@@ -130,7 +132,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       {{2, dindex_invalid}, {dindex_invalid, dindex_invalid}});
 
     // Check links of modules
-    range = {231, 479};
+    range = {231, surfaces.size()};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 224}, {{vol_itr->index(), dindex_invalid}});
 }
