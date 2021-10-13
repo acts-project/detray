@@ -11,9 +11,9 @@
 #include <climits>
 #include <fstream>
 #include <iostream>
-#include <vecmem/memory/host_memory_resource.hpp>
 #include <map>
 #include <string>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
@@ -53,9 +53,9 @@ int main(int argc, char **argv) {
             std::string grid_entries_file = argv[5];
             std::map<dindex, std::string> name_map{};
 
-            auto d =
-                detector_from_csv<>(name, surfaces_file, volumes_file,
-                                    grids_file, grid_entries_file, host_mr, name_map);
+            auto d = detector_from_csv<>(name, surfaces_file, volumes_file,
+                                         grids_file, grid_entries_file,
+                                         name_map, host_mr);
 
             std::cout << d.to_string(name_map) << std::endl;
 

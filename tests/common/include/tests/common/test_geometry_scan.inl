@@ -15,6 +15,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <vecmem/memory/host_memory_resource.hpp>
 #include <vector>
 
 #include "core/detector.hpp"
@@ -22,6 +23,8 @@
 #include "utils/ray_gun.hpp"
 
 using namespace detray;
+
+vecmem::host_memory_resource host_mr;
 
 /** Read the detector from file */
 auto read_detector() {
@@ -46,7 +49,7 @@ auto read_detector() {
     std::map<dindex, std::string> name_map{};
 
     return detray::detector_from_csv<>(name, surfaces, volumes, grids,
-                                       grid_entries, name_map);
+                                       grid_entries, name_map, host_mr);
 };
 
 /** Check if a set of volume index pairs form a trace.
