@@ -16,18 +16,30 @@ using namespace detray;
 constexpr bool for_surface = true;
 constexpr bool for_portal = false;
 
-auto [volumes, surfaces, transforms, cylinders, rectangles] = toy_geometry();
+auto [volumes, surfaces, transforms, cylinders, discs, rectangles] =
+    toy_geometry();
 
 // This test check the building of the tml based toy geometry
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 4);
-    EXPECT_EQ(surfaces.size(), 679);
-    EXPECT_EQ(transforms.size(), 679);
+    EXPECT_EQ(surfaces.size(), 687);
+    EXPECT_EQ(transforms.size(), 687);
     EXPECT_EQ(cylinders.size(), 7);
+    EXPECT_EQ(discs.size(), 8);
     EXPECT_EQ(rectangles.size(), 672);
 
+    /** Test the links of portals (into the next volume or invalid if we leave
+     * the detector).
+     *
+     * @param vol_index volume the portals belong to
+     * @param sf_itr iterator into the surface container, start of the portals
+     * @param range index range of the portals in the surface container
+     * @param trf_index index of the transform (trf container) for the portal
+     * @param mask_index type and index of portal mask in respective mask cont
+     * @param edges links to next volume and next surfaces finder
+     */
     auto test_portal_links =
         [](dindex vol_index, decltype(surfaces.begin())&& sf_itr,
            darray<dindex, 2>& range, dindex trf_index,
@@ -43,6 +55,15 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             }
         };
 
+    /** Test the links of module surface (alway stay in their volume).
+     *
+     * @param vol_index volume the modules belong to
+     * @param sf_itr iterator into the surface container, start of the modules
+     * @param range index range of the modules in the surface container
+     * @param trf_index index of the transform (trf container) for the module
+     * @param mask_index type and index of module mask in respective mask cont
+     * @param edges links to next volume and next surfaces finder
+     */
     auto test_module_links =
         [](dindex vol_index, decltype(surfaces.begin())&& sf_itr,
            darray<dindex, 2>& range, dindex trf_index,
@@ -65,15 +86,23 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check volume
     auto vol_itr = volumes.begin();
     darray<scalar, 6> bounds = {0., 27., -500., 500, -M_PI, M_PI};
-    darray<dindex, 2> range = {0, 1};
-
+    darray<dindex, 2> range = {0, 3};
     EXPECT_EQ(vol_itr->index(), 0);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->template range<for_portal>(), range);
+    range = {dindex_invalid, dindex_invalid};
+    EXPECT_EQ(vol_itr->template range<for_surface>(), range);
 
     // Check links of portals
-    test_portal_links(vol_itr->index(), surfaces.begin(), range, 0, {0, 0},
-                      {{1, dindex_invalid}});
+    // disc portals
+    range = {0, 2};
+    test_portal_links(
+        vol_itr->index(), surfaces.begin(), range, range[0], {0, 0},
+        {{dindex_invalid, dindex_invalid}, {dindex_invalid, dindex_invalid}});
+    // cylinder portals
+    range = {2, 3};
+    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
+                      range[0], {1, 0}, {{1, dindex_invalid}});
 
     //
     // first layer
@@ -82,20 +111,29 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check volume
     vol_itr++;
     bounds = {27., 38., -500., 500, -M_PI, M_PI};
-    range = {1, 3};
+    range = {3, 7};
     EXPECT_EQ(vol_itr->index(), 1);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->template range<for_portal>(), range);
+    range = {7, 231};
+    EXPECT_EQ(vol_itr->template range<for_surface>(), range);
 
     // Check links of portals
+    // disc portals
+    range = {3, 5};
+    test_portal_links(
+        vol_itr->index(), surfaces.begin() + range[0], range, range[0], {0, 2},
+        {{dindex_invalid, dindex_invalid}, {dindex_invalid, dindex_invalid}});
+    // cylinder portals
+    range = {5, 7};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {0, 1},
+                      range[0], {1, 1},
                       {{0, dindex_invalid}, {2, dindex_invalid}});
 
     // Check links of modules
-    range = {3, 227};
+    range = {7, 231};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {1, 0}, {{vol_itr->index(), dindex_invalid}});
+                      range[0], {2, 0}, {{vol_itr->index(), dindex_invalid}});
 
     //
     // gap
@@ -104,14 +142,23 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check volume
     vol_itr++;
     bounds = {38., 64., -500., 500, -M_PI, M_PI};
-    range = {227, 229};
+    range = {231, 235};
     EXPECT_EQ(vol_itr->index(), 2);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->template range<for_portal>(), range);
+    range = {dindex_invalid, dindex_invalid};
+    EXPECT_EQ(vol_itr->template range<for_surface>(), range);
 
     // Check links of portals
+    // disc portals
+    range = {231, 233};
+    test_portal_links(
+        vol_itr->index(), surfaces.begin() + range[0], range, range[0], {0, 4},
+        {{dindex_invalid, dindex_invalid}, {dindex_invalid, dindex_invalid}});
+    // cylinder portals
+    range = {233, 235};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {0, 3},
+                      range[0], {1, 3},
                       {{1, dindex_invalid}, {3, dindex_invalid}});
 
     //
@@ -121,20 +168,29 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check volume
     vol_itr++;
     bounds = {64., 80., -500., 500, -M_PI, M_PI};
-    range = {229, 231};
+    range = {235, 239};
     EXPECT_EQ(vol_itr->index(), 3);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->template range<for_portal>(), range);
+    range = {239, surfaces.size()};
+    EXPECT_EQ(vol_itr->template range<for_surface>(), range);
 
     // Check links of portals
+    // disc portals
+    range = {235, 237};
+    test_portal_links(
+        vol_itr->index(), surfaces.begin() + range[0], range, range[0], {0, 6},
+        {{dindex_invalid, dindex_invalid}, {dindex_invalid, dindex_invalid}});
+    // cylinder portals
+    range = {237, 239};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {0, 5},
+                      range[0], {1, 5},
                       {{2, dindex_invalid}, {dindex_invalid, dindex_invalid}});
 
     // Check links of modules
-    range = {231, surfaces.size()};
+    range = {239, surfaces.size()};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {1, 224}, {{vol_itr->index(), dindex_invalid}});
+                      range[0], {2, 224}, {{vol_itr->index(), dindex_invalid}});
 }
 
 int main(int argc, char** argv) {
