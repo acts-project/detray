@@ -6,6 +6,7 @@
  */
 
 #include <cmath>
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -18,7 +19,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
-namespace {
+namespace /*detray_tests*/ {
 
 /** Keeps the relevant csv file names */
 struct detector_input_files {
@@ -73,10 +74,10 @@ auto read_from_csv(detector_input_files& files) {
  *         created container), the module transsforms and the surface masks.
  */
 template <typename surface_t, typename mask_t>
-auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
-                    scalar m_tilt_phi = 0.145, scalar layer_r = 32.,
-                    scalar radial_stagger = 2., scalar l_overlap = 5.,
-                    const std::pair<int, int> binning = {16, 14}) {
+inline auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
+                           scalar m_tilt_phi = 0.145, scalar layer_r = 32.,
+                           scalar radial_stagger = 2., scalar l_overlap = 5.,
+                           const std::pair<int, int> binning = {16, 14}) {
 
     // using transform3 = __plugin::transform3;
     // using point3 = __plugin::point3;
@@ -131,7 +132,7 @@ auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
     for (auto& m_center : m_centers) {
 
         // Surfaces with the linking into the local containers
-        m_id = {0, masks.size()};
+        m_id = {1, masks.size()};
         surfaces.emplace_back(transforms.size(), m_id, detray::dindex_invalid,
                               detray::dindex_invalid);
 
@@ -154,29 +155,6 @@ auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
 
     return std::make_tuple<surface_container, trfs_container, mask_container>(
         std::move(surfaces), std::move(transforms), std::move(masks));
-}
-
-/** Add a single barrel layer volume to an existing collection.
- *
- * @param min_r minimal radius of volume
- * @param max_r maximal radius of volume
- * @param half_z half length in z of volume
- *
- * @return a detray cylinder volume
- */
-template <typename volume_container_t>
-auto& add_cylinder_volume(volume_container_t& volumes, scalar min_r = 25.,
-                          scalar max_r = 40., scalar half_z = 500.) {
-
-    // The volume bounds
-    detray::darray<scalar, 6> bounds = {min_r,  max_r, -half_z,
-                                        half_z, -M_PI, M_PI};
-
-    // Add the new volume to the collection
-    auto& v = volumes.emplace_back(bounds);
-    v.set_index(volumes.size() - 1);
-
-    return v;
 }
 
 /** Builds a simple detray geometry of the innermost tml layers. It contains:
@@ -241,6 +219,8 @@ auto toy_geometry() {
     rectangle_container rectangles = {};
     // mask index for surfaces
     mask_index m_id = {};
+    // source link
+    dindex src_link = dindex_invalid;
 
     // parameters
     scalar detector_half_z = 500.;
@@ -249,19 +229,41 @@ auto toy_geometry() {
     scalar second_layer_inner_r = 64.;
     scalar second_layer_outer_r = 80.;
 
+    /** Add a single barrel layer volume to an existing collection.
+     *
+     * @param min_r minimal radius of volume
+     * @param max_r maximal radius of volume
+     * @param half_z half length in z of volume
+     *
+     * @return a detray cylinder volume
+     */
+    auto add_cylinder_volume = [&](scalar min_r, scalar max_r,
+                                   scalar half_z) -> volume_type& {
+        // The volume bounds
+        detray::darray<scalar, 6> bounds = {min_r,  max_r, -half_z,
+                                            half_z, -M_PI, M_PI};
+        // Add the new volume to the collection
+        auto& vol = volumes.emplace_back(bounds);
+        vol.set_index(volumes.size() - 1);
+
+        return vol;
+    };
+
     /** Function that adds a cylinder portal with an identity transform to a
      * volume.
      */
     auto add_portal = [&](volume_type& vol, scalar r, scalar half_z) {
+        m_id = {0, cylinders.size()};
+        surfaces.emplace_back(transforms.size(), m_id, vol.index(), src_link);
         cylinders.emplace_back(r, -half_z, half_z);
         transforms.emplace_back();  // identity
-        m_id = {cylinders.size(), 0};
-        surfaces.emplace_back(transforms.size(), m_id, vol.index(), 0);
+
         vol.template set_range<for_portal>(
             {surfaces.size() - 1, surfaces.size()});
     };
 
-    /** Function that updates surface links when added to the global containers.
+    /** Function that updates surface links when added to the global
+     *  containers.
      */
     auto update_links = [&](volume_type& vol, surface_container& modules,
                             dindex trfs_offset, dindex masks_offset) {
@@ -269,6 +271,7 @@ auto toy_geometry() {
             sf.transform() += trfs_offset;
             std::get<1>(sf.mask()) += masks_offset;
             sf.volume() = vol.index();
+            sf.set_edge({vol.index(), dindex_invalid});
         }
 
         vol.template set_range<for_surface>(
@@ -280,39 +283,41 @@ auto toy_geometry() {
     //
 
     // build the beampipe volume
-    volume_type& v =
-        add_cylinder_volume(volumes, 0., beampipe_r, detector_half_z);
+    volume_type& beampipe =
+        add_cylinder_volume(0., beampipe_r, detector_half_z);
 
     // portal surface to first layer
-    add_portal(v, beampipe_r, detector_half_z);
+    add_portal(beampipe, beampipe_r, detector_half_z);
 
     // module surfaces
-    v.template set_range<for_surface>({0, 0});  // no modules
+    beampipe.template set_range<for_surface>({0, 0});  // no modules
 
     //
     // first layer
     //
 
     // build the first layer volume
-    v = add_cylinder_volume(volumes, beampipe_r, first_layer_outer_r,
-                            detector_half_z);
+    volume_type& layer_1 =
+        add_cylinder_volume(beampipe_r, first_layer_outer_r, detector_half_z);
 
-    // inner and outer portal surface
-    add_portal(v, beampipe_r, detector_half_z);
-    add_portal(v, first_layer_outer_r, detector_half_z);
+    // outer and inner portal surface
+    add_portal(layer_1, beampipe_r, detector_half_z);
+    add_portal(layer_1, first_layer_outer_r, detector_half_z);
 
     // Connect it to the beampipe volume
     auto& beampipe_portal = surfaces.front();
-    beampipe_portal.set_edge({v.index(), 0});
-    auto& first_layer_inner_portal = surfaces[1];
-    first_layer_inner_portal.set_edge({v.index() - 1, 0});
+    beampipe_portal.set_edge({layer_1.index(), dindex_invalid});
+
+    dindex layer1_pt_index = layer_1.template range<for_portal>()[0];
+    auto& first_layer_inner_portal = surfaces[layer1_pt_index];
+    first_layer_inner_portal.set_edge({beampipe.index(), dindex_invalid});
 
     // create module surfaces
     auto [l1_mods, l1_trfs, l1_masks] = create_modules<surface, rectangle>(
         8.4, 36., 0.145, 32., 2., 5., {16, 14});
 
-    // update linking
-    update_links(v, l1_mods, transforms.size(), rectangles.size());
+    // update linking in volumes and surfaces
+    update_links(layer_1, l1_mods, transforms.size(), rectangles.size());
     // Append to collections
     surfaces.insert(surfaces.end(), l1_mods.begin(), l1_mods.end());
     transforms.insert(transforms.end(), l1_trfs.begin(), l1_trfs.end());
@@ -323,50 +328,58 @@ auto toy_geometry() {
     //
 
     // build gap volume
-    v = add_cylinder_volume(volumes, first_layer_outer_r, second_layer_inner_r,
-                            detector_half_z);
+    volume_type& gap = add_cylinder_volume(
+        first_layer_outer_r, second_layer_inner_r, detector_half_z);
 
     // inner and outer portal surface
-    add_portal(v, first_layer_outer_r, detector_half_z);
-    add_portal(v, second_layer_inner_r, detector_half_z);
+    add_portal(gap, first_layer_outer_r, detector_half_z);
+    add_portal(gap, second_layer_inner_r, detector_half_z);
 
     // Connect it to the first layer
-    dindex current_portal = v.template range<for_portal>()[0];
-    auto& first_layer_outer_portal = surfaces[current_portal - 1];
-    first_layer_outer_portal.set_edge({v.index(), 0});
-    auto& gap_inner_portal = surfaces[current_portal];
-    gap_inner_portal.set_edge({v.index() - 1, 0});
+    layer1_pt_index = layer_1.template range<for_portal>()[1] - 1;
+    auto& first_layer_outer_portal = surfaces[layer1_pt_index];
+    first_layer_outer_portal.set_edge({gap.index(), dindex_invalid});
+
+    dindex gap_pt_index = gap.template range<for_portal>()[0];
+    auto& gap_inner_portal = surfaces[gap_pt_index];
+    gap_inner_portal.set_edge({layer_1.index(), dindex_invalid});
 
     //
     // second layer
     //
 
     // build the first layer volume
-    v = add_cylinder_volume(volumes, second_layer_inner_r, second_layer_outer_r,
-                            detector_half_z);
+    volume_type& layer_2 = add_cylinder_volume(
+        second_layer_inner_r, second_layer_outer_r, detector_half_z);
 
     // inner and outer portal surface
-    add_portal(v, second_layer_inner_r, detector_half_z);
-    add_portal(v, second_layer_outer_r, detector_half_z);
+    add_portal(layer_2, second_layer_inner_r, detector_half_z);
+    add_portal(layer_2, second_layer_outer_r, detector_half_z);
 
     // Connect it to the gap
-    current_portal = v.template range<for_portal>()[0];
-    auto& gap_outer_portal = surfaces[current_portal - 1];
-    gap_outer_portal.set_edge({v.index(), 0});
-    auto& second_gap_inner_portal = surfaces[current_portal];
-    second_gap_inner_portal.set_edge({v.index() - 1, 0});
+    gap_pt_index = gap.template range<for_portal>()[1] - 1;
+    auto& gap_outer_portal = surfaces[gap_pt_index];
+    gap_outer_portal.set_edge({layer_2.index(), dindex_invalid});
+
+    dindex layer2_pt_index = layer_2.template range<for_portal>()[0];
+    auto& second_layer_inner_portal = surfaces[layer2_pt_index];
+    second_layer_inner_portal.set_edge({gap.index(), dindex_invalid});
+
+    auto& second_layer_outer_portal = surfaces[++layer2_pt_index];
+    second_layer_outer_portal.set_edge({dindex_invalid, dindex_invalid});
 
     // create module surfaces
     auto [l2_mods, l2_trfs, l2_masks] = create_modules<surface, rectangle>(
         8.4, 36., 0.145, 72., 2., 5., {32, 14});
 
-    // update linking
-    update_links(v, l2_mods, transforms.size(), rectangles.size());
+    // update linking in volumes and surfaces
+    update_links(layer_2, l2_mods, transforms.size(), rectangles.size());
     // Append to collections
     surfaces.insert(surfaces.end(), l2_mods.begin(), l2_mods.end());
     transforms.insert(transforms.end(), l2_trfs.begin(), l2_trfs.end());
     rectangles.insert(rectangles.end(), l2_masks.begin(), l2_masks.end());
 
+    // Return all geometry containers
     return std::make_tuple<volume_container, surface_container,
                            transf_container, cylinder_container,
                            rectangle_container>(
