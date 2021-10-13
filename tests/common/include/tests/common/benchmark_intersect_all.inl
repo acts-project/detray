@@ -49,7 +49,7 @@ auto read_detector() {
     }
     auto data_directory = std::string(env_d_d);
 
-    std::string name = "tml";
+    std::string name = "odd";
     std::string surfaces = data_directory + "odd.csv";
     std::string volumes = data_directory + "odd-layer-volumes.csv";
     std::string grids = data_directory + "odd-surface-grids.csv";
