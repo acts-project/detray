@@ -7,15 +7,12 @@
 
 #include <gtest/gtest.h>
 
-#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <map>
-#include <set>
 #include <sstream>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "core/detector.hpp"
 #include "core/track.hpp"
