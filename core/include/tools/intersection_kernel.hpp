@@ -62,7 +62,7 @@ inline auto intersect_by_group(const track_type &track, const transform3 &trf,
             return std::make_tuple(sfi, valid_link);
         }
     }
-    links_type invalid_link;
+    links_type invalid_link{};
     intersection invalid_intersection;
     return std::make_tuple(invalid_intersection, invalid_link);
 }

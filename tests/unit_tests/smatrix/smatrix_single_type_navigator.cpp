@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/algebra/eigen_definitions.hpp"
-#include "tests/common/tools_single_state_navigator.inl"
+#include "plugins/algebra/smatrix_definitions.hpp"
+#include "tests/common/tools_single_type_navigator.inl"

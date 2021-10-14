@@ -7,25 +7,30 @@
 
 #include <gtest/gtest.h>
 
-#include <map>
-#include <string>
-
 #include "core/mask_store.hpp"
 #include "core/track.hpp"
-#include "core/transform_store.hpp"
-#include "io/csv_io.hpp"
-#include "tools/single_state_navigator.hpp"
+#include "tests/common/read_geometry.hpp"
+#include "tools/single_type_navigator.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
+auto [volumes, surfaces, transforms, cylinders, discs, rectangles] =
+    toy_geometry();
+
 // This tests the construction and general methods of the navigator
-TEST(ALGEBRA_PLUGIN, navigator) {
+TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     using namespace detray;
 
     /** Empty context type struct */
     struct empty_context {};
 
-    // detray_navigator n(std::move(d));
+    mask_store<dtuple, dvector, decltype(discs)::value_type,
+               decltype(cylinders)::value_type,
+               decltype(rectangles)::value_type>
+        masks;
+
+    single_type_navigator n(volumes, surfaces, transforms, masks);
+    using toy_navigator = decltype(n);
 
     track<empty_context> traj;
     traj.pos = {0., 0., 0.};
@@ -34,31 +39,31 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     traj.momentum = 100.;
     traj.overstep_tolerance = -1e-4;
 
-    // detray_navigator::state state;
+    toy_navigator::state state;
 
     // Check that the state is unitialized
     // Volume is invalid
-    /*ASSERT_EQ(state.volume_index, dindex_invalid);
+    ASSERT_EQ(state.volume(), dindex_invalid);
     // No surface candidates
-    ASSERT_EQ(state.kernel.candidates.size(), 0u);
+    ASSERT_EQ(state.nav_kernel().candidates.size(), 0u);
     // You can not trust the state
-    ASSERT_EQ(state.trust_level,
-              detray_navigator::navigation_trust_level::e_no_trust);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_no_trust);
     // The status is unkown
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_unknown);
+    ASSERT_EQ(state.nav_status(), toy_navigator::navigation_status::e_unknown);
 
     // Initial status call
     bool heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
     // The status is towards surface
-    ASSERT_EQ(state.status,
-              detray_navigator::navigation_status::e_towards_target);
+    /*ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
     // Now the volume, surfaces are defined and are trust worthy
-    ASSERT_EQ(state.volume_index, 0u);
+    ASSERT_EQ(state.volume(), 0u);
     ASSERT_EQ(state.kernel.candidates.size(), 1u);
     ASSERT_EQ(state.trust_level,
-              detray_navigator::navigation_trust_level::e_full_trust);
+              toy_navigator::navigation_trust_level::e_full_trust);
     ASSERT_TRUE(std::abs(state() - 19.) < 0.01);*/
 
     // Let's immediately target, nothing should change, as there is full trust
@@ -67,29 +72,29 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_TRUE(heartbeat);
     // The status remains: towards surface
     ASSERT_EQ(state.status,
-              detray_navigator::navigation_status::e_towards_surface);
+              toy_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
     ASSERT_EQ(state.trust_level,
-              detray_navigator::navigation_trust_level::e_full_trust);
+              toy_navigator::navigation_trust_level::e_full_trust);
     ASSERT_TRUE(std::abs(state() - 19.) < 0.01);
 
     // Let's make half the step towards the surface
     traj.pos = traj.pos + 0.5 * state() * traj.dir;
     // In this case, this would set the trust level to 'high'
-    state.trust_level = detray_navigator::navigation_trust_level::e_high_trust;
+    state.trust_level = toy_navigator::navigation_trust_level::e_high_trust;
     heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
     // The status remains: towards surface
     ASSERT_EQ(state.status,
-              detray_navigator::navigation_status::e_towards_surface);
+              toy_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
     ASSERT_TRUE(std::abs(state() - 9.5) < 0.01);
     // Trust level is restored
     ASSERT_EQ(state.trust_level,
-              detray_navigator::navigation_trust_level::e_full_trust);
+              toy_navigator::navigation_trust_level::e_full_trust);
 
     // Let's immediately target, nothing should change, as there is full trust
     heartbeat = n.target(state, traj);
@@ -97,29 +102,29 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_TRUE(heartbeat);
     // The status remains: towards surface
     ASSERT_EQ(state.status,
-              detray_navigator::navigation_status::e_towards_surface);
+              toy_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
     ASSERT_EQ(state.trust_level,
-              detray_navigator::navigation_trust_level::e_full_trust);
+              toy_navigator::navigation_trust_level::e_full_trust);
     ASSERT_TRUE(std::abs(state() - 9.5) < 0.01);
 
     // Now step onto the surface
     traj.pos = traj.pos + state() * traj.dir;
-    state.trust_level = detray_navigator::navigation_trust_level::e_high_trust;
+    state.trust_level = toy_navigator::navigation_trust_level::e_high_trust;
     heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
     // The status is: on surface
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_surface);
+    ASSERT_EQ(state.status, toy_navigator::navigation_status::e_on_surface);
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_TRUE(std::abs(state()) < state.on_surface_tolerance);
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_surface);
+    ASSERT_EQ(state.status, toy_navigator::navigation_status::e_on_surface);
     // Kernel is exhaused, and trust level is gone
     ASSERT_EQ(state.surface_kernel.next, state.surface_kernel.candidates.end());
     ASSERT_EQ(state.trust_level,
-              detray_navigator::navigation_trust_level::e_high_trust);
+              toy_navigator::navigation_trust_level::e_high_trust);
 
     // New target call
     heartbeat = n.target(state, traj);
@@ -128,12 +133,12 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
     // The status is: towards portal
     ASSERT_EQ(state.status,
-              detray_navigator::navigation_status::e_towards_portal);
+              toy_navigator::navigation_status::e_towards_portal);
     ASSERT_EQ(state.volume_index, 0u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.portal_kernel.candidates.size(), 1u);
     ASSERT_EQ(state.trust_level,
-              detray_navigator::navigation_trust_level::e_full_trust);
+              toy_navigator::navigation_trust_level::e_full_trust);
 
     // Now step towards the portal
     traj.pos = traj.pos + state() * traj.dir;
@@ -142,12 +147,12 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_TRUE(heartbeat);
 
     // The status is: on portal - points towards volume 16
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_portal);
+    ASSERT_EQ(state.status, toy_navigator::navigation_status::e_on_portal);
     ASSERT_EQ(state.volume_index, 16u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.trust_level,
-              detray_navigator::navigation_trust_level::e_no_trust);
+              toy_navigator::navigation_trust_level::e_no_trust);
 
     // Let's target now - new volume should be volume 16 and is empty
     heartbeat = n.target(state, traj);
@@ -155,7 +160,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_TRUE(heartbeat);
 
     ASSERT_EQ(state.status,
-              detray_navigator::navigation_status::e_towards_portal);
+              toy_navigator::navigation_status::e_towards_portal);
     ASSERT_EQ(state.volume_index, 16u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
 
@@ -166,12 +171,12 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_TRUE(heartbeat);
 
     // The status is: on portal - points towards volume 17
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_portal);
+    ASSERT_EQ(state.status, toy_navigator::navigation_status::e_on_portal);
     ASSERT_EQ(state.volume_index, 17u);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
     ASSERT_EQ(state.trust_level,
-              detray_navigator::navigation_trust_level::e_no_trust);
+              toy_navigator::navigation_trust_level::e_no_trust);
 
     // Let's target now - new volume should be volume 17 and should not be empty
     heartbeat = n.target(state, traj);
@@ -181,13 +186,13 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_EQ(state.volume_index, 17u);
 
     ASSERT_EQ(state.status,
-              detray_navigator::navigation_status::e_towards_surface);
+              toy_navigator::navigation_status::e_towards_surface);
     ASSERT_EQ(state.surface_kernel.candidates.size(), 4u);
     ASSERT_EQ(std::distance(state.surface_kernel.next,
                             state.surface_kernel.candidates.end()),
               4u);
     ASSERT_EQ(state.trust_level,
-              detray_navigator::navigation_trust_level::e_full_trust);
+              toy_navigator::navigation_trust_level::e_full_trust);
 
     // Intersect the remaining ones
     for (unsigned int is = 0; is < 3; ++is) {
@@ -199,28 +204,28 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
         // The status is: on portal - points towards volume 17
         ASSERT_EQ(state.status,
-                  detray_navigator::navigation_status::e_on_surface);
+                  toy_navigator::navigation_status::e_on_surface);
         ASSERT_EQ(state.volume_index, 17u);
         // We should have switched by one
         ASSERT_EQ(std::distance(state.surface_kernel.next,
                                 state.surface_kernel.candidates.end()),
                   3u - is);
         ASSERT_EQ(state.trust_level,
-                  detray_navigator::navigation_trust_level::e_high_trust);
+                  toy_navigator::navigation_trust_level::e_high_trust);
 
         heartbeat = n.target(state, traj);
         // Test that the navigator has a heartbeat
         ASSERT_TRUE(heartbeat);
 
         ASSERT_EQ(state.status,
-                  detray_navigator::navigation_status::e_towards_surface);
+                  toy_navigator::navigation_status::e_towards_surface);
         ASSERT_EQ(state.volume_index, 17u);
         ASSERT_EQ(state.surface_kernel.candidates.size(), 4u);
         ASSERT_EQ(std::distance(state.surface_kernel.next,
                                 state.surface_kernel.candidates.end()),
                   3u - is);
         ASSERT_EQ(state.trust_level,
-                  detray_navigator::navigation_trust_level::e_full_trust);
+                  toy_navigator::navigation_trust_level::e_full_trust);
     }
 
     // Surface kernel is now exhausted, status call should invalidate
@@ -229,17 +234,17 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
-    ASSERT_EQ(state.status, detray_navigator::navigation_status::e_on_surface);
+    ASSERT_EQ(state.status, toy_navigator::navigation_status::e_on_surface);
     heartbeat = n.target(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
     ASSERT_EQ(state.status,
-              detray_navigator::navigation_status::e_towards_portal);
+              toy_navigator::navigation_status::e_towards_portal);
 
     // Let's try to see if the heartbeat dies off at the end of world
     traj.pos = point3{1011, 0., 1355};
-    detray_navigator::state late_state;
+    toy_navigator::state late_state;
     heartbeat = n.status(late_state, traj);
     // Heartbeat should be alive
     ASSERT_TRUE(heartbeat);
@@ -256,7 +261,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     heartbeat = n.status(late_state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_EQ(late_state.status,
-              detray_navigator::navigation_status::e_on_portal);
+              toy_navigator::navigation_status::e_on_portal);
     ASSERT_TRUE(heartbeat);*/
 }
 

@@ -47,11 +47,11 @@ struct void_inspector {
 template <typename volume_container, typename object_container,
           typename transform_container, typename mask_container,
           typename inspector_type = void_inspector>
-class single_state_navigator {
+class single_type_navigator {
 
     public:
-    using object = typename object_container::value_type;
-    using link = typename object::edge_links;
+    using object_t = typename object_container::value_type;
+    using link_t = typename object_t::edge_links;
 
     /** Navigation status flag */
     enum navigation_status : int {
@@ -76,7 +76,7 @@ class single_state_navigator {
     template <template <typename> class vector_type = dvector>
     struct navigation_kernel {
         // Where are we (nullptr if we are in between objects)
-        const object *on = nullptr;
+        const object_t *on = nullptr;
 
         // Our list of candidates (intersections with object)
         vector_type<intersection> candidates = {};
@@ -105,7 +105,7 @@ class single_state_navigator {
      * It requires to have a scalar represenation to be used for a stepper
      **/
     class state {
-        friend class single_state_navigator;
+        friend class single_type_navigator;
 
         public:
         /** Scalar representation of the navigation state,
@@ -139,7 +139,7 @@ class single_state_navigator {
         /** The links (next volume, next object finder) of current
          * candidate
          */
-        const auto &nav_links() { return links; }
+        auto &nav_links() { return links; }
 
         /** Navigation trust level */
         const auto &nav_trust_level() { return trust_level; }
@@ -181,7 +181,7 @@ class single_state_navigator {
         dindex object_index = dindex_invalid;
 
         // Point to the next volume and object finder
-        link links = {};
+        link_t links = {};
 
         /** The navigation trust level */
         navigation_trust_level trust_level = e_no_trust;
@@ -193,10 +193,10 @@ class single_state_navigator {
      *  i.e. surfaces and portals), transforms and masks (in a tuple by
      *  type)
      */
-    single_state_navigator(const volume_container &volumes,
-                           const object_container &objects,
-                           const transform_container &transforms,
-                           const mask_container &masks)
+    single_type_navigator(const volume_container &volumes,
+                          const object_container &objects,
+                          const transform_container &transforms,
+                          const mask_container &masks)
         : _volumes(volumes),
           _objects(objects),
           _transforms(transforms),
@@ -284,7 +284,7 @@ class single_state_navigator {
             const auto &object = _objects[obj_idx];
             // Retrieve candidate from the object
             auto sfi = intersect(track, object, _transforms, _masks,
-                                 navigation.links());
+                                 navigation.nav_links());
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < track.overstep_tolerance) {
                 continue;
@@ -298,12 +298,12 @@ class single_state_navigator {
                 // object the candidate belongs to
                 sfi.index = obj_idx;
                 // the next volume if we encounter the candidate
-                sfi.link = navigation.links()[0];
+                sfi.link = navigation.nav_links()[0];
                 navigation.kernel.candidates.push_back(sfi);
             }
         }
         // Prepare for evaluation of candidates
-        sort_and_set(navigation, navigation.kernel);
+        sort_and_set(navigation);
     }
 
     /** Helper method to the update the next candidate intersection
@@ -328,9 +328,9 @@ class single_state_navigator {
                 dindex obj_idx = navigation.kernel.next->index;
                 const auto &obj = _objects[obj_idx];
                 auto sfi = intersect(track, obj, _transforms, _masks,
-                                     navigation.links());
+                                     navigation.nav_links());
                 sfi.index = obj_idx;
-                sfi.link = navigation.links()[0];
+                sfi.link = navigation.nav_links()[0];
                 if (sfi.status == e_inside) {
                     // Update the intersection with a new one
                     (*navigation.kernel.next) = sfi;
@@ -367,10 +367,10 @@ class single_state_navigator {
                 dindex obj_idx = candidate.index;
                 auto &obj = _objects[obj_idx];
                 auto sfi = intersect(track, obj, _transforms, _masks,
-                                     navigation.links());
+                                     navigation.nav_links());
                 candidate = sfi;
                 candidate.index = obj_idx;
-                candidate.link = navigation.links()[0];
+                candidate.link = navigation.nav_links()[0];
             }
             sort_and_set(navigation);
 

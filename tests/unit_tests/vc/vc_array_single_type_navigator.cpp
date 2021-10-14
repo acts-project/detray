@@ -6,4 +6,4 @@
  */
 
 #include "plugins/algebra/vc_array_definitions.hpp"
-#include "tests/common/tools_single_state_navigator.inl"
+#include "tests/common/tools_single_type_navigator.inl"
