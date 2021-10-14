@@ -172,10 +172,10 @@ inline bool unroll_intersect(
  *
  * @return an intersection and the link to the result
  **/
-template <typename surface_type, typename transform_container,
-          typename mask_container, typename link_type>
-const auto intersect(const track<typename transform_container::context> &track,
-                     surface_type &surface,
+template <typename track_type, typename surface_type,
+          typename transform_container, typename mask_container,
+          typename link_type>
+const auto intersect(const track_type &track, surface_type &surface,
                      const transform_container &contextual_transforms,
                      const mask_container &masks, link_type &mask_links) {
     const auto &ctf = contextual_transforms[surface.transform()];
