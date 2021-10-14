@@ -58,8 +58,8 @@ class single_state_navigator {
         // e_on_target = -3,
         e_abort = -2,
         e_unknown = -1,
-        e_towards_target = 0,
-        e_on_target = 1,
+        e_towards_object = 0,
+        e_on_object = 1,
     };
 
     /** Navigation trust level */
@@ -119,11 +119,11 @@ class single_state_navigator {
         /** Current volume */
         const auto &volume() { return volume_index; }
 
-        /** Tolerance to determine of we are on target */
-        const auto &tolerance() { return on_target_tolerance; }
+        /** Tolerance to determine of we are on object */
+        const auto &tolerance() { return on_object_tolerance; }
 
-        /** Adjust the on-target tolerance */
-        const auto &set_tolerance(scalar tol) { on_target_tolerance = tol; }
+        /** Adjust the on-object tolerance */
+        const auto &set_tolerance(scalar tol) { on_object_tolerance = tol; }
 
         /** get the navigation inspector */
         const auto &nav_inspector() { return inspector; }
@@ -134,9 +134,9 @@ class single_state_navigator {
         /** Current object the navigator is on (might be invalid if between
          * objects)
          */
-        const auto &on_object() { return target_index; }
+        const auto &on_object() { return object_index; }
 
-        /** The links (next volume, next target finder) of current
+        /** The links (next volume, next object finder) of current
          * candidate
          */
         const auto &nav_links() { return links; }
@@ -156,7 +156,7 @@ class single_state_navigator {
             return false;
         }
 
-        /** Kernel for the targets */
+        /** Kernel for the objects */
         navigation_kernel<> kernel;
 
         /** Volume we are currently navigating in */
@@ -166,8 +166,8 @@ class single_state_navigator {
          */
         scalar distance_to_next = std::numeric_limits<scalar>::infinity();
 
-        /** The on target tolerance - permille */
-        scalar on_target_tolerance = 1e-3;
+        /** The on object tolerance - permille */
+        scalar on_object_tolerance = 1e-3;
 
         /** The inspector type of this navigation engine */
         inspector_type inspector;
@@ -175,12 +175,12 @@ class single_state_navigator {
         /**  The navigation status */
         navigation_status status = e_unknown;
 
-        /** Index of a target (surface/portal) if is reached, otherwise
+        /** Index of a object (surface/portal) if is reached, otherwise
          * invalid
          */
-        dindex target_index = dindex_invalid;
+        dindex object_index = dindex_invalid;
 
-        // Point to the next volume and target finder
+        // Point to the next volume and object finder
         link links = {};
 
         /** The navigation trust level */
@@ -190,7 +190,7 @@ class single_state_navigator {
     /** Constructor with move constructor
      *
      * @param data the container for all data: volumes, primitives (objects
-     *  i.e. targets and portals), transforms and masks (in a tuple by
+     *  i.e. surfaces and portals), transforms and masks (in a tuple by
      *  type)
      */
     single_state_navigator(const volume_container &volumes,
@@ -259,14 +259,14 @@ class single_state_navigator {
         return heartbeat;
     }
 
-    /** Helper method to intersect all objects of a target/portal store
+    /** Helper method to intersect all objects of a surface/portal store
      *
      * @tparam range the type of range in the detector data containers
      *
      * @param navigation [in, out] navigation state that contains the kernel
      * @param track the track information
-     * @param obj_range the target/portal index range in the detector cont
-     * @param on_object ignores on target solution
+     * @param obj_range the surface/portal index range in the detector cont
+     * @param on_object ignores on object solution
      *
      */
     template <typename track_t, typename range_t>
@@ -277,12 +277,12 @@ class single_state_navigator {
         // Get the number of candidates & run them through the kernel
         navigation.kernel.candidates.reserve(obj_range[1] - obj_range[0]);
 
-        // Loop over all indexed targets, intersect and fill
+        // Loop over all indexed objects, intersect and fill
         // @todo - will come from the local object finder
         for (size_t obj_idx = obj_range[0]; obj_idx < obj_range[1]; obj_idx++) {
-            // Get next target
+            // Get next object
             const auto &object = _objects[obj_idx];
-            // Retrieve candidate from the target
+            // Retrieve candidate from the object
             auto sfi = intersect(track, object, _transforms, _masks,
                                  navigation.links());
             // Candidate is invalid if it oversteps too far (this is neg!)
@@ -292,10 +292,10 @@ class single_state_navigator {
             // Accept if inside, but not if the same object is excluded
             if (sfi.status == e_inside and
                 (/*not on_object or*/
-                 std::abs(sfi.path) > navigation.on_target_tolerance)) {
-                navigation.status = e_towards_target;
+                 std::abs(sfi.path) > navigation.on_object_tolerance)) {
+                navigation.status = e_towards_object;
 
-                // target the candidate belongs to
+                // object the candidate belongs to
                 sfi.index = obj_idx;
                 // the next volume if we encounter the candidate
                 sfi.link = navigation.links()[0];
@@ -312,7 +312,7 @@ class single_state_navigator {
      *
      * @param navigation [in, out] navigation state that contains the kernel
      * @param track the track information
-     * @param obj_range the target/portal index range in the detector cont
+     * @param obj_range the surface/portal index range in the detector cont
      *
      * @return A boolean condition if kernel is exhausted or not
      */
@@ -336,20 +336,20 @@ class single_state_navigator {
                     (*navigation.kernel.next) = sfi;
                     navigation.distance_to_next = sfi.path;
 
-                    // We may be on target (trust level is high)
-                    if (std::abs(sfi.path) < navigation.on_target_tolerance) {
-                        navigation.target_index = obj_idx;
+                    // We may be on object (trust level is high)
+                    if (std::abs(sfi.path) < navigation.on_object_tolerance) {
+                        navigation.object_index = obj_idx;
                         //++navigation.kernel.next;
-                        navigation.status = e_on_target;
+                        navigation.status = e_on_object;
                         navigation.trust_level = e_high_trust;
 
                         // Did we hit a portal? (kernel needs to be
                         // re-initialized next time)
                         check_volume_switch(navigation);
                     }
-                    // we are certainly not on target
+                    // we are certainly not on object
                     else {
-                        navigation.status = e_towards_target;
+                        navigation.status = e_towards_object;
                         // Trust fully again
                         navigation.trust_level = e_full_trust;
                     }
@@ -397,16 +397,16 @@ class single_state_navigator {
             kernel.next = kernel.candidates.begin();
             navigation.distance_to_next = kernel.next->path;
 
-            // Are we already/still on target? Then target the next cand.
-            if (navigation.distance_to_next < navigation.on_target_tolerance) {
-                navigation.status = e_on_target;
-                navigation.target_index = kernel.next->index;
+            // Are we already/still on object? Then object the next cand.
+            if (navigation.distance_to_next < navigation.on_object_tolerance) {
+                navigation.status = e_on_object;
+                navigation.object_index = kernel.next->index;
                 check_volume_switch(navigation);
             }
             // No current object
             else {
-                navigation.status = e_towards_target;
-                navigation.target_index = dindex_invalid;
+                navigation.status = e_towards_object;
+                navigation.object_index = dindex_invalid;
             }
 
             return;
@@ -424,9 +424,9 @@ class single_state_navigator {
      */
     void check_volume_switch(state &navigation) const {
         // Check if we need to switch volume index and (re-)initialize
-        if (navigation.status == e_on_target and
+        if (navigation.status == e_on_object and
             navigation.volume_index != navigation.kernel.next->link) {
-            // Set volume index to the next volume provided by the target
+            // Set volume index to the next volume provided by the object
             navigation.volume_index = navigation.kernel.next->link;
             navigation.kernel.clear();
             navigation.trust_level = e_no_trust;
