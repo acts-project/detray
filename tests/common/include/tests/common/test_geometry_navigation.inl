@@ -13,6 +13,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/detector.hpp"
 #include "core/track.hpp"
@@ -23,6 +24,8 @@
 #include "utils/ray_gun.hpp"
 
 using namespace detray;
+
+vecmem::host_memory_resource host_mr;
 
 /** A navigation inspector that relays information about the encountered
  *  portals the way we need them to compare with the ray
@@ -105,7 +108,7 @@ struct print_inspector {
     }
 };
 
-auto [d, name_map] = read_from_csv(tml_files);
+auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
 // Create the navigator
 using detray_context = decltype(d)::context;

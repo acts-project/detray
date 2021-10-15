@@ -31,7 +31,7 @@ TEST(mask, annulus2) {
     point2 p2_out3 = {10., 10.};
     point2 p2_out4 = {4., 10.};
 
-    auto toStripFrame = [&](const point2 &xy) -> point2 {
+    auto toStripFrame = [&](const point2& xy) -> point2 {
         auto shifted = xy + offset;
         scalar r = getter::perp(shifted);
         scalar phi = getter::phi(shifted);
@@ -81,7 +81,7 @@ TEST(mask, annulus2) {
                 intersection_status::e_inside);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();

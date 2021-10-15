@@ -10,6 +10,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <vecmem/memory/memory_resource.hpp>
 
 #include "core/transform_store.hpp"
 #include "geometry/index_geometry.hpp"
@@ -87,8 +88,7 @@ class detector {
 
     /// Volume grid definition
     using volume_grid =
-        grid2<replace_populator<dindex, std::numeric_limits<dindex>::max(),
-                                vector_type>,
+        grid2<replace_populator<dindex, vector_type>,
               axis::irregular<array_type, vector_type>,
               axis::irregular<array_type, vector_type>, serializer2>;
 
@@ -111,7 +111,10 @@ class detector {
     /** Allowed costructor
      * @param name the detector name
      */
-    detector(const std::string &name) : _name(name) {}
+    detector(const std::string &name, vecmem::memory_resource &resource)
+        : _name(name),
+          _volume_grid(volume_grid(std::move(axis::irregular{{}}),
+                                   std::move(axis::irregular{{}}), resource)) {}
 
     /** Add a new volume and retrieve a reference to it
      *
@@ -383,8 +386,7 @@ class detector {
 
     vector_type<surfaces_finder> _surfaces_finders;
 
-    volume_grid _volume_grid = volume_grid(std::move(axis::irregular{{}}),
-                                           std::move(axis::irregular{{}}));
+    volume_grid _volume_grid;
 };
 
 }  // namespace detray

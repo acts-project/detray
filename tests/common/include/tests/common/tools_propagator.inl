@@ -9,6 +9,7 @@
 
 #include <map>
 #include <string>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/track.hpp"
 #include "core/transform_store.hpp"
@@ -22,10 +23,12 @@
 
 // This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator) {
+    vecmem::host_memory_resource host_mr;
+
     using namespace detray;
     using namespace __plugin;
 
-    auto [d, name_map] = read_from_csv(tml_files);
+    auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;

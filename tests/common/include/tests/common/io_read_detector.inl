@@ -10,6 +10,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
@@ -20,9 +21,11 @@
 
 // This tests the construction of a detector class
 TEST(ALGEBRA_PLUGIN, read_detector) {
+    vecmem::host_memory_resource host_mr;
+
     using namespace detray;
 
-    auto [d, name_map] = read_from_csv(tml_files);
+    auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
     std::cout << d.to_string(name_map) << std::endl;
 }

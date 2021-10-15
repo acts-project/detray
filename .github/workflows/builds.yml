@@ -114,6 +114,32 @@ jobs:
       shell: bash
       run: ctest -C Debug
 
+  ubuntu_cuda_debug:
+    runs-on: ubuntu-latest
+    container: ghcr.io/acts-project/ubuntu2004_cuda:v13	
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true      
+
+    - name: Install Dependencies
+      run: apt-get install libeigen3-dev
+      
+    - name: Configure CMake
+      run: >
+        cmake -B build -S . \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DDETRAY_EIGEN_PLUGIN=On \
+          -DDETRAY_BENCHMARKS=Off \
+          -DCMAKE_CUDA_COMPILER=$(which nvcc) \
+          -DDETRAY_BUILD_CUDA=On 
+
+    - name: Build
+      run: cmake --build build -- -j$(nproc)
+
+    #- name: Unit Tests
+    #  run: CTEST_PARALLEL_LEVEL=$(nproc) cmake --build build -- test
+
   macos:
     runs-on: macos-10.15
 

@@ -8,17 +8,38 @@ mark_as_advanced(
 
 include(GoogleTest)
 
-macro(add_detray_test TESTNAME FILES PLUGIN_LIBRARY)
-    add_executable(${TESTNAME} ${FILES})
-    target_link_libraries(${TESTNAME} PRIVATE gtest gmock gtest_main)
-    target_link_libraries(${TESTNAME} PRIVATE detray::core detray::io detray::tests_common)
-    target_link_libraries(${TESTNAME} PRIVATE  ${PLUGIN_LIBRARY} ${UNIT_TEST_EXTRA_LIBRARIES})
-    set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-    add_test(unit_test_${TESTNAME} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TESTNAME})
-    set_tests_properties(unit_test_${TESTNAME} PROPERTIES 
-        ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/data/)
-endmacro()
+function(add_detray_test name)
+  
+  # Parse the function's options.
+  cmake_parse_arguments( ARG "" "" "LINK_LIBRARIES" ${ARGN} )
 
+  # Create the test executable.
+  set( test_exe_name "detray_test_${name}" )
+  add_executable(${test_exe_name} ${ARG_UNPARSED_ARGUMENTS})
+  target_link_libraries( ${test_exe_name} PRIVATE gtest gmock gtest_main)
+  target_link_libraries( ${test_exe_name} PRIVATE detray::core detray::io detray::tests_common)  
+  if ( ARG_LINK_LIBRARIES )
+    target_link_libraries( ${test_exe_name} PRIVATE ${ARG_LINK_LIBRARIES})
+  endif()
+  foreach( _config "" "_DEBUG" "_RELEASE" "_MINSIZEREL" "_RELWITHDEBINFO" )
+    set_property( TARGET ${test_exe_name} PROPERTY
+      RUNTIME_OUTPUT_DIRECTORY${_config} "${CMAKE_BINARY_DIR}/test-bin" )
+  endforeach()
+
+  # Check if it is cuda test
+  if(${test_exe_name} MATCHES ".*_cuda")
+    target_compile_options(${test_exe_name}
+      PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:
+      --expt-relaxed-constexpr>)
+  endif()
+  
+  # Run the executable as the test.
+  add_test( NAME ${test_exe_name} COMMAND $<TARGET_FILE:${test_exe_name}> )
+
+  set_tests_properties(${test_exe_name} PROPERTIES ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/data/)
+  
+endfunction(add_detray_test)  
+  
 set(all_unit_tests "core")
 list(APPEND all_unit_tests "annulus2;cylinder3;rectangle2;ring2;single3;unmasked;trapezoid2")
 list(APPEND all_unit_tests "propagator;line_stepper;navigator;cylinder_intersection;planar_intersection;intersection_kernel")
@@ -37,4 +58,7 @@ if(DETRAY_SMATRIX_PLUGIN)
 endif()
 if(DETRAY_VC_ALGEBRA_PLUGIN)
     add_subdirectory(vc)
+endif()
+if(DETRAY_BUILD_CUDA)
+  add_subdirectory(cuda)
 endif()

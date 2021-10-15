@@ -5,14 +5,14 @@
  * Mozilla Public License Version 2.0
  */
 
-// detray test
-#include "tests/common/test_defs.hpp"
-
-// detray core
 #include <gtest/gtest.h>
 
 #include <climits>
 
+// detray test
+#include "tests/common/test_defs.hpp"
+
+// detray core
 #include "grids/populator.hpp"
 #include "utils/indexing.hpp"
 
@@ -33,9 +33,9 @@ TEST(grids, complete_populator) {
     using cpopulator4 = complete_populator<4>;
     cpopulator4 completer;
 
-    cpopulator4::store_value stored = {
-        cpopulator4::invalid_value, cpopulator4::invalid_value,
-        cpopulator4::invalid_value, cpopulator4::invalid_value};
+    cpopulator4::store_value stored = {completer.m_invalid, completer.m_invalid,
+                                       completer.m_invalid,
+                                       completer.m_invalid};
 
     cpopulator4::store_value test = stored;
     test[0] = 9u;

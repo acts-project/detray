@@ -1,20 +1,17 @@
 /** Detray library, part of the ACTS project (R&D line)
- * 
+ *
  * (c) 2021 CERN for the benefit of the ACTS project
- * 
+ *
  * Mozilla Public License Version 2.0
  */
 
-#include <dfe/dfe_namedtuple.hpp>
 #include <dfe/dfe_io_dsv.hpp>
-
+#include <dfe/dfe_namedtuple.hpp>
 #include <fstream>
 
-namespace detray
-{
+namespace detray {
 
-  struct csv_surface
-  {
+struct csv_surface {
     /// Surface identifier. Not available in the TrackML datasets.
     uint64_t geometry_id;
     /// Partially decoded surface identifier components.
@@ -36,16 +33,15 @@ namespace detray
     scalar bound_param6 = -1.f;
 
     DFE_NAMEDTUPLE(csv_surface, geometry_id, volume_id, boundary_id, layer_id,
-                   module_id, cx, cy, cz, rot_xu, rot_xv, rot_xw, rot_yu, rot_yv,
-                   rot_yw, rot_zu, rot_zv, rot_zw, bounds_type, bound_param0,
-                   bound_param1, bound_param2, bound_param3, bound_param4,
-                   bound_param5, bound_param6);
-  };
+                   module_id, cx, cy, cz, rot_xu, rot_xv, rot_xw, rot_yu,
+                   rot_yv, rot_yw, rot_zu, rot_zv, rot_zw, bounds_type,
+                   bound_param0, bound_param1, bound_param2, bound_param3,
+                   bound_param4, bound_param5, bound_param6);
+};
 
-  using surface_reader = dfe::NamedTupleCsvReader<csv_surface>;
+using surface_reader = dfe::NamedTupleCsvReader<csv_surface>;
 
-  struct csv_surface_grid
-  {
+struct csv_surface_grid {
     /// Surface identifier. Not available in the TrackML datasets.
     uint64_t geometry_id;
     /// Partially decoded surface identifier components.
@@ -58,30 +54,30 @@ namespace detray
     int nbins_loc1 = -1;
     scalar min_loc1, max_loc1;
 
-    DFE_NAMEDTUPLE(csv_surface_grid, geometry_id, volume_id, layer_id, surface_id, type_loc0, nbins_loc0, min_loc0,
-                   max_loc0, type_loc1, nbins_loc1, min_loc1, max_loc1);
-  };
+    DFE_NAMEDTUPLE(csv_surface_grid, geometry_id, volume_id, layer_id,
+                   surface_id, type_loc0, nbins_loc0, min_loc0, max_loc0,
+                   type_loc1, nbins_loc1, min_loc1, max_loc1);
+};
 
-  using surface_grid_reader = dfe::NamedTupleCsvReader<csv_surface_grid>;
+using surface_grid_reader = dfe::NamedTupleCsvReader<csv_surface_grid>;
 
-
-  struct csv_surface_grid_entry
-  {
+struct csv_surface_grid_entry {
     /// detray volume identifier
     int detray_volume_id = -1;
     int detray_bin0 = -1;
     int detray_bin1 = -1;
     int detray_entry = -1;
 
-    DFE_NAMEDTUPLE(csv_surface_grid_entry, detray_volume_id, detray_bin0, detray_bin1, detray_entry);
-  };
+    DFE_NAMEDTUPLE(csv_surface_grid_entry, detray_volume_id, detray_bin0,
+                   detray_bin1, detray_entry);
+};
 
-  using surface_grid_entries_writer = dfe::NamedTupleCsvWriter<csv_surface_grid_entry>;
-  using surface_grid_entries_reader = dfe::NamedTupleCsvReader<csv_surface_grid_entry>;
+using surface_grid_entries_writer =
+    dfe::NamedTupleCsvWriter<csv_surface_grid_entry>;
+using surface_grid_entries_reader =
+    dfe::NamedTupleCsvReader<csv_surface_grid_entry>;
 
-
-  struct csv_layer_volume
-  {
+struct csv_layer_volume {
     /// Surface identifier. Not available in the TrackML datasets.
     uint64_t geometry_id;
     /// Partially decoded surface identifier components.
@@ -97,8 +93,8 @@ namespace detray
 
     DFE_NAMEDTUPLE(csv_layer_volume, geometry_id, volume_id, layer_id, min_v0,
                    max_v0, min_v1, max_v1, min_v2, max_v2);
-  };
+};
 
-  using layer_volume_reader = dfe::NamedTupleCsvReader<csv_layer_volume>;
+using layer_volume_reader = dfe::NamedTupleCsvReader<csv_layer_volume>;
 
-} // namespace detray
+}  // namespace detray
