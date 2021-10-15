@@ -2,6 +2,7 @@
 #include "vecmem/containers/jagged_vector.hpp"
 
 #define ALGEBRA_PLUGIN vc_array
+#define __vc__
 
 namespace detray {
 
