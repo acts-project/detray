@@ -62,10 +62,12 @@ class grid2 {
           const bare_value m_invalid = invalid_value<bare_value>())
         : _axis_p0(axis_p0),
           _axis_p1(axis_p1),
+#if defined(array) || defined(eigen) || defined(smatrix)
           _data_serialized(&mr),
+#endif
           _populator(m_invalid) {
         _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(),
-                                              _populator.init(), &mr);
+                                              _populator.init());
     }
 
     /** Constructor from axes - move semantics
@@ -80,7 +82,9 @@ class grid2 {
           const bare_value m_invalid = invalid_value<bare_value>())
         : _axis_p0(std::move(axis_p0)),
           _axis_p1(std::move(axis_p1)),
+#if defined(array) || defined(eigen)
           _data_serialized(&mr),
+#endif
           _populator(m_invalid) {
         _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(),
                                               _populator.init());
