@@ -6,7 +6,10 @@ on:
     branches:
       - main
       - 'release/**'
-      
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: 1
+
 jobs:
   ubuntu:
     runs-on: ubuntu-latest

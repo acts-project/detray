@@ -14,6 +14,7 @@
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
+#include "tests/common/read_geometry.hpp"
 
 using namespace detray;
 
@@ -23,33 +24,7 @@ unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
 unsigned int gbench_repetitions = 0;
 #endif
 
-/** Read the detector from file */
-auto read_detector() {
-    auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
-    if (env_d_d == nullptr) {
-        throw std::ios_base::failure(
-            "Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
-    }
-    auto data_directory = std::string(env_d_d);
-
-    /*std::string name = "odd";
-    std::string surfaces = data_directory + "odd.csv";
-    std::string volumes = data_directory + "odd-layer-volumes.csv";
-    std::string grids = data_directory + "odd-surface-grids.csv";
-    std::string grid_entries = "";*/
-
-    std::string name = "tml";
-    std::string surfaces = data_directory + "tml.csv";
-    std::string volumes = data_directory + "tml-layer-volumes.csv";
-    std::string grids = data_directory + "tml-surface-grids.csv";
-    std::string grid_entries = "";
-    std::map<dindex, std::string> name_map{};
-
-    return detray::detector_from_csv<>(name, surfaces, volumes, grids,
-                                       grid_entries, name_map);
-};
-
-auto d = read_detector();
+auto [d, name_map] = read_from_csv(tml_files);
 const unsigned int itest = 10000;
 
 namespace __plugin {
