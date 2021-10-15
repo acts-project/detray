@@ -20,37 +20,12 @@
 
 #include "core/detector.hpp"
 #include "io/csv_io.hpp"
+#include "tests/common/read_geometry.hpp"
 #include "utils/ray_gun.hpp"
 
 using namespace detray;
 
 vecmem::host_memory_resource host_mr;
-
-/** Read the detector from file */
-auto read_detector() {
-    auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
-    if (env_d_d == nullptr) {
-        throw std::ios_base::failure(
-            "Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
-    }
-    auto data_directory = std::string(env_d_d);
-
-    /*std::string name = "odd";
-    std::string surfaces = data_directory + "odd.csv";
-    std::string volumes = data_directory + "odd-layer-volumes.csv";
-    std::string grids = data_directory + "odd-surface-grids.csv";
-    std::string grid_entries = "";*/
-
-    std::string name = "tml";
-    std::string surfaces = data_directory + "tml.csv";
-    std::string volumes = data_directory + "tml-layer-volumes.csv";
-    std::string grids = data_directory + "tml-surface-grids.csv";
-    std::string grid_entries = "";
-    std::map<dindex, std::string> name_map{};
-
-    return detray::detector_from_csv<>(name, surfaces, volumes, grids,
-                                       grid_entries, name_map, host_mr);
-};
 
 /** Check if a set of volume index pairs form a trace.
  *
@@ -187,7 +162,7 @@ inline auto check_connectivity(const record_type &volume_record,
     return valid_volumes;
 }
 
-auto d = read_detector();
+auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
 namespace __plugin {
 

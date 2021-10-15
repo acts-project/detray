@@ -14,6 +14,7 @@
 #include "core/track.hpp"
 #include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
+#include "tests/common/read_geometry.hpp"
 #include "tools/line_stepper.hpp"
 #include "tools/navigator.hpp"
 #include "tools/propagator.hpp"
@@ -27,28 +28,8 @@ TEST(ALGEBRA_PLUGIN, propagator) {
     using namespace detray;
     using namespace __plugin;
 
-    auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
-    if (env_d_d == nullptr) {
-        throw std::ios_base::failure(
-            "Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
-    }
-    auto data_directory = std::string(env_d_d);
+    auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
-    /*std::string name = "odd";
-    std::string surfaces = data_directory + "odd.csv";
-    std::string volumes = data_directory + "odd-layer-volumes.csv";
-    std::string grids = data_directory + "odd-surface-grids.csv";
-    std::string grid_entries = "";*/
-
-    std::string name = "tml";
-    std::string surfaces = data_directory + "tml.csv";
-    std::string volumes = data_directory + "tml-layer-volumes.csv";
-    std::string grids = data_directory + "tml-surface-grids.csv";
-    std::string grid_entries = "";
-    std::map<dindex, std::string> name_map{};
-
-    auto d = detector_from_csv<>(name, surfaces, volumes, grids, grid_entries,
-                                 name_map, host_mr);
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
     using detray_context = decltype(d)::transform_store::context;
