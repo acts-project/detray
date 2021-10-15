@@ -62,7 +62,8 @@ class grid2 {
           const bare_value m_invalid = invalid_value<bare_value>())
         : _axis_p0(axis_p0),
           _axis_p1(axis_p1),
-#if defined(array) || defined(eigen) || defined(smatrix)
+#if defined(vc_array)
+#else
           _data_serialized(&mr),
 #endif
           _populator(m_invalid) {
@@ -82,7 +83,8 @@ class grid2 {
           const bare_value m_invalid = invalid_value<bare_value>())
         : _axis_p0(std::move(axis_p0)),
           _axis_p1(std::move(axis_p1)),
-#if defined(array) || defined(eigen)
+#if defined(vc_array)
+#else
           _data_serialized(&mr),
 #endif
           _populator(m_invalid) {
