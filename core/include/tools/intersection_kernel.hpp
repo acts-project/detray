@@ -48,12 +48,7 @@ inline auto intersect_by_group(const track_type &track, const transform3 &trf,
         const auto &mask = masks[i];
         auto local = mask.local();
         auto sfi = mask.intersector().intersect(trf, track, local, mask);
-        /*std::cout << "Intersection: " << sfi.path << std::endl;
 
-        std::cout << trf._data.matrix() << std::endl;
-        std::cout << track.pos.matrix() << std::endl;
-        std::cout << track.dir.matrix() << std::endl;
-        std::cout << mask.to_string() << std::endl;*/
         if (sfi.status == e_inside) {
             links_type valid_link{};
             // If different link types are present in the container, the code
