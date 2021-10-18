@@ -84,6 +84,7 @@ class grid2 {
         : _axis_p0(std::move(axis_p0)),
           _axis_p1(std::move(axis_p1)),
 #if defined(__vc__)
+    // Vc vector is not compatible with VecMem memory resource
 #else
           _data_serialized(&mr),
 #endif
@@ -94,6 +95,7 @@ class grid2 {
 
     /** Constructor from grid data
      **/
+#if defined(__CUDACC__)
     template <typename grid_view_t>
     DETRAY_DEVICE grid2(grid_view_t &grid_data, const bare_value m_invalid =
                                                     invalid_value<bare_value>())
@@ -101,6 +103,7 @@ class grid2 {
           _axis_p1(grid_data._axis_p1),
           _data_serialized(grid_data._data_view),
           _populator(m_invalid) {}
+#endif
 
     /** Allow for grid shift, when using a centralized store and indices
      *
