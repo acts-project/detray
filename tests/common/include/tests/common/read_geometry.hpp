@@ -177,25 +177,25 @@ auto toy_geometry() {
     // Volume type
     using volume_type = detray::volume<detray::darray>;
     /// volume index: volume the surface belongs to
-    using volume_index = detray::dindex;
+    using volume_index = int;//detray::dindex;
     /// transform link: transform entry belonging to surface
     using transform_link = detray::dindex;
     /// mask index: type, range
     using mask_index = detray::darray<detray::dindex, 2>;
     /// volume links: next volume, next (local) object finder
-    using edge_links = detray::darray<detray::dindex, 2>;
+    using edge_links = detray::darray<int, 2>;
     /// source link
     using source_link = detray::dindex;
 
     // We have disc, cylinder and rectangle surfaces
     using disc = detray::ring2<detray::planar_intersector, __plugin::cartesian2,
-                               edge_links, 0>;
+                               short, 0>;
 
     using cylinder = detray::cylinder3<false, detray::cylinder_intersector,
-                                       __plugin::cylindrical2, edge_links, 1>;
+                                       __plugin::cylindrical2, short, 1>;
 
     using rectangle = detray::rectangle2<detray::planar_intersector,
-                                         __plugin::cartesian2, edge_links, 2>;
+                                         __plugin::cartesian2, short, 2>;
 
     // The surface type, both for volume portals and contained detector
     // surfaces
@@ -224,8 +224,10 @@ auto toy_geometry() {
     rectangle_container rectangles = {};
     // mask index for surfaces
     mask_index m_id = {};
-    // source link
-    dindex src_link = dindex_invalid;
+    /** source link */
+    const int inv_sf_finder = std::numeric_limits<int>::max();;
+    /** Leaving world */
+    const int leaving_world = -1;
 
     // parameters
     scalar detector_half_z = 500.;
@@ -264,7 +266,7 @@ auto toy_geometry() {
     auto add_disc_portal = [&](volume_type& vol, scalar min_r, scalar max_r,
                                scalar half_z) {
         m_id = {0, discs.size()};
-        surfaces.emplace_back(transforms.size(), m_id, vol.index(), src_link);
+        surfaces.emplace_back(transforms.size(), m_id, vol.index(), inv_sf_finder);
         discs.emplace_back(min_r, max_r);
         // Position disc
         vector3 translation{0., 0., half_z};
@@ -282,7 +284,7 @@ auto toy_geometry() {
      */
     auto add_cylinder_portal = [&](volume_type& vol, scalar r, scalar half_z) {
         m_id = {1, cylinders.size()};
-        surfaces.emplace_back(transforms.size(), m_id, vol.index(), src_link);
+        surfaces.emplace_back(transforms.size(), m_id, vol.index(), inv_sf_finder);
         cylinders.emplace_back(r, -half_z, half_z);
         transforms.emplace_back();  // identity
 
@@ -304,7 +306,7 @@ auto toy_geometry() {
             sf.transform() += trfs_offset;
             std::get<1>(sf.mask()) += masks_offset;
             sf.volume() = vol.index();
-            sf.set_edge({vol.index(), dindex_invalid});
+            sf.set_edge({vol.index(), inv_sf_finder});
         }
 
         vol.template set_range<for_surface>(
@@ -327,9 +329,9 @@ auto toy_geometry() {
     // Set disc portal edges
     dindex beampipe_portal_index = beampipe.template range<for_portal>()[0];
     auto& beampipe_neg_portal = surfaces[beampipe_portal_index];
-    beampipe_neg_portal.set_edge({dindex_invalid, dindex_invalid});
+    beampipe_neg_portal.set_edge({leaving_world, inv_sf_finder});
     auto& beampipe_pos_portal = surfaces[++beampipe_portal_index];
-    beampipe_pos_portal.set_edge({dindex_invalid, dindex_invalid});
+    beampipe_pos_portal.set_edge({leaving_world, inv_sf_finder});
 
     // module surfaces (none)
     beampipe.template set_range<for_surface>({dindex_invalid, dindex_invalid});
@@ -349,17 +351,18 @@ auto toy_geometry() {
     add_cylinder_portal(layer_1, first_layer_outer_r, detector_half_z);
 
     // Connect portals (beampipe, gap)
+    const auto beampipe_idx = layer_1.index() - 1;
     auto& beampipe_outer_portal = surfaces[++beampipe_portal_index];
-    beampipe_outer_portal.set_edge({layer_1.index(), dindex_invalid});
+    beampipe_outer_portal.set_edge({layer_1.index(), inv_sf_finder});
     // discs
     dindex layer1_pt_index = layer_1.template range<for_portal>()[0];
     auto& first_layer_neg_portal = surfaces[layer1_pt_index];
-    first_layer_neg_portal.set_edge({dindex_invalid, dindex_invalid});
+    first_layer_neg_portal.set_edge({leaving_world, inv_sf_finder});
     auto& first_layer_pos_portal = surfaces[++layer1_pt_index];
-    first_layer_pos_portal.set_edge({dindex_invalid, dindex_invalid});
+    first_layer_pos_portal.set_edge({leaving_world, inv_sf_finder});
     // cylinder
     auto& first_layer_inner_portal = surfaces[++layer1_pt_index];
-    first_layer_inner_portal.set_edge({layer_1.index() - 1, dindex_invalid});
+    first_layer_inner_portal.set_edge({beampipe_idx, inv_sf_finder});
 
     // create module surfaces
     auto [l1_modules, l1_trfs, l1_masks] = create_modules<surface, rectangle>(
@@ -389,18 +392,19 @@ auto toy_geometry() {
     add_cylinder_portal(gap, second_layer_inner_r, detector_half_z);
 
     // Connect portals (first layer, second layer)
+    const auto layer_1_idx = gap.index() - 1;
     layer1_pt_index = layer_1.template range<for_portal>()[1] - 1;
     auto& first_layer_outer_portal = surfaces[layer1_pt_index];
-    first_layer_outer_portal.set_edge({gap.index(), dindex_invalid});
+    first_layer_outer_portal.set_edge({gap.index(), inv_sf_finder});
     // discs
     dindex gap_pt_index = gap.template range<for_portal>()[0];
     auto& gap_neg_portal = surfaces[gap_pt_index];
-    gap_neg_portal.set_edge({dindex_invalid, dindex_invalid});
+    gap_neg_portal.set_edge({leaving_world, inv_sf_finder});
     auto& gap_pos_portal = surfaces[++gap_pt_index];
-    gap_pos_portal.set_edge({dindex_invalid, dindex_invalid});
+    gap_pos_portal.set_edge({leaving_world, inv_sf_finder});
     // cylinder
     auto& gap_inner_portal = surfaces[++gap_pt_index];
-    gap_inner_portal.set_edge({gap.index() - 1, dindex_invalid});
+    gap_inner_portal.set_edge({layer_1_idx, inv_sf_finder});
 
     // module surfaces (none)
     gap.template set_range<for_surface>({dindex_invalid, dindex_invalid});
@@ -422,20 +426,21 @@ auto toy_geometry() {
     add_cylinder_portal(layer_2, second_layer_outer_r, detector_half_z);
 
     /// Connect portals (gap, world)
+    const auto gap_idx = layer_2.index() - 1;
     gap_pt_index = gap.template range<for_portal>()[1] - 1;
     auto& gap_outer_portal = surfaces[gap_pt_index];
-    gap_outer_portal.set_edge({layer_2.index(), dindex_invalid});
+    gap_outer_portal.set_edge({layer_2.index(), inv_sf_finder});
     // discs
     dindex layer2_pt_index = layer_2.template range<for_portal>()[0];
     auto& second_layer_neg_portal = surfaces[layer2_pt_index];
-    second_layer_neg_portal.set_edge({dindex_invalid, dindex_invalid});
+    second_layer_neg_portal.set_edge({leaving_world, inv_sf_finder});
     auto& second_layer_pos_portal = surfaces[++layer2_pt_index];
-    second_layer_pos_portal.set_edge({dindex_invalid, dindex_invalid});
+    second_layer_pos_portal.set_edge({leaving_world, inv_sf_finder});
     // cylinder
     auto& second_layer_inner_portal = surfaces[++layer2_pt_index];
-    second_layer_inner_portal.set_edge({layer_2.index() - 1, dindex_invalid});
+    second_layer_inner_portal.set_edge({gap_idx, inv_sf_finder});
     auto& second_layer_outer_portal = surfaces[++layer2_pt_index];
-    second_layer_outer_portal.set_edge({dindex_invalid, dindex_invalid});
+    second_layer_outer_portal.set_edge({leaving_world, inv_sf_finder});
 
     // create module surfaces
     auto [l2_modules, l2_trfs, l2_masks] = create_modules<surface, rectangle>(
@@ -450,8 +455,8 @@ auto toy_geometry() {
 
     // Return all geometry containers
     return std::make_tuple<volume_container, surface_container,
-                           transf_container, cylinder_container, disc_container,
+                           transf_container, disc_container, cylinder_container,
                            rectangle_container>(
         std::move(volumes), std::move(surfaces), std::move(transforms),
-        std::move(cylinders), std::move(discs), std::move(rectangles));
+        std::move(discs), std::move(cylinders), std::move(rectangles));
 }

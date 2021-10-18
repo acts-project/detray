@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <tuple>
 #include <utility>
 
@@ -33,7 +34,7 @@ using transform3 = __plugin::transform3;
  * @param range is the range list of masks to be processed
  *
  * @note since all masks are on the same surface, only maximally one mask
- *solution at a time is possbile. Once this solution is found, it is returned
+ * solution at a time is possbile. Once this solution is found, it is returned
  *
  * @return the surface intersection
  **/
@@ -42,26 +43,33 @@ template <typename links_type = dindex, typename track_type,
 inline auto intersect_by_group(const track_type &track, const transform3 &trf,
                                const mask_group &masks,
                                const mask_range &range) {
+    // Check all masks for this surface for intersection
     for (auto i : sequence(range)) {
         const auto &mask = masks[i];
         auto local = mask.local();
         auto sfi = mask.intersector().intersect(trf, track, local, mask);
+        /*std::cout << "Intersection: " << sfi.path << std::endl;
+
+        std::cout << trf._data.matrix() << std::endl;
+        std::cout << track.pos.matrix() << std::endl;
+        std::cout << track.dir.matrix() << std::endl;
+        std::cout << mask.to_string() << std::endl;*/
         if (sfi.status == e_inside) {
             links_type valid_link{};
             // If different link types are present in the container, the code
-            // will not compile, since in the unrolling the code to compare
-            // e.g. surface links with portal masks will be generated, even
+            // will not compile when the code to compare e.g. surface links
+            // with portal masks will be generated in the unrolling, even
             // though that branch can never be reached. So make sure, that
-            // links are only set, when they have same type.
+            // links are only checked, when they have the same type.
             using mask_links = typename mask_group::value_type::mask_links_type;
             if constexpr (std::is_same_v<links_type, mask_links>) {
                 valid_link = mask.links();
             }
 
-            // links_type valid_link = mask.links();
             return std::make_tuple(sfi, valid_link);
         }
     }
+    // No intersection was found
     links_type invalid_link{};
     intersection invalid_intersection;
     return std::make_tuple(invalid_intersection, invalid_link);

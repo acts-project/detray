@@ -14,7 +14,7 @@
 
 /// @note __plugin has to be defined with a preprocessor command
 
-auto [volumes, surfaces, transforms, cylinders, discs, rectangles] =
+auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
     toy_geometry();
 
 // This tests the construction and general methods of the navigator
@@ -28,10 +28,15 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
                decltype(cylinders)::value_type,
                decltype(rectangles)::value_type>
         masks;
+    // populate mask store
+    masks.template add_masks<0>(discs);
+    masks.template add_masks<1>(cylinders);
+    masks.template add_masks<2>(rectangles);
 
     single_type_navigator n(volumes, surfaces, transforms, masks);
     using toy_navigator = decltype(n);
 
+    // test track
     track<empty_context> traj;
     traj.pos = {0., 0., 0.};
     traj.dir = vector::normalize(vector3{1., 1., 0.});
@@ -40,60 +45,68 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     traj.overstep_tolerance = -1e-4;
 
     toy_navigator::state state;
+    state.set_initial_volume(0u);
 
     // Check that the state is unitialized
     // Volume is invalid
-    ASSERT_EQ(state.volume(), dindex_invalid);
+    ASSERT_EQ(state.volume(), 0u);
     // No surface candidates
-    ASSERT_EQ(state.nav_kernel().candidates.size(), 0u);
+    ASSERT_EQ(state.candidates().size(), 0u);
     // You can not trust the state
     ASSERT_EQ(state.nav_trust_level(),
               toy_navigator::navigation_trust_level::e_no_trust);
     // The status is unkown
     ASSERT_EQ(state.nav_status(), toy_navigator::navigation_status::e_unknown);
 
+    //
+    // beampipe
+    //
+
     // Initial status call
     bool heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
-    // The status is towards surface
-    /*ASSERT_EQ(state.nav_status(),
+    // The status is towards portal (beampipe)
+    ASSERT_EQ(state.nav_status(),
               toy_navigator::navigation_status::e_towards_object);
-    // Now the volume, surfaces are defined and are trust worthy
+    // Now the volume, surfaces are defined and are trustworthy
     ASSERT_EQ(state.volume(), 0u);
-    ASSERT_EQ(state.kernel.candidates.size(), 1u);
-    ASSERT_EQ(state.trust_level,
+    ASSERT_EQ(state.candidates().size(), 1u);
+    ASSERT_EQ(state.nav_kernel().next->index, 2u);
+    ASSERT_EQ(state.nav_trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
-    ASSERT_TRUE(std::abs(state() - 19.) < 0.01);*/
+    ASSERT_TRUE(std::abs(state() - 27.) < 0.01);
 
     // Let's immediately target, nothing should change, as there is full trust
-    /*heartbeat = n.target(state, traj);
+    heartbeat = n.target(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
-    // The status remains: towards surface
-    ASSERT_EQ(state.status,
-              toy_navigator::navigation_status::e_towards_surface);
-    ASSERT_EQ(state.volume_index, 0u);
-    ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
-    ASSERT_EQ(state.trust_level,
+    // The status remains: towards portal
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.volume(), 0u);
+    ASSERT_EQ(state.candidates().size(), 1u);
+    ASSERT_EQ(state.nav_kernel().next->index, 2u);
+    ASSERT_EQ(state.nav_trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
-    ASSERT_TRUE(std::abs(state() - 19.) < 0.01);
+    ASSERT_TRUE(std::abs(state() - 27.) < 0.01);
 
-    // Let's make half the step towards the surface
+    // Let's make half the step towards the portal
     traj.pos = traj.pos + 0.5 * state() * traj.dir;
-    // In this case, this would set the trust level to 'high'
-    state.trust_level = toy_navigator::navigation_trust_level::e_high_trust;
+    // Externally set by actor (in the future)
+    state.set_trust_level(toy_navigator::navigation_trust_level::e_high_trust);
     heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
-    // The status remains: towards surface
-    ASSERT_EQ(state.status,
-              toy_navigator::navigation_status::e_towards_surface);
-    ASSERT_EQ(state.volume_index, 0u);
-    ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
-    ASSERT_TRUE(std::abs(state() - 9.5) < 0.01);
+    // The status remains: towards portal
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.volume(), 0u);
+    ASSERT_EQ(state.candidates().size(), 1u);
+    ASSERT_EQ(state.nav_kernel().next->index, 2u);
+    ASSERT_TRUE(std::abs(state() - 13.5) < 0.01);
     // Trust level is restored
-    ASSERT_EQ(state.trust_level,
+    ASSERT_EQ(state.nav_trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
     // Let's immediately target, nothing should change, as there is full trust
@@ -101,168 +114,363 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
     // The status remains: towards surface
-    ASSERT_EQ(state.status,
-              toy_navigator::navigation_status::e_towards_surface);
-    ASSERT_EQ(state.volume_index, 0u);
-    ASSERT_EQ(state.surface_kernel.candidates.size(), 1u);
-    ASSERT_EQ(state.trust_level,
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.volume(), 0u);
+    ASSERT_EQ(state.candidates().size(), 1u);
+    ASSERT_EQ(state.nav_trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
-    ASSERT_TRUE(std::abs(state() - 9.5) < 0.01);
+    ASSERT_TRUE(std::abs(state() - 13.5) < 0.01);
+
+    // Now step onto the portal
+    traj.pos = traj.pos + state() * traj.dir;
+    state.set_trust_level(toy_navigator::navigation_trust_level::e_high_trust);
+    heartbeat = n.status(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    // The status is: on portal
+    ASSERT_TRUE(std::abs(state()) < state.tolerance());
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    // Switched to next volume
+    ASSERT_EQ(state.volume(), 1u);
+    // Kernel is exhaused, and trust level is gone
+    ASSERT_EQ(state.nav_kernel().next, state.candidates().end());
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_no_trust);
+
+    //
+    // layer 1
+    //
+
+    // New target call will initialize volume 1
+    heartbeat = n.target(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    // The status is: on adjacent portal in volume 1, towards next candidate
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.volume(), 1u);
+    // This includes the adjacent portal we are already on
+    ASSERT_EQ(state.candidates().size(), 6u);
+    // We are already on this portal, so switch to next candidate which must
+    // be a surface
+    ASSERT_EQ(state.nav_kernel().next->index, 128u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_high_trust);
 
     // Now step onto the surface
     traj.pos = traj.pos + state() * traj.dir;
-    state.trust_level = toy_navigator::navigation_trust_level::e_high_trust;
     heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
-    // The status is: on surface
-    ASSERT_EQ(state.status, toy_navigator::navigation_status::e_on_surface);
-    ASSERT_EQ(state.volume_index, 0u);
-    ASSERT_TRUE(std::abs(state()) < state.on_surface_tolerance);
-    ASSERT_EQ(state.status, toy_navigator::navigation_status::e_on_surface);
-    // Kernel is exhaused, and trust level is gone
-    ASSERT_EQ(state.surface_kernel.next, state.surface_kernel.candidates.end());
-    ASSERT_EQ(state.trust_level,
+    // The status is: on surface 128
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    ASSERT_EQ(state.volume(), 1u);
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_kernel().next->index, 128u);
+    ASSERT_EQ(state.nav_trust_level(),
               toy_navigator::navigation_trust_level::e_high_trust);
 
-    // New target call
+    // Let's target now - update distance to next candidate in volume 1
     heartbeat = n.target(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
-    // The status is: towards portal
-    ASSERT_EQ(state.status,
-              toy_navigator::navigation_status::e_towards_portal);
-    ASSERT_EQ(state.volume_index, 0u);
-    ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
-    ASSERT_EQ(state.portal_kernel.candidates.size(), 1u);
-    ASSERT_EQ(state.trust_level,
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.volume(), 1u);
+    // Should be on our way to the next ovelapping module
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
-    // Now step towards the portal
+    // Jump to the next surface
     traj.pos = traj.pos + state() * traj.dir;
     heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
-    // The status is: on portal - points towards volume 16
-    ASSERT_EQ(state.status, toy_navigator::navigation_status::e_on_portal);
-    ASSERT_EQ(state.volume_index, 16u);
-    ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
-    ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
-    ASSERT_EQ(state.trust_level,
-              toy_navigator::navigation_trust_level::e_no_trust);
+    // The status is: on surface 129
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    ASSERT_EQ(state.volume(), 1u);
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_high_trust);
 
-    // Let's target now - new volume should be volume 16 and is empty
+    // Let's target now - update distance to next candidate in volume 1
     heartbeat = n.target(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
-    ASSERT_EQ(state.status,
-              toy_navigator::navigation_status::e_towards_portal);
-    ASSERT_EQ(state.volume_index, 16u);
-    ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
-
-    // Jump to the next portal
-    traj.pos = traj.pos + state() * traj.dir;
-    heartbeat = n.status(state, traj);
-    // Test that the navigator has a heartbeat
-    ASSERT_TRUE(heartbeat);
-
-    // The status is: on portal - points towards volume 17
-    ASSERT_EQ(state.status, toy_navigator::navigation_status::e_on_portal);
-    ASSERT_EQ(state.volume_index, 17u);
-    ASSERT_EQ(state.surface_kernel.candidates.size(), 0u);
-    ASSERT_EQ(state.portal_kernel.candidates.size(), 0u);
-    ASSERT_EQ(state.trust_level,
-              toy_navigator::navigation_trust_level::e_no_trust);
-
-    // Let's target now - new volume should be volume 17 and should not be empty
-    heartbeat = n.target(state, traj);
-    // Test that the navigator has a heartbeat
-    ASSERT_TRUE(heartbeat);
-
-    ASSERT_EQ(state.volume_index, 17u);
-
-    ASSERT_EQ(state.status,
-              toy_navigator::navigation_status::e_towards_surface);
-    ASSERT_EQ(state.surface_kernel.candidates.size(), 4u);
-    ASSERT_EQ(std::distance(state.surface_kernel.next,
-                            state.surface_kernel.candidates.end()),
-              4u);
-    ASSERT_EQ(state.trust_level,
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.volume(), 1u);
+    // Should be on our way to the next ovelapping module
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
-    // Intersect the remaining ones
-    for (unsigned int is = 0; is < 3; ++is) {
-        // Step towards the surface
-        traj.pos = traj.pos + state() * traj.dir;
-        heartbeat = n.status(state, traj);
-        // Test that the navigator has a heartbeat
-        ASSERT_TRUE(heartbeat);
-
-        // The status is: on portal - points towards volume 17
-        ASSERT_EQ(state.status,
-                  toy_navigator::navigation_status::e_on_surface);
-        ASSERT_EQ(state.volume_index, 17u);
-        // We should have switched by one
-        ASSERT_EQ(std::distance(state.surface_kernel.next,
-                                state.surface_kernel.candidates.end()),
-                  3u - is);
-        ASSERT_EQ(state.trust_level,
-                  toy_navigator::navigation_trust_level::e_high_trust);
-
-        heartbeat = n.target(state, traj);
-        // Test that the navigator has a heartbeat
-        ASSERT_TRUE(heartbeat);
-
-        ASSERT_EQ(state.status,
-                  toy_navigator::navigation_status::e_towards_surface);
-        ASSERT_EQ(state.volume_index, 17u);
-        ASSERT_EQ(state.surface_kernel.candidates.size(), 4u);
-        ASSERT_EQ(std::distance(state.surface_kernel.next,
-                                state.surface_kernel.candidates.end()),
-                  3u - is);
-        ASSERT_EQ(state.trust_level,
-                  toy_navigator::navigation_trust_level::e_full_trust);
-    }
-
-    // Surface kernel is now exhausted, status call should invalidate
+    // Jump to the next surface
     traj.pos = traj.pos + state() * traj.dir;
     heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
-    ASSERT_EQ(state.status, toy_navigator::navigation_status::e_on_surface);
+    // The status is: on surface 112
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    ASSERT_EQ(state.volume(), 1u);
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_high_trust);
+
+    // Let's target now - update distance to next candidate in volume 1
     heartbeat = n.target(state, traj);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
 
-    ASSERT_EQ(state.status,
-              toy_navigator::navigation_status::e_towards_portal);
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.volume(), 1u);
+    // Should be on our way to the next ovelapping module
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_full_trust);
 
-    // Let's try to see if the heartbeat dies off at the end of world
-    traj.pos = point3{1011, 0., 1355};
-    toy_navigator::state late_state;
-    heartbeat = n.status(late_state, traj);
-    // Heartbeat should be alive
-    ASSERT_TRUE(heartbeat);
-    // We should be in volume 96
-    ASSERT_EQ(late_state.volume_index, 96u);
-    ASSERT_EQ(late_state.surface_kernel.candidates.size(), 0u);
-    heartbeat = n.target(late_state, traj);
-    // Heartbeat should be alive
-    ASSERT_EQ(late_state.volume_index, 96u);
-    ASSERT_EQ(late_state.surface_kernel.candidates.size(), 0u);
-    ASSERT_EQ(late_state.portal_kernel.candidates.size(), 1u);
-    // Step to the last portal
-    traj.pos = traj.pos + late_state() * traj.dir;
-    heartbeat = n.status(late_state, traj);
+    // Jump to the next surface
+    traj.pos = traj.pos + state() * traj.dir;
+    heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
-    ASSERT_EQ(late_state.status,
-              toy_navigator::navigation_status::e_on_portal);
-    ASSERT_TRUE(heartbeat);*/
+    ASSERT_TRUE(heartbeat);
+
+    // The status is: on surface 113
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    ASSERT_EQ(state.volume(), 1u);
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_high_trust);
+
+    // Let's target again - should go towards portal next
+    heartbeat = n.target(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    ASSERT_EQ(state.volume(), 1u);
+
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_full_trust);
+
+    //
+    // gap volume
+    //
+
+    // Step onto the portal
+    traj.pos = traj.pos + state() * traj.dir;
+    heartbeat = n.status(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    // The status is: on portal
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    // Switch to volume 2
+    ASSERT_EQ(state.volume(), 2u);
+    // Kernel is exhaused, and trust level is gone
+    ASSERT_EQ(state.nav_kernel().next, state.candidates().end());
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_no_trust);
+
+    // With the new target call all surfaces of vol.2 should be initialized
+    heartbeat = n.target(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    // We immediately
+    ASSERT_EQ(state.volume(), 2u);
+
+    // The status is: on adjacent portal in volume 2, towards next candidate,
+    // which is portal 234
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    // This includes the adjacent portal we are already on
+    ASSERT_EQ(state.candidates().size(), 2u);
+    // We are already on this portal, so switch to next candidate which must
+    // be a surface
+    ASSERT_EQ(state.nav_kernel().next->index, 234u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_high_trust);
+
+    // Step onto the portal
+    traj.pos = traj.pos + state() * traj.dir;
+    heartbeat = n.status(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    // The status is: on portal
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    // Switch to volume 3
+    ASSERT_EQ(state.volume(), 3u);
+    // Kernel is exhaused, and trust level is gone
+    ASSERT_EQ(state.nav_kernel().next, state.candidates().end());
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_no_trust);
+
+    //
+    // layer 2
+    //
+
+    // With the new target call all surfaces of vol.3 should be initialized
+    heartbeat = n.target(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    ASSERT_EQ(state.volume(), 3u);
+
+    // The status is: on adjacent portal in volume 3, towards next candidate,
+    // which should be a module surface
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    // This includes the adjacent portal we are already on
+    ASSERT_EQ(state.candidates().size(), 6u);
+    // We are already on this portal, so switch to next candidate which must
+    // be a surface
+    ASSERT_EQ(state.nav_kernel().next->index, 482u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_high_trust);
+
+    // Now step onto the surface
+    traj.pos = traj.pos + state() * traj.dir;
+    heartbeat = n.status(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    // The status is: on surface 482
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    ASSERT_EQ(state.volume(), 3u);
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_kernel().next->index, 482u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_high_trust);
+
+    // Let's target now - update distance to next candidate in volume 3
+    heartbeat = n.target(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.volume(), 3u);
+    // Should be on our way to the next ovelapping module
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_full_trust);
+
+    // Jump to the next surface
+    traj.pos = traj.pos + state() * traj.dir;
+    heartbeat = n.status(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    // The status is: on surface 483
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    ASSERT_EQ(state.volume(), 3u);
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_high_trust);
+
+    // Let's target now - update distance to next candidate in volume 1
+    heartbeat = n.target(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.volume(), 3u);
+    // Should be on our way to the next ovelapping module
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_full_trust);
+
+    // Jump to the next surface
+    traj.pos = traj.pos + state() * traj.dir;
+    heartbeat = n.status(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    // The status is: on surface 451
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    ASSERT_EQ(state.volume(), 3u);
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_high_trust);
+
+    // Let's target now - update distance to next candidate in volume 1
+    heartbeat = n.target(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.volume(), 3u);
+    // Should be on our way to the next ovelapping module
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_full_trust);
+
+    // Jump to the next surface
+    traj.pos = traj.pos + state() * traj.dir;
+    heartbeat = n.status(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    // The status is: on surface 451
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_object);
+    ASSERT_EQ(state.volume(), 3u);
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_high_trust);
+
+    // Let's target again - should go towards portal next
+    heartbeat = n.target(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    ASSERT_EQ(state.volume(), 3u);
+
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_towards_object);
+    ASSERT_EQ(state.candidates().size(), 6u);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_full_trust);
+
+    // Step onto the portal
+    traj.pos = traj.pos + state() * traj.dir;
+    heartbeat = n.status(state, traj);
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(heartbeat);
+
+    // The status is: on portal
+    ASSERT_EQ(state.nav_status(),
+              toy_navigator::navigation_status::e_on_target);
+    // Switch to next volume leads out of the detector world -> exit
+    ASSERT_EQ(state.volume(), dindex_invalid);
+    ASSERT_EQ(state.nav_trust_level(),
+              toy_navigator::navigation_trust_level::e_full_trust);
 }
 
 int main(int argc, char **argv) {
