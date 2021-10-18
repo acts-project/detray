@@ -6,7 +6,6 @@
  */
 
 #include <cmath>
-#include <iostream>
 #include <map>
 #include <string>
 
@@ -177,7 +176,7 @@ auto toy_geometry() {
     // Volume type
     using volume_type = detray::volume<detray::darray>;
     /// volume index: volume the surface belongs to
-    using volume_index = int;//detray::dindex;
+    using volume_index = int;  // detray::dindex;
     /// transform link: transform entry belonging to surface
     using transform_link = detray::dindex;
     /// mask index: type, range
@@ -225,7 +224,8 @@ auto toy_geometry() {
     // mask index for surfaces
     mask_index m_id = {};
     /** source link */
-    const int inv_sf_finder = std::numeric_limits<int>::max();;
+    const int inv_sf_finder = std::numeric_limits<int>::max();
+    ;
     /** Leaving world */
     const int leaving_world = -1;
 
@@ -266,7 +266,8 @@ auto toy_geometry() {
     auto add_disc_portal = [&](volume_type& vol, scalar min_r, scalar max_r,
                                scalar half_z) {
         m_id = {0, discs.size()};
-        surfaces.emplace_back(transforms.size(), m_id, vol.index(), inv_sf_finder);
+        surfaces.emplace_back(transforms.size(), m_id, vol.index(),
+                              inv_sf_finder);
         discs.emplace_back(min_r, max_r);
         // Position disc
         vector3 translation{0., 0., half_z};
@@ -284,7 +285,8 @@ auto toy_geometry() {
      */
     auto add_cylinder_portal = [&](volume_type& vol, scalar r, scalar half_z) {
         m_id = {1, cylinders.size()};
-        surfaces.emplace_back(transforms.size(), m_id, vol.index(), inv_sf_finder);
+        surfaces.emplace_back(transforms.size(), m_id, vol.index(),
+                              inv_sf_finder);
         cylinders.emplace_back(r, -half_z, half_z);
         transforms.emplace_back();  // identity
 
