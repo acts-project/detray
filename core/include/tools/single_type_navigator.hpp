@@ -8,7 +8,6 @@
 #pragma once
 
 #include <algorithm>
-#include <iostream>
 
 #include "core/intersection.hpp"
 #include "tools/intersection_kernel.hpp"

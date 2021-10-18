@@ -7,8 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
-
 #include "tests/common/read_geometry.hpp"
 
 using namespace detray;
@@ -109,22 +107,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     range = {2, 3};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 0}, {{1, inv_sf_finder}});
-
-    for (size_t trsf_idx = 0; trsf_idx < transforms.size(); trsf_idx++) {
-        std::cout << trsf_idx << "---------------------------" << std::endl;
-        std::cout << transforms[trsf_idx]._data.matrix() << std::endl;
-    }
-    for (size_t msk_idx = 0; msk_idx < discs.size(); msk_idx++) {
-        std::cout << msk_idx << ": " << discs[msk_idx].to_string() << std::endl;
-    }
-    for (size_t msk_idx = 0; msk_idx < cylinders.size(); msk_idx++) {
-        std::cout << msk_idx << ": " << cylinders[msk_idx].to_string()
-                  << std::endl;
-    }
-    for (size_t msk_idx = 0; msk_idx < rectangles.size(); msk_idx++) {
-        std::cout << msk_idx << ": " << rectangles[msk_idx].to_string()
-                  << std::endl;
-    }
 
     //
     // first layer
