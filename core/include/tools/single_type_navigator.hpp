@@ -58,8 +58,8 @@ class single_type_navigator {
         e_on_target = -3,
         e_abort = -2,
         e_unknown = -1,
-        e_towards_object = 0,
-        e_on_object = 1,
+        e_towards_object = 0,  // move towards next object
+        e_on_object = 1,       // reached object
     };
 
     /** Navigation trust level */
@@ -122,7 +122,7 @@ class single_type_navigator {
         /** Current volume */
         const auto &volume() { return volume_index; }
 
-        /** Current volume */
+        /** Start volume */
         void set_initial_volume(dindex initial_volume) {
             volume_index = initial_volume;
         }
@@ -155,11 +155,14 @@ class single_type_navigator {
         /** Navigation trust level */
         void set_trust_level(navigation_trust_level lvl) { trust_level = lvl; }
 
+        const auto &next() { return kernel.next; }
+        inline const decltype(auto) current() { return kernel.next - 1; }
+
         private:
         /** Navigation state cannot be recovered from. Leave the other
-         * data for inspection.
+         *  data for inspection.
          *
-         * @return navigation heartbeat
+         * @return navigation heartbeat (dead)
          */
         bool abort() {
             status = e_abort;
@@ -167,14 +170,15 @@ class single_type_navigator {
             return false;
         }
 
-        /** Navigation reaches target or leaves detector world. Stop navigation.
+        /** Navigation reaches target or leaves detector world. Stop
+         *  navigation.
          *
-         * @return navigation heartbeat
+         * @return navigation heartbeat (dead)
          */
         bool exit() {
             status = e_on_target;
             trust_level = e_full_trust;
-            return true;
+            return false;
         }
 
         /** Kernel for the objects */
@@ -191,7 +195,7 @@ class single_type_navigator {
         scalar on_object_tolerance = 1e-3;
 
         /** The inspector type of this navigation engine */
-        inspector_type inspector;
+        inspector_type inspector = {};
 
         /**  The navigation status */
         navigation_status status = e_unknown;
@@ -201,7 +205,7 @@ class single_type_navigator {
          */
         dindex object_index = dindex_invalid;
 
-        // Point to the next volume and object finder
+        // Point to the next volume and object finder (not needed here)
         link_t links = {};
 
         /** The navigation trust level */
@@ -232,17 +236,16 @@ class single_type_navigator {
      * @return a heartbeat to indicate if the navigation is still alive
      **/
     template <typename track_t>
-    bool status(state &navigation, const track_t &track) const {
+    inline bool status(state &navigation, const track_t &track) const {
 
         bool heartbeat = true;
 
-        // Retrieve the volume & set index.
-        const auto &volume = _volumes[navigation.volume_index];
+        // If there is no_trust (e.g. at the beginning of the navigation in a
+        // volume), the kernel will be initialized. Otherwise the candidates
+        // are re-evaluated based on current trust level
+        update_kernel(navigation, track,
+                      _volumes[navigation.volume_index].full_range());
 
-        // If there is no_trust (e.g. at the beginning of navigation), the
-        // kernel will be initialized. Otherwise the candidates are
-        // re-evaluated based on current trust level
-        update_kernel(navigation, track, volume.full_range());
         // Should never be the case after update call (without portals we are
         // trapped)
         if (navigation.kernel.empty()) {
@@ -250,6 +253,7 @@ class single_type_navigator {
         }
         // Did we hit a portal? (kernel needs to be re-initialized next time)
         check_volume_switch(navigation);
+        // Call the inspector before returning
         navigation.inspector(navigation);
 
         return heartbeat;
@@ -265,31 +269,16 @@ class single_type_navigator {
      **/
     template <typename track_t>
     bool target(state &navigation, const track_t &track) const {
-        bool heartbeat = true;
 
-        // FWe are already on the right track, nothing left to do
+        // We are already on the right track, nothing left to do
         if (navigation.trust_level == e_full_trust) {
-            return heartbeat;
+            // heartbeat
+            return true;
         }
 
-        if (is_exhausted(navigation.kernel)) {
-            navigation.kernel.clear();
-            navigation.trust_level = e_no_trust;
-        }
-
-        // Retrieve the current volume
-        const auto &volume = _volumes[navigation.volume_index];
-        update_kernel(navigation, track, volume.full_range());
-
-        // Should never be the case after update call
-        if (navigation.kernel.empty()) {
-            return navigation.abort();
-        }
-        // Did we hit a portal? (kernel needs to be
-        // re-initialized next time)
-        check_volume_switch(navigation);
-        navigation.inspector(navigation);
-        return heartbeat;
+        // Re-establish navigation status after [external] changes to
+        // the navigation state
+        return status(navigation, track);
     }
 
     /** Helper method to intersect all objects of a surface/portal store
@@ -299,15 +288,13 @@ class single_type_navigator {
      * @param navigation [in, out] navigation state that contains the kernel
      * @param track the track information
      * @param obj_range the surface/portal index range in the detector cont
-     * @param on_object ignores on object solution
      *
      */
     template <typename track_t, typename range_t>
-    void initialize_kernel(state &navigation, const track_t &track,
-                           const range_t &obj_range,
-                           bool on_object = false) const {
+    inline void initialize_kernel(state &navigation, const track_t &track,
+                                  const range_t &obj_range) const {
 
-        // Get the number of candidates & run them through the kernel
+        // Get the max number of candidates & run them through the kernel
         navigation.kernel.candidates.reserve(obj_range[1] - obj_range[0]);
 
         // Loop over all indexed objects, intersect and fill
@@ -325,8 +312,7 @@ class single_type_navigator {
                 continue;
             }
             // Accept if inside, but not the object we are already on
-            if (sfi.status == e_inside and obj_idx != navigation.object_index) {
-                navigation.status = e_towards_object;
+            if (sfi.status == e_inside) {
                 // object the candidate belongs to
                 sfi.index = obj_idx;
                 // the next volume if we encounter the candidate
@@ -334,8 +320,8 @@ class single_type_navigator {
                 navigation.kernel.candidates.push_back(sfi);
             }
         }
-        // Prepare for evaluation of candidates
-        sort_and_set(navigation);
+        // What is the next object we want to reach?
+        set_next(navigation);
     }
 
     /** Helper method to the update the next candidate intersection
@@ -357,11 +343,11 @@ class single_type_navigator {
             initialize_kernel(navigation, track, obj_range);
             return;
         }
-        // Update current candidate, or step further
+        // Update current candidate, or close neighbors
         // - do this only when you trust level is high
         else if (navigation.trust_level >= e_high_trust) {
             while (not is_exhausted(navigation.kernel)) {
-                // Only update the last intersection
+                // Only update the next candidate
                 dindex obj_idx = navigation.kernel.next->index;
                 const auto &obj = _objects[obj_idx];
                 auto sfi = intersect(track, obj, _transforms, _masks,
@@ -369,20 +355,20 @@ class single_type_navigator {
                 sfi.index = obj_idx;
                 sfi.link = obj.edge()[0];
 
-                // Don't add surface you are already on
-                if (sfi.status == e_inside and
-                    obj_idx != navigation.object_index) {
-                    // Update the intersection with a new one
-                    (*navigation.kernel.next) = sfi;
-                    navigation.distance_to_next = sfi.path;
+                // Update the intersection with a new one
+                (*navigation.kernel.next) = sfi;
+                navigation.distance_to_next = sfi.path;
 
-                    // We may be on object (trust level is high)
+                if (sfi.status == e_inside) {
+                    // We may be on next object (trust level is high)
                     if (std::abs(sfi.path) < navigation.on_object_tolerance) {
                         navigation.object_index = obj_idx;
                         navigation.status = e_on_object;
                         navigation.trust_level = e_high_trust;
+                        // Set the next object we want to reach might be end()
+                        ++navigation.kernel.next;
                     }
-                    // we are certainly not on object
+                    // we are certainly not on the next object
                     else {
                         navigation.status = e_towards_object;
                         // Trust fully again
@@ -406,37 +392,44 @@ class single_type_navigator {
                                      navigation.nav_links());
                 candidate = sfi;
                 candidate.index = obj_idx;
-                candidate.link = navigation.nav_links()[0];
+                candidate.link = obj.edge()[0];
             }
-            sort_and_set(navigation);
+            set_next(navigation);
             return;
         }
         // If we end here, something went seriously wrong
         navigation.abort();
     }
 
-    /** Helper method to sort within the kernel
+    /** Helper method to sort within the kernel and find next object
      *
      * @param navigation [in, out] navigation state that contains the kernel
      */
-    void sort_and_set(state &navigation) const {
+    void set_next(state &navigation) const {
 
         auto &kernel = navigation.kernel;
-        // Sort and set distance to next & navigation status
+        // Sort distance to next & set navigation status
         if (not kernel.candidates.empty()) {
-            navigation.trust_level = e_full_trust;
-            std::sort(kernel.candidates.begin(), kernel.candidates.end());
 
-            // beginning of navigation with this kernel
+            // Generally, we are on our way to some candidate
+            navigation.status = e_towards_object;
+            // This is only called after full (re-)evaluation
+            navigation.trust_level = e_full_trust;
+
+            // Take the nearest candidate first
+            std::sort(kernel.candidates.begin(), kernel.candidates.end());
             kernel.next = kernel.candidates.begin();
 
-            // Are we still on object? Then goto the next cand.
+            // Are we still on an object from a previous navigation pass? Then
+            // goto the next candidate.
             // This also excludes adjacent portals -> we are towards obj again
             if (navigation.distance_to_next < navigation.on_object_tolerance) {
-                // The portal we are on automatically
+                // The object we are on
                 navigation.object_index = kernel.next->index;
-                // The next object that should be on target
+                // The next object that we want to reach
                 ++navigation.kernel.next;
+                // We might be wrong in this assumption, re-evaluate distance
+                // to next in the next pass
                 navigation.trust_level = e_high_trust;
             }
             // No current object
@@ -444,12 +437,9 @@ class single_type_navigator {
                 navigation.object_index = dindex_invalid;
             }
 
-            navigation.status = e_towards_object;
             navigation.distance_to_next = kernel.next->path;
             return;
         }
-        // If after full evaluation no candidates are there, abort
-        navigation.abort();
     }
 
     /** Helper method to check and perform a volume switch
@@ -461,10 +451,10 @@ class single_type_navigator {
     void check_volume_switch(state &navigation) const {
         // Check if we need to switch volume index and (re-)initialize
         if (navigation.status == e_on_object and
-            navigation.volume_index != navigation.kernel.next->link) {
+            navigation.volume_index != navigation.current()->link) {
 
             // Set volume index to the next volume provided by the object
-            navigation.volume_index = navigation.kernel.next->link;
+            navigation.volume_index = navigation.current()->link;
             navigation.kernel.clear();
             navigation.trust_level = e_no_trust;
 
