@@ -9,6 +9,7 @@
 
 #include <map>
 #include <string>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/detector.hpp"
 #include "core/track.hpp"
@@ -21,9 +22,11 @@
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, navigator) {
+    vecmem::host_memory_resource host_mr;
+
     using namespace detray;
 
-    auto [d, name_map] = read_from_csv(tml_files);
+    auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;

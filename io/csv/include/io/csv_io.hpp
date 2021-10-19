@@ -9,6 +9,7 @@
 
 #include <climits>
 #include <map>
+#include <vecmem/memory/memory_resource.hpp>
 #include <vector>
 
 #include "core/detector.hpp"
@@ -54,12 +55,12 @@ detector_from_csv(const std::string &detector_name,
                   const std::string &grid_file_name,
                   const std::string &grid_entries_file_name,
                   std::map<dindex, std::string> &name_map,
+                  vecmem::memory_resource &resource,
                   scalar r_sync_tolerance = 0., scalar z_sync_tolerance = 0.) {
-
     using typed_detector =
         detector<array_type, tuple_type, vector_type, alignable_store>;
 
-    typed_detector d(detector_name);
+    typed_detector d(detector_name, resource);
 
     // Surface reading
     surface_reader s_reader(surface_file_name);
@@ -270,10 +271,10 @@ detector_from_csv(const std::string &detector_name,
         surfaces_phi_axis phi_axis{phi_bins, phi_min, phi_max};
 
         // negative / positive / inner / outer
-        surfaces_r_phi_grid rphi_grid_n(r_axis, phi_axis);
-        surfaces_r_phi_grid rphi_grid_p(r_axis, phi_axis);
-        surfaces_z_phi_grid zphi_grid_i{z_axis, phi_axis};
-        surfaces_z_phi_grid zphi_grid_o{z_axis, phi_axis};
+        surfaces_r_phi_grid rphi_grid_n(r_axis, phi_axis, resource);
+        surfaces_r_phi_grid rphi_grid_p(r_axis, phi_axis, resource);
+        surfaces_z_phi_grid zphi_grid_i{z_axis, phi_axis, resource};
+        surfaces_z_phi_grid zphi_grid_o{z_axis, phi_axis, resource};
 
         detector_surfaces_finders.push_back(rphi_grid_n);
         detector_surfaces_finders.push_back(rphi_grid_p);
@@ -326,10 +327,9 @@ detector_from_csv(const std::string &detector_name,
                 std::string("_lay_") + std::to_string(io_surface.layer_id);
 
             auto &new_volume =
-            d.new_volume(volume_bounds, surfaces_finder_entry);
+                d.new_volume(volume_bounds, surfaces_finder_entry);
 
             name_map[new_volume.index()] = volume_name;
-
 
             // RZ attachment storage
             attach_volume(r_min_attachments, volume_bounds[0],
@@ -505,7 +505,7 @@ detector_from_csv(const std::string &detector_name,
     axis::irregular zaxis{{zs}};
 
     typename typed_detector::volume_grid v_grid(std::move(raxis),
-                                                std::move(zaxis));
+                                                std::move(zaxis), resource);
 
     // A step into the volume (stepsilon), can be read in from the smallest
     // difference

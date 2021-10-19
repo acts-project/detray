@@ -5,14 +5,15 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <gtest/gtest.h>
+
+#include <functional>
+#include <vecmem/memory/host_memory_resource.hpp>
+
 // detray test
 #include "tests/common/test_defs.hpp"
 
 // detray core
-#include <gtest/gtest.h>
-
-#include <functional>
-
 #include "grids/axis.hpp"
 #include "grids/grid2.hpp"
 #include "grids/populator.hpp"
@@ -25,6 +26,7 @@ using namespace detray;
 
 // This tests the convenience enumeration function
 TEST(utils, local_object_finder) {
+    vecmem::host_memory_resource host_mr;
 
     replace_populator<> replacer;
     serializer2 serializer;
@@ -36,7 +38,7 @@ TEST(utils, local_object_finder) {
     using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis),
                          decltype(serializer)>;
 
-    grid2r g2(std::move(xaxis), std::move(yaxis));
+    grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     g2.populate(p2, 8u);
 

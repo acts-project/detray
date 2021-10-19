@@ -15,6 +15,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <vecmem/memory/host_memory_resource.hpp>
 #include <vector>
 
 #include "core/detector.hpp"
@@ -23,6 +24,8 @@
 #include "utils/ray_gun.hpp"
 
 using namespace detray;
+
+vecmem::host_memory_resource host_mr;
 
 /** Check if a set of volume index pairs form a trace.
  *
@@ -159,7 +162,7 @@ inline auto check_connectivity(const record_type &volume_record,
     return valid_volumes;
 }
 
-auto [d, name_map] = read_from_csv(tml_files);
+auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
 namespace __plugin {
 

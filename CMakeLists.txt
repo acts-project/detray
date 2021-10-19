@@ -8,12 +8,14 @@ enable_testing()
 include(CMakeDependentOption)
 
 option(DETRAY_ARRAY_PLUGIN "Build std::array math plugin" On)
+option(DETRAY_VECMEM_ARRAY_PLUGIN "Build vecmem::array math plugin" On)
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" Off)
 option(DETRAY_VC_ALGEBRA_PLUGIN "Build vc based simd algebra math plugin" Off)
 option(DETRAY_IO_CSV "Build CSV IO module" On)
 option(DETRAY_IO_JSON "Build JSON IO module" On)
 option(DETRAY_DISPLAY "Build matplot++ based display module" Off)
+option(DETRAY_BUILD_CUDA "Build the CUDA sources included in detray" Off)
 option(DETRAY_USE_VECMEM "Build with vecmem" On)
 
 if(DETRAY_CUSTOM_SCALARTYPE)
@@ -27,6 +29,10 @@ endif()
 
 if (DETRAY_ARRAY_PLUGIN)
     set(ALGEBRA_PLUGIN_INCLUDE_ARRAY ON)
+endif()
+
+if (DETRAY_VECMEM_ARRAY_PLUGIN)
+    set(ALGEBRA_PLUGIN_INCLUDE_VECMEM ON)
 endif()
 
 if (DETRAY_EIGEN_PLUGIN)
@@ -63,6 +69,12 @@ set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
+
+# Set GPU-related options
+if(DETRAY_BUILD_CUDA)
+  set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
+  enable_language(CUDA)
+endif()
 
 add_subdirectory(apps)
 add_subdirectory(core)

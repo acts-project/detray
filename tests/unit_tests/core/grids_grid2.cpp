@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 // detray test
 #include "tests/common/test_defs.hpp"
 
@@ -22,6 +24,8 @@
 using namespace detray;
 
 TEST(grids, grid2_replace_populator) {
+    vecmem::host_memory_resource host_mr;
+
     replace_populator<> replacer;
     serializer2 serializer;
 
@@ -30,7 +34,7 @@ TEST(grids, grid2_replace_populator) {
     using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis),
                          decltype(serializer)>;
 
-    grid2r g2(std::move(xaxis), std::move(yaxis));
+    grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
     test::point2 p = {-4.5, -4.5};
@@ -82,7 +86,7 @@ TEST(grids, grid2_replace_populator) {
     using grid2cc = grid2<decltype(replacer), decltype(circular),
                           decltype(closed), decltype(serializer)>;
 
-    grid2cc g2cc(std::move(circular), std::move(closed));
+    grid2cc g2cc(std::move(circular), std::move(closed), host_mr);
     unsigned int counter = 0;
     for (unsigned icl = 0; icl < 5; ++icl) {
         for (unsigned ici = 0; ici < 4; ++ici) {
@@ -100,6 +104,7 @@ TEST(grids, grid2_replace_populator) {
 }
 
 TEST(grids, grid2_complete_populator) {
+    vecmem::host_memory_resource host_mr;
 
     complete_populator<3, false> completer;
     serializer2 serializer;
@@ -109,7 +114,7 @@ TEST(grids, grid2_complete_populator) {
     using grid2r = grid2<decltype(completer), decltype(xaxis), decltype(yaxis),
                          decltype(serializer)>;
 
-    grid2r g2(std::move(xaxis), std::move(yaxis));
+    grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
     test::point2 p = {-0.5, -0.5};
@@ -173,6 +178,7 @@ TEST(grids, grid2_complete_populator) {
 }
 
 TEST(grids, grid2_attach_populator) {
+    vecmem::host_memory_resource host_mr;
 
     attach_populator<> attacher;
     serializer2 serializer;
@@ -182,7 +188,7 @@ TEST(grids, grid2_attach_populator) {
     using grid2r = grid2<decltype(attacher), decltype(xaxis), decltype(yaxis),
                          decltype(serializer)>;
 
-    grid2r g2(std::move(xaxis), std::move(yaxis));
+    grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
     test::point2 p = {-0.5, -0.5};
@@ -227,7 +233,9 @@ TEST(grids, grid2_attach_populator) {
 }
 
 TEST(grids, grid2_shift) {
-    replace_populator<dindex, 0> replacer;
+    vecmem::host_memory_resource host_mr;
+
+    replace_populator<dindex> replacer(0);
     serializer2 serializer;
 
     axis::regular<> xaxis{10, -5., 5.};
@@ -236,7 +244,7 @@ TEST(grids, grid2_shift) {
     using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis),
                          decltype(serializer)>;
 
-    grid2r g2(std::move(xaxis), std::move(yaxis));
+    grid2r g2(std::move(xaxis), std::move(yaxis), host_mr, 0);
 
     // Test the initialization
     test::point2 p = {-4.5, -4.5};
@@ -247,6 +255,8 @@ TEST(grids, grid2_shift) {
 }
 
 TEST(grids, grid2_irregular_replace) {
+    vecmem::host_memory_resource host_mr;
+
     replace_populator<> replacer;
     serializer2 serializer;
 
@@ -256,7 +266,7 @@ TEST(grids, grid2_irregular_replace) {
     using grid2ir = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis),
                           decltype(serializer)>;
 
-    grid2ir g2(std::move(xaxis), std::move(yaxis));
+    grid2ir g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     test::point2 p = {-0.5, 0.5};
     g2.populate(p, 4u);

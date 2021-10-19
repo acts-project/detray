@@ -11,6 +11,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
@@ -38,7 +39,9 @@ unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
 bool stream_file = false;
 
-auto [d, name_map] = read_from_csv(tml_files);
+vecmem::host_memory_resource host_mr;
+
+auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
 const auto &surfaces = d.surfaces();
 constexpr bool get_surface_masks = true;

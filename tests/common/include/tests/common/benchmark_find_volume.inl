@@ -10,6 +10,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
@@ -24,7 +25,9 @@ unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
 unsigned int gbench_repetitions = 0;
 #endif
 
-auto [d, name_map] = read_from_csv(tml_files);
+vecmem::host_memory_resource host_mr;
+
+auto [d, name_map] = read_from_csv(tml_files, host_mr);
 const unsigned int itest = 10000;
 
 namespace __plugin {

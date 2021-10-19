@@ -12,12 +12,15 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "core/detector.hpp"
 #include "core/transform_store.hpp"
 #include "io/csv_io.hpp"
 
 int main(int argc, char **argv) {
+    vecmem::host_memory_resource host_mr;
+
     using namespace detray;
     using namespace matplot;
 
@@ -36,9 +39,9 @@ int main(int argc, char **argv) {
             std::string grid_entries_file = argv[5];
             std::map<dindex, std::string> name_map{};
 
-            auto d =
-                detector_from_csv<>(name, surfaces_file, volumes_file,
-                                    grids_file, grid_entries_file, name_map);
+            auto d = detector_from_csv<>(name, surfaces_file, volumes_file,
+                                         grids_file, grid_entries_file,
+                                         name_map, host_mr);
 
             std::cout << "[detray] Detector read successfully." << std::endl;
             std::cout << d.to_string(name_map) << std::endl;

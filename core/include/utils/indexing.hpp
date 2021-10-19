@@ -11,7 +11,7 @@
 
 namespace detray {
 using dindex = unsigned long;
-auto dindex_invalid = std::numeric_limits<dindex>::max();
+dindex constexpr dindex_invalid = std::numeric_limits<dindex>::max();
 using dindex_range = darray<dindex, 2>;
 using dindex_sequence = dvector<dindex>;
 
