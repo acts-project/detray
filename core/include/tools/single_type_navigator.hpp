@@ -135,7 +135,7 @@ class single_type_navigator {
         inline void set_dist(scalar d) { _distance_to_next = d; }
 
         /** get the navigation inspector */
-        inline const decltype(auto) inspector() { return _inspector(*this); }
+        inline decltype(auto) inspector() { return _inspector(*this); }
 
         /** The links (next volume, next object finder) of current
          * candidate
