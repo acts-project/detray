@@ -40,7 +40,7 @@ struct void_actor {
  * geomtery and uses the portals to check reachability between the volumes.
  *
  * @tparam geometry the type of geometry we want to walk along.
- * @tparam node_inspector the type of inspection to perform when a node is 
+ * @tparam node_inspector the type of inspection to perform when a node is
  *         visited
  *
  * @note The geometry has to expose the volume/portal interface.
