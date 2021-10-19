@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2021 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -48,5 +48,12 @@ TEST(transform_store_cuda, transform_store) {
     ASSERT_EQ(static_store.size(ctx0), 5u);
 
     auto static_store_data = get_data(static_store);
-    replace_test(static_store_data);
+    transform_test(static_store_data);
+
+    // Compare the transform operation results
+
+    //std::vector<> cpu_result = 
+    
+    //for (unsigned int 
+    
 }
