@@ -1,6 +1,6 @@
 #include "algebra/definitions/vc_array.hpp"
-#include "vecmem/containers/vector.hpp"
 #include "vecmem/containers/jagged_vector.hpp"
+#include "vecmem/containers/vector.hpp"
 
 #define ALGEBRA_PLUGIN vc_array
 
