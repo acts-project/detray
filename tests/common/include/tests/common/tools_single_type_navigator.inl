@@ -7,8 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
-
 #include "core/mask_store.hpp"
 #include "core/track.hpp"
 #include "tests/common/read_geometry.hpp"

@@ -176,13 +176,13 @@ auto toy_geometry() {
     // Volume type
     using volume_type = detray::volume<detray::darray>;
     /// volume index: volume the surface belongs to
-    using volume_index = int;  // detray::dindex;
+    using volume_index = detray::dindex;
     /// transform link: transform entry belonging to surface
     using transform_link = detray::dindex;
     /// mask index: type, range
     using mask_index = detray::darray<detray::dindex, 2>;
     /// volume links: next volume, next (local) object finder
-    using edge_links = detray::darray<int, 2>;
+    using edge_links = detray::darray<detray::dindex, 2>;
     /// source link
     using source_link = detray::dindex;
 

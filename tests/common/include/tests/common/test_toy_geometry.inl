@@ -47,7 +47,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     auto test_portal_links =
         [](dindex vol_index, decltype(surfaces.begin())&& sf_itr,
            darray<dindex, 2>& range, dindex trf_index,
-           darray<dindex, 2>&& mask_index, dvector<darray<int, 2>>&& edges) {
+           darray<dindex, 2>&& mask_index, dvector<darray<dindex, 2>>&& edges) {
             for (dindex pti = range[0]; pti < range[1]; pti++) {
                 EXPECT_EQ(sf_itr->volume(), vol_index);
                 EXPECT_EQ(sf_itr->transform(), trf_index);
@@ -71,7 +71,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     auto test_module_links =
         [](dindex vol_index, decltype(surfaces.begin())&& sf_itr,
            darray<dindex, 2>& range, dindex trf_index,
-           darray<dindex, 2>&& mask_index, dvector<darray<int, 2>>&& edges) {
+           darray<dindex, 2>&& mask_index, dvector<darray<dindex, 2>>&& edges) {
             for (dindex pti = range[0]; pti < range[1]; pti++) {
                 EXPECT_EQ(sf_itr->volume(), vol_index);
                 EXPECT_EQ(sf_itr->transform(), trf_index);
