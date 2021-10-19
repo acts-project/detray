@@ -1,4 +1,5 @@
 #include "algebra/definitions/vc_array.hpp"
+#include "vecmem/containers/vector.hpp"
 #include "vecmem/containers/jagged_vector.hpp"
 
 #define ALGEBRA_PLUGIN vc_array
@@ -11,7 +12,7 @@ template <typename value_type, unsigned int kDIM>
 using darray = std::array<value_type, kDIM>;
 
 template <typename value_type>
-using dvector = algebra::vector_s<value_type>;
+using dvector = vecmem::vector<value_type>;
 
 template <typename value_type>
 using djagged_vector = vecmem::jagged_vector<value_type>;
