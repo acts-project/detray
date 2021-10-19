@@ -40,6 +40,8 @@ struct void_actor {
  * geomtery and uses the portals to check reachability between the volumes.
  *
  * @tparam geometry the type of geometry we want to walk along.
+ * @tparam node_inspector the type of inspection to perform when a node is 
+ *         visited
  *
  * @note The geometry has to expose the volume/portal interface.
  */
@@ -59,9 +61,6 @@ class geometry_graph {
     // Graph edges
     using edge_t = typename geometry::portal;
 
-    // Node links: If two nodes are mutually reachable, dump their indices
-    using link_t = std::pair<dindex, dindex>;
-
     /** Default constructor */
     geometry_graph() = delete;
 
@@ -79,19 +78,19 @@ class geometry_graph {
     /** Default destructor: we don't own anything */
     ~geometry_graph() = default;
 
-    /** @return total number of volumes */
+    /** @return number of volumes */
     const size_t n_nodes() const { return _nodes.size(); }
 
     /** @return all volumes in the geometry - const access. */
     const auto nodes() const { return _nodes; }
 
-    /** @return all surfaces/portals in the geometry */
+    /** @return number of surfaces/portals in the geometry */
     size_t n_edges() const { return _edges.size(); }
 
     /** @return all surfaces/portals in the geometry */
     const auto edges() const { return _edges; }
 
-    /** Return graph adjacency */
+    /** @return graph adjacency */
     const auto adjacency_list() const { return adjaceny_list; }
 
     /** Walks breadth first through the geometry objects. */
@@ -139,13 +138,7 @@ class geometry_graph {
         }
     }
 
-    /**
-     * Print geometry if an external name map is provided for the volumes.
-     *
-     * @param names  Lookup for the names by volume index.
-     *
-     * @returns the geometry description as a string
-     */
+    /** @returns the linking description as a string */
     inline const std::string to_string() const {
         std::stringstream ss;
         for (const auto &n : _nodes) {
