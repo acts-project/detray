@@ -224,10 +224,10 @@ auto toy_geometry() {
     // mask index for surfaces
     mask_index m_id = {};
     /** source link */
-    const int inv_sf_finder = std::numeric_limits<int>::max();
+    const dindex inv_sf_finder = dindex_invalid;
     ;
     /** Leaving world */
-    const int leaving_world = -1;
+    const dindex leaving_world = dindex_invalid;
 
     // parameters
     scalar detector_half_z = 500.;

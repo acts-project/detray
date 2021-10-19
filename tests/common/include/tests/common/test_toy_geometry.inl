@@ -21,10 +21,10 @@ auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     /** source link */
-    dindex inv_sf_finder = std::numeric_limits<int>::max();
+    const dindex inv_sf_finder = dindex_invalid;
 
     /** Link to outer world (leaving detector) */
-    const int leaving_world = -1;
+    const dindex leaving_world = dindex_invalid;
 
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 4);
