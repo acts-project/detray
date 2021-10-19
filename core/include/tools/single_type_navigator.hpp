@@ -29,7 +29,9 @@ struct void_inspector {
 
 /** The navigator struct that is agnostic to the object/primitive type. It
  *  only requires a link to the next navigation volume in every candidate
- *  that is computed by intersection from the objects.
+ *  that is computed by intersection from the objects. A module surface should
+ *  link back to the volume it is conained in, while a portal surface links
+ *  to the next volume in the direction of the track
  *
  * It follows the structure of the Acts::Navigator:
  * a sequence of
@@ -40,8 +42,10 @@ struct void_inspector {
  *
  * The heartbeat indicates, that the navigation is still in a valid state.
  *
- * @tparam data_container is the type of the conatiner that provides the
- *                        geometry data.
+ * @tparam volume_container provides the volumes
+ * @tparam object_container provides portals and module surfaces (objects)
+ * @tparam transform_container provides the object transforms
+ * @tparam mask_container provides the object masks
  * @tparam inspector_type is a validation inspector
  */
 template <typename volume_container, typename object_container,
@@ -75,8 +79,6 @@ class single_type_navigator {
      **/
     template <template <typename> class vector_type = dvector>
     struct navigation_kernel {
-        // Where are we (nullptr if we are in between objects)
-        const object_t *on = nullptr;
 
         // Our list of candidates (intersections with object)
         vector_type<intersection> candidates = {};
@@ -94,15 +96,14 @@ class single_type_navigator {
         void clear() {
             candidates.clear();
             next = candidates.end();
-            on = nullptr;
         }
     };
 
     /** A navigation state object used to cache the information of the
-     * current navigation stream. These can be read or set in between
-     * navigation calls.
+     *  current navigation stream. These can be read or set in between
+     *  navigation calls.
      *
-     * It requires to have a scalar represenation to be used for a stepper
+     *  It requires to have a scalar represenation to be used for a stepper
      **/
     class state {
         friend class single_type_navigator;
@@ -113,70 +114,70 @@ class single_type_navigator {
          **/
         scalar operator()() const { return _distance_to_next; }
 
-        /** Current candidates */
+        /** @returns current candidates */
         inline const auto &candidates() const { return _kernel.candidates; }
 
-        /** Current candidates */
+        /** @returns current candidates */
         inline auto &candidates() { return _kernel.candidates; }
 
-        /** Current object that was reached */
+        /** @returns current object that was reached */
         inline decltype(auto) current() { return _kernel.next - 1; }
 
-        /** Next object that we want to reach */
+        /** @returns next object that we want to reach */
         inline auto &next() { return _kernel.next; }
 
-        /** Current kernel */
+        /** @returns the navigation kernel that contains the candidates */
         inline const auto &kernel() { return _kernel; }
 
-        /** Current kernel */
+        /** Clear the current kernel */
         inline void clear() { _kernel.clear(); }
 
         /** Update the distance to next candidate */
-        inline void set_dist(scalar d) { _distance_to_next = d; }
+        inline void set_dist(scalar dist) { _distance_to_next = dist; }
 
-        /** get the navigation inspector */
+        /** Call the navigation inspector */
         inline decltype(auto) inspector() { return _inspector(*this); }
 
-        /** The links (next volume, next object finder) of current
+        /** @returns the links (next volume, next object finder) of current
          * candidate
          */
         inline auto &links() { return _links; }
 
-        /** Current object the navigator is on (might be invalid if between
-         * objects)
+        /** @returns current object the navigator is on (might be invalid if
+         * between objects)
          */
         inline const auto &on_object() { return _object_index; }
 
         /** Update current object the navigator is on  */
-        inline void set_object(dindex o) { _object_index = o; }
+        inline void set_object(dindex obj) { _object_index = obj; }
 
-        /** Current navigation status */
+        /** @returns current navigation status */
         inline const auto &status() { return _status; }
 
-        /** Current navigation status */
-        inline void set_status(navigation_status s) { _status = s; }
+        /** Set new navigation status */
+        inline void set_status(navigation_status stat) { _status = stat; }
 
-        /** Tolerance to determine of we are on object */
+        /** @returns tolerance to determine if we are on object */
         inline const auto &tolerance() { return _on_object_tolerance; }
 
         /** Adjust the on-object tolerance */
         inline void set_tolerance(scalar tol) { _on_object_tolerance = tol; }
 
-        /** Navigation trust level */
+        /** @returns navigation trust level */
         inline const auto &trust_level() { return _trust_level; }
 
-        /** Navigation trust level */
+        /** Update navigation trust level */
         inline void set_trust_level(navigation_trust_level lvl) {
             _trust_level = lvl;
         }
 
-        /** Current volume */
+        /** @returns current volume (index) */
         inline const auto &volume() { return _volume_index; }
 
-        /** Start/new volume */
+        /** Set start/new volume */
         inline void set_volume(dindex v) { _volume_index = v; }
 
-        /** Navigation state cannot be recovered from. Leave the other
+        /** Navigation state that cannot be recovered from. Leave the other
          *  data for inspection.
          *
          * @return navigation heartbeat (dead)
@@ -209,11 +210,10 @@ class single_type_navigator {
         /** The inspector type of this navigation engine */
         inspector_type _inspector = {};
 
-        // Point to the next volume and object finder (not needed here)
+        /** Point to the next volume and object finder (not needed here) */
         link_t _links = {};
 
-        /** Index of a object (surface/portal) if is reached, otherwise
-         * invalid
+        /** Index of a object (surface/portal) if is reached, otherwise invalid
          */
         dindex _object_index = dindex_invalid;
 
@@ -230,11 +230,12 @@ class single_type_navigator {
         dindex _volume_index = dindex_invalid;
     };
 
-    /** Constructor with move constructor
+    /** Constructor from collection of data containers
      *
-     * @param data the container for all data: volumes, primitives (objects
-     *  i.e. surfaces and portals), transforms and masks (in a tuple by
-     *  type)
+     * @param volumes the container for naviagtion volumes
+     * @param objects the container for surfaces/portals
+     * @param transforms the container for surface/portal transforms
+     * @param masks the container for urface/portal masks ("unrollable")
      */
     single_type_navigator(const volume_container &volumes,
                           const object_container &objects,
@@ -247,6 +248,8 @@ class single_type_navigator {
 
     /** Navigation status() call which established the current navigation
      *  information.
+     *
+     * @tparam track_t type of the track (including context)
      *
      * @param navigation [in, out] is the navigation state object
      * @param track [in] is the track infromation
@@ -280,6 +283,8 @@ class single_type_navigator {
     /** Target function of the navigator, finds the next candidates
      *  and set the distance to next
      *
+     * @tparam track_t type of the track (including context)
+     *
      * @param navigation is the navigation state
      * @param track is the current track information
      *
@@ -301,11 +306,12 @@ class single_type_navigator {
 
     /** Helper method to intersect all objects of a surface/portal store
      *
-     * @tparam range the type of range in the detector data containers
+     * @tparam track_t type of the track (including context)
+     * @tparam range_t the type of range in the detector data containers
      *
      * @param navigation [in, out] navigation state that contains the kernel
      * @param track the track information
-     * @param obj_range the surface/portal index range in the detector cont
+     * @param obj_range the surface/portal index range in the objects conatiner
      *
      */
     template <typename track_t, typename range_t>
@@ -331,7 +337,7 @@ class single_type_navigator {
                 // object the candidate belongs to
                 sfi.index = obj_idx;
                 // the next volume if we encounter the candidate
-                sfi.link = _objects[obj_idx].edge()[0];
+                sfi.link = std::get<0>(_objects[obj_idx].edge());
                 navigation.candidates().push_back(sfi);
             }
         }
@@ -339,22 +345,24 @@ class single_type_navigator {
         set_next(navigation);
     }
 
-    /** Helper method to the update the next candidate intersection
+    /** Helper method to the update the next candidate intersection. Will
+     *  initialize candidates if there is no trust in the current navigation
+     *  state.
      *
+     * @tparam track_t type of the track (including context)
      * @tparam range the type of range in the detector data containers
      *
      * @param navigation [in, out] navigation state that contains the kernel
      * @param track the track information
-     * @param obj_range the surface/portal index range in the detector cont
+     * @param obj_range the surface/portal index range in the objects conatiner
      *
      * @return A boolean condition if kernel is exhausted or not
      */
     template <typename track_t, typename range_t>
-    void update_kernel(state &navigation, const track_t &track,
-                       const range_t &obj_range) const {
+    inline void update_kernel(state &navigation, const track_t &track,
+                              const range_t &obj_range) const {
 
         if (navigation.trust_level() == e_no_trust) {
-            // This kernel cannot be trusted
             initialize_kernel(navigation, track, obj_range);
             return;
         }
@@ -366,10 +374,8 @@ class single_type_navigator {
                 dindex obj_idx = navigation.next()->index;
                 auto sfi = intersect(track, _objects[obj_idx], _transforms,
                                      _masks, navigation.links());
-
-                // Update the intersection with a new one
                 sfi.index = obj_idx;
-                sfi.link = _objects[obj_idx].edge()[0];
+                sfi.link = std::get<0>(_objects[obj_idx].edge());
                 (*navigation.next()) = sfi;
                 navigation.set_dist(sfi.path);
 
@@ -396,29 +402,27 @@ class single_type_navigator {
         }
         // Loop over all candidates and intersect again all candidates
         // - do this when your trust level is low
-        else if (navigation.trust_level() == e_fair_trust/* or
-                 is_exhausted(navigation.kernel)*/) {
+        else if (navigation.trust_level() == e_fair_trust) {
             for (auto &candidate : navigation.candidates()) {
                 dindex obj_idx = candidate.index;
-                auto &obj = _objects[obj_idx];
-                auto sfi = intersect(track, obj, _transforms, _masks,
-                                     navigation.links());
+                auto sfi = intersect(track, _objects[obj_idx], _transforms,
+                                     _masks, navigation.links());
                 candidate = sfi;
                 candidate.index = obj_idx;
-                candidate.link = obj.edge()[0];
+                candidate.link = std::get<0>(_objects[obj_idx].edge());
             }
             set_next(navigation);
             return;
         }
-        // If we end here, something went seriously wrong
-        navigation.abort();
+        // Do nothing on full trust
+        return;
     }
 
     /** Helper method to sort within the kernel and find next object
      *
      * @param navigation [in, out] navigation state that contains the kernel
      */
-    void set_next(state &navigation) const {
+    inline void set_next(state &navigation) const {
 
         auto &kernel = navigation._kernel;
         // Sort distance to next & set navigation status
@@ -458,8 +462,6 @@ class single_type_navigator {
     /** Helper method to check and perform a volume switch
      *
      * @param navigation is the navigation state
-     *
-     * @return a flag if the volume navigation still has a heartbeat
      */
     void check_volume_switch(state &navigation) const {
         // Check if we need to switch volume index and (re-)initialize
@@ -489,7 +491,7 @@ class single_type_navigator {
     }
 
     private:
-    /// the containers for all data
+    /** the containers for all data */
     const volume_container &_volumes;
     const object_container &_objects;
     const transform_container &_transforms;
