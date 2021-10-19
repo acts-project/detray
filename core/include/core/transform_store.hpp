@@ -8,9 +8,13 @@
 
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
+#include "definitions/cuda_qualifiers.hpp"
 
 namespace detray {
 
+// Forward declaration for transform store data
+struct static_transform_store_data;
+    
 using transform3 = __plugin::transform3;
 
 /** A static inplementation of an alignable transform store */
@@ -21,6 +25,14 @@ class static_transform_store {
     inline decltype(auto) operator[](const dindex i) { return _data[i]; }
     inline decltype(auto) operator[](const dindex i) const { return _data[i]; }
 
+    /** Constructor from static_transform_store_data
+     **/
+#if defined(__CUDACC__)
+    DETRAY_DEVICE
+    static_transform_store(static_transform_store_data& store_data):
+	_data(store_data._data){}
+#endif
+    
     /** Empty context type struct */
     struct context {};
 
@@ -129,6 +141,7 @@ class static_transform_store {
     /** Size : Contextual STL like API
      * @param ctx The context of the call (ignored)
      */
+    DETRAY_HOST_DEVICE
     const size_t size(const context & /*ctx*/) const { return _data.size(); }
 
     /** Empty : Contextual STL like API
@@ -186,9 +199,37 @@ class static_transform_store {
         return _data[tidx];
     }
 
+    vector_type<transform3>& data() {
+	return _data;
+    }
+    
     private:
     /** Common to surfaces & portals: transform store */
     vector_type<transform3> _data;
 };
 
+
+/** A static inplementation of transform store data for device*/    
+struct static_transform_store_data {
+
+    /** Constructor from transform store
+     *
+     * @param store is the input transform store data from host
+     **/    
+    template <template <typename> class vector_type = dvector>
+    static_transform_store_data(static_transform_store<vector_type>& store):
+	_data(vecmem::get_data(store.data()))
+    {}
+    
+    vecmem::data::vector_view<transform3> _data;
+    
+};
+
+/** Get transform_store_data
+ **/
+template <template <typename> class vector_type = dvector>
+inline static_transform_store_data get_data(static_transform_store<vector_type>& store) {
+    return static_transform_store_data(store);
+}
+    
 }  // namespace detray
