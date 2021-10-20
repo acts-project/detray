@@ -8,7 +8,6 @@ add_detray_test(grids_grid2_cuda
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported
 list(APPEND algebras "array;eigen")
-#list(APPEND algebras "array;eigen;smatrix")
 
 foreach(algebra ${algebras})
 
