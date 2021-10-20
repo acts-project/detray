@@ -19,7 +19,6 @@ foreach(algebra ${algebras})
     LINK_LIBRARIES
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_transform_store_cuda PRIVATE ${algebra}=${algebra})
-
   
 endforeach()
 
