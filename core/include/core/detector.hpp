@@ -389,15 +389,4 @@ class detector {
     volume_grid _volume_grid;
 };
 
-template <typename detector_t>
-struct detector_data {
-
-    // using geometry_type = typename detector_t::geometry_type;
-    // using transform_store = typename detector_t::transform_store;
-    // using mask_container = typename detector_t::mask_container;
-
-    // using geometry_type_data = ;
-    using volume_grid_data = grid2_data<typename detector_t::volume_grid>;
-};
-
 }  // namespace detray
