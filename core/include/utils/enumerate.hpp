@@ -9,6 +9,7 @@
 #include <tuple>
 #include <type_traits>
 
+#include "definitions/detray_qualifiers.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray {
@@ -30,20 +31,27 @@ constexpr auto enumerate(container_type &&iterable) {
         size_t i;
         container_type_iter iter;
 
+        DETRAY_HOST_DEVICE
         bool operator!=(const iterator &rhs) const { return iter != rhs.iter; }
 
         /** Increase index and iterator at once */
+        DETRAY_HOST_DEVICE
         void operator++() {
             ++i;
             ++iter;
         }
 
         /** Tie them together for returning */
+        DETRAY_HOST_DEVICE
         auto operator*() const { return std::tie(i, *iter); }
     };
     struct iterable_wrapper {
         container_type iterable;
+
+        DETRAY_HOST_DEVICE
         auto begin() { return iterator{0, std::begin(iterable)}; }
+
+        DETRAY_HOST_DEVICE
         auto end() { return iterator{0, std::end(iterable)}; }
     };
     return iterable_wrapper{std::forward<container_type>(iterable)};
@@ -64,17 +72,22 @@ constexpr auto sequence(dindex iterable) {
     struct iterator {
         size_t i;
 
+        DETRAY_HOST_DEVICE
         bool operator!=(const iterator &rhs) const { return i != rhs.i; }
 
         /** Increase index and iterator at once */
+        DETRAY_HOST_DEVICE
         void operator++() { ++i; }
 
         /** Tie them together for returning */
+        DETRAY_HOST_DEVICE
         auto operator*() const { return i; }
     };
     struct iterable_wrapper {
         dindex iterable;
+        DETRAY_HOST_DEVICE
         auto begin() { return iterator{iterable}; }
+        DETRAY_HOST_DEVICE
         auto end() { return iterator{iterable + 1}; }
     };
     return iterable_wrapper{std::forward<dindex>(iterable)};
@@ -101,17 +114,22 @@ constexpr auto sequence(array_type iterable) {
         size_t i;
         size_t end;
 
+        DETRAY_HOST_DEVICE
         bool operator!=(const iterator &rhs) const { return i != rhs.end; }
 
         /** Increase index and iterator at once */
+        DETRAY_HOST_DEVICE
         void operator++() { ++i; }
 
         /** Tie them together for returning */
+        DETRAY_HOST_DEVICE
         auto operator*() const { return i; }
     };
     struct iterable_wrapper {
         array_type _iterable;
+        DETRAY_HOST_DEVICE
         auto begin() { return iterator{_iterable[0], _iterable[1]}; }
+        DETRAY_HOST_DEVICE
         auto end() { return iterator{_iterable[1] + 1, _iterable[1] + 1}; }
     };
     return iterable_wrapper{std::forward<array_type>(iterable)};
@@ -142,13 +160,15 @@ constexpr auto range_iter(const container_type &iterable,
         iterable_wrapper(const container_type &i, const array_type &&r)
             : _iterable(i), _range(r) {}
 
-        const container_type &_iterable = {};
+        const container_type &_iterable;
         const array_type _range = {dindex_invalid, dindex_invalid};
 
+        DETRAY_HOST_DEVICE
         inline decltype(auto) begin() const {
             return std::begin(_iterable) + _range[0];
         }
 
+        DETRAY_HOST_DEVICE
         inline decltype(auto) end() const {
             return std::begin(_iterable) + _range[1];
         }

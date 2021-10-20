@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-#include "definitions/cuda_qualifiers.hpp"
+#include "definitions/detray_qualifiers.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray {

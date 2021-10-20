@@ -12,24 +12,40 @@
 
 namespace detray {
 
-    __global__ void transform_test_kernel(static_transform_store_data store_data){
+__global__ void transform_test_kernel(
+    vecmem::data::vector_view<point3> input_data,
+    static_transform_store_data store_data,
+    vecmem::data::vector_view<point3> output_data) {
+    static_transform_store<vecmem::device_vector>::context ctx0;
+    static_transform_store<vecmem::device_vector> store(store_data);
 
-	//static_transform_store<vecmem::device_vector>::context ctx0;
-	static_transform_store<vecmem::device_vector> store(store_data);
-	
+    vecmem::device_vector<point3> input(input_data);
+    vecmem::device_vector<point3> output(output_data);
 
-    }
-    
-    void transform_test(static_transform_store_data& store_data){
+    auto range = store.range(0, store.size(ctx0), ctx0);
 
-	int block_dim = 1;
-	int thread_dim(store_data._data.size());
-	
-	// run the kernel
-	transform_test_kernel<<<block_dim, thread_dim>>>(store_data);
-	
-	// cuda error check
-	DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
-	DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+    int count = 0;
+    for (auto tf : range) {
+        if (count == threadIdx.x) {
+            output[count] = tf.point_to_global(input[count]);
+        }
+        count++;
     }
 }
+
+void transform_test(vecmem::data::vector_view<point3>& input_data,
+                    static_transform_store_data& store_data,
+                    vecmem::data::vector_view<point3>& output_data) {
+
+    int block_dim = 1;
+    int thread_dim(store_data._data.size());
+
+    // run the kernel
+    transform_test_kernel<<<block_dim, thread_dim>>>(input_data, store_data,
+                                                     output_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+}  // namespace detray
