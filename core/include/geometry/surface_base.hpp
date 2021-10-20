@@ -107,7 +107,7 @@ class surface_base {
     mask_link _mask;
     volume_link _vol;
     source_link _src;
-    edge_link _edg;
+    edge_link _edg = {};
 };
 
 }  // namespace detray
