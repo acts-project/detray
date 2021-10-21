@@ -41,11 +41,12 @@ struct void_inspector {
 template <typename detector_type, typename inspector_type = void_inspector>
 struct navigator {
 
-    using objects = typename detector_type::objects;
-    using surface = typename detector_type::surface;
+    using objects = typename detector_type::object_id;
+    // The detector geometry has to define the surface and portal types
+    using surface = typename detector_type::geometry::surface;
     using surface_link = typename surface::edge_links;
 
-    using portal = typename detector_type::portal;
+    using portal = typename detector_type::geometry::portal;
     using portal_links = typename portal::edge_links;
 
     using context = typename detector_type::context;
@@ -314,7 +315,7 @@ struct navigator {
         }
         kernel.candidates.reserve(n_objects);
         const auto &transforms = detector.transforms(track.ctx);
-        const auto &surfaces = detector.template get_objects<kSurfaceType>();
+        const auto &surfaces = detector.template objects<kSurfaceType>();
         const auto &masks = detector.masks();
         // Loop over all indexed surfaces, intersect and fill
         // @todo - will come from the local object finder
@@ -372,7 +373,7 @@ struct navigator {
                 : objects::e_portal;
 
         const auto &transforms = detector.transforms(track.ctx);
-        const auto &surfaces = detector.template get_objects<kSurfaceType>();
+        const auto &surfaces = detector.template objects<kSurfaceType>();
         const auto &masks = detector.masks();
 
         // Update current candidate, or step further

@@ -100,10 +100,10 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     dvector<surface> surfaces_vol0 = {sf0, sf1};
     dvector<surface> surfaces_vol1 = {sf2, sf3};
 
-    g.template add_objects<geometry::e_portal>(v2, portals_vol0);
-    g.template add_objects<geometry::e_surface>(v2, surfaces_vol0);
-    g.template add_objects<geometry::e_portal>(v3, portals_vol1);
-    g.template add_objects<geometry::e_surface>(v3, surfaces_vol1);
+    g.add_objects(v2, portals_vol0);
+    g.add_objects(v2, surfaces_vol0);
+    g.add_objects(v3, portals_vol1);
+    g.add_objects(v3, surfaces_vol1);
 
     // Are the surfaces/portals filled correctly?
     ASSERT_EQ(g.template n_objects<geometry::e_portal>(), 5);

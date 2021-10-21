@@ -21,14 +21,6 @@
 
 using namespace detray;
 
-using transform3 = __plugin::transform3;
-using point3 = point3;
-using vector3 = vector3;
-using surface = surface_base<transform3>;
-
-__plugin::cartesian2 cartesian2;
-using point2 = __plugin::point2;
-
 #ifdef DETRAY_BENCHMARKS_REP
 unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
 #else
@@ -40,13 +32,14 @@ unsigned int phi_steps = 100;
 bool stream_file = false;
 
 vecmem::host_memory_resource host_mr;
-
 auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
-const auto &surfaces = d.surfaces();
-constexpr bool get_surface_masks = true;
+using geometry = decltype(d)::geometry;
+using links_type = typename geometry::surface_links;
+constexpr auto k_surfaces = geometry::e_surface;
+
+const auto &surfaces = d.template objects<k_surfaces>();
 const auto &masks = d.masks();
-using links_type = typename decltype(d)::geometry::surface_links;
 
 namespace __plugin {
 // This test runs intersection with all surfaces of the TrackML detector
@@ -87,8 +80,8 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                 // Loop over volumes
                 for (const auto &v : d.volumes()) {
                     // Loop over surfaces
-                    for (size_t si = v.template range<get_surface_masks>()[0];
-                         si < v.template range<get_surface_masks>()[1]; si++) {
+                    for (size_t si = v.template range<k_surfaces>()[0];
+                         si < v.template range<k_surfaces>()[1]; si++) {
                         links_type links{};
                         auto sfi = intersect(track, surfaces[si],
                                              d.transforms(default_context),

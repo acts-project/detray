@@ -7,6 +7,7 @@
 #pragma once
 
 #include <iterator>
+#include <type_traits>
 #include <utility>
 
 #include "core/mask_store.hpp"
@@ -211,24 +212,15 @@ class index_geometry {
         portal_mask_index[1] += mask_offset;
     }
 
-    /** Update the transform link of a surface when filling into a large
+    /** Update the transform link of a surface/portal when filling into a large
      * container
      *
      * @param sf the surface
      * @param trsf_offset the offset that will be added to the links
      */
-    inline void update_transform_link(surface &sf, const dindex trsf_offset) {
-        sf.transform() += trsf_offset;
-    }
-
-    /** Update the transform link of a portal when filling into a large
-     * container
-     *
-     * @param pt the portal
-     * @param trsf_offset the offset that will be added to the links
-     */
-    inline void update_transform_link(portal &pt, const dindex trsf_offset) {
-        pt.transform() += trsf_offset;
+    template <typename object_t>
+    inline void update_transform_link(object_t &obj, const dindex trsf_offset) {
+        obj.transform() += trsf_offset;
     }
 
     /** Add objects (surfaces/portals) to the geometry
@@ -236,10 +228,10 @@ class index_geometry {
      * @param volume the volume the objects belong to
      * @param surfaces the surfaces that will be filled into the volume
      */
-    template <bool add_surfaces = true, typename object_container>
+    template <typename object_t>
     inline void add_objects(volume_type &volume,
-                            const object_container &objects) {
-        if constexpr (add_surfaces) {
+                            const vector_type<object_t> &objects) {
+        if constexpr (std::is_same_v<object_t, surface>) {
             const auto offset = _surfaces.size();
             _surfaces.reserve(_surfaces.size() + objects.size());
             _surfaces.insert(_surfaces.end(), objects.begin(), objects.end());

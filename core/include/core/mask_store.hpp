@@ -103,7 +103,7 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int mask_id, typename... bounds_type>
-    auto &add_mask(bounds_type &&... mask_bounds) noexcept(false) {
+    auto &add_mask(bounds_type &&...mask_bounds) noexcept(false) {
         // Get the mask group that will be updated
         auto &mask_group = std::get<mask_id>(_mask_tuple);
         // Construct new mask in place
@@ -120,10 +120,10 @@ class mask_store {
      *
      * @note in general can throw an exception
      */
-    template <unsigned int mask_id, typename mask_type>
+    template <typename mask_type>
     void add_masks(const vector_type<mask_type> &masks) noexcept(false) {
         // Get the mask group that will be updated
-        auto &mask_group = std::get<mask_id>(_mask_tuple);
+        auto &mask_group = std::get<vector_type<mask_type>>(_mask_tuple);
         // Reserve memory and copy new masks
         mask_group.reserve(mask_group.size() + masks.size());
         mask_group.insert(mask_group.end(), masks.begin(), masks.end());
@@ -138,10 +138,10 @@ class mask_store {
      *
      * @note in general can throw an exception
      */
-    template <unsigned int mask_id, typename mask_type>
+    template <typename mask_type>
     void add_masks(vector_type<mask_type> &&masks) noexcept(false) {
         // Get the mask group that will be updated
-        auto &mask_group = std::get<mask_id>(_mask_tuple);
+        auto &mask_group = std::get<vector_type<mask_type>>(_mask_tuple);
         // Reserve memory and copy new masks
         mask_group.reserve(mask_group.size() + masks.size());
         mask_group.insert(mask_group.end(),

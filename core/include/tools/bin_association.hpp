@@ -40,9 +40,10 @@ static inline void bin_association(const context_type &context,
                                    bool absolute_tolerance = true) {
 
     // Get surfaces, transforms and masks
-    const auto &surfaces = detector.surfaces();
-    const auto &surface_transforms = detector.transforms(
-        volume.template range<detector_type::geometry::e_surface>(), context);
+    constexpr auto surface_id = detector_type::geometry::e_surface;
+    const auto &surfaces = detector.template objects<surface_id>();
+    const auto &surface_transforms =
+        detector.transforms(volume.template range<surface_id>(), context);
     const auto &surface_masks = detector.masks();
 
     const auto &bounds = volume.bounds();
