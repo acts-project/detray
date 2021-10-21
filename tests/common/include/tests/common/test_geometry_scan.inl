@@ -36,8 +36,9 @@ vecmem::host_memory_resource host_mr;
  *
  * @return true if the volumes form a connected chain.
  */
-inline bool trace_volumes(std::set<std::pair<dindex, dindex>> volume_records,
-                          dindex start_volume = 0) {
+inline bool check_connectivity(
+    std::set<std::pair<dindex, dindex>> volume_records,
+    dindex start_volume = 0) {
     // Keep record of leftovers
     std::stringstream record_stream;
 
@@ -96,8 +97,8 @@ inline bool trace_volumes(std::set<std::pair<dindex, dindex>> volume_records,
  *         of a ray.
  */
 template <typename record_type = dvector<std::pair<dindex, intersection>>>
-inline auto check_connectivity(const record_type &volume_record,
-                               dindex start_volume = 0) {
+inline auto trace_volumes(const record_type &volume_record,
+                          dindex start_volume = 0) {
     std::set<std::pair<dindex, dindex>> valid_volumes = {};
     std::stringstream record_stream;
 
@@ -191,11 +192,10 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
                              cos_theta};
 
             const auto volume_record = shoot_ray(d, ori, dir);
-            const auto volume_connections =
-                check_connectivity(volume_record, start_index);
+            const auto volume_trace = trace_volumes(volume_record, start_index);
 
             // All edges made it through the checking
-            ASSERT_TRUE(trace_volumes(volume_connections));
+            ASSERT_TRUE(check_connectivity(volume_trace));
         }
     }
 }

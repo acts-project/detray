@@ -125,8 +125,8 @@ class geometry_graph {
             for (size_t edi = edge_range[0]; edi < edge_range[1]; edi++) {
                 // Retrieve the node index the edge points to
                 dindex nbr = std::get<0>(_edges[edi].edge());
-                // If not visited, enqueue the node
-                if (not visited[nbr]) {
+                // If not leaving world and if not visited, enqueue the node
+                if ((nbr != dindex_invalid and nbr > 0) and not visited[nbr]) {
                     node_queue.push(&(_nodes[nbr]));
                 }
             }
@@ -140,12 +140,18 @@ class geometry_graph {
     /** @returns the linking description as a string */
     inline const std::string to_string() const {
         std::stringstream ss;
+        const auto print_neighbor = [&](const dindex &n) -> std::string {
+            if (n == dindex_invalid) {
+                return "leaving world";
+            }
+            return std::to_string(n);
+        };
         for (const auto &n : _nodes) {
             ss << "[>>] Node with index " << n.index() << std::endl;
-            ss << " -> neighbors: " << n.index() << std::endl;
+            ss << " -> neighbors: " << std::endl;
             const auto &neighbors = adjaceny_list.at(n.index());
             for (const auto &nbr : neighbors) {
-                ss << "    -> " << nbr << std::endl;
+                ss << "    -> " << print_neighbor(nbr) << std::endl;
             }
         }
         return ss.str();

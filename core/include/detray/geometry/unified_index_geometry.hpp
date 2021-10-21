@@ -227,6 +227,24 @@ class unified_index_geometry {
         volume.set_range({offset, _objects.size()});
     }
 
+    /** Add objects (surfaces/portals) to the geometry (pre-built)
+     *
+     * @param surfaces the surfaces of the geometry
+     */
+    inline void add_object_collection(const surface_container &surfaces) {
+        _objects.reserve(surfaces.size());
+        _objects.insert(_objects.end(), surfaces.begin(), surfaces.end());
+    }
+
+    /** Add objects volumes to the geometry (pre-built)
+     *
+     * @param volumes the volumes of the geometry
+     */
+    inline void add_volume_collection(const vector_type<volume_type> &volumes) {
+        _volumes.reserve(volumes.size());
+        _volumes.insert(_volumes.end(), volumes.begin(), volumes.end());
+    }
+
     private:
     /** Contains the geometrical relations */
     vector_type<volume_type> _volumes = {};
