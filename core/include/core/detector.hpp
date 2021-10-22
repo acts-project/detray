@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <iostream>
 #include <iterator>
 #include <map>
 #include <sstream>
@@ -61,21 +62,11 @@ class detector {
     using context = typename alignable_store::context;
 
     /// Export geometry types
-
-    /// Forward the alignable container and context
-    // using transform_store = typename geometry_type::transform_store;
-    // using context = typename geometry_type::transform_store::context;
-
-    /// Set the geometry types
     using geometry = geometry_type;
-    // enumeration of the geometry objects in the geometry (surfaces/portals
-    // etc.)
-    using object_id = typename geometry_type::known_objects;
-    using mask_id = typename geometry_type::mask_id;
-    // geometry oject types
+    /// geometry object types
     using volume = typename geometry_type::volume_type;
-    using portal = typename geometry_type::portal;
-    using surface = typename geometry_type::surface;
+    using object_id = typename geometry_type::object_id;
+    using mask_id = typename geometry_type::mask_id;
 
     // Determined by the geometry, due to potentially different linking in masks
     using mask_container = typename geometry_type::mask_container;
@@ -224,17 +215,16 @@ class detector {
      *
      * @note can throw an exception if input data is inconsistent
      */
-    template <object_id object_type, typename... detector_components>
+    template <typename... detector_components>
     inline void add_objects(
         const typename alignable_store::context ctx = {},
-        detector_components &&...components) noexcept(false) {
+        detector_components &&... components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'mask_id')
-        fill_containers<0, object_type>(
-            ctx, std::forward<detector_components>(components)...);
+        fill_containers(ctx, std::forward<detector_components>(components)...);
     }
 
     /** Unrolls the data containers according to the mask type and fill the
-     *  global containers. Register the indexing in the geometry.
+     *  global containers. It registers the indexing in the geometry.
      *
      * @tparam current_type the current mask context to be processed
      * @tparam object_container surfaces/portals for which the links are updated
@@ -248,7 +238,7 @@ class detector {
      *
      * @note can throw an exception if input data is inconsistent
      */
-    template <size_t current_type = 0, typename object_container>
+    template <unsigned int current_type = 0, typename object_container>
     inline void fill_containers(const typename alignable_store::context ctx,
                                 volume &volume, object_container &objects,
                                 mask_container &masks,
@@ -264,7 +254,7 @@ class detector {
             // Current offsets into detectors containers
             const auto trsf_offset = _transforms.size(ctx);
             const auto mask_offset = _masks.template size<current_type>();
-
+            // std::cout << trsf_offset << std::endl;
             // Fill the correct mask type
             _masks.add_masks(object_masks);
             _transforms.append(ctx, std::move(std::get<current_type>(trfs)));
@@ -275,7 +265,7 @@ class detector {
                 _geometry.update_transform_link(obj, trsf_offset);
             }
 
-            // Now put the updates objects into the geometry
+            // Now put the updated objects into the geometry
             _geometry.add_objects(volume, typed_objects);
         }
 
@@ -329,11 +319,13 @@ class detector {
             ss << "[>>] Volume at index " << i << ": " << std::endl;
             ss << " - name: '" << v.name(names) << "'" << std::endl;
 
-            ss << "     contains    " << v.template n_objects<true>()
-               << " surfaces " << std::endl;
+            ss << "     contains    "
+               << v.template n_objects<object_id::e_surface>() << " surfaces "
+               << std::endl;
 
-            ss << "                 " << v.template n_objects<false>()
-               << " portals " << std::endl;
+            ss << "                 "
+               << v.template n_objects<object_id::e_portal>() << " portals "
+               << std::endl;
 
             if (v.surfaces_finder_entry() != dindex_invalid) {
                 ss << "  sf finders idx " << v.surfaces_finder_entry()

@@ -284,7 +284,6 @@ detector_from_csv(const std::string &detector_name,
 
     typename typed_detector::geometry::surface::mask_links mask_index = {
         dindex_invalid, dindex_invalid};
-    constexpr auto surfaces_id = typed_detector::object_id::e_surface;
     constexpr auto cylinder_id = typed_detector::mask_id::e_cylinder3;
     constexpr auto rectangle_id = typed_detector::mask_id::e_rectangle2;
     constexpr auto trapezoid_id = typed_detector::mask_id::e_trapezoid2;
@@ -299,9 +298,8 @@ detector_from_csv(const std::string &detector_name,
             // Flush the former information / c_volume still points to the prior
             // volume
             if (c_volume != nullptr) {
-                d.template add_objects<surfaces_id>(surface_default_context,
-                                                    *c_volume, c_surfaces,
-                                                    c_masks, c_transforms);
+                d.add_objects(surface_default_context, *c_volume, c_surfaces,
+                              c_masks, c_transforms);
 
                 c_surfaces = typename typed_detector::geometry::
                     surface_filling_container();

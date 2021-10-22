@@ -82,7 +82,7 @@ static inline void bin_association(const context_type &context,
                     phi_borders[0] - phi_add, phi_borders[1] + phi_add);
 
                 // Run through the surfaces and associate them by contour
-                const auto &sf_range = volume.template range<true>();
+                const auto &sf_range = volume.template range<surface_id>();
                 for (auto is = sf_range[0]; is < sf_range[1]; is++)
                 // for (auto [is, s] : enumerate(surfaces.objects()))
                 {
@@ -162,7 +162,7 @@ static inline void bin_association(const context_type &context,
                                                    p3_bin};
 
                 // Loop over the surfaces within a volume
-                const auto &sf_range = volume.template range<true>();
+                const auto &sf_range = volume.template range<surface_id>();
                 for (auto is = sf_range[0]; is < sf_range[1]; is++)
                 // for (auto [is, s] : enumerate(surfaces.objects()))
                 {

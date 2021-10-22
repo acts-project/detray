@@ -67,7 +67,7 @@ class mask_store {
      * @return vector of masks of a given type.
      */
     template <unsigned int mask_id>
-    auto &group() {
+    constexpr auto &group() {
         return std::get<mask_id>(_mask_tuple);
     }
 
@@ -77,7 +77,7 @@ class mask_store {
      * @return vector of masks of a given type.
      */
     template <unsigned int mask_id>
-    const auto &group() const {
+    constexpr const auto &group() const {
         return std::get<mask_id>(_mask_tuple);
     }
 
@@ -103,7 +103,7 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int mask_id, typename... bounds_type>
-    auto &add_mask(bounds_type &&...mask_bounds) noexcept(false) {
+    auto &add_mask(bounds_type &&... mask_bounds) noexcept(false) {
         // Get the mask group that will be updated
         auto &mask_group = std::get<mask_id>(_mask_tuple);
         // Construct new mask in place

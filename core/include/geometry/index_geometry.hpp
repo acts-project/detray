@@ -45,10 +45,11 @@ class index_geometry {
 
     public:
     // Known primitives
-    enum known_objects : bool {
-        e_surface = true,
-        e_portal = false,
-        e_any = false,  // defaults to portal
+    enum object_id : unsigned int {
+        e_object_types = 2,
+        e_surface = 0,
+        e_portal = 1,
+        e_any = 1,  // defaults to portal
     };
 
     /** Encodes the position in a collection container for the respective
@@ -66,7 +67,7 @@ class index_geometry {
     };
 
     // Volume type
-    using volume_type = volume<array_type>;
+    using volume_type = volume<object_id, dindex_range, array_type>;
 
     /// Portals components:
     /// - links:  next volume, next (local) object finder
@@ -173,9 +174,9 @@ class index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <bool get_surface = true>
+    template <object_id object_type = e_surface>
     inline size_t n_objects() const {
-        if constexpr (get_surface) {
+        if constexpr (object_type == e_surface) {
             return _surfaces.size();
         } else {
             return _portals.size();
@@ -183,9 +184,9 @@ class index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <bool get_surface = true>
+    template <object_id object_type = e_surface>
     inline const auto &objects() const {
-        if constexpr (get_surface) {
+        if constexpr (object_type == e_surface) {
             return _surfaces;
         } else {
             return _portals;

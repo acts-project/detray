@@ -47,10 +47,11 @@ class unified_index_geometry {
 
     public:
     // Known primitives
-    enum known_objects : bool {
-        e_surface = true,
-        e_portal = false,
-        e_any = false,  // defaults to portal
+    enum object_id : unsigned int {
+        e_object_types = 2,
+        e_surface = 0,
+        e_portal = 1,
+        e_any = 1,  // defaults to portal
     };
 
     /** Encodes the position in a collection container for the respective
@@ -68,7 +69,7 @@ class unified_index_geometry {
     };
 
     // Volume type
-    using volume_type = volume<array_type>;
+    using volume_type = volume<object_id, dindex_range, array_type>;
 
     /// volume index: volume the surface belongs to
     using volume_index = dindex;
@@ -163,13 +164,13 @@ class unified_index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <bool get_surface = true>
+    template <object_id id = e_surface>
     inline size_t n_objects() const {
         return _objects.size();
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <bool get_surface = true>
+    template <object_id id = e_surface>
     inline const auto &objects() const {
         return _objects;
     }
@@ -198,14 +199,14 @@ class unified_index_geometry {
      * @param volume the volume the objects belong to
      * @param surfaces the surfaces that will be filled into the volume
      */
-    template <bool add_surfaces = true>
+    template <object_id id = e_surface>
     inline void add_objects(volume_type &volume,
                             const surface_container &surfaces) {
         const auto offset = _objects.size();
         _objects.reserve(_objects.size() + surfaces.size());
         _objects.insert(_objects.end(), surfaces.begin(), surfaces.end());
 
-        volume.template set_range<add_surfaces>({offset, _objects.size()});
+        volume.set_range({offset, _objects.size()});
     }
 
     private:

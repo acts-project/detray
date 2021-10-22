@@ -11,11 +11,11 @@
 
 using namespace detray;
 
-constexpr bool for_surface = true;
-constexpr bool for_portal = false;
-
-auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
+auto [volumes, surfaces, transforms, cylinders, discs, rectangles] =
     toy_geometry();
+
+constexpr auto for_surface = decltype(volumes)::value_type::objects::e_surface;
+constexpr auto for_portal = decltype(volumes)::value_type::objects::e_portal;
 
 // This test check the building of the tml based toy geometry
 TEST(ALGEBRA_PLUGIN, toy_geometry) {

@@ -10,16 +10,20 @@
 
 namespace detray {
 
-/** Volume class that holds the local information of the volume its surfaces
- * and portals. Everything is kept as index ranges in larger containers that
- * are owned by either the geometry or the detector implementations.
+/** Volume class that acts as a logical container in the geometry for geometry
+ *  objects, such as module surfaces or portals. The information is kept as
+ *  index ranges in larger containers that are owned by either the geometry or
+ *  the detector implementations.
  *
  * @tparam array_type the type of the internal array, must have STL semantics
  */
-template <template <typename, unsigned int> class array_type = darray>
+template <typename object_ids, typename range_type = dindex_range,
+          template <typename, unsigned int> class array_type = darray>
 class volume {
 
     public:
+    // The type of objects a volume can contain
+    using objects = object_ids;
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
 
@@ -53,56 +57,45 @@ class volume {
     }
 
     /** @return if the volume is empty or not */
-    inline bool empty() const { return is_empty_range(_surface_range); }
-
-    /** @return the number of surfaces in the volume */
-    template <bool primitive = true>
-    inline dindex n_objects() {
-        if constexpr (primitive) {
-            return n_in_range(_surface_range);
-        } else {
-            return n_in_range(_portal_range);
-        }
+    inline bool empty() const {
+        return n_objects<object_ids::e_surface>() == 0;
     }
 
     /** @return the number of surfaces in the volume */
-    template <bool primitive = true>
-    inline const dindex n_objects() const {
-        if constexpr (primitive) {
-            return n_in_range(_surface_range);
-        } else {
-            return n_in_range(_portal_range);
-        }
+    template <object_ids range_id = object_ids::e_surface>
+    inline auto n_objects() const {
+        return n_in_range(range<range_id>());
     }
 
-    /** Set the index into the geometry surface container
+    /** Set or update the index into a geometry container identified by the
+     *  range_id.
      *
-     * @param range Surface index range
+     * @param other Surface index range
      */
-    template <bool surface_range = true>
-    inline void set_range(dindex_range range) {
-        if constexpr (surface_range) {
-            update_range(_surface_range, std::move(range));
+    template <object_ids range_id = object_ids::e_surface>
+    inline void set_range(const range_type &other) {
+        auto &rg = std::get<range_id>(_ranges);
+        // Range not set yet - initialize
+        constexpr range_type empty{};
+        if (rg == empty) {
+            rg = other;
+            // Update
         } else {
-            update_range(_portal_range, std::move(range));
+            std::get<1>(rg) += n_in_range(other);
         }
     }
 
     /** @return range of surfaces- const access */
-    template <bool surface_range = true>
-    inline const auto &range() const {
-        if constexpr (surface_range) {
-            return _surface_range;
-        } else {
-            return _portal_range;
-        }
+    template <object_ids range_id = object_ids::e_surface>
+    inline constexpr const auto &range() const {
+        return std::get<range_id>(_ranges);
     }
 
     /** @return range of surfaces and portals (must be contiguous!) */
     inline const auto full_range() const {
         // There may be volumes without surfaces, but never without portals
         if ((_surface_range[0] + _surface_range[1] == dindex_invalid) or
-            (_surface_range[1] - _surface_range[0] == 0)) {
+            (n_in_range(_surface_range) == 0)) {
             return _portal_range;
         } else if (_portal_range[0] < _surface_range[0]) {
             return dindex_range{_portal_range[0], _surface_range[1]};
@@ -112,60 +105,14 @@ class volume {
     }
 
     private:
-    /**
-     * @param range Any index range
-     *
-     * @return the number of indexed objects
-     */
-    inline dindex n_in_range(const dindex_range &range) {
-        return range[1] - range[0];
+
+    /** @return the number of elements in a given range */
+    template <typename range_t>
+    inline dindex n_in_range(range_t &&rg) const {
+        return std::get<1>(rg) - std::get<0>(rg);
     }
 
-    /**
-     * @param range Any index range
-     *
-     * @return the number of indexed objects
-     */
-    inline const dindex n_in_range(const dindex_range &range) const {
-        return range[1] - range[0];
-    }
-
-    /** Test whether a range is empty
-     *
-     * @param range Any index range
-     *
-     * @return boolean whether the range is empty
-     */
-    inline bool is_empty_range(const dindex_range &range) {
-        return n_in_range(range) == 0;
-    }
-
-    /** Test whether a range is empty - const
-     *
-     * @param range Any index range
-     *
-     * @return boolean whether the range is empty
-     */
-    inline const bool is_empty_range(const dindex_range &range) const {
-        return n_in_range(range) == 0;
-    }
-
-    /** Set or update a range
-     *
-     * @param range One of the volume member ranges
-     * @param other new index range
-     *
-     * @return boolean whether the range is empty
-     */
-    inline void update_range(dindex_range &range, dindex_range &&other) {
-        // Range not set yet
-        if (range[0] == dindex_invalid) {
-            range = other;
-        } else {
-            range[1] += other[1] - other[0];
-        }
-    }
-
+    private:
     /** Bounds section, default for r, z, phi */
     array_type<scalar, 6> _bounds = {0.,
                                      std::numeric_limits<scalar>::max(),
@@ -177,9 +124,9 @@ class volume {
     /** Volume index */
     dindex _index = dindex_invalid;
 
-    /** Index ranges in the detector surface/portal containers.*/
-    dindex_range _surface_range = {dindex_invalid, dindex_invalid};
-    dindex_range _portal_range = {dindex_invalid, dindex_invalid};
+    /** Ranges in geometry containers for different objects types that belong
+     * to this volume */
+    array_type<dindex_range, object_ids::e_object_types> _ranges = {};
 
     /** Index into the surface finder container */
     dindex _surfaces_finder_entry = dindex_invalid;
