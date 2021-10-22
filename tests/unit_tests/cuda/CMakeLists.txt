@@ -19,6 +19,16 @@ foreach(algebra ${algebras})
     LINK_LIBRARIES
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_transform_store_cuda PRIVATE ${algebra}=${algebra})
+
+  # mask store test
+  add_detray_test(${algebra}_mask_store_cuda
+    "mask_store_cuda.cpp"
+    "mask_store_cuda_kernel.hpp"
+    "mask_store_cuda_kernel.cu"
+    LINK_LIBRARIES
+    vecmem::cuda detray::${algebra})
+  target_compile_definitions(detray_test_${algebra}_mask_store_cuda PRIVATE ${algebra}=${algebra})
+
   
 endforeach()
 

@@ -6,10 +6,21 @@
  */
 #pragma once
 
+#include <thrust/iterator/zip_iterator.h>
+
+#include <vecmem/containers/device_vector.hpp>
+#include <vecmem/memory/memory_resource.hpp>
+
+#include "definitions/detray_qualifiers.hpp"
 #include "utils/enumerate.hpp"
+#include "utils/expand.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray {
+
+/** Forward declaration of mask_store_data **/
+template <typename... mask_types>
+struct mask_store_data;
 
 /** A mask store that provides the correct mask containers to client classes. */
 template <template <typename...> class tuple_type = dtuple,
@@ -19,6 +30,22 @@ class mask_store {
 
     public:
     using mask_tuple = tuple_type<vector_type<mask_types>...>;
+
+    /** Default constructor **/
+    mask_store() = default;
+
+    /** Constructor with vecmem memory resource **/
+    mask_store(vecmem::memory_resource &resource)
+        : _mask_tuple(vector_type<mask_types>{&resource}...) {}
+
+    /** Constructor with mask_store_data **/
+#if defined(__CUDACC__)
+    DETRAY_DEVICE
+    mask_store(mask_store_data<mask_types...> &store_data)
+        : _mask_tuple(
+              store_data.device(typename gens<sizeof...(mask_types)>::type())) {
+    }
+#endif
 
     /** Size : Contextual STL like API
      *
@@ -67,8 +94,12 @@ class mask_store {
      * @return vector of masks of a given type.
      */
     template <unsigned int mask_id>
-    auto &group() {
+    DETRAY_HOST_DEVICE auto &group() {
+#if defined(__CUDACC__)
+        return thrust::get<mask_id>(_mask_tuple);
+#else
         return std::get<mask_id>(_mask_tuple);
+#endif
     }
 
     /** Retrieve a vector of masks of a certain type (mask group) - const
@@ -77,8 +108,12 @@ class mask_store {
      * @return vector of masks of a given type.
      */
     template <unsigned int mask_id>
-    const auto &group() const {
+    DETRAY_HOST_DEVICE const auto &group() const {
+#if defined(__CUDACC__)
+        return thrust::get<mask_id>(_mask_tuple);
+#else
         return std::get<mask_id>(_mask_tuple);
+#endif
     }
 
     /** Access underlying container - const
@@ -92,6 +127,16 @@ class mask_store {
      * @return internal masks tuple type
      */
     const auto &masks() { return _mask_tuple; }
+
+    /** Obtain the vecmem data of mask store
+     *
+     * @return tuple type of vecmem::data::vector_view objects
+     */
+    template <unsigned int... S>
+    thrust::tuple<vecmem::data::vector_view<mask_types>...> data(seq<S...>) {
+        return thrust::make_tuple(vecmem::data::vector_view<mask_types>(
+            vecmem::get_data(std::get<S>(_mask_tuple)))...);
+    }
 
     /** Add a new mask in place
      *
@@ -173,5 +218,64 @@ class mask_store {
     /** tuple of mask vectors (mask groups) */
     mask_tuple _mask_tuple;
 };
+
+/** A static inplementation of mask store data for device*/
+template <typename... mask_types>
+struct mask_store_data {
+
+    /** Constructor from mask store
+     *
+     * @param store is the mask store from host
+     **/
+    template <template <typename...> class tuple_type,
+              template <typename...> class vector_type>
+    mask_store_data(mask_store<tuple_type, vector_type, mask_types...> &store)
+        : _data(store.data(typename gens<sizeof...(mask_types)>::type())) {}
+
+    /** Size : Contextual STL like API
+     *
+     * @tparam mask_id the index for the mask_type
+     * @return the size of the vector containing the masks of the required type
+     */
+    template <unsigned int mask_id>
+    const size_t size() const {
+        return thrust::get<mask_id>(_data).size();
+    }
+
+    /** Retrieve a vector of masks of a certain type (mask group) - const
+     *
+     * @tparam mask_id index of requested mask type in masks container
+     * @return vector of masks of a given type.
+     */
+    template <unsigned int mask_id>
+    const auto &group() const {
+        return thrust::get<mask_id>(_data);
+    }
+
+    /** Obtain the vecmem device vector of mask store
+     *
+     * @return tuple type of vecmem::data::vector_view objects
+     */
+#if defined(__CUDACC__)
+    template <unsigned int... S>
+    DETRAY_DEVICE thrust::tuple<vecmem::device_vector<mask_types>...> device(
+        seq<S...>) {
+        return thrust::make_tuple(
+            vecmem::device_vector<mask_types>(thrust::get<S>(_data))...);
+    }
+#endif
+
+    /** tuple of vecmem data **/
+    thrust::tuple<vecmem::data::vector_view<mask_types>...> _data;
+};
+
+/** Get transform_store_data
+ **/
+template <template <typename...> class tuple_type,
+          template <typename...> class vector_type, typename... mask_types>
+inline mask_store_data<mask_types...> get_data(
+    mask_store<tuple_type, vector_type, mask_types...> &store) {
+    return mask_store_data<mask_types...>(store);
+}
 
 }  // namespace detray

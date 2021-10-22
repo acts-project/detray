@@ -12,6 +12,7 @@
 #include <string>
 
 #include "core/intersection.hpp"
+#include "definitions/detray_qualifiers.hpp"
 #include "masks/mask_identifier.hpp"
 #include "tools/planar_intersector.hpp"
 
@@ -125,6 +126,7 @@ struct rectangle2 {
     }
 
     /** Return the values */
+    DETRAY_HOST_DEVICE
     const mask_values &values() const { return _values; }
 
     /** Return an associated intersector type */
