@@ -19,8 +19,8 @@ TEST(mask_store_cuda, mask_store) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Types must be sorted according to their id (here: masks/mask_identifier)
-    mask_store<dtuple, vecmem::vector, rectangle, trapezoid, ring, cylinder,
-               single, annulus>
+    mask_store<vecmem::vector, rectangle, trapezoid, ring, cylinder, single,
+               annulus>
         store(mng_mr);
 
     ASSERT_TRUE(store.template empty<e_annulus2>());

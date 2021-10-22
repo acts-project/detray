@@ -14,8 +14,8 @@ __global__ void mask_test_kernel(
     mask_store_data<rectangle, trapezoid, ring, cylinder, single, annulus>
         store_data) {
 
-    mask_store<thrust::tuple, vecmem::device_vector, rectangle, trapezoid, ring,
-               cylinder, single, annulus>
+    mask_store<vecmem::device_vector, rectangle, trapezoid, ring, cylinder,
+               single, annulus>
         store(store_data);
 
     // const int bid = blockIdx.x;
