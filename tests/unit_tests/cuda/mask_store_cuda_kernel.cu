@@ -11,42 +11,60 @@
 namespace detray {
 
 __global__ void mask_test_kernel(
-    mask_store_data<rectangle, trapezoid, ring, cylinder, single, annulus>
-        store_data) {
-
+	       mask_store_data<rectangle, trapezoid, ring, cylinder, single,
+	       annulus> store_data,
+	       vecmem::data::vector_view<point2> input_point2_data,
+	       vecmem::data::vector_view<point3> input_point3_data,
+	       vecmem::data::jagged_vector_view<int> output_data){
+    
+    /** get mask store **/
     mask_store<vecmem::device_vector, rectangle, trapezoid, ring, cylinder,
                single, annulus>
         store(store_data);
+    
+    /** get mask objects **/
+    vecmem::device_vector<point2> input_point2(input_point2_data);
+    vecmem::device_vector<point3> input_point3(input_point3_data);
+    vecmem::jagged_device_vector<int> output_device(output_data);    
 
-    // const int bid = blockIdx.x;
-    // const int tid = threadIdx.x;
-
-    const auto& masks = store.group<0>();
-    const auto& mask = masks[0];
-
-    const auto& values = mask.values();
-
-    printf("%f %f \n", values[0], values[1]);
+    const auto& rectangle_mask = store.group<e_rectangle2>()[0];
+    const auto& trapezoid_mask = store.group<e_trapezoid2>()[0];
+    const auto& ring_mask = store.group<e_ring2>()[0];
+    const auto& cylinder_mask = store.group<e_cylinder3>()[0];
+    const auto& annulus_mask = store.group<e_annulus2>()[0];
+    
+    /** get device results from is_inside function **/
+    for (int i = 0; i < n_points; i++){
+	
+	output_device[0].push_back(rectangle_mask.is_inside<cartesian2>(input_point2[i]));
+	//output_device[1].push_back(trapezoid_mask.is_inside<cartesian2>(input_point2[i]));
+	//output_device[2].push_back(ring_mask.is_inside<cartesian2>(input_point2[i]));
+	//output_device[3].push_back(cylinder_mask.is_inside<cartesian2>(input_point3[i]));
+	//output_device[4].push_back(annulus_mask.is_inside<cartesian2>(input_point2[i]));	
+	
+    }
 }
 
 void mask_test(mask_store_data<rectangle, trapezoid, ring, cylinder, single,
-                               annulus>& store_data) {
+	       annulus>& store_data,
+	       vecmem::data::vector_view<point2>& input_point2_data,
+	       vecmem::data::vector_view<point3>& input_point3_data,
+	       vecmem::data::jagged_vector_view<int>& output_data) {
 
-    /// block dim = number of groups
-    int block_dim = thrust::tuple_size<decltype(store_data._data)>::value;
+    int block_dim = 1;
+    int thread_dim = 1;
 
-    /// thread dim = max({number of masks})
-    std::vector<size_t> n_masks(0);
-    n_masks.push_back(store_data.group<0>().size());
-    n_masks.push_back(store_data.group<1>().size());
-    n_masks.push_back(store_data.group<2>().size());
-    n_masks.push_back(store_data.group<3>().size());
-    n_masks.push_back(store_data.group<4>().size());
-    n_masks.push_back(store_data.group<5>().size());
-
-    int thread_dim = *max_element(n_masks.begin(), n_masks.end());
-
-    mask_test_kernel<<<block_dim, thread_dim>>>(store_data);
+    printf("%d \n", sizeof(decltype(store_data)));
+    printf("hi2 %d %d %d %d %d \n",
+	   __tuple::get<0>(store_data._data).size(),
+	   __tuple::get<1>(store_data._data).size(),
+	   __tuple::get<2>(store_data._data).size(),
+	   __tuple::get<3>(store_data._data).size(),
+	   __tuple::get<4>(store_data._data).size());	
+    
+    // run the test kernel
+    mask_test_kernel<<<block_dim, thread_dim>>>(store_data, input_point2_data,
+						input_point3_data, output_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

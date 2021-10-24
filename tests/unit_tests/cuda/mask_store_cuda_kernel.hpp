@@ -17,11 +17,16 @@
 
 #include "core/mask_store.hpp"
 #include "masks/masks.hpp"
+#include <vecmem/containers/data/jagged_vector_buffer.hpp>
+#include <vecmem/containers/jagged_device_vector.hpp>
+#include "vecmem/utils/cuda/copy.hpp"
 
 #pragma once
 
 using namespace detray;
 using namespace __plugin;
+
+const int n_points = 1000;
 
 namespace detray {
 
@@ -33,6 +38,9 @@ using single = single3<0>;
 using trapezoid = trapezoid2<>;
 
 void mask_test(mask_store_data<rectangle, trapezoid, ring, cylinder, single,
-                               annulus>& store_data);
+	       annulus>& store_data,
+	       vecmem::data::vector_view<point2>& input_point2_data,
+	       vecmem::data::vector_view<point3>& input_point3_data,
+	       vecmem::data::jagged_vector_view<int>& output_data);
 
 }  // namespace detray

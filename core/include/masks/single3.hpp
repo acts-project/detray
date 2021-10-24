@@ -14,6 +14,7 @@
 #include "core/intersection.hpp"
 #include "masks/mask_identifier.hpp"
 #include "tools/planar_intersector.hpp"
+#include "definitions/detray_qualifiers.hpp"
 
 namespace detray {
 /** This is a simple mask for single parameter bound mask
@@ -58,6 +59,7 @@ struct single3 {
      *
      * @param rhs is the right hand side object
      **/
+    DETRAY_HOST_DEVICE
     single3<kCheckIndex, intersector_type, local_type, links_type, kMaskContext>
         &operator=(const array_type<scalar, 2> &rhs) {
         _values = rhs;
@@ -74,8 +76,9 @@ struct single3 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_type>
+    DETRAY_HOST_DEVICE
     intersection_status is_inside(
-        const point3 &p, const mask_tolerance &t = within_epsilon) const {
+        const point3 &p, const mask_tolerance t = within_epsilon) const {
         return (_values[0] - t <= p[kCheckIndex] and
                 p[kCheckIndex] <= _values[1] + t)
                    ? e_inside
@@ -87,6 +90,7 @@ struct single3 {
      * @param rhs is the rectangle to be compared with
      *
      **/
+    DETRAY_HOST_DEVICE
     bool operator==(const array_type<scalar, 2> &rhs) {
         return (_values == rhs);
     }
@@ -96,6 +100,7 @@ struct single3 {
      * @param rhs is the rectangle to be compared with
      *
      **/
+    DETRAY_HOST_DEVICE
     bool operator==(const single3<kCheckIndex> &rhs) {
         return operator==(rhs._values);
     }
@@ -103,6 +108,7 @@ struct single3 {
     /** Access operator - non-const
      * @return the reference to the member variable
      */
+    DETRAY_HOST_DEVICE
     scalar &operator[](unsigned int value_index) {
         return _values[value_index];
     }
@@ -110,26 +116,33 @@ struct single3 {
     /** Access operator - non-const
      * @return a copy of the member variable
      */
+    DETRAY_HOST_DEVICE
     scalar operator[](unsigned int value_index) const {
         return _values[value_index];
     }
 
     /** Return an associated intersector type */
+    DETRAY_HOST_DEVICE
     intersector_type intersector() const { return intersector_type{}; };
 
     /** Return the values */
+    DETRAY_HOST_DEVICE
     const mask_values &values() const { return _values; }
 
     /** Return the local frame type */
+    DETRAY_HOST_DEVICE
     local_type local() const { return local_type{}; }
 
     /** Return the volume link - const reference */
+    DETRAY_HOST_DEVICE
     const links_type &links() const { return _links; }
 
     /** Return the volume link - non-const access */
+    DETRAY_HOST_DEVICE
     links_type &links() { return _links; }
 
     /** Transform to a string for output debugging */
+    DETRAY_HOST_DEVICE
     std::string to_string() const {
         std::stringstream ss;
         ss << "single3," << kMaskContext;

@@ -10,14 +10,13 @@
 #include <climits>
 #include <iostream>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
-
 #include "mask_store_cuda_kernel.hpp"
 
 TEST(mask_store_cuda, mask_store) {
-
+    
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
-
+    
     // Types must be sorted according to their id (here: masks/mask_identifier)
     mask_store<vecmem::vector, rectangle, trapezoid, ring, cylinder, single,
                annulus>
@@ -30,48 +29,92 @@ TEST(mask_store_cuda, mask_store) {
     ASSERT_TRUE(store.template empty<e_single3>());
     ASSERT_TRUE(store.template empty<e_trapezoid2>());
 
-    store.template add_mask<e_cylinder3>(1., 0.5, 2.0);
-
-    ASSERT_TRUE(store.template empty<e_annulus2>());
-    ASSERT_EQ(store.template size<e_cylinder3>(), 1);
-    ASSERT_TRUE(store.template empty<e_rectangle2>());
-    ASSERT_TRUE(store.template empty<e_ring2>());
-    ASSERT_TRUE(store.template empty<e_single3>());
-    ASSERT_TRUE(store.template empty<e_trapezoid2>());
-
-    store.template add_mask<e_cylinder3>(1., 1.5, 2.0);
-    store.template add_mask<e_trapezoid2>(0.5, 1.5, 4.0);
     store.template add_mask<e_rectangle2>(1.0, 2.0);
-    store.template add_mask<e_rectangle2>(2.0, 1.0);
-    store.template add_mask<e_rectangle2>(10.0, 100.0);
-
-    ASSERT_TRUE(store.template empty<e_annulus2>());
-    ASSERT_EQ(store.template size<e_cylinder3>(), 2);
-    ASSERT_EQ(store.template size<e_rectangle2>(), 3);
-    ASSERT_TRUE(store.template empty<e_ring2>());
-    ASSERT_TRUE(store.template empty<e_single3>());
-    ASSERT_EQ(store.template size<e_trapezoid2>(), 1);
-
+    store.template add_mask<e_trapezoid2>(0.5, 1.5, 4.0);
+    store.template add_mask<e_ring2>(1.0, 10.0);
+    store.template add_mask<e_cylinder3>(1., 0.5, 2.0);
+    //store.group<e_single3>().push_back(single{3.0,6.0});    
     store.template add_mask<e_annulus2>(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
-    store.template add_mask<e_ring2>(10.0, 100.0);
-    store.template add_mask<e_ring2>(10.0, 100.0);
-    store.template add_mask<e_ring2>(10.0, 100.0);
-    store.template add_mask<e_ring2>(10.0, 100.0);
 
-    const auto &annulus_masks = store.template group<e_annulus2>();
-    const auto &cylinder_masks = store.template group<e_cylinder3>();
-    const auto &rectangle_masks = store.template group<e_rectangle2>();
-    const auto &ring_masks = store.template group<e_ring2>();
-    const auto &single_masks = store.template group<e_single3>();
-    const auto &trapezoid_masks = store.template group<e_trapezoid2>();
+    ASSERT_FALSE(store.template empty<e_annulus2>());
+    ASSERT_FALSE(store.template empty<e_cylinder3>());
+    ASSERT_FALSE(store.template empty<e_rectangle2>());
+    ASSERT_FALSE(store.template empty<e_ring2>());
+    //ASSERT_FALSE(store.template empty<e_single3>());
+    ASSERT_FALSE(store.template empty<e_trapezoid2>());
+       
+    /** Generate random points for test **/
+    vecmem::vector<point2> input_point2(n_points, &mng_mr);
+    vecmem::vector<point3> input_point3(n_points, &mng_mr);    
+    
+    for (int i = 0; i < n_points; i++){
+	point2 rand_point2 = {rand() % 100 / 10., rand() % 100 / 10.};
+	point3 rand_point3 = {rand() % 100 / 10., rand() % 100 / 10., rand() % 100 / 10.};
+	input_point2[i] = rand_point2;
+	input_point3[i] = rand_point3;
+    }
 
-    ASSERT_TRUE(annulus_masks.size() == 1);
-    ASSERT_TRUE(cylinder_masks.size() == 2);
-    ASSERT_TRUE(rectangle_masks.size() == 3);
-    ASSERT_TRUE(ring_masks.size() == 4);
-    ASSERT_TRUE(single_masks.size() == 0);
-    ASSERT_TRUE(trapezoid_masks.size() == 1);
+    /** host output for intersection status **/
+    vecmem::jagged_vector<int> output_host(5, &mng_mr);    
 
+    /** get mask objects **/
+    const auto& rectangle_mask = store.group<e_rectangle2>()[0];
+    const auto& trapezoid_mask = store.group<e_trapezoid2>()[0];
+    const auto& ring_mask = store.group<e_ring2>()[0];
+    const auto& cylinder_mask = store.group<e_cylinder3>()[0];
+    const auto& annulus_mask = store.group<e_annulus2>()[0];
+
+    /** get host results from is_inside function **/
+    for (int i = 0; i < n_points; i++){	
+	output_host[0].push_back(rectangle_mask.is_inside<cartesian2>(input_point2[i]));
+	output_host[1].push_back(trapezoid_mask.is_inside<cartesian2>(input_point2[i]));
+	output_host[2].push_back(ring_mask.is_inside<cartesian2>(input_point2[i]));
+	output_host[3].push_back(cylinder_mask.is_inside<cartesian2>(input_point3[i]));
+	output_host[4].push_back(annulus_mask.is_inside<cartesian2>(input_point2[i]));
+    }
+
+    /** Helper object for performing memory copies. **/
+    vecmem::cuda::copy copy;
+    
+    /** device output for intersection status **/
+    vecmem::data::jagged_vector_buffer<int> output_buffer({0,0,0,0,0},
+							  {n_points,n_points,n_points,n_points,n_points},
+							  mng_mr);    
+
+    copy.setup(output_buffer);
+
+    
+    auto input_point2_data = vecmem::get_data(input_point2);
+    auto input_point3_data = vecmem::get_data(input_point3);
     auto store_data = get_data(store);
-    mask_test(store_data);
+
+    printf("%d \n", sizeof(decltype(store_data)));
+    
+    printf("hi3 %d %d %d %d %d \n",
+	   __tuple::get<0>(store_data._data).size(),
+	   __tuple::get<1>(store_data._data).size(),
+	   __tuple::get<2>(store_data._data).size(),
+	   __tuple::get<3>(store_data._data).size(),
+	   __tuple::get<4>(store_data._data).size());	
+    
+    /** run the kernel **/
+    mask_test(store_data, input_point2_data, input_point3_data, output_buffer);
+
+    vecmem::jagged_vector<int> output_device(&mng_mr);
+    copy(output_buffer, output_device);
+
+    /** Compare the values **/
+    /*
+    for (int i = 0; i < n_points; i++){
+	ASSERT_EQ(output_host[0][i], output_device[0][i]);
+	ASSERT_EQ(output_host[0][i], output_device[0][i]);
+	ASSERT_EQ(output_host[2][i], output_device[2][i]);
+	ASSERT_EQ(output_host[3][i], output_device[3][i]);
+	ASSERT_EQ(output_host[4][i], output_device[4][i]);	
+
+	//printf("%d %d %d %d \n ", output_host[0][i], output_device[0][i], output_host[2][i], output_device[2][i]);
+	
+	
+    }
+    */
 }
