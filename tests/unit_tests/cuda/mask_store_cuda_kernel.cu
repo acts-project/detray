@@ -10,6 +10,8 @@
 
 namespace detray {
 
+/// test kernel function to fill the output vector with is_inside function
+/// return values
 __global__ void mask_test_kernel(
     mask_store_data<rectangle, trapezoid, ring, cylinder, single, annulus>
         store_data,

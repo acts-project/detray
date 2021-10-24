@@ -38,6 +38,7 @@ using ring = ring2<>;
 using single = single3<0>;
 using trapezoid = trapezoid2<>;
 
+/// test function for mask store
 void mask_test(mask_store_data<rectangle, trapezoid, ring, cylinder, single,
                                annulus>& store_data,
                vecmem::data::vector_view<point2>& input_point2_data,

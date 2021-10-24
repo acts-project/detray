@@ -214,7 +214,11 @@ class mask_store {
     mask_tuple _mask_tuple;
 };
 
-/** A static inplementation of mask store data for device*/
+/** A static inplementation of mask store data for device
+ *
+ * The tuple type for mask store data is fixed to std::tuple since there was an
+ * issue that _data gets corrupted when passed to .cu file
+ */
 template <typename... mask_types>
 struct mask_store_data {
 
