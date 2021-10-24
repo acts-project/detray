@@ -52,7 +52,7 @@ struct rectangle2 {
     static constexpr unsigned int mask_context = kMaskContext;
 
     static constexpr unsigned int mask_identifier = e_rectangle2;
-    
+
     static constexpr mask_tolerance within_epsilon = {
         std::numeric_limits<scalar>::epsilon(),
         std::numeric_limits<scalar>::epsilon()};
@@ -87,9 +87,8 @@ struct rectangle2 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_type>
-    DETRAY_HOST_DEVICE
-    intersection_status is_inside(
-        const point2 &p, const mask_tolerance t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection_status
+    is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
         return (std::abs(p[0]) <= _values[0] + t[0] and
                 std::abs(p[1]) <= _values[1] + t[1])
                    ? e_inside
@@ -145,7 +144,7 @@ struct rectangle2 {
     local_type local() const { return local_type{}; }
 
     /** Return the volume link - const reference */
-    DETRAY_HOST_DEVICE	
+    DETRAY_HOST_DEVICE
     const links_type &links() const { return _links; }
 
     /** Return the volume link - non-const access */

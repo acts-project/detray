@@ -13,9 +13,9 @@
 #include <string>
 
 #include "core/intersection.hpp"
+#include "definitions/detray_qualifiers.hpp"
 #include "masks/mask_identifier.hpp"
 #include "tools/cylinder_intersector.hpp"
-#include "definitions/detray_qualifiers.hpp"
 
 namespace detray {
 /** This is a simple mask for a full cylinder
@@ -95,9 +95,8 @@ struct cylinder3 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_type>
-    DETRAY_HOST_DEVICE
-    intersection_status is_inside(
-        const point3 &p, const mask_tolerance t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection_status
+    is_inside(const point3 &p, const mask_tolerance t = within_epsilon) const {
         if constexpr (kRadialCheck) {
             scalar r = getter::perp(p);
             if (std::abs(r - _values[0]) >=

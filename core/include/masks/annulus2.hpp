@@ -110,9 +110,8 @@ struct annulus2 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_type>
-    DETRAY_HOST_DEVICE
-    intersection_status is_inside(
-        const point2 &p, const mask_tolerance t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection_status
+    is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
         // The two quantities to check: r^2 in module system, phi in strips
         // system
 
@@ -181,13 +180,13 @@ struct annulus2 {
      * @param rhs is the rectangle to be compared with
      *
      **/
-    DETRAY_HOST_DEVICE    
+    DETRAY_HOST_DEVICE
     bool operator==(const annulus2<> &rhs) { return operator==(rhs._values); }
 
     /** Access operator - non-const
      * @return the reference to the member variable
      */
-    DETRAY_HOST_DEVICE    
+    DETRAY_HOST_DEVICE
     scalar &operator[](unsigned int value_index) {
         return _values[value_index];
     }

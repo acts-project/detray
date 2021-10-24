@@ -12,9 +12,9 @@
 #include <string>
 
 #include "core/intersection.hpp"
+#include "definitions/detray_qualifiers.hpp"
 #include "masks/mask_identifier.hpp"
 #include "tools/planar_intersector.hpp"
-#include "definitions/detray_qualifiers.hpp"
 
 namespace detray {
 /** This is a simple 2-dimensional mask for a closed ring
@@ -83,9 +83,8 @@ struct ring2 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_type>
-    DETRAY_HOST_DEVICE
-    intersection_status is_inside(
-        const point2 &p, const mask_tolerance t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection_status
+    is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
         if constexpr (std::is_same_v<inside_local_type, __plugin::cartesian2>) {
             scalar r = getter::perp(p);
             return (r + t >= _values[0] and r <= _values[1] + t) ? e_inside

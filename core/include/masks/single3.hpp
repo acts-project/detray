@@ -12,9 +12,9 @@
 #include <string>
 
 #include "core/intersection.hpp"
+#include "definitions/detray_qualifiers.hpp"
 #include "masks/mask_identifier.hpp"
 #include "tools/planar_intersector.hpp"
-#include "definitions/detray_qualifiers.hpp"
 
 namespace detray {
 /** This is a simple mask for single parameter bound mask
@@ -76,9 +76,8 @@ struct single3 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_type>
-    DETRAY_HOST_DEVICE
-    intersection_status is_inside(
-        const point3 &p, const mask_tolerance t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection_status
+    is_inside(const point3 &p, const mask_tolerance t = within_epsilon) const {
         return (_values[0] - t <= p[kCheckIndex] and
                 p[kCheckIndex] <= _values[1] + t)
                    ? e_inside
