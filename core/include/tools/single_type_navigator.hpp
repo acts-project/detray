@@ -264,8 +264,7 @@ class single_type_navigator {
         // If there is no_trust (e.g. at the beginning of the navigation in a
         // volume), the kernel will be initialized. Otherwise the candidates
         // are re-evaluated based on current trust level
-        update_kernel(navigation, track,
-                      _volumes[navigation.volume()].full_range());
+        update_kernel(navigation, track, _volumes[navigation.volume()].range());
 
         // Should never be the case after update call (without portals we are
         // trapped)

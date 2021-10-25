@@ -120,41 +120,54 @@ constexpr auto sequence(array_type iterable) {
 /** Helper method to run over a range
  *
  * Usage:
- * for (auto value : range(container, r)) {}
+ * for (auto value : range_iter(container, r)) {}
  *
- * with r a range that can be accessed with r[0] and r[1]
- *
- * @note Convenience type: no range checks!
+ * with r a range that can be accessed with std::get
  **/
-template <
-    typename container_type,
-    typename container_type_iter =
-        decltype(std::begin(std::declval<container_type>())),
-    typename = decltype(std::end(std::declval<container_type>())),
-    typename array_type,
-    typename = std::enable_if_t<
-        std::conditional_t<std::is_array_v<array_type>, std::extent<array_type>,
-                           std::tuple_size<array_type>>::value == 2U>>
-constexpr auto range_iter(const container_type &iterable,
-                          const array_type &&range) {
+template <typename container_type,
+          typename container_type_iter =
+              decltype(std::begin(std::declval<container_type>())),
+          typename = decltype(std::end(std::declval<container_type>())),
+          typename range_type>
+constexpr inline auto range_iter(const container_type &iterable,
+                                 range_type &&range) {
+    /** Structure that implements an iterator interface, relative to a given
+     * range.
+     */
     struct iterable_wrapper {
         iterable_wrapper() = delete;
-        iterable_wrapper(const container_type &i, const array_type &&r)
-            : _iterable(i), _range(r) {}
+        iterable_wrapper(const container_type &i, range_type &&r)
+            : _start(std::begin(i) + std::get<0>(r)),
+              _end(std::begin(i) + std::get<1>(r)) {}
 
-        const container_type &_iterable = {};
-        const array_type _range = {dindex_invalid, dindex_invalid};
+        const container_type_iter _start, _end;
 
-        inline decltype(auto) begin() const {
-            return std::begin(_iterable) + _range[0];
+        /** @return start position of range on container. */
+        inline decltype(auto) begin() const { return _start; }
+
+        /** @return end position of range on container. */
+        inline decltype(auto) end() const { return _end; }
+
+        /** @return element at position i, relative to iterator range. */
+        inline decltype(auto) operator[](const dindex i) {
+            return *(_start + i);
         }
 
-        inline decltype(auto) end() const {
-            return std::begin(_iterable) + _range[1];
+        /** @return element at position i, relative to iterator range - const */
+        inline decltype(auto) operator[](const dindex i) const {
+            return *(_start + i);
         }
     };
 
-    return iterable_wrapper(iterable, std::move(range));
+    return std::move(
+        iterable_wrapper(iterable, std::forward<range_type>(range)));
+}
+
+template <typename container_type, typename volume_type>
+constexpr inline auto range(const container_type &iterable,
+                            const volume_type &volume) {
+
+    return range_iter(iterable, volume.range());
 }
 
 }  // namespace detray

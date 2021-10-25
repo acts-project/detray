@@ -18,6 +18,7 @@
 #include "io/csv_io.hpp"
 #include "tests/common/read_geometry.hpp"
 #include "tools/intersection_kernel.hpp"
+#include "utils/enumerate.hpp"
 
 using namespace detray;
 
@@ -79,14 +80,13 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
 
                 // Loop over volumes
                 for (const auto &v : d.volumes()) {
-                    // Loop over all surfaces
-                    for (size_t si = v.template range<k_surfaces>()[0];
-                         si < v.template range<k_surfaces>()[1]; si++) {
+                    // Loop over all surfaces in volume
+                    for (const auto sf : range(surfaces, v)) {
                         links_type links{};
 
-                        auto sfi = intersect(track, surfaces[si],
-                                             d.transforms(default_context),
-                                             masks, links);
+                        auto sfi =
+                            intersect(track, sf, d.transforms(default_context),
+                                      masks, links);
 
                         benchmark::DoNotOptimize(hits);
                         benchmark::DoNotOptimize(missed);

@@ -78,8 +78,6 @@ inline auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
                            scalar radial_stagger = 2., scalar l_overlap = 5.,
                            const std::pair<int, int> binning = {16, 14}) {
 
-    // using transform3 = __plugin::transform3;
-    // using point3 = __plugin::point3;
     /// mask index: type, range
     using mask_index = detray::darray<detray::dindex, 2>;
 
