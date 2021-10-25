@@ -29,9 +29,9 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
                decltype(rectangles)::value_type>
         masks;
     // populate mask store
-    masks.template add_masks<0>(discs);
-    masks.template add_masks<1>(cylinders);
-    masks.template add_masks<2>(rectangles);
+    masks.add_masks(discs);
+    masks.add_masks(cylinders);
+    masks.add_masks(rectangles);
 
     single_type_navigator n(volumes, surfaces, transforms, masks);
     using toy_navigator = decltype(n);

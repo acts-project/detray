@@ -91,16 +91,21 @@ class volume {
         return std::get<range_id>(_ranges);
     }
 
-    /** @return range of surfaces and portals (must be contiguous!) */
+    /** @return range of surfaces and portals (must be contiguous and the same
+      *         container!)
+      */
     inline const auto full_range() const {
         // There may be volumes without surfaces, but never without portals
-        if ((_surface_range[0] + _surface_range[1] == dindex_invalid) or
-            (n_in_range(_surface_range) == 0)) {
-            return _portal_range;
-        } else if (_portal_range[0] < _surface_range[0]) {
-            return dindex_range{_portal_range[0], _surface_range[1]};
+        const auto& sf_range = range<object_ids::e_surface>();
+        const auto& pt_range = range<object_ids::e_portal>();
+        if ((std::get<0>(sf_range) + std::get<1>(sf_range) == dindex_invalid) or
+            (n_in_range(sf_range) == 0)) {
+            return pt_range;
+        // portal range lies in memory before surface range
+        } else if (std::get<0>(pt_range) < std::get<0>(sf_range)) {
+            return dindex_range{std::get<0>(pt_range), std::get<1>(sf_range)};
         } else {
-            return dindex_range{_surface_range[0], _portal_range[1]};
+            return dindex_range{std::get<0>(sf_range), std::get<1>(pt_range)};
         }
     }
 

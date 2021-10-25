@@ -248,7 +248,7 @@ class index_geometry {
     }
 
     private:
-    /** Contains the geometrical relations*/
+    /** Contains the geometrical relations */
     vector_type<volume_type> _volumes = {};
 
     /** All surfaces and portals in the geometry in contigous memory */

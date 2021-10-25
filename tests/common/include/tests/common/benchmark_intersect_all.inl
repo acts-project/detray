@@ -79,14 +79,11 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
 
                 // Loop over volumes
                 for (const auto &v : d.volumes()) {
-                    // std::cout << "volume: " << v.index() << std::endl;
-                    // Loop over surfaces
+                    // Loop over all surfaces
                     for (size_t si = v.template range<k_surfaces>()[0];
                          si < v.template range<k_surfaces>()[1]; si++) {
                         links_type links{};
-                        const auto &sf = surfaces[si];
 
-                        // std::cout << si << std::endl;
                         auto sfi = intersect(track, surfaces[si],
                                              d.transforms(default_context),
                                              masks, links);
@@ -106,7 +103,6 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                         } else {
                             ++missed;
                         }
-                        benchmark::ClobberMemory();
                     }
                 }
             }
