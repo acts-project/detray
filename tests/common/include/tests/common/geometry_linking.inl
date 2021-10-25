@@ -14,8 +14,8 @@
 
 /// @note __plugin has to be defined with a preprocessor command
 
-// This tests the construction of a detector class
-TEST(ALGEBRA_PLUGIN, index_geometry) {
+// This tests the linking of a geometry by loading it into a graph structure
+TEST(ALGEBRA_PLUGIN, geometry_linking) {
     using namespace detray;
     using namespace __plugin;
 
@@ -112,8 +112,10 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     geo.template add_objects<geometry::e_portal>(v3, portals_vol1);
     geo.template add_objects<geometry::e_surface>(v3, surfaces_vol1);
 
-    auto objects_range = darray<dindex, 2>{0, 3};
-    ASSERT_TRUE(v2.template range<geometry::e_portal>() == objects_range);
+    auto objects_range = darray<dindex, 2>{0, 5};
+    ASSERT_TRUE(v2.range() == objects_range);
+    objects_range = darray<dindex, 2>{5, 11};
+    ASSERT_TRUE(v3.range() == objects_range);
 
     // Build the graph
     graph g = graph(geo.volumes(), geo.template objects<geometry::e_portal>());
@@ -128,10 +130,10 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
 
     const auto &adj = g.adjacency_list();
 
-    // Volume 0 has 3 portals to volume 1
-    dvector<dindex> nbrs_v0 = {1, 1, 1};
-    // Volume 1 has 4 portals to volume 0
-    dvector<dindex> nbrs_v1 = {0, 0, 0, 0};
+    // Volume 0 has 3 portals to volume 1 and two surfaces linking to itself
+    dvector<dindex> nbrs_v0 = {1, 1, 1, 0, 0};
+    // Volume 1 has 4 portals to volume 0 and two surfaces linking to itself
+    dvector<dindex> nbrs_v1 = {0, 0, 0, 0, 1, 1};
 
     // Check this with graph
     ASSERT_TRUE(adj.at(0) == nbrs_v0);

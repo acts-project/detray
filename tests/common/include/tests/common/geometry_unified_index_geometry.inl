@@ -114,18 +114,13 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     g.template add_objects<geometry::e_surface>(v3, surfaces_vol1);
 
     // Are the surfaces/portals filled correctly?
-    ASSERT_EQ(g.template n_objects<geometry::e_portal>(), 11);
-    ASSERT_EQ(g.template n_objects<geometry::e_surface>(), 11);
+    ASSERT_EQ(g.n_objects(), 11);
 
     // Are the ranges updated correctly?
-    auto objects_range = darray<dindex, 2>{0, 3};
-    ASSERT_TRUE(v2.template range<geometry::e_portal>() == objects_range);
-    objects_range = darray<dindex, 2>{3, 5};
-    ASSERT_TRUE(v2.template range<geometry::e_surface>() == objects_range);
-    objects_range = darray<dindex, 2>{5, 9};
-    ASSERT_TRUE(v3.template range<geometry::e_portal>() == objects_range);
-    objects_range = darray<dindex, 2>{9, 11};
-    ASSERT_TRUE(v3.template range<geometry::e_surface>() == objects_range);
+    auto objects_range = darray<dindex, 2>{0, 5};
+    ASSERT_TRUE(v2.range() == objects_range);
+    objects_range = darray<dindex, 2>{5, 11};
+    ASSERT_TRUE(v3.range() == objects_range);
 }
 
 int main(int argc, char **argv) {

@@ -48,10 +48,10 @@ class unified_index_geometry {
     public:
     // Known primitives
     enum object_id : unsigned int {
-        e_object_types = 2,
+        e_object_types = 1,
         e_surface = 0,
-        e_portal = 1,
-        e_any = 1,  // defaults to portal
+        e_portal = 0,  // not used (same as surface)
+        e_any = 1,
     };
 
     /** Encodes the position in a collection container for the respective
@@ -210,7 +210,7 @@ class unified_index_geometry {
     }
 
     private:
-    /** Contains the geometrical relations*/
+    /** Contains the geometrical relations */
     vector_type<volume_type> _volumes = {};
 
     /** All surfaces and portals in the geometry in contigous memory */

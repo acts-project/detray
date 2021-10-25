@@ -11,7 +11,7 @@
 
 using namespace detray;
 
-auto [volumes, surfaces, transforms, cylinders, discs, rectangles] =
+auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
     toy_geometry();
 
 constexpr auto for_surface = decltype(volumes)::value_type::objects::e_surface;
@@ -30,8 +30,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(volumes.size(), 4);
     EXPECT_EQ(surfaces.size(), 687);
     EXPECT_EQ(transforms.size(), 687);
-    EXPECT_EQ(cylinders.size(), 7);
     EXPECT_EQ(discs.size(), 8);
+    EXPECT_EQ(cylinders.size(), 7);
     EXPECT_EQ(rectangles.size(), 672);
 
     /** Test the links of portals (into the next volume or invalid if we leave
