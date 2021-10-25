@@ -107,10 +107,10 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
 
     auto &v2 = geo.volume_by_index(0);
     auto &v3 = geo.volume_by_index(1);
-    geo.template add_objects<geometry::e_portal>(v2, portals_vol0);
-    geo.template add_objects<geometry::e_surface>(v2, surfaces_vol0);
-    geo.template add_objects<geometry::e_portal>(v3, portals_vol1);
-    geo.template add_objects<geometry::e_surface>(v3, surfaces_vol1);
+    geo.add_objects(v2, portals_vol0);
+    geo.add_objects(v2, surfaces_vol0);
+    geo.add_objects(v3, portals_vol1);
+    geo.add_objects(v3, surfaces_vol1);
 
     auto objects_range = darray<dindex, 2>{0, 5};
     ASSERT_TRUE(v2.range() == objects_range);
@@ -118,11 +118,11 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     ASSERT_TRUE(v3.range() == objects_range);
 
     // Build the graph
-    graph g = graph(geo.volumes(), geo.template objects<geometry::e_portal>());
+    graph g = graph(geo.volumes(), geo.objects());
 
     // Is everything accessible from the graph?
     EXPECT_EQ(g.n_nodes(), geo.n_volumes());
-    EXPECT_EQ(g.n_edges(), geo.template n_objects<geometry::e_portal>());
+    EXPECT_EQ(g.n_edges(), geo.n_objects());
 
     std::cout << g.to_string() << std::endl;
     std::cout << "Walking through geometry: " << std::endl;

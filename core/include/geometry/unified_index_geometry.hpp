@@ -199,7 +199,6 @@ class unified_index_geometry {
      * @param volume the volume the objects belong to
      * @param surfaces the surfaces that will be filled into the volume
      */
-    template <object_id id = e_surface>
     inline void add_objects(volume_type &volume,
                             const surface_container &surfaces) {
         const auto offset = _objects.size();
