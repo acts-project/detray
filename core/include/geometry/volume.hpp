@@ -92,16 +92,16 @@ class volume {
     }
 
     /** @return range of surfaces and portals (must be contiguous and the same
-      *         container!)
-      */
+     *         container!)
+     */
     inline const auto full_range() const {
         // There may be volumes without surfaces, but never without portals
-        const auto& sf_range = range<object_ids::e_surface>();
-        const auto& pt_range = range<object_ids::e_portal>();
+        const auto &sf_range = range<object_ids::e_surface>();
+        const auto &pt_range = range<object_ids::e_portal>();
         if ((std::get<0>(sf_range) + std::get<1>(sf_range) == dindex_invalid) or
             (n_in_range(sf_range) == 0)) {
             return pt_range;
-        // portal range lies in memory before surface range
+            // portal range lies in memory before surface range
         } else if (std::get<0>(pt_range) < std::get<0>(sf_range)) {
             return dindex_range{std::get<0>(pt_range), std::get<1>(sf_range)};
         } else {
@@ -110,7 +110,6 @@ class volume {
     }
 
     private:
-
     /** @return the number of elements in a given range */
     template <typename range_t>
     inline dindex n_in_range(range_t &&rg) const {

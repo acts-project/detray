@@ -151,7 +151,7 @@ class mask_store {
 
     /** Append a mask store to the current one
      *
-     * @tparam current_index to start unrolling at (if the mask id is known, 
+     * @tparam current_index to start unrolling at (if the mask id is known,
      *         unrolling can be started there)
      *
      * @param other The other mask store, move semantics

@@ -391,8 +391,9 @@ struct navigator {
                 (*kernel.next) = sfi;
                 navigation.distance_to_next = sfi.path;
                 if (std::abs(sfi.path) < navigation.on_surface_tolerance) {
-                    navigation.status =
-                        kSurfaceType == objects::e_surface ? e_on_surface : e_on_portal;
+                    navigation.status = kSurfaceType == objects::e_surface
+                                            ? e_on_surface
+                                            : e_on_portal;
                     navigation.current_index = si;
                     if (navigation.status != e_on_portal) {
                         ++kernel.next;
@@ -459,7 +460,9 @@ struct navigator {
             kernel.next = kernel.candidates.begin();
             navigation.distance_to_next = kernel.next->path;
             if (navigation.distance_to_next < navigation.on_surface_tolerance) {
-                navigation.status = kSurfaceType == objects::e_surface ? e_on_surface : e_on_portal;
+                navigation.status = kSurfaceType == objects::e_surface
+                                        ? e_on_surface
+                                        : e_on_portal;
                 navigation.current_index = kernel.next->index;
             }
             navigation.current_index = dindex_invalid;

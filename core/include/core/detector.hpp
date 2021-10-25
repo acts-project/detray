@@ -253,7 +253,7 @@ class detector {
             // Current offsets into detectors containers
             const auto trsf_offset = _transforms.size(ctx);
             const auto mask_offset = _masks.template size<current_type>();
-            
+
             // Fill the correct mask type
             _masks.add_masks(object_masks);
             _transforms.append(ctx, std::move(std::get<current_type>(trfs)));
