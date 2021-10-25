@@ -36,11 +36,9 @@ class static_transform_store {
 
     /** Constructor from static_transform_store_data
      **/
-#if defined(__CUDACC__)
     DETRAY_DEVICE
     static_transform_store(static_transform_store_data &store_data)
         : _data(store_data._data) {}
-#endif
 
     /** Empty context type struct */
     struct context {};
