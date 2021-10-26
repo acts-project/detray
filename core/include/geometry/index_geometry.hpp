@@ -263,16 +263,41 @@ class index_geometry {
     portal_container _portals = {};
 };
 
-
-template < typename index_geometry_t >    
+/** A static inplementation of index_geometry data for device*/
+template <template <typename, unsigned int> class array_type,
+          template <typename> class vector_type,
+          template <typename...> class tuple_type, typename surface_source_link,
+          typename bounds_source_link>
 struct index_geometry_data {
-    using volume_type = typename index_geometry_t::volume_type;
-    using surface = typename index_geometry_t::surface;
-    using portal = typename index_geometry_t::portal;
+    using index_geometry_type =
+        index_geometry<array_type, vector_type, tuple_type, surface_source_link,
+                       bounds_source_link>;
+
+    using volume_type = typename index_geometry_type::volume_type;
+    using surface = typename index_geometry_type::surface;
+    using portal = typename index_geometry_type::portal;
+
+    index_geometry_data(index_geometry_type &geometry)
+        : _volumes_data(vecmem::get_data(geometry.volumes())),
+          _surfaces_data(vecmem::get_data(geometry.template objects<true>())),
+          _portals_data(vecmem::get_data(geometry.template objects<false>())) {}
 
     vecmem::data::vector_view<volume_type> _volumes_data;
-    vecmem::data::vector_view<surface> _surface_data;
-    vecmem::data::vector_view<portal> _portal_data;
+    vecmem::data::vector_view<surface> _surfaces_data;
+    vecmem::data::vector_view<portal> _portals_data;
 };
-    
+
+/** Get index_geometry_data
+ **/
+template <template <typename, unsigned int> class array_type,
+          template <typename> class vector_type,
+          template <typename...> class tuple_type, typename surface_source_link,
+          typename bounds_source_link>
+inline index_geometry_data<array_type, vector_type, tuple_type,
+                           surface_source_link, bounds_source_link>
+get_data(index_geometry<array_type, vector_type, tuple_type,
+                        surface_source_link, bounds_source_link> &geometry) {
+    return geometry;
+}
+
 }  // namespace detray
