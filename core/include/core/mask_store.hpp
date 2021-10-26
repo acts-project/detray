@@ -50,7 +50,7 @@ class mask_store {
      * @return the size of the vector containing the masks of the required type
      */
     template <unsigned int mask_id>
-    DETRAY_HOST_DEVICE const size_t size() const {
+    DETRAY_HOST_DEVICE size_t size() const {
         return __tuple::get<mask_id>(_mask_tuple).size();
     }
 
@@ -236,7 +236,7 @@ struct mask_store_data {
      * @return the size of the vector containing the masks of the required type
      */
     template <unsigned int mask_id>
-    const size_t size() const {
+    size_t size() const {
         return std::get<mask_id>(_data).size();
     }
 
