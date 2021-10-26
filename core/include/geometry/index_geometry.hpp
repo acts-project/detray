@@ -267,7 +267,12 @@ class index_geometry {
 template < typename index_geometry_t >    
 struct index_geometry_data {
     using volume_type = typename index_geometry_t::volume_type;
+    using surface = typename index_geometry_t::surface;
+    using portal = typename index_geometry_t::portal;
 
-}
+    vecmem::data::vector_view<volume_type> _volumes_data;
+    vecmem::data::vector_view<surface> _surface_data;
+    vecmem::data::vector_view<portal> _portal_data;
+};
     
 }  // namespace detray
