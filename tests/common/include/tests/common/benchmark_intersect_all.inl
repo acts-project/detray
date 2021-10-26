@@ -39,8 +39,10 @@ using geometry = decltype(d)::geometry;
 using links_type = typename geometry::surface_links;
 constexpr auto k_surfaces = geometry::e_surface;
 
-const auto &surfaces = d.template objects<k_surfaces>();
-const auto &masks = d.masks();
+using detray_context = decltype(d)::transform_store::context;
+detray_context default_context;
+
+const auto data_core = d.data(default_context);
 
 namespace __plugin {
 // This test runs intersection with all surfaces of the TrackML detector
@@ -55,10 +57,7 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
     unsigned int missed = 0;
 
     // point3 ori = {0., 0., 0.};
-
-    using detray_context = decltype(d)::transform_store::context;
-    detray_context default_context;
-
+    
     for (auto _ : state) {
         track<static_transform_store<>::context> track;
         track.pos = point3{0., 0., 0.};
@@ -81,12 +80,11 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                 // Loop over volumes
                 for (const auto &v : d.volumes()) {
                     // Loop over all surfaces in volume
-                    for (const auto sf : range(surfaces, v)) {
+                    for (const auto sf : range(data_core.surfaces, v)) {
                         links_type links{};
 
-                        auto sfi =
-                            intersect(track, sf, d.transforms(default_context),
-                                      masks, links);
+                        auto sfi = intersect(track, sf, data_core.transforms,
+                                             data_core.masks, links);
 
                         benchmark::DoNotOptimize(hits);
                         benchmark::DoNotOptimize(missed);

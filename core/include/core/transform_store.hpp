@@ -52,7 +52,7 @@ class static_transform_store {
      */
     const inline auto range(const size_t begin, const size_t end,
                             const context & /*ctx*/) const {
-        return range_iter(_data, dindex_range{begin, end});
+        return iterator_range(_data, dindex_range{begin, end});
     }
 
     /** Access to a predefined range of elements
@@ -64,7 +64,7 @@ class static_transform_store {
      */
     template <typename range_type>
     const inline auto range(range_type &&range, const context & /*ctx*/) const {
-        return range_iter(_data, std::forward<range_type>(range));
+        return iterator_range(_data, std::forward<range_type>(range));
     }
 
     /** Reserve memory : Contextual STL like API

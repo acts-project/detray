@@ -149,8 +149,8 @@ class detector {
     }
 
     /** @return all objects of a given type */
-    template <object_id object_type>
-    inline decltype(auto) objects() const {
+    template <object_id object_type = object_id::e_surface>
+    inline constexpr decltype(auto) objects() const {
         return _geometry.template objects<object_type>();
     }
 
@@ -201,6 +201,25 @@ class detector {
      */
     inline void add_transform_store(transform_store &&transf) {
         _transforms = std::move(transf);
+    }
+
+    /** Get all available data from the detector without std::tie
+     *
+     * @param ctx The context of the call
+     *
+     * @return ranged a struct that contains references to all relevant
+     *         containers
+     */
+    const auto data(const context &ctx = {}) const {
+        struct data_core {
+            const transform_store &transforms;
+            const mask_container &masks;
+            const typename geometry::surface_container &surfaces;
+            const typename geometry::portal_container &portals;
+        };
+        return data_core{_transforms, _masks,
+                         _geometry.template objects<object_id::e_surface>(),
+                         _geometry.template objects<object_id::e_portal>()};
     }
 
     /** Add a new full set of detector components (e.g. transforms or volumes)

@@ -171,7 +171,7 @@ class unified_index_geometry {
 
     /** @return all surfaces/portals in the geometry */
     template <object_id id = e_surface>
-    inline const auto &objects() const {
+    inline constexpr const auto &objects() const {
         return _objects;
     }
 

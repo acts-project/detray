@@ -185,7 +185,7 @@ class index_geometry {
 
     /** @return all surfaces/portals in the geometry */
     template <object_id object_type = e_surface>
-    inline const auto &objects() const {
+    inline constexpr const auto &objects() const {
         if constexpr (object_type == e_surface) {
             return _surfaces;
         } else {
