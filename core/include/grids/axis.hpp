@@ -42,9 +42,15 @@ struct regular {
     DETRAY_HOST_DEVICE
     dindex bin(scalar v) const {
         int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
-        return (ibin >= 0 and ibin < static_cast<int>(n_bins))
-                   ? static_cast<dindex>(ibin)
-                   : ibin < 0 ? 0 : static_cast<dindex>(n_bins - 1);
+        if (ibin >= 0 and ibin < static_cast<int>(n_bins)) {
+            return static_cast<dindex>(ibin);
+        } else {
+            if (ibin < 0) {
+                return 0;
+            } else {
+                return static_cast<dindex>(n_bins - 1);
+            }
+        }
     }
 
     /** Access function to a range with binned neighborhood
@@ -185,11 +191,16 @@ struct circular {
      **/
     DETRAY_HOST_DEVICE
     dindex bin(scalar v) const {
-        dindex ibin = static_cast<dindex>((v - min) / (max - min) * n_bins);
-        return (ibin >= 0 and ibin < n_bins)
-                   ? static_cast<dindex>(ibin)
-                   : ibin < 0 ? static_cast<dindex>(n_bins + ibin)
-                              : static_cast<dindex>(ibin - n_bins);
+        int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
+        if (ibin >= 0 and ibin < n_bins) {
+            return static_cast<dindex>(ibin);
+        } else {
+            if (ibin < 0) {
+                return static_cast<dindex>(n_bins + ibin);
+            } else {
+                return static_cast<dindex>(ibin - n_bins);
+            }
+        }
     }
 
     /** Access function to a range with binned neighborhood
@@ -350,12 +361,18 @@ struct irregular {
      **/
     DETRAY_HOST_DEVICE
     dindex bin(scalar v) const {
-        dindex ibin =
+        int ibin = static_cast<int>(
             std::lower_bound(boundaries.begin(), boundaries.end(), v) -
-            boundaries.begin();
-        return ((ibin > 0 and ibin < boundaries.size())
-                    ? --ibin
-                    : (ibin == 0) ? ibin : boundaries.size() - 2);
+            boundaries.begin());
+        if (ibin > 0 and ibin < boundaries.size()) {
+            return static_cast<dindex>(--ibin);
+        } else {
+            if (ibin == 0) {
+                return static_cast<dindex>(ibin);
+            } else {
+                return static_cast<dindex>(boundaries.size() - 2);
+            }
+        }
     }
 
     /** Access function to a range with binned neighborhood
