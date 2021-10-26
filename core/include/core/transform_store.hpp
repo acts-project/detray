@@ -15,7 +15,7 @@
 namespace detray {
 
 // Forward declaration for transform store data
-struct static_transform_store_data;
+// struct static_transform_store_data;
 
 using transform3 = __plugin::transform3;
 
@@ -37,8 +37,9 @@ class static_transform_store {
     /** Constructor from static_transform_store_data
      **/
 #if defined(__CUDACC__)  // required by macOS...
-    DETRAY_DEVICE
-    static_transform_store(static_transform_store_data &store_data)
+    template <typename static_transform_store_data_t>
+    DETRAY_DEVICE static_transform_store(
+        static_transform_store_data_t &store_data)
         : _data(store_data._data) {}
 #endif
     /** Empty context type struct */
