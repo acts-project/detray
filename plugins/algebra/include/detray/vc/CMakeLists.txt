@@ -17,6 +17,6 @@ if(ALGEBRA_CUSTOM_SCALARTYPE)
     INTERFACE -DALGEBRA_CUSTOM_SCALARTYPE=${ALGEBRA_CUSTOM_SCALARTYPE})
 endif()
 
-target_link_libraries(detray_vc_array INTERFACE algebra::vc_array Vc)
+target_link_libraries(detray_vc_array INTERFACE algebra::vc_vc vecmem::core)
 
 add_library(detray::vc_array ALIAS detray_vc_array)
