@@ -25,6 +25,10 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY
    "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH
    "Directory for the built static libraries" )
 
+# Set the language standards to use.
+set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (Host) C++ standard to use" )
+set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
+
 option(DETRAY_ARRAY_PLUGIN "Build std::array math plugin" On)
 option(DETRAY_VECMEM_ARRAY_PLUGIN "Build vecmem::array math plugin" On)
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
@@ -130,11 +134,8 @@ if(DETRAY_BENCHMARKS AND DETRAY_BENCHMARKS_REP)
     message(STATUS "Repetitions for benchmarks: " ${DETRAY_BENCHMARKS_REP})
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
-
 # Set GPU-related options
 if(DETRAY_BUILD_CUDA)
-  set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
   enable_language(CUDA)
 endif()
 
