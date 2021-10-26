@@ -263,4 +263,11 @@ class index_geometry {
     portal_container _portals = {};
 };
 
+
+template < typename index_geometry_t >    
+struct index_geometry_data {
+    using volume_type = typename index_geometry_t::volume_type;
+
+}
+    
 }  // namespace detray
