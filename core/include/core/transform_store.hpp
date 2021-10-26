@@ -159,7 +159,7 @@ class static_transform_store {
      * @param ctx The context of the call (ignored)
      */
     DETRAY_HOST_DEVICE
-    const size_t size(const context & /*ctx*/) const { return _data.size(); }
+    size_t size(const context & /*ctx*/) const { return _data.size(); }
 
     /** Empty : Contextual STL like API
      * @param ctx The context of the call (ignored)
