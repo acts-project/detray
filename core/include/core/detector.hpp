@@ -236,7 +236,7 @@ class detector {
     template <typename... detector_components>
     inline void add_objects(
         const typename alignable_store::context ctx = {},
-        detector_components &&...components) noexcept(false) {
+        detector_components &&... components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'mask_id')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
