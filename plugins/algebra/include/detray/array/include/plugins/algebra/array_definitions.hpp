@@ -1,12 +1,11 @@
 
-#include "algebra/vecmem_cmath.hpp"
-
-#include "vecmem/containers/jagged_vector.hpp"
-#include "vecmem/containers/vector.hpp"
-
 #include <array>
 #include <map>
 #include <tuple>
+
+#include "algebra/vecmem_cmath.hpp"
+#include "vecmem/containers/jagged_vector.hpp"
+#include "vecmem/containers/vector.hpp"
 
 #define __plugin algebra::vecmem
 #define ALGEBRA_PLUGIN array

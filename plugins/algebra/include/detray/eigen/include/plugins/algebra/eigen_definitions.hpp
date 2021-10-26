@@ -1,11 +1,11 @@
 
-#include "algebra/eigen_eigen.hpp"
-#include "vecmem/containers/jagged_vector.hpp"
-#include "vecmem/containers/vector.hpp"
-
 #include <array>
 #include <map>
 #include <tuple>
+
+#include "algebra/eigen_eigen.hpp"
+#include "vecmem/containers/jagged_vector.hpp"
+#include "vecmem/containers/vector.hpp"
 
 #define __plugin algebra::eigen
 #define ALGEBRA_PLUGIN eigen

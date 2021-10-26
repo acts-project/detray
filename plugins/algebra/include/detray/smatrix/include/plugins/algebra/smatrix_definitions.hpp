@@ -1,11 +1,11 @@
 
-#include "algebra/smatrix_smatrix.hpp"
-#include "vecmem/containers/jagged_vector.hpp"
-#include "vecmem/containers/vector.hpp"
-
 #include <array>
 #include <map>
 #include <tuple>
+
+#include "algebra/smatrix_smatrix.hpp"
+#include "vecmem/containers/jagged_vector.hpp"
+#include "vecmem/containers/vector.hpp"
 
 #define __plugin algebra::smatrix
 #define ALGEBRA_PLUGIN smatrix
