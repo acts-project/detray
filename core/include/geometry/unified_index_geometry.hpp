@@ -76,8 +76,10 @@ class unified_index_geometry {
     using transform_link = dindex;
     /// mask index: type, range
     using mask_index = array_type<dindex, 2>;
-    /// volume links: next volume, next (local) object finder
+    /// edge links: next volume, next (local) object finder
     using edge_links = array_type<dindex, 2>;
+    // edge_links are the same for portal and surface and not stored in the
+    // masks
     using surface_links = edge_links;
     using portal_links = edge_links;
     /// source link
@@ -86,15 +88,14 @@ class unified_index_geometry {
 
     /// mask types
     using rectangle = rectangle2<planar_intersector, __plugin::cartesian2,
-                                 edge_links, e_rectangle2>;
-    using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2,
-                                 edge_links, e_trapezoid2>;
-    using annulus = annulus2<planar_intersector, __plugin::cartesian2,
-                             edge_links, e_annulus2>;
+                                 portal_links, e_rectangle2>;
+    using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, void,
+                                 e_trapezoid2>;
+    using annulus =
+        annulus2<planar_intersector, __plugin::cartesian2, void, e_annulus2>;
     using cylinder = cylinder3<false, cylinder_intersector,
-                               __plugin::cylindrical2, edge_links, e_cylinder3>;
-    using disc =
-        ring2<planar_intersector, __plugin::cartesian2, edge_links, e_ring2>;
+                               __plugin::cylindrical2, void, e_cylinder3>;
+    using disc = ring2<planar_intersector, __plugin::cartesian2, void, e_ring2>;
 
     using mask_container =
         mask_store<vector_type, rectangle, trapezoid, annulus, cylinder, disc>;
@@ -178,8 +179,8 @@ class unified_index_geometry {
      * @param obj the surface or portal
      * @param mask_offset the offset that will be added to the mask links
      */
-    inline void update_mask_link(surface &obj, const dindex mask_offset) {
-        std::get<1>(obj.mask()) += mask_offset;
+    inline void update_mask_link(surface &obj, const dindex offset) {
+        std::get<1>(obj.mask()) += offset;
     }
 
     /** Update the transform link of an objects when filling into a large
@@ -188,8 +189,8 @@ class unified_index_geometry {
      * @param obj the surface or portal
      * @param trsf_offset the offset that will be added to the links
      */
-    inline void update_transform_link(surface &obj, const dindex trsf_offset) {
-        obj.transform() += trsf_offset;
+    inline void update_transform_link(surface &obj, const dindex offset) {
+        obj.transform() += offset;
     }
 
     /** Add objects (surfaces/portals) to the geometry

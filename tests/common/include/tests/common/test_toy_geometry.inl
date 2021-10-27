@@ -7,8 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
-
 #include "tests/common/read_geometry.hpp"
 
 using namespace detray;
@@ -16,11 +14,17 @@ using namespace detray;
 constexpr bool for_surface = true;
 constexpr bool for_portal = false;
 
-auto [volumes, surfaces, transforms, cylinders, discs, rectangles] =
+auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
     toy_geometry();
 
 // This test check the building of the tml based toy geometry
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
+
+    /** source link */
+    const dindex inv_sf_finder = dindex_invalid;
+
+    /** Link to outer world (leaving detector) */
+    const dindex leaving_world = dindex_invalid;
 
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 4);
@@ -98,11 +102,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     range = {0, 2};
     test_portal_links(
         vol_itr->index(), surfaces.begin(), range, range[0], {0, 0},
-        {{dindex_invalid, dindex_invalid}, {dindex_invalid, dindex_invalid}});
+        {{leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // cylinder portals
     range = {2, 3};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {1, 0}, {{1, dindex_invalid}});
+                      range[0], {1, 0}, {{1, inv_sf_finder}});
 
     //
     // first layer
@@ -123,17 +127,17 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     range = {3, 5};
     test_portal_links(
         vol_itr->index(), surfaces.begin() + range[0], range, range[0], {0, 2},
-        {{dindex_invalid, dindex_invalid}, {dindex_invalid, dindex_invalid}});
+        {{leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // cylinder portals
     range = {5, 7};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 1},
-                      {{0, dindex_invalid}, {2, dindex_invalid}});
+                      {{0, inv_sf_finder}, {2, inv_sf_finder}});
 
     // Check links of modules
     range = {7, 231};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {2, 0}, {{vol_itr->index(), dindex_invalid}});
+                      range[0], {2, 0}, {{vol_itr->index(), inv_sf_finder}});
 
     //
     // gap
@@ -154,12 +158,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     range = {231, 233};
     test_portal_links(
         vol_itr->index(), surfaces.begin() + range[0], range, range[0], {0, 4},
-        {{dindex_invalid, dindex_invalid}, {dindex_invalid, dindex_invalid}});
+        {{leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // cylinder portals
     range = {233, 235};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 3},
-                      {{1, dindex_invalid}, {3, dindex_invalid}});
+                      {{1, inv_sf_finder}, {3, inv_sf_finder}});
 
     //
     // second layer
@@ -180,17 +184,17 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     range = {235, 237};
     test_portal_links(
         vol_itr->index(), surfaces.begin() + range[0], range, range[0], {0, 6},
-        {{dindex_invalid, dindex_invalid}, {dindex_invalid, dindex_invalid}});
+        {{leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // cylinder portals
     range = {237, 239};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 5},
-                      {{2, dindex_invalid}, {dindex_invalid, dindex_invalid}});
+                      {{2, inv_sf_finder}, {leaving_world, inv_sf_finder}});
 
     // Check links of modules
     range = {239, surfaces.size()};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {2, 224}, {{vol_itr->index(), dindex_invalid}});
+                      range[0], {2, 224}, {{vol_itr->index(), inv_sf_finder}});
 }
 
 int main(int argc, char** argv) {
