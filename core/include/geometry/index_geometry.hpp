@@ -133,14 +133,22 @@ class index_geometry {
     using portal_filling_container =
         array_type<vector_type<portal>, e_mask_types>;
 
-    /** Default constructor */
+    /** Default constructor **/
     index_geometry() = default;
+
+    /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
+    index_geometry(vecmem::memory_resource &resource)
+        : _volumes(&resource), _surfaces(&resource), _portals(&resource) {}
 
     /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }
 
-    /** @return all volumes in the geometry - const access. */
+    /** @return all volumes in the geometry - const access. (const) */
     const auto &volumes() const { return _volumes; }
+
+    /** @return all volumes in the geometry - const access. (non-const) */
+    auto &volumes() { return _volumes; }
 
     /** @return the volume by @param volume_index - const access. */
     inline const volume_type &volume_by_index(dindex volume_index) const {
@@ -181,9 +189,19 @@ class index_geometry {
         }
     }
 
-    /** @return all surfaces/portals in the geometry */
+    /** @return all surfaces/portals in the geometry (const) */
     template <bool get_surface = true>
     inline const auto &objects() const {
+        if constexpr (get_surface) {
+            return _surfaces;
+        } else {
+            return _portals;
+        }
+    }
+
+    /** @return all surfaces/portals in the geometry (non-const) */
+    template <bool get_surface = true>
+    inline auto &objects() {
         if constexpr (get_surface) {
             return _surfaces;
         } else {

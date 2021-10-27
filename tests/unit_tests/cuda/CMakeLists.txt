@@ -29,6 +29,14 @@ foreach(algebra ${algebras})
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_mask_store_cuda PRIVATE ${algebra}=${algebra})
 
+  # index geometry test
+  add_detray_test(${algebra}_index_geometry_cuda
+    "index_geometry_cuda.cpp"
+    "index_geometry_cuda_kernel.hpp"
+    "index_geometry_cuda_kernel.cu"
+    LINK_LIBRARIES
+    vecmem::cuda detray::${algebra})
+  target_compile_definitions(detray_test_${algebra}_index_geometry_cuda PRIVATE ${algebra}=${algebra})
   
 endforeach()
 
