@@ -15,6 +15,7 @@
 #include "masks/masks.hpp"
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
+#include "utils/tuple.hpp"
 
 namespace detray {
 /**
@@ -37,7 +38,6 @@ namespace detray {
  */
 template <template <typename, unsigned int> class array_type = darray,
           template <typename> class vector_type = dvector,
-          template <typename...> class tuple_type = dtuple,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
 class index_geometry {
@@ -77,7 +77,7 @@ class index_geometry {
     using portal_disc = ring2<planar_intersector, __plugin::cartesian2,
                               portal_links, e_portal_ring2>;
     // - mask index: type, { first/last }
-    using portal_mask_index = tuple_type<dindex, array_type<dindex, 2>>;
+    using portal_mask_index = __tuple::tuple<dindex, array_type<dindex, 2>>;
 
     /** The Portal definition:
      *  <transform_link, mask_index, volume_link, source_link >
@@ -215,7 +215,7 @@ class index_geometry {
      * @param mask_offset the offset that will be added to the mask links
      */
     inline void update_mask_link(surface &sf, const dindex mask_offset) {
-        std::get<1>(sf.mask()) += mask_offset;
+        __tuple::get<1>(sf.mask()) += mask_offset;
     }
 
     /** Update the mask links of a portal when filling into a large container
@@ -224,7 +224,7 @@ class index_geometry {
      * @param mask_offset the offset that will be added to the mask links
      */
     inline void update_mask_link(portal &pt, const dindex mask_offset) {
-        auto &portal_mask_index = std::get<1>(pt.mask());
+        auto &portal_mask_index = __tuple::get<1>(pt.mask());
         portal_mask_index[0] += mask_offset;
         portal_mask_index[1] += mask_offset;
     }
@@ -283,12 +283,11 @@ class index_geometry {
 
 /** A static inplementation of index_geometry data for device*/
 template <template <typename, unsigned int> class array_type,
-          template <typename> class vector_type,
-          template <typename...> class tuple_type, typename surface_source_link,
+          template <typename> class vector_type, typename surface_source_link,
           typename bounds_source_link>
 struct index_geometry_data {
     using index_geometry_type =
-        index_geometry<array_type, vector_type, tuple_type, surface_source_link,
+        index_geometry<array_type, vector_type, surface_source_link,
                        bounds_source_link>;
 
     using volume_type = typename index_geometry_type::volume_type;
@@ -308,13 +307,12 @@ struct index_geometry_data {
 /** Get index_geometry_data
  **/
 template <template <typename, unsigned int> class array_type,
-          template <typename> class vector_type,
-          template <typename...> class tuple_type, typename surface_source_link,
+          template <typename> class vector_type, typename surface_source_link,
           typename bounds_source_link>
-inline index_geometry_data<array_type, vector_type, tuple_type,
-                           surface_source_link, bounds_source_link>
-get_data(index_geometry<array_type, vector_type, tuple_type,
-                        surface_source_link, bounds_source_link> &geometry) {
+inline index_geometry_data<array_type, vector_type, surface_source_link,
+                           bounds_source_link>
+get_data(index_geometry<array_type, vector_type, surface_source_link,
+                        bounds_source_link> &geometry) {
     return geometry;
 }
 

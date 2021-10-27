@@ -27,7 +27,7 @@ using namespace __plugin;
 
 namespace detray {
 
-using geometry = index_ge   ometry<>;
+using geometry = index_geometry<>;
 using surface = typename geometry::surface;
 using portal = typename geometry::portal;
 
