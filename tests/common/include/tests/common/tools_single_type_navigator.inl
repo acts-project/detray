@@ -24,7 +24,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     /** Empty context type struct */
     struct empty_context {};
 
-    mask_store<dtuple, dvector, decltype(discs)::value_type,
+    mask_store<dvector, decltype(discs)::value_type,
                decltype(cylinders)::value_type,
                decltype(rectangles)::value_type>
         masks;
