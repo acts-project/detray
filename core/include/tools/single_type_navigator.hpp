@@ -271,7 +271,7 @@ class single_type_navigator {
         if (navigation.kernel().empty()) {
             return navigation.abort();
         }
-        
+
         // Did we hit a portal? (kernel needs to be re-initialized next time)
         check_volume_switch(navigation);
 
@@ -316,8 +316,9 @@ class single_type_navigator {
      *
      */
     template <typename track_t>
-    inline void initialize_kernel(state &navigation, const track_t &track,
-                                  const typename volume_container::value_type &volume) const {
+    inline void initialize_kernel(
+        state &navigation, const track_t &track,
+        const typename volume_container::value_type &volume) const {
 
         // Get the max number of candidates & run them through the kernel
         navigation.candidates().reserve(volume.n_objects());
@@ -325,10 +326,10 @@ class single_type_navigator {
         // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
         for (const auto [obj_idx, obj] : enumerate(_objects, volume)) {
-            
+
             // Retrieve candidate from the object
-            auto sfi = intersect(track, obj, _transforms, _masks,
-                                 navigation.links());
+            auto sfi =
+                intersect(track, obj, _transforms, _masks, navigation.links());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < track.overstep_tolerance) {
@@ -361,8 +362,9 @@ class single_type_navigator {
      * @return A boolean condition if kernel is exhausted or not
      */
     template <typename track_t>
-    inline void update_kernel(state &navigation, const track_t &track,
-                              const typename volume_container::value_type &volume) const {
+    inline void update_kernel(
+        state &navigation, const track_t &track,
+        const typename volume_container::value_type &volume) const {
 
         if (navigation.trust_level() == e_no_trust) {
             initialize_kernel(navigation, track, volume);
@@ -388,7 +390,7 @@ class single_type_navigator {
                         navigation.set_status(e_on_object);
                         navigation.set_trust_level(e_high_trust);
                         // Set the next object we want to reach might be end()
-                        std::next(navigation.next());
+                        ++navigation.next();
                     }
                     // we are certainly not on the next object. Trust fully
                     else {
@@ -399,7 +401,7 @@ class single_type_navigator {
                     return;
                 }
                 // If not inside: increase and switch to next
-                std::next(navigation.next());
+                ++navigation.next();
             }
         }
         // Loop over all candidates and intersect again all candidates
@@ -427,6 +429,7 @@ class single_type_navigator {
     inline void set_next(state &navigation) const {
 
         auto &kernel = navigation._kernel;
+
         // Sort distance to next & set navigation status
         if (not kernel.candidates.empty()) {
 
@@ -446,7 +449,7 @@ class single_type_navigator {
                 // The object we are on
                 navigation.set_object(kernel.next->index);
                 // The next object that we want to reach
-                std::next(navigation.next());
+                ++navigation.next();
                 // We might be wrong in this assumption, re-evaluate distance
                 // to next in the next pass
                 navigation.set_trust_level(e_high_trust);

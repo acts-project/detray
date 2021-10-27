@@ -52,7 +52,8 @@ TEST(ALGEBRA_PLUGIN, volume) {
     dindex_range portal_range{20, 24};
     v1.template set_range<object_id::bla::e_surface>(surface_range);
     v1.template set_range<object_id::bla::e_portal>(portal_range);
-    ASSERT_TRUE(v1.template range<object_id::bla::e_surface>() == surface_range);
+    ASSERT_TRUE(v1.template range<object_id::bla::e_surface>() ==
+                surface_range);
     ASSERT_TRUE(v1.template range<object_id::bla::e_portal>() == portal_range);
     ASSERT_FALSE(v1.empty());
     ASSERT_EQ(v1.template n_objects<object_id::bla::e_surface>(), 6);
@@ -63,7 +64,8 @@ TEST(ALGEBRA_PLUGIN, volume) {
     ASSERT_TRUE(v2.index() == 12345);
     ASSERT_TRUE(v2.bounds() == bounds);
     ASSERT_TRUE(v2.surfaces_finder_entry() == 12);
-    ASSERT_TRUE(v2.template range<object_id::bla::e_surface>() == surface_range);
+    ASSERT_TRUE(v2.template range<object_id::bla::e_surface>() ==
+                surface_range);
     ASSERT_TRUE(v2.template range<object_id::bla::e_portal>() == portal_range);
 }
 

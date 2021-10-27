@@ -64,7 +64,8 @@ struct iterator_range {
 template <typename container_type, typename volume_type>
 inline constexpr decltype(auto) range(const container_type &iterable,
                                       volume_type &&volume) {
-    return iterator_range(iterable, volume.template range<typename container_type::value_type>());
+    return iterator_range(
+        iterable, volume.template range<typename container_type::value_type>());
 }
 
 /** Helper utility to allow indexed enumeration with structured binding
@@ -140,12 +141,14 @@ constexpr inline auto enumerate(const container_type &iterable,
         iterator_range<container_type> range_iter;
 
         auto begin() {
-            return iterator{std::distance(iter, range_iter.begin()),
-                            range_iter.begin()};
+            return iterator{
+                static_cast<size_t>(std::distance(iter, range_iter.begin())),
+                range_iter.begin()};
         }
         auto end() {
-            return iterator{std::distance(iter, range_iter.begin()),
-                            range_iter.end()};
+            return iterator{
+                static_cast<size_t>(std::distance(iter, range_iter.begin())),
+                range_iter.end()};
         }
     };
     return iterable_wrapper{std::cbegin(iterable),
@@ -165,7 +168,7 @@ constexpr inline auto enumerate(const container_type &iterable,
 constexpr auto sequence(dindex iterable) {
 
     struct iterator {
-        size_t i;
+        dindex i;
 
         bool operator!=(const iterator &rhs) const { return i != rhs.i; }
 

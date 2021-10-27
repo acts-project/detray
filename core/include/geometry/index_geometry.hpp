@@ -143,7 +143,7 @@ class index_geometry {
             e_unknown = 3,
         };
 
-        template<typename value_type>
+        template <typename value_type>
         static constexpr auto get() {
             if constexpr (std::is_same_v<value_type, surface>) {
                 return e_surface;
@@ -154,7 +154,6 @@ class index_geometry {
             return e_unknown;
         }
     };
-
 
     // Volume type
     using volume_type = volume<object_id, dindex_range, array_type>;
@@ -261,13 +260,15 @@ class index_geometry {
             _surfaces.reserve(_surfaces.size() + objects.size());
             _surfaces.insert(_surfaces.end(), objects.begin(), objects.end());
 
-            volume.template set_range<object_id::bla::e_surface>({offset, _surfaces.size()});
+            volume.template set_range<object_id::bla::e_surface>(
+                {offset, _surfaces.size()});
         } else {
             const auto offset = _portals.size();
             _portals.reserve(_portals.size() + objects.size());
             _portals.insert(_portals.end(), objects.begin(), objects.end());
 
-            volume.template set_range<object_id::bla::e_portal>({offset, _portals.size()});
+            volume.template set_range<object_id::bla::e_portal>(
+                {offset, _portals.size()});
         }
     }
 

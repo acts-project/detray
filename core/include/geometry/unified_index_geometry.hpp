@@ -122,11 +122,11 @@ class unified_index_geometry {
             e_object_types = 1,
             e_surface = 0,
             e_portal = 0,  // not used (same as surface)
-            e_any = 1,
-            e_unknown = 3,
+            e_any = 0,
+            e_unknown = 2,
         };
 
-        template<typename value_type>
+        template <typename value_type>
         static constexpr auto get() {
             if constexpr (std::is_same_v<value_type, surface>) {
                 return e_surface;

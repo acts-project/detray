@@ -159,11 +159,11 @@ struct object_id {
     enum bla : unsigned int {
         e_object_types = 1,
         e_surface = 0,
-        e_any = 1,  // defaults to portal
-        e_unknown = 3,
+        e_any = 0,
+        e_unknown = 2,
     };
 
-    template<typename value_type>
+    template <typename value_type>
     static constexpr auto get() {
         return e_surface;
     }
@@ -191,7 +191,6 @@ auto toy_geometry() {
         e_portal = 0, // no portal surface distinction
         e_any = 1,
     };*/
-
 
     // Volume type
     using volume_type = detray::volume<object_id, dindex_range, detray::darray>;

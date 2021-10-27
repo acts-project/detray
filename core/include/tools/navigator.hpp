@@ -250,8 +250,8 @@ struct navigator {
                     update_kernel(navigation, portal_kernel, track, volume);
                     navigation.inspector(navigation);
                     return heartbeat;
-                } else if (update_kernel(
-                               navigation, surface_kernel, track, volume)) {
+                } else if (update_kernel(navigation, surface_kernel, track,
+                                         volume)) {
                     navigation.inspector(navigation);
                     return heartbeat;
                 }
@@ -312,8 +312,7 @@ struct navigator {
         // Loop over all indexed surfaces, intersect and fill
         // @todo - will come from the local object finder
         for (const auto [obj_idx, obj] : enumerate(surfaces, volume)) {
-            auto sfi =
-                intersect(track, obj, transforms, masks, kernel.links());
+            auto sfi = intersect(track, obj, transforms, masks, kernel.links());
             sfi.index = obj_idx;
             sfi.link = kernel.links()[0];
             // Ignore negative solutions - except overstep limit
