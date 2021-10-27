@@ -98,6 +98,19 @@ class volume {
         }
     }
 
+    /** @return range of surfaces and portals (must be contiguous!) */
+    inline const auto full_range() const {
+        // There may be volumes without surfaces, but never without portals
+        if ((_surface_range[0] + _surface_range[1] == dindex_invalid) or
+            (_surface_range[1] - _surface_range[0] == 0)) {
+            return _portal_range;
+        } else if (_portal_range[0] < _surface_range[0]) {
+            return dindex_range{_portal_range[0], _surface_range[1]};
+        } else {
+            return dindex_range{_surface_range[0], _portal_range[1]};
+        }
+    }
+
     private:
     /**
      * @param range Any index range
