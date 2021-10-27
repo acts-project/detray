@@ -3,11 +3,11 @@
 #include <map>
 #include <tuple>
 
-#include "algebra/vecmem_cmath.hpp"
+#include "algebra/array_cmath.hpp"
 #include "vecmem/containers/jagged_vector.hpp"
 #include "vecmem/containers/vector.hpp"
 
-#define __plugin algebra::vecmem
+#define __plugin algebra::array
 #define ALGEBRA_PLUGIN array
 
 namespace detray {

@@ -14,7 +14,7 @@ message( STATUS "Building Algebra Plugins as part of the Detray project" )
 # Declare where to get Algebra Plugins from.
 FetchContent_Declare( AlgebraPlugins
    GIT_REPOSITORY "https://github.com/krasznaa/algebra-plugins.git"
-   GIT_TAG "896c7fd2efb1b1843301b6d7a8c1e6bed6346957" )
+   GIT_TAG "fe2a310c2f3f517fe2646e526f95db80a2109444" )
 
 # Options used in the build of Algebra Plugins.
 set( ALGEBRA_PLUGIN_BUILD_TESTING FALSE CACHE BOOL
