@@ -13,16 +13,15 @@
 namespace detray {
 
 __global__ void index_geometry_test_kernel(
-    index_geometry_data<darrray, dvector, dindex, dindex> geometry_data) {}
+    index_geometry_data<geometry> geometry_data) {}
 
-void index_geometry_test(
-    index_geometry_data<darrray, dvector, dindex, dindex>& geometry_data) {
+void index_geometry_test(index_geometry_data<geometry>& geometry_data) {
 
     int block_dim = 1;
     int thread_dim = 1;
 
     // run the kernel
-    index_geometry_test_kernel<<<block_dim, thread_dim>>>();
+    index_geometry_test_kernel<<<block_dim, thread_dim>>>(geometry_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

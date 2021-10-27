@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "core/mask_store.hpp"
+#include "definitions/detray_qualifiers.hpp"
 #include "geometry/surface_base.hpp"
 #include "geometry/volume.hpp"
 #include "masks/masks.hpp"
@@ -140,6 +141,16 @@ class index_geometry {
     DETRAY_HOST
     index_geometry(vecmem::memory_resource &resource)
         : _volumes(&resource), _surfaces(&resource), _portals(&resource) {}
+
+    /** Constructor from index_geometry_data
+     **/
+#if defined(__CUDACC__)  // required by macOS
+    template <index_geometry_data_t>
+    DETRAY_DEVICE index_geometry(index_geometry_data_t &geometry_data)
+        : _volumes(geometry_data._volumes_data),
+          _surfaces(geometry_data._surfaces_data),
+          _portals(geometry_data._portals_data) {}
+#endif
 
     /** @return total number of volumes */
     const size_t n_volumes() const { return _volumes.size(); }
@@ -282,19 +293,14 @@ class index_geometry {
 };
 
 /** A static inplementation of index_geometry data for device*/
-template <template <typename, unsigned int> class array_type,
-          template <typename> class vector_type, typename surface_source_link,
-          typename bounds_source_link>
+template <typename index_geometry_t>
 struct index_geometry_data {
-    using index_geometry_type =
-        index_geometry<array_type, vector_type, surface_source_link,
-                       bounds_source_link>;
 
-    using volume_type = typename index_geometry_type::volume_type;
-    using surface = typename index_geometry_type::surface;
-    using portal = typename index_geometry_type::portal;
+    using volume_type = typename index_geometry_t::volume_type;
+    using surface = typename index_geometry_t::surface;
+    using portal = typename index_geometry_t::portal;
 
-    index_geometry_data(index_geometry_type &geometry)
+    index_geometry_data(index_geometry_t &geometry)
         : _volumes_data(vecmem::get_data(geometry.volumes())),
           _surfaces_data(vecmem::get_data(geometry.template objects<true>())),
           _portals_data(vecmem::get_data(geometry.template objects<false>())) {}
@@ -309,8 +315,8 @@ struct index_geometry_data {
 template <template <typename, unsigned int> class array_type,
           template <typename> class vector_type, typename surface_source_link,
           typename bounds_source_link>
-inline index_geometry_data<array_type, vector_type, surface_source_link,
-                           bounds_source_link>
+inline index_geometry_data<index_geometry<
+    array_type, vector_type, surface_source_link, bounds_source_link>>
 get_data(index_geometry<array_type, vector_type, surface_source_link,
                         bounds_source_link> &geometry) {
     return geometry;
