@@ -19,12 +19,13 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     using geometry = index_geometry<>;
     using surface = typename geometry::surface;
     using portal = typename geometry::portal;
+    using object_id = geometry::object_id::bla;
 
     geometry g = geometry();
 
     ASSERT_TRUE(g.n_volumes() == 0);
-    ASSERT_TRUE(g.template n_objects<geometry::e_surface>() == 0);
-    ASSERT_TRUE(g.template n_objects<geometry::e_portal>() == 0);
+    ASSERT_TRUE(g.template n_objects<object_id::e_surface>() == 0);
+    ASSERT_TRUE(g.template n_objects<object_id::e_portal>() == 0);
 
     // Add two volumes
     darray<scalar, 6> bounds_0 = {0., 10., -5., 5., -M_PI, M_PI};
@@ -106,18 +107,18 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     g.add_objects(v3, surfaces_vol1);
 
     // Are the surfaces/portals filled correctly?
-    ASSERT_EQ(g.template n_objects<geometry::e_portal>(), 5);
-    ASSERT_EQ(g.template n_objects<geometry::e_surface>(), 4);
+    ASSERT_EQ(g.template n_objects<object_id::e_portal>(), 5);
+    ASSERT_EQ(g.template n_objects<object_id::e_surface>(), 4);
 
     // Are the ranges updated correctly?
     auto objects_range = darray<dindex, 2>{0, 3};
-    ASSERT_TRUE(v2.template range<geometry::e_portal>() == objects_range);
+    ASSERT_TRUE(v2.template range<object_id::e_portal>() == objects_range);
     objects_range = darray<dindex, 2>{0, 2};
-    ASSERT_TRUE(v2.template range<geometry::e_surface>() == objects_range);
+    ASSERT_TRUE(v2.template range<object_id::e_surface>() == objects_range);
     objects_range = darray<dindex, 2>{3, 5};
-    ASSERT_TRUE(v3.template range<geometry::e_portal>() == objects_range);
+    ASSERT_TRUE(v3.template range<object_id::e_portal>() == objects_range);
     objects_range = darray<dindex, 2>{2, 4};
-    ASSERT_TRUE(v3.template range<geometry::e_surface>() == objects_range);
+    ASSERT_TRUE(v3.template range<object_id::e_surface>() == objects_range);
 }
 
 int main(int argc, char **argv) {

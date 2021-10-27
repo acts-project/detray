@@ -154,6 +154,21 @@ inline auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
         std::move(surfaces), std::move(transforms), std::move(masks));
 }
 
+struct object_id {
+    // Known primitives
+    enum bla : unsigned int {
+        e_object_types = 1,
+        e_surface = 0,
+        e_any = 1,  // defaults to portal
+        e_unknown = 3,
+    };
+
+    template<typename value_type>
+    static constexpr auto get() {
+        return e_surface;
+    }
+};
+
 /** Builds a simple detray geometry of the innermost tml layers. It contains:
  *
  * - a beampipe (r = 27mm, half_z = 500mm)
@@ -170,12 +185,13 @@ inline auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
 auto toy_geometry() {
 
     // Known primitives
-    enum object_id : unsigned int {
-        e_object_types = 2,
+    /*enum object_id : unsigned int {
+        e_object_types = 1,
         e_surface = 0,
-        e_portal = 1,
-        e_any = 1,  // defaults to portal
-    };
+        e_portal = 0, // no portal surface distinction
+        e_any = 1,
+    };*/
+
 
     // Volume type
     using volume_type = detray::volume<object_id, dindex_range, detray::darray>;
@@ -277,8 +293,7 @@ auto toy_geometry() {
         vector3 translation{0., 0., half_z};
         transforms.emplace_back(translation);
 
-        vol.template set_range<e_portal>(
-            {surfaces.size() - 1, surfaces.size()});
+        vol.set_range({surfaces.size() - 1, surfaces.size()});
     };
 
     /** Function that adds a cylinder portal.
@@ -294,8 +309,7 @@ auto toy_geometry() {
         cylinders.emplace_back(r, -half_z, half_z);
         transforms.emplace_back();  // identity
 
-        vol.template set_range<e_portal>(
-            {surfaces.size() - 1, surfaces.size()});
+        vol.set_range({surfaces.size() - 1, surfaces.size()});
     };
 
     /** Function that updates surface and volume links when added to the global
@@ -315,8 +329,7 @@ auto toy_geometry() {
             sf.set_edge({vol.index(), inv_sf_finder});
         }
 
-        vol.template set_range<e_surface>(
-            {surfaces.size(), surfaces.size() + modules.size()});
+        vol.set_range({surfaces.size(), surfaces.size() + modules.size()});
     };
 
     //
@@ -333,14 +346,11 @@ auto toy_geometry() {
     add_cylinder_portal(beampipe, beampipe_r, detector_half_z);
 
     // Set disc portal edges
-    dindex beampipe_portal_index = beampipe.template range<e_portal>()[0];
+    dindex beampipe_portal_index = beampipe.range()[0];
     auto& beampipe_neg_portal = surfaces[beampipe_portal_index];
     beampipe_neg_portal.set_edge({leaving_world, inv_sf_finder});
     auto& beampipe_pos_portal = surfaces[++beampipe_portal_index];
     beampipe_pos_portal.set_edge({leaving_world, inv_sf_finder});
-
-    // module surfaces (none)
-    beampipe.template set_range<e_surface>({dindex_invalid, dindex_invalid});
 
     //
     // first layer
@@ -361,7 +371,7 @@ auto toy_geometry() {
     auto& beampipe_outer_portal = surfaces[++beampipe_portal_index];
     beampipe_outer_portal.set_edge({layer_1.index(), inv_sf_finder});
     // discs
-    dindex layer1_pt_index = layer_1.template range<e_portal>()[0];
+    dindex layer1_pt_index = layer_1.range()[0];
     auto& first_layer_neg_portal = surfaces[layer1_pt_index];
     first_layer_neg_portal.set_edge({leaving_world, inv_sf_finder});
     auto& first_layer_pos_portal = surfaces[++layer1_pt_index];
@@ -399,11 +409,11 @@ auto toy_geometry() {
 
     // Connect portals (first layer, second layer)
     const auto layer_1_idx = gap.index() - 1;
-    layer1_pt_index = layer_1.template range<e_portal>()[1] - 1;
-    auto& first_layer_outer_portal = surfaces[layer1_pt_index];
+    // Get the cylinder portals
+    auto& first_layer_outer_portal = surfaces[++layer1_pt_index];
     first_layer_outer_portal.set_edge({gap.index(), inv_sf_finder});
     // discs
-    dindex gap_pt_index = gap.template range<e_portal>()[0];
+    dindex gap_pt_index = gap.range()[0];
     auto& gap_neg_portal = surfaces[gap_pt_index];
     gap_neg_portal.set_edge({leaving_world, inv_sf_finder});
     auto& gap_pos_portal = surfaces[++gap_pt_index];
@@ -411,9 +421,6 @@ auto toy_geometry() {
     // cylinder
     auto& gap_inner_portal = surfaces[++gap_pt_index];
     gap_inner_portal.set_edge({layer_1_idx, inv_sf_finder});
-
-    // module surfaces (none)
-    gap.template set_range<e_surface>({dindex_invalid, dindex_invalid});
 
     //
     // second layer
@@ -433,11 +440,11 @@ auto toy_geometry() {
 
     /// Connect portals (gap, world)
     const auto gap_idx = layer_2.index() - 1;
-    gap_pt_index = gap.template range<e_portal>()[1] - 1;
-    auto& gap_outer_portal = surfaces[gap_pt_index];
+    // Get the cylinder portal
+    auto& gap_outer_portal = surfaces[++gap_pt_index];
     gap_outer_portal.set_edge({layer_2.index(), inv_sf_finder});
     // discs
-    dindex layer2_pt_index = layer_2.template range<e_portal>()[0];
+    dindex layer2_pt_index = layer_2.range()[0];
     auto& second_layer_neg_portal = surfaces[layer2_pt_index];
     second_layer_neg_portal.set_edge({leaving_world, inv_sf_finder});
     auto& second_layer_pos_portal = surfaces[++layer2_pt_index];

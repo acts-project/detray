@@ -47,12 +47,12 @@ class unified_index_geometry {
 
     public:
     // Known primitives
-    enum object_id : unsigned int {
+    /*enum object_id : unsigned int {
         e_object_types = 1,
         e_surface = 0,
         e_portal = 0,  // not used (same as surface)
         e_any = 1,
-    };
+    };*/
 
     /** Encodes the position in a collection container for the respective
         mask type . */
@@ -67,9 +67,6 @@ class unified_index_geometry {
         e_single3 = std::numeric_limits<unsigned int>::max(),
         e_unknown = std::numeric_limits<unsigned int>::max(),
     };
-
-    // Volume type
-    using volume_type = volume<object_id, dindex_range, array_type>;
 
     /// volume index: volume the surface belongs to
     using volume_index = dindex;
@@ -119,6 +116,28 @@ class unified_index_geometry {
         array_type<vector_type<surface>, e_mask_types>;
     using portal_filling_container = surface_filling_container;
 
+    struct object_id {
+        // Known primitives
+        enum bla : unsigned int {
+            e_object_types = 1,
+            e_surface = 0,
+            e_portal = 0,  // not used (same as surface)
+            e_any = 1,
+            e_unknown = 3,
+        };
+
+        template<typename value_type>
+        static constexpr auto get() {
+            if constexpr (std::is_same_v<value_type, surface>) {
+                return e_surface;
+            }
+            return e_unknown;
+        }
+    };
+
+    // Volume type
+    using volume_type = volume<object_id, dindex_range, array_type>;
+
     /** Default constructor */
     unified_index_geometry() = default;
 
@@ -164,13 +183,13 @@ class unified_index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <object_id id = e_surface>
+    template <typename object_id::bla id = object_id::bla::e_surface>
     inline size_t n_objects() const {
         return _objects.size();
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <object_id id = e_surface>
+    template <typename object_id::bla = object_id::bla::e_surface>
     inline constexpr const auto &objects() const {
         return _objects;
     }

@@ -64,7 +64,7 @@ class detector {
     using geometry = geometry_type;
     /// geometry object types
     using volume = typename geometry_type::volume_type;
-    using object_id = typename geometry_type::object_id;
+    using object_id = typename geometry_type::object_id::bla;
     using mask_id = typename geometry_type::mask_id;
 
     // Determined by the geometry, due to potentially different linking in masks

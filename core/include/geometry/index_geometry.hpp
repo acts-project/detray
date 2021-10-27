@@ -18,6 +18,7 @@
 #include "utils/indexing.hpp"
 
 namespace detray {
+
 /**
  * @brief Index geometry implementation
  *
@@ -45,12 +46,12 @@ class index_geometry {
 
     public:
     // Known primitives
-    enum object_id : unsigned int {
+    /*enum object_id : unsigned int {
         e_object_types = 2,
         e_surface = 0,
         e_portal = 1,
         e_any = 1,  // defaults to portal
-    };
+    };*/
 
     /** Encodes the position in a collection container for the respective
         mask type . */
@@ -65,9 +66,6 @@ class index_geometry {
         e_single3 = std::numeric_limits<unsigned int>::max(),
         e_unknown = std::numeric_limits<unsigned int>::max(),
     };
-
-    // Volume type
-    using volume_type = volume<object_id, dindex_range, array_type>;
 
     /// Portals components:
     /// - links:  next volume, next (local) object finder
@@ -135,6 +133,32 @@ class index_geometry {
     using portal_filling_container =
         array_type<vector_type<portal>, e_mask_types>;
 
+    struct object_id {
+        // Known primitives
+        enum bla : unsigned int {
+            e_object_types = 2,
+            e_surface = 0,
+            e_portal = 1,
+            e_any = 1,  // defaults to portal
+            e_unknown = 3,
+        };
+
+        template<typename value_type>
+        static constexpr auto get() {
+            if constexpr (std::is_same_v<value_type, surface>) {
+                return e_surface;
+            }
+            if constexpr (std::is_same_v<value_type, portal>) {
+                return e_portal;
+            }
+            return e_unknown;
+        }
+    };
+
+
+    // Volume type
+    using volume_type = volume<object_id, dindex_range, array_type>;
+
     /** Default constructor */
     index_geometry() = default;
 
@@ -174,9 +198,9 @@ class index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <object_id object_type = e_surface>
+    template <enum object_id::bla object_type = object_id::bla::e_surface>
     inline size_t n_objects() const {
-        if constexpr (object_type == e_surface) {
+        if constexpr (object_type == object_id::bla::e_surface) {
             return _surfaces.size();
         } else {
             return _portals.size();
@@ -184,9 +208,9 @@ class index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <object_id object_type = e_surface>
+    template <enum object_id::bla object_type = object_id::bla::e_surface>
     inline constexpr const auto &objects() const {
-        if constexpr (object_type == e_surface) {
+        if constexpr (object_type == object_id::bla::e_surface) {
             return _surfaces;
         } else {
             return _portals;
@@ -237,13 +261,13 @@ class index_geometry {
             _surfaces.reserve(_surfaces.size() + objects.size());
             _surfaces.insert(_surfaces.end(), objects.begin(), objects.end());
 
-            volume.template set_range<e_surface>({offset, _surfaces.size()});
+            volume.template set_range<object_id::bla::e_surface>({offset, _surfaces.size()});
         } else {
             const auto offset = _portals.size();
             _portals.reserve(_portals.size() + objects.size());
             _portals.insert(_portals.end(), objects.begin(), objects.end());
 
-            volume.template set_range<e_portal>({offset, _portals.size()});
+            volume.template set_range<object_id::bla::e_portal>({offset, _portals.size()});
         }
     }
 

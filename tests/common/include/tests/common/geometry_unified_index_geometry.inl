@@ -19,12 +19,12 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     using geometry = unified_index_geometry<>;
     using surface = typename geometry::surface;
     using portal = typename geometry::portal;
+    using object_id = geometry::object_id::bla;
 
     geometry g = geometry();
 
     ASSERT_TRUE(g.n_volumes() == 0);
-    ASSERT_TRUE(g.template n_objects<geometry::e_surface>() == 0);
-    ASSERT_TRUE(g.template n_objects<geometry::e_portal>() == 0);
+    ASSERT_TRUE(g.n_objects() == 0);
 
     // Add two volumes
     darray<scalar, 6> bounds_0 = {0., 10., -5., 5., -M_PI, M_PI};

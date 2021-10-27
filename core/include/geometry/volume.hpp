@@ -23,7 +23,7 @@ class volume {
 
     public:
     // The type of objects a volume can contain
-    using objects = object_ids;
+    using objects = typename object_ids::bla;
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
 
@@ -58,11 +58,11 @@ class volume {
 
     /** @return if the volume is empty or not */
     inline bool empty() const {
-        return n_objects<object_ids::e_surface>() == 0;
+        return n_objects<object_ids::bla::e_surface>() == 0;
     }
 
     /** @return the number of surfaces in the volume */
-    template <object_ids range_id = object_ids::e_surface>
+    template <typename object_ids::bla range_id = object_ids::bla::e_surface>
     inline auto n_objects() const {
         return n_in_range(range<range_id>());
     }
@@ -72,7 +72,7 @@ class volume {
      *
      * @param other Surface index range
      */
-    template <object_ids range_id = object_ids::e_surface>
+    template <typename object_ids::bla range_id = object_ids::bla::e_surface>
     inline void set_range(const range_type &other) {
         auto &rg = std::get<range_id>(_ranges);
         // Range not set yet - initialize
@@ -85,8 +85,15 @@ class volume {
         }
     }
 
+    /** @return range of surfaces by surface type - const access */
+    template <typename object_type>
+    inline constexpr const auto &range() const {
+        constexpr auto index = object_ids::template get<object_type>();
+        return std::get<index>(_ranges);
+    }
+
     /** @return range of surfaces- const access */
-    template <object_ids range_id = object_ids::e_surface>
+    template <typename object_ids::bla range_id = object_ids::bla::e_surface>
     inline constexpr const auto &range() const {
         return std::get<range_id>(_ranges);
     }
@@ -112,7 +119,7 @@ class volume {
 
     /** Ranges in geometry containers for different objects types that belong
      * to this volume */
-    array_type<range_type, object_ids::e_object_types> _ranges = {};
+    array_type<range_type, object_ids::bla::e_object_types> _ranges = {};
 
     /** Index into the surface finder container */
     dindex _surfaces_finder_entry = dindex_invalid;
