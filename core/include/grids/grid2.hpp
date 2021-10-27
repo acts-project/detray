@@ -442,9 +442,16 @@ struct grid2_view {
 
 /** Get grid2_data from grid and memory resource
  **/
-template <typename grid_t>
-inline grid2_data<grid_t> get_data(grid_t &grid,
-                                   vecmem::memory_resource &resource) {
+template <typename populator_type, typename axis_p0_type, typename axis_p1_type,
+          typename serializer_type,
+          template <typename, unsigned int> class array_type,
+          template <typename...> class tuple_type,
+          template <typename> class vector_type>
+inline grid2_data<grid2<populator_type, axis_p0_type, axis_p1_type,
+                        serializer_type, array_type, tuple_type, vector_type>>
+get_data(grid2<populator_type, axis_p0_type, axis_p1_type, serializer_type,
+               array_type, tuple_type, vector_type> &grid,
+         vecmem::memory_resource &resource) {
     return {grid, resource};
 }
 
