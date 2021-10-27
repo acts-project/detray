@@ -17,10 +17,6 @@
 
 namespace detray {
 
-/** Forward declaration of mask_store_data **/
-template <typename... mask_types>
-struct mask_store_data;
-
 /** A mask store that provides the correct mask containers to client classes. */
 template <template <typename...> class vector_type = dvector,
           typename... mask_types>
@@ -38,11 +34,13 @@ class mask_store {
         : _mask_tuple(vector_type<mask_types>{&resource}...) {}
 
     /** Constructor with mask_store_data **/
-    DETRAY_DEVICE
-    mask_store(mask_store_data<mask_types...> &store_data)
+#if defined(__CUDACC__)
+    template <typename mask_store_data_t>
+    DETRAY_DEVICE mask_store(mask_store_data_t &store_data)
         : _mask_tuple(
               store_data.device(typename gens<sizeof...(mask_types)>::type())) {
     }
+#endif
 
     /** Size : Contextual STL like API
      *
