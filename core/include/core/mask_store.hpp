@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
 
@@ -51,7 +53,8 @@ class mask_store {
      * @return the required mask
      */
     template <unsigned int current_id = 0>
-    const auto &mask(const dindex mask_id, const dindex mask_index) const {
+    const auto &mask(const unsigned int mask_id,
+                     const dindex mask_index) const {
         if (current_id == mask_id) {
             return group<current_id>()[mask_index];
         }
@@ -120,13 +123,21 @@ class mask_store {
      *
      * @note in general can throw an exception
      */
-    template <typename mask_type>
-    void add_masks(const vector_type<mask_type> &masks) noexcept(false) {
-        // Get the mask group that will be updated
-        auto &mask_group = std::get<vector_type<mask_type>>(_mask_tuple);
-        // Reserve memory and copy new masks
-        mask_group.reserve(mask_group.size() + masks.size());
-        mask_group.insert(mask_group.end(), masks.begin(), masks.end());
+    template <unsigned int current_id = 0, typename mask_type>
+    inline void add_masks(vector_type<mask_type> &masks) noexcept(false) {
+        // and the corresponding masks
+        auto &mask_group = std::get<current_id>(_mask_tuple);
+
+        if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
+            // Reserve memory and copy new masks
+            mask_group.reserve(mask_group.size() + masks.size());
+            mask_group.insert(mask_group.end(), masks.begin(), masks.end());
+        }
+
+        // Next mask type
+        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+            return add_masks<current_id + 1>(masks);
+        }
     }
 
     /** Add a new bunch of masks - move semantics
@@ -138,15 +149,23 @@ class mask_store {
      *
      * @note in general can throw an exception
      */
-    template <typename mask_type>
-    void add_masks(vector_type<mask_type> &&masks) noexcept(false) {
-        // Get the mask group that will be updated
-        auto &mask_group = std::get<vector_type<mask_type>>(_mask_tuple);
-        // Reserve memory and copy new masks
-        mask_group.reserve(mask_group.size() + masks.size());
-        mask_group.insert(mask_group.end(),
-                          std::make_move_iterator(masks.begin()),
-                          std::make_move_iterator(masks.end()));
+    template <unsigned int current_id = 0, typename mask_type>
+    inline void add_masks(vector_type<mask_type> &&masks) noexcept(false) {
+        // and the corresponding masks
+        auto &mask_group = std::get<current_id>(_mask_tuple);
+
+        if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
+            // Reserve memory and copy new masks
+            mask_group.reserve(mask_group.size() + masks.size());
+            mask_group.insert(mask_group.end(),
+                              std::make_move_iterator(masks.begin()),
+                              std::make_move_iterator(masks.end()));
+        }
+
+        // Next mask type
+        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+            return add_masks<current_id + 1>(masks);
+        }
     }
 
     /** Append a mask store to the current one
@@ -158,15 +177,15 @@ class mask_store {
      *
      * @note in general can throw an exception
      */
-    template <unsigned int current_index = 0>
+    template <unsigned int current_id = 0>
     inline void append_masks(mask_store &&other) {
         // Add masks to current group
-        auto &mask_group = std::get<current_index>(other);
-        add_masks<current_index>(mask_group);
+        auto &mask_group = std::get<current_id>(other);
+        add_masks(mask_group);
 
         // Next mask type
-        if constexpr (current_index < std::tuple_size_v<mask_tuple> - 1) {
-            return append_masks<current_index + 1>(other);
+        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+            return append_masks<current_id + 1>(other);
         }
     }
 
