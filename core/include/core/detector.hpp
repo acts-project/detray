@@ -6,7 +6,6 @@
  */
 #pragma once
 
-#include <iterator>
 #include <map>
 #include <sstream>
 #include <string>
@@ -62,7 +61,6 @@ class detector {
 
     /// Export geometry types
     using geometry = geometry_type;
-    /// geometry object types
     using volume = typename geometry_type::volume_type;
     using object_id = typename geometry_type::object_registry::id;
     using mask_id = typename geometry_type::mask_id;
@@ -236,7 +234,7 @@ class detector {
     template <typename... detector_components>
     inline void add_objects(
         const typename alignable_store::context ctx = {},
-        detector_components &&... components) noexcept(false) {
+        detector_components &&...components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'mask_id')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
