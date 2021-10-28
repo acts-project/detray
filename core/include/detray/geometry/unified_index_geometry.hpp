@@ -46,14 +46,6 @@ template <template <typename, unsigned int> class array_type = darray,
 class unified_index_geometry {
 
     public:
-    // Known primitives
-    /*enum object_registry : unsigned int {
-        e_object_types = 1,
-        e_surface = 0,
-        e_portal = 0,  // not used (same as surface)
-        e_any = 1,
-    };*/
-
     /** Encodes the position in a collection container for the respective
         mask type . */
     enum mask_id : unsigned int {

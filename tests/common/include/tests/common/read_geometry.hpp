@@ -160,6 +160,7 @@ struct object_registry {
     enum id : unsigned int {
         e_object_types = 1,
         e_surface = 0,
+        e_portal = 0,  // same as surface
         e_any = 0,
         e_unknown = 2,
     };

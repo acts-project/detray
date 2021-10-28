@@ -23,11 +23,13 @@ struct dummy_geometry {
     using volume_type = volume_t;
     using portal = object_t;
 
-    // Known primitives
-    enum known_objects : bool {
-        e_surface = true,
-        e_portal = false,
-        e_any = false,  // defaults to portal
+    struct object_registry {
+        using id = typename volume_type::objects;
+
+        template <typename value_type = void>
+        static constexpr auto get() {
+            return id::e_surface;
+        }
     };
 
     dummy_geometry(const vector_type<volume_t> &volumes,
