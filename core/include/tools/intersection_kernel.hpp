@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <tuple>
 #include <utility>
 
@@ -40,11 +41,9 @@ using transform3 = __plugin::transform3;
 template <typename links_type = dindex, typename track_type,
           typename mask_group, typename mask_range>
 inline auto intersect_by_group(const track_type &track, const transform3 &trf,
-                               const mask_group &masks,
-                               const mask_range &range) {
+                               const mask_group &masks, const mask_range &rng) {
     // Check all masks for this surface for intersection
-    for (auto i : sequence(range)) {
-        const auto &mask = masks[i];
+    for (const auto &mask : range(masks, rng)) {
         auto local = mask.local();
         auto sfi = mask.intersector().intersect(trf, track, local, mask);
 

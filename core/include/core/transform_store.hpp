@@ -17,33 +17,14 @@ using transform3 = __plugin::transform3;
 template <template <typename> class vector_type = dvector>
 class static_transform_store {
     public:
-    /** Elementwise access. Needs []operator for storage type for now */
-    inline decltype(auto) operator[](const dindex i) { return _data[i]; }
-    inline decltype(auto) operator[](const dindex i) const { return _data[i]; }
+    using storage = vector_type<transform3>;
 
     /** Empty context type struct */
     struct context {};
 
-    /** Helper struct to pass range and context */
-    template <typename range_iterator>
-    struct contextual_range {
-        using context = static_transform_store::context;
-        /*context ctx;*/
-
-        const range_iterator r;
-
-        inline auto begin() { return r.begin(); }
-        inline auto end() { return r.end(); }
-
-        inline decltype(auto) operator[](const dindex i) {
-            return *(r.begin() + i);
-        }
-        inline decltype(auto) operator[](const dindex i) const {
-            return *(r.begin() + i);
-        }
-    };
-
-    using storage = vector_type<transform3>;
+    /** Elementwise access. Needs []operator for storage type for now */
+    inline decltype(auto) operator[](const dindex i) { return _data[i]; }
+    inline decltype(auto) operator[](const dindex i) const { return _data[i]; }
 
     /** Forward iterator : Contextual STL like API
      *
@@ -70,10 +51,8 @@ class static_transform_store {
      * @return range restricted iterator
      */
     const inline auto range(const size_t begin, const size_t end,
-                            const context &ctx) const {
-        return contextual_range<decltype(
-            range_iter(_data, dindex_range{begin, end}))>{
-            range_iter(_data, dindex_range{begin, end})};
+                            const context & /*ctx*/) const {
+        return iterator_range(_data, dindex_range{begin, end});
     }
 
     /** Access to a predefined range of elements
@@ -83,10 +62,9 @@ class static_transform_store {
      *
      * @return range restricted iterator
      */
-    const inline auto range(const dindex_range &&range,
-                            const context &ctx) const {
-        return contextual_range<decltype(range_iter(_data, std::move(range)))>{
-            range_iter(_data, std::move(range))};
+    template <typename range_type>
+    const inline auto range(range_type &&range, const context & /*ctx*/) const {
+        return iterator_range(_data, std::forward<range_type>(range));
     }
 
     /** Reserve memory : Contextual STL like API
@@ -135,6 +113,11 @@ class static_transform_store {
      * @param ctx The context of the call (ignored)
      */
     bool empty(const context & /*ctx*/) { return _data.empty(); }
+
+    /** Empty : Contextual STL like API
+     * @param ctx The context of the call (ignored)
+     */
+    bool empty(const context & /*ctx*/) const { return _data.empty(); }
 
     /** Append a transform store to an existing one
      *

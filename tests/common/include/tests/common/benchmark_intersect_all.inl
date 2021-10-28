@@ -18,16 +18,9 @@
 #include "io/csv_io.hpp"
 #include "tests/common/read_geometry.hpp"
 #include "tools/intersection_kernel.hpp"
+#include "utils/enumerate.hpp"
 
 using namespace detray;
-
-using transform3 = __plugin::transform3;
-using point3 = point3;
-using vector3 = vector3;
-using surface = surface_base<transform3>;
-
-__plugin::cartesian2 cartesian2;
-using point2 = __plugin::point2;
 
 #ifdef DETRAY_BENCHMARKS_REP
 unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
@@ -40,13 +33,16 @@ unsigned int phi_steps = 100;
 bool stream_file = false;
 
 vecmem::host_memory_resource host_mr;
-
 auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
-const auto &surfaces = d.surfaces();
-constexpr bool get_surface_masks = true;
-const auto &masks = d.masks();
-using links_type = typename decltype(d)::geometry::surface_links;
+using geometry = decltype(d)::geometry;
+using links_type = typename geometry::surface_links;
+constexpr auto k_surfaces = geometry::object_registry::id::e_surface;
+
+using detray_context = decltype(d)::transform_store::context;
+detray_context default_context;
+
+const auto data_core = d.data(default_context);
 
 namespace __plugin {
 // This test runs intersection with all surfaces of the TrackML detector
@@ -61,9 +57,6 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
     unsigned int missed = 0;
 
     // point3 ori = {0., 0., 0.};
-
-    using detray_context = decltype(d)::transform_store::context;
-    detray_context default_context;
 
     for (auto _ : state) {
         track<static_transform_store<>::context> track;
@@ -86,13 +79,12 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
 
                 // Loop over volumes
                 for (const auto &v : d.volumes()) {
-                    // Loop over surfaces
-                    for (size_t si = v.template range<get_surface_masks>()[0];
-                         si < v.template range<get_surface_masks>()[1]; si++) {
+                    // Loop over all surfaces in volume
+                    for (const auto sf : range(data_core.surfaces, v)) {
                         links_type links{};
-                        auto sfi = intersect(track, surfaces[si],
-                                             d.transforms(default_context),
-                                             masks, links);
+
+                        auto sfi = intersect(track, sf, data_core.transforms,
+                                             data_core.masks, links);
 
                         benchmark::DoNotOptimize(hits);
                         benchmark::DoNotOptimize(missed);
@@ -109,7 +101,6 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                         } else {
                             ++missed;
                         }
-                        benchmark::ClobberMemory();
                     }
                 }
             }

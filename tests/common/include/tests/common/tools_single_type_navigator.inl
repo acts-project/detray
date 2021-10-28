@@ -21,6 +21,9 @@ auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
 TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     using namespace detray;
 
+    /** Tolerance for tests */
+    constexpr double tol = 0.01;
+
     /** Empty context type struct */
     struct empty_context {};
 
@@ -29,9 +32,9 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
                decltype(rectangles)::value_type>
         masks;
     // populate mask store
-    masks.template add_masks<0>(discs);
-    masks.template add_masks<1>(cylinders);
-    masks.template add_masks<2>(rectangles);
+    masks.add_masks(discs);
+    masks.add_masks(cylinders);
+    masks.add_masks(rectangles);
 
     single_type_navigator n(volumes, surfaces, transforms, masks);
     using toy_navigator = decltype(n);
@@ -76,7 +79,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.next()->index, 2u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
-    ASSERT_TRUE(std::abs(state() - 27.) < 0.01);
+    ASSERT_NEAR(state(), 27., tol);
 
     // Let's immediately target, nothing should change, as there is full trust
     heartbeat = n.target(state, traj);
@@ -90,7 +93,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.next()->index, 2u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
-    ASSERT_TRUE(std::abs(state() - 27.) < 0.01);
+    ASSERT_NEAR(state(), 27., tol);
 
     // Let's make half the step towards the portal
     traj.pos = traj.pos + 0.5 * state() * traj.dir;
@@ -105,7 +108,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 0u);
     ASSERT_EQ(state.candidates().size(), 1u);
     ASSERT_EQ(state.next()->index, 2u);
-    ASSERT_TRUE(std::abs(state() - 13.5) < 0.01);
+    ASSERT_NEAR(state(), 13.5, tol);
     // Trust level is restored
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
@@ -120,7 +123,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 0u);
     ASSERT_EQ(state.candidates().size(), 1u);
     ASSERT_EQ(state.next()->index, 2u);
-    ASSERT_TRUE(std::abs(state() - 13.5) < 0.01);
+    ASSERT_NEAR(state(), 13.5, tol);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 

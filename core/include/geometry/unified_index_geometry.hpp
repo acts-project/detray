@@ -47,11 +47,12 @@ class unified_index_geometry {
 
     public:
     // Known primitives
-    enum known_objects : bool {
-        e_surface = true,
-        e_portal = false,
-        e_any = false,  // defaults to portal
-    };
+    /*enum object_registry : unsigned int {
+        e_object_types = 1,
+        e_surface = 0,
+        e_portal = 0,  // not used (same as surface)
+        e_any = 1,
+    };*/
 
     /** Encodes the position in a collection container for the respective
         mask type . */
@@ -66,9 +67,6 @@ class unified_index_geometry {
         e_single3 = std::numeric_limits<unsigned int>::max(),
         e_unknown = std::numeric_limits<unsigned int>::max(),
     };
-
-    // Volume type
-    using volume_type = volume<array_type>;
 
     /// volume index: volume the surface belongs to
     using volume_index = dindex;
@@ -118,6 +116,28 @@ class unified_index_geometry {
         array_type<vector_type<surface>, e_mask_types>;
     using portal_filling_container = surface_filling_container;
 
+    struct object_registry {
+        // Known primitives
+        enum id : unsigned int {
+            e_object_types = 1,
+            e_surface = 0,
+            e_portal = 0,  // not used (same as surface)
+            e_any = 0,
+            e_unknown = 2,
+        };
+
+        template <typename value_type>
+        static constexpr auto get() {
+            if constexpr (std::is_same_v<value_type, surface>) {
+                return e_surface;
+            }
+            return e_unknown;
+        }
+    };
+
+    // Volume type
+    using volume_type = volume<object_registry, dindex_range, array_type>;
+
     /** Default constructor */
     unified_index_geometry() = default;
 
@@ -163,14 +183,14 @@ class unified_index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <bool get_surface = true>
+    template <typename object_registry::id id = object_registry::id::e_surface>
     inline size_t n_objects() const {
         return _objects.size();
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <bool get_surface = true>
-    inline const auto &objects() const {
+    template <typename object_registry::id = object_registry::id::e_surface>
+    inline constexpr const auto &objects() const {
         return _objects;
     }
 
@@ -198,18 +218,17 @@ class unified_index_geometry {
      * @param volume the volume the objects belong to
      * @param surfaces the surfaces that will be filled into the volume
      */
-    template <bool add_surfaces = true>
     inline void add_objects(volume_type &volume,
                             const surface_container &surfaces) {
         const auto offset = _objects.size();
         _objects.reserve(_objects.size() + surfaces.size());
         _objects.insert(_objects.end(), surfaces.begin(), surfaces.end());
 
-        volume.template set_range<add_surfaces>({offset, _objects.size()});
+        volume.set_range({offset, _objects.size()});
     }
 
     private:
-    /** Contains the geometrical relations*/
+    /** Contains the geometrical relations */
     vector_type<volume_type> _volumes = {};
 
     /** All surfaces and portals in the geometry in contigous memory */
