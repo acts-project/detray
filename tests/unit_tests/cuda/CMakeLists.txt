@@ -37,6 +37,16 @@ foreach(algebra ${algebras})
     LINK_LIBRARIES
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_index_geometry_cuda PRIVATE ${algebra}=${algebra})
-  
+
+  # unified index geometry test
+  add_detray_test(${algebra}_unified_index_geometry_cuda
+    "unified_index_geometry_cuda.cpp"
+    "unified_index_geometry_cuda_kernel.hpp"
+    "unified_index_geometry_cuda_kernel.cu"
+    LINK_LIBRARIES
+    vecmem::cuda detray::${algebra})
+  target_compile_definitions(detray_test_${algebra}_unified_index_geometry_cuda PRIVATE ${algebra}=${algebra})
+
+
 endforeach()
 

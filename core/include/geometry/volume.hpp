@@ -78,7 +78,7 @@ class volume {
 
     /** @return the number of surfaces in the volume */
     template <bool primitive = true>
-    DETRAY_HOST_DEVICE inline const dindex n_objects() const {
+    DETRAY_HOST_DEVICE inline dindex n_objects() const {
         if constexpr (primitive) {
             return n_in_range(_surface_range);
         } else {
@@ -140,7 +140,7 @@ class volume {
      * @return the number of indexed objects
      */
     DETRAY_HOST_DEVICE
-    inline const dindex n_in_range(const dindex_range &range) const {
+    inline dindex n_in_range(const dindex_range &range) const {
         return range[1] - range[0];
     }
 
@@ -162,7 +162,7 @@ class volume {
      * @return boolean whether the range is empty
      */
     DETRAY_HOST_DEVICE
-    inline const bool is_empty_range(const dindex_range &range) const {
+    inline bool is_empty_range(const dindex_range &range) const {
         return n_in_range(range) == 0;
     }
 
