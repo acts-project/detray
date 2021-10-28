@@ -32,6 +32,8 @@ using surface = typename geometry::surface;
 using portal = typename geometry::portal;
 
 /// test function for index geometry
-void index_geometry_test(index_geometry_data<geometry>& geometry_data);
+void index_geometry_test(
+    index_geometry_data<geometry>& geometry_data,
+    vecmem::data::vector_view<typename geometry::volume_type>& output_data);
 
 }  // namespace detray

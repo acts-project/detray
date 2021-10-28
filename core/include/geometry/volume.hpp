@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "definitions/detray_qualifiers.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray {
@@ -23,41 +24,51 @@ class volume {
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
 
+    /** Default constructor**/
+    volume() = default;
+
     /** Contructor with bounds
      * @param bounds of the volume
      */
     volume(const array_type<scalar, 6> &bounds) : _bounds(bounds) {}
 
     /** @return the bounds - const access */
+    DETRAY_HOST_DEVICE
     inline const array_type<scalar, 6> &bounds() const { return _bounds; }
 
     /** @return the name */
+    DETRAY_HOST_DEVICE
     inline const std::string &name(const name_map &names) const {
         return names.at(_index);
     }
 
     /** @return the index */
+    DETRAY_HOST_DEVICE
     inline dindex index() const { return _index; }
 
     /** @param index the index */
+    DETRAY_HOST
     inline void set_index(const dindex index) { _index = index; }
 
     /** @return the entry into the local surface finders */
+    DETRAY_HOST_DEVICE
     inline dindex surfaces_finder_entry() const {
         return _surfaces_finder_entry;
     }
 
     /** @param entry the entry into the local surface finders */
+    DETRAY_HOST
     inline void set_surfaces_finder(const dindex entry) {
         _surfaces_finder_entry = entry;
     }
 
     /** @return if the volume is empty or not */
+    DETRAY_HOST_DEVICE
     inline bool empty() const { return is_empty_range(_surface_range); }
 
     /** @return the number of surfaces in the volume */
     template <bool primitive = true>
-    inline dindex n_objects() {
+    DETRAY_HOST_DEVICE inline dindex n_objects() {
         if constexpr (primitive) {
             return n_in_range(_surface_range);
         } else {
@@ -67,7 +78,7 @@ class volume {
 
     /** @return the number of surfaces in the volume */
     template <bool primitive = true>
-    inline const dindex n_objects() const {
+    DETRAY_HOST_DEVICE inline const dindex n_objects() const {
         if constexpr (primitive) {
             return n_in_range(_surface_range);
         } else {
@@ -80,7 +91,7 @@ class volume {
      * @param range Surface index range
      */
     template <bool surface_range = true>
-    inline void set_range(dindex_range range) {
+    DETRAY_HOST inline void set_range(dindex_range range) {
         if constexpr (surface_range) {
             update_range(_surface_range, std::move(range));
         } else {
@@ -90,7 +101,7 @@ class volume {
 
     /** @return range of surfaces- const access */
     template <bool surface_range = true>
-    inline const auto &range() const {
+    DETRAY_HOST_DEVICE inline const auto &range() const {
         if constexpr (surface_range) {
             return _surface_range;
         } else {
@@ -99,6 +110,7 @@ class volume {
     }
 
     /** @return range of surfaces and portals (must be contiguous!) */
+    DETRAY_HOST_DEVICE
     inline const auto full_range() const {
         // There may be volumes without surfaces, but never without portals
         if ((_surface_range[0] + _surface_range[1] == dindex_invalid) or
@@ -117,6 +129,7 @@ class volume {
      *
      * @return the number of indexed objects
      */
+    DETRAY_HOST_DEVICE
     inline dindex n_in_range(const dindex_range &range) {
         return range[1] - range[0];
     }
@@ -126,6 +139,7 @@ class volume {
      *
      * @return the number of indexed objects
      */
+    DETRAY_HOST_DEVICE
     inline const dindex n_in_range(const dindex_range &range) const {
         return range[1] - range[0];
     }
@@ -136,6 +150,7 @@ class volume {
      *
      * @return boolean whether the range is empty
      */
+    DETRAY_HOST_DEVICE
     inline bool is_empty_range(const dindex_range &range) {
         return n_in_range(range) == 0;
     }
@@ -146,6 +161,7 @@ class volume {
      *
      * @return boolean whether the range is empty
      */
+    DETRAY_HOST_DEVICE
     inline const bool is_empty_range(const dindex_range &range) const {
         return n_in_range(range) == 0;
     }
@@ -157,6 +173,7 @@ class volume {
      *
      * @return boolean whether the range is empty
      */
+    DETRAY_HOST
     inline void update_range(dindex_range &range, dindex_range &&other) {
         // Range not set yet
         if (range[0] == dindex_invalid) {

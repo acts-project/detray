@@ -81,12 +81,12 @@ TEST(index_geometry_cuda, index_geometry) {
     g.update_mask_link(sf2, mask_offset_rect);
     g.update_mask_link(sf3, mask_offset_trap);
 
-    ASSERT_EQ(std::get<1>(pt3.mask())[0], 1);
-    ASSERT_EQ(std::get<1>(pt3.mask())[1], 2);
-    ASSERT_EQ(std::get<1>(pt4.mask())[0], 2);
-    ASSERT_EQ(std::get<1>(pt4.mask())[1], 3);
-    ASSERT_EQ(std::get<1>(sf2.mask()), 1);
-    ASSERT_EQ(std::get<1>(sf3.mask()), 1);
+    ASSERT_EQ(__tuple::get<1>(pt3.mask())[0], 1);
+    ASSERT_EQ(__tuple::get<1>(pt3.mask())[1], 2);
+    ASSERT_EQ(__tuple::get<1>(pt4.mask())[0], 2);
+    ASSERT_EQ(__tuple::get<1>(pt4.mask())[1], 3);
+    ASSERT_EQ(__tuple::get<1>(sf2.mask()), 1);
+    ASSERT_EQ(__tuple::get<1>(sf3.mask()), 1);
 
     /// fill surfaces and portals (through volume alias names)
     dvector<portal> portals_vol0 = {pt0, pt1, pt2};
@@ -113,5 +113,33 @@ TEST(index_geometry_cuda, index_geometry) {
     objects_range = darray<dindex, 2>{2, 4};
     ASSERT_TRUE(v3.template range<geometry::e_surface>() == objects_range);
 
+    // output volume for host
+    vecmem::vector<typename geometry::volume_type> output_host(g.n_volumes(),
+                                                               &mng_mr);
+
+    // fill the output_host vector
+    for (unsigned int i = 0; i < g.n_volumes(); i++) {
+        output_host[i] = g.volume_by_index(i);
+    }
+
+    // output volume for device
+    vecmem::vector<typename geometry::volume_type> output_device(g.n_volumes(),
+                                                                 &mng_mr);
+
+    // get data for gpu
+    auto output_data = vecmem::get_data(output_device);
     auto g_data = get_data(g);
+
+    // run the test kernel to fill the output_device vector
+    index_geometry_test(g_data, output_data);
+
+    // Compare the outputs between host and device
+    for (unsigned int i = 0; i < g.n_volumes(); i++) {
+        const auto &volume_host = output_host[i];
+        const auto &volume_device = output_device[i];
+
+        ASSERT_EQ(volume_host.index(), volume_device.index());
+        ASSERT_EQ(volume_host.range<true>(), volume_device.range<true>());
+        ASSERT_EQ(volume_host.range<false>(), volume_device.range<false>());
+    }
 }

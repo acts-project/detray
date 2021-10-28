@@ -48,7 +48,7 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename> class vector_type = dvector,
           typename alignable_store = static_transform_store<vector_type>,
           typename geometry_type =
-              index_geometry<array_type, vector_type, dindex, dindex>,
+              index_geometry<vector_type, array_type, dindex, dindex>,
           typename surfaces_populator_type =
               attach_populator<false, dindex, vector_type>,
           typename surfaces_serializer_type = serializer2,

@@ -16,7 +16,6 @@
 #include "masks/masks.hpp"
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
-#include "utils/tuple.hpp"
 
 namespace detray {
 /**
@@ -37,8 +36,8 @@ namespace detray {
  * @note The geometry knows nothing about coordinate systems. This is
  *       handeled by geometry access objects (e.g. the grid).
  */
-template <template <typename, unsigned int> class array_type = darray,
-          template <typename> class vector_type = dvector,
+template <template <typename> class vector_type = dvector,
+          template <typename, unsigned int> class array_type = darray,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
 class index_geometry {
@@ -145,7 +144,7 @@ class index_geometry {
     /** Constructor from index_geometry_data
      **/
 #if defined(__CUDACC__)  // required by macOS
-    template <index_geometry_data_t>
+    template <typename index_geometry_data_t>
     DETRAY_DEVICE index_geometry(index_geometry_data_t &geometry_data)
         : _volumes(geometry_data._volumes_data),
           _surfaces(geometry_data._surfaces_data),
@@ -153,20 +152,25 @@ class index_geometry {
 #endif
 
     /** @return total number of volumes */
-    const size_t n_volumes() const { return _volumes.size(); }
+    DETRAY_HOST_DEVICE
+    size_t n_volumes() const { return _volumes.size(); }
 
     /** @return all volumes in the geometry - const access. (const) */
+    DETRAY_HOST_DEVICE
     const auto &volumes() const { return _volumes; }
 
     /** @return all volumes in the geometry - const access. (non-const) */
+    DETRAY_HOST_DEVICE
     auto &volumes() { return _volumes; }
 
     /** @return the volume by @param volume_index - const access. */
+    DETRAY_HOST_DEVICE
     inline const volume_type &volume_by_index(dindex volume_index) const {
         return _volumes[volume_index];
     }
 
     /** @return the volume by @param volume_index - non-const access. */
+    DETRAY_HOST_DEVICE
     inline volume_type &volume_by_index(dindex volume_index) {
         return _volumes[volume_index];
     }
@@ -180,6 +184,7 @@ class index_geometry {
      *
      * @return non-const reference of the new volume
      */
+    DETRAY_HOST
     inline volume_type &new_volume(
         const array_type<scalar, 6> &bounds,
         dindex surfaces_finder_entry = dindex_invalid) {
@@ -192,7 +197,7 @@ class index_geometry {
 
     /** @return all surfaces/portals in the geometry */
     template <bool get_surface = true>
-    inline size_t n_objects() const {
+    DETRAY_HOST_DEVICE inline size_t n_objects() const {
         if constexpr (get_surface) {
             return _surfaces.size();
         } else {
@@ -202,7 +207,7 @@ class index_geometry {
 
     /** @return all surfaces/portals in the geometry (const) */
     template <bool get_surface = true>
-    inline const auto &objects() const {
+    DETRAY_HOST_DEVICE inline const auto &objects() const {
         if constexpr (get_surface) {
             return _surfaces;
         } else {
@@ -212,7 +217,7 @@ class index_geometry {
 
     /** @return all surfaces/portals in the geometry (non-const) */
     template <bool get_surface = true>
-    inline auto &objects() {
+    DETRAY_HOST_DEVICE inline auto &objects() {
         if constexpr (get_surface) {
             return _surfaces;
         } else {
@@ -225,6 +230,7 @@ class index_geometry {
      * @param sf the surface
      * @param mask_offset the offset that will be added to the mask links
      */
+    DETRAY_HOST
     inline void update_mask_link(surface &sf, const dindex mask_offset) {
         __tuple::get<1>(sf.mask()) += mask_offset;
     }
@@ -234,6 +240,7 @@ class index_geometry {
      * @param pt the portal
      * @param mask_offset the offset that will be added to the mask links
      */
+    DETRAY_HOST
     inline void update_mask_link(portal &pt, const dindex mask_offset) {
         auto &portal_mask_index = __tuple::get<1>(pt.mask());
         portal_mask_index[0] += mask_offset;
@@ -246,6 +253,7 @@ class index_geometry {
      * @param sf the surface
      * @param trsf_offset the offset that will be added to the links
      */
+    DETRAY_HOST
     inline void update_transform_link(surface &sf, const dindex trsf_offset) {
         sf.transform() += trsf_offset;
     }
@@ -256,6 +264,7 @@ class index_geometry {
      * @param pt the portal
      * @param trsf_offset the offset that will be added to the links
      */
+    DETRAY_HOST
     inline void update_transform_link(portal &pt, const dindex trsf_offset) {
         pt.transform() += trsf_offset;
     }
@@ -266,8 +275,8 @@ class index_geometry {
      * @param surfaces the surfaces that will be filled into the volume
      */
     template <bool add_surfaces = true, typename object_container>
-    inline void add_objects(volume_type &volume,
-                            const object_container &objects) {
+    DETRAY_HOST inline void add_objects(volume_type &volume,
+                                        const object_container &objects) {
         if constexpr (add_surfaces) {
             const auto offset = _surfaces.size();
             _surfaces.reserve(_surfaces.size() + objects.size());
@@ -312,12 +321,12 @@ struct index_geometry_data {
 
 /** Get index_geometry_data
  **/
-template <template <typename, unsigned int> class array_type,
-          template <typename> class vector_type, typename surface_source_link,
-          typename bounds_source_link>
+template <template <typename> class vector_type,
+          template <typename, unsigned int> class array_type,
+          typename surface_source_link, typename bounds_source_link>
 inline index_geometry_data<index_geometry<
-    array_type, vector_type, surface_source_link, bounds_source_link>>
-get_data(index_geometry<array_type, vector_type, surface_source_link,
+    vector_type, array_type, surface_source_link, bounds_source_link>>
+get_data(index_geometry<vector_type, array_type, surface_source_link,
                         bounds_source_link> &geometry) {
     return geometry;
 }

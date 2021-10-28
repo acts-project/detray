@@ -13,15 +13,28 @@
 namespace detray {
 
 __global__ void index_geometry_test_kernel(
-    index_geometry_data<geometry> geometry_data) {}
+    index_geometry_data<geometry> geometry_data,
+    vecmem::data::vector_view<typename geometry::volume_type> output_data) {
 
-void index_geometry_test(index_geometry_data<geometry>& geometry_data) {
+    index_geometry<vecmem::device_vector> g(geometry_data);
+    vecmem::device_vector<typename geometry::volume_type> output_device(
+        output_data);
+
+    for (unsigned int i = 0; i < g.n_volumes(); i++) {
+        output_device[i] = g.volume_by_index(i);
+    }
+}
+
+void index_geometry_test(
+    index_geometry_data<geometry>& geometry_data,
+    vecmem::data::vector_view<typename geometry::volume_type>& output_data) {
 
     int block_dim = 1;
     int thread_dim = 1;
 
     // run the kernel
-    index_geometry_test_kernel<<<block_dim, thread_dim>>>(geometry_data);
+    index_geometry_test_kernel<<<block_dim, thread_dim>>>(geometry_data,
+                                                          output_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
