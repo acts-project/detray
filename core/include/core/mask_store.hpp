@@ -125,7 +125,7 @@ class mask_store {
      */
     template <unsigned int current_id = 0, typename mask_type>
     inline void add_masks(vector_type<mask_type> &masks) noexcept(false) {
-        // and the corresponding masks
+        // Get the mask group that will be updated
         auto &mask_group = std::get<current_id>(_mask_tuple);
 
         if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
@@ -151,7 +151,7 @@ class mask_store {
      */
     template <unsigned int current_id = 0, typename mask_type>
     inline void add_masks(vector_type<mask_type> &&masks) noexcept(false) {
-        // and the corresponding masks
+        // Get the mask group that will be updated
         auto &mask_group = std::get<current_id>(_mask_tuple);
 
         if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
