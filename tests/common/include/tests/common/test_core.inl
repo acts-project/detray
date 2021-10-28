@@ -31,7 +31,6 @@ TEST(ALGEBRA_PLUGIN, surface_base) {
     // Preparatioon work, create a transform
     vector3 z = vector::normalize(vector3{3., 2., 1.});
     vector3 x = vector::normalize(vector3{2., -3., 0.});
-    vector3 y = vector::cross(z, x);
     point3 t{2., 3., 4.};
     transform3 trf(t, z, x);
 

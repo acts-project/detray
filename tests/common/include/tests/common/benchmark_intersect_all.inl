@@ -60,7 +60,7 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
     unsigned int hits = 0;
     unsigned int missed = 0;
 
-    point3 ori = {0., 0., 0.};
+    // point3 ori = {0., 0., 0.};
 
     using detray_context = decltype(d)::transform_store::context;
     detray_context default_context;

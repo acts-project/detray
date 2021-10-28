@@ -99,7 +99,7 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
     axis::circular<> rphi_axis_outer = {
         n_phi, static_cast<scalar>(-volume_outer_r * (M_PI + 0.5 * step_phi)),
         static_cast<scalar>(volume_outer_r * (M_PI - 0.5 * step_phi))};
-    axis::regular<> z_axis_outer = {1, volume_min_z, volume_max_z};
+    // axis::regular<> z_axis_outer = {1, volume_min_z, volume_max_z};
     axis::regular<> r_axis_ecn = {1, volume_inner_r, volume_outer_r};
     axis::circular<> phi_axis_ecn = {
         n_phi, static_cast<scalar>(-M_PI - 0.5 * step_phi),
@@ -208,8 +208,9 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
     axis::circular<> rphi_axis_outer = {
         n_phi, static_cast<scalar>(-volume_outer_r * (M_PI + 0.5 * step_phi)),
         static_cast<scalar>(volume_outer_r * (M_PI - 0.5 * step_phi))};
-    axis::regular<> z_axis_outer = {n_z, static_cast<scalar>(-0.5 * length_z),
-                                    static_cast<scalar>(0.5 * length_z)};
+    // axis::regular<> z_axis_outer = {n_z, static_cast<scalar>(-0.5 *
+    // length_z),
+    //                                static_cast<scalar>(0.5 * length_z)};
     axis::regular<> r_axis_ecn = {1, volume_inner_r, volume_outer_r};
     axis::circular<> phi_axis_ecn = {
         n_phi, static_cast<scalar>(-M_PI - 0.5 * step_phi),

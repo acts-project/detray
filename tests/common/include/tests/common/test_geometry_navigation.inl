@@ -124,10 +124,9 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
 
     unsigned int theta_steps = 100;
     unsigned int phi_steps = 100;
-    const unsigned int itest = 10000;
 
     const point3 ori{0., 0., 0.};
-    dindex start_index = n.detector.volume_by_pos(ori).index();
+    // dindex start_index = n.detector.volume_by_pos(ori).index();
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {

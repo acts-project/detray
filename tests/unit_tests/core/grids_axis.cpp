@@ -123,7 +123,8 @@ TEST(grids, regular_circular_axis) {
 
     // Axis range access - scalar (symmetric & asymmteric)
     darray<scalar, 2> szone00 = {0., 0.};
-    darray<scalar, 2> szoneEpsilon = {0.5 * epsilon, 0.5 * epsilon};
+    darray<scalar, 2> szoneEpsilon = {scalar{0.5} * epsilon,
+                                      scalar{0.5} * epsilon};
     scalar bin_step = (full_pi.max - full_pi.min) / full_pi.bins();
     darray<scalar, 2> szone22 = {2 * bin_step, 2 * bin_step};
 
@@ -154,7 +155,7 @@ TEST(grids, irregular_closed_axis) {
     EXPECT_EQ(nonreg.bin(14), 4u);
 
     // Axis range access - binned  (symmetric & asymmetric)
-    darray<dindex, 2> zone00 = {0u, 0u};
+    // darray<dindex, 2> zone00 = {0u, 0u};
     darray<dindex, 2> zone01 = {0u, 1u};
     darray<dindex, 2> zone11 = {1u, 1u};
     darray<dindex, 2> zone22 = {2u, 2u};
