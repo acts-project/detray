@@ -57,7 +57,7 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
     unsigned int missed = 0;
 
     // point3 ori = {0., 0., 0.};
-    
+
     for (auto _ : state) {
         track<static_transform_store<>::context> track;
         track.pos = point3{0., 0., 0.};

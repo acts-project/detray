@@ -86,11 +86,11 @@ struct enumerator {
 
     /** Build from start index and corresponding iterator - rvalue */
     enumerator(size_t start, const container_type_iter &&iterator)
-        : iter(iterator), i(start) {}
+        : i(start), iter(iterator) {}
 
     /** Build from start index and corresponding iterator - lvalue */
     enumerator(size_t start, const container_type_iter &iterator)
-        : iter(iterator), i(start) {}
+        : i(start), iter(iterator) {}
 
     /** Determine end of iteration */
     bool operator!=(const enumerator &rhs) const { return iter != rhs.iter; }
