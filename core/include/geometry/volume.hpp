@@ -26,6 +26,8 @@ class volume {
     using objects = typename object_ids::bla;
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
+    // used for sfinae
+    using volume_def = volume<object_ids, range_type, array_type>;
 
     /** Contructor with bounds
      * @param bounds of the volume

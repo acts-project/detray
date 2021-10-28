@@ -61,11 +61,38 @@ struct iterator_range {
     container_type_iter _start, _end;
 };
 
-template <typename container_type, typename volume_type>
+/** Get an interator range for the constituents of a volume on their container.
+ *
+ * @tparam container_type the container on which to perform the iteration
+ * @tparam volume_type the type of volume from which to get the range in the
+ *         container
+ *
+ * @param iterable reference to the container
+ * @param volume the volume
+ *
+ * @returns an iterator range on the container, according to the volumes range
+ */
+template <typename container_type, class volume_type,
+          typename volume_definition =
+              typename std::remove_reference_t<volume_type>::volume_def>
 inline constexpr decltype(auto) range(const container_type &iterable,
                                       volume_type &&volume) {
     return iterator_range(
         iterable, volume.template range<typename container_type::value_type>());
+}
+
+/** Overload of the range-function for dindex_range */
+template <typename container_type>
+inline constexpr decltype(auto) range(const container_type &iterable,
+                                      const dindex_range &range) {
+    return iterator_range(iterable, range);
+}
+
+/** Overload of the range-function for a single index */
+template <typename container_type>
+inline constexpr decltype(auto) range(const container_type &iterable,
+                                      const dindex &i) {
+    return iterator_range(iterable, dindex_range{i, i + 1});
 }
 
 /** Helper utility to allow indexed enumeration with structured binding
