@@ -532,10 +532,10 @@ detector_from_csv(const std::string &detector_name,
         dindex izh = v_grid.axis_p1().bin(v_bounds[3] - stepsilon);
         dindex volume_index = v.index();
 
-        auto r_low = v_grid.axis_p0().borders(irl)[0];
+        /*auto r_low = v_grid.axis_p0().borders(irl)[0];
         auto r_high = v_grid.axis_p0().borders(irh)[1];
         auto z_low = v_grid.axis_p1().borders(izl)[0];
-        auto z_high = v_grid.axis_p1().borders(izh)[1];
+        auto z_high = v_grid.axis_p1().borders(izh)[1];*/
 
         bool is_cylinder = std::abs(v_bounds[1] - v_bounds[0]) <
                            std::abs(v_bounds[3] - v_bounds[2]);

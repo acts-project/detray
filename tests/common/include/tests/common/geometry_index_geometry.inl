@@ -30,7 +30,9 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     darray<scalar, 6> bounds_0 = {0., 10., -5., 5., -M_PI, M_PI};
     darray<scalar, 6> bounds_1 = {0., 5., -10., 10., -M_PI, M_PI};
     auto &v0 = g.new_volume(bounds_0);
+    ASSERT_TRUE(v0.index() == 0);
     auto &v1 = g.new_volume(bounds_1);
+    ASSERT_TRUE(v1.index() == 1);
 
     ASSERT_TRUE(g.n_volumes() == 2);
 

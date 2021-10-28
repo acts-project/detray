@@ -174,7 +174,6 @@ int main(int argc, char **argv) {
                             for (dindex iz = 0; iz < z_axis.bins(); ++iz) {
                                 darray<scalar, 2> z_borders =
                                     z_axis.borders(iz);
-                                dindex volume = volume_grid.bin(ir, iz);
 
                                 auto v_dis =
                                     rectangle(z_borders[0], r_borders[0],

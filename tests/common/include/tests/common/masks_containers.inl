@@ -27,7 +27,7 @@ TEST(mask, tuple) {
     std::get<rectangle_masks>(all_masks).push_back({3., 4.});
     std::get<rectangle_masks>(all_masks).push_back({2., 8.});
 
-    auto intersector = std::get<rectangle_masks>(all_masks)[0].intersector();
+    std::get<rectangle_masks>(all_masks)[0].intersector();
 }
 
 int main(int argc, char **argv) {

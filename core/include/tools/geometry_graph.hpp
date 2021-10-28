@@ -124,7 +124,6 @@ class geometry_graph {
             // Add neightbors to queue
             for (size_t edi = edge_range[0]; edi < edge_range[1]; edi++) {
                 // Retrieve the node index the edge points to
-                const auto &egde = _edges[edi];
                 dindex nbr = std::get<0>(_edges[edi].edge());
                 // If not visited, enqueue the node
                 if (not visited[nbr]) {
