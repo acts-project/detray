@@ -154,16 +154,17 @@ inline auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
         std::move(surfaces), std::move(transforms), std::move(masks));
 }
 
-struct object_id {
+// Types for toy geometry
+struct object_registry {
     // Known primitives
-    enum bla : unsigned int {
+    enum id : unsigned int {
         e_object_types = 1,
         e_surface = 0,
         e_any = 0,
         e_unknown = 2,
     };
 
-    template <typename value_type>
+    template <typename value_type = void>
     static constexpr auto get() {
         return e_surface;
     }
@@ -184,16 +185,9 @@ struct object_id {
  */
 auto toy_geometry() {
 
-    // Known primitives
-    /*enum object_id : unsigned int {
-        e_object_types = 1,
-        e_surface = 0,
-        e_portal = 0, // no portal surface distinction
-        e_any = 1,
-    };*/
-
     // Volume type
-    using volume_type = detray::volume<object_id, dindex_range, detray::darray>;
+    using volume_type =
+        detray::volume<object_registry, dindex_range, detray::darray>;
     /// volume index: volume the surface belongs to
     using volume_index = detray::dindex;
     /// transform link: transform entry belonging to surface
