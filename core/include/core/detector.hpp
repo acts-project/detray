@@ -207,17 +207,17 @@ class detector {
      *
      * @param ctx The context of the call
      *
-     * @return ranged a struct that contains references to all relevant
-     *         containers
+     * @return a struct that contains references to all relevant containers.
      */
     const auto data(const context &ctx = {}) const {
         struct data_core {
+            const dvector<volume> &volumes;
             const transform_store &transforms;
             const mask_container &masks;
             const typename geometry::surface_container &surfaces;
             const typename geometry::portal_container &portals;
         };
-        return data_core{_transforms, _masks,
+        return data_core{_geometry.volumes(), _transforms, _masks,
                          _geometry.template objects<object_id::e_surface>(),
                          _geometry.template objects<object_id::e_portal>()};
     }

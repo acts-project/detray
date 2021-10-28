@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <iostream>
 #include <tuple>
 #include <type_traits>
 
@@ -14,11 +15,15 @@
 namespace detray {
 
 /** @brief Struct that implements a range by providing start and end iterators.
+ *
+ * @tparam container_type the container on which to perform the iteration
+ * @tparam volume_type the type of volume from which to get the range in the
+ *         container
  */
 template <typename container_type,
           typename container_type_iter =
-              decltype(std::cbegin(std::declval<container_type>())),
-          typename = decltype(std::cend(std::declval<container_type>()))>
+              decltype(std::begin(std::declval<container_type>())),
+          typename = decltype(std::end(std::declval<container_type>()))>
 struct iterator_range {
     /** Delete default constructor */
     iterator_range() = delete;
@@ -30,9 +35,9 @@ struct iterator_range {
      */
     template <typename range_type>
     iterator_range(const container_type &iterable, range_type &&range)
-        : _start(std::next(std::cbegin(iterable),
+        : _start(std::next(std::begin(iterable),
                            std::get<0>(std::forward<range_type>(range)))),
-          _end(std::next(std::cbegin(iterable),
+          _end(std::next(std::begin(iterable),
                          std::get<1>(std::forward<range_type>(range)))) {}
 
     /** @return start position of range on container. */
@@ -54,11 +59,51 @@ struct iterator_range {
         return *(_start + i);
     }
 
+    /** @return the offset of the range start into the container. */
     inline const auto offset(const container_type &iterable) {
-        return std::distance(_start, std::cbegin(iterable));
+        return std::distance(_start, std::begin(iterable));
     }
+
     /** Start and end position of a range */
     container_type_iter _start, _end;
+};
+
+/** @brief Struct that increments a given iterator in lockstep with the
+ *        iteration index for convenience.
+ *
+ * @tparam container_type the container on which to perform the iteration
+ * @tparam volume_type the type of volume from which to get the range in the
+ *         container
+ */
+template <typename container_type,
+          typename container_type_iter =
+              decltype(std::begin(std::declval<container_type>())),
+          typename = decltype(std::end(std::declval<container_type>()))>
+struct enumerator {
+    /** Start position of iterator */
+    size_t i;
+    /** Iterator on container */
+    container_type_iter iter;
+
+    /** Build from start index and corresponding iterator - rvalue */
+    enumerator(size_t start, const container_type_iter &&iterator)
+        : iter(iterator), i(start) {}
+
+    /** Build from start index and corresponding iterator - lvalue */
+    enumerator(size_t start, const container_type_iter &iterator)
+        : iter(iterator), i(start) {}
+
+    /** Determine end of iteration */
+    bool operator!=(const enumerator &rhs) const { return iter != rhs.iter; }
+
+    /** Increase index and iterator at once */
+    void operator++() {
+        ++i;
+        ++iter;
+    }
+
+    /** Tie them together for returning */
+    auto operator*() const { return std::tie(i, *iter); }
 };
 
 /** Get an interator range for the constituents of a volume on their container.
@@ -72,26 +117,27 @@ struct iterator_range {
  *
  * @returns an iterator range on the container, according to the volumes range
  */
-template <typename container_type, class volume_type,
-          typename volume_definition =
-              typename std::remove_reference_t<volume_type>::volume_def>
-inline constexpr decltype(auto) range(const container_type &iterable,
-                                      volume_type &&volume) {
+template <
+    typename container_type,
+    typename = typename std::remove_reference_t<container_type>::value_type,
+    typename volume_type,
+    typename = typename std::remove_reference_t<volume_type>::volume_def>
+inline constexpr auto range(const container_type &iterable,
+                            volume_type &&volume) {
     return iterator_range(
         iterable, volume.template range<typename container_type::value_type>());
 }
 
 /** Overload of the range-function for dindex_range */
 template <typename container_type>
-inline constexpr decltype(auto) range(const container_type &iterable,
-                                      const dindex_range &range) {
+inline constexpr auto range(const container_type &iterable,
+                            const dindex_range &range) {
     return iterator_range(iterable, range);
 }
 
 /** Overload of the range-function for a single index */
 template <typename container_type>
-inline constexpr decltype(auto) range(const container_type &iterable,
-                                      const dindex &i) {
+inline constexpr auto range(const container_type &iterable, const dindex &i) {
     return iterator_range(iterable, dindex_range{i, i + 1});
 }
 
@@ -108,26 +154,17 @@ template <typename container_type,
               decltype(std::begin(std::declval<container_type>())),
           typename = decltype(std::end(std::declval<container_type>()))>
 constexpr auto enumerate(container_type &&iterable) {
-    struct iterator {
-        size_t i;
-        container_type_iter iter;
 
-        bool operator!=(const iterator &rhs) const { return iter != rhs.iter; }
-
-        /** Increase index and iterator at once */
-        void operator++() {
-            ++i;
-            ++iter;
-        }
-
-        /** Tie them together for returning */
-        auto operator*() const { return std::tie(i, *iter); }
-    };
     struct iterable_wrapper {
         container_type iterable;
-        auto begin() { return iterator{0, std::begin(iterable)}; }
-        auto end() { return iterator{0, std::end(iterable)}; }
+        decltype(auto) begin() {
+            return enumerator<container_type>(0, std::begin(iterable));
+        }
+        decltype(auto) end() {
+            return enumerator<container_type>(0, std::end(iterable));
+        }
     };
+
     return iterable_wrapper{std::forward<container_type>(iterable)};
 }
 
@@ -143,42 +180,28 @@ constexpr auto enumerate(container_type &&iterable) {
  */
 template <typename container_type, typename range_type,
           typename container_type_iter =
-              decltype(std::cbegin(std::declval<container_type>())),
-          typename = decltype(std::cend(std::declval<container_type>()))>
+              decltype(std::begin(std::declval<container_type>())),
+          typename = decltype(std::end(std::declval<container_type>()))>
 constexpr inline auto enumerate(const container_type &iterable,
                                 range_type &&r) {
 
-    struct iterator {
-        size_t i;
-        container_type_iter &iter;
-
-        bool operator!=(const iterator &rhs) const { return iter != rhs.iter; }
-
-        /** Increase index and iterator at once */
-        void operator++() {
-            ++i;
-            ++iter;
-        }
-
-        /** Tie them together for returning */
-        auto operator*() const { return std::tie(i, *iter); }
-    };
     struct iterable_wrapper {
         const container_type_iter iter;
         iterator_range<container_type> range_iter;
 
-        auto begin() {
-            return iterator{
+        decltype(auto) begin() {
+            return enumerator<container_type>(
                 static_cast<size_t>(std::distance(iter, range_iter.begin())),
-                range_iter.begin()};
+                range_iter.begin());
         }
-        auto end() {
-            return iterator{
+        decltype(auto) end() {
+            return enumerator<container_type>(
                 static_cast<size_t>(std::distance(iter, range_iter.begin())),
-                range_iter.end()};
+                range_iter.end());
         }
     };
-    return iterable_wrapper{std::cbegin(iterable),
+
+    return iterable_wrapper{std::begin(iterable),
                             range(iterable, std::forward<range_type>(r))};
 }
 
@@ -195,45 +218,11 @@ constexpr inline auto enumerate(const container_type &iterable,
 constexpr auto sequence(dindex iterable) {
 
     struct iterator {
+        /** Start and end of sequence */
         dindex i;
-
-        bool operator!=(const iterator &rhs) const { return i != rhs.i; }
-
-        /** Increase index and iterator at once */
-        void operator++() { ++i; }
-
-        /** Tie them together for returning */
-        auto operator*() const { return i; }
-    };
-    struct iterable_wrapper {
-        dindex iterable;
-        auto begin() { return iterator{iterable}; }
-        auto end() { return iterator{iterable + 1}; }
-    };
-    return iterable_wrapper{std::forward<dindex>(iterable)};
-}
-
-/** Helper method to run over a range
- *
- * Usage:
- * for (auto i : sequence(r)) {}
- *
- * with r a range that can be accessed with r[0] and r[1]
- *
- * @note sequence({2,4}) will produce { 2, 3, 4 }
- *
- **/
-template <
-    typename array_type,
-    typename = std::enable_if_t<
-        std::conditional_t<std::is_array_v<array_type>, std::extent<array_type>,
-                           std::tuple_size<array_type>>::value == 2U>>
-constexpr auto sequence(array_type iterable) {
-
-    struct iterator {
-        size_t i;
         size_t end;
 
+        /** Determine whether we reach end of sequence */
         bool operator!=(const iterator &rhs) const { return i != rhs.end; }
 
         /** Increase index and iterator at once */
@@ -242,12 +231,63 @@ constexpr auto sequence(array_type iterable) {
         /** Tie them together for returning */
         auto operator*() const { return i; }
     };
+
+    /** Wrap up for iteration */
     struct iterable_wrapper {
-        array_type _iterable;
-        auto begin() { return iterator{_iterable[0], _iterable[1]}; }
-        auto end() { return iterator{_iterable[1] + 1, _iterable[1] + 1}; }
+        dindex iterable;
+        auto begin() { return iterator{iterable, iterable + 1}; }
+        auto end() { return iterator{iterable + 1, iterable + 1}; }
     };
-    return iterable_wrapper{std::forward<array_type>(iterable)};
+
+    return iterable_wrapper{std::forward<dindex>(iterable)};
+}
+
+/** Helper method to run over a range
+ *
+ * Usage:
+ * for (auto i : sequence(r)) {}
+ *
+ * with r an index range (integral) that can be accessed with std::get
+ *
+ * @note sequence({2,4}) will produce { 2, 3, 4 }
+ *
+ **/
+template <
+    typename range_type,
+    typename = std::enable_if_t<std::is_integral_v<std::remove_reference_t<
+        decltype(std::get<0>(std::declval<range_type>()))>>>,
+    typename = std::enable_if_t<std::is_integral_v<std::remove_reference_t<
+        decltype(std::get<1>(std::declval<range_type>()))>>>>
+constexpr auto sequence(range_type range) {
+
+    struct iterator {
+        /** Start and end of sequence */
+        size_t i;
+        size_t end;
+
+        /** Determine whether we reach end of sequence */
+        bool operator!=(const iterator &rhs) const { return i != rhs.end; }
+
+        /** Increase index and iterator at once */
+        void operator++() { ++i; }
+
+        /** Tie them together for returning */
+        auto operator*() const { return i; }
+    };
+
+    /** Wrap up for iteration */
+    struct iterable_wrapper {
+        range_type _iterable;
+        auto begin() {
+            return iterator{std::get<0>(_iterable), std::get<1>(_iterable)};
+        }
+        auto end() {
+            return iterator{std::get<1>(_iterable) + 1,
+                            std::get<1>(_iterable) + 1};
+        }
+    };
+
+    return iterable_wrapper{std::forward<range_type>(range)};
 }
 
 }  // namespace detray
