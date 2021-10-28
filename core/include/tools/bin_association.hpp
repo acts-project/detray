@@ -40,8 +40,7 @@ static inline void bin_association(const context_type &context,
                                    bool absolute_tolerance = true) {
 
     // Get surfaces, transforms and masks
-    constexpr auto surface_id =
-        detector_type::geometry::object_id::bla::e_surface;
+    constexpr auto surface_id = detector_type::object_id::e_surface;
     // Get a detector data core
     const auto &dc = detector.data();
     /*const auto &surface_transforms =

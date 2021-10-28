@@ -17,17 +17,17 @@ namespace detray {
  *
  * @tparam array_type the type of the internal array, must have STL semantics
  */
-template <typename object_ids, typename range_type = dindex_range,
+template <typename object_registry, typename range_type = dindex_range,
           template <typename, unsigned int> class array_type = darray>
 class volume {
 
     public:
     // The type of objects a volume can contain
-    using objects = typename object_ids::bla;
+    using objects = typename object_registry::id;
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
     // used for sfinae
-    using volume_def = volume<object_ids, range_type, array_type>;
+    using volume_def = volume<object_registry, range_type, array_type>;
 
     /** Contructor with bounds
      * @param bounds of the volume
@@ -60,11 +60,12 @@ class volume {
 
     /** @return if the volume is empty or not */
     inline bool empty() const {
-        return n_objects<object_ids::bla::e_surface>() == 0;
+        return n_objects<object_registry::id::e_surface>() == 0;
     }
 
     /** @return the number of surfaces in the volume */
-    template <typename object_ids::bla range_id = object_ids::bla::e_surface>
+    template <
+        typename object_registry::id range_id = object_registry::id::e_surface>
     inline auto n_objects() const {
         return n_in_range(range<range_id>());
     }
@@ -74,7 +75,8 @@ class volume {
      *
      * @param other Surface index range
      */
-    template <typename object_ids::bla range_id = object_ids::bla::e_surface>
+    template <
+        typename object_registry::id range_id = object_registry::id::e_surface>
     inline void set_range(const range_type &other) {
         auto &rg = std::get<range_id>(_ranges);
         // Range not set yet - initialize
@@ -90,12 +92,13 @@ class volume {
     /** @return range of surfaces by surface type - const access */
     template <typename object_type>
     inline constexpr const auto &range() const {
-        constexpr auto index = object_ids::template get<object_type>();
+        constexpr auto index = object_registry::template get<object_type>();
         return std::get<index>(_ranges);
     }
 
     /** @return range of surfaces- const access */
-    template <typename object_ids::bla range_id = object_ids::bla::e_surface>
+    template <
+        typename object_registry::id range_id = object_registry::id::e_surface>
     inline constexpr const auto &range() const {
         return std::get<range_id>(_ranges);
     }
@@ -121,7 +124,7 @@ class volume {
 
     /** Ranges in geometry containers for different objects types that belong
      * to this volume */
-    array_type<range_type, object_ids::bla::e_object_types> _ranges = {};
+    array_type<range_type, object_registry::id::e_object_types> _ranges = {};
 
     /** Index into the surface finder container */
     dindex _surfaces_finder_entry = dindex_invalid;

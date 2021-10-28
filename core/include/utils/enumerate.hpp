@@ -6,7 +6,6 @@
  */
 #pragma once
 
-#include <iostream>
 #include <tuple>
 #include <type_traits>
 
@@ -132,12 +131,14 @@ inline constexpr auto range(const container_type &iterable,
 template <typename container_type>
 inline constexpr auto range(const container_type &iterable,
                             const dindex_range &range) {
+
     return iterator_range(iterable, range);
 }
 
 /** Overload of the range-function for a single index */
 template <typename container_type>
 inline constexpr auto range(const container_type &iterable, const dindex &i) {
+
     return iterator_range(iterable, dindex_range{i, i + 1});
 }
 

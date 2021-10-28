@@ -53,7 +53,7 @@ class geometry_graph {
 
     public:
     // Objects ids of the geometry
-    using object_id = typename geometry::object_id;
+    using object_id = typename geometry::object_registry::id;
 
     // Graph nodes
     using node_t = typename geometry::volume_type;

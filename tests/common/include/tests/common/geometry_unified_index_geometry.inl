@@ -19,7 +19,7 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     using geometry = unified_index_geometry<>;
     using surface = typename geometry::surface;
     using portal = typename geometry::portal;
-    using object_id = geometry::object_id::bla;
+    using object_id = geometry::object_registry::id;
 
     geometry g = geometry();
 

@@ -45,14 +45,6 @@ template <template <typename, unsigned int> class array_type = darray,
 class index_geometry {
 
     public:
-    // Known primitives
-    /*enum object_id : unsigned int {
-        e_object_types = 2,
-        e_surface = 0,
-        e_portal = 1,
-        e_any = 1,  // defaults to portal
-    };*/
-
     /** Encodes the position in a collection container for the respective
         mask type . */
     enum mask_id : unsigned int {
@@ -133,9 +125,9 @@ class index_geometry {
     using portal_filling_container =
         array_type<vector_type<portal>, e_mask_types>;
 
-    struct object_id {
+    struct object_registry {
         // Known primitives
-        enum bla : unsigned int {
+        enum id : unsigned int {
             e_object_types = 2,
             e_surface = 0,
             e_portal = 1,
@@ -156,7 +148,7 @@ class index_geometry {
     };
 
     // Volume type
-    using volume_type = volume<object_id, dindex_range, array_type>;
+    using volume_type = volume<object_registry, dindex_range, array_type>;
 
     /** Default constructor */
     index_geometry() = default;
@@ -197,9 +189,10 @@ class index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <enum object_id::bla object_type = object_id::bla::e_surface>
+    template <
+        enum object_registry::id object_type = object_registry::id::e_surface>
     inline size_t n_objects() const {
-        if constexpr (object_type == object_id::bla::e_surface) {
+        if constexpr (object_type == object_registry::id::e_surface) {
             return _surfaces.size();
         } else {
             return _portals.size();
@@ -207,9 +200,10 @@ class index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <enum object_id::bla object_type = object_id::bla::e_surface>
+    template <
+        enum object_registry::id object_type = object_registry::id::e_surface>
     inline constexpr const auto &objects() const {
-        if constexpr (object_type == object_id::bla::e_surface) {
+        if constexpr (object_type == object_registry::id::e_surface) {
             return _surfaces;
         } else {
             return _portals;
@@ -260,14 +254,14 @@ class index_geometry {
             _surfaces.reserve(_surfaces.size() + objects.size());
             _surfaces.insert(_surfaces.end(), objects.begin(), objects.end());
 
-            volume.template set_range<object_id::bla::e_surface>(
+            volume.template set_range<object_registry::id::e_surface>(
                 {offset, _surfaces.size()});
         } else {
             const auto offset = _portals.size();
             _portals.reserve(_portals.size() + objects.size());
             _portals.insert(_portals.end(), objects.begin(), objects.end());
 
-            volume.template set_range<object_id::bla::e_portal>(
+            volume.template set_range<object_registry::id::e_portal>(
                 {offset, _portals.size()});
         }
     }

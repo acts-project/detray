@@ -47,7 +47,7 @@ class unified_index_geometry {
 
     public:
     // Known primitives
-    /*enum object_id : unsigned int {
+    /*enum object_registry : unsigned int {
         e_object_types = 1,
         e_surface = 0,
         e_portal = 0,  // not used (same as surface)
@@ -116,9 +116,9 @@ class unified_index_geometry {
         array_type<vector_type<surface>, e_mask_types>;
     using portal_filling_container = surface_filling_container;
 
-    struct object_id {
+    struct object_registry {
         // Known primitives
-        enum bla : unsigned int {
+        enum id : unsigned int {
             e_object_types = 1,
             e_surface = 0,
             e_portal = 0,  // not used (same as surface)
@@ -136,7 +136,7 @@ class unified_index_geometry {
     };
 
     // Volume type
-    using volume_type = volume<object_id, dindex_range, array_type>;
+    using volume_type = volume<object_registry, dindex_range, array_type>;
 
     /** Default constructor */
     unified_index_geometry() = default;
@@ -183,13 +183,13 @@ class unified_index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <typename object_id::bla id = object_id::bla::e_surface>
+    template <typename object_registry::id id = object_registry::id::e_surface>
     inline size_t n_objects() const {
         return _objects.size();
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <typename object_id::bla = object_id::bla::e_surface>
+    template <typename object_registry::id = object_registry::id::e_surface>
     inline constexpr const auto &objects() const {
         return _objects;
     }
