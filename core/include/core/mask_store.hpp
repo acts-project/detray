@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <type_traits>
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 
@@ -100,7 +101,7 @@ class mask_store {
      * @return vector of masks of a given type.
      */
     template <unsigned int mask_id>
-    DETRAY_HOST_DEVICE const auto &group() const {
+    DETRAY_HOST_DEVICE constexpr const auto &group() const {
         return __tuple::get<mask_id>(_mask_tuple);
     }
 
@@ -156,14 +157,22 @@ class mask_store {
      *
      * @note in general can throw an exception
      */
-    template <unsigned int mask_id, typename mask_type>
-    DETRAY_HOST void add_masks(const vector_type<mask_type> &masks) noexcept(
+    template <unsigned int current_id = 0, typename mask_type>
+    DETRAY_HOST inline void add_masks(vector_type<mask_type> &masks) noexcept(
         false) {
         // Get the mask group that will be updated
-        auto &mask_group = __tuple::get<mask_id>(_mask_tuple);
-        // Reserve memory and copy new masks
-        mask_group.reserve(mask_group.size() + masks.size());
-        mask_group.insert(mask_group.end(), masks.begin(), masks.end());
+        auto &mask_group = __tuple::get<current_id>(_mask_tuple);
+
+        if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
+            // Reserve memory and copy new masks
+            mask_group.reserve(mask_group.size() + masks.size());
+            mask_group.insert(mask_group.end(), masks.begin(), masks.end());
+        }
+
+        // Next mask type
+        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+            return add_masks<current_id + 1>(masks);
+        }
     }
 
     /** Add a new bunch of masks - move semantics
@@ -175,35 +184,44 @@ class mask_store {
      *
      * @note in general can throw an exception
      */
-    template <unsigned int mask_id, typename mask_type>
-    DETRAY_HOST void add_masks(vector_type<mask_type> &&masks) noexcept(false) {
+    template <unsigned int current_id = 0, typename mask_type>
+    DETRAY_HOST inline void add_masks(vector_type<mask_type> &&masks) noexcept(
+        false) {
         // Get the mask group that will be updated
-        auto &mask_group = __tuple::get<mask_id>(_mask_tuple);
-        // Reserve memory and copy new masks
-        mask_group.reserve(mask_group.size() + masks.size());
-        mask_group.insert(mask_group.end(), masks.begin(), masks.end());
-        // std::make_move_iterator(masks.begin()),
-        // std::make_move_iterator(masks.end()));
+        auto &mask_group = __tuple::get<current_id>(_mask_tuple);
+
+        if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
+            // Reserve memory and copy new masks
+            mask_group.reserve(mask_group.size() + masks.size());
+            mask_group.insert(mask_group.end(),
+                              std::make_move_iterator(masks.begin()),
+                              std::make_move_iterator(masks.end()));
+        }
+
+        // Next mask type
+        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+            return add_masks<current_id + 1>(masks);
+        }
     }
 
     /** Append a mask store to the current one
      *
-     * @tparam current_index to start unrolling at
+     * @tparam current_index to start unrolling at (if the mask id is known,
+     *         unrolling can be started there)
      *
      * @param other The other mask store, move semantics
      *
      * @note in general can throw an exception
      */
-    template <unsigned int current_index = 0>
+    template <unsigned int current_id = 0>
     DETRAY_HOST inline void append_masks(mask_store &&other) {
         // Add masks to current group
-        auto &mask_group = __tuple::get<current_index>(other);
-        add_masks<current_index>(mask_group);
+        auto &mask_group = __tuple::get<current_id>(other);
+        add_masks(mask_group);
 
         // Next mask type
-        if constexpr (current_index <
-                      __tuple::tuple_size<mask_tuple>::value - 1) {
-            return append_masks<current_index + 1>(other);
+        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+            return append_masks<current_id + 1>(other);
         }
     }
 

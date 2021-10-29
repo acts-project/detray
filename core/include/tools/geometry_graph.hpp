@@ -53,7 +53,7 @@ class geometry_graph {
 
     public:
     // Objects ids of the geometry
-    using object_id = typename geometry::known_objects;
+    using object_id = typename geometry::object_registry_type::id;
 
     // Graph nodes
     using node_t = typename geometry::volume_type;
@@ -124,7 +124,6 @@ class geometry_graph {
             // Add neightbors to queue
             for (size_t edi = edge_range[0]; edi < edge_range[1]; edi++) {
                 // Retrieve the node index the edge points to
-                const auto &egde = _edges[edi];
                 dindex nbr = std::get<0>(_edges[edi].edge());
                 // If not visited, enqueue the node
                 if (not visited[nbr]) {

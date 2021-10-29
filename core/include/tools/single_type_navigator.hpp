@@ -264,16 +264,17 @@ class single_type_navigator {
         // If there is no_trust (e.g. at the beginning of the navigation in a
         // volume), the kernel will be initialized. Otherwise the candidates
         // are re-evaluated based on current trust level
-        update_kernel(navigation, track,
-                      _volumes[navigation.volume()].full_range());
+        update_kernel(navigation, track, _volumes[navigation.volume()]);
 
         // Should never be the case after update call (without portals we are
         // trapped)
         if (navigation.kernel().empty()) {
             return navigation.abort();
         }
+
         // Did we hit a portal? (kernel needs to be re-initialized next time)
         check_volume_switch(navigation);
+
         // Call the inspector before returning
         navigation.inspector();
 
@@ -311,22 +312,24 @@ class single_type_navigator {
      *
      * @param navigation [in, out] navigation state that contains the kernel
      * @param track the track information
-     * @param obj_range the surface/portal index range in the objects conatiner
+     * @param volume the current tracking volume
      *
      */
-    template <typename track_t, typename range_t>
-    inline void initialize_kernel(state &navigation, const track_t &track,
-                                  const range_t &obj_range) const {
+    template <typename track_t>
+    inline void initialize_kernel(
+        state &navigation, const track_t &track,
+        const typename volume_container::value_type &volume) const {
 
         // Get the max number of candidates & run them through the kernel
-        navigation.candidates().reserve(obj_range[1] - obj_range[0]);
+        navigation.candidates().reserve(volume.n_objects());
 
-        // Loop over all indexed objects, intersect and fill
+        // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
-        for (size_t obj_idx = obj_range[0]; obj_idx < obj_range[1]; obj_idx++) {
+        for (const auto [obj_idx, obj] : enumerate(_objects, volume)) {
+
             // Retrieve candidate from the object
-            auto sfi = intersect(track, _objects[obj_idx], _transforms, _masks,
-                                 navigation.links());
+            auto sfi =
+                intersect(track, obj, _transforms, _masks, navigation.links());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < track.overstep_tolerance) {
@@ -337,7 +340,7 @@ class single_type_navigator {
                 // object the candidate belongs to
                 sfi.index = obj_idx;
                 // the next volume if we encounter the candidate
-                sfi.link = std::get<0>(_objects[obj_idx].edge());
+                sfi.link = std::get<0>(obj.edge());
                 navigation.candidates().push_back(sfi);
             }
         }
@@ -354,16 +357,17 @@ class single_type_navigator {
      *
      * @param navigation [in, out] navigation state that contains the kernel
      * @param track the track information
-     * @param obj_range the surface/portal index range in the objects conatiner
+     * @param volume the current tracking volume
      *
      * @return A boolean condition if kernel is exhausted or not
      */
-    template <typename track_t, typename range_t>
-    inline void update_kernel(state &navigation, const track_t &track,
-                              const range_t &obj_range) const {
+    template <typename track_t>
+    inline void update_kernel(
+        state &navigation, const track_t &track,
+        const typename volume_container::value_type &volume) const {
 
         if (navigation.trust_level() == e_no_trust) {
-            initialize_kernel(navigation, track, obj_range);
+            initialize_kernel(navigation, track, volume);
             return;
         }
         // Update current candidate, or close neighbors
@@ -425,6 +429,7 @@ class single_type_navigator {
     inline void set_next(state &navigation) const {
 
         auto &kernel = navigation._kernel;
+
         // Sort distance to next & set navigation status
         if (not kernel.candidates.empty()) {
 

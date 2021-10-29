@@ -61,7 +61,8 @@ TEST(utils, range) {
     dvector<int> seq = {0, 1, 2, 3, 4, 5};
 
     size_t i = 1;
-    for (const auto &v : range_iter(seq, std::array<size_t, 2>{begin, end})) {
+    for (const auto &v :
+         iterator_range(seq, std::array<size_t, 2>{begin, end})) {
         ASSERT_NE(v, 5);
         ASSERT_EQ(v, seq[i++]);
     }

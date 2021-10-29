@@ -19,14 +19,15 @@ TEST(unified_index_geometry_cuda, unified_index_geometry) {
     geometry g = geometry(mng_mr);
 
     ASSERT_TRUE(g.n_volumes() == 0);
-    ASSERT_TRUE(g.template n_objects<geometry::e_surface>() == 0);
-    ASSERT_TRUE(g.template n_objects<geometry::e_portal>() == 0);
+    ASSERT_TRUE(g.n_objects() == 0);
 
     // Add two volumes
     darray<scalar, 6> bounds_0 = {0., 10., -5., 5., -M_PI, M_PI};
     darray<scalar, 6> bounds_1 = {0., 5., -10., 10., -M_PI, M_PI};
     auto &v0 = g.new_volume(bounds_0);
+    ASSERT_TRUE(v0.index() == 0);
     auto &v1 = g.new_volume(bounds_1);
+    ASSERT_TRUE(v1.index() == 1);
 
     ASSERT_TRUE(g.n_volumes() == 2);
 
@@ -102,24 +103,19 @@ TEST(unified_index_geometry_cuda, unified_index_geometry) {
     dvector<surface> surfaces_vol0 = {sf0, sf1};
     dvector<surface> surfaces_vol1 = {sf2, sf3};
 
-    g.template add_objects<geometry::e_portal>(v2, portals_vol0);
-    g.template add_objects<geometry::e_surface>(v2, surfaces_vol0);
-    g.template add_objects<geometry::e_portal>(v3, portals_vol1);
-    g.template add_objects<geometry::e_surface>(v3, surfaces_vol1);
+    g.add_objects(v2, portals_vol0);
+    g.add_objects(v2, surfaces_vol0);
+    g.add_objects(v3, portals_vol1);
+    g.add_objects(v3, surfaces_vol1);
 
     // Are the surfaces/portals filled correctly?
-    ASSERT_EQ(g.template n_objects<geometry::e_portal>(), 11);
-    ASSERT_EQ(g.template n_objects<geometry::e_surface>(), 11);
+    ASSERT_EQ(g.n_objects(), 11);
 
     // Are the ranges updated correctly?
-    auto objects_range = darray<dindex, 2>{0, 3};
-    ASSERT_TRUE(v2.template range<geometry::e_portal>() == objects_range);
-    objects_range = darray<dindex, 2>{3, 5};
-    ASSERT_TRUE(v2.template range<geometry::e_surface>() == objects_range);
-    objects_range = darray<dindex, 2>{5, 9};
-    ASSERT_TRUE(v3.template range<geometry::e_portal>() == objects_range);
-    objects_range = darray<dindex, 2>{9, 11};
-    ASSERT_TRUE(v3.template range<geometry::e_surface>() == objects_range);
+    auto objects_range = darray<dindex, 2>{0, 5};
+    ASSERT_TRUE(v2.range() == objects_range);
+    objects_range = darray<dindex, 2>{5, 11};
+    ASSERT_TRUE(v3.range() == objects_range);
 
     // output volume for host
     vecmem::vector<typename geometry::volume_type> output_host(g.n_volumes(),
@@ -146,7 +142,9 @@ TEST(unified_index_geometry_cuda, unified_index_geometry) {
         const auto &volume_device = output_device[i];
 
         ASSERT_EQ(volume_host.index(), volume_device.index());
-        ASSERT_EQ(volume_host.range<true>(), volume_device.range<true>());
-        ASSERT_EQ(volume_host.range<false>(), volume_device.range<false>());
+        ASSERT_EQ(volume_host.ranges(), volume_device.ranges());
+        ASSERT_EQ(volume_host.bounds(), volume_device.bounds());
+        ASSERT_EQ(volume_host.surfaces_finder_entry(),
+                  volume_device.surfaces_finder_entry());
     }
 }

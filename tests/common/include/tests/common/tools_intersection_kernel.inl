@@ -33,11 +33,7 @@ TEST(tools, intersection_kernel_single) {
         trapezoid2<planar_intersector, __plugin::cartesian2, mask_link, 1>;
     using surface_annulus =
         annulus2<planar_intersector, __plugin::cartesian2, mask_link, 2>;
-    using surface_cylinder = cylinder3<false, cylinder_intersector,
-                                       __plugin::cylindrical2, mask_link, 3>;
-    using surface_concentric_cylinder =
-        cylinder3<false, concentric_cylinder_intersector<>,
-                  __plugin::cylindrical2, mask_link, 4>;
+
     /// - mask index: type, entry
     using surface_mask_index = darray<dindex, 2>;
     using surface_mask_container =

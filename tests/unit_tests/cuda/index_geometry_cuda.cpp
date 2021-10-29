@@ -19,14 +19,16 @@ TEST(index_geometry_cuda, index_geometry) {
     geometry g = geometry(mng_mr);
 
     ASSERT_TRUE(g.n_volumes() == 0);
-    ASSERT_TRUE(g.template n_objects<geometry::e_surface>() == 0);
-    ASSERT_TRUE(g.template n_objects<geometry::e_portal>() == 0);
+    ASSERT_TRUE(g.template n_objects<object_id::e_surface>() == 0);
+    ASSERT_TRUE(g.template n_objects<object_id::e_portal>() == 0);
 
     // Add two volumes
     darray<scalar, 6> bounds_0 = {0., 10., -5., 5., -M_PI, M_PI};
     darray<scalar, 6> bounds_1 = {0., 5., -10., 10., -M_PI, M_PI};
     auto &v0 = g.new_volume(bounds_0);
+    ASSERT_TRUE(v0.index() == 0);
     auto &v1 = g.new_volume(bounds_1);
+    ASSERT_TRUE(v1.index() == 1);
 
     ASSERT_TRUE(g.n_volumes() == 2);
 
@@ -81,12 +83,12 @@ TEST(index_geometry_cuda, index_geometry) {
     g.update_mask_link(sf2, mask_offset_rect);
     g.update_mask_link(sf3, mask_offset_trap);
 
-    ASSERT_EQ(__tuple::get<1>(pt3.mask())[0], 1);
-    ASSERT_EQ(__tuple::get<1>(pt3.mask())[1], 2);
-    ASSERT_EQ(__tuple::get<1>(pt4.mask())[0], 2);
-    ASSERT_EQ(__tuple::get<1>(pt4.mask())[1], 3);
-    ASSERT_EQ(__tuple::get<1>(sf2.mask()), 1);
-    ASSERT_EQ(__tuple::get<1>(sf3.mask()), 1);
+    ASSERT_EQ(std::get<1>(pt3.mask())[0], 1);
+    ASSERT_EQ(std::get<1>(pt3.mask())[1], 2);
+    ASSERT_EQ(std::get<1>(pt4.mask())[0], 2);
+    ASSERT_EQ(std::get<1>(pt4.mask())[1], 3);
+    ASSERT_EQ(std::get<1>(sf2.mask()), 1);
+    ASSERT_EQ(std::get<1>(sf3.mask()), 1);
 
     /// fill surfaces and portals (through volume alias names)
     dvector<portal> portals_vol0 = {pt0, pt1, pt2};
@@ -94,24 +96,24 @@ TEST(index_geometry_cuda, index_geometry) {
     dvector<surface> surfaces_vol0 = {sf0, sf1};
     dvector<surface> surfaces_vol1 = {sf2, sf3};
 
-    g.template add_objects<geometry::e_portal>(v2, portals_vol0);
-    g.template add_objects<geometry::e_surface>(v2, surfaces_vol0);
-    g.template add_objects<geometry::e_portal>(v3, portals_vol1);
-    g.template add_objects<geometry::e_surface>(v3, surfaces_vol1);
+    g.add_objects(v2, portals_vol0);
+    g.add_objects(v2, surfaces_vol0);
+    g.add_objects(v3, portals_vol1);
+    g.add_objects(v3, surfaces_vol1);
 
     // Are the surfaces/portals filled correctly?
-    ASSERT_EQ(g.template n_objects<geometry::e_portal>(), 5);
-    ASSERT_EQ(g.template n_objects<geometry::e_surface>(), 4);
+    ASSERT_EQ(g.template n_objects<object_id::e_portal>(), 5);
+    ASSERT_EQ(g.template n_objects<object_id::e_surface>(), 4);
 
     // Are the ranges updated correctly?
     auto objects_range = darray<dindex, 2>{0, 3};
-    ASSERT_TRUE(v2.template range<geometry::e_portal>() == objects_range);
+    ASSERT_TRUE(v2.template range<object_id::e_portal>() == objects_range);
     objects_range = darray<dindex, 2>{0, 2};
-    ASSERT_TRUE(v2.template range<geometry::e_surface>() == objects_range);
+    ASSERT_TRUE(v2.template range<object_id::e_surface>() == objects_range);
     objects_range = darray<dindex, 2>{3, 5};
-    ASSERT_TRUE(v3.template range<geometry::e_portal>() == objects_range);
+    ASSERT_TRUE(v3.template range<object_id::e_portal>() == objects_range);
     objects_range = darray<dindex, 2>{2, 4};
-    ASSERT_TRUE(v3.template range<geometry::e_surface>() == objects_range);
+    ASSERT_TRUE(v3.template range<object_id::e_surface>() == objects_range);
 
     // output volume for host
     vecmem::vector<typename geometry::volume_type> output_host(g.n_volumes(),
@@ -139,7 +141,9 @@ TEST(index_geometry_cuda, index_geometry) {
         const auto &volume_device = output_device[i];
 
         ASSERT_EQ(volume_host.index(), volume_device.index());
-        ASSERT_EQ(volume_host.range<true>(), volume_device.range<true>());
-        ASSERT_EQ(volume_host.range<false>(), volume_device.range<false>());
+        ASSERT_EQ(volume_host.ranges(), volume_device.ranges());
+        ASSERT_EQ(volume_host.bounds(), volume_device.bounds());
+        ASSERT_EQ(volume_host.surfaces_finder_entry(),
+                  volume_device.surfaces_finder_entry());
     }
 }

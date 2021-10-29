@@ -104,14 +104,14 @@ int main(int argc, char **argv) {
 
             // Surface finders, volume, bounds
             auto surfaces_finders = d.surfaces_finders();
-            const auto &lvolume = d.indexed_volume(lvol);
+            const auto &lvolume = d.volume_by_index(lvol);
             const auto &bounds = lvolume.bounds();
             bool is_cylinder = std::abs(bounds[1] - bounds[0]) <
                                std::abs(bounds[3] - bounds[2]);
-            const auto &sf_range = lvolume.template range<>();
+            const auto &sf_range = lvolume.range();
 
             dindex finder_entry = lvolume.surfaces_finder_entry();
-            const auto &surfaces = d.surfaces();
+            const auto &surfaces = d.objects();
             const auto &surface_transforms = d.transforms(sf_range, s_context);
             const auto &surface_masks = d.masks();
 
@@ -150,8 +150,7 @@ int main(int argc, char **argv) {
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         surface_masks, mask_range, mask_context,
                         std::make_integer_sequence<
-                            dindex, std::tuple_size_v<decltype(
-                                        d)::surface_mask_container>>{});
+                            dindex, decltype(d)::mask_id::e_mask_types>{});
 
                     for (auto &vertices : vertices_per_masks) {
                         if (not vertices.empty()) {
@@ -231,8 +230,7 @@ int main(int argc, char **argv) {
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         surface_masks, mask_range, mask_context,
                         std::make_integer_sequence<
-                            dindex, std::tuple_size_v<decltype(
-                                        d)::surface_mask_container>>{});
+                            dindex, decltype(d)::mask_id::e_mask_types>{});
 
                     for (auto &vertices : vertices_per_masks) {
 

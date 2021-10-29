@@ -17,6 +17,7 @@ __global__ void index_geometry_test_kernel(
     vecmem::data::vector_view<typename geometry::volume_type> output_data) {
 
     index_geometry<vecmem::device_vector> g(geometry_data);
+
     vecmem::device_vector<typename geometry::volume_type> output_device(
         output_data);
 
@@ -33,9 +34,10 @@ void index_geometry_test(
     int thread_dim = 1;
 
     // run the kernel
+    /*
     index_geometry_test_kernel<<<block_dim, thread_dim>>>(geometry_data,
                                                           output_data);
-
+    */
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());

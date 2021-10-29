@@ -7,6 +7,7 @@
 #pragma once
 
 #include <iterator>
+#include <type_traits>
 #include <utility>
 
 #include "core/mask_store.hpp"
@@ -18,6 +19,30 @@
 #include "utils/indexing.hpp"
 
 namespace detray {
+
+template <typename surface_type, typename portal_type>
+struct object_registry {
+    // Known primitives
+    enum id : unsigned int {
+        e_object_types = 2,
+        e_surface = 0,
+        e_portal = 1,
+        e_any = 1,  // defaults to portal
+        e_unknown = 3,
+    };
+
+    template <typename value_type>
+    DETRAY_HOST_DEVICE static constexpr auto get() {
+        if constexpr (std::is_same_v<value_type, surface_type>) {
+            return e_surface;
+        }
+        if constexpr (std::is_same_v<value_type, portal_type>) {
+            return e_portal;
+        }
+        return e_unknown;
+    }
+};
+
 /**
  * @brief Index geometry implementation
  *
@@ -43,13 +68,6 @@ template <template <typename> class vector_type = dvector,
 class index_geometry {
 
     public:
-    // Known primitives
-    enum known_objects : bool {
-        e_surface = true,
-        e_portal = false,
-        e_any = false,  // defaults to portal
-    };
-
     /** Encodes the position in a collection container for the respective
         mask type . */
     enum mask_id : unsigned int {
@@ -64,9 +82,6 @@ class index_geometry {
         e_unknown = std::numeric_limits<unsigned int>::max(),
     };
 
-    // Volume type
-    using volume_type = volume<array_type>;
-
     /// Portals components:
     /// - links:  next volume, next (local) object finder
     using portal_links = array_type<dindex, 2>;
@@ -77,7 +92,7 @@ class index_geometry {
     using portal_disc = ring2<planar_intersector, __plugin::cartesian2,
                               portal_links, e_portal_ring2>;
     // - mask index: type, { first/last }
-    using portal_mask_index = __tuple::tuple<dindex, array_type<dindex, 2>>;
+    using portal_mask_index = std::tuple<dindex, array_type<dindex, 2>>;
 
     /** The Portal definition:
      *  <transform_link, mask_index, volume_link, source_link >
@@ -133,7 +148,13 @@ class index_geometry {
     using portal_filling_container =
         array_type<vector_type<portal>, e_mask_types>;
 
-    /** Default constructor **/
+    // object type
+    using object_registry_type = object_registry<surface, portal>;
+
+    // Volume type
+    using volume_type = volume<object_registry_type, dindex_range, array_type>;
+
+    /** Default constructor */
     index_geometry() = default;
 
     /** Constructor with vecmem memory resource **/
@@ -196,29 +217,32 @@ class index_geometry {
     }
 
     /** @return all surfaces/portals in the geometry */
-    template <bool get_surface = true>
+    template <enum object_registry_type::id object_type =
+                  object_registry_type::id::e_surface>
     DETRAY_HOST_DEVICE inline size_t n_objects() const {
-        if constexpr (get_surface) {
+        if constexpr (object_type == object_registry_type::id::e_surface) {
             return _surfaces.size();
         } else {
             return _portals.size();
         }
     }
 
-    /** @return all surfaces/portals in the geometry (const) */
-    template <bool get_surface = true>
-    DETRAY_HOST_DEVICE inline const auto &objects() const {
-        if constexpr (get_surface) {
+    /** @return all surfaces/portals in the geometry - const */
+    template <enum object_registry_type::id object_type =
+                  object_registry_type::id::e_surface>
+    DETRAY_HOST_DEVICE inline constexpr const auto &objects() const {
+        if constexpr (object_type == object_registry_type::id::e_surface) {
             return _surfaces;
         } else {
             return _portals;
         }
     }
 
-    /** @return all surfaces/portals in the geometry (non-const) */
-    template <bool get_surface = true>
+    /** @return all surfaces/portals in the geometry - non - const */
+    template <enum object_registry_type::id object_type =
+                  object_registry_type::id::e_surface>
     DETRAY_HOST_DEVICE inline auto &objects() {
-        if constexpr (get_surface) {
+        if constexpr (object_type == object_registry_type::id::e_surface) {
             return _surfaces;
         } else {
             return _portals;
@@ -242,31 +266,21 @@ class index_geometry {
      */
     DETRAY_HOST
     inline void update_mask_link(portal &pt, const dindex mask_offset) {
-        auto &portal_mask_index = __tuple::get<1>(pt.mask());
+        auto &portal_mask_index = std::get<1>(pt.mask());
         portal_mask_index[0] += mask_offset;
         portal_mask_index[1] += mask_offset;
     }
 
-    /** Update the transform link of a surface when filling into a large
+    /** Update the transform link of a surface/portal when filling into a large
      * container
      *
      * @param sf the surface
      * @param trsf_offset the offset that will be added to the links
      */
-    DETRAY_HOST
-    inline void update_transform_link(surface &sf, const dindex trsf_offset) {
-        sf.transform() += trsf_offset;
-    }
-
-    /** Update the transform link of a portal when filling into a large
-     * container
-     *
-     * @param pt the portal
-     * @param trsf_offset the offset that will be added to the links
-     */
-    DETRAY_HOST
-    inline void update_transform_link(portal &pt, const dindex trsf_offset) {
-        pt.transform() += trsf_offset;
+    template <typename object_t>
+    DETRAY_HOST inline void update_transform_link(object_t &obj,
+                                                  const dindex trsf_offset) {
+        obj.transform() += trsf_offset;
     }
 
     /** Add objects (surfaces/portals) to the geometry
@@ -274,26 +288,28 @@ class index_geometry {
      * @param volume the volume the objects belong to
      * @param surfaces the surfaces that will be filled into the volume
      */
-    template <bool add_surfaces = true, typename object_container>
+    template <typename object_t>
     DETRAY_HOST inline void add_objects(volume_type &volume,
-                                        const object_container &objects) {
-        if constexpr (add_surfaces) {
+                                        const vector_type<object_t> &objects) {
+        if constexpr (std::is_same_v<object_t, surface>) {
             const auto offset = _surfaces.size();
             _surfaces.reserve(_surfaces.size() + objects.size());
             _surfaces.insert(_surfaces.end(), objects.begin(), objects.end());
 
-            volume.template set_range<e_surface>({offset, _surfaces.size()});
+            volume.template set_range<object_registry_type::id::e_surface>(
+                {offset, _surfaces.size()});
         } else {
             const auto offset = _portals.size();
             _portals.reserve(_portals.size() + objects.size());
             _portals.insert(_portals.end(), objects.begin(), objects.end());
 
-            volume.template set_range<e_portal>({offset, _portals.size()});
+            volume.template set_range<object_registry_type::id::e_portal>(
+                {offset, _portals.size()});
         }
     }
 
     private:
-    /** Contains the geometrical relations*/
+    /** Contains the geometrical relations */
     vector_type<volume_type> _volumes = {};
 
     /** All surfaces and portals in the geometry in contigous memory */
@@ -311,8 +327,10 @@ struct index_geometry_data {
 
     index_geometry_data(index_geometry_t &geometry)
         : _volumes_data(vecmem::get_data(geometry.volumes())),
-          _surfaces_data(vecmem::get_data(geometry.template objects<true>())),
-          _portals_data(vecmem::get_data(geometry.template objects<false>())) {}
+          _surfaces_data(vecmem::get_data(
+              geometry.template objects<volume_type::objects::e_surface>())),
+          _portals_data(vecmem::get_data(
+              geometry.template objects<volume_type::objects::e_portal>())) {}
 
     vecmem::data::vector_view<volume_type> _volumes_data;
     vecmem::data::vector_view<surface> _surfaces_data;

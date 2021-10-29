@@ -30,6 +30,7 @@ namespace detray {
 using geometry = index_geometry<>;
 using surface = typename geometry::surface;
 using portal = typename geometry::portal;
+using object_id = geometry::object_registry_type::id;
 
 /// test function for index geometry
 void index_geometry_test(
