@@ -40,9 +40,7 @@ static inline void bin_association(const context_type &context,
                                    bool absolute_tolerance = true) {
 
     // Get surfaces, transforms and masks
-    const auto &surfaces = detector.surfaces();
-    const auto &surface_transforms = detector.transforms(
-        volume.template range<detector_type::geometry::e_surface>(), context);
+    const auto &dc = detector.data();
     const auto &surface_masks = detector.masks();
 
     const auto &bounds = volume.bounds();
@@ -81,16 +79,12 @@ static inline void bin_association(const context_type &context,
                     phi_borders[0] - phi_add, phi_borders[1] + phi_add);
 
                 // Run through the surfaces and associate them by contour
-                const auto &sf_range = volume.template range<true>();
-                for (auto is = sf_range[0]; is < sf_range[1]; is++)
-                // for (auto [is, s] : enumerate(surfaces.objects()))
-                {
-                    const auto &s = surfaces[is];
+                for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
                     dvector<point3> vertices = {};
-                    const auto &mask_link = s.mask();
+                    const auto &mask_link = sf.mask();
 
                     // Unroll the mask container and generate vertices
-                    const auto &transform = surface_transforms[s.transform()];
+                    const auto &transform = dc.transforms[sf.transform()];
 
                     const auto &mask_context = std::get<0>(mask_link);
                     const auto &mask_range = std::get<1>(mask_link);
@@ -116,7 +110,7 @@ static inline void bin_association(const context_type &context,
                             // The association has worked
                             if (cgs_assoc(bin_contour, surface_contour) or
                                 edges_assoc(bin_contour, surface_contour)) {
-                                dindex bin_index = is;
+                                dindex bin_index = isf;
                                 grid.populate(bin_0, bin_1,
                                               std::move(bin_index));
                                 break;
@@ -161,16 +155,12 @@ static inline void bin_association(const context_type &context,
                                                    p3_bin};
 
                 // Loop over the surfaces within a volume
-                const auto &sf_range = volume.template range<true>();
-                for (auto is = sf_range[0]; is < sf_range[1]; is++)
-                // for (auto [is, s] : enumerate(surfaces.objects()))
-                {
-                    const auto &s = surfaces[is];
+                for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
                     dvector<point3> vertices = {};
-                    const auto &mask_link = s.mask();
+                    const auto &mask_link = sf.mask();
 
                     // Unroll the mask container and generate vertices
-                    const auto &transform = surface_transforms[s.transform()];
+                    const auto &transform = dc.transforms[sf.transform()];
 
                     const auto &mask_context = std::get<0>(mask_link);
                     const auto &mask_range = std::get<1>(mask_link);
@@ -244,7 +234,7 @@ static inline void bin_association(const context_type &context,
 
                             // Register if associated
                             if (associated) {
-                                dindex bin_index = is;
+                                dindex bin_index = isf;
                                 grid.populate(bin_0, bin_1,
                                               std::move(bin_index));
                                 break;

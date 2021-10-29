@@ -52,7 +52,7 @@ TEST(ALGEBRA_PLUGIN, propagator) {
 
     void_track_inspector vi;
 
-    auto end = p.propagate(traj, vi);
+    /*auto end = */ p.propagate(traj, vi);
 }
 
 int main(int argc, char **argv) {

@@ -26,7 +26,7 @@ template <typename detector_type>
 inline auto shoot_ray(const detector_type &d, const point3 &origin,
                       const point3 &direction) {
 
-    using object_id = typename detector_type::objects;
+    using object_id = typename detector_type::object_id;
     using portal_links = typename detector_type::geometry::portal_links;
     using detray_context = typename detector_type::transform_store::context;
 
@@ -37,7 +37,7 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
     std::vector<std::pair<dindex, intersection>> volume_record;
 
     const auto &transforms = d.transforms(default_context);
-    const auto &portals = d.portals();
+    const auto &portals = d.template objects<object_id::e_portal>();
     const auto &masks = d.masks();
     // Loop over volumes
     for (const auto &v : d.volumes()) {

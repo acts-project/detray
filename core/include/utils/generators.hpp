@@ -53,7 +53,7 @@ dvector<point3> vertices(const annulus2<intersector_type, local_type,
     scalar max_r = m_values[1];
     scalar min_phi_rel = m_values[2];
     scalar max_phi_rel = m_values[3];
-    scalar avg_phi = m_values[4];
+    // scalar avg_phi = m_values[4];
     scalar origin_x = m_values[5];
     scalar origin_y = m_values[6];
 

@@ -28,14 +28,14 @@ vecmem::host_memory_resource host_mr;
 darray<dindex, 2> zone22 = {2u, 2u};
 
 // This runs a reference test with random numbers only
-static void BM_RERERENCE_GRID(benchmark::State &state) {
+/*static void BM_RERERENCE_GRID(benchmark::State &state) {
     for (auto _ : state) {
         for (unsigned int itest = 0; itest < 1000000; ++itest) {
             test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5),
                               static_cast<scalar>((rand() % 120) * 0.5)};
         }
     }
-}
+}*/
 
 replace_populator<> replacer;
 serializer2 serializer;
@@ -114,7 +114,7 @@ static void BM_IRREGULAR_GRID_ZONE(benchmark::State &state) {
     }
 }
 
-BENCHMARK(BM_RERERENCE_GRID);
+// BENCHMARK(BM_RERERENCE_GRID);
 BENCHMARK(BM_REGULAR_GRID_BIN);
 BENCHMARK(BM_REGULAR_GRID_ZONE);
 BENCHMARK(BM_IRREGULAR_GRID_BIN);

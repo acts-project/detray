@@ -24,13 +24,8 @@ __global__ void transform_test_kernel(
 
     auto range = store.range(0, store.size(ctx0), ctx0);
 
-    int count = 0;
-    for (auto tf : range) {
-        if (count == threadIdx.x) {
-            output[count] = tf.point_to_global(input[count]);
-        }
-        count++;
-    }
+    output[threadIdx.x] =
+        range[threadIdx.x].point_to_global(input[threadIdx.x]);
 }
 
 void transform_test(vecmem::data::vector_view<point3>& input_data,

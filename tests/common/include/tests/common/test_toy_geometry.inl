@@ -11,9 +11,6 @@
 
 using namespace detray;
 
-constexpr bool for_surface = true;
-constexpr bool for_portal = false;
-
 auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
     toy_geometry();
 
@@ -30,8 +27,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(volumes.size(), 4);
     EXPECT_EQ(surfaces.size(), 687);
     EXPECT_EQ(transforms.size(), 687);
-    EXPECT_EQ(cylinders.size(), 7);
     EXPECT_EQ(discs.size(), 8);
+    EXPECT_EQ(cylinders.size(), 7);
     EXPECT_EQ(rectangles.size(), 672);
 
     /** Test the links of portals (into the next volume or invalid if we leave
@@ -93,9 +90,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     darray<dindex, 2> range = {0, 3};
     EXPECT_EQ(vol_itr->index(), 0);
     EXPECT_EQ(vol_itr->bounds(), bounds);
-    EXPECT_EQ(vol_itr->template range<for_portal>(), range);
-    range = {dindex_invalid, dindex_invalid};
-    EXPECT_EQ(vol_itr->template range<for_surface>(), range);
+    EXPECT_EQ(vol_itr->range(), range);
 
     // Check links of portals
     // disc portals
@@ -115,12 +110,10 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check volume
     vol_itr++;
     bounds = {27., 38., -500., 500, -M_PI, M_PI};
-    range = {3, 7};
+    range = {3, 231};
     EXPECT_EQ(vol_itr->index(), 1);
     EXPECT_EQ(vol_itr->bounds(), bounds);
-    EXPECT_EQ(vol_itr->template range<for_portal>(), range);
-    range = {7, 231};
-    EXPECT_EQ(vol_itr->template range<for_surface>(), range);
+    EXPECT_EQ(vol_itr->range(), range);
 
     // Check links of portals
     // disc portals
@@ -149,9 +142,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     range = {231, 235};
     EXPECT_EQ(vol_itr->index(), 2);
     EXPECT_EQ(vol_itr->bounds(), bounds);
-    EXPECT_EQ(vol_itr->template range<for_portal>(), range);
-    range = {dindex_invalid, dindex_invalid};
-    EXPECT_EQ(vol_itr->template range<for_surface>(), range);
+    EXPECT_EQ(vol_itr->range(), range);
 
     // Check links of portals
     // disc portals
@@ -172,12 +163,10 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check volume
     vol_itr++;
     bounds = {64., 80., -500., 500, -M_PI, M_PI};
-    range = {235, 239};
+    range = {235, surfaces.size()};
     EXPECT_EQ(vol_itr->index(), 3);
     EXPECT_EQ(vol_itr->bounds(), bounds);
-    EXPECT_EQ(vol_itr->template range<for_portal>(), range);
-    range = {239, surfaces.size()};
-    EXPECT_EQ(vol_itr->template range<for_surface>(), range);
+    EXPECT_EQ(vol_itr->range(), range);
 
     // Check links of portals
     // disc portals
