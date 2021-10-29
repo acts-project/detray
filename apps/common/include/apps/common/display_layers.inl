@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
             // Loop over the volumes
             for (const auto [iv, v] : enumerate(d.volumes())) {
 
-                if (layer > 0 and layer != iv) {
+                if (layer > 0 and layer != static_cast<int>(iv)) {
                     continue;
                 }
 
@@ -85,9 +85,9 @@ int main(int argc, char **argv) {
                 const auto &bounds = v.bounds();
                 bool is_cylinder = std::abs(bounds[1] - bounds[0]) <
                                    std::abs(bounds[3] - bounds[2]);
-                const auto &sf_range = v.template range<>();
+                const auto &sf_range = v.range();
 
-                const auto &surfaces = d.surfaces<>();
+                const auto &surfaces = d.objects();
                 const auto &volume_transforms =
                     d.transforms(sf_range, s_context);
                 const auto &volume_masks = d.masks();
@@ -112,8 +112,7 @@ int main(int argc, char **argv) {
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         volume_masks, mask_range, mask_context,
                         std::make_integer_sequence<
-                            dindex, std::tuple_size_v<decltype(
-                                        d)::surface_mask_container>>{});
+                            dindex, decltype(d)::mask_id::e_mask_types>{});
 
                     for (auto &vertices : vertices_per_masks) {
                         if (not vertices.empty()) {

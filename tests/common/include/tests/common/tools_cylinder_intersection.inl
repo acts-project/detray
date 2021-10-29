@@ -63,7 +63,6 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
 
 // This defines the local frame test suite
 TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
-    using cylinder_surface = surface_base<transform3, int, int>;
 
     // Create a concentric cylinder and test intersection
     scalar r = 4.;

@@ -192,7 +192,7 @@ struct circular {
     DETRAY_HOST_DEVICE
     dindex bin(scalar v) const {
         int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
-        if (ibin >= 0 and ibin < n_bins) {
+        if (ibin >= 0 and ibin < static_cast<int>(n_bins)) {
             return static_cast<dindex>(ibin);
         } else {
             if (ibin < 0) {
@@ -364,7 +364,7 @@ struct irregular {
         int ibin = static_cast<int>(
             std::lower_bound(boundaries.begin(), boundaries.end(), v) -
             boundaries.begin());
-        if (ibin > 0 and ibin < boundaries.size()) {
+        if (ibin > 0 and ibin < static_cast<int>(boundaries.size())) {
             return static_cast<dindex>(--ibin);
         } else {
             if (ibin == 0) {

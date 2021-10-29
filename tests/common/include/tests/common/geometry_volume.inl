@@ -16,9 +16,25 @@ TEST(ALGEBRA_PLUGIN, volume) {
     using namespace detray;
     using namespace __plugin;
 
-    using volume = volume<>;
-    constexpr bool surface = true;
-    constexpr bool portal = false;
+    // Known primitives
+    /*enum object_registrys : unsigned int {
+        e_object_types = 2,
+        e_surface = 0,
+        e_portal = 1,
+        e_any = 1,  // defaults to portal
+    };*/
+    struct object_registry {
+        // Known primitives
+        enum id : unsigned int {
+            e_object_types = 2,
+            e_surface = 0,
+            e_portal = 1,
+            e_any = 1,  // defaults to portal
+            e_unknown = 3,
+        };
+    };
+
+    using volume = volume<object_registry>;
 
     // Check construction, setters and getters
     darray<scalar, 6> bounds = {0., 10., -5., 5., -M_PI, M_PI};
@@ -34,21 +50,25 @@ TEST(ALGEBRA_PLUGIN, volume) {
     // Check surface and portal ranges
     dindex_range surface_range{2, 8};
     dindex_range portal_range{20, 24};
-    v1.template set_range<surface>(surface_range);
-    v1.template set_range<portal>(portal_range);
-    ASSERT_TRUE(v1.template range<surface>() == surface_range);
-    ASSERT_TRUE(v1.template range<portal>() == portal_range);
+    v1.template set_range<object_registry::id::e_surface>(surface_range);
+    v1.template set_range<object_registry::id::e_portal>(portal_range);
+    ASSERT_TRUE(v1.template range<object_registry::id::e_surface>() ==
+                surface_range);
+    ASSERT_TRUE(v1.template range<object_registry::id::e_portal>() ==
+                portal_range);
     ASSERT_FALSE(v1.empty());
-    ASSERT_EQ(v1.template n_objects<surface>(), 6);
-    ASSERT_EQ(v1.template n_objects<portal>(), 4);
+    ASSERT_EQ(v1.template n_objects<object_registry::id::e_surface>(), 6);
+    ASSERT_EQ(v1.template n_objects<object_registry::id::e_portal>(), 4);
 
     // Check copy constructor
     const auto v2 = volume(v1);
     ASSERT_TRUE(v2.index() == 12345);
     ASSERT_TRUE(v2.bounds() == bounds);
     ASSERT_TRUE(v2.surfaces_finder_entry() == 12);
-    ASSERT_TRUE(v2.template range<surface>() == surface_range);
-    ASSERT_TRUE(v2.template range<portal>() == portal_range);
+    ASSERT_TRUE(v2.template range<object_registry::id::e_surface>() ==
+                surface_range);
+    ASSERT_TRUE(v2.template range<object_registry::id::e_portal>() ==
+                portal_range);
 }
 
 int main(int argc, char **argv) {

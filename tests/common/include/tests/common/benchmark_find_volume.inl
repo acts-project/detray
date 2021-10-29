@@ -36,10 +36,10 @@ static void BM_FIND_VOLUMES(benchmark::State &state) {
     auto volume_grid = d.volume_search_grid();
 
     const auto &axis0 = volume_grid.axis_p0();
-    const auto &axis1 = volume_grid.axis_p1();
+    // const auto &axis1 = volume_grid.axis_p1();
 
     auto range0 = axis0.span();
-    auto range1 = axis1.span();
+    // auto range1 = axis1.span();
 
     scalar step0 = (range0[1] - range0[0]) / itest;
     scalar step1 = (range0[1] - range0[0]) / itest;
