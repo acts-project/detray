@@ -8,6 +8,7 @@
 
 #include <type_traits>
 
+#include "definitions/detray_get.hpp"
 #include "utils/enumerate.hpp"
 #include "utils/indexing.hpp"
 
@@ -20,7 +21,8 @@ template <template <typename...> class tuple_type = dtuple,
 class mask_store {
 
     public:
-    using mask_tuple = tuple_type<vector_type<mask_types>...>;
+    // using mask_tuple = tuple_type<vector_type<mask_types>...>;
+    using mask_tuple = dtuple<vector_type<mask_types>...>;
 
     /** Size : Contextual STL like API
      *
@@ -29,7 +31,7 @@ class mask_store {
      */
     template <unsigned int mask_id>
     const size_t size() const {
-        return std::get<mask_id>(_mask_tuple).size();
+        return detail::get<mask_id>(_mask_tuple).size();
     }
 
     /** Empty : Contextual STL like API
@@ -40,7 +42,7 @@ class mask_store {
      */
     template <unsigned int mask_id>
     bool empty() const {
-        return std::get<mask_id>(_mask_tuple).empty();
+        return detail::get<mask_id>(_mask_tuple).empty();
     }
 
     /** Retrieve a single mask - const
@@ -71,7 +73,7 @@ class mask_store {
      */
     template <unsigned int mask_id>
     constexpr auto &group() {
-        return std::get<mask_id>(_mask_tuple);
+        return detail::get<mask_id>(_mask_tuple);
     }
 
     /** Retrieve a vector of masks of a certain type (mask group) - const
@@ -81,7 +83,7 @@ class mask_store {
      */
     template <unsigned int mask_id>
     constexpr const auto &group() const {
-        return std::get<mask_id>(_mask_tuple);
+        return detail::get<mask_id>(_mask_tuple);
     }
 
     /** Access underlying container - const
@@ -108,7 +110,7 @@ class mask_store {
     template <unsigned int mask_id, typename... bounds_type>
     auto &add_mask(bounds_type &&... mask_bounds) noexcept(false) {
         // Get the mask group that will be updated
-        auto &mask_group = std::get<mask_id>(_mask_tuple);
+        auto &mask_group = detail::get<mask_id>(_mask_tuple);
         // Construct new mask in place
         return mask_group.emplace_back(
             std::forward<bounds_type>(mask_bounds)...);
@@ -126,7 +128,7 @@ class mask_store {
     template <unsigned int current_id = 0, typename mask_type>
     inline void add_masks(vector_type<mask_type> &masks) noexcept(false) {
         // Get the mask group that will be updated
-        auto &mask_group = std::get<current_id>(_mask_tuple);
+        auto &mask_group = detail::get<current_id>(_mask_tuple);
 
         if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
             // Reserve memory and copy new masks
@@ -152,7 +154,7 @@ class mask_store {
     template <unsigned int current_id = 0, typename mask_type>
     inline void add_masks(vector_type<mask_type> &&masks) noexcept(false) {
         // Get the mask group that will be updated
-        auto &mask_group = std::get<current_id>(_mask_tuple);
+        auto &mask_group = detail::get<current_id>(_mask_tuple);
 
         if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
             // Reserve memory and copy new masks
@@ -180,7 +182,7 @@ class mask_store {
     template <unsigned int current_id = 0>
     inline void append_masks(mask_store &&other) {
         // Add masks to current group
-        auto &mask_group = std::get<current_id>(other);
+        auto &mask_group = detail::get<current_id>(other);
         add_masks(mask_group);
 
         // Next mask type
