@@ -21,8 +21,7 @@ template <template <typename...> class tuple_type = dtuple,
 class mask_store {
 
     public:
-    // using mask_tuple = tuple_type<vector_type<mask_types>...>;
-    using mask_tuple = dtuple<vector_type<mask_types>...>;
+    using mask_tuple = tuple_type<vector_type<mask_types>...>;
 
     /** Size : Contextual STL like API
      *
