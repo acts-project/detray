@@ -6,6 +6,8 @@
  */
 #pragma once
 
+/** define tuple type namespace for host (std) and device (thrust) compiler
+ * **/
 #if defined(__CUDACC__)
 #include <thrust/tuple.h>
 namespace __tuple = thrust;
