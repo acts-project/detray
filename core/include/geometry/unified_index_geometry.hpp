@@ -19,8 +19,9 @@
 
 namespace detray {
 
+// object registry for unified index geometry
 template <typename surface_type>
-struct unified_object_registry {
+struct object_registry {
     // Known primitives
     enum id : unsigned int {
         e_object_types = 1,
@@ -138,7 +139,7 @@ class unified_index_geometry {
     using portal_filling_container = surface_filling_container;
 
     // object type
-    using object_registry_type = unified_object_registry<surface>;
+    using object_registry_type = object_registry<surface>;
 
     // Volume type
     using volume_type = volume<object_registry_type, dindex_range, array_type>;

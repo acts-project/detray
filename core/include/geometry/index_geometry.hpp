@@ -20,6 +20,7 @@
 
 namespace detray {
 
+// object registry for index geometry
 template <typename surface_type, typename portal_type>
 struct object_registry {
     // Known primitives

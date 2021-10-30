@@ -154,7 +154,7 @@ inline auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
         std::move(surfaces), std::move(transforms), std::move(masks));
 }
 
-// Types for toy geometry
+// object registry for toy geometry
 struct toy_object_registry {
     // Known primitives
     enum id : unsigned int {
