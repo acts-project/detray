@@ -34,32 +34,39 @@ struct iterator_range {
      * @param range start and end position for iteration
      */
     template <typename range_type>
-    iterator_range(const container_type &iterable, range_type &&range)
+    DETRAY_HOST_DEVICE iterator_range(const container_type &iterable,
+                                      range_type &&range)
         : _start(std::next(std::begin(iterable),
                            std::get<0>(std::forward<range_type>(range)))),
           _end(std::next(std::begin(iterable),
                          std::get<1>(std::forward<range_type>(range)))) {}
 
     /** @return start position of range on container. */
+    DETRAY_HOST_DEVICE
     inline auto &begin() { return _start; }
 
     /** @return end position of range on container. */
+    DETRAY_HOST_DEVICE
     inline auto &end() { return _end; }
 
     /** Does this describe the same range? */
+    DETRAY_HOST_DEVICE
     bool operator!=(const iterator_range &rhs) {
         return _start != rhs._start or _end != rhs._end;
     }
 
     /** @return element at position i, relative to iterator range. */
+    DETRAY_HOST_DEVICE
     inline decltype(auto) operator[](const dindex i) { return *(_start + i); }
 
     /** @return element at position i, relative to iterator range - const */
+    DETRAY_HOST_DEVICE
     inline decltype(auto) operator[](const dindex i) const {
         return *(_start + i);
     }
 
     /** @return the offset of the range start into the container. */
+    DETRAY_HOST_DEVICE
     inline const auto offset(const container_type &iterable) {
         return std::distance(_start, std::begin(iterable));
     }
