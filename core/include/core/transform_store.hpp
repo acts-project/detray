@@ -99,6 +99,7 @@ class static_transform_store {
      * @param ctx The context of the call (ignored)
      * @param tidx The size of the reserved container memory
      */
+    DETRAY_HOST
     void reserve(const context & /*ctx*/, size_t n_size) {
         _data.reserve(n_size);
     }
@@ -109,7 +110,7 @@ class static_transform_store {
      * @param args Constructor arguments
      */
     template <class... Args>
-    auto &emplace_back(const context & /*ctx*/, Args &&... args) {
+    DETRAY_HOST auto &emplace_back(const context & /*ctx*/, Args &&... args) {
         return _data.emplace_back(std::forward<Args>(args)...);
     }
 
@@ -118,6 +119,7 @@ class static_transform_store {
      * @param ctx The context of the call (ignored)
      * @param tcf The transform to be filled
      */
+    DETRAY_HOST
     void push_back(const context & /*ctx*/, const transform3 &tf) {
         _data.push_back(tf);
     }
@@ -127,6 +129,7 @@ class static_transform_store {
      * @param ctx The context of the call (ignored)
      * @param tcf The transform to be filled
      */
+    DETRAY_HOST
     void push_back(const context & /*ctx*/, const transform3 &&tf) {
         _data.push_back(std::move(tf));
     }
@@ -140,11 +143,13 @@ class static_transform_store {
     /** Empty : Contextual STL like API
      * @param ctx The context of the call (ignored)
      */
+    DETRAY_HOST_DEVICE
     bool empty(const context & /*ctx*/) { return _data.empty(); }
 
     /** Empty : Contextual STL like API
      * @param ctx The context of the call (ignored)
      */
+    DETRAY_HOST_DEVICE
     bool empty(const context & /*ctx*/) const { return _data.empty(); }
 
     /** Append a transform store to an existing one
@@ -154,6 +159,7 @@ class static_transform_store {
      *
      * @note in general can throw an exception
      */
+    DETRAY_HOST
     void append(const context &ctx,
                 static_transform_store<vector_type> &&other) noexcept(false) {
         _data.reserve(_data.size() + other.size(ctx));
@@ -168,6 +174,7 @@ class static_transform_store {
      *
      * @note in general can throw an exception
      */
+    DETRAY_HOST
     void add_contextual_transforms(const context & /*ctx*/,
                                    storage &&trfs) noexcept(false) {
         _data = std::move(trfs);
@@ -180,6 +187,7 @@ class static_transform_store {
      *
      * @note in general can throw an exception
      */
+    DETRAY_HOST
     void append_contextual_transforms(const context & /*ctx*/,
                                       storage &&trfs) noexcept(false) {
         _data.reserve(_data.size() + trfs.size());
@@ -192,11 +200,13 @@ class static_transform_store {
      * @param ctx The context of the call (ignored)
      * @param tidx The transform index
      */
+    DETRAY_HOST_DEVICE
     const transform3 &contextual_transform(const context & /*ctx*/,
                                            dindex tidx) const {
         return _data[tidx];
     }
 
+    DETRAY_HOST_DEVICE
     vector_type<transform3> &data() { return _data; }
 
     private:
