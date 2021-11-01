@@ -23,10 +23,8 @@ __global__ void transform_test_kernel(
     vecmem::device_vector<point3> output(output_data);
 
     auto range = store.range(0, store.size(ctx0), ctx0);
-    /* commented until algebra plugin is updated
     output[threadIdx.x] =
         range[threadIdx.x].point_to_global(input[threadIdx.x]);
-    */
 }
 
 void transform_test(vecmem::data::vector_view<point3>& input_data,
