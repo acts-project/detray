@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/algebra/array_definitions.hpp"
+#include "detray/plugins/algebra/array_definitions.hpp"
 #include "tests/common/geometry_unified_index_geometry.inl"

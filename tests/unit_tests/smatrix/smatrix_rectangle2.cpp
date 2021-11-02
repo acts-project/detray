@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/algebra/smatrix_definitions.hpp"
+#include "detray/plugins/algebra/smatrix_definitions.hpp"
 #include "tests/common/masks_rectangle2.inl"

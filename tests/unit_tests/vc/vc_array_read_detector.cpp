@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "plugins/algebra/vc_array_definitions.hpp"
+#include "detray/plugins/algebra/vc_array_definitions.hpp"
 #include "tests/common/io_read_detector.inl"
