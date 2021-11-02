@@ -12,6 +12,7 @@
 #include "tests/common/read_geometry.hpp"
 #include "tests/common/test_ray_scan.hpp"
 #include "tools/geometry_graph.hpp"
+//#include <vecmem/memory/host_memory_resource.hpp>
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -108,6 +109,14 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
     g.bfs();
 
     const auto &adj = g.adjacency_list();
+
+    /*vecmem::host_memory_resource host_mr;
+    auto [d, name_map] = read_from_csv(odd_files, host_mr);
+    auto odd_graph = geometry_graph<decltype(d)::geometry,
+    volume_printout>(d.volumes(), d.template
+    objects<decltype(d)::geometry::object_registry::id::e_portal>());
+
+    std::cout << odd_graph.to_string() << std::endl;*/
 
     // Now get the adjaceny list from ray scan
 

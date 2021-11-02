@@ -11,6 +11,7 @@
 #include <queue>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "detray/utils/enumerate.hpp"
@@ -154,7 +155,7 @@ class geometry_graph {
         for (const auto &n : _nodes) {
             ss << "[>>] Node with index " << n.index() << std::endl;
             ss << " -> neighbors: " << std::endl;
-            const auto &neighbors = adjaceny_list.at(n.index());
+            const auto &neighbors = adjaceny_list.at(n.index()).second;
             for (const auto &nbr : neighbors) {
                 ss << "    -> " << print_neighbor(nbr) << std::endl;
             }
@@ -168,12 +169,15 @@ class geometry_graph {
      */
     void build() {
         for (const auto &n : _nodes) {
+            std::unordered_set<dindex> edge_hashes;
             std::map<dindex, dindex> neighbors = {};
 
-            for (const auto &edg : range(_edges, n)) {
+            // Only works for non batched geometries
+            for (const auto [edg_id, edg] : enumerate(_edges, n)) {
+                edge_hashes.insert(edg_id);
                 neighbors[std::get<0>(edg.edge())]++;
             }
-            adjaceny_list[n.index()] = neighbors;
+            adjaceny_list[n.index()] = std::make_pair(edge_hashes, neighbors);
         }
     }
 
@@ -187,7 +191,9 @@ class geometry_graph {
      *  The index of the nodes neighbors and a count of edges is kept in the
      *  inner map.
      */
-    std::map<dindex, std::map<dindex, dindex>> adjaceny_list = {};
+    std::map<dindex,
+             std::pair<std::unordered_set<dindex>, std::map<dindex, dindex>>>
+        adjaceny_list = {};
 };
 
 }  // namespace detray

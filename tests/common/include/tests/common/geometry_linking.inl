@@ -8,6 +8,8 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <map>
+#include <unordered_set>
 
 #include "detray/geometry/unified_index_geometry.hpp"
 #include "detray/tools/geometry_graph.hpp"
@@ -131,13 +133,19 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     const auto &adj = g.adjacency_list();
 
     // Volume 0 has 3 portals to volume 1 and two surfaces linking to itself
-    /*dvector<dindex> nbrs_v0 = {1, 1, 1, 0, 0};
+    std::map<dindex, dindex> nbrs_map_v0{{0, 2}, {1, 3}};
+    // portals to 1 with indices 0-2, contained surfaces with indices 3 and 4
+    std::unordered_set<dindex> obj_hash_v0{0, 1, 2, 3, 4};
     // Volume 1 has 4 portals to volume 0 and two surfaces linking to itself
-    dvector<dindex> nbrs_v1 = {0, 0, 0, 0, 1, 1};
+    std::map<dindex, dindex> nbrs_map_v1{{0, 4}, {1, 2}};
+    // portals to 0 with indices 5-8, contained surfaces with indices 9 and 10
+    std::unordered_set<dindex> obj_hash_v1{5, 6, 7, 8, 9, 10};
 
     // Check this with graph
-    ASSERT_TRUE(adj.at(0) == nbrs_v0);
-    ASSERT_TRUE(adj.at(1) == nbrs_v1);*/
+    ASSERT_TRUE(adj.at(0).second == nbrs_map_v0);
+    ASSERT_TRUE(adj.at(1).second == nbrs_map_v1);
+    ASSERT_TRUE(adj.at(0).first == obj_hash_v0);
+    ASSERT_TRUE(adj.at(1).first == obj_hash_v1);
 }
 
 int main(int argc, char **argv) {
