@@ -18,7 +18,7 @@
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
-#include "io/csv_io_types.hpp"
+#include "detray/io/csv_io_types.hpp"
 #include "detray/tools/bin_association.hpp"
 
 namespace detray {

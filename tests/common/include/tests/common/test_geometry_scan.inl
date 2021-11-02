@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "detray/core/detector.hpp"
-#include "io/csv_io.hpp"
+#include "detray/io/csv_io.hpp"
 #include "tests/common/read_geometry.hpp"
 #include "detray/utils/ray_gun.hpp"
 

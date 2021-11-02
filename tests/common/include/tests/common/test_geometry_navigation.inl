@@ -17,7 +17,7 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/core/track.hpp"
-#include "io/csv_io.hpp"
+#include "detray/io/csv_io.hpp"
 #include "tests/common/read_geometry.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"

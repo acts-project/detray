@@ -12,7 +12,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/geometry/surface_base.hpp"
 #include "detray/geometry/volume.hpp"
-#include "io/csv_io.hpp"
+#include "detray/io/csv_io.hpp"
 #include "detray/masks/masks.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command

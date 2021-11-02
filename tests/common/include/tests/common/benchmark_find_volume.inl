@@ -14,7 +14,7 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/core/transform_store.hpp"
-#include "io/csv_io.hpp"
+#include "detray/io/csv_io.hpp"
 #include "tests/common/read_geometry.hpp"
 
 using namespace detray;
