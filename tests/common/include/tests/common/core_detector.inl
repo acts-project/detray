@@ -9,8 +9,8 @@
 
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "core/detector.hpp"
-#include "core/transform_store.hpp"
+#include "detray/core/detector.hpp"
+#include "detray/core/transform_store.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

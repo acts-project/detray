@@ -7,10 +7,10 @@
 
 #include <gtest/gtest.h>
 
-#include "core/mask_store.hpp"
-#include "core/track.hpp"
+#include "detray/core/mask_store.hpp"
+#include "detray/core/track.hpp"
 #include "tests/common/read_geometry.hpp"
-#include "tools/single_type_navigator.hpp"
+#include "detray/tools/single_type_navigator.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

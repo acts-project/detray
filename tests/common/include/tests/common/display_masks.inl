@@ -10,7 +10,7 @@
 #include <climits>
 #include <cmath>
 
-#include "masks/masks.hpp"
+#include "detray/masks/masks.hpp"
 #include "style/styles.hpp"
 #include "view/draw.hpp"
 #include "view/views.hpp"

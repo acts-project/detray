@@ -9,11 +9,11 @@
 #include <map>
 #include <string>
 
-#include "core/detector.hpp"
-#include "geometry/surface_base.hpp"
-#include "geometry/volume.hpp"
+#include "detray/core/detector.hpp"
+#include "detray/geometry/surface_base.hpp"
+#include "detray/geometry/volume.hpp"
 #include "io/csv_io.hpp"
-#include "masks/masks.hpp"
+#include "detray/masks/masks.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;

@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/transform_store.hpp"
+#include "detray/core/transform_store.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

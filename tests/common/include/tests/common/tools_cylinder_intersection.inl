@@ -10,12 +10,12 @@
 #include <climits>
 #include <cmath>
 
-#include "core/intersection.hpp"
-#include "geometry/surface_base.hpp"
-#include "masks/cylinder3.hpp"
-#include "tools/concentric_cylinder_intersector.hpp"
-#include "tools/cylinder_intersector.hpp"
-#include "utils/unbound.hpp"
+#include "detray/core/intersection.hpp"
+#include "detray/geometry/surface_base.hpp"
+#include "detray/masks/cylinder3.hpp"
+#include "detray/tools/concentric_cylinder_intersector.hpp"
+#include "detray/tools/cylinder_intersector.hpp"
+#include "detray/utils/unbound.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;

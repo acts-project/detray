@@ -18,10 +18,10 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 #include <vector>
 
-#include "core/detector.hpp"
+#include "detray/core/detector.hpp"
 #include "io/csv_io.hpp"
 #include "tests/common/read_geometry.hpp"
-#include "utils/ray_gun.hpp"
+#include "detray/utils/ray_gun.hpp"
 
 using namespace detray;
 

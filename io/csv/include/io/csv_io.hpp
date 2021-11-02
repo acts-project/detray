@@ -12,14 +12,14 @@
 #include <vecmem/memory/memory_resource.hpp>
 #include <vector>
 
-#include "core/detector.hpp"
-#include "geometry/volume_connector.hpp"
-#include "grids/axis.hpp"
-#include "grids/grid2.hpp"
-#include "grids/populator.hpp"
-#include "grids/serializer2.hpp"
+#include "detray/core/detector.hpp"
+#include "detray/geometry/volume_connector.hpp"
+#include "detray/grids/axis.hpp"
+#include "detray/grids/grid2.hpp"
+#include "detray/grids/populator.hpp"
+#include "detray/grids/serializer2.hpp"
 #include "io/csv_io_types.hpp"
-#include "tools/bin_association.hpp"
+#include "detray/tools/bin_association.hpp"
 
 namespace detray {
 

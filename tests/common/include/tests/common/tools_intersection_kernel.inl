@@ -7,16 +7,16 @@
 
 #include <gtest/gtest.h>
 
-#include "core/mask_store.hpp"
-#include "core/track.hpp"
-#include "core/transform_store.hpp"
-#include "geometry/surface_base.hpp"
-#include "masks/masks.hpp"
-#include "tools/concentric_cylinder_intersector.hpp"
-#include "tools/cylinder_intersector.hpp"
-#include "tools/intersection_kernel.hpp"
-#include "tools/planar_intersector.hpp"
-#include "utils/enumerate.hpp"
+#include "detray/core/mask_store.hpp"
+#include "detray/core/track.hpp"
+#include "detray/core/transform_store.hpp"
+#include "detray/geometry/surface_base.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/tools/concentric_cylinder_intersector.hpp"
+#include "detray/tools/cylinder_intersector.hpp"
+#include "detray/tools/intersection_kernel.hpp"
+#include "detray/tools/planar_intersector.hpp"
+#include "detray/utils/enumerate.hpp"
 
 using namespace detray;
 using namespace __plugin;

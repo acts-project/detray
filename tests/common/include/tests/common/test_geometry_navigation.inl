@@ -15,13 +15,13 @@
 #include <utility>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "core/detector.hpp"
-#include "core/track.hpp"
+#include "detray/core/detector.hpp"
+#include "detray/core/track.hpp"
 #include "io/csv_io.hpp"
 #include "tests/common/read_geometry.hpp"
-#include "tools/line_stepper.hpp"
-#include "tools/navigator.hpp"
-#include "utils/ray_gun.hpp"
+#include "detray/tools/line_stepper.hpp"
+#include "detray/tools/navigator.hpp"
+#include "detray/utils/ray_gun.hpp"
 
 using namespace detray;
 

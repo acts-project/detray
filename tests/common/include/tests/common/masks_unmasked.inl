@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "masks/unmasked.hpp"
+#include "detray/masks/unmasked.hpp"
 
 using namespace detray;
 using namespace __plugin;
