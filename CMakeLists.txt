@@ -98,6 +98,20 @@ if( DETRAY_SETUP_MATPLOTPP )
    endif()
 endif()
 
+# Set up Thrust.
+option( DETRAY_SETUP_THRUST
+   "Set up the Thrust target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_THRUST
+   "Pick up an existing installation of Thrust from the build environment"
+   FALSE )
+if( DETRAY_SETUP_THRUST )
+   if( DETRAY_USE_SYSTEM_THRUST )
+      find_package( Thrust REQUIRED )
+   else()
+      add_subdirectory( extern/thrust )
+   endif()
+endif()
+
 # Set up GoogleTest.
 option( DETRAY_SETUP_GOOGLETEST
    "Set up the GoogleTest target(s) explicitly" TRUE )

@@ -13,8 +13,8 @@ message( STATUS "Building Algebra Plugins as part of the Detray project" )
 
 # Declare where to get Algebra Plugins from.
 FetchContent_Declare( AlgebraPlugins
-   URL "https://github.com/acts-project/algebra-plugins/archive/refs/tags/v0.1.0.tar.gz"
-   URL_MD5 "3a6f21d812f2cbaa2c21090b17427d40" )
+   URL "https://github.com/acts-project/algebra-plugins/archive/refs/tags/v0.2.0.tar.gz"
+   URL_MD5 "00a5387005ea6a826c1de31099bfa8bf" )
 
 # Options used in the build of Algebra Plugins.
 set( ALGEBRA_PLUGIN_BUILD_TESTING FALSE CACHE BOOL
