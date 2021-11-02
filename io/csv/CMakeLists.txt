@@ -6,7 +6,7 @@ target_include_directories(detray_io_csv
     $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(detray_io_csv INTERFACE dfelibs vecmem::core)
+target_link_libraries(detray_io_csv INTERFACE dfelibs::dfelibs vecmem::core)
 
 install(
   DIRECTORY include/io

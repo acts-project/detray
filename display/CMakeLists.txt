@@ -8,7 +8,7 @@ target_include_directories(detray_display
     $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(detray_display INTERFACE detray::core matplot)
+target_link_libraries(detray_display INTERFACE detray::core Matplot++::matplot)
 
 install(
   DIRECTORY include/style

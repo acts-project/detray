@@ -1,58 +1,131 @@
-cmake_minimum_required(VERSION 3.11)
+# Detray library, part of the ACTS project (R&D line)
+#
+# (c) 2021 CERN for the benefit of the ACTS project
+#
+# Mozilla Public License Version 2.0
 
-project(detray VERSION 0.1 LANGUAGES CXX)
+# Set up the project.
+cmake_minimum_required( VERSION 3.11 )
+project( detray VERSION 0.1 LANGUAGES CXX )
 
-option(CMAKE_WARN_DEPRECATED "Not warning for deprecation in cmake" Off)
-enable_testing()
+# CMake include(s).
+include( CMakeDependentOption )
+include( GNUInstallDirs )
 
-include(CMakeDependentOption)
+# Explicitly set the output directory for the binaries. Such that if this
+# project is included by another project, the main project's configuration would
+# win out.
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY
+   "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}" CACHE PATH
+   "Directory for the built binaries" )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY
+   "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH
+   "Directory for the built libraries" )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY
+   "${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH
+   "Directory for the built static libraries" )
+
+# Set the language standards to use.
+set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (Host) C++ standard to use" )
+set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
 
 option(DETRAY_ARRAY_PLUGIN "Build std::array math plugin" On)
 option(DETRAY_VECMEM_ARRAY_PLUGIN "Build vecmem::array math plugin" On)
 option(DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" On)
 option(DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" Off)
-option(DETRAY_VC_ALGEBRA_PLUGIN "Build vc based simd algebra math plugin" Off)
+option(DETRAY_VC_ALGEBRA_PLUGIN "Build vc based simd algebra math plugin" ON)
 option(DETRAY_IO_CSV "Build CSV IO module" On)
-option(DETRAY_IO_JSON "Build JSON IO module" On)
 option(DETRAY_DISPLAY "Build matplot++ based display module" Off)
 option(DETRAY_BUILD_CUDA "Build the CUDA sources included in detray" Off)
 option(DETRAY_USE_VECMEM "Build with vecmem" On)
+option( DETRAY_BUILD_TESTING "Build the (unit) tests of Detray"
+   TRUE )
+option( DETRAY_BENCHMARKS "Enable benchmark tests" TRUE )
 
-if(DETRAY_CUSTOM_SCALARTYPE)
-    message(STATUS "Building with custom scalar type: " ${DETRAY_CUSTOM_SCALARTYPE})
-    set(ALGEBRA_PLUGIN_CUSTOM_SCALARTYPE ${DETRAY_CUSTOM_SCALARTYPE})
+# Set up VecMem.
+option( DETRAY_SETUP_VECMEM
+   "Set up the VecMem target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_VECMEM
+   "Pick up an existing installation of VecMem from the build environment"
+   FALSE )
+if( DETRAY_SETUP_VECMEM )
+   if( DETRAY_USE_SYSTEM_VECMEM )
+      find_package( vecmem REQUIRED )
+   else()
+      add_subdirectory( extern/vecmem )
+   endif()
 endif()
 
-if (DETRAY_USE_VECMEM)
-  set(ALGEBRA_PLUGIN_USE_VECMEM ON)
+# Set up Algebra Plugins.
+option( DETRAY_SETUP_ALGEBRA_PLUGINS
+   "Set up the Algebra Plugins target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_ALGEBRA_PLUGINS
+   "Pick up an existing installation of Algebra Plugins from the build environment"
+   FALSE )
+if( DETRAY_SETUP_ALGEBRA_PLUGINS )
+   if( DETRAY_USE_SYSTEM_ALGEBRA_PLUGINS )
+      find_package( algebra-plugins REQUIRED )
+   else()
+      add_subdirectory( extern/algebra-plugins )
+   endif()
 endif()
 
-if (DETRAY_ARRAY_PLUGIN)
-    set(ALGEBRA_PLUGIN_INCLUDE_ARRAY ON)
+# Set up dfelibs.
+option( DETRAY_SETUP_DFELIBS
+   "Set up the dfelibs target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_DFELIBS
+   "Pick up an existing installation of dfelibs from the build environment"
+   FALSE )
+if( DETRAY_SETUP_DFELIBS )
+   if( DETRAY_USE_SYSTEM_DFELIBS )
+      find_package( dfelibs REQUIRED )
+   else()
+      add_subdirectory( extern/dfelibs )
+   endif()
 endif()
 
-if (DETRAY_VECMEM_ARRAY_PLUGIN)
-    set(ALGEBRA_PLUGIN_INCLUDE_VECMEM ON)
+# Set up Matplot++.
+option( DETRAY_SETUP_MATPLOTPP
+   "Set up the Matplot++ target(s) explicitly" FALSE )
+option( DETRAY_USE_SYSTEM_MATPLOTPP
+   "Pick up an existing installation of Matplot++ from the build environment"
+   FALSE )
+if( DETRAY_SETUP_MATPLOTPP )
+   if( DETRAY_USE_SYSTEM_MATPLOTPP )
+      find_package( Matplot++ REQUIRED )
+   else()
+      add_subdirectory( extern/matplotplusplus )
+   endif()
 endif()
 
-if (DETRAY_EIGEN_PLUGIN)
-    set(ALGEBRA_PLUGIN_INCLUDE_EIGEN ON)
-    find_package(Eigen3 REQUIRED)
-    include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
+# Set up GoogleTest.
+option( DETRAY_SETUP_GOOGLETEST
+   "Set up the GoogleTest target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_GOOGLETEST
+   "Pick up an existing installation of GoogleTest from the build environment"
+   FALSE )
+if( DETRAY_SETUP_GOOGLETEST )
+   if( DETRAY_USE_SYSTEM_GOOGLETEST )
+      find_package( GTest REQUIRED )
+   else()
+      add_subdirectory( extern/googletest )
+   endif()
 endif()
 
-if (DETRAY_SMATRIX_PLUGIN)
-    set(ALGEBRA_PLUGIN_INCLUDE_SMATRIX ON)
-    find_package(ROOT REQUIRED COMPONENTS MathCore)
-    include_directories(SYSTEM ${ROOT_INCLUDE_DIRS})
+# Set up Google Benchmark.
+option( DETRAY_SETUP_BENCHMARK
+   "Set up the Google Benchmark target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_BENCHMARK
+   "Pick up an existing installation of Google Benchmark from the build environment"
+   FALSE )
+if( DETRAY_SETUP_BENCHMARK )
+   if( DETRAY_USE_SYSTEM_BENCHMARK )
+      find_package( benchmark REQUIRED )
+   else()
+      add_subdirectory( extern/benchmark )
+   endif()
 endif()
 
-if (DETRAY_VC_ALGEBRA_PLUGIN)
-    set(ALGEBRA_PLUGIN_INCLUDE_VC ON)
-endif()
-
-option(DETRAY_UNIT_TESTS "Enable unit tests" On)
-option(DETRAY_BENCHMARKS "Enable benchmark tests" On)
 cmake_dependent_option(DETRAY_BENCHMARKS_MULTITHREAD "Enable multithreaded benchmarks" Off "DETRAY_BENCHMARKS" Off)
 if(DETRAY_BENCHMARKS_MULTITHREAD)
     message(STATUS "Using multithreaded benchmarks")
@@ -61,27 +134,22 @@ if(DETRAY_BENCHMARKS AND DETRAY_BENCHMARKS_REP)
     message(STATUS "Repetitions for benchmarks: " ${DETRAY_BENCHMARKS_REP})
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
-
-set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX}/include)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib)
-set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-
 # Set GPU-related options
 if(DETRAY_BUILD_CUDA)
-  set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
   enable_language(CUDA)
 endif()
 
 add_subdirectory(apps)
 add_subdirectory(core)
-add_subdirectory(extern)
 add_subdirectory(plugins)
 add_subdirectory(io)
-add_subdirectory(tests)
+
+# Set up the test(s).
+include( CTest )
+if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
+  add_subdirectory( tests )
+endif()
+
 if (DETRAY_DISPLAY)
     add_subdirectory(display)
 endif()
