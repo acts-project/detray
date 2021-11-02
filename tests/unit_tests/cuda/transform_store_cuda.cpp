@@ -87,8 +87,6 @@ TEST(transform_store_cuda, transform_store) {
 
     // Compare the values
     for (unsigned int i = 0; i < n_transforms; i++) {
-        /* commented until algebra plugin is updated
         ASSERT_EQ(output_host[i], output_device[i]);
-        */
     }
 }
