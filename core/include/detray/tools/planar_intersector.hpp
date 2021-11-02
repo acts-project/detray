@@ -89,7 +89,7 @@ struct planar_intersector {
         scalar denom = vector::dot(rd, sn);
         if (denom != 0.0) {
             intersection is;
-            is.path = vector::dot(sn, (st - ro)) / (denom);
+            is.path = vector::dot(sn, st - ro) / denom;
             is.p3 = ro + is.path * rd;
             is.p2 = local(trf, is.p3);
             is.status = mask.template is_inside<local_type>(is.p2, tolerance);

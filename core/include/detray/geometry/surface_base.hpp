@@ -78,29 +78,32 @@ class surface_base {
     /** Access to the edge information (next volume etc.)  */
     const edge_link &edge() const { return _edg; }
 
-    /** Return the edge information (next volume etc.)  */
+    /** @return the edge information (next volume etc.)  */
     edge_link &edge() { return _edg; }
 
-    /** Return the transform type */
+    /** Access to the transform index */
     transform_link &transform() { return _trf; }
 
-    /** Return the transform type */
+    /** @return the transform index */
     const transform_link &transform() const { return _trf; }
 
     /** Access to the mask  */
     mask_link &mask() { return _mask; }
 
-    /** Return the mask */
+    /** @return the mask link */
     const mask_link &mask() const { return _mask; }
 
     /** Access to the volume */
     volume_link &volume() { return _vol; }
 
-    /** Return the mask */
+    /** @return the volume index */
     const volume_link &volume() const { return _vol; }
 
-    /** Return the source/source link type */
+    /** @return the source link */
     const source_link &source() const { return _src; }
+
+    /** Is this instance a portal in the sense of the unified_index_geometry? */
+    const bool is_portal() const { return not(std::get<0>(_edg) == _vol); }
 
     private:
     transform_link _trf;

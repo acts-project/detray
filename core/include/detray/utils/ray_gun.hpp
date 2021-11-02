@@ -39,13 +39,21 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
     const auto &transforms = d.transforms(default_context);
     const auto &portals = d.template objects<object_id::e_portal>();
     const auto &masks = d.masks();
+
     // Loop over volumes
     for (const auto &v : d.volumes()) {
         // Record the portals the ray intersects
         const auto &pt_range = v.template range<object_id::e_portal>();
         portal_links links = {};
+
         for (size_t pi = pt_range[0]; pi < pt_range[1]; pi++) {
-            auto pti = intersect(ray, portals[pi], transforms, masks, links);
+            // Only look at portals
+            const auto &obj = portals[pi];
+            if (not obj.is_portal()) {
+                continue;
+            }
+
+            auto pti = intersect(ray, obj, transforms, masks, links);
 
             // Walk along the direction of intersected masks
             if (pti.status == intersection_status::e_inside &&

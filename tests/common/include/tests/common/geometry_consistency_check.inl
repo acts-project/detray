@@ -10,18 +10,21 @@
 #include <iostream>
 
 #include "tests/common/read_geometry.hpp"
+#include "tests/common/test_ray_scan.hpp"
 #include "tools/geometry_graph.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 using namespace __plugin;
 
-// Adhoc geometry type. Or use any other geometry
+// Adhoc geometry type for toy geometry. Or use any other geometry
 template <typename volume_t, typename object_t,
           template <typename> class vector_type = dvector>
 struct dummy_geometry {
+    // typedefs
     using volume_type = volume_t;
     using portal = object_t;
+    using portal_links = typename object_t::edge_links;
 
     struct object_registry {
         using id = typename volume_type::objects;
@@ -36,8 +39,43 @@ struct dummy_geometry {
                    const vector_type<object_t> &objects)
         : _volumes(volumes), _objects(objects) {}
 
+    // data containers
     const vector_type<volume_t> &_volumes;
     const vector_type<object_t> &_objects;
+};
+
+// Adhoc detector type for toy geometry
+template <typename geometry_t, typename transform_container,
+          typename mask_container>
+struct dummy_detector {
+    // typedefs
+    using geometry = geometry_t;
+    using object_id = typename geometry_t::object_registry::id;
+    struct transform_store {
+        // dummy type
+        struct context {};
+    };
+
+    dummy_detector(const geometry &geometry, const transform_container &trfs,
+                   const mask_container &masks)
+        : _geometry(geometry), _transforms(trfs), _masks(masks) {}
+
+    // interface functions
+    const auto &volumes() const { return _geometry._volumes; }
+    const auto &transforms(
+        const typename transform_store::context ctx = {}) const {
+        return _transforms;
+    }
+    const auto &masks() const { return _masks; }
+    template <object_id>
+    const auto &objects() const {
+        return _geometry._objects;
+    }
+
+    // data containers
+    const geometry &_geometry;
+    const transform_container &_transforms;
+    const mask_container &_masks;
 };
 
 // Tests the consistency of the toy geometry implementation. In principle,
@@ -45,7 +83,7 @@ struct dummy_geometry {
 TEST(ALGEBRA_PLUGIN, geometry_consistency) {
 
     // Build the geometry (modeled as a unified index geometry)
-    auto [volumes, surfaces, transforms, cylinders, discs, rectangles] =
+    auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
         toy_geometry();
 
     using geometry_t = dummy_geometry<typename decltype(volumes)::value_type,
@@ -70,6 +108,52 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
     g.bfs();
 
     const auto &adj = g.adjacency_list();
+
+    // Now get the adjaceny list from ray scan
+
+    // First, put data into the detector interface
+    mask_store<dtuple, dvector, decltype(discs)::value_type,
+               decltype(cylinders)::value_type,
+               decltype(rectangles)::value_type>
+        masks;
+    // populate mask store
+    masks.add_masks(discs);
+    masks.add_masks(cylinders);
+    masks.add_masks(rectangles);
+
+    using detector_t =
+        dummy_detector<geometry_t, decltype(transforms), decltype(masks)>;
+
+    auto d = detector_t(geo, transforms, masks);
+
+    unsigned int theta_steps = 100;
+    unsigned int phi_steps = 100;
+
+    const point3 ori{0., 0., 0.};
+    dindex start_index = 0;
+
+    // Loops of theta values ]0,pi[
+    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
+        scalar theta = 0.05 + itheta * (M_PI - 0.1) / theta_steps;
+        scalar sin_theta = std::sin(theta);
+        scalar cos_theta = std::cos(theta);
+
+        // Loops of phi values [-pi, pi]
+        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
+            // The direction
+            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
+            scalar sin_phi = std::sin(phi);
+            scalar cos_phi = std::cos(phi);
+            const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
+                             cos_theta};
+
+            const auto volume_record = shoot_ray(d, ori, dir);
+            const auto volume_trace = trace_volumes(volume_record, start_index);
+
+            // All edges made it through the checking
+            ASSERT_TRUE(check_connectivity(volume_trace));
+        }
+    }
 }
 
 int main(int argc, char **argv) {
