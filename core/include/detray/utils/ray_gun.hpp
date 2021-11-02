@@ -8,6 +8,7 @@
 #pragma once
 
 #include "detray/tools/intersection_kernel.hpp"
+#include "detray/utils/enumerate.hpp"
 
 namespace detray {
 
@@ -42,23 +43,23 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
 
     // Loop over volumes
     for (const auto &v : d.volumes()) {
-        // Record the portals the ray intersects
-        const auto &pt_range = v.template range<object_id::e_portal>();
         portal_links links = {};
 
-        for (size_t pi = pt_range[0]; pi < pt_range[1]; pi++) {
-            // Only look at portals
-            const auto &obj = portals[pi];
-            if (not obj.is_portal()) {
-                continue;
-            }
-
+        // Record the portals the ray intersects
+        for (const auto &obj : range(portals, v)) {
             auto pti = intersect(ray, obj, transforms, masks, links);
 
             // Walk along the direction of intersected masks
             if (pti.status == intersection_status::e_inside &&
                 pti.direction == intersection_direction::e_along) {
-                volume_record.emplace_back(v.index(), pti);
+
+                // Register the current obj in adjacency list
+                // adj_list[v.index()].update();
+
+                // Only look at portals (some geometries do not distinguish)
+                if (obj.is_portal()) {
+                    volume_record.emplace_back(v.index(), pti);
+                }
             }
         }
     }
