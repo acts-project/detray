@@ -14,9 +14,6 @@
 
 namespace detray {
 
-// Forward declaration for transform store data
-// struct static_transform_store_data;
-
 using transform3 = __plugin::transform3;
 
 /** A static inplementation of an alignable transform store */
