@@ -12,5 +12,6 @@
 #include <thrust/tuple.h>
 namespace __tuple = thrust;
 #else
+#include <tuple>
 namespace __tuple = std;
 #endif
