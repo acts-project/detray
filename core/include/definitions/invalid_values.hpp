@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <definitions/cuda_qualifiers.hpp>
+#include <definitions/detray_qualifiers.hpp>
 #include <limits>
 
 template <typename T>

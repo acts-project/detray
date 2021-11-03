@@ -9,6 +9,7 @@
 #include <tuple>
 #include <type_traits>
 
+#include "definitions/detray_qualifiers.hpp"
 #include "utils/indexing.hpp"
 
 namespace detray {
@@ -19,11 +20,11 @@ namespace detray {
  * @tparam volume_type the type of volume from which to get the range in the
  *         container
  */
-template <typename container_type,
-          typename container_type_iter =
-              decltype(std::begin(std::declval<container_type>())),
-          typename = decltype(std::end(std::declval<container_type>()))>
+template <typename container_type>
 struct iterator_range {
+    using container_type_iter =
+        decltype(std::begin(std::declval<container_type>()));
+
     /** Delete default constructor */
     iterator_range() = delete;
 
@@ -33,32 +34,39 @@ struct iterator_range {
      * @param range start and end position for iteration
      */
     template <typename range_type>
-    iterator_range(const container_type &iterable, range_type &&range)
+    DETRAY_HOST_DEVICE iterator_range(const container_type &iterable,
+                                      range_type &&range)
         : _start(std::next(std::begin(iterable),
                            std::get<0>(std::forward<range_type>(range)))),
           _end(std::next(std::begin(iterable),
                          std::get<1>(std::forward<range_type>(range)))) {}
 
     /** @return start position of range on container. */
+    DETRAY_HOST_DEVICE
     inline auto &begin() { return _start; }
 
     /** @return end position of range on container. */
+    DETRAY_HOST_DEVICE
     inline auto &end() { return _end; }
 
     /** Does this describe the same range? */
+    DETRAY_HOST_DEVICE
     bool operator!=(const iterator_range &rhs) {
         return _start != rhs._start or _end != rhs._end;
     }
 
     /** @return element at position i, relative to iterator range. */
+    DETRAY_HOST_DEVICE
     inline decltype(auto) operator[](const dindex i) { return *(_start + i); }
 
     /** @return element at position i, relative to iterator range - const */
+    DETRAY_HOST_DEVICE
     inline decltype(auto) operator[](const dindex i) const {
         return *(_start + i);
     }
 
     /** @return the offset of the range start into the container. */
+    DETRAY_HOST_DEVICE
     inline const auto offset(const container_type &iterable) {
         return std::distance(_start, std::begin(iterable));
     }
@@ -85,23 +93,28 @@ struct enumerator {
     container_type_iter iter;
 
     /** Build from start index and corresponding iterator - rvalue */
+    DETRAY_HOST_DEVICE
     enumerator(size_t start, const container_type_iter &&iterator)
         : i(start), iter(iterator) {}
 
     /** Build from start index and corresponding iterator - lvalue */
+    DETRAY_HOST_DEVICE
     enumerator(size_t start, const container_type_iter &iterator)
         : i(start), iter(iterator) {}
 
     /** Determine end of iteration */
+    DETRAY_HOST_DEVICE
     bool operator!=(const enumerator &rhs) const { return iter != rhs.iter; }
 
     /** Increase index and iterator at once */
+    DETRAY_HOST_DEVICE
     void operator++() {
         ++i;
         ++iter;
     }
 
     /** Tie them together for returning */
+    DETRAY_HOST_DEVICE
     auto operator*() const { return std::tie(i, *iter); }
 };
 
@@ -121,23 +134,24 @@ template <
     typename = typename std::remove_reference_t<container_type>::value_type,
     typename volume_type,
     typename = typename std::remove_reference_t<volume_type>::volume_def>
-inline constexpr auto range(const container_type &iterable,
-                            volume_type &&volume) {
+DETRAY_HOST_DEVICE inline constexpr auto range(const container_type &iterable,
+                                               volume_type &&volume) {
     return iterator_range(
         iterable, volume.template range<typename container_type::value_type>());
 }
 
 /** Overload of the range-function for dindex_range */
 template <typename container_type>
-inline constexpr auto range(const container_type &iterable,
-                            const dindex_range &range) {
+DETRAY_HOST_DEVICE inline constexpr auto range(const container_type &iterable,
+                                               const dindex_range &range) {
 
     return iterator_range(iterable, range);
 }
 
 /** Overload of the range-function for a single index */
 template <typename container_type>
-inline constexpr auto range(const container_type &iterable, const dindex &i) {
+DETRAY_HOST_DEVICE inline constexpr auto range(const container_type &iterable,
+                                               const dindex &i) {
 
     return iterator_range(iterable, dindex_range{i, i + 1});
 }
@@ -154,13 +168,15 @@ template <typename container_type,
           typename container_type_iter =
               decltype(std::begin(std::declval<container_type>())),
           typename = decltype(std::end(std::declval<container_type>()))>
-constexpr auto enumerate(container_type &&iterable) {
+DETRAY_HOST_DEVICE constexpr auto enumerate(container_type &&iterable) {
 
     struct iterable_wrapper {
         container_type iterable;
+        DETRAY_HOST_DEVICE
         decltype(auto) begin() {
             return enumerator<container_type>(0, std::begin(iterable));
         }
+        DETRAY_HOST_DEVICE
         decltype(auto) end() {
             return enumerator<container_type>(0, std::end(iterable));
         }
@@ -183,18 +199,20 @@ template <typename container_type, typename range_type,
           typename container_type_iter =
               decltype(std::begin(std::declval<container_type>())),
           typename = decltype(std::end(std::declval<container_type>()))>
-constexpr inline auto enumerate(const container_type &iterable,
-                                range_type &&r) {
+DETRAY_HOST_DEVICE constexpr inline auto enumerate(
+    const container_type &iterable, range_type &&r) {
 
     struct iterable_wrapper {
         const container_type_iter iter;
         iterator_range<container_type> range_iter;
 
+        DETRAY_HOST_DEVICE
         decltype(auto) begin() {
             return enumerator<container_type>(
                 static_cast<size_t>(std::distance(iter, range_iter.begin())),
                 range_iter.begin());
         }
+        DETRAY_HOST_DEVICE
         decltype(auto) end() {
             return enumerator<container_type>(
                 static_cast<size_t>(std::distance(iter, range_iter.begin())),
@@ -216,6 +234,7 @@ constexpr inline auto enumerate(const container_type &iterable,
  * @note sequence(2) will produce {2}
  *
  **/
+DETRAY_HOST_DEVICE
 constexpr auto sequence(dindex iterable) {
 
     struct iterator {
@@ -224,19 +243,25 @@ constexpr auto sequence(dindex iterable) {
         size_t end;
 
         /** Determine whether we reach end of sequence */
+        DETRAY_HOST_DEVICE
         bool operator!=(const iterator &rhs) const { return i != rhs.end; }
 
         /** Increase index and iterator at once */
+        DETRAY_HOST_DEVICE
         void operator++() { ++i; }
 
         /** Tie them together for returning */
+        DETRAY_HOST_DEVICE
         auto operator*() const { return i; }
     };
 
     /** Wrap up for iteration */
     struct iterable_wrapper {
         dindex iterable;
+
+        DETRAY_HOST_DEVICE
         auto begin() { return iterator{iterable, iterable + 1}; }
+        DETRAY_HOST_DEVICE
         auto end() { return iterator{iterable + 1, iterable + 1}; }
     };
 
@@ -259,7 +284,7 @@ template <
         decltype(std::get<0>(std::declval<range_type>()))>>>,
     typename = std::enable_if_t<std::is_integral_v<std::remove_reference_t<
         decltype(std::get<1>(std::declval<range_type>()))>>>>
-constexpr auto sequence(range_type range) {
+DETRAY_HOST_DEVICE constexpr auto sequence(range_type range) {
 
     struct iterator {
         /** Start and end of sequence */
@@ -267,21 +292,27 @@ constexpr auto sequence(range_type range) {
         size_t end;
 
         /** Determine whether we reach end of sequence */
+        DETRAY_HOST_DEVICE
         bool operator!=(const iterator &rhs) const { return i != rhs.end; }
 
         /** Increase index and iterator at once */
+        DETRAY_HOST_DEVICE
         void operator++() { ++i; }
 
         /** Tie them together for returning */
+        DETRAY_HOST_DEVICE
         auto operator*() const { return i; }
     };
 
     /** Wrap up for iteration */
     struct iterable_wrapper {
         range_type _iterable;
+
+        DETRAY_HOST_DEVICE
         auto begin() {
             return iterator{std::get<0>(_iterable), std::get<1>(_iterable)};
         }
+        DETRAY_HOST_DEVICE
         auto end() {
             return iterator{std::get<1>(_iterable) + 1,
                             std::get<1>(_iterable) + 1};

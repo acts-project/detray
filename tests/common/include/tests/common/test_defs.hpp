@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-#include "definitions/cuda_qualifiers.hpp"
+#include "definitions/detray_qualifiers.hpp"
 #include "utils/containers.hpp"
 
 #ifdef DETRAY_CUSTOM_SCALARTYPE

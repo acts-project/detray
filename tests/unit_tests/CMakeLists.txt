@@ -26,12 +26,9 @@ function(add_detray_test name)
       RUNTIME_OUTPUT_DIRECTORY${_config} "${CMAKE_BINARY_DIR}/test-bin" )
   endforeach()
 
-  # Check if it is cuda test
-  if(${test_exe_name} MATCHES ".*_cuda")
-    target_compile_options(${test_exe_name}
-      PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:
-      --expt-relaxed-constexpr>)
-  endif()
+  target_compile_options(${test_exe_name}
+    PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:
+    --expt-relaxed-constexpr>)
   
   # Run the executable as the test.
   add_test( NAME ${test_exe_name} COMMAND $<TARGET_FILE:${test_exe_name}> )

@@ -16,7 +16,7 @@
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
 
-#include "definitions/cuda_qualifiers.hpp"
+#include "definitions/detray_qualifiers.hpp"
 #include "definitions/invalid_values.hpp"
 #include "utils/indexing.hpp"
 namespace detray {
