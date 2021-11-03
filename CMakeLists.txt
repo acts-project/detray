@@ -53,6 +53,8 @@ cmake_dependent_option( DETRAY_BENCHMARKS "Enable benchmark tests" TRUE
    "DETRAY_BUILD_TESTING" OFF )
 cmake_dependent_option( DETRAY_BENCHMARKS_MULTITHREAD
    "Enable multithreaded benchmarks" OFF "DETRAY_BENCHMARKS" OFF )
+set( DETRAY_BENCHMARKS_REP 1 CACHE STRING
+   "Number of repetitions for the benchmarks" )
 
 # Clean up.
 unset( DETRAY_BUILD_CUDA_DEFAULT )
@@ -155,31 +157,21 @@ if( DETRAY_SETUP_BENCHMARK )
    endif()
 endif()
 
-if(DETRAY_BENCHMARKS_MULTITHREAD)
-    message(STATUS "Using multithreaded benchmarks")
-endif()
-if(DETRAY_BENCHMARKS AND DETRAY_BENCHMARKS_REP)
-    message(STATUS "Repetitions for benchmarks: " ${DETRAY_BENCHMARKS_REP})
-endif()
-
-# Set GPU-related options
-if(DETRAY_BUILD_CUDA)
-  enable_language(CUDA)
+# Set up all of the libraries of the project.
+add_subdirectory( core )
+add_subdirectory( plugins )
+add_subdirectory( io )
+if( DETRAY_DISPLAY )
+   add_subdirectory( display )
 endif()
 
-add_subdirectory(apps)
-add_subdirectory(core)
-add_subdirectory(plugins)
-add_subdirectory(io)
+# Set up the project's applications.
+add_subdirectory( apps )
 
 # Set up the test(s).
 include( CTest )
 if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
   add_subdirectory( tests )
-endif()
-
-if (DETRAY_DISPLAY)
-    add_subdirectory(display)
 endif()
 
 # Set up the packaging of the project.
