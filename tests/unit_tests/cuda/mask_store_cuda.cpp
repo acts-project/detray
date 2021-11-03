@@ -49,15 +49,18 @@ TEST(mask_store_cuda, mask_store) {
     vecmem::vector<point3> input_point3(n_points, &mng_mr);
 
     for (int i = 0; i < n_points; i++) {
-        point2 rand_point2 = {rand() % 100 / 10., rand() % 100 / 10.};
-        point3 rand_point3 = {rand() % 100 / 10., rand() % 100 / 10.,
-                              rand() % 100 / 10.};
+        point2 rand_point2 = {static_cast<scalar>(rand() % 100 / 10.),
+                              static_cast<scalar>(rand() % 100 / 10.)};
+        point3 rand_point3 = {static_cast<scalar>(rand() % 100 / 10.),
+                              static_cast<scalar>(rand() % 100 / 10.),
+                              static_cast<scalar>(rand() % 100 / 10.)};
+
         input_point2[i] = rand_point2;
         input_point3[i] = rand_point3;
     }
 
     /** host output for intersection status **/
-    vecmem::jagged_vector<int> output_host(5, &mng_mr);
+    vecmem::jagged_vector<intersection_status> output_host(5, &mng_mr);
 
     /** get mask objects **/
     const auto& rectangle_mask = store.group<e_rectangle2>()[0];
@@ -84,7 +87,7 @@ TEST(mask_store_cuda, mask_store) {
     vecmem::cuda::copy copy;
 
     /** device output for intersection status **/
-    vecmem::data::jagged_vector_buffer<int> output_buffer(
+    vecmem::data::jagged_vector_buffer<intersection_status> output_buffer(
         {0, 0, 0, 0, 0}, {n_points, n_points, n_points, n_points, n_points},
         mng_mr);
 
@@ -97,7 +100,7 @@ TEST(mask_store_cuda, mask_store) {
     /** run the kernel **/
     mask_test(store_data, input_point2_data, input_point3_data, output_buffer);
 
-    vecmem::jagged_vector<int> output_device(&mng_mr);
+    vecmem::jagged_vector<intersection_status> output_device(&mng_mr);
     copy(output_buffer, output_device);
 
     /** Compare the values **/
