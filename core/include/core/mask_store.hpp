@@ -36,8 +36,8 @@ class mask_store {
 
     /** Constructor with mask_store_data **/
 #if defined(__CUDACC__)
-    template <typename mask_store_data_t>
-    DETRAY_DEVICE mask_store(mask_store_data_t &store_data)
+    template <template <typename...> class mask_store_data_t>
+    DETRAY_DEVICE mask_store(mask_store_data_t<mask_types...> &store_data)
         : _mask_tuple(
               store_data.device(typename gens<sizeof...(mask_types)>::type())) {
     }
