@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "detray/definitions/detray_qualifiers.hpp"
-
 #include <limits>
+
+#include "detray/definitions/detray_qualifiers.hpp"
 
 template <typename T>
 DETRAY_HOST_DEVICE inline T invalid_value() {

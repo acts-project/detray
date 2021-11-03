@@ -14,10 +14,10 @@
 #include "detray/core/track.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/io/csv_io.hpp"
-#include "tests/common/read_geometry.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
 #include "detray/tools/propagator.hpp"
+#include "tests/common/read_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
