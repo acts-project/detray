@@ -22,5 +22,10 @@ set( BUILD_INSTALLER TRUE CACHE BOOL
 set( BUILD_WITH_PEDANTIC_WARNINGS FALSE CACHE BOOL
    "Turn off pedantic warnings for the Matplot++ build" )
 
+# Clean out the CMAKE_CXX_FLAGS variable. The Matplot++ CMake code is buggy.
+# It produces an invalid value for CMAKE_CXX_FLAGS if it's not completely
+# empty when its configuration starts. :-(
+set( CMAKE_CXX_FLAGS )
+
 # Get it into the current directory.
 FetchContent_MakeAvailable( Matplotpp )

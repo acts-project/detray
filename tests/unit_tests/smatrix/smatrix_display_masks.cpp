@@ -5,7 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-// algebra plugin header
-#include "detray/plugins/algebra/eigen_definitions.hpp"
-// inline header
-#include "apps/common/display_bin_association.inl"
+#include "detray/plugins/algebra/smatrix_definitions.hpp"
+#include "tests/common/display_masks.inl"

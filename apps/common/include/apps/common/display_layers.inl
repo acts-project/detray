@@ -15,14 +15,14 @@
 #include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "core/detector.hpp"
-#include "core/transform_store.hpp"
-#include "io/csv_io.hpp"
-#include "style/styles.hpp"
-#include "utils/enumerate.hpp"
-#include "utils/generators.hpp"
-#include "view/draw.hpp"
-#include "view/views.hpp"
+#include "detray/core/detector.hpp"
+#include "detray/core/transform_store.hpp"
+#include "detray/io/csv_io.hpp"
+#include "detray/style/styles.hpp"
+#include "detray/utils/enumerate.hpp"
+#include "detray/utils/generators.hpp"
+#include "detray/view/draw.hpp"
+#include "detray/view/views.hpp"
 
 int main(int argc, char **argv) {
     vecmem::host_memory_resource host_mr;
