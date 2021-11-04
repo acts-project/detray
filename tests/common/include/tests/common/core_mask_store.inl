@@ -7,8 +7,8 @@
 
 #include <gtest/gtest.h>
 
-#include "core/mask_store.hpp"
-#include "masks/masks.hpp"
+#include "detray/core/mask_store.hpp"
+#include "detray/masks/masks.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

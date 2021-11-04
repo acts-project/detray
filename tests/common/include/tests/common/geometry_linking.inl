@@ -9,8 +9,8 @@
 
 #include <iostream>
 
-#include "geometry/unified_index_geometry.hpp"
-#include "tools/geometry_graph.hpp"
+#include "detray/geometry/unified_index_geometry.hpp"
+#include "detray/tools/geometry_graph.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

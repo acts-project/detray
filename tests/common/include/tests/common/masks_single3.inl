@@ -9,7 +9,7 @@
 
 #include <climits>
 
-#include "masks/single3.hpp"
+#include "detray/masks/single3.hpp"
 
 using namespace detray;
 using namespace __plugin;

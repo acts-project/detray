@@ -1,3 +1,12 @@
+# Detray library, part of the ACTS project (R&D line)
+#
+# (c) 2021 CERN for the benefit of the ACTS project
+#
+# Mozilla Public License Version 2.0
+
+# Enable CUDA as a language.
+enable_language(CUDA)
+
 add_detray_test(grids_grid2_cuda
   "grids_grid2_cuda.cpp"
   "grids_grid2_cuda_kernel.hpp"

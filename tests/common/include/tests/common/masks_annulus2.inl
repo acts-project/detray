@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "masks/annulus2.hpp"
+#include "detray/masks/annulus2.hpp"
 
 using namespace detray;
 using namespace __plugin;

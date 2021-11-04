@@ -11,8 +11,8 @@
 #include "tests/common/test_defs.hpp"
 
 // detray core
-#include "utils/enumerate.hpp"
-#include "utils/indexing.hpp"
+#include "detray/utils/enumerate.hpp"
+#include "detray/utils/indexing.hpp"
 
 using namespace detray;
 

@@ -11,12 +11,12 @@
 #include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "core/detector.hpp"
-#include "core/track.hpp"
-#include "core/transform_store.hpp"
-#include "io/csv_io.hpp"
+#include "detray/core/detector.hpp"
+#include "detray/core/track.hpp"
+#include "detray/core/transform_store.hpp"
+#include "detray/io/csv_io.hpp"
+#include "detray/tools/navigator.hpp"
 #include "tests/common/read_geometry.hpp"
-#include "tools/navigator.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
