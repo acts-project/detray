@@ -47,6 +47,5 @@ foreach(algebra ${algebras})
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_unified_index_geometry_cuda PRIVATE ${algebra}=${algebra})
 
-
 endforeach()
 

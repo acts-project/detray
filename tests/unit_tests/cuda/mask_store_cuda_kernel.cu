@@ -17,7 +17,7 @@ __global__ void mask_test_kernel(
         store_data,
     vecmem::data::vector_view<point2> input_point2_data,
     vecmem::data::vector_view<point3> input_point3_data,
-    vecmem::data::jagged_vector_view<int> output_data) {
+    vecmem::data::jagged_vector_view<intersection_status> output_data) {
 
     /** get mask store **/
     mask_store<vecmem::device_vector, rectangle, trapezoid, ring, cylinder,
@@ -27,7 +27,8 @@ __global__ void mask_test_kernel(
     /** get mask objects **/
     vecmem::device_vector<point2> input_point2(input_point2_data);
     vecmem::device_vector<point3> input_point3(input_point3_data);
-    vecmem::jagged_device_vector<int> output_device(output_data);
+    vecmem::jagged_device_vector<intersection_status> output_device(
+        output_data);
 
     const auto& rectangle_mask = store.group<e_rectangle2>()[0];
     const auto& trapezoid_mask = store.group<e_trapezoid2>()[0];
@@ -51,11 +52,12 @@ __global__ void mask_test_kernel(
     }
 }
 
-void mask_test(mask_store_data<rectangle, trapezoid, ring, cylinder, single,
-                               annulus>& store_data,
-               vecmem::data::vector_view<point2>& input_point2_data,
-               vecmem::data::vector_view<point3>& input_point3_data,
-               vecmem::data::jagged_vector_view<int>& output_data) {
+void mask_test(
+    mask_store_data<rectangle, trapezoid, ring, cylinder, single, annulus>&
+        store_data,
+    vecmem::data::vector_view<point2>& input_point2_data,
+    vecmem::data::vector_view<point3>& input_point3_data,
+    vecmem::data::jagged_vector_view<intersection_status>& output_data) {
 
     int block_dim = 1;
     int thread_dim = 1;
