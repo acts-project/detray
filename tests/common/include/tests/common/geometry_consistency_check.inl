@@ -103,12 +103,9 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
 
     // Build the graph
     graph g = graph(geo._volumes, geo._objects);
+    const auto &adj = g.adjacency_list();
 
     std::cout << g.to_string() << std::endl;
-    // std::cout << "Walking through geometry: " << std::endl;
-    g.bfs();
-
-    const auto &adj = g.adjacency_list();
 
     /*vecmem::host_memory_resource host_mr;
     auto [d, name_map] = read_from_csv(odd_files, host_mr);

@@ -209,7 +209,7 @@ struct annulus2 {
 
     /** Return the local frame type */
     DETRAY_HOST_DEVICE
-    local_type local() const { return local_type{}; }
+    constexpr local_type local() const { return local_type{}; }
 
     /** Return the volume link - const reference */
     DETRAY_HOST_DEVICE

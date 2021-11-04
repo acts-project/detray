@@ -103,6 +103,10 @@ inline auto trace_volumes(const record_type &volume_record,
         inline bool operator()() const { return lower.second == upper.second; }
     };
 
+    // Filter out intersection with non-portals
+    for (auto rec : volume_record) {
+    }
+
     // Excluding the volume where we leave world, the rest should come in pairs
     if ((volume_record.size() - 1) % 2) {
         return valid_volumes;

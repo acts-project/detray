@@ -92,7 +92,7 @@ class geometry_graph {
     const auto edges() const { return _edges; }
 
     /** @return graph adjacency */
-    const auto adjacency_list() const { return adjaceny_list; }
+    const auto adjacency_list() const { return adj_list; }
 
     /** Walks breadth first through the geometry objects. */
     template <typename action_t = void_actor<node_t>>
@@ -155,7 +155,7 @@ class geometry_graph {
         for (const auto &n : _nodes) {
             ss << "[>>] Node with index " << n.index() << std::endl;
             ss << " -> neighbors: " << std::endl;
-            const auto &neighbors = adjaceny_list.at(n.index()).second;
+            const auto &neighbors = adj_list.at(n.index()).second;
             for (const auto &nbr : neighbors) {
                 ss << "    -> " << print_neighbor(nbr) << std::endl;
             }
@@ -177,7 +177,7 @@ class geometry_graph {
                 edge_hashes.insert(edg_id);
                 neighbors[std::get<0>(edg.edge())]++;
             }
-            adjaceny_list[n.index()] = std::make_pair(edge_hashes, neighbors);
+            adj_list[n.index()] = std::make_pair(edge_hashes, neighbors);
         }
     }
 
@@ -193,7 +193,7 @@ class geometry_graph {
      */
     std::map<dindex,
              std::pair<std::unordered_set<dindex>, std::map<dindex, dindex>>>
-        adjaceny_list = {};
+        adj_list = {};
 };
 
 }  // namespace detray

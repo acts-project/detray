@@ -52,7 +52,9 @@ struct intersection {
                  std::numeric_limits<scalar>::infinity()};
     intersection_status status = e_missed;
     intersection_direction direction = e_undefined;
+    // Primitive this intersection belongs to
     dindex index = dindex_invalid;
+    // Navigation information
     dindex link = dindex_invalid;
 
     /** @param rhs is the right hand side intersection for comparison

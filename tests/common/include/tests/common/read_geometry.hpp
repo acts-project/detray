@@ -202,13 +202,13 @@ auto toy_geometry() {
 
     // We have disc, cylinder and rectangle surfaces
     using disc = detray::ring2<detray::planar_intersector, __plugin::cartesian2,
-                               short, 0>;
+                               edge_links, 0>;
 
     using cylinder = detray::cylinder3<false, detray::cylinder_intersector,
-                                       __plugin::cylindrical2, short, 1>;
+                                       __plugin::cylindrical2, edge_links, 1>;
 
     using rectangle = detray::rectangle2<detray::planar_intersector,
-                                         __plugin::cartesian2, short, 2>;
+                                         __plugin::cartesian2, edge_links, 2>;
 
     // The surface type, both for volume portals and contained detector
     // surfaces
