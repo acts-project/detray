@@ -18,7 +18,7 @@ function( detray_add_library fullname basename )
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> )
 
-   # Make sure that the library is available as "algebra::${basename}" in every
+   # Make sure that the library is available as "detray::${basename}" in every
    # situation.
    set_target_properties( ${fullname} PROPERTIES EXPORT_NAME ${basename} )
    add_library( detray::${basename} ALIAS ${fullname} )
