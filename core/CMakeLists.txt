@@ -56,4 +56,4 @@ detray_add_library( detray_core core
    "include/detray/utils/quadratic_equation.hpp"
    "include/detray/utils/ray_gun.hpp"
    "include/detray/utils/unbound.hpp" )
-target_link_libraries( detray_core INTERFACE vecmem::core Thrust::Thrust)
+target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)
