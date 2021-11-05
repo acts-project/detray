@@ -58,12 +58,9 @@ struct unwrap_refwrapper<std::reference_wrapper<T>> {
 template <class T>
 using unwrap_decay_t =
     typename unwrap_refwrapper<typename std::decay<T>::type>::type;
-// or use std::unwrap_ref_decay_t (since C++20)
 
 template <template <typename...> class tuple_type, class... Types>
-constexpr  // since C++14
-    tuple_type<unwrap_decay_t<Types>...>
-    make_tuple(Types&&... args) {
+constexpr tuple_type<unwrap_decay_t<Types>...> make_tuple(Types&&... args) {
     return tuple_type<unwrap_decay_t<Types>...>(std::forward<Types>(args)...);
 }
 

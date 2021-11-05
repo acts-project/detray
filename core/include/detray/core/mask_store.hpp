@@ -24,7 +24,17 @@ template <template <typename...> class tuple_type = dtuple,
 class mask_store {
 
     public:
+    /**
+     * mask_tuple is the only member which does not follow the tuple_type.
+     * vtuple has different types based on the file location 1) std::tuple in
+     * cpp/hpp; 2) thrust::tuple in cu
+     */
     using mask_tuple = vtuple::tuple<vector_type<mask_types>...>;
+
+    /**
+     * tuple_type for mask_tuple makes an illegal memory access error
+     */
+    // using mask_tuple = tuple_type<vector_type<mask_types>...>;
 
     /** Default constructor **/
     mask_store() = default;
@@ -234,8 +244,9 @@ struct mask_store_data {
     DETRAY_HOST mask_store_data(
         mask_store<tuple_type, vector_type, mask_types...> &store,
         std::index_sequence<ints...> /*seq*/)
-        : _data(thrust::make_tuple(vecmem::data::vector_view<mask_types>(
-              vecmem::get_data(std::get<ints>(store.masks())))...)) {}
+        : _data(detail::make_tuple<tuple_type>(
+              vecmem::data::vector_view<mask_types>(
+                  vecmem::get_data(detail::get<ints>(store.masks())))...)) {}
 
     /** Size : Contextual STL like API
      *
@@ -262,16 +273,14 @@ struct mask_store_data {
      * @return tuple type of vecmem::data::vector_view objects
      */
     template <std::size_t... ints>
-    DETRAY_DEVICE thrust::tuple<vecmem::device_vector<mask_types>...> device(
+    DETRAY_DEVICE tuple_type<vecmem::device_vector<mask_types>...> device(
         std::index_sequence<ints...> /*seq*/) {
-        return thrust::make_tuple(
+        return detail::make_tuple<tuple_type>(
             vecmem::device_vector<mask_types>(detail::get<ints>(_data))...);
     }
 
     /** tuple of vecmem data
      *
-     * use std::tuple because thrust::tuple gets corrupted when passed to .cu
-     * file
      * **/
     tuple_type<vecmem::data::vector_view<mask_types>...> _data;
 };
