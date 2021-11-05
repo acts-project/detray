@@ -254,7 +254,7 @@ struct mask_store_data {
      */
     template <unsigned int mask_id>
     size_t size() const {
-        return std::get<mask_id>(_data).size();
+        return detail::get<mask_id>(_data).size();
     }
 
     /** Retrieve a vector of masks of a certain type (mask group) - const
@@ -264,7 +264,7 @@ struct mask_store_data {
      */
     template <unsigned int mask_id>
     constexpr const auto &group() const {
-        return std::get<mask_id>(_data);
+        return detail::get<mask_id>(_data);
     }
 
     /** Obtain the vecmem device vector of mask store
@@ -275,7 +275,7 @@ struct mask_store_data {
     DETRAY_DEVICE thrust::tuple<vecmem::device_vector<mask_types>...> device(
         std::index_sequence<ints...> /*seq*/) {
         return thrust::make_tuple(
-            vecmem::device_vector<mask_types>(std::get<ints>(_data))...);
+            vecmem::device_vector<mask_types>(detail::get<ints>(_data))...);
     }
 
     /** tuple of vecmem data
