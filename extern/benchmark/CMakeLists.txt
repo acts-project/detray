@@ -12,9 +12,11 @@ include( FetchContent )
 message( STATUS "Building Google Benchmark as part of the Detray project" )
 
 # Declare where to get Google Benchmark from.
-FetchContent_Declare( Benchmark
-   URL "https://github.com/google/benchmark/archive/refs/tags/v1.6.0.tar.gz"
-   URL_MD5 "a7cb118b00430e22cb16774a28fce7ec" )
+set( DETRAY_BENCHMARK_SOURCE
+   "URL;https://github.com/google/benchmark/archive/refs/tags/v1.6.0.tar.gz;URL_MD5;a7cb118b00430e22cb16774a28fce7ec"
+   CACHE STRING "Source for Google Benchmark, when built as part of this project" )
+mark_as_advanced( DETRAY_BENCHMARK_SOURCE )
+FetchContent_Declare( Benchmark ${DETRAY_BENCHMARK_SOURCE} )
 
 # Options used in the build of Google Benchmark.
 set( BENCHMARK_ENABLE_TESTING OFF CACHE BOOL

@@ -9,7 +9,6 @@
 
 # Set up variables describing which components were enabled during the
 # Detray build.
-set( DETRAY_VECMEM_PLUGIN @DETRAY_VECMEM_PLUGIN@ )
 set( DETRAY_EIGEN_PLUGIN @DETRAY_EIGEN_PLUGIN@ )
 set( DETRAY_SMATRIX_PLUGIN @DETRAY_SMATRIX_PLUGIN@ )
 set( DETRAY_VC_PLUGIN @DETRAY_VC_PLUGIN@ )
@@ -20,9 +19,18 @@ set( DETRAY_BUILD_CUDA @DETRAY_BUILD_CUDA@ )
 # Find all packages that Detray needs to function.
 include( CMakeFindDependencyMacro )
 find_dependency( algebra-plugins )
-if( DETRAY_VECMEM_PLUGIN )
-   find_dependency( vecmem )
+find_dependency( Thrust )
+find_dependency( vecmem )
+if( DETRAY_IO_CSV )
+   find_dependency( dfelibs )
 endif()
+if( DETRAY_DISPLAY )
+   find_dependency( Matplot++ )
+endif()
+
+# Set up the detray::Thrust target.
+set( DETRAY_THRUST_OPTIONS @DETRAY_THRUST_OPTIONS@ )
+thrust_create_target( detray::Thrust ${DETRAY_THRUST_OPTIONS} )
 
 # Set up some simple variables for using the package.
 set( detray_VERSION "@PROJECT_VERSION@" )
@@ -32,7 +40,7 @@ set_and_check( detray_CMAKE_DIR "@PACKAGE_CMAKE_INSTALL_CMAKEDIR@" )
 
 # Print a standard information message about the package being found.
 include( FindPackageHandleStandardArgs )
-find_package_handle_standard_args( algebra-plugins REQUIRED_VARS
+find_package_handle_standard_args( detray REQUIRED_VARS
    CMAKE_CURRENT_LIST_FILE
    VERSION_VAR detray_VERSION )
 

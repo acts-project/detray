@@ -20,4 +20,4 @@ add_detray_test(utils_quadratic_equation
                 utils_quadratic_equation.cpp LINK_LIBRARIES detray::core)
 
 add_detray_test(thrust_tuple
-                thrust_tuple.cpp LINK_LIBRARIES Thrust::Thrust)
+                thrust_tuple.cpp LINK_LIBRARIES detray::Thrust)
