@@ -10,9 +10,9 @@
 #include <climits>
 #include <cmath>
 
-#include "core/intersection.hpp"
-#include "masks/rectangle2.hpp"
-#include "tools/planar_intersector.hpp"
+#include "detray/core/intersection.hpp"
+#include "detray/masks/rectangle2.hpp"
+#include "detray/tools/planar_intersector.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;

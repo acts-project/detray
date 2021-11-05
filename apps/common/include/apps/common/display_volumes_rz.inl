@@ -14,9 +14,9 @@
 #include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "core/detector.hpp"
-#include "core/transform_store.hpp"
-#include "io/csv_io.hpp"
+#include "detray/core/detector.hpp"
+#include "detray/core/transform_store.hpp"
+#include "detray/io/csv_io.hpp"
 
 int main(int argc, char **argv) {
     vecmem::host_memory_resource host_mr;

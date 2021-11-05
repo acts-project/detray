@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 #include <climits>
+#include <cstdlib>
 #include <iostream>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 

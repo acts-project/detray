@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "masks/trapezoid2.hpp"
+#include "detray/masks/trapezoid2.hpp"
 
 using namespace detray;
 using namespace __plugin;

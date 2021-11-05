@@ -7,9 +7,9 @@
 
 #include <gtest/gtest.h>
 
-#include "core/track.hpp"
-#include "core/transform_store.hpp"
-#include "tools/line_stepper.hpp"
+#include "detray/core/track.hpp"
+#include "detray/core/transform_store.hpp"
+#include "detray/tools/line_stepper.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

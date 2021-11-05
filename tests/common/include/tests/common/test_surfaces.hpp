@@ -10,14 +10,14 @@
 #include <functional>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "geometry/surface_base.hpp"
-#include "grids/axis.hpp"
-#include "grids/grid2.hpp"
-#include "grids/populator.hpp"
-#include "grids/serializer2.hpp"
-#include "tools/local_object_finder.hpp"
-#include "utils/enumerate.hpp"
-#include "utils/indexing.hpp"
+#include "detray/geometry/surface_base.hpp"
+#include "detray/grids/axis.hpp"
+#include "detray/grids/grid2.hpp"
+#include "detray/grids/populator.hpp"
+#include "detray/grids/serializer2.hpp"
+#include "detray/tools/local_object_finder.hpp"
+#include "detray/utils/enumerate.hpp"
+#include "detray/utils/indexing.hpp"
 
 namespace detray {
 vecmem::host_memory_resource host_mr;

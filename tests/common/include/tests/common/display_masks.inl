@@ -10,10 +10,10 @@
 #include <climits>
 #include <cmath>
 
-#include "masks/masks.hpp"
-#include "style/styles.hpp"
-#include "view/draw.hpp"
-#include "view/views.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/style/styles.hpp"
+#include "detray/view/draw.hpp"
+#include "detray/view/views.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;

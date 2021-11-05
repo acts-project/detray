@@ -9,7 +9,7 @@
 
 #include <climits>
 
-#include "masks/rectangle2.hpp"
+#include "detray/masks/rectangle2.hpp"
 
 using namespace detray;
 using namespace __plugin;

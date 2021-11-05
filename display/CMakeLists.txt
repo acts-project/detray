@@ -1,21 +1,16 @@
+# Detray library, part of the ACTS project (R&D line)
+#
+# (c) 2021 CERN for the benefit of the ACTS project
+#
+# Mozilla Public License Version 2.0
+
+# Let the user know what's happening.
 message(STATUS "Building 'detray::display' component")
 
-add_library(detray_display INTERFACE)
-
-target_include_directories(detray_display
-  INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
-
-target_link_libraries(detray_display INTERFACE detray::core Matplot++::matplot)
-
-install(
-  DIRECTORY include/style
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-install(
-  DIRECTORY include/view
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-add_library(detray::display ALIAS detray_display)
+# Set up the library.
+detray_add_library( detray_display display
+   "include/detray/style/styles.hpp"
+   "include/detray/view/draw.hpp"
+   "include/detray/view/views.hpp" )
+target_link_libraries( detray_display
+   INTERFACE detray::core Matplot++::matplot )
