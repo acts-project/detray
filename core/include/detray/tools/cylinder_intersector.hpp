@@ -105,8 +105,8 @@ struct cylinder_intersector {
                 is.index = volume_index;
                 is.path = t;
                 is.p3 = ro + is.path * rd;
-                auto local = mask.local();
-                is.p2 = local(trf, is.p3);
+                constexpr cylindrical2 local_converter{};
+                is.p2 = local_converter(trf, is.p3);
                 auto local3 = trf.point_to_local(is.p3);
                 is.status =
                     mask.template is_inside<cylindrical2>(local3, tolerance);

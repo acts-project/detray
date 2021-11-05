@@ -104,13 +104,9 @@ inline auto trace_volumes(const record_type &volume_record,
         // changeing volumes)
         inline bool operator()() const {
             return (lower.second == upper.second) and
-                   (lower.second.index != upper.second.index);
+                   (lower.first != upper.first);
         }
     };
-
-    // Filter out intersection with non-portals
-    for (auto rec : volume_record) {
-    }
 
     // Excluding the volume where we leave world, the rest should come in pairs
     if ((volume_record.size() - 1) % 2) {
@@ -132,6 +128,9 @@ inline auto trace_volumes(const record_type &volume_record,
         if (doublet()) {
             // Insert into set of edges
             valid_volumes.emplace(doublet.lower.first, doublet.upper.first);
+        }
+        // We looked at non-portal intersections
+        else if (doublet.lower.first == doublet.upper.first) {
         }
         // Something went wrong
         else {
