@@ -26,6 +26,12 @@ namespace vtuple = std;
 
 namespace detail {
 
+/** get function accessor
+ *
+ */
+using std::get;
+using thrust::get;
+
 /** tuple size accessor
  */
 template <class T>
@@ -35,11 +41,31 @@ template <template <typename...> class tuple_type, class... value_types>
 struct tuple_size<tuple_type<value_types...>>
     : std::integral_constant<std::size_t, sizeof...(value_types)> {};
 
-/** get function accessor
- *
+/** make tuple accessor
+ *  users have to specifiy tuple_type for detail::make_tuple
  */
-using std::get;
-using thrust::get;
+
+template <class T>
+struct unwrap_refwrapper {
+    using type = T;
+};
+
+template <class T>
+struct unwrap_refwrapper<std::reference_wrapper<T>> {
+    using type = T&;
+};
+
+template <class T>
+using unwrap_decay_t =
+    typename unwrap_refwrapper<typename std::decay<T>::type>::type;
+// or use std::unwrap_ref_decay_t (since C++20)
+
+template <template <typename...> class tuple_type, class... Types>
+constexpr  // since C++14
+    tuple_type<unwrap_decay_t<Types>...>
+    make_tuple(Types&&... args) {
+    return tuple_type<unwrap_decay_t<Types>...>(std::forward<Types>(args)...);
+}
 
 }  // namespace detail
 }  // namespace detray

@@ -47,7 +47,7 @@ template void tuple_copy<thrust::tuple>(
     vecmem::data::vector_view<float>& output2_data,
     vecmem::data::vector_view<double>& output3_data);
 
-/*
+/* currently does not work
 template void tuple_copy<std::tuple>(
     vec_tuple_data<std::tuple, int, float, double>& data,
     vecmem::data::vector_view<int>& output1_data,
