@@ -15,6 +15,8 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
+#include <thrust/tuple.h>
+
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
 
@@ -40,8 +42,8 @@ using trapezoid = trapezoid2<>;
 
 /// test function for mask store
 void mask_test(
-    mask_store_data<rectangle, trapezoid, ring, cylinder, single, annulus>&
-        store_data,
+    mask_store_data<thrust::tuple, rectangle, trapezoid, ring, cylinder, single,
+                    annulus>& store_data,
     vecmem::data::vector_view<point2>& input_point2_data,
     vecmem::data::vector_view<point3>& input_point3_data,
     vecmem::data::jagged_vector_view<intersection_status>& output_data);

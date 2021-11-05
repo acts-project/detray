@@ -104,9 +104,9 @@ class index_geometry {
     using surface_mask_index = array_type<dindex, 2>;
 
     using mask_container =
-        mask_store<vector_type, surface_rectangle, surface_trapezoid,
-                   surface_annulus, surface_cylinder, portal_cylinder,
-                   portal_disc>;
+        mask_store<vector_type, tuple_type, surface_rectangle,
+                   surface_trapezoid, surface_annulus, surface_cylinder,
+                   portal_cylinder, portal_disc>;
 
     using source_link = surface_source_link;
     /** The Surface definition:

@@ -19,6 +19,7 @@ namespace detray {
 
 /** A mask store that provides the correct mask containers to client classes. */
 template <template <typename...> class vector_type = dvector,
+          template <typename...> class tuple_type = dtuple,
           typename... mask_types>
 class mask_store {
 
@@ -35,8 +36,8 @@ class mask_store {
 
     /** Constructor with mask_store_data **/
 #if defined(__CUDACC__)
-    template <template <typename...> class mask_store_data_t>
-    DETRAY_DEVICE mask_store(mask_store_data_t<mask_types...> &store_data)
+    template <typename mask_store_data_t>
+    DETRAY_DEVICE mask_store(mask_store_data_t &store_data)
         : _mask_tuple(store_data.device(
               std::make_index_sequence<sizeof...(mask_types)>{})) {}
 #endif
@@ -233,7 +234,7 @@ class mask_store {
  * The tuple type for mask store data is fixed to std::tuple since there was an
  * issue that _data gets corrupted when passed to .cu file
  */
-template <typename... mask_types>
+template <template <typename...> class tuple_type, typename... mask_types>
 struct mask_store_data {
 
     /** Constructor from mask store
@@ -241,7 +242,7 @@ struct mask_store_data {
      * @param store is the mask store from host
      **/
     template <template <typename...> class vector_type>
-    mask_store_data(mask_store<vector_type, mask_types...> &store)
+    mask_store_data(mask_store<vector_type, tuple_type, mask_types...> &store)
         : _data(store.data(std::make_index_sequence<sizeof...(mask_types)>{})) {
     }
 
@@ -282,10 +283,11 @@ struct mask_store_data {
 
 /** Get mask_store_data
  **/
-template <template <typename...> class vector_type, typename... mask_types>
-inline mask_store_data<mask_types...> get_data(
-    mask_store<vector_type, mask_types...> &store) {
-    return mask_store_data<mask_types...>(store);
+template <template <typename...> class vector_type,
+          template <typename...> class tuple_type, typename... mask_types>
+inline mask_store_data<tuple_type, mask_types...> get_data(
+    mask_store<vector_type, tuple_type, mask_types...> &store) {
+    return mask_store_data<tuple_type, mask_types...>(store);
 }
 
 }  // namespace detray
