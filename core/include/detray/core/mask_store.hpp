@@ -12,6 +12,7 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 #include "detray/definitions/basic_types.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/detray_qualifiers.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
@@ -271,13 +272,17 @@ struct mask_store_data {
      * @return tuple type of vecmem::data::vector_view objects
      */
     template <std::size_t... ints>
-    DETRAY_DEVICE __tuple::tuple<vecmem::device_vector<mask_types>...> device(
+    DETRAY_DEVICE thrust::tuple<vecmem::device_vector<mask_types>...> device(
         std::index_sequence<ints...> /*seq*/) {
-        return __tuple::make_tuple(
+        return thrust::make_tuple(
             vecmem::device_vector<mask_types>(std::get<ints>(_data))...);
     }
 
-    /** tuple of vecmem data **/
+    /** tuple of vecmem data
+     *
+     * use std::tuple because thrust::tuple gets corrupted when passed to .cu
+     * file
+     * **/
     std::tuple<vecmem::data::vector_view<mask_types>...> _data;
 };
 
