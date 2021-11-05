@@ -22,9 +22,21 @@ __global__ void tuple_copy_kernel(
     vecmem::device_vector<float> output2(output2_data);
     vecmem::device_vector<double> output3(output3_data);
 
-    output1 = thrust::get<0>(input._tuple);
-    output2 = thrust::get<1>(input._tuple);
-    output3 = thrust::get<2>(input._tuple);
+    const auto& input1 = thrust::get<0>(input._tuple);
+    const auto& input2 = thrust::get<1>(input._tuple);
+    const auto& input3 = thrust::get<2>(input._tuple);
+
+    for (unsigned int i = 0; i < input1.size(); i++) {
+        output1[i] = input1[i];
+    }
+
+    for (unsigned int i = 0; i < input2.size(); i++) {
+        output2[i] = input2[i];
+    }
+
+    for (unsigned int i = 0; i < input3.size(); i++) {
+        output3[i] = input3[i];
+    }
 }
 
 void tuple_copy(vec_tuple_data<int, float, double>& data,

@@ -27,6 +27,9 @@ using namespace __plugin;
 
 namespace detray {
 
+/** Tuple of vector which can hold either host and device vector
+ *
+ */
 template <template <typename...> class vector_type = vecmem::vector,
           typename... Ts>
 struct vec_tuple {
@@ -43,15 +46,13 @@ struct vec_tuple {
     DETRAY_HOST vec_tuple(vecmem::memory_resource& resource)
         : _tuple(vector_type<Ts>{&resource}...) {}
 
-#if defined(__CUDACC__)
     /** Constructor with vec_tuple_data - only for device
      *
      * Used when creating vec_tuple with vecmem::device_vector
      */
-    template <typename vec_tuple_data_t>
-    DETRAY_DEVICE vec_tuple(vec_tuple_data_t& data)
+    template <template <typename...> class vec_tuple_data>
+    DETRAY_DEVICE vec_tuple(vec_tuple_data<Ts...>& data)
         : _tuple(data.device(std::make_index_sequence<sizeof...(Ts)>{})) {}
-#endif
 
     /** Obtain vec_tuple_data with vecmem::vector_view
      *
@@ -64,6 +65,9 @@ struct vec_tuple {
     }
 };
 
+/** Tuple of vecmem::vector_view
+ *
+ */
 template <typename... Ts>
 struct vec_tuple_data {
     thrust::tuple<vecmem::data::vector_view<Ts>...> _tuple;

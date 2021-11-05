@@ -152,7 +152,7 @@ struct ring2 {
     links_type &links() { return _links; }
 
     /** Transform to a string for output debugging */
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
         ss << "ring2," << kMaskContext;

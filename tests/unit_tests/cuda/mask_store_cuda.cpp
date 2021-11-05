@@ -38,12 +38,12 @@ TEST(mask_store_cuda, mask_store) {
     // store.group<e_single3>().push_back(single{3.0,6.0});
     store.template add_mask<e_annulus2>(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
 
-    ASSERT_FALSE(store.template empty<e_annulus2>());
-    ASSERT_FALSE(store.template empty<e_cylinder3>());
-    ASSERT_FALSE(store.template empty<e_rectangle2>());
-    ASSERT_FALSE(store.template empty<e_ring2>());
+    ASSERT_FALSE(store.empty<e_annulus2>());
+    ASSERT_FALSE(store.empty<e_cylinder3>());
+    ASSERT_FALSE(store.empty<e_rectangle2>());
+    ASSERT_FALSE(store.empty<e_ring2>());
     // ASSERT_FALSE(store.template empty<e_single3>());
-    ASSERT_FALSE(store.template empty<e_trapezoid2>());
+    ASSERT_FALSE(store.empty<e_trapezoid2>());
 
     /** Generate random points for test **/
     vecmem::vector<point2> input_point2(n_points, &mng_mr);
