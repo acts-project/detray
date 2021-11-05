@@ -7,11 +7,10 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iostream>
-#include <map>
 #include <set>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -91,7 +90,11 @@ inline bool check_connectivity(
 template <typename record_type = dvector<std::pair<dindex, intersection>>>
 inline auto trace_volumes(const record_type &volume_record,
                           dindex start_volume = 0) {
-    std::set<std::pair<dindex, dindex>> valid_volumes = {};
+    // Indices of volumes that are linked by portals
+    std::set<std::pair<dindex, dindex>> portal_trace = {};
+    // Indices of volumes per module surface
+    std::set<dindex> surface_trace = {};
+    // Debug output if an error in the record is discovered
     std::stringstream record_stream;
 
     // Always read 2 elements from the sorted records vector
@@ -141,11 +144,11 @@ inline auto trace_volumes(const record_type &volume_record,
 
         if (doublet()) {
             // Insert into set of edges
-            valid_volumes.emplace(doublet.lower.first, doublet.upper.first);
+            portal_trace.emplace(doublet.lower.first, doublet.upper.first);
         }
         // I was a module surface after all
         else if (doublet.lower.second.index == doublet.upper.second.index) {
-            continue;
+            surface_trace.insert(doublet.lower.second.index);
         }
         // Something went wrong
         else {
@@ -171,11 +174,12 @@ inline auto trace_volumes(const record_type &volume_record,
 
             std::cerr << ">>>>>>>>>>>>>>>" << std::endl;
 
-            return valid_volumes;
+            return std::make_pair(portal_trace, surface_trace);
+            ;
         }
     }
 
-    return valid_volumes;
+    return std::make_pair(portal_trace, surface_trace);
 }
 
 }  // namespace detray
