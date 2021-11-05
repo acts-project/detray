@@ -7,6 +7,12 @@
 # Let the user know what's happening.
 message(STATUS "Building 'detray::smatrix' plugin")
 
+# A sanity check.
+if( NOT ALGEBRA_PLUGINS_INCLUDE_SMATRIX )
+   message( WARNING "SMatrix not available from Algebra Plugins. "
+      "The configuration will likely fail." )
+endif()
+
 # Set up the library.
 detray_add_library( detray_smatrix smatrix
    "include/detray/plugins/algebra/smatrix_definitions.hpp" )

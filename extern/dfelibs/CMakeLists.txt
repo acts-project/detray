@@ -12,9 +12,11 @@ include( FetchContent )
 message( STATUS "Building dfelibs as part of the Detray project" )
 
 # Declare where to get dfelibs from.
-FetchContent_Declare( dfelibs
-   URL "https://github.com/acts-project/dfelibs/archive/refs/tags/v20211029.tar.gz"
-   URL_MD5 "87fb09c5a11b98250f5e266e9cd501ea" )
+set( DETRAY_DFELIBS_SOURCE
+   "URL;https://github.com/acts-project/dfelibs/archive/refs/tags/v20211029.tar.gz;URL_MD5;87fb09c5a11b98250f5e266e9cd501ea"
+   CACHE STRING "Source for dfelibs, when built as part of this project" )
+mark_as_advanced( DETRAY_DFELIBS_SOURCE )
+FetchContent_Declare( dfelibs ${DETRAY_DFELIBS_SOURCE} )
 
 # Options used in the build of dfelibs.
 set( dfelibs_BUILD_EXAMPLES FALSE CACHE BOOL

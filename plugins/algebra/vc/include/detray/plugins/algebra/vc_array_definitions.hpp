@@ -29,10 +29,6 @@ using dmap = std::map<key_type, value_type>;
 template <class... types>
 using dtuple = std::tuple<types...>;
 
-using algebra::operator*;
-using algebra::operator+;
-using algebra::operator-;
-
 namespace getter = algebra::getter;
 namespace vector = algebra::vector;
 

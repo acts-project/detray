@@ -12,31 +12,33 @@ include( FetchContent )
 message( STATUS "Building Algebra Plugins as part of the Detray project" )
 
 # Declare where to get Algebra Plugins from.
-FetchContent_Declare( AlgebraPlugins
-   URL "https://github.com/acts-project/algebra-plugins/archive/refs/tags/v0.2.0.tar.gz"
-   URL_MD5 "00a5387005ea6a826c1de31099bfa8bf" )
+set( DETRAY_ALGEBRA_PLUGINS_SOURCE
+   "URL;https://github.com/acts-project/algebra-plugins/archive/refs/tags/v0.3.0.tar.gz;URL_MD5;7ffcfe299ebf654074b196e949afb010"
+   CACHE STRING "Source for Algebra Plugins, when built as part of this project" )
+mark_as_advanced( DETRAY_ALGEBRA_PLUGINS_SOURCE )
+FetchContent_Declare( AlgebraPlugins ${DETRAY_ALGEBRA_PLUGINS_SOURCE} )
 
 # Options used in the build of Algebra Plugins.
-set( ALGEBRA_PLUGIN_BUILD_TESTING FALSE CACHE BOOL
+set( ALGEBRA_PLUGINS_BUILD_TESTING FALSE CACHE BOOL
    "Turn off the build of the Algebra Plugins unit tests" )
-set( ALGEBRA_PLUGIN_INCLUDE_EIGEN TRUE CACHE BOOL
+set( ALGEBRA_PLUGINS_INCLUDE_EIGEN TRUE CACHE BOOL
    "Turn on the build of algebra::eigen" )
-set( ALGEBRA_PLUGIN_INCLUDE_VC TRUE CACHE BOOL
+set( ALGEBRA_PLUGINS_INCLUDE_VC TRUE CACHE BOOL
    "Turn on the build of algebra::vc_array" )
-set( ALGEBRA_PLUGIN_INCLUDE_VECMEM TRUE CACHE BOOL
+set( ALGEBRA_PLUGINS_INCLUDE_VECMEM TRUE CACHE BOOL
    "Turn on the build of algebra::vecmem_array" )
 
-set( ALGEBRA_PLUGIN_SETUP_EIGEN3 TRUE CACHE BOOL
+set( ALGEBRA_PLUGINS_SETUP_EIGEN3 TRUE CACHE BOOL
    "Have Algebra Plugins set up Eigen3 for itself" )
-set( ALGEBRA_PLUGIN_USE_SYSTEM_EIGEN3 FALSE CACHE BOOL
+set( ALGEBRA_PLUGINS_USE_SYSTEM_EIGEN3 FALSE CACHE BOOL
    "Have Algebra Plugins pick up Eigen3 from the system" )
-set( ALGEBRA_PLUGIN_SETUP_VC TRUE CACHE BOOL
+set( ALGEBRA_PLUGINS_SETUP_VC TRUE CACHE BOOL
    "Have Algebra Plugins set up Vc for itself" )
-set( ALGEBRA_PLUGIN_USE_SYSTEM_VC FALSE CACHE BOOL
+set( ALGEBRA_PLUGINS_USE_SYSTEM_VC FALSE CACHE BOOL
    "Have Algebra Plugins build Vc itself" )
-set( ALGEBRA_PLUGIN_SETUP_VECMEM FALSE CACHE BOOL
+set( ALGEBRA_PLUGINS_SETUP_VECMEM FALSE CACHE BOOL
    "Do not set up VecMem in Algebra Plugins" )
-set( ALGEBRA_PLUGIN_SETUP_GOOGLETEST FALSE CACHE BOOL
+set( ALGEBRA_PLUGINS_SETUP_GOOGLETEST FALSE CACHE BOOL
    "Do not set up GoogleTest in Algebra Plugins" )
 
 # Get it into the current directory.

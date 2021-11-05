@@ -14,36 +14,52 @@ Testing and benchmarking is done with `googletest` and `google/benchmark`.
 
 ## Getting started
 
-Clone the repository and initialize the submodules (googletest, benchmark).
+The respository is meant to be possible to build "out of the box", with standard
+CMake build procedures.
 
 ```shell
-git clone git@github.com:acts-project/detray.git
-cd detray
-git submodule update --init
+git clone https://github.com/acts-project/detray.git
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -S detray -B detray-build
+cmake --build detray-build
 ```
 
-Running `CMake` (minimal version)
-```shell
-cmake -S . -B <build_directory>
-```
+The following cache variables are available to influence which parts of the
+project would be built:
 
-Build
-```shell
-cmake --build <build_directory>
-```
+- `DETRAY_EIGEN_PLUGIN` (`ON` by default), `DETRAY_SMATRIX_PLUGIN`
+  (`OFF` by default), `DETRAY_VC_PLUGIN` (`ON` by default): Boolean
+  flags turning the build of [Eigen](https://eigen.tuxfamily.org),
+  [SMatrix](https://root.cern/doc/master/group__SMatrixGroup.html) and
+  [Vc](https://github.com/VcDevel/Vc) using code on or off.
+  * Note that [Algebra Plugins](https://github.com/acts-project/algebra-plugins)
+    must have all of the appropriate options enabled for whichever option
+    is turned on from these.
+- `DETRAY_IO_CSV`: Boolean option turning on the build of `detray::io_csv`, the
+  library allowing the reading of geometries from CSV files (`ON` by default);
+- `DETRAY_DISPLAY`: Boolean option turning on the build of `detray::display`,
+  and additional helpers for displaying a geometry (`OFF` by default);
+- `DETRAY_BUILD_CUDA`: Boolean option turning on the build of all CUDA code
+  in the repository (`ON` by default, if CUDA is available);
+- `DETRAY_BUILD_TESTING`: Turn the build/setup of the unit tests on/off
+  (`ON` by default);
+  * `DETRAY_BENCHMARKS`: Boolean option turning on the build of the benchmark
+    executables (`ON` by default);
+  * `DETRAY_BENCHMARKS_MULTITHREAD`: Boolean option making the benchmarks
+    multithreaded (`OFF` by default);
+  * `DETRAY_BENCHMARKS_REP`: String option with an integer for the repetitions
+    that the benchmarks should run (`1` by default).
 
-### Plugins
+The following options configure how the build should set up the externals that
+it needs:
 
-The following algebra plugins are avaiable and can be switched on/off 
-
-| *Plugin* | *CMake Flag* | *Default value* | *Dependency requirement* |
-| ---------|--------------|-----------------|--------------------------|
-| array | DETRAY_ARRAY_PLUGIN | On | - |
-| eigen | DETRAY_EIGEN_PLUGIN | Off | Eigen, http://eigen.tuxfamily.org/ |
-| smatrix | DETRAY_SMATRIX_PLUGIN | Off | ROOT, http://github.com/root-project |
-
-
-
+- `DETRAY_SETUP_<XXX>`: Boolean to turn on/off the explicit "setup" of
+  the externals (`ALGEBRA_PLUGINS`, `VECMEM`, `DFELIBS`, `MATPLOTPP`, `THRUST`,
+  `GOOGLETEST` and `BENCHMARK`);
+- `DETRAY_USE_SYSTEM_<XXX>`: Boolean configuring how to set up a given external
+  * `ON`: The external is searched for "on the system" using
+    [find_package](https://cmake.org/cmake/help/latest/command/find_package.html);
+  * `OFF`: The package is set up for build as part of this project, using
+    [FetchContent](https://cmake.org/cmake/help/latest/module/FetchContent.html).
 
 ### Benchmark Monitoring
 

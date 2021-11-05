@@ -12,9 +12,11 @@ include( FetchContent )
 message( STATUS "Building Matplot++ as part of the Detray project" )
 
 # Declare where to get Matplot++ from.
-FetchContent_Declare( Matplotpp
-   URL "https://github.com/alandefreitas/matplotplusplus/archive/refs/tags/v1.1.0.tar.gz"
-   URL_MD5 "261061a19eda6607215bf70fa9123744" )
+set( DETRAY_MATPLOTPP_SOURCE
+   "URL;https://github.com/alandefreitas/matplotplusplus/archive/refs/tags/v1.1.0.tar.gz;URL_MD5;261061a19eda6607215bf70fa9123744"
+   CACHE STRING "Source for Matplot++, when built as part of this project" )
+mark_as_advanced( DETRAY_MATPLOTPP_SOURCE )
+FetchContent_Declare( Matplotpp ${DETRAY_MATPLOTPP_SOURCE} )
 
 # Options used in the build of Matplot++.
 set( BUILD_INSTALLER TRUE CACHE BOOL
