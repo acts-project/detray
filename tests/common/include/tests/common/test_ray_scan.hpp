@@ -99,26 +99,40 @@ inline auto trace_volumes(const record_type &volume_record,
         // Two volume index, portal intersections
         const typename record_type::value_type &lower, upper;
 
+        // Is the record doublet we picked up made up if a portal and a surface?
+        inline bool is_mixed() const {
+            return (lower.second.index != lower.first and
+                    upper.second.index == upper.first) or
+                   (lower.second.index == lower.first and
+                    upper.second.index != upper.first);
+        }
+
         // Is this doublet connected via a portal intersection? (the second
         // requirement guarantees that this indeed a portal crossing, i.e.
         // changeing volumes)
         inline bool operator()() const {
             return (lower.second == upper.second) and
-                   (lower.first != upper.first);
+                   (lower.second.index != upper.second.index);
         }
     };
 
-    // Excluding the volume where we leave world, the rest should come in pairs
-    if ((volume_record.size() - 1) % 2) {
-        return valid_volumes;
-    }
-
     // Don't look at the end volume, as it is not connected at one side
-    for (size_t rec = 0; rec < volume_record.size() - 1; rec += 2) {
+    for (size_t rec = 0; rec < volume_record.size() - 1;) {
 
         // Get 2 possibly connected entries
         record_doublet doublet = {.lower = volume_record[rec],
                                   .upper = volume_record[rec + 1]};
+
+        // If picked up a mixture of portal and surface, look at the direct
+        // neighbor
+        if (doublet.is_mixed()) {
+            rec += 1;
+            continue;
+        }
+        // Otherwise advance faster
+        else {
+            rec += 2;
+        }
 
         record_stream << doublet.lower.first << " ("
                       << doublet.lower.second.path << ")" << std::endl;
@@ -129,8 +143,9 @@ inline auto trace_volumes(const record_type &volume_record,
             // Insert into set of edges
             valid_volumes.emplace(doublet.lower.first, doublet.upper.first);
         }
-        // We looked at non-portal intersections
-        else if (doublet.lower.first == doublet.upper.first) {
+        // I was a module surface after all
+        else if (doublet.lower.second.index == doublet.upper.second.index) {
+            continue;
         }
         // Something went wrong
         else {
