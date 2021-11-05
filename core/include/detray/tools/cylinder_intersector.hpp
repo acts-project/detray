@@ -8,13 +8,12 @@
 
 #include <climits>
 #include <cmath>
-#include <optional>
+#include <type_traits>
 
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
-#include "detray/masks/unmasked.hpp"
+#include "detray/utils/indexing.hpp"
 #include "detray/utils/quadratic_equation.hpp"
-#include "detray/utils/unbound.hpp"
 
 namespace detray {
 
@@ -31,32 +30,34 @@ struct cylinder_intersector {
     /** Intersection method for cylindrical surfaces
      *
      * @tparam track_type The type of the track carrying the context object
-     * @tparam local_type The local frame type to be intersected
      * @tparam mask_type The mask type applied to the local frame
      *
      * Contextual part:
      * @param trf the transform of the surface to be intersected
      * @param track the track information
-     * @param local to the local local frame
      *
      * Non-contextual part:
      * @param mask the local mask
+     * @param volume_index volume id to which the mask belongs
      * @param tolerance is the mask specific tolerance
      *
      * @return the intersection with optional parameters
      **/
-    template <typename track_type, typename local_type, typename mask_type>
+    template <typename track_type, typename mask_type,
+              std::enable_if_t<
+                  std::is_same_v<typename mask_type::local_type, cylindrical2>,
+                  bool> = true>
     intersection intersect(const transform3 &trf, const track_type &track,
-                           const local_type &local, const mask_type &mask,
+                           const mask_type &mask,
+                           const dindex &volume_index = dindex_invalid,
                            const typename mask_type::mask_tolerance &tolerance =
                                mask_type::within_epsilon) const {
-        return intersect(trf, track.pos, track.dir, local, mask, tolerance,
-                         track.overstep_tolerance);
+        return intersect(trf, track.pos, track.dir, mask, volume_index,
+                         tolerance, track.overstep_tolerance);
     }
 
     /** Intersection method for cylindrical surfaces
      *
-     * @tparam local_type The local frame type to be intersected
      * @tparam mask_type The mask type applied to the local frame
      *
      * Contextual part:
@@ -72,10 +73,13 @@ struct cylinder_intersector {
      *
      * @return the intersection with optional parameters
      **/
-    template <typename local_type, typename mask_type>
+    template <typename mask_type,
+              std::enable_if_t<
+                  std::is_same_v<typename mask_type::local_type, cylindrical2>,
+                  bool> = true>
     intersection intersect(const transform3 &trf, const point3 &ro,
-                           const vector3 &rd, const local_type &local,
-                           const mask_type &mask,
+                           const vector3 &rd, const mask_type &mask,
+                           const dindex volume_index = dindex_invalid,
                            const typename mask_type::mask_tolerance &tolerance =
                                mask_type::within_epsilon,
                            scalar overstep_tolerance = 0.) const {
@@ -98,8 +102,10 @@ struct cylinder_intersector {
             scalar t = (t01[0] > overstep_tolerance) ? t01[0] : t01[1];
             if (t > overstep_tolerance) {
                 intersection is;
+                is.index = volume_index;
                 is.path = t;
                 is.p3 = ro + is.path * rd;
+                auto local = mask.local();
                 is.p2 = local(trf, is.p3);
                 auto local3 = trf.point_to_local(is.p3);
                 is.status =

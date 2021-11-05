@@ -35,17 +35,16 @@ namespace detray {
  **/
 template <bool kRadialCheck = true,
           typename intersector_type = detray::cylinder_intersector,
-          typename local_type = __plugin::cylindrical2,
-          typename links_type = bool, unsigned int kMaskContext = e_cylinder3,
+          typename mask_local_type = __plugin::cylindrical2,
+          typename mask_links_type = unsigned int,
+          unsigned int kMaskContext = e_cylinder3,
           template <typename, unsigned int> class array_type = darray>
 struct cylinder3 {
-
     using mask_tolerance = array_type<scalar, 2>;
-
     // This masks checks on: radius, -z, +z
     using mask_values = array_type<scalar, 3>;
-
-    using mask_links_type = links_type;
+    using links_type = mask_links_type;
+    using local_type = mask_local_type;
 
     mask_values _values = {std::numeric_limits<scalar>::infinity(),
                            -std::numeric_limits<scalar>::infinity(),

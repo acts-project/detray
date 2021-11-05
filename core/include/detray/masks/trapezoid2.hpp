@@ -35,15 +35,15 @@ namespace detray {
  *
  **/
 template <typename intersector_type = planar_intersector,
-          typename local_type = __plugin::cartesian2,
-          typename links_type = bool, unsigned int kMaskContext = e_trapezoid2,
+          typename mask_local_type = __plugin::cartesian2,
+          typename mask_links_type = unsigned int,
+          unsigned int kMaskContext = e_trapezoid2,
           template <typename, unsigned int> class array_type = darray>
 struct trapezoid2 {
     using mask_tolerance = array_type<scalar, 2>;
-
     using mask_values = array_type<scalar, 4>;
-
-    using mask_links_type = links_type;
+    using links_type = mask_links_type;
+    using local_type = mask_local_type;
 
     mask_values _values = {std::numeric_limits<scalar>::infinity(),
                            std::numeric_limits<scalar>::infinity(),

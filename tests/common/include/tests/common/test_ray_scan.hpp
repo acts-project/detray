@@ -99,8 +99,13 @@ inline auto trace_volumes(const record_type &volume_record,
         // Two volume index, portal intersections
         const typename record_type::value_type &lower, upper;
 
-        // Is this doublet connected via the portal intersection?
-        inline bool operator()() const { return lower.second == upper.second; }
+        // Is this doublet connected via a portal intersection? (the second
+        // requirement guarantees that this indeed a portal crossing, i.e.
+        // changeing volumes)
+        inline bool operator()() const {
+            return (lower.second == upper.second) and
+                   (lower.second.index != upper.second.index);
+        }
     };
 
     // Filter out intersection with non-portals

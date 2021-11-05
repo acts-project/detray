@@ -13,6 +13,7 @@
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
 #include "detray/utils/enumerate.hpp"
+#include "detray/utils/indexing.hpp"
 
 namespace detray {
 
@@ -29,9 +30,10 @@ using transform3 = __plugin::transform3;
  * @param tack the track information containing the context
  * @param ctf the contextual transform (context resolved)
  * @param masks the masks container
- * @param range the range within the mask group to be checked
+ * @param rng the range within the mask group to be checked
  * @param mask_id the current mask group id
- * @param available_ids the mask ids to be checked
+ * @param available_ids the mask ids to be checked (only needed to set the
+ *                      first mask id for the call)
  *
  * @return an intersection struct (invalid if no intersection was found)
  */
@@ -39,9 +41,9 @@ template <typename track_type, typename mask_container, typename mask_range,
           unsigned int first_mask_id, unsigned int... remaining_mask_ids>
 inline auto unroll_intersect(
     const track_type &track, const transform3 &ctf, const mask_container &masks,
-    const mask_range &rng, const unsigned int mask_id,
+    const mask_range &rng, const unsigned int mask_id, dindex volume_index,
     std::integer_sequence<unsigned int, first_mask_id, remaining_mask_ids...>
-        available_ids) {
+    /*available_ids*/) {
 
     // Pick the first one for interseciton
     if (mask_id == first_mask_id) {
@@ -50,10 +52,11 @@ inline auto unroll_intersect(
         // Check all masks of this surface for intersection
         for (const auto &mask : range(mask_group, rng)) {
             auto sfi =
-                mask.intersector().intersect(ctf, track, mask.local(), mask);
+                mask.intersector().intersect(ctf, track, mask, volume_index);
 
             if (sfi.status == e_inside) {
                 // Link to next volume is in first position
+                sfi.index = volume_index;
                 sfi.link = std::get<0>(mask.links());
                 return sfi;
             }
@@ -65,7 +68,8 @@ inline auto unroll_intersect(
 
     // Unroll as long as you have at least 1 entries
     if constexpr (remaining.size() >= 1) {
-        return (unroll_intersect(track, ctf, masks, rng, mask_id, remaining));
+        return (unroll_intersect(track, ctf, masks, rng, mask_id, volume_index,
+                                 remaining));
     }
 
     // No intersection was found
@@ -93,13 +97,14 @@ inline const auto intersect(const track_type &track, surface_type &surface,
                             const mask_container &masks) {
     // Gather all information to perform intersections
     const auto &ctf = contextual_transforms[surface.transform()];
+    const auto &volume_index = surface.volume();
     const auto &mask_link = surface.mask();
     const auto &mask_id = std::get<0>(mask_link);
     const auto &mask_range = std::get<1>(mask_link);
 
     // Unroll the intersection depending on the mask container size
     return unroll_intersect(
-        track, ctf, masks, mask_range, mask_id,
+        track, ctf, masks, mask_range, mask_id, volume_index,
         std::make_integer_sequence<
             unsigned int,
             std::tuple_size_v<typename mask_container::mask_tuple>>{});
