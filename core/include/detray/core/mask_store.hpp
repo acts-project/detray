@@ -50,7 +50,7 @@ class mask_store {
      */
     template <unsigned int mask_id>
     DETRAY_HOST_DEVICE size_t size() const {
-        return __tuple::get<mask_id>(_mask_tuple).size();
+        return detail::get<mask_id>(_mask_tuple).size();
     }
 
     /** Empty : Contextual STL like API
@@ -61,7 +61,7 @@ class mask_store {
      */
     template <unsigned int mask_id>
     DETRAY_HOST_DEVICE bool empty() const {
-        return __tuple::get<mask_id>(_mask_tuple).empty();
+        return detail::get<mask_id>(_mask_tuple).empty();
     }
 
     /** Retrieve a single mask - const
@@ -80,7 +80,7 @@ class mask_store {
             return group<current_id>()[mask_index];
         }
         // Next mask type
-        if constexpr (current_id < __tuple::tuple_size<mask_tuple>::value - 1) {
+        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
             return mask<current_id + 1>(mask_id, mask_index);
         }
     }
@@ -92,7 +92,7 @@ class mask_store {
      */
     template <unsigned int mask_id>
     DETRAY_HOST_DEVICE constexpr auto &group() {
-        return __tuple::get<mask_id>(_mask_tuple);
+        return detail::get<mask_id>(_mask_tuple);
     }
 
     /** Retrieve a vector of masks of a certain type (mask group) - const
@@ -102,7 +102,7 @@ class mask_store {
      */
     template <unsigned int mask_id>
     DETRAY_HOST_DEVICE constexpr const auto &group() const {
-        return __tuple::get<mask_id>(_mask_tuple);
+        return detail::get<mask_id>(_mask_tuple);
     }
 
     /** Access underlying container - const
@@ -127,7 +127,7 @@ class mask_store {
     DETRAY_HOST __tuple::tuple<vecmem::data::vector_view<mask_types>...> data(
         std::index_sequence<ints...> /*seq*/) {
         return std::make_tuple(vecmem::data::vector_view<mask_types>(
-            vecmem::get_data(__tuple::get<ints>(_mask_tuple)))...);
+            vecmem::get_data(detail::get<ints>(_mask_tuple)))...);
     }
 
     /** Add a new mask in place
@@ -142,7 +142,7 @@ class mask_store {
     template <unsigned int mask_id, typename... bounds_type>
     DETRAY_HOST auto &add_mask(bounds_type &&... mask_bounds) noexcept(false) {
         // Get the mask group that will be updated
-        auto &mask_group = __tuple::get<mask_id>(_mask_tuple);
+        auto &mask_group = detail::get<mask_id>(_mask_tuple);
         // Construct new mask in place
         return mask_group.emplace_back(
             std::forward<bounds_type>(mask_bounds)...);
@@ -161,7 +161,7 @@ class mask_store {
     DETRAY_HOST inline void add_masks(vector_type<mask_type> &masks) noexcept(
         false) {
         // Get the mask group that will be updated
-        auto &mask_group = __tuple::get<current_id>(_mask_tuple);
+        auto &mask_group = detail::get<current_id>(_mask_tuple);
 
         if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
             // Reserve memory and copy new masks
@@ -170,7 +170,7 @@ class mask_store {
         }
 
         // Next mask type
-        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
             return add_masks<current_id + 1>(masks);
         }
     }
@@ -188,7 +188,7 @@ class mask_store {
     DETRAY_HOST inline void add_masks(vector_type<mask_type> &&masks) noexcept(
         false) {
         // Get the mask group that will be updated
-        auto &mask_group = __tuple::get<current_id>(_mask_tuple);
+        auto &mask_group = detail::get<current_id>(_mask_tuple);
 
         if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
             // Reserve memory and copy new masks
@@ -199,7 +199,7 @@ class mask_store {
         }
 
         // Next mask type
-        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
             return add_masks<current_id + 1>(masks);
         }
     }
@@ -216,11 +216,11 @@ class mask_store {
     template <unsigned int current_id = 0>
     DETRAY_HOST inline void append_masks(mask_store &&other) {
         // Add masks to current group
-        auto &mask_group = __tuple::get<current_id>(other);
+        auto &mask_group = detail::get<current_id>(other);
         add_masks(mask_group);
 
         // Next mask type
-        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
             return append_masks<current_id + 1>(other);
         }
     }
