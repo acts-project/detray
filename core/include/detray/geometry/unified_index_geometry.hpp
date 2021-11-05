@@ -95,7 +95,7 @@ class unified_index_geometry {
                                __plugin::cylindrical2, void, e_cylinder3>;
     using disc = ring2<planar_intersector, __plugin::cartesian2, void, e_ring2>;
 
-    using mask_container = mask_store<vector_type, tuple_type, rectangle,
+    using mask_container = mask_store<tuple_type, vector_type, rectangle,
                                       trapezoid, annulus, cylinder, disc>;
 
     /** The Surface definition:
