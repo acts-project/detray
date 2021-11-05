@@ -18,8 +18,8 @@
 namespace detray {
 
 /** A mask store that provides the correct mask containers to client classes. */
-template <template <typename...> class vector_type = dvector,
-          template <typename...> class tuple_type = dtuple,
+template <template <typename...> class tuple_type = dtuple,
+          template <typename...> class vector_type = dvector,
           typename... mask_types>
 class mask_store {
 
@@ -35,12 +35,12 @@ class mask_store {
         : _mask_tuple(vector_type<mask_types>{&resource}...) {}
 
     /** Constructor with mask_store_data **/
-#if defined(__CUDACC__)
-    template <typename mask_store_data_t>
-    DETRAY_DEVICE mask_store(mask_store_data_t &store_data)
+    template <template <template <typename...> class, typename...>
+              class mask_store_data_t>
+    DETRAY_DEVICE mask_store(
+        mask_store_data_t<tuple_type, mask_types...> &store_data)
         : _mask_tuple(store_data.device(
               std::make_index_sequence<sizeof...(mask_types)>{})) {}
-#endif
 
     /** Size : Contextual STL like API
      *
@@ -116,18 +116,7 @@ class mask_store {
      * @return internal masks tuple type
      */
     DETRAY_HOST_DEVICE
-    const auto &masks() { return _mask_tuple; }
-
-    /** Obtain the vecmem data of mask store
-     *
-     * @return tuple type of vecmem::data::vector_view objects
-     */
-    template <std::size_t... ints>
-    DETRAY_HOST tuple_type<vecmem::data::vector_view<mask_types>...> data(
-        std::index_sequence<ints...> /*seq*/) {
-        return thrust::make_tuple(vecmem::data::vector_view<mask_types>(
-            vecmem::get_data(detail::get<ints>(_mask_tuple)))...);
-    }
+    auto &masks() { return _mask_tuple; }
 
     /** Add a new mask in place
      *
@@ -241,10 +230,12 @@ struct mask_store_data {
      *
      * @param store is the mask store from host
      **/
-    template <template <typename...> class vector_type>
-    mask_store_data(mask_store<vector_type, tuple_type, mask_types...> &store)
-        : _data(store.data(std::make_index_sequence<sizeof...(mask_types)>{})) {
-    }
+    template <template <typename...> class vector_type, std::size_t... ints>
+    DETRAY_HOST mask_store_data(
+        mask_store<tuple_type, vector_type, mask_types...> &store,
+        std::index_sequence<ints...> /*seq*/)
+        : _data(thrust::make_tuple(vecmem::data::vector_view<mask_types>(
+              vecmem::get_data(std::get<ints>(store.masks())))...)) {}
 
     /** Size : Contextual STL like API
      *
@@ -287,11 +278,12 @@ struct mask_store_data {
 
 /** Get mask_store_data
  **/
-template <template <typename...> class vector_type,
-          template <typename...> class tuple_type, typename... mask_types>
+template <template <typename...> class tuple_type,
+          template <typename...> class vector_type, typename... mask_types>
 inline mask_store_data<tuple_type, mask_types...> get_data(
-    mask_store<vector_type, tuple_type, mask_types...> &store) {
-    return mask_store_data<tuple_type, mask_types...>(store);
+    mask_store<tuple_type, vector_type, mask_types...> &store) {
+    return mask_store_data<tuple_type, mask_types...>(
+        store, std::make_index_sequence<sizeof...(mask_types)>{});
 }
 
 }  // namespace detray

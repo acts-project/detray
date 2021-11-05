@@ -25,7 +25,7 @@ TEST(ALGEBRA_PLUGIN, static_transform_store) {
     using trapezoid = trapezoid2<>;
 
     // Types must be sorted according to their id (here: masks/mask_identifier)
-    mask_store<dvector, dtuple, rectangle, trapezoid, ring, cylinder, single,
+    mask_store<dtuple, dvector, rectangle, trapezoid, ring, cylinder, single,
                annulus>
         store;
 

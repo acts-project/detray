@@ -20,7 +20,7 @@ TEST(mask_store_cuda, mask_store) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Types must be sorted according to their id (here: masks/mask_identifier)
-    mask_store<vecmem::vector, thrust::tuple, rectangle, trapezoid, ring,
+    mask_store<thrust::tuple, vecmem::vector, rectangle, trapezoid, ring,
                cylinder, single, annulus>
         store(mng_mr);
 

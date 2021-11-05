@@ -21,7 +21,7 @@ __global__ void mask_test_kernel(
     vecmem::data::jagged_vector_view<intersection_status> output_data) {
 
     /** get mask store **/
-    mask_store<vecmem::device_vector, thrust::tuple, rectangle, trapezoid, ring,
+    mask_store<thrust::tuple, vecmem::device_vector, rectangle, trapezoid, ring,
                cylinder, single, annulus>
         store(store_data);
 

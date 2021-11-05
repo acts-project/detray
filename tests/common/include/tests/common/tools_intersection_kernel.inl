@@ -37,8 +37,8 @@ TEST(tools, intersection_kernel_single) {
     /// - mask index: type, entry
     using surface_mask_index = darray<dindex, 2>;
     using surface_mask_container =
-        mask_store<std::vector, dtuple, surface_rectangle, surface_trapezoid,
-                   surface_annulus>;
+        mask_store<std::tuple, std::vector, surface_rectangle,
+                   surface_trapezoid, surface_annulus>;
 
     /// The Surface definition:
     /// <transform_link, mask_link, volume_link, source_link, link_type_in_mask>

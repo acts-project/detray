@@ -53,16 +53,6 @@ struct vec_tuple {
     template <template <typename...> class vec_tuple_data>
     DETRAY_DEVICE vec_tuple(vec_tuple_data<Ts...>& data)
         : _tuple(data.device(std::make_index_sequence<sizeof...(Ts)>{})) {}
-
-    /** Obtain vec_tuple_data with vecmem::vector_view
-     *
-     */
-    template <std::size_t... ints>
-    thrust::tuple<vecmem::data::vector_view<Ts>...> data(
-        std::index_sequence<ints...> /*seq*/) {
-        return thrust::make_tuple(vecmem::data::vector_view<Ts>(
-            vecmem::get_data(std::get<ints>(_tuple)))...);
-    }
 };
 
 /** Tuple of vecmem::vector_view
@@ -93,7 +83,7 @@ struct vec_tuple_data {
     }
 };
 
-/** Get mask_store_data
+/** Get vec_tuple_data
  **/
 template <template <typename...> class vector_type, typename... Ts>
 inline vec_tuple_data<Ts...> get_data(vec_tuple<vector_type, Ts...>& vtuple) {
