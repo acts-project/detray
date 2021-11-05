@@ -10,21 +10,23 @@
 
 namespace detray {
 
+template <template <typename...> class tuple_type>
 __global__ void tuple_copy_kernel(
-    vec_tuple_data<int, float, double> data,
+    vec_tuple_data<tuple_type, int, float, double> data,
     vecmem::data::vector_view<int> output1_data,
     vecmem::data::vector_view<float> output2_data,
     vecmem::data::vector_view<double> output3_data) {
 
     // Get vec_tuple with vecmem::device_vector
-    vec_tuple<vecmem::device_vector, int, float, double> input(data);
+    vec_tuple<thrust::tuple, vecmem::device_vector, int, float, double> input(
+        data);
     vecmem::device_vector<int> output1(output1_data);
     vecmem::device_vector<float> output2(output2_data);
     vecmem::device_vector<double> output3(output3_data);
 
-    const auto& input1 = thrust::get<0>(input._tuple);
-    const auto& input2 = thrust::get<1>(input._tuple);
-    const auto& input3 = thrust::get<2>(input._tuple);
+    const auto& input1 = detail::get<0>(input._tuple);
+    const auto& input2 = detail::get<1>(input._tuple);
+    const auto& input3 = detail::get<2>(input._tuple);
 
     for (unsigned int i = 0; i < input1.size(); i++) {
         output1[i] = input1[i];
@@ -39,7 +41,22 @@ __global__ void tuple_copy_kernel(
     }
 }
 
-void tuple_copy(vec_tuple_data<int, float, double>& data,
+template void tuple_copy<thrust::tuple>(
+    vec_tuple_data<thrust::tuple, int, float, double>& data,
+    vecmem::data::vector_view<int>& output1_data,
+    vecmem::data::vector_view<float>& output2_data,
+    vecmem::data::vector_view<double>& output3_data);
+
+/*
+template void tuple_copy<std::tuple>(
+    vec_tuple_data<std::tuple, int, float, double>& data,
+    vecmem::data::vector_view<int>& output1_data,
+    vecmem::data::vector_view<float>& output2_data,
+    vecmem::data::vector_view<double>& output3_data);
+*/
+
+template <template <typename...> class tuple_type>
+void tuple_copy(vec_tuple_data<tuple_type, int, float, double>& data,
                 vecmem::data::vector_view<int>& output1_data,
                 vecmem::data::vector_view<float>& output2_data,
                 vecmem::data::vector_view<double>& output3_data) {
