@@ -11,7 +11,7 @@
 
 #include "tests/common/read_geometry.hpp"
 #include "tests/common/test_ray_scan.hpp"
-#include "tools/geometry_graph.hpp"
+#include "detray/tools/geometry_graph.hpp"
 //#include <vecmem/memory/host_memory_resource.hpp>
 
 /// @note __plugin has to be defined with a preprocessor command
