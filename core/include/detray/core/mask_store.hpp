@@ -11,7 +11,6 @@
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 
-#include "detray/definitions/basic_types.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/detray_qualifiers.hpp"
 #include "detray/utils/enumerate.hpp"
@@ -25,7 +24,7 @@ template <template <typename...> class vector_type = dvector,
 class mask_store {
 
     public:
-    using mask_tuple = __tuple::tuple<vector_type<mask_types>...>;
+    using mask_tuple = vtuple::tuple<vector_type<mask_types>...>;
 
     /** Default constructor **/
     mask_store() = default;

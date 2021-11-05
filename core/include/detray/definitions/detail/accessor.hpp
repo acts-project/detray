@@ -15,6 +15,15 @@
 #include "detray/definitions/detray_qualifiers.hpp"
 
 namespace detray {
+
+/** define tuple type namespace for host (std) and device (thrust) compiler
+ * **/
+#if defined(__CUDACC__)
+namespace vtuple = thrust;
+#else
+namespace vtuple = std;
+#endif
+
 namespace detail {
 
 /** tuple size
