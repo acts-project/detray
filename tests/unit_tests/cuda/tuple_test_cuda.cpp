@@ -25,7 +25,7 @@ TEST(tuple_test_cuda, tuple_test) {
     std::get<2>(input_host._tuple) = vecmem::vector<double>({2.1, 2.2, 0.});
 
     // Get vec_tuple_data with vecmem::data::vector_view
-    vec_tuple_data input_data(input_host);
+    auto input_data = get_data(input_host);
 
     // output vector which will copy the contents of input_host
     vecmem::vector<int> output1({0, 0, 0}, &mng_mr);

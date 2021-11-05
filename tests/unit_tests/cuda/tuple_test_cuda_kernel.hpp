@@ -75,9 +75,11 @@ struct vec_tuple_data {
     /** Constructor with vec_tuple - only for host
      *
      */
-    template <template <typename...> class vector_type>
-    DETRAY_HOST vec_tuple_data(vec_tuple<vector_type, Ts...>& vtuple)
-        : _tuple(vtuple.data(std::make_index_sequence<sizeof...(Ts)>{})) {}
+    template <template <typename...> class vector_type, std::size_t... ints>
+    DETRAY_HOST vec_tuple_data(vec_tuple<vector_type, Ts...>& vtuple,
+                               std::index_sequence<ints...> /*seq*/)
+        : _tuple(thrust::make_tuple(vecmem::data::vector_view<Ts>(
+              vecmem::get_data(std::get<ints>(vtuple._tuple)))...)) {}
 
     /** Create tuple with vecmem::device_vector
      *
@@ -90,6 +92,14 @@ struct vec_tuple_data {
             vecmem::device_vector<Ts>(thrust::get<ints>(_tuple))...);
     }
 };
+
+/** Get mask_store_data
+ **/
+template <template <typename...> class vector_type, typename... Ts>
+inline vec_tuple_data<Ts...> get_data(vec_tuple<vector_type, Ts...>& vtuple) {
+    return vec_tuple_data<Ts...>(vtuple,
+                                 std::make_index_sequence<sizeof...(Ts)>{});
+}
 
 // Test function to copy the contenst of vec_tuple_data into vecmem vector
 void tuple_copy(vec_tuple_data<int, float, double>& data,
