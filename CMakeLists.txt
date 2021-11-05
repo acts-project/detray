@@ -39,7 +39,6 @@ if( CMAKE_CUDA_COMPILER )
 endif()
 
 # Flags controlling which parts of Detray to build.
-option( DETRAY_VECMEM_PLUGIN "Build vecmem::static_array math plugin" ON )
 option( DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" ON )
 option( DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF )
 option( DETRAY_VC_PLUGIN "Build Vc based math plugin" ON )
@@ -127,6 +126,12 @@ if( DETRAY_SETUP_THRUST )
    else()
       add_subdirectory( extern/thrust )
    endif()
+   # Set up an IMPORTED library on top of the Thrust library/libraries. One that
+   # the Detray code could depend on publicly.
+   set( DETRAY_THRUST_OPTIONS "" CACHE STRING
+      "Extra options for configuring how Thrust should be used" )
+   mark_as_advanced( DETRAY_THRUST_OPTIONS )
+   thrust_create_target( detray::Thrust ${DETRAY_THRUST_OPTIONS} )
 endif()
 
 # Set up GoogleTest.

@@ -30,7 +30,7 @@ function( detray_add_library fullname basename )
       ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
       RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" )
    install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
-      DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}" )
+      DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}" OPTIONAL )
 
 endfunction( detray_add_library )
 
