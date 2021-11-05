@@ -124,9 +124,9 @@ class mask_store {
      * @return tuple type of vecmem::data::vector_view objects
      */
     template <std::size_t... ints>
-    DETRAY_HOST __tuple::tuple<vecmem::data::vector_view<mask_types>...> data(
+    DETRAY_HOST tuple_type<vecmem::data::vector_view<mask_types>...> data(
         std::index_sequence<ints...> /*seq*/) {
-        return std::make_tuple(vecmem::data::vector_view<mask_types>(
+        return thrust::make_tuple(vecmem::data::vector_view<mask_types>(
             vecmem::get_data(detail::get<ints>(_mask_tuple)))...);
     }
 
@@ -283,7 +283,7 @@ struct mask_store_data {
      * use std::tuple because thrust::tuple gets corrupted when passed to .cu
      * file
      * **/
-    std::tuple<vecmem::data::vector_view<mask_types>...> _data;
+    tuple_type<vecmem::data::vector_view<mask_types>...> _data;
 };
 
 /** Get mask_store_data
