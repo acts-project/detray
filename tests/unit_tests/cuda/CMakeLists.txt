@@ -38,7 +38,7 @@ foreach(algebra ${algebras})
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_mask_store_cuda PRIVATE ${algebra}=${algebra})
   
-  # mask store test
+  # tuple test
   add_detray_test(${algebra}_tuple_test_cuda
     "tuple_test_cuda.cpp"
     "tuple_test_cuda_kernel.hpp"
