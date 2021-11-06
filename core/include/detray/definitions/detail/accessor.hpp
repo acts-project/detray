@@ -28,11 +28,16 @@ namespace detail {
 
 /** get function accessor
  *
+ *  usage example:
+ *  detail::get<0>(tuple)
  */
 using std::get;
 using thrust::get;
 
 /** tuple size accessor
+ *
+ *  usage example:
+ *  detail::tuple_size< tuple_type >::value
  */
 template <class T>
 struct tuple_size;
@@ -43,6 +48,9 @@ struct tuple_size<tuple_type<value_types...>>
 
 /** make tuple accessor
  *  users have to specifiy tuple_type for detail::make_tuple
+ *
+ *  usage example
+ *  detail::make_tuple<tuple_type>(args...)
  */
 
 template <class T>
