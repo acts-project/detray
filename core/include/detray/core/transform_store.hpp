@@ -31,12 +31,13 @@ class static_transform_store {
 
     /** Constructor from static_transform_store_data
      **/
-#if defined(__CUDACC__)  // required by macOS...
-    template <typename static_transform_store_data_t>
+    template <template <template <typename...> class>
+              class static_transform_store_data_t,
+              template <typename...> class data_vector_t>
     DETRAY_DEVICE static_transform_store(
-        static_transform_store_data_t &store_data)
+        static_transform_store_data_t<data_vector_t> &store_data)
         : _data(store_data._data) {}
-#endif
+
     /** Empty context type struct */
     struct context {};
 
@@ -212,13 +213,13 @@ class static_transform_store {
 };
 
 /** A static inplementation of transform store data for device*/
+template <template <typename> class vector_type = dvector>
 struct static_transform_store_data {
 
     /** Constructor from transform store
      *
      * @param store is the input transform store data from host
      **/
-    template <template <typename> class vector_type = dvector>
     static_transform_store_data(static_transform_store<vector_type> &store)
         : _data(vecmem::get_data(store.data())) {}
 
@@ -227,8 +228,8 @@ struct static_transform_store_data {
 
 /** Get transform_store_data
  **/
-template <template <typename> class vector_type = dvector>
-inline static_transform_store_data get_data(
+template <template <typename> class vector_type>
+inline static_transform_store_data<vector_type> get_data(
     static_transform_store<vector_type> &store) {
     return static_transform_store_data(store);
 }
