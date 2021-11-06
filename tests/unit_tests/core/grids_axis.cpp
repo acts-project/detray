@@ -13,8 +13,8 @@
 #include "tests/common/test_defs.hpp"
 
 // detray core
-#include "grids/axis.hpp"
-#include "utils/indexing.hpp"
+#include "detray/grids/axis.hpp"
+#include "detray/utils/indexing.hpp"
 
 using namespace detray;
 

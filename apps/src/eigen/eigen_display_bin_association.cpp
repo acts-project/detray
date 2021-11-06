@@ -6,6 +6,6 @@
  */
 
 // algebra plugin header
-#include "plugins/algebra/eigen_definitions.hpp"
+#include "detray/plugins/algebra/eigen_definitions.hpp"
 // inline header
 #include "apps/common/display_bin_association.inl"

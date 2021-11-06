@@ -7,10 +7,10 @@
 
 #include <gtest/gtest.h>
 
-#include "core/mask_store.hpp"
-#include "core/track.hpp"
+#include "detray/core/mask_store.hpp"
+#include "detray/core/track.hpp"
+#include "detray/tools/single_type_navigator.hpp"
 #include "tests/common/read_geometry.hpp"
-#include "tools/single_type_navigator.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -27,7 +27,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     /** Empty context type struct */
     struct empty_context {};
 
-    mask_store<dvector, decltype(discs)::value_type,
+    mask_store<dtuple, dvector, decltype(discs)::value_type,
                decltype(cylinders)::value_type,
                decltype(rectangles)::value_type>
         masks;

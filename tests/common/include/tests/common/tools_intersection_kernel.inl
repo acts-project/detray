@@ -7,16 +7,16 @@
 
 #include <gtest/gtest.h>
 
-#include "core/mask_store.hpp"
-#include "core/track.hpp"
-#include "core/transform_store.hpp"
-#include "geometry/surface_base.hpp"
-#include "masks/masks.hpp"
-#include "tools/concentric_cylinder_intersector.hpp"
-#include "tools/cylinder_intersector.hpp"
-#include "tools/intersection_kernel.hpp"
-#include "tools/planar_intersector.hpp"
-#include "utils/enumerate.hpp"
+#include "detray/core/mask_store.hpp"
+#include "detray/core/track.hpp"
+#include "detray/core/transform_store.hpp"
+#include "detray/geometry/surface_base.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/tools/concentric_cylinder_intersector.hpp"
+#include "detray/tools/cylinder_intersector.hpp"
+#include "detray/tools/intersection_kernel.hpp"
+#include "detray/tools/planar_intersector.hpp"
+#include "detray/utils/enumerate.hpp"
 
 using namespace detray;
 using namespace __plugin;
@@ -37,8 +37,8 @@ TEST(tools, intersection_kernel_single) {
     /// - mask index: type, entry
     using surface_mask_index = darray<dindex, 2>;
     using surface_mask_container =
-        mask_store<std::vector, surface_rectangle, surface_trapezoid,
-                   surface_annulus>;
+        mask_store<std::tuple, std::vector, surface_rectangle,
+                   surface_trapezoid, surface_annulus>;
 
     /// The Surface definition:
     /// <transform_link, mask_link, volume_link, source_link, link_type_in_mask>

@@ -13,12 +13,12 @@
 #include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "core/detector.hpp"
-#include "core/transform_store.hpp"
-#include "io/csv_io.hpp"
+#include "detray/core/detector.hpp"
+#include "detray/core/transform_store.hpp"
+#include "detray/io/csv_io.hpp"
+#include "detray/tools/intersection_kernel.hpp"
+#include "detray/utils/enumerate.hpp"
 #include "tests/common/read_geometry.hpp"
-#include "tools/intersection_kernel.hpp"
-#include "utils/enumerate.hpp"
 
 using namespace detray;
 

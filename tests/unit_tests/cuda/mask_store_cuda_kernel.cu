@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "definitions/cuda_defs.hpp"
+#include "detray/definitions/cuda_defs.hpp"
 #include "mask_store_cuda_kernel.hpp"
 
 namespace detray {
@@ -13,15 +13,16 @@ namespace detray {
 /// test kernel function to fill the output vector with is_inside function
 /// return values
 __global__ void mask_test_kernel(
-    mask_store_data<rectangle, trapezoid, ring, cylinder, single, annulus>
+    mask_store_data<thrust::tuple, rectangle, trapezoid, ring, cylinder, single,
+                    annulus>
         store_data,
     vecmem::data::vector_view<point2> input_point2_data,
     vecmem::data::vector_view<point3> input_point3_data,
     vecmem::data::jagged_vector_view<intersection_status> output_data) {
 
     /** get mask store **/
-    mask_store<vecmem::device_vector, rectangle, trapezoid, ring, cylinder,
-               single, annulus>
+    mask_store<thrust::tuple, vecmem::device_vector, rectangle, trapezoid, ring,
+               cylinder, single, annulus>
         store(store_data);
 
     /** get mask objects **/
@@ -53,8 +54,8 @@ __global__ void mask_test_kernel(
 }
 
 void mask_test(
-    mask_store_data<rectangle, trapezoid, ring, cylinder, single, annulus>&
-        store_data,
+    mask_store_data<thrust::tuple, rectangle, trapezoid, ring, cylinder, single,
+                    annulus>& store_data,
     vecmem::data::vector_view<point2>& input_point2_data,
     vecmem::data::vector_view<point3>& input_point3_data,
     vecmem::data::jagged_vector_view<intersection_status>& output_data) {

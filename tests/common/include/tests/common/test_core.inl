@@ -10,8 +10,8 @@
 #include <climits>
 #include <cmath>
 
-#include "core/intersection.hpp"
-#include "geometry/surface_base.hpp"
+#include "detray/core/intersection.hpp"
+#include "detray/geometry/surface_base.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

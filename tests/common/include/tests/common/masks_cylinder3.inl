@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "masks/cylinder3.hpp"
+#include "detray/masks/cylinder3.hpp"
 
 using namespace detray;
 using namespace __plugin;

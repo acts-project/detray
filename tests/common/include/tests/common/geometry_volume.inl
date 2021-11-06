@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "geometry/volume.hpp"
+#include "detray/geometry/volume.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

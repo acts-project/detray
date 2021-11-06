@@ -13,12 +13,14 @@ if(DETRAY_CUSTOM_SCALARTYPE)
 endif()
 
 if(DETRAY_BENCHMARKS AND DETRAY_BENCHMARKS_REP)
+  message(STATUS "Repetitions for benchmarks: " ${DETRAY_BENCHMARKS_REP})
   target_compile_definitions(
     detray_tests_common
     INTERFACE -DDETRAY_BENCHMARKS_REP=${DETRAY_BENCHMARKS_REP})
 endif()
 
 if(DETRAY_BENCHMARKS_MULTITHREAD)
+  message(STATUS "Using multithreaded benchmarks")
   target_compile_definitions(
     detray_tests_common
     INTERFACE -DDETRAY_BENCHMARKS_MULTITHREAD=ON)

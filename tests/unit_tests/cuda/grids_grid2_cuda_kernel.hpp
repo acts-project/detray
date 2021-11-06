@@ -9,11 +9,11 @@
 #include "tests/common/test_defs.hpp"
 
 // detray core
-#include "grids/axis.hpp"
-#include "grids/grid2.hpp"
-#include "grids/populator.hpp"
-#include "grids/serializer2.hpp"
-#include "utils/indexing.hpp"
+#include "detray/grids/axis.hpp"
+#include "detray/grids/grid2.hpp"
+#include "detray/grids/populator.hpp"
+#include "detray/grids/serializer2.hpp"
+#include "detray/utils/indexing.hpp"
 
 #pragma once
 

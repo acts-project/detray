@@ -7,10 +7,10 @@
 
 #include <gtest/gtest.h>
 
-#include "masks/cylinder3.hpp"
-#include "masks/rectangle2.hpp"
-#include "masks/single3.hpp"
-#include "masks/trapezoid2.hpp"
+#include "detray/masks/cylinder3.hpp"
+#include "detray/masks/rectangle2.hpp"
+#include "detray/masks/single3.hpp"
+#include "detray/masks/trapezoid2.hpp"
 
 using namespace detray;
 using namespace __plugin;

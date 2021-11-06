@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "geometry/unified_index_geometry.hpp"
+#include "detray/geometry/unified_index_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
