@@ -7,13 +7,13 @@
 
 #include <vecmem/containers/device_vector.hpp>
 
-#include "definitions/cuda_defs.hpp"
+#include "detray/definitions/cuda_defs.hpp"
 #include "index_geometry_cuda_kernel.hpp"
 
 namespace detray {
 
 __global__ void index_geometry_test_kernel(
-    index_geometry_data<geometry> geometry_data,
+    index_geometry_data<> geometry_data,
     vecmem::data::vector_view<typename geometry::volume_type> output_data) {
 
     index_geometry<vecmem::device_vector> g(geometry_data);
@@ -27,7 +27,7 @@ __global__ void index_geometry_test_kernel(
 }
 
 void index_geometry_test(
-    index_geometry_data<geometry>& geometry_data,
+    index_geometry_data<>& geometry_data,
     vecmem::data::vector_view<typename geometry::volume_type>& output_data) {
 
     int block_dim = 1;

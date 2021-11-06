@@ -61,8 +61,9 @@ struct object_registry {
  * @note The geometry knows nothing about coordinate systems. This is
  *       handeled by geometry access objects (e.g. the grid).
  */
-template <template <typename> class vector_type = dvector,
+template <template <typename...> class vector_type = dvector,
           template <typename, unsigned int> class array_type = darray,
+          template <typename...> class tuple_type = dtuple,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
 class unified_index_geometry {
@@ -154,13 +155,17 @@ class unified_index_geometry {
 
     /** Constructor from index_geometry_data
      **/
-#if defined(__CUDACC__)
-    template <typename unified_index_geometry_data_t>
+    template <template <template <typename...> class,
+                        template <typename, unsigned int> class,
+                        template <typename...> class, typename...>
+              class unified_index_geometry_data_t,
+              template <typename...> class data_vector_type>
     DETRAY_DEVICE unified_index_geometry(
-        unified_index_geometry_data_t &geometry_data)
+        unified_index_geometry_data_t<data_vector_type, array_type, tuple_type,
+                                      surface_source_link, bounds_source_link>
+            &geometry_data)
         : _volumes(geometry_data._volumes_data),
           _objects(geometry_data._objects_data) {}
-#endif
 
     /** Copy constructor
      *
@@ -240,7 +245,7 @@ class unified_index_geometry {
      */
     DETRAY_HOST
     inline void update_mask_link(surface &obj, const dindex offset) {
-        std::get<1>(obj.mask()) += offset;
+        detail::get<1>(obj.mask()) += offset;
     }
 
     /** Update the transform link of an objects when filling into a large
@@ -277,14 +282,24 @@ class unified_index_geometry {
     surface_container _objects = {};
 };
 
-/** A static inplementation of index_geometry data for device*/
-template <typename unified_index_geometry_t>
+/** An implementation of index_geometry data for device*/
+template <template <typename...> class vector_type = dvector,
+          template <typename, unsigned int> class array_type = darray,
+          template <typename...> class tuple_type = dtuple,
+          typename surface_source_link = dindex,
+          typename bounds_source_link = dindex>
 struct unified_index_geometry_data {
 
+    using unified_index_geometry_t =
+        unified_index_geometry<vector_type, array_type, tuple_type,
+                               surface_source_link, bounds_source_link>;
     using volume_type = typename unified_index_geometry_t::volume_type;
     using surface = typename unified_index_geometry_t::surface;
 
-    unified_index_geometry_data(unified_index_geometry_t &geometry)
+    unified_index_geometry_data(
+        unified_index_geometry<vector_type, array_type, tuple_type,
+                               surface_source_link, bounds_source_link>
+            &geometry)
         : _volumes_data(vecmem::get_data(geometry.volumes())),
           _objects_data(vecmem::get_data(geometry.objects())) {}
 
@@ -294,13 +309,15 @@ struct unified_index_geometry_data {
 
 /** Get index_geometry_data
  **/
-template <template <typename> class vector_type,
+template <template <typename...> class vector_type,
           template <typename, unsigned int> class array_type,
-          typename surface_source_link, typename bounds_source_link>
-inline unified_index_geometry_data<unified_index_geometry<
-    vector_type, array_type, surface_source_link, bounds_source_link>>
-get_data(unified_index_geometry<vector_type, array_type, surface_source_link,
-                                bounds_source_link> &geometry) {
+          template <typename...> class tuple_type, typename surface_source_link,
+          typename bounds_source_link>
+inline unified_index_geometry_data<vector_type, array_type, tuple_type,
+                                   surface_source_link, bounds_source_link>
+get_data(
+    unified_index_geometry<vector_type, array_type, tuple_type,
+                           surface_source_link, bounds_source_link> &geometry) {
     return geometry;
 }
 

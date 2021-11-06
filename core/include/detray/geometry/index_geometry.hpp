@@ -62,8 +62,9 @@ struct object_registry {
  * @note The geometry knows nothing about coordinate systems. This is
  *       handeled by geometry access objects (e.g. the grid).
  */
-template <template <typename> class vector_type = dvector,
+template <template <typename...> class vector_type = dvector,
           template <typename, unsigned int> class array_type = darray,
+          template <typename...> class tuple_type = dtuple,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
 class index_geometry {
@@ -93,7 +94,7 @@ class index_geometry {
     using portal_disc = ring2<planar_intersector, __plugin::cartesian2,
                               portal_links, e_portal_ring2>;
     // - mask index: type, { first/last }
-    using portal_mask_index = std::tuple<dindex, array_type<dindex, 2>>;
+    using portal_mask_index = tuple_type<dindex, array_type<dindex, 2>>;
 
     /** The Portal definition:
      *  <transform_link, mask_index, volume_link, source_link >
@@ -165,13 +166,18 @@ class index_geometry {
 
     /** Constructor from index_geometry_data
      **/
-#if defined(__CUDACC__)  // required by macOS
-    template <typename index_geometry_data_t>
-    DETRAY_DEVICE index_geometry(index_geometry_data_t &geometry_data)
+    template <template <template <typename...> class,
+                        template <typename, unsigned int> class,
+                        template <typename...> class, typename...>
+              class index_geometry_data_t,
+              template <typename...> class data_vector_type>
+    DETRAY_DEVICE index_geometry(
+        index_geometry_data_t<data_vector_type, array_type, tuple_type,
+                              surface_source_link, bounds_source_link>
+            &geometry_data)
         : _volumes(geometry_data._volumes_data),
           _surfaces(geometry_data._surfaces_data),
           _portals(geometry_data._portals_data) {}
-#endif
 
     /** @return total number of volumes */
     DETRAY_HOST_DEVICE
@@ -257,7 +263,7 @@ class index_geometry {
      */
     DETRAY_HOST
     inline void update_mask_link(surface &sf, const dindex mask_offset) {
-        __tuple::get<1>(sf.mask()) += mask_offset;
+        detail::get<1>(sf.mask()) += mask_offset;
     }
 
     /** Update the mask links of a portal when filling into a large container
@@ -319,8 +325,16 @@ class index_geometry {
 };
 
 /** A static inplementation of index_geometry data for device*/
-template <typename index_geometry_t>
+template <template <typename...> class vector_type = dvector,
+          template <typename, unsigned int> class array_type = darray,
+          template <typename...> class tuple_type = dtuple,
+          typename surface_source_link = dindex,
+          typename bounds_source_link = dindex>
 struct index_geometry_data {
+
+    using index_geometry_t =
+        index_geometry<vector_type, array_type, tuple_type, surface_source_link,
+                       bounds_source_link>;
 
     using volume_type = typename index_geometry_t::volume_type;
     using surface = typename index_geometry_t::surface;
@@ -340,13 +354,14 @@ struct index_geometry_data {
 
 /** Get index_geometry_data
  **/
-template <template <typename> class vector_type,
+template <template <typename...> class vector_type,
           template <typename, unsigned int> class array_type,
-          typename surface_source_link, typename bounds_source_link>
-inline index_geometry_data<index_geometry<
-    vector_type, array_type, surface_source_link, bounds_source_link>>
-get_data(index_geometry<vector_type, array_type, surface_source_link,
-                        bounds_source_link> &geometry) {
+          template <typename...> class tuple_type, typename surface_source_link,
+          typename bounds_source_link>
+inline index_geometry_data<vector_type, array_type, tuple_type,
+                           surface_source_link, bounds_source_link>
+get_data(index_geometry<vector_type, array_type, tuple_type,
+                        surface_source_link, bounds_source_link> &geometry) {
     return geometry;
 }
 
