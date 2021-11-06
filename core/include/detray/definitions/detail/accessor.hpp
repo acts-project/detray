@@ -60,7 +60,8 @@ using unwrap_decay_t =
     typename unwrap_refwrapper<typename std::decay<T>::type>::type;
 
 template <template <typename...> class tuple_type, class... Types>
-constexpr tuple_type<unwrap_decay_t<Types>...> make_tuple(Types&&... args) {
+DETRAY_HOST_DEVICE constexpr tuple_type<unwrap_decay_t<Types>...> make_tuple(
+    Types&&... args) {
     return tuple_type<unwrap_decay_t<Types>...>(std::forward<Types>(args)...);
 }
 
