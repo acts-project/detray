@@ -53,7 +53,8 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
                 intr.direction == intersection_direction::e_along) {
 
                 // In case the linking information is not in the masks
-                if (std::get<0>(obj.edge()) != dindex_invalid) {
+                auto empty_link = decltype(intr.link){};
+                if (intr.link == empty_link or intr.link == dindex_invalid) {
                     intr.link = std::get<0>(obj.edge());
                 }
                 volume_record.emplace_back(obj_idx, intr);

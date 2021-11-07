@@ -155,7 +155,7 @@ class geometry_graph {
         for (const auto &n : _nodes) {
             ss << "[>>] Node with index " << n.index() << std::endl;
             ss << " -> neighbors: " << std::endl;
-            const auto &neighbors = adj_list.at(n.index()).second;
+            const auto &neighbors = adj_list.at(n.index());
             for (const auto &nbr : neighbors) {
                 ss << "    -> " << print_neighbor(nbr) << std::endl;
             }
@@ -169,15 +169,14 @@ class geometry_graph {
      */
     void build() {
         for (const auto &n : _nodes) {
-            std::unordered_set<dindex> edge_hashes;
+            // Count the number of edges for a particluar neighbor
             std::map<dindex, dindex> neighbors = {};
 
             // Only works for non batched geometries
-            for (const auto [edg_id, edg] : enumerate(_edges, n)) {
-                edge_hashes.insert(edg_id);
+            for (const auto &edg : range(_edges, n)) {
                 neighbors[std::get<0>(edg.edge())]++;
             }
-            adj_list[n.index()] = std::make_pair(edge_hashes, neighbors);
+            adj_list[n.index()] = neighbors;
         }
     }
 
@@ -191,9 +190,7 @@ class geometry_graph {
      *  The index of the nodes neighbors and a count of edges is kept in the
      *  inner map.
      */
-    std::map<dindex,
-             std::pair<std::unordered_set<dindex>, std::map<dindex, dindex>>>
-        adj_list = {};
+    std::map<dindex, std::map<dindex, dindex>> adj_list = {};
 };
 
 }  // namespace detray

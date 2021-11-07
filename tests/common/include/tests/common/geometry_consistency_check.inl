@@ -79,6 +79,31 @@ struct dummy_detector {
     const mask_container &_masks;
 };
 
+/** Print and adjacency list */
+void print_adj(auto &adjacency_list) {
+    const auto print_neighbor =
+        [&](const std::pair<const dindex, const dindex> &n) -> std::string {
+        // Print the number of edges, if it is greater than one
+        std::string n_occur =
+            n.second > 1 ? "\t\t(" + std::to_string(n.second) + "x)" : "";
+
+        // Edge that leads out of the detector world
+        if (n.first == dindex_invalid) {
+            return "leaving world" + n_occur;
+        }
+
+        return std::to_string(n.first) + "\t" + n_occur;
+    };
+
+    for (const auto &[vol_index, neighbors] : adjacency_list) {
+        std::cout << "[>>] Node with index " << vol_index << std::endl;
+        std::cout << " -> neighbors: " << std::endl;
+        for (const auto &nbr : neighbors) {
+            std::cout << "    -> " << print_neighbor(nbr) << std::endl;
+        }
+    }
+}
+
 // Tests the consistency of the toy geometry implementation. In principle,
 // every geometry can be checked this way.
 TEST(ALGEBRA_PLUGIN, geometry_consistency) {
@@ -103,7 +128,7 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
 
     // Build the graph
     graph g = graph(geo._volumes, geo._objects);
-    const auto &adj = g.adjacency_list();
+    const auto &adj_linking = g.adjacency_list();
 
     std::cout << g.to_string() << std::endl;
 
@@ -158,16 +183,19 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
             auto [portal_trace, surface_trace] =
                 trace_volumes(volume_record, start_index);
 
-            for (const auto &pti_pair : portal_trace) {
+            /*for (const auto &pti_pair : portal_trace) {
                 std::cout << pti_pair.first << pti_pair.second << std::endl;
             }
 
             for (const auto &sf : surface_trace) {
                 std::cout << sf << std::endl;
-            }
+            }*/
 
             // All edges made it through the checking
             ASSERT_TRUE(check_connectivity(portal_trace));
+
+            auto adj_scan = build_adjacency(portal_trace, surface_trace);
+            print_adj(adj_scan);
         }
     }
 }

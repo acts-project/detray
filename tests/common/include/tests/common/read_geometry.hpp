@@ -138,6 +138,7 @@ inline auto create_modules(const scalar m_half_x = 8.4,
 
         // The rectangle bounds for this module
         masks.emplace_back(m_half_x, m_half_y);
+        masks.back().links() = {dindex_invalid, dindex_invalid};
 
         // Build the transform
         // The local phi
@@ -286,6 +287,7 @@ auto toy_geometry() {
         surfaces.emplace_back(transforms.size(), m_id, vol.index(),
                               inv_sf_finder);
         discs.emplace_back(min_r, max_r);
+        discs.back().links() = {dindex_invalid, dindex_invalid};
         // Position disc
         vector3 translation{0., 0., half_z};
         transforms.emplace_back(translation);
@@ -305,6 +307,7 @@ auto toy_geometry() {
         surfaces.emplace_back(transforms.size(), m_id, vol.index(),
                               inv_sf_finder);
         cylinders.emplace_back(r, -half_z, half_z);
+        cylinders.back().links() = {dindex_invalid, dindex_invalid};
         transforms.emplace_back();  // identity
 
         vol.set_range({surfaces.size() - 1, surfaces.size()});

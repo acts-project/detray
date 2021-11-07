@@ -7,10 +7,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <set>
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -29,7 +31,7 @@ namespace detray {
  * @return true if the volumes form a connected chain.
  */
 inline bool check_connectivity(
-    std::set<std::pair<dindex, dindex>> volume_records,
+    std::vector<std::pair<dindex, dindex>> volume_records,
     dindex start_volume = 0) {
     // Keep record of leftovers
     std::stringstream record_stream;
@@ -92,9 +94,9 @@ template <typename record_type = dvector<std::pair<dindex, intersection>>>
 inline auto trace_volumes(const record_type &volume_record,
                           dindex start_volume = 0) {
     // Indices of volumes that are linked by portals
-    std::set<std::pair<dindex, dindex>> portal_trace = {};
+    std::vector<std::pair<dindex, dindex>> portal_trace = {};
     // Indices of volumes per module surface
-    std::set<dindex> surface_trace = {};
+    std::vector<dindex> surface_trace = {};
     // Debug output if an error in the record is discovered
     std::stringstream record_stream;
 
@@ -129,7 +131,7 @@ inline auto trace_volumes(const record_type &volume_record,
     for (size_t rec = 0; rec < volume_record.size() - 1;) {
 
         if (not is_portal(volume_record.at(rec))) {
-            surface_trace.insert(volume_record[rec].second.index);
+            surface_trace.push_back(volume_record[rec].second.index);
             rec++;
             continue;
         }
@@ -148,8 +150,8 @@ inline auto trace_volumes(const record_type &volume_record,
 
         if (doublet()) {
             // Insert into set of edges
-            portal_trace.emplace(doublet.lower.second.index,
-                                 doublet.upper.second.index);
+            portal_trace.emplace_back(doublet.lower.second.index,
+                                      doublet.upper.second.index);
         }
         // Something went wrong
         else {
@@ -179,6 +181,16 @@ inline auto trace_volumes(const record_type &volume_record,
         }
     }
 
+    // Look at the last entry
+    if (not is_portal(volume_record.back())) {
+        std::cerr << "We don't leave the detector by portal!" << std::endl;
+    }
+    // Put this in the surface trace, because it is not part of a doublet
+    else {
+        portal_trace.emplace_back(volume_record.back().second.index,
+                                  volume_record.back().second.link);
+    }
+
     return std::make_pair(portal_trace, surface_trace);
 }
 
@@ -192,16 +204,35 @@ inline auto trace_volumes(const record_type &volume_record,
  * @return a set of volume connections that were found by portal intersection
  *         of a ray.
  */
-template <class vector_type>
-inline auto link_volumes(const vector_type &portal_trace,
-                         const vector_type &surface_trace) {
-    std::map<dindex,
-             std::pair<std::unordered_set<dindex>, std::map<dindex, dindex>>>
-        adj_list = {};
+template <typename portal_record, typename surface_record,
+          std::enable_if_t<std::is_same_v<typename portal_record::value_type,
+                                          std::pair<dindex, dindex>>,
+                           bool> = true,
+          std::enable_if_t<
+              std::is_same_v<typename surface_record::value_type, dindex>,
+              bool> = true>
+inline auto build_adjacency(const portal_record &portal_trace,
+                            const surface_record &surface_trace) {
+    // Keep track of which objects' linking has already been added to a volume
+    std::pair<dindex, std::unordered_set<dindex>> object_hashes;
+    // Links to other volumes and count of these links, per volume
+    std::map<dindex, std::map<dindex, dindex>> adj_list = {};
 
-    for (const auto &record : portal_trace) {
-        // adj_list[record.first] =
+    // Every surface that was recorded adds a link to the mother volume
+    for (const auto &record : surface_trace) {
+        adj_list[record][record]++;
     }
+
+    // Portal links to second volume in the record
+    for (const auto &record : portal_trace) {
+        adj_list[record.first][record.second]++;
+        // Assume the return link for now (and filter out last portal)
+        if (record.second != dindex_invalid) {
+            adj_list[record.second][record.first]++;
+        }
+    }
+
+    return adj_list;
 }
 
 }  // namespace detray
