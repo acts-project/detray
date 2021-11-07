@@ -132,8 +132,8 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
 
     auto d = detector_t(geo, transforms, masks);
 
-    unsigned int theta_steps = 100;
-    unsigned int phi_steps = 100;
+    unsigned int theta_steps = 20;
+    unsigned int phi_steps = 20;
 
     const point3 ori{0., 0., 0.};
     dindex start_index = 0;
@@ -157,7 +157,14 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
             // These are the portal links
             auto [portal_trace, surface_trace] =
                 trace_volumes(volume_record, start_index);
-            // auto portal_trace = trace_volumes(volume_record, start_index);
+
+            for (const auto &pti_pair : portal_trace) {
+                std::cout << pti_pair.first << pti_pair.second << std::endl;
+            }
+
+            for (const auto &sf : surface_trace) {
+                std::cout << sf << std::endl;
+            }
 
             // All edges made it through the checking
             ASSERT_TRUE(check_connectivity(portal_trace));

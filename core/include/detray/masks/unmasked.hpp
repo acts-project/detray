@@ -28,7 +28,7 @@ struct unmasked {
      * @return a bool that is ture if inside
      **/
     template <typename local_type>
-    intersection_status is_inside(
+    inline intersection_status is_inside(
         const point2 & /*ignored*/,
         const mask_tolerance &t = within_epsilon) const {
         return t ? e_hit : e_missed;
@@ -44,7 +44,8 @@ struct unmasked {
      * @return a bool that is ture if inside
      **/
     template <typename local_type>
-    bool is_inside(const point2 & /*ignored*/, scalar /*ignored*/) const {
+    inline bool is_inside(const point2 & /*ignored*/,
+                          scalar /*ignored*/) const {
         return true;
     }
 
@@ -58,8 +59,8 @@ struct unmasked {
      * @return a bool that is ture if inside
      **/
     template <typename local_type>
-    bool is_inside(const point2 & /*ignored*/, scalar /*ignored*/,
-                   scalar /*ignored*/) const {
+    inline bool is_inside(const point2 & /*ignored*/, scalar /*ignored*/,
+                          scalar /*ignored*/) const {
         return true;
     }
 

@@ -38,20 +38,18 @@ struct planar_intersector {
      *
      * Non-contextual part:
      * @param mask the local mask
-     * @param volume_index volume id to which the mask belongs
      * @param tolerance is the mask specific tolerance
      *
      * @return the intersection with optional parameters
      **/
     template <typename track_type, typename mask_type = unmasked,
               typename local_frame = typename mask_type::local_type>
-    intersection intersect(const transform3 &trf, const track_type &track,
-                           const mask_type &mask,
-                           const dindex &volume_index = dindex_invalid,
-                           const typename mask_type::mask_tolerance &tolerance =
-                               mask_type::within_epsilon) const {
-        return intersect(trf, track.pos, track.dir, mask, volume_index,
-                         tolerance, track.overstep_tolerance);
+    inline intersection intersect(
+        const transform3 &trf, const track_type &track, const mask_type &mask,
+        const typename mask_type::mask_tolerance &tolerance =
+            mask_type::within_epsilon) const {
+        return intersect(trf, track.pos, track.dir, mask, tolerance,
+                         track.overstep_tolerance);
     }
 
     /** Intersection method for planar surfaces
@@ -66,19 +64,17 @@ struct planar_intersector {
      *
      * Non-contextual part:
      * @param mask the local mask
-     * @param volume_index volume id to which the mask belongs
      * @param tolerance is the mask specific tolerance
      *
      * @return the intersection with optional parameters
      **/
     template <typename mask_type = unmasked,
               typename local_frame = typename mask_type::local_type>
-    intersection intersect(const transform3 &trf, const point3 &ro,
-                           const vector3 &rd, const mask_type &mask,
-                           const dindex volume_index = dindex_invalid,
-                           const typename mask_type::mask_tolerance &tolerance =
-                               mask_type::within_epsilon,
-                           scalar overstep_tolerance = 0.) const {
+    inline intersection intersect(const transform3 &trf, const point3 &ro,
+                                  const vector3 &rd, const mask_type &mask,
+                                  const typename mask_type::mask_tolerance
+                                      &tolerance = mask_type::within_epsilon,
+                                  scalar overstep_tolerance = 0.) const {
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
@@ -89,7 +85,6 @@ struct planar_intersector {
         scalar denom = vector::dot(rd, sn);
         if (denom != 0.0) {
             intersection is;
-            is.index = volume_index;
             is.path = vector::dot(sn, st - ro) / denom;
             is.p3 = ro + is.path * rd;
             constexpr local_frame local_converter{};

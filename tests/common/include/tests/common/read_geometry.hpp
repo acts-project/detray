@@ -73,9 +73,12 @@ auto read_from_csv(detector_input_files& files,
  *         created container), the module transsforms and the surface masks.
  */
 template <typename surface_t, typename mask_t>
-inline auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
-                           scalar m_tilt_phi = 0.145, scalar layer_r = 32.,
-                           scalar radial_stagger = 2., scalar l_overlap = 5.,
+inline auto create_modules(const scalar m_half_x = 8.4,
+                           const scalar m_half_y = 36.,
+                           const scalar m_tilt_phi = 0.145,
+                           const scalar layer_r = 32.,
+                           const scalar radial_stagger = 2.,
+                           const scalar l_overlap = 5.,
                            const std::pair<int, int> binning = {16, 14}) {
 
     /// mask index: type, range
@@ -258,8 +261,8 @@ auto toy_geometry() {
      *
      * @return a detray cylinder volume
      */
-    auto add_cylinder_volume = [&](scalar min_r, scalar max_r,
-                                   scalar half_z) -> volume_type& {
+    auto add_cylinder_volume = [&](const scalar min_r, const scalar max_r,
+                                   const scalar half_z) -> volume_type& {
         // The volume bounds
         detray::darray<scalar, 6> bounds = {min_r,  max_r, -half_z,
                                             half_z, -M_PI, M_PI};
@@ -277,8 +280,8 @@ auto toy_geometry() {
      * @param max_r upper radius of disc
      * @param half_z z half length of the detector volume
      */
-    auto add_disc_portal = [&](volume_type& vol, scalar min_r, scalar max_r,
-                               scalar half_z) {
+    auto add_disc_portal = [&](volume_type& vol, const scalar min_r,
+                               const scalar max_r, const scalar half_z) {
         m_id = {0, discs.size()};
         surfaces.emplace_back(transforms.size(), m_id, vol.index(),
                               inv_sf_finder);
@@ -296,7 +299,8 @@ auto toy_geometry() {
      * @param r raius of the cylinder
      * @param half_z z half length of the cylinder
      */
-    auto add_cylinder_portal = [&](volume_type& vol, scalar r, scalar half_z) {
+    auto add_cylinder_portal = [&](volume_type& vol, const scalar r,
+                                   const scalar half_z) {
         m_id = {1, cylinders.size()};
         surfaces.emplace_back(transforms.size(), m_id, vol.index(),
                               inv_sf_finder);
@@ -315,7 +319,8 @@ auto toy_geometry() {
      * @param masks_offset offset into the global mask container
      */
     auto update_links = [&](volume_type& vol, surface_container& modules,
-                            dindex trfs_offset, dindex masks_offset) {
+                            const dindex trfs_offset,
+                            const dindex masks_offset) {
         for (auto& sf : modules) {
             sf.transform() += trfs_offset;
             std::get<1>(sf.mask()) += masks_offset;

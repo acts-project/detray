@@ -52,7 +52,7 @@ inline auto unroll_intersect(
         // Check all masks of this surface for intersection
         for (const auto &mask : range(mask_group, rng)) {
             auto sfi =
-                mask.intersector().intersect(ctf, track, mask, volume_index);
+                std::move(mask.intersector().intersect(ctf, track, mask));
 
             if (sfi.status == e_inside) {
                 // Link to next volume is in first position

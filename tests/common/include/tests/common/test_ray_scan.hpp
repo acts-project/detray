@@ -11,6 +11,7 @@
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -104,10 +105,10 @@ inline auto trace_volumes(const record_type &volume_record,
 
         // Is the record doublet we picked up made up if a portal and a surface?
         inline bool is_mixed() const {
-            return (lower.second.index != lower.first and
-                    upper.second.index == upper.first) or
-                   (lower.second.index == lower.first and
-                    upper.second.index != upper.first);
+            return (lower.second.index != lower.second.link and
+                    upper.second.index == upper.second.link) or
+                   (lower.second.index == lower.second.link and
+                    upper.second.index != upper.second.link);
         }
 
         // Is this doublet connected via a portal intersection? (the second
@@ -119,36 +120,36 @@ inline auto trace_volumes(const record_type &volume_record,
         }
     };
 
+    auto is_portal = [](const std::pair<dindex, intersection> &record) -> bool {
+        // A portal links to another volume thab it belongs to
+        return record.second.index != record.second.link;
+    };
+
     // Don't look at the end volume, as it is not connected at one side
     for (size_t rec = 0; rec < volume_record.size() - 1;) {
 
-        // Get 2 possibly connected entries
-        record_doublet doublet = {.lower = volume_record[rec],
-                                  .upper = volume_record[rec + 1]};
-
-        // If picked up a mixture of portal and surface, look at the direct
-        // neighbor
-        if (doublet.is_mixed()) {
-            rec += 1;
+        if (not is_portal(volume_record.at(rec))) {
+            surface_trace.insert(volume_record[rec].second.index);
+            rec++;
             continue;
         }
-        // Otherwise advance faster
-        else {
-            rec += 2;
-        }
 
-        record_stream << doublet.lower.first << " ("
+        // Get 2 possibly connected entries
+        record_doublet doublet = {.lower = volume_record.at(rec),
+                                  .upper = volume_record.at(rec + 1)};
+
+        // Advance to inspect next pair
+        rec += 2;
+
+        record_stream << doublet.lower.second.index << " ("
                       << doublet.lower.second.path << ")" << std::endl;
-        record_stream << doublet.upper.first << " ("
+        record_stream << doublet.upper.second.index << " ("
                       << doublet.upper.second.path << ")" << std::endl;
 
         if (doublet()) {
             // Insert into set of edges
-            portal_trace.emplace(doublet.lower.first, doublet.upper.first);
-        }
-        // I was a module surface after all
-        else if (doublet.lower.second.index == doublet.upper.second.index) {
-            surface_trace.insert(doublet.lower.second.index);
+            portal_trace.emplace(doublet.lower.second.index,
+                                 doublet.upper.second.index);
         }
         // Something went wrong
         else {
@@ -175,11 +176,32 @@ inline auto trace_volumes(const record_type &volume_record,
             std::cerr << ">>>>>>>>>>>>>>>" << std::endl;
 
             return std::make_pair(portal_trace, surface_trace);
-            ;
         }
     }
 
     return std::make_pair(portal_trace, surface_trace);
+}
+
+/** Build an adjacency list from volume traces.
+ *
+ * @tparam record_type container that contains volume idx, intersection pairs
+ *
+ * @param volume_record the recorded portal crossings between volumes
+ * @param start_volume where the ray started
+ *
+ * @return a set of volume connections that were found by portal intersection
+ *         of a ray.
+ */
+template <class vector_type>
+inline auto link_volumes(const vector_type &portal_trace,
+                         const vector_type &surface_trace) {
+    std::map<dindex,
+             std::pair<std::unordered_set<dindex>, std::map<dindex, dindex>>>
+        adj_list = {};
+
+    for (const auto &record : portal_trace) {
+        // adj_list[record.first] =
+    }
 }
 
 }  // namespace detray

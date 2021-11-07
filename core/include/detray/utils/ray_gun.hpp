@@ -45,13 +45,18 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
     for (const auto &v : d.volumes()) {
 
         // Record the primitives the ray intersects
-        for (const auto &obj : range(portals, v)) {
+        for (auto [obj_idx, obj] : enumerate(portals, v)) {
             auto intr = intersect(ray, obj, transforms, masks);
 
             // Walk along the direction of intersected masks
             if (intr.status == intersection_status::e_inside &&
                 intr.direction == intersection_direction::e_along) {
-                volume_record.emplace_back(v.index(), intr);
+
+                // In case the linking information is not in the masks
+                if (std::get<0>(obj.edge()) != dindex_invalid) {
+                    intr.link = std::get<0>(obj.edge());
+                }
+                volume_record.emplace_back(obj_idx, intr);
             }
         }
     }

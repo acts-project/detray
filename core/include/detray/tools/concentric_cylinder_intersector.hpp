@@ -39,7 +39,6 @@ struct concentric_cylinder_intersector {
      *
      * Non-contextual part:
      * @param mask the local mask
-     * @param volume_index the volume the mask belongs to
      * @param tolerance is the mask specific tolerance
      *
      * @return the intersection with optional parameters
@@ -48,13 +47,12 @@ struct concentric_cylinder_intersector {
               std::enable_if_t<
                   std::is_same_v<typename mask_type::local_type, cylindrical2>,
                   bool> = true>
-    intersection intersect(const transform3 &trf, const track_type &track,
-                           const mask_type &mask,
-                           const dindex volume_index = dindex_invalid,
-                           const typename mask_type::mask_tolerance &tolerance =
-                               mask_type::within_epsilon) const {
-        return intersect(trf, track.pos, track.dir, mask, volume_index,
-                         tolerance, track.overstep_tolerance);
+    inline intersection intersect(
+        const transform3 &trf, const track_type &track, const mask_type &mask,
+        const typename mask_type::mask_tolerance &tolerance =
+            mask_type::within_epsilon) const {
+        return intersect(trf, track.pos, track.dir, mask, tolerance,
+                         track.overstep_tolerance);
     }
 
     /** Intersection method for cylindrical surfaces
@@ -68,7 +66,6 @@ struct concentric_cylinder_intersector {
      *
      * Non-contextual part:
      * @param mask the local mask
-     * @param volume_index the volume the mask belongs to
      * @param tolerance is the mask specific tolerance
      * @param overstep_tolerance  is the stepping specific tolerance
      *
@@ -78,12 +75,12 @@ struct concentric_cylinder_intersector {
               std::enable_if_t<
                   std::is_same_v<typename mask_type::local_type, cylindrical2>,
                   bool> = true>
-    intersection intersect(const transform3 & /*trf*/, const point3 &ro,
-                           const vector3 &rd, const mask_type &mask,
-                           const dindex volume_index = dindex_invalid,
-                           const typename mask_type::mask_tolerance &tolerance =
-                               mask_type::within_epsilon,
-                           scalar overstep_tolerance = 0.) const {
+    inline intersection intersect(const transform3 & /*trf*/, const point3 &ro,
+                                  const vector3 &rd, const mask_type &mask,
+                                  const dindex volume_index = dindex_invalid,
+                                  const typename mask_type::mask_tolerance
+                                      &tolerance = mask_type::within_epsilon,
+                                  scalar overstep_tolerance = 0.) const {
 
         scalar r = mask[0];
 
@@ -126,7 +123,6 @@ struct concentric_cylinder_intersector {
                                     : 0);
             if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance) {
                 intersection is;
-                is.index = volume_index;
                 is.p3 = candidates[cindex];
                 is.path = t01[cindex];
 
