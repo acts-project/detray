@@ -227,8 +227,8 @@ template <typename portal_record, typename surface_record,
               bool> = true>
 inline auto build_adjacency(
     const portal_record &portal_trace, const surface_record &surface_trace,
-    std::map<dindex, std::map<dindex, dindex>> &adj_list = {},
-    std::unordered_set<dindex> &obj_hashes = {}) {
+    std::map<dindex, std::map<dindex, dindex>> &adj_list,
+    std::unordered_set<dindex> &obj_hashes) {
 
     // Every surface that was recorded adds a link to the mother volume
     for (const auto &record : surface_trace) {
