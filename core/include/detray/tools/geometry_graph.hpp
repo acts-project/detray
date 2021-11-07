@@ -11,7 +11,6 @@
 #include <queue>
 #include <sstream>
 #include <string>
-#include <unordered_set>
 #include <utility>
 
 #include "detray/utils/enumerate.hpp"
@@ -150,7 +149,7 @@ class geometry_graph {
                 return "leaving world" + n_occur;
             }
 
-            return std::to_string(n.first) + "\t" + n_occur;
+            return std::to_string(n.first) + "\t\t\t" + n_occur;
         };
         for (const auto &n : _nodes) {
             ss << "[>>] Node with index " << n.index() << std::endl;

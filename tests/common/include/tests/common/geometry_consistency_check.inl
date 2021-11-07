@@ -8,11 +8,11 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/tools/geometry_graph.hpp"
 #include "tests/common/read_geometry.hpp"
 #include "tests/common/test_ray_scan.hpp"
-//#include <vecmem/memory/host_memory_resource.hpp>
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -92,7 +92,7 @@ void print_adj(auto &adjacency_list) {
             return "leaving world" + n_occur;
         }
 
-        return std::to_string(n.first) + "\t" + n_occur;
+        return std::to_string(n.first) + "\t\t\t" + n_occur;
     };
 
     for (const auto &[vol_index, neighbors] : adjacency_list) {
@@ -117,28 +117,11 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
 
     const auto geo = geometry_t(volumes, surfaces);
 
-    /// Prints linking information for every node when visited
-    struct volume_printout {
-        void operator()(const geometry_t::volume_type &n) const {
-            std::cout << "On volume: " << n.index() << std::endl;
-        }
-    };
-
-    using graph = geometry_graph<geometry_t, volume_printout>;
-
     // Build the graph
-    graph g = graph(geo._volumes, geo._objects);
+    const auto g = geometry_graph<geometry_t>(geo._volumes, geo._objects);
     const auto &adj_linking = g.adjacency_list();
 
     std::cout << g.to_string() << std::endl;
-
-    /*vecmem::host_memory_resource host_mr;
-    auto [d, name_map] = read_from_csv(odd_files, host_mr);
-    auto odd_graph = geometry_graph<decltype(d)::geometry,
-    volume_printout>(d.volumes(), d.template
-    objects<decltype(d)::geometry::object_registry::id::e_portal>());
-
-    std::cout << odd_graph.to_string() << std::endl;*/
 
     // Now get the adjaceny list from ray scan
 
@@ -157,9 +140,13 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
 
     auto d = detector_t(geo, transforms, masks);
 
-    unsigned int theta_steps = 20;
-    unsigned int phi_steps = 20;
+    // Adjacency list to be filled in ray scan
+    std::map<dindex, std::map<dindex, dindex>> adj_scan = {};
+    // Keep track of the objects that have already been seen per volume
+    std::unordered_set<dindex> obj_hashes = {};
 
+    unsigned int theta_steps = 100;  // 1000;
+    unsigned int phi_steps = 100;    // 1000;
     const point3 ori{0., 0., 0.};
     dindex start_index = 0;
 
@@ -179,25 +166,19 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
                              cos_theta};
 
             const auto volume_record = shoot_ray(d, ori, dir);
+
             // These are the portal links
             auto [portal_trace, surface_trace] =
                 trace_volumes(volume_record, start_index);
 
-            /*for (const auto &pti_pair : portal_trace) {
-                std::cout << pti_pair.first << pti_pair.second << std::endl;
-            }
-
-            for (const auto &sf : surface_trace) {
-                std::cout << sf << std::endl;
-            }*/
-
             // All edges made it through the checking
             ASSERT_TRUE(check_connectivity(portal_trace));
 
-            auto adj_scan = build_adjacency(portal_trace, surface_trace);
-            print_adj(adj_scan);
+            build_adjacency(portal_trace, surface_trace, adj_scan, obj_hashes);
         }
     }
+
+    print_adj(adj_scan);
 }
 
 int main(int argc, char **argv) {

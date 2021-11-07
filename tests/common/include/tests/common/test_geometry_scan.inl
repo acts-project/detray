@@ -46,12 +46,12 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
 
             const auto volume_record = shoot_ray(d, ori, dir);
             auto [portal_trace, surface_trace] =
-                trace_volumes(volume_record, start_index);
+                trace_volumes<>(volume_record, start_index);
             // const auto portal_trace = trace_volumes(volume_record,
             // start_index);
 
             // All edges made it through the checking
-            ASSERT_TRUE(check_connectivity(portal_trace));
+            ASSERT_TRUE(check_connectivity<>(portal_trace));
         }
     }
 }

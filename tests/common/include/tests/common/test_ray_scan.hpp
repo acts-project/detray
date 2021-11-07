@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <set>
 #include <sstream>
 #include <string>
@@ -23,6 +22,8 @@ namespace detray {
 
 /** Check if a set of volume index pairs form a trace.
  *
+ * @tparam the record entry, which must contain the portal index and link
+ *
  * @param volume_records the recorded portal crossings between volumes
  * @param start_volume where the ray started
  *
@@ -30,8 +31,9 @@ namespace detray {
  *
  * @return true if the volumes form a connected chain.
  */
+template <typename entry_type = std::pair<dindex, dindex>>
 inline bool check_connectivity(
-    std::vector<std::pair<dindex, dindex>> volume_records,
+    std::vector<std::pair<entry_type, entry_type>> volume_records,
     dindex start_volume = 0) {
     // Keep record of leftovers
     std::stringstream record_stream;
@@ -41,19 +43,22 @@ inline bool check_connectivity(
 
     // Init chain search
     // find connection record for the current volume
-    auto record = find_if(volume_records.begin(), volume_records.end(),
-                          [&](const std::pair<dindex, dindex> &rec) -> bool {
-                              return (rec.first == on_volume) or
-                                     (rec.second == on_volume);
-                          });
+    auto record =
+        find_if(volume_records.begin(), volume_records.end(),
+                [&](const std::pair<entry_type, entry_type> &rec) -> bool {
+                    return (std::get<1>(rec.first) == on_volume) or
+                           (std::get<1>(rec.second) == on_volume);
+                });
 
     while (record != volume_records.end()) {
+        auto first_vol = std::get<1>(record->first);
+        auto second_vol = std::get<1>(record->second);
 
         record_stream << "On volume: " << on_volume << " and record ("
-                      << record->first << ", " << record->second << ")";
+                      << first_vol << ", " << second_vol << ")";
 
         // update to next volume
-        on_volume = on_volume == record->first ? record->second : record->first;
+        on_volume = on_volume == first_vol ? second_vol : first_vol;
 
         record_stream << "-> next volume: " << on_volume << std::endl;
 
@@ -62,11 +67,12 @@ inline bool check_connectivity(
         volume_records.erase(record);
 
         // find connection record for the current volume
-        record = find_if(volume_records.begin(), volume_records.end(),
-                         [&](const std::pair<dindex, dindex> &rec) -> bool {
-                             return (rec.first == on_volume) or
-                                    (rec.second == on_volume);
-                         });
+        record =
+            find_if(volume_records.begin(), volume_records.end(),
+                    [&](const std::pair<entry_type, entry_type> &rec) -> bool {
+                        return (std::get<1>(rec.first) == on_volume) or
+                               (std::get<1>(rec.second) == on_volume);
+                    });
     }
 
     // There are unconnected elements left
@@ -93,16 +99,18 @@ inline bool check_connectivity(
 template <typename record_type = dvector<std::pair<dindex, intersection>>>
 inline auto trace_volumes(const record_type &volume_record,
                           dindex start_volume = 0) {
+    // obj id and obj mother volume
+    using trace_entry = std::pair<dindex, dindex>;
     // Indices of volumes that are linked by portals
-    std::vector<std::pair<dindex, dindex>> portal_trace = {};
+    std::vector<std::pair<trace_entry, trace_entry>> portal_trace = {};
     // Indices of volumes per module surface
-    std::vector<dindex> surface_trace = {};
+    std::vector<trace_entry> surface_trace = {};
     // Debug output if an error in the record is discovered
     std::stringstream record_stream;
 
     // Always read 2 elements from the sorted records vector
     struct record_doublet {
-        // Two volume index, portal intersections
+        // Two times {portal index, portal intersection}
         const typename record_type::value_type &lower, upper;
 
         // Is the record doublet we picked up made up if a portal and a surface?
@@ -131,7 +139,8 @@ inline auto trace_volumes(const record_type &volume_record,
     for (size_t rec = 0; rec < volume_record.size() - 1;) {
 
         if (not is_portal(volume_record.at(rec))) {
-            surface_trace.push_back(volume_record[rec].second.index);
+            surface_trace.emplace_back(volume_record[rec].first,
+                                       volume_record[rec].second.index);
             rec++;
             continue;
         }
@@ -150,8 +159,9 @@ inline auto trace_volumes(const record_type &volume_record,
 
         if (doublet()) {
             // Insert into set of edges
-            portal_trace.emplace_back(doublet.lower.second.index,
-                                      doublet.upper.second.index);
+            trace_entry lower{doublet.lower.first, doublet.lower.second.index};
+            trace_entry upper{doublet.upper.first, doublet.upper.second.index};
+            portal_trace.emplace_back(lower, upper);
         }
         // Something went wrong
         else {
@@ -187,8 +197,11 @@ inline auto trace_volumes(const record_type &volume_record,
     }
     // Put this in the surface trace, because it is not part of a doublet
     else {
-        portal_trace.emplace_back(volume_record.back().second.index,
-                                  volume_record.back().second.link);
+        trace_entry lower{volume_record.back().first,
+                          volume_record.back().second.index};
+        trace_entry upper{volume_record.back().first,
+                          volume_record.back().second.link};
+        portal_trace.emplace_back(lower, upper);
     }
 
     return std::make_pair(portal_trace, surface_trace);
@@ -205,30 +218,46 @@ inline auto trace_volumes(const record_type &volume_record,
  *         of a ray.
  */
 template <typename portal_record, typename surface_record,
+          typename entry_type = std::pair<dindex, dindex>,
           std::enable_if_t<std::is_same_v<typename portal_record::value_type,
-                                          std::pair<dindex, dindex>>,
+                                          std::pair<entry_type, entry_type>>,
                            bool> = true,
           std::enable_if_t<
-              std::is_same_v<typename surface_record::value_type, dindex>,
+              std::is_same_v<typename surface_record::value_type, entry_type>,
               bool> = true>
-inline auto build_adjacency(const portal_record &portal_trace,
-                            const surface_record &surface_trace) {
-    // Keep track of which objects' linking has already been added to a volume
-    std::pair<dindex, std::unordered_set<dindex>> object_hashes;
-    // Links to other volumes and count of these links, per volume
-    std::map<dindex, std::map<dindex, dindex>> adj_list = {};
+inline auto build_adjacency(
+    const portal_record &portal_trace, const surface_record &surface_trace,
+    std::map<dindex, std::map<dindex, dindex>> &adj_list = {},
+    std::unordered_set<dindex> &obj_hashes = {}) {
 
     // Every surface that was recorded adds a link to the mother volume
     for (const auto &record : surface_trace) {
-        adj_list[record][record]++;
+        const auto sf_index = std::get<0>(record);
+        const auto vol_index = std::get<1>(record);
+        // Check whether we have seen this surface in this volume before
+        if (obj_hashes.find(sf_index) == obj_hashes.end()) {
+            adj_list[vol_index][vol_index]++;
+            obj_hashes.insert(sf_index);
+        }
     }
 
-    // Portal links to second volume in the record
+    // Portal in first volume links to second volume in the record
     for (const auto &record : portal_trace) {
-        adj_list[record.first][record.second]++;
-        // Assume the return link for now (and filter out last portal)
-        if (record.second != dindex_invalid) {
-            adj_list[record.second][record.first]++;
+        const auto pt_index_1 = std::get<0>(record.first);
+        const auto vol_index_1 = std::get<1>(record.first);
+        const auto pt_index_2 = std::get<0>(record.second);
+        const auto vol_index_2 = std::get<1>(record.second);
+
+        if (obj_hashes.find(pt_index_1) == obj_hashes.end()) {
+            adj_list[vol_index_1][vol_index_2]++;
+            obj_hashes.insert(pt_index_1);
+        }
+        // Assume the return link for now (filter out portal that leaves world)
+        if (vol_index_2 != dindex_invalid) {
+            if (obj_hashes.find(pt_index_2) == obj_hashes.end()) {
+                adj_list[vol_index_2][vol_index_1]++;
+                obj_hashes.insert(pt_index_2);
+            }
         }
     }
 
