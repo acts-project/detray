@@ -21,7 +21,7 @@ namespace detray {
 
 // object registry for unified index geometry
 template <typename surface_type>
-struct object_registry {
+struct unified_object_registry {
     // Known primitives
     enum id : unsigned int {
         e_object_types = 1,
@@ -51,10 +51,10 @@ struct object_registry {
  * carry the same link type: a portal points to the next volume, a surface to
  * the current volume.
  *
- * @tparam array_type the type of the internal array, must have STL
- *                    semantics
  * @tparam vector_type the type of the internal array, must have STL
  *                     semantics
+ * @tparam array_type the type of the internal array, must have STL
+ *                    semantics
  * @tparam surface_source_link the type of the link to an external surface
  *                             source
  *
@@ -140,7 +140,7 @@ class unified_index_geometry {
     using portal_filling_container = surface_filling_container;
 
     // object type
-    using object_registry_type = object_registry<surface>;
+    using object_registry_type = unified_object_registry<surface>;
 
     // Volume type
     using volume_type = volume<object_registry_type, dindex_range, array_type>;
@@ -234,7 +234,7 @@ class unified_index_geometry {
     /** @return all surfaces/portals in the geometry - non-const */
     template <
         typename object_registry_type::id = object_registry_type::id::e_surface>
-    DETRAY_HOST_DEVICE inline auto &objects() {
+    DETRAY_HOST_DEVICE inline constexpr auto &objects() {
         return _objects;
     }
 

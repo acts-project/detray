@@ -115,7 +115,9 @@ class volume {
     }
 
     /** @return _ranges */
-    inline const auto &ranges() const { return _ranges; }
+    DETRAY_HOST_DEVICE inline constexpr const auto &ranges() const {
+        return _ranges;
+    }
 
     /** @return the number of elements in a given range */
     template <typename range_t>

@@ -248,7 +248,7 @@ class index_geometry {
     /** @return all surfaces/portals in the geometry - non - const */
     template <enum object_registry_type::id object_type =
                   object_registry_type::id::e_surface>
-    DETRAY_HOST_DEVICE inline auto &objects() {
+    DETRAY_HOST_DEVICE inline constexpr auto &objects() {
         if constexpr (object_type == object_registry_type::id::e_surface) {
             return _surfaces;
         } else {
@@ -273,7 +273,7 @@ class index_geometry {
      */
     DETRAY_HOST
     inline void update_mask_link(portal &pt, const dindex mask_offset) {
-        auto &portal_mask_index = std::get<1>(pt.mask());
+        auto &portal_mask_index = detail::get<1>(pt.mask());
         portal_mask_index[0] += mask_offset;
         portal_mask_index[1] += mask_offset;
     }
