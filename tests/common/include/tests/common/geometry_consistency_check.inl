@@ -80,7 +80,7 @@ struct dummy_detector {
 };
 
 /** Print and adjacency list */
-void print_adj(auto &adjacency_list) {
+void print_adj(std::map<dindex, std::map<dindex, dindex>> &adjacency_list) {
     const auto print_neighbor =
         [&](const std::pair<const dindex, const dindex> &n) -> std::string {
         // Print the number of edges, if it is greater than one
