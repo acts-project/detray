@@ -23,7 +23,7 @@ __global__ void grid_replace_test_kernel(
                test::point3>
         grid_view) {
     // Let's try building the grid object
-    device_grid2_replace g2_device(grid_view, test::point3{0, 0, 0});
+    device_grid2_replace g2_device(grid_view);
 
     const auto& axis0 = g2_device.axis_p0();
     const auto& axis1 = g2_device.axis_p1();
@@ -166,7 +166,7 @@ __global__ void grid_attach_fill_test_kernel(
         grid_view) {
 
     // Let's try building the grid object
-    device_grid2_attach g2_device(grid_view, test::point3{0, 0, 0});
+    device_grid2_attach g2_device(grid_view);
 
     // Fill with 100 points
     auto pt =
