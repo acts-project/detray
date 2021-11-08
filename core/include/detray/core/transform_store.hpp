@@ -17,7 +17,7 @@ namespace detray {
 using transform3 = __plugin::transform3;
 
 /** A static inplementation of an alignable transform store */
-template <template <typename> class vector_type = dvector>
+template <template <typename...> class vector_type = dvector>
 class static_transform_store {
     public:
     using storage = vector_type<transform3>;
@@ -213,7 +213,7 @@ class static_transform_store {
 };
 
 /** A static inplementation of transform store data for device*/
-template <template <typename> class vector_type = dvector>
+template <template <typename...> class vector_type = dvector>
 struct static_transform_store_data {
 
     /** Constructor from transform store
@@ -228,7 +228,7 @@ struct static_transform_store_data {
 
 /** Get transform_store_data
  **/
-template <template <typename> class vector_type>
+template <template <typename...> class vector_type>
 inline static_transform_store_data<vector_type> get_data(
     static_transform_store<vector_type> &store) {
     return static_transform_store_data(store);
