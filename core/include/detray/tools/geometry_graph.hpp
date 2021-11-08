@@ -82,16 +82,16 @@ class geometry_graph {
     const size_t n_nodes() const { return _nodes.size(); }
 
     /** @return all volumes in the geometry - const access. */
-    const auto nodes() const { return _nodes; }
+    const auto &nodes() const { return _nodes; }
 
     /** @return number of surfaces/portals in the geometry */
     size_t n_edges() const { return _edges.size(); }
 
     /** @return all surfaces/portals in the geometry */
-    const auto edges() const { return _edges; }
+    const auto &edges() const { return _edges; }
 
     /** @return graph adjacency */
-    const auto adjacency_list() const { return adj_list; }
+    auto &adjacency_list() const { return adj_list; }
 
     /** Walks breadth first through the geometry objects. */
     template <typename action_t = void_actor<node_t>>

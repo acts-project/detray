@@ -11,6 +11,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/tools/geometry_graph.hpp"
+#include "detray/tools/hash_tree.hpp"
 #include "tests/common/read_geometry.hpp"
 #include "tests/common/test_ray_scan.hpp"
 
@@ -179,6 +180,13 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
     }
 
     print_adj(adj_scan);
+
+    auto geo_checker_scan =
+        hash_tree<decltype(adj_scan.at(0)), dindex>(adj_scan.at(0));
+    auto geo_checker =
+        hash_tree<decltype(adj_linking.at(0)), dindex>(adj_linking.at(0));
+
+    ASSERT_EQ(geo_checker.root(), geo_checker_scan.root());
 }
 
 int main(int argc, char **argv) {
