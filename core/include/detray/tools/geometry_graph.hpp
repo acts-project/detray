@@ -48,7 +48,7 @@ struct void_actor {
 template <typename geometry,
           typename node_inspector =
               void_node_inspector<typename geometry::volume_type>,
-          template <typename> class vector_type = dvector>
+          template <typename...> class vector_type = dvector>
 class geometry_graph {
 
     public:
