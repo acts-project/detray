@@ -44,8 +44,8 @@ namespace detray {
 /// @return a detector object
 template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
-          template <typename> class vector_type = dvector,
-          template <typename> class jagged_vector_type = djagged_vector,
+          template <typename...> class vector_type = dvector,
+          template <typename...> class jagged_vector_type = djagged_vector,
           typename alignable_store = static_transform_store<vector_type>,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
