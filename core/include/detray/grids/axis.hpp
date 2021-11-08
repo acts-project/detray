@@ -21,7 +21,7 @@ namespace axis {
  * and henceforth each overflow bin is mapped to bins-1
  */
 template <template <typename, unsigned int> class array_type = darray,
-          template <typename> class vector_type = dvector>
+          template <typename...> class vector_type = dvector>
 struct regular {
     dindex n_bins;
     scalar min;
@@ -170,7 +170,7 @@ struct regular {
  * The axis is circular, i.e. the underflow bins map into the circular sequence
  */
 template <template <typename, unsigned int> class array_type = darray,
-          template <typename> class vector_type = dvector>
+          template <typename...> class vector_type = dvector>
 struct circular {
 
     dindex n_bins;
@@ -342,7 +342,7 @@ struct circular {
  * the overflow is mapped into the last.
  */
 template <template <typename, unsigned int> class array_type = darray,
-          template <typename> class vector_type = dvector>
+          template <typename...> class vector_type = dvector>
 struct irregular {
 
     vector_type<scalar> boundaries;
