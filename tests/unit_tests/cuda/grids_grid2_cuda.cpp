@@ -70,9 +70,8 @@ TEST(grids_cuda, grid2_complete_populator) {
     axis::regular<> yaxis{3, 0., 3.};
 
     // declare grid
-    grid2<host_complete_populator<n_points, false, test::point3>,
-          axis::regular<>, axis::regular<>, serializer2>
-        g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0, 0, 0});
+    host_grid2_complete g2(std::move(xaxis), std::move(yaxis), mng_mr,
+                           test::point3{0, 0, 0});
 
     // pre-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -164,8 +163,10 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     axis::circular<> xaxis{2, -1., 3.};
     axis::regular<> yaxis{2, 0., 6.};
 
-    grid2_buffer<host_grid2_attach> g2_buffer(xaxis, yaxis, {2, 5, 8, 10},
-                                              {100, 200, 300, 400}, mng_mr);
+    grid2_buffer<attach_populator, axis::circular<>, axis::regular<>,
+                 serializer2, vecmem::vector, vecmem::jagged_vector, darray,
+                 std::tuple, test::point3, false>
+        g2_buffer(xaxis, yaxis, {2, 5, 8, 10}, {100, 200, 300, 400}, mng_mr);
     copy.setup(g2_buffer._buffer);
 
     // Check if the initialization work well

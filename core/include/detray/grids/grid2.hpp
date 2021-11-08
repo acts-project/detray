@@ -23,19 +23,26 @@ namespace detray {
  * @tparam serialzier_type  type of the serializer to the storage represenations
  *
  **/
-template <typename populator_type, typename axis_p0_type, typename axis_p1_type,
+template <template <template <typename...> class, template <typename...> class,
+                    template <typename, unsigned int> class, typename, auto...>
+          class populator_type,
+          typename axis_p0_type, typename axis_p1_type,
           typename serializer_type,
+          template <typename> class vector_type = dvector,
+          template <typename> class jagged_vector_type = djagged_vector,
           template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
-          template <typename> class vector_type = dvector>
+          typename value_type = dindex, auto... populator_options>
 class grid2 {
 
     public:
-    using populator_t = populator_type;
+    using populator_t =
+        populator_type<vector_type, jagged_vector_type, array_type, value_type,
+                       populator_options...>;
     using serializer_t = serializer_type;
     using axis_p0_t = axis_p0_type;
     using axis_p1_t = axis_p1_type;
-    using bare_value = typename populator_type::bare_value;
+    using bare_value = typename populator_t::bare_value;
     using serialized_storage = typename populator_t::serialized_storage;
     using point2 = __plugin::point2;
 
@@ -83,22 +90,21 @@ class grid2 {
 
     /** Constructor from grid data
      **/
-#if defined(__CUDACC__)
-    template <typename grid_view_t>
-    DETRAY_DEVICE grid2(grid_view_t &grid_data, const bare_value m_invalid =
-                                                    invalid_value<bare_value>())
+    template <typename grid_view_type>
+    DETRAY_DEVICE grid2(
+        grid_view_type &grid_data,
+        const bare_value m_invalid = invalid_value<bare_value>())
         : _axis_p0(grid_data._axis_p0),
           _axis_p1(grid_data._axis_p1),
           _data_serialized(grid_data._data_view),
           _populator(m_invalid) {}
-#endif
 
     /** Allow for grid shift, when using a centralized store and indices
      *
      * @param offset is the applied offset shift
      *
      **/
-    void shift(const typename populator_type::bare_value &offset) {
+    void shift(const typename populator_t::bare_value &offset) {
         std::for_each(_data_serialized.begin(), _data_serialized.end(),
                       [&](auto &ds) { _populator.shift(ds, offset); });
     }
@@ -113,7 +119,7 @@ class grid2 {
      **/
     template <typename point2_type>
     DETRAY_HOST_DEVICE void populate(
-        const point2_type &p2, typename populator_type::bare_value &&fvalue) {
+        const point2_type &p2, typename populator_t::bare_value &&fvalue) {
         auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]));
         _populator(_data_serialized[sbin], std::move(fvalue));
@@ -127,14 +133,14 @@ class grid2 {
      **/
     DETRAY_HOST_DEVICE
     void populate(dindex bin0, dindex bin1,
-                  typename populator_type::bare_value &&fvalue) {
+                  typename populator_t::bare_value &&fvalue) {
         auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(
             _axis_p0, _axis_p1, bin0, bin1);
         _populator(_data_serialized[sbin], std::move(fvalue));
     }
 
     DETRAY_HOST_DEVICE
-    void populate(dindex gbin, typename populator_type::bare_value &&fvalue) {
+    void populate(dindex gbin, typename populator_t::bare_value &&fvalue) {
         dindex bin0 = gbin % _axis_p0.bins();
         dindex bin1 = gbin / _axis_p0.bins();
         populate(bin0, bin1, fvalue);
@@ -213,19 +219,19 @@ class grid2 {
      * @return the sequence of values
      **/
     template <typename neighbor_t>
-    DETRAY_HOST_DEVICE vector_type<typename populator_type::bare_value> zone_t(
+    DETRAY_HOST_DEVICE vector_type<typename populator_t::bare_value> zone_t(
         const point2 &p2, const neighborhood<neighbor_t> &nhood,
         bool sort) const {
         auto zone0 = _axis_p0.zone(p2[0], nhood[0]);
         auto zone1 = _axis_p1.zone(p2[1], nhood[1]);
 
-        vector_type<typename populator_type::bare_value> zone;
+        vector_type<typename populator_t::bare_value> zone;
 
         // Specialization for bare value equal to store value
-        if constexpr (std::is_same_v<typename populator_type::bare_value,
-                                     typename populator_type::store_value>) {
+        if constexpr (std::is_same_v<typename populator_t::bare_value,
+                                     typename populator_t::store_value>) {
             unsigned int iz = 0;
-            zone = vector_type<typename populator_type::bare_value>(
+            zone = vector_type<typename populator_t::bare_value>(
                 zone0.size() * zone1.size(), {});
             for (const auto z1 : zone1) {
                 for (const auto z0 : zone0) {
@@ -270,7 +276,7 @@ class grid2 {
      * @return the sequence of values
      **/
     DETRAY_HOST_DEVICE
-    vector_type<typename populator_type::bare_value> zone(
+    vector_type<typename populator_t::bare_value> zone(
         const point2 &p2, const neighborhood<dindex> &nhood = hermit2,
         bool sort = false) const {
         return zone_t<dindex>(p2, nhood, sort);
@@ -288,7 +294,7 @@ class grid2 {
      * @return the sequence of values
      **/
     DETRAY_HOST_DEVICE
-    vector_type<typename populator_type::bare_value> zone(
+    vector_type<typename populator_t::bare_value> zone(
         const point2 &p2, const neighborhood<scalar> &nhood,
         bool sort = false) const {
         return zone_t<scalar>(p2, nhood, sort);
@@ -318,17 +324,17 @@ class grid2 {
 
     /** Const acess to the polulator */
     DETRAY_HOST_DEVICE
-    const populator_type &populator() const { return _populator; }
+    const populator_t &populator() const { return _populator; }
 
     DETRAY_HOST_DEVICE
     serialized_storage &data() { return _data_serialized; }
 
     private:
-    axis_p0_type _axis_p0;
-    axis_p1_type _axis_p1;
+    axis_p0_t _axis_p0;
+    axis_p1_t _axis_p1;
     serialized_storage _data_serialized;
-    populator_type _populator;
-    serializer_type _serializer;
+    populator_t _populator;
+    serializer_t _serializer;
 };
 
 /** A two-dimensional grid buffer
@@ -338,13 +344,21 @@ class grid2 {
  * @tparam tparam axis_p1_type the type of the second axis
  * @tparam serialzier_type  type of the serializer to the storage represenations
  **/
-template <typename grid_t>
+template <template <template <typename...> class, template <typename...> class,
+                    template <typename, unsigned int> class, typename, auto...>
+          class populator_type,
+          typename axis_p0_type, typename axis_p1_type,
+          typename serializer_type,
+          template <typename> class vector_type = dvector,
+          template <typename> class jagged_vector_type = djagged_vector,
+          template <typename, unsigned int> class array_type = darray,
+          template <typename...> class tuple_type = dtuple,
+          typename value_type = dindex, auto... populator_options>
 struct grid2_buffer {
 
-    using populator_t = typename grid_t::populator_t;
-    using serializer_t = typename grid_t::serializer_t;
-    using axis_p0_t = typename grid_t::axis_p0_t;
-    using axis_p1_t = typename grid_t::axis_p1_t;
+    using populator_t =
+        populator_type<vector_type, jagged_vector_type, array_type, value_type,
+                       populator_options...>;
 
     /** Constructor
      *
@@ -355,7 +369,7 @@ struct grid2_buffer {
      * @param resource is the vecmem memory resource
      *
      **/
-    grid2_buffer(const axis_p0_t &axis_p0, const axis_p1_t &axis_p1,
+    grid2_buffer(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
                  typename populator_t::buffer_size_t sizes,
                  typename populator_t::buffer_size_t capacities,
                  vecmem::memory_resource &resource)
@@ -365,8 +379,8 @@ struct grid2_buffer {
         // static_assert(axis_p0.bins()*axis_p1.bins() == _buffer.m_size);
     }
 
-    const axis_p0_t _axis_p0;
-    const axis_p1_t _axis_p1;
+    const axis_p0_type _axis_p0;
+    const axis_p1_type _axis_p1;
     typename populator_t::vector_buffer_t _buffer;
 };
 
@@ -377,13 +391,21 @@ struct grid2_buffer {
  * @tparam tparam axis_p1_type the type of the second axis
  * @tparam serialzier_type  type of the serializer to the storage represenations
  **/
-template <typename grid_t>
+template <template <template <typename...> class, template <typename...> class,
+                    template <typename, unsigned int> class, typename, auto...>
+          class populator_type,
+          typename axis_p0_type, typename axis_p1_type,
+          typename serializer_type,
+          template <typename> class vector_type = dvector,
+          template <typename> class jagged_vector_type = djagged_vector,
+          template <typename, unsigned int> class array_type = darray,
+          template <typename...> class tuple_type = dtuple,
+          typename value_type = dindex, auto... populator_options>
 struct grid2_data {
 
-    using populator_t = typename grid_t::populator_t;
-    using serializer_t = typename grid_t::serializer_t;
-    using axis_p0_t = typename grid_t::axis_p0_t;
-    using axis_p1_t = typename grid_t::axis_p1_t;
+    using populator_t =
+        populator_type<vector_type, jagged_vector_type, array_type, value_type,
+                       populator_options...>;
 
     /** Constructor from grid
      *
@@ -391,13 +413,17 @@ struct grid2_data {
      * @param resource is the vecmem memory resource
      *
      **/
-    grid2_data(grid_t &grid, vecmem::memory_resource &resource)
+    grid2_data(
+        grid2<populator_type, axis_p0_type, axis_p1_type, serializer_type,
+              vector_type, jagged_vector_type, array_type, tuple_type,
+              value_type, populator_options...> &grid,
+        vecmem::memory_resource &resource)
         : _axis_p0(grid.axis_p0()),
           _axis_p1(grid.axis_p1()),
           _data(populator_t::get_data(grid.data(), resource)) {}
 
-    const axis_p0_t _axis_p0;
-    const axis_p1_t _axis_p1;
+    const axis_p0_type _axis_p0;
+    const axis_p1_type _axis_p1;
     typename populator_t::vector_data_t _data;
 };
 
@@ -408,19 +434,30 @@ struct grid2_data {
  * @tparam tparam axis_p1_type the type of the second axis
  * @tparam serialzier_type  type of the serializer to the storage represenations
  **/
-template <typename grid_t>
+template <template <template <typename...> class, template <typename...> class,
+                    template <typename, unsigned int> class, typename, auto...>
+          class populator_type,
+          typename axis_p0_type, typename axis_p1_type,
+          typename serializer_type,
+          template <typename> class vector_type = dvector,
+          template <typename> class jagged_vector_type = djagged_vector,
+          template <typename, unsigned int> class array_type = darray,
+          template <typename...> class tuple_type = dtuple,
+          typename value_type = dindex, auto... populator_options>
 struct grid2_view {
-    using populator_t = typename grid_t::populator_t;
-    using serializer_t = typename grid_t::serializer_t;
-    using axis_p0_t = typename grid_t::axis_p0_t;
-    using axis_p1_t = typename grid_t::axis_p1_t;
+    using populator_t =
+        populator_type<vector_type, jagged_vector_type, array_type, value_type,
+                       populator_options...>;
 
     /** Constructor from grid data
      *
      * @param grid data is the input grid data
      *
      **/
-    grid2_view(const grid2_data<grid_t> &grid_data)
+    grid2_view(const grid2_data<populator_type, axis_p0_type, axis_p1_type,
+                                serializer_type, vector_type,
+                                jagged_vector_type, array_type, tuple_type,
+                                value_type, populator_options...> &grid_data)
         : _axis_p0(grid_data._axis_p0),
           _axis_p1(grid_data._axis_p1),
           _data_view(grid_data._data) {}
@@ -430,27 +467,36 @@ struct grid2_view {
      * @param grid data is the input grid data
      *
      **/
-    grid2_view(const grid2_buffer<grid_t> &grid_buffer)
+    grid2_view(const grid2_buffer<
+               populator_type, axis_p0_type, axis_p1_type, serializer_type,
+               vector_type, jagged_vector_type, array_type, tuple_type,
+               value_type, populator_options...> &grid_buffer)
         : _axis_p0(grid_buffer._axis_p0),
           _axis_p1(grid_buffer._axis_p1),
           _data_view(grid_buffer._buffer) {}
 
-    const axis_p0_t _axis_p0;
-    const axis_p1_t _axis_p1;
+    const axis_p0_type _axis_p0;
+    const axis_p1_type _axis_p1;
     typename populator_t::vector_view_t _data_view;
 };
 
 /** Get grid2_data from grid and memory resource
  **/
-template <typename populator_type, typename axis_p0_type, typename axis_p1_type,
-          typename serializer_type,
+template <template <template <typename...> class, template <typename...> class,
+                    template <typename, unsigned int> class, typename, auto...>
+          class populator_type,
+          typename axis_p0_type, typename axis_p1_type,
+          typename serializer_type, template <typename> class vector_type,
+          template <typename> class jagged_vector_type,
           template <typename, unsigned int> class array_type,
-          template <typename...> class tuple_type,
-          template <typename> class vector_type>
-inline grid2_data<grid2<populator_type, axis_p0_type, axis_p1_type,
-                        serializer_type, array_type, tuple_type, vector_type>>
+          template <typename...> class tuple_type, typename value_type = dindex,
+          auto... populator_options>
+inline grid2_data<populator_type, axis_p0_type, axis_p1_type, serializer_type,
+                  vector_type, jagged_vector_type, array_type, tuple_type,
+                  value_type, populator_options...>
 get_data(grid2<populator_type, axis_p0_type, axis_p1_type, serializer_type,
-               array_type, tuple_type, vector_type> &grid,
+               vector_type, jagged_vector_type, array_type, tuple_type,
+               value_type, populator_options...> &grid,
          vecmem::memory_resource &resource) {
     return {grid, resource};
 }

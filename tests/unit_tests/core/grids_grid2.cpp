@@ -26,12 +26,11 @@ using namespace detray;
 TEST(grids, grid2_replace_populator) {
     vecmem::host_memory_resource host_mr;
 
-    replace_populator<> replacer;
     serializer2 serializer;
 
     axis::regular<> xaxis{10, -5., 5.};
     axis::regular<> yaxis{10, -5., 5.};
-    using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis),
+    using grid2r = grid2<replace_populator, decltype(xaxis), decltype(yaxis),
                          decltype(serializer)>;
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
@@ -83,7 +82,7 @@ TEST(grids, grid2_replace_populator) {
 
     axis::circular<> circular{4, -2., 2.};
     axis::regular<> closed{5, 0., 5.};
-    using grid2cc = grid2<decltype(replacer), decltype(circular),
+    using grid2cc = grid2<replace_populator, decltype(circular),
                           decltype(closed), decltype(serializer)>;
 
     grid2cc g2cc(std::move(circular), std::move(closed), host_mr);
@@ -106,19 +105,20 @@ TEST(grids, grid2_replace_populator) {
 TEST(grids, grid2_complete_populator) {
     vecmem::host_memory_resource host_mr;
 
-    complete_populator<3, false> completer;
     serializer2 serializer;
 
     axis::regular<> xaxis{2, -1., 1.};
     axis::regular<> yaxis{2, -1., 1.};
-    using grid2r = grid2<decltype(completer), decltype(xaxis), decltype(yaxis),
-                         decltype(serializer)>;
+
+    using grid2r = grid2<complete_populator, decltype(xaxis), decltype(yaxis),
+                         decltype(serializer), dvector, djagged_vector, darray,
+                         dtuple, dindex, 3, false>;
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
     test::point2 p = {-0.5, -0.5};
-    decltype(completer)::store_value invalid = {dindex_invalid, dindex_invalid,
+    grid2r::populator_t::store_value invalid = {dindex_invalid, dindex_invalid,
                                                 dindex_invalid};
     for (unsigned int ib0 = 0; ib0 < 2; ++ib0) {
         for (unsigned int ib1 = 0; ib1 < 2; ++ib1) {
@@ -132,7 +132,7 @@ TEST(grids, grid2_complete_populator) {
     p = {-0.5, -0.5};
     g2.populate(p, 4u);
 
-    decltype(completer)::store_value expected = {4u, dindex_invalid,
+    grid2r::populator_t::store_value expected = {4u, dindex_invalid,
                                                  dindex_invalid};
     auto test = g2.bin(p);
     EXPECT_EQ(test, expected);
@@ -180,19 +180,18 @@ TEST(grids, grid2_complete_populator) {
 TEST(grids, grid2_attach_populator) {
     vecmem::host_memory_resource host_mr;
 
-    attach_populator<> attacher;
     serializer2 serializer;
 
     axis::regular<> xaxis{2, -1., 1.};
     axis::regular<> yaxis{2, -1., 1.};
-    using grid2r = grid2<decltype(attacher), decltype(xaxis), decltype(yaxis),
+    using grid2r = grid2<attach_populator, decltype(xaxis), decltype(yaxis),
                          decltype(serializer)>;
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
     test::point2 p = {-0.5, -0.5};
-    decltype(attacher)::store_value invalid = {};
+    grid2r::populator_t::store_value invalid = {};
     for (unsigned int ib0 = 0; ib0 < 2; ++ib0) {
         for (unsigned int ib1 = 0; ib1 < 2; ++ib1) {
             p = {static_cast<scalar>(-0.5 + ib0),
@@ -204,7 +203,7 @@ TEST(grids, grid2_attach_populator) {
     p = {-0.5, -0.5};
     g2.populate(p, 4u);
 
-    decltype(attacher)::store_value expected = {4u};
+    grid2r::populator_t::store_value expected = {4u};
     auto test = g2.bin(p);
     EXPECT_EQ(test, expected);
 
@@ -235,13 +234,12 @@ TEST(grids, grid2_attach_populator) {
 TEST(grids, grid2_shift) {
     vecmem::host_memory_resource host_mr;
 
-    replace_populator<dindex> replacer(0);
     serializer2 serializer;
 
     axis::regular<> xaxis{10, -5., 5.};
     axis::regular<> yaxis{10, -5., 5.};
 
-    using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis),
+    using grid2r = grid2<replace_populator, decltype(xaxis), decltype(yaxis),
                          decltype(serializer)>;
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr, 0);
@@ -263,7 +261,7 @@ TEST(grids, grid2_irregular_replace) {
     axis::irregular<> xaxis{{-3, -2., 1, 0.5, 0.7, 0.71, 4., 1000.}};
     axis::irregular<> yaxis{{0.1, 0.8, 0.9, 10., 12., 15.}};
 
-    using grid2ir = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis),
+    using grid2ir = grid2<replace_populator, decltype(xaxis), decltype(yaxis),
                           decltype(serializer)>;
 
     grid2ir g2(std::move(xaxis), std::move(yaxis), host_mr);
