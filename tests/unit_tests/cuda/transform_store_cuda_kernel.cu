@@ -14,7 +14,7 @@ namespace detray {
 
 __global__ void transform_test_kernel(
     vecmem::data::vector_view<point3> input_data,
-    static_transform_store_data store_data,
+    static_transform_store_data<> store_data,
     vecmem::data::vector_view<point3> output_data) {
     static_transform_store<vecmem::device_vector>::context ctx0;
     static_transform_store<vecmem::device_vector> store(store_data);
@@ -28,7 +28,7 @@ __global__ void transform_test_kernel(
 }
 
 void transform_test(vecmem::data::vector_view<point3>& input_data,
-                    static_transform_store_data& store_data,
+                    static_transform_store_data<>& store_data,
                     vecmem::data::vector_view<point3>& output_data) {
 
     int block_dim = 1;
