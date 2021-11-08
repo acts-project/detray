@@ -17,7 +17,7 @@ namespace detray {
 using transform3 = __plugin::transform3;
 
 /** A static inplementation of an alignable transform store */
-template <template <typename> class vector_type = dvector>
+template <template <typename...> class vector_type = dvector>
 class static_transform_store {
     public:
     using storage = vector_type<transform3>;
@@ -218,7 +218,7 @@ struct static_transform_store_data {
      *
      * @param store is the input transform store data from host
      **/
-    template <template <typename> class vector_type = dvector>
+    template <template <typename...> class vector_type = dvector>
     static_transform_store_data(static_transform_store<vector_type> &store)
         : _data(vecmem::get_data(store.data())) {}
 
@@ -227,7 +227,7 @@ struct static_transform_store_data {
 
 /** Get transform_store_data
  **/
-template <template <typename> class vector_type = dvector>
+template <template <typename...> class vector_type = dvector>
 inline static_transform_store_data get_data(
     static_transform_store<vector_type> &store) {
     return static_transform_store_data(store);
