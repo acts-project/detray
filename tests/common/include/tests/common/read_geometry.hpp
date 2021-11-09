@@ -10,6 +10,7 @@
 #include <string>
 
 #include "detray/core/detector.hpp"
+#include "detray/geometry/object_registry.hpp"
 #include "detray/geometry/surface_base.hpp"
 #include "detray/geometry/volume.hpp"
 #include "detray/io/csv_io.hpp"
@@ -153,22 +154,6 @@ inline auto create_modules(scalar m_half_x = 8.4, scalar m_half_y = 36.,
     return std::make_tuple<surface_container, trfs_container, mask_container>(
         std::move(surfaces), std::move(transforms), std::move(masks));
 }
-
-// object registry for toy geometry
-struct toy_object_registry {
-    // Known primitives
-    enum id : unsigned int {
-        e_object_types = 1,
-        e_surface = 0,
-        e_any = 0,
-        e_unknown = 2,
-    };
-
-    template <typename value_type = void>
-    static constexpr auto get() {
-        return e_surface;
-    }
-};
 
 /** Builds a simple detray geometry of the innermost tml layers. It contains:
  *

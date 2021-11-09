@@ -12,6 +12,7 @@
 
 #include "detray/core/mask_store.hpp"
 #include "detray/definitions/detray_qualifiers.hpp"
+#include "detray/geometry/object_registry.hpp"
 #include "detray/geometry/surface_base.hpp"
 #include "detray/geometry/volume.hpp"
 #include "detray/masks/masks.hpp"
@@ -19,30 +20,6 @@
 #include "detray/utils/indexing.hpp"
 
 namespace detray {
-
-// object registry for index geometry
-template <typename surface_type, typename portal_type>
-struct object_registry {
-    // Known primitives
-    enum id : unsigned int {
-        e_object_types = 2,
-        e_surface = 0,
-        e_portal = 1,
-        e_any = 1,  // defaults to portal
-        e_unknown = 3,
-    };
-
-    template <typename value_type>
-    DETRAY_HOST_DEVICE static constexpr auto get() {
-        if constexpr (std::is_same_v<value_type, surface_type>) {
-            return e_surface;
-        }
-        if constexpr (std::is_same_v<value_type, portal_type>) {
-            return e_portal;
-        }
-        return e_unknown;
-    }
-};
 
 /**
  * @brief Index geometry implementation
