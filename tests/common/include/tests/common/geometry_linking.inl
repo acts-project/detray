@@ -140,8 +140,6 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     // Check this with graph
     ASSERT_TRUE(adj.at(0) == nbrs_map_v0);
     ASSERT_TRUE(adj.at(1) == nbrs_map_v1);
-    // ASSERT_TRUE(adj.at(0).first == obj_hash_v0);
-    // ASSERT_TRUE(adj.at(1).first == obj_hash_v1);
 }
 
 int main(int argc, char **argv) {

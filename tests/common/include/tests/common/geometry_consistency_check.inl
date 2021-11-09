@@ -146,8 +146,8 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
     // Keep track of the objects that have already been seen per volume
     std::unordered_set<dindex> obj_hashes = {};
 
-    unsigned int theta_steps = 100;
-    unsigned int phi_steps = 100;
+    unsigned int theta_steps = 1000;
+    unsigned int phi_steps = 1000;
     const point3 ori{0., 0., 0.};
     dindex start_index = 0;
 
@@ -166,13 +166,13 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
             const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                              cos_theta};
 
-            const auto volume_record = shoot_ray(d, ori, dir);
+            const auto intersection_record = shoot_ray(d, ori, dir);
 
             // These are the portal links
             auto [portal_trace, surface_trace] =
-                trace_volumes(volume_record, start_index);
+                trace_intersections(intersection_record, start_index);
 
-            // All edges made it through the checking
+            // Is this a sensible trace to be further examined?
             ASSERT_TRUE(check_connectivity(portal_trace));
 
             build_adjacency(portal_trace, surface_trace, adj_scan, obj_hashes);
@@ -181,6 +181,7 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
 
     print_adj(adj_scan);
 
+    // TODO: Join these sub trees into a single comprehensive tree
     auto geo_checker_vol0 =
         hash_tree<decltype(adj_linking.at(0)), dindex>(adj_linking.at(0));
     auto geo_checker_scan_vol0 =
@@ -189,7 +190,7 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
     EXPECT_EQ(geo_checker_vol0.root(), geo_checker_scan_vol0.root());
 
     // This one fails, because the ray scan is kept very coarse for performance
-    // reasons
+    // reasons, when run on the CI
     /*auto geo_checker_vol1 =
         hash_tree<decltype(adj_linking.at(1)), dindex>(adj_linking.at(1));
     auto geo_checker_scan_vol1 =

@@ -44,9 +44,9 @@ TEST(ALGEBRA_PLUGIN, ray_scan) {
             const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                              cos_theta};
 
-            const auto volume_record = shoot_ray(d, ori, dir);
+            const auto intersection_record = shoot_ray(d, ori, dir);
             auto [portal_trace, surface_trace] =
-                trace_volumes<>(volume_record, start_index);
+                trace_intersections(intersection_record, start_index);
             // const auto portal_trace = trace_volumes(volume_record,
             // start_index);
 
