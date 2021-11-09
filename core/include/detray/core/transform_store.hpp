@@ -33,7 +33,7 @@ class static_transform_store {
      **/
     template <typename transform_store_data_t,
               std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
-                                                  transform_store_t>,
+                                                  transform_store_data_t>,
                                bool> = true>
     DETRAY_DEVICE static_transform_store(transform_store_data_t &store_data)
         : _data(store_data._data) {}
