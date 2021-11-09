@@ -44,12 +44,11 @@ using point2 = __plugin::point2;
  */
 template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
-          template <typename> class vector_type = dvector,
+          template <typename...> class vector_type = dvector,
+          template <typename...> class jagged_vector_type = djagged_vector,
           typename alignable_store = static_transform_store<vector_type>,
           typename geometry_type = index_geometry<array_type, vector_type,
                                                   tuple_type, dindex, dindex>,
-          typename surfaces_populator_type =
-              attach_populator<false, dindex, vector_type>,
           typename surfaces_serializer_type = serializer2,
           typename name_map = std::map<dindex, std::string>>
 class detector {
@@ -76,16 +75,16 @@ class detector {
 
     /// Volume grid definition
     using volume_grid =
-        grid2<replace_populator<dindex, vector_type>,
-              axis::irregular<array_type, vector_type>,
-              axis::irregular<array_type, vector_type>, serializer2>;
+        grid2<replace_populator, axis::irregular<array_type, vector_type>,
+              axis::irregular<array_type, vector_type>, serializer2,
+              vector_type, jagged_vector_type, array_type, tuple_type, dindex>;
 
     using surfaces_regular_axis = axis::regular<array_type>;
     using surfaces_circular_axis = axis::circular<array_type>;
     using surfaces_regular_circular_grid =
-        grid2<surfaces_populator_type, surfaces_regular_axis,
-              surfaces_circular_axis, surfaces_serializer_type, array_type,
-              tuple_type, vector_type>;
+        grid2<attach_populator, surfaces_regular_axis, surfaces_circular_axis,
+              surfaces_serializer_type, vector_type, jagged_vector_type,
+              array_type, tuple_type, dindex, false>;
 
     // Neighborhood finder, using accelerator data structure
     using surfaces_finder = surfaces_regular_circular_grid;

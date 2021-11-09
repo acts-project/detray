@@ -21,27 +21,35 @@ namespace detray {
 
 static constexpr int n_points = 3;
 
-using host_grid2_replace = grid2<host_replace_populator<test::point3>,
-                                 axis::regular<>, axis::regular<>, serializer2>;
+using host_grid2_replace =
+    grid2<replace_populator, axis::regular<>, axis::regular<>, serializer2,
+          vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
+          test::point3>;
 
 using device_grid2_replace =
-    grid2<device_replace_populator<test::point3>, axis::regular<>,
-          axis::regular<>, serializer2>;
+    grid2<replace_populator, axis::regular<>, axis::regular<>, serializer2,
+          vecmem::device_vector, vecmem::jagged_device_vector, darray,
+          std::tuple, test::point3>;
 
 using host_grid2_complete =
-    grid2<host_complete_populator<n_points, false, test::point3>,
-          axis::regular<>, axis::regular<>, serializer2>;
+    grid2<complete_populator, axis::regular<>, axis::regular<>, serializer2,
+          vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
+          test::point3, n_points, false>;
 
 using device_grid2_complete =
-    grid2<device_complete_populator<n_points, false, test::point3>,
-          axis::regular<>, axis::regular<>, serializer2>;
+    grid2<complete_populator, axis::regular<>, axis::regular<>, serializer2,
+          vecmem::device_vector, vecmem::jagged_device_vector, darray,
+          std::tuple, test::point3, n_points, false>;
 
-using host_grid2_attach = grid2<host_attach_populator<false, test::point3>,
-                                axis::circular<>, axis::regular<>, serializer2>;
+using host_grid2_attach =
+    grid2<attach_populator, axis::circular<>, axis::regular<>, serializer2,
+          vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
+          test::point3, false>;
 
 using device_grid2_attach =
-    grid2<device_attach_populator<false, test::point3>, axis::circular<>,
-          axis::regular<>, serializer2>;
+    grid2<attach_populator, axis::circular<>, axis::regular<>, serializer2,
+          vecmem::device_vector, vecmem::jagged_device_vector, darray,
+          std::tuple, test::point3, false>;
 
 // test function for replace populator
 void grid_replace_test(grid2_view<host_grid2_replace> grid_view);

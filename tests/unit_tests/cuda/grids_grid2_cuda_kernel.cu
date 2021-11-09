@@ -16,11 +16,27 @@ namespace detray {
   test function for grid data with replace populator
   ---------------------------------------------------*/
 
-// test1 kernel declaration
+// cuda kernel for grid_replace_test
 __global__ void grid_replace_test_kernel(
-    grid2_view<host_grid2_replace> grid_view);
+    grid2_view<host_grid2_replace> grid_view) {
+    // Let's try building the grid object
+    device_grid2_replace g2_device(grid_view);
 
-// test2 function implementation
+    const auto& axis0 = g2_device.axis_p0();
+    const auto& axis1 = g2_device.axis_p1();
+
+    auto x_interval = (axis0.max - axis0.min) / axis0.n_bins;
+    auto y_interval = (axis1.max - axis1.min) / axis1.n_bins;
+
+    auto gid = threadIdx.x + threadIdx.y * blockDim.x;
+    auto pt = test::point3{axis0.min + gid * x_interval,
+                           axis1.min + gid * y_interval, 0.5};
+
+    // replace the bin elements
+    g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
+}
+
+// grid_replace_test implementation
 void grid_replace_test(grid2_view<host_grid2_replace> grid_view) {
 
     const auto& axis0 = grid_view._axis_p0;
@@ -37,52 +53,11 @@ void grid_replace_test(grid2_view<host_grid2_replace> grid_view) {
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
-// test2 kernel implementation
-__global__ void grid_replace_test_kernel(
-    grid2_view<host_grid2_replace> grid_view) {
-
-    // Let's try building the grid object
-    device_grid2_replace g2_device(grid_view, test::point3{0, 0, 0});
-
-    const auto& axis0 = g2_device.axis_p0();
-    const auto& axis1 = g2_device.axis_p1();
-
-    auto x_interval = (axis0.max - axis0.min) / axis0.n_bins;
-    auto y_interval = (axis1.max - axis1.min) / axis1.n_bins;
-
-    auto gid = threadIdx.x + threadIdx.y * blockDim.x;
-    auto pt = test::point3{axis0.min + gid * x_interval,
-                           axis1.min + gid * y_interval, 0.5};
-
-    // replace the bin elements
-    g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
-}
-
 /*---------------------------------------------------------------
   test function for grid data with complete populator
   ---------------------------------------------------------------*/
 
-// test2 kernel declaration
-__global__ void grid_complete_kernel(grid2_view<host_grid2_complete> grid_view);
-
-// test2 function implementation
-void grid_complete_test(grid2_view<host_grid2_complete> grid_view) {
-
-    const auto& axis0 = grid_view._axis_p0;
-    const auto& axis1 = grid_view._axis_p1;
-
-    int block_dim = 1;
-    dim3 thread_dim(axis0.bins(), axis1.bins());
-
-    // run the kernel
-    grid_complete_kernel<<<block_dim, thread_dim>>>(grid_view);
-
-    // cuda error check
-    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
-    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}
-
-// test2 kernel implementation
+// cuda kernel for grid_complete_test
 __global__ void grid_complete_kernel(
     grid2_view<host_grid2_complete> grid_view) {
 
@@ -106,14 +81,42 @@ __global__ void grid_complete_kernel(
     }
 }
 
+// grid_complete_test implementation
+void grid_complete_test(grid2_view<host_grid2_complete> grid_view) {
+
+    const auto& axis0 = grid_view._axis_p0;
+    const auto& axis1 = grid_view._axis_p1;
+
+    int block_dim = 1;
+    dim3 thread_dim(axis0.bins(), axis1.bins());
+
+    // run the kernel
+    grid_complete_kernel<<<block_dim, thread_dim>>>(grid_view);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
 /*---------------------------------------------------------
   read test function for grid with attach populator
   ---------------------------------------------------------*/
 
-// read_test kernel declaration
+// cuda kernel for attach_read_test
 __global__ void grid_attach_read_test_kernel(
-    grid2_view<host_grid2_attach> grid_view);
+    grid2_view<host_grid2_attach> grid_view) {
 
+    // Let's try building the grid object
+    device_grid2_attach g2_device(grid_view, test::point3{0, 0, 0});
+
+    auto data = g2_device.bin(threadIdx.x, threadIdx.y);
+
+    for (auto& pt : data) {
+        // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
+    }
+}
+
+// attach_read_test implementation
 void grid_attach_read_test(grid2_view<host_grid2_attach> grid_view) {
 
     const auto& axis0 = grid_view._axis_p0;
@@ -130,49 +133,16 @@ void grid_attach_read_test(grid2_view<host_grid2_attach> grid_view) {
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
-__global__ void grid_attach_read_test_kernel(
-    grid2_view<host_grid2_attach> grid_view) {
-
-    // Let's try building the grid object
-    device_grid2_attach g2_device(grid_view, test::point3{0, 0, 0});
-
-    auto data = g2_device.bin(threadIdx.x, threadIdx.y);
-
-    for (auto& pt : data) {
-        // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
-    }
-}
-
 /*---------------------------------------------------------
   fill test function for grid buffer with attach populator
   ---------------------------------------------------------*/
 
-// buffer_test kernel declaration
-__global__ void grid_attach_fill_test_kernel(
-    grid2_view<host_grid2_attach> grid_view);
-
-void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view) {
-
-    const auto& axis0 = grid_view._axis_p0;
-    const auto& axis1 = grid_view._axis_p1;
-
-    dim3 block_dim(axis0.bins(), axis1.bins());
-    int thread_dim = 100;
-
-    // run the kernel
-    grid_attach_fill_test_kernel<<<block_dim, thread_dim>>>(grid_view);
-
-    // cuda error check
-    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
-    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}
-
-// buffer_test kernel declaration
+// cuda kernel for attach_fill_test
 __global__ void grid_attach_fill_test_kernel(
     grid2_view<host_grid2_attach> grid_view) {
 
     // Let's try building the grid object
-    device_grid2_attach g2_device(grid_view, test::point3{0, 0, 0});
+    device_grid2_attach g2_device(grid_view);
 
     // Fill with 100 points
     auto pt =
@@ -187,6 +157,23 @@ __global__ void grid_attach_fill_test_kernel(
             // printf("%f %f %f \n", pts[i][0], pts[i][1], pts[i][2]);
         }
     }
+}
+
+// attach_fill_test implementation
+void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view) {
+
+    const auto& axis0 = grid_view._axis_p0;
+    const auto& axis1 = grid_view._axis_p1;
+
+    dim3 block_dim(axis0.bins(), axis1.bins());
+    int thread_dim = 100;
+
+    // run the kernel
+    grid_attach_fill_test_kernel<<<block_dim, thread_dim>>>(grid_view);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
 }  // namespace detray

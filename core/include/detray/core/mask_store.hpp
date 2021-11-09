@@ -7,10 +7,14 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
+#include <vecmem/containers/device_vector.hpp>
+#include <vecmem/memory/memory_resource.hpp>
 
+#include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/detray_qualifiers.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
-
 namespace detray {
 
 /** A mask store that provides the correct mask containers to client classes. */
@@ -20,7 +24,33 @@ template <template <typename...> class tuple_type = dtuple,
 class mask_store {
 
     public:
-    using mask_tuple = tuple_type<vector_type<mask_types>...>;
+    /**
+     * mask_tuple is the only member which does not follow the tuple_type.
+     * vtuple has different types based on the file location 1) std::tuple in
+     * cpp/hpp; 2) thrust::tuple in cu
+     */
+    using mask_tuple = vtuple::tuple<vector_type<mask_types>...>;
+
+    /**
+     * tuple_type for mask_tuple makes an illegal memory access error
+     */
+    // using mask_tuple = tuple_type<vector_type<mask_types>...>;
+
+    /** Default constructor **/
+    mask_store() = default;
+
+    /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
+    mask_store(vecmem::memory_resource &resource)
+        : _mask_tuple(vector_type<mask_types>{&resource}...) {}
+
+    /** Constructor with mask_store_data **/
+    template <template <template <typename...> class, typename...>
+              class mask_store_data_t>
+    DETRAY_DEVICE mask_store(
+        mask_store_data_t<tuple_type, mask_types...> &store_data)
+        : _mask_tuple(store_data.device(
+              std::make_index_sequence<sizeof...(mask_types)>{})) {}
 
     /** Size : Contextual STL like API
      *
@@ -28,8 +58,8 @@ class mask_store {
      * @return the size of the vector containing the masks of the required type
      */
     template <unsigned int mask_id>
-    const size_t size() const {
-        return std::get<mask_id>(_mask_tuple).size();
+    DETRAY_HOST_DEVICE size_t size() const {
+        return detail::get<mask_id>(_mask_tuple).size();
     }
 
     /** Empty : Contextual STL like API
@@ -39,8 +69,8 @@ class mask_store {
      * is empty
      */
     template <unsigned int mask_id>
-    bool empty() const {
-        return std::get<mask_id>(_mask_tuple).empty();
+    DETRAY_HOST_DEVICE bool empty() const {
+        return detail::get<mask_id>(_mask_tuple).empty();
     }
 
     /** Retrieve a single mask - const
@@ -53,13 +83,13 @@ class mask_store {
      * @return the required mask
      */
     template <unsigned int current_id = 0>
-    const auto &mask(const unsigned int mask_id,
-                     const dindex mask_index) const {
+    DETRAY_HOST_DEVICE const auto &mask(const unsigned int mask_id,
+                                        const dindex mask_index) const {
         if (current_id == mask_id) {
             return group<current_id>()[mask_index];
         }
         // Next mask type
-        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
             return mask<current_id + 1>(mask_id, mask_index);
         }
     }
@@ -70,8 +100,8 @@ class mask_store {
      * @return vector of masks of a given type.
      */
     template <unsigned int mask_id>
-    constexpr auto &group() {
-        return std::get<mask_id>(_mask_tuple);
+    DETRAY_HOST_DEVICE constexpr auto &group() {
+        return detail::get<mask_id>(_mask_tuple);
     }
 
     /** Retrieve a vector of masks of a certain type (mask group) - const
@@ -80,21 +110,23 @@ class mask_store {
      * @return vector of masks of a given type.
      */
     template <unsigned int mask_id>
-    constexpr const auto &group() const {
-        return std::get<mask_id>(_mask_tuple);
+    DETRAY_HOST_DEVICE constexpr const auto &group() const {
+        return detail::get<mask_id>(_mask_tuple);
     }
 
     /** Access underlying container - const
      *
      * @return internal masks tuple type
      */
+    DETRAY_HOST_DEVICE
     const auto &masks() const { return _mask_tuple; }
 
     /** Access underlying container
      *
      * @return internal masks tuple type
      */
-    const auto &masks() { return _mask_tuple; }
+    DETRAY_HOST_DEVICE
+    auto &masks() { return _mask_tuple; }
 
     /** Add a new mask in place
      *
@@ -106,9 +138,9 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int mask_id, typename... bounds_type>
-    auto &add_mask(bounds_type &&... mask_bounds) noexcept(false) {
+    DETRAY_HOST auto &add_mask(bounds_type &&... mask_bounds) noexcept(false) {
         // Get the mask group that will be updated
-        auto &mask_group = std::get<mask_id>(_mask_tuple);
+        auto &mask_group = detail::get<mask_id>(_mask_tuple);
         // Construct new mask in place
         return mask_group.emplace_back(
             std::forward<bounds_type>(mask_bounds)...);
@@ -124,9 +156,10 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int current_id = 0, typename mask_type>
-    inline void add_masks(vector_type<mask_type> &masks) noexcept(false) {
+    DETRAY_HOST inline void add_masks(vector_type<mask_type> &masks) noexcept(
+        false) {
         // Get the mask group that will be updated
-        auto &mask_group = std::get<current_id>(_mask_tuple);
+        auto &mask_group = detail::get<current_id>(_mask_tuple);
 
         if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
             // Reserve memory and copy new masks
@@ -135,7 +168,7 @@ class mask_store {
         }
 
         // Next mask type
-        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
             return add_masks<current_id + 1>(masks);
         }
     }
@@ -150,9 +183,10 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int current_id = 0, typename mask_type>
-    inline void add_masks(vector_type<mask_type> &&masks) noexcept(false) {
+    DETRAY_HOST inline void add_masks(vector_type<mask_type> &&masks) noexcept(
+        false) {
         // Get the mask group that will be updated
-        auto &mask_group = std::get<current_id>(_mask_tuple);
+        auto &mask_group = detail::get<current_id>(_mask_tuple);
 
         if constexpr (std::is_same_v<decltype(masks), decltype(mask_group)>) {
             // Reserve memory and copy new masks
@@ -163,7 +197,7 @@ class mask_store {
         }
 
         // Next mask type
-        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
             return add_masks<current_id + 1>(masks);
         }
     }
@@ -178,13 +212,13 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int current_id = 0>
-    inline void append_masks(mask_store &&other) {
+    DETRAY_HOST inline void append_masks(mask_store &&other) {
         // Add masks to current group
-        auto &mask_group = std::get<current_id>(other);
+        auto &mask_group = detail::get<current_id>(other);
         add_masks(mask_group);
 
         // Next mask type
-        if constexpr (current_id < std::tuple_size_v<mask_tuple> - 1) {
+        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
             return append_masks<current_id + 1>(other);
         }
     }
@@ -193,5 +227,72 @@ class mask_store {
     /** tuple of mask vectors (mask groups) */
     mask_tuple _mask_tuple;
 };
+
+/** A static inplementation of mask store data for device
+ *
+ * The tuple type for mask store data is fixed to std::tuple since there was an
+ * issue that _data gets corrupted when passed to .cu file
+ */
+template <template <typename...> class tuple_type, typename... mask_types>
+struct mask_store_data {
+
+    /** Constructor from mask store
+     *
+     * @param store is the mask store from host
+     **/
+    template <template <typename...> class vector_type, std::size_t... ints>
+    DETRAY_HOST mask_store_data(
+        mask_store<tuple_type, vector_type, mask_types...> &store,
+        std::index_sequence<ints...> /*seq*/)
+        : _data(detail::make_tuple<tuple_type>(
+              vecmem::data::vector_view<mask_types>(
+                  vecmem::get_data(detail::get<ints>(store.masks())))...)) {}
+
+    /** Size : Contextual STL like API
+     *
+     * @tparam mask_id the index for the mask_type
+     * @return the size of the vector containing the masks of the required type
+     */
+    template <unsigned int mask_id>
+    size_t size() const {
+        return detail::get<mask_id>(_data).size();
+    }
+
+    /** Retrieve a vector of masks of a certain type (mask group) - const
+     *
+     * @tparam mask_id index of requested mask type in masks container
+     * @return vector of masks of a given type.
+     */
+    template <unsigned int mask_id>
+    constexpr const auto &group() const {
+        return detail::get<mask_id>(_data);
+    }
+
+    /** Obtain the vecmem device vector of mask store
+     *
+     * @return tuple type of vecmem::data::vector_view objects
+     */
+    template <std::size_t... ints>
+    DETRAY_DEVICE tuple_type<vecmem::device_vector<mask_types>...> device(
+        std::index_sequence<ints...> /*seq*/) {
+        return detail::make_tuple<tuple_type>(
+            vecmem::device_vector<mask_types>(detail::get<ints>(_data))...);
+    }
+
+    /** tuple of vecmem data
+     *
+     * **/
+    tuple_type<vecmem::data::vector_view<mask_types>...> _data;
+};
+
+/** Get mask_store_data
+ **/
+template <template <typename...> class tuple_type,
+          template <typename...> class vector_type, typename... mask_types>
+inline mask_store_data<tuple_type, mask_types...> get_data(
+    mask_store<tuple_type, vector_type, mask_types...> &store) {
+    return mask_store_data<tuple_type, mask_types...>(
+        store, std::make_index_sequence<sizeof...(mask_types)>{});
+}
 
 }  // namespace detray
