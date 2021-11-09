@@ -15,9 +15,6 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
-#include <vecmem/containers/data/jagged_vector_buffer.hpp>
-#include <vecmem/containers/jagged_device_vector.hpp>
-
 #include "detray/geometry/index_geometry.hpp"
 
 #pragma once
