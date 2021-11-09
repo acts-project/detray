@@ -143,15 +143,11 @@ class index_geometry {
 
     /** Constructor from index_geometry_data
      **/
-    template <template <template <typename...> class,
-                        template <typename, unsigned int> class,
-                        template <typename...> class, typename...>
-              class index_geometry_data_t,
-              template <typename...> class data_vector_type>
-    DETRAY_DEVICE index_geometry(
-        index_geometry_data_t<data_vector_type, array_type, tuple_type,
-                              surface_source_link, bounds_source_link>
-            &geometry_data)
+    template <typename index_geometry_t,
+              std::enable_if_t<!std::is_base_of<vecmem::memory_resource,
+                                                index_geometry_t>::value,
+                               bool> = true>
+    DETRAY_DEVICE index_geometry(index_geometry_t &geometry_data)
         : _volumes(geometry_data._volumes_data),
           _surfaces(geometry_data._surfaces_data),
           _portals(geometry_data._portals_data) {}
@@ -302,16 +298,8 @@ class index_geometry {
 };
 
 /** A static inplementation of index_geometry data for device*/
-template <template <typename...> class vector_type = dvector,
-          template <typename, unsigned int> class array_type = darray,
-          template <typename...> class tuple_type = dtuple,
-          typename surface_source_link = dindex,
-          typename bounds_source_link = dindex>
+template <typename index_geometry_t>
 struct index_geometry_data {
-
-    using index_geometry_t =
-        index_geometry<vector_type, array_type, tuple_type, surface_source_link,
-                       bounds_source_link>;
 
     using volume_type = typename index_geometry_t::volume_type;
     using surface = typename index_geometry_t::surface;
@@ -335,8 +323,9 @@ template <template <typename...> class vector_type,
           template <typename, unsigned int> class array_type,
           template <typename...> class tuple_type, typename surface_source_link,
           typename bounds_source_link>
-inline index_geometry_data<vector_type, array_type, tuple_type,
-                           surface_source_link, bounds_source_link>
+inline index_geometry_data<
+    index_geometry<vector_type, array_type, tuple_type, surface_source_link,
+                   bounds_source_link>>
 get_data(index_geometry<vector_type, array_type, tuple_type,
                         surface_source_link, bounds_source_link> &geometry) {
     return geometry;

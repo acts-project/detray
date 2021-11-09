@@ -13,7 +13,7 @@
 namespace detray {
 
 __global__ void unified_index_geometry_test_kernel(
-    unified_index_geometry_data<> geometry_data,
+    unified_index_geometry_data<geometry> geometry_data,
     vecmem::data::vector_view<typename geometry::volume_type> output_data) {
 
     unified_index_geometry<vecmem::device_vector> g(geometry_data);
@@ -26,7 +26,7 @@ __global__ void unified_index_geometry_test_kernel(
 }
 
 void unified_index_geometry_test(
-    unified_index_geometry_data<>& geometry_data,
+    unified_index_geometry_data<geometry>& geometry_data,
     vecmem::data::vector_view<typename geometry::volume_type>& output_data) {
 
     int block_dim = 1;

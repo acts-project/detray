@@ -28,13 +28,14 @@ using namespace __plugin;
 namespace detray {
 
 using geometry = index_geometry<>;
+using geometry_device = index_geometry<vecmem::device_vector>;
 using surface = typename geometry::surface;
 using portal = typename geometry::portal;
 using object_id = geometry::object_registry_type::id;
 
 /// test function for index geometry
 void index_geometry_test(
-    index_geometry_data<>& geometry_data,
+    index_geometry_data<geometry>& geometry_data,
     vecmem::data::vector_view<typename geometry::volume_type>& output_data);
 
 }  // namespace detray
