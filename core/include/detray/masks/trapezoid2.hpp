@@ -12,6 +12,7 @@
 #include <string>
 
 #include "detray/core/intersection.hpp"
+#include "detray/definitions/detray_qualifiers.hpp"
 #include "detray/masks/mask_identifier.hpp"
 #include "detray/tools/planar_intersector.hpp"
 
@@ -65,6 +66,7 @@ struct trapezoid2 {
      * @param half_length_1 second half length in loc0
      * @param half_length_2 half length in loc1
      */
+    DETRAY_HOST_DEVICE
     trapezoid2(scalar half_length_0, scalar half_length_1, scalar half_length_2)
         : _values{half_length_0, half_length_1, half_length_2,
                   static_cast<scalar>(1. / (2. * half_length_2))} {}
@@ -73,6 +75,7 @@ struct trapezoid2 {
      *
      * @param rhs is the right hand side object
      **/
+    DETRAY_HOST_DEVICE
     trapezoid2<intersector_type, local_type, links_type, kMaskContext>
         &operator=(const array_type<scalar, 3> &rhs) {
         _values = rhs;
@@ -89,8 +92,8 @@ struct trapezoid2 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_type>
-    intersection_status is_inside(
-        const point2 &p, const mask_tolerance &t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection_status
+    is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
         scalar rel_y = (_values[2] + p[1]) * _values[3];
         return (std::abs(p[0]) <=
                     _values[0] + rel_y * (_values[1] - _values[0]) + t[0] and
@@ -105,6 +108,7 @@ struct trapezoid2 {
      *
      * checks identity within epsilon and @return s a boolean*
      **/
+    DETRAY_HOST_DEVICE
     bool operator==(const array_type<scalar, 3> &rhs) {
         return (_values == rhs);
     }
@@ -115,11 +119,13 @@ struct trapezoid2 {
      *
      * checks identity within epsilon and @return s a boolean*
      **/
+    DETRAY_HOST_DEVICE
     bool operator==(const trapezoid2<> &rhs) { return operator==(rhs._values); }
 
     /** Access operator - non-const
      * @return the reference to the member variable
      */
+    DETRAY_HOST_DEVICE
     scalar &operator[](unsigned int value_index) {
         return _values[value_index];
     }
@@ -127,26 +133,33 @@ struct trapezoid2 {
     /** Access operator - non-const
      * @return a copy of the member variable
      */
+    DETRAY_HOST_DEVICE
     scalar operator[](unsigned int value_index) const {
         return _values[value_index];
     }
 
     /** Return an associated intersector type */
+    DETRAY_HOST_DEVICE
     intersector_type intersector() const { return intersector_type{}; };
 
     /** Return the values */
+    DETRAY_HOST_DEVICE
     const mask_values &values() const { return _values; }
 
     /** Return the local frame type */
+    DETRAY_HOST_DEVICE
     local_type local() const { return local_type{}; }
 
     /** Return the volume link - const reference */
+    DETRAY_HOST_DEVICE
     const links_type &links() const { return _links; }
 
     /** Return the volume link - non-const access */
+    DETRAY_HOST_DEVICE
     links_type &links() { return _links; }
 
     /** Transform to a string for output debugging */
+    DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
         ss << "trapezoid2," << kMaskContext;

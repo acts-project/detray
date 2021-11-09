@@ -12,6 +12,7 @@
 #include <string>
 
 #include "detray/core/intersection.hpp"
+#include "detray/definitions/detray_qualifiers.hpp"
 #include "detray/masks/mask_identifier.hpp"
 #include "detray/tools/planar_intersector.hpp"
 
@@ -58,12 +59,14 @@ struct ring2 {
      * @param r_low lower radial bound
      * @param r_high upper radial bound
      */
+    DETRAY_HOST_DEVICE
     ring2(scalar r_low, scalar r_high) : _values{r_low, r_high} {}
 
     /** Assignment operator from an array, convenience function
      *
      * @param rhs is the right hand side object
      **/
+    DETRAY_HOST_DEVICE
     ring2<intersector_type, local_type, links_type, kMaskContext> &operator=(
         const array_type<scalar, 2> &rhs) {
         _values = rhs;
@@ -80,8 +83,8 @@ struct ring2 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_type>
-    intersection_status is_inside(
-        const point2 &p, const mask_tolerance &t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection_status
+    is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
         if constexpr (std::is_same_v<inside_local_type, __plugin::cartesian2>) {
             scalar r = getter::perp(p);
             return (r + t >= _values[0] and r <= _values[1] + t) ? e_inside
@@ -98,6 +101,7 @@ struct ring2 {
      *
      * checks identity within epsilon and @return s a boolean*
      **/
+    DETRAY_HOST_DEVICE
     bool operator==(const array_type<scalar, 2> &rhs) {
         return (_values == rhs);
     }
@@ -108,11 +112,13 @@ struct ring2 {
      *
      * checks identity within epsilon and @return s a boolean*
      **/
+    DETRAY_HOST_DEVICE
     bool operator==(const ring2<> &rhs) { return operator==(rhs._values); }
 
     /** Access operator - non-const
      * @return the reference to the member variable
      */
+    DETRAY_HOST_DEVICE
     scalar &operator[](unsigned int value_index) {
         return _values[value_index];
     }
@@ -120,26 +126,33 @@ struct ring2 {
     /** Access operator - non-const
      * @return a copy of the member variable
      */
+    DETRAY_HOST_DEVICE
     scalar operator[](unsigned int value_index) const {
         return _values[value_index];
     }
 
     /** Return an associated intersector type */
+    DETRAY_HOST_DEVICE
     intersector_type intersector() const { return intersector_type{}; };
 
     /** Return the values */
+    DETRAY_HOST_DEVICE
     const mask_values &values() const { return _values; }
 
     /** Return the local frame type */
+    DETRAY_HOST_DEVICE
     local_type local() const { return local_type{}; }
 
     /** Return the volume link - const reference */
+    DETRAY_HOST_DEVICE
     const links_type &links() const { return _links; }
 
     /** Return the volume link - non-const access */
+    DETRAY_HOST_DEVICE
     links_type &links() { return _links; }
 
     /** Transform to a string for output debugging */
+    DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
         ss << "ring2," << kMaskContext;
