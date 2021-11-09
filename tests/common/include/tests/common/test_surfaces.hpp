@@ -88,7 +88,6 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
     dvector<transform3> transforms;
 
     // Prepare the local finders
-    replace_populator<> replacer;
     serializer2 serializer;
 
     // Declare the inner, outer, ecn, ecp object finder
@@ -109,9 +108,9 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
         n_phi, static_cast<scalar>(-M_PI - 0.5 * step_phi),
         static_cast<scalar>(M_PI - 0.5 * step_phi)};
 
-    using cylinder_grid = grid2<decltype(replacer), decltype(rphi_axis_inner),
+    using cylinder_grid = grid2<replace_populator, decltype(rphi_axis_inner),
                                 decltype(z_axis_inner), decltype(serializer)>;
-    using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn),
+    using disc_grid = grid2<replace_populator, decltype(r_axis_ecn),
                             decltype(phi_axis_ecn), decltype(serializer)>;
 
     cylinder_grid ec_grid_inner(std::move(rphi_axis_inner),
@@ -190,7 +189,6 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
                                           static_cast<scalar>(0.5 * module_ly)};
 
     // Prepare the local finders
-    replace_populator<> replacer;
     serializer2 serializer;
 
     // The detector transforms
@@ -220,9 +218,9 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
         n_phi, static_cast<scalar>(-M_PI - 0.5 * step_phi),
         static_cast<scalar>(M_PI - 0.5 * step_phi)};
 
-    using cylinder_grid = grid2<decltype(replacer), decltype(rphi_axis_inner),
+    using cylinder_grid = grid2<replace_populator, decltype(rphi_axis_inner),
                                 decltype(z_axis_inner), decltype(serializer)>;
-    using disc_grid = grid2<decltype(replacer), decltype(r_axis_ecn),
+    using disc_grid = grid2<replace_populator, decltype(r_axis_ecn),
                             decltype(phi_axis_ecn), decltype(serializer)>;
 
     cylinder_grid barrel_grid_inner(std::move(rphi_axis_inner),

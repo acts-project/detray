@@ -82,7 +82,7 @@ struct navigator {
      **/
     template <typename object_type, typename candidate_type,
               typename links_type, objects object_id = objects::e_any,
-              template <typename> class vector_type = dvector>
+              template <typename...> class vector_type = dvector>
     struct navigation_kernel {
         const object_type *on = nullptr;
         vector_type<candidate_type> candidates = {};
