@@ -338,11 +338,6 @@ class grid2 {
 };
 
 /** A two-dimensional grid buffer
- * @tparam populator_type  is a prescription what to do when a bin gets
- *pupulated, it broadcasts also the value type
- * @tparam tparam axis_p0_type the type of the first axis
- * @tparam tparam axis_p1_type the type of the second axis
- * @tparam serialzier_type  type of the serializer to the storage represenations
  **/
 template <typename grid2_t>
 struct grid2_buffer {
@@ -376,11 +371,6 @@ struct grid2_buffer {
 };
 
 /** A two-dimensional grid data for gpu device usage
- * @tparam populator_type  is a prescription what to do when a bin gets
- *pupulated, it broadcasts also the value type
- * @tparam tparam axis_p0_type the type of the first axis
- * @tparam tparam axis_p1_type the type of the second axis
- * @tparam serialzier_type  type of the serializer to the storage represenations
  **/
 template <typename grid2_t>
 struct grid2_data {
@@ -406,11 +396,6 @@ struct grid2_data {
 };
 
 /** A two-dimensional grid view for gpu device usage
- * @tparam populator_type  is a prescription what to do when a bin gets
- *pupulated, it broadcasts also the value type
- * @tparam tparam axis_p0_type the type of the first axis
- * @tparam tparam axis_p1_type the type of the second axis
- * @tparam serialzier_type  type of the serializer to the storage represenations
  **/
 template <typename grid2_t>
 struct grid2_view {
