@@ -21,6 +21,7 @@
 #include "detray/utils/indexing.hpp"
 
 namespace detray {
+
 /** A replace populator that swaps whatever current value in the
  * bin with the new one.
  *
@@ -28,8 +29,10 @@ namespace detray {
  *
  * @note bare_value and store_value are identicial in this case
  **/
-template <typename value_type = dindex,
-          template <typename> class vector_type = dvector>
+template <template <typename...> class vector_type = dvector,
+          template <typename...> class jagged_vector_type = djagged_vector,
+          template <typename, unsigned int> class array_type = darray,
+          typename value_type = dindex>
 struct replace_populator {
     DETRAY_HOST_DEVICE
     replace_populator(const value_type invalid = invalid_value<value_type>())
@@ -105,9 +108,12 @@ struct replace_populator {
  *
  * @note bare_value and store_value are different in this case
  **/
-template <unsigned int kDIM, bool kSORT = false, typename value_type = dindex,
+
+template <template <typename...> class vector_type = dvector,
+          template <typename...> class jagged_vector_type = djagged_vector,
           template <typename, unsigned int> class array_type = darray,
-          template <typename> class vector_type = dvector>
+          typename value_type = dindex, unsigned int kDIM = 1,
+          bool kSORT = false>
 struct complete_populator {
     DETRAY_HOST_DEVICE
     complete_populator(const value_type invalid = invalid_value<value_type>())
@@ -204,9 +210,10 @@ struct complete_populator {
  *
  * @note bare_value and store_value are identicial in this case
  **/
-template <bool kSORT = false, typename value_type = dindex,
-          template <typename> class vector_type = dvector,
-          template <typename> class jagged_vector_type = djagged_vector>
+template <template <typename...> class vector_type = dvector,
+          template <typename...> class jagged_vector_type = djagged_vector,
+          template <typename, unsigned int> class array_type = darray,
+          typename value_type = dindex, bool kSORT = false>
 struct attach_populator {
     DETRAY_HOST_DEVICE
     attach_populator(const value_type invalid = invalid_value<value_type>())
@@ -284,37 +291,5 @@ struct attach_populator {
         return vecmem::get_data(data, &resource);
     }
 };
-
-// convinient declaration for host replace populator
-template <typename value_type = dindex>
-using host_replace_populator = replace_populator<value_type>;
-
-// convinient declaration for device replace populator
-template <typename value_type = dindex>
-using device_replace_populator =
-    replace_populator<value_type, vecmem::device_vector>;
-
-// convinient declaration for host complete populator
-template <unsigned int kDIM, bool kSORT = false, typename value_type = dindex,
-          template <typename, unsigned int> class array_type = darray>
-using host_complete_populator =
-    complete_populator<kDIM, kSORT, value_type, array_type>;
-
-// convinient declaration for device complete populator
-template <unsigned int kDIM, bool kSORT = false, typename value_type = dindex,
-          template <typename, unsigned int> class array_type = darray>
-using device_complete_populator =
-    complete_populator<kDIM, kSORT, value_type, array_type,
-                       vecmem::device_vector>;
-
-// convinient declaration for host attach populator
-template <bool kSORT = false, typename value_type = dindex>
-using host_attach_populator = attach_populator<kSORT, value_type>;
-
-// convinient declaration for device attach populator
-template <bool kSORT = false, typename value_type = dindex>
-using device_attach_populator =
-    attach_populator<kSORT, value_type, vecmem::device_vector,
-                     vecmem::jagged_device_vector>;
 
 }  // namespace detray

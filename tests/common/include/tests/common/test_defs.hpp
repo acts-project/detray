@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "detray/definitions/detray_qualifiers.hpp"
+#include "detray/definitions/invalid_values.hpp"
 #include "detray/utils/containers.hpp"
 
 #ifdef DETRAY_CUSTOM_SCALARTYPE
@@ -52,6 +53,12 @@ inline bool operator==(const test::point3 &lhs, const test::point3 &rhs) {
             return false;
     }
     return true;
+}
+
+// invalid value specialization for test::point3
+template <>
+DETRAY_HOST_DEVICE inline test::point3 detray::invalid_value() {
+    return test::point3{0, 0, 0};
 }
 
 }  // namespace detray
