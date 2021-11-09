@@ -163,7 +163,6 @@ inline auto trace_intersections(const record_container &volume_record,
         }
     };
 
-    // Don't look at the end volume, as it is not connected at one side
     for (size_t rec = 0; rec < volume_record.size() - 1;) {
 
         // For portals read 2 elements from the sorted records vector
