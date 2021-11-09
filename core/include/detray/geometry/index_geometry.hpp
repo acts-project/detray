@@ -144,9 +144,9 @@ class index_geometry {
     /** Constructor from index_geometry_data
      **/
     template <typename index_geometry_t,
-              std::enable_if_t<!std::is_base_of<vecmem::memory_resource,
-                                                index_geometry_t>::value,
-                               bool> = true>
+              std::enable_if_t<
+                  !std::is_base_of_v<vecmem::memory_resource, index_geometry_t>,
+                  bool> = true>
     DETRAY_DEVICE index_geometry(index_geometry_t &geometry_data)
         : _volumes(geometry_data._volumes_data),
           _surfaces(geometry_data._surfaces_data),

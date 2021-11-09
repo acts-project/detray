@@ -135,11 +135,10 @@ class unified_index_geometry {
 
     /** Constructor from index_geometry_data
      **/
-    template <
-        typename unified_index_geometry_t,
-        std::enable_if_t<!std::is_base_of<vecmem::memory_resource,
-                                          unified_index_geometry_t>::value,
-                         bool> = true>
+    template <typename unified_index_geometry_t,
+              std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
+                                                  unified_index_geometry_t>,
+                               bool> = true>
     DETRAY_DEVICE unified_index_geometry(
         unified_index_geometry_t &geometry_data)
         : _volumes(geometry_data._volumes_data),
