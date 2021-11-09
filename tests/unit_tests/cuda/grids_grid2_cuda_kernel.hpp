@@ -52,31 +52,15 @@ using device_grid2_attach =
           std::tuple, test::point3, false>;
 
 // test function for replace populator
-void grid_replace_test(
-    grid2_view<replace_populator, axis::regular<>, axis::regular<>, serializer2,
-               vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-               test::point3>
-        grid_view);
+void grid_replace_test(grid2_view<host_grid2_replace> grid_view);
 
 // test function for complete populator
-void grid_complete_test(
-    grid2_view<complete_populator, axis::regular<>, axis::regular<>,
-               serializer2, vecmem::vector, vecmem::jagged_vector, darray,
-               std::tuple, test::point3, n_points, false>
-        grid_view);
+void grid_complete_test(grid2_view<host_grid2_complete> grid_view);
 
 // read test function for grid with attach populator
-void grid_attach_read_test(
-    grid2_view<attach_populator, axis::circular<>, axis::regular<>, serializer2,
-               vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-               test::point3, false>
-        grid_view);
+void grid_attach_read_test(grid2_view<host_grid2_attach> grid_view);
 
 // fill test function for grid buffer with attach populator
-void grid_attach_fill_test(
-    grid2_view<attach_populator, axis::circular<>, axis::regular<>, serializer2,
-               vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-               test::point3, false>
-        grid_view);
+void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view);
 
 }  // namespace detray

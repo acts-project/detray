@@ -18,10 +18,7 @@ namespace detray {
 
 // cuda kernel for grid_replace_test
 __global__ void grid_replace_test_kernel(
-    grid2_view<replace_populator, axis::regular<>, axis::regular<>, serializer2,
-               vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-               test::point3>
-        grid_view) {
+    grid2_view<host_grid2_replace> grid_view) {
     // Let's try building the grid object
     device_grid2_replace g2_device(grid_view);
 
@@ -40,11 +37,7 @@ __global__ void grid_replace_test_kernel(
 }
 
 // grid_replace_test implementation
-void grid_replace_test(
-    grid2_view<replace_populator, axis::regular<>, axis::regular<>, serializer2,
-               vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-               test::point3>
-        grid_view) {
+void grid_replace_test(grid2_view<host_grid2_replace> grid_view) {
 
     const auto& axis0 = grid_view._axis_p0;
     const auto& axis1 = grid_view._axis_p1;
@@ -66,10 +59,7 @@ void grid_replace_test(
 
 // cuda kernel for grid_complete_test
 __global__ void grid_complete_kernel(
-    grid2_view<complete_populator, axis::regular<>, axis::regular<>,
-               serializer2, vecmem::vector, vecmem::jagged_vector, darray,
-               std::tuple, test::point3, n_points, false>
-        grid_view) {
+    grid2_view<host_grid2_complete> grid_view) {
 
     // Let's try building the grid object
     device_grid2_complete g2_device(grid_view, test::point3{0, 0, 0});
@@ -92,11 +82,7 @@ __global__ void grid_complete_kernel(
 }
 
 // grid_complete_test implementation
-void grid_complete_test(
-    grid2_view<complete_populator, axis::regular<>, axis::regular<>,
-               serializer2, vecmem::vector, vecmem::jagged_vector, darray,
-               std::tuple, test::point3, n_points, false>
-        grid_view) {
+void grid_complete_test(grid2_view<host_grid2_complete> grid_view) {
 
     const auto& axis0 = grid_view._axis_p0;
     const auto& axis1 = grid_view._axis_p1;
@@ -118,10 +104,7 @@ void grid_complete_test(
 
 // cuda kernel for attach_read_test
 __global__ void grid_attach_read_test_kernel(
-    grid2_view<attach_populator, axis::circular<>, axis::regular<>, serializer2,
-               vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-               test::point3, false>
-        grid_view) {
+    grid2_view<host_grid2_attach> grid_view) {
 
     // Let's try building the grid object
     device_grid2_attach g2_device(grid_view, test::point3{0, 0, 0});
@@ -134,11 +117,7 @@ __global__ void grid_attach_read_test_kernel(
 }
 
 // attach_read_test implementation
-void grid_attach_read_test(
-    grid2_view<attach_populator, axis::circular<>, axis::regular<>, serializer2,
-               vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-               test::point3, false>
-        grid_view) {
+void grid_attach_read_test(grid2_view<host_grid2_attach> grid_view) {
 
     const auto& axis0 = grid_view._axis_p0;
     const auto& axis1 = grid_view._axis_p1;
@@ -160,10 +139,7 @@ void grid_attach_read_test(
 
 // cuda kernel for attach_fill_test
 __global__ void grid_attach_fill_test_kernel(
-    grid2_view<attach_populator, axis::circular<>, axis::regular<>, serializer2,
-               vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-               test::point3, false>
-        grid_view) {
+    grid2_view<host_grid2_attach> grid_view) {
 
     // Let's try building the grid object
     device_grid2_attach g2_device(grid_view);
@@ -184,11 +160,7 @@ __global__ void grid_attach_fill_test_kernel(
 }
 
 // attach_fill_test implementation
-void grid_attach_fill_test(
-    grid2_view<attach_populator, axis::circular<>, axis::regular<>, serializer2,
-               vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-               test::point3, false>
-        grid_view) {
+void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view) {
 
     const auto& axis0 = grid_view._axis_p0;
     const auto& axis1 = grid_view._axis_p1;

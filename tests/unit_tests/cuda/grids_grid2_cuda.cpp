@@ -163,10 +163,8 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     axis::circular<> xaxis{2, -1., 3.};
     axis::regular<> yaxis{2, 0., 6.};
 
-    grid2_buffer<attach_populator, axis::circular<>, axis::regular<>,
-                 serializer2, vecmem::vector, vecmem::jagged_vector, darray,
-                 std::tuple, test::point3, false>
-        g2_buffer(xaxis, yaxis, {2, 5, 8, 10}, {100, 200, 300, 400}, mng_mr);
+    grid2_buffer<host_grid2_attach> g2_buffer(xaxis, yaxis, {2, 5, 8, 10},
+                                              {100, 200, 300, 400}, mng_mr);
     copy.setup(g2_buffer._buffer);
 
     // Check if the initialization work well
