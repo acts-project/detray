@@ -12,6 +12,7 @@
 #include <string>
 
 #include "detray/core/intersection.hpp"
+#include "detray/definitions/detray_qualifiers.hpp"
 #include "detray/masks/mask_identifier.hpp"
 #include "detray/tools/planar_intersector.hpp"
 
@@ -81,6 +82,7 @@ struct annulus2 {
      * @param shift_y origin shift loc1
      * @param avg_phi average phi value
      */
+    DETRAY_HOST_DEVICE
     annulus2(scalar r_low, scalar r_high, scalar phi_low, scalar phi_high,
              scalar shift_x = 0., scalar shift_y = 0., scalar avg_phi = 0.)
         : _values{r_low, r_high, phi_low, phi_high, shift_x, shift_y, avg_phi} {
@@ -90,6 +92,7 @@ struct annulus2 {
      *
      * @param rhs is the right hand side object
      **/
+    DETRAY_HOST_DEVICE
     annulus2<intersector_type, local_type, links_type, kMaskContext> &operator=(
         const array_type<scalar, 7> &rhs) {
         _values = rhs;
@@ -107,8 +110,8 @@ struct annulus2 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_type>
-    intersection_status is_inside(
-        const point2 &p, const mask_tolerance &t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection_status
+    is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
         // The two quantities to check: r^2 in module system, phi in strips
         // system
 
@@ -167,6 +170,7 @@ struct annulus2 {
      * @param rhs is the rectangle to be compared with
      *
      **/
+    DETRAY_HOST_DEVICE
     bool operator==(const array_type<scalar, 7> &rhs) {
         return (_values == rhs);
     }
@@ -176,11 +180,13 @@ struct annulus2 {
      * @param rhs is the rectangle to be compared with
      *
      **/
+    DETRAY_HOST_DEVICE
     bool operator==(const annulus2<> &rhs) { return operator==(rhs._values); }
 
     /** Access operator - non-const
      * @return the reference to the member variable
      */
+    DETRAY_HOST_DEVICE
     scalar &operator[](unsigned int value_index) {
         return _values[value_index];
     }
@@ -188,26 +194,33 @@ struct annulus2 {
     /** Access operator - non-const
      * @return a copy of the member variable
      */
+    DETRAY_HOST_DEVICE
     scalar operator[](unsigned int value_index) const {
         return _values[value_index];
     }
 
     /** Return an associated intersector type */
+    DETRAY_HOST_DEVICE
     intersector_type intersector() const { return intersector_type{}; };
 
     /** Return the values */
+    DETRAY_HOST_DEVICE
     const mask_values &values() const { return _values; }
 
     /** Return the local frame type */
+    DETRAY_HOST_DEVICE
     local_type local() const { return local_type{}; }
 
     /** Return the volume link - const reference */
+    DETRAY_HOST_DEVICE
     const links_type &links() const { return _links; }
 
     /** Return the volume link - non-const access */
+    DETRAY_HOST_DEVICE
     links_type &links() { return _links; }
 
     /** Transform to a string for output debugging */
+    DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
         ss << "annulus2," << kMaskContext;

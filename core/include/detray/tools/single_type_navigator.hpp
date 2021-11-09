@@ -77,7 +77,7 @@ class single_type_navigator {
 
     /** A nested navigation kernel struct that holds the current candiates.
      **/
-    template <template <typename> class vector_type = dvector>
+    template <template <typename...> class vector_type = dvector>
     struct navigation_kernel {
 
         // Our list of candidates (intersections with object)

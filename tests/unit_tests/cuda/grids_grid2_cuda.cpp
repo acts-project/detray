@@ -70,9 +70,8 @@ TEST(grids_cuda, grid2_complete_populator) {
     axis::regular<> yaxis{3, 0., 3.};
 
     // declare grid
-    grid2<host_complete_populator<n_points, false, test::point3>,
-          axis::regular<>, axis::regular<>, serializer2>
-        g2(std::move(xaxis), std::move(yaxis), mng_mr, test::point3{0, 0, 0});
+    host_grid2_complete g2(std::move(xaxis), std::move(yaxis), mng_mr,
+                           test::point3{0, 0, 0});
 
     // pre-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {

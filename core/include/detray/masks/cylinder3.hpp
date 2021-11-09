@@ -13,6 +13,7 @@
 #include <string>
 
 #include "detray/core/intersection.hpp"
+#include "detray/definitions/detray_qualifiers.hpp"
 #include "detray/masks/mask_identifier.hpp"
 #include "detray/tools/cylinder_intersector.hpp"
 
@@ -66,6 +67,7 @@ struct cylinder3 {
      * @param half_length_1 half_length
      * @param half_length_2 half length
      */
+    DETRAY_HOST_DEVICE
     cylinder3(scalar r, scalar half_length_1, scalar half_length_2 = 0.)
         : _values{r, half_length_1, half_length_2} {}
 
@@ -73,6 +75,7 @@ struct cylinder3 {
      *
      * @param rhs is the right hand side object
      **/
+    DETRAY_HOST_DEVICE
     cylinder3<kRadialCheck, intersector_type, local_type, links_type,
               kMaskContext>
         &operator=(const array_type<scalar, 3> &rhs) {
@@ -92,8 +95,8 @@ struct cylinder3 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_type>
-    intersection_status is_inside(
-        const point3 &p, const mask_tolerance &t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection_status
+    is_inside(const point3 &p, const mask_tolerance t = within_epsilon) const {
         if constexpr (kRadialCheck) {
             scalar r = getter::perp(p);
             if (std::abs(r - _values[0]) >=
@@ -112,6 +115,7 @@ struct cylinder3 {
      *
      * checks identity within epsilon and @return s a boolean*
      **/
+    DETRAY_HOST_DEVICE
     bool operator==(const array_type<scalar, 3> &rhs) {
         return (_values == rhs);
     }
@@ -122,11 +126,13 @@ struct cylinder3 {
      *
      * checks identity within epsilon and @return s a boolean*
      **/
+    DETRAY_HOST_DEVICE
     bool operator==(const cylinder3<> &rhs) { return operator==(rhs._values); }
 
     /** Access operator - non-const
      * @return the reference to the member variable
      */
+    DETRAY_HOST_DEVICE
     scalar &operator[](unsigned int value_index) {
         return _values[value_index];
     }
@@ -134,26 +140,33 @@ struct cylinder3 {
     /** Access operator - non-const
      * @return a copy of the member variable
      */
+    DETRAY_HOST_DEVICE
     scalar operator[](unsigned int value_index) const {
         return _values[value_index];
     }
 
     /** Return an associated intersector type */
+    DETRAY_HOST_DEVICE
     intersector_type intersector() const { return intersector_type{}; };
 
     /** Return the values */
+    DETRAY_HOST_DEVICE
     const mask_values &values() const { return _values; }
 
     /** Return the local frame type */
+    DETRAY_HOST_DEVICE
     local_type local() const { return local_type{}; }
 
     /** Return the volume link - const reference */
+    DETRAY_HOST_DEVICE
     const links_type &links() const { return _links; }
 
     /** Return the volume link - non-const access */
+    DETRAY_HOST_DEVICE
     links_type &links() { return _links; }
 
     /** Transform to a string for output debugging */
+    DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
         ss << "cylinder3," << kMaskContext;

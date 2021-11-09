@@ -14,6 +14,7 @@ detray_add_library( detray_core core
    "include/detray/core/mask_store.hpp"
    "include/detray/core/track.hpp"
    "include/detray/core/transform_store.hpp"
+   "include/detray/definitions/detail/accessor.hpp"
    "include/detray/definitions/cuda_defs.hpp"
    "include/detray/definitions/detray_qualifiers.hpp"
    "include/detray/definitions/invalid_values.hpp"
@@ -55,4 +56,4 @@ detray_add_library( detray_core core
    "include/detray/utils/quadratic_equation.hpp"
    "include/detray/utils/ray_gun.hpp"
    "include/detray/utils/unbound.hpp" )
-target_link_libraries( detray_core INTERFACE vecmem::core )
+target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)

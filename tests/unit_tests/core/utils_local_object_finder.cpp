@@ -28,14 +28,13 @@ using namespace detray;
 TEST(utils, local_object_finder) {
     vecmem::host_memory_resource host_mr;
 
-    replace_populator<> replacer;
     serializer2 serializer;
 
     test::point2 p2 = {-4.5, -4.5};
 
     axis::regular<> xaxis{10, -5., 5.};
     axis::regular<> yaxis{10, -5., 5.};
-    using grid2r = grid2<decltype(replacer), decltype(xaxis), decltype(yaxis),
+    using grid2r = grid2<replace_populator, decltype(xaxis), decltype(yaxis),
                          decltype(serializer)>;
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
