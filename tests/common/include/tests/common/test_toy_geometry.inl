@@ -12,7 +12,7 @@
 using namespace detray;
 
 auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
-    toy_geometry();
+    create_toy_geometry();
 
 // This test check the building of the tml based toy geometry
 TEST(ALGEBRA_PLUGIN, toy_geometry) {

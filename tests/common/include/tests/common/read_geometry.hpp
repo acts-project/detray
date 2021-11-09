@@ -175,6 +175,67 @@ struct object_registry {
     }
 };
 
+// Adhoc geometry type for toy geometry.
+template <typename volume_t, typename object_t,
+          template <typename> class vector_type = dvector>
+struct toy_geometry {
+    // typedefs
+    using volume_type = volume_t;
+    using portal = object_t;
+    using portal_links = typename object_t::edge_links;
+
+    struct object_registry {
+        using id = typename volume_type::objects;
+
+        template <typename value_type = void>
+        static constexpr auto get() {
+            return id::e_surface;
+        }
+    };
+
+    toy_geometry(const vector_type<volume_t>& volumes,
+                 const vector_type<object_t>& objects)
+        : _volumes(volumes), _objects(objects) {}
+
+    // data containers
+    const vector_type<volume_t>& _volumes;
+    const vector_type<object_t>& _objects;
+};
+
+// Adhoc detector type for toy geometry
+template <typename geometry_t, typename transform_container,
+          typename mask_container>
+struct toy_detector {
+    // typedefs
+    using geometry = geometry_t;
+    using object_id = typename geometry_t::object_registry::id;
+    struct transform_store {
+        // dummy type
+        struct context {};
+    };
+
+    toy_detector(const geometry& geometry, const transform_container& trfs,
+                 const mask_container& masks)
+        : _geometry(geometry), _transforms(trfs), _masks(masks) {}
+
+    // interface functions
+    const auto& volumes() const { return _geometry._volumes; }
+    const auto& transforms(
+        const typename transform_store::context ctx = {}) const {
+        return _transforms;
+    }
+    const auto& masks() const { return _masks; }
+    template <object_id>
+    const auto& objects() const {
+        return _geometry._objects;
+    }
+
+    // data containers
+    const geometry& _geometry;
+    const transform_container& _transforms;
+    const mask_container& _masks;
+};
+
 /** Builds a simple detray geometry of the innermost tml layers. It contains:
  *
  * - a beampipe (r = 27mm, half_z = 500mm)
@@ -188,7 +249,7 @@ struct object_registry {
  *          surfaces, transforms, disc masks (neg/pos portals), cylinder masks
  *          (inner/outer portals), rectangle masks (modules)]
  */
-auto toy_geometry() {
+auto create_toy_geometry() {
 
     // Volume type
     using volume_type =

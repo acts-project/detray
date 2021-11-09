@@ -120,7 +120,7 @@ detray_navigator n(std::move(d));
 detray_stepper s;
 
 // This test runs intersection with all portals of the TrackML detector
-TEST(ALGEBRA_PLUGIN, ray_scan) {
+TEST(ALGEBRA_PLUGIN, geometry_discovery) {
 
     unsigned int theta_steps = 100;
     unsigned int phi_steps = 100;

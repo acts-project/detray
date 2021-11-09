@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
-#include "tests/common/test_geometry_scan.inl"
+#include "tests/common/check_geometry_scan.inl"

@@ -15,7 +15,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 
 auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
-    toy_geometry();
+    create_toy_geometry();
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, single_type_navigator) {

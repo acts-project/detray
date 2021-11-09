@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/eigen_definitions.hpp"
-#include "tests/common/test_geometry_navigation.inl"
+#include "tests/common/check_geometry_navigation.inl"

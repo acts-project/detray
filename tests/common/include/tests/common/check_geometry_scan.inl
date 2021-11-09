@@ -12,73 +12,17 @@
 
 #include "detray/tools/geometry_graph.hpp"
 #include "detray/tools/hash_tree.hpp"
+#include "tests/common/ray_scan_utils.hpp"
 #include "tests/common/read_geometry.hpp"
-#include "tests/common/test_ray_scan.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 using namespace __plugin;
 
-// Adhoc geometry type for toy geometry. Or use any other geometry
-template <typename volume_t, typename object_t,
-          template <typename> class vector_type = dvector>
-struct dummy_geometry {
-    // typedefs
-    using volume_type = volume_t;
-    using portal = object_t;
-    using portal_links = typename object_t::edge_links;
-
-    struct object_registry {
-        using id = typename volume_type::objects;
-
-        template <typename value_type = void>
-        static constexpr auto get() {
-            return id::e_surface;
-        }
-    };
-
-    dummy_geometry(const vector_type<volume_t> &volumes,
-                   const vector_type<object_t> &objects)
-        : _volumes(volumes), _objects(objects) {}
-
-    // data containers
-    const vector_type<volume_t> &_volumes;
-    const vector_type<object_t> &_objects;
-};
-
-// Adhoc detector type for toy geometry
-template <typename geometry_t, typename transform_container,
-          typename mask_container>
-struct dummy_detector {
-    // typedefs
-    using geometry = geometry_t;
-    using object_id = typename geometry_t::object_registry::id;
-    struct transform_store {
-        // dummy type
-        struct context {};
-    };
-
-    dummy_detector(const geometry &geometry, const transform_container &trfs,
-                   const mask_container &masks)
-        : _geometry(geometry), _transforms(trfs), _masks(masks) {}
-
-    // interface functions
-    const auto &volumes() const { return _geometry._volumes; }
-    const auto &transforms(
-        const typename transform_store::context ctx = {}) const {
-        return _transforms;
-    }
-    const auto &masks() const { return _masks; }
-    template <object_id>
-    const auto &objects() const {
-        return _geometry._objects;
-    }
-
-    // data containers
-    const geometry &_geometry;
-    const transform_container &_transforms;
-    const mask_container &_masks;
-};
+constexpr std::size_t vol0_hash = 2;
+constexpr std::size_t vol1_hash = 2;  // TODO: Find hash function wihtout coll.!
+constexpr std::size_t vol2_hash = 10;
+constexpr std::size_t vol3_hash = 1798;
 
 /** Print and adjacency list */
 void print_adj(std::map<dindex, std::map<dindex, dindex>> &adjacency_list) {
@@ -107,14 +51,14 @@ void print_adj(std::map<dindex, std::map<dindex, dindex>> &adjacency_list) {
 
 // Tests the consistency of the toy geometry implementation. In principle,
 // every geometry can be checked this way.
-TEST(ALGEBRA_PLUGIN, geometry_consistency) {
+TEST(ALGEBRA_PLUGIN, geometry_scan) {
 
     // Build the geometry (modeled as a unified index geometry)
     auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
-        toy_geometry();
+        create_toy_geometry();
 
-    using geometry_t = dummy_geometry<typename decltype(volumes)::value_type,
-                                      typename decltype(surfaces)::value_type>;
+    using geometry_t = toy_geometry<typename decltype(volumes)::value_type,
+                                    typename decltype(surfaces)::value_type>;
 
     const auto geo = geometry_t(volumes, surfaces);
 
@@ -137,7 +81,7 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
     masks.add_masks(rectangles);
 
     using detector_t =
-        dummy_detector<geometry_t, decltype(transforms), decltype(masks)>;
+        toy_detector<geometry_t, decltype(transforms), decltype(masks)>;
 
     auto d = detector_t(geo, transforms, masks);
 
@@ -146,8 +90,8 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
     // Keep track of the objects that have already been seen per volume
     std::unordered_set<dindex> obj_hashes = {};
 
-    unsigned int theta_steps = 1000;
-    unsigned int phi_steps = 1000;
+    unsigned int theta_steps = 100;
+    unsigned int phi_steps = 100;
     const point3 ori{0., 0., 0.};
     dindex start_index = 0;
 
@@ -166,15 +110,17 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
             const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                              cos_theta};
 
+            // Record all intersections and objects along the ray
             const auto intersection_record = shoot_ray(d, ori, dir);
 
-            // These are the portal links
+            // Create a trace of the volume indices that were encountered
             auto [portal_trace, surface_trace] =
                 trace_intersections(intersection_record, start_index);
 
             // Is this a sensible trace to be further examined?
             ASSERT_TRUE(check_connectivity(portal_trace));
 
+            // Discover new linking information from this trace
             build_adjacency(portal_trace, surface_trace, adj_scan, obj_hashes);
         }
     }
@@ -183,34 +129,26 @@ TEST(ALGEBRA_PLUGIN, geometry_consistency) {
 
     // TODO: Join these sub trees into a single comprehensive tree
     auto geo_checker_vol0 =
-        hash_tree<decltype(adj_linking.at(0)), dindex>(adj_linking.at(0));
-    auto geo_checker_scan_vol0 =
         hash_tree<decltype(adj_scan.at(0)), dindex>(adj_scan.at(0));
 
-    EXPECT_EQ(geo_checker_vol0.root(), geo_checker_scan_vol0.root());
+    EXPECT_EQ(geo_checker_vol0.root(), vol0_hash);
 
     // This one fails, because the ray scan is kept very coarse for performance
-    // reasons, when run on the CI
+    // reasons (run on the CI)
     /*auto geo_checker_vol1 =
-        hash_tree<decltype(adj_linking.at(1)), dindex>(adj_linking.at(1));
-    auto geo_checker_scan_vol1 =
         hash_tree<decltype(adj_scan.at(1)), dindex>(adj_scan.at(1));
 
-    EXPECT_EQ(geo_checker_vol1.root(), geo_checker_scan_vol1.root());*/
+    EXPECT_EQ(geo_checker_vol1.root(), vol1_hash);*/
 
     auto geo_checker_vol2 =
-        hash_tree<decltype(adj_linking.at(2)), dindex>(adj_linking.at(2));
-    auto geo_checker_scan_vol2 =
         hash_tree<decltype(adj_scan.at(2)), dindex>(adj_scan.at(2));
 
-    EXPECT_EQ(geo_checker_vol2.root(), geo_checker_scan_vol2.root());
+    EXPECT_EQ(geo_checker_vol2.root(), vol2_hash);
 
     auto geo_checker_vol3 =
-        hash_tree<decltype(adj_linking.at(3)), dindex>(adj_linking.at(3));
-    auto geo_checker_scan_vol3 =
         hash_tree<decltype(adj_scan.at(3)), dindex>(adj_scan.at(3));
 
-    EXPECT_EQ(geo_checker_vol3.root(), geo_checker_scan_vol3.root());
+    EXPECT_EQ(geo_checker_vol3.root(), vol3_hash);
 }
 
 int main(int argc, char **argv) {
