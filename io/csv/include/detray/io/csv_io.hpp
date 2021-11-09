@@ -44,11 +44,13 @@ namespace detray {
 /// @return a detector object
 template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
-          template <typename> class vector_type = dvector,
+          template <typename...> class vector_type = dvector,
+          template <typename...> class jagged_vector_type = djagged_vector,
           typename alignable_store = static_transform_store<vector_type>,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
-detector<array_type, tuple_type, vector_type, alignable_store>
+detector<array_type, tuple_type, vector_type, jagged_vector_type,
+         alignable_store>
 detector_from_csv(const std::string &detector_name,
                   const std::string &surface_file_name,
                   const std::string &layer_volume_file_name,
@@ -57,8 +59,8 @@ detector_from_csv(const std::string &detector_name,
                   std::map<dindex, std::string> &name_map,
                   vecmem::memory_resource &resource,
                   scalar r_sync_tolerance = 0., scalar z_sync_tolerance = 0.) {
-    using typed_detector =
-        detector<array_type, tuple_type, vector_type, alignable_store>;
+    using typed_detector = detector<array_type, tuple_type, vector_type,
+                                    jagged_vector_type, alignable_store>;
 
     typed_detector d(detector_name, resource);
 

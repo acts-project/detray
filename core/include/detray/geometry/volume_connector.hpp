@@ -18,7 +18,7 @@ namespace detray {
 template <typename detector_type,
           template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
-          template <typename> class vector_type = dvector>
+          template <typename...> class vector_type = dvector>
 void connect_cylindrical_volumes(
     detector_type &d, const typename detector_type::volume_grid &volume_grid) {
     typename detector_type::context default_context = {};
