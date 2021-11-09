@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <map>
-#include <unordered_set>
 
 #include "detray/geometry/unified_index_geometry.hpp"
 #include "detray/tools/geometry_graph.hpp"

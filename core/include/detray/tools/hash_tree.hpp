@@ -8,8 +8,6 @@
 
 #include <functional>
 #include <iterator>
-#include <sstream>
-#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -96,21 +94,6 @@ class hash_tree {
      *         input data.
      */
     auto root() { return _tree.back().key(); }
-
-    /** @returns the linking description as a string */
-    inline const std::string to_string() const {
-        std::stringstream ss;
-
-        /*for (const auto &n : _nodes) {
-            ss << "[>>] Node with index " << n.index() << std::endl;
-            ss << " -> neighbors: " << std::endl;
-            const auto &neighbors = adj_list.at(n.index());
-            for (const auto &nbr : neighbors) {
-                ss << "    -> " << print_neighbor(nbr) << std::endl;
-            }
-        }*/
-        return ss.str();
-    };
 
     private:
     /** Go through the the sorted input data and recursively build the tree.
