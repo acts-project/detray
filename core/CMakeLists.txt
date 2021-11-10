@@ -18,6 +18,7 @@ detray_add_library( detray_core core
    "include/detray/definitions/cuda_defs.hpp"
    "include/detray/definitions/detray_qualifiers.hpp"
    "include/detray/definitions/invalid_values.hpp"
+   "include/detray/geometry/object_registry.hpp"
    "include/detray/geometry/index_geometry.hpp"
    "include/detray/geometry/surface_base.hpp"
    "include/detray/geometry/unified_index_geometry.hpp"
