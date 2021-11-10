@@ -26,13 +26,10 @@ constexpr std::size_t vol2_hash = 10;
 constexpr std::size_t vol3_hash = 1798;
 
 // Build the geometry (modeled as a unified index geometry)
-auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
-    create_toy_geometry();
+auto toy_det = create_toy_geometry();
 
-using geometry_t = toy_geometry<typename decltype(volumes)::value_type,
-                                typename decltype(surfaces)::value_type>;
-
-const auto geo = geometry_t(volumes, surfaces);
+using geometry_t = typename decltype(toy_det)::geometry;
+const auto geo = toy_det._geometry;
 
 // Build the graph
 const auto g = geometry_graph<geometry_t>(geo._volumes, geo._objects);

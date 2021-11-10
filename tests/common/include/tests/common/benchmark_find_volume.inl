@@ -26,8 +26,8 @@ unsigned int gbench_repetitions = 0;
 #endif
 
 vecmem::host_memory_resource host_mr;
-
 auto [d, name_map] = read_from_csv(tml_files, host_mr);
+
 const unsigned int itest = 10000;
 
 namespace __plugin {

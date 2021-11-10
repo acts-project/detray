@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "detray/core/mask_store.hpp"
 #include "detray/core/track.hpp"
 #include "detray/core/transform_store.hpp"
@@ -23,6 +25,9 @@ using namespace __plugin;
 
 // This tests the construction of a surface
 TEST(tools, intersection_kernel_single) {
+
+    vecmem::host_memory_resource host_mr;
+
     /// Surface components:
     using mask_link = darray<dindex, 1>;
     using surface_link = dindex;
@@ -37,8 +42,8 @@ TEST(tools, intersection_kernel_single) {
     /// - mask index: type, entry
     using surface_mask_index = darray<dindex, 2>;
     using surface_mask_container =
-        mask_store<std::tuple, std::vector, surface_rectangle,
-                   surface_trapezoid, surface_annulus>;
+        mask_store<dtuple, dvector, surface_rectangle, surface_trapezoid,
+                   surface_annulus>;
 
     /// The Surface definition:
     /// <transform_link, mask_link, volume_link, source_link, link_type_in_mask>
@@ -56,7 +61,7 @@ TEST(tools, intersection_kernel_single) {
     transform_store.push_back(static_context, trapezoid_transform);
     transform_store.push_back(static_context, annulus_transform);
     // The masks & their store
-    surface_mask_container mask_store;
+    surface_mask_container mask_store(host_mr);
     mask_store.template add_mask<0>(10., 10.);
     mask_store.template add_mask<1>(10., 20., 30.);
     mask_store.template add_mask<2>(15., 55., 0.75, 1.95, 2., -2.);

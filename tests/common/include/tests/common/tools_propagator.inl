@@ -32,7 +32,7 @@ TEST(ALGEBRA_PLUGIN, propagator) {
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
-    using detray_context = decltype(d)::transform_store::context;
+    using detray_context = decltype(d)::context;
     using detray_track = track<detray_context>;
 
     detray_track traj;

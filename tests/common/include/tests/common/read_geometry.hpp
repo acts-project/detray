@@ -6,8 +6,10 @@
  */
 
 #include <cmath>
+#include <iostream>
 #include <map>
 #include <string>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/detector.hpp"
 #include "detray/geometry/surface_base.hpp"
@@ -175,13 +177,14 @@ struct object_registry {
     }
 };
 
-// Adhoc geometry type for toy geometry.
+// Minimalistic geometry type for toy geometry.
 template <typename volume_t, typename object_t,
           template <typename> class vector_type = dvector>
 struct toy_geometry {
     // typedefs
     using volume_type = volume_t;
     using portal = object_t;
+    using portal_container = dvector<portal>;
     using portal_links = typename object_t::edge_links;
 
     struct object_registry {
@@ -193,37 +196,34 @@ struct toy_geometry {
         }
     };
 
-    toy_geometry(const vector_type<volume_t>& volumes,
-                 const vector_type<object_t>& objects)
+    toy_geometry(vector_type<volume_t>&& volumes,
+                 vector_type<object_t>&& objects)
         : _volumes(volumes), _objects(objects) {}
 
     // data containers
-    const vector_type<volume_t>& _volumes;
-    const vector_type<object_t>& _objects;
+    vector_type<volume_t> _volumes;
+    vector_type<object_t> _objects;
 };
 
-// Adhoc detector type for toy geometry
-template <typename geometry_t, typename transform_container,
-          typename mask_container>
+// Minimalistic detector type for toy geometry
+template <typename geometry_t, typename transform_container_t,
+          typename mask_container_t>
 struct toy_detector {
     // typedefs
+    using transform_store = transform_container_t;
+    using mask_container = mask_container_t;
     using geometry = geometry_t;
+    using volume = typename geometry_t::volume_type;
     using object_id = typename geometry_t::object_registry::id;
-    struct transform_store {
-        // dummy type
-        struct context {};
-    };
+    using context = short;  // not used
 
-    toy_detector(const geometry& geometry, const transform_container& trfs,
-                 const mask_container& masks)
-        : _geometry(geometry), _transforms(trfs), _masks(masks) {}
+    toy_detector(geometry_t&& geo, transform_container_t&& trfs,
+                 mask_container_t&& masks)
+        : _geometry(geo), _transforms(trfs), _masks(masks) {}
 
     // interface functions
     const auto& volumes() const { return _geometry._volumes; }
-    const auto& transforms(
-        const typename transform_store::context ctx = {}) const {
-        return _transforms;
-    }
+    const auto& transforms(const context ctx = {}) const { return _transforms; }
     const auto& masks() const { return _masks; }
     template <object_id>
     const auto& objects() const {
@@ -231,9 +231,9 @@ struct toy_detector {
     }
 
     // data containers
-    const geometry& _geometry;
-    const transform_container& _transforms;
-    const mask_container& _masks;
+    geometry_t _geometry;
+    transform_container_t _transforms;
+    mask_container_t _masks;
 };
 
 /** Builds a simple detray geometry of the innermost tml layers. It contains:
@@ -530,9 +530,26 @@ auto create_toy_geometry() {
     rectangles.insert(rectangles.end(), l2_masks.begin(), l2_masks.end());
 
     // Return all geometry containers
-    return std::make_tuple<volume_container, surface_container,
+    using geometry_t = toy_geometry<volume_type, surface>;
+    auto geo = geometry_t(std::move(volumes), std::move(surfaces));
+
+    // First, put data into the detector interface
+    /*mask_store<dtuple, dvector, discs, cylinders, rectangles> masks;
+    // populate mask store
+    masks.add_masks(discs);
+    masks.add_masks(cylinders);
+    masks.add_masks(rectangles);*/
+    auto masks = std::make_tuple<disc_container, cylinder_container,
+                                 rectangle_container>(
+        std::move(discs), std::move(cylinders), std::move(rectangles));
+
+    auto d =
+        toy_detector(std::move(geo), std::move(transforms), std::move(masks));
+
+    return std::move(d);
+    /*return std::make_tuple<volume_container, surface_container,
                            transf_container, disc_container, cylinder_container,
                            rectangle_container>(
         std::move(volumes), std::move(surfaces), std::move(transforms),
-        std::move(discs), std::move(cylinders), std::move(rectangles));
+        std::move(discs), std::move(cylinders), std::move(rectangles));*/
 }

@@ -12,6 +12,7 @@
 
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
 
@@ -47,7 +48,7 @@ inline auto unroll_intersect(
 
     // Pick the first one for interseciton
     if (mask_id == first_mask_id) {
-        auto &mask_group = masks.template group<first_mask_id>();
+        auto &mask_group = detail::get<first_mask_id>(masks);
 
         // Check all masks of this surface for intersection
         for (const auto &mask : range(mask_group, rng)) {
@@ -57,7 +58,7 @@ inline auto unroll_intersect(
             if (sfi.status == e_inside) {
                 // Link to next volume is in first position
                 sfi.index = volume_index;
-                sfi.link = std::get<0>(mask.links());
+                sfi.link = detail::get<0>(mask.links());
                 return sfi;
             }
         }
@@ -106,7 +107,6 @@ inline const auto intersect(const track_type &track, surface_type &surface,
     return unroll_intersect(
         track, ctf, masks, mask_range, mask_id, volume_index,
         std::make_integer_sequence<
-            unsigned int,
-            std::tuple_size_v<typename mask_container::mask_tuple>>{});
+            unsigned int, detail::mask_store_size<mask_container>()>{});
 }
 }  // namespace detray

@@ -14,12 +14,12 @@
 
 /// @note __plugin has to be defined with a preprocessor command
 
-auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
-    create_toy_geometry();
+auto toy_det = create_toy_geometry();
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     using namespace detray;
+    using objs = typename decltype(toy_det)::object_id;
 
     /** Tolerance for tests */
     constexpr double tol = 0.01;
@@ -27,16 +27,8 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     /** Empty context type struct */
     struct empty_context {};
 
-    mask_store<dtuple, dvector, decltype(discs)::value_type,
-               decltype(cylinders)::value_type,
-               decltype(rectangles)::value_type>
-        masks;
-    // populate mask store
-    masks.add_masks(discs);
-    masks.add_masks(cylinders);
-    masks.add_masks(rectangles);
-
-    single_type_navigator n(volumes, surfaces, transforms, masks);
+    single_type_navigator n(toy_det.volumes(), toy_det.objects<objs::e_any>(),
+                            toy_det.transforms(), toy_det.masks());
     using toy_navigator = decltype(n);
 
     // test track

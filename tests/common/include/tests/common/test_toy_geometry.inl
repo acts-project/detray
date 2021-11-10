@@ -7,12 +7,21 @@
 
 #include <gtest/gtest.h>
 
+#include "detray/definitions/detail/accessor.hpp"
 #include "tests/common/read_geometry.hpp"
 
 using namespace detray;
 
-auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
-    create_toy_geometry();
+auto toy_det = create_toy_geometry();
+
+using objs = typename decltype(toy_det)::object_id;
+auto& volumes = toy_det.volumes();
+auto& surfaces = toy_det.objects<objs::e_any>();
+auto& transforms = toy_det.transforms();
+auto& masks = toy_det.masks();
+auto& discs = detail::get<0>(masks);
+auto& cylinders = detail::get<1>(masks);
+auto& rectangles = detail::get<2>(masks);
 
 // This test check the building of the tml based toy geometry
 TEST(ALGEBRA_PLUGIN, toy_geometry) {

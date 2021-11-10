@@ -30,7 +30,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
-    using detray_context = decltype(d)::transform_store::context;
+    using detray_context = decltype(d)::context;
 
     detray_navigator n(std::move(d));
 
