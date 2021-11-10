@@ -24,7 +24,8 @@ using namespace __plugin;
 
 namespace detray {
 
-void transform_test(vecmem::data::vector_view<point3>& input_data,
-                    static_transform_store_data<>& store_data,
-                    vecmem::data::vector_view<point3>& output_data);
+void transform_test(
+    vecmem::data::vector_view<point3>& input_data,
+    static_transform_store_data<static_transform_store<> >& store_data,
+    vecmem::data::vector_view<point3>& output_data);
 }
