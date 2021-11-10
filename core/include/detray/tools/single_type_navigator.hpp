@@ -8,6 +8,7 @@
 #pragma once
 
 #include <algorithm>
+#include <type_traits>
 
 #include "detray/core/intersection.hpp"
 #include "detray/tools/intersection_kernel.hpp"
@@ -42,19 +43,21 @@ struct void_inspector {
  *
  * The heartbeat indicates, that the navigation is still in a valid state.
  *
- * @tparam volume_container provides the volumes
- * @tparam object_container provides portals and module surfaces (objects)
- * @tparam transform_container provides the object transforms
- * @tparam mask_container provides the object masks
+ * @tparam detector_t the detector to navigate
  * @tparam inspector_type is a validation inspector
  */
-template <typename volume_container, typename object_container,
-          typename transform_container, typename mask_container,
-          typename inspector_type = void_inspector>
+template <typename detector_t, typename inspector_type = void_inspector>
 class single_type_navigator {
 
     public:
+    using volume_container =
+        std::remove_reference_t<decltype(std::declval<detector_t>().volumes())>;
+    using volume_type = typename detector_t::volume;
+    using object_container = typename detector_t::geometry::portal_container;
     using object_t = typename object_container::value_type;
+    using transform_container = typename detector_t::transform_store;
+    using mask_container = typename detector_t::mask_container;
+    using objs = typename detector_t::object_id;
 
     /** Navigation status flag */
     enum navigation_status : int {
@@ -237,6 +240,16 @@ class single_type_navigator {
           _transforms(transforms),
           _masks(masks) {}
 
+    /** Constructor from detector object
+     *
+     * @param d the detector
+     */
+    single_type_navigator(const detector_t &d)
+        : _volumes(d.volumes()),
+          _objects(d.template objects<objs::e_any>()),
+          _transforms(d.transforms()),
+          _masks(d.masks()) {}
+
     /** Navigation status() call which established the current navigation
      *  information.
      *
@@ -307,9 +320,8 @@ class single_type_navigator {
      *
      */
     template <typename track_t>
-    inline void initialize_kernel(
-        state &navigation, const track_t &track,
-        const typename volume_container::value_type &volume) const {
+    inline void initialize_kernel(state &navigation, const track_t &track,
+                                  const volume_type &volume) const {
 
         // Get the max number of candidates & run them through the kernel
         navigation.candidates().reserve(volume.n_objects());
@@ -352,9 +364,8 @@ class single_type_navigator {
      * @return A boolean condition if kernel is exhausted or not
      */
     template <typename track_t>
-    inline void update_kernel(
-        state &navigation, const track_t &track,
-        const typename volume_container::value_type &volume) const {
+    inline void update_kernel(state &navigation, const track_t &track,
+                              const volume_type &volume) const {
 
         if (navigation.trust_level() == e_no_trust) {
             initialize_kernel(navigation, track, volume);

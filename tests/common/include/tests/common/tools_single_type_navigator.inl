@@ -19,7 +19,6 @@ auto toy_det = create_toy_geometry();
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     using namespace detray;
-    using objs = typename decltype(toy_det)::object_id;
 
     /** Tolerance for tests */
     constexpr double tol = 0.01;
@@ -27,8 +26,9 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     /** Empty context type struct */
     struct empty_context {};
 
-    single_type_navigator n(toy_det.volumes(), toy_det.objects<objs::e_any>(),
-                            toy_det.transforms(), toy_det.masks());
+    /*single_type_navigator n(toy_det.volumes(), toy_det.objects<objs::e_any>(),
+                            toy_det.transforms(), toy_det.masks());*/
+    single_type_navigator n(toy_det);
     using toy_navigator = decltype(n);
 
     // test track

@@ -179,7 +179,7 @@ struct object_registry {
 
 // Minimalistic geometry type for toy geometry.
 template <typename volume_t, typename object_t,
-          template <typename> class vector_type = dvector>
+          template <typename...> class vector_type = dvector>
 struct toy_geometry {
     // typedefs
     using volume_type = volume_t;
@@ -547,9 +547,4 @@ auto create_toy_geometry() {
         toy_detector(std::move(geo), std::move(transforms), std::move(masks));
 
     return std::move(d);
-    /*return std::make_tuple<volume_container, surface_container,
-                           transf_container, disc_container, cylinder_container,
-                           rectangle_container>(
-        std::move(volumes), std::move(surfaces), std::move(transforms),
-        std::move(discs), std::move(cylinders), std::move(rectangles));*/
 }
