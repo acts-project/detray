@@ -23,19 +23,15 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     /** Tolerance for tests */
     constexpr double tol = 0.01;
 
-    /** Empty context type struct */
-    struct empty_context {};
-
-    /*single_type_navigator n(toy_det.volumes(), toy_det.objects<objs::e_any>(),
-                            toy_det.transforms(), toy_det.masks());*/
     single_type_navigator n(toy_det);
     using toy_navigator = decltype(n);
+    using nav_context = decltype(toy_det)::context;
 
     // test track
-    track<empty_context> traj;
+    track<nav_context> traj;
     traj.pos = {0., 0., 0.};
     traj.dir = vector::normalize(vector3{1., 1., 0.});
-    traj.ctx = empty_context{};
+    traj.ctx = nav_context{};
     traj.momentum = 100.;
     traj.overstep_tolerance = -1e-4;
 

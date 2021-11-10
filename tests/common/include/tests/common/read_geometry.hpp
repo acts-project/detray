@@ -215,7 +215,9 @@ struct toy_detector {
     using geometry = geometry_t;
     using volume = typename geometry_t::volume_type;
     using object_id = typename geometry_t::object_registry::id;
-    using context = short;  // not used
+
+    struct empty_context {};
+    using context = empty_context;  // not used
 
     toy_detector(geometry_t&& geo, transform_container_t&& trfs,
                  mask_container_t&& masks)
@@ -223,7 +225,9 @@ struct toy_detector {
 
     // interface functions
     const auto& volumes() const { return _geometry._volumes; }
-    const auto& transforms(const context ctx = {}) const { return _transforms; }
+    const auto& transforms(const context /*ctx*/ = {}) const {
+        return _transforms;
+    }
     const auto& masks() const { return _masks; }
     template <object_id>
     const auto& objects() const {
