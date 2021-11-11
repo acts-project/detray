@@ -13,7 +13,7 @@
 #include "detray/utils/unbound.hpp"
 
 namespace detray {
-template<typename mask_local_type = unbound>
+template <typename mask_local_type = unbound>
 struct unmasked {
 
     using mask_tolerance = bool;
