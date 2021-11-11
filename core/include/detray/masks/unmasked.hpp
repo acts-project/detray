@@ -10,11 +10,14 @@
 #include <string>
 
 #include "detray/core/intersection.hpp"
+#include "detray/utils/unbound.hpp"
 
 namespace detray {
+template<typename mask_local_type = unbound>
 struct unmasked {
 
     using mask_tolerance = bool;
+    using local_type = mask_local_type;
 
     static constexpr mask_tolerance within_epsilon = true;
 

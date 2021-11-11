@@ -16,6 +16,9 @@
 #include "detray/utils/quadratic_equation.hpp"
 
 namespace detray {
+
+class unbound;
+
 /** This is an intersector struct for a concetric cylinder surface
  */
 template <template <typename, unsigned int> class array_type = darray>
@@ -43,10 +46,12 @@ struct concentric_cylinder_intersector {
      *
      * @return the intersection with optional parameters
      **/
-    template <typename track_type, typename mask_type,
-              std::enable_if_t<
-                  std::is_same_v<typename mask_type::local_type, cylindrical2>,
-                  bool> = true>
+    template <
+        typename track_type, typename mask_type,
+        std::enable_if_t<
+            std::is_same_v<typename mask_type::local_type, cylindrical2> or
+                std::is_same_v<typename mask_type::local_type, detray::unbound>,
+            bool> = true>
     inline intersection intersect(
         const transform3 &trf, const track_type &track, const mask_type &mask,
         const typename mask_type::mask_tolerance &tolerance =
@@ -71,10 +76,12 @@ struct concentric_cylinder_intersector {
      *
      * @return the intersection with optional parameters
      **/
-    template <typename mask_type,
-              std::enable_if_t<
-                  std::is_same_v<typename mask_type::local_type, cylindrical2>,
-                  bool> = true>
+    template <
+        typename mask_type,
+        std::enable_if_t<
+            std::is_same_v<typename mask_type::local_type, cylindrical2> or
+                std::is_same_v<typename mask_type::local_type, detray::unbound>,
+            bool> = true>
     inline intersection intersect(const transform3 & /*trf*/, const point3 &ro,
                                   const vector3 &rd, const mask_type &mask,
                                   const dindex volume_index = dindex_invalid,
@@ -127,7 +134,9 @@ struct concentric_cylinder_intersector {
                 is.path = t01[cindex];
 
                 is.p2 = point2{r * getter::phi(is.p3), is.p3[2]};
-                is.status = mask.template is_inside<cylindrical2>(is.p3);
+                is.status =
+                    mask.template is_inside<typename mask_type::local_type>(
+                        is.p3);
                 scalar rdir = getter::perp(is.p3 + 0.1 * rd);
                 is.direction = rdir > r ? e_along : e_opposite;
                 return is;
