@@ -83,6 +83,9 @@ struct cylinder_intersector {
                                   const typename mask_type::mask_tolerance
                                       &tolerance = mask_type::within_epsilon,
                                   scalar overstep_tolerance = 0.) const {
+
+        using local_frame = typename mask_type::local_type;
+
         scalar r = mask[0];
         const auto &m = trf.matrix();
         auto sz = getter::vector<3>(m, 0, 2);
@@ -104,12 +107,11 @@ struct cylinder_intersector {
                 intersection is;
                 is.path = t;
                 is.p3 = ro + is.path * rd;
-                constexpr typename mask_type::local_type local_converter{};
+                constexpr local_frame local_converter{};
                 is.p2 = local_converter(trf, is.p3);
                 auto local3 = trf.point_to_local(is.p3);
                 is.status =
-                    mask.template is_inside<typename mask_type::local_type>(
-                        local3, tolerance);
+                    mask.template is_inside<local_frame>(local3, tolerance);
                 scalar rdr = getter::perp(local3 + 0.1 * rd);
                 is.direction = rdr > r ? e_along : e_opposite;
                 return is;

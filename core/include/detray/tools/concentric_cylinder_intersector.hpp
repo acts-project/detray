@@ -89,6 +89,8 @@ struct concentric_cylinder_intersector {
                                       &tolerance = mask_type::within_epsilon,
                                   scalar overstep_tolerance = 0.) const {
 
+        using local_frame = typename mask_type::local_type;
+
         scalar r = mask[0];
 
         // Two points on the line, thes are in the cylinder frame
@@ -134,9 +136,7 @@ struct concentric_cylinder_intersector {
                 is.path = t01[cindex];
 
                 is.p2 = point2{r * getter::phi(is.p3), is.p3[2]};
-                is.status =
-                    mask.template is_inside<typename mask_type::local_type>(
-                        is.p3);
+                is.status = mask.template is_inside<local_frame>(is.p3);
                 scalar rdir = getter::perp(is.p3 + 0.1 * rd);
                 is.direction = rdir > r ? e_along : e_opposite;
                 return is;
