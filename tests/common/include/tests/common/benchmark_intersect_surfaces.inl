@@ -13,7 +13,7 @@
 #include "detray/tools/concentric_cylinder_intersector.hpp"
 #include "detray/tools/cylinder_intersector.hpp"
 #include "detray/tools/planar_intersector.hpp"
-#include "tests/common/test_surfaces.hpp"
+#include "tests/common/tools/test_surfaces.hpp"
 
 using namespace detray;
 

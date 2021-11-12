@@ -8,12 +8,13 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
-#include <vecmem/memory/host_memory_resource.hpp>
+//#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/tools/geometry_graph.hpp"
-#include "detray/tools/hash_tree.hpp"
-#include "tests/common/ray_scan_utils.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/hash_tree.hpp"
+#include "tests/common/tools/ray_scan_utils.hpp"
+//#include "tests/common/tools/read_geometry.hpp"
+#include "tests/common/tools/toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -54,36 +55,18 @@ void print_adj(std::map<dindex, std::map<dindex, dindex>> &adjacency_list) {
 TEST(ALGEBRA_PLUGIN, geometry_scan) {
 
     // Build the geometry (modeled as a unified index geometry)
-    auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
-        create_toy_geometry();
-
-    using geometry_t = toy_geometry<typename decltype(volumes)::value_type,
-                                    typename decltype(surfaces)::value_type>;
-
-    const auto geo = geometry_t(volumes, surfaces);
+    auto toy_det = create_toy_geometry();
 
     // Build the graph
+    using geometry_t = typename decltype(toy_det)::geometry;
+    const auto &geo = toy_det._geometry;
+
     const auto g = geometry_graph<geometry_t>(geo._volumes, geo._objects);
     const auto &adj_linking = g.adjacency_list();
 
     std::cout << g.to_string() << std::endl;
 
     // Now get the adjaceny list from ray scan
-
-    // First, put data into the detector interface
-    mask_store<dtuple, dvector, decltype(discs)::value_type,
-               decltype(cylinders)::value_type,
-               decltype(rectangles)::value_type>
-        masks;
-    // populate mask store
-    masks.add_masks(discs);
-    masks.add_masks(cylinders);
-    masks.add_masks(rectangles);
-
-    using detector_t =
-        toy_detector<geometry_t, decltype(transforms), decltype(masks)>;
-
-    auto d = detector_t(geo, transforms, masks);
 
     // Adjacency list to be filled in ray scan
     std::map<dindex, std::map<dindex, dindex>> adj_scan = {};
@@ -111,7 +94,7 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
                              cos_theta};
 
             // Record all intersections and objects along the ray
-            const auto intersection_record = shoot_ray(d, ori, dir);
+            const auto intersection_record = shoot_ray(toy_det, ori, dir);
 
             // Create a trace of the volume indices that were encountered
             auto [portal_trace, surface_trace] =

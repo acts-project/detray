@@ -17,10 +17,12 @@ namespace detray {
 using transform3 = __plugin::transform3;
 
 /** A static inplementation of an alignable transform store */
-template <template <typename...> class vector_type = dvector>
+template <template <typename...> class vector_type = dvector,
+          typename context_t = dindex>
 class static_transform_store {
     public:
     using storage = vector_type<transform3>;
+    using context = context_t;
 
     static_transform_store() = default;
 
@@ -38,32 +40,25 @@ class static_transform_store {
     DETRAY_DEVICE static_transform_store(transform_store_data_t &store_data)
         : _data(store_data._data) {}
 
-    /** Empty context type struct */
-    struct context {};
-
     /** Elementwise access. Needs []operator for storage type for now */
     DETRAY_HOST_DEVICE
-    inline decltype(auto) operator[](const dindex i) { return _data[i]; }
+    inline auto operator[](const dindex i) { return _data[i]; }
     DETRAY_HOST_DEVICE
-    inline decltype(auto) operator[](const dindex i) const { return _data[i]; }
+    inline auto operator[](const dindex i) const { return _data[i]; }
 
     /** Forward iterator : Contextual STL like API
      *
      * @param ctx The context of the call (ignored)
      */
     DETRAY_HOST_DEVICE
-    auto begin(const context & /*ctx*/) const -> decltype(auto) {
-        return _data.begin();
-    }
+    auto begin(const context & /*ctx*/) const { return _data.begin(); }
 
     /** Forward iterator : Contextual STL like API
      *
      * @param ctx The context of the call (ignored)
      */
     DETRAY_HOST_DEVICE
-    auto end(const context & /*ctx*/) const -> decltype(auto) {
-        return _data.end();
-    }
+    auto end(const context & /*ctx*/) const { return _data.end(); }
 
     /** Access to a predefined range of elements
      *

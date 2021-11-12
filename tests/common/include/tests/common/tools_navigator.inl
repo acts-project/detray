@@ -16,7 +16,8 @@
 #include "detray/core/transform_store.hpp"
 #include "detray/io/csv_io.hpp"
 #include "detray/tools/navigator.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/read_geometry.hpp"
+//#include "tests/common/tools/toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -30,7 +31,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
-    using detray_context = decltype(d)::transform_store::context;
+    using detray_context = decltype(d)::context;
 
     detray_navigator n(std::move(d));
 

@@ -18,7 +18,7 @@
 #include "detray/io/csv_io.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/read_geometry.hpp"
 
 using namespace detray;
 

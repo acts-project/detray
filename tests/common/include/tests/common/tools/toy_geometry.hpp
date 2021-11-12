@@ -5,55 +5,97 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <cmath>
-#include <map>
-#include <string>
+//#include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/core/detector.hpp"
 #include "detray/geometry/surface_base.hpp"
 #include "detray/geometry/volume.hpp"
-#include "detray/io/csv_io.hpp"
 #include "detray/masks/masks.hpp"
 
-/// @note __plugin has to be defined with a preprocessor command
-using namespace detray;
+namespace detray {
 
-/** Keeps the relevant csv file names */
-struct detector_input_files {
-    std::string det_name, surface, layer_volume, surface_grid,
-        surface_grid_entries;
+// Types for toy geometry
+struct object_registry {
+    // Known primitives
+    enum id : unsigned int {
+        e_object_types = 1,
+        e_surface = 0,
+        e_portal = 0,  // same as surface
+        e_any = 0,
+        e_unknown = 2,
+    };
+
+    template <typename value_type = void>
+    static constexpr auto get() {
+        return e_surface;
+    }
 };
 
-/// open data detector file names
-detector_input_files odd_files = {"odd", "odd.csv", "odd-layer-volumes.csv",
-                                  "odd-surface-grids.csv", ""};
+// Minimalistic geometry type for toy geometry.
+template <typename volume_t, typename object_t,
+          template <typename...> class vector_t = dvector>
+struct toy_geometry {
+    // typedefs
+    using volume_type = volume_t;
+    using portal = object_t;
+    using portal_container = vector_t<portal>;
+    using portal_links = typename object_t::edge_links;
 
-/// track ml detector file names
-detector_input_files tml_files = {"tml", "tml.csv", "tml-layer-volumes.csv",
-                                  "tml-surface-grids.csv", ""};
+    struct object_registry {
+        using id = typename volume_type::objects;
 
-/** Read a detector from csv files */
-auto read_from_csv(detector_input_files& files,
-                   vecmem::memory_resource& resource) {
-    auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
-    if (env_d_d == nullptr) {
-        throw std::ios_base::failure(
-            "Test data directory not found. Please set DETRAY_TEST_DATA_DIR.");
+        template <typename value_type = void>
+        static constexpr auto get() {
+            return id::e_surface;
+        }
+    };
+
+    toy_geometry(vector_t<volume_t>&& volumes, vector_t<object_t>&& objects)
+        : _volumes(volumes), _objects(objects) {}
+
+    // data containers
+    vector_t<volume_t> _volumes;
+    vector_t<object_t> _objects;
+};
+
+// Minimalistic detector type for toy geometry
+template <typename geometry_t, typename mask_container_t, typename transform_t,
+          typename grid_t, template <typename...> class vector_t = dvector>
+struct toy_detector {
+    // typedefs
+    using transform_store = vector_t<transform_t>;
+    using mask_container = mask_container_t;
+    using geometry = geometry_t;
+    using volume = typename geometry_t::volume_type;
+    using object_id = typename geometry_t::object_registry::id;
+    using volume_grid = grid_t;
+    using surfaces_finder = grid_t;
+
+    struct empty_context {};
+    using context = empty_context;  // not used
+
+    toy_detector(geometry_t&& geo, mask_container_t&& masks,
+                 vector_t<transform_t>&& trfs)
+        : _geometry(geo), _masks(masks), _transforms(trfs) {}
+
+    // interface functions
+    const auto& volumes() const { return _geometry._volumes; }
+    const auto& transforms(const context /*ctx*/ = {}) const {
+        return _transforms;
     }
-    auto data_directory = std::string(env_d_d);
+    const auto& masks() const { return _masks; }
+    template <object_id>
+    const auto& objects() const {
+        return _geometry._objects;
+    }
 
-    std::string surfaces = data_directory + files.surface;
-    std::string volumes = data_directory + files.layer_volume;
-    std::string grids = data_directory + files.surface_grid;
-    std::string grid_entries = files.surface_grid_entries;
-    std::map<detray::dindex, std::string> name_map{};
+    std::string _name = "toy_detector";
 
-    auto d =
-        detray::detector_from_csv<>(files.det_name, surfaces, volumes, grids,
-                                    grid_entries, name_map, resource);
-
-    return std::make_pair<decltype(d), decltype(name_map)>(std::move(d),
-                                                           std::move(name_map));
+    // data containers
+    geometry_t _geometry;
+    vector_t<transform_t> _transforms;
+    mask_container_t _masks;
+    vector_t<surfaces_finder> _surfaces_finders;
+    volume_grid _volume_grid;
 };
 
 /** Creates a number of pixel modules for the a cylindrical barrel region.
@@ -80,6 +122,11 @@ inline auto create_modules(const scalar m_half_x = 8.4,
                            const scalar radial_stagger = 2.,
                            const scalar l_overlap = 5.,
                            const std::pair<int, int> binning = {16, 14}) {
+
+    // Algebra type definitions from the plugins
+    using point3 = __plugin::point3;
+    using vector3 = __plugin::vector3;
+    using transform3 = __plugin::transform3;
 
     /// mask index: type, range
     using mask_index = detray::darray<detray::dindex, 2>;
@@ -158,84 +205,6 @@ inline auto create_modules(const scalar m_half_x = 8.4,
         std::move(surfaces), std::move(transforms), std::move(masks));
 }
 
-// Types for toy geometry
-struct object_registry {
-    // Known primitives
-    enum id : unsigned int {
-        e_object_types = 1,
-        e_surface = 0,
-        e_portal = 0,  // same as surface
-        e_any = 0,
-        e_unknown = 2,
-    };
-
-    template <typename value_type = void>
-    static constexpr auto get() {
-        return e_surface;
-    }
-};
-
-// Adhoc geometry type for toy geometry.
-template <typename volume_t, typename object_t,
-          template <typename> class vector_type = dvector>
-struct toy_geometry {
-    // typedefs
-    using volume_type = volume_t;
-    using portal = object_t;
-    using portal_links = typename object_t::edge_links;
-
-    struct object_registry {
-        using id = typename volume_type::objects;
-
-        template <typename value_type = void>
-        static constexpr auto get() {
-            return id::e_surface;
-        }
-    };
-
-    toy_geometry(const vector_type<volume_t>& volumes,
-                 const vector_type<object_t>& objects)
-        : _volumes(volumes), _objects(objects) {}
-
-    // data containers
-    const vector_type<volume_t>& _volumes;
-    const vector_type<object_t>& _objects;
-};
-
-// Adhoc detector type for toy geometry
-template <typename geometry_t, typename transform_container,
-          typename mask_container>
-struct toy_detector {
-    // typedefs
-    using geometry = geometry_t;
-    using object_id = typename geometry_t::object_registry::id;
-    struct transform_store {
-        // dummy type
-        struct context {};
-    };
-
-    toy_detector(const geometry& geometry, const transform_container& trfs,
-                 const mask_container& masks)
-        : _geometry(geometry), _transforms(trfs), _masks(masks) {}
-
-    // interface functions
-    const auto& volumes() const { return _geometry._volumes; }
-    const auto& transforms(
-        const typename transform_store::context ctx = {}) const {
-        return _transforms;
-    }
-    const auto& masks() const { return _masks; }
-    template <object_id>
-    const auto& objects() const {
-        return _geometry._objects;
-    }
-
-    // data containers
-    const geometry& _geometry;
-    const transform_container& _transforms;
-    const mask_container& _masks;
-};
-
 /** Builds a simple detray geometry of the innermost tml layers. It contains:
  *
  * - a beampipe (r = 27mm, half_z = 500mm)
@@ -250,6 +219,8 @@ struct toy_detector {
  *          (inner/outer portals), rectangle masks (modules)]
  */
 auto create_toy_geometry() {
+
+    using transform3 = __plugin::transform3;
 
     // Volume type
     using volume_type =
@@ -314,6 +285,8 @@ auto create_toy_geometry() {
     scalar first_layer_outer_r = 38.;
     scalar second_layer_inner_r = 64.;
     scalar second_layer_outer_r = 80.;
+
+    struct toy_grid {};
 
     /** Add a single barrel layer volume to an existing collection.
      *
@@ -530,9 +503,24 @@ auto create_toy_geometry() {
     rectangles.insert(rectangles.end(), l2_masks.begin(), l2_masks.end());
 
     // Return all geometry containers
-    return std::make_tuple<volume_container, surface_container,
-                           transf_container, disc_container, cylinder_container,
-                           rectangle_container>(
-        std::move(volumes), std::move(surfaces), std::move(transforms),
+    using geometry_t = toy_geometry<volume_type, surface>;
+    auto geo = geometry_t(std::move(volumes), std::move(surfaces));
+
+    // First, put data into the detector interface
+    /*mask_store<dtuple, dvector, discs, cylinders, rectangles> masks;
+    // populate mask store
+    masks.add_masks(discs);
+    masks.add_masks(cylinders);
+    masks.add_masks(rectangles);*/
+    auto masks = std::make_tuple<disc_container, cylinder_container,
+                                 rectangle_container>(
         std::move(discs), std::move(cylinders), std::move(rectangles));
+
+    auto d = toy_detector<decltype(geo), decltype(masks),
+                          decltype(transforms)::value_type, toy_grid>(
+        std::move(geo), std::move(masks), std::move(transforms));
+
+    return std::move(d);
 }
+
+}  // namespace detray

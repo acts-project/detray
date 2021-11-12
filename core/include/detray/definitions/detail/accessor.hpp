@@ -10,6 +10,7 @@
 
 #include <array>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 #include "detray/definitions/detray_qualifiers.hpp"
@@ -33,6 +34,15 @@ namespace detail {
  */
 using std::get;
 using thrust::get;
+
+template <std::size_t id, typename mask_store_t,
+          std::enable_if_t<std::is_class_v<typename std::remove_reference_t<
+                               mask_store_t>::mask_tuple>,
+                           bool> = true>
+constexpr auto get(mask_store_t&& mask_store) noexcept
+    -> decltype(get<id>(std::forward<mask_store_t>(mask_store).masks())) {
+    return get<id>(std::forward<mask_store_t>(mask_store).masks());
+}
 
 /** tuple size accessor
  *
