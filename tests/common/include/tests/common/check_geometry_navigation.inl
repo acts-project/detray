@@ -7,123 +7,206 @@
 
 #include <gtest/gtest.h>
 
-#include <cmath>
 #include <iostream>
-#include <map>
-#include <sstream>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/core/detector.hpp"
 #include "detray/core/track.hpp"
-#include "detray/io/csv_io.hpp"
 #include "detray/tools/line_stepper.hpp"
-#include "detray/tools/navigator.hpp"
+#include "detray/tools/single_type_navigator.hpp"
 #include "tests/common/tools/ray_gun.hpp"
-#include "tests/common/tools/read_geometry.hpp"
+//#include "tests/common/tools/read_geometry.hpp"
+#include "tests/common/tools/toy_geometry.hpp"
 
 using namespace detray;
 
-vecmem::host_memory_resource host_mr;
-
 /** A navigation inspector that relays information about the encountered
- *  portals the way we need them to compare with the ray
+ *  objects the way we need them to compare with the ray
  */
-struct portal_inspector {
+template <int navigation_status = 0,
+          template <typename...> class vector_t = dvector>
+struct object_tracer {
+
+    // record all object id the navigator encounters
+    vector_t<dindex> object_trace = {};
+
     template <typename state_type>
-    auto operator()(const state_type &state) {}
+    auto operator()(state_type &state, std::string &message) {
+        // Record and objects id, when you are certain to have encountered it
+        if (state.status() == navigation_status) {
+            object_trace.push_back(state.on_object());
+        }
+    }
 };
 
 /** A navigation inspector that prints information about the current navigation
  * state. Meant for debugging.
  */
-struct print_inspector {
-    template <typename state_type>
-    auto operator()(const state_type &state) {
+struct single_type_print_inspector {
 
-        std::cout << "Volume\t\t\t" << state.volume_index << std::endl;
-        std::cout << "surface kernel size\t\t\t" << state.surface_kernel.size()
-                  << std::endl;
-        std::cout << "portal kernel size\t\t\t" << state.portal_kernel.size()
+    template <typename state_type>
+    auto operator()(state_type &state) {
+        std::cout << "Volume\t\t\t\t\t" << state.volume() << std::endl;
+        std::cout << "surface kernel size\t\t" << state.kernel().size()
                   << std::endl;
 
         std::cout << "Surface candidates: " << std::endl;
-        for (const auto &sf_cand : state.surface_kernel.candidates) {
-            std::cout << "-> " << sf_cand.path << std::endl;
+        for (const auto &sf_cand : state.candidates()) {
+            std::cout << "-> " << sf_cand.path << " (" << sf_cand.index
+                      << ", links to " << sf_cand.link << ")" << std::endl;
         }
-        if (not state.surface_kernel.empty())
-            std::cout << "=> next: " << state.surface_kernel.next->index
-                      << std::endl;
+        if (not state.kernel().empty()) {
+            std::cout << "=> next: ";
+            if (state.is_exhausted()) {
+                std::cout << "exhausted" << std::endl;
+            } else {
+                std::cout << state.next()->index << std::endl;
+            }
+        }
+    }
+};
+
+/** A navigation inspector that prints information about the current navigation
+ *  portal state for navigators that distinguish portal/surface states. Meant
+ *  for debugging.
+ */
+struct portal_print_inspector {
+
+    template <typename state_type>
+    auto operator()(state_type &state) {
+        std::cout << "portal kernel size\t\t\t" << state.portal_kernel.size()
+                  << std::endl;
 
         std::cout << "Portal candidates: " << std::endl;
         for (const auto &pt_cand : state.portal_kernel.candidates) {
             std::cout << "-> " << pt_cand.path << std::endl;
         }
-        if (not state.portal_kernel.empty())
-            std::cout << "=> next: " << state.portal_kernel.next->index
-                      << std::endl;
+        if (not state.portal_kernel.empty()) {
+            std::cout << "=> next: ";
+            if (state.kernel().is_exhausted()) {
+                std::cout << "exhausted" << std::endl;
+            } else {
+                std::cout << state.portal_kernel.next->index << std::endl;
+            }
+        }
+    }
+};
 
-        switch (state.status) {
+/** A navigation inspector that prints information about the current navigation
+ *  surface state for navigators that distinguish portal/surface states. Meant
+ *  for debugging.
+ */
+struct surface_print_inspector {
+
+    template <typename state_type>
+    auto operator()(state_type &state) {
+        std::cout << "Volume\t\t\t" << state.volume() << std::endl;
+        std::cout << "surface kernel size\t\t\t"
+                  << state.surface_kernel.size().size() << std::endl;
+
+        std::cout << "Portal candidates: " << std::endl;
+        for (const auto &sf_cand : state.surface_kernel.candidates) {
+            std::cout << "-> " << sf_cand.path << std::endl;
+        }
+        if (not state.surface_kernel.empty()) {
+            std::cout << "=> next: ";
+            if (state.kernel().is_exhausted()) {
+                std::cout << "exhausted" << std::endl;
+            } else {
+                std::cout << state.surface_kernel.next->index << std::endl;
+            }
+        }
+    }
+};
+
+/** Aggregate inspector for specialized printers. */
+template <template <typename...> class tuple_t = dtuple,
+          typename... print_inspectors_t>
+struct print_inspector {
+
+    tuple_t<print_inspectors_t...> printer_tuple{};
+
+    template <typename state_type>
+    auto operator()(state_type &state, std::string &message) {
+
+        std::cout << message << std::endl;
+
+        std::get<print_inspectors_t...>(printer_tuple)(state);
+
+        switch (state.status()) {
             case -3:
-                std::cout << "status\t\t\ton_target" << std::endl;
+                std::cout << "status\t\t\t\ton_target" << std::endl;
                 break;
             case -2:
-                std::cout << "status\t\t\tabort" << std::endl;
+                std::cout << "status\t\t\t\tabort" << std::endl;
                 break;
             case -1:
-                std::cout << "status\t\t\tunknowm" << std::endl;
+                std::cout << "status\t\t\t\tunknowm" << std::endl;
                 break;
             case 0:
-                std::cout << "status\t\t\ttowards_surface" << std::endl;
+                std::cout << "status\t\t\t\ttowards_surface" << std::endl;
                 break;
             case 1:
-                std::cout << "status\t\t\ton_surface" << std::endl;
+                std::cout << "status\t\t\t\ton_surface" << std::endl;
                 break;
             case 2:
-                std::cout << "status\t\t\ttowards_portal" << std::endl;
+                std::cout << "status\t\t\t\ttowards_portal" << std::endl;
                 break;
             case 3:
-                std::cout << "status\t\t\ton_portal" << std::endl;
+                std::cout << "status\t\t\t\ton_portal" << std::endl;
                 break;
         };
-        std::cout << "current object\t\t" << state.current_index << std::endl;
-        std::cout << "distance to next\t" << state.distance_to_next
-                  << std::endl;
-        switch (state.trust_level) {
+        std::cout << "current object\t\t" << state.on_object() << std::endl;
+        std::cout << "distance to next\t";
+        if (std::abs(state()) < state.tolerance()) {
+            std::cout << "on obj (within tol)" << std::endl;
+        } else {
+            std::cout << state() << std::endl;
+        }
+        switch (state.trust_level()) {
             case 0:
-                std::cout << "trust\t\t\tno_trust" << std::endl;
+                std::cout << "trust\t\t\t\tno_trust" << std::endl;
                 break;
             case 1:
-                std::cout << "trust\t\t\tfair_trust" << std::endl;
+                std::cout << "trust\t\t\t\tfair_trust" << std::endl;
                 break;
             case 3:
-                std::cout << "trust\t\t\thigh_trust" << std::endl;
+                std::cout << "trust\t\t\t\thigh_trust" << std::endl;
                 break;
             case 4:
-                std::cout << "trust\t\t\tfull_trust" << std::endl;
+                std::cout << "trust\t\t\t\tfull_trust" << std::endl;
                 break;
         };
         std::cout << std::endl;
     }
 };
 
-auto [d, name_map] = read_from_csv(tml_files, host_mr);
+// vecmem::host_memory_resource host_mr;
+// auto [d, name_map] = read_from_csv(tml_files, host_mr);
+
+auto d = create_toy_geometry();
 
 // Create the navigator
 using detray_context = decltype(d)::context;
 using detray_track = track<detray_context>;
-using detray_navigator = navigator<decltype(d), print_inspector>;
+/*using detray_inspector = print_inspector<portal_print_inspector,
+                                         surface_print_inspector>;*/
+// using detray_inspector = print_inspector<std::tuple,
+// single_type_print_inspector>;
+using detray_inspector = object_tracer<1>;
+using detray_navigator = single_type_navigator<decltype(d), detray_inspector>;
 using detray_stepper = line_stepper<detray_track>;
 
-detray_navigator n(std::move(d));
+detray_navigator n(d);
 detray_stepper s;
 
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, geometry_discovery) {
 
-    unsigned int theta_steps = 100;
-    unsigned int phi_steps = 100;
+    unsigned int theta_steps = 10;
+    unsigned int phi_steps = 10;
 
     const point3 ori{0., 0., 0.};
     // dindex start_index = n.detector.volume_by_pos(ori).index();
@@ -143,24 +226,25 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                              cos_theta};
 
-            const auto volume_record = shoot_ray(n.detector, ori, dir);
+            const auto intersection_trace = shoot_ray(d, ori, dir);
 
             // Now follow that ray and check, if we find the same
             // volumes and distances along the way
-            track<detray_context> traj;
-            traj.pos = ori;
-            traj.dir = dir;
-            traj.ctx = detray_context{};
-            traj.momentum = 100.;
-            traj.overstep_tolerance = -1e-4;
+            track<detray_context> ray;
+            ray.pos = ori;
+            ray.dir = dir;
+            ray.ctx = detray_context{};
+            ray.momentum = 100.;
+            ray.overstep_tolerance = -1e-4;
 
-            detray_stepper::state s_state(traj);
+            detray_stepper::state s_state(ray);
             detray_navigator::state n_state;
+            // Always start a new ray at detector origin
+            n_state.set_volume(0u);
 
-            bool heartbeat = n.status(n_state, s_state());
+            bool heartbeat = n.status(n_state, ray);
             // Run while there is a heartbeat
-            // while (heartbeat) {
-            for (size_t n_steps = 0; n_steps < 10; n_steps++) {
+            while (heartbeat) {
                 // (Re-)target
                 heartbeat &= n.target(n_state, s_state());
                 // Take the step
@@ -168,9 +252,16 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                 // And check the status
                 heartbeat &= n.status(n_state, s_state());
             }
-            // EXPECT_EQ(n_state.current_index, volume_record.back().first);
-            // EXPECT_EQ(getter::norm(traj.pos),
-            // volume_record.back().second.path);
+            // Check every single recorded intersection
+            if constexpr (std::is_same_v<detray_inspector, object_tracer<1>>) {
+                ASSERT_EQ(n_state.inspector().object_trace.size(),
+                          intersection_trace.size());
+                for (std::size_t intr_idx = 0;
+                     intr_idx < intersection_trace.size(); ++intr_idx) {
+                    ASSERT_EQ(n_state.inspector().object_trace[intr_idx],
+                              intersection_trace[intr_idx].first);
+                }
+            }
         }
     }
 }

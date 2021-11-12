@@ -8,6 +8,7 @@
 #pragma once
 
 #include <algorithm>
+#include <string>
 #include <type_traits>
 
 #include "detray/core/intersection.hpp"
@@ -25,7 +26,8 @@ namespace detray {
  */
 struct void_inspector {
     template <typename state_type>
-    void operator()(const state_type & /*ignored*/) {}
+    void operator()(const state_type & /*ignored*/, std::string & /*ignored*/) {
+    }
 };
 
 /** The navigator struct that is agnostic to the object/primitive type. It
@@ -138,7 +140,12 @@ class single_type_navigator {
         inline void set_dist(scalar dist) { _distance_to_next = dist; }
 
         /** Call the navigation inspector */
-        inline decltype(auto) inspector() { return _inspector(*this); }
+        inline auto run_inspector(std::string &&message) {
+            return _inspector(*this, message);
+        }
+
+        /** @returns the navigation inspector */
+        inline auto inspector() { return _inspector; }
 
         /** @returns current object the navigator is on (might be invalid if
          * between objects)
@@ -174,6 +181,11 @@ class single_type_navigator {
         /** Set start/new volume */
         inline void set_volume(dindex v) { _volume_index = v; }
 
+        /** Helper method to check if a kernel is exhausted */
+        bool is_exhausted() const {
+            return (_kernel.next == _kernel.candidates.end());
+        }
+
         /** Navigation state that cannot be recovered from. Leave the other
          *  data for inspection.
          *
@@ -182,6 +194,7 @@ class single_type_navigator {
         inline bool abort() {
             _status = e_abort;
             _trust_level = e_no_trust;
+            run_inspector("aborted: ");
             return false;
         }
 
@@ -193,6 +206,7 @@ class single_type_navigator {
         inline bool exit() {
             _status = e_on_target;
             _trust_level = e_full_trust;
+            run_inspector("exited: ");
             return false;
         }
 
@@ -272,15 +286,12 @@ class single_type_navigator {
 
         // Should never be the case after update call (without portals we are
         // trapped)
-        if (navigation.kernel().empty()) {
+        if (navigation.kernel().empty() and heartbeat) {
             return navigation.abort();
         }
 
         // Did we hit a portal? (kernel needs to be re-initialized next time)
-        check_volume_switch(navigation);
-
-        // Call the inspector before returning
-        navigation.inspector();
+        heartbeat = check_volume_switch(navigation);
 
         return heartbeat;
     }
@@ -337,7 +348,7 @@ class single_type_navigator {
             if (sfi.path < track.overstep_tolerance) {
                 continue;
             }
-            // Accept if inside, but not the object we are already on
+            // Accept if inside
             if (sfi.status == e_inside) {
                 // object the candidate belongs to
                 sfi.index = obj_idx;
@@ -374,7 +385,7 @@ class single_type_navigator {
         // Update current candidate, or close neighbors
         // - do this only when you trust level is high
         else if (navigation.trust_level() >= e_high_trust) {
-            while (not is_exhausted(navigation.kernel())) {
+            while (not navigation.is_exhausted()) {
                 // Only update the next candidate
                 dindex obj_idx = navigation.next()->index;
                 auto sfi =
@@ -391,13 +402,20 @@ class single_type_navigator {
                         navigation.set_status(e_on_object);
                         navigation.set_trust_level(e_high_trust);
                         // Set the next object we want to reach might be end()
+                        // The distance to next will be updated with next high
+                        // trust call
                         ++navigation.next();
                     }
                     // we are certainly not on the next object. Trust fully
                     else {
+                        navigation.set_object(dindex_invalid);
                         navigation.set_status(e_towards_object);
                         navigation.set_trust_level(e_full_trust);
                     }
+
+                    // Call the inspector before returning
+                    navigation.run_inspector("Update (high trust): ");
+
                     // Don't sort again when coming from high trust
                     return;
                 }
@@ -419,6 +437,7 @@ class single_type_navigator {
             set_next(navigation);
             return;
         }
+
         // Do nothing on full trust
         return;
     }
@@ -434,26 +453,25 @@ class single_type_navigator {
         // Sort distance to next & set navigation status
         if (not kernel.candidates.empty()) {
 
-            // Generally, we are on our way to some candidate
-            navigation.set_status(e_towards_object);
-            // This is only called after full (re-)evaluation
-            navigation.set_trust_level(e_full_trust);
-
             // Take the nearest candidate first
             std::sort(kernel.candidates.begin(), kernel.candidates.end());
             kernel.next = kernel.candidates.begin();
 
             // Are we still on an object from a previous navigation pass? Then
             // goto the next candidate.
-            // This also excludes adjacent portals -> we are towards obj again
+            // This also excludes adjacent portals -> we are on the next portal
             if (navigation() < navigation.tolerance()) {
                 // The object we are on
                 navigation.set_object(kernel.next->index);
                 // The next object that we want to reach
                 ++navigation.next();
+                // Direct hit
+                navigation.set_status(e_on_object);
                 // We might be wrong in this assumption, re-evaluate distance
                 // to next in the next pass
                 navigation.set_trust_level(e_high_trust);
+                // Call the inspector on this portal crossing, then go to next
+                navigation.run_inspector("Skipped direct hit: ");
             }
             // No current object
             else {
@@ -461,7 +479,13 @@ class single_type_navigator {
             }
 
             navigation.set_dist(kernel.next->path);
-            return;
+            // Generally, we are on our way to some candidate
+            navigation.set_status(e_towards_object);
+            // This is only called after full (re-)evaluation
+            navigation.set_trust_level(e_full_trust);
+
+            // Call the inspector on new status
+            navigation.run_inspector("set next: ");
         }
     }
 
@@ -469,7 +493,7 @@ class single_type_navigator {
      *
      * @param navigation is the navigation state
      */
-    void check_volume_switch(state &navigation) const {
+    bool check_volume_switch(state &navigation) const {
         // Check if we need to switch volume index and (re-)initialize
         if (navigation.status() == e_on_object and
             navigation.volume() != navigation.current()->link) {
@@ -481,19 +505,12 @@ class single_type_navigator {
 
             // We reached the end of the detector world
             if (navigation.volume() == dindex_invalid) {
-                navigation.exit();
+                // heartbeat
+                return navigation.exit();
             }
         }
-    }
-
-    /** Helper method to check if a kernel is exhaused
-     *
-     * @param kernel the kernel to be checked
-     *
-     * @return true if the kernel is exhaused
-     */
-    bool is_exhausted(const navigation_kernel<> &kernel) const {
-        return (kernel.next == kernel.candidates.end());
+        // heartbeat
+        return true;
     }
 
     private:

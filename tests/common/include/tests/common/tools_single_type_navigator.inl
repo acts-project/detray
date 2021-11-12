@@ -149,7 +149,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     // be a surface
     ASSERT_EQ(state.next()->index, 128u);
     ASSERT_EQ(state.trust_level(),
-              toy_navigator::navigation_trust_level::e_high_trust);
+              toy_navigator::navigation_trust_level::e_full_trust);
 
     // Now step onto the surface in volume 1 (128)
     traj.pos = traj.pos + state() * traj.dir;
@@ -292,7 +292,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.candidates().size(), 2u);
     ASSERT_EQ(state.next()->index, 234u);
     ASSERT_EQ(state.trust_level(),
-              toy_navigator::navigation_trust_level::e_high_trust);
+              toy_navigator::navigation_trust_level::e_full_trust);
 
     // Step onto the portal 234
     traj.pos = traj.pos + state() * traj.dir;
@@ -327,7 +327,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     // be a surface
     ASSERT_EQ(state.next()->index, 482u);
     ASSERT_EQ(state.trust_level(),
-              toy_navigator::navigation_trust_level::e_high_trust);
+              toy_navigator::navigation_trust_level::e_full_trust);
 
     // Now step onto the surface (482)
     traj.pos = traj.pos + state() * traj.dir;
@@ -442,7 +442,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     traj.pos = traj.pos + state() * traj.dir;
     heartbeat = n.status(state, traj);
     // Test that the navigator has a heartbeat
-    ASSERT_TRUE(heartbeat);
+    ASSERT_FALSE(heartbeat);
     // The status is: on portal
     ASSERT_EQ(state.status(), toy_navigator::navigation_status::e_on_target);
     // Switch to next volume leads out of the detector world -> exit

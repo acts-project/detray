@@ -83,5 +83,21 @@ DETRAY_HOST_DEVICE constexpr tuple_type<unwrap_decay_t<Types>...> make_tuple(
     return tuple_type<unwrap_decay_t<Types>...>(std::forward<Types>(args)...);
 }
 
+template <typename mask_store_t,
+          std::enable_if_t<std::is_class_v<typename std::remove_reference_t<
+                               mask_store_t>::mask_tuple>,
+                           bool> = true>
+inline constexpr auto mask_store_size() noexcept {
+    return detail::tuple_size<typename mask_store_t::mask_tuple>::value;
+}
+
+template <class mask_store_t,
+          std::enable_if_t<std::is_default_constructible_v<
+                               std::remove_reference_t<mask_store_t>>,
+                           bool> = true>
+inline constexpr auto mask_store_size() noexcept {
+    return detail::tuple_size<mask_store_t>::value;
+}
+
 }  // namespace detail
 }  // namespace detray
