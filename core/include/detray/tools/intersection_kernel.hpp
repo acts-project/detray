@@ -12,10 +12,33 @@
 
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
 
 namespace detray {
+
+// mask store
+template <typename mask_store_t,
+          std::enable_if_t<std::is_class_v<typename std::remove_reference_t<
+                               mask_store_t>::mask_tuple>,
+                           bool> = true>
+inline constexpr auto mask_store_size() noexcept {
+    return detail::tuple_size<typename mask_store_t::mask_tuple>::value;
+}
+
+// Any other tuple
+template <
+    class mask_store_t,
+    std::enable_if_t<
+        std::is_default_constructible_v<std::remove_reference_t<mask_store_t>>,
+        bool> = true,
+    std::enable_if_t<
+        std::is_integral_v<decltype(detail::tuple_size<mask_store_t>::value)>,
+        bool> = true>
+inline constexpr auto mask_store_size() noexcept {
+    return detail::tuple_size<mask_store_t>::value;
+}
 
 /// Transform definition
 using transform3 = __plugin::transform3;
@@ -47,7 +70,7 @@ inline auto unroll_intersect(
 
     // Pick the first one for interseciton
     if (mask_id == first_mask_id) {
-        auto &mask_group = masks.template group<first_mask_id>();
+        auto &mask_group = detail::get<first_mask_id>(masks);
 
         // Check all masks of this surface for intersection
         for (const auto &mask : range(mask_group, rng)) {
@@ -57,7 +80,7 @@ inline auto unroll_intersect(
             if (sfi.status == e_inside) {
                 // Link to next volume is in first position
                 sfi.index = volume_index;
-                sfi.link = std::get<0>(mask.links());
+                sfi.link = detail::get<0>(mask.links());
                 return sfi;
             }
         }
@@ -99,14 +122,14 @@ inline const auto intersect(const track_type &track, surface_type &surface,
     const auto &ctf = contextual_transforms[surface.transform()];
     const auto &volume_index = surface.volume();
     const auto &mask_link = surface.mask();
-    const auto &mask_id = std::get<0>(mask_link);
-    const auto &mask_range = std::get<1>(mask_link);
+    const auto &mask_id = detail::get<0>(mask_link);
+    const auto &mask_range = detail::get<1>(mask_link);
 
     // Unroll the intersection depending on the mask container size
     return unroll_intersect(
         track, ctf, masks, mask_range, mask_id, volume_index,
-        std::make_integer_sequence<
-            unsigned int,
-            std::tuple_size_v<typename mask_container::mask_tuple>>{});
+        std::make_integer_sequence<unsigned int,
+                                   mask_store_size<mask_container>()>{});
 }
+
 }  // namespace detray

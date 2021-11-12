@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
             grid_style.fill_color = {0., 1., 0., 0.};
             grid_style.line_width = 1;
 
-            decltype(d)::transform_store::context s_context;
+            decltype(d)::context s_context;
 
             auto surfaces_finders = d.surfaces_finders();
 

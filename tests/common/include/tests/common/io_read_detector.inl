@@ -15,14 +15,13 @@
 #include "detray/core/detector.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/io/csv_io.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/read_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the construction of a detector class
 TEST(ALGEBRA_PLUGIN, read_detector) {
     vecmem::host_memory_resource host_mr;
-
     using namespace detray;
 
     auto [d, name_map] = read_from_csv(tml_files, host_mr);

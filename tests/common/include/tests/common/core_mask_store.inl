@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "detray/core/mask_store.hpp"
 #include "detray/masks/masks.hpp"
 
@@ -14,6 +16,9 @@
 
 // This tests the construction of a static transform store
 TEST(ALGEBRA_PLUGIN, static_transform_store) {
+
+    vecmem::host_memory_resource host_mr;
+
     using namespace detray;
     using namespace __plugin;
 
@@ -27,7 +32,7 @@ TEST(ALGEBRA_PLUGIN, static_transform_store) {
     // Types must be sorted according to their id (here: masks/mask_identifier)
     mask_store<dtuple, dvector, rectangle, trapezoid, ring, cylinder, single,
                annulus>
-        store;
+        store(host_mr);
 
     ASSERT_TRUE(store.empty<e_annulus2>());
     ASSERT_TRUE(store.empty<e_cylinder3>());

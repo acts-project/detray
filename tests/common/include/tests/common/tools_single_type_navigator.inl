@@ -10,12 +10,9 @@
 #include "detray/core/mask_store.hpp"
 #include "detray/core/track.hpp"
 #include "detray/tools/single_type_navigator.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
-
-auto [volumes, surfaces, transforms, discs, cylinders, rectangles] =
-    create_toy_geometry();
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, single_type_navigator) {
@@ -24,26 +21,16 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     /** Tolerance for tests */
     constexpr double tol = 0.01;
 
-    /** Empty context type struct */
-    struct empty_context {};
-
-    mask_store<dtuple, dvector, decltype(discs)::value_type,
-               decltype(cylinders)::value_type,
-               decltype(rectangles)::value_type>
-        masks;
-    // populate mask store
-    masks.add_masks(discs);
-    masks.add_masks(cylinders);
-    masks.add_masks(rectangles);
-
-    single_type_navigator n(volumes, surfaces, transforms, masks);
+    auto toy_det = create_toy_geometry();
+    single_type_navigator n(toy_det);
     using toy_navigator = decltype(n);
+    using nav_context = decltype(toy_det)::context;
 
     // test track
-    track<empty_context> traj;
+    track<nav_context> traj;
     traj.pos = {0., 0., 0.};
     traj.dir = vector::normalize(vector3{1., 1., 0.});
-    traj.ctx = empty_context{};
+    traj.ctx = nav_context{};
     traj.momentum = 100.;
     traj.overstep_tolerance = -1e-4;
 
