@@ -205,8 +205,8 @@ detray_stepper s;
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, geometry_discovery) {
 
-    unsigned int theta_steps = 10;
-    unsigned int phi_steps = 10;
+    unsigned int theta_steps = 100;
+    unsigned int phi_steps = 100;
 
     const point3 ori{0., 0., 0.};
     // dindex start_index = n.detector.volume_by_pos(ori).index();
