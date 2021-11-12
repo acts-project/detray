@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/plugins/algebra/vc_array_definitions.hpp"
-#include "tests/common/check_geometry_linking.inl"
+#include "detray/plugins/algebra/array_definitions.hpp"
+#include "tests/common/geometry_graph.inl"

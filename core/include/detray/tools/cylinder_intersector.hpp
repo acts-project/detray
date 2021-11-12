@@ -6,17 +6,15 @@
  */
 #pragma once
 
-#include <climits>
-#include <cmath>
-#include <optional>
+#include <type_traits>
 
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
-#include "detray/masks/unmasked.hpp"
 #include "detray/utils/quadratic_equation.hpp"
-#include "detray/utils/unbound.hpp"
 
 namespace detray {
+
+class unbound;
 
 /** This is an intersector struct for generic cylinder surface
  */
@@ -31,13 +29,11 @@ struct cylinder_intersector {
     /** Intersection method for cylindrical surfaces
      *
      * @tparam track_type The type of the track carrying the context object
-     * @tparam local_type The local frame type to be intersected
      * @tparam mask_type The mask type applied to the local frame
      *
      * Contextual part:
      * @param trf the transform of the surface to be intersected
      * @param track the track information
-     * @param local to the local local frame
      *
      * Non-contextual part:
      * @param mask the local mask
@@ -45,18 +41,22 @@ struct cylinder_intersector {
      *
      * @return the intersection with optional parameters
      **/
-    template <typename track_type, typename local_type, typename mask_type>
-    intersection intersect(const transform3 &trf, const track_type &track,
-                           const local_type &local, const mask_type &mask,
-                           const typename mask_type::mask_tolerance &tolerance =
-                               mask_type::within_epsilon) const {
-        return intersect(trf, track.pos, track.dir, local, mask, tolerance,
+    template <
+        typename track_type, typename mask_type,
+        std::enable_if_t<
+            std::is_same_v<typename mask_type::local_type, cylindrical2> or
+                std::is_same_v<typename mask_type::local_type, detray::unbound>,
+            bool> = true>
+    inline intersection intersect(
+        const transform3 &trf, const track_type &track, const mask_type &mask,
+        const typename mask_type::mask_tolerance &tolerance =
+            mask_type::within_epsilon) const {
+        return intersect(trf, track.pos, track.dir, mask, tolerance,
                          track.overstep_tolerance);
     }
 
     /** Intersection method for cylindrical surfaces
      *
-     * @tparam local_type The local frame type to be intersected
      * @tparam mask_type The mask type applied to the local frame
      *
      * Contextual part:
@@ -72,13 +72,20 @@ struct cylinder_intersector {
      *
      * @return the intersection with optional parameters
      **/
-    template <typename local_type, typename mask_type>
-    intersection intersect(const transform3 &trf, const point3 &ro,
-                           const vector3 &rd, const local_type &local,
-                           const mask_type &mask,
-                           const typename mask_type::mask_tolerance &tolerance =
-                               mask_type::within_epsilon,
-                           scalar overstep_tolerance = 0.) const {
+    template <
+        typename mask_type,
+        std::enable_if_t<
+            std::is_same_v<typename mask_type::local_type, cylindrical2> or
+                std::is_same_v<typename mask_type::local_type, detray::unbound>,
+            bool> = true>
+    inline intersection intersect(const transform3 &trf, const point3 &ro,
+                                  const vector3 &rd, const mask_type &mask,
+                                  const typename mask_type::mask_tolerance
+                                      &tolerance = mask_type::within_epsilon,
+                                  scalar overstep_tolerance = 0.) const {
+
+        using local_frame = typename mask_type::local_type;
+
         scalar r = mask[0];
         const auto &m = trf.matrix();
         auto sz = getter::vector<3>(m, 0, 2);
@@ -100,10 +107,11 @@ struct cylinder_intersector {
                 intersection is;
                 is.path = t;
                 is.p3 = ro + is.path * rd;
-                is.p2 = local(trf, is.p3);
+                constexpr local_frame local_converter{};
+                is.p2 = local_converter(trf, is.p3);
                 auto local3 = trf.point_to_local(is.p3);
                 is.status =
-                    mask.template is_inside<cylindrical2>(local3, tolerance);
+                    mask.template is_inside<local_frame>(local3, tolerance);
                 scalar rdr = getter::perp(local3 + 0.1 * rd);
                 is.direction = rdr > r ? e_along : e_opposite;
                 return is;

@@ -44,15 +44,16 @@ namespace detray {
  *
  **/
 template <typename intersector_type = planar_intersector,
-          typename local_type = __plugin::polar2, typename links_type = bool,
+          typename mask_local_type = __plugin::polar2,
+          typename mask_links_type = unsigned int,
           unsigned int kMaskContext = e_annulus2,
           template <typename, unsigned int> class array_type = darray>
 struct annulus2 {
     using mask_tolerance = array_type<scalar, 2>;
-
     using mask_values = array_type<scalar, 7>;
-
-    using mask_links_type = links_type;
+    // Export those types
+    using links_type = mask_links_type;
+    using local_type = mask_local_type;
 
     mask_values _values = {0.,
                            std::numeric_limits<scalar>::infinity(),
@@ -209,7 +210,7 @@ struct annulus2 {
 
     /** Return the local frame type */
     DETRAY_HOST_DEVICE
-    local_type local() const { return local_type{}; }
+    constexpr local_type local() const { return local_type{}; }
 
     /** Return the volume link - const reference */
     DETRAY_HOST_DEVICE

@@ -82,16 +82,16 @@ class geometry_graph {
     const size_t n_nodes() const { return _nodes.size(); }
 
     /** @return all volumes in the geometry - const access. */
-    const auto nodes() const { return _nodes; }
+    const auto &nodes() const { return _nodes; }
 
     /** @return number of surfaces/portals in the geometry */
     size_t n_edges() const { return _edges.size(); }
 
     /** @return all surfaces/portals in the geometry */
-    const auto edges() const { return _edges; }
+    const auto &edges() const { return _edges; }
 
     /** @return graph adjacency */
-    const auto adjacency_list() const { return adjaceny_list; }
+    auto &adjacency_list() const { return adj_list; }
 
     /** Walks breadth first through the geometry objects. */
     template <typename action_t = void_actor<node_t>>
@@ -117,21 +117,19 @@ class geometry_graph {
             inspector(*current);
 
             // Visit neighbors and perform action
-            const auto &edge_range =
-                current->template range<object_id::e_portal>();
-            actor(*current, edge_range);
+            actor(*current, current->template range<object_id::e_portal>());
 
             // Add neightbors to queue
-            for (size_t edi = edge_range[0]; edi < edge_range[1]; edi++) {
+            for (const auto &edg : range(_edges, *current)) {
                 // Retrieve the node index the edge points to
-                dindex nbr = std::get<0>(_edges[edi].edge());
-                // If not visited, enqueue the node
-                if (not visited[nbr]) {
+                dindex nbr = std::get<0>(edg.edge());
+                // If not leaving world and if not visited, enqueue the node
+                if ((nbr != dindex_invalid and nbr > 0) and not visited[nbr]) {
                     node_queue.push(&(_nodes[nbr]));
                 }
             }
 
-            // This volume has been visited
+            // This node has been visited
             visited[current->index()] = true;
             node_queue.pop();
         }
@@ -140,12 +138,25 @@ class geometry_graph {
     /** @returns the linking description as a string */
     inline const std::string to_string() const {
         std::stringstream ss;
+        const auto print_neighbor =
+            [&](const std::pair<const dindex, const dindex> &n) -> std::string {
+            // Print the number of edges, if it is greater than one
+            std::string n_occur =
+                n.second > 1 ? "\t\t(" + std::to_string(n.second) + "x)" : "";
+
+            // Edge that leads out of the detector world
+            if (n.first == dindex_invalid) {
+                return "leaving world" + n_occur;
+            }
+
+            return std::to_string(n.first) + "\t\t\t" + n_occur;
+        };
         for (const auto &n : _nodes) {
             ss << "[>>] Node with index " << n.index() << std::endl;
-            ss << " -> neighbors: " << n.index() << std::endl;
-            const auto &neighbors = adjaceny_list.at(n.index());
+            ss << " -> neighbors: " << std::endl;
+            const auto &neighbors = adj_list.at(n.index());
             for (const auto &nbr : neighbors) {
-                ss << "    -> " << nbr << std::endl;
+                ss << "    -> " << print_neighbor(nbr) << std::endl;
             }
         }
         return ss.str();
@@ -157,13 +168,14 @@ class geometry_graph {
      */
     void build() {
         for (const auto &n : _nodes) {
-            const auto &edge_range = n.template range<object_id::e_portal>();
-            vector_type<dindex> neighbors = {};
+            // Count the number of edges for a particluar neighbor
+            std::map<dindex, dindex> neighbors = {};
 
-            for (size_t edi = edge_range[0]; edi < edge_range[1]; edi++) {
-                neighbors.push_back(std::get<0>(_edges[edi].edge()));
+            // Only works for non batched geometries
+            for (const auto &edg : range(_edges, n)) {
+                neighbors[std::get<0>(edg.edge())]++;
             }
-            adjaceny_list[n.index()] = neighbors;
+            adj_list[n.index()] = neighbors;
         }
     }
 
@@ -173,10 +185,11 @@ class geometry_graph {
     /** Graph edges */
     const vector_type<edge_t> &_edges;
 
-    /** Volume indices, where reachability was established. The source link
-     * is encoded as the position of the neigbor vector in the outer vector.
+    /**
+     *  The index of the nodes neighbors and a count of edges is kept in the
+     *  inner map.
      */
-    std::map<dindex, vector_type<dindex>> adjaceny_list = {};
+    std::map<dindex, std::map<dindex, dindex>> adj_list = {};
 };
 
 }  // namespace detray

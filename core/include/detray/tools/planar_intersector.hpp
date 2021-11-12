@@ -6,15 +6,10 @@
  */
 #pragma once
 
-#include <climits>
-#include <cmath>
-#include <optional>
+#include <type_traits>
 
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
-#include "detray/geometry/surface_base.hpp"
-#include "detray/masks/unmasked.hpp"
-#include "detray/utils/unbound.hpp"
 
 namespace detray {
 
@@ -30,14 +25,13 @@ struct planar_intersector {
     /** Intersection method for planar surfaces
      *
      * @tparam track_type The type of the track (which carries the context
-     *object)
-     * @tparam local_type The local frame type to be intersected
+     *         object)
      * @tparam mask_type The mask type applied to the local frame
+     * @tparam local_frame The local frame type to be intersected
      *
      * Contextual part:
      * @param trf the surface to be intersected
      * @param track the track information
-     * @param local to the local frame
      *
      * Non-contextual part:
      * @param mask the local mask
@@ -45,25 +39,26 @@ struct planar_intersector {
      *
      * @return the intersection with optional parameters
      **/
-    template <typename track_type, typename local_type, typename mask_type>
-    intersection intersect(const transform3 &trf, const track_type &track,
-                           const local_type &local, const mask_type &mask,
-                           const typename mask_type::mask_tolerance &tolerance =
-                               mask_type::within_epsilon) const {
-        return intersect(trf, track.pos, track.dir, local, mask, tolerance,
+    template <typename track_type, typename mask_type,
+              std::enable_if_t<std::is_class_v<typename mask_type::local_type>,
+                               bool> = true>
+    inline intersection intersect(
+        const transform3 &trf, const track_type &track, const mask_type &mask,
+        const typename mask_type::mask_tolerance &tolerance =
+            mask_type::within_epsilon) const {
+        return intersect(trf, track.pos, track.dir, mask, tolerance,
                          track.overstep_tolerance);
     }
 
     /** Intersection method for planar surfaces
      *
-     * @tparam local_type The local frame type to be intersected
      * @tparam mask_type The mask type applied to the local frame
+     * @tparam local_frame The local frame type to be intersected
      *
      * Contextual part:
      * @param trf the transform of the surface to be intersected
      * @param ro the origin of the ray
      * @param rd the direction of the ray
-     * @param local transform to the local local frame
      *
      * Non-contextual part:
      * @param mask the local mask
@@ -71,14 +66,16 @@ struct planar_intersector {
      *
      * @return the intersection with optional parameters
      **/
-    template <typename local_type = unbound, typename mask_type = unmasked>
-    intersection intersect(const transform3 &trf, const point3 &ro,
-                           const vector3 &rd,
-                           const local_type &local = local_type(),
-                           const mask_type &mask = mask_type(),
-                           const typename mask_type::mask_tolerance &tolerance =
-                               mask_type::within_epsilon,
-                           scalar overstep_tolerance = 0.) const {
+    template <typename mask_type,
+              std::enable_if_t<std::is_class_v<typename mask_type::local_type>,
+                               bool> = true>
+    inline intersection intersect(const transform3 &trf, const point3 &ro,
+                                  const vector3 &rd, const mask_type &mask,
+                                  const typename mask_type::mask_tolerance
+                                      &tolerance = mask_type::within_epsilon,
+                                  scalar overstep_tolerance = 0.) const {
+
+        using local_frame = typename mask_type::local_type;
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
@@ -89,10 +86,11 @@ struct planar_intersector {
         scalar denom = vector::dot(rd, sn);
         if (denom != 0.0) {
             intersection is;
-            is.path = vector::dot(sn, (st - ro)) / (denom);
+            is.path = vector::dot(sn, st - ro) / denom;
             is.p3 = ro + is.path * rd;
-            is.p2 = local(trf, is.p3);
-            is.status = mask.template is_inside<local_type>(is.p2, tolerance);
+            constexpr local_frame local_converter{};
+            is.p2 = local_converter(trf, is.p3);
+            is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
             is.direction = is.path > overstep_tolerance ? e_along : e_opposite;
             return is;
         }
