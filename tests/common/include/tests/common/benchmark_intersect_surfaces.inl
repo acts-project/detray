@@ -21,8 +21,6 @@ using transform3 = __plugin::transform3;
 using point3 = point3;
 using vector3 = vector3;
 using plane_surface = surface_base<transform3>;
-__plugin::cartesian2 cart2;
-__plugin::cylindrical2 cyl2;
 
 #ifdef DETRAY_BENCHMARKS_REP
 unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
@@ -68,8 +66,7 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
                 for (auto plane : planes) {
                     auto pi = rect.intersector();
-                    auto is =
-                        pi.intersect(plane.transform(), ori, dir, cart2, rect);
+                    auto is = pi.intersect(plane.transform(), ori, dir, rect);
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);
@@ -130,8 +127,8 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
                 for (auto cylinder : cylinders) {
                     auto ci = cylinder.intersector();
-                    auto is = ci.intersect(plain.transform(), ori, dir, cyl2,
-                                           cylinder);
+                    auto is =
+                        ci.intersect(plain.transform(), ori, dir, cylinder);
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);
@@ -188,8 +185,8 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
                 for (auto cylinder : cylinders) {
                     auto cci = cylinder.intersector();
-                    auto is = cci.intersect(plain.transform(), ori, dir, cyl2,
-                                            cylinder);
+                    auto is =
+                        cci.intersect(plain.transform(), ori, dir, cylinder);
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);

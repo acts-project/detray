@@ -46,14 +46,6 @@ template <template <typename, unsigned int> class array_type = darray,
 class unified_index_geometry {
 
     public:
-    // Known primitives
-    /*enum object_registry : unsigned int {
-        e_object_types = 1,
-        e_surface = 0,
-        e_portal = 0,  // not used (same as surface)
-        e_any = 1,
-    };*/
-
     /** Encodes the position in a collection container for the respective
         mask type . */
     enum mask_id : unsigned int {
@@ -225,6 +217,24 @@ class unified_index_geometry {
         _objects.insert(_objects.end(), surfaces.begin(), surfaces.end());
 
         volume.set_range({offset, _objects.size()});
+    }
+
+    /** Add objects (surfaces/portals) to the geometry (pre-built)
+     *
+     * @param surfaces the surfaces of the geometry
+     */
+    inline void add_object_collection(const surface_container &surfaces) {
+        _objects.reserve(surfaces.size());
+        _objects.insert(_objects.end(), surfaces.begin(), surfaces.end());
+    }
+
+    /** Add objects volumes to the geometry (pre-built)
+     *
+     * @param volumes the volumes of the geometry
+     */
+    inline void add_volume_collection(const vector_type<volume_type> &volumes) {
+        _volumes.reserve(volumes.size());
+        _volumes.insert(_volumes.end(), volumes.begin(), volumes.end());
     }
 
     private:

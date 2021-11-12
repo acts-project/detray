@@ -67,56 +67,26 @@ TEST(tools, intersection_kernel_single) {
     surface_container surfaces = {rectangle_surface, trapezoid_surface,
                                   annulus_surface};
 
-    // Try the intersection - first one by one
-
     track<decltype(transform_store)::context> track;
     track.pos = point3{0., 0., 0.};
     track.dir = vector::normalize(vector3{0.01, 0.01, 10.});
 
-    // Quick helper to check for within epsilon
-    auto within_epsilon = [](const point3 &a, const point3 &b,
-                             scalar epsilon) -> bool {
-        return (std::abs(a[0] - b[0]) < epsilon &&
-                std::abs(a[1] - b[1]) < epsilon &&
-                std::abs(a[2] - b[2]) < epsilon);
-    };
-
-    // Intersect the first surface
-    auto sfi_rectangle = intersect_by_group<mask_link>(
-        track, rectangle_transform, mask_store.template group<0>(), 0);
-
+    // Validation data
     point3 expected_rectangle{0.01, 0.01, 10.};
-    ASSERT_TRUE(within_epsilon(std::get<0>(sfi_rectangle).p3,
-                               expected_rectangle, 1e-7));
-
-    auto sfi_trapezoid = intersect_by_group<mask_link>(
-        track, trapezoid_transform, mask_store.template group<1>(), 0);
-
     point3 expected_trapezoid{0.02, 0.02, 20.};
-    ASSERT_TRUE(within_epsilon(std::get<0>(sfi_trapezoid).p3,
-                               expected_trapezoid, 1e-7));
-
-    auto sfi_annulus = intersect_by_group<mask_link>(
-        track, annulus_transform, mask_store.template group<2>(), 0);
-
     point3 expected_annulus{0.03, 0.03, 30.};
-    ASSERT_TRUE(
-        within_epsilon(std::get<0>(sfi_annulus).p3, expected_annulus, 1e-7));
 
     std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
-    std::vector<point3> result_points = {};
 
     // Try the intersection - with automated dispatching via the kernel
     unsigned int it = 0;
     for (const auto &surface : surfaces) {
-        mask_link link{};
-        auto sfi = intersect(track, surface, transform_store, mask_store, link);
+        auto sfi = intersect(track, surface, transform_store, mask_store);
 
-        result_points.push_back(sfi.p3);
-
-        ASSERT_TRUE(
-            within_epsilon(result_points[it], expected_points[it], 1e-7));
+        ASSERT_NEAR(sfi.p3[0], expected_points[it][0], 1e-7);
+        ASSERT_NEAR(sfi.p3[1], expected_points[it][1], 1e-7);
+        ASSERT_NEAR(sfi.p3[2], expected_points[it][2], 1e-7);
         ++it;
     }
 

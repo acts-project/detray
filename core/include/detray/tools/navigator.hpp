@@ -44,10 +44,7 @@ struct navigator {
     using objects = typename detector_type::object_id;
     // The detector geometry has to define the surface and portal types
     using surface = typename detector_type::geometry::surface;
-    using surface_link = typename surface::edge_links;
-
     using portal = typename detector_type::geometry::portal;
-    using portal_links = typename portal::edge_links;
 
     using context = typename detector_type::context;
 
@@ -81,13 +78,12 @@ struct navigator {
      *
      **/
     template <typename object_type, typename candidate_type,
-              typename links_type, objects object_id = objects::e_any,
+              objects object_id = objects::e_any,
               template <typename...> class vector_type = dvector>
     struct navigation_kernel {
         const object_type *on = nullptr;
         vector_type<candidate_type> candidates = {};
         typename vector_type<candidate_type>::iterator next = candidates.end();
-        links_type object_links;
 
         /** Indicate that the kernel is empty */
         bool empty() const { return candidates.empty(); }
@@ -95,14 +91,10 @@ struct navigator {
         /** Forward the kernel size */
         size_t size() const { return candidates.size(); }
 
-        /** Return current links for one of the objects */
-        links_type &links() { return object_links; }
-
         /** Clear the kernel */
         void clear() {
             candidates.clear();
             next = candidates.end();
-            object_links = links_type{};
             on = nullptr;
         }
     };
@@ -114,11 +106,10 @@ struct navigator {
      **/
     struct state {
         /** Kernel for the surfaces */
-        navigation_kernel<surface, intersection, surface_link,
-                          objects::e_surface>
+        navigation_kernel<surface, intersection, objects::e_surface>
             surface_kernel;
         /** Kernel for the portals */
-        navigation_kernel<portal, intersection, portal_links, objects::e_portal>
+        navigation_kernel<portal, intersection, objects::e_portal>
             portal_kernel;
 
         /** Volume navigation: index */
@@ -292,9 +283,8 @@ struct navigator {
 
         // Get the type of the kernel via a const expression at compile time
         constexpr objects kSurfaceType =
-            (std::is_same_v<
-                kernel_t, navigation_kernel<surface, intersection, surface_link,
-                                            objects::e_surface>>)
+            (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
+                                                        objects::e_surface>>)
                 ? objects::e_surface
                 : objects::e_portal;
 
@@ -312,9 +302,8 @@ struct navigator {
         // Loop over all indexed surfaces, intersect and fill
         // @todo - will come from the local object finder
         for (const auto [obj_idx, obj] : enumerate(surfaces, volume)) {
-            auto sfi = intersect(track, obj, transforms, masks, kernel.links());
+            auto sfi = intersect(track, obj, transforms, masks);
             sfi.index = obj_idx;
-            sfi.link = kernel.links()[0];
             // Ignore negative solutions - except overstep limit
             if (sfi.path < track.overstep_tolerance) {
                 continue;
@@ -356,9 +345,8 @@ struct navigator {
 
         // Get the type of the kernel via a const expression at compile time
         constexpr objects kSurfaceType =
-            (std::is_same_v<
-                kernel_t, navigation_kernel<surface, intersection, surface_link,
-                                            objects::e_surface>>)
+            (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
+                                                        objects::e_surface>>)
                 ? objects::e_surface
                 : objects::e_portal;
 
@@ -373,9 +361,8 @@ struct navigator {
             // Only update the last intersection
             dindex si = kernel.next->index;
             const auto &s = surfaces[si];
-            auto sfi = intersect(track, s, transforms, masks, kernel.links());
+            auto sfi = intersect(track, s, transforms, masks);
             sfi.index = si;
-            sfi.link = kernel.links()[0];
             if (sfi.status == e_inside) {
                 // Update the intersection with a new one
                 (*kernel.next) = sfi;
@@ -411,11 +398,9 @@ struct navigator {
             for (auto &c : kernel.candidates) {
                 dindex si = c.index;
                 auto &s = surfaces[si];
-                auto sfi =
-                    intersect(track, s, transforms, masks, kernel.links());
+                auto sfi = intersect(track, s, transforms, masks);
                 c = sfi;
                 c.index = si;
-                c.link = kernel.links()[0];
             }
             sort_and_set(navigation, kernel);
             if (navigation.trust_level == e_high_trust) {
@@ -437,9 +422,8 @@ struct navigator {
     void sort_and_set(state &navigation, kernel_t &kernel) const {
         // Get the type of the kernel via a const expression at compile time
         constexpr objects kSurfaceType =
-            (std::is_same_v<
-                kernel_t, navigation_kernel<surface, intersection, surface_link,
-                                            objects::e_surface>>)
+            (std::is_same_v<kernel_t, navigation_kernel<surface, intersection,
+                                                        objects::e_surface>>)
                 ? objects::e_surface
                 : objects::e_portal;
 

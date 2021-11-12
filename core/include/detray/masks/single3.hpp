@@ -30,19 +30,18 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <unsigned int kCheckIndex,
-          typename intersector_type = planar_intersector,
-          typename local_type = __plugin::cartesian2,
-          typename links_type = bool, unsigned int kMaskContext = e_single3,
-          template <typename, unsigned int> class array_type = darray>
+template <
+    unsigned int kCheckIndex, typename intersector_type = planar_intersector,
+    typename mask_links_type = __plugin::cartesian2,
+    typename mask_local_type = bool, unsigned int kMaskContext = e_single3,
+    template <typename, unsigned int> class array_type = darray>
 struct single3 {
 
     using mask_tolerance = scalar;
-
     /// This mask has min, max to check on
     using mask_values = array_type<scalar, 2>;
-
-    using mask_links_type = links_type;
+    using links_type = mask_links_type;
+    using local_type = mask_local_type;
 
     mask_values _values = {std::numeric_limits<scalar>::infinity()};
 
@@ -130,7 +129,7 @@ struct single3 {
 
     /** Return the local frame type */
     DETRAY_HOST_DEVICE
-    local_type local() const { return local_type{}; }
+    constexpr local_type local() const { return local_type{}; }
 
     /** Return the volume link - const reference */
     DETRAY_HOST_DEVICE

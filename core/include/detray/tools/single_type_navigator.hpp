@@ -55,7 +55,6 @@ class single_type_navigator {
 
     public:
     using object_t = typename object_container::value_type;
-    using link_t = typename object_t::edge_links;
 
     /** Navigation status flag */
     enum navigation_status : int {
@@ -138,11 +137,6 @@ class single_type_navigator {
         /** Call the navigation inspector */
         inline decltype(auto) inspector() { return _inspector(*this); }
 
-        /** @returns the links (next volume, next object finder) of current
-         * candidate
-         */
-        inline auto &links() { return _links; }
-
         /** @returns current object the navigator is on (might be invalid if
          * between objects)
          */
@@ -209,9 +203,6 @@ class single_type_navigator {
 
         /** The inspector type of this navigation engine */
         inspector_type _inspector = {};
-
-        /** Point to the next volume and object finder (not needed here) */
-        link_t _links = {};
 
         /** Index of a object (surface/portal) if is reached, otherwise invalid
          */
@@ -328,8 +319,7 @@ class single_type_navigator {
         for (const auto [obj_idx, obj] : enumerate(_objects, volume)) {
 
             // Retrieve candidate from the object
-            auto sfi =
-                intersect(track, obj, _transforms, _masks, navigation.links());
+            auto sfi = intersect(track, obj, _transforms, _masks);
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < track.overstep_tolerance) {
@@ -376,8 +366,8 @@ class single_type_navigator {
             while (not is_exhausted(navigation.kernel())) {
                 // Only update the next candidate
                 dindex obj_idx = navigation.next()->index;
-                auto sfi = intersect(track, _objects[obj_idx], _transforms,
-                                     _masks, navigation.links());
+                auto sfi =
+                    intersect(track, _objects[obj_idx], _transforms, _masks);
                 sfi.index = obj_idx;
                 sfi.link = std::get<0>(_objects[obj_idx].edge());
                 (*navigation.next()) = sfi;
@@ -409,8 +399,8 @@ class single_type_navigator {
         else if (navigation.trust_level() == e_fair_trust) {
             for (auto &candidate : navigation.candidates()) {
                 dindex obj_idx = candidate.index;
-                auto sfi = intersect(track, _objects[obj_idx], _transforms,
-                                     _masks, navigation.links());
+                auto sfi =
+                    intersect(track, _objects[obj_idx], _transforms, _masks);
                 candidate = sfi;
                 candidate.index = obj_idx;
                 candidate.link = std::get<0>(_objects[obj_idx].edge());

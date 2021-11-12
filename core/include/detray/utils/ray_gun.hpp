@@ -8,6 +8,7 @@
 #pragma once
 
 #include "detray/tools/intersection_kernel.hpp"
+#include "detray/utils/enumerate.hpp"
 
 namespace detray {
 
@@ -27,7 +28,6 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
                       const point3 &direction) {
 
     using object_id = typename detector_type::object_id;
-    using portal_links = typename detector_type::geometry::portal_links;
     using detray_context = typename detector_type::transform_store::context;
 
     detray_context default_context;
@@ -37,20 +37,28 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
     std::vector<std::pair<dindex, intersection>> volume_record;
 
     const auto &transforms = d.transforms(default_context);
+    // For a geometry that keeps a dedicated portal type, only intersect portals
     const auto &portals = d.template objects<object_id::e_portal>();
     const auto &masks = d.masks();
+
     // Loop over volumes
     for (const auto &v : d.volumes()) {
-        // Record the portals the ray intersects
-        const auto &pt_range = v.template range<object_id::e_portal>();
-        portal_links links = {};
-        for (size_t pi = pt_range[0]; pi < pt_range[1]; pi++) {
-            auto pti = intersect(ray, portals[pi], transforms, masks, links);
+
+        // Record the primitives the ray intersects
+        for (auto [obj_idx, obj] : enumerate(portals, v)) {
+            auto intr = intersect(ray, obj, transforms, masks);
 
             // Walk along the direction of intersected masks
-            if (pti.status == intersection_status::e_inside &&
-                pti.direction == intersection_direction::e_along) {
-                volume_record.emplace_back(v.index(), pti);
+            if (intr.status == intersection_status::e_inside &&
+                intr.direction == intersection_direction::e_along) {
+
+                // In case the linking information is not in the masks
+                auto empty_link = decltype(intr.link){};
+                if (/*intr.link == empty_link or */ intr.link ==
+                    dindex_invalid) {
+                    intr.link = std::get<0>(obj.edge());
+                }
+                volume_record.emplace_back(obj_idx, intr);
             }
         }
     }

@@ -10,11 +10,14 @@
 #include <string>
 
 #include "detray/core/intersection.hpp"
+#include "detray/utils/unbound.hpp"
 
 namespace detray {
+template <typename mask_local_type = unbound>
 struct unmasked {
 
     using mask_tolerance = bool;
+    using local_type = mask_local_type;
 
     static constexpr mask_tolerance within_epsilon = true;
 
@@ -28,7 +31,7 @@ struct unmasked {
      * @return a bool that is ture if inside
      **/
     template <typename local_type>
-    intersection_status is_inside(
+    inline intersection_status is_inside(
         const point2 & /*ignored*/,
         const mask_tolerance &t = within_epsilon) const {
         return t ? e_hit : e_missed;
@@ -44,7 +47,8 @@ struct unmasked {
      * @return a bool that is ture if inside
      **/
     template <typename local_type>
-    bool is_inside(const point2 & /*ignored*/, scalar /*ignored*/) const {
+    inline bool is_inside(const point2 & /*ignored*/,
+                          scalar /*ignored*/) const {
         return true;
     }
 
@@ -58,8 +62,8 @@ struct unmasked {
      * @return a bool that is ture if inside
      **/
     template <typename local_type>
-    bool is_inside(const point2 & /*ignored*/, scalar /*ignored*/,
-                   scalar /*ignored*/) const {
+    inline bool is_inside(const point2 & /*ignored*/, scalar /*ignored*/,
+                          scalar /*ignored*/) const {
         return true;
     }
 
