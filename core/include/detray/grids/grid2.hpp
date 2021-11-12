@@ -25,20 +25,20 @@ namespace detray {
  **/
 template <
     template <template <typename...> class, template <typename...> class,
-              template <typename, unsigned int> class, typename, unsigned int,
-              bool>
+              template <typename, unsigned int> class, typename, bool,
+              unsigned int>
     class populator_type,
     typename axis_p0_type, typename axis_p1_type, typename serializer_type,
     template <typename...> class vector_type = dvector,
     template <typename...> class jagged_vector_type = djagged_vector,
     template <typename, unsigned int> class array_type = darray,
     template <typename...> class tuple_type = dtuple,
-    typename value_type = dindex, unsigned int kDIM = 1, bool kSORT = false>
+    typename value_type = dindex, bool kSORT = false, unsigned int kDIM = 1>
 class grid2 {
 
     public:
     using populator_t = populator_type<vector_type, jagged_vector_type,
-                                       array_type, value_type, kDIM, kSORT>;
+                                       array_type, value_type, kSORT, kDIM>;
     using serializer_t = serializer_type;
     using axis_p0_t = axis_p0_type;
     using axis_p1_t = axis_p1_type;
@@ -431,21 +431,21 @@ struct grid2_view {
 /** Get grid2_data from grid and memory resource
  **/
 template <template <template <typename...> class, template <typename...> class,
-                    template <typename, unsigned int> class, typename,
-                    unsigned int, bool>
+                    template <typename, unsigned int> class, typename, bool,
+                    unsigned int>
           class populator_type,
           typename axis_p0_type, typename axis_p1_type,
           typename serializer_type, template <typename...> class vector_type,
           template <typename...> class jagged_vector_type,
           template <typename, unsigned int> class array_type,
           template <typename...> class tuple_type, typename value_type = dindex,
-          unsigned int kDIM = 1, bool kSORT = false>
+          bool kSORT = false, unsigned int kDIM = 1>
 inline grid2_data<grid2<populator_type, axis_p0_type, axis_p1_type,
                         serializer_type, vector_type, jagged_vector_type,
-                        array_type, tuple_type, value_type, kDIM, kSORT>>
+                        array_type, tuple_type, value_type, kSORT, kDIM>>
 get_data(grid2<populator_type, axis_p0_type, axis_p1_type, serializer_type,
                vector_type, jagged_vector_type, array_type, tuple_type,
-               value_type, kDIM, kSORT> &grid,
+               value_type, kSORT, kDIM> &grid,
          vecmem::memory_resource &resource) {
     return {grid, resource};
 }
