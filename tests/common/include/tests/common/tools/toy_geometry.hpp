@@ -59,7 +59,7 @@ struct toy_geometry {
 
 // Minimalistic detector type for toy geometry
 template <typename geometry_t, typename mask_container_t, typename transform_t,
-          template <typename...> class vector_t = dvector>
+          typename grid_t, template <typename...> class vector_t = dvector>
 struct toy_detector {
     // typedefs
     using transform_store = vector_t<transform_t>;
@@ -67,6 +67,8 @@ struct toy_detector {
     using geometry = geometry_t;
     using volume = typename geometry_t::volume_type;
     using object_id = typename geometry_t::object_registry::id;
+    using volume_grid = grid_t;
+    using surfaces_finder = grid_t;
 
     struct empty_context {};
     using context = empty_context;  // not used
@@ -86,10 +88,14 @@ struct toy_detector {
         return _geometry._objects;
     }
 
+    std::string _name = "toy_detector";
+
     // data containers
     geometry_t _geometry;
     vector_t<transform_t> _transforms;
     mask_container_t _masks;
+    vector_t<surfaces_finder> _surfaces_finders;
+    volume_grid _volume_grid;
 };
 
 /** Creates a number of pixel modules for the a cylindrical barrel region.
@@ -279,6 +285,8 @@ auto create_toy_geometry() {
     scalar first_layer_outer_r = 38.;
     scalar second_layer_inner_r = 64.;
     scalar second_layer_outer_r = 80.;
+
+    struct toy_grid {};
 
     /** Add a single barrel layer volume to an existing collection.
      *
@@ -509,7 +517,7 @@ auto create_toy_geometry() {
         std::move(discs), std::move(cylinders), std::move(rectangles));
 
     auto d = toy_detector<decltype(geo), decltype(masks),
-                          decltype(transforms)::value_type>(
+                          decltype(transforms)::value_type, toy_grid>(
         std::move(geo), std::move(masks), std::move(transforms));
 
     return std::move(d);
