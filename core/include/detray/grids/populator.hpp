@@ -32,7 +32,8 @@ namespace detray {
 template <template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
           template <typename, unsigned int> class array_type = darray,
-          typename value_type = dindex>
+          typename value_type = dindex, unsigned int kDIM = 1,
+          bool kSORT = false>
 struct replace_populator {
     DETRAY_HOST_DEVICE
     replace_populator(const value_type invalid = invalid_value<value_type>())
@@ -213,7 +214,8 @@ struct complete_populator {
 template <template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
           template <typename, unsigned int> class array_type = darray,
-          typename value_type = dindex, bool kSORT = false>
+          typename value_type = dindex, unsigned int kDIM = 1,
+          bool kSORT = false>
 struct attach_populator {
     DETRAY_HOST_DEVICE
     attach_populator(const value_type invalid = invalid_value<value_type>())
