@@ -34,12 +34,12 @@ using device_grid2_replace =
 using host_grid2_complete =
     grid2<complete_populator, axis::regular<>, axis::regular<>, serializer2,
           vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-          test::point3, n_points, false>;
+          test::point3, false, n_points>;
 
 using device_grid2_complete =
     grid2<complete_populator, axis::regular<>, axis::regular<>, serializer2,
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
-          std::tuple, test::point3, n_points, false>;
+          std::tuple, test::point3, false, n_points>;
 
 using host_grid2_attach =
     grid2<attach_populator, axis::circular<>, axis::regular<>, serializer2,

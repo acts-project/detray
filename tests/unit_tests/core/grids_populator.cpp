@@ -31,7 +31,7 @@ TEST(grids, replace_populator) {
 TEST(grids, complete_populator) {
 
     using cpopulator4 =
-        complete_populator<dvector, djagged_vector, darray, dindex, 4, false>;
+        complete_populator<dvector, djagged_vector, darray, dindex, false, 4>;
     cpopulator4 completer;
 
     cpopulator4::store_value stored = {completer.m_invalid, completer.m_invalid,
@@ -48,7 +48,7 @@ TEST(grids, complete_populator) {
     EXPECT_EQ(stored, test);
 
     using sort_cpopulator4 =
-        complete_populator<dvector, djagged_vector, darray, dindex, 4, true>;
+        complete_populator<dvector, djagged_vector, darray, dindex, true, 4>;
     sort_cpopulator4 sort_completer;
 
     test = {0, 3, 9, 1000};
