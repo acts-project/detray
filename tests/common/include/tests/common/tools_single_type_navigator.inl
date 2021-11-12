@@ -10,11 +10,9 @@
 #include "detray/core/mask_store.hpp"
 #include "detray/core/track.hpp"
 #include "detray/tools/single_type_navigator.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
-
-auto toy_det = create_toy_geometry();
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, single_type_navigator) {
@@ -23,6 +21,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     /** Tolerance for tests */
     constexpr double tol = 0.01;
 
+    auto toy_det = create_toy_geometry();
     single_type_navigator n(toy_det);
     using toy_navigator = decltype(n);
     using nav_context = decltype(toy_det)::context;

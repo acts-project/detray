@@ -10,8 +10,9 @@
 //#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/tools/geometry_graph.hpp"
-#include "detray/tools/hash_tree.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/hash_tree.hpp"
+//#include "tests/common/tools/read_geometry.hpp"
+#include "tests/common/tools/toy_geometry.hpp"
 
 using namespace detray;
 
@@ -25,18 +26,16 @@ constexpr std::size_t vol1_hash = 2;  // TODO: Find hash function without coll.!
 constexpr std::size_t vol2_hash = 10;
 constexpr std::size_t vol3_hash = 1798;
 
-// Build the geometry (modeled as a unified index geometry)
-auto toy_det = create_toy_geometry();
-
-using geometry_t = typename decltype(toy_det)::geometry;
-const auto geo = toy_det._geometry;
-
-// Build the graph
-const auto g = geometry_graph<geometry_t>(geo._volumes, geo._objects);
-
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
 
+    // Build the geometry (modeled as a unified index geometry)
+    auto toy_det = create_toy_geometry();
+    using geometry_t = typename decltype(toy_det)::geometry;
+    const auto geo = toy_det._geometry;
+
+    // Build the graph
+    const auto g = geometry_graph<geometry_t>(geo._volumes, geo._objects);
     const auto &adj_linking = g.adjacency_list();
 
     std::cout << g.to_string() << std::endl;

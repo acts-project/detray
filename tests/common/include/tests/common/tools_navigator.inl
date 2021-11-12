@@ -16,7 +16,8 @@
 #include "detray/core/transform_store.hpp"
 #include "detray/io/csv_io.hpp"
 #include "detray/tools/navigator.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/read_geometry.hpp"
+//#include "tests/common/tools/toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

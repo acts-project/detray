@@ -17,7 +17,7 @@
 #include <utility>
 #include <vector>
 
-#include "detray/utils/ray_gun.hpp"
+#include "tests/common/tools/ray_gun.hpp"
 
 namespace detray {
 

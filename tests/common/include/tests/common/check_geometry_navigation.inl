@@ -20,8 +20,8 @@
 #include "detray/io/csv_io.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
-#include "detray/utils/ray_gun.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/ray_gun.hpp"
+#include "tests/common/tools/read_geometry.hpp"
 
 using namespace detray;
 

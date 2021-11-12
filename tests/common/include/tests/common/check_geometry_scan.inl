@@ -8,12 +8,13 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
-#include <vecmem/memory/host_memory_resource.hpp>
+//#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/tools/geometry_graph.hpp"
-#include "detray/tools/hash_tree.hpp"
-#include "tests/common/ray_scan_utils.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/hash_tree.hpp"
+#include "tests/common/tools/ray_scan_utils.hpp"
+//#include "tests/common/tools/read_geometry.hpp"
+#include "tests/common/tools/toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
