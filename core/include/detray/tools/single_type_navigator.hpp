@@ -194,7 +194,7 @@ class single_type_navigator {
         inline bool abort() {
             _status = e_abort;
             _trust_level = e_no_trust;
-            run_inspector("aborted: ");
+            run_inspector("Aborted: ");
             return false;
         }
 
@@ -206,7 +206,7 @@ class single_type_navigator {
         inline bool exit() {
             _status = e_on_target;
             _trust_level = e_full_trust;
-            run_inspector("exited: ");
+            run_inspector("Exited: ");
             return false;
         }
 
@@ -465,11 +465,8 @@ class single_type_navigator {
                 navigation.set_object(kernel.next->index);
                 // The next object that we want to reach
                 ++navigation.next();
-                // Direct hit
+                // Set it briefly so that the inspector can catch this state
                 navigation.set_status(e_on_object);
-                // We might be wrong in this assumption, re-evaluate distance
-                // to next in the next pass
-                navigation.set_trust_level(e_high_trust);
                 // Call the inspector on this portal crossing, then go to next
                 navigation.run_inspector("Skipped direct hit: ");
             }
@@ -485,7 +482,7 @@ class single_type_navigator {
             navigation.set_trust_level(e_full_trust);
 
             // Call the inspector on new status
-            navigation.run_inspector("set next: ");
+            navigation.run_inspector("Set next: ");
         }
     }
 
