@@ -5,11 +5,30 @@
  * Mozilla Public License Version 2.0
  */
 
+//#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "detray/geometry/surface_base.hpp"
 #include "detray/geometry/volume.hpp"
 #include "detray/masks/masks.hpp"
 
 namespace detray {
+
+// Types for toy geometry
+struct object_registry {
+    // Known primitives
+    enum id : unsigned int {
+        e_object_types = 1,
+        e_surface = 0,
+        e_portal = 0,  // same as surface
+        e_any = 0,
+        e_unknown = 2,
+    };
+
+    template <typename value_type = void>
+    static constexpr auto get() {
+        return e_surface;
+    }
+};
 
 // Minimalistic geometry type for toy geometry.
 template <typename volume_t, typename object_t,
@@ -205,7 +224,7 @@ auto create_toy_geometry() {
 
     // Volume type
     using volume_type =
-        detray::volume<toy_object_registry, dindex_range, detray::darray>;
+        detray::volume<object_registry, dindex_range, detray::darray>;
     /// volume index: volume the surface belongs to
     using volume_index = detray::dindex;
     /// transform link: transform entry belonging to surface
