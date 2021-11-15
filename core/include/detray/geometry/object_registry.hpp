@@ -53,19 +53,3 @@ struct unified_object_registry {
         return e_unknown;
     }
 };
-
-// object registry for toy geometry
-struct toy_object_registry {
-    // Known primitives
-    enum id : unsigned int {
-        e_object_types = 1,
-        e_surface = 0,
-        e_any = 0,
-        e_unknown = 2,
-    };
-
-    template <typename value_type = void>
-    DETRAY_HOST_DEVICE static constexpr auto get() {
-        return e_surface;
-    }
-};

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 namespace detray {
 /// Connector method for cylindrical volumes without phi separation
 ///
@@ -217,7 +219,9 @@ void connect_cylindrical_volumes(
         walk_up(bottom_right, right_portals_info, false, 1);
 
         typename detector_type::geometry::portal_filling_container portals = {};
-        typename detector_type::mask_container portal_masks;
+        vecmem::host_memory_resource local_mask_resource;
+        typename detector_type::mask_container portal_masks(
+            local_mask_resource);
         typename detector_type::transform_container portal_transforms;
 
         // The bounds can be used for the mask and transform information

@@ -9,7 +9,7 @@
 
 #include <climits>
 #include <map>
-#include <vecmem/memory/memory_resource.hpp>
+#include <vecmem/memory/host_memory_resource.hpp>
 #include <vector>
 
 #include "detray/core/detector.hpp"
@@ -86,7 +86,7 @@ detector_from_csv(const std::string &detector_name,
     // Flushable containers
     typename typed_detector::volume *c_volume = nullptr;
     typename typed_detector::geometry::surface_filling_container c_surfaces;
-    typename typed_detector::mask_container c_masks;
+    typename typed_detector::mask_container c_masks(resource);
     typename typed_detector::transform_container c_transforms;
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
@@ -305,7 +305,7 @@ detector_from_csv(const std::string &detector_name,
 
                 c_surfaces = typename typed_detector::geometry::
                     surface_filling_container();
-                c_masks = typename typed_detector::mask_container();
+                c_masks = typename typed_detector::mask_container(resource);
                 c_transforms = typename typed_detector::transform_container();
             }
 

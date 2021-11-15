@@ -17,8 +17,8 @@ struct unbound {
     using point2 = __plugin::point2;
 
     /** This method transform from a point from the global 3D cartesian frame to
-     *the local 2D cartesian frame, including the contextual transform into the
-     *local 3D frame
+     *  the local 2D cartesian frame, including the contextual transform into
+     *  the local 3D frame
      **/
     const point2 operator()(const transform3& /*ignored*/,
                             const point3& /*ignored*/) const {
@@ -27,7 +27,7 @@ struct unbound {
     }
 
     /** This method transform from a point from the global 3D cartesian frame to
-     * the local 2D cartesian frame
+     *  the local 2D cartesian frame
      */
     const point2 operator()(const point3& /*ignored*/) const {
         return {std::numeric_limits<scalar>::infinity(),

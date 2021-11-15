@@ -112,7 +112,7 @@ TEST(grids, grid2_complete_populator) {
 
     using grid2r = grid2<complete_populator, decltype(xaxis), decltype(yaxis),
                          decltype(serializer), dvector, djagged_vector, darray,
-                         dtuple, dindex, 3, false>;
+                         dtuple, dindex, false, 3>;
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 

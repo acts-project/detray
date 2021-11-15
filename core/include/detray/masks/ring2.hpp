@@ -33,15 +33,15 @@ namespace detray {
  *
  **/
 template <typename intersector_type = planar_intersector,
-          typename local_type = __plugin::cartesian2,
-          typename links_type = bool, unsigned int kMaskContext = e_ring2,
+          typename mask_local_type = __plugin::cartesian2,
+          typename mask_links_type = unsigned int,
+          unsigned int kMaskContext = e_ring2,
           template <typename, unsigned int> class array_type = darray>
 struct ring2 {
     using mask_tolerance = scalar;
-
     using mask_values = array_type<scalar, 2>;
-
-    using mask_links_type = links_type;
+    using links_type = mask_links_type;
+    using local_type = mask_local_type;
 
     mask_values _values = {0., std::numeric_limits<scalar>::infinity()};
 
@@ -141,7 +141,7 @@ struct ring2 {
 
     /** Return the local frame type */
     DETRAY_HOST_DEVICE
-    local_type local() const { return local_type{}; }
+    constexpr local_type local() const { return local_type{}; }
 
     /** Return the volume link - const reference */
     DETRAY_HOST_DEVICE

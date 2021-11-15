@@ -17,7 +17,8 @@
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
 #include "detray/tools/propagator.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/read_geometry.hpp"
+//#include "tests/common/tools/toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -32,7 +33,7 @@ TEST(ALGEBRA_PLUGIN, propagator) {
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
-    using detray_context = decltype(d)::transform_store::context;
+    using detray_context = decltype(d)::context;
     using detray_track = track<detray_context>;
 
     detray_track traj;

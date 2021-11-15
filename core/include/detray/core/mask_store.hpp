@@ -37,7 +37,7 @@ class mask_store {
     // using mask_tuple = tuple_type<vector_type<mask_types>...>;
 
     /** Default constructor **/
-    mask_store() = default;
+    mask_store() = delete;
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
@@ -60,6 +60,13 @@ class mask_store {
     template <unsigned int mask_id>
     DETRAY_HOST_DEVICE size_t size() const {
         return detail::get<mask_id>(_mask_tuple).size();
+    }
+
+    /** Size : Contextual STL like API
+     * @return the number of mask types in the store
+     */
+    DETRAY_HOST_DEVICE constexpr size_t size() const {
+        return detail::tuple_size<mask_tuple>::value;
     }
 
     /** Empty : Contextual STL like API

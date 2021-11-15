@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
             std::vector<std::array<scalar, 4>> gadds = {grid_adds, cell_adds,
                                                         assoc_adds};
 
-            decltype(d)::transform_store::context s_context;
+            decltype(d)::context s_context;
 
             // Surface finders, volume, bounds
             auto surfaces_finders = d.surfaces_finders();

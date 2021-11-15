@@ -18,7 +18,7 @@
 #include "detray/io/csv_io.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "tests/common/read_geometry.hpp"
+#include "tests/common/tools/read_geometry.hpp"
 
 using namespace detray;
 
@@ -36,8 +36,7 @@ vecmem::host_memory_resource host_mr;
 auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
 using geometry = decltype(d)::geometry;
-using links_type = typename geometry::surface_links;
-constexpr auto k_surfaces = geometry::object_registry_type::id::e_surface;
+constexpr auto k_surfaces = geometry::object_registry::id::e_surface;
 
 using detray_context = decltype(d)::transform_store::context;
 detray_context default_context;
@@ -81,10 +80,9 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                 for (const auto &v : d.volumes()) {
                     // Loop over all surfaces in volume
                     for (const auto sf : range(data_core.surfaces, v)) {
-                        links_type links{};
 
                         auto sfi = intersect(track, sf, data_core.transforms,
-                                             data_core.masks, links);
+                                             data_core.masks);
 
                         benchmark::DoNotOptimize(hits);
                         benchmark::DoNotOptimize(missed);

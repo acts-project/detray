@@ -33,13 +33,13 @@ constexpr scalar isclose = 1e-5;
 TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // Create a translated cylinder and test untersection
     transform3 shifted(vector3{3., 2., 10.});
-    cylinder3<> cylinder = {4., -10., 10.};
+    cylinder3<false, cylinder_intersector, unbound, unsigned int, 1>
+        cylinder_unbound = {4., -10., 10.};
     cylinder_intersector ci;
 
     // Unbound local frame test
-    unbound ub;
     auto hit_unbound = ci.intersect(shifted, point3{3., 2., 5.},
-                                    vector3{1., 0., 0.}, ub, cylinder);
+                                    vector3{1., 0., 0.}, cylinder_unbound);
     ASSERT_TRUE(hit_unbound.status == intersection_status::e_inside);
     ASSERT_NEAR(hit_unbound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_unbound.p3[1], 2., epsilon);
@@ -48,9 +48,11 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
                 hit_unbound.p2[1] == not_defined);
 
     // The same but bound
-    __plugin::cylindrical2 cylindrical2;
+    cylinder3<false, cylinder_intersector, __plugin::cylindrical2, unsigned int,
+              1>
+        cylinder_bound = {4., -10., 10.};
     auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.},
-                                  vector3{1., 0., 0.}, cylindrical2, cylinder);
+                                  vector3{1., 0., 0.}, cylinder_bound);
     ASSERT_TRUE(hit_bound.status == intersection_status::e_inside);
     ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_bound.p3[1], 2., epsilon);
@@ -76,11 +78,8 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     point3 dir = vector::normalize(vector3{1., 1., 1.});
 
     // The same but bound
-    __plugin::cylindrical2 cylindrical2;
-    auto hit_cylinrical =
-        ci.intersect(identity, ori, dir, cylindrical2, cylinder);
-    auto hit_cocylindrical =
-        cci.intersect(identity, ori, dir, cylindrical2, cylinder);
+    auto hit_cylinrical = ci.intersect(identity, ori, dir, cylinder);
+    auto hit_cocylindrical = cci.intersect(identity, ori, dir, cylinder);
 
     ASSERT_TRUE(hit_cylinrical.status == intersection_status::e_inside);
     ASSERT_TRUE(hit_cocylindrical.status == intersection_status::e_inside);

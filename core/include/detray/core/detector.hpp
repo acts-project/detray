@@ -105,6 +105,7 @@ class detector {
      */
     detector(const std::string &name, vecmem::memory_resource &resource)
         : _name(name),
+          _masks(mask_container{resource}),
           _volume_grid(volume_grid(std::move(axis::irregular{{}}),
                                    std::move(axis::irregular{{}}), resource)) {}
 
@@ -367,7 +368,7 @@ class detector {
     transform_store _transforms = {};
 
     /** Surface and portal masks of the detector in contigous memory */
-    mask_container _masks = {};
+    mask_container _masks;
 
     vector_type<surfaces_finder> _surfaces_finders;
 
