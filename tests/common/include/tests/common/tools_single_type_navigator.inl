@@ -10,7 +10,7 @@
 #include "detray/core/mask_store.hpp"
 #include "detray/core/track.hpp"
 #include "detray/tools/single_type_navigator.hpp"
-#include "tests/common/tools/toy_geometry.hpp"
+#include "tests/common/tools/create_toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

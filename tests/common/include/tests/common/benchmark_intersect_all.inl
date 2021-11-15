@@ -36,7 +36,7 @@ vecmem::host_memory_resource host_mr;
 auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
 using geometry = decltype(d)::geometry;
-constexpr auto k_surfaces = geometry::object_registry::id::e_surface;
+constexpr auto k_surfaces = geometry::object_registry_type::id::e_surface;
 
 using detray_context = decltype(d)::transform_store::context;
 detray_context default_context;

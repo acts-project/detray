@@ -12,7 +12,7 @@
 #include "detray/tools/geometry_graph.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
-#include "tests/common/tools/toy_geometry.hpp"
+#include "tests/common/tools/create_toy_geometry.hpp"
 
 using namespace detray;
 

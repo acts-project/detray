@@ -5,98 +5,9 @@
  * Mozilla Public License Version 2.0
  */
 
-//#include <vecmem/memory/host_memory_resource.hpp>
-
-#include "detray/geometry/surface_base.hpp"
-#include "detray/geometry/volume.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/core/detector.hpp"
 
 namespace detray {
-
-// Types for toy geometry
-struct object_registry {
-    // Known primitives
-    enum id : unsigned int {
-        e_object_types = 1,
-        e_surface = 0,
-        e_portal = 0,  // same as surface
-        e_any = 0,
-        e_unknown = 2,
-    };
-
-    template <typename value_type = void>
-    static constexpr auto get() {
-        return e_surface;
-    }
-};
-
-// Minimalistic geometry type for toy geometry.
-template <typename volume_t, typename object_t,
-          template <typename...> class vector_t = dvector>
-struct toy_geometry {
-    // typedefs
-    using volume_type = volume_t;
-    using portal = object_t;
-    using portal_container = vector_t<portal>;
-    using portal_links = typename object_t::edge_links;
-
-    struct object_registry {
-        using id = typename volume_type::objects;
-
-        template <typename value_type = void>
-        static constexpr auto get() {
-            return id::e_surface;
-        }
-    };
-
-    toy_geometry(vector_t<volume_t>&& volumes, vector_t<object_t>&& objects)
-        : _volumes(volumes), _objects(objects) {}
-
-    // data containers
-    vector_t<volume_t> _volumes;
-    vector_t<object_t> _objects;
-};
-
-// Minimalistic detector type for toy geometry
-template <typename geometry_t, typename mask_container_t, typename transform_t,
-          typename grid_t, template <typename...> class vector_t = dvector>
-struct toy_detector {
-    // typedefs
-    using transform_store = vector_t<transform_t>;
-    using mask_container = mask_container_t;
-    using geometry = geometry_t;
-    using volume = typename geometry_t::volume_type;
-    using object_id = typename geometry_t::object_registry::id;
-    using volume_grid = grid_t;
-    using surfaces_finder = grid_t;
-
-    struct empty_context {};
-    using context = empty_context;  // not used
-
-    toy_detector(geometry_t&& geo, mask_container_t&& masks,
-                 vector_t<transform_t>&& trfs)
-        : _geometry(geo), _masks(masks), _transforms(trfs) {}
-
-    // interface functions
-    const auto& volumes() const { return _geometry._volumes; }
-    const auto& transforms(const context /*ctx*/ = {}) const {
-        return _transforms;
-    }
-    const auto& masks() const { return _masks; }
-    template <object_id>
-    const auto& objects() const {
-        return _geometry._objects;
-    }
-
-    std::string _name = "toy_detector";
-
-    // data containers
-    geometry_t _geometry;
-    vector_t<transform_t> _transforms;
-    mask_container_t _masks;
-    vector_t<surfaces_finder> _surfaces_finders;
-    volume_grid _volume_grid;
-};
 
 /** Creates a number of pixel modules for the a cylindrical barrel region.
  *
@@ -224,7 +135,7 @@ auto create_toy_geometry() {
 
     // Volume type
     using volume_type =
-        detray::volume<object_registry, dindex_range, detray::darray>;
+        detray::volume<toy_object_registry, dindex_range, detray::darray>;
     /// volume index: volume the surface belongs to
     using volume_index = detray::dindex;
     /// transform link: transform entry belonging to surface

@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 #include "detray/definitions/detail/accessor.hpp"
-#include "tests/common/tools/toy_geometry.hpp"
+#include "tests/common/tools/create_toy_geometry.hpp"
 
 using namespace detray;
 

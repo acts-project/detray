@@ -14,7 +14,7 @@
 #include "tests/common/tools/hash_tree.hpp"
 #include "tests/common/tools/ray_scan_utils.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
-#include "tests/common/tools/toy_geometry.hpp"
+#include "tests/common/tools/create_toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
