@@ -129,7 +129,7 @@ inline auto create_modules(const scalar m_half_x = 8.4,
  *          surfaces, transforms, disc masks (neg/pos portals), cylinder masks
  *          (inner/outer portals), rectangle masks (modules)]
  */
-auto create_toy_geometry() {
+auto create_toy_geometry(vecmem::memory_resource& resource) {
 
     using transform3 = __plugin::transform3;
 
@@ -415,7 +415,10 @@ auto create_toy_geometry() {
 
     // Return all geometry containers
     using geometry_t = toy_geometry<volume_type, surface>;
-    auto geo = geometry_t(std::move(volumes), std::move(surfaces));
+
+    geometry_t geo(resource);
+    geo.add_volumes(std::move(volumes));
+    geo.add_objects(std::move(surfaces));
 
     // First, put data into the detector interface
     /*mask_store<dtuple, dvector, discs, cylinders, rectangles> masks;

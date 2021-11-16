@@ -55,7 +55,8 @@ void print_adj(std::map<dindex, std::map<dindex, dindex>> &adjacency_list) {
 TEST(ALGEBRA_PLUGIN, geometry_scan) {
 
     // Build the geometry (modeled as a unified index geometry)
-    auto toy_det = create_toy_geometry();
+    vecmem::host_memory_resource host_mr;
+    auto toy_det = create_toy_geometry(host_mr);
 
     // Build the graph
     using geometry_t = typename decltype(toy_det)::geometry;

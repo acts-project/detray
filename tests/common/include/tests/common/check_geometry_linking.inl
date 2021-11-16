@@ -30,7 +30,8 @@ constexpr std::size_t vol3_hash = 1798;
 TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
 
     // Build the geometry (modeled as a unified index geometry)
-    auto toy_det = create_toy_geometry();
+    vecmem::host_memory_resource host_mr;
+    auto toy_det = create_toy_geometry(host_mr);
     using geometry_t = typename decltype(toy_det)::geometry;
     const auto geo = toy_det._geometry;
 

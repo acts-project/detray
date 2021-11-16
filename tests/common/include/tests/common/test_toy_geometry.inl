@@ -15,7 +15,8 @@ using namespace detray;
 // This test check the building of the tml based toy geometry
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
-    auto toy_det = create_toy_geometry();
+    vecmem::host_memory_resource host_mr;
+    auto toy_det = create_toy_geometry(host_mr);
 
     using objs = typename decltype(toy_det)::object_id;
     auto& volumes = toy_det.volumes();

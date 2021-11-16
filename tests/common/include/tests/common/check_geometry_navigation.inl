@@ -186,7 +186,8 @@ struct print_inspector {
 // vecmem::host_memory_resource host_mr;
 // auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
-auto d = create_toy_geometry();
+vecmem::host_memory_resource host_mr;
+auto d = create_toy_geometry(host_mr);
 
 // Create the navigator
 using detray_context = decltype(d)::context;

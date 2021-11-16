@@ -17,11 +17,12 @@
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     using namespace detray;
+    vecmem::host_memory_resource host_mr;
 
     /** Tolerance for tests */
     constexpr double tol = 0.01;
 
-    auto toy_det = create_toy_geometry();
+    auto toy_det = create_toy_geometry(host_mr);
     single_type_navigator n(toy_det);
     using toy_navigator = decltype(n);
     using nav_context = decltype(toy_det)::context;
