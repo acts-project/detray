@@ -13,12 +13,12 @@
 
 #include "detray/core/transform_store.hpp"
 #include "detray/geometry/index_geometry.hpp"
-#include "detray/geometry/toy_geometry.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/tools/local_object_finder.hpp"
+#include "detray/tools/toy_geometry.hpp"
 
 namespace detray {
 
