@@ -82,13 +82,15 @@ class unified_index_geometry {
     /// mask types
     using rectangle = rectangle2<planar_intersector, __plugin::cartesian2,
                                  portal_links, e_rectangle2>;
-    using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, void,
-                                 e_trapezoid2>;
-    using annulus =
-        annulus2<planar_intersector, __plugin::cartesian2, void, e_annulus2>;
-    using cylinder = cylinder3<false, cylinder_intersector,
-                               __plugin::cylindrical2, void, e_cylinder3>;
-    using disc = ring2<planar_intersector, __plugin::cartesian2, void, e_ring2>;
+    using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2,
+                                 portal_links, e_trapezoid2>;
+    using annulus = annulus2<planar_intersector, __plugin::cartesian2,
+                             portal_links, e_annulus2>;
+    using cylinder =
+        cylinder3<false, cylinder_intersector, __plugin::cylindrical2,
+                  portal_links, e_cylinder3>;
+    using disc =
+        ring2<planar_intersector, __plugin::cartesian2, portal_links, e_ring2>;
 
     using mask_container = mask_store<tuple_type, vector_type, rectangle,
                                       trapezoid, annulus, cylinder, disc>;
@@ -229,7 +231,7 @@ class unified_index_geometry {
         obj.transform() += offset;
     }
 
-    /** Add objects (surfaces/portals) to the geometry
+    /** Add object collection (surfaces/portals) to the volume
      *
      * @param volume the volume the objects belong to
      * @param surfaces the surfaces that will be filled into the volume
@@ -244,22 +246,16 @@ class unified_index_geometry {
         volume.set_range({offset, _objects.size()});
     }
 
-    /** Add objects (surfaces/portals) to the geometry (pre-built)
+    /** Add object collection (surfaces/portals) to the volume with matching
+     * index
      *
-     * @param surfaces the surfaces of the geometry
+     * @param volume_idx index of volume
+     * @param surfaces the surfaces that will be filled into the volume
      */
-    inline void add_object_collection(const surface_container &surfaces) {
-        _objects.reserve(surfaces.size());
-        _objects.insert(_objects.end(), surfaces.begin(), surfaces.end());
-    }
-
-    /** Add objects volumes to the geometry (pre-built)
-     *
-     * @param volumes the volumes of the geometry
-     */
-    inline void add_volume_collection(const vector_type<volume_type> &volumes) {
-        _volumes.reserve(volumes.size());
-        _volumes.insert(_volumes.end(), volumes.begin(), volumes.end());
+    DETRAY_HOST
+    inline void add_objects(dindex &volume_idx,
+                            const surface_container &surfaces) {
+        add_objects(_volumes[volume_idx], surfaces);
     }
 
     private:

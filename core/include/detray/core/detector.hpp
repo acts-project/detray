@@ -14,6 +14,7 @@
 #include "detray/core/transform_store.hpp"
 #include "detray/geometry/index_geometry.hpp"
 #include "detray/geometry/toy_geometry.hpp"
+#include "detray/geometry/unified_index_geometry.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
@@ -61,6 +62,7 @@ class detector {
 
     /// Export geometry types
     using geometry = geometry_type;
+    using surface = typename geometry_type::surface;
     using volume = typename geometry_type::volume_type;
     using object_id = typename geometry_type::object_registry_type::id;
     using mask_id = typename geometry_type::mask_id;
@@ -106,7 +108,9 @@ class detector {
      */
     detector(const std::string &name, vecmem::memory_resource &resource)
         : _name(name),
-          _masks(mask_container{resource}),
+          _geometry(resource),
+          _masks(resource),
+          _transforms(resource),
           _volume_grid(volume_grid(std::move(axis::irregular{{}}),
                                    std::move(axis::irregular{{}}), resource)) {}
 

@@ -9,6 +9,7 @@
 
 #include "detray/definitions/detail/accessor.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
+#include "tests/common/tools/create_toy_geometry2.hpp"
 
 using namespace detray;
 
@@ -194,6 +195,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     range = {239, surfaces.size()};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {2, 224}, {{vol_itr->index(), inv_sf_finder}});
+
+    auto toy_det2 = create_toy_geometry2(host_mr);
 }
 
 int main(int argc, char** argv) {
