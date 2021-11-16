@@ -25,6 +25,7 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
     using surface = typename detector_t::surface;
     using mask_container = typename detector_t::mask_container;
     using transform_store = typename detector_t::transform_store;
+    using transform_container = typename detector_t::transform_container;
     using disc = typename detector_t::geometry::disc;
     using cylinder = typename detector_t::geometry::cylinder;
     using rectangle = typename detector_t::geometry::rectangle;
@@ -35,23 +36,38 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
     detector_t det("toy_geometry", resource);
 
     // context objects
-    static_transform_store<>::context ctx0;
+    transform_store::context ctx0;
 
     // parameters
-    scalar detector_half_z = 500.;
-    scalar beampipe_r = 27.;
-    scalar first_layer_outer_r = 38.;
-    scalar second_layer_inner_r = 64.;
-    scalar second_layer_outer_r = 80.;
+    const scalar detector_half_z = 500.;
+    const scalar beampipe_r = 27.;
+    const scalar first_layer_outer_r = 38.;
+    const scalar second_layer_inner_r = 64.;
+    const scalar second_layer_outer_r = 80.;
+    const dindex inv_sf_finder = dindex_invalid;
 
     /**
      * beampipe volume -- volume ID = 0
      */
+
+    // create volume and sub-geometry containers
     auto& vol0 = det.new_volume(
         {0, beampipe_r, -1 * detector_half_z, detector_half_z, -M_PI, M_PI});
-
+    surface_container vol0_surfaces = {};
     mask_container vol0_masks(resource);
-    transform_store vol0_transforms(resource);
+    transform_container vol0_transforms = {};
+
+    // disc portal at negative side
+    surface beampipe_neg_portal_tsl{inv_sf_};
+
+    vol0_surfaces.emplace_back(inv_sf_finder);
+    point3 beampipe_neg_portal_tsl{0., 0., -detector_half_z};
+    vol0_transforms[detector_t::geometry::e_portal_ring2].emplace_back(
+        ctx0, beampipe_neg_portal_tsl);
+    vol0_masks.add_mask<detector_t::geometry::e_portal_ring2>(0., beampipe_r);
+
+    // add beampipe geometry to detector
+    det.add_objects(ctx0, vol0, vol0_surfaces, vol0_masks, vol0_transforms);
 
     // Add portal/surface to beampipe
     // det.add_surface<disc>(vol0.index(), {});
