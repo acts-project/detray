@@ -6,7 +6,6 @@
  */
 
 #include "detray/core/detector.hpp"
-#include "detray/geometry/unified_index_geometry.hpp"
 
 namespace detray {
 
@@ -421,6 +420,12 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     geo.add_volumes(std::move(volumes));
     geo.add_objects(std::move(surfaces));
 
+    // First, put data into the detector interface
+    /*mask_store<dtuple, dvector, discs, cylinders, rectangles> masks;
+    // populate mask store
+    masks.add_masks(discs);
+    masks.add_masks(cylinders);
+    masks.add_masks(rectangles);*/
     auto masks = std::make_tuple<disc_container, cylinder_container,
                                  rectangle_container>(
         std::move(discs), std::move(cylinders), std::move(rectangles));
