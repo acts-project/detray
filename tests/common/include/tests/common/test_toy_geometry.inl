@@ -195,8 +195,51 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     range = {239, surfaces.size()};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {2, 224}, {{vol_itr->index(), inv_sf_finder}});
+}
 
-    auto toy_det2 = create_toy_geometry2(host_mr);
+TEST(ALGEBRA_PLUGIN, toy_geometry2) {
+
+    vecmem::host_memory_resource host_mr;
+
+    // create toy geometry
+    auto det = create_toy_geometry2(host_mr);
+
+    // context objects
+    decltype(det)::transform_store::context ctx0;
+
+    // get volumes
+    auto volumes = det.volumes();
+    ASSERT_EQ(volumes.size(), 4);
+    auto& vol0 = volumes[0];
+    ASSERT_EQ(vol0.index(), 0);
+    auto& vol1 = volumes[1];
+    ASSERT_EQ(vol1.index(), 1);
+    auto& vol2 = volumes[2];
+    ASSERT_EQ(vol2.index(), 2);
+    auto& vol3 = volumes[3];
+    ASSERT_EQ(vol3.index(), 3);
+
+    // get surfaces
+    auto objects = det.objects();
+
+    // get masks
+    auto masks = det.masks();
+
+    // get transforms
+    auto transforms = det.transforms();
+
+    // assert that size of transforms and objects are the same
+    ASSERT_EQ(transforms.size(ctx0), objects.size());
+
+    for (auto& surface : objects) {
+        auto& vol_link = surface.volume();
+        auto& mask_link = surface.mask();
+        auto& transform_link = surface.transform();
+        auto& soruce_link = surface.source();
+        auto& edge_link = surface.edge();
+        std::cout << vol_link << " " << transform_link << "  " << mask_link[0]
+                  << "  " << mask_link[1] << std::endl;
+    }
 }
 
 int main(int argc, char** argv) {
