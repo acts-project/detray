@@ -340,7 +340,7 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
     det.add_objects(ctx0, vol3, vol3_surfaces, vol3_masks, vol3_transforms);
 
     // return the detector
-    return det;
+    return std::move(det);
 }
 
 }  // namespace detray
