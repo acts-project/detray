@@ -246,18 +246,6 @@ class unified_index_geometry {
         volume.set_range({offset, _objects.size()});
     }
 
-    /** Add object collection (surfaces/portals) to the volume with matching
-     * index
-     *
-     * @param volume_idx index of volume
-     * @param surfaces the surfaces that will be filled into the volume
-     */
-    DETRAY_HOST
-    inline void add_objects(dindex &volume_idx,
-                            const surface_container &surfaces) {
-        add_objects(_volumes[volume_idx], surfaces);
-    }
-
     private:
     /** Contains the geometrical relations */
     vector_type<volume_type> _volumes = {};
