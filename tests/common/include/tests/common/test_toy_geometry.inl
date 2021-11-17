@@ -197,7 +197,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {2, 224}, {{vol_itr->index(), inv_sf_finder}});
 }
 
-TEST(ALGEBRA_PLUGIN, toy_geometry2) {
+TEST(ALGEBRA_PLUGIN, a) {
 
     vecmem::host_memory_resource host_mr;
 
@@ -205,7 +205,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry2) {
     auto det = create_toy_geometry2(host_mr);
 }
 
-TEST(ALGEBRA_PLUGIN, toy_geometry2) {
+TEST(ALGEBRA_PLUGIN, b) {
 
     vecmem::host_memory_resource host_mr;
 
@@ -216,7 +216,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry2) {
     decltype(det)::transform_store::context ctx0;
 }
 
-TEST(ALGEBRA_PLUGIN, toy_geometry2) {
+TEST(ALGEBRA_PLUGIN, c) {
 
     vecmem::host_memory_resource host_mr;
 
