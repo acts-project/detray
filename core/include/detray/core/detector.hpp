@@ -18,6 +18,7 @@
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/tools/local_object_finder.hpp"
+#include "detray/tools/toy_geometry.hpp"
 
 namespace detray {
 
@@ -47,7 +48,7 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
           typename alignable_store = static_transform_store<vector_type>,
-          typename geometry_type = index_geometry<array_type, vector_type,
+          typename geometry_type = index_geometry<vector_type, array_type,
                                                   tuple_type, dindex, dindex>,
           typename surfaces_serializer_type = serializer2,
           typename name_map = std::map<dindex, std::string>>
@@ -61,7 +62,7 @@ class detector {
     /// Export geometry types
     using geometry = geometry_type;
     using volume = typename geometry_type::volume_type;
-    using object_id = typename geometry_type::object_registry::id;
+    using object_id = typename geometry_type::object_registry_type::id;
     using mask_id = typename geometry_type::mask_id;
 
     // Determined by the geometry, due to potentially different linking in masks
@@ -372,6 +373,47 @@ class detector {
 
     vector_type<surfaces_finder> _surfaces_finders;
 
+    volume_grid _volume_grid;
+};
+
+// Minimalistic detector type for toy geometry
+template <typename geometry_t, typename mask_container_t, typename transform_t,
+          typename grid_t, template <typename...> class vector_t = dvector>
+struct toy_detector {
+    // typedefs
+    using transform_store = vector_t<transform_t>;
+    using mask_container = mask_container_t;
+    using geometry = geometry_t;
+    using volume = typename geometry_t::volume_type;
+    using object_id = typename geometry_t::object_registry_type::id;
+    using volume_grid = grid_t;
+    using surfaces_finder = grid_t;
+
+    struct empty_context {};
+    using context = empty_context;  // not used
+
+    toy_detector(geometry_t &&geo, mask_container_t &&masks,
+                 vector_t<transform_t> &&trfs)
+        : _geometry(geo), _masks(masks), _transforms(trfs) {}
+
+    // interface functions
+    const auto &volumes() const { return _geometry._volumes; }
+    const auto &transforms(const context /*ctx*/ = {}) const {
+        return _transforms;
+    }
+    const auto &masks() const { return _masks; }
+    template <object_id>
+    const auto &objects() const {
+        return _geometry._objects;
+    }
+
+    std::string _name = "toy_detector";
+
+    // data containers
+    geometry_t _geometry;
+    vector_t<transform_t> _transforms;
+    mask_container_t _masks;
+    vector_t<surfaces_finder> _surfaces_finders;
     volume_grid _volume_grid;
 };
 

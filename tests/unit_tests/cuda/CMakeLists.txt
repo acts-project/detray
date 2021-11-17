@@ -37,7 +37,7 @@ foreach(algebra ${algebras})
     LINK_LIBRARIES
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_mask_store_cuda PRIVATE ${algebra}=${algebra})
-  
+
   # tuple test
   add_detray_test(${algebra}_tuple_test_cuda
     "tuple_test_cuda.cpp"
@@ -47,5 +47,23 @@ foreach(algebra ${algebras})
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_tuple_test_cuda PRIVATE ${algebra}=${algebra})
 
+  # index geometry test
+  add_detray_test(${algebra}_index_geometry_cuda
+    "index_geometry_cuda.cpp"
+    "index_geometry_cuda_kernel.hpp"
+    "index_geometry_cuda_kernel.cu"
+    LINK_LIBRARIES
+    vecmem::cuda detray::${algebra})
+  target_compile_definitions(detray_test_${algebra}_index_geometry_cuda PRIVATE ${algebra}=${algebra})
+
+  # unified index geometry test
+  add_detray_test(${algebra}_unified_index_geometry_cuda
+    "unified_index_geometry_cuda.cpp"
+    "unified_index_geometry_cuda_kernel.hpp"
+    "unified_index_geometry_cuda_kernel.cu"
+    LINK_LIBRARIES
+    vecmem::cuda detray::${algebra})
+  target_compile_definitions(detray_test_${algebra}_unified_index_geometry_cuda PRIVATE ${algebra}=${algebra})
+  
 endforeach()
 

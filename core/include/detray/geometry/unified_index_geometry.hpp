@@ -10,6 +10,8 @@
 #include <utility>
 
 #include "detray/core/mask_store.hpp"
+#include "detray/definitions/detray_qualifiers.hpp"
+#include "detray/geometry/object_registry.hpp"
 #include "detray/geometry/surface_base.hpp"
 #include "detray/geometry/volume.hpp"
 #include "detray/masks/masks.hpp"
@@ -17,6 +19,7 @@
 #include "detray/utils/indexing.hpp"
 
 namespace detray {
+
 /**
  * @brief Indexed geometry implementation that unifies surface and portal types
  *
@@ -28,18 +31,18 @@ namespace detray {
  * carry the same link type: a portal points to the next volume, a surface to
  * the current volume.
  *
- * @tparam array_type the type of the internal array, must have STL
- *                    semantics
  * @tparam vector_type the type of the internal array, must have STL
  *                     semantics
+ * @tparam array_type the type of the internal array, must have STL
+ *                    semantics
  * @tparam surface_source_link the type of the link to an external surface
  *                             source
  *
  * @note The geometry knows nothing about coordinate systems. This is
  *       handeled by geometry access objects (e.g. the grid).
  */
-template <template <typename, unsigned int> class array_type = darray,
-          template <typename...> class vector_type = dvector,
+template <template <typename...> class vector_type = dvector,
+          template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
@@ -108,30 +111,31 @@ class unified_index_geometry {
         array_type<vector_type<surface>, e_mask_types>;
     using portal_filling_container = surface_filling_container;
 
-    struct object_registry {
-        // Known primitives
-        enum id : unsigned int {
-            e_object_types = 1,
-            e_surface = 0,
-            e_portal = 0,  // not used (same as surface)
-            e_any = 0,
-            e_unknown = 2,
-        };
-
-        template <typename value_type>
-        static constexpr auto get() {
-            if constexpr (std::is_same_v<value_type, surface>) {
-                return e_surface;
-            }
-            return e_unknown;
-        }
-    };
+    // object type
+    using object_registry_type = unified_object_registry<surface>;
 
     // Volume type
-    using volume_type = volume<object_registry, dindex_range, array_type>;
+    using volume_type = volume<object_registry_type, dindex_range, array_type>;
 
     /** Default constructor */
     unified_index_geometry() = default;
+
+    /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
+    unified_index_geometry(vecmem::memory_resource &resource)
+        : _volumes(&resource), _objects(&resource) {}
+
+    /** Constructor from index_geometry_data
+     **/
+    template <
+        typename unified_index_geometry_data_t,
+        std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
+                                            unified_index_geometry_data_t>,
+                         bool> = true>
+    DETRAY_DEVICE unified_index_geometry(
+        unified_index_geometry_data_t &geometry_data)
+        : _volumes(geometry_data._volumes_data),
+          _objects(geometry_data._objects_data) {}
 
     /** Copy constructor
      *
@@ -140,17 +144,25 @@ class unified_index_geometry {
     // unified_index_geometry(const unified_index_geometry &other) = default;
 
     /** @return total number of volumes */
-    const size_t n_volumes() const { return _volumes.size(); }
+    DETRAY_HOST_DEVICE
+    size_t n_volumes() const { return _volumes.size(); }
 
     /** @return all volumes in the geometry - const access. */
+    DETRAY_HOST_DEVICE
     const auto &volumes() const { return _volumes; }
 
+    /** @return all volumes in the geometry - non-const access. */
+    DETRAY_HOST_DEVICE
+    auto &volumes() { return _volumes; }
+
     /** @return the volume by @param volume_index - const access. */
+    DETRAY_HOST_DEVICE
     inline const volume_type &volume_by_index(dindex volume_index) const {
         return _volumes[volume_index];
     }
 
     /** @return the volume by @param volume_index - non-const access. */
+    DETRAY_HOST_DEVICE
     inline volume_type &volume_by_index(dindex volume_index) {
         return _volumes[volume_index];
     }
@@ -164,6 +176,7 @@ class unified_index_geometry {
      *
      * @return non-const reference of the new volume
      */
+    DETRAY_HOST
     inline volume_type &new_volume(
         const array_type<scalar, 6> &bounds,
         dindex surfaces_finder_entry = dindex_invalid) {
@@ -174,15 +187,24 @@ class unified_index_geometry {
         return cvolume;
     }
 
-    /** @return all surfaces/portals in the geometry */
-    template <typename object_registry::id id = object_registry::id::e_surface>
-    inline size_t n_objects() const {
+    /** @return number of surfaces/portals in the geometry */
+    template <typename object_registry_type::id id =
+                  object_registry_type::id::e_surface>
+    DETRAY_HOST_DEVICE inline size_t n_objects() const {
         return _objects.size();
     }
 
-    /** @return all surfaces/portals in the geometry */
-    template <typename object_registry::id = object_registry::id::e_surface>
-    inline constexpr const auto &objects() const {
+    /** @return all surfaces/portals in the geometry - const */
+    template <
+        typename object_registry_type::id = object_registry_type::id::e_surface>
+    DETRAY_HOST_DEVICE inline constexpr const auto &objects() const {
+        return _objects;
+    }
+
+    /** @return all surfaces/portals in the geometry - non-const */
+    template <
+        typename object_registry_type::id = object_registry_type::id::e_surface>
+    DETRAY_HOST_DEVICE inline constexpr auto &objects() {
         return _objects;
     }
 
@@ -191,8 +213,9 @@ class unified_index_geometry {
      * @param obj the surface or portal
      * @param mask_offset the offset that will be added to the mask links
      */
+    DETRAY_HOST
     inline void update_mask_link(surface &obj, const dindex offset) {
-        std::get<1>(obj.mask()) += offset;
+        detail::get<1>(obj.mask()) += offset;
     }
 
     /** Update the transform link of an objects when filling into a large
@@ -201,6 +224,7 @@ class unified_index_geometry {
      * @param obj the surface or portal
      * @param trsf_offset the offset that will be added to the links
      */
+    DETRAY_HOST
     inline void update_transform_link(surface &obj, const dindex offset) {
         obj.transform() += offset;
     }
@@ -210,6 +234,7 @@ class unified_index_geometry {
      * @param volume the volume the objects belong to
      * @param surfaces the surfaces that will be filled into the volume
      */
+    DETRAY_HOST
     inline void add_objects(volume_type &volume,
                             const surface_container &surfaces) {
         const auto offset = _objects.size();
@@ -244,5 +269,35 @@ class unified_index_geometry {
     /** All surfaces and portals in the geometry in contigous memory */
     surface_container _objects = {};
 };
+
+/** An implementation of index_geometry data for device*/
+template <typename unified_index_geometry_t>
+struct unified_index_geometry_data {
+
+    using volume_type = typename unified_index_geometry_t::volume_type;
+    using surface = typename unified_index_geometry_t::surface;
+
+    unified_index_geometry_data(unified_index_geometry_t &geometry)
+        : _volumes_data(vecmem::get_data(geometry.volumes())),
+          _objects_data(vecmem::get_data(geometry.objects())) {}
+
+    vecmem::data::vector_view<volume_type> _volumes_data;
+    vecmem::data::vector_view<surface> _objects_data;
+};
+
+/** Get index_geometry_data
+ **/
+template <template <typename...> class vector_type,
+          template <typename, unsigned int> class array_type,
+          template <typename...> class tuple_type, typename surface_source_link,
+          typename bounds_source_link>
+inline unified_index_geometry_data<
+    unified_index_geometry<vector_type, array_type, tuple_type,
+                           surface_source_link, bounds_source_link>>
+get_data(
+    unified_index_geometry<vector_type, array_type, tuple_type,
+                           surface_source_link, bounds_source_link> &geometry) {
+    return geometry;
+}
 
 }  // namespace detray

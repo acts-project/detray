@@ -7,21 +7,16 @@
 
 #include <gtest/gtest.h>
 
-#include "detray/geometry/index_geometry.hpp"
+#include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
-/// @note __plugin has to be defined with a preprocessor command
+#include "index_geometry_cuda_kernel.hpp"
 
-// This tests the construction of a detector class
-TEST(ALGEBRA_PLUGIN, index_geometry) {
-    using namespace detray;
-    using namespace __plugin;
+TEST(index_geometry_cuda, index_geometry) {
 
-    using geometry = index_geometry<>;
-    using surface = typename geometry::surface;
-    using portal = typename geometry::portal;
-    using object_id = geometry::object_registry_type::id;
+    // memory resource
+    vecmem::cuda::managed_memory_resource mng_mr;
 
-    geometry g = geometry();
+    geometry g = geometry(mng_mr);
 
     ASSERT_TRUE(g.n_volumes() == 0);
     ASSERT_TRUE(g.template n_objects<object_id::e_surface>() == 0);
@@ -119,10 +114,36 @@ TEST(ALGEBRA_PLUGIN, index_geometry) {
     ASSERT_TRUE(v3.template range<object_id::e_portal>() == objects_range);
     objects_range = darray<dindex, 2>{2, 4};
     ASSERT_TRUE(v3.template range<object_id::e_surface>() == objects_range);
-}
 
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
+    // output volume for host
+    vecmem::vector<typename geometry::volume_type> output_host(g.n_volumes(),
+                                                               &mng_mr);
 
-    return RUN_ALL_TESTS();
+    // fill the output_host vector
+    for (unsigned int i = 0; i < g.n_volumes(); i++) {
+        output_host[i] = g.volume_by_index(i);
+    }
+
+    // output volume for device
+    vecmem::vector<typename geometry::volume_type> output_device(g.n_volumes(),
+                                                                 &mng_mr);
+
+    // get data for gpu
+    auto output_data = vecmem::get_data(output_device);
+    auto g_data = get_data(g);
+
+    // run the test kernel to fill the output_device vector
+    index_geometry_test(g_data, output_data);
+
+    // Compare the outputs between host and device
+    for (unsigned int i = 0; i < g.n_volumes(); i++) {
+        const auto &volume_host = output_host[i];
+        const auto &volume_device = output_device[i];
+
+        ASSERT_EQ(volume_host.index(), volume_device.index());
+        ASSERT_EQ(volume_host.ranges(), volume_device.ranges());
+        ASSERT_EQ(volume_host.bounds(), volume_device.bounds());
+        ASSERT_EQ(volume_host.surfaces_finder_entry(),
+                  volume_device.surfaces_finder_entry());
+    }
 }

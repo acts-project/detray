@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "detray/definitions/detray_qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
 
 namespace detray {
@@ -29,44 +30,53 @@ class volume {
     // used for sfinae
     using volume_def = volume<object_registry, range_type, array_type>;
 
+    /** Default constructor**/
+    volume() = default;
+
     /** Contructor with bounds
      * @param bounds of the volume
      */
     volume(const array_type<scalar, 6> &bounds) : _bounds(bounds) {}
 
     /** @return the bounds - const access */
+    DETRAY_HOST_DEVICE
     inline const array_type<scalar, 6> &bounds() const { return _bounds; }
 
     /** @return the name */
+    DETRAY_HOST_DEVICE
     inline const std::string &name(const name_map &names) const {
         return names.at(_index);
     }
 
     /** @return the index */
+    DETRAY_HOST_DEVICE
     inline dindex index() const { return _index; }
 
     /** @param index the index */
+    DETRAY_HOST
     inline void set_index(const dindex index) { _index = index; }
 
     /** @return the entry into the local surface finders */
+    DETRAY_HOST_DEVICE
     inline dindex surfaces_finder_entry() const {
         return _surfaces_finder_entry;
     }
 
     /** @param entry the entry into the local surface finders */
+    DETRAY_HOST
     inline void set_surfaces_finder(const dindex entry) {
         _surfaces_finder_entry = entry;
     }
 
     /** @return if the volume is empty or not */
-    inline bool empty() const {
+    DETRAY_HOST_DEVICE inline bool empty() const {
         return n_objects<object_registry::id::e_surface>() == 0;
     }
 
     /** @return the number of surfaces in the volume */
     template <
         typename object_registry::id range_id = object_registry::id::e_surface>
-    inline auto n_objects() const {
+    DETRAY_HOST_DEVICE inline auto n_objects() const {
         return n_in_range(range<range_id>());
     }
 
@@ -77,7 +87,7 @@ class volume {
      */
     template <
         typename object_registry::id range_id = object_registry::id::e_surface>
-    inline void set_range(const range_type &other) {
+    DETRAY_HOST inline void set_range(const range_type &other) {
         auto &rg = std::get<range_id>(_ranges);
         // Range not set yet - initialize
         constexpr range_type empty{};
@@ -90,8 +100,9 @@ class volume {
     }
 
     /** @return range of surfaces by surface type - const access */
+
     template <typename object_type>
-    inline constexpr const auto &range() const {
+    DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
         constexpr auto index = object_registry::template get<object_type>();
         return std::get<index>(_ranges);
     }
@@ -99,14 +110,18 @@ class volume {
     /** @return range of surfaces- const access */
     template <
         typename object_registry::id range_id = object_registry::id::e_surface>
-    inline constexpr const auto &range() const {
+    DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
         return std::get<range_id>(_ranges);
     }
 
-    private:
+    /** @return _ranges */
+    DETRAY_HOST_DEVICE inline constexpr const auto &ranges() const {
+        return _ranges;
+    }
+
     /** @return the number of elements in a given range */
     template <typename range_t>
-    inline dindex n_in_range(range_t &&rg) const {
+    DETRAY_HOST_DEVICE inline dindex n_in_range(range_t &&rg) const {
         return std::get<1>(rg) - std::get<0>(rg);
     }
 
