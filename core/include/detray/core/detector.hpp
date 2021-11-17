@@ -109,10 +109,11 @@ class detector {
     detector(const std::string &name, vecmem::memory_resource &resource)
         : _name(name),
           _geometry(resource),
-          _masks(resource),
           _transforms(resource),
+          _masks(resource),
           _volume_grid(volume_grid(std::move(axis::irregular{{}}),
-                                   std::move(axis::irregular{{}}), resource)) {}
+                                   std::move(axis::irregular{{}}), resource)),
+          _surfaces_finders(&resource) {}
 
     /** Add a new volume and retrieve a reference to it
      *
@@ -417,8 +418,8 @@ struct toy_detector {
     geometry_t _geometry;
     vector_t<transform_t> _transforms;
     mask_container_t _masks;
-    vector_t<surfaces_finder> _surfaces_finders;
     volume_grid _volume_grid;
+    vector_t<surfaces_finder> _surfaces_finders;
 };
 
 }  // namespace detray
