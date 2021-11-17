@@ -12,14 +12,13 @@ namespace detray {
 auto create_toy_geometry2(vecmem::memory_resource& resource) {
 
     // geometry type
-    using geometry_t = unified_index_geometry<vecmem::vector, std::array,
-                                              thrust::tuple, dindex, dindex>;
+    using geometry_t =
+        unified_index_geometry<dvector, darray, thrust::tuple, dindex, dindex>;
 
     // detector type
-    using detector_t =
-        detector<std::array, thrust::tuple, vecmem::vector,
-                 vecmem::jagged_vector, static_transform_store<vecmem::vector>,
-                 geometry_t, serializer2, std::map<dindex, std::string> >;
+    using detector_t = detector<darray, thrust::tuple, dvector, djagged_vector,
+                                static_transform_store<dvector>, geometry_t,
+                                serializer2, std::map<dindex, std::string> >;
 
     // sub-geometry components type
     using volume = typename detector_t::volume;

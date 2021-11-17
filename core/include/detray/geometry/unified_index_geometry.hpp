@@ -42,7 +42,7 @@ namespace detray {
  *       handeled by geometry access objects (e.g. the grid).
  */
 template <template <typename...> class vector_type = dvector,
-          template <typename, std::size_t> class array_type = darray,
+          template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
