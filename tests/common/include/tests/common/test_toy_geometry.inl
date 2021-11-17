@@ -197,48 +197,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {2, 224}, {{vol_itr->index(), inv_sf_finder}});
 }
 
-TEST(ALGEBRA_PLUGIN, a) {
-
-    vecmem::host_memory_resource host_mr;
-
-    // create toy geometry
-    auto det = create_toy_geometry2(host_mr);
-}
-
-TEST(ALGEBRA_PLUGIN, b) {
-
-    vecmem::host_memory_resource host_mr;
-
-    // create toy geometry
-    auto det = create_toy_geometry2(host_mr);
-
-    // context objects
-    decltype(det)::transform_store::context ctx0;
-}
-
-TEST(ALGEBRA_PLUGIN, c) {
-
-    vecmem::host_memory_resource host_mr;
-
-    // create toy geometry
-    auto det = create_toy_geometry2(host_mr);
-
-    // context objects
-    decltype(det)::transform_store::context ctx0;
-
-    // get volumes
-    auto volumes = det.volumes();
-    ASSERT_EQ(volumes.size(), 4);
-    auto& vol0 = volumes[0];
-    ASSERT_EQ(vol0.index(), 0);
-    auto& vol1 = volumes[1];
-    ASSERT_EQ(vol1.index(), 1);
-    auto& vol2 = volumes[2];
-    ASSERT_EQ(vol2.index(), 2);
-    auto& vol3 = volumes[3];
-    ASSERT_EQ(vol3.index(), 3);
-}
-
 TEST(ALGEBRA_PLUGIN, toy_geometry2) {
 
     vecmem::host_memory_resource host_mr;
