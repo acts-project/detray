@@ -194,23 +194,25 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
      */
 
     // beampipe volue -- volume ID = 0
-    auto& vol0 = det.new_volume(
+    det.new_volume(
         {0, beampipe_r, -1 * detector_half_z, detector_half_z, -M_PI, M_PI});
 
     // first layer volume -- volume ID = 1
-    auto& vol1 =
-        det.new_volume({beampipe_r, first_layer_outer_r, -1 * detector_half_z,
-                        detector_half_z, -M_PI, M_PI});
+    det.new_volume({beampipe_r, first_layer_outer_r, -1 * detector_half_z,
+                    detector_half_z, -M_PI, M_PI});
 
     // gap volume -- volume ID = 2
-    auto& vol2 =
-        det.new_volume({first_layer_outer_r, second_layer_inner_r,
-                        -1 * detector_half_z, detector_half_z, -M_PI, M_PI});
+    det.new_volume({first_layer_outer_r, second_layer_inner_r,
+                    -1 * detector_half_z, detector_half_z, -M_PI, M_PI});
 
     // second layer volume -- volume ID = 3
-    auto& vol3 =
-        det.new_volume({second_layer_inner_r, second_layer_outer_r,
-                        -1 * detector_half_z, detector_half_z, -M_PI, M_PI});
+    det.new_volume({second_layer_inner_r, second_layer_outer_r,
+                    -1 * detector_half_z, detector_half_z, -M_PI, M_PI});
+
+    auto vol0 = det.volumes()[0];
+    auto vol1 = det.volumes()[1];
+    auto vol2 = det.volumes()[2];
+    auto vol3 = det.volumes()[3];
 
     /**
      * Fill beampipe volume -- volume ID = 0
