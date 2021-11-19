@@ -93,12 +93,12 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
     /** Function that creates the modules
      */
     auto create_modules =
-        [](const dindex volume_id, transform_store::context& ctx,
-           surface_container& surfaces, mask_container& masks,
-           transform_container& transforms, const scalar m_half_x = 8.4,
-           const scalar m_half_y = 36., const scalar m_tilt_phi = 0.145,
-           const scalar layer_r = 32., const scalar radial_stagger = 2.,
-           const scalar l_overlap = 5.,
+        [](const dindex volume_id, const dindex invalid_value,
+           transform_store::context& ctx, surface_container& surfaces,
+           mask_container& masks, transform_container& transforms,
+           const scalar m_half_x = 8.4, const scalar m_half_y = 36.,
+           const scalar m_tilt_phi = 0.145, const scalar layer_r = 32.,
+           const scalar radial_stagger = 2., const scalar l_overlap = 5.,
            const std::pair<int, int> binning = {16, 14}) {
             // surface grid bins
             int n_phi_bins = binning.first;
@@ -159,6 +159,8 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
                               masks.group<geometry::e_rectangle2>().size() - 1},
                              volume_id, dindex_invalid);
 
+                surf.set_edge({volume_id, invalid_value});
+
                 // add surface
                 surfaces[geometry::e_rectangle2].push_back(surf);
             }
@@ -209,10 +211,10 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
     det.new_volume({second_layer_inner_r, second_layer_outer_r,
                     -1 * detector_half_z, detector_half_z, -M_PI, M_PI});
 
-    auto vol0 = det.volumes()[0];
-    auto vol1 = det.volumes()[1];
-    auto vol2 = det.volumes()[2];
-    auto vol3 = det.volumes()[3];
+    auto& vol0 = det.volumes()[0];
+    auto& vol1 = det.volumes()[1];
+    auto& vol2 = det.volumes()[2];
+    auto& vol3 = det.volumes()[3];
 
     /**
      * Fill beampipe volume -- volume ID = 0
@@ -269,7 +271,7 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
                         {vol2.index(), inv_sf_finder});
 
     // create modules for the first layer
-    create_modules(vol1.index(), ctx0, vol1_surfaces, vol1_masks,
+    create_modules(vol1.index(), inv_sf_finder, ctx0, vol1_surfaces, vol1_masks,
                    vol1_transforms, 8.4, 36., 0.145, 32., 2., 5., {16, 14});
 
     // Add all objects to detector
@@ -335,7 +337,7 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
                         {leaving_world, inv_sf_finder});
 
     // create modules for the second layer
-    create_modules(vol3.index(), ctx0, vol3_surfaces, vol3_masks,
+    create_modules(vol3.index(), inv_sf_finder, ctx0, vol3_surfaces, vol3_masks,
                    vol3_transforms, 8.4, 36., 0.145, 72., 2., 5., {32, 14});
 
     // Add all objects to detector

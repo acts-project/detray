@@ -135,6 +135,9 @@ class detector {
     /** @return the contained volumes of the detector - const access */
     inline decltype(auto) volumes() const { return _geometry.volumes(); }
 
+    /** @return the contained volumes of the detector - non-const access */
+    inline decltype(auto) volumes() { return _geometry.volumes(); }
+
     /** @return the volume by @param volume_index - non-const access */
     inline decltype(auto) volume_by_index(dindex volume_index) {
         return _geometry.volume_by_index(volume_index);
