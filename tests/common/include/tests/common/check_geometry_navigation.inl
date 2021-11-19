@@ -19,6 +19,7 @@
 #include "tests/common/tools/ray_gun.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
+#include "tests/common/tools/create_toy_geometry2.hpp"
 
 using namespace detray;
 
@@ -187,7 +188,7 @@ struct print_inspector {
 // auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
 vecmem::host_memory_resource host_mr;
-auto d = create_toy_geometry(host_mr);
+auto d = create_toy_geometry2(host_mr);
 
 // Create the navigator
 using detray_context = decltype(d)::context;
