@@ -201,7 +201,7 @@ using detray_inspector = object_tracer<1>;
 using detray_navigator = single_type_navigator<decltype(d), detray_inspector>;
 using detray_stepper = line_stepper<detray_track>;
 
-detray_navigator n(d);
+detray_navigator n(std::move(d));
 detray_stepper s;
 
 // This test runs intersection with all portals of the TrackML detector
