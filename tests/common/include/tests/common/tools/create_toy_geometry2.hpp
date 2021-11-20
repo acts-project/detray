@@ -302,7 +302,7 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
 
     // gap volume outer cylinderical portal -> linked to second layer (vol2)
     add_cylinder_portal(vol2.index(), ctx0, vol2_surfaces, vol2_masks,
-                        vol2_transforms, first_layer_outer_r, detector_half_z,
+                        vol2_transforms, second_layer_inner_r, detector_half_z,
                         {vol3.index(), inv_sf_finder});
 
     // Add all objects to detector
