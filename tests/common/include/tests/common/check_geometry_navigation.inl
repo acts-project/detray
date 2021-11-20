@@ -184,28 +184,30 @@ struct print_inspector {
     }
 };
 
-// vecmem::host_memory_resource host_mr;
-// auto [d, name_map] = read_from_csv(tml_files, host_mr);
-
-vecmem::host_memory_resource host_mr;
-auto d = create_toy_geometry2(host_mr);
-
-// Create the navigator
-using detray_context = decltype(d)::context;
-using detray_track = track<detray_context>;
-/*using detray_inspector = print_inspector<portal_print_inspector,
-                                         surface_print_inspector>;*/
-// using detray_inspector = print_inspector<std::tuple,
-// single_type_print_inspector>;
-using detray_inspector = object_tracer<1>;
-using detray_navigator = single_type_navigator<decltype(d), detray_inspector>;
-using detray_stepper = line_stepper<detray_track>;
-
-detray_navigator n(std::move(d));
-detray_stepper s;
-
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, geometry_discovery) {
+
+    // vecmem::host_memory_resource host_mr;
+    // auto [d, name_map] = read_from_csv(tml_files, host_mr);
+
+    vecmem::host_memory_resource host_mr;
+    auto det_nav = create_toy_geometry2(host_mr);
+    auto det_ray = create_toy_geometry2(host_mr);
+
+    // Create the navigator
+    using detray_context = decltype(det_nav)::context;
+    using detray_track = track<detray_context>;
+    /*using detray_inspector = print_inspector<portal_print_inspector,
+                                             surface_print_inspector>;*/
+    // using detray_inspector = print_inspector<std::tuple,
+    // single_type_print_inspector>;
+    using detray_inspector = object_tracer<1>;
+    using detray_navigator =
+        single_type_navigator<decltype(det_nav), detray_inspector>;
+    using detray_stepper = line_stepper<detray_track>;
+
+    detray_navigator n(std::move(det_nav));
+    detray_stepper s;
 
     unsigned int theta_steps = 100;
     unsigned int phi_steps = 100;
@@ -228,7 +230,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                              cos_theta};
 
-            const auto intersection_trace = shoot_ray(d, ori, dir);
+            const auto intersection_trace = shoot_ray(det_ray, ori, dir);
 
             // Now follow that ray and check, if we find the same
             // volumes and distances along the way

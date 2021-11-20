@@ -70,7 +70,8 @@ inline auto unroll_intersect(
 
     // Pick the first one for interseciton
     if (mask_id == first_mask_id) {
-        auto &mask_group = detail::get<first_mask_id>(masks);
+        // auto &mask_group = detail::get<first_mask_id>(masks);
+        auto &mask_group = masks.template group<first_mask_id>();
 
         // Check all masks of this surface for intersection
         for (const auto &mask : range(mask_group, rng)) {
