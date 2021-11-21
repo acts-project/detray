@@ -11,7 +11,7 @@
 #include <utility>
 
 #include "detray/core/mask_store.hpp"
-#include "detray/definitions/detray_qualifiers.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/object_registry.hpp"
 #include "detray/geometry/surface_base.hpp"
 #include "detray/geometry/volume.hpp"
