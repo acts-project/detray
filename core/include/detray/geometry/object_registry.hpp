@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "detray/definitions/detray_qualifiers.hpp"
+#include "detray/definitions/qualifiers.hpp"
 
 // object registry for index geometry
 template <typename surface_type, typename portal_type>

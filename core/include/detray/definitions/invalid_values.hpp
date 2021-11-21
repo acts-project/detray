@@ -9,7 +9,7 @@
 
 #include <limits>
 
-#include "detray/definitions/detray_qualifiers.hpp"
+#include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
 
