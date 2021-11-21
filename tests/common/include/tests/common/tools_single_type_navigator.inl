@@ -11,6 +11,7 @@
 #include "detray/core/track.hpp"
 #include "detray/tools/single_type_navigator.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
+#include "tests/common/tools/create_toy_geometry2.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -22,8 +23,8 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     /** Tolerance for tests */
     constexpr double tol = 0.01;
 
-    auto toy_det = create_toy_geometry(host_mr);
-    single_type_navigator n(toy_det);
+    auto toy_det = create_toy_geometry2(host_mr);
+    single_type_navigator n(std::move(toy_det));
     using toy_navigator = decltype(n);
     using nav_context = decltype(toy_det)::context;
 
@@ -64,7 +65,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 0u);
     // Only the cylinder portal
     ASSERT_EQ(state.candidates().size(), 1u);
-    ASSERT_EQ(state.next()->index, 2u);
+    ASSERT_EQ(state.next()->index, 0u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
     ASSERT_NEAR(state(), 27., tol);
@@ -78,7 +79,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
               toy_navigator::navigation_status::e_towards_object);
     ASSERT_EQ(state.volume(), 0u);
     ASSERT_EQ(state.candidates().size(), 1u);
-    ASSERT_EQ(state.next()->index, 2u);
+    ASSERT_EQ(state.next()->index, 0u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
     ASSERT_NEAR(state(), 27., tol);
@@ -95,7 +96,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
               toy_navigator::navigation_status::e_towards_object);
     ASSERT_EQ(state.volume(), 0u);
     ASSERT_EQ(state.candidates().size(), 1u);
-    ASSERT_EQ(state.next()->index, 2u);
+    ASSERT_EQ(state.next()->index, 0u);
     ASSERT_NEAR(state(), 13.5, tol);
     // Trust level is restored
     ASSERT_EQ(state.trust_level(),
@@ -110,7 +111,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
               toy_navigator::navigation_status::e_towards_object);
     ASSERT_EQ(state.volume(), 0u);
     ASSERT_EQ(state.candidates().size(), 1u);
-    ASSERT_EQ(state.next()->index, 2u);
+    ASSERT_EQ(state.next()->index, 0u);
     ASSERT_NEAR(state(), 13.5, tol);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
@@ -148,7 +149,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.candidates().size(), 6u);
     // We are already on this portal, so switch to next candidate which must
     // be a surface
-    ASSERT_EQ(state.next()->index, 128u);
+    ASSERT_EQ(state.next()->index, 124u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
@@ -162,7 +163,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 1u);
     ASSERT_EQ(state.candidates().size(), 6u);
     // points to the next surface now
-    ASSERT_EQ(state.next()->index, 129u);
+    ASSERT_EQ(state.next()->index, 125u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_high_trust);
 
@@ -176,7 +177,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     // Should be on our way to the next ovelapping module
     ASSERT_EQ(state.candidates().size(), 6u);
     // this is still the next surface, since we did not step
-    ASSERT_EQ(state.next()->index, 129u);
+    ASSERT_EQ(state.next()->index, 125u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
@@ -190,7 +191,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 1u);
     ASSERT_EQ(state.candidates().size(), 6u);
     // points to the next surface now
-    ASSERT_EQ(state.next()->index, 112u);
+    ASSERT_EQ(state.next()->index, 108u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_high_trust);
 
@@ -203,7 +204,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 1u);
     ASSERT_EQ(state.candidates().size(), 6u);
     // this is still the next surface, since we did not step
-    ASSERT_EQ(state.next()->index, 112u);
+    ASSERT_EQ(state.next()->index, 108u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
@@ -217,7 +218,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 1u);
     ASSERT_EQ(state.candidates().size(), 6u);
     // points to the next surface now
-    ASSERT_EQ(state.next()->index, 113u);
+    ASSERT_EQ(state.next()->index, 109u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_high_trust);
 
@@ -231,7 +232,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     // Should be on our way to the next ovelapping module
     ASSERT_EQ(state.candidates().size(), 6u);
     // this is still the next surface, since we did not step
-    ASSERT_EQ(state.next()->index, 113u);
+    ASSERT_EQ(state.next()->index, 109u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
@@ -245,7 +246,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 1u);
     ASSERT_EQ(state.candidates().size(), 6u);
     // points to the portal towards the gap volume now
-    ASSERT_EQ(state.next()->index, 6u);
+    ASSERT_EQ(state.next()->index, 228u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_high_trust);
 
@@ -258,7 +259,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 1u);
     ASSERT_EQ(state.candidates().size(), 6u);
     // the portal is still the next object, since we did not step
-    ASSERT_EQ(state.next()->index, 6u);
+    ASSERT_EQ(state.next()->index, 228u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
@@ -291,7 +292,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
               toy_navigator::navigation_status::e_towards_object);
     // This includes the adjacent portal we are already on
     ASSERT_EQ(state.candidates().size(), 2u);
-    ASSERT_EQ(state.next()->index, 234u);
+    ASSERT_EQ(state.next()->index, 232u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
@@ -326,7 +327,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.candidates().size(), 6u);
     // We are already on this portal, so switch to next candidate which must
     // be a surface
-    ASSERT_EQ(state.next()->index, 482u);
+    ASSERT_EQ(state.next()->index, 478u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
@@ -340,7 +341,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 3u);
     ASSERT_EQ(state.candidates().size(), 6u);
     // Next module surface from 482
-    ASSERT_EQ(state.next()->index, 450u);
+    ASSERT_EQ(state.next()->index, 446u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_high_trust);
 
@@ -353,7 +354,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 3u);
     // Should be on our way to the next ovelapping module
     ASSERT_EQ(state.candidates().size(), 6u);
-    ASSERT_EQ(state.next()->index, 450u);
+    ASSERT_EQ(state.next()->index, 446u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
@@ -367,7 +368,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 3u);
     ASSERT_EQ(state.candidates().size(), 6u);
     // Next module surface from 450
-    ASSERT_EQ(state.next()->index, 483u);
+    ASSERT_EQ(state.next()->index, 479u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_high_trust);
 
@@ -381,7 +382,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     // Should be on our way to the next ovelapping module
     ASSERT_EQ(state.candidates().size(), 6u);
     // Next module surface from 450
-    ASSERT_EQ(state.next()->index, 483u);
+    ASSERT_EQ(state.next()->index, 479u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
@@ -395,7 +396,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 3u);
     ASSERT_EQ(state.candidates().size(), 6u);
     // Next module surface from 483
-    ASSERT_EQ(state.next()->index, 451u);
+    ASSERT_EQ(state.next()->index, 447u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_high_trust);
 
@@ -409,7 +410,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     // Should be on our way to the next ovelapping module
     ASSERT_EQ(state.candidates().size(), 6u);
     // Next module surface from 483
-    ASSERT_EQ(state.next()->index, 451u);
+    ASSERT_EQ(state.next()->index, 447u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 
@@ -423,7 +424,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.volume(), 3u);
     ASSERT_EQ(state.candidates().size(), 6u);
     // Next is the portal that leaves the detector world (238)
-    ASSERT_EQ(state.next()->index, 238u);
+    ASSERT_EQ(state.next()->index, 684u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_high_trust);
 
@@ -435,7 +436,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_EQ(state.status(),
               toy_navigator::navigation_status::e_towards_object);
     ASSERT_EQ(state.candidates().size(), 6u);
-    ASSERT_EQ(state.next()->index, 238u);
+    ASSERT_EQ(state.next()->index, 684u);
     ASSERT_EQ(state.trust_level(),
               toy_navigator::navigation_trust_level::e_full_trust);
 

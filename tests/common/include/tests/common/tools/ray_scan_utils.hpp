@@ -235,6 +235,7 @@ inline auto trace_intersections(const record_container &volume_record,
     }
 
     record rec_back{volume_record.back()};
+
     // Look at the last entry
     if (not rec_back.is_portal()) {
         std::cerr << "We don't leave the detector by portal!" << std::endl;

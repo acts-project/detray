@@ -47,6 +47,7 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
 
             // add mask
             masks.add_mask<geometry::e_portal_ring2>(min_r, max_r);
+            masks.group<geometry::e_portal_ring2>().back().links() = edge;
 
             // create surface
             surface surf(transforms[geometry::e_portal_ring2].size(ctx) - 1,
@@ -77,6 +78,7 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
 
         // add mask
         masks.add_mask<geometry::e_portal_cylinder3>(r, -half_z, half_z);
+        masks.group<geometry::e_portal_cylinder3>().back().links() = edge;
 
         // create surface
         surface surf(transforms[geometry::e_portal_cylinder3].size(ctx) - 1,
@@ -151,7 +153,7 @@ auto create_toy_geometry2(vecmem::memory_resource& resource) {
                 // add mask
                 masks.add_mask<geometry::e_rectangle2>(m_half_x, m_half_y);
                 masks.group<geometry::e_rectangle2>().back().links() = {
-                    dindex_invalid, dindex_invalid};
+                    volume_id, dindex_invalid};
 
                 // create surface
                 surface surf(transforms[geometry::e_rectangle2].size(ctx) - 1,
