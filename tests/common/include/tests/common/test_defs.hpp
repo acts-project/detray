@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-#include "detray/definitions/detray_qualifiers.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/invalid_values.hpp"
 #include "detray/utils/containers.hpp"
 

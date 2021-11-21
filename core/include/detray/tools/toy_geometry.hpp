@@ -10,7 +10,7 @@
 #include <utility>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/definitions/detray_qualifiers.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/object_registry.hpp"
 
 namespace detray {

@@ -8,7 +8,7 @@
 
 #include <vecmem/memory/memory_resource.hpp>
 
-#include "detray/definitions/detray_qualifiers.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
 

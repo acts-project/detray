@@ -16,7 +16,7 @@ detray_add_library( detray_core core
    "include/detray/core/transform_store.hpp"
    "include/detray/definitions/detail/accessor.hpp"
    "include/detray/definitions/cuda_defs.hpp"
-   "include/detray/definitions/detray_qualifiers.hpp"
+   "include/detray/definitions/qualifiers.hpp"
    "include/detray/definitions/invalid_values.hpp"
    "include/detray/geometry/object_registry.hpp"
    "include/detray/geometry/index_geometry.hpp"

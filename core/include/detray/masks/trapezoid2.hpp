@@ -12,7 +12,7 @@
 #include <string>
 
 #include "detray/core/intersection.hpp"
-#include "detray/definitions/detray_qualifiers.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/masks/mask_identifier.hpp"
 #include "detray/tools/planar_intersector.hpp"
 
