@@ -19,7 +19,6 @@
 #include "tests/common/tools/ray_gun.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
-#include "tests/common/tools/create_toy_geometry2.hpp"
 
 using namespace detray;
 
@@ -191,8 +190,8 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     // auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
     vecmem::host_memory_resource host_mr;
-    auto det_nav = create_toy_geometry2(host_mr);
-    auto det_ray = create_toy_geometry2(host_mr);
+    auto det_nav = create_toy_geometry(host_mr);
+    auto det_ray = create_toy_geometry(host_mr);
 
     // Create the navigator
     using detray_context = decltype(det_nav)::context;

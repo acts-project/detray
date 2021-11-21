@@ -8,14 +8,13 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
-//#include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/tools/geometry_graph.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 #include "tests/common/tools/ray_scan_utils.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
-#include "tests/common/tools/create_toy_geometry2.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -57,7 +56,7 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
 
     // Build the geometry (modeled as a unified index geometry)
     vecmem::host_memory_resource host_mr;
-    auto toy_det = create_toy_geometry2(host_mr);
+    auto toy_det = create_toy_geometry(host_mr);
 
     // Build the graph
     using geometry_t = typename decltype(toy_det)::geometry;

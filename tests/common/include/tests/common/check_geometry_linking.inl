@@ -7,13 +7,12 @@
 
 #include <gtest/gtest.h>
 
-//#include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/tools/geometry_graph.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
-#include "tests/common/tools/create_toy_geometry2.hpp"
 
 using namespace detray;
 
@@ -32,7 +31,7 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
 
     // Build the geometry (modeled as a unified index geometry)
     vecmem::host_memory_resource host_mr;
-    auto toy_det = create_toy_geometry2(host_mr);
+    auto toy_det = create_toy_geometry(host_mr);
     using geometry_t = typename decltype(toy_det)::geometry;
 
     // Build the graph

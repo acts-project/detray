@@ -7,11 +7,12 @@
 
 #include <gtest/gtest.h>
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "detray/core/mask_store.hpp"
 #include "detray/core/track.hpp"
 #include "detray/tools/single_type_navigator.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
-#include "tests/common/tools/create_toy_geometry2.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -23,7 +24,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     /** Tolerance for tests */
     constexpr double tol = 0.01;
 
-    auto toy_det = create_toy_geometry2(host_mr);
+    auto toy_det = create_toy_geometry(host_mr);
     single_type_navigator n(std::move(toy_det));
     using toy_navigator = decltype(n);
     using nav_context = decltype(toy_det)::context;

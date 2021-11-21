@@ -7,9 +7,10 @@
 
 #include <gtest/gtest.h>
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "detray/definitions/detail/accessor.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
-#include "tests/common/tools/create_toy_geometry2.hpp"
 
 using namespace detray;
 
@@ -19,14 +20,16 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     vecmem::host_memory_resource host_mr;
     auto toy_det = create_toy_geometry(host_mr);
 
+    using geometry = typename decltype(toy_det)::geometry;
     using objs = typename decltype(toy_det)::object_id;
-    auto& volumes = toy_det.volumes();
-    auto& surfaces = toy_det.objects<objs::e_any>();
-    auto& transforms = toy_det.transforms();
-    auto& masks = toy_det.masks();
-    auto& discs = detail::get<0>(masks);
-    auto& cylinders = detail::get<1>(masks);
-    auto& rectangles = detail::get<2>(masks);
+    typename decltype(toy_det)::transform_store::context ctx = {};
+    const auto& volumes = toy_det.volumes();
+    const auto& surfaces = toy_det.objects<objs::e_any>();
+    const auto& transforms = toy_det.transforms();
+    const auto& masks = toy_det.masks();
+    auto& discs = masks.group<geometry::e_portal_ring2>();
+    auto& cylinders = masks.group<geometry::e_portal_cylinder3>();
+    auto& rectangles = masks.group<geometry::e_rectangle2>();
 
     /** source link */
     const dindex inv_sf_finder = dindex_invalid;
@@ -37,7 +40,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 4);
     EXPECT_EQ(surfaces.size(), 687);
-    EXPECT_EQ(transforms.size(), 687);
+    EXPECT_EQ(transforms.size(ctx), 687);
     EXPECT_EQ(discs.size(), 8);
     EXPECT_EQ(cylinders.size(), 7);
     EXPECT_EQ(rectangles.size(), 672);
@@ -195,51 +198,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     range = {239, surfaces.size()};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {2, 224}, {{vol_itr->index(), inv_sf_finder}});
-}
-
-TEST(ALGEBRA_PLUGIN, toy_geometry2) {
-
-    vecmem::host_memory_resource host_mr;
-
-    // create toy geometry
-    auto det = create_toy_geometry2(host_mr);
-
-    // context objects
-    decltype(det)::transform_store::context ctx0;
-
-    // get volumes
-    auto volumes = det.volumes();
-    ASSERT_EQ(volumes.size(), 4);
-    auto& vol0 = volumes[0];
-    ASSERT_EQ(vol0.index(), 0);
-    auto& vol1 = volumes[1];
-    ASSERT_EQ(vol1.index(), 1);
-    auto& vol2 = volumes[2];
-    ASSERT_EQ(vol2.index(), 2);
-    auto& vol3 = volumes[3];
-    ASSERT_EQ(vol3.index(), 3);
-
-    // get surfaces
-    auto objects = det.objects();
-
-    // get masks
-    auto masks = det.masks();
-
-    // get transforms
-    auto transforms = det.transforms();
-
-    // assert that size of transforms and objects are the same
-    ASSERT_EQ(transforms.size(ctx0), objects.size());
-
-    for (auto& surface : objects) {
-        auto& vol_link = surface.volume();
-        auto& mask_link = surface.mask();
-        auto& transform_link = surface.transform();
-        auto& soruce_link = surface.source();
-        auto& edge_link = surface.edge();
-        std::cout << vol_link << " " << transform_link << "  " << mask_link[0]
-                  << "  " << mask_link[1] << std::endl;
-    }
 }
 
 int main(int argc, char** argv) {
