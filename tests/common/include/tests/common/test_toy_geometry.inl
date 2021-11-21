@@ -207,6 +207,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
         vol_itr->index(), surfaces.begin() + range[0], range, range[0],
         {geometry::e_portal_ring2, 6},
         {{leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}});
+
+    ASSERT_EQ(surfaces.size(), range[1]);
 }
 
 int main(int argc, char** argv) {
