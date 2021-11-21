@@ -16,8 +16,8 @@
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
 
-#include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/invalid_values.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
 
 namespace detray {
