@@ -62,12 +62,18 @@ struct vec_tuple {
     DETRAY_DEVICE vec_tuple(vec_tuple_data_t& data)
         : _tuple(device(data, std::make_index_sequence<sizeof...(Ts)>{})) {}
 
+    /**
+     * Get vecmem::data::vector_view objects
+     */
     template <std::size_t... ints>
     DETRAY_HOST data_t data(std::index_sequence<ints...> /*seq*/) {
         return detail::make_tuple<tuple_type>(vecmem::data::vector_view<Ts>(
             vecmem::get_data(detail::get<ints>(_tuple)))...);
     }
 
+    /**
+     * Get vecmem::device_vector objects
+     */
     template <typename vec_tuple_data_t, std::size_t... ints>
     DETRAY_DEVICE vtuple::tuple<vector_type<Ts>...> device(
         vec_tuple_data_t& data, std::index_sequence<ints...> /*seq*/) {
