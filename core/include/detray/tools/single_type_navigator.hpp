@@ -238,7 +238,7 @@ class single_type_navigator {
         dindex _volume_index = dindex_invalid;
     };
 
-    single_type_navigator(detector_t &&d) : detector(std::move(d)) {}
+    single_type_navigator(const detector_t &d) : detector(d) {}
 
     /** Navigation status() call which established the current navigation
      *  information.

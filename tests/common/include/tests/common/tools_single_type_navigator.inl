@@ -25,7 +25,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     constexpr double tol = 0.01;
 
     auto toy_det = create_toy_geometry(host_mr);
-    single_type_navigator n(std::move(toy_det));
+    single_type_navigator n(toy_det);
     using toy_navigator = decltype(n);
     using nav_context = decltype(toy_det)::context;
 
