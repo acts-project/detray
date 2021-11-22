@@ -213,10 +213,10 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     det.new_volume({second_layer_inner_r, second_layer_outer_r,
                     -1 * detector_half_z, detector_half_z, -M_PI, M_PI});
 
-    auto& vol0 = det.volumes()[0];
-    auto& vol1 = det.volumes()[1];
-    auto& vol2 = det.volumes()[2];
-    auto& vol3 = det.volumes()[3];
+    auto& vol0 = det.volume_by_index(0);
+    auto& vol1 = det.volume_by_index(1);
+    auto& vol2 = det.volume_by_index(2);
+    auto& vol3 = det.volume_by_index(3);
 
     /**
      * Fill beampipe volume -- volume ID = 0
