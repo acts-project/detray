@@ -110,8 +110,8 @@ class detector {
           _geometry(resource),
           _transforms(resource),
           _masks(resource),
-          _volume_grid(volume_grid(std::move(axis::irregular{{}}),
-                                   std::move(axis::irregular{{}}), resource)),
+          _volume_grid(std::move(axis::irregular{{}}),
+                       std::move(axis::irregular{{}}), resource),
           _surfaces_finders(&resource) {}
 
     /** Add a new volume and retrieve a reference to it
