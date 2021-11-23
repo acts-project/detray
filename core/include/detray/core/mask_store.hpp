@@ -31,6 +31,10 @@ class mask_store {
      */
     using mask_tuple = vtuple::tuple<vector_type<mask_types>...>;
 
+    /** data type for mask_store_data **/
+    using mask_tuple_data =
+        tuple_type<vecmem::data::vector_view<mask_types>...>;
+
     /**
      * tuple_type for mask_tuple makes an illegal memory access error
      */
@@ -45,12 +49,13 @@ class mask_store {
         : _mask_tuple(vector_type<mask_types>{&resource}...) {}
 
     /** Constructor with mask_store_data **/
-    template <template <template <typename...> class, typename...>
-              class mask_store_data_t>
-    DETRAY_DEVICE mask_store(
-        mask_store_data_t<tuple_type, mask_types...> &store_data)
-        : _mask_tuple(store_data.device(
-              std::make_index_sequence<sizeof...(mask_types)>{})) {}
+    template <typename mask_store_data_t,
+              std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
+                                                  mask_store_data_t>,
+                               bool> = true>
+    DETRAY_DEVICE mask_store(mask_store_data_t &store_data)
+        : _mask_tuple(device(
+              store_data, std::make_index_sequence<sizeof...(mask_types)>{})) {}
 
     /** Size : Contextual STL like API
      *
@@ -230,6 +235,26 @@ class mask_store {
         }
     }
 
+    /**
+     * Get vecmem::data::vector_view objects
+     */
+    template <std::size_t... ints>
+    DETRAY_HOST mask_tuple_data data(std::index_sequence<ints...> /*seq*/) {
+        return detail::make_tuple<tuple_type>(
+            vecmem::data::vector_view<mask_types>(
+                vecmem::get_data(detail::get<ints>(_mask_tuple)))...);
+    }
+
+    /**
+     * Get vecmem::device_vector objects
+     */
+    template <typename mask_store_data_t, std::size_t... ints>
+    DETRAY_DEVICE mask_tuple device(mask_store_data_t &data,
+                                    std::index_sequence<ints...> /*seq*/) {
+        return vtuple::make_tuple(
+            vector_type<mask_types>(detail::get<ints>(data._data))...);
+    }
+
     private:
     /** tuple of mask vectors (mask groups) */
     mask_tuple _mask_tuple;
@@ -240,20 +265,19 @@ class mask_store {
  * The tuple type for mask store data is fixed to std::tuple since there was an
  * issue that _data gets corrupted when passed to .cu file
  */
-template <template <typename...> class tuple_type, typename... mask_types>
+template <typename mask_store_t>
 struct mask_store_data {
+
+    using mask_tuple_data_t = typename mask_store_t::mask_tuple_data;
 
     /** Constructor from mask store
      *
      * @param store is the mask store from host
      **/
-    template <template <typename...> class vector_type, std::size_t... ints>
-    DETRAY_HOST mask_store_data(
-        mask_store<tuple_type, vector_type, mask_types...> &store,
-        std::index_sequence<ints...> /*seq*/)
-        : _data(detail::make_tuple<tuple_type>(
-              vecmem::data::vector_view<mask_types>(
-                  vecmem::get_data(detail::get<ints>(store.masks())))...)) {}
+    template <std::size_t... ints>
+    DETRAY_HOST mask_store_data(mask_store_t &store,
+                                std::index_sequence<ints...> seq)
+        : _data(store.data(seq)) {}
 
     /** Size : Contextual STL like API
      *
@@ -275,30 +299,19 @@ struct mask_store_data {
         return detail::get<mask_id>(_data);
     }
 
-    /** Obtain the vecmem device vector of mask store
-     *
-     * @return tuple type of vecmem::data::vector_view objects
-     */
-    template <std::size_t... ints>
-    DETRAY_DEVICE tuple_type<vecmem::device_vector<mask_types>...> device(
-        std::index_sequence<ints...> /*seq*/) {
-        return detail::make_tuple<tuple_type>(
-            vecmem::device_vector<mask_types>(detail::get<ints>(_data))...);
-    }
-
     /** tuple of vecmem data
      *
      * **/
-    tuple_type<vecmem::data::vector_view<mask_types>...> _data;
+    mask_tuple_data_t _data;
 };
 
 /** Get mask_store_data
  **/
 template <template <typename...> class tuple_type,
           template <typename...> class vector_type, typename... mask_types>
-inline mask_store_data<tuple_type, mask_types...> get_data(
-    mask_store<tuple_type, vector_type, mask_types...> &store) {
-    return mask_store_data<tuple_type, mask_types...>(
+inline mask_store_data<mask_store<tuple_type, vector_type, mask_types...> >
+get_data(mask_store<tuple_type, vector_type, mask_types...> &store) {
+    return mask_store_data<mask_store<tuple_type, vector_type, mask_types...> >(
         store, std::make_index_sequence<sizeof...(mask_types)>{});
 }
 
