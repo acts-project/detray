@@ -35,6 +35,8 @@ template <template <typename...> class tuple_type = std::tuple,
           typename... Ts>
 struct vec_tuple {
 
+    using data_t = tuple_type<vecmem::data::vector_view<Ts>...>;
+
     // vtuple has different types based on the file location
     // 1) std::tuple in cpp/hpp; 2) thrust::tuple in cu
     vtuple::tuple<vector_type<Ts>...> _tuple;
@@ -53,56 +55,63 @@ struct vec_tuple {
      *
      * Used when creating vec_tuple with vecmem::device_vector
      */
-    template <template <template <typename...> class, typename...>
-              class vec_tuple_data>
-    DETRAY_DEVICE vec_tuple(vec_tuple_data<tuple_type, Ts...>& data)
-        : _tuple(data.device(std::make_index_sequence<sizeof...(Ts)>{})) {}
+    template <typename vec_tuple_data_t,
+              std::enable_if_t<
+                  !std::is_base_of_v<vecmem::memory_resource, vec_tuple_data_t>,
+                  bool> = true>
+    DETRAY_DEVICE vec_tuple(vec_tuple_data_t& data)
+        : _tuple(device(data, std::make_index_sequence<sizeof...(Ts)>{})) {}
+
+    /**
+     * Get vecmem::data::vector_view objects
+     */
+    template <std::size_t... ints>
+    DETRAY_HOST data_t data(std::index_sequence<ints...> /*seq*/) {
+        return detail::make_tuple<tuple_type>(vecmem::data::vector_view<Ts>(
+            vecmem::get_data(detail::get<ints>(_tuple)))...);
+    }
+
+    /**
+     * Get vecmem::device_vector objects
+     */
+    template <typename vec_tuple_data_t, std::size_t... ints>
+    DETRAY_DEVICE vtuple::tuple<vector_type<Ts>...> device(
+        vec_tuple_data_t& data, std::index_sequence<ints...> /*seq*/) {
+        return vtuple::make_tuple(
+            vector_type<Ts>(detail::get<ints>(data._tuple))...);
+    }
 };
 
 /** Tuple of vecmem::vector_view
- *
  */
-template <template <typename...> class tuple_type, typename... Ts>
+template <typename vec_tuple_t>
 struct vec_tuple_data {
-    tuple_type<vecmem::data::vector_view<Ts>...> _tuple;
+    typename vec_tuple_t::data_t _tuple;
 
     /** Constructor with vec_tuple - only for host
-     *
-     */
-    template <template <typename...> class vector_type, std::size_t... ints>
-    DETRAY_HOST vec_tuple_data(
-        vec_tuple<tuple_type, vector_type, Ts...>& vtuple,
-        std::index_sequence<ints...> /*seq*/)
-        : _tuple(detail::make_tuple<tuple_type>(vecmem::data::vector_view<Ts>(
-              vecmem::get_data(detail::get<ints>(vtuple._tuple)))...)) {}
-
-    /** Create tuple with vecmem::device_vector
-     *
-     * This function is called by vec_tuple constructor
      */
     template <std::size_t... ints>
-    DETRAY_DEVICE tuple_type<vecmem::device_vector<Ts>...> device(
-        std::index_sequence<ints...> /*seq*/) {
-        return detail::make_tuple<tuple_type>(
-            vecmem::device_vector<Ts>(detail::get<ints>(_tuple))...);
-    }
+    DETRAY_HOST vec_tuple_data(vec_tuple_t& vtuple,
+                               std::index_sequence<ints...> seq)
+        : _tuple(vtuple.data(seq)) {}
 };
 
 /** Get vec_tuple_data
  **/
 template <template <typename...> class tuple_type,
           template <typename...> class vector_type, typename... Ts>
-inline vec_tuple_data<tuple_type, Ts...> get_data(
+inline vec_tuple_data<vec_tuple<tuple_type, vector_type, Ts...> > get_data(
     vec_tuple<tuple_type, vector_type, Ts...>& vtuple) {
-    return vec_tuple_data<tuple_type, Ts...>(
+    return vec_tuple_data<vec_tuple<tuple_type, vector_type, Ts...> >(
         vtuple, std::make_index_sequence<sizeof...(Ts)>{});
 }
 
 // Test function to copy the contenst of vec_tuple_data into vecmem vector
 template <template <typename...> class tuple_type>
-void tuple_copy(vec_tuple_data<tuple_type, int, float, double>& data,
-                vecmem::data::vector_view<int>& output1_data,
-                vecmem::data::vector_view<float>& output2_data,
-                vecmem::data::vector_view<double>& output3_data);
+void tuple_copy(
+    vec_tuple_data<vec_tuple<tuple_type, dvector, int, float, double> >& data,
+    vecmem::data::vector_view<int>& output1_data,
+    vecmem::data::vector_view<float>& output2_data,
+    vecmem::data::vector_view<double>& output3_data);
 
 }  // namespace detray

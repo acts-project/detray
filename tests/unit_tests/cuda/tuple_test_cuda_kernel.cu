@@ -12,7 +12,7 @@ namespace detray {
 
 template <template <typename...> class tuple_type>
 __global__ void tuple_copy_kernel(
-    vec_tuple_data<tuple_type, int, float, double> data,
+    vec_tuple_data<vec_tuple<tuple_type, dvector, int, float, double>> data,
     vecmem::data::vector_view<int> output1_data,
     vecmem::data::vector_view<float> output2_data,
     vecmem::data::vector_view<double> output3_data) {
@@ -42,7 +42,7 @@ __global__ void tuple_copy_kernel(
 }
 
 template void tuple_copy<thrust::tuple>(
-    vec_tuple_data<thrust::tuple, int, float, double>& data,
+    vec_tuple_data<vec_tuple<thrust::tuple, dvector, int, float, double>>& data,
     vecmem::data::vector_view<int>& output1_data,
     vecmem::data::vector_view<float>& output2_data,
     vecmem::data::vector_view<double>& output3_data);
@@ -56,10 +56,11 @@ template void tuple_copy<std::tuple>(
 */
 
 template <template <typename...> class tuple_type>
-void tuple_copy(vec_tuple_data<tuple_type, int, float, double>& data,
-                vecmem::data::vector_view<int>& output1_data,
-                vecmem::data::vector_view<float>& output2_data,
-                vecmem::data::vector_view<double>& output3_data) {
+void tuple_copy(
+    vec_tuple_data<vec_tuple<tuple_type, dvector, int, float, double>>& data,
+    vecmem::data::vector_view<int>& output1_data,
+    vecmem::data::vector_view<float>& output2_data,
+    vecmem::data::vector_view<double>& output3_data) {
 
     int thread_dim = 1;
     int block_dim = 1;
