@@ -90,7 +90,9 @@ class grid2 {
 
     /** Constructor from grid data
      **/
-    template <typename grid_view_type>
+    template <
+        typename grid_view_type,
+        std::enable_if_t<!std::is_same_v<grid2, grid_view_type>, bool> = true>
     DETRAY_DEVICE grid2(
         grid_view_type &grid_data,
         const bare_value m_invalid = invalid_value<bare_value>())
