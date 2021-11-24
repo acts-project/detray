@@ -337,7 +337,7 @@ detector_from_csv(const std::string &detector_name,
             auto &new_volume =
                 d.new_volume(volume_bounds, surfaces_finder_entry);
 
-            name_map[new_volume.index()] = volume_name;
+            name_map[new_volume.index() + 1] = volume_name;
 
             // RZ attachment storage
             attach_volume(r_min_attachments, volume_bounds[0],
