@@ -38,7 +38,7 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
 
     const auto &transforms = d.transforms(default_context);
     // For a geometry that keeps a dedicated portal type, only intersect portals
-    const auto &portals = d.template objects<object_id::e_portal>();
+    const auto &portals = d.surfaces();
     const auto &masks = d.masks();
 
     // Loop over volumes

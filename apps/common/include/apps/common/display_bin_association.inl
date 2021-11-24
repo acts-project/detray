@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
             const auto &sf_range = lvolume.range();
 
             dindex finder_entry = lvolume.surfaces_finder_entry();
-            const auto &surfaces = d.objects();
+            const auto &surfaces = d.surfaces();
             const auto &surface_transforms = d.transforms(sf_range, s_context);
             const auto &surface_masks = d.masks();
 

@@ -39,9 +39,9 @@ endfunction(add_detray_test)
   
 set(all_unit_tests "core")
 list(APPEND all_unit_tests "annulus2;cylinder3;rectangle2;ring2;single3;unmasked;trapezoid2")
-list(APPEND all_unit_tests "propagator;line_stepper;navigator;single_type_navigator;cylinder_intersection;planar_intersection;intersection_kernel")
-list(APPEND all_unit_tests "detector;transform_store;masks_container;mask_store")
-list(APPEND all_unit_tests "volume;index_geometry;unified_index_geometry;toy_geometry;geometry_graph")
+list(APPEND all_unit_tests "propagator;line_stepper;navigator;cylinder_intersection;planar_intersection;intersection_kernel")
+list(APPEND all_unit_tests "detector;transform_store;mask_store")
+list(APPEND all_unit_tests "volume;toy_geometry;geometry_graph")
 list(APPEND all_unit_tests "geometry_linking;geometry_navigation;geometry_scan")
 
 add_subdirectory(core)

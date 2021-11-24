@@ -82,15 +82,13 @@ class unified_index_geometry {
     /// mask types
     using rectangle = rectangle2<planar_intersector, __plugin::cartesian2,
                                  portal_links, e_rectangle2>;
-    using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2,
-                                 portal_links, e_trapezoid2>;
-    using annulus = annulus2<planar_intersector, __plugin::cartesian2,
-                             portal_links, e_annulus2>;
-    using cylinder =
-        cylinder3<false, cylinder_intersector, __plugin::cylindrical2,
-                  portal_links, e_cylinder3>;
-    using disc =
-        ring2<planar_intersector, __plugin::cartesian2, portal_links, e_ring2>;
+    using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2, edge_links,
+                                 e_trapezoid2>;
+    using annulus =
+        annulus2<planar_intersector, __plugin::cartesian2, edge_links, e_annulus2>;
+    using cylinder = cylinder3<false, cylinder_intersector,
+                               __plugin::cylindrical2, edge_links, e_cylinder3>;
+    using disc = ring2<planar_intersector, __plugin::cartesian2, edge_links, e_ring2>;
 
     using mask_container = mask_store<tuple_type, vector_type, rectangle,
                                       trapezoid, annulus, cylinder, disc>;

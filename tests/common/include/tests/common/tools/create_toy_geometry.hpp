@@ -12,25 +12,20 @@ namespace detray {
 auto create_toy_geometry(vecmem::memory_resource& resource) {
 
     // detector type
-    using detector_t = detector<
-        darray, dtuple, dvector, djagged_vector,
-        static_transform_store<dvector>,
-        unified_index_geometry<dvector, darray, dtuple, dindex, dindex>,
-        serializer2, std::map<dindex, std::string> >;
+    using detector_t = detector<>;
 
     // sub-geometry components type
-    using geometry = typename detector_t::geometry;
-    using volume = typename detector_t::volume;
-    using edge_links = typename detector_t::geometry::edge_links;
-    using surface = typename detector_t::surface;
+    using volume = typename detector_t::volume_type;
+    using edge_links = typename detector_t::edge_type;
+    using surface = typename detector_t::surface_type;
     using mask_container = typename detector_t::mask_container;
     using transform_store = typename detector_t::transform_store;
     using transform_container = typename detector_t::transform_container;
-    using disc = typename detector_t::geometry::disc;
-    using cylinder = typename detector_t::geometry::cylinder;
-    using rectangle = typename detector_t::geometry::rectangle;
+    using disc = typename detector_t::disc;
+    using cylinder = typename detector_t::cylinder;
+    using rectangle = typename detector_t::rectangle;
     using surface_container =
-        typename detector_t::geometry::surface_filling_container;
+        typename detector_t::surface_filling_container;
 
     /** Function that adds a disc portal.
      */
@@ -43,22 +38,22 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
             point3 tsl{0., 0., half_z};
 
             // add transform
-            transforms[geometry::e_portal_ring2].emplace_back(ctx, tsl);
+            transforms[detector_t::e_portal_ring2].emplace_back(ctx, tsl);
 
             // add mask
-            masks.add_mask<geometry::e_portal_ring2>(min_r, max_r);
-            masks.group<geometry::e_portal_ring2>().back().links() = edge;
+            masks.add_mask<detector_t::e_portal_ring2>(min_r, max_r);
+            masks.group<detector_t::e_portal_ring2>().back().links() = edge;
 
             // create surface
-            surface surf(transforms[geometry::e_portal_ring2].size(ctx) - 1,
-                         {geometry::e_portal_ring2,
-                          masks.group<geometry::e_portal_ring2>().size() - 1},
+            surface surf(transforms[detector_t::e_portal_ring2].size(ctx) - 1,
+                         {detector_t::e_portal_ring2,
+                          masks.group<detector_t::e_portal_ring2>().size() - 1},
                          volume_id, dindex_invalid);
 
             surf.set_edge(edge);
 
             // add surface
-            surfaces[geometry::e_portal_ring2].push_back(surf);
+            surfaces[detector_t::e_portal_ring2].push_back(surf);
         };
 
     /** Function that adds a disc portal.
@@ -74,22 +69,22 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
         point3 tsl{0., 0., 0};
 
         // add transform
-        transforms[geometry::e_portal_cylinder3].emplace_back(ctx, tsl);
+        transforms[detector_t::e_portal_cylinder3].emplace_back(ctx, tsl);
 
         // add mask
-        masks.add_mask<geometry::e_portal_cylinder3>(r, -half_z, half_z);
-        masks.group<geometry::e_portal_cylinder3>().back().links() = edge;
+        masks.add_mask<detector_t::e_portal_cylinder3>(r, -half_z, half_z);
+        masks.group<detector_t::e_portal_cylinder3>().back().links() = edge;
 
         // create surface
-        surface surf(transforms[geometry::e_portal_cylinder3].size(ctx) - 1,
-                     {geometry::e_portal_cylinder3,
-                      masks.group<geometry::e_portal_cylinder3>().size() - 1},
+        surface surf(transforms[detector_t::e_portal_cylinder3].size(ctx) - 1,
+                     {detector_t::e_portal_cylinder3,
+                      masks.group<detector_t::e_portal_cylinder3>().size() - 1},
                      volume_id, dindex_invalid);
 
         surf.set_edge(edge);
 
         // add surface
-        surfaces[geometry::e_portal_cylinder3].push_back(surf);
+        surfaces[detector_t::e_portal_cylinder3].push_back(surf);
     };
 
     /** Function that creates the modules
@@ -147,24 +142,24 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
                                   std::cos(m_phi + m_tilt_phi), 0.};
 
                 // add transform
-                transforms[geometry::e_rectangle2].emplace_back(
+                transforms[detector_t::e_rectangle2].emplace_back(
                     ctx, m_center, m_local_z, m_local_x);
 
                 // add mask
-                masks.add_mask<geometry::e_rectangle2>(m_half_x, m_half_y);
-                masks.group<geometry::e_rectangle2>().back().links() = {
+                masks.add_mask<detector_t::e_rectangle2>(m_half_x, m_half_y);
+                masks.group<detector_t::e_rectangle2>().back().links() = {
                     volume_id, dindex_invalid};
 
                 // create surface
-                surface surf(transforms[geometry::e_rectangle2].size(ctx) - 1,
-                             {geometry::e_rectangle2,
-                              masks.group<geometry::e_rectangle2>().size() - 1},
+                surface surf(transforms[detector_t::e_rectangle2].size(ctx) - 1,
+                             {detector_t::e_rectangle2,
+                              masks.group<detector_t::e_rectangle2>().size() - 1},
                              volume_id, dindex_invalid);
 
                 surf.set_edge({volume_id, invalid_value});
 
                 // add surface
-                surfaces[geometry::e_rectangle2].push_back(surf);
+                surfaces[detector_t::e_rectangle2].push_back(surf);
             }
         };
 

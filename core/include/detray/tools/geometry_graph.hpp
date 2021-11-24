@@ -53,13 +53,13 @@ class geometry_graph {
 
     public:
     // Objects ids of the geometry
-    using object_id = typename geometry::object_registry_type::id;
+    using object_id = typename geometry::object_id;
 
     // Graph nodes
     using node_t = typename geometry::volume_type;
 
     // Graph edges
-    using edge_t = typename geometry::portal;
+    using edge_t = typename geometry::surface_type;
 
     /** Default constructor */
     geometry_graph() = delete;
@@ -70,7 +70,7 @@ class geometry_graph {
      * @param portals geometry portals link volumes and become edges
      */
     geometry_graph(const vector_type<typename geometry::volume_type> &volumes,
-                   const vector_type<typename geometry::portal> &portals)
+                   const vector_type<typename geometry::surface_type> &portals)
         : _nodes(volumes), _edges(portals) {
         build();
     }
