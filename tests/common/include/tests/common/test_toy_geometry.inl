@@ -7,9 +7,8 @@
 
 #include <gtest/gtest.h>
 
-#include <vecmem/memory/memory_resource.hpp>
-
 #include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/memory/memory_resource.hpp>
 
 #include "detray/definitions/detail/accessor.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
@@ -112,7 +111,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {0, 1};
     test_portal_links(vol_itr->index(), surfaces.begin(), range, range[0],
-                      {detector_t::e_portal_cylinder3, 0}, {{1, inv_sf_finder}});
+                      {detector_t::e_portal_cylinder3, 0},
+                      {{1, inv_sf_finder}});
 
     // disc portals
     range = {1, 3};

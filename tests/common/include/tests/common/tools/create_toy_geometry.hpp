@@ -24,8 +24,7 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     using disc = typename detector_t::disc;
     using cylinder = typename detector_t::cylinder;
     using rectangle = typename detector_t::rectangle;
-    using surface_container =
-        typename detector_t::surface_filling_container;
+    using surface_container = typename detector_t::surface_filling_container;
 
     /** Function that adds a disc portal.
      */
@@ -151,10 +150,11 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
                     volume_id, dindex_invalid};
 
                 // create surface
-                surface surf(transforms[detector_t::e_rectangle2].size(ctx) - 1,
-                             {detector_t::e_rectangle2,
-                              masks.group<detector_t::e_rectangle2>().size() - 1},
-                             volume_id, dindex_invalid);
+                surface surf(
+                    transforms[detector_t::e_rectangle2].size(ctx) - 1,
+                    {detector_t::e_rectangle2,
+                     masks.group<detector_t::e_rectangle2>().size() - 1},
+                    volume_id, dindex_invalid);
 
                 surf.set_edge({volume_id, invalid_value});
 

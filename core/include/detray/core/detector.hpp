@@ -50,7 +50,6 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
-          typename alignable_store = static_transform_store<vector_type>,
           typename surfaces_serializer_type = serializer2,
           typename name_map = std::map<dindex, std::string>,
           typename source_link = dindex>
@@ -58,8 +57,8 @@ class detector {
 
     public:
     /// Forward the alignable container and context
-    using transform_store = alignable_store;
-    using context = typename alignable_store::context;
+    using transform_store = static_transform_store<vector_type>;
+    using context = typename transform_store::context;
 
     /** Encodes the position in a collection container for the respective
         mask type . */
@@ -272,7 +271,7 @@ class detector {
      */
     template <typename... detector_components>
     inline void add_objects(
-        const typename alignable_store::context ctx,
+        const context ctx,
         detector_components &&... components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'mask_id')
         fill_containers(ctx, std::forward<detector_components>(components)...);
@@ -295,8 +294,7 @@ class detector {
      * @note can throw an exception if input data is inconsistent
      */
     template <unsigned int current_type = 0, typename surface_container>
-    inline void fill_containers(const typename alignable_store::context ctx,
-                                volume_type &volume,
+    inline void fill_containers(const context ctx, volume_type &volume,
                                 surface_container &surfaces,
                                 mask_container &masks,
                                 transform_container &trfs) noexcept(false) {

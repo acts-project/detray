@@ -7,9 +7,8 @@
 
 #include <gtest/gtest.h>
 
-#include <vecmem/memory/memory_resource.hpp>
-
 #include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/memory/memory_resource.hpp>
 
 #include "detray/core/mask_store.hpp"
 #include "detray/core/track.hpp"
