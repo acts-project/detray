@@ -238,31 +238,7 @@ class single_type_navigator {
         dindex _volume_index = dindex_invalid;
     };
 
-    /** Constructor from collection of data containers
-     *
-     * @param volumes the container for naviagtion volumes
-     * @param objects the container for surfaces/portals
-     * @param transforms the container for surface/portal transforms
-     * @param masks the container for urface/portal masks ("unrollable")
-     */
-    single_type_navigator(const volume_container &volumes,
-                          const object_container &objects,
-                          const transform_container &transforms,
-                          const mask_container &masks)
-        : _volumes(volumes),
-          _objects(objects),
-          _transforms(transforms),
-          _masks(masks) {}
-
-    /** Constructor from detector object
-     *
-     * @param d the detector
-     */
-    single_type_navigator(const detector_t &d)
-        : _volumes(d.volumes()),
-          _objects(d.template objects<objs::e_any>()),
-          _transforms(d.transforms()),
-          _masks(d.masks()) {}
+    single_type_navigator(const detector_t &d) : detector(d) {}
 
     /** Navigation status() call which established the current navigation
      *  information.
@@ -282,7 +258,8 @@ class single_type_navigator {
         // If there is no_trust (e.g. at the beginning of the navigation in a
         // volume), the kernel will be initialized. Otherwise the candidates
         // are re-evaluated based on current trust level
-        update_kernel(navigation, track, _volumes[navigation.volume()]);
+        update_kernel(navigation, track,
+                      detector.volumes()[navigation.volume()]);
 
         // Should never be the case after update call (without portals we are
         // trapped)
@@ -339,10 +316,12 @@ class single_type_navigator {
 
         // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
-        for (const auto [obj_idx, obj] : enumerate(_objects, volume)) {
+        for (const auto [obj_idx, obj] :
+             enumerate(detector.objects(), volume)) {
 
             // Retrieve candidate from the object
-            auto sfi = intersect(track, obj, _transforms, _masks);
+            auto sfi =
+                intersect(track, obj, detector.transforms(), detector.masks());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < track.overstep_tolerance) {
@@ -388,10 +367,10 @@ class single_type_navigator {
             while (not navigation.is_exhausted()) {
                 // Only update the next candidate
                 dindex obj_idx = navigation.next()->index;
-                auto sfi =
-                    intersect(track, _objects[obj_idx], _transforms, _masks);
+                auto sfi = intersect(track, detector.objects()[obj_idx],
+                                     detector.transforms(), detector.masks());
                 sfi.index = obj_idx;
-                sfi.link = std::get<0>(_objects[obj_idx].edge());
+                sfi.link = std::get<0>(detector.objects()[obj_idx].edge());
                 (*navigation.next()) = sfi;
                 navigation.set_dist(sfi.path);
 
@@ -428,11 +407,12 @@ class single_type_navigator {
         else if (navigation.trust_level() == e_fair_trust) {
             for (auto &candidate : navigation.candidates()) {
                 dindex obj_idx = candidate.index;
-                auto sfi =
-                    intersect(track, _objects[obj_idx], _transforms, _masks);
+                auto sfi = intersect(track, detector.objects()[obj_idx],
+                                     detector.transforms(), detector.masks());
                 candidate = sfi;
                 candidate.index = obj_idx;
-                candidate.link = std::get<0>(_objects[obj_idx].edge());
+                candidate.link =
+                    std::get<0>(detector.objects()[obj_idx].edge());
             }
             set_next(navigation);
             return;
@@ -512,10 +492,7 @@ class single_type_navigator {
 
     private:
     /** the containers for all data */
-    const volume_container &_volumes;
-    const object_container &_objects;
-    const transform_container &_transforms;
-    const mask_container &_masks;
+    detector_t detector;
 };
 
 }  // namespace detray

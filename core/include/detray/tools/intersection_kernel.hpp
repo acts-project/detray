@@ -18,28 +18,6 @@
 
 namespace detray {
 
-// mask store
-template <typename mask_store_t,
-          std::enable_if_t<std::is_class_v<typename std::remove_reference_t<
-                               mask_store_t>::mask_tuple>,
-                           bool> = true>
-inline constexpr auto mask_store_size() noexcept {
-    return detail::tuple_size<typename mask_store_t::mask_tuple>::value;
-}
-
-// Any other tuple
-template <
-    class mask_store_t,
-    std::enable_if_t<
-        std::is_default_constructible_v<std::remove_reference_t<mask_store_t>>,
-        bool> = true,
-    std::enable_if_t<
-        std::is_integral_v<decltype(detail::tuple_size<mask_store_t>::value)>,
-        bool> = true>
-inline constexpr auto mask_store_size() noexcept {
-    return detail::tuple_size<mask_store_t>::value;
-}
-
 /// Transform definition
 using transform3 = __plugin::transform3;
 
@@ -70,7 +48,7 @@ inline auto unroll_intersect(
 
     // Pick the first one for interseciton
     if (mask_id == first_mask_id) {
-        auto &mask_group = detail::get<first_mask_id>(masks);
+        auto &mask_group = masks.template group<first_mask_id>();
 
         // Check all masks of this surface for intersection
         for (const auto &mask : range(mask_group, rng)) {
@@ -128,8 +106,9 @@ inline const auto intersect(const track_type &track, surface_type &surface,
     // Unroll the intersection depending on the mask container size
     return unroll_intersect(
         track, ctf, masks, mask_range, mask_id, volume_index,
-        std::make_integer_sequence<unsigned int,
-                                   mask_store_size<mask_container>()>{});
+        std::make_integer_sequence<
+            unsigned int,
+            detail::tuple_size<typename mask_container::mask_tuple>::value>{});
 }
 
 }  // namespace detray

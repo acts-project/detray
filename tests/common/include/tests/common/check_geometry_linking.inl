@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-//#include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/tools/geometry_graph.hpp"
 #include "tests/common/tools/hash_tree.hpp"
@@ -33,10 +33,10 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
     vecmem::host_memory_resource host_mr;
     auto toy_det = create_toy_geometry(host_mr);
     using geometry_t = typename decltype(toy_det)::geometry;
-    const auto geo = toy_det._geometry;
 
     // Build the graph
-    const auto g = geometry_graph<geometry_t>(geo._volumes, geo._objects);
+    const auto g =
+        geometry_graph<geometry_t>(toy_det.volumes(), toy_det.objects());
     const auto &adj_linking = g.adjacency_list();
 
     std::cout << g.to_string() << std::endl;

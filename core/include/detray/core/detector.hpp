@@ -13,12 +13,12 @@
 
 #include "detray/core/transform_store.hpp"
 #include "detray/geometry/index_geometry.hpp"
+#include "detray/geometry/unified_index_geometry.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/tools/local_object_finder.hpp"
-#include "detray/tools/toy_geometry.hpp"
 
 namespace detray {
 
@@ -61,6 +61,7 @@ class detector {
 
     /// Export geometry types
     using geometry = geometry_type;
+    using surface = typename geometry_type::surface;
     using volume = typename geometry_type::volume_type;
     using object_id = typename geometry_type::object_registry_type::id;
     using mask_id = typename geometry_type::mask_id;
@@ -106,9 +107,12 @@ class detector {
      */
     detector(const std::string &name, vecmem::memory_resource &resource)
         : _name(name),
-          _masks(mask_container{resource}),
-          _volume_grid(volume_grid(std::move(axis::irregular{{}}),
-                                   std::move(axis::irregular{{}}), resource)) {}
+          _geometry(resource),
+          _transforms(resource),
+          _masks(resource),
+          _volume_grid(std::move(axis::irregular{{}}),
+                       std::move(axis::irregular{{}}), resource),
+          _surfaces_finders(&resource) {}
 
     /** Add a new volume and retrieve a reference to it
      *
@@ -129,6 +133,9 @@ class detector {
 
     /** @return the contained volumes of the detector - const access */
     inline decltype(auto) volumes() const { return _geometry.volumes(); }
+
+    /** @return the contained volumes of the detector - non-const access */
+    inline decltype(auto) volumes() { return _geometry.volumes(); }
 
     /** @return the volume by @param volume_index - non-const access */
     inline decltype(auto) volume_by_index(dindex volume_index) {
@@ -373,47 +380,6 @@ class detector {
 
     vector_type<surfaces_finder> _surfaces_finders;
 
-    volume_grid _volume_grid;
-};
-
-// Minimalistic detector type for toy geometry
-template <typename geometry_t, typename mask_container_t, typename transform_t,
-          typename grid_t, template <typename...> class vector_t = dvector>
-struct toy_detector {
-    // typedefs
-    using transform_store = vector_t<transform_t>;
-    using mask_container = mask_container_t;
-    using geometry = geometry_t;
-    using volume = typename geometry_t::volume_type;
-    using object_id = typename geometry_t::object_registry_type::id;
-    using volume_grid = grid_t;
-    using surfaces_finder = grid_t;
-
-    struct empty_context {};
-    using context = empty_context;  // not used
-
-    toy_detector(geometry_t &&geo, mask_container_t &&masks,
-                 vector_t<transform_t> &&trfs)
-        : _geometry(geo), _masks(masks), _transforms(trfs) {}
-
-    // interface functions
-    const auto &volumes() const { return _geometry._volumes; }
-    const auto &transforms(const context /*ctx*/ = {}) const {
-        return _transforms;
-    }
-    const auto &masks() const { return _masks; }
-    template <object_id>
-    const auto &objects() const {
-        return _geometry._objects;
-    }
-
-    std::string _name = "toy_detector";
-
-    // data containers
-    geometry_t _geometry;
-    vector_t<transform_t> _transforms;
-    mask_container_t _masks;
-    vector_t<surfaces_finder> _surfaces_finders;
     volume_grid _volume_grid;
 };
 
