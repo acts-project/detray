@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
                                    std::abs(bounds[3] - bounds[2]);
                 const auto &sf_range = v.range();
 
-                const auto &surfaces = d.objects();
+                const auto &surfaces = d.surfaces();
                 const auto &volume_transforms =
                     d.transforms(sf_range, s_context);
                 const auto &volume_masks = d.masks();

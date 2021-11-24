@@ -46,11 +46,9 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
-          typename alignable_store = static_transform_store<vector_type>,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
-detector<array_type, tuple_type, vector_type, jagged_vector_type,
-         alignable_store>
+detector<array_type, tuple_type, vector_type, jagged_vector_type>
 detector_from_csv(const std::string &detector_name,
                   const std::string &surface_file_name,
                   const std::string &layer_volume_file_name,
@@ -59,10 +57,12 @@ detector_from_csv(const std::string &detector_name,
                   std::map<dindex, std::string> &name_map,
                   vecmem::memory_resource &resource,
                   scalar r_sync_tolerance = 0., scalar z_sync_tolerance = 0.) {
-    using typed_detector = detector<array_type, tuple_type, vector_type,
-                                    jagged_vector_type, alignable_store>;
+    using alignable_store = static_transform_store<vector_type>;
+    using detector_t =
+        detector<array_type, tuple_type, vector_type, jagged_vector_type>;
 
-    typed_detector d(detector_name, resource);
+    name_map[0] = detector_name;
+    detector_t d(resource);
 
     // Surface reading
     surface_reader s_reader(surface_file_name);
@@ -77,17 +77,17 @@ detector_from_csv(const std::string &detector_name,
     csv_surface_grid io_surface_grid;
 
     using volume_layer_index = std::pair<uint32_t, uint32_t>;
-    std::map<volume_layer_index, typename typed_detector::volume *> volumes;
+    std::map<volume_layer_index, typename detector_t::volume_type *> volumes;
 
     // Read in with a default context
     typename alignable_store::storage surface_transform_storage;
     typename alignable_store::context surface_default_context;
 
     // Flushable containers
-    typename typed_detector::volume *c_volume = nullptr;
-    typename typed_detector::geometry::surface_filling_container c_surfaces;
-    typename typed_detector::mask_container c_masks(resource);
-    typename typed_detector::transform_container c_transforms;
+    typename detector_t::volume_type *c_volume = nullptr;
+    typename detector_t::surface_filling_container c_surfaces;
+    typename detector_t::mask_container c_masks(resource);
+    typename detector_t::transform_container c_transforms;
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
 
@@ -223,15 +223,15 @@ detector_from_csv(const std::string &detector_name,
     // Create the surface finders & reserve
     std::map<volume_layer_index, dindex> surface_finder_entries;
 
-    using surfaces_r_axis = typename typed_detector::surfaces_regular_axis;
-    using surfaces_z_axis = typename typed_detector::surfaces_regular_axis;
-    using surfaces_phi_axis = typename typed_detector::surfaces_circular_axis;
+    using surfaces_r_axis = typename detector_t::surfaces_regular_axis;
+    using surfaces_z_axis = typename detector_t::surfaces_regular_axis;
+    using surfaces_phi_axis = typename detector_t::surfaces_circular_axis;
 
     using surfaces_r_phi_grid =
-        typename typed_detector::surfaces_regular_circular_grid;
+        typename detector_t::surfaces_regular_circular_grid;
     using surfaces_z_phi_grid =
-        typename typed_detector::surfaces_regular_circular_grid;
-    using surfaces_finder = typename typed_detector::surfaces_finder;
+        typename detector_t::surfaces_regular_circular_grid;
+    using surfaces_finder = typename detector_t::surfaces_finder;
 
     vector_type<surfaces_finder> detector_surfaces_finders;
 
@@ -284,12 +284,12 @@ detector_from_csv(const std::string &detector_name,
         detector_surfaces_finders.push_back(zphi_grid_o);
     }
 
-    typename typed_detector::geometry::surface::mask_links mask_index = {
-        dindex_invalid, dindex_invalid};
-    constexpr auto cylinder_id = typed_detector::mask_id::e_cylinder3;
-    constexpr auto rectangle_id = typed_detector::mask_id::e_rectangle2;
-    constexpr auto trapezoid_id = typed_detector::mask_id::e_trapezoid2;
-    constexpr auto annulus_id = typed_detector::mask_id::e_annulus2;
+    typename detector_t::mask_link mask_index = {dindex_invalid,
+                                                 dindex_invalid};
+    constexpr auto cylinder_id = detector_t::mask_id::e_cylinder3;
+    constexpr auto rectangle_id = detector_t::mask_id::e_rectangle2;
+    constexpr auto trapezoid_id = detector_t::mask_id::e_trapezoid2;
+    constexpr auto annulus_id = detector_t::mask_id::e_annulus2;
 
     // (C) Read the surfaces and fill it
     while (s_reader.read(io_surface)) {
@@ -303,10 +303,9 @@ detector_from_csv(const std::string &detector_name,
                 d.add_objects(surface_default_context, *c_volume, c_surfaces,
                               c_masks, c_transforms);
 
-                c_surfaces = typename typed_detector::geometry::
-                    surface_filling_container();
-                c_masks = typename typed_detector::mask_container(resource);
-                c_transforms = typename typed_detector::transform_container();
+                c_surfaces = typename detector_t::surface_filling_container();
+                c_masks = typename detector_t::mask_container(resource);
+                c_transforms = typename detector_t::transform_container();
             }
 
             // Find and fill the bounds
@@ -338,7 +337,7 @@ detector_from_csv(const std::string &detector_name,
             auto &new_volume =
                 d.new_volume(volume_bounds, surfaces_finder_entry);
 
-            name_map[new_volume.index()] = volume_name;
+            name_map[new_volume.index() + 1] = volume_name;
 
             // RZ attachment storage
             attach_volume(r_min_attachments, volume_bounds[0],
@@ -503,8 +502,8 @@ detector_from_csv(const std::string &detector_name,
     axis::irregular raxis{{rs}};
     axis::irregular zaxis{{zs}};
 
-    typename typed_detector::volume_grid v_grid(std::move(raxis),
-                                                std::move(zaxis), resource);
+    typename detector_t::volume_grid v_grid(std::move(raxis), std::move(zaxis),
+                                            resource);
 
     // A step into the volume (stepsilon), can be read in from the smallest
     // difference
@@ -595,7 +594,7 @@ detector_from_csv(const std::string &detector_name,
     }
 
     // Connect the cylindrical volumes
-    connect_cylindrical_volumes<typed_detector, array_type, tuple_type,
+    connect_cylindrical_volumes<detector_t, array_type, tuple_type,
                                 vector_type>(d, v_grid);
 
     // Add the surface finders to the detector

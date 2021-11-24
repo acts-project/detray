@@ -56,6 +56,8 @@ struct propagator {
         track_t t_out(t_in);
         typename stepper_t::state s_state(t_out);
         typename navigator_t::state n_state;
+        // For now, always start at zero
+        n_state.set_volume(0u);
 
         bool heartbeat = _navigator.status(n_state, s_state());
         t_inspector(t_out);

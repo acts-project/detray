@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 #include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/memory/memory_resource.hpp>
 
 #include "detray/definitions/detail/accessor.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
@@ -20,16 +21,16 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     vecmem::host_memory_resource host_mr;
     auto toy_det = create_toy_geometry(host_mr);
 
-    using geometry = typename decltype(toy_det)::geometry;
-    using objs = typename decltype(toy_det)::object_id;
-    typename decltype(toy_det)::transform_store::context ctx = {};
+    using detector_t = decltype(toy_det);
+    using objs = typename detector_t::object_id;
+    typename detector_t::context ctx = {};
     const auto& volumes = toy_det.volumes();
-    const auto& surfaces = toy_det.objects<objs::e_any>();
+    const auto& surfaces = toy_det.surfaces();
     const auto& transforms = toy_det.transforms();
     const auto& masks = toy_det.masks();
-    auto& discs = masks.group<geometry::e_portal_ring2>();
-    auto& cylinders = masks.group<geometry::e_portal_cylinder3>();
-    auto& rectangles = masks.group<geometry::e_rectangle2>();
+    auto& discs = masks.group<detector_t::e_portal_ring2>();
+    auto& cylinders = masks.group<detector_t::e_portal_cylinder3>();
+    auto& rectangles = masks.group<detector_t::e_rectangle2>();
 
     /** source link */
     const dindex inv_sf_finder = dindex_invalid;
@@ -110,13 +111,14 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {0, 1};
     test_portal_links(vol_itr->index(), surfaces.begin(), range, range[0],
-                      {geometry::e_portal_cylinder3, 0}, {{1, inv_sf_finder}});
+                      {detector_t::e_portal_cylinder3, 0},
+                      {{1, inv_sf_finder}});
 
     // disc portals
     range = {1, 3};
     test_portal_links(
         vol_itr->index(), surfaces.begin() + range[0], range, range[0],
-        {geometry::e_portal_ring2, 0},
+        {detector_t::e_portal_ring2, 0},
         {{leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}});
 
     //
@@ -134,21 +136,21 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check links of modules
     range = {3, 227};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {geometry::e_rectangle2, 0},
+                      range[0], {detector_t::e_rectangle2, 0},
                       {{vol_itr->index(), inv_sf_finder}});
 
     // Check links of portals
     // cylinder portals
     range = {227, 229};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {geometry::e_portal_cylinder3, 1},
+                      range[0], {detector_t::e_portal_cylinder3, 1},
                       {{0, inv_sf_finder}, {2, inv_sf_finder}});
 
     // disc portals
     range = {229, 231};
     test_portal_links(
         vol_itr->index(), surfaces.begin() + range[0], range, range[0],
-        {geometry::e_portal_ring2, 2},
+        {detector_t::e_portal_ring2, 2},
         {{leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}});
 
     //
@@ -167,13 +169,13 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {231, 233};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {geometry::e_portal_cylinder3, 3},
+                      range[0], {detector_t::e_portal_cylinder3, 3},
                       {{1, inv_sf_finder}, {3, inv_sf_finder}});
     // disc portals
     range = {233, 235};
     test_portal_links(
         vol_itr->index(), surfaces.begin() + range[0], range, range[0],
-        {geometry::e_portal_ring2, 4},
+        {detector_t::e_portal_ring2, 4},
         {{leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}});
 
     //
@@ -192,20 +194,20 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check links of modules
     range = {235, 683};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {geometry::e_rectangle2, 224},
+                      range[0], {detector_t::e_rectangle2, 224},
                       {{vol_itr->index(), inv_sf_finder}});
 
     // cylinder portals
     range = {683, 685};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {geometry::e_portal_cylinder3, 5},
+                      range[0], {detector_t::e_portal_cylinder3, 5},
                       {{2, inv_sf_finder}, {leaving_world, inv_sf_finder}});
 
     // disc portals
     range = {685, 687};
     test_portal_links(
         vol_itr->index(), surfaces.begin() + range[0], range, range[0],
-        {geometry::e_portal_ring2, 6},
+        {detector_t::e_portal_ring2, 6},
         {{leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}});
 
     ASSERT_EQ(surfaces.size(), range[1]);

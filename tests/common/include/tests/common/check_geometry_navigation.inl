@@ -15,7 +15,7 @@
 
 #include "detray/core/track.hpp"
 #include "detray/tools/line_stepper.hpp"
-#include "detray/tools/single_type_navigator.hpp"
+#include "detray/tools/navigator.hpp"
 #include "tests/common/tools/ray_gun.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
@@ -44,10 +44,13 @@ struct object_tracer {
 /** A navigation inspector that prints information about the current navigation
  * state. Meant for debugging.
  */
-struct single_type_print_inspector {
+struct print_inspector {
 
     template <typename state_type>
-    auto operator()(state_type &state) {
+    auto operator()(state_type &state, std::string &message) {
+
+        std::cout << message << std::endl;
+
         std::cout << "Volume\t\t\t\t\t" << state.volume() << std::endl;
         std::cout << "surface kernel size\t\t" << state.kernel().size()
                   << std::endl;
@@ -65,75 +68,6 @@ struct single_type_print_inspector {
                 std::cout << state.next()->index << std::endl;
             }
         }
-    }
-};
-
-/** A navigation inspector that prints information about the current navigation
- *  portal state for navigators that distinguish portal/surface states. Meant
- *  for debugging.
- */
-struct portal_print_inspector {
-
-    template <typename state_type>
-    auto operator()(state_type &state) {
-        std::cout << "portal kernel size\t\t\t" << state.portal_kernel.size()
-                  << std::endl;
-
-        std::cout << "Portal candidates: " << std::endl;
-        for (const auto &pt_cand : state.portal_kernel.candidates) {
-            std::cout << "-> " << pt_cand.path << std::endl;
-        }
-        if (not state.portal_kernel.empty()) {
-            std::cout << "=> next: ";
-            if (state.kernel().is_exhausted()) {
-                std::cout << "exhausted" << std::endl;
-            } else {
-                std::cout << state.portal_kernel.next->index << std::endl;
-            }
-        }
-    }
-};
-
-/** A navigation inspector that prints information about the current navigation
- *  surface state for navigators that distinguish portal/surface states. Meant
- *  for debugging.
- */
-struct surface_print_inspector {
-
-    template <typename state_type>
-    auto operator()(state_type &state) {
-        std::cout << "Volume\t\t\t" << state.volume() << std::endl;
-        std::cout << "surface kernel size\t\t\t"
-                  << state.surface_kernel.size().size() << std::endl;
-
-        std::cout << "Portal candidates: " << std::endl;
-        for (const auto &sf_cand : state.surface_kernel.candidates) {
-            std::cout << "-> " << sf_cand.path << std::endl;
-        }
-        if (not state.surface_kernel.empty()) {
-            std::cout << "=> next: ";
-            if (state.kernel().is_exhausted()) {
-                std::cout << "exhausted" << std::endl;
-            } else {
-                std::cout << state.surface_kernel.next->index << std::endl;
-            }
-        }
-    }
-};
-
-/** Aggregate inspector for specialized printers. */
-template <template <typename...> class tuple_t = dtuple,
-          typename... print_inspectors_t>
-struct print_inspector {
-
-    tuple_t<print_inspectors_t...> printer_tuple{};
-
-    template <typename state_type>
-    auto operator()(state_type &state, std::string &message) {
-
-        std::cout << message << std::endl;
-
-        std::get<print_inspectors_t...>(printer_tuple)(state);
 
         switch (state.status()) {
             case -3:
@@ -183,29 +117,25 @@ struct print_inspector {
     }
 };
 
+// vecmem::host_memory_resource host_mr;
+// auto [d, name_map] = read_from_csv(tml_files, host_mr);
+
+vecmem::host_memory_resource host_mr;
+auto d = create_toy_geometry(host_mr);
+
+// Create the navigator
+using detray_context = decltype(d)::context;
+using detray_track = track<detray_context>;
+using detray_print_inspector = print_inspector;
+using detray_inspector = object_tracer<1>;
+using detray_navigator = navigator<decltype(d), detray_inspector>;
+using detray_stepper = line_stepper<detray_track>;
+
+detray_navigator n(d);
+detray_stepper s;
+
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, geometry_discovery) {
-
-    // vecmem::host_memory_resource host_mr;
-    // auto [d, name_map] = read_from_csv(tml_files, host_mr);
-
-    vecmem::host_memory_resource host_mr;
-    auto toy_det = create_toy_geometry(host_mr);
-
-    // Create the navigator
-    using detray_context = decltype(toy_det)::context;
-    using detray_track = track<detray_context>;
-    /*using detray_inspector = print_inspector<portal_print_inspector,
-                                             surface_print_inspector>;*/
-    // using detray_inspector = print_inspector<std::tuple,
-    // single_type_print_inspector>;
-    using detray_inspector = object_tracer<1>;
-    using detray_navigator =
-        single_type_navigator<decltype(toy_det), detray_inspector>;
-    using detray_stepper = line_stepper<detray_track>;
-
-    detray_navigator n(toy_det);
-    detray_stepper s;
 
     unsigned int theta_steps = 100;
     unsigned int phi_steps = 100;
@@ -228,7 +158,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                              cos_theta};
 
-            const auto intersection_trace = shoot_ray(toy_det, ori, dir);
+            const auto intersection_trace = shoot_ray(d, ori, dir);
 
             // Now follow that ray and check, if we find the same
             // volumes and distances along the way

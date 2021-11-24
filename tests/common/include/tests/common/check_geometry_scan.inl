@@ -59,10 +59,10 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
     auto toy_det = create_toy_geometry(host_mr);
 
     // Build the graph
-    using geometry_t = typename decltype(toy_det)::geometry;
+    using detector_t = decltype(toy_det);
 
     const auto g =
-        geometry_graph<geometry_t>(toy_det.volumes(), toy_det.objects());
+        geometry_graph<detector_t>(toy_det.volumes(), toy_det.surfaces());
     const auto &adj_linking = g.adjacency_list();
 
     std::cout << g.to_string() << std::endl;
