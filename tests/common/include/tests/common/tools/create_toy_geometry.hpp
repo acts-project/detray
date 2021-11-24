@@ -174,7 +174,7 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
      */
 
     // create detector
-    detector_t det("toy_geometry", resource);
+    detector_t det(resource);
 
     // context objects
     transform_store::context ctx0;

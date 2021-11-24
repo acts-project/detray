@@ -61,7 +61,8 @@ detector_from_csv(const std::string &detector_name,
     using detector_t =
         detector<array_type, tuple_type, vector_type, jagged_vector_type>;
 
-    detector_t d(detector_name, resource);
+    name_map[0] = detector_name;
+    detector_t d(resource);
 
     // Surface reading
     surface_reader s_reader(surface_file_name);

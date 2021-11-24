@@ -140,16 +140,10 @@ class detector {
     detector() = delete;
 
     /** Allowed costructor
-     * @param name the detector name
+     * @param resource memory resource for the allocation of members
      */
-    detector(const std::string &name) : _name(name) {}
-
-    /** Allowed costructor
-     * @param name the detector name
-     */
-    detector(const std::string &name, vecmem::memory_resource &resource)
-        : _name(name),
-          _transforms(resource),
+    detector(vecmem::memory_resource &resource)
+        : _transforms(resource),
           _masks(resource),
           _volume_grid(std::move(axis::irregular{{}}),
                        std::move(axis::irregular{{}}), resource),
@@ -171,9 +165,6 @@ class detector {
 
         return cvolume;
     }
-
-    /** @return the name of the detector */
-    const std::string &name() const { return _name; }
 
     /** @return the contained volumes of the detector - const access */
     inline auto &volumes() const { return _volumes; }
@@ -272,7 +263,7 @@ class detector {
     template <typename... detector_components>
     inline void add_objects(
         const context ctx,
-        detector_components &&... components) noexcept(false) {
+        detector_components &&...components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'mask_id')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
@@ -370,7 +361,7 @@ class detector {
     const std::string to_string(const name_map &names) const {
         std::stringstream ss;
 
-        ss << "[>] Detector '" << _name << "' has " << _volumes.size()
+        ss << "[>] Detector '" << names.at(0) << "' has " << _volumes.size()
            << " volumes." << std::endl;
         ss << "    contains  " << _surfaces_finders.size()
            << " local surface finders." << std::endl;
@@ -403,18 +394,16 @@ class detector {
     }
 
     private:
-    std::string _name = "unknown_detector";
-
     /** Contains the geometrical relations */
-    vector_type<volume_type> _volumes = {};
+    vector_type<volume_type> _volumes;
 
-    /** All surfaces and portals in the geometry in contigous memory */
-    surface_container _surfaces = {};
+    /** All surfaces and portals in the geometry in contiguous memory */
+    surface_container _surfaces;
 
     /** Keeps all of the transform data in contiguous memory*/
-    transform_store _transforms = {};
+    transform_store _transforms;
 
-    /** Surface and portal masks of the detector in contigous memory */
+    /** Surface and portal masks of the detector in contiguous memory */
     mask_container _masks;
 
     vector_type<surfaces_finder> _surfaces_finders;

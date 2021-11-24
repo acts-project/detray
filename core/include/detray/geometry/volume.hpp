@@ -42,10 +42,10 @@ class volume {
     DETRAY_HOST_DEVICE
     inline const array_type<scalar, 6> &bounds() const { return _bounds; }
 
-    /** @return the name */
+    /** @return the name (add an offset for the detector name)*/
     DETRAY_HOST_DEVICE
     inline const std::string &name(const name_map &names) const {
-        return names.at(_index);
+        return names.at(_index + 1);
     }
 
     /** @return the index */
