@@ -60,6 +60,7 @@ class detector {
     using transform_store = static_transform_store<vector_type>;
     using context = typename transform_store::context;
 
+    // TODO: Remove this from detector
     /** Encodes the position in a collection container for the respective
         mask type . */
     enum mask_id : unsigned int {
@@ -263,7 +264,7 @@ class detector {
     template <typename... detector_components>
     inline void add_objects(
         const context ctx,
-        detector_components &&...components) noexcept(false) {
+        detector_components &&... components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'mask_id')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
