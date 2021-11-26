@@ -35,11 +35,9 @@ struct iterator_range {
      */
     template <typename range_type>
     DETRAY_HOST_DEVICE iterator_range(const container_type &iterable,
-                                      range_type &&range)
-        : _start(std::next(std::begin(iterable),
-                           std::get<0>(std::forward<range_type>(range)))),
-          _end(std::next(std::begin(iterable),
-                         std::get<1>(std::forward<range_type>(range)))) {}
+                                      const range_type &range)
+        : _start(std::begin(iterable) + std::get<0>(range)),
+          _end(std::begin(iterable) + std::get<1>(range)) {}
 
     /** @return start position of range on container. */
     DETRAY_HOST_DEVICE
