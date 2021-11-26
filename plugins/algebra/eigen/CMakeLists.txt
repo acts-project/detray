@@ -18,3 +18,5 @@ detray_add_library( detray_eigen eigen
    "include/detray/plugins/algebra/eigen_definitions.hpp" )
 target_link_libraries( detray_eigen
    INTERFACE algebra::eigen_eigen vecmem::core )
+target_compile_definitions( detray_eigen
+   INTERFACE DETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE} )

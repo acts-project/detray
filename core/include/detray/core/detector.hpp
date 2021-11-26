@@ -27,9 +27,9 @@
 namespace detray {
 
 // Algebra, point2 is not strongly typed
-using point3 = __plugin::point3;
-using vector3 = __plugin::vector3;
-using point2 = __plugin::point2;
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point2 = __plugin::point2<detray::scalar>;
 
 /** The detector definition.
  *
@@ -86,16 +86,20 @@ class detector {
     using edge_type = array_type<dindex, 2>;
 
     /// mask types
-    using rectangle = rectangle2<planar_intersector, __plugin::cartesian2,
-                                 edge_type, e_rectangle2>;
-    using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2,
-                                 edge_type, e_trapezoid2>;
-    using annulus = annulus2<planar_intersector, __plugin::cartesian2,
-                             edge_type, e_annulus2>;
+    using rectangle =
+        rectangle2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                   edge_type, e_rectangle2>;
+    using trapezoid =
+        trapezoid2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                   edge_type, e_trapezoid2>;
+    using annulus =
+        annulus2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                 edge_type, e_annulus2>;
     using cylinder = cylinder3<false, cylinder_intersector,
-                               __plugin::cylindrical2, edge_type, e_cylinder3>;
-    using disc =
-        ring2<planar_intersector, __plugin::cartesian2, edge_type, e_ring2>;
+                               __plugin::cylindrical2<detray::scalar>,
+                               edge_type, e_cylinder3>;
+    using disc = ring2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                       edge_type, e_ring2>;
 
     using mask_container = mask_store<tuple_type, vector_type, rectangle,
                                       trapezoid, annulus, cylinder, disc>;

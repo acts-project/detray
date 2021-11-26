@@ -240,8 +240,8 @@ void connect_cylindrical_volumes(
             // Fill in the left side portals
             if (not portals_info.empty()) {
                 // The portal transfrom is given from the left
-                __plugin::vector3 _translation{0., 0.,
-                                               volume_bounds[bound_index]};
+                __plugin::vector3<detray::scalar> _translation{
+                    0., 0., volume_bounds[bound_index]};
 
                 // Get the mask context group and fill it
                 constexpr auto disc_id = detector_t::mask_id::e_portal_ring2;

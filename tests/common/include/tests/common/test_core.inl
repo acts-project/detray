@@ -17,12 +17,12 @@
 
 using namespace detray;
 
-using point2 = __plugin::point2;
+using point2 = __plugin::point2<detray::scalar>;
 
 // Three-dimensional definitions
-using transform3 = __plugin::transform3;
-using vector3 = __plugin::vector3;
-using point3 = __plugin::point3;
+using transform3 = __plugin::transform3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 

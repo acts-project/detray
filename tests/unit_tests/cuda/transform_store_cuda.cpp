@@ -14,6 +14,10 @@
 #include "transform_store_cuda_kernel.hpp"
 
 TEST(transform_store_cuda, transform_store) {
+
+    using point3 = __plugin::point3<detray::scalar>;
+    using transform3 = __plugin::transform3<detray::scalar>;
+
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 

@@ -14,8 +14,8 @@ using namespace __plugin;
 
 // This tests the basic function of a trapezoid
 TEST(mask, trapezoid2) {
-    using local_type = __plugin::cartesian2;
-    using point2 = point2;
+    using local_type = __plugin::cartesian2<detray::scalar>;
+    using point2 = __plugin::point2<detray::scalar>;
 
     point2 p2_in = {1., -0.5};
     point2 p2_edge = {2.5, 1.};

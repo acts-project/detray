@@ -30,7 +30,6 @@ auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
 const unsigned int itest = 10000;
 
-namespace __plugin {
 // This test a reference run to deduce the random number
 static void BM_FIND_VOLUMES(benchmark::State &state) {
     auto volume_grid = d.volume_search_grid();
@@ -78,7 +77,5 @@ BENCHMARK(BM_FIND_VOLUMES)
     ->Unit(benchmark::kMillisecond)
     ->Repetitions(gbench_repetitions)
     ->DisplayAggregatesOnly(true);
-
-}  // namespace __plugin
 
 BENCHMARK_MAIN();

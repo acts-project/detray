@@ -12,7 +12,7 @@
 
 namespace detray {
 
-using scalar = algebra::scalar;
+using scalar = DETRAY_CUSTOM_SCALARTYPE;
 
 template <typename value_type, unsigned int kDIM>
 using darray = std::array<value_type, kDIM>;

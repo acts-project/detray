@@ -25,42 +25,42 @@ static constexpr int n_points = 3;
 using host_grid2_replace =
     grid2<replace_populator, axis::regular, axis::regular, serializer2,
           vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-          test::point3>;
+          test::point3<detray::scalar> >;
 
 using device_grid2_replace =
     grid2<replace_populator, axis::regular, axis::regular, serializer2,
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
-          std::tuple, test::point3>;
+          std::tuple, test::point3<detray::scalar> >;
 
 using host_grid2_replace_ci =
     grid2<replace_populator, axis::circular, axis::irregular, serializer2,
           vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-          test::point3>;
+          test::point3<detray::scalar> >;
 
 using device_grid2_replace_ci =
     grid2<replace_populator, axis::circular, axis::irregular, serializer2,
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
-          std::tuple, test::point3>;
+          std::tuple, test::point3<detray::scalar> >;
 
 using host_grid2_complete =
     grid2<complete_populator, axis::regular, axis::regular, serializer2,
           vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-          test::point3, false, n_points>;
+          test::point3<detray::scalar>, false, n_points>;
 
 using device_grid2_complete =
     grid2<complete_populator, axis::regular, axis::regular, serializer2,
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
-          std::tuple, test::point3, false, n_points>;
+          std::tuple, test::point3<detray::scalar>, false, n_points>;
 
 using host_grid2_attach =
     grid2<attach_populator, axis::circular, axis::regular, serializer2,
           vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
-          test::point3, false>;
+          test::point3<detray::scalar>, false>;
 
 using device_grid2_attach =
     grid2<attach_populator, axis::circular, axis::regular, serializer2,
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
-          std::tuple, test::point3, false>;
+          std::tuple, test::point3<detray::scalar>, false>;
 
 // test function for replace populator
 void grid_replace_test(grid2_view<host_grid2_replace> grid_view);
@@ -79,7 +79,8 @@ void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view);
 
 // read test function for grid array
 template <template <typename, size_t> class array_type>
-void grid_array_test(array_type<grid2_view<host_grid2_attach>, 2> grid_array,
-                     vecmem::data::vector_view<test::point3>& outputs_data);
+void grid_array_test(
+    array_type<grid2_view<host_grid2_attach>, 2> grid_array,
+    vecmem::data::vector_view<test::point3<detray::scalar> >& outputs_data);
 
 }  // namespace detray

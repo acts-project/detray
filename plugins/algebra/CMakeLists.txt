@@ -4,6 +4,10 @@
 #
 # Mozilla Public License Version 2.0
 
+# Temporary setting for the detray::scalar type, until it can be removed.
+set( DETRAY_CUSTOM_SCALARTYPE "double" CACHE STRING
+   "Scalar type to use in the Detray code" )
+
 # Add all subdirectories.
 add_subdirectory( array )
 if( DETRAY_EIGEN_PLUGIN )

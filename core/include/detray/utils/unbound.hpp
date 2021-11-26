@@ -12,9 +12,9 @@ namespace detray {
 
 /** A representation that is not bound to a local frame */
 struct unbound {
-    using transform3 = __plugin::transform3;
-    using point3 = __plugin::point3;
-    using point2 = __plugin::point2;
+    using transform3 = __plugin::transform3<detray::scalar>;
+    using point3 = __plugin::point3<detray::scalar>;
+    using point2 = __plugin::point2<detray::scalar>;
 
     /** This method transform from a point from the global 3D cartesian frame to
      *  the local 2D cartesian frame, including the contextual transform into

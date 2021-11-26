@@ -51,8 +51,9 @@ grid2r g2r(std::move(xaxisr), std::move(yaxisr), host_mr);
 static void BM_REGULAR_GRID_BIN(benchmark::State &state) {
     for (auto _ : state) {
         for (unsigned int itest = 0; itest < 1000000; ++itest) {
-            test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5),
-                              static_cast<scalar>((rand() % 120) * 0.5)};
+            test::point2<detray::scalar> p = {
+                static_cast<scalar>((rand() % 50) * 0.5),
+                static_cast<scalar>((rand() % 120) * 0.5)};
             g2r.bin(p);
         }
     }
@@ -61,8 +62,9 @@ static void BM_REGULAR_GRID_BIN(benchmark::State &state) {
 static void BM_REGULAR_GRID_ZONE(benchmark::State &state) {
     for (auto _ : state) {
         for (unsigned int itest = 0; itest < 1000000; ++itest) {
-            test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5),
-                              static_cast<scalar>((rand() % 120) * 0.5)};
+            test::point2<detray::scalar> p = {
+                static_cast<scalar>((rand() % 50) * 0.5),
+                static_cast<scalar>((rand() % 120) * 0.5)};
             g2r.zone(p, {zone22, zone22});
         }
     }
@@ -97,8 +99,9 @@ auto g2irr = construct_irregular_grid();
 static void BM_IRREGULAR_GRID_BIN(benchmark::State &state) {
     for (auto _ : state) {
         for (unsigned int itest = 0; itest < 1000000; ++itest) {
-            test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5),
-                              static_cast<scalar>((rand() % 120) * 0.5)};
+            test::point2<detray::scalar> p = {
+                static_cast<scalar>((rand() % 50) * 0.5),
+                static_cast<scalar>((rand() % 120) * 0.5)};
             g2irr.bin(p);
         }
     }
@@ -107,8 +110,9 @@ static void BM_IRREGULAR_GRID_BIN(benchmark::State &state) {
 static void BM_IRREGULAR_GRID_ZONE(benchmark::State &state) {
     for (auto _ : state) {
         for (unsigned int itest = 0; itest < 1000000; ++itest) {
-            test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5),
-                              static_cast<scalar>((rand() % 120) * 0.5)};
+            test::point2<detray::scalar> p = {
+                static_cast<scalar>((rand() % 50) * 0.5),
+                static_cast<scalar>((rand() % 120) * 0.5)};
             g2irr.zone(p, {zone22, zone22});
         }
     }
