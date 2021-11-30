@@ -60,6 +60,9 @@ struct trapezoid2 {
         std::numeric_limits<scalar>::epsilon(),
         std::numeric_limits<scalar>::epsilon()};
 
+    /* Default constructor */
+    trapezoid2() = default;
+
     /** Construction from boundary values
      *
      * @param half_length_0 first half length in loc0

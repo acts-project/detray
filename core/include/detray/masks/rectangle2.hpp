@@ -57,6 +57,9 @@ struct rectangle2 {
         std::numeric_limits<scalar>::epsilon(),
         std::numeric_limits<scalar>::epsilon()};
 
+    /* Default constructor */
+    rectangle2() = default;
+
     /** Construction from boundary values
      *
      * @param half_length_0 half length in loc0

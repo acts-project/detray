@@ -60,7 +60,7 @@ class surface_base {
 
     ~surface_base() = default;
     surface_base(const surface_base &lhs) = default;
-    surface_base() = delete;
+    surface_base() = default;
 
     /** Equality operator
      *

@@ -54,6 +54,9 @@ struct single3 {
     static constexpr mask_tolerance within_epsilon =
         std::numeric_limits<scalar>::epsilon();
 
+    /* Default constructor */
+    single3() = default;
+
     /** Assignment operator from an array, convenience function
      *
      * @param rhs is the right hand side object

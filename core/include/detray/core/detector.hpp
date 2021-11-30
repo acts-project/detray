@@ -186,6 +186,9 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto &volumes() const { return _volumes; }
 
+    DETRAY_HOST_DEVICE
+    inline auto &volumes() { return _volumes; }
+
     /** @return the volume by @param volume_index - non-const access */
     DETRAY_HOST_DEVICE
     inline auto &volume_by_index(dindex volume_index) {
@@ -209,6 +212,10 @@ class detector {
     /** @return all objects of a given type */
     DETRAY_HOST_DEVICE
     inline auto &surfaces() const { return _surfaces; }
+
+    /** @return all objects of a given type */
+    DETRAY_HOST_DEVICE
+    inline auto &surfaces() { return _surfaces; }
 
     /** @return all surface/portal masks in the geometry - const access */
     DETRAY_HOST_DEVICE
@@ -447,7 +454,8 @@ class detector {
     /** Surface and portal masks of the detector in contiguous memory */
     mask_container _masks;
 
-    vector_type<surfaces_finder> _surfaces_finders;
+    /* TODO: surfaces_finder needs to be refactored */
+    vecmem::vector<surfaces_finder> _surfaces_finders;
 
     volume_grid _volume_grid;
 
@@ -468,15 +476,15 @@ struct detector_data {
     using volume_grid_t = typename detector_type::volume_grid;
 
     // members
-    // vecmem::data::vector_view<volume_t> _volumes_data;
-    // vecmem::data::vector_view<surface_t> _surface_data;
+    vecmem::data::vector_view<volume_t> _volumes_data;
+    vecmem::data::vector_view<surface_t> _surfaces_data;
     mask_store_data<mask_container_t> _masks_data;
     static_transform_store_data<transform_store_t> _transforms_data;
     grid2_data<volume_grid_t> _volume_grid_data;
 
     detector_data(detector_type &det)
-        :  //_volumes_data(vecmem::get_data(det.volumes())),
-           //_surface_data(vecmem::get_data(det.surfaces())),
+        : _volumes_data(vecmem::get_data(det.volumes())),
+          _surfaces_data(vecmem::get_data(det.surfaces())),
           _masks_data(get_data(det.masks())),
           _transforms_data(get_data(det.transforms())),
           _volume_grid_data(

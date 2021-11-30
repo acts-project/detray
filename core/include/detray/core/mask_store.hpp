@@ -49,10 +49,12 @@ class mask_store {
         : _mask_tuple(vector_type<mask_types>{&resource}...) {}
 
     /** Constructor with mask_store_data **/
-    template <typename mask_store_data_t,
-              std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
-                                                  mask_store_data_t>,
-                               bool> = true>
+    template <
+        typename mask_store_data_t,
+        std::enable_if_t<
+            !std::is_base_of_v<vecmem::memory_resource, mask_store_data_t> &&
+                !std::is_same_v<mask_store, mask_store_data_t>,
+            bool> = true>
     DETRAY_DEVICE mask_store(mask_store_data_t &store_data)
         : _mask_tuple(device(
               store_data, std::make_index_sequence<sizeof...(mask_types)>{})) {}

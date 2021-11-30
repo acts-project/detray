@@ -54,6 +54,9 @@ struct ring2 {
     static constexpr mask_tolerance within_epsilon =
         std::numeric_limits<scalar>::epsilon();
 
+    /* Default constructor */
+    ring2() = default;
+
     /** Construction from boundary values
      *
      * @param r_low lower radial bound
