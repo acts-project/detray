@@ -25,4 +25,5 @@ using namespace detray;
 using namespace __plugin;
 
 /// test function for detector
-void detector_test(detector<>& det);
+void detector_test(detector_data<detector<darray, thrust::tuple, vecmem::vector,
+                                          vecmem::jagged_vector> >& det_data);

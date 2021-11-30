@@ -24,4 +24,10 @@ TEST(detector_cuda, detector) {
     detector<darray, thrust::tuple, vecmem::vector, vecmem::jagged_vector>
         toy_det = create_toy_geometry<darray, thrust::tuple, vecmem::vector,
                                       vecmem::jagged_vector>(mng_mr);
+
+    // get data object for toy detector
+    auto toy_det_data = get_data(toy_det);
+
+    // run the test code
+    // detector_test(toy_det_data);
 }

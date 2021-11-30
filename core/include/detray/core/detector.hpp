@@ -210,9 +210,13 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto &surfaces() const { return _surfaces; }
 
-    /** @return all surface/portal masks in the geometry */
+    /** @return all surface/portal masks in the geometry - const access */
     DETRAY_HOST_DEVICE
     inline auto &masks() const { return _masks; }
+
+    /** @return all surface/portal masks in the geometry - non-const access */
+    DETRAY_HOST_DEVICE
+    inline auto &masks() { return _masks; }
 
     /** Add pre-built mask store
      *
@@ -246,6 +250,9 @@ class detector {
     inline const auto &transforms(const context &ctx = {}) const {
         return _transforms;
     }
+
+    DETRAY_HOST_DEVICE
+    inline auto &transforms(const context &ctx = {}) { return _transforms; }
 
     /** Add pre-built transform store
      *
@@ -368,6 +375,9 @@ class detector {
         return _volume_grid;
     }
 
+    DETRAY_HOST_DEVICE
+    inline volume_grid &volume_search_grid() { return _volume_grid; }
+
     /** Add local surface finders linked to from the portals - move semantics
      *
      * This connects portals and surface grids
@@ -444,6 +454,9 @@ class detector {
     std::reference_wrapper<vecmem::memory_resource> _resource;
 };
 
+/** A static inplementation of detector data for device
+ *
+ */
 template <typename detector_type>
 struct detector_data {
 
@@ -455,19 +468,35 @@ struct detector_data {
     using volume_grid_t = typename detector_type::volume_grid;
 
     // members
-    vecmem::data::vector_view<volume_t> _volumes_data;
-    vecmem::data::vector_view<surface_t> _surface_data;
+    // vecmem::data::vector_view<volume_t> _volumes_data;
+    // vecmem::data::vector_view<surface_t> _surface_data;
     mask_store_data<mask_container_t> _masks_data;
     static_transform_store_data<transform_store_t> _transforms_data;
     grid2_data<volume_grid_t> _volume_grid_data;
 
     detector_data(detector_type &det)
-        : _volumes_data(vecmem::get_data(det.volumes())),
-          _surface_data(vecmem::get_data(det.surfaces())),
+        :  //_volumes_data(vecmem::get_data(det.volumes())),
+           //_surface_data(vecmem::get_data(det.surfaces())),
           _masks_data(get_data(det.masks())),
           _transforms_data(get_data(det.transforms())),
           _volume_grid_data(
               get_data(det.volume_search_grid(), det.resource().get())) {}
 };
+
+/** stand alone function for detector_data get function
+ **/
+template <template <typename, unsigned int> class array_type,
+          template <typename...> class tuple_type,
+          template <typename...> class vector_type,
+          template <typename...> class jagged_vector_type,
+          typename surfaces_serializer_type, typename name_map,
+          typename source_link>
+inline detector_data<
+    detector<array_type, tuple_type, vector_type, jagged_vector_type,
+             surfaces_serializer_type, name_map, source_link> >
+get_data(detector<array_type, tuple_type, vector_type, jagged_vector_type,
+                  surfaces_serializer_type, name_map, source_link> &det) {
+    return det;
+}
 
 }  // namespace detray
