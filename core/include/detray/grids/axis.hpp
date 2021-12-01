@@ -8,6 +8,9 @@
 #pragma once
 
 #include <algorithm>
+#include <vecmem/containers/data/vector_view.hpp>
+#include <vecmem/containers/device_vector.hpp>
+#include <vecmem/memory/memory_resource.hpp>
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
@@ -26,6 +29,31 @@ struct regular {
     dindex n_bins;
     scalar min;
     scalar max;
+
+    /* dummy boundary which is not used */
+    vector_type<scalar> boundaries;
+
+    /** Defualt constructor **/
+    regular() = default;
+
+    /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
+    regular(dindex axis_bins, scalar axis_min, scalar axis_max,
+            vecmem::memory_resource *resource = nullptr)
+        : n_bins(axis_bins),
+          min(axis_min),
+          max(axis_max),
+          boundaries(resource) {}
+
+    /** Constructor with axis_data **/
+    template <
+        typename axis_data_t,
+        std::enable_if_t<!std::is_same_v<regular, axis_data_t>, bool> = true>
+    regular(axis_data_t &axis_data)
+        : n_bins(axis_data.n_bins),
+          min(axis_data.min),
+          max(axis_data.max),
+          boundaries(axis_data.boundaries) {}
 
     static constexpr unsigned int axis_identifier = 0;
 
@@ -177,7 +205,32 @@ struct circular {
     scalar min;
     scalar max;
 
+    /* dummy boundary which is not used */
+    vector_type<scalar> boundaries;
+
     static constexpr unsigned int axis_identifier = 1;
+
+    /** Defualt constructor **/
+    circular() = default;
+
+    /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
+    circular(dindex axis_bins, scalar axis_min, scalar axis_max,
+             vecmem::memory_resource *resource = nullptr)
+        : n_bins(axis_bins),
+          min(axis_min),
+          max(axis_max),
+          boundaries(resource) {}
+
+    /** Constructor with axis_data **/
+    template <
+        typename axis_data_t,
+        std::enable_if_t<!std::is_same_v<circular, axis_data_t>, bool> = true>
+    circular(axis_data_t &axis_data)
+        : n_bins(axis_data.n_bins),
+          min(axis_data.min),
+          max(axis_data.max),
+          boundaries(axis_data.boundaries) {}
 
     /** Return the number of bins */
     DETRAY_HOST_DEVICE
@@ -345,7 +398,41 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class vector_type = dvector>
 struct irregular {
 
+    /* dummy bin size, min and max */
+    dindex n_bins;
+    scalar min;
+    scalar max;
+
     vector_type<scalar> boundaries;
+
+    /** Defualt constructor **/
+    irregular() = default;
+
+    /** Constructor with vecmem memory resource - rvalue **/
+    DETRAY_HOST irregular(vector_type<scalar> &&bins,
+                          vecmem::memory_resource *resource = nullptr)
+        : n_bins(bins.size()),
+          min(bins[0]),
+          max(bins[1]),
+          boundaries(std::move(bins), resource) {}
+
+    /** Constructor with vecmem memory resource - lvalue **/
+    DETRAY_HOST irregular(vector_type<scalar> &bins,
+                          vecmem::memory_resource *resource = nullptr)
+        : n_bins(bins.size()),
+          min(bins[0]),
+          max(bins[1]),
+          boundaries(bins, resource) {}
+
+    /** Constructor with axis_data **/
+    template <
+        typename axis_data_t,
+        std::enable_if_t<!std::is_same_v<irregular, axis_data_t>, bool> = true>
+    irregular(axis_data_t &axis_data)
+        : n_bins(axis_data.n_bins),
+          min(axis_data.min),
+          max(axis_data.max),
+          boundaries(axis_data.boundaries) {}
 
     static constexpr unsigned int axis_identifier = 2;
 
@@ -465,7 +552,7 @@ struct irregular {
     }
 
     /** @return the values of the borders of all bins */
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     vector_type<scalar> all_borders() const { return boundaries; }
 
     /** @return the range  */
@@ -474,6 +561,37 @@ struct irregular {
         return {boundaries[0], boundaries[boundaries.size() - 1]};
     }
 };
+
+/**
+ * static implementation of axis data for device
+ */
+template <typename axis_type>
+struct axis_data {
+
+    axis_data(axis_type &axis)
+        : n_bins(axis.n_bins),
+          min(axis.min),
+          max(axis.max),
+          boundaries(vecmem::get_data(axis.boundaries)) {}
+
+    dindex n_bins;
+    scalar min;
+    scalar max;
+    vecmem::data::vector_view<scalar> boundaries;
+};
+
+/**
+ * standalone function to get axis_data
+ */
+template <template <template <typename, unsigned int> class,
+                    template <typename...> class>
+          class axis_type,
+          template <typename, unsigned int> class array_type,
+          template <typename...> class vector_type>
+inline axis_data<axis_type<array_type, vector_type>> get_data(
+    axis_type<array_type, vector_type> &axis) {
+    return axis;
+}
 
 }  // namespace axis
 

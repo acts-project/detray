@@ -499,8 +499,8 @@ detector_from_csv(const std::string &detector_name,
     zs.push_back(z_max);
 
     // Create axes and volume grid
-    axis::irregular raxis{{rs}};
-    axis::irregular zaxis{{zs}};
+    axis::irregular<darray, dvector> raxis{{rs}};
+    axis::irregular<darray, dvector> zaxis{{zs}};
 
     typename detector_t::volume_grid v_grid(std::move(raxis), std::move(zaxis),
                                             resource);
