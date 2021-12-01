@@ -268,9 +268,9 @@ detector_from_csv(const std::string &detector_name,
                               ? static_cast<dindex>(io_surface_grid.nbins_loc1)
                               : static_cast<dindex>(io_surface_grid.nbins_loc0);
 
-        surfaces_z_axis z_axis{z_bins, z_min, z_max};
-        surfaces_r_axis r_axis{r_bins, r_min, r_max};
-        surfaces_phi_axis phi_axis{phi_bins, phi_min, phi_max};
+        surfaces_z_axis z_axis{z_bins, z_min, z_max, resource};
+        surfaces_r_axis r_axis{r_bins, r_min, r_max, resource};
+        surfaces_phi_axis phi_axis{phi_bins, phi_min, phi_max, resource};
 
         // negative / positive / inner / outer
         surfaces_r_phi_grid rphi_grid_n(r_axis, phi_axis, resource);
@@ -499,8 +499,8 @@ detector_from_csv(const std::string &detector_name,
     zs.push_back(z_max);
 
     // Create axes and volume grid
-    axis::irregular<darray, dvector> raxis{{rs}};
-    axis::irregular<darray, dvector> zaxis{{zs}};
+    axis::irregular<darray, dvector> raxis{{rs}, resource};
+    axis::irregular<darray, dvector> zaxis{{zs}, resource};
 
     typename detector_t::volume_grid v_grid(std::move(raxis), std::move(zaxis),
                                             resource);

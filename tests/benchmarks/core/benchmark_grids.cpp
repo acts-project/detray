@@ -40,10 +40,11 @@ darray<dindex, 2> zone22 = {2u, 2u};
 serializer2 serializer;
 
 // TrackML detector has 25 x 60 cells int he detector grid
-axis::regular<> xaxisr = axis::regular<>{25, 0., 25.};
-axis::regular<> yaxisr = axis::regular<>{60, 0., 60.};
-using grid2r = grid2<replace_populator, decltype(xaxisr), decltype(yaxisr),
+using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                      decltype(serializer)>;
+grid2r::axis_p0_t xaxisr = axis::regular<>{25, 0., 25., host_mr};
+grid2r::axis_p1_t yaxisr = axis::regular<>{60, 0., 60., host_mr};
+
 grid2r g2r(std::move(xaxisr), std::move(yaxisr), host_mr);
 
 // This runs a reference test with a regular grid structure
@@ -81,11 +82,11 @@ auto construct_irregular_grid() {
         yboundaries.push_back(i);
     }
 
-    axis::irregular<> xaxisir{xboundaries};
-    axis::irregular<> yaxisir{yboundaries};
+    using grid2ir = grid2<replace_populator, axis::irregular, axis::irregular,
+                          decltype(serializer)>;
 
-    using grid2ir = grid2<replace_populator, decltype(xaxisir),
-                          decltype(yaxisir), decltype(serializer)>;
+    grid2ir::axis_p0_t xaxisir{xboundaries, host_mr};
+    grid2ir::axis_p1_t yaxisir{yboundaries, host_mr};
 
     return grid2ir(std::move(xaxisir), std::move(yaxisir), host_mr);
 }

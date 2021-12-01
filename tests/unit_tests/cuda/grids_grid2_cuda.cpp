@@ -21,8 +21,8 @@ TEST(grids_cuda, grid2_replace_populator) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // axis
-    axis::regular<> xaxis{4, -1., 3.};
-    axis::regular<> yaxis{6, 0., 6.};
+    axis::regular<> xaxis{4, -1., 3., mng_mr};
+    axis::regular<> yaxis{6, 0., 6., mng_mr};
 
     auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
     auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
@@ -66,8 +66,8 @@ TEST(grids_cuda, grid2_complete_populator) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // axis
-    axis::regular<> xaxis{7, -1., 6.};
-    axis::regular<> yaxis{3, 0., 3.};
+    axis::regular<> xaxis{7, -1., 6., mng_mr};
+    axis::regular<> yaxis{3, 0., 3., mng_mr};
 
     // declare grid
     host_grid2_complete g2(std::move(xaxis), std::move(yaxis), mng_mr,
@@ -119,8 +119,8 @@ TEST(grids_cuda, grid2_attach_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    axis::circular<> xaxis{65, -M_PI, M_PI};
-    axis::regular<> yaxis{2, 0., 6.};
+    axis::circular<> xaxis{65, -M_PI, M_PI, mng_mr};
+    axis::regular<> yaxis{2, 0., 6., mng_mr};
 
     auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
     auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
@@ -160,8 +160,8 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    axis::circular<> xaxis{2, -1., 3.};
-    axis::regular<> yaxis{2, 0., 6.};
+    axis::circular<> xaxis{2, -1., 3., mng_mr};
+    axis::regular<> yaxis{2, 0., 6., mng_mr};
 
     grid2_buffer<host_grid2_attach> g2_buffer(xaxis, yaxis, {2, 5, 8, 10},
                                               {100, 200, 300, 400}, mng_mr);

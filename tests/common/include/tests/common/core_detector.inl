@@ -45,6 +45,7 @@ TEST(ALGEBRA_PLUGIN, detector) {
     masks.template add_mask<detector_t::e_trapezoid2>(1., 2., 3.);
 
     detector d(host_mr);
+
     auto &v = d.new_volume({0., 10., -5., 5., -M_PI, M_PI});
     d.add_objects(ctx0, v, surfaces, masks, trfs);
 }

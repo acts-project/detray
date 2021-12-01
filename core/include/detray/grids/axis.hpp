@@ -39,17 +39,17 @@ struct regular {
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     regular(dindex axis_bins, scalar axis_min, scalar axis_max,
-            vecmem::memory_resource *resource = nullptr)
+            vecmem::memory_resource &resource)
         : n_bins(axis_bins),
           min(axis_min),
           max(axis_max),
-          boundaries(resource) {}
+          boundaries(&resource) {}
 
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<regular, axis_data_t>, bool> = true>
-    regular(axis_data_t &axis_data)
+    DETRAY_HOST_DEVICE regular(axis_data_t &axis_data)
         : n_bins(axis_data.n_bins),
           min(axis_data.min),
           max(axis_data.max),
@@ -216,17 +216,17 @@ struct circular {
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     circular(dindex axis_bins, scalar axis_min, scalar axis_max,
-             vecmem::memory_resource *resource = nullptr)
+             vecmem::memory_resource &resource)
         : n_bins(axis_bins),
           min(axis_min),
           max(axis_max),
-          boundaries(resource) {}
+          boundaries(&resource) {}
 
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<circular, axis_data_t>, bool> = true>
-    circular(axis_data_t &axis_data)
+    DETRAY_HOST_DEVICE circular(axis_data_t &axis_data)
         : n_bins(axis_data.n_bins),
           min(axis_data.min),
           max(axis_data.max),
@@ -410,25 +410,25 @@ struct irregular {
 
     /** Constructor with vecmem memory resource - rvalue **/
     DETRAY_HOST irregular(vector_type<scalar> &&bins,
-                          vecmem::memory_resource *resource = nullptr)
+                          vecmem::memory_resource &resource)
         : n_bins(bins.size()),
           min(bins[0]),
           max(bins[1]),
-          boundaries(std::move(bins), resource) {}
+          boundaries(bins, &resource) {}
 
     /** Constructor with vecmem memory resource - lvalue **/
     DETRAY_HOST irregular(vector_type<scalar> &bins,
-                          vecmem::memory_resource *resource = nullptr)
+                          vecmem::memory_resource &resource)
         : n_bins(bins.size()),
           min(bins[0]),
           max(bins[1]),
-          boundaries(bins, resource) {}
+          boundaries(bins, &resource) {}
 
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<irregular, axis_data_t>, bool> = true>
-    irregular(axis_data_t &axis_data)
+    DETRAY_HOST_DEVICE irregular(axis_data_t &axis_data)
         : n_bins(axis_data.n_bins),
           min(axis_data.min),
           max(axis_data.max),
@@ -562,6 +562,8 @@ struct irregular {
     }
 };
 
+}  // namespace axis
+
 /**
  * static implementation of axis data for device
  */
@@ -592,7 +594,5 @@ inline axis_data<axis_type<array_type, vector_type>> get_data(
     axis_type<array_type, vector_type> &axis) {
     return axis;
 }
-
-}  // namespace axis
 
 }  // namespace detray
