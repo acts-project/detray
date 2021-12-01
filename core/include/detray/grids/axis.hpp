@@ -45,6 +45,14 @@ struct regular {
           max(axis_max),
           boundaries(&resource) {}
 
+    /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
+    regular(const regular &axis, vecmem::memory_resource &resource)
+        : n_bins(axis.n_bins),
+          min(axis.min),
+          max(axis.max),
+          boundaries(axis.boundaries, &resource) {}
+
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
@@ -221,6 +229,14 @@ struct circular {
           min(axis_min),
           max(axis_max),
           boundaries(&resource) {}
+
+    /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
+    circular(const circular &axis, vecmem::memory_resource &resource)
+        : n_bins(axis.n_bins),
+          min(axis.min),
+          max(axis.max),
+          boundaries(axis.boundaries, &resource) {}
 
     /** Constructor with axis_data **/
     template <
@@ -408,6 +424,10 @@ struct irregular {
     /** Defualt constructor **/
     irregular() = default;
 
+    /** Constructor with vecmem memory resource **/
+    DETRAY_HOST irregular(vecmem::memory_resource &resource)
+        : boundaries(&resource) {}
+
     /** Constructor with vecmem memory resource - rvalue **/
     DETRAY_HOST irregular(vector_type<scalar> &&bins,
                           vecmem::memory_resource &resource)
@@ -423,6 +443,14 @@ struct irregular {
           min(bins[0]),
           max(bins[1]),
           boundaries(bins, &resource) {}
+
+    /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
+    irregular(const irregular &axis, vecmem::memory_resource &resource)
+        : n_bins(axis.n_bins),
+          min(axis.min),
+          max(axis.max),
+          boundaries(axis.boundaries, &resource) {}
 
     /** Constructor with axis_data **/
     template <

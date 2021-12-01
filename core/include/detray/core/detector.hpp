@@ -149,8 +149,8 @@ class detector {
         : _transforms(resource),
           _masks(resource),
           _volume_grid(
-              std::move(axis::irregular<array_type, vector_type>{{}, resource}),
-              std::move(axis::irregular<array_type, vector_type>{{}, resource}),
+              std::move(axis::irregular<array_type, vector_type>{resource}),
+              std::move(axis::irregular<array_type, vector_type>{resource}),
               resource),
           _surfaces_finders(&resource) {}
 

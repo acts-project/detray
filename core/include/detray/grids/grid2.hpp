@@ -69,8 +69,8 @@ class grid2 {
     grid2(const axis_p0_t &axis_p0, const axis_p1_t &axis_p1,
           vecmem::memory_resource &mr,
           const bare_value m_invalid = invalid_value<bare_value>())
-        : _axis_p0(axis_p0),
-          _axis_p1(axis_p1),
+        : _axis_p0(axis_p0, mr),
+          _axis_p1(axis_p1, mr),
           _data_serialized(&mr),
           _populator(m_invalid) {
         _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(),
@@ -86,8 +86,8 @@ class grid2 {
     DETRAY_HOST
     grid2(axis_p0_t &&axis_p0, axis_p1_t &&axis_p1, vecmem::memory_resource &mr,
           const bare_value m_invalid = invalid_value<bare_value>())
-        : _axis_p0(std::move(axis_p0)),
-          _axis_p1(std::move(axis_p1)),
+        : _axis_p0(std::move(axis_p0), mr),
+          _axis_p1(std::move(axis_p1), mr),
           _data_serialized(&mr),
           _populator(m_invalid) {
         _data_serialized = serialized_storage(_axis_p0.bins() * _axis_p1.bins(),
