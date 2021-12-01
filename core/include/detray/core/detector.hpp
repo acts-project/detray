@@ -148,10 +148,9 @@ class detector {
     detector(vecmem::memory_resource &resource)
         : _transforms(resource),
           _masks(resource),
-          _volume_grid(
-              std::move(axis::irregular<array_type, vector_type>{resource}),
-              std::move(axis::irregular<array_type, vector_type>{resource}),
-              resource),
+          _volume_grid(std::move(typename volume_grid::axis_p0_t{resource}),
+                       std::move(typename volume_grid::axis_p1_t{resource}),
+                       resource),
           _surfaces_finders(&resource) {}
 
     /** Add a new volume and retrieve a reference to it
