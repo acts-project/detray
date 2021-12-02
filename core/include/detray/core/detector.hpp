@@ -153,8 +153,8 @@ class detector {
           _volume_grid(std::move(typename volume_grid::axis_p0_t{resource}),
                        std::move(typename volume_grid::axis_p1_t{resource}),
                        resource),
-          _surfaces_finders(&resource),
-          _resource(resource) {}
+          //_surfaces_finders(&resource),
+          _resource(&resource) {}
 
     /** Add a new volume and retrieve a reference to it
      *
@@ -183,8 +183,7 @@ class detector {
           _surfaces(det_data._surfaces_data),
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
-          _volume_grid(det_data._volume_grid_view),
-          _resource(det_data._resource.get()) {}
+          _volume_grid(det_data._volume_grid_view) {}
 
     /** @return the contained volumes of the detector - const access */
     DETRAY_HOST_DEVICE
@@ -396,13 +395,13 @@ class detector {
     DETRAY_HOST
     inline void add_surfaces_finders(
         vector_type<surfaces_finder> &&surfaces_finders) {
-        _surfaces_finders = std::move(surfaces_finders);
+        //_surfaces_finders = std::move(surfaces_finders);
     }
 
     /** @return the surface finders - const access */
     DETRAY_HOST_DEVICE
     inline const vector_type<surfaces_finder> &surfaces_finders() const {
-        return _surfaces_finders;
+        // return _surfaces_finders;
     }
 
     /** Output to string */
@@ -412,8 +411,8 @@ class detector {
 
         ss << "[>] Detector '" << names.at(0) << "' has " << _volumes.size()
            << " volumes." << std::endl;
-        ss << "    contains  " << _surfaces_finders.size()
-           << " local surface finders." << std::endl;
+        // ss << "    contains  " << _surfaces_finders.size()
+        //   << " local surface finders." << std::endl;
 
         for (const auto &[i, v] : enumerate(_volumes)) {
             ss << "[>>] Volume at index " << i << ": " << std::endl;
@@ -459,11 +458,11 @@ class detector {
     mask_container _masks;
 
     /* TODO: surfaces_finder needs to be refactored */
-    vecmem::vector<surfaces_finder> _surfaces_finders;
+    // vecmem::vector<surfaces_finder> _surfaces_finders;
 
     volume_grid _volume_grid;
 
-    std::reference_wrapper<vecmem::memory_resource> _resource;
+    vecmem::memory_resource *_resource = nullptr;
 };
 
 /** A static inplementation of detector data for device
@@ -486,7 +485,6 @@ struct detector_data {
     static_transform_store_data<transform_store_t> _transforms_data;
     grid2_data<volume_grid_t> _volume_grid_data;
     grid2_view<volume_grid_t> _volume_grid_view;
-    std::reference_wrapper<vecmem::memory_resource> _resource;
 
     detector_data(detector_type &det)
         : _volumes_data(vecmem::get_data(det.volumes())),
@@ -494,9 +492,8 @@ struct detector_data {
           _masks_data(get_data(det.masks())),
           _transforms_data(get_data(det.transforms())),
           _volume_grid_data(
-              get_data(det.volume_search_grid(), det.resource().get())),
-          _volume_grid_view(_volume_grid_data),
-          _resource(det.resource().get()) {}
+              get_data(det.volume_search_grid(), *det.resource())),
+          _volume_grid_view(_volume_grid_data) {}
 };
 
 /** stand alone function for detector_data get function
