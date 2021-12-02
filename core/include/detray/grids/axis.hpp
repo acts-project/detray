@@ -12,6 +12,7 @@
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 
+#include "detray/definitions/invalid_values.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
 
@@ -33,8 +34,14 @@ struct regular {
     /* dummy boundary which is not used */
     vector_type<scalar> boundaries;
 
-    /** Defualt constructor **/
-    regular() = default;
+    static constexpr unsigned int axis_identifier = 0;
+
+    /** Defualt constructor for dummy axis **/
+    regular()
+        : n_bins(invalid_value<dindex>()),
+          min(0.),
+          max(static_cast<scalar>(n_bins)),
+          boundaries({}) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
@@ -62,8 +69,6 @@ struct regular {
           min(axis_data.min),
           max(axis_data.max),
           boundaries(axis_data.boundaries) {}
-
-    static constexpr unsigned int axis_identifier = 0;
 
     /** Return the number of bins */
     DETRAY_HOST_DEVICE
@@ -218,8 +223,12 @@ struct circular {
 
     static constexpr unsigned int axis_identifier = 1;
 
-    /** Defualt constructor **/
-    circular() = default;
+    /** Defualt constructor for dummy axis **/
+    circular()
+        : n_bins(invalid_value<dindex>()),
+          min(0.),
+          max(static_cast<scalar>(n_bins)),
+          boundaries({}) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
@@ -421,8 +430,14 @@ struct irregular {
 
     vector_type<scalar> boundaries;
 
-    /** Defualt constructor **/
-    irregular() = default;
+    static constexpr unsigned int axis_identifier = 2;
+
+    /** Defualt constructor for dummy axis **/
+    irregular()
+        : n_bins(invalid_value<dindex>()),
+          min(0.),
+          max(static_cast<scalar>(n_bins)),
+          boundaries({}) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST irregular(vecmem::memory_resource &resource)
@@ -461,8 +476,6 @@ struct irregular {
           min(axis_data.min),
           max(axis_data.max),
           boundaries(axis_data.boundaries) {}
-
-    static constexpr unsigned int axis_identifier = 2;
 
     /** Return the number of bins */
     DETRAY_HOST_DEVICE
@@ -604,9 +617,9 @@ struct axis_data {
           max(axis.max),
           boundaries(vecmem::get_data(axis.boundaries)) {}
 
-    dindex n_bins;
-    scalar min;
-    scalar max;
+    const dindex n_bins;
+    const scalar min;
+    const scalar max;
     vecmem::data::vector_view<scalar> boundaries;
 };
 
@@ -617,7 +630,15 @@ template <template <template <typename, unsigned int> class,
                     template <typename...> class>
           class axis_type,
           template <typename, unsigned int> class array_type,
-          template <typename...> class vector_type>
+          template <typename...> class vector_type,
+          std::enable_if_t<
+              std::is_same_v<axis::regular<array_type, vector_type>,
+                             axis_type<array_type, vector_type>> ||
+                  std::is_same_v<axis::circular<array_type, vector_type>,
+                                 axis_type<array_type, vector_type>> ||
+                  std::is_same_v<axis::irregular<array_type, vector_type>,
+                                 axis_type<array_type, vector_type>>,
+              bool> = true>
 inline axis_data<axis_type<array_type, vector_type>> get_data(
     axis_type<array_type, vector_type> &axis) {
     return axis;
