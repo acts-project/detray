@@ -400,8 +400,8 @@ struct grid2_data {
      *
      **/
     grid2_data(grid2_t &grid, vecmem::memory_resource &resource)
-        : _axis_p0(grid.axis_p0()),
-          _axis_p1(grid.axis_p1()),
+        : _axis_p0(grid.axis_p0(), resource),
+          _axis_p1(grid.axis_p1(), resource),
           _data(populator_t::get_data(grid.data(), resource)) {}
 
     axis_p0_t _axis_p0;

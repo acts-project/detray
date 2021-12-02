@@ -31,6 +31,16 @@ using device_grid2_replace =
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
           std::tuple, test::point3>;
 
+using host_grid2_replace_ci =
+    grid2<replace_populator, axis::circular, axis::irregular, serializer2,
+          vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
+          test::point3>;
+
+using device_grid2_replace_ci =
+    grid2<replace_populator, axis::circular, axis::irregular, serializer2,
+          vecmem::device_vector, vecmem::jagged_device_vector, darray,
+          std::tuple, test::point3>;
+
 using host_grid2_complete =
     grid2<complete_populator, axis::regular, axis::regular, serializer2,
           vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
@@ -53,6 +63,9 @@ using device_grid2_attach =
 
 // test function for replace populator
 void grid_replace_test(grid2_view<host_grid2_replace> grid_view);
+
+// test function for replace populator with circular and irregular axis
+void grid_replace_ci_test(grid2_view<host_grid2_replace_ci> grid_view);
 
 // test function for complete populator
 void grid_complete_test(grid2_view<host_grid2_complete> grid_view);
