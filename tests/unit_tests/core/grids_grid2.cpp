@@ -28,10 +28,10 @@ TEST(grids, grid2_replace_populator) {
 
     serializer2 serializer;
 
-    axis::regular<> xaxis{10, -5., 5.};
-    axis::regular<> yaxis{10, -5., 5.};
-    using grid2r = grid2<replace_populator, decltype(xaxis), decltype(yaxis),
+    using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
+    typename grid2r::axis_p0_t xaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p1_t yaxis{10, -5., 5., host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
@@ -80,10 +80,11 @@ TEST(grids, grid2_replace_populator) {
               156u, 157u, 163u, 164u, 165u, 166u, 167u};
     EXPECT_EQ(test, expect);
 
-    axis::circular<> circular{4, -2., 2.};
-    axis::regular<> closed{5, 0., 5.};
-    using grid2cc = grid2<replace_populator, decltype(circular),
-                          decltype(closed), decltype(serializer)>;
+    using grid2cc = grid2<replace_populator, axis::circular, axis::regular,
+                          decltype(serializer)>;
+
+    typename grid2cc::axis_p0_t circular{4, -2., 2., host_mr};
+    typename grid2cc::axis_p1_t closed{5, 0., 5., host_mr};
 
     grid2cc g2cc(std::move(circular), std::move(closed), host_mr);
     unsigned int counter = 0;
@@ -107,12 +108,12 @@ TEST(grids, grid2_complete_populator) {
 
     serializer2 serializer;
 
-    axis::regular<> xaxis{2, -1., 1.};
-    axis::regular<> yaxis{2, -1., 1.};
-
-    using grid2r = grid2<complete_populator, decltype(xaxis), decltype(yaxis),
+    using grid2r = grid2<complete_populator, axis::regular, axis::regular,
                          decltype(serializer), dvector, djagged_vector, darray,
                          dtuple, dindex, false, 3>;
+
+    typename grid2r::axis_p0_t xaxis{2, -1., 1., host_mr};
+    typename grid2r::axis_p1_t yaxis{2, -1., 1., host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
@@ -182,10 +183,10 @@ TEST(grids, grid2_attach_populator) {
 
     serializer2 serializer;
 
-    axis::regular<> xaxis{2, -1., 1.};
-    axis::regular<> yaxis{2, -1., 1.};
-    using grid2r = grid2<attach_populator, decltype(xaxis), decltype(yaxis),
+    using grid2r = grid2<attach_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
+    typename grid2r::axis_p0_t xaxis{2, -1., 1., host_mr};
+    typename grid2r::axis_p1_t yaxis{2, -1., 1., host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
@@ -236,11 +237,11 @@ TEST(grids, grid2_shift) {
 
     serializer2 serializer;
 
-    axis::regular<> xaxis{10, -5., 5.};
-    axis::regular<> yaxis{10, -5., 5.};
-
-    using grid2r = grid2<replace_populator, decltype(xaxis), decltype(yaxis),
+    using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
+
+    typename grid2r::axis_p0_t xaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p1_t yaxis{10, -5., 5., host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr, 0);
 
@@ -258,11 +259,12 @@ TEST(grids, grid2_irregular_replace) {
     replace_populator<> replacer;
     serializer2 serializer;
 
-    axis::irregular<> xaxis{{-3, -2., 1, 0.5, 0.7, 0.71, 4., 1000.}};
-    axis::irregular<> yaxis{{0.1, 0.8, 0.9, 10., 12., 15.}};
-
-    using grid2ir = grid2<replace_populator, decltype(xaxis), decltype(yaxis),
+    using grid2ir = grid2<replace_populator, axis::irregular, axis::irregular,
                           decltype(serializer)>;
+
+    typename grid2ir::axis_p0_t xaxis{{-3, -2., 1, 0.5, 0.7, 0.71, 4., 1000.},
+                                      host_mr};
+    typename grid2ir::axis_p1_t yaxis{{0.1, 0.8, 0.9, 10., 12., 15.}, host_mr};
 
     grid2ir g2(std::move(xaxis), std::move(yaxis), host_mr);
 

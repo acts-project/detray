@@ -19,11 +19,9 @@ __global__ void detector_test_kernel(
     vecmem::data::vector_view<disc_t> discs_data,
     vecmem::data::vector_view<cylinder_t> cylinders_data) {
 
-    /*
     detector<darray, thrust::tuple, vecmem::device_vector,
              vecmem::jagged_device_vector>
         det_device(det_data);
-    */
 }
 
 void detector_test(
