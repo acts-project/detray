@@ -42,8 +42,8 @@ serializer2 serializer;
 // TrackML detector has 25 x 60 cells int he detector grid
 using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                      decltype(serializer)>;
-grid2r::axis_p0_t xaxisr = axis::regular<>{25, 0., 25., host_mr};
-grid2r::axis_p1_t yaxisr = axis::regular<>{60, 0., 60., host_mr};
+grid2r::axis_p0_t xaxisr{25, 0., 25., host_mr};
+grid2r::axis_p1_t yaxisr{60, 0., 60., host_mr};
 
 grid2r g2r(std::move(xaxisr), std::move(yaxisr), host_mr);
 
