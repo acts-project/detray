@@ -62,6 +62,16 @@ TEST(detector_cuda, detector) {
     detector_test(toy_det_data, volumes_data, surfaces_data, transforms_data,
                   rectangles_data, discs_data, cylinders_data);
 
+    // check if the same volume objects are copied
+    for (unsigned int i = 0; i < volumes_host.size(); i++) {
+        EXPECT_EQ(volumes_host[i] == volumes_device[i], true);
+    }
+
+    // check if the same surface objects are copied
+    for (unsigned int i = 0; i < surfaces_host.size(); i++) {
+        EXPECT_EQ(surfaces_host[i] == surfaces_device[i], true);
+    }
+
     // check if the same transform objects are copied
     for (unsigned int i = 0; i < transforms_host.size(ctx0); i++) {
         EXPECT_EQ(transforms_host.contextual_transform(ctx0, i) ==

@@ -125,6 +125,17 @@ class volume {
         return std::get<1>(rg) - std::get<0>(rg);
     }
 
+    /** Equality operator
+     *
+     * @param rhs is the right hand side to be compared to
+     */
+    DETRAY_HOST_DEVICE
+    bool operator==(const volume &rhs) const {
+        return (_bounds == rhs._bounds && _index == rhs._index &&
+                _ranges == rhs._ranges &&
+                _surfaces_finder_entry == rhs._surfaces_finder_entry);
+    }
+
     private:
     /** Bounds section, default for r, z, phi */
     array_type<scalar, 6> _bounds = {0.,

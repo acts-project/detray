@@ -68,10 +68,9 @@ class surface_base {
      * @param rhs is the right hand side to be compared to
      */
     DETRAY_HOST_DEVICE
-    bool operator==(
-        const surface_base<transform_link, mask_link, source_link> &rhs) const {
-        return (_trf == rhs.__trf and _mask == rhs._mask and
-                _vol == rhs._vol and _src == rhs._src and _edg == rhs._edg);
+    bool operator==(const surface_base &rhs) const {
+        return (_trf == rhs._trf and _mask == rhs._mask and _vol == rhs._vol and
+                _src == rhs._src and _edg == rhs._edg);
     }
 
     /** Explicitly set edge, since not all geometries keep the links here */

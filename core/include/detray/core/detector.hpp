@@ -148,7 +148,9 @@ class detector {
      */
     DETRAY_HOST
     detector(vecmem::memory_resource &resource)
-        : _transforms(resource),
+        : _volumes(&resource),
+          _surfaces(&resource),
+          _transforms(resource),
           _masks(resource),
           _volume_grid(std::move(typename volume_grid::axis_p0_t{resource}),
                        std::move(typename volume_grid::axis_p1_t{resource}),
@@ -478,14 +480,6 @@ struct detector_data {
     using transform_store_t = typename detector_type::transform_store;
     using volume_grid_t = typename detector_type::volume_grid;
 
-    // members
-    vecmem::data::vector_view<volume_t> _volumes_data;
-    vecmem::data::vector_view<surface_t> _surfaces_data;
-    mask_store_data<mask_container_t> _masks_data;
-    static_transform_store_data<transform_store_t> _transforms_data;
-    grid2_data<volume_grid_t> _volume_grid_data;
-    grid2_view<volume_grid_t> _volume_grid_view;
-
     detector_data(detector_type &det)
         : _volumes_data(vecmem::get_data(det.volumes())),
           _surfaces_data(vecmem::get_data(det.surfaces())),
@@ -494,6 +488,14 @@ struct detector_data {
           _volume_grid_data(
               get_data(det.volume_search_grid(), *det.resource())),
           _volume_grid_view(_volume_grid_data) {}
+
+    // members
+    vecmem::data::vector_view<volume_t> _volumes_data;
+    vecmem::data::vector_view<surface_t> _surfaces_data;
+    mask_store_data<mask_container_t> _masks_data;
+    static_transform_store_data<transform_store_t> _transforms_data;
+    grid2_data<volume_grid_t> _volume_grid_data;
+    grid2_view<volume_grid_t> _volume_grid_view;
 };
 
 /** stand alone function for detector_data get function

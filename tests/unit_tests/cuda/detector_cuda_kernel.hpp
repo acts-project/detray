@@ -28,6 +28,8 @@ namespace detray {
 
 using detector_t =
     detector<darray, thrust::tuple, vecmem::vector, vecmem::jagged_vector>;
+using detector_device_t = detector<darray, thrust::tuple, vecmem::device_vector,
+                                   vecmem::jagged_device_vector>;
 using volume_t = typename detector_t::volume_type;
 using surface_t = typename detector_t::surface_type;
 using transform_store_t = typename detector_t::transform_store;

@@ -20,9 +20,7 @@ __global__ void detector_test_kernel(
     vecmem::data::vector_view<cylinder_t> cylinders_data) {
 
     // convert toy detector_data into detector w/ device vectors
-    detector<darray, thrust::tuple, vecmem::device_vector,
-             vecmem::jagged_device_vector>
-        det_device(det_data);
+    detector_device_t det_device(det_data);
 
     // convert subdetector data objects into objects w/ device vectors
     vecmem::device_vector<volume_t> volumes_device(volumes_data);
@@ -35,19 +33,12 @@ __global__ void detector_test_kernel(
 
     // copy objects - volume
     for (unsigned int i = 0; i < det_device.volumes().size(); i++) {
-        // auto vol = det_device.volumes_test()[i];
-        // printf("%d \n", vol.index());
-
-        // volumes_device[i] = det_device.volume_by_index(i);
-        // surfaces_device[i] = det_device.surfaces()[i];
+        volumes_device[i] = det_device.volume_by_index(i);
     }
 
     // copy objects - surfaces
-    // printf("%d \n", det_device.surfaces().size());
     for (unsigned int i = 0; i < det_device.surfaces().size(); i++) {
-        // printf("%d \n", surfaces_device[i].is_portal());
-
-        // surfaces_device[i] = det_device.surfaces()[i];
+        surfaces_device[i] = det_device.surfaces()[i];
     }
 
     // copy objects - transforms
