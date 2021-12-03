@@ -39,10 +39,10 @@ TEST(detector_cuda, detector) {
     transform_store_t transforms_device(mng_mr);
     auto& trfs = transforms_device.data();
     trfs.resize(transforms_host.size(typename detector_t::context()));
-    vecmem::vector<rectangle_t> rectangles_device(discs_host.size(), &mng_mr);
-    vecmem::vector<disc_t> discs_device(cylinders_host.size(), &mng_mr);
-    vecmem::vector<cylinder_t> cylinders_device(rectangles_host.size(),
-                                                &mng_mr);
+    vecmem::vector<rectangle_t> rectangles_device(rectangles_host.size(),
+                                                  &mng_mr);
+    vecmem::vector<disc_t> discs_device(discs_host.size(), &mng_mr);
+    vecmem::vector<cylinder_t> cylinders_device(cylinders_host.size(), &mng_mr);
 
     // get data object for toy detector
     auto toy_det_data = get_data(toy_det);
@@ -55,7 +55,16 @@ TEST(detector_cuda, detector) {
     auto discs_data = vecmem::get_data(discs_device);
     auto cylinders_data = vecmem::get_data(cylinders_device);
 
-    // run the test code
+    // run the test code to copy the objects
     detector_test(toy_det_data, volumes_data, surfaces_data, transforms_data,
                   rectangles_data, discs_data, cylinders_data);
+
+    // check if the same objects are copied
+    for (unsigned int i = 0; i < volumes_host.size(); i++) {
+        // EXPECT_EQ(volumes_host[i].bounds(), volumes_device[i].bounds());
+    }
+
+    for (unsigned int i = 0; i < rectangles_host.size(); i++) {
+        EXPECT_EQ(rectangles_host[i], rectangles_device[i]);
+    }
 }

@@ -19,9 +19,38 @@ __global__ void detector_test_kernel(
     vecmem::data::vector_view<disc_t> discs_data,
     vecmem::data::vector_view<cylinder_t> cylinders_data) {
 
+    // convert toy detector_data into detector w/ device vectors
     detector<darray, thrust::tuple, vecmem::device_vector,
              vecmem::jagged_device_vector>
         det_device(det_data);
+
+    // convert subdetector data objects into objects w/ device vectors
+    vecmem::device_vector<volume_t> volumes_device(volumes_data);
+    vecmem::device_vector<surface_t> surfaces_device(surfaces_data);
+    static_transform_store<vecmem::device_vector> transforms_device(
+        transforms_data);
+    vecmem::device_vector<rectangle_t> rectangles_device(rectangles_data);
+    vecmem::device_vector<disc_t> discs_device(discs_data);
+    vecmem::device_vector<cylinder_t> cylinders_device(cylinders_data);
+
+    // copy objects - volume
+    for (unsigned int i = 0; i < det_device.volumes().size(); i++) {
+        // printf("%d \n", i);
+        // auto vol = det_device.volumes_test()[i];
+        // printf("%d \n", vol.index());
+
+        // volumes_device[i] = det_device.volumes()[i];
+        // surfaces_device[i] = det_device.surfaces()[i];
+    }
+
+    // copy objects - mask
+    auto& masks = det_device.masks();
+    auto& rectangles = masks.template group<detector_t::e_rectangle2>();
+    for (unsigned int i = 0; i < rectangles.size(); i++) {
+        rectangles_device[i] = rectangles[i];
+        // rectangles_device[i][0] = rectangles[i][0];
+        // rectangles_device[i][1] = rectangles[i][1];
+    }
 }
 
 void detector_test(
