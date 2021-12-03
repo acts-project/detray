@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
 
 namespace detray {
@@ -66,6 +67,7 @@ class surface_base {
      *
      * @param rhs is the right hand side to be compared to
      */
+    DETRAY_HOST_DEVICE
     bool operator==(
         const surface_base<transform_link, mask_link, source_link> &rhs) const {
         return (_trf == rhs.__trf and _mask == rhs._mask and
@@ -73,36 +75,47 @@ class surface_base {
     }
 
     /** Explicitly set edge, since not all geometries keep the links here */
+    DETRAY_HOST_DEVICE
     void set_edge(const edge_link &edg) { _edg = edg; }
 
     /** Access to the edge information (next volume etc.)  */
+    DETRAY_HOST_DEVICE
     const edge_link &edge() const { return _edg; }
 
     /** @return the edge information (next volume etc.)  */
+    DETRAY_HOST_DEVICE
     edge_link &edge() { return _edg; }
 
     /** Access to the transform index */
+    DETRAY_HOST_DEVICE
     transform_link &transform() { return _trf; }
 
     /** @return the transform index */
+    DETRAY_HOST_DEVICE
     const transform_link &transform() const { return _trf; }
 
     /** Access to the mask  */
+    DETRAY_HOST_DEVICE
     mask_link &mask() { return _mask; }
 
     /** @return the mask link */
+    DETRAY_HOST_DEVICE
     const mask_link &mask() const { return _mask; }
 
     /** Access to the volume */
+    DETRAY_HOST_DEVICE
     volume_link &volume() { return _vol; }
 
     /** @return the volume index */
+    DETRAY_HOST_DEVICE
     const volume_link &volume() const { return _vol; }
 
     /** @return the source link */
+    DETRAY_HOST_DEVICE
     const source_link &source() const { return _src; }
 
     /** Is this instance a portal in the sense of the unified_index_geometry? */
+    DETRAY_HOST_DEVICE
     const bool is_portal() const { return not(std::get<0>(_edg) == _vol); }
 
     private:

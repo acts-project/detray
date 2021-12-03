@@ -43,10 +43,11 @@ __global__ void detector_test_kernel(
     }
 
     // copy objects - surfaces
+    // printf("%d \n", det_device.surfaces().size());
     for (unsigned int i = 0; i < det_device.surfaces().size(); i++) {
-        // printf("%d \n", det_device.surfaces()[i].volume());
+        // printf("%d \n", surfaces_device[i].is_portal());
 
-        surfaces_device[i] = det_device.surfaces()[i];
+        // surfaces_device[i] = det_device.surfaces()[i];
     }
 
     // copy objects - transforms

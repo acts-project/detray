@@ -156,6 +156,17 @@ class detector {
           //_surfaces_finders(&resource),
           _resource(&resource) {}
 
+    template <typename detector_data_type,
+              std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
+                                                  detector_data_type>,
+                               bool> = true>
+    DETRAY_DEVICE detector(detector_data_type &det_data)
+        : _volumes(det_data._volumes_data),
+          _surfaces(det_data._surfaces_data),
+          _transforms(det_data._transforms_data),
+          _masks(det_data._masks_data),
+          _volume_grid(det_data._volume_grid_view) {}
+
     /** Add a new volume and retrieve a reference to it
      *
      * @param bounds of the volume, they are expected to be already attaching
@@ -173,17 +184,6 @@ class detector {
 
         return cvolume;
     }
-
-    template <typename detector_data_type,
-              std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
-                                                  detector_data_type>,
-                               bool> = true>
-    DETRAY_DEVICE detector(detector_data_type &det_data)
-        : _volumes(det_data._volumes_data),
-          _surfaces(det_data._surfaces_data),
-          _transforms(det_data._transforms_data),
-          _masks(det_data._masks_data),
-          _volume_grid(det_data._volume_grid_view) {}
 
     /** @return the contained volumes of the detector - const access */
     DETRAY_HOST_DEVICE
