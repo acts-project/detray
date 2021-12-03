@@ -158,6 +158,7 @@ class detector {
           //_surfaces_finders(&resource),
           _resource(&resource) {}
 
+    /** Constructor with detector_data **/
     template <typename detector_data_type,
               std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
                                                   detector_data_type>,
