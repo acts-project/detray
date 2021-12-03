@@ -162,7 +162,7 @@ class detector {
               std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
                                                   detector_data_type>,
                                bool> = true>
-    DETRAY_DEVICE detector(detector_data_type &det_data)
+    DETRAY_HOST_DEVICE detector(detector_data_type &det_data)
         : _volumes(det_data._volumes_data),
           _surfaces(det_data._surfaces_data),
           _transforms(det_data._transforms_data),
