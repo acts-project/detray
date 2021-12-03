@@ -43,10 +43,48 @@ void grid_replace_test(grid2_view<host_grid2_replace> grid_view) {
     const auto& axis1 = grid_view._axis_p1;
 
     int block_dim = 1;
-    dim3 thread_dim(axis0.bins(), axis1.bins());
+    dim3 thread_dim(axis0.n_bins, axis1.n_bins);
 
     // run the kernel
     grid_replace_test_kernel<<<block_dim, thread_dim>>>(grid_view);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+// cuda kernel for grid_replace_ci_test
+__global__ void grid_replace_ci_test_kernel(
+    grid2_view<host_grid2_replace_ci> grid_view) {
+    // Let's try building the grid object
+    device_grid2_replace_ci g2_device(grid_view);
+
+    const auto& axis0 = g2_device.axis_p0();
+    const auto& axis1 = g2_device.axis_p1();
+
+    auto x_interval = (axis0.max - axis0.min) / axis0.n_bins;
+    auto y_interval =
+        axis1.boundaries[threadIdx.y + 1] - axis1.boundaries[threadIdx.y];
+
+    auto gid = threadIdx.x + threadIdx.y * blockDim.x;
+    auto pt = test::point3{axis0.min + gid * x_interval,
+                           axis1.min + gid * y_interval, 0.5};
+
+    // replace the bin elements
+    g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
+}
+
+// test function for replace populator with circular and irregular axis
+void grid_replace_ci_test(grid2_view<host_grid2_replace_ci> grid_view) {
+
+    const auto& axis0 = grid_view._axis_p0;
+    const auto& axis1 = grid_view._axis_p1;
+
+    int block_dim = 1;
+    dim3 thread_dim(axis0.n_bins, axis1.n_bins);
+
+    // run the kernel
+    grid_replace_ci_test_kernel<<<block_dim, thread_dim>>>(grid_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -88,7 +126,7 @@ void grid_complete_test(grid2_view<host_grid2_complete> grid_view) {
     const auto& axis1 = grid_view._axis_p1;
 
     int block_dim = 1;
-    dim3 thread_dim(axis0.bins(), axis1.bins());
+    dim3 thread_dim(axis0.n_bins, axis1.n_bins);
 
     // run the kernel
     grid_complete_kernel<<<block_dim, thread_dim>>>(grid_view);
@@ -123,7 +161,7 @@ void grid_attach_read_test(grid2_view<host_grid2_attach> grid_view) {
     const auto& axis1 = grid_view._axis_p1;
 
     int block_dim = 1;
-    dim3 thread_dim(axis0.bins(), axis1.bins());
+    dim3 thread_dim(axis0.n_bins, axis1.n_bins);
 
     // run the kernel
     grid_attach_read_test_kernel<<<block_dim, thread_dim>>>(grid_view);
@@ -165,7 +203,7 @@ void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view) {
     const auto& axis0 = grid_view._axis_p0;
     const auto& axis1 = grid_view._axis_p1;
 
-    dim3 block_dim(axis0.bins(), axis1.bins());
+    dim3 block_dim(axis0.n_bins, axis1.n_bins);
     int thread_dim = 100;
 
     // run the kernel

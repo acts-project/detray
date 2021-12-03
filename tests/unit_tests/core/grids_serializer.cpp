@@ -10,6 +10,8 @@
 #include <climits>
 
 // detray test
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "tests/common/test_defs.hpp"
 
 // detray core
@@ -20,9 +22,10 @@
 using namespace detray;
 
 TEST(grids, serialize_deserialize) {
+    vecmem::host_memory_resource resource;
 
-    axis::regular<> r6{6, -3., 7.};
-    axis::circular<> c12{12, -3., 3.};
+    axis::regular<> r6{6, -3., 7., resource};
+    axis::circular<> c12{12, -3., 3., resource};
 
     serializer2 ser2;
 

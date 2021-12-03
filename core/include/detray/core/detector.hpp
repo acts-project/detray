@@ -115,16 +115,18 @@ class detector {
 
     /// Volume grid definition
     using volume_grid =
-        grid2<replace_populator, axis::irregular<array_type, vector_type>,
-              axis::irregular<array_type, vector_type>, serializer2,
+        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
               vector_type, jagged_vector_type, array_type, tuple_type, dindex>;
 
-    using surfaces_regular_axis = axis::regular<array_type>;
-    using surfaces_circular_axis = axis::circular<array_type>;
     using surfaces_regular_circular_grid =
-        grid2<attach_populator, surfaces_regular_axis, surfaces_circular_axis,
+        grid2<attach_populator, axis::regular, axis::circular,
               surfaces_serializer_type, vector_type, jagged_vector_type,
               array_type, tuple_type, dindex, false>;
+
+    using surfaces_regular_axis =
+        typename surfaces_regular_circular_grid::axis_p0_t;
+    using surfaces_circular_axis =
+        typename surfaces_regular_circular_grid::axis_p1_t;
 
     // Neighborhood finder, using accelerator data structure
     using surfaces_finder = surfaces_regular_circular_grid;
@@ -146,8 +148,9 @@ class detector {
     detector(vecmem::memory_resource &resource)
         : _transforms(resource),
           _masks(resource),
-          _volume_grid(std::move(axis::irregular{{}}),
-                       std::move(axis::irregular{{}}), resource),
+          _volume_grid(std::move(typename volume_grid::axis_p0_t{resource}),
+                       std::move(typename volume_grid::axis_p1_t{resource}),
+                       resource),
           _surfaces_finders(&resource) {}
 
     /** Add a new volume and retrieve a reference to it
