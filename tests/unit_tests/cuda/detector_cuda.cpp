@@ -21,8 +21,11 @@ TEST(detector_cuda, detector) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // create toy geometry
-    auto toy_det = create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                                       vecmem::jagged_vector>(mng_mr);
+    detector_t toy_det =
+        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
+                            vecmem::jagged_vector>(mng_mr);
+
+    auto ctx0 = typename detector_t::context();
 
     // host objects
     auto volumes_host = toy_det.volumes();
@@ -38,7 +41,7 @@ TEST(detector_cuda, detector) {
     vecmem::vector<surface_t> surfaces_device(surfaces_host.size(), &mng_mr);
     transform_store_t transforms_device(mng_mr);
     auto& trfs = transforms_device.data();
-    trfs.resize(transforms_host.size(typename detector_t::context()));
+    trfs.resize(transforms_host.size(ctx0));
     vecmem::vector<rectangle_t> rectangles_device(rectangles_host.size(),
                                                   &mng_mr);
     vecmem::vector<disc_t> discs_device(discs_host.size(), &mng_mr);
@@ -59,12 +62,23 @@ TEST(detector_cuda, detector) {
     detector_test(toy_det_data, volumes_data, surfaces_data, transforms_data,
                   rectangles_data, discs_data, cylinders_data);
 
-    // check if the same objects are copied
-    for (unsigned int i = 0; i < volumes_host.size(); i++) {
-        // EXPECT_EQ(volumes_host[i].bounds(), volumes_device[i].bounds());
+    // check if the same transform objects are copied
+    for (unsigned int i = 0; i < transforms_host.size(ctx0); i++) {
+        EXPECT_EQ(transforms_host.contextual_transform(ctx0, i) ==
+                      transforms_device.contextual_transform(ctx0, i),
+                  true);
     }
 
+    // chech if the same masks are copied
     for (unsigned int i = 0; i < rectangles_host.size(); i++) {
-        EXPECT_EQ(rectangles_host[i], rectangles_device[i]);
+        EXPECT_EQ(rectangles_host[i] == rectangles_device[i], true);
+    }
+
+    for (unsigned int i = 0; i < discs_host.size(); i++) {
+        EXPECT_EQ(discs_host[i] == discs_device[i], true);
+    }
+
+    for (unsigned int i = 0; i < cylinders_host.size(); i++) {
+        EXPECT_EQ(cylinders_host[i] == cylinders_device[i], true);
     }
 }

@@ -102,8 +102,8 @@ struct single3 {
      *
      **/
     DETRAY_HOST_DEVICE
-    bool operator==(const single3<kCheckIndex> &rhs) {
-        return operator==(rhs._values);
+    bool operator==(const single3 &rhs) {
+        return (_values == rhs._values && _links == rhs._links);
     }
 
     /** Access operator - non-const

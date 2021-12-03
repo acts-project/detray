@@ -35,21 +35,42 @@ __global__ void detector_test_kernel(
 
     // copy objects - volume
     for (unsigned int i = 0; i < det_device.volumes().size(); i++) {
-        // printf("%d \n", i);
         // auto vol = det_device.volumes_test()[i];
         // printf("%d \n", vol.index());
 
-        // volumes_device[i] = det_device.volumes()[i];
+        // volumes_device[i] = det_device.volume_by_index(i);
         // surfaces_device[i] = det_device.surfaces()[i];
     }
 
-    // copy objects - mask
+    // copy objects - surfaces
+    for (unsigned int i = 0; i < det_device.surfaces().size(); i++) {
+        // printf("%d \n", det_device.surfaces()[i].volume());
+
+        surfaces_device[i] = det_device.surfaces()[i];
+    }
+
+    // copy objects - transforms
+    auto& trfs = det_device.transforms();
+    for (unsigned int i = 0; i < trfs.size(typename detector_t::context());
+         i++) {
+        transforms_device.data()[i] = trfs.data()[i];
+    }
+
+    // copy objects - masks
     auto& masks = det_device.masks();
     auto& rectangles = masks.template group<detector_t::e_rectangle2>();
     for (unsigned int i = 0; i < rectangles.size(); i++) {
         rectangles_device[i] = rectangles[i];
-        // rectangles_device[i][0] = rectangles[i][0];
-        // rectangles_device[i][1] = rectangles[i][1];
+    }
+
+    auto& discs = masks.template group<detector_t::e_portal_ring2>();
+    for (unsigned int i = 0; i < discs.size(); i++) {
+        discs_device[i] = discs[i];
+    }
+
+    auto& cylinders = masks.template group<detector_t::e_portal_cylinder3>();
+    for (unsigned int i = 0; i < cylinders.size(); i++) {
+        cylinders_device[i] = cylinders[i];
     }
 }
 
