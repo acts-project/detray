@@ -26,6 +26,7 @@ using namespace __plugin;
 
 namespace detray {
 
+// some useful type declarations
 using detector_t =
     detector<darray, thrust::tuple, vecmem::vector, vecmem::jagged_vector>;
 using detector_device_t = detector<darray, thrust::tuple, vecmem::device_vector,
@@ -37,7 +38,7 @@ using rectangle_t = typename detector_t::rectangle;
 using disc_t = typename detector_t::disc;
 using cylinder_t = typename detector_t::cylinder;
 
-/// test function for detector
+/// declaration of a test function for detector
 void detector_test(
     detector_data<detector_t>& det_data,
     vecmem::data::vector_view<volume_t>& volumes_data,
