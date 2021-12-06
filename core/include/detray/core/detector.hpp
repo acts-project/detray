@@ -192,18 +192,19 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto &volumes() const { return _volumes; }
 
+    /** @return the contained volumes of the detector - non-const access */
     DETRAY_HOST_DEVICE
     inline auto &volumes() { return _volumes; }
-
-    /** @return the volume by @param volume_index - non-const access */
-    DETRAY_HOST_DEVICE
-    inline auto &volume_by_index(dindex volume_index) {
-        return _volumes[volume_index];
-    }
 
     /** @return the volume by @param volume_index - const access */
     DETRAY_HOST_DEVICE
     inline auto &volume_by_index(dindex volume_index) const {
+        return _volumes[volume_index];
+    }
+
+    /** @return the volume by @param volume_index - non-const access */
+    DETRAY_HOST_DEVICE
+    inline auto &volume_by_index(dindex volume_index) {
         return _volumes[volume_index];
     }
 
@@ -215,11 +216,11 @@ class detector {
         return _volumes[volume_index];
     }
 
-    /** @return all objects of a given type */
+    /** @return all objects of a given type - const access */
     DETRAY_HOST_DEVICE
     inline auto &surfaces() const { return _surfaces; }
 
-    /** @return all objects of a given type */
+    /** @return all objects of a given type - non-const access */
     DETRAY_HOST_DEVICE
     inline auto &surfaces() { return _surfaces; }
 
@@ -444,6 +445,7 @@ class detector {
         return ss.str();
     }
 
+    /** @return the pointer of memoery resource */
     DETRAY_HOST
     auto resource() { return _resource; }
 
