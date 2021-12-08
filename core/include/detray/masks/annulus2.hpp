@@ -182,7 +182,9 @@ struct annulus2 {
      *
      **/
     DETRAY_HOST_DEVICE
-    bool operator==(const annulus2<> &rhs) { return operator==(rhs._values); }
+    bool operator==(const annulus2 &rhs) {
+        return (_values == rhs._values && _links == rhs._links);
+    }
 
     /** Access operator - non-const
      * @return the reference to the member variable

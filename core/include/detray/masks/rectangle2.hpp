@@ -57,6 +57,9 @@ struct rectangle2 {
         std::numeric_limits<scalar>::epsilon(),
         std::numeric_limits<scalar>::epsilon()};
 
+    /* Default constructor */
+    rectangle2() = default;
+
     /** Construction from boundary values
      *
      * @param half_length_0 half length in loc0
@@ -113,7 +116,9 @@ struct rectangle2 {
      * checks identity within epsilon and @return s a boolean*
      **/
     DETRAY_HOST_DEVICE
-    bool operator==(const rectangle2<> &rhs) { return operator==(rhs._values); }
+    bool operator==(const rectangle2 &rhs) {
+        return (_values == rhs._values && _links == rhs._links);
+    }
 
     /** Access operator - non-const
      * @return the reference to the member variable

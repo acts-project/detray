@@ -60,6 +60,9 @@ struct cylinder3 {
         std::numeric_limits<scalar>::epsilon(),
         std::numeric_limits<scalar>::epsilon()};
 
+    /* Default constructor */
+    cylinder3() = default;
+
     /** Construction from boundary values
      *
      * @param r radius
@@ -126,7 +129,9 @@ struct cylinder3 {
      * checks identity within epsilon and @return s a boolean*
      **/
     DETRAY_HOST_DEVICE
-    bool operator==(const cylinder3<> &rhs) { return operator==(rhs._values); }
+    bool operator==(const cylinder3 &rhs) {
+        return (_values == rhs._values && _links == rhs._links);
+    }
 
     /** Access operator - non-const
      * @return the reference to the member variable

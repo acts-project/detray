@@ -47,5 +47,13 @@ foreach(algebra ${algebras})
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_tuple_test_cuda PRIVATE ${algebra}=${algebra})
   
-endforeach()
+  # detector test
+  add_detray_test(${algebra}_detector_cuda
+    "detector_cuda.cpp"
+    "detector_cuda_kernel.hpp"
+    "detector_cuda_kernel.cu"
+    LINK_LIBRARIES
+    vecmem::cuda detray::${algebra})
+  target_compile_definitions(detray_test_${algebra}_detector_cuda PRIVATE ${algebra}=${algebra})
 
+endforeach()
