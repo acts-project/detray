@@ -238,3 +238,49 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     EXPECT_EQ(g2.data()[2].size(), 100);
     EXPECT_EQ(g2.data()[3].size(), 100);
 }
+
+TEST(grids_cuda, grid2_array) {
+
+    // memory resource
+    vecmem::cuda::managed_memory_resource mng_mr;
+
+    vecmem::static_array<host_grid2_attach, 2> grid2_array{
+        {{mng_mr}, {mng_mr}}};
+
+    grid2_array[0] = host_grid2_attach(
+        axis::circular<>{65, -M_PI, M_PI, mng_mr},
+        axis::regular<>{2, 0., 6., mng_mr}, mng_mr, test::point3{0, 0, 0});
+
+    grid2_array[1] = host_grid2_attach(
+        axis::circular<>{130, -M_PI, M_PI, mng_mr},
+        axis::regular<>{4, 2., 8., mng_mr}, mng_mr, test::point3{0, 0, 0});
+
+    for (unsigned int i_g = 0; i_g < grid2_array.size(); i_g++) {
+        auto& g2 = grid2_array[i_g];
+        auto& xaxis = g2.axis_p0();
+        auto& yaxis = g2.axis_p1();
+
+        auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
+        auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
+
+        for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
+            for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
+
+                for (int i_p = 0; i_p < 100; i_p++) {
+
+                    auto bin_id = i_x + i_y * xaxis.bins();
+                    auto gid = i_p + bin_id * 100;
+
+                    test::point3 tp({xaxis.min + gid * x_interval,
+                                     yaxis.min + gid * y_interval, 0.5});
+                    g2.populate(i_x, i_y, std::move(tp));
+                }
+            }
+        }
+    }
+
+    auto grid2_data_array = make_grid_data_array(grid2_array, mng_mr);
+    auto grid2_view_array = make_grid_view_array(grid2_data_array);
+
+    grid_array_test(grid2_view_array);
+}

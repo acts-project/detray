@@ -13,6 +13,7 @@
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
+#include "detray/tools/grid_array_helper.hpp"
 #include "detray/utils/indexing.hpp"
 
 #pragma once
@@ -75,5 +76,9 @@ void grid_attach_read_test(grid2_view<host_grid2_attach> grid_view);
 
 // fill test function for grid buffer with attach populator
 void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view);
+
+// read test function for grid array
+void grid_array_test(
+    vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array);
 
 }  // namespace detray

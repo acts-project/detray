@@ -214,4 +214,29 @@ void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view) {
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
+// cuda kernel for array_test
+__global__ void grid_array_test_kernel(
+    vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array) {
+
+    vecmem::static_array<device_grid2_attach, 2> grid_device_array{
+        {{grid_array[0]}, {grid_array[1]}}};
+
+    auto data = grid_device_array[0].bin(1, 1);
+}
+
+// read test function for grid array
+void grid_array_test(
+    vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array) {
+
+    int block_dim = 1;
+    int thread_dim = 1;
+
+    // run the kernel
+    grid_array_test_kernel<<<block_dim, thread_dim>>>(grid_array);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
 }  // namespace detray
