@@ -222,6 +222,10 @@ __global__ void grid_array_test_kernel(
         {{grid_array[0]}, {grid_array[1]}}};
 
     auto data = grid_device_array[0].bin(1, 1);
+
+    for (auto& pt : data) {
+        // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
+    }
 }
 
 // read test function for grid array
