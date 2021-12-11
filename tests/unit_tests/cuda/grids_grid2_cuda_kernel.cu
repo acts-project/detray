@@ -216,27 +216,45 @@ void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view) {
 
 // cuda kernel for array_test
 __global__ void grid_array_test_kernel(
-    vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array) {
+    vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array,
+    vecmem::data::vector_view<test::point3> outputs_data) {
 
-    vecmem::static_array<device_grid2_attach, 2> grid_device_array{
+    // get the device objects from input arguments
+    vecmem::static_array<device_grid2_attach, 2> grid2_device_array{
         {{grid_array[0]}, {grid_array[1]}}};
+    vecmem::device_vector<test::point3> outputs_device(outputs_data);
 
-    auto data = grid_device_array[0].bin(1, 1);
+    // fill the output vector with grid elements
+    int counts = 0;
+    for (unsigned int i_g = 0; i_g < grid2_device_array.size(); i_g++) {
+        auto& g2 = grid2_device_array[i_g];
+        auto& xaxis = g2.axis_p0();
+        auto& yaxis = g2.axis_p1();
 
-    for (auto& pt : data) {
-        // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
+        for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
+            for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
+
+                auto data = g2.bin(i_x, i_y);
+
+                for (auto& pt : data) {
+                    outputs_device[counts] = pt;
+                    counts++;
+                }
+            }
+        }
     }
 }
 
 // read test function for grid array
 void grid_array_test(
-    vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array) {
+    vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array,
+    vecmem::data::vector_view<test::point3>& outputs_data) {
 
     int block_dim = 1;
     int thread_dim = 1;
 
     // run the kernel
-    grid_array_test_kernel<<<block_dim, thread_dim>>>(grid_array);
+    grid_array_test_kernel<<<block_dim, thread_dim>>>(grid_array, outputs_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

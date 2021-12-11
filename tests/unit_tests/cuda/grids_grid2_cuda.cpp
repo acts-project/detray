@@ -239,48 +239,64 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     EXPECT_EQ(g2.data()[3].size(), 100);
 }
 
+/// This test demonstrates how to pass the grids in array type object.
 TEST(grids_cuda, grid2_array) {
 
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
+    // declare the array of grids
     vecmem::static_array<host_grid2_attach, 2> grid2_array{
         {{mng_mr}, {mng_mr}}};
 
-    grid2_array[0] = host_grid2_attach(
-        axis::circular<>{65, -M_PI, M_PI, mng_mr},
-        axis::regular<>{2, 0., 6., mng_mr}, mng_mr, test::point3{0, 0, 0});
+    // first grid
+    grid2_array[0] = host_grid2_attach(axis::circular<>{2, 0., 2., mng_mr},
+                                       axis::regular<>{2, 2., 4., mng_mr},
+                                       mng_mr, test::point3{0, 0, 0});
 
-    grid2_array[1] = host_grid2_attach(
-        axis::circular<>{130, -M_PI, M_PI, mng_mr},
-        axis::regular<>{4, 2., 8., mng_mr}, mng_mr, test::point3{0, 0, 0});
+    // second grid
+    grid2_array[1] = host_grid2_attach(axis::circular<>{3, 0., 3., mng_mr},
+                                       axis::regular<>{3, 2., 5., mng_mr},
+                                       mng_mr, test::point3{0, 0, 0});
 
+    // fill out the grid
     for (unsigned int i_g = 0; i_g < grid2_array.size(); i_g++) {
         auto& g2 = grid2_array[i_g];
         auto& xaxis = g2.axis_p0();
         auto& yaxis = g2.axis_p1();
 
-        auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
-        auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
-
         for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
             for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
-
-                for (int i_p = 0; i_p < 100; i_p++) {
-
-                    auto bin_id = i_x + i_y * xaxis.bins();
-                    auto gid = i_p + bin_id * 100;
-
-                    test::point3 tp({xaxis.min + gid * x_interval,
-                                     yaxis.min + gid * y_interval, 0.5});
-                    g2.populate(i_x, i_y, std::move(tp));
-                }
+                test::point3 tp({i_x, i_y, 0.});
+                g2.populate(i_x, i_y, std::move(tp));
             }
         }
     }
 
+    // create array<grid2_data> and array<grid2_view> object passed to
+    // kernel
     auto grid2_data_array = make_grid_data_array(grid2_array, mng_mr);
     auto grid2_view_array = make_grid_view_array(grid2_data_array);
 
-    grid_array_test(grid2_view_array);
+    // output vector to readout grid elements
+    vecmem::vector<test::point3> outputs(13, &mng_mr);
+    auto outputs_data = vecmem::get_data(outputs);
+
+    // run the test kernel
+    grid_array_test(grid2_view_array, outputs_data);
+
+    // checkout the results
+    EXPECT_EQ(outputs[0], test::point3({0, 0, 0}));
+    EXPECT_EQ(outputs[1], test::point3({1, 0, 0}));
+    EXPECT_EQ(outputs[2], test::point3({0, 1, 0}));
+    EXPECT_EQ(outputs[3], test::point3({1, 1, 0}));
+    EXPECT_EQ(outputs[4], test::point3({0, 0, 0}));
+    EXPECT_EQ(outputs[5], test::point3({1, 0, 0}));
+    EXPECT_EQ(outputs[6], test::point3({2, 0, 0}));
+    EXPECT_EQ(outputs[7], test::point3({0, 1, 0}));
+    EXPECT_EQ(outputs[8], test::point3({1, 1, 0}));
+    EXPECT_EQ(outputs[9], test::point3({2, 1, 0}));
+    EXPECT_EQ(outputs[10], test::point3({0, 2, 0}));
+    EXPECT_EQ(outputs[11], test::point3({1, 2, 0}));
+    EXPECT_EQ(outputs[12], test::point3({2, 2, 0}));
 }

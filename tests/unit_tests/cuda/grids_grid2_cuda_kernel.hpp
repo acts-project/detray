@@ -79,6 +79,7 @@ void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view);
 
 // read test function for grid array
 void grid_array_test(
-    vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array);
+    vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array,
+    vecmem::data::vector_view<test::point3>& outputs_data);
 
 }  // namespace detray
