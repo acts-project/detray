@@ -42,6 +42,7 @@ detray_add_library( detray_core core
    "include/detray/tools/concentric_cylinder_intersector.hpp"
    "include/detray/tools/cylinder_intersector.hpp"
    "include/detray/tools/geometry_graph.hpp"
+   "include/detray/tools/grid_array_helper.hpp"
    "include/detray/tools/intersection_kernel.hpp"
    "include/detray/tools/line_stepper.hpp"
    "include/detray/tools/local_object_finder.hpp"
