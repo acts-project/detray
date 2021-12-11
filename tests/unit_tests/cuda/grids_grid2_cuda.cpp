@@ -248,6 +248,8 @@ TEST(grids_cuda, grid2_array) {
     // declare the array of grids
     vecmem::static_array<host_grid2_attach, 2> grid2_array{
         {{mng_mr}, {mng_mr}}};
+    // std::array<host_grid2_attach, 2> grid2_array{
+    //   {{mng_mr}, {mng_mr}}};
 
     // first grid
     grid2_array[0] = host_grid2_attach(axis::circular<>{2, 0., 2., mng_mr},
