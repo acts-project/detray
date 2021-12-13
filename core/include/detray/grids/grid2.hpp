@@ -59,6 +59,16 @@ class grid2 {
     static constexpr array_type<dindex, 2> hermit1 = {0u, 0u};
     static constexpr neighborhood<dindex> hermit2 = {hermit1, hermit1};
 
+    grid2() = delete;
+
+    DETRAY_HOST
+    grid2(vecmem::memory_resource &mr,
+          const bare_value m_invalid = invalid_value<bare_value>())
+        : _axis_p0(mr),
+          _axis_p1(mr),
+          _data_serialized(&mr),
+          _populator(m_invalid) {}
+
     /** Constructor from axes - copy semantics
      *
      * @param axis_p0 is the axis in the first coordinate
@@ -96,9 +106,11 @@ class grid2 {
 
     /** Constructor from grid data
      **/
-    template <
-        typename grid_view_type,
-        std::enable_if_t<!std::is_same_v<grid2, grid_view_type>, bool> = true>
+    template <typename grid_view_type,
+              std::enable_if_t<!std::is_same_v<grid2, grid_view_type> &&
+                                   !std::is_base_of_v<vecmem::memory_resource,
+                                                      grid_view_type>,
+                               bool> = true>
     DETRAY_DEVICE grid2(
         grid_view_type &grid_data,
         const bare_value m_invalid = invalid_value<bare_value>())

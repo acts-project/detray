@@ -44,6 +44,13 @@ struct regular {
           boundaries({}) {}
 
     /** Constructor with vecmem memory resource **/
+    regular(vecmem::memory_resource &resource)
+        : n_bins(invalid_value<dindex>()),
+          min(0.),
+          max(static_cast<scalar>(n_bins)),
+          boundaries(&resource) {}
+
+    /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     regular(dindex axis_bins, scalar axis_min, scalar axis_max,
             vecmem::memory_resource &resource)
@@ -229,6 +236,13 @@ struct circular {
           min(0.),
           max(static_cast<scalar>(n_bins)),
           boundaries({}) {}
+
+    /** Constructor with vecmem memory resource **/
+    circular(vecmem::memory_resource &resource)
+        : n_bins(invalid_value<dindex>()),
+          min(0.),
+          max(static_cast<scalar>(n_bins)),
+          boundaries(&resource) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
@@ -440,8 +454,11 @@ struct irregular {
           boundaries({}) {}
 
     /** Constructor with vecmem memory resource **/
-    DETRAY_HOST irregular(vecmem::memory_resource &resource)
-        : boundaries(&resource) {}
+    irregular(vecmem::memory_resource &resource)
+        : n_bins(invalid_value<dindex>()),
+          min(0.),
+          max(static_cast<scalar>(n_bins)),
+          boundaries(&resource) {}
 
     /** Constructor with vecmem memory resource - rvalue **/
     DETRAY_HOST irregular(vector_type<scalar> &&bins,

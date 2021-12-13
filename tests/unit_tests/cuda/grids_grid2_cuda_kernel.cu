@@ -214,4 +214,49 @@ void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view) {
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
+// cuda kernel for array_test
+template <template <typename, size_t> class array_type>
+__global__ void grid_array_test_kernel(
+    array_type<grid2_view<host_grid2_attach>, 2> grid_array,
+    vecmem::data::vector_view<test::point3> outputs_data) {
+
+    // get the device objects from input arguments
+    array_type<device_grid2_attach, 2> grid2_device_array{
+        {{grid_array[0]}, {grid_array[1]}}};
+    vecmem::device_vector<test::point3> outputs_device(outputs_data);
+
+    // fill the output vector with grid elements
+    int counts = 0;
+    for (unsigned int i_g = 0; i_g < grid2_device_array.size(); i_g++) {
+        auto& g2 = grid2_device_array[i_g];
+        auto& xaxis = g2.axis_p0();
+        auto& yaxis = g2.axis_p1();
+
+        for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
+            for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
+
+                auto data = g2.bin(i_x, i_y);
+
+                for (auto& pt : data) {
+                    outputs_device[counts] = pt;
+                    counts++;
+                }
+            }
+        }
+    }
+}
+
+// read test function for grid array with vecmem::static_array
+template <>
+void grid_array_test(
+    vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array,
+    vecmem::data::vector_view<test::point3>& outputs_data) {
+    // run the kernel
+    grid_array_test_kernel<<<1, 1>>>(grid_array, outputs_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
 }  // namespace detray
