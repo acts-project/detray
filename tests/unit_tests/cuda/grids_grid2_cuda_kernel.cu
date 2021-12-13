@@ -246,18 +246,6 @@ __global__ void grid_array_test_kernel(
     }
 }
 
-// read test function for grid array with std::array
-template <>
-void grid_array_test(std::array<grid2_view<host_grid2_attach>, 2> grid_array,
-                     vecmem::data::vector_view<test::point3>& outputs_data) {
-    // run the kernel
-    grid_array_test_kernel<<<1, 1>>>(grid_array, outputs_data);
-
-    // cuda error check
-    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
-    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}
-
 // read test function for grid array with vecmem::static_array
 template <>
 void grid_array_test(
