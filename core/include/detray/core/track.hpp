@@ -22,7 +22,7 @@ struct track {
     vector3 dir = {0., 0., 0.};
     vector3 bfield = {0., 0., 0.};
     scalar momentum = std::numeric_limits<scalar>::infinity();
-    context_type ctx;
+    context_type ctx = {};
 
     scalar overstep_tolerance = 0.;
 };

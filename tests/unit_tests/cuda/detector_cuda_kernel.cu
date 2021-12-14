@@ -12,7 +12,7 @@ namespace detray {
 
 // cuda kernel to copy sub-detector objects
 __global__ void detector_test_kernel(
-    detector_data<detector_t> det_data,
+    detector_data<detector_host_t> det_data,
     vecmem::data::vector_view<volume_t> volumes_data,
     vecmem::data::vector_view<surface_t> surfaces_data,
     static_transform_store_data<transform_store_t> transforms_data,
@@ -44,24 +44,25 @@ __global__ void detector_test_kernel(
 
     // copy objects - transforms
     auto& trfs = det_device.transforms();
-    for (unsigned int i = 0; i < trfs.size(typename detector_t::context());
+    for (unsigned int i = 0; i < trfs.size(typename detector_host_t::context());
          i++) {
         transforms_device.data()[i] = trfs.data()[i];
     }
 
     // copy objects - masks
     auto& masks = det_device.masks();
-    auto& rectangles = masks.template group<detector_t::e_rectangle2>();
+    auto& rectangles = masks.template group<detector_host_t::e_rectangle2>();
     for (unsigned int i = 0; i < rectangles.size(); i++) {
         rectangles_device[i] = rectangles[i];
     }
 
-    auto& discs = masks.template group<detector_t::e_portal_ring2>();
+    auto& discs = masks.template group<detector_host_t::e_portal_ring2>();
     for (unsigned int i = 0; i < discs.size(); i++) {
         discs_device[i] = discs[i];
     }
 
-    auto& cylinders = masks.template group<detector_t::e_portal_cylinder3>();
+    auto& cylinders =
+        masks.template group<detector_host_t::e_portal_cylinder3>();
     for (unsigned int i = 0; i < cylinders.size(); i++) {
         cylinders_device[i] = cylinders[i];
     }
@@ -69,7 +70,7 @@ __global__ void detector_test_kernel(
 
 /// implementation of the test function for detector
 void detector_test(
-    detector_data<detector_t>& det_data,
+    detector_data<detector_host_t>& det_data,
     vecmem::data::vector_view<volume_t>& volumes_data,
     vecmem::data::vector_view<surface_t>& surfaces_data,
     static_transform_store_data<transform_store_t>& transforms_data,

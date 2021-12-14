@@ -82,12 +82,12 @@ struct concentric_cylinder_intersector {
             std::is_same_v<typename mask_type::local_type, cylindrical2> or
                 std::is_same_v<typename mask_type::local_type, detray::unbound>,
             bool> = true>
-    inline intersection intersect(const transform3 & /*trf*/, const point3 &ro,
-                                  const vector3 &rd, const mask_type &mask,
-                                  const dindex volume_index = dindex_invalid,
-                                  const typename mask_type::mask_tolerance
-                                      &tolerance = mask_type::within_epsilon,
-                                  scalar overstep_tolerance = 0.) const {
+    inline intersection intersect(
+        const transform3 & /*trf*/, const point3 &ro, const vector3 &rd,
+        const mask_type &mask, const dindex /*volume_index*/ = dindex_invalid,
+        const typename mask_type::mask_tolerance & /*tolerance*/ =
+            mask_type::within_epsilon,
+        scalar overstep_tolerance = 0.) const {
 
         using local_frame = typename mask_type::local_type;
 

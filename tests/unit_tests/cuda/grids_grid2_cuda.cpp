@@ -148,7 +148,7 @@ TEST(grids_cuda, grid2_complete_populator) {
 
             const auto& data = g2.bin(i_x, i_y);
 
-            for (int i_p = 0; i_p < data.size(); i_p++) {
+            for (size_t i_p = 0; i_p < data.size(); i_p++) {
                 auto& pt = data[i_p];
 
                 auto bin_id = i_x + i_y * xaxis.bins();
@@ -273,7 +273,8 @@ TEST(grids_cuda, grid2_array) {
 
         for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
             for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
-                test::point3<detray::scalar> tp({i_x, i_y, 0.});
+                test::point3<detray::scalar> tp(
+                    {static_cast<scalar>(i_x), static_cast<scalar>(i_y), 0.});
                 g2.populate(i_x, i_y, std::move(tp));
             }
         }

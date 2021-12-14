@@ -184,7 +184,7 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
                          scalar tilt_phi, scalar overlap_rphi, scalar length_z,
                          scalar overlap_z, unsigned int n_z,
                          scalar volume_inner_r, scalar volume_outer_r,
-                         scalar volume_half_z,
+                         scalar /*volume_half_z*/,
                          unsigned int transform_offset = 0) {
     // Estimate module dimensions
     scalar module_lx = 2 * r * M_PI * (1 + overlap_rphi) / n_phi;

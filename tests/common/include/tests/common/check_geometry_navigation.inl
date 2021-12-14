@@ -33,7 +33,7 @@ struct object_tracer {
     vector_t<dindex> object_trace = {};
 
     template <typename state_type>
-    auto operator()(state_type &state, std::string &message) {
+    auto operator()(state_type &state, std::string & /*message*/) {
         // Record and objects id, when you are certain to have encountered it
         if (state.status() == navigation_status) {
             object_trace.push_back(state.on_object());

@@ -27,7 +27,6 @@ template <typename detector_type>
 inline auto shoot_ray(const detector_type &d, const point3 &origin,
                       const point3 &direction) {
 
-    using object_id = typename detector_type::object_id;
     using detray_context = typename detector_type::context;
 
     detray_context default_context;

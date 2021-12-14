@@ -21,20 +21,21 @@ TEST(detector_cuda, detector) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // create toy geometry
-    detector_t toy_det =
+    detector_host_t toy_det =
         create_toy_geometry<darray, thrust::tuple, vecmem::vector,
                             vecmem::jagged_vector>(mng_mr);
 
-    auto ctx0 = typename detector_t::context();
+    auto ctx0 = typename detector_host_t::context();
 
     // host objects
     auto volumes_host = toy_det.volumes();
     auto surfaces_host = toy_det.surfaces();
     auto transforms_host = toy_det.transforms();
     auto masks_host = toy_det.masks();
-    auto& discs_host = masks_host.group<detector_t::e_portal_ring2>();
-    auto& cylinders_host = masks_host.group<detector_t::e_portal_cylinder3>();
-    auto& rectangles_host = masks_host.group<detector_t::e_rectangle2>();
+    auto& discs_host = masks_host.group<detector_host_t::e_portal_ring2>();
+    auto& cylinders_host =
+        masks_host.group<detector_host_t::e_portal_cylinder3>();
+    auto& rectangles_host = masks_host.group<detector_host_t::e_rectangle2>();
 
     // copied outpus from device side
     vecmem::vector<volume_t> volumes_device(volumes_host.size(), &mng_mr);
