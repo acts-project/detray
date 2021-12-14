@@ -45,7 +45,7 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     std::cout << "Walking through geometry: " << std::endl;
     g.bfs();
 
-    const auto &adj = g.adjacency_list();
+    // const auto &adj = g.adjacency_list();
 
     // Volume 0 has 3 portals to volume 1 and two surfaces linking to itself
     // std::map<dindex, dindex> nbrs_map_v0{{0, 2}, {1, 3}};

@@ -82,8 +82,8 @@ struct local_single_finder {
      * @param p2 the local 2d point for the grid
      * @note return always the same bin
      **/
-    vector_type operator()(const point2 &p2,
-                           const array_type<unsigned int, 2> &nhood = {
+    vector_type operator()(const point2 & /*p2*/,
+                           const array_type<unsigned int, 2> & /*nhood*/ = {
                                0, 0}) const {
         return _value;
     }

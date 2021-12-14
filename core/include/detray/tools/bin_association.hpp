@@ -33,7 +33,7 @@ using point3 = __plugin::point3;
  */
 template <typename context_type, typename detector_type, typename volume_type,
           typename grid_type>
-static inline void bin_association(const context_type &context,
+static inline void bin_association(const context_type & /*context*/,
                                    const detector_type &detector,
                                    const volume_type &volume, grid_type &grid,
                                    const std::array<scalar, 2> &bin_tolerance,
@@ -80,7 +80,6 @@ static inline void bin_association(const context_type &context,
 
                 // Run through the surfaces and associate them by contour
                 for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
-                    dvector<point3> vertices = {};
                     const auto &mask_link = sf.mask();
 
                     // Unroll the mask container and generate vertices
@@ -143,20 +142,19 @@ static inline void bin_association(const context_type &context,
 
                 scalar z_min = z_borders[0];
                 scalar z_max = z_borders[1];
-                scalar phi_min = phi_borders[0];
-                scalar phi_max = phi_borders[1];
+                scalar phi_min_rep = phi_borders[0];
+                scalar phi_max_rep = phi_borders[1];
 
-                point2 p0_bin = {z_min - z_add, phi_min - phi_add};
-                point2 p1_bin = {z_min - z_add, phi_max + phi_add};
-                point2 p2_bin = {z_max + z_add, phi_max + phi_add};
-                point2 p3_bin = {z_max + z_add, phi_min - phi_add};
+                point2 p0_bin = {z_min - z_add, phi_min_rep - phi_add};
+                point2 p1_bin = {z_min - z_add, phi_max_rep + phi_add};
+                point2 p2_bin = {z_max + z_add, phi_max_rep + phi_add};
+                point2 p3_bin = {z_max + z_add, phi_min_rep - phi_add};
 
                 std::vector<point2> bin_contour = {p0_bin, p1_bin, p2_bin,
                                                    p3_bin};
 
                 // Loop over the surfaces within a volume
                 for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
-                    dvector<point3> vertices = {};
                     const auto &mask_link = sf.mask();
 
                     // Unroll the mask container and generate vertices

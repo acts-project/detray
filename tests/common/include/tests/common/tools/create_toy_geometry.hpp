@@ -20,15 +20,11 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
         detector<array_type, tuple_type, vector_type, jagged_vector_type>;
 
     // sub-geometry components type
-    using volume = typename detector_t::volume_type;
     using edge_links = typename detector_t::edge_type;
     using surface = typename detector_t::surface_type;
     using mask_container = typename detector_t::mask_container;
     using transform_store = typename detector_t::transform_store;
     using transform_container = typename detector_t::transform_container;
-    using disc = typename detector_t::disc;
-    using cylinder = typename detector_t::cylinder;
-    using rectangle = typename detector_t::rectangle;
     using surface_container = typename detector_t::surface_filling_container;
 
     /** Function that adds a disc portal.

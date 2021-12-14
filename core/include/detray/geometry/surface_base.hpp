@@ -115,7 +115,7 @@ class surface_base {
 
     /** Is this instance a portal in the sense of the unified_index_geometry? */
     DETRAY_HOST_DEVICE
-    const bool is_portal() const { return not(std::get<0>(_edg) == _vol); }
+    bool is_portal() const { return not(std::get<0>(_edg) == _vol); }
 
     private:
     transform_link _trf;

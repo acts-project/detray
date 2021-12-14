@@ -22,7 +22,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     auto toy_det = create_toy_geometry(host_mr);
 
     using detector_t = decltype(toy_det);
-    using objs = typename detector_t::object_id;
     typename detector_t::context ctx = {};
     const auto& volumes = toy_det.volumes();
     const auto& surfaces = toy_det.surfaces();

@@ -45,7 +45,7 @@ struct single3 {
 
     mask_values _values = {std::numeric_limits<scalar>::infinity()};
 
-    links_type _links;
+    links_type _links = {};
 
     static constexpr unsigned int mask_context = kMaskContext;
 

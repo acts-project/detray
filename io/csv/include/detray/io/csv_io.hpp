@@ -56,7 +56,8 @@ detector_from_csv(const std::string &detector_name,
                   const std::string &grid_entries_file_name,
                   std::map<dindex, std::string> &name_map,
                   vecmem::memory_resource &resource,
-                  scalar r_sync_tolerance = 0., scalar z_sync_tolerance = 0.) {
+                  scalar /*r_sync_tolerance*/ = 0.,
+                  scalar /*z_sync_tolerance*/ = 0.) {
     using alignable_store = static_transform_store<vector_type>;
     using detector_t =
         detector<array_type, tuple_type, vector_type, jagged_vector_type>;
@@ -191,33 +192,33 @@ detector_from_csv(const std::string &detector_name,
      **/
     auto synchronize_bounds = [&](const array_type<scalar, 6> &bounds,
                                   bool gap_volume) -> array_type<scalar, 6> {
-        scalar r_min = bounds[0];
-        scalar r_max = bounds[1];
-        scalar z_min = bounds[2];
-        scalar z_max = bounds[3];
-        scalar phi_min = bounds[4];
-        scalar phi_max = bounds[5];
+        scalar _r_min = bounds[0];
+        scalar _r_max = bounds[1];
+        scalar _z_min = bounds[2];
+        scalar _z_max = bounds[3];
+        scalar _phi_min = bounds[4];
+        scalar _phi_max = bounds[5];
 
         if (not gap_volume) {
-            find_and_replace(r_min, r_min_layer_volumes);
-            find_and_replace(r_max, r_max_layer_volumes, -1);
-            find_and_replace(z_min, z_min_layer_volumes);
-            find_and_replace(z_max, z_max_layer_volumes, -1);
+            find_and_replace(_r_min, r_min_layer_volumes);
+            find_and_replace(_r_max, r_max_layer_volumes, -1);
+            find_and_replace(_z_min, z_min_layer_volumes);
+            find_and_replace(_z_max, z_max_layer_volumes, -1);
         } else {
-            if (std::abs(z_max + z_min) < 0.1) {
-                find_and_replace(r_min, r_max_layer_volumes, -1);
-                find_and_replace(r_max, r_min_layer_volumes);
-                find_and_replace(z_min, z_min_layer_volumes);
-                find_and_replace(z_max, z_max_layer_volumes, -1);
+            if (std::abs(_z_max + _z_min) < 0.1) {
+                find_and_replace(_r_min, r_max_layer_volumes, -1);
+                find_and_replace(_r_max, r_min_layer_volumes);
+                find_and_replace(_z_min, z_min_layer_volumes);
+                find_and_replace(_z_max, z_max_layer_volumes, -1);
             } else {
-                find_and_replace(r_min, r_min_layer_volumes);
-                find_and_replace(r_max, r_max_layer_volumes, -1);
-                find_and_replace(z_min, z_max_layer_volumes, -1);
-                find_and_replace(z_max, z_min_layer_volumes);
+                find_and_replace(_r_min, r_min_layer_volumes);
+                find_and_replace(_r_max, r_max_layer_volumes, -1);
+                find_and_replace(_z_min, z_max_layer_volumes, -1);
+                find_and_replace(_z_max, z_min_layer_volumes);
             }
         }
 
-        return {r_min, r_max, z_min, z_max, phi_min, phi_max};
+        return {_r_min, _r_max, _z_min, _z_max, _phi_min, _phi_max};
     };
 
     // Create the surface finders & reserve
@@ -245,32 +246,32 @@ detector_from_csv(const std::string &detector_name,
         bool is_disk = (io_surface_grid.type_loc0 == 3);
 
         // Prepare z axis parameters
-        scalar z_min = is_disk ? std::numeric_limits<scalar>::min()
-                               : io_surface_grid.min_loc1;
-        scalar z_max = is_disk ? std::numeric_limits<scalar>::max()
-                               : io_surface_grid.max_loc1;
-        dindex z_bins =
+        scalar _z_min = is_disk ? std::numeric_limits<scalar>::min()
+                                : io_surface_grid.min_loc1;
+        scalar _z_max = is_disk ? std::numeric_limits<scalar>::max()
+                                : io_surface_grid.max_loc1;
+        dindex _z_bins =
             is_disk ? 1u : static_cast<dindex>(io_surface_grid.nbins_loc1);
 
         // Prepare r axis parameters
-        scalar r_min = is_disk ? io_surface_grid.min_loc0 : 0.;
-        scalar r_max = is_disk ? io_surface_grid.max_loc0
-                               : std::numeric_limits<scalar>::max();
-        dindex r_bins =
+        scalar _r_min = is_disk ? io_surface_grid.min_loc0 : 0.;
+        scalar _r_max = is_disk ? io_surface_grid.max_loc0
+                                : std::numeric_limits<scalar>::max();
+        dindex _r_bins =
             is_disk ? static_cast<dindex>(io_surface_grid.nbins_loc0) : 1u;
 
         // Prepare phi axis parameters
-        scalar phi_min =
+        scalar _phi_min =
             is_disk ? io_surface_grid.min_loc1 : io_surface_grid.min_loc0;
-        scalar phi_max =
+        scalar _phi_max =
             is_disk ? io_surface_grid.max_loc1 : io_surface_grid.max_loc0;
-        dindex phi_bins = is_disk
-                              ? static_cast<dindex>(io_surface_grid.nbins_loc1)
-                              : static_cast<dindex>(io_surface_grid.nbins_loc0);
+        dindex _phi_bins =
+            is_disk ? static_cast<dindex>(io_surface_grid.nbins_loc1)
+                    : static_cast<dindex>(io_surface_grid.nbins_loc0);
 
-        surfaces_z_axis z_axis{z_bins, z_min, z_max, resource};
-        surfaces_r_axis r_axis{r_bins, r_min, r_max, resource};
-        surfaces_phi_axis phi_axis{phi_bins, phi_min, phi_max, resource};
+        surfaces_z_axis z_axis{_z_bins, _z_min, _z_max, resource};
+        surfaces_r_axis r_axis{_r_bins, _r_min, _r_max, resource};
+        surfaces_phi_axis phi_axis{_phi_bins, _phi_min, _phi_max, resource};
 
         // negative / positive / inner / outer
         surfaces_r_phi_grid rphi_grid_n(r_axis, phi_axis, resource);
@@ -318,7 +319,7 @@ detector_from_csv(const std::string &detector_name,
             const auto &unsynchronized_volume_bounds = new_bounds->second;
             // Check if you need to synchronize
             bool is_gap = (io_surface.layer_id % 2 != 0);
-            auto volume_bounds =
+            auto _volume_bounds =
                 synchronize_bounds(unsynchronized_volume_bounds, is_gap);
 
             // Check if this volume has a surface finder entry associated
@@ -335,18 +336,18 @@ detector_from_csv(const std::string &detector_name,
                 std::string("_lay_") + std::to_string(io_surface.layer_id);
 
             auto &new_volume =
-                d.new_volume(volume_bounds, surfaces_finder_entry);
+                d.new_volume(_volume_bounds, surfaces_finder_entry);
 
             name_map[new_volume.index() + 1] = volume_name;
 
             // RZ attachment storage
-            attach_volume(r_min_attachments, volume_bounds[0],
+            attach_volume(r_min_attachments, _volume_bounds[0],
                           new_volume.index());
-            attach_volume(z_min_attachments, volume_bounds[2],
+            attach_volume(z_min_attachments, _volume_bounds[2],
                           new_volume.index());
 
-            r_max = std::max(r_max, volume_bounds[1]);
-            z_max = std::max(z_max, volume_bounds[3]);
+            r_max = std::max(r_max, _volume_bounds[1]);
+            z_max = std::max(z_max, _volume_bounds[3]);
 
             c_volume = &new_volume;
             // Insert to volume map

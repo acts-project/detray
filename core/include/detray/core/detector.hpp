@@ -261,12 +261,14 @@ class detector {
      * @return detector transform store
      */
     DETRAY_HOST_DEVICE
-    inline const auto &transforms(const context &ctx = {}) const {
+    inline const auto &transforms(const context & /*ctx*/ = {}) const {
         return _transforms;
     }
 
     DETRAY_HOST_DEVICE
-    inline auto &transforms(const context &ctx = {}) { return _transforms; }
+    inline auto &transforms(const context & /*ctx*/ = {}) {
+        return _transforms;
+    }
 
     /** Add pre-built transform store
      *
@@ -284,7 +286,7 @@ class detector {
      * @return a struct that contains references to all relevant containers.
      */
     DETRAY_HOST_DEVICE
-    const auto data(const context &ctx = {}) const {
+    const auto data(const context & /*ctx*/ = {}) const {
         struct data_core {
             const dvector<volume_type> &volumes;
             const transform_store &transforms;
@@ -398,7 +400,7 @@ class detector {
      */
     DETRAY_HOST
     inline void add_surfaces_finders(
-        vector_type<surfaces_finder> &&surfaces_finders) {
+        vector_type<surfaces_finder> && /*surfaces_finders*/) {
         //_surfaces_finders = std::move(surfaces_finders);
     }
 

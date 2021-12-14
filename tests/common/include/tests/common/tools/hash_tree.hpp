@@ -81,7 +81,7 @@ class hash_tree {
      * @param volumes geometry volumes that become the graph nodes
      * @param portals geometry portals link volumes and become edges
      */
-    hash_tree(const input_collection &data, const hash_function &hf = {})
+    hash_tree(const input_collection &data, const hash_function & /*hf*/ = {})
         : _hash(hash_function{}) {
         build(data);
     }
