@@ -51,8 +51,6 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
-          typename surfaces_serializer_type = serializer2,
-          typename name_map = std::map<dindex, std::string>,
           typename source_link = dindex>
 class detector {
 
@@ -60,6 +58,8 @@ class detector {
     /// Forward the alignable container and context
     using transform_store = static_transform_store<vector_type>;
     using context = typename transform_store::context;
+    using surfaces_serializer_type = serializer2;
+    using name_map = std::map<dindex, std::string>;
 
     // TODO: Remove this from detector
     /** Encodes the position in a collection container for the respective
@@ -506,14 +506,11 @@ struct detector_data {
 template <template <typename, unsigned int> class array_type,
           template <typename...> class tuple_type,
           template <typename...> class vector_type,
-          template <typename...> class jagged_vector_type,
-          typename surfaces_serializer_type, typename name_map,
-          typename source_link>
-inline detector_data<
-    detector<array_type, tuple_type, vector_type, jagged_vector_type,
-             surfaces_serializer_type, name_map, source_link> >
+          template <typename...> class jagged_vector_type, typename source_link>
+inline detector_data<detector<array_type, tuple_type, vector_type,
+                              jagged_vector_type, source_link> >
 get_data(detector<array_type, tuple_type, vector_type, jagged_vector_type,
-                  surfaces_serializer_type, name_map, source_link> &det) {
+                  source_link> &det) {
     return det;
 }
 
