@@ -28,7 +28,7 @@
 int main(int argc, char **argv) {
     vecmem::host_memory_resource host_mr;
 
-    using point2 = __plugin::point2;
+    using point2 = __plugin::point2<detray::scalar>;
     using namespace detray;
     using namespace matplot;
 

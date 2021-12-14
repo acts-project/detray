@@ -67,7 +67,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DALGEBRA_PLUGIN_CUSTOM_SCALARTYPE=float
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DDETRAY_CUSTOM_SCALARTYPE=float
 
     - name: Build
       working-directory: ${{runner.workspace}}/build

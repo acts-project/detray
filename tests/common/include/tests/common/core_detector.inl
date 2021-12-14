@@ -19,7 +19,7 @@ TEST(ALGEBRA_PLUGIN, detector) {
     vecmem::host_memory_resource host_mr;
 
     using namespace detray;
-    using namespace __plugin;
+    using point3 = __plugin::point3<detray::scalar>;
 
     using detector_t = detector<>;
 

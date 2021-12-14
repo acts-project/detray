@@ -19,7 +19,7 @@
 namespace detray {
 
 /// Transform definition
-using transform3 = __plugin::transform3;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 /** Variadic unrolled intersection - any integer sequence
  *

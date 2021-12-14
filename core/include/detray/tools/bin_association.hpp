@@ -17,8 +17,8 @@
 #include "detray/utils/generators.hpp"
 
 namespace detray {
-using point2 = __plugin::point2;
-using point3 = __plugin::point3;
+using point2 = __plugin::point2<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
 
 /** Run the bin association of surfaces (via their contour)
  *  - to a given grid.

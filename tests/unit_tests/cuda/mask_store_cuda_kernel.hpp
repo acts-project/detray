@@ -27,7 +27,6 @@
 #pragma once
 
 using namespace detray;
-using namespace __plugin;
 
 const int n_points = 1000;
 

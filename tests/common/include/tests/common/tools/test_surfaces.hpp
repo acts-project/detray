@@ -24,9 +24,9 @@ vecmem::host_memory_resource host_mr;
 
 using namespace vector;
 
-using transform3 = __plugin::transform3;
-using point3 = point3;
-using vector3 = vector3;
+using transform3 = __plugin::transform3<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
 
 using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 
@@ -49,8 +49,8 @@ dvector<surface_base<transform3>> planes_along_direction(
     return return_surfaces;
 }
 
-using cylinder_point2 = __plugin::point2;
-using disc_point2 = __plugin::point2;
+using cylinder_point2 = __plugin::point2<detray::scalar>;
+using disc_point2 = __plugin::point2<detray::scalar>;
 using endcap_surface_finder = std::function<dvector<dindex>(
     const disc_point2 &, const binned_neighborhood &)>;
 

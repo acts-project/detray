@@ -18,7 +18,6 @@
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
-using namespace __plugin;
 
 constexpr std::size_t vol0_hash = 2;
 constexpr std::size_t vol1_hash = 2;  // TODO: Find hash function wihtout coll.!

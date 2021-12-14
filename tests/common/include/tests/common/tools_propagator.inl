@@ -39,7 +39,7 @@ TEST(ALGEBRA_PLUGIN, propagator) {
 
     detray_track traj;
     traj.pos = {0., 0., 0.};
-    traj.dir = vector::normalize(vector3{1., 1., 0.});
+    traj.dir = vector::normalize(__plugin::vector3<detray::scalar>{1., 1., 0.});
     traj.ctx = detray_context{};
     traj.momentum = 100.;
     traj.overstep_tolerance = -1e-4;

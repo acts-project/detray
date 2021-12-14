@@ -36,7 +36,7 @@ TEST(grids, grid2_replace_populator) {
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
-    test::point2 p = {-4.5, -4.5};
+    test::point2<detray::scalar> p = {-4.5, -4.5};
     for (unsigned int ib0 = 0; ib0 < 10; ++ib0) {
         for (unsigned int ib1 = 0; ib1 < 10; ++ib1) {
             p = {static_cast<scalar>(-4.5 + ib0),
@@ -118,7 +118,7 @@ TEST(grids, grid2_complete_populator) {
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
-    test::point2 p = {-0.5, -0.5};
+    test::point2<detray::scalar> p = {-0.5, -0.5};
     grid2r::populator_t::store_value invalid = {dindex_invalid, dindex_invalid,
                                                 dindex_invalid};
     for (unsigned int ib0 = 0; ib0 < 2; ++ib0) {
@@ -191,7 +191,7 @@ TEST(grids, grid2_attach_populator) {
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
-    test::point2 p = {-0.5, -0.5};
+    test::point2<detray::scalar> p = {-0.5, -0.5};
     grid2r::populator_t::store_value invalid = {};
     for (unsigned int ib0 = 0; ib0 < 2; ++ib0) {
         for (unsigned int ib1 = 0; ib1 < 2; ++ib1) {
@@ -246,7 +246,7 @@ TEST(grids, grid2_shift) {
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr, 0);
 
     // Test the initialization
-    test::point2 p = {-4.5, -4.5};
+    test::point2<detray::scalar> p = {-4.5, -4.5};
     EXPECT_EQ(g2.bin(p), 0u);
 
     g2.shift(8u);
@@ -268,7 +268,7 @@ TEST(grids, grid2_irregular_replace) {
 
     grid2ir g2(std::move(xaxis), std::move(yaxis), host_mr);
 
-    test::point2 p = {-0.5, 0.5};
+    test::point2<detray::scalar> p = {-0.5, 0.5};
     g2.populate(p, 4u);
     EXPECT_EQ(g2.bin(p), 4u);
 }

@@ -14,8 +14,8 @@ using namespace __plugin;
 
 // This tests the basic function of a rectangle
 TEST(mask, cylinder3) {
-    using local_type = __plugin::transform3;
-    using point3 = __plugin::point3;
+    using local_type = __plugin::transform3<detray::scalar>;
+    using point3 = __plugin::point3<detray::scalar>;
 
     scalar r = 3.;
     scalar hz = 4.;

@@ -18,9 +18,9 @@
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
-using transform3 = __plugin::transform3;
-using vector3 = __plugin::vector3;
-using point3 = __plugin::point3;
+using transform3 = __plugin::transform3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
 
 TEST(display, annulus2) {
     detray::global_xy_view gxy;

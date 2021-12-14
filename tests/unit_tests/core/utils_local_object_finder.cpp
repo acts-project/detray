@@ -30,7 +30,7 @@ TEST(utils, local_object_finder) {
 
     serializer2 serializer;
 
-    test::point2 p2 = {-4.5, -4.5};
+    test::point2<detray::scalar> p2 = {-4.5, -4.5};
 
     using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
@@ -49,7 +49,8 @@ TEST(utils, local_object_finder) {
 
     local_single_finder<dindex> local_single(8u);
 
-    using local_finder = std::function<dvector<dindex>(const test::point2 &)>;
+    using local_finder =
+        std::function<dvector<dindex>(const test::point2<detray::scalar> &)>;
 
     std::vector<local_finder> local_finders = {local_zone, local_single};
 

@@ -15,8 +15,8 @@ namespace detray {
 /** Track struct for navigation through the detector */
 template <typename context_type = bool>
 struct track {
-    using point3 = __plugin::point3;
-    using vector3 = __plugin::vector3;
+    using point3 = __plugin::point3<detray::scalar>;
+    using vector3 = __plugin::vector3<detray::scalar>;
 
     point3 pos = {0., 0., 0.};
     vector3 dir = {0., 0., 0.};
