@@ -10,12 +10,11 @@
 #include "detray/masks/ring2.hpp"
 
 using namespace detray;
-using namespace __plugin;
 
 // This tests the basic function of a rectangle
 TEST(mask, ring2) {
-    using cartesian = __plugin::cartesian2;
-    using polar = __plugin::polar2;
+    using cartesian = __plugin::cartesian2<detray::scalar>;
+    using polar = __plugin::polar2<detray::scalar>;
 
     point2 p2_pl_in = {0.5, -2.};
     point2 p2_pl_edge = {0., 3.5};

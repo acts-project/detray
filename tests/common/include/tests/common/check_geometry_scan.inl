@@ -18,7 +18,6 @@
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
-using namespace __plugin;
 
 constexpr std::size_t vol0_hash = 2;
 constexpr std::size_t vol1_hash = 2;  // TODO: Find hash function wihtout coll.!
@@ -63,7 +62,6 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
 
     const auto g =
         geometry_graph<detector_t>(toy_det.volumes(), toy_det.surfaces());
-    const auto &adj_linking = g.adjacency_list();
 
     std::cout << g.to_string() << std::endl;
 

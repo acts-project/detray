@@ -32,7 +32,7 @@ namespace detray {
  **/
 template <
     unsigned int kCheckIndex, typename intersector_type = planar_intersector,
-    typename mask_links_type = __plugin::cartesian2,
+    typename mask_links_type = __plugin::cartesian2<detray::scalar>,
     typename mask_local_type = bool, unsigned int kMaskContext = e_single3,
     template <typename, unsigned int> class array_type = darray>
 struct single3 {
@@ -45,7 +45,7 @@ struct single3 {
 
     mask_values _values = {std::numeric_limits<scalar>::infinity()};
 
-    links_type _links;
+    links_type _links = {};
 
     static constexpr unsigned int mask_context = kMaskContext;
 

@@ -14,7 +14,7 @@
 
 namespace detray {
 
-using transform3 = __plugin::transform3;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 /** A static inplementation of an alignable transform store */
 template <template <typename...> class vector_type = dvector,

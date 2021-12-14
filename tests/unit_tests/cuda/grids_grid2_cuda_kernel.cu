@@ -29,8 +29,8 @@ __global__ void grid_replace_test_kernel(
     auto y_interval = (axis1.max - axis1.min) / axis1.n_bins;
 
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
-    auto pt = test::point3{axis0.min + gid * x_interval,
-                           axis1.min + gid * y_interval, 0.5};
+    auto pt = test::point3<detray::scalar>{axis0.min + gid * x_interval,
+                                           axis1.min + gid * y_interval, 0.5};
 
     // replace the bin elements
     g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
@@ -67,8 +67,8 @@ __global__ void grid_replace_ci_test_kernel(
         axis1.boundaries[threadIdx.y + 1] - axis1.boundaries[threadIdx.y];
 
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
-    auto pt = test::point3{axis0.min + gid * x_interval,
-                           axis1.min + gid * y_interval, 0.5};
+    auto pt = test::point3<detray::scalar>{axis0.min + gid * x_interval,
+                                           axis1.min + gid * y_interval, 0.5};
 
     // replace the bin elements
     g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
@@ -100,7 +100,8 @@ __global__ void grid_complete_kernel(
     grid2_view<host_grid2_complete> grid_view) {
 
     // Let's try building the grid object
-    device_grid2_complete g2_device(grid_view, test::point3{0, 0, 0});
+    device_grid2_complete g2_device(grid_view,
+                                    test::point3<detray::scalar>{0, 0, 0});
 
     const auto& axis0 = g2_device.axis_p0();
     const auto& axis1 = g2_device.axis_p1();
@@ -112,8 +113,8 @@ __global__ void grid_complete_kernel(
 
     for (int i_p = 0; i_p < n_points; i_p++) {
         auto gid = i_p + bin_id * n_points;
-        auto pt = test::point3{axis0.min + gid * x_interval,
-                               axis1.min + gid * y_interval, 0.5};
+        auto pt = test::point3<detray::scalar>{
+            axis0.min + gid * x_interval, axis1.min + gid * y_interval, 0.5};
         // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
         g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
     }
@@ -145,7 +146,8 @@ __global__ void grid_attach_read_test_kernel(
     grid2_view<host_grid2_attach> grid_view) {
 
     // Let's try building the grid object
-    device_grid2_attach g2_device(grid_view, test::point3{0, 0, 0});
+    device_grid2_attach g2_device(grid_view,
+                                  test::point3<detray::scalar>{0, 0, 0});
 
     auto data = g2_device.bin(threadIdx.x, threadIdx.y);
 
@@ -183,8 +185,8 @@ __global__ void grid_attach_fill_test_kernel(
     device_grid2_attach g2_device(grid_view);
 
     // Fill with 100 points
-    auto pt =
-        test::point3{1. * threadIdx.x, 1. * threadIdx.x, 1. * threadIdx.x};
+    auto pt = test::point3<detray::scalar>{1. * threadIdx.x, 1. * threadIdx.x,
+                                           1. * threadIdx.x};
     g2_device.populate(blockIdx.x, blockIdx.y, std::move(pt));
 
     __syncthreads();
@@ -218,12 +220,13 @@ void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view) {
 template <template <typename, size_t> class array_type>
 __global__ void grid_array_test_kernel(
     array_type<grid2_view<host_grid2_attach>, 2> grid_array,
-    vecmem::data::vector_view<test::point3> outputs_data) {
+    vecmem::data::vector_view<test::point3<detray::scalar>> outputs_data) {
 
     // get the device objects from input arguments
     array_type<device_grid2_attach, 2> grid2_device_array{
         {{grid_array[0]}, {grid_array[1]}}};
-    vecmem::device_vector<test::point3> outputs_device(outputs_data);
+    vecmem::device_vector<test::point3<detray::scalar>> outputs_device(
+        outputs_data);
 
     // fill the output vector with grid elements
     int counts = 0;
@@ -250,7 +253,7 @@ __global__ void grid_array_test_kernel(
 template <>
 void grid_array_test(
     vecmem::static_array<grid2_view<host_grid2_attach>, 2> grid_array,
-    vecmem::data::vector_view<test::point3>& outputs_data) {
+    vecmem::data::vector_view<test::point3<detray::scalar>>& outputs_data) {
     // run the kernel
     grid_array_test_kernel<<<1, 1>>>(grid_array, outputs_data);
 

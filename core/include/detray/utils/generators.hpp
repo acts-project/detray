@@ -11,8 +11,8 @@
 
 namespace detray {
 
-using transform3 = __plugin::transform3;
-using point2 = __plugin::point2;
+using transform3 = __plugin::transform3<detray::scalar>;
+using point2 = __plugin::point2<detray::scalar>;
 
 /** Generate phi values
  *
@@ -132,8 +132,8 @@ template <bool kRadialCheck, typename intersector_type, typename local_type,
           typename links_type, unsigned int kMaskContext>
 dvector<point3> vertices(
     const cylinder3<kRadialCheck, intersector_type, local_type, links_type,
-                    kMaskContext> &annulus_mask,
-    unsigned int lseg) {
+                    kMaskContext> & /*annulus_mask*/,
+    unsigned int /*lseg*/) {
 
     return {};
 }
@@ -178,8 +178,8 @@ dvector<point3> vertices(
 template <typename intersector_type, typename local_type, typename links_type,
           unsigned int kMaskContext>
 dvector<point3> vertices(const ring2<intersector_type, local_type, links_type,
-                                     kMaskContext> &ring_mask,
-                         unsigned int lseg) {
+                                     kMaskContext> & /*ring_mask*/,
+                         unsigned int /*lseg*/) {
     return {};
 }
 
@@ -276,7 +276,7 @@ template <typename mask_container, typename mask_range,
 auto unroll_masks_for_vertices(
     const mask_container &masks, const mask_range &range, dindex mask_context,
     std::integer_sequence<dindex, first_mask_context, remaining_mask_context...>
-        available_contices) {
+    /*available_contices*/) {
     // Pick the first one for interseciton
     if (mask_context == first_mask_context) {
         return vertices_for_mask_group(

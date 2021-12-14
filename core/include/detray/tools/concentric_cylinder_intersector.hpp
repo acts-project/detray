@@ -24,11 +24,11 @@ class unbound;
 template <template <typename, unsigned int> class array_type = darray>
 struct concentric_cylinder_intersector {
 
-    using transform3 = __plugin::transform3;
-    using point3 = __plugin::point3;
-    using vector3 = __plugin::vector3;
-    using point2 = __plugin::point2;
-    using cylindrical2 = __plugin::cylindrical2;
+    using transform3 = __plugin::transform3<detray::scalar>;
+    using point3 = __plugin::point3<detray::scalar>;
+    using vector3 = __plugin::vector3<detray::scalar>;
+    using point2 = __plugin::point2<detray::scalar>;
+    using cylindrical2 = __plugin::cylindrical2<detray::scalar>;
 
     /** Intersection method for cylindrical surfaces
      *
@@ -82,12 +82,12 @@ struct concentric_cylinder_intersector {
             std::is_same_v<typename mask_type::local_type, cylindrical2> or
                 std::is_same_v<typename mask_type::local_type, detray::unbound>,
             bool> = true>
-    inline intersection intersect(const transform3 & /*trf*/, const point3 &ro,
-                                  const vector3 &rd, const mask_type &mask,
-                                  const dindex volume_index = dindex_invalid,
-                                  const typename mask_type::mask_tolerance
-                                      &tolerance = mask_type::within_epsilon,
-                                  scalar overstep_tolerance = 0.) const {
+    inline intersection intersect(
+        const transform3 & /*trf*/, const point3 &ro, const vector3 &rd,
+        const mask_type &mask, const dindex /*volume_index*/ = dindex_invalid,
+        const typename mask_type::mask_tolerance & /*tolerance*/ =
+            mask_type::within_epsilon,
+        scalar overstep_tolerance = 0.) const {
 
         using local_frame = typename mask_type::local_type;
 

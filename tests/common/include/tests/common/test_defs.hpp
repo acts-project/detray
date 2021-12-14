@@ -25,8 +25,11 @@ namespace detray {
 using scalar = detray_scalar;
 
 namespace test {
-using point2 = darray<scalar, 2>;
-using point3 = darray<scalar, 3>;
+
+template <typename T>
+using point2 = darray<T, 2>;
+template <typename T>
+using point3 = darray<T, 3>;
 
 }  // namespace test
 
@@ -42,12 +45,15 @@ scalar perp(const point_type &p) {
 
 }  // namespace getter
 
-inline test::point2 operator-(const test::point2 &a, const test::point2 &b) {
+template <typename T>
+inline test::point2<T> operator-(const test::point2<T> &a,
+                                 const test::point2<T> &b) {
     return {a[0] - b[0], a[1] - b[1]};
 }
 
-DETRAY_HOST_DEVICE
-inline bool operator==(const test::point3 &lhs, const test::point3 &rhs) {
+template <typename T>
+DETRAY_HOST_DEVICE inline bool operator==(const test::point3<T> &lhs,
+                                          const test::point3<T> &rhs) {
     for (int i = 0; i < 3; i++) {
         if (lhs[i] != rhs[i])
             return false;
@@ -57,8 +63,8 @@ inline bool operator==(const test::point3 &lhs, const test::point3 &rhs) {
 
 // invalid value specialization for test::point3
 template <>
-DETRAY_HOST_DEVICE inline test::point3 detray::invalid_value() {
-    return test::point3{0, 0, 0};
+DETRAY_HOST_DEVICE inline test::point3<scalar> detray::invalid_value() {
+    return test::point3<scalar>{0, 0, 0};
 }
 
 }  // namespace detray

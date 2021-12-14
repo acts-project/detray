@@ -18,7 +18,7 @@ struct local_zone_finder {
     grid_type _grid;
     bool _sort = true;
 
-    using point2 = __plugin::point2;
+    using point2 = __plugin::point2<detray::scalar>;
 
     /** Constructor from grid
      *
@@ -69,7 +69,7 @@ template <typename value_type, typename vector_type = dvector<value_type>,
           template <typename, unsigned int> class array_type = darray>
 struct local_single_finder {
 
-    using point2 = __plugin::point2;
+    using point2 = __plugin::point2<detray::scalar>;
 
     vector_type _value = {};
 
@@ -82,8 +82,8 @@ struct local_single_finder {
      * @param p2 the local 2d point for the grid
      * @note return always the same bin
      **/
-    vector_type operator()(const point2 &p2,
-                           const array_type<unsigned int, 2> &nhood = {
+    vector_type operator()(const point2 & /*p2*/,
+                           const array_type<unsigned int, 2> & /*nhood*/ = {
                                0, 0}) const {
         return _value;
     }

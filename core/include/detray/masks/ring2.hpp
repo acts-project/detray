@@ -33,7 +33,7 @@ namespace detray {
  *
  **/
 template <typename intersector_type = planar_intersector,
-          typename mask_local_type = __plugin::cartesian2,
+          typename mask_local_type = __plugin::cartesian2<detray::scalar>,
           typename mask_links_type = unsigned int,
           unsigned int kMaskContext = e_ring2,
           template <typename, unsigned int> class array_type = darray>
@@ -88,7 +88,8 @@ struct ring2 {
     template <typename inside_local_type>
     DETRAY_HOST_DEVICE intersection_status
     is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
-        if constexpr (std::is_same_v<inside_local_type, __plugin::cartesian2>) {
+        if constexpr (std::is_same_v<inside_local_type,
+                                     __plugin::cartesian2<detray::scalar> >) {
             scalar r = getter::perp(p);
             return (r + t >= _values[0] and r <= _values[1] + t) ? e_inside
                                                                  : e_outside;

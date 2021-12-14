@@ -24,9 +24,9 @@ vecmem::host_memory_resource host_mr;
 
 using namespace vector;
 
-using transform3 = __plugin::transform3;
-using point3 = point3;
-using vector3 = vector3;
+using transform3 = __plugin::transform3<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
 
 using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 
@@ -49,8 +49,8 @@ dvector<surface_base<transform3>> planes_along_direction(
     return return_surfaces;
 }
 
-using cylinder_point2 = __plugin::point2;
-using disc_point2 = __plugin::point2;
+using cylinder_point2 = __plugin::point2<detray::scalar>;
+using disc_point2 = __plugin::point2<detray::scalar>;
 using endcap_surface_finder = std::function<dvector<dindex>(
     const disc_point2 &, const binned_neighborhood &)>;
 
@@ -184,7 +184,7 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
                          scalar tilt_phi, scalar overlap_rphi, scalar length_z,
                          scalar overlap_z, unsigned int n_z,
                          scalar volume_inner_r, scalar volume_outer_r,
-                         scalar volume_half_z,
+                         scalar /*volume_half_z*/,
                          unsigned int transform_offset = 0) {
     // Estimate module dimensions
     scalar module_lx = 2 * r * M_PI * (1 + overlap_rphi) / n_phi;

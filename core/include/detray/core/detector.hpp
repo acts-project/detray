@@ -27,9 +27,9 @@
 namespace detray {
 
 // Algebra, point2 is not strongly typed
-using point3 = __plugin::point3;
-using vector3 = __plugin::vector3;
-using point2 = __plugin::point2;
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point2 = __plugin::point2<detray::scalar>;
 
 /** The detector definition.
  *
@@ -86,16 +86,20 @@ class detector {
     using edge_type = array_type<dindex, 2>;
 
     /// mask types
-    using rectangle = rectangle2<planar_intersector, __plugin::cartesian2,
-                                 edge_type, e_rectangle2>;
-    using trapezoid = trapezoid2<planar_intersector, __plugin::cartesian2,
-                                 edge_type, e_trapezoid2>;
-    using annulus = annulus2<planar_intersector, __plugin::cartesian2,
-                             edge_type, e_annulus2>;
+    using rectangle =
+        rectangle2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                   edge_type, e_rectangle2>;
+    using trapezoid =
+        trapezoid2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                   edge_type, e_trapezoid2>;
+    using annulus =
+        annulus2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                 edge_type, e_annulus2>;
     using cylinder = cylinder3<false, cylinder_intersector,
-                               __plugin::cylindrical2, edge_type, e_cylinder3>;
-    using disc =
-        ring2<planar_intersector, __plugin::cartesian2, edge_type, e_ring2>;
+                               __plugin::cylindrical2<detray::scalar>,
+                               edge_type, e_cylinder3>;
+    using disc = ring2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                       edge_type, e_ring2>;
 
     using mask_container = mask_store<tuple_type, vector_type, rectangle,
                                       trapezoid, annulus, cylinder, disc>;
@@ -261,12 +265,14 @@ class detector {
      * @return detector transform store
      */
     DETRAY_HOST_DEVICE
-    inline const auto &transforms(const context &ctx = {}) const {
+    inline const auto &transforms(const context & /*ctx*/ = {}) const {
         return _transforms;
     }
 
     DETRAY_HOST_DEVICE
-    inline auto &transforms(const context &ctx = {}) { return _transforms; }
+    inline auto &transforms(const context & /*ctx*/ = {}) {
+        return _transforms;
+    }
 
     /** Add pre-built transform store
      *
@@ -284,7 +290,7 @@ class detector {
      * @return a struct that contains references to all relevant containers.
      */
     DETRAY_HOST_DEVICE
-    const auto data(const context &ctx = {}) const {
+    const auto data(const context & /*ctx*/ = {}) const {
         struct data_core {
             const dvector<volume_type> &volumes;
             const transform_store &transforms;
@@ -398,7 +404,7 @@ class detector {
      */
     DETRAY_HOST
     inline void add_surfaces_finders(
-        vector_type<surfaces_finder> &&surfaces_finders) {
+        vector_type<surfaces_finder> && /*surfaces_finders*/) {
         //_surfaces_finders = std::move(surfaces_finders);
     }
 

@@ -13,15 +13,15 @@
 namespace detray {
 
 __global__ void transform_test_kernel(
-    vecmem::data::vector_view<point3> input_data,
+    vecmem::data::vector_view<point3<detray::scalar>> input_data,
     static_transform_store_data<static_transform_store<>> store_data,
-    vecmem::data::vector_view<point3> output_data) {
+    vecmem::data::vector_view<point3<detray::scalar>> output_data) {
 
     static_transform_store<vecmem::device_vector>::context ctx0;
     static_transform_store<vecmem::device_vector> store(store_data);
 
-    vecmem::device_vector<point3> input(input_data);
-    vecmem::device_vector<point3> output(output_data);
+    vecmem::device_vector<point3<detray::scalar>> input(input_data);
+    vecmem::device_vector<point3<detray::scalar>> output(output_data);
 
     auto range = store.range(0, store.size(ctx0), ctx0);
     output[threadIdx.x] =
@@ -29,9 +29,9 @@ __global__ void transform_test_kernel(
 }
 
 void transform_test(
-    vecmem::data::vector_view<point3>& input_data,
+    vecmem::data::vector_view<point3<detray::scalar>>& input_data,
     static_transform_store_data<static_transform_store<>>& store_data,
-    vecmem::data::vector_view<point3>& output_data) {
+    vecmem::data::vector_view<point3<detray::scalar>>& output_data) {
 
     int block_dim = 1;
     int thread_dim(store_data._data.size());

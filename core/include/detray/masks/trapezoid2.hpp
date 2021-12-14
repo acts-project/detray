@@ -35,7 +35,7 @@ namespace detray {
  *
  **/
 template <typename intersector_type = planar_intersector,
-          typename mask_local_type = __plugin::cartesian2,
+          typename mask_local_type = __plugin::cartesian2<detray::scalar>,
           typename mask_links_type = unsigned int,
           unsigned int kMaskContext = e_trapezoid2,
           template <typename, unsigned int> class array_type = darray>

@@ -94,7 +94,7 @@ struct replace_populator {
      **/
     DETRAY_HOST
     static vector_data_t get_data(serialized_storage &data,
-                                  vecmem::memory_resource &resource) {
+                                  vecmem::memory_resource & /*resource*/) {
         return vecmem::get_data(data);
     }
 };
@@ -199,7 +199,7 @@ struct complete_populator {
      **/
     DETRAY_HOST
     static vector_data_t get_data(serialized_storage &data,
-                                  vecmem::memory_resource &resource) {
+                                  vecmem::memory_resource & /*resource*/) {
         return vecmem::get_data(data);
     }
 };

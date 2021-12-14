@@ -69,7 +69,7 @@ inline bool check_connectivity(
     auto record = get_record(i);
 
     // Check first volume index, which has no partner otherwise
-    if ((not std::get<1>(record->first) == start_volume)) {
+    if (std::get<1>(record->first) != start_volume) {
         std::cerr << "First record does not start at given initial volume: "
                   << std::get<1>(record->first) << " vs. " << start_volume
                   << std::endl;
@@ -101,7 +101,7 @@ inline bool check_connectivity(
     }
 
     // There are unconnected elements left
-    if (not on_volume == dindex_invalid) {
+    if (on_volume != dindex_invalid) {
         std::cerr << "In trace finding: " << std::endl;
         std::cerr << record_stream.str() << std::endl;
 

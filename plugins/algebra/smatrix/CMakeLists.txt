@@ -18,3 +18,5 @@ detray_add_library( detray_smatrix smatrix
    "include/detray/plugins/algebra/smatrix_definitions.hpp" )
 target_link_libraries( detray_smatrix
    INTERFACE algebra::smatrix_smatrix vecmem::core )
+target_compile_definitions( detray_smatrix
+   INTERFACE DETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE} )

@@ -17,9 +17,9 @@
 
 using namespace detray;
 
-using transform3 = __plugin::transform3;
-using point3 = point3;
-using vector3 = vector3;
+using transform3 = __plugin::transform3<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
 using plane_surface = surface_base<transform3>;
 
 #ifdef DETRAY_BENCHMARKS_REP
@@ -36,7 +36,6 @@ dvector<scalar> dists = {1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
 auto planes =
     planes_along_direction(dists, vector::normalize(vector3{1., 1., 1.}));
 
-namespace __plugin {
 // This test runs intersection with all surfaces of the TrackML detector
 static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
@@ -209,7 +208,5 @@ BENCHMARK(BM_INTERSECT_CONCETRIC_CYLINDERS)
     ->Unit(benchmark::kMillisecond)
     ->Repetitions(gbench_repetitions)
     ->DisplayAggregatesOnly(true);
-
-}  // namespace __plugin
 
 BENCHMARK_MAIN();

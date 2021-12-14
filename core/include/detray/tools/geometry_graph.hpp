@@ -29,7 +29,8 @@ struct void_node_inspector {
 /** Placeholder struct for an action while walking through the graph.*/
 template <typename node_t>
 struct void_actor {
-    void operator()(const node_t &n, const dindex_range &edge_range) {}
+    void operator()(const node_t & /*n*/, const dindex_range & /*edge_range*/) {
+    }
 };
 
 /**
@@ -79,7 +80,7 @@ class geometry_graph {
     ~geometry_graph() = default;
 
     /** @return number of volumes */
-    const size_t n_nodes() const { return _nodes.size(); }
+    size_t n_nodes() const { return _nodes.size(); }
 
     /** @return all volumes in the geometry - const access. */
     const auto &nodes() const { return _nodes; }
