@@ -10,11 +10,11 @@
 #include "detray/masks/unmasked.hpp"
 
 using namespace detray;
-using namespace __plugin;
 
 // This tests the construction of a surface
 TEST(mask, unmasked) {
-    using local_type = __plugin::cartesian2;
+    using local_type = __plugin::cartesian2<detray::scalar>;
+    using point2 = __plugin::point2<detray::scalar>;
     point2 p2 = {0.5, -9.};
 
     unmasked u;

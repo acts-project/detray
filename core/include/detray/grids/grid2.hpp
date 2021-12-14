@@ -51,7 +51,7 @@ class grid2 {
     using axis_p1_t = axis_p1_type<array_type, vector_type>;
     using bare_value = typename populator_t::bare_value;
     using serialized_storage = typename populator_t::serialized_storage;
-    using point2 = __plugin::point2;
+    using point2 = __plugin::point2<detray::scalar>;
 
     template <typename neighbor_t>
     using neighborhood = array_type<array_type<neighbor_t, 2>, 2>;

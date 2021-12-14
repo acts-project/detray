@@ -19,12 +19,12 @@
 using namespace detray;
 
 // Two-dimensional bound frame to surface
-__plugin::cartesian2 cartesian2;
+__plugin::cartesian2<detray::scalar> cartesian2;
 
 // Three-dimensional definitions
-using transform3 = __plugin::transform3;
-using vector3 = __plugin::vector3;
-using point3 = __plugin::point3;
+using transform3 = __plugin::transform3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
@@ -49,7 +49,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
                 hit_unbound.p2[1] == not_defined);
 
     // The same test but bound to local frame
-    unmasked<__plugin::cartesian2> unmasked_bound{};
+    unmasked<__plugin::cartesian2<detray::scalar> > unmasked_bound{};
     auto hit_bound = pi.intersect(shifted, point3{2., 1., 0.},
                                   vector3{0., 0., 1.}, unmasked_bound);
     ASSERT_TRUE(hit_bound.status == intersection_status::e_hit);

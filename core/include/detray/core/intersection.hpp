@@ -14,9 +14,9 @@
 
 namespace detray {
 
-using point3 = __plugin::point3;
-using vector3 = __plugin::vector3;
-using point2 = __plugin::point2;
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point2 = __plugin::point2<detray::scalar>;
 
 /** Intersection direction with respect to the
  * normal of the surface

@@ -21,9 +21,9 @@
 using namespace detray;
 
 // Three-dimensional definitions
-using transform3 = __plugin::transform3;
-using vector3 = __plugin::vector3;
-using point3 = __plugin::point3;
+using transform3 = __plugin::transform3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
@@ -48,8 +48,8 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
                 hit_unbound.p2[1] == not_defined);
 
     // The same but bound
-    cylinder3<false, cylinder_intersector, __plugin::cylindrical2, unsigned int,
-              1>
+    cylinder3<false, cylinder_intersector,
+              __plugin::cylindrical2<detray::scalar>, unsigned int, 1>
         cylinder_bound = {4., -10., 10.};
     auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.},
                                   vector3{1., 0., 0.}, cylinder_bound);

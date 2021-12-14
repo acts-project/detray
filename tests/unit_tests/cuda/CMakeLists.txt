@@ -16,7 +16,10 @@ add_detray_test(grids_grid2_cuda
 
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported
-list(APPEND algebras "array;eigen")
+set( algebras "array" )
+if( DETRAY_EIGEN_PLUGIN )
+  list( APPEND algebras "eigen" )
+endif()
 
 foreach(algebra ${algebras})
 
@@ -46,7 +49,7 @@ foreach(algebra ${algebras})
     LINK_LIBRARIES
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_tuple_test_cuda PRIVATE ${algebra}=${algebra})
-  
+
   # detector test
   add_detray_test(${algebra}_detector_cuda
     "detector_cuda.cpp"

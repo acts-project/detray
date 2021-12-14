@@ -29,7 +29,7 @@ TEST(grids_cuda, grid2_replace_populator) {
 
     // declare host grid
     host_grid2_replace g2(std::move(xaxis), std::move(yaxis), mng_mr,
-                          test::point3{0, 0, 0});
+                          test::point3<detray::scalar>{0, 0, 0});
 
     // pre-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -53,8 +53,9 @@ TEST(grids_cuda, grid2_replace_populator) {
             auto bin_id = i_x + i_y * xaxis.bins();
             const auto& data = g2.bin(i_x, i_y);
 
-            test::point3 tp({xaxis.min + bin_id * x_interval,
-                             yaxis.min + bin_id * y_interval, 0.5});
+            test::point3<detray::scalar> tp({xaxis.min + bin_id * x_interval,
+                                             yaxis.min + bin_id * y_interval,
+                                             0.5});
 
             EXPECT_EQ(data, tp);
         }
@@ -73,7 +74,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
 
     // declare host grid
     host_grid2_replace_ci g2(std::move(caxis), std::move(iaxis), mng_mr,
-                             test::point3{0, 0, 0});
+                             test::point3<detray::scalar>{0, 0, 0});
 
     // pre-check
     for (unsigned int i_x = 0; i_x < caxis.bins(); i_x++) {
@@ -99,8 +100,9 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
 
             const auto& data = g2.bin(i_x, i_y);
 
-            test::point3 tp({caxis.min + bin_id * x_interval,
-                             iaxis.min + bin_id * y_interval, 0.5});
+            test::point3<detray::scalar> tp({caxis.min + bin_id * x_interval,
+                                             iaxis.min + bin_id * y_interval,
+                                             0.5});
 
             EXPECT_EQ(data, tp);
         }
@@ -117,7 +119,7 @@ TEST(grids_cuda, grid2_complete_populator) {
 
     // declare grid
     host_grid2_complete g2(std::move(xaxis), std::move(yaxis), mng_mr,
-                           test::point3{0, 0, 0});
+                           test::point3<detray::scalar>{0, 0, 0});
 
     // pre-check
     for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -152,8 +154,9 @@ TEST(grids_cuda, grid2_complete_populator) {
                 auto bin_id = i_x + i_y * xaxis.bins();
                 auto gid = i_p + bin_id * data.size();
 
-                test::point3 tp({xaxis.min + gid * x_interval,
-                                 yaxis.min + gid * y_interval, 0.5});
+                test::point3<detray::scalar> tp({xaxis.min + gid * x_interval,
+                                                 yaxis.min + gid * y_interval,
+                                                 0.5});
                 EXPECT_EQ(pt, tp);
             }
         }
@@ -171,7 +174,8 @@ TEST(grids_cuda, grid2_attach_populator) {
     auto x_interval = (xaxis.max - xaxis.min) / xaxis.n_bins;
     auto y_interval = (yaxis.max - yaxis.min) / yaxis.n_bins;
 
-    host_grid2_attach g2(xaxis, yaxis, mng_mr, test::point3{0, 0, 0});
+    host_grid2_attach g2(xaxis, yaxis, mng_mr,
+                         test::point3<detray::scalar>{0, 0, 0});
 
     for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
         for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
@@ -181,8 +185,9 @@ TEST(grids_cuda, grid2_attach_populator) {
                 auto bin_id = i_x + i_y * xaxis.bins();
                 auto gid = i_p + bin_id * 100;
 
-                test::point3 tp({xaxis.min + gid * x_interval,
-                                 yaxis.min + gid * y_interval, 0.5});
+                test::point3<detray::scalar> tp({xaxis.min + gid * x_interval,
+                                                 yaxis.min + gid * y_interval,
+                                                 0.5});
                 g2.populate(i_x, i_y, std::move(tp));
             }
         }
@@ -229,7 +234,8 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     // fill each bin with 100 points
     grid_attach_fill_test(g2_buffer);
 
-    host_grid2_attach g2(xaxis, yaxis, mng_mr, test::point3{0, 0, 0});
+    host_grid2_attach g2(xaxis, yaxis, mng_mr,
+                         test::point3<detray::scalar>{0, 0, 0});
     copy(g2_buffer._buffer, g2.data());
 
     // Check if each bin has 100 points
@@ -250,14 +256,14 @@ TEST(grids_cuda, grid2_array) {
         {{mng_mr}, {mng_mr}}};
 
     // first grid
-    grid2_array[0] = host_grid2_attach(axis::circular<>{2, 0., 2., mng_mr},
-                                       axis::regular<>{2, 2., 4., mng_mr},
-                                       mng_mr, test::point3{0, 0, 0});
+    grid2_array[0] = host_grid2_attach(
+        axis::circular<>{2, 0., 2., mng_mr}, axis::regular<>{2, 2., 4., mng_mr},
+        mng_mr, test::point3<detray::scalar>{0, 0, 0});
 
     // second grid
-    grid2_array[1] = host_grid2_attach(axis::circular<>{3, 0., 3., mng_mr},
-                                       axis::regular<>{3, 2., 5., mng_mr},
-                                       mng_mr, test::point3{0, 0, 0});
+    grid2_array[1] = host_grid2_attach(
+        axis::circular<>{3, 0., 3., mng_mr}, axis::regular<>{3, 2., 5., mng_mr},
+        mng_mr, test::point3<detray::scalar>{0, 0, 0});
 
     // fill out the grid
     for (unsigned int i_g = 0; i_g < grid2_array.size(); i_g++) {
@@ -267,7 +273,7 @@ TEST(grids_cuda, grid2_array) {
 
         for (unsigned int i_y = 0; i_y < yaxis.bins(); i_y++) {
             for (unsigned int i_x = 0; i_x < xaxis.bins(); i_x++) {
-                test::point3 tp({i_x, i_y, 0.});
+                test::point3<detray::scalar> tp({i_x, i_y, 0.});
                 g2.populate(i_x, i_y, std::move(tp));
             }
         }
@@ -279,24 +285,24 @@ TEST(grids_cuda, grid2_array) {
     auto grid2_view_array = make_grid_view_array(grid2_data_array);
 
     // output vector to readout grid elements
-    vecmem::vector<test::point3> outputs(13, &mng_mr);
+    vecmem::vector<test::point3<detray::scalar> > outputs(13, &mng_mr);
     auto outputs_data = vecmem::get_data(outputs);
 
     // run the test kernel
     grid_array_test(grid2_view_array, outputs_data);
 
     // checkout the results
-    EXPECT_EQ(outputs[0], test::point3({0, 0, 0}));
-    EXPECT_EQ(outputs[1], test::point3({1, 0, 0}));
-    EXPECT_EQ(outputs[2], test::point3({0, 1, 0}));
-    EXPECT_EQ(outputs[3], test::point3({1, 1, 0}));
-    EXPECT_EQ(outputs[4], test::point3({0, 0, 0}));
-    EXPECT_EQ(outputs[5], test::point3({1, 0, 0}));
-    EXPECT_EQ(outputs[6], test::point3({2, 0, 0}));
-    EXPECT_EQ(outputs[7], test::point3({0, 1, 0}));
-    EXPECT_EQ(outputs[8], test::point3({1, 1, 0}));
-    EXPECT_EQ(outputs[9], test::point3({2, 1, 0}));
-    EXPECT_EQ(outputs[10], test::point3({0, 2, 0}));
-    EXPECT_EQ(outputs[11], test::point3({1, 2, 0}));
-    EXPECT_EQ(outputs[12], test::point3({2, 2, 0}));
+    EXPECT_EQ(outputs[0], test::point3<detray::scalar>({0, 0, 0}));
+    EXPECT_EQ(outputs[1], test::point3<detray::scalar>({1, 0, 0}));
+    EXPECT_EQ(outputs[2], test::point3<detray::scalar>({0, 1, 0}));
+    EXPECT_EQ(outputs[3], test::point3<detray::scalar>({1, 1, 0}));
+    EXPECT_EQ(outputs[4], test::point3<detray::scalar>({0, 0, 0}));
+    EXPECT_EQ(outputs[5], test::point3<detray::scalar>({1, 0, 0}));
+    EXPECT_EQ(outputs[6], test::point3<detray::scalar>({2, 0, 0}));
+    EXPECT_EQ(outputs[7], test::point3<detray::scalar>({0, 1, 0}));
+    EXPECT_EQ(outputs[8], test::point3<detray::scalar>({1, 1, 0}));
+    EXPECT_EQ(outputs[9], test::point3<detray::scalar>({2, 1, 0}));
+    EXPECT_EQ(outputs[10], test::point3<detray::scalar>({0, 2, 0}));
+    EXPECT_EQ(outputs[11], test::point3<detray::scalar>({1, 2, 0}));
+    EXPECT_EQ(outputs[12], test::point3<detray::scalar>({2, 2, 0}));
 }

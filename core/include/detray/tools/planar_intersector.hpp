@@ -17,10 +17,10 @@ namespace detray {
  */
 struct planar_intersector {
 
-    using transform3 = __plugin::transform3;
-    using point3 = __plugin::point3;
-    using vector3 = __plugin::vector3;
-    using point2 = __plugin::point2;
+    using transform3 = __plugin::transform3<detray::scalar>;
+    using point3 = __plugin::point3<detray::scalar>;
+    using vector3 = __plugin::vector3<detray::scalar>;
+    using point2 = __plugin::point2<detray::scalar>;
 
     /** Intersection method for planar surfaces
      *

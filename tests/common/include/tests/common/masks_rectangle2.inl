@@ -16,8 +16,8 @@ using namespace __plugin;
 
 // This tests the basic function of a rectangle
 TEST(mask, rectangle2) {
-    using local_type = __plugin::cartesian2;
-    using point2 = point2;
+    using local_type = __plugin::cartesian2<detray::scalar>;
+    using point2 = __plugin::point2<detray::scalar>;
 
     point2 p2_in = {0.5, -9.};
     point2 p2_edge = {1., 9.3};

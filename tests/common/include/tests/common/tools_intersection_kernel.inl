@@ -21,7 +21,6 @@
 #include "detray/utils/enumerate.hpp"
 
 using namespace detray;
-using namespace __plugin;
 
 // This tests the construction of a surface
 TEST(tools, intersection_kernel_single) {
@@ -33,11 +32,14 @@ TEST(tools, intersection_kernel_single) {
     using surface_link = dindex;
     /// - masks, with mask identifiers 0,1,2
     using surface_rectangle =
-        rectangle2<planar_intersector, __plugin::cartesian2, mask_link, 0>;
+        rectangle2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                   mask_link, 0>;
     using surface_trapezoid =
-        trapezoid2<planar_intersector, __plugin::cartesian2, mask_link, 1>;
+        trapezoid2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                   mask_link, 1>;
     using surface_annulus =
-        annulus2<planar_intersector, __plugin::cartesian2, mask_link, 2>;
+        annulus2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+                 mask_link, 2>;
 
     /// - mask index: type, entry
     using surface_mask_index = darray<dindex, 2>;

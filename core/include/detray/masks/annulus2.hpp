@@ -44,7 +44,7 @@ namespace detray {
  *
  **/
 template <typename intersector_type = planar_intersector,
-          typename mask_local_type = __plugin::polar2,
+          typename mask_local_type = __plugin::polar2<detray::scalar>,
           typename mask_links_type = unsigned int,
           unsigned int kMaskContext = e_annulus2,
           template <typename, unsigned int> class array_type = darray>
@@ -117,7 +117,8 @@ struct annulus2 {
         // system
 
         // In cartesian coordinates go to modules system by shifting origin
-        if constexpr (std::is_same_v<inside_local_type, __plugin::cartesian2>) {
+        if constexpr (std::is_same_v<inside_local_type,
+                                     __plugin::cartesian2<detray::scalar> >) {
             // Calculate radial coordinate in module system:
             scalar x_mod = p[0] - _values[4];
             scalar y_mod = p[1] - _values[5];

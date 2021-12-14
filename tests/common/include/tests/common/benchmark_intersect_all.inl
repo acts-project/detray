@@ -59,7 +59,7 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
 
     for (auto _ : state) {
         track<static_transform_store<>::context> track;
-        track.pos = point3{0., 0., 0.};
+        track.pos = point3<detray::scalar>{0., 0., 0.};
 
         // Loops of theta values
         for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {

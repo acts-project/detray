@@ -16,6 +16,8 @@
 
 TEST(mask_store_cuda, mask_store) {
 
+    using cartesian2 = __plugin::cartesian2<detray::scalar>;
+
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
