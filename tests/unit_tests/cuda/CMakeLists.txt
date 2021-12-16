@@ -50,6 +50,15 @@ foreach(algebra ${algebras})
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_tuple_test_cuda PRIVATE ${algebra}=${algebra})
 
+  # surfaces finder test
+  add_detray_test(${algebra}_surfaces_finder_cuda
+    "surfaces_finder_cuda.cpp"
+    "surfaces_finder_cuda_kernel.hpp"
+    "surfaces_finder_cuda_kernel.cu"
+    LINK_LIBRARIES
+    vecmem::cuda detray::${algebra})
+  target_compile_definitions(detray_test_${algebra}_surfaces_finder_cuda PRIVATE ${algebra}=${algebra})
+
   # detector test
   add_detray_test(${algebra}_detector_cuda
     "detector_cuda.cpp"

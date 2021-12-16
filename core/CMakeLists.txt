@@ -24,6 +24,7 @@ detray_add_library( detray_core core
    "include/detray/geometry/unified_index_geometry.hpp"
    "include/detray/geometry/volume_connector.hpp"
    "include/detray/geometry/volume.hpp"
+   "include/detray/geometry/surfaces_finder.hpp"
    "include/detray/grids/associator.hpp"
    "include/detray/grids/axis.hpp"
    "include/detray/grids/grid2.hpp"
