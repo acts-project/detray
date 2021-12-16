@@ -19,7 +19,7 @@
 
 #include <thrust/tuple.h>
 
-#include "detray/geometry/surfaces_finder.hpp"
+#include "detray/core/surfaces_finder.hpp"
 
 using namespace detray;
 using namespace __plugin;

@@ -9,7 +9,7 @@
 
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/geometry/surfaces_finder.hpp"
+#include "detray/core/surfaces_finder.hpp"
 
 using namespace detray;
 
