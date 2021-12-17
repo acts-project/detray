@@ -12,6 +12,7 @@ detray_add_library( detray_core core
    "include/detray/core/detector.hpp"
    "include/detray/core/intersection.hpp"
    "include/detray/core/mask_store.hpp"
+   "include/detray/core/surfaces_finder.hpp"
    "include/detray/core/track.hpp"
    "include/detray/core/transform_store.hpp"
    "include/detray/definitions/detail/accessor.hpp"
