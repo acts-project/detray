@@ -18,6 +18,7 @@
 #include "detray/io/csv_io.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
+#include "tests/common/tools/detector_registry.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
 using namespace detray;
@@ -33,7 +34,8 @@ unsigned int phi_steps = 100;
 bool stream_file = false;
 
 vecmem::host_memory_resource host_mr;
-auto [d, name_map] = read_from_csv(tml_files, host_mr);
+auto [d, name_map] =
+    read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
 
 using detector_t = decltype(d);
 constexpr auto k_surfaces = detector_t::object_id::e_surface;

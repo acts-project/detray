@@ -20,7 +20,6 @@
 #include "detray/grids/serializer2.hpp"
 #include "detray/io/csv_io_types.hpp"
 #include "detray/tools/bin_association.hpp"
-#include "tests/common/tools/detector_registry.hpp"
 
 namespace detray {
 
@@ -43,7 +42,7 @@ namespace detray {
 /// z
 ///
 /// @return a detector object
-template <typename detector_registry = detector_registry::tml_detector,
+template <typename detector_registry,
           template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
