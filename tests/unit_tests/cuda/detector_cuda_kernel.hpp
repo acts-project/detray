@@ -18,6 +18,7 @@
 #include <thrust/tuple.h>
 
 #include "detray/core/detector.hpp"
+#include "tests/common/tools/detector_registry.hpp"
 
 #pragma once
 
@@ -28,9 +29,11 @@ namespace detray {
 
 // some useful type declarations
 using detector_host_t =
-    detector<darray, thrust::tuple, vecmem::vector, vecmem::jagged_vector>;
-using detector_device_t = detector<darray, thrust::tuple, vecmem::device_vector,
-                                   vecmem::jagged_device_vector>;
+    detector<detector_registry::toy_detector, darray, thrust::tuple,
+             vecmem::vector, vecmem::jagged_vector>;
+using detector_device_t =
+    detector<detector_registry::toy_detector, darray, thrust::tuple,
+             vecmem::device_vector, vecmem::jagged_device_vector>;
 using volume_t = typename detector_host_t::volume_type;
 using surface_t = typename detector_host_t::surface_type;
 using transform_store_t = typename detector_host_t::transform_store;
@@ -40,7 +43,7 @@ using cylinder_t = typename detector_host_t::cylinder;
 
 /// declaration of a test function for detector
 void detector_test(
-    detector_data<detector_host_t>& det_data,
+    detector_view<detector_host_t> det_data,
     vecmem::data::vector_view<volume_t>& volumes_data,
     vecmem::data::vector_view<surface_t>& surfaces_data,
     static_transform_store_data<transform_store_t>& transforms_data,

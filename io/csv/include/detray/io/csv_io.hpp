@@ -20,6 +20,7 @@
 #include "detray/grids/serializer2.hpp"
 #include "detray/io/csv_io_types.hpp"
 #include "detray/tools/bin_association.hpp"
+#include "tests/common/tools/detector_registry.hpp"
 
 namespace detray {
 
@@ -42,13 +43,15 @@ namespace detray {
 /// z
 ///
 /// @return a detector object
-template <template <typename, unsigned int> class array_type = darray,
+template <typename detector_registry = detector_registry::tml_detector,
+          template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
-detector<array_type, tuple_type, vector_type, jagged_vector_type>
+detector<detector_registry, array_type, tuple_type, vector_type,
+         jagged_vector_type>
 detector_from_csv(const std::string &detector_name,
                   const std::string &surface_file_name,
                   const std::string &layer_volume_file_name,
@@ -59,8 +62,8 @@ detector_from_csv(const std::string &detector_name,
                   scalar /*r_sync_tolerance*/ = 0.,
                   scalar /*z_sync_tolerance*/ = 0.) {
     using alignable_store = static_transform_store<vector_type>;
-    using detector_t =
-        detector<array_type, tuple_type, vector_type, jagged_vector_type>;
+    using detector_t = detector<detector_registry, array_type, tuple_type,
+                                vector_type, jagged_vector_type>;
 
     name_map[0] = detector_name;
     detector_t d(resource);
@@ -232,12 +235,17 @@ detector_from_csv(const std::string &detector_name,
         typename detector_t::surfaces_regular_circular_grid;
     using surfaces_z_phi_grid =
         typename detector_t::surfaces_regular_circular_grid;
-    using surfaces_finder = typename detector_t::surfaces_finder;
+    using surfaces_finder = typename detector_t::surfaces_finder_type;
 
-    vector_type<surfaces_finder> detector_surfaces_finders;
+    surfaces_finder &detector_surfaces_finders = d.get_surfaces_finder();
 
     // (B) Pre-read the grids & create local object finders
+    int sg_counts = 0;
+
     while (sg_reader.read(io_surface_grid)) {
+        assert(sg_counts <
+               static_cast<int>(detector_t::surfaces_finder_type::N_GRIDS));
+
         volume_layer_index c_index = {io_surface_grid.volume_id,
                                       io_surface_grid.layer_id};
 
@@ -279,10 +287,10 @@ detector_from_csv(const std::string &detector_name,
         surfaces_z_phi_grid zphi_grid_i{z_axis, phi_axis, resource};
         surfaces_z_phi_grid zphi_grid_o{z_axis, phi_axis, resource};
 
-        detector_surfaces_finders.push_back(rphi_grid_n);
-        detector_surfaces_finders.push_back(rphi_grid_p);
-        detector_surfaces_finders.push_back(zphi_grid_i);
-        detector_surfaces_finders.push_back(zphi_grid_o);
+        detector_surfaces_finders[sg_counts++] = std::move(rphi_grid_n);
+        detector_surfaces_finders[sg_counts++] = std::move(rphi_grid_p);
+        detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_i);
+        detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_o);
     }
 
     typename detector_t::mask_link mask_index = {dindex_invalid,
@@ -597,9 +605,6 @@ detector_from_csv(const std::string &detector_name,
     // Connect the cylindrical volumes
     connect_cylindrical_volumes<detector_t, array_type, tuple_type,
                                 vector_type>(d, v_grid);
-
-    // Add the surface finders to the detector
-    d.add_surfaces_finders(std::move(detector_surfaces_finders));
 
     // Add the volume grid to the detector
     d.add_volume_grid(std::move(v_grid));
