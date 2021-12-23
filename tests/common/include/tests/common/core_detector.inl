@@ -23,6 +23,7 @@ TEST(ALGEBRA_PLUGIN, detector) {
     using point3 = __plugin::point3<detray::scalar>;
 
     using detector_t = detector<detector_registry::default_detector>;
+    using mask_id = detector_t::mask_id;
 
     static_transform_store<>::context ctx0{};
 
@@ -32,18 +33,18 @@ TEST(ALGEBRA_PLUGIN, detector) {
 
     /// Surface 0
     point3 t0{0., 0., 0.};
-    trfs[detector_t::e_rectangle2].emplace_back(ctx0, t0);
-    masks.template add_mask<detector_t::e_rectangle2>(-3., 3.);
+    trfs[mask_id::e_rectangle2].emplace_back(ctx0, t0);
+    masks.template add_mask<mask_id::e_rectangle2>(-3., 3.);
 
     /// Surface 1
     point3 t1{1., 0., 0.};
-    trfs[detector_t::e_annulus2].emplace_back(ctx0, t1);
-    masks.template add_mask<detector_t::e_annulus2>(1., 2., 3., 4., 5., 6., 7.);
+    trfs[mask_id::e_annulus2].emplace_back(ctx0, t1);
+    masks.template add_mask<mask_id::e_annulus2>(1., 2., 3., 4., 5., 6., 7.);
 
     /// Surface 2
     point3 t2{2., 0., 0.};
-    trfs[detector_t::e_trapezoid2].emplace_back(ctx0, t2);
-    masks.template add_mask<detector_t::e_trapezoid2>(1., 2., 3.);
+    trfs[mask_id::e_trapezoid2].emplace_back(ctx0, t2);
+    masks.template add_mask<mask_id::e_trapezoid2>(1., 2., 3.);
 
     detector_t d(host_mr);
 

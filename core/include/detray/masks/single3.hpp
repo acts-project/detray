@@ -32,8 +32,8 @@ namespace detray {
  **/
 template <
     unsigned int kCheckIndex, typename intersector_type = planar_intersector,
-    typename mask_links_type = __plugin::cartesian2<detray::scalar>,
-    typename mask_local_type = bool, unsigned int kMaskContext = e_single3,
+    typename mask_local_type = __plugin::cartesian2<detray::scalar>,
+    typename mask_links_type = unsigned int, unsigned int kMaskID = e_single3,
     template <typename, unsigned int> class array_type = darray>
 struct single3 {
 
@@ -47,9 +47,7 @@ struct single3 {
 
     links_type _links = {};
 
-    static constexpr unsigned int mask_context = kMaskContext;
-
-    static constexpr unsigned int mask_identifier = e_single3;
+    static constexpr unsigned int mask_identifier = kMaskID;
 
     static constexpr mask_tolerance within_epsilon =
         std::numeric_limits<scalar>::epsilon();
@@ -62,7 +60,7 @@ struct single3 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    single3<kCheckIndex, intersector_type, local_type, links_type, kMaskContext>
+    single3<kCheckIndex, intersector_type, local_type, links_type, kMaskID>
         &operator=(const array_type<scalar, 2> &rhs) {
         _values = rhs;
         return (*this);
@@ -146,7 +144,7 @@ struct single3 {
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
-        ss << "single3," << kMaskContext;
+        ss << "single3 (ID " << kMaskID << "),";
         for (const auto &v : _values) {
             ss << "," << v;
         }

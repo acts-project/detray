@@ -36,7 +36,7 @@ namespace detray {
 template <typename intersector_type = planar_intersector,
           typename mask_local_type = __plugin::cartesian2<detray::scalar>,
           typename mask_links_type = unsigned int,
-          unsigned int kMaskContext = e_rectangle2,
+          unsigned int kMaskID = e_rectangle2,
           template <typename, unsigned int> class array_type = darray>
 struct rectangle2 {
     using mask_tolerance = array_type<scalar, 2>;
@@ -49,9 +49,7 @@ struct rectangle2 {
 
     links_type _links;
 
-    static constexpr unsigned int mask_context = kMaskContext;
-
-    static constexpr unsigned int mask_identifier = e_rectangle2;
+    static constexpr unsigned int mask_identifier = kMaskID;
 
     static constexpr mask_tolerance within_epsilon = {
         std::numeric_limits<scalar>::epsilon(),
@@ -74,7 +72,7 @@ struct rectangle2 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    rectangle2<intersector_type, local_type, links_type, kMaskContext>
+    rectangle2<intersector_type, local_type, links_type, kMaskID>
         &operator=(const array_type<scalar, 2> &rhs) {
         _values = rhs;
         return (*this);
@@ -160,7 +158,7 @@ struct rectangle2 {
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
-        ss << "rectangle2," << kMaskContext;
+        ss << "rectangle2 (ID " << kMaskID << "),";
         for (const auto &v : _values) {
             ss << "," << v;
         }

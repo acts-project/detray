@@ -13,22 +13,23 @@ namespace detray {
 
 /** Volume class that acts as a logical container in the geometry for geometry
  *  objects, such as module surfaces or portals. The information is kept as
- *  index ranges in larger containers that are owned by either the geometry or
- *  the detector implementations.
+ *  index ranges into larger containers that are owned by the detector 
+ *  implementation.
  *
  * @tparam array_type the type of the internal array, must have STL semantics
  */
-template <typename object_registry, typename range_type = dindex_range,
-          template <typename, unsigned int> class array_type = darray>
+template <typename object_registry_t, typename range_t = dindex_range,
+          template <typename, unsigned int> class array_t = darray, 
+          typename surface_finder_data_t = dindex>
 class volume {
 
     public:
     // The type of objects a volume can contain
-    using objects = typename object_registry::id;
+    using objects = object_registry_t;
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
     // used for sfinae
-    using volume_def = volume<object_registry, range_type, array_type>;
+    using volume_def = volume<objects, range_t, array_t, surface_finder_data_t>;
 
     enum grid_type : unsigned int {
         e_no_grid = 0,
@@ -42,11 +43,11 @@ class volume {
     /** Contructor with bounds
      * @param bounds of the volume
      */
-    volume(const array_type<scalar, 6> &bounds) : _bounds(bounds) {}
+    volume(const array_t<scalar, 6> &bounds) : _bounds(bounds) {}
 
     /** @return the bounds - const access */
     DETRAY_HOST_DEVICE
-    inline const array_type<scalar, 6> &bounds() const { return _bounds; }
+    inline const array_t<scalar, 6> &bounds() const { return _bounds; }
 
     /** @return the name (add an offset for the detector name)*/
     DETRAY_HOST_DEVICE
@@ -65,23 +66,23 @@ class volume {
     /** @return the entry into the local surface finders */
     DETRAY_HOST_DEVICE
     inline dindex surfaces_finder_entry() const {
-        return _surfaces_finder_entry;
+        return _surfaces_finder_data;
     }
 
     /** @param entry the entry into the local surface finders */
     DETRAY_HOST
     inline void set_surfaces_finder(const dindex entry) {
-        _surfaces_finder_entry = entry;
+        _surfaces_finder_data = entry;
     }
 
     /** @return if the volume is empty or not */
     DETRAY_HOST_DEVICE inline bool empty() const {
-        return n_objects<object_registry::id::e_surface>() == 0;
+        return n_objects<objects::e_surface>() == 0;
     }
 
     /** @return the number of surfaces in the volume */
     template <
-        typename object_registry::id range_id = object_registry::id::e_surface>
+        typename objects::id range_id = objects::e_surface>
     DETRAY_HOST_DEVICE inline auto n_objects() const {
         return n_in_range(range<range_id>());
     }
@@ -91,31 +92,29 @@ class volume {
      *
      * @param other Surface index range
      */
-    template <
-        typename object_registry::id range_id = object_registry::id::e_surface>
-    DETRAY_HOST inline void update_range(const range_type &other) {
+    template <typename objects::id range_id = objects::e_surface>
+    DETRAY_HOST inline void update_range(const range_t &other) {
         auto &rg = std::get<range_id>(_ranges);
         // Range not set yet - initialize
-        constexpr range_type empty{};
+        constexpr range_t empty{};
         if (rg == empty) {
             rg = other;
-            // Update
         } else {
-            std::get<1>(rg) += n_in_range(other);
+            // Update
+            assert(std::get<1>(rg) == std::get<0>(other));
+            std::get<1>(rg) = std::get<1>(other);
         }
     }
 
     /** @return range of surfaces by surface type - const access */
-
-    template <typename object_type>
+    template <typename object_t>
     DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
-        constexpr auto index = object_registry::template get<object_type>();
+        constexpr auto index = objects::template get_id<object_t>();
         return std::get<index>(_ranges);
     }
 
     /** @return range of surfaces- const access */
-    template <
-        typename object_registry::id range_id = object_registry::id::e_surface>
+    template <typename objects::id range_id = objects::e_surface>
     DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
         return std::get<range_id>(_ranges);
     }
@@ -126,8 +125,8 @@ class volume {
     }
 
     /** @return the number of elements in a given range */
-    template <typename range_t>
-    DETRAY_HOST_DEVICE inline dindex n_in_range(range_t &&rg) const {
+    template <typename range_id>
+    DETRAY_HOST_DEVICE inline dindex n_in_range(range_id &&rg) const {
         return std::get<1>(rg) - std::get<0>(rg);
     }
 
@@ -145,12 +144,12 @@ class volume {
     bool operator==(const volume &rhs) const {
         return (_bounds == rhs._bounds && _index == rhs._index &&
                 _ranges == rhs._ranges &&
-                _surfaces_finder_entry == rhs._surfaces_finder_entry);
+                _surfaces_finder_data == rhs._surfaces_finder_entry);
     }
 
     private:
     /** Bounds section, default for r, z, phi */
-    array_type<scalar, 6> _bounds = {0.,
+    array_t<scalar, 6> _bounds = {0.,
                                      std::numeric_limits<scalar>::max(),
                                      -std::numeric_limits<scalar>::max(),
                                      std::numeric_limits<scalar>::max(),
@@ -162,13 +161,13 @@ class volume {
 
     /** Ranges in geometry containers for different objects types that belong
      * to this volume */
-    array_type<range_type, object_registry::id::e_object_types> _ranges = {};
-
-    /** Index into the surface finder container */
-    dindex _surfaces_finder_entry = dindex_invalid;
+    array_t<range_t, objects::n_types> _ranges = {};
 
     /** grid type associated with volume **/
     grid_type _grid_type = e_no_grid;
+    
+    /** Index into the surface finder container */
+    surface_finder_data_t _surfaces_finder_data = dindex_invalid;
 };
 
 }  // namespace detray

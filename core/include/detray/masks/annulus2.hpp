@@ -46,7 +46,7 @@ namespace detray {
 template <typename intersector_type = planar_intersector,
           typename mask_local_type = __plugin::polar2<detray::scalar>,
           typename mask_links_type = unsigned int,
-          unsigned int kMaskContext = e_annulus2,
+          unsigned int kMaskID = e_annulus2,
           template <typename, unsigned int> class array_type = darray>
 struct annulus2 {
     using mask_tolerance = array_type<scalar, 2>;
@@ -65,9 +65,7 @@ struct annulus2 {
 
     links_type _links;
 
-    static constexpr unsigned int mask_context = kMaskContext;
-
-    static constexpr unsigned int mask_identifier = e_annulus2;
+    static constexpr unsigned int mask_identifier = kMaskID;
 
     static constexpr mask_tolerance within_epsilon = {
         std::numeric_limits<scalar>::epsilon(),
@@ -94,7 +92,7 @@ struct annulus2 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    annulus2<intersector_type, local_type, links_type, kMaskContext> &operator=(
+    annulus2<intersector_type, local_type, links_type, kMaskID> &operator=(
         const array_type<scalar, 7> &rhs) {
         _values = rhs;
         return (*this);
@@ -227,7 +225,7 @@ struct annulus2 {
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
-        ss << "annulus2," << kMaskContext;
+        ss << "annulus2 (ID " << kMaskID << "),";
         for (const auto &v : _values) {
             ss << "," << v;
         }
