@@ -441,23 +441,19 @@ class navigator {
             // goto the next candidate.
             // This also excludes adjacent portals -> we are on the next portal
             if (navigation() < navigation.tolerance()) {
-                // The object we are on
+                // Set it briefly so that the inspector can catch this state
                 navigation.set_object(kernel.next->index);
                 // The next object that we want to reach
                 ++navigation.next();
-                // Set it briefly so that the inspector can catch this state
                 navigation.set_status(e_on_object);
                 // Call the inspector on this portal crossing, then go to next
                 navigation.run_inspector("Skipped direct hit: ");
-            }
-            // No current object
-            else {
-                navigation.set_object(dindex_invalid);
             }
 
             navigation.set_dist(kernel.next->path);
             // Generally, we are on our way to some candidate
             navigation.set_status(e_towards_object);
+            navigation.set_object(dindex_invalid);
             // This is only called after full (re-)evaluation
             navigation.set_trust_level(e_full_trust);
 

@@ -100,12 +100,9 @@ inline auto create_barrel_modules(context_t& ctx, const dindex volume_id,
                            const scalar m_half_x = 8.4,
                            const scalar m_half_y = 36.,
                            const scalar m_tilt_phi = 0.14,
-                           //const scalar m_tilt_phi = 0.145,
                            const scalar layer_r = 32.,
                            const scalar radial_stagger = 0.5,
                            const scalar l_overlap = 2.,
-                           //const scalar radial_stagger = 2.,
-                           //const scalar l_overlap = 5.,
                            const std::pair<int, int> binning = {16, 14}) {
     /// mask index: type, range
     using mask_link_t = typename surface_container_t::value_type::value_type::mask_links;
@@ -155,7 +152,7 @@ inline auto create_barrel_modules(context_t& ctx, const dindex volume_id,
 
         // The rectangle bounds for this module
         masks.template add_mask<rectangle_id>(m_half_x, m_half_y);
-        masks.template group<rectangle_id>().back().links() = {dindex_invalid, dindex_invalid};
+        masks.template group<rectangle_id>().back().links() = {volume_id, dindex_invalid};
 
         // Build the transform
         // The local phi
@@ -247,7 +244,7 @@ void create_endcap_modules(context_t& ctx, const dindex volume_id,
                            transform_container_t &transforms, scalar z,
                            const scalar ring_stagger = 0.0, 
                            const std::vector<scalar> phi_stagger = {4.0, 4.0},
-                           const std::vector<scalar> phi_sub_stagger = {0.5, 0.},
+                           const std::vector<scalar> phi_sub_stagger = {0., 0.},
                            const scalar inner_r = 27., const scalar outer_r = 180.,
                            const std::vector<size_t>& disc_binning = {40, 68},
                            const std::vector<scalar>& m_half_y = {36., 36.},
@@ -259,42 +256,41 @@ void create_endcap_modules(context_t& ctx, const dindex volume_id,
     // calculate the radii of the rings
     std::vector<scalar> radii;
     // calculate the radial borders
-    std::vector<scalar> radial_boarders;
+    //std::vector<scalar> radial_boarders;
     // the radial span of the disc
     scalar delta_r = outer_r - inner_r;
 
     // Only one ring
     if (disc_binning.size() == 1) {
         radii.push_back(scalar{0.5} * (inner_r + outer_r));
-        radial_boarders = {inner_r, outer_r};
+        //radial_boarders = {inner_r, outer_r};
     }
     else {
         // sum up the total length of the modules along r
         scalar tot_length = 0;
-        for (auto& mhlength : m_half_y) {
-            tot_length += scalar{2} * mhlength;
+        for (auto& m_hlength : m_half_y) {
+            tot_length += scalar{2} * m_hlength + 0.5;
         }
         // now calculate the overlap (equal pay)
         scalar r_overlap = (tot_length - delta_r) / (m_half_y.size() - 1);
         // and now fill the radii and gaps
-        scalar last_r = inner_r;
-        scalar last_hl = 0.;
-        scalar last_ol = 0.;
+        scalar prev_r = inner_r;
+        scalar prev_hl = 0.;
+        scalar prev_ol = 0.;
         // remember the radial boarders
-        radial_boarders.push_back(inner_r);
-        for (auto& mhlength : m_half_y) {
+        //radial_boarders.push_back(inner_r);
+        for (auto& m_hlength : m_half_y) {
             // calculate the radius
-            radii.push_back(last_r + last_hl - last_ol + mhlength);
-            last_r = radii.back();
-            last_ol = r_overlap;
-            last_hl = mhlength;
+            radii.push_back(prev_r + prev_hl - prev_ol + m_hlength);
+            prev_r = radii.back();
+            prev_ol = r_overlap;
+            prev_hl = m_hlength;
             // and register the radial boarder
-            radial_boarders.push_back(last_r + scalar{2} * last_hl - scalar{0.5} * last_ol);
+            //radial_boarders.push_back(prev_r + scalar{2} * prev_hl - scalar{0.5} * prev_ol);
         }
     }
 
     // now build the modules in every ring
-
     for (size_t ir = 0; ir < radii.size(); ++ir) {
         // generate the z value
         // convention inner ring is closer to origin : makes sense
@@ -357,7 +353,7 @@ void create_endcap_modules(context_t& ctx, const dindex volume_id,
 * @return vector of module positions of a ring
 */
 template <typename detector_t, typename context_t>
-inline auto add_beampipe(detector_t &det, vecmem::memory_resource &resource,context_t &ctx, const std::vector<std::pair<scalar, scalar>> &edc_vol_sizes, const std::pair<scalar, scalar> &beampipe_vol_size, const scalar beampipe_pos, const scalar brl_half_z, const scalar edc_inner_r) {
+inline auto add_beampipe(detector_t &det, vecmem::memory_resource &resource,context_t &ctx, const std::vector<std::pair<scalar, scalar>> &edc_vol_sizes, const std::pair<scalar, scalar> &beampipe_vol_size, const scalar beampipe_r, const scalar brl_half_z, const scalar edc_inner_r) {
 
     auto constexpr cylinder_id = detector_t::e_cylinder3;
 
@@ -375,16 +371,16 @@ inline auto add_beampipe(detector_t &det, vecmem::memory_resource &resource,cont
     // identity
     transforms[cylinder_id].emplace_back(ctx);
     // add mask
-    masks.template add_mask<cylinder_id>(beampipe_pos, 
-                                               -edc_vol_sizes[2].second, 
-                                               edc_vol_sizes[2].second);
-    masks.template group<cylinder_id>().back().links() = {beampipe.index(), inv_sf_finder};
+    masks.template add_mask<cylinder_id>(beampipe_r, 
+                                         -edc_vol_sizes[2].second, 
+                                         edc_vol_sizes[2].second);
+    masks.template group<cylinder_id>().back().links() = {beampipe_idx, inv_sf_finder};
     // add surface
     typename detector_t::mask_link mask_link = {cylinder_id, masks.template size<cylinder_id>() - 1};
     surfaces[cylinder_id].emplace_back(
         transforms[cylinder_id].size(ctx) - 1, std::move(mask_link),
         beampipe_idx, dindex_invalid);
-    surfaces[cylinder_id].back().set_edge({beampipe.index(), inv_sf_finder});
+    surfaces[cylinder_id].back().set_edge({beampipe_idx, inv_sf_finder});
 
     // negative and positive, outer portal surfaces
     // cylinder portals for all volumes
@@ -430,83 +426,79 @@ inline auto add_beampipe(detector_t &det, vecmem::memory_resource &resource,cont
 /// @return an endcap volume
 template<typename detector_t>
 void add_endcap_volume(detector_t &det, vecmem::memory_resource &resource,
-                       typename detector_t::context &ctx, const scalar side, scalar lay_neg_z, scalar lay_pos_z,
+                       typename detector_t::context &ctx, const scalar side, const scalar lay_neg_z, const scalar lay_pos_z,
                        const scalar edc_inner_r, const scalar edc_outer_r, 
                        const std::vector<typename detector_t::edge_type> &edges, const bool is_gap = false, 
                        const scalar edc_position = 600.,
                        const scalar ring_stagger = 0.0, 
-                       const std::vector<scalar> phi_stagger = {4.0, 4.0},
-                       const std::vector<scalar> phi_sub_stagger = {0.5, 0.},
+                       const std::vector<scalar> m_phi_stagger = {4.0, 4.0},
+                       const std::vector<scalar> m_phi_sub_stagger = {0.5, 0.},
                        const std::vector<size_t>& disc_binning = {40, 68},
                        const std::vector<scalar>& m_half_y = {36., 36.},
                        const std::vector<scalar> m_half_x_min_y = {8.4, 8.4}, 
                        const std::vector<scalar> m_half_x_max_y = {12.4, 12.4}, 
                        const std::vector<scalar> m_tilt = {0., 0.}) {
     // build the outermost volume
-    lay_neg_z *= side;
-    lay_pos_z *= side;
+    const scalar edc_lower_z = std::min(side*lay_neg_z, side*lay_pos_z);
+    const scalar edc_upper_z = std::max(side*lay_neg_z, side*lay_pos_z);;
 
     typename detector_t::surface_filling_container surfaces = {};
     typename detector_t::mask_container masks = {resource};
     typename detector_t::transform_container transforms = {resource};
 
-    auto& edc_volume = det.new_volume({edc_inner_r, edc_outer_r, std::min(lay_neg_z, lay_pos_z), std::max(lay_neg_z, lay_pos_z), -M_PI, M_PI});
+    auto& edc_volume = det.new_volume({edc_inner_r, edc_outer_r, edc_lower_z, edc_upper_z, -M_PI, M_PI});
 
     if (not is_gap) {
         // create disc module surfaces
         create_endcap_modules(ctx, edc_volume.index(), 
                               surfaces, masks, transforms,
-                              side * edc_position, ring_stagger, phi_stagger,
-                              phi_sub_stagger, edc_inner_r, edc_outer_r,
+                              side * edc_position, ring_stagger, m_phi_stagger,
+                              m_phi_sub_stagger, edc_inner_r, edc_outer_r,
                               disc_binning, m_half_y, m_half_x_min_y,
                               m_half_x_max_y, m_tilt);
     }
 
     // negative and positive, inner and outer portal surface
-    add_cylinder_portal(edc_volume.index(), ctx, surfaces, masks, transforms, edc_inner_r, lay_neg_z, lay_pos_z, edges[0]);
-    add_cylinder_portal(edc_volume.index(), ctx, surfaces, masks, transforms, edc_outer_r, lay_neg_z, lay_pos_z, edges[1]);
-    add_disc_portal(edc_volume.index(), ctx, surfaces, masks, transforms, edc_inner_r, edc_outer_r, lay_neg_z, edges[2]);
-    add_disc_portal(edc_volume.index(), ctx, surfaces, masks, transforms, edc_inner_r, edc_outer_r, lay_pos_z, edges[3]);
+    add_cylinder_portal(edc_volume.index(), ctx, surfaces, masks, transforms, edc_inner_r, edc_lower_z, edc_upper_z, edges[0]);
+    add_cylinder_portal(edc_volume.index(), ctx, surfaces, masks, transforms, edc_outer_r, edc_lower_z, edc_upper_z, edges[1]);
+    add_disc_portal(edc_volume.index(), ctx, surfaces, masks, transforms, edc_inner_r, edc_outer_r, edc_lower_z, edges[2]);
+    add_disc_portal(edc_volume.index(), ctx, surfaces, masks, transforms, edc_inner_r, edc_outer_r, edc_upper_z, edges[3]);
 
     det.add_objects(ctx, edc_volume, surfaces, masks, transforms);
 }
 
 template<typename detector_t>
 void add_barrel_volume(detector_t &det, vecmem::memory_resource &resource,
-                       typename detector_t::context &ctx, const scalar brl_inner_r, const scalar brl_outer_r,
-                       const scalar half_z, 
+                       typename detector_t::context &ctx, const scalar lay_inner_r, const scalar lay_outer_r,
+                       const scalar brl_half_z, 
                        const std::vector<typename detector_t::edge_type> &edges, const bool is_gap = false, 
-                       const scalar brl_half_x = 8.4,
-                       const scalar brl_half_y = 36.,
-                       const scalar brl_tilt_phi = 0.14,
-                       //const scalar m_tilt_phi = 0.145,
+                       const scalar m_half_x = 8.4,
+                       const scalar m_half_y = 36.,
+                       const scalar m_tilt_phi = 0.14,
                        const scalar layer_r = 32.,
-                       const scalar radial_stagger = 0.5,
-                       const scalar l_overlap = 2.,
-                       //const scalar radial_stagger = 2.,
-                       //const scalar l_overlap = 5.,
-                       const std::pair<int, int> binning = {16, 14}) {
+                       const scalar m_radial_stagger = 0.5,
+                       const scalar m_long_overlap = 2.,
+                       const std::pair<int, int> m_binning = {16, 14}) {
 
     typename detector_t::surface_filling_container surfaces = {};
     typename detector_t::mask_container masks = {resource};
     typename detector_t::transform_container transforms = {resource};
 
-    auto& brl_volume = det.new_volume({brl_inner_r, brl_outer_r, -half_z, half_z, -M_PI, M_PI});
+    auto& brl_volume = det.new_volume({lay_inner_r, lay_outer_r, -brl_half_z, brl_half_z, -M_PI, M_PI});
 
     if (not is_gap) {
         // create disc module surfacesinline auto 
         create_barrel_modules(ctx, brl_volume.index(),
-                              surfaces, masks, transforms, brl_half_x, 
-                              brl_half_y, brl_tilt_phi, /*m_tilt_phi*/ 
-                              layer_r, radial_stagger, l_overlap, 
-                              /*radial_stagger*/ /*l_overlap*/ binning);
+                              surfaces, masks, transforms, m_half_x, 
+                              m_half_y, m_tilt_phi, layer_r,
+                              m_radial_stagger, m_long_overlap, m_binning);
     }
 
     // negative and positive, inner and outer portal surface
-    add_cylinder_portal(brl_volume.index(), ctx, surfaces, masks, transforms, brl_inner_r, -half_z, half_z, edges[0]);
-    add_cylinder_portal(brl_volume.index(), ctx, surfaces, masks, transforms, brl_outer_r, -half_z, half_z, edges[1]);
-    add_disc_portal(brl_volume.index(), ctx, surfaces, masks, transforms, brl_inner_r, brl_outer_r, half_z, edges[2]);
-    add_disc_portal(brl_volume.index(), ctx, surfaces, masks, transforms, brl_inner_r, brl_outer_r, half_z, edges[3]);
+    add_cylinder_portal(brl_volume.index(), ctx, surfaces, masks, transforms, lay_inner_r, -brl_half_z, brl_half_z, edges[0]);
+    add_cylinder_portal(brl_volume.index(), ctx, surfaces, masks, transforms, lay_outer_r, -brl_half_z, brl_half_z, edges[1]);
+    add_disc_portal(brl_volume.index(), ctx, surfaces, masks, transforms, lay_inner_r, lay_outer_r, -brl_half_z, edges[2]);
+    add_disc_portal(brl_volume.index(), ctx, surfaces, masks, transforms, lay_inner_r, lay_outer_r, brl_half_z, edges[3]);
 
     det.add_objects(ctx, brl_volume, surfaces, masks, transforms);
 }
@@ -637,22 +629,10 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     using transform_container = typename detector_t::transform_container;
     using surface_container = typename detector_t::surface_filling_container;
 
-    constexpr auto cylinder_id = detector_t::e_cylinder3;
-    constexpr auto disc_id = detector_t::e_portal_ring2;
-    constexpr auto rectangle_id = detector_t::e_rectangle2;
-    constexpr auto trapezoid_id = detector_t::e_trapezoid2;
-
     /** source link */
     const dindex inv_sf_finder = dindex_invalid;
     /** Leaving world */
     const dindex leaving_world = dindex_invalid;
-
-    //
-    // general
-    //
-    const scalar detectorRmin = 0.;
-    const scalar detectorRmax = 180.;
-    const scalar beampipe_r = 27.;
 
     //
     // barrel
@@ -660,23 +640,20 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     const scalar brl_half_z = 500.;
     const std::vector<scalar> brl_positions = {19., 32., 72., 116., 172.};
     const std::vector<std::pair<scalar, scalar>> brl_vol_sizes = {{0., 27.}, {27., 38.}, {64., 80.}, {108., 124.}, {164., 180.}};
-    const scalar brl_radial_stagger = 0.5;
-    const scalar brl_l_overlap = 2.;
-    //const scalar brl_radial_stagger = 2.;
-    //const scalar brl_l_overlap = 5.;
+    const scalar brl_radial_stagger = 0.5;//2.;
+    const scalar brl_l_overlap = 2.;//5.;
     const std::vector<std::pair<int, int>> brl_binning = {{0., 0.}, {16, 14}, {32, 14}, {52, 14}, {78, 14}};
     // module parameters
     const scalar brl_half_x = 8.4;
     const scalar brl_half_y = 36.;
-    const scalar brl_tilt_phi = 0.14;
-    //const scalar brl_tilt_phi = 0.145;
+    const scalar brl_tilt_phi = 0.14;//0.145;
 
     //
     // endcaps
     //
     const std::vector<scalar> edc_positions = {600., 700., 820., 960., 1100., 1300., 1500.};
     const std::vector<std::pair<scalar, scalar>> edc_vol_sizes = {{595., 605.}, {695., 705.}, {815., 825.}, {955., 965.}, {1095., 1105.}, {1295., 1305.}, {1495., 1505.}};
-    const scalar edc_ring_stagger = 0.0;
+    const scalar edc_ring_stagger = 1.0;
     // Parameters for both rings of modules
     const std::vector<scalar> edc_phi_stagger = {4.0, 4.0};
     const std::vector<scalar> edc_phi_sub_stagger = {0.5, 0.};
@@ -688,7 +665,6 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     const std::vector<scalar> edc_half_x_min_y = {8.4, 8.4};
     const std::vector<scalar> edc_half_x_max_y = {12.4, 12.4};
     const std::vector<scalar> edc_tilt = {0., 0.};
-
 
     // create detector
     detector_t det(resource);
@@ -704,7 +680,7 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     //
 
     //
-    // first layer
+    // first layer: Contains modules
     //
     int side = -1;
     bool is_gap = true;
@@ -715,10 +691,8 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[2].second, edc_vol_sizes[2].first, edc_inner_r, edc_outer_r, edges, !is_gap, edc_positions[2], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt);
 
     //
-    // gap
+    // gap: Connect portals (first layer, second layer)
     //
-
-    // Connect portals (first layer, second layer)
     dindex prev_vol_idx = det.volumes().back().index();
     next_vol_idx = prev_vol_idx + 2;
     edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
@@ -737,8 +711,6 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     //
     // gap layer
     //
-
-    // Connect portals (first layer, second layer)
     prev_vol_idx = det.volumes().back().index();
     next_vol_idx = prev_vol_idx + 2;
     edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
@@ -748,7 +720,6 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     //
     // third layer
     //
-
     prev_vol_idx = det.volumes().back().index();
     next_vol_idx = prev_vol_idx + 2;
     edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
@@ -756,9 +727,8 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[0].second, edc_vol_sizes[0].first, edc_inner_r, edc_outer_r, edges, !is_gap, edc_positions[0], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt);
 
     //
-    // final gap layer before barrel
+    // final gap layer connects to barrel
     //
-
     typename detector_t::surface_filling_container surfaces = {};
     typename detector_t::mask_container masks = {resource};
     typename detector_t::transform_container transforms = {resource};
@@ -773,25 +743,25 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     next_vol_idx = prev_vol_idx + 2;
 
     typename detector_t::edge_type edge = {beampipe_idx, inv_sf_finder};
-    add_cylinder_portal(final_gap_idx, ctx0, surfaces, masks, transforms,  edc_inner_r, gap_neg_z, gap_pos_z, edge);
+    add_cylinder_portal(final_gap_idx, ctx0, surfaces, masks, transforms,edc_inner_r, gap_neg_z, gap_pos_z, edge);
     edge = {leaving_world, inv_sf_finder};
-    add_cylinder_portal(final_gap_idx, ctx0, surfaces, masks, transforms,  edc_outer_r, gap_neg_z, gap_pos_z, edge);
+    add_cylinder_portal(final_gap_idx, ctx0, surfaces, masks, transforms,edc_outer_r, gap_neg_z, gap_pos_z, edge);
     edge = {prev_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,  edc_inner_r, edc_outer_r, gap_neg_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,edc_inner_r, edc_outer_r, gap_neg_z, edge);
     edge = {next_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,   brl_vol_sizes[1].first,  brl_vol_sizes[1].second, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,brl_vol_sizes[1].first, brl_vol_sizes[1].second, gap_pos_z, edge);
     edge = {++next_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,   brl_vol_sizes[1].second,  brl_vol_sizes[2].first, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,brl_vol_sizes[1].second, brl_vol_sizes[2].first, gap_pos_z, edge);
     edge = {++next_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,   brl_vol_sizes[2].first,  brl_vol_sizes[2].second, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,brl_vol_sizes[2].first, brl_vol_sizes[2].second, gap_pos_z, edge);
     edge = {++next_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,   brl_vol_sizes[2].second,  brl_vol_sizes[3].first, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,brl_vol_sizes[2].second, brl_vol_sizes[3].first, gap_pos_z, edge);
     edge = {++next_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,   brl_vol_sizes[3].first,  brl_vol_sizes[3].second, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,brl_vol_sizes[3].first, brl_vol_sizes[3].second, gap_pos_z, edge);
     edge = {++next_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,   brl_vol_sizes[3].second,  brl_vol_sizes[4].first, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,brl_vol_sizes[3].second, brl_vol_sizes[4].first, gap_pos_z, edge);
     edge = {++next_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,   brl_vol_sizes[4].first,  brl_vol_sizes[4].second, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, surfaces, masks, transforms,brl_vol_sizes[4].first, brl_vol_sizes[4].second, gap_pos_z, edge);
 
     det.add_objects(ctx0, final_gap, surfaces, masks, transforms);
 
@@ -880,7 +850,7 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     side = 1.;
 
     //
-    // final gap layer before barrel
+    // final gap layer connects to barrel
     //
     typename detector_t::surface_filling_container pos_edc_surfaces = {};
     typename detector_t::mask_container pos_edc_masks = {resource};
@@ -896,25 +866,25 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     next_vol_idx = final_gap_idx + 1;
 
     edge = {beampipe_idx, inv_sf_finder};
-    add_cylinder_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms,  edc_inner_r, gap_neg_z, gap_pos_z, edge);
+    add_cylinder_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms, edc_inner_r, gap_neg_z, gap_pos_z, edge);
     edge = {leaving_world, inv_sf_finder};
-    add_cylinder_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms,  edc_outer_r, gap_neg_z, gap_pos_z, edge);
+    add_cylinder_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms, edc_outer_r, gap_neg_z, gap_pos_z, edge);
     edge = {prev_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms,  edc_inner_r, edc_outer_r, gap_neg_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms, brl_vol_sizes[1].first, brl_vol_sizes[1].second, gap_neg_z, edge);
     edge = {++prev_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms,   brl_vol_sizes[1].first,  brl_vol_sizes[1].second, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms, brl_vol_sizes[1].second, brl_vol_sizes[2].first, gap_neg_z, edge);
     edge = {++prev_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms,   brl_vol_sizes[1].second,  brl_vol_sizes[2].first, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms, brl_vol_sizes[2].first, brl_vol_sizes[2].second, gap_neg_z, edge);
     edge = {++prev_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms,   brl_vol_sizes[2].first,  brl_vol_sizes[2].second, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms, brl_vol_sizes[2].second, brl_vol_sizes[3].first, gap_neg_z, edge);
     edge = {++prev_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms,   brl_vol_sizes[2].second,  brl_vol_sizes[3].first, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms, brl_vol_sizes[3].first, brl_vol_sizes[3].second, gap_neg_z, edge);
     edge = {++prev_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms,   brl_vol_sizes[3].first,  brl_vol_sizes[3].second, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms, brl_vol_sizes[3].second, brl_vol_sizes[4].first, gap_neg_z, edge);
     edge = {++prev_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms,   brl_vol_sizes[3].second,  brl_vol_sizes[4].first, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms, brl_vol_sizes[4].first, brl_vol_sizes[4].second, gap_neg_z, edge);
     edge = {next_vol_idx, inv_sf_finder};
-    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms,   brl_vol_sizes[4].first,  brl_vol_sizes[4].second, gap_pos_z, edge);
+    add_disc_portal(final_gap_idx, ctx0, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms, edc_inner_r, edc_outer_r, gap_pos_z, edge);
 
     det.add_objects(ctx0, pos_final_gap, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms);
 
@@ -960,7 +930,7 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     prev_vol_idx = det.volumes().back().index();
     edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}};
 
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[2].second, edc_vol_sizes[2].first, edc_inner_r, edc_outer_r, edges, !is_gap, edc_positions[2], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt);
+    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[2].first, edc_vol_sizes[2].second, edc_inner_r, edc_outer_r, edges, !is_gap, edc_positions[2], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt);
 
     return std::move(det);
 }

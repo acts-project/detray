@@ -56,8 +56,8 @@ inline auto unroll_intersect(
                 std::move(mask.intersector().intersect(ctf, track, mask));
 
             if (sfi.status == e_inside) {
-                // Link to next volume is in first position
                 sfi.index = volume_index;
+                // Link to next volume is in first position
                 sfi.link = detail::get<0>(mask.links());
                 return sfi;
             }

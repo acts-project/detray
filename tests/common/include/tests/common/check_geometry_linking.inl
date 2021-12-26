@@ -42,7 +42,7 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
     std::cout << g.to_string() << std::endl;
 
     // TODO: Join these sub trees into a single comprehensive tree
-    auto geo_checker_vol0 =
+    /*auto geo_checker_vol0 =
         hash_tree<decltype(adj_linking.at(0)), dindex>(adj_linking.at(0));
 
     EXPECT_EQ(geo_checker_vol0.root(), vol0_hash);
@@ -60,7 +60,7 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
     auto geo_checker_vol3 =
         hash_tree<decltype(adj_linking.at(3)), dindex>(adj_linking.at(3));
 
-    EXPECT_EQ(geo_checker_vol3.root(), vol3_hash);
+    EXPECT_EQ(geo_checker_vol3.root(), vol3_hash);*/
 }
 
 }  // namespace __plugin

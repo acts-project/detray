@@ -27,7 +27,7 @@ namespace detray {
  * @tparam the record entry, which must contain the portal and mother volume
  *         index
  *
- * @param volume_records the recorded portal crossings between volumes
+ * @param trace the recorded portal crossings between volumes
  * @param start_volume where the ray started
  *
  * @return true if the volumes indices form a connected chain.
@@ -35,7 +35,7 @@ namespace detray {
 template <bool check_sorted_trace = true,
           typename entry_type = std::pair<dindex, dindex>>
 inline bool check_connectivity(
-    std::vector<std::pair<entry_type, entry_type>> volume_records,
+    std::vector<std::pair<entry_type, entry_type>> trace,
     dindex start_volume = 0) {
     // Keep record of leftovers
     std::stringstream record_stream;
@@ -43,20 +43,25 @@ inline bool check_connectivity(
     // Where are we on the trace?
     dindex on_volume = start_volume;
 
-    // If the intersection trace comes from the ray gun/ trace intersections
+    // If the intersection trace comes from the ray gun/trace intersections
     // function it should be sorted, which is the stronger constraint
-    using records_iterator_t = decltype(volume_records.begin());
-    std::function<records_iterator_t(dindex)> get_record;
+    using records_iterator_t = decltype(trace.begin());
+    std::function<records_iterator_t(dindex)> get_connected_record;
     if constexpr (check_sorted_trace) {
         // Get the next record
-        get_record = [&](dindex next) -> records_iterator_t {
-            return volume_records.begin() + next;
+        get_connected_record = [&](dindex next) -> records_iterator_t {
+            auto rec = trace.begin() + next;
+            if ((std::get<1>(rec->first) == on_volume) or
+                (std::get<1>(rec->second) == on_volume)) {
+                return rec;
+            }
+            return trace.end();
         };
     } else {
         // Search for the existence of a fitting record
-        get_record = [&](dindex /*next*/) -> records_iterator_t {
+        get_connected_record = [&](dindex /*next*/) -> records_iterator_t {
             return find_if(
-                volume_records.begin(), volume_records.end(),
+                trace.begin(), trace.end(),
                 [&](const std::pair<entry_type, entry_type> &rec) -> bool {
                     return (std::get<1>(rec.first) == on_volume) or
                            (std::get<1>(rec.second) == on_volume);
@@ -66,7 +71,7 @@ inline bool check_connectivity(
 
     // Init chain search
     dindex i = 0;
-    auto record = get_record(i);
+    auto record = get_connected_record(i);
 
     // Check first volume index, which has no partner otherwise
     if (std::get<1>(record->first) != start_volume) {
@@ -77,8 +82,8 @@ inline bool check_connectivity(
         return false;
     }
 
-    // Walk along the trace
-    while (record != volume_records.end()) {
+    // Walk along the trace as long as a connection is found
+    while (record != trace.end()) {
         auto first_vol = std::get<1>(record->first);
         auto second_vol = std::get<1>(record->second);
 
@@ -88,22 +93,27 @@ inline bool check_connectivity(
         // update to next volume
         on_volume = on_volume == first_vol ? second_vol : first_vol;
 
-        record_stream << "-> next volume: " << on_volume << std::endl;
+        record_stream << " -> next volume: " << on_volume << std::endl;
 
         // Don't search this key again -> only one potential key with current
         // index left
         if constexpr (not check_sorted_trace) {
-            volume_records.erase(record);
+            trace.erase(record);
         }
 
-        // find connection record for the current volume
-        record = get_record(++i);
+        // find connected record for the current volume
+        record = get_connected_record(++i);
     }
 
-    // There are unconnected elements left
+    // There are unconnected elements left (we didn't leave world before 
+    // termination)
     if (on_volume != dindex_invalid) {
-        std::cerr << "In trace finding: " << std::endl;
-        std::cerr << record_stream.str() << std::endl;
+        std::cerr << "\n<<<<<<<<<<<<<<< ERROR while checking trace of volumes" 
+                  << std::endl;
+        std::cerr << "Didn't leave world or unconnected elements left in trace:"
+                  << "\n\nFound:" << std::endl;
+        std::cerr << record_stream.str();
+        std::cerr << ">>>>>>>>>>>>>>>\n" << std::endl;
 
         return false;
     }
@@ -115,7 +125,7 @@ inline bool check_connectivity(
  *  trace through a geometry. The linking information the intersection holds
  *  is only used to sort surfaces from portals.
  *
- * @tparam record_type container that contains object indices and intersections
+ * @tparam record_container contains object indices and intersections
  *
  * @param volume_record the recorded portal crossings between volumes
  * @param start_volume where the ray started
@@ -127,7 +137,7 @@ inline bool check_connectivity(
  *         of a ray.
  */
 template <typename record_container = dvector<std::pair<dindex, intersection>>>
-inline auto trace_intersections(const record_container &volume_record,
+inline auto trace_intersections(const record_container &intersection_records,
                                 dindex start_volume = 0) {
     // obj id and obj mother volume
     using trace_entry = std::pair<dindex, dindex>;
@@ -135,7 +145,7 @@ inline auto trace_intersections(const record_container &volume_record,
     std::vector<std::pair<trace_entry, trace_entry>> portal_trace = {};
     // Indices of volumes per module surface
     std::vector<trace_entry> surface_trace = {};
-    // Debug output if an error in the record is discovered
+    // Debug output if an error in the trace is discovered
     std::stringstream record_stream;
 
     // Readable access to the data of a recorded intersection
@@ -149,27 +159,32 @@ inline auto trace_intersections(const record_container &volume_record,
         inline auto &volume_id() const { return entry.second.index; }
         inline auto &volume_link() const { return entry.second.link; }
         inline auto &dist() const { return entry.second.path; }
+        inline auto r() const {
+            return std::sqrt(entry.second.p3[0]*entry.second.p3[0] 
+                   + entry.second.p3[1]*entry.second.p3[1]);
+        }
+        inline auto z() const { return entry.second.p3[2]; }
 
+        // A portal links to another volume than it belongs to
         inline bool is_portal() const {
-            // A portal links to another volume than it belongs to
             return entry.second.index != entry.second.link;
         }
 
         inline bool is_portal(
             const std::pair<dindex, intersection> &inters_pair) const {
-            // A portal links to another volume than it belongs to
             const record rec{inters_pair};
             return rec.volume_id() != rec.volume_link();
         }
     };
 
-    for (size_t rec = 0; rec < volume_record.size() - 1;) {
+    for (size_t rec = 0; rec < intersection_records.size() - 1;) {
 
         // For portals read 2 elements from the sorted records vector
-        const record current_rec = record{volume_record.at(rec)};
-        const record next_rec = record{volume_record.at(rec + 1)};
+        const record current_rec = record{intersection_records.at(rec)};
+        const record next_rec = record{intersection_records.at(rec + 1)};
 
-        // Add an entry to the surface trace and continue more fine-grained
+        // Add an entry to the surface trace and continue in more fine-grained
+        // steps
         if (not current_rec.is_portal()) {
             surface_trace.emplace_back(current_rec.object_id(),
                                        current_rec.volume_id());
@@ -177,23 +192,48 @@ inline auto trace_intersections(const record_container &volume_record,
             continue;
         }
 
-        record_stream << current_rec.volume_id() << " (" << current_rec.dist()
-                      << ")" << std::endl;
-        record_stream << next_rec.volume_id() << " (" << next_rec.dist() << ")"
-                      << std::endl;
+        record_stream << current_rec.volume_id() << "\t(sf id:" 
+                      << current_rec.object_id() << ", dist:" 
+                      << current_rec.dist() << " [r:" << current_rec.r() 
+                      << ", z:" << current_rec.z() << "], links to:" 
+                      << current_rec.volume_link() << ")" << std::endl;
+        record_stream << next_rec.volume_id() << "\t(sf id:" 
+                      << next_rec.object_id() << ", dist:" 
+                      << next_rec.dist() << " [r:" << next_rec.r() 
+                      << ", z:" << next_rec.z() << "], links to:" 
+                      << next_rec.volume_link() << ")" << std::endl;
 
-        // Is this doublet connected via a portal intersection? (the second
-        // requirement guarantees that this indeed a portal crossing, i.e.
-        // changeing volumes)
+        // Is this doublet connected via a valid portal intersection?
         const bool is_valid = (current_rec.inters() == next_rec.inters()) and
-                              (current_rec.volume_id() != next_rec.volume_id());
-
-        // Is the record doublet we picked up made up of a portal and a surface?
+                              (current_rec.volume_id() == next_rec.volume_link()) 
+                              and (next_rec.volume_id() == current_rec.volume_link());
+        // Is this indeed a portal crossing, i.e. changing volumes)
+        const bool is_self_link = current_rec.volume_id() == next_rec.volume_id();
+        // Is the record doublet we picked made up of a portal and a surface?
         const bool is_mixed =
             (current_rec.is_portal() and not next_rec.is_portal()) or
             (next_rec.is_portal() and not current_rec.is_portal());
 
+        if(not is_valid) {
+            record_stream << "\n(!!) Not a valid portal crossing (" 
+                          << current_rec.volume_id() << " <-> " 
+                          << next_rec.volume_id() << "):\nPortals are not "
+                          << "connected, either geometrically or by linking!"
+                          << std::endl;
+        }
+        if(is_self_link) {
+            record_stream << "\n(!!) Found portal crossing inside volume (" 
+                          << current_rec.volume_id() << ")!"<< std::endl;
+        }
+        if(is_mixed) {
+            record_stream << "\n(!!) Portal crossing involves module surface (" 
+                          << current_rec.volume_id() << " <-> " 
+                          << next_rec.volume_id() << ")! A portal might link "
+                          << "to itself or we hit a module surface"
+                          << std::endl;
+        }
         if (is_valid and not is_mixed) {
+            
             // Insert into set of edges
             trace_entry lower{current_rec.object_id(), current_rec.volume_id()};
             trace_entry upper{next_rec.object_id(), next_rec.volume_id()};
@@ -202,30 +242,30 @@ inline auto trace_intersections(const record_container &volume_record,
         // Something went wrong
         else {
             // Print search log
-            std::cerr << "<<<<<<<<<<<<<<<" << std::endl;
-            std::cerr << "volume idx (distance from ray origin)\n" << std::endl;
+            std::cerr << "\n<<<<<<<<<<<<<<< ERROR in portal matching\n"
+                      << std::endl;
+            std::cerr << "volume id\t(intersection info)" << std::endl;
 
             std::cerr << record_stream.str() << std::endl;
 
-            std::cerr << "Ray terminated at portal x-ing " << (rec + 1) / 2
-                      << ": (" << current_rec.object_id() << ", "
-                      << current_rec.dist() << ") <-> (" << next_rec.object_id()
-                      << ", " << next_rec.dist() << ")" << std::endl;
-            std::cerr << std::boolalpha << "Portals are connected: " << is_valid
-                      << std::endl;
-            std::cerr << std::boolalpha
-                      << "Portals link to themselves: " << is_mixed
+            std::cerr << "-----\nINFO: Ray terminated at portal x-ing " 
+                      << (rec + 1) / 2
+                      << ":\n(sf id: " << current_rec.object_id() << ", r:"
+                      << current_rec.r() << ", z:" << current_rec.z() 
+                      << ") <-> (sf id: " << next_rec.object_id() << ", r:" 
+                      << next_rec.r() << ", z:" << next_rec.z() << ")" 
                       << std::endl;
 
-            record rec_front{volume_record.front()};
-            record rec_back{volume_record.back()};
+            record rec_front{intersection_records.front()};
+            record rec_back{intersection_records.back()};
             std::cerr << "Start volume : " << start_volume << std::endl;
-            std::cerr << "- first intersection: (" << rec_front.object_id()
-                      << ", " << rec_front.dist() << ")," << std::endl;
-            std::cerr << "- last intersection: (" << rec_back.object_id()
-                      << ", " << rec_back.dist() << ")," << std::endl;
-
-            std::cerr << ">>>>>>>>>>>>>>>" << std::endl;
+            std::cerr << "- first recorded intersection: (sf id:" 
+                      << rec_front.object_id() << ", dist:" << rec_front.dist()
+                      << ")," << std::endl;
+            std::cerr << "- last recorded intersection:  (sf id:" 
+                      << rec_back.object_id() << ", dist:" << rec_back.dist()
+                      << ")," << std::endl;
+            std::cerr << ">>>>>>>>>>>>>>>\n" << std::endl;
 
             return std::make_pair(portal_trace, surface_trace);
         }
@@ -234,8 +274,8 @@ inline auto trace_intersections(const record_container &volume_record,
         rec += 2;
     }
 
-    record rec_back{volume_record.back()};
     // Look at the last entry
+    record rec_back{intersection_records.back()};
     if (not rec_back.is_portal()) {
         std::cerr << "We don't leave the detector by portal!" << std::endl;
     } else {

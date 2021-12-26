@@ -33,7 +33,7 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
 
     track<detray_context> ray = {.pos = origin, .dir = direction};
 
-    std::vector<std::pair<dindex, intersection>> volume_record;
+    std::vector<std::pair<dindex, intersection>> intersection_record;
 
     const auto &transforms = d.transforms(default_context);
     // For a geometry that keeps a dedicated portal type, only intersect portals
@@ -51,7 +51,7 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
             if (intr.status == intersection_status::e_inside &&
                 intr.direction == intersection_direction::e_along) {
 
-                volume_record.emplace_back(obj_idx, intr);
+                intersection_record.emplace_back(obj_idx, intr);
             }
         }
     }
@@ -61,9 +61,9 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
                          std::pair<dindex, intersection> b) -> bool {
         return (a.second < b.second);
     };
-    std::sort(volume_record.begin(), volume_record.end(), sort_path);
+    std::sort(intersection_record.begin(), intersection_record.end(), sort_path);
 
-    return volume_record;
+    return intersection_record;
 };
 
 }  // namespace detray

@@ -184,13 +184,23 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                 // And check the status
                 heartbeat &= n.status(n_state, s_state());
             }
-            // Check every single recorded intersection
+            // Compare intersection records
             if constexpr (std::is_same_v<detray_inspector, object_tracer<1>>) {
-                ASSERT_EQ(n_state.inspector().object_trace.size(),
+                EXPECT_EQ(n_state.inspector().object_trace.size(),
                           intersection_trace.size());
+                // Check every single recorded intersection
                 for (std::size_t intr_idx = 0;
                      intr_idx < intersection_trace.size(); ++intr_idx) {
-                    ASSERT_EQ(n_state.inspector().object_trace[intr_idx],
+                    if (n_state.inspector().object_trace[intr_idx] !=
+                              intersection_trace[intr_idx].first) {
+                        // Intersection record at portal bound might be flipped
+                        if (n_state.inspector().object_trace[intr_idx] == intersection_trace[intr_idx + 1].first and n_state.inspector().object_trace[intr_idx + 1] == intersection_trace[intr_idx].first) {
+                            // Have already checked the next record
+                            ++intr_idx;
+                            continue;
+                        }
+                    }
+                    EXPECT_EQ(n_state.inspector().object_trace[intr_idx],
                               intersection_trace[intr_idx].first);
                 }
             }
