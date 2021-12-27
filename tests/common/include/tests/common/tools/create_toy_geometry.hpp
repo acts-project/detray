@@ -10,6 +10,8 @@
 
 #include <vecmem/memory/host_memory_resource.hpp>
 
+#include<iostream>
+
 namespace detray {
 
 /** Function that adds a cylinder portal.
@@ -92,26 +94,20 @@ inline auto add_disc_portal(const dindex volume_id,
  * @return a tuple that contains the surfaces (linking into the locally
  *         created container), the module transsforms and the surface masks.
  */
-template <typename context_t, typename surface_container_t, typename mask_container_t, typename transform_container_t, unsigned int rectangle_id = 0>
+template <typename context_t, typename surface_container_t, typename mask_container_t, typename transform_container_t, typename config_t, unsigned int rectangle_id = 0>
 inline auto create_barrel_modules(context_t& ctx, const dindex volume_id,
-                           surface_container_t& surfaces,
-                           mask_container_t& masks,
-                           transform_container_t& transforms,
-                           const scalar m_half_x = 8.4,
-                           const scalar m_half_y = 36.,
-                           const scalar m_tilt_phi = 0.14,
-                           const scalar layer_r = 32.,
-                           const scalar radial_stagger = 0.5,
-                           const scalar l_overlap = 2.,
-                           const std::pair<int, int> binning = {16, 14}) {
+                                  surface_container_t& surfaces,
+                                  mask_container_t& masks,
+                                  transform_container_t& transforms,
+                                  config_t cfg) {
     /// mask index: type, range
     using mask_link_t = typename surface_container_t::value_type::value_type::mask_links;
 
     // Create the module centers
 
     // surface grid bins
-    int n_phi_bins = binning.first;
-    int n_z_bins = binning.second;
+    int n_phi_bins = cfg.m_binning.first;
+    int n_z_bins = cfg.m_binning.second;
     // module positions
     detray::dvector<point3> m_centers;
     m_centers.reserve(n_phi_bins * n_z_bins);
@@ -121,15 +117,15 @@ inline auto create_barrel_modules(context_t& ctx, const dindex volume_id,
     scalar phi_step = scalar{2} * pi / (n_phi_bins);
     scalar min_phi = -pi + scalar{0.5} * phi_step;
     scalar z_start =
-        scalar{-0.5} * (n_z_bins - 1) * (scalar{2} * m_half_y - l_overlap);
+        scalar{-0.5} * (n_z_bins - 1) * (scalar{2} * cfg.m_half_y - cfg.m_long_overlap);
     scalar z_step = scalar{2} * std::abs(z_start) / (n_z_bins - 1);
 
     // loop over the z bins
     for (size_t z_bin = 0; z_bin < size_t(n_z_bins); ++z_bin) {
         // prepare z and r
         scalar m_z = z_start + z_bin * z_step;
-        scalar m_r = (z_bin % 2) != 0u ? layer_r - scalar{0.5} * radial_stagger
-                                       : layer_r + scalar{0.5} * radial_stagger;
+        scalar m_r = (z_bin % 2) != 0u ? cfg.layer_r - scalar{0.5} * cfg.m_radial_stagger
+                                       : cfg.layer_r + scalar{0.5} * cfg.m_radial_stagger;
         for (size_t phiBin = 0; phiBin < size_t(n_phi_bins); ++phiBin) {
             // calculate the current phi value
             scalar m_phi = min_phi + phiBin * phi_step;
@@ -151,18 +147,18 @@ inline auto create_barrel_modules(context_t& ctx, const dindex volume_id,
         surfaces[rectangle_id].back().set_edge({volume_id, dindex_invalid});
 
         // The rectangle bounds for this module
-        masks.template add_mask<rectangle_id>(m_half_x, m_half_y);
+        masks.template add_mask<rectangle_id>(cfg.m_half_x, cfg.m_half_y);
         masks.template group<rectangle_id>().back().links() = {volume_id, dindex_invalid};
 
         // Build the transform
         // The local phi
         scalar m_phi = algebra::getter::phi(m_center);
         // Local z axis is the normal vector
-        vector3 m_local_z{std::cos(m_phi + m_tilt_phi),
-                          std::sin(m_phi + m_tilt_phi), 0.};
+        vector3 m_local_z{std::cos(m_phi + cfg.m_tilt_phi),
+                          std::sin(m_phi + cfg.m_tilt_phi), 0.};
         // Local x axis the normal to local y,z
-        vector3 m_local_x{-std::sin(m_phi + m_tilt_phi),
-                          std::cos(m_phi + m_tilt_phi), 0.};
+        vector3 m_local_x{-std::sin(m_phi + cfg.m_tilt_phi),
+                          std::cos(m_phi + cfg.m_tilt_phi), 0.};
 
         // Create the module transform
         transforms[rectangle_id].emplace_back(ctx, m_center, m_local_z, m_local_x);
@@ -424,23 +420,16 @@ inline auto add_beampipe(detector_t &det, vecmem::memory_resource &resource,cont
 
 
 /// @return an endcap volume
-template<typename detector_t>
-void add_endcap_volume(detector_t &det, vecmem::memory_resource &resource,
-                       typename detector_t::context &ctx, const scalar side, const scalar lay_neg_z, const scalar lay_pos_z,
-                       const scalar edc_inner_r, const scalar edc_outer_r, 
-                       const std::vector<typename detector_t::edge_type> &edges, const bool is_gap = false, 
-                       const scalar edc_position = 600.,
-                       const scalar ring_stagger = 0.0, 
-                       const std::vector<scalar> m_phi_stagger = {4.0, 4.0},
-                       const std::vector<scalar> m_phi_sub_stagger = {0.5, 0.},
-                       const std::vector<size_t>& disc_binning = {40, 68},
-                       const std::vector<scalar>& m_half_y = {36., 36.},
-                       const std::vector<scalar> m_half_x_min_y = {8.4, 8.4}, 
-                       const std::vector<scalar> m_half_x_max_y = {12.4, 12.4}, 
-                       const std::vector<scalar> m_tilt = {0., 0.}) {
+template<typename detector_t, typename config_t>
+void create_endcap_volume(detector_t &det, vecmem::memory_resource &resource,
+                       typename detector_t::context &ctx, 
+                       const bool is_gap, const scalar edc_inner_r,
+                       const scalar edc_outer_r,const scalar lay_neg_z, 
+                       const scalar lay_pos_z, 
+                       const std::vector<typename detector_t::edge_type> &edges, config_t cfg) {
     // build the outermost volume
-    const scalar edc_lower_z = std::min(side*lay_neg_z, side*lay_pos_z);
-    const scalar edc_upper_z = std::max(side*lay_neg_z, side*lay_pos_z);;
+    const scalar edc_lower_z = std::min(cfg.side*lay_neg_z, cfg.side*lay_pos_z);
+    const scalar edc_upper_z = std::max(cfg.side*lay_neg_z, cfg.side*lay_pos_z);
 
     typename detector_t::surface_filling_container surfaces = {};
     typename detector_t::mask_container masks = {resource};
@@ -452,10 +441,10 @@ void add_endcap_volume(detector_t &det, vecmem::memory_resource &resource,
         // create disc module surfaces
         create_endcap_modules(ctx, edc_volume.index(), 
                               surfaces, masks, transforms,
-                              side * edc_position, ring_stagger, m_phi_stagger,
-                              m_phi_sub_stagger, edc_inner_r, edc_outer_r,
-                              disc_binning, m_half_y, m_half_x_min_y,
-                              m_half_x_max_y, m_tilt);
+                              cfg.side * cfg.edc_position, cfg.ring_stagger, cfg.m_phi_stagger,
+                              cfg.m_phi_sub_stagger, edc_inner_r, edc_outer_r,
+                              cfg.disc_binning, cfg.m_half_y, cfg.m_half_x_min_y,
+                              cfg.m_half_x_max_y, cfg.m_tilt);
     }
 
     // negative and positive, inner and outer portal surface
@@ -466,78 +455,6 @@ void add_endcap_volume(detector_t &det, vecmem::memory_resource &resource,
 
     det.add_objects(ctx, edc_volume, surfaces, masks, transforms);
 }
-
-template<typename detector_t>
-void add_barrel_volume(detector_t &det, vecmem::memory_resource &resource,
-                       typename detector_t::context &ctx, const scalar lay_inner_r, const scalar lay_outer_r,
-                       const scalar brl_half_z, 
-                       const std::vector<typename detector_t::edge_type> &edges, const bool is_gap = false, 
-                       const scalar m_half_x = 8.4,
-                       const scalar m_half_y = 36.,
-                       const scalar m_tilt_phi = 0.14,
-                       const scalar layer_r = 32.,
-                       const scalar m_radial_stagger = 0.5,
-                       const scalar m_long_overlap = 2.,
-                       const std::pair<int, int> m_binning = {16, 14}) {
-
-    typename detector_t::surface_filling_container surfaces = {};
-    typename detector_t::mask_container masks = {resource};
-    typename detector_t::transform_container transforms = {resource};
-
-    auto& brl_volume = det.new_volume({lay_inner_r, lay_outer_r, -brl_half_z, brl_half_z, -M_PI, M_PI});
-
-    if (not is_gap) {
-        // create disc module surfacesinline auto 
-        create_barrel_modules(ctx, brl_volume.index(),
-                              surfaces, masks, transforms, m_half_x, 
-                              m_half_y, m_tilt_phi, layer_r,
-                              m_radial_stagger, m_long_overlap, m_binning);
-    }
-
-    // negative and positive, inner and outer portal surface
-    add_cylinder_portal(brl_volume.index(), ctx, surfaces, masks, transforms, lay_inner_r, -brl_half_z, brl_half_z, edges[0]);
-    add_cylinder_portal(brl_volume.index(), ctx, surfaces, masks, transforms, lay_outer_r, -brl_half_z, brl_half_z, edges[1]);
-    add_disc_portal(brl_volume.index(), ctx, surfaces, masks, transforms, lay_inner_r, lay_outer_r, -brl_half_z, edges[2]);
-    add_disc_portal(brl_volume.index(), ctx, surfaces, masks, transforms, lay_inner_r, lay_outer_r, brl_half_z, edges[3]);
-
-    det.add_objects(ctx, brl_volume, surfaces, masks, transforms);
-}
-
-
-/// @return an endcap volume
-/*std::shared_ptr<DetectorVolume> createEndcapVolume(
-    scalar volumeMinR, scalar volumeMaxR, scalar volumeMinZ,
-    scalar volumeMaxZ, const std::string& volumeName = "SingleLayerVolume",
-    scalar moduleHalfXminY = 8.4, scalar moudleHalfXmaxY = 12.4,
-    scalar moduleHalfY = 32., scalar moduleTilt = 0.,
-    scalar ringRadius = 40., scalar zStagger = 2, int nPhi = 40) {
-  // Place the ring into the middle
-  scalar ringZ = 0.5 * (volumeMinZ + volumeMaxZ);
-
-  auto volumeSurfaces =
-      surfacesRing(moduleHalfXminY, moudleHalfXmaxY, moduleHalfY, moduleTilt,
-                   ringRadius, ringZ, zStagger, nPhi);
-
-  // Create the volume bounds
-  auto volumeBounds = std::make_unique<CylinderVolumeBounds>(
-      volumeMinR, volumeMaxR, 0.5 * (volumeMaxZ - volumeMinZ));
-
-  SurfaceLinks volumeSurfaceLinks = AllSurfaces{};
-
-  std::vector<SurfaceLinks> portalSurfaceLinks = {AllSurfaces{}, AllSurfaces{},
-                                                  AllSurfaces{}};
-
-  if (volumeMinR > 0.) {
-    portalSurfaceLinks.push_back(AllSurfaces{});
-  }
-
-  auto volumeTransform = Transform3::Identity();
-  volumeTransform.pretranslate(Vector3(0., 0., ringZ));
-
-  return DetectorVolume::makeShared(
-      volumeTransform, std::move(volumeBounds), std::move(volumeSurfaces),
-      std::move(volumeSurfaceLinks), std::move(portalSurfaceLinks), volumeName);
-}*/
 
 
 /// Helper method to create a central detector
@@ -550,52 +467,155 @@ void add_barrel_volume(detector_t &det, vecmem::memory_resource &resource,
 /// @param detectorName is the detector name prescript
 ///
 /// @return a central detector volume
-/*std::shared_ptr<DetectorVolume> createEndcapDetector(
-    scalar detectorRmin = 0., scalar detectorRmax = 80.,
-    scalar zToCentral = 500., int side = 1) {
-  scalar layerThickness = 5.;
-  scalar gapThickness = 50.;
+template<typename detector_t, typename config_t>
+void add_endcap_detector(detector_t &det, vecmem::memory_resource &resource,
+                       typename detector_t::context &ctx, std::size_t n_layers, dindex beampipe_idx,
+                       const scalar edc_inner_r, const scalar edc_outer_r,
+                       const std::vector<std::pair<scalar, scalar>> &lay_sizes,
+                       const std::vector<scalar> &lay_positions,
+                       config_t cfg) {
+    bool is_gap = true;
 
-  std::string firstLayerName = (side > 0) ? "Layer0" : "Layer1";
-  std::string gapName = "Gap";
-  std::string secondLayerName = (side > 0) ? "Layer1" : "Layer0";
-  std::string sideTag = (side > 0) ? "Pos" : "Neg";
+    // Generate consecutive linking between volumes
+    std::vector<std::vector<typename detector_t::edge_type>> edges_vec;
+    dindex leaving_world = dindex_invalid, inv_sf_finder = dindex_invalid;
+    dindex first_vol_idx = det.volumes().back().index() + 1;
+    dindex last_vol_idx = first_vol_idx + 2*n_layers - 2;
+    dindex prev_vol_idx = first_vol_idx - 1;
+    dindex next_vol_idx = first_vol_idx + 1;
 
-  // Place the first layer
-  scalar oneZ = side * (zToCentral);
-  scalar twoZ = side * (zToCentral + layerThickness);
-  auto firstLayer = createEndcapVolume(
-      detectorRmin, detectorRmax, std::min(oneZ, twoZ), std::max(oneZ, twoZ),
-      detectorName + firstLayerName + sideTag);
+    for (std::size_t i = 0; i < 2*n_layers - 2; ++i) {
+        edges_vec.push_back({{beampipe_idx, inv_sf_finder}, 
+        {leaving_world, inv_sf_finder}, 
+        {prev_vol_idx++, inv_sf_finder}, 
+        {next_vol_idx++, inv_sf_finder}});
+    }
+    // Edge of the world is flipped
+    if(cfg.side < 0) {
+        edges_vec.front() = {{beampipe_idx, inv_sf_finder}, 
+        {leaving_world, inv_sf_finder}, 
+        {leaving_world, inv_sf_finder}, 
+        {first_vol_idx + 1, inv_sf_finder}};
 
-  // Adapt for the gap & build
-  oneZ = side * (zToCentral + layerThickness);
-  twoZ = side * (zToCentral + layerThickness + gapThickness);
-  Transform3 gapTransform = Transform3::Identity();
-  gapTransform.pretranslate(Vector3(0., 0., 0.5 * (oneZ + twoZ)));
-  auto gapBounds = std::make_unique<CylinderVolumeBounds>(
-      detectorRmin, detectorRmax, std::abs(0.5 * (oneZ - twoZ)));
-  auto gap = DetectorVolume::makeShared(gapTransform, std::move(gapBounds),
-                                        detectorName + gapName + sideTag);
+        edges_vec.push_back({{beampipe_idx, inv_sf_finder},
+        {leaving_world, inv_sf_finder}, 
+        {last_vol_idx - 1, inv_sf_finder}, 
+        {last_vol_idx + 1, inv_sf_finder}});
+    }
+    else {
+        edges_vec.front() = {{beampipe_idx, inv_sf_finder}, 
+        {leaving_world, inv_sf_finder}, 
+        {first_vol_idx - 1, inv_sf_finder}, 
+        {first_vol_idx + 1, inv_sf_finder}};
 
-  // Adapt for the second layer
-  oneZ = side * (zToCentral + layerThickness + gapThickness);
-  twoZ = side * (zToCentral + 2 * layerThickness + gapThickness);
-  auto secondLayer = createEndcapVolume(
-      detectorRmin, detectorRmax, std::min(oneZ, twoZ), std::max(oneZ, twoZ),
-      detectorName + secondLayerName + sideTag);
+        edges_vec.push_back({{beampipe_idx, inv_sf_finder}, 
+        {leaving_world, inv_sf_finder}, 
+        {last_vol_idx - 1, inv_sf_finder}, 
+        {leaving_world, inv_sf_finder}});
+    }
 
-  std::vector<std::shared_ptr<DetectorVolume>> endcapVolumes;
-  if (side > 0) {
-    endcapVolumes = {firstLayer, gap, secondLayer};
-  } else {
-    endcapVolumes = {secondLayer, gap, firstLayer};
-  }
-  // Container in Z
-  return CylindricalContainerHelper::containerInZ(
-      std::move(endcapVolumes),
-      detectorName + std::string("TwoLayers") + sideTag);
-}*/
+    // Get vol sizes in z also for gap volumes
+    std::vector<std::pair<scalar, scalar>> vol_sizes{{lay_sizes[0].first, lay_sizes[0].second}};
+    for (std::size_t i = 1; i < n_layers; ++i) {
+        vol_sizes.emplace_back(lay_sizes[i].first, lay_sizes[i - 1].second);
+        vol_sizes.emplace_back(lay_sizes[i].first, lay_sizes[i].second);
+    }
+
+    auto vol_size_itr = vol_sizes.begin();
+    auto pos_itr = lay_positions.begin();
+    // Reverse iteration for negative endcap
+    if (cfg.side < 0) {
+        std::advance(vol_size_itr, 2*n_layers - 2);
+        std::advance(pos_itr, n_layers -1);
+    }
+
+    for (std::size_t i = 0; i < 2*n_layers - 1; ++i) {
+        // Every second layer is a gap volume
+        is_gap = !is_gap;
+        cfg.edc_position = *(pos_itr + cfg.side*i / 2);
+        create_endcap_volume(det, resource, ctx, is_gap, edc_inner_r, edc_outer_r, (vol_size_itr + cfg.side*i)->first, (vol_size_itr + cfg.side*i)->second, edges_vec[i], cfg);
+    }
+}
+
+
+template<typename detector_t, typename config_t>
+void create_barrel_volume(detector_t &det, vecmem::memory_resource &resource,
+                       typename detector_t::context &ctx, const bool is_gap, 
+                       const scalar lay_inner_r, const scalar lay_outer_r,
+                       const scalar lay_neg_z, const scalar lay_pos_z, 
+                       const std::vector<typename detector_t::edge_type> &edges, config_t cfg) {
+    // build the outermost volume
+    const scalar inner_r = std::min(lay_inner_r, lay_outer_r);
+    const scalar outer_r = std::max(lay_inner_r, lay_outer_r);
+
+    typename detector_t::surface_filling_container surfaces = {};
+    typename detector_t::mask_container masks = {resource};
+    typename detector_t::transform_container transforms = {resource};
+
+    auto& brl_volume = det.new_volume({inner_r, outer_r, lay_neg_z, lay_pos_z, -M_PI, M_PI});
+
+    if (not is_gap) {
+        create_barrel_modules(ctx, brl_volume.index(),
+                              surfaces, masks, transforms, cfg);
+    }
+
+    // negative and positive, inner and outer portal surface
+    add_cylinder_portal(brl_volume.index(), ctx, surfaces, masks, transforms, inner_r, lay_neg_z, lay_pos_z, edges[0]);
+    add_cylinder_portal(brl_volume.index(), ctx, surfaces, masks, transforms, outer_r, lay_neg_z, lay_pos_z, edges[1]);
+    add_disc_portal(brl_volume.index(), ctx, surfaces, masks, transforms, inner_r, outer_r, lay_neg_z, edges[2]);
+    add_disc_portal(brl_volume.index(), ctx, surfaces, masks, transforms, inner_r, outer_r, lay_pos_z, edges[3]);
+
+    det.add_objects(ctx, brl_volume, surfaces, masks, transforms);
+}
+
+
+template<typename detector_t, typename config_t>
+void add_barrel_detector(detector_t &det, vecmem::memory_resource &resource,
+                       typename detector_t::context &ctx, 
+                       const unsigned int n_layers, dindex beampipe_idx,
+                       const scalar brl_half_z,
+                       const std::vector<std::pair<scalar, scalar>> &lay_sizes,
+                       const std::vector<scalar> &lay_positions,
+                       const std::vector<std::pair<int, int>> &m_binning,
+                       config_t cfg) {
+    bool is_gap = true;
+
+    // Generate consecutive linking between volumes
+    dindex leaving_world = dindex_invalid, inv_sf_finder = dindex_invalid;
+    dindex first_vol_idx = det.volumes().back().index() + 1;
+    dindex last_vol_idx = first_vol_idx + 2*n_layers - 2;
+    dindex prev_vol_idx = first_vol_idx - 1;
+    dindex next_vol_idx = first_vol_idx + 1;
+
+    // First barrel layer is connected to the beampipe
+    std::vector<std::vector<typename detector_t::edge_type>> edges_vec {{{beampipe_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}, {first_vol_idx - 1, inv_sf_finder}, {last_vol_idx + 1, inv_sf_finder}}};
+
+    for (std::size_t i = 1; i < 2*n_layers - 2; ++i) {
+        edges_vec.push_back({{++prev_vol_idx, inv_sf_finder}, 
+        {++next_vol_idx, inv_sf_finder}, 
+        {first_vol_idx - 1, inv_sf_finder}, 
+        {last_vol_idx + 1, inv_sf_finder}});
+    }
+    // Last barrel layer leaves detector world
+    edges_vec.push_back({{++prev_vol_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {first_vol_idx - 1, inv_sf_finder}, {last_vol_idx + 1, inv_sf_finder}});
+
+    std::vector<std::pair<scalar, scalar>> vol_sizes{{lay_sizes[1].first, lay_sizes[1].second}};
+    for (std::size_t i = 2; i < n_layers + 1; ++i) {
+        vol_sizes.emplace_back(std::min(lay_sizes[i].first, lay_sizes[i - 1].second), std::max(lay_sizes[i].first, lay_sizes[i - 1].second));
+        vol_sizes.emplace_back(std::min(lay_sizes[i].first, lay_sizes[i].second), std::max(lay_sizes[i].first, lay_sizes[i].second));
+    }
+
+    for (unsigned int i = 0; i < 2*n_layers - 1; ++i) {
+        // Every second layer is a gap volume
+        is_gap = !is_gap;
+        unsigned int j = (i + 2) / 2;
+
+        cfg.m_binning = m_binning[j];
+        cfg.layer_r = lay_positions[j];
+        create_barrel_volume(det, resource, ctx, is_gap, vol_sizes[i].first, vol_sizes[i].second, -brl_half_z, brl_half_z, edges_vec[i], cfg);
+    }
+}
+
 
 /** Builds a simple detray geometry of the innermost tml layers. It contains:
  *
@@ -648,11 +668,21 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     const scalar brl_half_y = 36.;
     const scalar brl_tilt_phi = 0.14;//0.145;
 
+    struct brl_m_config {
+        scalar m_half_x = 8.4;
+        scalar m_half_y = 36.;
+        scalar m_tilt_phi = 0.14;
+        scalar layer_r = 32.;
+        scalar m_radial_stagger = 0.5;
+        scalar m_long_overlap = 2.;
+        std::pair<int, int> m_binning = {16, 14};
+    };
+
     //
     // endcaps
     //
     const std::vector<scalar> edc_positions = {600., 700., 820., 960., 1100., 1300., 1500.};
-    const std::vector<std::pair<scalar, scalar>> edc_vol_sizes = {{595., 605.}, {695., 705.}, {815., 825.}, {955., 965.}, {1095., 1105.}, {1295., 1305.}, {1495., 1505.}};
+    const std::vector<std::pair<scalar, scalar>> edc_lay_sizes = {{595., 605.}, {695., 705.}, {815., 825.}, {955., 965.}, {1095., 1105.}, {1295., 1305.}, {1495., 1505.}};
     const scalar edc_ring_stagger = 1.0;
     // Parameters for both rings of modules
     const std::vector<scalar> edc_phi_stagger = {4.0, 4.0};
@@ -666,81 +696,58 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     const std::vector<scalar> edc_half_x_max_y = {12.4, 12.4};
     const std::vector<scalar> edc_tilt = {0., 0.};
 
+    struct edc_m_config {
+        int side = 1;
+        scalar edc_position = 600.;
+        const scalar ring_stagger = 1.0;
+        const std::vector<scalar> m_phi_stagger = {4.0, 4.0};
+        const std::vector<scalar> m_phi_sub_stagger = {0.5, 0.};
+        const std::vector<size_t>& disc_binning = {40, 68};
+        const std::vector<scalar>& m_half_y = {36., 36.};
+        const std::vector<scalar> m_half_x_min_y = {8.4, 8.4};
+        const std::vector<scalar> m_half_x_max_y = {12.4, 12.4};
+        const std::vector<scalar> m_tilt = {0., 0.};
+    };
+
     // create detector
     detector_t det(resource);
 
     // context objects
     typename transform_store::context ctx0;
 
-    add_beampipe(det, resource, ctx0, edc_vol_sizes, brl_vol_sizes[0], brl_positions[0], brl_half_z, edc_inner_r);
+    add_beampipe(det, resource, ctx0, edc_lay_sizes, brl_vol_sizes[0], brl_positions[0], brl_half_z, edc_inner_r);
 
     dindex beampipe_idx = 0;
-    //
-    // negative endcap
-    //
 
     //
-    // first layer: Contains modules
+    // negative endcap layers
     //
     int side = -1;
+    std::size_t n_edc_layers = 3; // create three layers with modules
+
+    edc_m_config edc_config{-1, edc_positions[0], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt};
+
+    add_endcap_detector(det, resource, ctx0, n_edc_layers, beampipe_idx,
+                        edc_inner_r, edc_outer_r, edc_lay_sizes, edc_positions, edc_config);
+
+    //
+    // gap layer that connects barrel and pos. endcap
+    //
     bool is_gap = true;
+    std::vector<edge_links> edges;
 
-    dindex next_vol_idx = beampipe_idx + 2;
-    std::vector<edge_links> edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
-
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[2].second, edc_vol_sizes[2].first, edc_inner_r, edc_outer_r, edges, !is_gap, edc_positions[2], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt);
-
-    //
-    // gap: Connect portals (first layer, second layer)
-    //
-    dindex prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
-
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[2].first, edc_vol_sizes[1].second, edc_inner_r, edc_outer_r, edges, is_gap);
-
-    //
-    // second layer
-    //
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
-
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[1].second, edc_vol_sizes[1].first, edc_inner_r, edc_outer_r, edges, !is_gap, edc_positions[1], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt);
-
-    //
-    // gap layer
-    //
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
-
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[1].first, edc_vol_sizes[0].second, edc_inner_r, edc_outer_r, edges, is_gap);
-
-    //
-    // third layer
-    //
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
-
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[0].second, edc_vol_sizes[0].first, edc_inner_r, edc_outer_r, edges, !is_gap, edc_positions[0], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt);
-
-    //
-    // final gap layer connects to barrel
-    //
     typename detector_t::surface_filling_container surfaces = {};
     typename detector_t::mask_container masks = {resource};
     typename detector_t::transform_container transforms = {resource};
 
-    scalar gap_neg_z = side * edc_vol_sizes[0].first;
+    scalar gap_neg_z = side * edc_lay_sizes[0].first;
     scalar gap_pos_z = side * brl_half_z;
 
     auto& final_gap = det.new_volume({edc_inner_r, edc_outer_r, gap_neg_z, gap_pos_z, -M_PI, M_PI});
 
     dindex final_gap_idx = det.volumes().back().index();
-    prev_vol_idx = final_gap_idx - 1;
-    next_vol_idx = prev_vol_idx + 2;
+    dindex prev_vol_idx = final_gap_idx - 1;
+    dindex next_vol_idx = prev_vol_idx + 2;
 
     typename detector_t::edge_type edge = {beampipe_idx, inv_sf_finder};
     add_cylinder_portal(final_gap_idx, ctx0, surfaces, masks, transforms,edc_inner_r, gap_neg_z, gap_pos_z, edge);
@@ -768,96 +775,29 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     //
     // barrel
     //
+    unsigned int n_brl_layers = 4; // create four layers with modules
+
+    brl_m_config brl_config{};
+
+    /*add_barrel_detector(det, resource, ctx0, n_brl_layers, beampipe_idx,
+                       brl_vol_sizes, brl_positions, brl_half_z, brl_half_x,
+                       brl_half_y, brl_tilt_phi, brl_radial_stagger,
+                       brl_l_overlap, brl_binning);*/
+    add_barrel_detector(det, resource, ctx0, n_brl_layers, beampipe_idx, 
+                        brl_half_z, brl_vol_sizes, brl_positions, brl_binning,
+                        brl_config);
 
     //
-    // first layer
+    // gap layer that connects barrel and pos. endcap
     //
-    scalar brl_inner_r = brl_vol_sizes[1].first;
-    scalar brl_outer_r = brl_vol_sizes[1].second;
-
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{beampipe_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}, {6, inv_sf_finder}, {14, inv_sf_finder}};
-
-    add_barrel_volume(det, resource, ctx0, brl_inner_r, brl_outer_r, brl_half_z, edges, !is_gap, brl_half_x, brl_half_y, brl_tilt_phi, brl_positions[1], brl_radial_stagger, brl_l_overlap, brl_binning[1]);
-
-    //
-    // gap layer
-    //
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}, {6, inv_sf_finder}, {14, inv_sf_finder}};
-
-    add_barrel_volume(det, resource, ctx0, brl_vol_sizes[1].second, brl_vol_sizes[2].first, brl_half_z, edges, is_gap);
-
-    //
-    // second layer
-    //
-    brl_inner_r = brl_vol_sizes[2].first;
-    brl_outer_r = brl_vol_sizes[2].second;
-
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}, {6, inv_sf_finder}, {14, inv_sf_finder}};
-
-    add_barrel_volume(det, resource, ctx0, brl_inner_r, brl_outer_r, brl_half_z, edges, !is_gap, brl_half_x, brl_half_y, brl_tilt_phi, brl_positions[2], brl_radial_stagger, brl_l_overlap, brl_binning[2]);
-
-    //
-    // gap layer
-    //
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}, {6, inv_sf_finder}, {14, inv_sf_finder}};
-
-    add_barrel_volume(det, resource, ctx0, brl_vol_sizes[2].second, brl_vol_sizes[3].first, brl_half_z, edges, is_gap);
-
-    //
-    // third layer
-    //
-    brl_inner_r = brl_vol_sizes[3].first;
-    brl_outer_r = brl_vol_sizes[3].second;
-
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}, {6, inv_sf_finder}, {14, inv_sf_finder}};
-
-    add_barrel_volume(det, resource, ctx0, brl_inner_r, brl_outer_r, brl_half_z, edges, !is_gap, brl_half_x, brl_half_y, brl_tilt_phi, brl_positions[3], brl_radial_stagger, brl_l_overlap, brl_binning[3]);
-
-    //
-    // gap layer
-    //
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}, {6, inv_sf_finder}, {14, inv_sf_finder}};
-
-    add_barrel_volume(det, resource, ctx0, brl_vol_sizes[3].second, brl_vol_sizes[4].first, brl_half_z, edges, is_gap);
-
-    //
-    // fourth layer
-    //
-    brl_inner_r = brl_vol_sizes[4].first;
-    brl_outer_r = brl_vol_sizes[4].second;
-
-    prev_vol_idx = det.volumes().back().index();
-    edges = {{prev_vol_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {6, inv_sf_finder}, {14, inv_sf_finder}};
-
-    add_barrel_volume(det, resource, ctx0, brl_inner_r, brl_outer_r, brl_half_z, edges, !is_gap, brl_half_x, brl_half_y, brl_tilt_phi, brl_positions[4], brl_radial_stagger, brl_l_overlap, brl_binning[4]);
-
-    //
-    // positive endcap
-    //
-
     side = 1.;
 
-    //
-    // final gap layer connects to barrel
-    //
     typename detector_t::surface_filling_container pos_edc_surfaces = {};
     typename detector_t::mask_container pos_edc_masks = {resource};
     typename detector_t::transform_container pos_edc_transforms = {resource};
 
     gap_neg_z = side * brl_half_z;
-    gap_pos_z = side * edc_vol_sizes[0].first;
+    gap_pos_z = side * edc_lay_sizes[0].first;
 
     auto& pos_final_gap = det.new_volume({edc_inner_r, edc_outer_r, gap_neg_z, gap_pos_z, -M_PI, M_PI});
 
@@ -889,48 +829,12 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     det.add_objects(ctx0, pos_final_gap, pos_edc_surfaces, pos_edc_masks, pos_edc_transforms);
 
     //
-    // first layer
+    // positive endcap layers
     //
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
+    edc_config.side = 1;
 
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[0].second, edc_vol_sizes[0].first, edc_inner_r, edc_outer_r, edges, !is_gap, edc_positions[0], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt);
-
-    //
-    // gap layer
-    //
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
-
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[1].first, edc_vol_sizes[0].second, edc_inner_r, edc_outer_r, edges, is_gap);
-
-    //
-    // second layer
-    //
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
-
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[1].second, edc_vol_sizes[1].first, edc_inner_r, edc_outer_r, edges, !is_gap, edc_positions[1], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt);
-
-    //
-    // gap layer
-    //
-    prev_vol_idx = det.volumes().back().index();
-    next_vol_idx = prev_vol_idx + 2;
-    edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {next_vol_idx, inv_sf_finder}};
-
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[2].first, edc_vol_sizes[1].second, edc_inner_r, edc_outer_r, edges, is_gap);
-
-    //
-    // third layer
-    //
-    prev_vol_idx = det.volumes().back().index();
-    edges = {{beampipe_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}, {prev_vol_idx, inv_sf_finder}, {leaving_world, inv_sf_finder}};
-
-    add_endcap_volume(det, resource, ctx0, side, edc_vol_sizes[2].first, edc_vol_sizes[2].second, edc_inner_r, edc_outer_r, edges, !is_gap, edc_positions[2], edc_ring_stagger, edc_phi_stagger, edc_phi_sub_stagger, edc_disc_binning, edc_half_y, edc_half_x_min_y, edc_half_x_max_y, edc_tilt);
+    add_endcap_detector(det, resource, ctx0, n_edc_layers, beampipe_idx,
+                        edc_inner_r, edc_outer_r, edc_lay_sizes, edc_positions, edc_config);
 
     return std::move(det);
 }
