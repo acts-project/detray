@@ -192,9 +192,12 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                 for (std::size_t intr_idx = 0;
                      intr_idx < intersection_trace.size(); ++intr_idx) {
                     if (n_state.inspector().object_trace[intr_idx] !=
-                              intersection_trace[intr_idx].first) {
+                        intersection_trace[intr_idx].first) {
                         // Intersection record at portal bound might be flipped
-                        if (n_state.inspector().object_trace[intr_idx] == intersection_trace[intr_idx + 1].first and n_state.inspector().object_trace[intr_idx + 1] == intersection_trace[intr_idx].first) {
+                        if (n_state.inspector().object_trace[intr_idx] ==
+                                intersection_trace[intr_idx + 1].first and
+                            n_state.inspector().object_trace[intr_idx + 1] ==
+                                intersection_trace[intr_idx].first) {
                             // Have already checked the next record
                             ++intr_idx;
                             continue;

@@ -61,7 +61,8 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
                          std::pair<dindex, intersection> b) -> bool {
         return (a.second < b.second);
     };
-    std::sort(intersection_record.begin(), intersection_record.end(), sort_path);
+    std::sort(intersection_record.begin(), intersection_record.end(),
+              sort_path);
 
     return intersection_record;
 };
