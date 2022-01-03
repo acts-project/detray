@@ -11,10 +11,9 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/tools/geometry_graph.hpp"
+#include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 #include "tests/common/tools/ray_scan_utils.hpp"
-//#include "tests/common/tools/read_geometry.hpp"
-#include "tests/common/tools/create_toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -64,14 +63,14 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
     // Keep track of the objects that have already been seen per volume
     std::unordered_set<dindex> obj_hashes = {};
 
-    unsigned int theta_steps = 100;
-    unsigned int phi_steps = 100;
+    unsigned int theta_steps = 1000;
+    unsigned int phi_steps = 1000;
     const point3 ori{0., 0., 0.};
     dindex start_index = 0;
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.01 + itheta * (M_PI - 0.001) / theta_steps;
+        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
         scalar sin_theta = std::sin(theta);
         scalar cos_theta = std::cos(theta);
 

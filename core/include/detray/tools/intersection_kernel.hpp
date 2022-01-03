@@ -57,6 +57,7 @@ inline auto unroll_intersect(
 
             if (sfi.status == e_inside) {
                 sfi.index = volume_index;
+
                 // Link to next volume is in first position
                 sfi.link = detail::get<0>(mask.links());
                 return sfi;

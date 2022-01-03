@@ -9,16 +9,17 @@
 
 #include <iostream>
 #include <string>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/track.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
-#include "tests/common/tools/ray_gun.hpp"
-//#include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
+#include "tests/common/tools/ray_gun.hpp"
 
 using namespace detray;
 
@@ -30,15 +31,17 @@ template <int navigation_status = 0,
 struct object_tracer {
 
     // record all object id the navigator encounters
-    vector_t<dindex> object_trace = {};
+    vector_t<intersection> object_trace = {};
 
     template <typename state_type>
     auto operator()(state_type &state, std::string & /*message*/) {
-        // Record and objects id, when you are certain to have encountered it
+        // Record the candidate of an encountered object
         if (state.status() == navigation_status) {
-            object_trace.push_back(state.on_object());
+            object_trace.push_back(std::move(*(state.current())));
         }
     }
+
+    auto operator[](std::size_t i) { return object_trace[i]; }
 };
 
 /** A navigation inspector that prints information about the current navigation
@@ -46,74 +49,102 @@ struct object_tracer {
  */
 struct print_inspector {
 
+    // Debug output if an error in the trace is discovered
+    std::stringstream debug_stream;
+
     template <typename state_type>
     auto operator()(state_type &state, std::string &message) {
+        debug_stream << message << std::endl;
 
-        std::cout << message << std::endl;
+        debug_stream << "Volume\t\t\t\t\t\t" << state.volume() << std::endl;
+        debug_stream << "surface kernel size\t\t" << state.kernel().size()
+                     << std::endl;
 
-        std::cout << "Volume\t\t\t\t\t" << state.volume() << std::endl;
-        std::cout << "surface kernel size\t\t" << state.kernel().size()
-                  << std::endl;
-
-        std::cout << "Surface candidates: " << std::endl;
+        debug_stream << "Surface candidates: " << std::endl;
         for (const auto &sf_cand : state.candidates()) {
-            std::cout << "-> " << sf_cand.path << " (" << sf_cand.index
-                      << ", links to " << sf_cand.link << ")" << std::endl;
+            debug_stream << sf_cand.to_string();
         }
         if (not state.kernel().empty()) {
-            std::cout << "=> next: ";
+            debug_stream << "=> next: ";
             if (state.is_exhausted()) {
-                std::cout << "exhausted" << std::endl;
+                debug_stream << "exhausted" << std::endl;
             } else {
-                std::cout << state.next()->index << std::endl;
+                debug_stream << " -> " << state.next()->index << std::endl;
             }
         }
 
         switch (state.status()) {
             case -3:
-                std::cout << "status\t\t\t\ton_target" << std::endl;
+                debug_stream << "status\t\t\t\t\ton_target" << std::endl;
                 break;
             case -2:
-                std::cout << "status\t\t\t\tabort" << std::endl;
+                debug_stream << "status\t\t\t\t\tabort" << std::endl;
                 break;
             case -1:
-                std::cout << "status\t\t\t\tunknowm" << std::endl;
+                debug_stream << "status\t\t\t\t\tunknowm" << std::endl;
                 break;
             case 0:
-                std::cout << "status\t\t\t\ttowards_surface" << std::endl;
+                debug_stream << "status\t\t\t\t\ttowards_surface" << std::endl;
                 break;
             case 1:
-                std::cout << "status\t\t\t\ton_surface" << std::endl;
+                debug_stream << "status\t\t\t\t\ton_surface" << std::endl;
                 break;
             case 2:
-                std::cout << "status\t\t\t\ttowards_portal" << std::endl;
+                debug_stream << "status\t\t\t\t\ttowards_portal" << std::endl;
                 break;
             case 3:
-                std::cout << "status\t\t\t\ton_portal" << std::endl;
+                debug_stream << "status\t\t\t\t\ton_portal" << std::endl;
                 break;
         };
-        std::cout << "current object\t\t" << state.on_object() << std::endl;
-        std::cout << "distance to next\t";
+        debug_stream << "current object\t\t" << state.on_object() << std::endl;
+        debug_stream << "distance to next\t";
         if (std::abs(state()) < state.tolerance()) {
-            std::cout << "on obj (within tol)" << std::endl;
+            debug_stream << "on obj (within tol)" << std::endl;
         } else {
-            std::cout << state() << std::endl;
+            debug_stream << state() << std::endl;
         }
         switch (state.trust_level()) {
             case 0:
-                std::cout << "trust\t\t\t\tno_trust" << std::endl;
+                debug_stream << "trust\t\t\t\t\tno_trust" << std::endl;
                 break;
             case 1:
-                std::cout << "trust\t\t\t\tfair_trust" << std::endl;
+                debug_stream << "trust\t\t\t\t\tfair_trust" << std::endl;
                 break;
             case 3:
-                std::cout << "trust\t\t\t\thigh_trust" << std::endl;
+                debug_stream << "trust\t\t\t\t\thigh_trust" << std::endl;
                 break;
             case 4:
-                std::cout << "trust\t\t\t\tfull_trust" << std::endl;
+                debug_stream << "trust\t\t\t\t\tfull_trust" << std::endl;
                 break;
         };
-        std::cout << std::endl;
+        debug_stream << std::endl;
+    }
+
+    std::string to_string() { return debug_stream.str(); }
+};
+
+/** A navigation inspector that aggregates a number of different inspectors.*/
+template <typename... Inspectors>
+struct aggregate_inspector {
+
+    using inspector_tuple_t = std::tuple<Inspectors...>;
+    inspector_tuple_t _inspectors{};
+
+    template <unsigned int current_id = 0, typename state_type>
+    auto operator()(state_type &state, std::string &message) {
+        // Call inspector
+        std::get<current_id>(_inspectors)(state, message);
+
+        // Next mask type
+        if constexpr (current_id <
+                      std::tuple_size<inspector_tuple_t>::value - 1) {
+            return operator()<current_id + 1>(state, message);
+        }
+    }
+
+    template <typename inspector_t>
+    decltype(auto) get() {
+        return std::get<inspector_t>(_inspectors);
     }
 };
 
@@ -126,8 +157,7 @@ auto d = create_toy_geometry(host_mr);
 // Create the navigator
 using detray_context = decltype(d)::context;
 using detray_track = track<detray_context>;
-using detray_print_inspector = print_inspector;
-using detray_inspector = object_tracer<1>;
+using detray_inspector = aggregate_inspector<object_tracer<1>, print_inspector>;
 using detray_navigator = navigator<decltype(d), detray_inspector>;
 using detray_stepper = line_stepper<detray_track>;
 
@@ -145,7 +175,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
+        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
         scalar sin_theta = std::sin(theta);
         scalar cos_theta = std::cos(theta);
 
@@ -158,7 +188,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                              cos_theta};
 
-            const auto intersection_trace = shoot_ray(d, ori, dir);
+            // const auto intersection_trace = shoot_ray(d, ori, dir);
 
             // Now follow that ray and check, if we find the same
             // volumes and distances along the way
@@ -169,8 +199,11 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             ray.momentum = 100.;
             ray.overstep_tolerance = -1e-4;
 
+            const auto intersection_trace = shoot_ray(d, ray);
+
             detray_stepper::state s_state(ray);
             detray_navigator::state n_state;
+
             // Always start a new ray at detector origin
             n_state.set_volume(0u);
 
@@ -184,28 +217,44 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                 // And check the status
                 heartbeat &= n.status(n_state, s_state());
             }
+
+            auto &obj_tracer =
+                n_state.inspector().template get<object_tracer<1>>();
+            auto &debug_printer =
+                n_state.inspector().template get<print_inspector>();
+
+            std::stringstream debug_stream;
+            for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
+                 ++intr_idx) {
+                debug_stream
+                    << "-------Intersection trace\n"
+                    << "ray gun: "
+                    << "\tsf id: " << intersection_trace[intr_idx].first << ", "
+                    << intersection_trace[intr_idx].second.to_string();
+                debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
+            }
+
             // Compare intersection records
-            if constexpr (std::is_same_v<detray_inspector, object_tracer<1>>) {
-                EXPECT_EQ(n_state.inspector().object_trace.size(),
-                          intersection_trace.size());
-                // Check every single recorded intersection
-                for (std::size_t intr_idx = 0;
-                     intr_idx < intersection_trace.size(); ++intr_idx) {
-                    if (n_state.inspector().object_trace[intr_idx] !=
-                        intersection_trace[intr_idx].first) {
-                        // Intersection record at portal bound might be flipped
-                        if (n_state.inspector().object_trace[intr_idx] ==
-                                intersection_trace[intr_idx + 1].first and
-                            n_state.inspector().object_trace[intr_idx + 1] ==
-                                intersection_trace[intr_idx].first) {
-                            // Have already checked the next record
-                            ++intr_idx;
-                            continue;
-                        }
+            EXPECT_EQ(obj_tracer.object_trace.size(),
+                      intersection_trace.size());
+            // Check every single recorded intersection
+            for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
+                 ++intr_idx) {
+                if (obj_tracer[intr_idx].index !=
+                    intersection_trace[intr_idx].first) {
+                    // Intersection record at portal bound might be flipped
+                    if (obj_tracer[intr_idx].index ==
+                            intersection_trace[intr_idx + 1].first and
+                        obj_tracer[intr_idx + 1].index ==
+                            intersection_trace[intr_idx].first) {
+                        // Have already checked the next record
+                        ++intr_idx;
+                        continue;
                     }
-                    EXPECT_EQ(n_state.inspector().object_trace[intr_idx],
-                              intersection_trace[intr_idx].first);
                 }
+                EXPECT_EQ(obj_tracer[intr_idx].index,
+                          intersection_trace[intr_idx].first)
+                    << debug_printer.to_string() << debug_stream.str();
             }
         }
     }

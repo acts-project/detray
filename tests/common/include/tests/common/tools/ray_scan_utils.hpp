@@ -37,6 +37,15 @@ template <bool check_sorted_trace = true,
 inline bool check_connectivity(
     std::vector<std::pair<entry_type, entry_type>> trace,
     dindex start_volume = 0) {
+
+    if (trace.empty()) {
+        std::cerr << "\n<<<<<<<<<<<<<<< ERROR while checking trace of volumes"
+                  << std::endl;
+        std::cerr << "\nTrace empty!\n" << std::endl;
+        std::cerr << ">>>>>>>>>>>>>>>\n" << std::endl;
+
+        return false;
+    }
     // Keep record of leftovers
     std::stringstream record_stream;
 
@@ -108,7 +117,7 @@ inline bool check_connectivity(
     // There are unconnected elements left (we didn't leave world before
     // termination)
     if (on_volume != dindex_invalid) {
-        std::cerr << "\n<<<<<<<<<<<<<<< ERROR while checking trace of volumes"
+        std::cerr << "\n<<<<<<<<<<<<<<< ERROR while checking volume trace"
                   << std::endl;
         std::cerr << "Didn't leave world or unconnected elements left in trace:"
                   << "\n\nFound:" << std::endl;
@@ -192,18 +201,10 @@ inline auto trace_intersections(const record_container &intersection_records,
             continue;
         }
 
-        record_stream << current_rec.volume_id()
-                      << "\t(sf id:" << current_rec.object_id()
-                      << ", dist:" << current_rec.dist()
-                      << " [r:" << current_rec.r() << ", z:" << current_rec.z()
-                      << "], links to:" << current_rec.volume_link() << ")"
-                      << std::endl;
-        record_stream << next_rec.volume_id()
-                      << "\t(sf id:" << next_rec.object_id()
-                      << ", dist:" << next_rec.dist() << " [r:" << next_rec.r()
-                      << ", z:" << next_rec.z()
-                      << "], links to:" << next_rec.volume_link() << ")"
-                      << std::endl;
+        record_stream << current_rec.volume_id() << "\t"
+                      << current_rec.inters().to_string();
+        record_stream << next_rec.volume_id() << "\t"
+                      << next_rec.inters().to_string();
 
         // Is this doublet connected via a valid portal intersection?
         const bool is_valid =
@@ -253,12 +254,9 @@ inline auto trace_intersections(const record_container &intersection_records,
             std::cerr << record_stream.str() << std::endl;
 
             std::cerr << "-----\nINFO: Ray terminated at portal x-ing "
-                      << (rec + 1) / 2
-                      << ":\n(sf id: " << current_rec.object_id()
-                      << ", r:" << current_rec.r() << ", z:" << current_rec.z()
-                      << ") <-> (sf id: " << next_rec.object_id()
-                      << ", r:" << next_rec.r() << ", z:" << next_rec.z() << ")"
-                      << std::endl;
+                      << (rec + 1) / 2 << ":\n"
+                      << current_rec.inters().to_string() << " <-> "
+                      << next_rec.inters().to_string();
 
             record rec_front{intersection_records.front()};
             record rec_back{intersection_records.back()};

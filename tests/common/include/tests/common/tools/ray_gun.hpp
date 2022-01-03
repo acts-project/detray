@@ -14,44 +14,35 @@ namespace detray {
 
 /** Intersect all portals in a detector with a given ray.
  *
- * @tparam detector_type the type of the detector
- *
- * @param d the detector
- * @param origin the origin of the ray in global coordinates
- * @param direction the direction of the ray in global coordinater
+ * @param detector the detector
+ * @param ray the ray to be shot through the detector
  *
  * @return a sorted vector of volume indices with the corresponding
  *         intersections of the portals that were encountered
  */
-template <typename detector_type>
-inline auto shoot_ray(const detector_type &d, const point3 &origin,
-                      const point3 &direction) {
-
-    using detray_context = typename detector_type::context;
-
-    detray_context default_context;
-
-    track<detray_context> ray = {.pos = origin, .dir = direction};
+template <typename detector_t, typename ray_t>
+inline auto shoot_ray(const detector_t &detector, const ray_t &ray) {
 
     std::vector<std::pair<dindex, intersection>> intersection_record;
 
-    const auto &transforms = d.transforms(default_context);
-    // For a geometry that keeps a dedicated portal type, only intersect portals
-    const auto &portals = d.surfaces();
-    const auto &masks = d.masks();
-
     // Loop over volumes
-    for (const auto &v : d.volumes()) {
+    for (const auto &volume : detector.volumes()) {
+        for (const auto [sf_idx, sf] : enumerate(detector.surfaces(), volume)) {
+            // Retrieve candidate from the object
+            auto sfi =
+                intersect(ray, sf, detector.transforms(), detector.masks());
 
-        // Record the primitives the ray intersects
-        for (auto [obj_idx, obj] : enumerate(portals, v)) {
-            auto intr = intersect(ray, obj, transforms, masks);
-
-            // Walk along the direction of intersected masks
-            if (intr.status == intersection_status::e_inside &&
-                intr.direction == intersection_direction::e_along) {
-
-                intersection_record.emplace_back(obj_idx, intr);
+            // Candidate is invalid if it oversteps too far (this is neg!)
+            if (sfi.path < ray.overstep_tolerance) {
+                continue;
+            }
+            // Accept if inside
+            if (sfi.status == e_inside) {
+                // object the candidate belongs to
+                sfi.index = volume.index();
+                // the next volume if we encounter the candidate
+                sfi.link = std::get<0>(sf.edge());
+                intersection_record.emplace_back(sf_idx, sfi);
             }
         }
     }
@@ -65,6 +56,27 @@ inline auto shoot_ray(const detector_type &d, const point3 &origin,
               sort_path);
 
     return intersection_record;
+}
+
+/** Intersect all portals in a detector with a given ray.
+ *
+ * @param detector the detector
+ * @param origin the origin of the ray in global coordinates
+ * @param direction the direction of the ray in global coordinater
+ *
+ * @return a sorted vector of volume indices with the corresponding
+ *         intersections of the portals that were encountered
+ */
+template <typename detector_t>
+inline auto shoot_ray(const detector_t &detector, const point3 &origin,
+                      const point3 &direction) {
+
+    using detray_context = typename detector_t::context;
+
+    detray_context default_context;
+    track<detray_context> ray = {.pos = origin, .dir = direction};
+
+    return shoot_ray(detector, ray);
 };
 
 }  // namespace detray

@@ -48,7 +48,7 @@ struct void_inspector {
  * @tparam detector_t the detector to navigate
  * @tparam inspector_type is a validation inspector
  */
-template <typename detector_t, typename inspector_type = void_inspector>
+template <typename detector_t, typename inspector_t = void_inspector>
 class navigator {
 
     public:
@@ -60,6 +60,8 @@ class navigator {
     using transform_container = typename detector_t::transform_store;
     using mask_container = typename detector_t::mask_container;
     using objs = typename detector_t::object_id;
+
+    using inspector_type = inspector_t;
 
     /** Navigation status flag */
     enum navigation_status : int {
@@ -145,12 +147,12 @@ class navigator {
         }
 
         /** @returns the navigation inspector */
-        inline auto inspector() { return _inspector; }
+        inline auto &inspector() { return _inspector; }
 
         /** @returns current object the navigator is on (might be invalid if
          * between objects)
          */
-        inline const auto &on_object() { return _object_index; }
+        inline const auto on_object() { return _object_index; }
 
         /** Update current object the navigator is on  */
         inline void set_object(dindex obj) { _object_index = obj; }
@@ -318,7 +320,6 @@ class navigator {
         // @todo - will come from the local object finder
         for (const auto [obj_idx, obj] :
              enumerate(detector.surfaces(), volume)) {
-
             // Retrieve candidate from the object
             auto sfi =
                 intersect(track, obj, detector.transforms(), detector.masks());
@@ -338,6 +339,7 @@ class navigator {
         }
         // What is the next object we want to reach?
         set_next(navigation);
+        navigation.run_inspector("Init: ");
     }
 
     /** Helper method to the update the next candidate intersection. Will
@@ -447,7 +449,7 @@ class navigator {
                 ++navigation.next();
                 navigation.set_status(e_on_object);
                 // Call the inspector on this portal crossing, then go to next
-                navigation.run_inspector("Skipped direct hit: ");
+                navigation.run_inspector("Skipping direct hit: ");
             }
 
             navigation.set_dist(kernel.next->path);
