@@ -120,7 +120,7 @@ inline bool check_connectivity(
         std::cerr << "\n<<<<<<<<<<<<<<< ERROR while checking volume trace"
                   << std::endl;
         std::cerr << "Didn't leave world or unconnected elements left in trace:"
-                  << "\n\nFound:" << std::endl;
+                  << "\n\nValid connections that were found:" << std::endl;
         std::cerr << record_stream.str();
         std::cerr << ">>>>>>>>>>>>>>>\n" << std::endl;
 

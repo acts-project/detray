@@ -79,7 +79,7 @@ struct intersection {
         std::stringstream out_stream;
         scalar r = std::sqrt(p3[0] * p3[0] + p3[1] * p3[1]);
         out_stream << "dist:" << path << " [r:" << r << ", z:" << p3[2]
-                   << "], (obj id:" << index << ", links to:" << link << ")";
+                   << "], (index:" << index << ", links to:" << link << ")";
         switch (status) {
             case e_outside:
                 out_stream << ", status: outside";

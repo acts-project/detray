@@ -529,14 +529,14 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     range = {2892, 2900};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 34},
-                      {{7, inv_sf_finder},
+                      {{15, inv_sf_finder},
+                       {7, inv_sf_finder},
                        {8, inv_sf_finder},
                        {9, inv_sf_finder},
                        {10, inv_sf_finder},
                        {11, inv_sf_finder},
                        {12, inv_sf_finder},
-                       {13, inv_sf_finder},
-                       {15, inv_sf_finder}});
+                       {13, inv_sf_finder}});
 
     //
     // pos endcap (layer 1)

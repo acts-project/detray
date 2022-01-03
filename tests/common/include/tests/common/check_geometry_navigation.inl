@@ -167,8 +167,8 @@ detray_stepper s;
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, geometry_discovery) {
 
-    unsigned int theta_steps = 100;
-    unsigned int phi_steps = 100;
+    unsigned int theta_steps = 200;
+    unsigned int phi_steps = 200;
 
     const point3 ori{0., 0., 0.};
     // dindex start_index = n.detector.volume_by_pos(ori).index();
@@ -187,8 +187,6 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             scalar cos_phi = std::cos(phi);
             const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                              cos_theta};
-
-            // const auto intersection_trace = shoot_ray(d, ori, dir);
 
             // Now follow that ray and check, if we find the same
             // volumes and distances along the way
