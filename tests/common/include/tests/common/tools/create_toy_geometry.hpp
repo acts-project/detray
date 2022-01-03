@@ -6,6 +6,7 @@
  */
 
 #include "detray/core/detector.hpp"
+#include "tests/common/tools/detector_registry.hpp"
 
 namespace detray {
 
@@ -16,8 +17,8 @@ template <template <typename, unsigned int> class array_type = darray,
 auto create_toy_geometry(vecmem::memory_resource& resource) {
 
     // detector type
-    using detector_t =
-        detector<array_type, tuple_type, vector_type, jagged_vector_type>;
+    using detector_t = detector<detector_registry::toy_detector, array_type,
+                                tuple_type, vector_type, jagged_vector_type>;
 
     // sub-geometry components type
     using edge_links = typename detector_t::edge_type;

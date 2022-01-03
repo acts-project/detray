@@ -11,6 +11,7 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/core/transform_store.hpp"
+#include "tests/common/tools/detector_registry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -21,7 +22,7 @@ TEST(ALGEBRA_PLUGIN, detector) {
     using namespace detray;
     using point3 = __plugin::point3<detray::scalar>;
 
-    using detector_t = detector<>;
+    using detector_t = detector<detector_registry::default_detector>;
 
     static_transform_store<>::context ctx0;
 
@@ -44,7 +45,7 @@ TEST(ALGEBRA_PLUGIN, detector) {
     trfs[detector_t::e_trapezoid2].emplace_back(ctx0, t2);
     masks.template add_mask<detector_t::e_trapezoid2>(1., 2., 3.);
 
-    detector d(host_mr);
+    detector_t d(host_mr);
 
     auto &v = d.new_volume({0., 10., -5., 5., -M_PI, M_PI});
     d.add_objects(ctx0, v, surfaces, masks, trfs);

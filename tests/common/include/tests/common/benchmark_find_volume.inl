@@ -15,6 +15,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/io/csv_io.hpp"
+#include "tests/common/tools/detector_registry.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
 using namespace detray;
@@ -26,7 +27,8 @@ unsigned int gbench_repetitions = 0;
 #endif
 
 vecmem::host_memory_resource host_mr;
-auto [d, name_map] = read_from_csv(tml_files, host_mr);
+auto [d, name_map] =
+    read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
 
 const unsigned int itest = 10000;
 

@@ -31,6 +31,7 @@ detector_input_files tml_files = {"tml", "tml.csv", "tml-layer-volumes.csv",
                                   "tml-surface-grids.csv", ""};
 
 /** Read a detector from csv files */
+template <typename detector_registry>
 auto read_from_csv(detector_input_files& files,
                    vecmem::memory_resource& resource) {
     auto env_d_d = std::getenv("DETRAY_TEST_DATA_DIR");
@@ -46,9 +47,9 @@ auto read_from_csv(detector_input_files& files,
     std::string grid_entries = files.surface_grid_entries;
     std::map<detray::dindex, std::string> name_map{};
 
-    auto d =
-        detray::detector_from_csv<>(files.det_name, surfaces, volumes, grids,
-                                    grid_entries, name_map, resource);
+    auto d = detray::detector_from_csv<detector_registry>(
+        files.det_name, surfaces, volumes, grids, grid_entries, name_map,
+        resource);
 
     return std::make_pair<decltype(d), decltype(name_map)>(std::move(d),
                                                            std::move(name_map));

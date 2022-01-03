@@ -12,6 +12,7 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 #include "detray/core/mask_store.hpp"
+#include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/object_registry.hpp"
@@ -47,7 +48,8 @@ using point2 = __plugin::point2<detray::scalar>;
  * surfaces grids
  *
  */
-template <template <typename, unsigned int> class array_type = darray,
+template <typename detector_registry,
+          template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
@@ -123,19 +125,6 @@ class detector {
         grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
               vector_type, jagged_vector_type, array_type, tuple_type, dindex>;
 
-    using surfaces_regular_circular_grid =
-        grid2<attach_populator, axis::regular, axis::circular,
-              surfaces_serializer_type, vector_type, jagged_vector_type,
-              array_type, tuple_type, dindex, false>;
-
-    using surfaces_regular_axis =
-        typename surfaces_regular_circular_grid::axis_p0_t;
-    using surfaces_circular_axis =
-        typename surfaces_regular_circular_grid::axis_p1_t;
-
-    // Neighborhood finder, using accelerator data structure
-    using surfaces_finder = surfaces_regular_circular_grid;
-
     /** Temporary container structures that are used to fill the detector.
      * The respective objects are sorted by mask type, so that they can be
      * unrolled and filled in lockstep with the masks
@@ -144,6 +133,21 @@ class detector {
         array_type<vector_type<surface_type>, e_mask_types>;
     using transform_container =
         array_type<transform_store, mask_id::e_mask_types>;
+
+    // Neighborhood finder, using accelerator data structure
+    static constexpr size_t N_GRIDS =
+        static_cast<size_t>(detector_registry::n_grids);
+    using surfaces_finder_type =
+        surfaces_finder<N_GRIDS, array_type, tuple_type, vector_type,
+                        jagged_vector_type>;
+
+    using surfaces_regular_circular_grid =
+        typename surfaces_finder_type::surfaces_regular_circular_grid;
+
+    using surfaces_regular_axis =
+        typename surfaces_regular_circular_grid::axis_p0_t;
+    using surfaces_circular_axis =
+        typename surfaces_regular_circular_grid::axis_p1_t;
 
     detector() = delete;
 
@@ -159,7 +163,7 @@ class detector {
           _volume_grid(std::move(typename volume_grid::axis_p0_t{resource}),
                        std::move(typename volume_grid::axis_p1_t{resource}),
                        resource),
-          //_surfaces_finders(&resource),
+          _surfaces_finder(resource),
           _resource(&resource) {}
 
     /** Constructor with detector_data **/
@@ -172,7 +176,8 @@ class detector {
           _surfaces(det_data._surfaces_data),
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
-          _volume_grid(det_data._volume_grid_view) {}
+          _volume_grid(det_data._volume_grid_view),
+          _surfaces_finder(det_data._surfaces_finder_view) {}
 
     /** Add a new volume and retrieve a reference to it
      *
@@ -398,20 +403,9 @@ class detector {
     DETRAY_HOST_DEVICE
     inline volume_grid &volume_search_grid() { return _volume_grid; }
 
-    /** Add local surface finders linked to from the portals - move semantics
-     *
-     * This connects portals and surface grids
-     */
-    DETRAY_HOST
-    inline void add_surfaces_finders(
-        vector_type<surfaces_finder> && /*surfaces_finders*/) {
-        //_surfaces_finders = std::move(surfaces_finders);
-    }
-
-    /** @return the surface finders - const access */
     DETRAY_HOST_DEVICE
-    inline const vector_type<surfaces_finder> &surfaces_finders() const {
-        // return _surfaces_finders;
+    inline surfaces_finder_type &get_surfaces_finder() {
+        return _surfaces_finder;
     }
 
     /** Output to string */
@@ -468,10 +462,10 @@ class detector {
     /** Surface and portal masks of the detector in contiguous memory */
     mask_container _masks;
 
-    /* TODO: surfaces_finder needs to be refactored */
-    // vecmem::vector<surfaces_finder> _surfaces_finders;
-
     volume_grid _volume_grid;
+
+    /* TODO: surfaces_finder needs to be refactored */
+    surfaces_finder_type _surfaces_finder;
 
     vecmem::memory_resource *_resource = nullptr;
 };
@@ -488,6 +482,7 @@ struct detector_data {
     using mask_container_t = typename detector_type::mask_container;
     using transform_store_t = typename detector_type::transform_store;
     using volume_grid_t = typename detector_type::volume_grid;
+    using surfaces_finder_t = typename detector_type::surfaces_finder_type;
 
     detector_data(detector_type &det)
         : _volumes_data(vecmem::get_data(det.volumes())),
@@ -496,7 +491,8 @@ struct detector_data {
           _transforms_data(get_data(det.transforms())),
           _volume_grid_data(
               get_data(det.volume_search_grid(), *det.resource())),
-          _volume_grid_view(_volume_grid_data) {}
+          _surfaces_finder_data(
+              get_data(det.get_surfaces_finder(), *det.resource())) {}
 
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
@@ -504,19 +500,50 @@ struct detector_data {
     mask_store_data<mask_container_t> _masks_data;
     static_transform_store_data<transform_store_t> _transforms_data;
     grid2_data<volume_grid_t> _volume_grid_data;
+    surfaces_finder_data<surfaces_finder_t> _surfaces_finder_data;
+};
+
+/** A static inplementation of detector view for device
+ */
+template <typename detector_type>
+struct detector_view {
+
+    // type definitions
+    using volume_t = typename detector_type::volume_type;
+    using surface_t = typename detector_type::surface_type;
+    using mask_container_t = typename detector_type::mask_container;
+    using transform_store_t = typename detector_type::transform_store;
+    using volume_grid_t = typename detector_type::volume_grid;
+    using surfaces_finder_t = typename detector_type::surfaces_finder_type;
+
+    detector_view(detector_data<detector_type> &det_data)
+        : _volumes_data(det_data._volumes_data),
+          _surfaces_data(det_data._surfaces_data),
+          _masks_data(det_data._masks_data),
+          _transforms_data(det_data._transforms_data),
+          _volume_grid_view(det_data._volume_grid_data),
+          _surfaces_finder_view(det_data._surfaces_finder_data) {}
+
+    // members
+    vecmem::data::vector_view<volume_t> _volumes_data;
+    vecmem::data::vector_view<surface_t> _surfaces_data;
+    mask_store_data<mask_container_t> _masks_data;
+    static_transform_store_data<transform_store_t> _transforms_data;
     grid2_view<volume_grid_t> _volume_grid_view;
+    surfaces_finder_view<surfaces_finder_t> _surfaces_finder_view;
 };
 
 /** stand alone function for detector_data get function
  **/
-template <template <typename, unsigned int> class array_type,
+template <typename detector_registry,
+          template <typename, unsigned int> class array_type,
           template <typename...> class tuple_type,
           template <typename...> class vector_type,
           template <typename...> class jagged_vector_type, typename source_link>
-inline detector_data<detector<array_type, tuple_type, vector_type,
-                              jagged_vector_type, source_link> >
-get_data(detector<array_type, tuple_type, vector_type, jagged_vector_type,
-                  source_link> &det) {
+inline detector_data<detector<detector_registry, array_type, tuple_type,
+                              vector_type, jagged_vector_type, source_link> >
+get_data(detector<detector_registry, array_type, tuple_type, vector_type,
+                  jagged_vector_type, source_link> &det) {
     return det;
 }
 
