@@ -175,7 +175,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
+        scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
         scalar sin_theta = std::sin(theta);
         scalar cos_theta = std::cos(theta);
 
