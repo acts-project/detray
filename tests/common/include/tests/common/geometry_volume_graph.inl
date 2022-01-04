@@ -42,13 +42,12 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     std::cout << "Walking through geometry: " << std::endl;
     // graph.bfs();
 
+    const auto &adj_mat = graph.adjacency_matrix();
+
     // Volume 0 has 3 portals to volume 1 and two surfaces linking to itself
-    // std::map<dindex, dindex> nbrs_map_v0{{0, 2}, {1, 3}};
     // Volume 1 has 4 portals to volume 0 and two surfaces linking to itself
-    // std::map<dindex, dindex> nbrs_map_v1{{0, 4}, {1, 2}};
+    dvector<dindex> adj_mat_truth = {2, 3, 0, 4, 2, 0, 0, 0, 0};
 
     // Check this with graph
-    // const auto &adj = graph.adjacency_list();
-    // ASSERT_TRUE(adj.at(0) == nbrs_map_v0);
-    // ASSERT_TRUE(adj.at(1) == nbrs_map_v1);
+    ASSERT_TRUE(adj_mat == adj_mat_truth);
 }
