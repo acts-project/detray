@@ -324,6 +324,22 @@ class detector {
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
 
+    template <typename grid_type>
+    DETRAY_HOST inline void add_surfaces_grid(const context ctx,
+                                              volume_type &vol,
+                                              grid_type &surfaces_grid) {
+        auto &rg = std::get<object_id::e_surface>(vol.ranges());
+
+        auto surf_idx = rg[0];
+        for (const auto &surf : iterator_range(_surfaces, rg)) {
+            auto &trf = _transforms.contextual_transform(ctx, surf.transform());
+            auto tsl = trf.translation();
+
+            point2 loc{tsl[2], algebra::getter::phi(tsl)};
+            surfaces_grid.populate(loc, surf_idx++);
+        }
+    }
+
     /** Unrolls the data containers according to the mask type and fill the
      *  global containers. It registers the indexing in the geometry.
      *
@@ -344,6 +360,7 @@ class detector {
     DETRAY_HOST inline void fill_containers(
         const context ctx, volume_type &volume, surface_container &surfaces,
         mask_container &masks, transform_container &trfs) noexcept(false) {
+
         // Get the surfaces/portals for a mask type
         auto &typed_surfaces = surfaces[current_type];
         // Get the corresponding transforms

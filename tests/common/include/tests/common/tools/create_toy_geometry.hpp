@@ -23,6 +23,8 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     // sub-geometry components type
     using edge_links = typename detector_t::edge_type;
     using surface = typename detector_t::surface_type;
+    using surfaces_regular_circular_grid =
+        typename detector_t::surfaces_regular_circular_grid;
     using mask_container = typename detector_t::mask_container;
     using transform_store = typename detector_t::transform_store;
     using transform_container = typename detector_t::transform_container;
@@ -95,84 +97,97 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
 
     /** Function that creates the modules
      */
-    auto create_modules = [](const dindex volume_id, const dindex invalid_value,
-                             typename transform_store::context& ctx,
-                             surface_container& surfaces, mask_container& masks,
-                             transform_container& transforms,
-                             const scalar m_half_x = 8.4,
-                             const scalar m_half_y = 36.,
-                             const scalar m_tilt_phi = 0.145,
-                             const scalar layer_r = 32.,
-                             const scalar radial_stagger = 2.,
-                             const scalar l_overlap = 5.,
-                             const std::pair<int, int> binning = {16, 14}) {
-        // surface grid bins
-        int n_phi_bins = binning.first;
-        int n_z_bins = binning.second;
+    auto create_modules =
+        [&](const dindex volume_id, const dindex invalid_value,
+            typename transform_store::context& ctx, surface_container& surfaces,
+            mask_container& masks, transform_container& transforms,
+            typename detector_t::surfaces_regular_circular_grid& surfaces_grid,
+            const scalar m_half_x = 8.4, const scalar m_half_y = 36.,
+            const scalar m_tilt_phi = 0.145, const scalar layer_r = 32.,
+            const scalar radial_stagger = 2., const scalar l_overlap = 5.,
+            const std::pair<int, int> binning = {16, 14}) {
+            // surface grid bins
+            int n_phi_bins = binning.first;
+            int n_z_bins = binning.second;
 
-        // module positions
-        detray::dvector<point3> m_centers;
-        m_centers.reserve(n_phi_bins * n_z_bins);
+            // module positions
+            detray::dvector<point3> m_centers;
+            m_centers.reserve(n_phi_bins * n_z_bins);
 
-        // prep work
-        scalar pi{static_cast<scalar>(M_PI)};
-        scalar phi_step = scalar{2} * pi / (n_phi_bins);
-        scalar min_phi = -pi + scalar{0.5} * phi_step;
-        scalar z_start =
-            scalar{-0.5} * (n_z_bins - 1) * (scalar{2} * m_half_y - l_overlap);
-        scalar z_step = scalar{2} * std::abs(z_start) / (n_z_bins - 1);
+            // prep work
+            scalar pi{static_cast<scalar>(M_PI)};
+            scalar phi_step = scalar{2} * pi / (n_phi_bins);
+            scalar min_phi = -pi + scalar{0.5} * phi_step;
+            scalar max_phi = min_phi + (n_phi_bins - 1) * phi_step;
 
-        // loop over the bins
-        for (size_t z_bin = 0; z_bin < size_t(n_z_bins); ++z_bin) {
-            // prepare z and r
-            scalar m_z = z_start + z_bin * z_step;
-            scalar m_r = (z_bin % 2) != 0u
-                             ? layer_r - scalar{0.5} * radial_stagger
-                             : layer_r + scalar{0.5} * radial_stagger;
-            for (size_t phiBin = 0; phiBin < size_t(n_phi_bins); ++phiBin) {
-                // calculate the current phi value
-                scalar m_phi = min_phi + phiBin * phi_step;
-                m_centers.push_back(
-                    point3{m_r * std::cos(m_phi), m_r * std::sin(m_phi), m_z});
+            scalar z_start = scalar{-0.5} * (n_z_bins - 1) *
+                             (scalar{2} * m_half_y - l_overlap);
+            scalar z_step = scalar{2} * std::abs(z_start) / (n_z_bins - 1);
+            scalar z_end = z_start + (n_z_bins - 1) * z_step;
+
+            // add surface grid
+            typename detector_t::surfaces_circular_axis phi_axis(
+                n_phi_bins, min_phi, max_phi, resource);
+            typename detector_t::surfaces_regular_axis z_axis(n_z_bins, z_start,
+                                                              z_end, resource);
+
+            surfaces_grid = typename detector_t::surfaces_regular_circular_grid(
+                z_axis, phi_axis, resource);
+
+            // loop over the bins
+            for (size_t z_bin = 0; z_bin < size_t(n_z_bins); ++z_bin) {
+                // prepare z and r
+                scalar m_z = z_start + z_bin * z_step;
+                scalar m_r = (z_bin % 2) != 0u
+                                 ? layer_r - scalar{0.5} * radial_stagger
+                                 : layer_r + scalar{0.5} * radial_stagger;
+                for (size_t phiBin = 0; phiBin < size_t(n_phi_bins); ++phiBin) {
+                    // calculate the current phi value
+                    scalar m_phi = min_phi + phiBin * phi_step;
+                    m_centers.push_back(point3{m_r * std::cos(m_phi),
+                                               m_r * std::sin(m_phi), m_z});
+                }
             }
-        }
 
-        // Create surfaces
-        for (auto& m_center : m_centers) {
+            // Create surfaces
+            for (auto& m_center : m_centers) {
 
-            // Build the transform
-            // The local phi
-            scalar m_phi = algebra::getter::phi(m_center);
-            // Local z axis is the normal vector
-            vector3 m_local_z{std::cos(m_phi + m_tilt_phi),
-                              std::sin(m_phi + m_tilt_phi), 0.};
-            // Local x axis the normal to local y,z
-            vector3 m_local_x{-std::sin(m_phi + m_tilt_phi),
-                              std::cos(m_phi + m_tilt_phi), 0.};
+                // Build the transform
+                // The local phi
+                scalar m_phi = algebra::getter::phi(m_center);
+                // Local z axis is the normal vector
+                vector3 m_local_z{std::cos(m_phi + m_tilt_phi),
+                                  std::sin(m_phi + m_tilt_phi), 0.};
+                // Local x axis the normal to local y,z
+                vector3 m_local_x{-std::sin(m_phi + m_tilt_phi),
+                                  std::cos(m_phi + m_tilt_phi), 0.};
 
-            // add transform
-            transforms[detector_t::e_rectangle2].emplace_back(
-                ctx, m_center, m_local_z, m_local_x);
+                // add transform
+                transforms[detector_t::e_rectangle2].emplace_back(
+                    ctx, m_center, m_local_z, m_local_x);
 
-            // add mask
-            masks.template add_mask<detector_t::e_rectangle2>(m_half_x,
-                                                              m_half_y);
-            masks.template group<detector_t::e_rectangle2>().back().links() = {
-                volume_id, dindex_invalid};
+                // add mask
+                masks.template add_mask<detector_t::e_rectangle2>(m_half_x,
+                                                                  m_half_y);
+                masks.template group<detector_t::e_rectangle2>()
+                    .back()
+                    .links() = {volume_id, dindex_invalid};
 
-            // create surface
-            surface surf(
-                transforms[detector_t::e_rectangle2].size(ctx) - 1,
-                {detector_t::e_rectangle2,
-                 masks.template group<detector_t::e_rectangle2>().size() - 1},
-                volume_id, dindex_invalid);
+                // create surface
+                surface surf(
+                    transforms[detector_t::e_rectangle2].size(ctx) - 1,
+                    {detector_t::e_rectangle2,
+                     masks.template group<detector_t::e_rectangle2>().size() -
+                         1},
+                    volume_id, dindex_invalid);
 
-            surf.set_edge({volume_id, invalid_value});
+                surf.set_edge({volume_id, invalid_value});
 
-            // add surface
-            surfaces[detector_t::e_rectangle2].push_back(surf);
-        }
-    };
+                surf.is_in_grid();
+                // add surface to surface container
+                surfaces[detector_t::e_rectangle2].push_back(surf);
+            }
+        };
 
     /*********************************
      *  Let's build detector \(^0^)/ *
@@ -257,6 +272,7 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     surface_container vol1_surfaces = {};
     mask_container vol1_masks(resource);
     transform_container vol1_transforms = {};
+    surfaces_regular_circular_grid vol1_surfaces_grid(resource);
 
     // disc portal at negative side
     add_disc_portal(vol1.index(), ctx0, vol1_surfaces, vol1_masks,
@@ -280,10 +296,12 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
 
     // create modules for the first layer
     create_modules(vol1.index(), inv_sf_finder, ctx0, vol1_surfaces, vol1_masks,
-                   vol1_transforms, 8.4, 36., 0.145, 32., 2., 5., {16, 14});
+                   vol1_transforms, vol1_surfaces_grid, 8.4, 36., 0.145, 32.,
+                   2., 5., {16, 14});
 
     // Add all objects to detector
     det.add_objects(ctx0, vol1, vol1_surfaces, vol1_masks, vol1_transforms);
+    det.add_surfaces_grid(ctx0, vol1, vol1_surfaces_grid);
 
     /**
      * Fill the gap volume -- volume ID = 2
@@ -323,6 +341,7 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     surface_container vol3_surfaces = {};
     mask_container vol3_masks(resource);
     transform_container vol3_transforms = {};
+    surfaces_regular_circular_grid vol3_surfaces_grid(resource);
 
     // disc portal at negative side
     add_disc_portal(vol3.index(), ctx0, vol3_surfaces, vol3_masks,
@@ -346,10 +365,12 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
 
     // create modules for the second layer
     create_modules(vol3.index(), inv_sf_finder, ctx0, vol3_surfaces, vol3_masks,
-                   vol3_transforms, 8.4, 36., 0.145, 72., 2., 5., {32, 14});
+                   vol3_transforms, vol3_surfaces_grid, 8.4, 36., 0.145, 72.,
+                   2., 5., {32, 14});
 
     // Add all objects to detector
     det.add_objects(ctx0, vol3, vol3_surfaces, vol3_masks, vol3_transforms);
+    det.add_surfaces_grid(ctx0, vol3, vol3_surfaces_grid);
 
     // return the detector
     return det;

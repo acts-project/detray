@@ -113,6 +113,9 @@ class surface_base {
     DETRAY_HOST_DEVICE
     const source_link &source() const { return _src; }
 
+    /** set grid link **/
+    void is_in_grid() { _in_grid = true; }
+
     /** Is this instance a portal in the sense of the unified_index_geometry? */
     DETRAY_HOST_DEVICE
     bool is_portal() const { return not(std::get<0>(_edg) == _vol); }
@@ -123,6 +126,7 @@ class surface_base {
     volume_link _vol;
     source_link _src;
     edge_link _edg = {};
+    bool _in_grid = false;
 };
 
 }  // namespace detray
