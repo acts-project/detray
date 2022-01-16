@@ -98,7 +98,7 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
     /** Function that creates the modules
      */
     auto create_modules =
-        [&](const dindex volume_id, const dindex invalid_value,
+        [&](typename detector_t::volume_type& vol, const dindex invalid_value,
             typename transform_store::context& ctx, surface_container& surfaces,
             mask_container& masks, transform_container& transforms,
             typename detector_t::surfaces_regular_circular_grid& surfaces_grid,
@@ -106,6 +106,9 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
             const scalar m_tilt_phi = 0.145, const scalar layer_r = 32.,
             const scalar radial_stagger = 2., const scalar l_overlap = 5.,
             const std::pair<int, int> binning = {16, 14}) {
+            auto volume_id = vol.index();
+            vol.set_grid_type(detector_t::volume_type::grid_type::e_z_phi_grid);
+
             // surface grid bins
             int n_phi_bins = binning.first;
             int n_z_bins = binning.second;
@@ -132,7 +135,6 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
             typename detector_t::surfaces_regular_axis z_axis(
                 n_z_bins, z_start - z_step * 0.5, z_end - z_step * 0.5,
                 resource);
-
             surfaces_grid = typename detector_t::surfaces_regular_circular_grid(
                 z_axis, phi_axis, resource);
 
@@ -297,12 +299,14 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
                         {vol2.index(), inv_sf_finder});
 
     // create modules for the first layer
-    create_modules(vol1.index(), inv_sf_finder, ctx0, vol1_surfaces, vol1_masks,
+    create_modules(vol1, inv_sf_finder, ctx0, vol1_surfaces, vol1_masks,
                    vol1_transforms, vol1_surfaces_grid, 8.4, 36., 0.145, 32.,
                    2., 5., {16, 14});
 
     // Add all objects to detector
     det.add_objects(ctx0, vol1, vol1_surfaces, vol1_masks, vol1_transforms);
+
+    // Add surfaces grid
     det.add_surfaces_grid(ctx0, vol1, vol1_surfaces_grid);
 
     /**
@@ -366,12 +370,14 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
                         {leaving_world, inv_sf_finder});
 
     // create modules for the second layer
-    create_modules(vol3.index(), inv_sf_finder, ctx0, vol3_surfaces, vol3_masks,
+    create_modules(vol3, inv_sf_finder, ctx0, vol3_surfaces, vol3_masks,
                    vol3_transforms, vol3_surfaces_grid, 8.4, 36., 0.145, 72.,
                    2., 5., {32, 14});
 
     // Add all objects to detector
     det.add_objects(ctx0, vol3, vol3_surfaces, vol3_masks, vol3_transforms);
+
+    // Add surfaces grid
     det.add_surfaces_grid(ctx0, vol3, vol3_surfaces_grid);
 
     // return the detector

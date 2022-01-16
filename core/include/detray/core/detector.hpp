@@ -135,10 +135,10 @@ class detector {
         array_type<transform_store, mask_id::e_mask_types>;
 
     // Neighborhood finder, using accelerator data structure
-    static constexpr size_t N_GRIDS =
-        static_cast<size_t>(detector_registry::n_grids);
+    static constexpr size_t N_VOLUMES =
+        static_cast<size_t>(detector_registry::n_volumes);
     using surfaces_finder_type =
-        surfaces_finder<N_GRIDS, array_type, tuple_type, vector_type,
+        surfaces_finder<N_VOLUMES, array_type, tuple_type, vector_type,
                         jagged_vector_type>;
 
     using surfaces_regular_circular_grid =
@@ -328,8 +328,10 @@ class detector {
     DETRAY_HOST inline void add_surfaces_grid(const context ctx,
                                               volume_type &vol,
                                               grid_type &surfaces_grid) {
+        // get the surface range associated with volume
         auto &rg = std::get<object_id::e_surface>(vol.ranges());
 
+        // iterate over surfaces to fill the grid
         auto surf_idx = rg[0];
         for (const auto &surf : iterator_range(_surfaces, rg)) {
             if (surf.get_grid_status() == true) {
@@ -337,10 +339,21 @@ class detector {
                     _transforms.contextual_transform(ctx, surf.transform());
                 auto tsl = trf.translation();
 
-                point2 loc{tsl[2], algebra::getter::phi(tsl)};
+                point2 loc;
+                if (vol.get_grid_type() ==
+                    volume_type::grid_type::e_z_phi_grid) {
+                    loc = point2{tsl[2], algebra::getter::phi(tsl)};
+                } else if (vol.get_grid_type() ==
+                           volume_type::grid_type::e_r_phi_grid) {
+                    loc = point2{algebra::getter::perp(tsl),
+                                 algebra::getter::phi(tsl)};
+                }
                 surfaces_grid.populate(loc, surf_idx++);
             }
         }
+
+        // add surfaces grid into surfaces finder
+        _surfaces_finder[vol.index()] = surfaces_grid;
     }
 
     /** Unrolls the data containers according to the mask type and fill the

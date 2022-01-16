@@ -30,6 +30,12 @@ class volume {
     // used for sfinae
     using volume_def = volume<object_registry, range_type, array_type>;
 
+    enum grid_type : unsigned int {
+        e_no_grid = 0,
+        e_z_phi_grid = 2,  // barrel
+        e_r_phi_grid = 1,  // endcap
+    };
+
     /** Default constructor**/
     volume() = default;
 
@@ -125,6 +131,12 @@ class volume {
         return std::get<1>(rg) - std::get<0>(rg);
     }
 
+    /** set grid type associated with volume */
+    void set_grid_type(grid_type val) { _grid_type = val; }
+
+    /** get grid type associated with volume */
+    const auto get_grid_type() const { return _grid_type; }
+
     /** Equality operator
      *
      * @param rhs is the right hand side to be compared to
@@ -154,6 +166,9 @@ class volume {
 
     /** Index into the surface finder container */
     dindex _surfaces_finder_entry = dindex_invalid;
+
+    /** grid type associated with volume **/
+    grid_type _grid_type = e_no_grid;
 };
 
 }  // namespace detray
