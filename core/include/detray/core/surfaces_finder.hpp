@@ -43,6 +43,8 @@ struct surfaces_finder {
     template <typename... Args>
     using tuple_t = tuple_type<Args...>;
 
+    // TODO: We will need to consider regular_regular grid in case the rectangle
+    // layer is used in geometry
     using surfaces_regular_circular_grid =
         grid2<attach_populator, axis::regular, axis::circular, serializer2,
               vector_type, jagged_vector_type, array_type, tuple_type, dindex,

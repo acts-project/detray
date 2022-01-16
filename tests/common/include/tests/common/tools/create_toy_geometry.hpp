@@ -118,18 +118,20 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
             scalar pi{static_cast<scalar>(M_PI)};
             scalar phi_step = scalar{2} * pi / (n_phi_bins);
             scalar min_phi = -pi + scalar{0.5} * phi_step;
-            scalar max_phi = min_phi + (n_phi_bins - 1) * phi_step;
+            scalar max_phi = min_phi + n_phi_bins * phi_step;
 
             scalar z_start = scalar{-0.5} * (n_z_bins - 1) *
                              (scalar{2} * m_half_y - l_overlap);
             scalar z_step = scalar{2} * std::abs(z_start) / (n_z_bins - 1);
-            scalar z_end = z_start + (n_z_bins - 1) * z_step;
+            scalar z_end = z_start + n_z_bins * z_step;
 
             // add surface grid
             typename detector_t::surfaces_circular_axis phi_axis(
-                n_phi_bins, min_phi, max_phi, resource);
-            typename detector_t::surfaces_regular_axis z_axis(n_z_bins, z_start,
-                                                              z_end, resource);
+                n_phi_bins, min_phi - phi_step * 0.5, max_phi - phi_step * 0.5,
+                resource);
+            typename detector_t::surfaces_regular_axis z_axis(
+                n_z_bins, z_start - z_step * 0.5, z_end - z_step * 0.5,
+                resource);
 
             surfaces_grid = typename detector_t::surfaces_regular_circular_grid(
                 z_axis, phi_axis, resource);
@@ -183,7 +185,7 @@ auto create_toy_geometry(vecmem::memory_resource& resource) {
 
                 surf.set_edge({volume_id, invalid_value});
 
-                surf.is_in_grid();
+                surf.set_grid_status(true);
                 // add surface to surface container
                 surfaces[detector_t::e_rectangle2].push_back(surf);
             }

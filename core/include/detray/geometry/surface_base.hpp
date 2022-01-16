@@ -113,8 +113,11 @@ class surface_base {
     DETRAY_HOST_DEVICE
     const source_link &source() const { return _src; }
 
-    /** set grid link **/
-    void is_in_grid() { _in_grid = true; }
+    /** get if the surface belongs to grid **/
+    auto get_grid_status() const { return _in_grid; }
+
+    /** set if the surface belongs to grid **/
+    void set_grid_status(bool status) { _in_grid = status; }
 
     /** Is this instance a portal in the sense of the unified_index_geometry? */
     DETRAY_HOST_DEVICE

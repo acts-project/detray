@@ -332,11 +332,14 @@ class detector {
 
         auto surf_idx = rg[0];
         for (const auto &surf : iterator_range(_surfaces, rg)) {
-            auto &trf = _transforms.contextual_transform(ctx, surf.transform());
-            auto tsl = trf.translation();
+            if (surf.get_grid_status() == true) {
+                auto &trf =
+                    _transforms.contextual_transform(ctx, surf.transform());
+                auto tsl = trf.translation();
 
-            point2 loc{tsl[2], algebra::getter::phi(tsl)};
-            surfaces_grid.populate(loc, surf_idx++);
+                point2 loc{tsl[2], algebra::getter::phi(tsl)};
+                surfaces_grid.populate(loc, surf_idx++);
+            }
         }
     }
 
