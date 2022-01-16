@@ -37,7 +37,7 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
     // Build the graph
     const auto g =
         geometry_graph<detector_t>(toy_det.volumes(), toy_det.surfaces());
-    const auto &adj_linking = g.adjacency_list();
+    // const auto &adj_linking = g.adjacency_list();
 
     std::cout << g.to_string() << std::endl;
 

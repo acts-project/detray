@@ -73,7 +73,7 @@ struct print_inspector {
             }
         }
 
-        switch (state.status()) {
+        switch (static_cast<int>(state.status())) {
             case -3:
                 debug_stream << "status\t\t\t\t\ton_target" << std::endl;
                 break;
@@ -148,24 +148,24 @@ struct aggregate_inspector {
     }
 };
 
-// vecmem::host_memory_resource host_mr;
-// auto [d, name_map] = read_from_csv(tml_files, host_mr);
-
-vecmem::host_memory_resource host_mr;
-auto d = create_toy_geometry(host_mr);
-
-// Create the navigator
-using detray_context = decltype(d)::context;
-using detray_track = track<detray_context>;
-using detray_inspector = aggregate_inspector<object_tracer<1>, print_inspector>;
-using detray_navigator = navigator<decltype(d), detray_inspector>;
-using detray_stepper = line_stepper<detray_track>;
-
-detray_navigator n(d);
-detray_stepper s;
-
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, geometry_discovery) {
+    // vecmem::host_memory_resource host_mr;
+    // auto [d, name_map] = read_from_csv(tml_files, host_mr);
+
+    vecmem::host_memory_resource host_mr;
+    auto d = create_toy_geometry(host_mr);
+
+    // Create the navigator
+    using detray_context = decltype(d)::context;
+    using detray_track = track<detray_context>;
+    using detray_inspector =
+        aggregate_inspector<object_tracer<1>, print_inspector>;
+    using detray_navigator = navigator<decltype(d), detray_inspector>;
+    using detray_stepper = line_stepper<detray_track>;
+
+    detray_navigator n(d);
+    detray_stepper s;
 
     unsigned int theta_steps = 100;
     unsigned int phi_steps = 100;

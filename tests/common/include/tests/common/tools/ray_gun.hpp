@@ -72,8 +72,8 @@ inline auto shoot_ray(const detector_t &detector, const point3 &origin,
                       const point3 &direction) {
 
     using detray_context = typename detector_t::context;
+    // detray_context default_context;
 
-    detray_context default_context;
     track<detray_context> ray = {.pos = origin, .dir = direction};
 
     return shoot_ray(detector, ray);

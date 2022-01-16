@@ -158,19 +158,19 @@ class navigator {
         inline void set_object(dindex obj) { _object_index = obj; }
 
         /** @returns current navigation status */
-        inline const auto &status() { return _status; }
+        inline const auto status() { return _status; }
 
         /** Set new navigation status */
         inline void set_status(navigation_status stat) { _status = stat; }
 
         /** @returns tolerance to determine if we are on object */
-        inline const auto &tolerance() { return _on_object_tolerance; }
+        inline const auto tolerance() { return _on_object_tolerance; }
 
         /** Adjust the on-object tolerance */
         inline void set_tolerance(scalar tol) { _on_object_tolerance = tol; }
 
         /** @returns navigation trust level */
-        inline const auto &trust_level() { return _trust_level; }
+        inline const auto trust_level() { return _trust_level; }
 
         /** Update navigation trust level */
         inline void set_trust_level(navigation_trust_level lvl) {
@@ -178,7 +178,7 @@ class navigator {
         }
 
         /** @returns current volume (index) */
-        inline const auto &volume() { return _volume_index; }
+        inline const auto volume() { return _volume_index; }
 
         /** Set start/new volume */
         inline void set_volume(dindex v) { _volume_index = v; }

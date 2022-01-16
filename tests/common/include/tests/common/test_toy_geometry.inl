@@ -18,7 +18,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     vecmem::host_memory_resource host_mr;
     auto toy_det = create_toy_geometry(host_mr);
 
-    using objs = typename decltype(toy_det)::object_id;
     using context_t = typename decltype(toy_det)::context;
     context_t ctx{};
     auto& volumes = toy_det.volumes();

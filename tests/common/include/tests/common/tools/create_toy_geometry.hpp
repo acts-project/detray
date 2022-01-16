@@ -5,16 +5,14 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <climits>
+
 #include "detray/core/detector.hpp"
 #include "tests/common/tools/detector_registry.hpp"
-
-#include <climits>
-#include <iostream>
-#include <stdexcept>
+//#include <iostream>
+//#include <stdexcept>
 #include <type_traits>
 #include <vecmem/memory/host_memory_resource.hpp>
-
-#include "detray/core/detector.hpp"
 
 namespace detray {
 
@@ -202,25 +200,27 @@ inline void create_barrel_modules(context_t &ctx, const dindex volume_id,
     m_centers.reserve(n_phi_bins * n_z_bins);
 
     // prep work
-    scalar pi{static_cast<scalar>(M_PI)};
-    scalar phi_step = scalar{2} * pi / (n_phi_bins);
-    scalar min_phi = -pi + scalar{0.5} * phi_step;
-    scalar z_start = scalar{-0.5} * (n_z_bins - 1) *
-                     (scalar{2} * cfg.m_half_y - cfg.m_long_overlap);
-    scalar z_step = scalar{2} * std::abs(z_start) / (n_z_bins - 1);
+    // double pi{static_cast<scalar>(M_PI)};
+    double phi_step = 2 * M_PI / (n_phi_bins);
+    double min_phi = -M_PI + 0.5 * phi_step;
+    double z_start =
+        -0.5 * (n_z_bins - 1) * (2 * cfg.m_half_y - cfg.m_long_overlap);
+    double z_step = 2 * std::abs(z_start) / (n_z_bins - 1);
 
     // loop over the z bins
     for (size_t z_bin = 0; z_bin < size_t(n_z_bins); ++z_bin) {
         // prepare z and r
-        scalar m_z = z_start + z_bin * z_step;
-        scalar m_r = (z_bin % 2) != 0u
-                         ? cfg.layer_r - scalar{0.5} * cfg.m_radial_stagger
-                         : cfg.layer_r + scalar{0.5} * cfg.m_radial_stagger;
+        double m_z = z_start + z_bin * z_step;
+        double m_r = (z_bin % 2) != 0u
+                         ? cfg.layer_r - 0.5 * cfg.m_radial_stagger
+                         : cfg.layer_r + 0.5 * cfg.m_radial_stagger;
         for (size_t phiBin = 0; phiBin < size_t(n_phi_bins); ++phiBin) {
             // calculate the current phi value
-            scalar m_phi = min_phi + phiBin * phi_step;
+            double m_phi = min_phi + phiBin * phi_step;
             m_centers.push_back(
-                point3{m_r * std::cos(m_phi), m_r * std::sin(m_phi), m_z});
+                point3{static_cast<scalar>(m_r * std::cos(m_phi)),
+                       static_cast<scalar>(m_r * std::sin(m_phi)),
+                       static_cast<scalar>(m_z)});
         }
     }
 
@@ -275,9 +275,9 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
     r_positions.reserve(n_phi_bins);
 
     // prep work
-    scalar pi{static_cast<scalar>(M_PI)};
-    scalar phi_step = scalar{2} * pi / (n_phi_bins);
-    double min_phi = -pi + 0.5 * phi_step;
+    // scalar pi{static_cast<scalar>(M_PI)};
+    double phi_step = scalar{2} * M_PI / (n_phi_bins);
+    double min_phi = -M_PI + 0.5 * phi_step;
 
     for (size_t iphi = 0; iphi < size_t(n_phi_bins); ++iphi) {
         // if we have a phi sub stagger presents
@@ -298,7 +298,9 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
         // main z position depending on phi bin
         double rz = iphi % 2 ? z - 0.5 * phi_stagger : z + 0.5 * phi_stagger;
         r_positions.push_back(
-            vector3{radius * std::cos(phi), radius * std::sin(phi), rz + rzs});
+            vector3{static_cast<scalar>(radius * std::cos(phi)),
+                    static_cast<scalar>(radius * std::sin(phi)),
+                    static_cast<scalar>(rz + rzs)});
     }
     return r_positions;
 }
@@ -328,7 +330,7 @@ void create_endcap_modules(context_t &ctx, const dindex volume_id,
     // calculate the radial borders
     // std::vector<scalar> radial_boarders;
     // the radial span of the disc
-    scalar delta_r = cfg.outer_r - cfg.inner_r;
+    double delta_r = cfg.outer_r - cfg.inner_r;
 
     // Only one ring
     if (cfg.disc_binning.size() == 1) {
@@ -336,16 +338,16 @@ void create_endcap_modules(context_t &ctx, const dindex volume_id,
         // radial_boarders = {inner_r, outer_r};
     } else {
         // sum up the total length of the modules along r
-        scalar tot_length = 0;
+        double tot_length = 0;
         for (auto &m_hlength : cfg.m_half_y) {
-            tot_length += scalar{2} * m_hlength + 0.5;
+            tot_length += 2 * m_hlength + 0.5;
         }
         // now calculate the overlap (equal pay)
-        scalar r_overlap = (tot_length - delta_r) / (cfg.m_half_y.size() - 1);
+        double r_overlap = (tot_length - delta_r) / (cfg.m_half_y.size() - 1);
         // and now fill the radii and gaps
-        scalar prev_r = cfg.inner_r;
-        scalar prev_hl = 0.;
-        scalar prev_ol = 0.;
+        double prev_r = cfg.inner_r;
+        double prev_hl = 0.;
+        double prev_ol = 0.;
         // remember the radial boarders
         // radial_boarders.push_back(inner_r);
         for (auto &m_hlength : cfg.m_half_y) {
@@ -400,9 +402,10 @@ void create_endcap_modules(context_t &ctx, const dindex volume_id,
             // the center position of the modules
             point3 m_center{static_cast<scalar>(cfg.side) * m_position};
             // the rotation matrix of the module
-            vector3 m_local_y{std::cos(m_phi), std::sin(m_phi), 0.};
+            vector3 m_local_y{static_cast<scalar>(std::cos(m_phi)),
+                              static_cast<scalar>(std::sin(m_phi)), 0.};
             // take different axis to have the same readout direction
-            vector3 m_local_z{0., 0., cfg.side * 1.};
+            vector3 m_local_z{0., 0., cfg.side * scalar{1.}};
             vector3 m_local_x = algebra::vector::cross(m_local_y, m_local_z);
 
             // Create the module transform
@@ -477,7 +480,7 @@ inline void add_beampipe(
 
     // positive endcap portals
     volume_link += 6;
-    for (int i = 0; i < vol_sizes.size(); ++i) {
+    for (std::size_t i = 0; i < vol_sizes.size(); ++i) {
         edge = {++volume_link, inv_sf_finder};
         add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, transforms,
                              edc_inner_r, vol_sizes[i].second,
@@ -768,16 +771,8 @@ auto create_toy_geometry(vecmem::memory_resource &resource) {
                                 tuple_type, vector_type, jagged_vector_type>;
 
     // sub-geometry components type
-    using edge_links = typename detector_t::edge_type;
-    using volume = typename detector_t::volume_type;
-    using surface = typename detector_t::surface_type;
-    using mask_container = typename detector_t::mask_container;
     using transform_store = typename detector_t::transform_store;
-    using transform_container = typename detector_t::transform_container;
-    using surface_container = typename detector_t::surface_filling_container;
 
-    /** source link */
-    const dindex inv_sf_finder = dindex_invalid;
     /** Leaving world */
     const dindex leaving_world = dindex_invalid;
 
@@ -872,7 +867,7 @@ auto create_toy_geometry(vecmem::memory_resource &resource) {
     detector_t det(resource);
 
     // context object
-    typename transform_store::context ctx0;
+    typename transform_store::context ctx0{};
 
     brl_m_config brl_config{};
     edc_m_config edc_config{};
@@ -929,7 +924,7 @@ auto create_toy_geometry(vecmem::memory_resource &resource) {
         det, resource, ctx0, n_edc_layers, beampipe_idx, edc_lay_sizes,
         edc_positions, edc_config);
 
-    return std::move(det);
+    return det;
 }
 
 }  // namespace detray

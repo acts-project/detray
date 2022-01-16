@@ -205,7 +205,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     sf_sequences[last_vol_id] = {2388, 2310, 2887};
 
     // Every iteration steps through one barrel layer
-    for (const auto [vol_id, sf_seq] : sf_sequences) {
+    for (const auto &[vol_id, sf_seq] : sf_sequences) {
         // Includes the portal we are automatically on
         std::size_t n_candidates = sf_seq.size() + 1;
 
