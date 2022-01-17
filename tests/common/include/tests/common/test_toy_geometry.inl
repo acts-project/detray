@@ -16,7 +16,7 @@ using namespace detray;
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     vecmem::host_memory_resource host_mr;
-    auto toy_det = create_toy_geometry(host_mr);
+    auto toy_det = create_toy_geometry(host_mr, 4, 3);
 
     using context_t = typename decltype(toy_det)::context;
     context_t ctx{};

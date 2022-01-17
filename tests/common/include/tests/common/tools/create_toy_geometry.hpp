@@ -420,7 +420,7 @@ void create_endcap_modules(context_t &ctx, const dindex volume_id,
  * @param det detector the volume should be added to
  * @param resource vecmem memory resource for the temporary containers
  * @param ctx geometry context
- * @param n_layers number of layers that contain modules
+ * @param n_layers number of endcap layers that contain modules
  * @param edc_lay_sizes extend of the outer cylinder portal surfaces in z
  * @param beampipe_vol_size inner and outer radious of the beampipe volume
  * @param beampipe_r radius of the beampipe surface
@@ -429,7 +429,8 @@ void create_endcap_modules(context_t &ctx, const dindex volume_id,
 template <typename detector_t>
 inline void add_beampipe(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, const unsigned int n_layers,
+    typename detector_t::context &ctx, const std::size_t n_edc_layers,
+    const std::size_t n_brl_layers,
     const std::vector<std::pair<scalar, scalar>> &edc_lay_sizes,
     const std::pair<scalar, scalar> &beampipe_vol_size, const scalar beampipe_r,
     const scalar brl_half_z, const scalar edc_inner_r) {
@@ -437,8 +438,8 @@ inline void add_beampipe(
     const dindex inv_sf_finder = dindex_invalid;
     const dindex leaving_world = dindex_invalid;
 
-    scalar max_z = n_layers == 0 ? edc_lay_sizes[0].first
-                                 : edc_lay_sizes[n_layers - 1].second;
+    scalar max_z =
+        n_edc_layers <= 0 ? brl_half_z : edc_lay_sizes[n_edc_layers - 1].second;
     scalar min_z = -max_z;
 
     typename detector_t::surface_filling_container surfaces = {};
@@ -458,7 +459,7 @@ inline void add_beampipe(
     // Get vol sizes in z, including for gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes{
         {brl_half_z, edc_lay_sizes[0].first}};
-    for (std::size_t i = 0; i < n_layers; ++i) {
+    for (std::size_t i = 0; i < n_edc_layers; ++i) {
         vol_sizes.emplace_back(edc_lay_sizes[i].first, edc_lay_sizes[i].second);
         vol_sizes.emplace_back(edc_lay_sizes[i].second,
                                edc_lay_sizes[i + 1].first);
@@ -474,12 +475,16 @@ inline void add_beampipe(
                              -vol_sizes[i].first, edge);
     }
     // barrel portals
-    edge = {++volume_link, inv_sf_finder};
+    if (n_brl_layers <= 0) {
+        edge = {leaving_world, inv_sf_finder};
+    } else {
+        edge = {volume_link + 1, inv_sf_finder};
+    }
     add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, transforms,
                          edc_inner_r, -brl_half_z, brl_half_z, edge);
 
     // positive endcap portals
-    volume_link += 6;
+    volume_link += 7;
     for (std::size_t i = 0; i < vol_sizes.size(); ++i) {
         edge = {++volume_link, inv_sf_finder};
         add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, transforms,
@@ -586,11 +591,7 @@ void add_endcap_detector(
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions, config_t cfg) {
 
-    if (n_layers == 0) {
-        return;
-    }
-
-    // Generate consecutive linking between volumes
+    // Generate consecutive linking between volumes (all edges for every vol.)
     std::vector<std::vector<typename detector_t::edge_type>> edges_vec;
     dindex leaving_world = dindex_invalid, inv_sf_finder = dindex_invalid;
     dindex first_vol_idx = det.volumes().back().index() + 1;
@@ -598,7 +599,7 @@ void add_endcap_detector(
     dindex prev_vol_idx = first_vol_idx - 1;
     dindex next_vol_idx = first_vol_idx + 1;
 
-    for (std::size_t i = 0; i < 2 * n_layers - 3; ++i) {
+    for (int i = 0; i < 2 * static_cast<int>(n_layers) - 3; ++i) {
         edges_vec.push_back({{beampipe_idx, inv_sf_finder},
                              {leaving_world, inv_sf_finder},
                              {++prev_vol_idx, inv_sf_finder},
@@ -617,11 +618,14 @@ void add_endcap_detector(
                              {last_vol_idx - 1, inv_sf_finder},
                              {last_vol_idx + 1, inv_sf_finder}});
     } else {
-        edges_vec.insert(edges_vec.begin(),
-                         {{beampipe_idx, inv_sf_finder},
-                          {leaving_world, inv_sf_finder},
-                          {first_vol_idx - 1, inv_sf_finder},
-                          {first_vol_idx + 1, inv_sf_finder}});
+        // For n_layers=1 no extra gap layer is needed
+        if (n_layers > 1) {
+            edges_vec.insert(edges_vec.begin(),
+                             {{beampipe_idx, inv_sf_finder},
+                              {leaving_world, inv_sf_finder},
+                              {first_vol_idx - 1, inv_sf_finder},
+                              {first_vol_idx + 1, inv_sf_finder}});
+        }
 
         edges_vec.push_back({{beampipe_idx, inv_sf_finder},
                              {leaving_world, inv_sf_finder},
@@ -688,35 +692,37 @@ void add_barrel_detector(
     const std::vector<scalar> &lay_positions,
     const std::vector<std::pair<int, int>> &m_binning, config_t cfg) {
 
-    if (n_layers == 0) {
-        return;
-    }
-
     // Generate consecutive linking between volumes
     dindex leaving_world = dindex_invalid, inv_sf_finder = dindex_invalid;
-    dindex first_vol_idx = det.volumes().back().index() + 1;
-    dindex last_vol_idx = first_vol_idx + 2 * n_layers - 2;
-    dindex prev_vol_idx = first_vol_idx - 1;
-    dindex next_vol_idx = first_vol_idx + 1;
+    dindex first_vol_idx = det.volumes().back().index();
+    dindex last_vol_idx = first_vol_idx + 2 * n_layers;
+    dindex prev_vol_idx = first_vol_idx;
+    dindex next_vol_idx = n_layers > 1 ? first_vol_idx + 2 : leaving_world;
+
+    // Leave world, if no endcaps are present
+    if (det.volumes().back().index() == 0) {
+        first_vol_idx = leaving_world;
+        last_vol_idx = leaving_world;
+    }
 
     // First barrel layer is connected to the beampipe
     std::vector<std::vector<typename detector_t::edge_type>> edges_vec{
         {{beampipe_idx, inv_sf_finder},
          {next_vol_idx, inv_sf_finder},
-         {first_vol_idx - 1, inv_sf_finder},
-         {last_vol_idx + 1, inv_sf_finder}}};
+         {first_vol_idx, inv_sf_finder},
+         {last_vol_idx, inv_sf_finder}}};
 
     for (std::size_t i = 1; i < 2 * n_layers - 2; ++i) {
         edges_vec.push_back({{++prev_vol_idx, inv_sf_finder},
                              {++next_vol_idx, inv_sf_finder},
-                             {first_vol_idx - 1, inv_sf_finder},
-                             {last_vol_idx + 1, inv_sf_finder}});
+                             {first_vol_idx, inv_sf_finder},
+                             {last_vol_idx, inv_sf_finder}});
     }
     // Last barrel layer leaves detector world
     edges_vec.push_back({{++prev_vol_idx, inv_sf_finder},
                          {leaving_world, inv_sf_finder},
-                         {first_vol_idx - 1, inv_sf_finder},
-                         {last_vol_idx + 1, inv_sf_finder}});
+                         {first_vol_idx, inv_sf_finder},
+                         {last_vol_idx, inv_sf_finder}});
 
     // Get vol sizes in z, including gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes{
@@ -749,14 +755,13 @@ void add_barrel_detector(
 
 }  // namespace
 
-/** Builds a simple detray geometry of the innermost tml layers. It contains:
+/** Builds a detray geometry that contains the innermost tml layers. The number
+ *  of barrel and endcap layers can be chosen, but all barrel layers should be
+ *  present when an endcap detector is built to have the barrel region radius
+ *  match the endcap diameter.
  *
- * - a beampipe (r = 19mm, half_z = 825mm)
- * - a first layer (r_min = 27mm, r_max = 38mm, half_z = 500mm) with 224
- *   rectangular (half_x = 8.4mm, half_y = 36mm) modules at r = 32mm
- * - an empty layer (r_min = 38mm, r_max = 64mm, half_z = 500mm)
- * - a second layer (r_min = 64mm, r_max = 80mm, half_z = 500mm) with 448
- *   rectangular (half_x = 8.4mm, half_y = 36mm) modules at r = 72mm.
+ * @param n_brl_layers number of pixel barrel layer to build (max 4)
+ * @param n_edc_layers number of pixel endcap discs to build (max 7)
  *
  * @returns a complete detector object
  */
@@ -764,7 +769,9 @@ template <template <typename, unsigned int> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector>
-auto create_toy_geometry(vecmem::memory_resource &resource) {
+auto create_toy_geometry(vecmem::memory_resource &resource,
+                         std::size_t n_brl_layers = 4,
+                         std::size_t n_edc_layers = 3) {
 
     // detector type
     using detector_t = detector<detector_registry::toy_detector, array_type,
@@ -775,11 +782,6 @@ auto create_toy_geometry(vecmem::memory_resource &resource) {
 
     /** Leaving world */
     const dindex leaving_world = dindex_invalid;
-
-    // create four barrel layers with modules
-    std::size_t n_brl_layers = 4;
-    // create three endcap layers with modules
-    std::size_t n_edc_layers = 3;
 
     //
     // barrel
@@ -872,57 +874,75 @@ auto create_toy_geometry(vecmem::memory_resource &resource) {
     brl_m_config brl_config{};
     edc_m_config edc_config{};
 
+    if (n_edc_layers > edc_positions.size()) {
+        throw std::invalid_argument(
+            "ERROR: Too many endcap layers requested (max " +
+            std::to_string(edc_positions.size()) + ")!");
+    }
+    if (n_brl_layers > brl_positions.size() - 1) {
+        throw std::invalid_argument(
+            "ERROR: Too many barrel layers requested (max " +
+            std::to_string(brl_positions.size() - 1) + ")!");
+    }
     // the radius of the endcaps and  the barrel section need to match
-    if (std::fabs(brl_lay_sizes[n_brl_layers].second - edc_config.outer_r) >
-        std::numeric_limits<scalar>::epsilon()) {
+    if (n_edc_layers > 0 and
+        std::fabs(brl_lay_sizes[n_brl_layers].second - edc_config.outer_r) >
+            std::numeric_limits<scalar>::epsilon()) {
         throw std::invalid_argument(
             "ERROR: Barrel and endcap radii do not match!");
     }
 
     // beampipe
     dindex beampipe_idx = 0;
-    add_beampipe(det, resource, ctx0, n_edc_layers, edc_lay_sizes,
+    add_beampipe(det, resource, ctx0, n_edc_layers, n_brl_layers, edc_lay_sizes,
                  brl_lay_sizes[0], brl_positions[0], brl_half_z,
                  edc_config.inner_r);
 
-    edc_config.side = -1;
-    // negative endcap layers
-    add_endcap_detector<empty_vol_factory, edc_module_factory>(
-        det, resource, ctx0, n_edc_layers, beampipe_idx, edc_lay_sizes,
-        edc_positions, edc_config);
+    if (n_edc_layers > 0) {
+        edc_config.side = -1;
+        // negative endcap layers
+        add_endcap_detector<empty_vol_factory, edc_module_factory>(
+            det, resource, ctx0, n_edc_layers, beampipe_idx, edc_lay_sizes,
+            edc_positions, edc_config);
 
-    // gap volume that connects barrel and neg. endcap
-    dindex prev_vol_idx = det.volumes().back().index();
-    prev_vol_idx = prev_vol_idx == 0 ? leaving_world : prev_vol_idx;
-    dindex next_vol_idx =
-        n_brl_layers == 0 ? leaving_world : det.volumes().back().index() + 2;
+        // gap volume that connects barrel and neg. endcap
+        dindex prev_vol_idx = det.volumes().back().index();
+        prev_vol_idx = prev_vol_idx == 0 ? leaving_world : prev_vol_idx;
+        dindex next_vol_idx = n_brl_layers == 0
+                                  ? leaving_world
+                                  : det.volumes().back().index() + 2;
 
-    add_endcap_barrel_connection(
-        det, resource, ctx0, edc_config.side, n_brl_layers, beampipe_idx,
-        brl_lay_sizes, edc_config.inner_r, edc_config.outer_r,
-        edc_lay_sizes[0].first, brl_half_z, next_vol_idx, prev_vol_idx);
+        add_endcap_barrel_connection(
+            det, resource, ctx0, edc_config.side, n_brl_layers, beampipe_idx,
+            brl_lay_sizes, edc_config.inner_r, edc_config.outer_r,
+            edc_lay_sizes[0].first, brl_half_z, next_vol_idx, prev_vol_idx);
+    }
+    if (n_brl_layers > 0) {
+        // barrel
+        add_barrel_detector<empty_vol_factory, brl_module_factory>(
+            det, resource, ctx0, n_brl_layers, beampipe_idx, brl_half_z,
+            brl_lay_sizes, brl_positions, brl_binning, brl_config);
+    }
+    if (n_edc_layers > 0) {
+        // gap layer that connects barrel and pos. endcap
+        edc_config.side = 1.;
+        // innermost barrel layer volume id
+        dindex prev_vol_idx =
+            n_brl_layers == 0 ? leaving_world : 2 * n_edc_layers + 1;
+        dindex next_vol_idx = prev_vol_idx == 1
+                                  ? leaving_world
+                                  : det.volumes().back().index() + 2;
 
-    // barrel
-    add_barrel_detector<empty_vol_factory, brl_module_factory>(
-        det, resource, ctx0, n_brl_layers, beampipe_idx, brl_half_z,
-        brl_lay_sizes, brl_positions, brl_binning, brl_config);
+        add_endcap_barrel_connection(
+            det, resource, ctx0, edc_config.side, n_brl_layers, beampipe_idx,
+            brl_lay_sizes, edc_config.inner_r, edc_config.outer_r, brl_half_z,
+            edc_lay_sizes[0].first, prev_vol_idx, next_vol_idx);
 
-    // gap layer that connects barrel and pos. endcap
-    edc_config.side = 1.;
-    // innermost barrel layer volume id
-    prev_vol_idx = n_brl_layers == 0 ? leaving_world : 2 * n_edc_layers + 1;
-    next_vol_idx =
-        prev_vol_idx == 1 ? leaving_world : det.volumes().back().index() + 2;
-
-    add_endcap_barrel_connection(
-        det, resource, ctx0, edc_config.side, n_brl_layers, beampipe_idx,
-        brl_lay_sizes, edc_config.inner_r, edc_config.outer_r, brl_half_z,
-        edc_lay_sizes[0].first, prev_vol_idx, next_vol_idx);
-
-    // positive endcap layers
-    add_endcap_detector<empty_vol_factory, edc_module_factory>(
-        det, resource, ctx0, n_edc_layers, beampipe_idx, edc_lay_sizes,
-        edc_positions, edc_config);
+        // positive endcap layers
+        add_endcap_detector<empty_vol_factory, edc_module_factory>(
+            det, resource, ctx0, n_edc_layers, beampipe_idx, edc_lay_sizes,
+            edc_positions, edc_config);
+    }
 
     return det;
 }

@@ -101,7 +101,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     /** Tolerance for tests */
     constexpr double tol = 0.01;
 
-    auto toy_det = create_toy_geometry(host_mr);
+    auto toy_det = create_toy_geometry(host_mr, 4, 0);
     navigator n(toy_det);
     using toy_navigator = decltype(n);
     using nav_context = decltype(toy_det)::context;
