@@ -6,13 +6,12 @@
  */
 
 #include <climits>
+#include <stdexcept>
+#include <type_traits>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/detector.hpp"
 #include "tests/common/tools/detector_registry.hpp"
-//#include <iostream>
-//#include <stdexcept>
-#include <type_traits>
-#include <vecmem/memory/host_memory_resource.hpp>
 
 namespace detray {
 
