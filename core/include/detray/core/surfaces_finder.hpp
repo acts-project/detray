@@ -108,6 +108,19 @@ struct surfaces_finder {
      */
     DETRAY_HOST_DEVICE constexpr size_t size() const { return N_GRIDS; }
 
+    /** return the number of grids that are not empty
+     * @return the effective number of grids
+     */
+    DETRAY_HOST_DEVICE size_t effective_size() {
+        size_t ret = 0;
+        for (unsigned int i_s = 0; i_s < N_GRIDS; i_s++) {
+            if (!_surface_grids[i_s].data().empty()) {
+                ret++;
+            }
+        }
+        return ret;
+    }
+
     /** Access operator - non-const
      * @return the surface grid element
      */

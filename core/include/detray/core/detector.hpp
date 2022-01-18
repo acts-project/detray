@@ -135,10 +135,10 @@ class detector {
         array_type<transform_store, mask_id::e_mask_types>;
 
     // Neighborhood finder, using accelerator data structure
-    static constexpr size_t N_VOLUMES =
-        static_cast<size_t>(detector_registry::n_volumes);
+    static constexpr size_t N_GRIDS =
+        static_cast<size_t>(detector_registry::n_grids);
     using surfaces_finder_type =
-        surfaces_finder<N_VOLUMES, array_type, tuple_type, vector_type,
+        surfaces_finder<N_GRIDS, array_type, tuple_type, vector_type,
                         jagged_vector_type>;
 
     using surfaces_regular_circular_grid =
@@ -354,7 +354,13 @@ class detector {
         }
 
         // add surfaces grid into surfaces finder
-        _surfaces_finder[vol.index()] = surfaces_grid;
+        for (unsigned int i_s = 0; i_s < _surfaces_finder.size(); i_s++) {
+            if (_surfaces_finder[i_s].data().empty()) {
+                _surfaces_finder[i_s] = surfaces_grid;
+                vol.set_surfaces_finder(i_s);
+                break;
+            }
+        }
     }
 
     /** Unrolls the data containers according to the mask type and fill the

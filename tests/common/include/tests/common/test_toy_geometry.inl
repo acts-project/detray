@@ -16,12 +16,16 @@ using namespace detray;
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     vecmem::host_memory_resource host_mr;
-    auto toy_det = create_toy_geometry(host_mr, 4, 3);
+    std::size_t n_brl_layers = 4;
+    std::size_t n_edc_layers = 3;
+
+    auto toy_det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     using context_t = typename decltype(toy_det)::context;
     context_t ctx{};
     auto& volumes = toy_det.volumes();
     auto& surfaces = toy_det.surfaces();
+    auto& surfaces_finder = toy_det.get_surfaces_finder();
     auto& transforms = toy_det.transforms();
     auto& masks = toy_det.masks();
     auto& rectangles = masks.template group<0>();
@@ -39,6 +43,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 20);
     EXPECT_EQ(surfaces.size(), 3244);
+    EXPECT_EQ(surfaces_finder.size(), decltype(toy_det)::N_GRIDS);
+    EXPECT_EQ(surfaces_finder.effective_size(),
+              n_brl_layers + 2 * n_edc_layers);
     EXPECT_EQ(transforms.size(ctx), 3244);
     EXPECT_EQ(rectangles.size(), 2492);
     EXPECT_EQ(trapezoids.size(), 648);
