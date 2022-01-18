@@ -354,13 +354,9 @@ class detector {
         }
 
         // add surfaces grid into surfaces finder
-        for (unsigned int i_s = 0; i_s < _surfaces_finder.size(); i_s++) {
-            if (_surfaces_finder[i_s].data().empty()) {
-                _surfaces_finder[i_s] = surfaces_grid;
-                vol.set_surfaces_finder(i_s);
-                break;
-            }
-        }
+        auto n_grids = _surfaces_finder.effective_size();
+        _surfaces_finder[n_grids] = surfaces_grid;
+        vol.set_surfaces_finder(n_grids);
     }
 
     /** Unrolls the data containers according to the mask type and fill the
