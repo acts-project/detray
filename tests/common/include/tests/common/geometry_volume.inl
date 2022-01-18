@@ -50,8 +50,8 @@ TEST(ALGEBRA_PLUGIN, volume) {
     // Check surface and portal ranges
     dindex_range surface_range{2, 8};
     dindex_range portal_range{20, 24};
-    v1.template set_range<object_registry::id::e_surface>(surface_range);
-    v1.template set_range<object_registry::id::e_portal>(portal_range);
+    v1.template update_range<object_registry::id::e_surface>(surface_range);
+    v1.template update_range<object_registry::id::e_portal>(portal_range);
     ASSERT_TRUE(v1.template range<object_registry::id::e_surface>() ==
                 surface_range);
     ASSERT_TRUE(v1.template range<object_registry::id::e_portal>() ==

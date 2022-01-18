@@ -87,7 +87,7 @@ class volume {
      */
     template <
         typename object_registry::id range_id = object_registry::id::e_surface>
-    DETRAY_HOST inline void set_range(const range_type &other) {
+    DETRAY_HOST inline void update_range(const range_type &other) {
         auto &rg = std::get<range_id>(_ranges);
         // Range not set yet - initialize
         constexpr range_type empty{};

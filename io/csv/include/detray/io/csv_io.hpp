@@ -84,7 +84,7 @@ detector_from_csv(const std::string &detector_name,
 
     // Read in with a default context
     typename alignable_store::storage surface_transform_storage;
-    typename alignable_store::context surface_default_context;
+    typename alignable_store::context surface_default_context{};
 
     // Flushable containers
     typename detector_t::volume_type *c_volume = nullptr;
