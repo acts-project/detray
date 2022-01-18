@@ -328,27 +328,27 @@ class detector {
     DETRAY_HOST inline void add_surfaces_grid(const context ctx,
                                               volume_type &vol,
                                               grid_type &surfaces_grid) {
-        // get the surface range associated with volume
-        auto &rg = std::get<object_id::e_surface>(vol.ranges());
-
         // iterate over surfaces to fill the grid
-        auto surf_idx = rg[0];
-
-        for (const auto &surf : iterator_range(_surfaces, rg)) {
+        for (const auto &[surf_idx, surf] : enumerate(_surfaces, vol)) {
             if (surf.get_grid_status() == true) {
+                auto sidx = surf_idx;
+
                 auto &trf =
                     _transforms.contextual_transform(ctx, surf.transform());
                 auto tsl = trf.translation();
 
                 if (vol.get_grid_type() ==
                     volume_type::grid_type::e_z_phi_grid) {
-                    point2 loc{tsl[2], algebra::getter::phi(tsl)};
-                    surfaces_grid.populate(loc, surf_idx++);
+
+                    point2 location{tsl[2], algebra::getter::phi(tsl)};
+                    surfaces_grid.populate(location, std::move(sidx));
+
                 } else if (vol.get_grid_type() ==
                            volume_type::grid_type::e_r_phi_grid) {
-                    point2 loc{algebra::getter::perp(tsl),
-                               algebra::getter::phi(tsl)};
-                    surfaces_grid.populate(loc, surf_idx++);
+
+                    point2 location{algebra::getter::perp(tsl),
+                                    algebra::getter::phi(tsl)};
+                    surfaces_grid.populate(location, std::move(sidx));
                 }
             }
         }
