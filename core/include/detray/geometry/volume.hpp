@@ -32,8 +32,8 @@ class volume {
 
     enum grid_type : unsigned int {
         e_no_grid = 0,
-        e_z_phi_grid = 2,  // barrel
-        e_r_phi_grid = 1,  // endcap
+        e_z_phi_grid = 1,  // barrel
+        e_r_phi_grid = 2,  // endcap
     };
 
     /** Default constructor**/

@@ -333,32 +333,25 @@ class detector {
 
         // iterate over surfaces to fill the grid
         auto surf_idx = rg[0];
+
         for (const auto &surf : iterator_range(_surfaces, rg)) {
             if (surf.get_grid_status() == true) {
                 auto &trf =
                     _transforms.contextual_transform(ctx, surf.transform());
                 auto tsl = trf.translation();
 
-                point2 loc;
                 if (vol.get_grid_type() ==
                     volume_type::grid_type::e_z_phi_grid) {
-                    loc = point2{tsl[2], algebra::getter::phi(tsl)};
+                    point2 loc{tsl[2], algebra::getter::phi(tsl)};
+                    surfaces_grid.populate(loc, surf_idx++);
                 } else if (vol.get_grid_type() ==
                            volume_type::grid_type::e_r_phi_grid) {
-                    loc = point2{algebra::getter::perp(tsl),
-                                 algebra::getter::phi(tsl)};
+                    point2 loc{algebra::getter::perp(tsl),
+                               algebra::getter::phi(tsl)};
+                    surfaces_grid.populate(loc, surf_idx++);
                 }
-                surfaces_grid.populate(loc, surf_idx++);
             }
         }
-
-        /*
-        for (int i = 0; i < surfaces_grid.axis_p0().bins(); i++){
-            for (int j = 0; i < surfaces_grid.axis_p1().bins(); j++){
-                printf("%d \n", surfaces_grid.bin(i,j).size());
-            }
-        }
-        */
 
         // add surfaces grid into surfaces finder
         _surfaces_finder[vol.index()] = surfaces_grid;

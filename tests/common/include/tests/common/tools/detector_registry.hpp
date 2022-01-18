@@ -11,7 +11,7 @@ namespace detray {
 // detector_registy for the hard-coded values
 struct detector_registry {
     enum class default_detector { n_volumes = 1 };
-    enum class toy_detector { n_volumes = 4 };
+    enum class toy_detector { n_volumes = 20 };
     enum class tml_detector { n_volumes = 192 };
 };
 

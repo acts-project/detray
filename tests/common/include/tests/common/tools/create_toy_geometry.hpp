@@ -170,7 +170,10 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
                      inner_r, outer_r, upper_z, edges[3]);
 
     det.add_objects(ctx, cyl_volume, surfaces, masks, transforms);
-    det.add_surfaces_grid(ctx, cyl_volume, cyl_surfaces_grid);
+    if (cyl_volume.get_grid_type() !=
+        detector_t::volume_type::grid_type::e_no_grid) {
+        det.add_surfaces_grid(ctx, cyl_volume, cyl_surfaces_grid);
+    }
 }
 
 /** Helper function that creates a layer of rectangular barrel modules.
@@ -447,8 +450,8 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     // TODO: WHat is the proper value of n_phi_bins?
     typename surfaces_grid_t::axis_p0_t r_axis(radii.size(), cfg.inner_r,
                                                cfg.outer_r, resource);
-    typename surfaces_grid_t::axis_p1_t phi_axis(cfg.disc_binning.back(), -M_PI,
-                                                 M_PI, resource);
+    typename surfaces_grid_t::axis_p1_t phi_axis(cfg.disc_binning.front(),
+                                                 -M_PI, M_PI, resource);
 
     surfaces_grid = surfaces_grid_t(r_axis, phi_axis, resource);
 }
@@ -698,6 +701,7 @@ void add_endcap_detector(
                               cfg.side * (vol_size_itr + cfg.side * i)->first,
                               cfg.side * (vol_size_itr + cfg.side * i)->second,
                               edges_vec[i], empty_factory);
+
         } else {
             m_factory.cfg.edc_position = *(pos_itr + cfg.side * i / 2);
             create_cyl_volume(det, resource, ctx, cfg.inner_r, cfg.outer_r,
@@ -870,7 +874,7 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
     struct empty_vol_factory {
         void operator()(
             typename detector_t::context & /*ctx*/,
-            typename detector_t::volume_type /*volume*/,
+            typename detector_t::volume_type & /*volume*/,
             typename detector_t::surface_filling_container & /*surfaces*/,
             typename detector_t::surfaces_regular_circular_grid
                 & /*surfaces_grid*/,
@@ -885,7 +889,7 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
 
         void operator()(
             typename detector_t::context &ctx,
-            typename detector_t::volume_type volume,
+            typename detector_t::volume_type &volume,
             typename detector_t::surface_filling_container &surfaces,
             typename detector_t::surfaces_regular_circular_grid &surfaces_grid,
             typename detector_t::mask_container &masks,
@@ -902,7 +906,7 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
 
         void operator()(
             typename detector_t::context &ctx,
-            typename detector_t::volume_type volume,
+            typename detector_t::volume_type &volume,
             typename detector_t::surface_filling_container &surfaces,
             typename detector_t::surfaces_regular_circular_grid &surfaces_grid,
             typename detector_t::mask_container &masks,
