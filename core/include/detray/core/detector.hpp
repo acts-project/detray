@@ -405,7 +405,7 @@ class detector {
             _surfaces.insert(_surfaces.end(), typed_surfaces.begin(),
                              typed_surfaces.end());
 
-            volume.set_range({offset, _surfaces.size()});
+            volume.update_range({offset, _surfaces.size()});
         }
 
         // Next mask type

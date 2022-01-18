@@ -24,7 +24,7 @@ TEST(ALGEBRA_PLUGIN, detector) {
 
     using detector_t = detector<detector_registry::default_detector>;
 
-    static_transform_store<>::context ctx0;
+    static_transform_store<>::context ctx0{};
 
     detector_t::transform_container trfs;
     detector_t::mask_container masks(host_mr);

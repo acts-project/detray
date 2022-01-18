@@ -48,7 +48,7 @@ struct void_inspector {
  * @tparam detector_t the detector to navigate
  * @tparam inspector_type is a validation inspector
  */
-template <typename detector_t, typename inspector_type = void_inspector>
+template <typename detector_t, typename inspector_t = void_inspector>
 class navigator {
 
     public:
@@ -60,6 +60,8 @@ class navigator {
     using transform_container = typename detector_t::transform_store;
     using mask_container = typename detector_t::mask_container;
     using objs = typename detector_t::object_id;
+
+    using inspector_type = inspector_t;
 
     /** Navigation status flag */
     enum navigation_status : int {
@@ -145,30 +147,30 @@ class navigator {
         }
 
         /** @returns the navigation inspector */
-        inline auto inspector() { return _inspector; }
+        inline auto &inspector() { return _inspector; }
 
         /** @returns current object the navigator is on (might be invalid if
          * between objects)
          */
-        inline const auto &on_object() { return _object_index; }
+        inline const auto on_object() { return _object_index; }
 
         /** Update current object the navigator is on  */
         inline void set_object(dindex obj) { _object_index = obj; }
 
         /** @returns current navigation status */
-        inline const auto &status() { return _status; }
+        inline const auto status() { return _status; }
 
         /** Set new navigation status */
         inline void set_status(navigation_status stat) { _status = stat; }
 
         /** @returns tolerance to determine if we are on object */
-        inline const auto &tolerance() { return _on_object_tolerance; }
+        inline const auto tolerance() { return _on_object_tolerance; }
 
         /** Adjust the on-object tolerance */
         inline void set_tolerance(scalar tol) { _on_object_tolerance = tol; }
 
         /** @returns navigation trust level */
-        inline const auto &trust_level() { return _trust_level; }
+        inline const auto trust_level() { return _trust_level; }
 
         /** Update navigation trust level */
         inline void set_trust_level(navigation_trust_level lvl) {
@@ -176,7 +178,7 @@ class navigator {
         }
 
         /** @returns current volume (index) */
-        inline const auto &volume() { return _volume_index; }
+        inline const auto volume() { return _volume_index; }
 
         /** Set start/new volume */
         inline void set_volume(dindex v) { _volume_index = v; }
@@ -318,7 +320,6 @@ class navigator {
         // @todo - will come from the local object finder
         for (const auto [obj_idx, obj] :
              enumerate(detector.surfaces(), volume)) {
-
             // Retrieve candidate from the object
             auto sfi =
                 intersect(track, obj, detector.transforms(), detector.masks());
@@ -338,6 +339,7 @@ class navigator {
         }
         // What is the next object we want to reach?
         set_next(navigation);
+        navigation.run_inspector("Init: ");
     }
 
     /** Helper method to the update the next candidate intersection. Will
@@ -441,23 +443,19 @@ class navigator {
             // goto the next candidate.
             // This also excludes adjacent portals -> we are on the next portal
             if (navigation() < navigation.tolerance()) {
-                // The object we are on
+                // Set it briefly so that the inspector can catch this state
                 navigation.set_object(kernel.next->index);
                 // The next object that we want to reach
                 ++navigation.next();
-                // Set it briefly so that the inspector can catch this state
                 navigation.set_status(e_on_object);
                 // Call the inspector on this portal crossing, then go to next
-                navigation.run_inspector("Skipped direct hit: ");
-            }
-            // No current object
-            else {
-                navigation.set_object(dindex_invalid);
+                navigation.run_inspector("Skipping direct hit: ");
             }
 
             navigation.set_dist(kernel.next->path);
             // Generally, we are on our way to some candidate
             navigation.set_status(e_towards_object);
+            navigation.set_object(dindex_invalid);
             // This is only called after full (re-)evaluation
             navigation.set_trust_level(e_full_trust);
 
