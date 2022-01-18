@@ -352,6 +352,14 @@ class detector {
             }
         }
 
+        /*
+        for (int i = 0; i < surfaces_grid.axis_p0().bins(); i++){
+            for (int j = 0; i < surfaces_grid.axis_p1().bins(); j++){
+                printf("%d \n", surfaces_grid.bin(i,j).size());
+            }
+        }
+        */
+
         // add surfaces grid into surfaces finder
         _surfaces_finder[vol.index()] = surfaces_grid;
     }
