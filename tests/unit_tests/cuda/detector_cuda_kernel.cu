@@ -18,7 +18,9 @@ __global__ void detector_test_kernel(
     static_transform_store_data<transform_store_t> transforms_data,
     vecmem::data::vector_view<rectangle_t> rectangles_data,
     vecmem::data::vector_view<disc_t> discs_data,
-    vecmem::data::vector_view<cylinder_t> cylinders_data) {
+    vecmem::data::vector_view<cylinder_t> cylinders_data,
+    surfaces_finder_view<typename detector_host_t::surfaces_finder_type>
+        surfaces_finder_data) {
 
     // convert toy detector_data into detector w/ device vectors
     detector_device_t det_device(det_data);
@@ -76,7 +78,9 @@ void detector_test(
     static_transform_store_data<transform_store_t>& transforms_data,
     vecmem::data::vector_view<rectangle_t>& rectangles_data,
     vecmem::data::vector_view<disc_t>& discs_data,
-    vecmem::data::vector_view<cylinder_t>& cylinders_data) {
+    vecmem::data::vector_view<cylinder_t>& cylinders_data,
+    surfaces_finder_data<typename detector_host_t::surfaces_finder_type>&
+        surfaces_finder_data) {
 
     constexpr int block_dim = 1;
     constexpr int thread_dim = 1;
@@ -84,7 +88,7 @@ void detector_test(
     // run the test kernel
     detector_test_kernel<<<block_dim, thread_dim>>>(
         det_data, volumes_data, surfaces_data, transforms_data, rectangles_data,
-        discs_data, cylinders_data);
+        discs_data, cylinders_data, surfaces_finder_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
