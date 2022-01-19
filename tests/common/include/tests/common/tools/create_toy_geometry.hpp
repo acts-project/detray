@@ -213,9 +213,9 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     m_centers.reserve(n_phi_bins * n_z_bins);
 
     // prep work
-    // double pi{static_cast<scalar>(M_PI)};
-    double phi_step = 2 * M_PI / (n_phi_bins);
-    double min_phi = -M_PI + 0.5 * phi_step;
+    // scalar pi{static_cast<scalar>(M_PI)};
+    scalar phi_step = 2 * M_PI / (n_phi_bins);
+    scalar min_phi = -M_PI + 0.5 * phi_step;
 
     auto z_axis_info = cfg.get_z_axis_info();
     auto &z_start = std::get<0>(z_axis_info);
@@ -225,13 +225,13 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     // loop over the z bins
     for (size_t z_bin = 0; z_bin < size_t(n_z_bins); ++z_bin) {
         // prepare z and r
-        double m_z = z_start + z_bin * z_step;
-        double m_r = (z_bin % 2) != 0u
+        scalar m_z = z_start + z_bin * z_step;
+        scalar m_r = (z_bin % 2) != 0u
                          ? cfg.layer_r - 0.5 * cfg.m_radial_stagger
                          : cfg.layer_r + 0.5 * cfg.m_radial_stagger;
         for (size_t phiBin = 0; phiBin < size_t(n_phi_bins); ++phiBin) {
             // calculate the current phi value
-            double m_phi = min_phi + phiBin * phi_step;
+            scalar m_phi = min_phi + phiBin * phi_step;
             m_centers.push_back(
                 point3{static_cast<scalar>(m_r * std::cos(m_phi)),
                        static_cast<scalar>(m_r * std::sin(m_phi)),
@@ -317,12 +317,12 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
 
     // prep work
     // scalar pi{static_cast<scalar>(M_PI)};
-    double phi_step = scalar{2} * M_PI / (n_phi_bins);
-    double min_phi = -M_PI + 0.5 * phi_step;
+    scalar phi_step = scalar{2} * M_PI / (n_phi_bins);
+    scalar min_phi = -M_PI + 0.5 * phi_step;
 
     for (size_t iphi = 0; iphi < size_t(n_phi_bins); ++iphi) {
         // if we have a phi sub stagger presents
-        double rzs = 0.;
+        scalar rzs = 0.;
         // phi stagger affects 0 vs 1, 2 vs 3 ... etc
         // -> only works if it is a %4
         // phi sub stagger affects 2 vs 4, 1 vs 3 etc.
@@ -335,9 +335,9 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
             }
         }
         // the module phi
-        double phi = min_phi + iphi * phi_step;
+        scalar phi = min_phi + iphi * phi_step;
         // main z position depending on phi bin
-        double rz = iphi % 2 ? z - 0.5 * phi_stagger : z + 0.5 * phi_stagger;
+        scalar rz = iphi % 2 ? z - 0.5 * phi_stagger : z + 0.5 * phi_stagger;
         r_positions.push_back(
             vector3{static_cast<scalar>(radius * std::cos(phi)),
                     static_cast<scalar>(radius * std::sin(phi)),
@@ -375,7 +375,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     // calculate the radial borders
     // std::vector<scalar> radial_boarders;
     // the radial span of the disc
-    double delta_r = cfg.outer_r - cfg.inner_r;
+    scalar delta_r = cfg.outer_r - cfg.inner_r;
 
     // Only one ring
     if (cfg.disc_binning.size() == 1) {
@@ -383,16 +383,16 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
         // radial_boarders = {inner_r, outer_r};
     } else {
         // sum up the total length of the modules along r
-        double tot_length = 0;
+        scalar tot_length = 0;
         for (auto &m_hlength : cfg.m_half_y) {
             tot_length += 2 * m_hlength + 0.5;
         }
         // now calculate the overlap (equal pay)
-        double r_overlap = (tot_length - delta_r) / (cfg.m_half_y.size() - 1);
+        scalar r_overlap = (tot_length - delta_r) / (cfg.m_half_y.size() - 1);
         // and now fill the radii and gaps
-        double prev_r = cfg.inner_r;
-        double prev_hl = 0.;
-        double prev_ol = 0.;
+        scalar prev_r = cfg.inner_r;
+        scalar prev_hl = 0.;
+        scalar prev_ol = 0.;
         // remember the radial boarders
         // radial_boarders.push_back(inner_r);
         for (auto &m_hlength : cfg.m_half_y) {
@@ -411,13 +411,13 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     for (size_t ir = 0; ir < radii.size(); ++ir) {
         // generate the z value
         // convention inner ring is closer to origin : makes sense
-        double rz =
+        scalar rz =
             radii.size() == 1
                 ? cfg.edc_position
                 : (ir % 2 ? cfg.edc_position + scalar{0.5} * cfg.ring_stagger
                           : cfg.edc_position - scalar{0.5} * cfg.ring_stagger);
         // fill the ring module positions
-        double ps_stagger =
+        scalar ps_stagger =
             cfg.m_phi_sub_stagger.size() ? cfg.m_phi_sub_stagger[ir] : 0.;
 
         std::vector<point3> r_postitions =
@@ -444,7 +444,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             surfaces[trapezoid_id].back().set_grid_status(true);
 
             // the module transform from the position
-            double m_phi = algebra::getter::phi(m_position);
+            scalar m_phi = algebra::getter::phi(m_position);
             // the center position of the modules
             point3 m_center{static_cast<scalar>(cfg.side) * m_position};
             // the rotation matrix of the module
