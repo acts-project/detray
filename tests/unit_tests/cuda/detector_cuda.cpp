@@ -36,7 +36,6 @@ TEST(detector_cuda, detector) {
     auto& cylinders_host =
         masks_host.group<detector_host_t::e_portal_cylinder3>();
     auto& rectangles_host = masks_host.group<detector_host_t::e_rectangle2>();
-    auto& sf_finder_host = toy_det.get_surfaces_finder();
 
     // copied outpus from device side
     vecmem::vector<volume_t> volumes_device(volumes_host.size(), &mng_mr);
@@ -48,7 +47,6 @@ TEST(detector_cuda, detector) {
                                                   &mng_mr);
     vecmem::vector<disc_t> discs_device(discs_host.size(), &mng_mr);
     vecmem::vector<cylinder_t> cylinders_device(cylinders_host.size(), &mng_mr);
-    typename detector_host_t::surfaces_finder_type sf_finder_device(mng_mr);
 
     // get data object for toy detector
     auto toy_det_data = get_data(toy_det);
@@ -60,11 +58,10 @@ TEST(detector_cuda, detector) {
     auto rectangles_data = vecmem::get_data(rectangles_device);
     auto discs_data = vecmem::get_data(discs_device);
     auto cylinders_data = vecmem::get_data(cylinders_device);
-    auto sf_finder_data = get_data(sf_finder_device, mng_mr);
 
     // run the test code to copy the objects
     detector_test(toy_det_data, volumes_data, surfaces_data, transforms_data,
-                  rectangles_data, discs_data, cylinders_data, sf_finder_data);
+                  rectangles_data, discs_data, cylinders_data);
 
     // check if the same volume objects are copied
     for (unsigned int i = 0; i < volumes_host.size(); i++) {
@@ -83,7 +80,7 @@ TEST(detector_cuda, detector) {
                   true);
     }
 
-    // chech if the same masks are copied
+    // check if the same masks are copied
     for (unsigned int i = 0; i < rectangles_host.size(); i++) {
         EXPECT_EQ(rectangles_host[i] == rectangles_device[i], true);
     }

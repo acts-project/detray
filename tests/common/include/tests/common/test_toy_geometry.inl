@@ -116,8 +116,10 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     auto test_surfaces_grid =
         [](const typename detector_t::surfaces_finder_type& sf_finder,
            const typename detector_t::surface_container& sf_container,
-           const volume_t& volume) {
+           const volume_t& volume, darray<dindex, 2>& range) {
             auto sf_grid = sf_finder[volume.surfaces_finder_entry()];
+
+            std::vector<dindex> indices;
 
             for (unsigned int i = 0; i < sf_grid.axis_p0().bins(); i++) {
                 for (unsigned int j = 0; j < sf_grid.axis_p1().bins(); j++) {
@@ -125,8 +127,15 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                     for (auto sf_idx : sf_indices) {
                         EXPECT_EQ(sf_container[sf_idx].volume(),
                                   volume.index());
+                        indices.push_back(sf_idx);
                     }
                 }
+            }
+
+            EXPECT_EQ(indices.size(), range[1] - range[0]);
+            for (dindex pti = range[0]; pti < range[1]; pti++) {
+                EXPECT_TRUE(std::find(indices.begin(), indices.end(), pti) !=
+                            indices.end());
             }
         };
 
@@ -195,6 +204,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 0}, {{vol_itr->index(), inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr, range);
+
     // Check links of portals
     // cylinder portals
     range = {124, 126};
@@ -206,9 +218,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 2},
                       {{leaving_world, inv_sf_finder}, {2, inv_sf_finder}});
-
-    // Check link of surfaces in surface finder
-    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 
     //
     // gap
@@ -254,6 +263,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 108}, {{vol_itr->index(), inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr, range);
+
     // Check links of portals
     // cylinder portals
     range = {240, 242};
@@ -265,9 +277,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 6},
                       {{2, inv_sf_finder}, {4, inv_sf_finder}});
-
-    // Check link of surfaces in surface finder
-    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 
     //
     // gap
@@ -313,6 +322,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 216}, {{vol_itr->index(), inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr, range);
+
     // Check links of portals
     // cylinder portals
     range = {356, 358};
@@ -324,9 +336,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 10},
                       {{4, inv_sf_finder}, {6, inv_sf_finder}});
-
-    // Check link of surfaces in surface finder
-    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 
     //
     // gap
@@ -383,6 +392,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {0, 0}, {{vol_itr->index(), inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr, range);
+
     // Check links of portals
     // cylinder portals
     range = {594, 596};
@@ -395,9 +407,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 20},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
-
-    // Check link of surfaces in surface finder
-    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 
     //
     // gap
@@ -443,6 +452,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {0, 224}, {{vol_itr->index(), inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr, range);
+
     // Check links of portals
     // cylinder portals
     range = {1050, 1052};
@@ -455,9 +467,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 24},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
-
-    // Check link of surfaces in surface finder
-    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 
     //
     // gap
@@ -503,6 +512,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {0, 672}, {{vol_itr->index(), inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr, range);
+
     // Check links of portals
     // cylinder portals
     range = {1786, 1788};
@@ -515,9 +527,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 28},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
-
-    // Check link of surfaces in surface finder
-    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 
     //
     // gap
@@ -563,6 +572,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {0, 1400}, {{vol_itr->index(), inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr, range);
+
     // Check links of portals
     // cylinder portals
     range = {2886, 2888};
@@ -575,9 +587,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 32},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
-
-    // Check link of surfaces in surface finder
-    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 
     //
     // positive endcap
@@ -634,6 +643,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 324}, {{vol_itr->index(), inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr, range);
+
     // Check links of portals
     // cylinder portals
     range = {3008, 3010};
@@ -645,9 +657,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 42},
                       {{14, inv_sf_finder}, {16, inv_sf_finder}});
-
-    // Check link of surfaces in surface finder
-    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 
     //
     // gap
@@ -693,6 +702,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 432}, {{vol_itr->index(), inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr, range);
+
     // Check links of portals
     // cylinder portals
     range = {3124, 3126};
@@ -704,9 +716,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 46},
                       {{16, inv_sf_finder}, {18, inv_sf_finder}});
-
-    // Check link of surfaces in surface finder
-    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 
     //
     // gap
@@ -752,6 +761,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {1, 540}, {{vol_itr->index(), inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr, range);
+
     // Check links of portals
     // cylinder portals
     range = {3240, 3242};
@@ -763,9 +775,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 50},
                       {{18, inv_sf_finder}, {leaving_world, inv_sf_finder}});
-
-    // Check link of surfaces in surface finder
-    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 }
 
 int main(int argc, char** argv) {

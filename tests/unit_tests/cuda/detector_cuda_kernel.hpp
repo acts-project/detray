@@ -49,8 +49,6 @@ void detector_test(
     static_transform_store_data<transform_store_t>& transforms_data,
     vecmem::data::vector_view<rectangle_t>& rectangles_data,
     vecmem::data::vector_view<disc_t>& discs_data,
-    vecmem::data::vector_view<cylinder_t>& cylinders_data,
-    surfaces_finder_data<typename detector_host_t::surfaces_finder_type>&
-        surfaces_finder_data);
+    vecmem::data::vector_view<cylinder_t>& cylinders_data);
 
 }  // namespace detray

@@ -18,9 +18,7 @@ __global__ void detector_test_kernel(
     static_transform_store_data<transform_store_t> transforms_data,
     vecmem::data::vector_view<rectangle_t> rectangles_data,
     vecmem::data::vector_view<disc_t> discs_data,
-    vecmem::data::vector_view<cylinder_t> cylinders_data,
-    surfaces_finder_view<typename detector_host_t::surfaces_finder_type>
-        surfaces_finder_data) {
+    vecmem::data::vector_view<cylinder_t> cylinders_data) {
 
     // convert toy detector_data into detector w/ device vectors
     detector_device_t det_device(det_data);
@@ -68,6 +66,20 @@ __global__ void detector_test_kernel(
     for (unsigned int i = 0; i < cylinders.size(); i++) {
         cylinders_device[i] = cylinders[i];
     }
+
+    // print output test for surface finder
+    auto& sf_finder_device = det_device.get_surfaces_finder();
+    for (unsigned int i_s = 0; i_s < sf_finder_device.size(); i_s++) {
+        auto& grid = sf_finder_device[i_s];
+        for (unsigned int i = 0; i < grid.axis_p0().bins(); i++) {
+            for (unsigned int j = 0; j < grid.axis_p1().bins(); j++) {
+                const auto& bin = grid.bin(i, j);
+                for (auto& id : bin) {
+                    // printf("%d \n", id);
+                }
+            }
+        }
+    }
 }
 
 /// implementation of the test function for detector
@@ -78,9 +90,7 @@ void detector_test(
     static_transform_store_data<transform_store_t>& transforms_data,
     vecmem::data::vector_view<rectangle_t>& rectangles_data,
     vecmem::data::vector_view<disc_t>& discs_data,
-    vecmem::data::vector_view<cylinder_t>& cylinders_data,
-    surfaces_finder_data<typename detector_host_t::surfaces_finder_type>&
-        surfaces_finder_data) {
+    vecmem::data::vector_view<cylinder_t>& cylinders_data) {
 
     constexpr int block_dim = 1;
     constexpr int thread_dim = 1;
@@ -88,7 +98,7 @@ void detector_test(
     // run the test kernel
     detector_test_kernel<<<block_dim, thread_dim>>>(
         det_data, volumes_data, surfaces_data, transforms_data, rectangles_data,
-        discs_data, cylinders_data, surfaces_finder_data);
+        discs_data, cylinders_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
