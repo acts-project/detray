@@ -66,6 +66,20 @@ __global__ void detector_test_kernel(
     for (unsigned int i = 0; i < cylinders.size(); i++) {
         cylinders_device[i] = cylinders[i];
     }
+
+    // print output test for surface finder
+    auto& sf_finder_device = det_device.get_surfaces_finder();
+    for (unsigned int i_s = 0; i_s < sf_finder_device.effective_size(); i_s++) {
+        auto& grid = sf_finder_device[i_s];
+        for (unsigned int i = 0; i < grid.axis_p0().bins(); i++) {
+            for (unsigned int j = 0; j < grid.axis_p1().bins(); j++) {
+                const auto& bin = grid.bin(i, j);
+                for (auto& id : bin) {
+                    // printf("%d \n", id);
+                }
+            }
+        }
+    }
 }
 
 /// implementation of the test function for detector

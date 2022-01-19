@@ -28,10 +28,10 @@ TEST(detector_cuda, detector) {
     auto ctx0 = typename detector_host_t::context();
 
     // host objects
-    auto volumes_host = toy_det.volumes();
-    auto surfaces_host = toy_det.surfaces();
-    auto transforms_host = toy_det.transforms();
-    auto masks_host = toy_det.masks();
+    auto& volumes_host = toy_det.volumes();
+    auto& surfaces_host = toy_det.surfaces();
+    auto& transforms_host = toy_det.transforms();
+    auto& masks_host = toy_det.masks();
     auto& discs_host = masks_host.group<detector_host_t::e_portal_ring2>();
     auto& cylinders_host =
         masks_host.group<detector_host_t::e_portal_cylinder3>();
@@ -80,7 +80,7 @@ TEST(detector_cuda, detector) {
                   true);
     }
 
-    // chech if the same masks are copied
+    // check if the same masks are copied
     for (unsigned int i = 0; i < rectangles_host.size(); i++) {
         EXPECT_EQ(rectangles_host[i] == rectangles_device[i], true);
     }

@@ -43,6 +43,8 @@ struct surfaces_finder {
     template <typename... Args>
     using tuple_t = tuple_type<Args...>;
 
+    // TODO: We will need to consider regular_regular grid in case the rectangle
+    // layer is used in geometry
     using surfaces_regular_circular_grid =
         grid2<attach_populator, axis::regular, axis::circular, serializer2,
               vector_type, jagged_vector_type, array_type, tuple_type, dindex,
@@ -106,11 +108,32 @@ struct surfaces_finder {
      */
     DETRAY_HOST_DEVICE constexpr size_t size() const { return N_GRIDS; }
 
+    /** return the number of grids that are not empty
+     * @return the effective number of grids
+     */
+    DETRAY_HOST_DEVICE size_t effective_size() {
+        size_t ret = 0;
+        for (unsigned int i_s = 0; i_s < N_GRIDS; i_s++) {
+            if (!_surface_grids[i_s].data().empty()) {
+                ret++;
+            }
+        }
+        return ret;
+    }
+
     /** Access operator - non-const
      * @return the surface grid element
      */
     DETRAY_HOST_DEVICE
     auto& operator[](unsigned int value_index) {
+        return _surface_grids[value_index];
+    }
+
+    /** Access operator - const access
+     * @return the surface grid element
+     */
+    DETRAY_HOST_DEVICE
+    const auto& operator[](unsigned int value_index) const {
         return _surface_grids[value_index];
     }
 

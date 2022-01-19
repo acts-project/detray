@@ -324,6 +324,41 @@ class detector {
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
 
+    template <typename grid_type>
+    DETRAY_HOST inline void add_surfaces_grid(const context ctx,
+                                              volume_type &vol,
+                                              grid_type &surfaces_grid) {
+        // iterate over surfaces to fill the grid
+        for (const auto &[surf_idx, surf] : enumerate(_surfaces, vol)) {
+            if (surf.get_grid_status() == true) {
+                auto sidx = surf_idx;
+
+                auto &trf =
+                    _transforms.contextual_transform(ctx, surf.transform());
+                auto tsl = trf.translation();
+
+                if (vol.get_grid_type() ==
+                    volume_type::grid_type::e_z_phi_grid) {
+
+                    point2 location{tsl[2], algebra::getter::phi(tsl)};
+                    surfaces_grid.populate(location, std::move(sidx));
+
+                } else if (vol.get_grid_type() ==
+                           volume_type::grid_type::e_r_phi_grid) {
+
+                    point2 location{algebra::getter::perp(tsl),
+                                    algebra::getter::phi(tsl)};
+                    surfaces_grid.populate(location, std::move(sidx));
+                }
+            }
+        }
+
+        // add surfaces grid into surfaces finder
+        auto n_grids = _surfaces_finder.effective_size();
+        _surfaces_finder[n_grids] = surfaces_grid;
+        vol.set_surfaces_finder(n_grids);
+    }
+
     /** Unrolls the data containers according to the mask type and fill the
      *  global containers. It registers the indexing in the geometry.
      *
@@ -344,6 +379,7 @@ class detector {
     DETRAY_HOST inline void fill_containers(
         const context ctx, volume_type &volume, surface_container &surfaces,
         mask_container &masks, transform_container &trfs) noexcept(false) {
+
         // Get the surfaces/portals for a mask type
         auto &typed_surfaces = surfaces[current_type];
         // Get the corresponding transforms

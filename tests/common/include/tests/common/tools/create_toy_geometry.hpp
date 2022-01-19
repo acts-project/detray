@@ -123,14 +123,15 @@ inline void add_disc_surface(const dindex volume_id, context_t &ctx,
  * @param edges volume and surfaces finder links for the portals of the volume
  * @param module_factory functor that adds module surfaces to volume
  */
-template <
-    typename detector_t, typename factory_t,
-    std::enable_if_t<
-        std::is_invocable_v<factory_t, typename detector_t::context &, dindex,
-                            typename detector_t::surface_filling_container &,
-                            typename detector_t::mask_container &,
-                            typename detector_t::transform_container &>,
-        bool> = true>
+
+template <typename detector_t, typename factory_t,
+          std::enable_if_t<std::is_invocable_v<
+                               factory_t, typename detector_t::context &,
+                               typename detector_t::volume_type &,
+                               typename detector_t::surface_filling_container &,
+                               typename detector_t::mask_container &,
+                               typename detector_t::transform_container &>,
+                           bool> = true>
 void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
                        typename detector_t::context &ctx,
                        const scalar lay_inner_r, const scalar lay_outer_r,
@@ -145,13 +146,18 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
 
     auto &cyl_volume =
         det.new_volume({inner_r, outer_r, lower_z, upper_z, -M_PI, M_PI});
+    typename detector_t::surfaces_regular_circular_grid cyl_surfaces_grid(
+        resource);
 
     // Add module surfaces to volume
     typename detector_t::surface_filling_container surfaces = {};
     typename detector_t::mask_container masks = {resource};
     typename detector_t::transform_container transforms = {resource};
 
-    module_factory(ctx, cyl_volume.index(), surfaces, masks, transforms);
+    // fill the surfaces
+    module_factory(ctx, cyl_volume, surfaces, masks, transforms);
+    // create the surface grid
+    module_factory(cyl_surfaces_grid, *det.resource());
 
     // negative and positive, inner and outer portal surface
     add_cylinder_surface(cyl_volume.index(), ctx, surfaces, masks, transforms,
@@ -164,6 +170,10 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
                      inner_r, outer_r, upper_z, edges[3]);
 
     det.add_objects(ctx, cyl_volume, surfaces, masks, transforms);
+    if (cyl_volume.get_grid_type() !=
+        detector_t::volume_type::grid_type::e_no_grid) {
+        det.add_surfaces_grid(ctx, cyl_volume, cyl_surfaces_grid);
+    }
 }
 
 /** Helper function that creates a layer of rectangular barrel modules.
@@ -177,14 +187,18 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
  * @param transforms container to add new transform to
  * @param cfg config struct for module creation
  */
-template <typename context_t, typename surface_container_t,
-          typename mask_container_t, typename transform_container_t,
-          typename config_t, unsigned int rectangle_id = 0>
-inline void create_barrel_modules(context_t &ctx, const dindex volume_id,
+template <typename context_t, typename volume_type,
+          typename surface_container_t, typename mask_container_t,
+          typename transform_container_t, typename config_t,
+          unsigned int rectangle_id = 0>
+inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                   surface_container_t &surfaces,
                                   mask_container_t &masks,
                                   transform_container_t &transforms,
                                   config_t cfg) {
+    auto volume_id = vol.index();
+    vol.set_grid_type(volume_type::grid_type::e_z_phi_grid);
+
     /// mask index: type, range
     using mask_link_t =
         typename surface_container_t::value_type::value_type::mask_links;
@@ -202,9 +216,11 @@ inline void create_barrel_modules(context_t &ctx, const dindex volume_id,
     // double pi{static_cast<scalar>(M_PI)};
     double phi_step = 2 * M_PI / (n_phi_bins);
     double min_phi = -M_PI + 0.5 * phi_step;
-    double z_start =
-        -0.5 * (n_z_bins - 1) * (2 * cfg.m_half_y - cfg.m_long_overlap);
-    double z_step = 2 * std::abs(z_start) / (n_z_bins - 1);
+
+    auto z_axis_info = cfg.get_z_axis_info();
+    auto &z_start = std::get<0>(z_axis_info);
+    // auto &z_end = std::get<1>(z_axis_info);
+    auto &z_step = std::get<2>(z_axis_info);
 
     // loop over the z bins
     for (size_t z_bin = 0; z_bin < size_t(n_z_bins); ++z_bin) {
@@ -235,6 +251,7 @@ inline void create_barrel_modules(context_t &ctx, const dindex volume_id,
         surfaces[rectangle_id].emplace_back(transforms[rectangle_id].size(ctx),
                                             m_id, volume_id, dindex_invalid);
         surfaces[rectangle_id].back().set_edge({volume_id, dindex_invalid});
+        surfaces[rectangle_id].back().set_grid_status(true);
 
         // The rectangle bounds for this module
         masks.template add_mask<rectangle_id>(cfg.m_half_x, cfg.m_half_y);
@@ -255,6 +272,31 @@ inline void create_barrel_modules(context_t &ctx, const dindex volume_id,
         transforms[rectangle_id].emplace_back(ctx, m_center, m_local_z,
                                               m_local_x);
     }
+}
+
+/** Helper function that creates a surface grid of rectangular barrel modules.
+ *
+ * @param surfaces_grid the grid to be created with proper axes
+ * @param resource vecmem memory resource
+ * @param cfg config struct for module creation
+ */
+template <typename surfaces_grid_t, typename config_t>
+inline void create_barrel_grid(surfaces_grid_t &surfaces_grid,
+                               vecmem::memory_resource &resource,
+                               config_t cfg) {
+    auto z_axis_info = cfg.get_z_axis_info();
+    auto &z_start = std::get<0>(z_axis_info);
+    auto &z_end = std::get<1>(z_axis_info);
+    auto &z_step = std::get<2>(z_axis_info);
+
+    // add surface grid
+    typename surfaces_grid_t::axis_p0_t z_axis(cfg.m_binning.second,
+                                               z_start - z_step * 0.5,
+                                               z_end + z_step * 0.5, resource);
+    typename surfaces_grid_t::axis_p1_t phi_axis(cfg.m_binning.first, -M_PI,
+                                                 M_PI, resource);
+
+    surfaces_grid = surfaces_grid_t(z_axis, phi_axis, resource);
 }
 
 /** Helper method for positioning of modules in an endcap ring
@@ -315,13 +357,17 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
  * @param transforms container to add new transform to
  * @param cfg config struct for module creation
  */
-template <typename context_t, typename surface_container_t,
-          typename mask_container_t, typename transform_container_t,
-          typename config_t, unsigned int trapezoid_id = 1>
-void create_endcap_modules(context_t &ctx, const dindex volume_id,
+template <typename context_t, typename volume_type,
+          typename surface_container_t, typename mask_container_t,
+          typename transform_container_t, typename config_t,
+          unsigned int trapezoid_id = 1>
+void create_endcap_modules(context_t &ctx, volume_type &vol,
                            surface_container_t &surfaces,
                            mask_container_t &masks,
                            transform_container_t &transforms, config_t cfg) {
+    auto volume_id = vol.index();
+    vol.set_grid_type(volume_type::grid_type::e_r_phi_grid);
+
     using mask_link_t =
         typename surface_container_t::value_type::value_type::mask_links;
     // calculate the radii of the rings
@@ -395,6 +441,7 @@ void create_endcap_modules(context_t &ctx, const dindex volume_id,
                 transforms[trapezoid_id].size(ctx), mask_link, volume_id,
                 dindex_invalid);
             surfaces[trapezoid_id].back().set_edge({volume_id, dindex_invalid});
+            surfaces[trapezoid_id].back().set_grid_status(true);
 
             // the module transform from the position
             double m_phi = algebra::getter::phi(m_position);
@@ -412,6 +459,26 @@ void create_endcap_modules(context_t &ctx, const dindex volume_id,
                                                   m_local_x);
         }
     }
+}
+
+/** Helper function that creates a surface grid of trapezoidal endcap modules.
+ *
+ * @param surfaces_grid the grid to be created with proper axes
+ * @param resource vecmem memory resource
+ * @param cfg config struct for module creation
+ */
+template <typename surfaces_grid_t, typename config_t>
+inline void create_endcap_grid(surfaces_grid_t &surfaces_grid,
+                               vecmem::memory_resource &resource,
+                               config_t cfg) {
+    // add surface grid
+    // TODO: WHat is the proper value of n_phi_bins?
+    typename surfaces_grid_t::axis_p0_t r_axis(
+        cfg.disc_binning.size(), cfg.inner_r, cfg.outer_r, resource);
+    typename surfaces_grid_t::axis_p1_t phi_axis(cfg.disc_binning.front(),
+                                                 -M_PI, M_PI, resource);
+
+    surfaces_grid = surfaces_grid_t(r_axis, phi_axis, resource);
 }
 
 /** Helper method for creating a beampipe with enclosing volume.
@@ -659,6 +726,7 @@ void add_endcap_detector(
                               cfg.side * (vol_size_itr + cfg.side * i)->first,
                               cfg.side * (vol_size_itr + cfg.side * i)->second,
                               edges_vec[i], empty_factory);
+
         } else {
             m_factory.cfg.edc_position = *(pos_itr + cfg.side * i / 2);
             create_cyl_volume(det, resource, ctx, cfg.inner_r, cfg.outer_r,
@@ -800,6 +868,17 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         scalar m_radial_stagger = 0.5;  // 2.;
         scalar m_long_overlap = 2.;     // 5.;
         std::pair<int, int> m_binning = {16, 14};
+
+        // return the first z position of module
+        std::tuple<scalar, scalar, scalar> get_z_axis_info() {
+            auto n_z_bins = m_binning.second;
+            scalar z_start =
+                -0.5 * (n_z_bins - 1) * (2 * m_half_y - m_long_overlap);
+            scalar z_end = std::abs(z_start);
+            scalar z_step = (z_end - z_start) / (n_z_bins - 1);
+
+            return {z_start, z_end, z_step};
+        }
     };
 
     //
@@ -830,10 +909,14 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
     // Don't create modules in gap volume
     struct empty_vol_factory {
         void operator()(
-            typename detector_t::context & /*ctx*/, dindex /*volume_id*/,
+            typename detector_t::context & /*ctx*/,
+            typename detector_t::volume_type & /*volume*/,
             typename detector_t::surface_filling_container & /*surfaces*/,
             typename detector_t::mask_container & /*masks*/,
             typename detector_t::transform_container & /*transforms*/) {}
+        void operator()(typename detector_t::surfaces_regular_circular_grid
+                            & /*surfaces_grid*/,
+                        vecmem::memory_resource & /*resource*/) {}
     };
 
     // Fills volume with barrel layer
@@ -841,12 +924,18 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         brl_m_config cfg;
 
         void operator()(
-            typename detector_t::context &ctx, dindex volume_id,
+            typename detector_t::context &ctx,
+            typename detector_t::volume_type &volume,
             typename detector_t::surface_filling_container &surfaces,
             typename detector_t::mask_container &masks,
             typename detector_t::transform_container &transforms) {
-            create_barrel_modules(ctx, volume_id, surfaces, masks, transforms,
+            create_barrel_modules(ctx, volume, surfaces, masks, transforms,
                                   cfg);
+        }
+        void operator()(
+            typename detector_t::surfaces_regular_circular_grid &surfaces_grid,
+            vecmem::memory_resource &resource) {
+            create_barrel_grid(surfaces_grid, resource, cfg);
         }
     };
 
@@ -855,12 +944,18 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         edc_m_config cfg;
 
         void operator()(
-            typename detector_t::context &ctx, dindex volume_id,
+            typename detector_t::context &ctx,
+            typename detector_t::volume_type &volume,
             typename detector_t::surface_filling_container &surfaces,
             typename detector_t::mask_container &masks,
             typename detector_t::transform_container &transforms) {
-            create_endcap_modules(ctx, volume_id, surfaces, masks, transforms,
+            create_endcap_modules(ctx, volume, surfaces, masks, transforms,
                                   cfg);
+        }
+        void operator()(
+            typename detector_t::surfaces_regular_circular_grid &surfaces_grid,
+            vecmem::memory_resource &resource) {
+            create_endcap_grid(surfaces_grid, resource, cfg);
         }
     };
 
