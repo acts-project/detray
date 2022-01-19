@@ -129,6 +129,14 @@ struct surfaces_finder {
         return _surface_grids[value_index];
     }
 
+    /** Access operator - const access
+     * @return the surface grid element
+     */
+    DETRAY_HOST_DEVICE
+    const auto& operator[](unsigned int value_index) const {
+        return _surface_grids[value_index];
+    }
+
     /** Array of grids for the local surface navigation  **/
     array_type<surfaces_regular_circular_grid, N_GRIDS> _surface_grids;
 };

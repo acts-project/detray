@@ -21,6 +21,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     auto toy_det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
+    using detector_t = decltype(toy_det);
+    using volume_t = typename detector_t::volume_type;
     using context_t = typename decltype(toy_det)::context;
     context_t ctx{};
     auto& volumes = toy_det.volumes();
@@ -102,6 +104,32 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             }
         };
 
+    /** Test the surface grid.
+     *
+     * @param vol_index volume the modules belong to
+     * @param sf_itr iterator into the surface container, start of the modules
+     * @param range index range of the modules in the surface container
+     * @param trf_index index of the transform (trf container) for the module
+     * @param mask_index type and index of module mask in respective mask cont
+     * @param edges links to next volume and next surfaces finder
+     */
+    auto test_surfaces_grid =
+        [](const typename detector_t::surfaces_finder_type& sf_finder,
+           const typename detector_t::surface_container& sf_container,
+           const volume_t& volume) {
+            auto sf_grid = sf_finder[volume.surfaces_finder_entry()];
+
+            for (unsigned int i = 0; i < sf_grid.axis_p0().bins(); i++) {
+                for (unsigned int j = 0; j < sf_grid.axis_p1().bins(); j++) {
+                    auto sf_indices = sf_grid.bin(i, j);
+                    for (auto sf_idx : sf_indices) {
+                        EXPECT_EQ(sf_container[sf_idx].volume(),
+                                  volume.index());
+                    }
+                }
+            }
+        };
+
     //
     // beampipe
     //
@@ -113,6 +141,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 0);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_no_grid);
+    EXPECT_EQ(vol_itr->surfaces_finder_entry(), dindex_invalid);
 
     // Check links of beampipe itself
     range = {0, 1};
@@ -158,6 +188,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 1);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_r_phi_grid);
 
     // Check the trapezoid modules
     range = {16, 124};
@@ -176,6 +207,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {4, 2},
                       {{leaving_world, inv_sf_finder}, {2, inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
+
     //
     // gap
     //
@@ -187,6 +221,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 2);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_no_grid);
+    EXPECT_EQ(vol_itr->surfaces_finder_entry(), dindex_invalid);
 
     // Check links of portals
     // cylinder portals
@@ -211,6 +247,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 3);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_r_phi_grid);
 
     // Check the trapezoid modules
     range = {132, 240};
@@ -229,6 +266,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {4, 6},
                       {{2, inv_sf_finder}, {4, inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
+
     //
     // gap
     //
@@ -240,6 +280,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 4);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_no_grid);
+    EXPECT_EQ(vol_itr->surfaces_finder_entry(), dindex_invalid);
 
     // Check links of portals
     // cylinder portals
@@ -264,6 +306,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 5);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_r_phi_grid);
 
     // Check the trapezoid modules
     range = {248, 356};
@@ -282,6 +325,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {4, 10},
                       {{4, inv_sf_finder}, {6, inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
+
     //
     // gap
     //
@@ -293,6 +339,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 6);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_no_grid);
+    EXPECT_EQ(vol_itr->surfaces_finder_entry(), dindex_invalid);
 
     // Check links of portals
     // cylinder portals
@@ -328,6 +376,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 7);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_z_phi_grid);
 
     // Check links of modules
     range = {370, 594};
@@ -347,6 +396,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {4, 20},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
+
     //
     // gap
     //
@@ -358,6 +410,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 8);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_no_grid);
+    EXPECT_EQ(vol_itr->surfaces_finder_entry(), dindex_invalid);
 
     // Check links of portals
     // cylinder portals
@@ -382,6 +436,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 9);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_z_phi_grid);
 
     // Check links of modules
     range = {602, 1050};
@@ -401,6 +456,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {4, 24},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
+
     //
     // gap
     //
@@ -412,6 +470,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 10);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_no_grid);
+    EXPECT_EQ(vol_itr->surfaces_finder_entry(), dindex_invalid);
 
     // Check links of portals
     // cylinder portals
@@ -436,6 +496,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 11);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_z_phi_grid);
 
     // Check links of modules
     range = {1058, 1786};
@@ -455,6 +516,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {4, 28},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
+
     //
     // gap
     //
@@ -466,6 +530,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 12);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_no_grid);
+    EXPECT_EQ(vol_itr->surfaces_finder_entry(), dindex_invalid);
 
     // Check links of portals
     // cylinder portals
@@ -490,6 +556,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 13);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_z_phi_grid);
 
     // Check links of modules
     range = {1794, 2886};
@@ -509,6 +576,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {4, 32},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
+
     //
     // positive endcap
     //
@@ -524,6 +594,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 14);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_no_grid);
+    EXPECT_EQ(vol_itr->surfaces_finder_entry(), dindex_invalid);
 
     // Check links of portals
     // cylinder portals
@@ -555,6 +627,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 15);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_r_phi_grid);
 
     // Check the trapezoid modules
     range = {2900, 3008};
@@ -573,6 +646,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {4, 42},
                       {{14, inv_sf_finder}, {16, inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
+
     //
     // gap
     //
@@ -584,6 +660,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 16);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_no_grid);
+    EXPECT_EQ(vol_itr->surfaces_finder_entry(), dindex_invalid);
 
     // Check links of portals
     // cylinder portals
@@ -598,7 +676,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       {{15, inv_sf_finder}, {17, inv_sf_finder}});
 
     //
-    // neg endcap (layer 2)
+    // pos endcap (layer 2)
     //
 
     // Check volume
@@ -608,6 +686,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 17);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_r_phi_grid);
 
     // Check the trapezoid modules
     range = {3016, 3124};
@@ -626,6 +705,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       range[0], {4, 46},
                       {{16, inv_sf_finder}, {18, inv_sf_finder}});
 
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
+
     //
     // gap
     //
@@ -637,6 +719,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 18);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_no_grid);
+    EXPECT_EQ(vol_itr->surfaces_finder_entry(), dindex_invalid);
 
     // Check links of portals
     // cylinder portals
@@ -651,7 +735,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                       {{17, inv_sf_finder}, {19, inv_sf_finder}});
 
     //
-    // neg endcap (layer 3)
+    // pos endcap (layer 3)
     //
 
     // Check volume
@@ -661,6 +745,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(vol_itr->index(), 19);
     EXPECT_EQ(vol_itr->bounds(), bounds);
     EXPECT_EQ(vol_itr->range(), range);
+    EXPECT_EQ(vol_itr->get_grid_type(), volume_t::grid_type::e_r_phi_grid);
 
     // Check the trapezoid modules
     range = {3132, 3240};
@@ -678,6 +763,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 50},
                       {{18, inv_sf_finder}, {leaving_world, inv_sf_finder}});
+
+    // Check link of surfaces in surface finder
+    test_surfaces_grid(surfaces_finder, surfaces, *vol_itr);
 }
 
 int main(int argc, char** argv) {

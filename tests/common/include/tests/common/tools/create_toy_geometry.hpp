@@ -219,7 +219,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
 
     auto z_axis_info = cfg.get_z_axis_info();
     auto &z_start = std::get<0>(z_axis_info);
-    auto &z_end = std::get<1>(z_axis_info);
+    // auto &z_end = std::get<1>(z_axis_info);
     auto &z_step = std::get<2>(z_axis_info);
 
     // loop over the z bins
