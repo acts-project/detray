@@ -874,7 +874,7 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
             auto n_z_bins = m_binning.second;
             scalar z_start =
                 -0.5 * (n_z_bins - 1) * (2 * m_half_y - m_long_overlap);
-            scalar z_end = std::abs(z_start) * 2;
+            scalar z_end = std::abs(z_start);
             scalar z_step = (z_end - z_start) / (n_z_bins - 1);
 
             return {z_start, z_end, z_step};
