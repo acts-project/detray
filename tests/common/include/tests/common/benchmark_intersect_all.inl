@@ -38,7 +38,7 @@ auto [d, name_map] =
     read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
 
 using detector_t = decltype(d);
-constexpr auto k_surfaces = detector_t::object_id::e_surface;
+constexpr auto k_surfaces = detector_t::object_defs::e_surface;
 
 using detray_context = decltype(d)::transform_store::context;
 detray_context default_context;
@@ -82,8 +82,9 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                 for (const auto &v : d.volumes()) {
                     // Loop over all surfaces in volume
                     for (const auto sf : range(data_core.surfaces, v)) {
-                        auto sfi = intersect(track, sf, data_core.transforms,
-                                             data_core.masks);
+
+                        auto sfi = sf.intersect(track, data_core.transforms,
+                                                data_core.masks);
 
                         benchmark::DoNotOptimize(hits);
                         benchmark::DoNotOptimize(missed);

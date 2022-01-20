@@ -59,7 +59,7 @@ class navigator {
     using object_t = typename object_container::value_type;
     using transform_container = typename detector_t::transform_store;
     using mask_container = typename detector_t::mask_container;
-    using objs = typename detector_t::object_id;
+    using objs = typename detector_t::object_defs;
 
     using inspector_type = inspector_t;
 
@@ -322,7 +322,7 @@ class navigator {
              enumerate(detector.surfaces(), volume)) {
             // Retrieve candidate from the object
             auto sfi =
-                intersect(track, obj, detector.transforms(), detector.masks());
+                obj.intersect(track, detector.transforms(), detector.masks());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < track.overstep_tolerance) {
@@ -369,10 +369,12 @@ class navigator {
             while (not navigation.is_exhausted()) {
                 // Only update the next candidate
                 dindex obj_idx = navigation.next()->index;
-                auto sfi = intersect(track, detector.surfaces()[obj_idx],
-                                     detector.transforms(), detector.masks());
+                auto obj = detector.surfaces()[obj_idx];
+                auto sfi = obj.intersect(track, detector.transforms(),
+                                         detector.masks());
+
                 sfi.index = obj_idx;
-                sfi.link = std::get<0>(detector.surfaces()[obj_idx].edge());
+                sfi.link = std::get<0>(obj.edge());
                 (*navigation.next()) = sfi;
                 navigation.set_dist(sfi.path);
 
@@ -409,8 +411,9 @@ class navigator {
         else if (navigation.trust_level() == e_fair_trust) {
             for (auto &candidate : navigation.candidates()) {
                 dindex obj_idx = candidate.index;
-                auto sfi = intersect(track, detector.surfaces()[obj_idx],
-                                     detector.transforms(), detector.masks());
+                auto obj = detector.surfaces()[obj_idx];
+                auto sfi = obj.intersect(track, detector.transforms(),
+                                         detector.masks());
                 candidate = sfi;
                 candidate.index = obj_idx;
                 candidate.link =

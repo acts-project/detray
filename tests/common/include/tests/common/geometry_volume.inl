@@ -7,10 +7,10 @@
 
 #include <gtest/gtest.h>
 
+#include <iostream>
+
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/volume.hpp"
-
-#include <iostream>
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -20,7 +20,7 @@ TEST(ALGEBRA_PLUGIN, volume) {
     using namespace __plugin;
 
     using surface_t = dindex;
-    using object_ids = default_object_registry<int, double, dindex_range>;
+    using object_ids = default_object_registry<surface_t>;
     using volume = volume<object_ids>;
 
     // Check construction, setters and getters

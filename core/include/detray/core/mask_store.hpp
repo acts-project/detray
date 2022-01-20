@@ -35,6 +35,12 @@ class mask_store {
     using mask_tuple_data =
         tuple_type<vecmem::data::vector_view<mask_types>...>;
 
+    // How to index data in this container
+    /** Link type for a single mask: group type, index in group */
+    using mask_link = std::array<dindex, 2>;
+    /** Link type for a range of masks: group type, range in group */
+    using mask_range = tuple_type<dindex, std::array<dindex, 2>>;
+
     /**
      * tuple_type for mask_tuple makes an illegal memory access error
      */
@@ -96,17 +102,30 @@ class mask_store {
      *
      * @return the required mask
      */
-    template <unsigned int current_id = 0>
-    DETRAY_HOST_DEVICE const auto &mask(const unsigned int mask_id,
+    /*template <unsigned int current_id = 0>
+    DETRAY_HOST_DEVICE const auto &find_mask(const unsigned int mask_id,
                                         const dindex mask_index) const {
         if (current_id == mask_id) {
             return group<current_id>()[mask_index];
         }
         // Next mask type
         if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
-            return mask<current_id + 1>(mask_id, mask_index);
+            return find_mask<current_id + 1>(mask_id, mask_index);
         }
-    }
+    }*/
+
+    /** Retrieve a single mask - const
+     *
+     * @tparam current_id the index for the mask_type
+     *
+     * @param mask_id the index for the mask_type
+     * @param mask_index the index for the mask
+     *
+     * @return the required mask
+     */
+    /*DETRAY_HOST_DEVICE const auto &find_mask(mask_link m_link) const {
+        return find_mask(detail::get<0>(m_link), detail::get<1>(m_link));
+    }*/
 
     /** Retrieve a vector of masks of a certain type (mask group)
      *
@@ -290,9 +309,9 @@ struct mask_store_data {
  **/
 template <template <typename...> class tuple_type,
           template <typename...> class vector_type, typename... mask_types>
-inline mask_store_data<mask_store<tuple_type, vector_type, mask_types...> >
+inline mask_store_data<mask_store<tuple_type, vector_type, mask_types...>>
 get_data(mask_store<tuple_type, vector_type, mask_types...> &store) {
-    return mask_store_data<mask_store<tuple_type, vector_type, mask_types...> >(
+    return mask_store_data<mask_store<tuple_type, vector_type, mask_types...>>(
         store, std::make_index_sequence<sizeof...(mask_types)>{});
 }
 
