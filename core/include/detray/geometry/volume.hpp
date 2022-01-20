@@ -144,7 +144,7 @@ class volume {
     bool operator==(const volume &rhs) const {
         return (_bounds == rhs._bounds && _index == rhs._index &&
                 _ranges == rhs._ranges &&
-                _surfaces_finder_data == rhs._surfaces_finder_entry);
+                _surfaces_finder_data == rhs._surfaces_finder_data);
     }
 
     private:
