@@ -31,51 +31,37 @@ struct regular {
     scalar min;
     scalar max;
 
-    /* dummy boundary which is not used */
-    vector_type<scalar> boundaries;
-
     static constexpr unsigned int axis_identifier = 0;
 
     /** Defualt constructor for dummy axis **/
     regular()
         : n_bins(invalid_value<dindex>()),
           min(0.),
-          max(static_cast<scalar>(n_bins)),
-          boundaries({}) {}
+          max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
-    regular(vecmem::memory_resource &resource)
+    regular(vecmem::memory_resource & /*resource*/)
         : n_bins(invalid_value<dindex>()),
           min(0.),
-          max(static_cast<scalar>(n_bins)),
-          boundaries(&resource) {}
+          max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     regular(dindex axis_bins, scalar axis_min, scalar axis_max,
-            vecmem::memory_resource &resource)
-        : n_bins(axis_bins),
-          min(axis_min),
-          max(axis_max),
-          boundaries(&resource) {}
+            vecmem::memory_resource & /*resource*/)
+        : n_bins(axis_bins), min(axis_min), max(axis_max) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
-    regular(const regular &axis, vecmem::memory_resource &resource)
-        : n_bins(axis.n_bins),
-          min(axis.min),
-          max(axis.max),
-          boundaries(axis.boundaries, &resource) {}
+    regular(const regular &axis, vecmem::memory_resource & /*resource*/)
+        : n_bins(axis.n_bins), min(axis.min), max(axis.max) {}
 
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<regular, axis_data_t>, bool> = true>
     DETRAY_HOST_DEVICE regular(axis_data_t &axis_data)
-        : n_bins(axis_data.n_bins),
-          min(axis_data.min),
-          max(axis_data.max),
-          boundaries(axis_data.boundaries) {}
+        : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
     /** Return the number of bins */
     DETRAY_HOST_DEVICE
@@ -225,51 +211,37 @@ struct circular {
     scalar min;
     scalar max;
 
-    /* dummy boundary which is not used */
-    vector_type<scalar> boundaries;
-
     static constexpr unsigned int axis_identifier = 1;
 
     /** Defualt constructor for dummy axis **/
     circular()
         : n_bins(invalid_value<dindex>()),
           min(0.),
-          max(static_cast<scalar>(n_bins)),
-          boundaries({}) {}
+          max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
-    circular(vecmem::memory_resource &resource)
+    circular(vecmem::memory_resource & /*resource*/)
         : n_bins(invalid_value<dindex>()),
           min(0.),
-          max(static_cast<scalar>(n_bins)),
-          boundaries(&resource) {}
+          max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     circular(dindex axis_bins, scalar axis_min, scalar axis_max,
-             vecmem::memory_resource &resource)
-        : n_bins(axis_bins),
-          min(axis_min),
-          max(axis_max),
-          boundaries(&resource) {}
+             vecmem::memory_resource & /*resource*/)
+        : n_bins(axis_bins), min(axis_min), max(axis_max) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
-    circular(const circular &axis, vecmem::memory_resource &resource)
-        : n_bins(axis.n_bins),
-          min(axis.min),
-          max(axis.max),
-          boundaries(axis.boundaries, &resource) {}
+    circular(const circular &axis, vecmem::memory_resource & /*resource*/)
+        : n_bins(axis.n_bins), min(axis.min), max(axis.max) {}
 
     /** Constructor with axis_data **/
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<circular, axis_data_t>, bool> = true>
     DETRAY_HOST_DEVICE circular(axis_data_t &axis_data)
-        : n_bins(axis_data.n_bins),
-          min(axis_data.min),
-          max(axis_data.max),
-          boundaries(axis_data.boundaries) {}
+        : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
     /** Return the number of bins */
     DETRAY_HOST_DEVICE
@@ -625,8 +597,36 @@ struct irregular {
 /**
  * static implementation of axis data for device
  */
+template <typename axis_type, typename Enable = void>
+struct axis_data;
+
 template <typename axis_type>
-struct axis_data {
+struct axis_data<axis_type,
+                 typename std::enable_if_t<axis_type::axis_identifier == 0>> {
+
+    axis_data(axis_type &axis)
+        : n_bins(axis.n_bins), min(axis.min), max(axis.max) {}
+
+    const dindex n_bins;
+    const scalar min;
+    const scalar max;
+};
+
+template <typename axis_type>
+struct axis_data<axis_type,
+                 typename std::enable_if_t<axis_type::axis_identifier == 1>> {
+
+    axis_data(axis_type &axis)
+        : n_bins(axis.n_bins), min(axis.min), max(axis.max) {}
+
+    const dindex n_bins;
+    const scalar min;
+    const scalar max;
+};
+
+template <typename axis_type>
+struct axis_data<axis_type,
+                 typename std::enable_if_t<axis_type::axis_identifier == 2>> {
 
     axis_data(axis_type &axis)
         : n_bins(axis.n_bins),
