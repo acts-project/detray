@@ -25,10 +25,10 @@ TEST(ALGEBRA_PLUGIN, read_detector) {
     vecmem::host_memory_resource host_mr;
     using namespace detray;
 
-    auto [d, name_map] =
+    /*auto [d, name_map] =
         read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
 
-    std::cout << d.to_string(name_map) << std::endl;
+    std::cout << d.to_string(name_map) << std::endl;*/
 }
 
 int main(int argc, char **argv) {
