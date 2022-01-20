@@ -185,8 +185,9 @@ __global__ void grid_attach_fill_test_kernel(
     device_grid2_attach g2_device(grid_view);
 
     // Fill with 100 points
-    auto pt = test::point3<detray::scalar>{1. * threadIdx.x, 1. * threadIdx.x,
-                                           1. * threadIdx.x};
+    auto pt = test::point3<detray::scalar>{detray::scalar(1.) * threadIdx.x,
+                                           detray::scalar(1.) * threadIdx.x,
+                                           detray::scalar(1.) * threadIdx.x};
     g2_device.populate(blockIdx.x, blockIdx.y, std::move(pt));
 
     __syncthreads();

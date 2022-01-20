@@ -233,9 +233,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
             // calculate the current phi value
             scalar m_phi = min_phi + phiBin * phi_step;
             m_centers.push_back(
-                point3{static_cast<scalar>(m_r * std::cos(m_phi)),
-                       static_cast<scalar>(m_r * std::sin(m_phi)),
-                       static_cast<scalar>(m_z)});
+                point3{m_r * std::cos(m_phi), m_r * std::sin(m_phi), m_z});
         }
     }
 
@@ -339,9 +337,7 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
         // main z position depending on phi bin
         scalar rz = iphi % 2 ? z - 0.5 * phi_stagger : z + 0.5 * phi_stagger;
         r_positions.push_back(
-            vector3{static_cast<scalar>(radius * std::cos(phi)),
-                    static_cast<scalar>(radius * std::sin(phi)),
-                    static_cast<scalar>(rz + rzs)});
+            vector3{radius * std::cos(phi), radius * std::sin(phi), rz + rzs});
     }
     return r_positions;
 }
@@ -448,8 +444,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             // the center position of the modules
             point3 m_center{static_cast<scalar>(cfg.side) * m_position};
             // the rotation matrix of the module
-            vector3 m_local_y{static_cast<scalar>(std::cos(m_phi)),
-                              static_cast<scalar>(std::sin(m_phi)), 0.};
+            vector3 m_local_y{std::cos(m_phi), std::sin(m_phi), 0.};
             // take different axis to have the same readout direction
             vector3 m_local_z{0., 0., cfg.side * scalar{1.}};
             vector3 m_local_x = algebra::vector::cross(m_local_y, m_local_z);
