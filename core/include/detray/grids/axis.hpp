@@ -649,12 +649,9 @@ template <template <template <typename, unsigned int> class,
           template <typename, unsigned int> class array_type,
           template <typename...> class vector_type,
           std::enable_if_t<
-              std::is_same_v<axis::regular<array_type, vector_type>,
-                             axis_type<array_type, vector_type>> ||
-                  std::is_same_v<axis::circular<array_type, vector_type>,
-                                 axis_type<array_type, vector_type>> ||
-                  std::is_same_v<axis::irregular<array_type, vector_type>,
-                                 axis_type<array_type, vector_type>>,
+              axis_type<array_type, vector_type>::axis_identifier == 0 ||
+                  axis_type<array_type, vector_type>::axis_identifier == 1 ||
+                  axis_type<array_type, vector_type>::axis_identifier == 2,
               bool> = true>
 inline axis_data<axis_type<array_type, vector_type>> get_data(
     axis_type<array_type, vector_type> &axis) {
