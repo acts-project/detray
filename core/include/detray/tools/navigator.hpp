@@ -11,6 +11,7 @@
 #include <string>
 #include <type_traits>
 
+#include "detray/core/detector.hpp"
 #include "detray/core/intersection.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
@@ -52,6 +53,7 @@ template <typename detector_t, typename inspector_t = void_inspector>
 class navigator {
 
     public:
+    using detector_type = detector_t;
     using volume_container =
         std::remove_reference_t<decltype(std::declval<detector_t>().volumes())>;
     using volume_type = typename detector_t::volume_type;
@@ -488,9 +490,23 @@ class navigator {
         return true;
     }
 
+    auto &get_detector() { return detector; }
+
     private:
     /** the containers for all data */
     detector_t detector;
 };
+
+template <typename navigator_t>
+struct navigator_data {
+    navigator_data(navigator_t &n) : _detector_data(n.get_detector()) {}
+
+    detector_data<typename navigator_t::detector_type> _detector_data;
+};
+
+template <typename navigator_t>
+inline navigator_data<navigator_t> get_data(navigator_t &n) {
+    return n;
+}
 
 }  // namespace detray
