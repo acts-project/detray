@@ -1,12 +1,12 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021 CERN for the benefit of the ACTS project
+# (c) 2021-2022 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
 # Set up the project.
 cmake_minimum_required( VERSION 3.11 )
-project( detray VERSION 0.3 LANGUAGES CXX )
+project( detray VERSION 0.4 LANGUAGES CXX )
 
 # CMake include(s).
 include( CMakeDependentOption )
