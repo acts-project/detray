@@ -11,6 +11,11 @@
 namespace detray {
 
 /// test function for navigator
-void navigator_test() {}
+void navigator_test(navigator_data<navigator_host_t>& n_data) {
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
 
 }  // namespace detray

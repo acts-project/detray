@@ -18,7 +18,7 @@
 #endif
 
 #include "detray/tools/navigator.hpp"
-#include "tests/common/tools/detector_registry.hpp"
+#include "tests/common/tools/create_toy_geometry.hpp"
 
 using namespace detray;
 
@@ -35,6 +35,6 @@ using navigator_device_t = navigator<detector_device_t>;
 namespace detray {
 
 /// test function for navigator
-void navigator_test();
+void navigator_test(navigator_data<navigator_host_t>& n_data);
 
 }  // namespace detray
