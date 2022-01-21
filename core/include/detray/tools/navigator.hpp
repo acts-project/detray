@@ -13,6 +13,7 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/core/intersection.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
@@ -242,6 +243,7 @@ class navigator {
         dindex _volume_index = dindex_invalid;
     };
 
+    DETRAY_HOST
     navigator(const detector_t &d) : detector(d) {}
 
     /** Navigation status() call which established the current navigation
@@ -255,7 +257,8 @@ class navigator {
      * @return a heartbeat to indicate if the navigation is still alive
      **/
     template <typename track_t>
-    inline bool status(state &navigation, const track_t &track) const {
+    DETRAY_HOST_DEVICE inline bool status(state &navigation,
+                                          const track_t &track) const {
 
         bool heartbeat = true;
 
@@ -288,7 +291,8 @@ class navigator {
      * @return a heartbeat to indicate if the navigation is still alive
      **/
     template <typename track_t>
-    bool target(state &navigation, const track_t &track) const {
+    DETRAY_HOST_DEVICE bool target(state &navigation,
+                                   const track_t &track) const {
 
         // We are already on the right track, nothing left to do
         if (navigation.trust_level() == e_full_trust) {
@@ -312,8 +316,9 @@ class navigator {
      *
      */
     template <typename track_t>
-    inline void initialize_kernel(state &navigation, const track_t &track,
-                                  const volume_type &volume) const {
+    DETRAY_HOST_DEVICE inline void initialize_kernel(
+        state &navigation, const track_t &track,
+        const volume_type &volume) const {
 
         // Get the max number of candidates & run them through the kernel
         navigation.candidates().reserve(volume.n_objects());
@@ -358,8 +363,9 @@ class navigator {
      * @return A boolean condition if kernel is exhausted or not
      */
     template <typename track_t>
-    inline void update_kernel(state &navigation, const track_t &track,
-                              const volume_type &volume) const {
+    DETRAY_HOST_DEVICE inline void update_kernel(
+        state &navigation, const track_t &track,
+        const volume_type &volume) const {
 
         if (navigation.trust_level() == e_no_trust) {
             initialize_kernel(navigation, track, volume);
@@ -430,6 +436,7 @@ class navigator {
      *
      * @param navigation [in, out] navigation state that contains the kernel
      */
+    DETRAY_HOST_DEVICE
     inline void set_next(state &navigation) const {
 
         auto &kernel = navigation._kernel;
@@ -470,6 +477,7 @@ class navigator {
      *
      * @param navigation is the navigation state
      */
+    DETRAY_HOST_DEVICE
     bool check_volume_switch(state &navigation) const {
         // Check if we need to switch volume index and (re-)initialize
         if (navigation.status() == e_on_object and
@@ -490,6 +498,7 @@ class navigator {
         return true;
     }
 
+    DETRAY_HOST_DEVICE
     auto &get_detector() { return detector; }
 
     private:
