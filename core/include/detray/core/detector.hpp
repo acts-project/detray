@@ -380,6 +380,10 @@ class detector {
         const context ctx, volume_type &volume, surface_container &surfaces,
         mask_container &masks, transform_container &trfs) noexcept(false) {
 
+        // update the n_max_objects_per_volume
+        n_max_objects_per_volume =
+            std::max(surfaces.size(), n_max_objects_per_volume);
+
         // Get the surfaces/portals for a mask type
         auto &typed_surfaces = surfaces[current_type];
         // Get the corresponding transforms
@@ -444,6 +448,11 @@ class detector {
         return _surfaces_finder;
     }
 
+    DETRAY_HOST_DEVICE
+    inline const auto &get_n_max_objects_per_volume() {
+        return n_max_objects_per_volume;
+    }
+
     /** Output to string */
     DETRAY_HOST
     const std::string to_string(const name_map &names) const {
@@ -504,6 +513,9 @@ class detector {
     surfaces_finder_type _surfaces_finder;
 
     vecmem::memory_resource *_resource = nullptr;
+
+    // maximum number of surfaces per volume for navigation kernel candidates
+    dindex n_max_objects_per_volume = 0;
 };
 
 /** A static inplementation of detector data for device
