@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -271,6 +271,13 @@ class navigator {
 
     DETRAY_HOST
     navigator(const detector_t &d) : detector(d) {}
+
+    template <
+        typename navigator_data_type,
+        std::enable_if_t<!std::is_base_of_v<detector_t, navigator_data_type>,
+                         bool> = true>
+    DETRAY_HOST_DEVICE navigator(navigator_data_type &n_data)
+        : detector(n_data._detector_view) {}
 
     /** Navigation status() call which established the current navigation
      *  information.
