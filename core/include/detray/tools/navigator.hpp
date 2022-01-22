@@ -111,6 +111,21 @@ class navigator {
         }
     };
 
+    template <typename navigation_kernel_t>
+    struct navigation_kernel_buffer {
+        navigation_kernel_buffer(std::size_t n_max_candidates,
+                                 vecmem::memory_resource &resource)
+            : candidates_buffer(0, n_max_candidates, resource) {}
+        vecmem::data::vector_buffer<intersection> candidates_buffer;
+    };
+
+    template <typename navigation_kernel_t>
+    struct navigation_kernel_data {
+        navigation_kernel_data(navigation_kernel_t kernel)
+            : candidates_data(vecmem::get_data(kernel.candidates)) {}
+        vecmem::data::vector_view<intersection> candidates_data;
+    };
+
     /** A navigation state object used to cache the information of the
      *  current navigation stream. These can be read or set in between
      *  navigation calls.
