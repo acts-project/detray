@@ -28,8 +28,8 @@ namespace detray {
  */
 struct void_inspector {
     template <typename state_type>
-    void operator()(const state_type & /*ignored*/, std::string & /*ignored*/) {
-    }
+    DETRAY_HOST_DEVICE void operator()(const state_type & /*ignored*/,
+                                       std::string & /*ignored*/) {}
 };
 
 /** The navigator struct is agnostic to the object/primitive type. It
