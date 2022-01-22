@@ -57,14 +57,14 @@ struct print_inspector {
         debug_stream << message << std::endl;
 
         debug_stream << "Volume\t\t\t\t\t\t" << state.volume() << std::endl;
-        debug_stream << "surface kernel size\t\t" << state.kernel().size()
+        debug_stream << "surface kernel size\t\t" << state.candidates().size()
                      << std::endl;
 
         debug_stream << "Surface candidates: " << std::endl;
         for (const auto &sf_cand : state.candidates()) {
             debug_stream << sf_cand.to_string();
         }
-        if (not state.kernel().empty()) {
+        if (not state.candidates().empty()) {
             debug_stream << "=> next: ";
             if (state.is_exhausted()) {
                 debug_stream << "exhausted" << std::endl;

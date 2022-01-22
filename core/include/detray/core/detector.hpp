@@ -63,6 +63,9 @@ class detector {
     using surfaces_serializer_type = serializer2;
     using name_map = std::map<dindex, std::string>;
 
+    template <typename T>
+    using vector_t = vector_type<T>;
+
     // TODO: Remove this from detector
     /** Encodes the position in a collection container for the respective
         mask type . */
