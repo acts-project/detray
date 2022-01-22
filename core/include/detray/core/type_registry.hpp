@@ -106,18 +106,6 @@ class default_object_registry : public registry_base<registered_types...> {
 
     template <unsigned int ID, template <typename...> class tuple_t = dtuple>
     using get_type = typename type_registry::template get_type<ID, tuple_t>;
-
-    /*template <unsigned int current_id = 0>
-    DETRAY_HOST_DEVICE static auto &get_dynamic_type(const unsigned int index) {
-        if (current_id == index) {
-            get_type<current_id> type_wrapper{};
-            return type_wrapper;
-        }
-        // Next type
-        if constexpr (current_id < n_types - 1) {
-            return get_dynamic_type<current_id + 1>(index);
-        }
-    }*/
 };
 
 /** Registry object for masks */
@@ -131,7 +119,8 @@ class default_mask_registry : public registry_base<registered_types...> {
     };
 
     template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
+              template <typename...> class vector_t = dvector,
+              template <typename, std::size_t> class array_t = darray>
     using mask_container = mask_store<tuple_t, vector_t, registered_types...>;
     using mask_link = typename mask_container<>::mask_link;
     using mask_range = typename mask_container<>::mask_range;
@@ -191,10 +180,17 @@ class default_sf_finder_registry : public registry_base<registered_types...> {
         n_types = type_registry::n_types,
     };
 
+    template <template <typename...> class tuple_t = dtuple,
+              template <typename...> class vector_t = dvector,
+              template <typename, std::size_t> class array_t = darray>
+    using sf_finder_container =
+        mask_store<tuple_t, vector_t, registered_types...>;
+    using sf_finder_link = typename sf_finder_container<>::mask_link;
+
     /// Surface finders
     enum id : unsigned int {
-        e_circ_reg_grid = 0,
-        e_reg_reg_grid = 1,  // not used (same as surface)
+        e_z_phi_grid = 0,  // barrel
+        e_r_phi_grid = 1,  // endcap
         e_any = type_registry::e_any,
         e_unknown = type_registry::e_unknown,
     };
@@ -204,30 +200,6 @@ class default_sf_finder_registry : public registry_base<registered_types...> {
 
     template <unsigned int ID, template <typename...> class tuple_t = dtuple>
     using get_type = typename type_registry::template get_type<ID, tuple_t>;
-
-    /*DETRAY_HOST_DEVICE static constexpr auto get_tp(const unsigned int index)
-    { return unroll_types<registered_types...>(index);
-    }
-
-    template<template <typename...> class tuple_t = dtuple>
-    struct match_type {
-        unsigned int _index;
-        match_type(unsigned int index) : _index(index) {}
-        using type = decltype(get_tp(_index));
-    };
-
-    template <typename first_t = empty_type, typename ...remaining_types>
-    DETRAY_HOST_DEVICE static auto unroll_types (const unsigned int index) ->
-    get_type<n_types - sizeof...(remaining_types) - 1> { constexpr unsigned int
-    current_type_index = n_types - sizeof...(remaining_types) - 1; if (not
-    std::is_same_v<first_t, empty_type> and not (index == current_type_index)) {
-            unroll_types<remaining_types...>(index);
-        }
-        if (index == current_type_index) {
-            return get_type<current_type_index>{};
-        }
-        return get_type<e_unknown>{};
-    }*/
 };
 
 }  // namespace detray

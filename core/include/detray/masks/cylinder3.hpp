@@ -76,8 +76,7 @@ struct cylinder3 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    cylinder3<kRadialCheck, intersector_type, local_type, links_type,
-              kMaskID>
+    cylinder3<kRadialCheck, intersector_type, local_type, links_type, kMaskID>
         &operator=(const array_type<scalar, 3> &rhs) {
         _values = rhs;
         return (*this);

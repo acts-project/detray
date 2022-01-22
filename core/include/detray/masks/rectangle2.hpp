@@ -72,8 +72,8 @@ struct rectangle2 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    rectangle2<intersector_type, local_type, links_type, kMaskID>
-        &operator=(const array_type<scalar, 2> &rhs) {
+    rectangle2<intersector_type, local_type, links_type, kMaskID> &operator=(
+        const array_type<scalar, 2> &rhs) {
         _values = rhs;
         return (*this);
     }

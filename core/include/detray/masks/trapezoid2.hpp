@@ -77,8 +77,8 @@ struct trapezoid2 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    trapezoid2<intersector_type, local_type, links_type, kMaskID>
-        &operator=(const array_type<scalar, 3> &rhs) {
+    trapezoid2<intersector_type, local_type, links_type, kMaskID> &operator=(
+        const array_type<scalar, 3> &rhs) {
         _values = rhs;
         return (*this);
     }

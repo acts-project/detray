@@ -42,10 +42,10 @@ TEST(tools, intersection_kernel_single) {
                  mask_link, 2>;
 
     /// - mask index: type, entry
-    using surface_mask_index = darray<dindex, 2>;
     using surface_mask_container =
         mask_store<dtuple, dvector, surface_rectangle, surface_trapezoid,
                    surface_annulus>;
+    using surface_mask_index = typename surface_mask_container::mask_link;
 
     /// The Surface definition:
     /// <transform_link, mask_link, volume_link, source_link, link_type_in_mask>

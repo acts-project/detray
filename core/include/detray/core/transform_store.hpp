@@ -23,6 +23,8 @@ class static_transform_store {
     public:
     using storage = vector_type<transform3>;
     using context = context_t;
+    /// transform link: how to index a transform
+    using transform_link = dindex;
 
     static_transform_store() = default;
 
@@ -103,7 +105,7 @@ class static_transform_store {
      * @param args Constructor arguments
      */
     template <class... Args>
-    DETRAY_HOST auto &emplace_back(const context & /*ctx*/, Args &&... args) {
+    DETRAY_HOST auto &emplace_back(const context & /*ctx*/, Args &&...args) {
         return _data.emplace_back(std::forward<Args>(args)...);
     }
 

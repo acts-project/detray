@@ -57,22 +57,22 @@ template <typename detector_registry,
 class detector {
 
     public:
+    using name_map = std::map<dindex, std::string>;
+
     /// Forward the alignable container and context
     using transform_store = static_transform_store<vector_type>;
+    using transform_link = typename transform_store::transform_link;
     using context = typename transform_store::context;
     using surfaces_serializer_type = serializer2;
-    using name_map = std::map<dindex, std::string>;
 
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
-    /// transform link: transform entry belonging to surface
-    using transform_link = dindex;
-    /// mask index: type, range
-    using mask_link = array_type<dindex, 2>;
+
+    /** The Mask definitions:
+     *  <intersector_t, local_t, edge_type, mask_id>
+     */
     /// edge links: next volume, next (local) object finder
     using edge_type = array_type<dindex, 2>;
-
-    /// mask types
     using rectangle =
         rectangle2<planar_intersector, __plugin::cartesian2<detray::scalar>,
                    edge_type, e_rectangle2>;
@@ -87,13 +87,10 @@ class detector {
                                edge_type, e_cylinder3>;
     using disc = ring2<planar_intersector, __plugin::cartesian2<detray::scalar>,
                        edge_type, e_ring2>;
-
     using mask_defs =
         default_mask_registry<rectangle, trapezoid, annulus, cylinder, disc>;
-    using mask_container = typename mask_defs::mask_container<
-        tuple_type,
-        vector_type>;  // mask_store<tuple_type, vector_type, rectangle,
-                       // trapezoid, annulus, cylinder, disc>;
+    using mask_container =
+        typename mask_defs::mask_container<tuple_type, vector_type>;
 
     /** The Surface definition:
      *  <transform_link, mask_link, volume_link, source_link, edge_link>
@@ -101,19 +98,12 @@ class detector {
     using surface_type =
         surface_base<transform_link, typename mask_defs::mask_link, volume_link,
                      source_link, edge_type>;
-
-    using object_defs = default_object_registry<surface_type>;
     using surface_container = vector_type<surface_type>;
 
-    // Volume type
-    using volume_type = volume<object_defs, dindex_range, array_type>;
-
-    /// Accelerator structure
-
-    /// Volume grid definition
-    using volume_grid =
-        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
-              vector_type, jagged_vector_type, array_type, tuple_type, dindex>;
+    /** The Volume definition:
+     *  <object_registry, range_type, array_type>
+     */
+    using object_defs = default_object_registry<surface_type>;
 
     /** Temporary container structures that are used to fill the detector.
      * The respective objects are sorted by mask type, so that they can be
@@ -122,6 +112,13 @@ class detector {
     using surface_filling_container =
         array_type<vector_type<surface_type>, mask_defs::n_types>;
     using transform_container = array_type<transform_store, mask_defs::n_types>;
+
+    /// Accelerator structure
+
+    /// Volume grid definition
+    using volume_grid =
+        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
+              vector_type, jagged_vector_type, array_type, tuple_type, dindex>;
 
     // Neighborhood finder, using accelerator data structure
     static constexpr size_t N_GRIDS =
@@ -137,6 +134,12 @@ class detector {
         typename surfaces_regular_circular_grid::axis_p0_t;
     using surfaces_circular_axis =
         typename surfaces_regular_circular_grid::axis_p1_t;
+
+    using sf_finder_defs =
+        default_sf_finder_registry<surfaces_regular_circular_grid,
+                                   surfaces_regular_circular_grid>;
+    using volume_type =
+        volume<object_defs, sf_finder_defs, dindex_range, array_type>;
 
     detector() = delete;
 
@@ -308,7 +311,7 @@ class detector {
     template <typename... detector_components>
     DETRAY_HOST inline void add_objects(
         const context ctx,
-        detector_components &&... components) noexcept(false) {
+        detector_components &&...components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'mask_defs')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
@@ -327,13 +330,13 @@ class detector {
                 auto tsl = trf.translation();
 
                 if (vol.get_grid_type() ==
-                    volume_type::grid_type::e_z_phi_grid) {
+                    volume_type::sf_finders::e_z_phi_grid) {
 
                     point2 location{tsl[2], algebra::getter::phi(tsl)};
                     surfaces_grid.populate(location, std::move(sidx));
 
                 } else if (vol.get_grid_type() ==
-                           volume_type::grid_type::e_r_phi_grid) {
+                           volume_type::sf_finders::e_r_phi_grid) {
 
                     point2 location{algebra::getter::perp(tsl),
                                     algebra::getter::phi(tsl)};

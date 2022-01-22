@@ -171,7 +171,7 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
 
     det.add_objects(ctx, cyl_volume, surfaces, masks, transforms);
     if (cyl_volume.get_grid_type() !=
-        detector_t::volume_type::grid_type::e_no_grid) {
+        detector_t::volume_type::sf_finders::id::e_unknown) {
         det.add_surfaces_grid(ctx, cyl_volume, cyl_surfaces_grid);
     }
 }
@@ -197,7 +197,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                   transform_container_t &transforms,
                                   config_t cfg) {
     auto volume_id = vol.index();
-    vol.set_grid_type(volume_type::grid_type::e_z_phi_grid);
+    vol.set_grid_type(volume_type::sf_finders::id::e_z_phi_grid);
 
     /// mask index: type, range
     using mask_link_t =
@@ -362,10 +362,9 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
                            mask_container_t &masks,
                            transform_container_t &transforms, config_t cfg) {
     auto volume_id = vol.index();
-    vol.set_grid_type(volume_type::grid_type::e_r_phi_grid);
+    vol.set_grid_type(volume_type::sf_finders::id::e_r_phi_grid);
 
-    using mask_link_t =
-        typename surface_container_t::value_type::value_type::mask_links;
+    using mask_link_t = typename mask_container_t::mask_link;
     // calculate the radii of the rings
     std::vector<scalar> radii;
     // calculate the radial borders

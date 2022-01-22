@@ -13,29 +13,32 @@ namespace detray {
 
 /** Volume class that acts as a logical container in the geometry for geometry
  *  objects, such as module surfaces or portals. The information is kept as
- *  index ranges into larger containers that are owned by the detector 
+ *  index ranges into larger containers that are owned by the detector
  *  implementation.
  *
  * @tparam array_type the type of the internal array, must have STL semantics
  */
-template <typename object_registry_t, typename range_t = dindex_range,
-          template <typename, unsigned int> class array_t = darray, 
+template <typename object_registry_t, typename sf_finder_registry_t,
+          typename range_t = dindex_range,
+          template <typename, unsigned int> class array_t = darray,
           typename surface_finder_data_t = dindex>
 class volume {
 
     public:
     // The type of objects a volume can contain
     using objects = object_registry_t;
+    using sf_finders = sf_finder_registry_t;
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
     // used for sfinae
-    using volume_def = volume<objects, range_t, array_t, surface_finder_data_t>;
+    using volume_def =
+        volume<objects, sf_finders, range_t, array_t, surface_finder_data_t>;
 
-    enum grid_type : unsigned int {
+    /*enum grid_type : unsigned int {
         e_no_grid = 0,
         e_z_phi_grid = 1,  // barrel
         e_r_phi_grid = 2,  // endcap
-    };
+    };*/
 
     /** Default constructor**/
     volume() = default;
@@ -81,8 +84,7 @@ class volume {
     }
 
     /** @return the number of surfaces in the volume */
-    template <
-        typename objects::id range_id = objects::e_surface>
+    template <typename objects::id range_id = objects::e_surface>
     DETRAY_HOST_DEVICE inline auto n_objects() const {
         return n_in_range(range<range_id>());
     }
@@ -131,7 +133,7 @@ class volume {
     }
 
     /** set grid type associated with volume */
-    void set_grid_type(grid_type val) { _grid_type = val; }
+    void set_grid_type(typename sf_finders::id val) { _grid_type = val; }
 
     /** get grid type associated with volume */
     const auto get_grid_type() const { return _grid_type; }
@@ -150,11 +152,11 @@ class volume {
     private:
     /** Bounds section, default for r, z, phi */
     array_t<scalar, 6> _bounds = {0.,
-                                     std::numeric_limits<scalar>::max(),
-                                     -std::numeric_limits<scalar>::max(),
-                                     std::numeric_limits<scalar>::max(),
-                                     -M_PI,
-                                     M_PI};
+                                  std::numeric_limits<scalar>::max(),
+                                  -std::numeric_limits<scalar>::max(),
+                                  std::numeric_limits<scalar>::max(),
+                                  -M_PI,
+                                  M_PI};
 
     /** Volume index */
     dindex _index = dindex_invalid;
@@ -164,8 +166,8 @@ class volume {
     array_t<range_t, objects::n_types> _ranges = {};
 
     /** grid type associated with volume **/
-    grid_type _grid_type = e_no_grid;
-    
+    typename sf_finders::id _grid_type = sf_finders::id::e_unknown;
+
     /** Index into the surface finder container */
     surface_finder_data_t _surfaces_finder_data = dindex_invalid;
 };
