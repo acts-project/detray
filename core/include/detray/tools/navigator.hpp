@@ -96,12 +96,15 @@ class navigator {
         typename vector_type<intersection>::iterator next = candidates.end();
 
         /** Indicate that the kernel is empty */
+        DETRAY_HOST_DEVICE
         bool empty() const { return candidates.empty(); }
 
         /** Forward the kernel size */
+        DETRAY_HOST_DEVICE
         size_t size() const { return candidates.size(); }
 
         /** Clear the kernel */
+        DETRAY_HOST_DEVICE
         void clear() {
             candidates.clear();
             next = candidates.end();
@@ -121,72 +124,93 @@ class navigator {
         /** Scalar representation of the navigation state,
          * @returns distance to next
          **/
+        DETRAY_HOST_DEVICE
         scalar operator()() const { return _distance_to_next; }
 
         /** @returns current candidates */
+        DETRAY_HOST_DEVICE
         inline const auto &candidates() const { return _kernel.candidates; }
 
         /** @returns current candidates */
+        DETRAY_HOST_DEVICE
         inline auto &candidates() { return _kernel.candidates; }
 
         /** @returns current object that was reached */
+        DETRAY_HOST_DEVICE
         inline decltype(auto) current() { return _kernel.next - 1; }
 
         /** @returns next object that we want to reach */
+        DETRAY_HOST_DEVICE
         inline auto &next() { return _kernel.next; }
 
         /** @returns the navigation kernel that contains the candidates */
+        DETRAY_HOST_DEVICE
         inline const auto &kernel() { return _kernel; }
 
         /** Clear the current kernel */
+        DETRAY_HOST_DEVICE
         inline void clear() { _kernel.clear(); }
 
         /** Update the distance to next candidate */
+        DETRAY_HOST_DEVICE
         inline void set_dist(scalar dist) { _distance_to_next = dist; }
 
         /** Call the navigation inspector */
+        DETRAY_HOST_DEVICE
         inline auto run_inspector(std::string &&message) {
             return _inspector(*this, message);
         }
 
         /** @returns the navigation inspector */
+        DETRAY_HOST_DEVICE
         inline auto &inspector() { return _inspector; }
 
         /** @returns current object the navigator is on (might be invalid if
          * between objects)
          */
+        DETRAY_HOST_DEVICE
         inline const auto on_object() { return _object_index; }
 
         /** Update current object the navigator is on  */
+        DETRAY_HOST_DEVICE
         inline void set_object(dindex obj) { _object_index = obj; }
 
         /** @returns current navigation status */
+        DETRAY_HOST_DEVICE
         inline const auto status() { return _status; }
 
         /** Set new navigation status */
+        DETRAY_HOST_DEVICE
         inline void set_status(navigation_status stat) { _status = stat; }
 
         /** @returns tolerance to determine if we are on object */
+        DETRAY_HOST_DEVICE
         inline const auto tolerance() { return _on_object_tolerance; }
 
         /** Adjust the on-object tolerance */
+        DETRAY_HOST_DEVICE
         inline void set_tolerance(scalar tol) { _on_object_tolerance = tol; }
 
         /** @returns navigation trust level */
+        DETRAY_HOST_DEVICE
         inline const auto trust_level() { return _trust_level; }
 
         /** Update navigation trust level */
+        DETRAY_HOST_DEVICE
         inline void set_trust_level(navigation_trust_level lvl) {
             _trust_level = lvl;
         }
 
         /** @returns current volume (index) */
+        DETRAY_HOST_DEVICE
         inline const auto volume() { return _volume_index; }
 
         /** Set start/new volume */
+        DETRAY_HOST_DEVICE
         inline void set_volume(dindex v) { _volume_index = v; }
 
         /** Helper method to check if a kernel is exhausted */
+        DETRAY_HOST_DEVICE
         bool is_exhausted() const {
             return (_kernel.next == _kernel.candidates.end());
         }
@@ -196,6 +220,7 @@ class navigator {
          *
          * @return navigation heartbeat (dead)
          */
+        DETRAY_HOST_DEVICE
         inline bool abort() {
             _status = e_abort;
             _trust_level = e_no_trust;
@@ -208,6 +233,7 @@ class navigator {
          *
          * @return navigation heartbeat (dead)
          */
+        DETRAY_HOST_DEVICE
         inline bool exit() {
             _status = e_on_target;
             _trust_level = e_full_trust;
@@ -508,9 +534,18 @@ class navigator {
 
 template <typename navigator_t>
 struct navigator_data {
-    navigator_data(navigator_t &n) : _detector_data(n.get_detector()) {}
+    navigator_data(navigator_t &n)
+        : _detector_data(get_data(n.get_detector())) {}
 
     detector_data<typename navigator_t::detector_type> _detector_data;
+};
+
+template <typename navigator_t>
+struct navigator_view {
+    navigator_view(navigator_data<navigator_t> &n_data)
+        : _detector_view(n_data._detector_data) {}
+
+    detector_view<typename navigator_t::detector_type> _detector_view;
 };
 
 template <typename navigator_t>
