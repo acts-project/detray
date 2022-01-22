@@ -14,23 +14,28 @@
 
 TEST(navigator_cuda, navigator) {
 
+    using namespace detray;
+
     /** Tolerance for tests */
     constexpr double tol = 0.01;
 
-    using namespace detray;
+    // vecmem managed memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
+    // create toy geometry
     std::size_t n_brl_layers = 4;
     std::size_t n_edc_layers = 3;
-
-    detector_host_t toy_det =
+    detector_host_t det =
         create_toy_geometry<darray, thrust::tuple, vecmem::vector,
                             vecmem::jagged_vector>(mng_mr, n_brl_layers,
                                                    n_edc_layers);
 
-    using nav_context = decltype(toy_det)::context;
+    // create navigator
+    navigator_host_t n(det);
 
-    navigator_host_t n(toy_det);
+    // create navigator state buffer
+    navigator_host_t::state_buffer state_buffer(
+        det.get_n_max_objects_per_volume(), mng_mr);
 
     auto n_data = get_data(n);
 

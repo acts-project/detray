@@ -97,6 +97,16 @@ class navigator {
         friend class navigator;
 
         public:
+        /** Default constructor
+         **/
+        state() = default;
+
+        /** Constructor from state_data
+         **/
+        template <typename state_data_t>
+        DETRAY_HOST_DEVICE state(state_data_t &state_data)
+            : _candidates(state_data._candidates_data) {}
+
         /** Scalar representation of the navigation state,
          * @returns distance to next
          **/
@@ -243,6 +253,23 @@ class navigator {
 
         /** Volume we are currently navigating in */
         dindex _volume_index = dindex_invalid;
+    };
+
+    struct state_buffer {
+        state_buffer(
+            vecmem::data::vector_view<intersection>::size_type n_max_candidates,
+            vecmem::memory_resource &resource)
+            : _candidates_buffer(0, n_max_candidates, resource) {}
+
+        vecmem::data::vector_buffer<intersection> _candidates_buffer;
+    };
+
+    struct state_data {
+        state_data(state_buffer &state_buffer)
+            : _candidates_data(
+                  vecmem::get_data(state_buffer._candidates_buffer)) {}
+
+        vecmem::data::vector_view<intersection> _candidates_data;
     };
 
     DETRAY_HOST
