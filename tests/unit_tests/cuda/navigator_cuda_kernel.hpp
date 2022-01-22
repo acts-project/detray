@@ -35,6 +35,6 @@ using navigator_device_t = navigator<detector_device_t>;
 namespace detray {
 
 /// test function for navigator
-void navigator_test(navigator_data<navigator_host_t>& n_data);
+void navigator_test(navigator_view<navigator_host_t> n_data);
 
 }  // namespace detray

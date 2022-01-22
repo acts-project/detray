@@ -10,8 +10,19 @@
 
 namespace detray {
 
+__global__ void navigator_test_kernel(navigator_view<navigator_host_t> n_data) {
+
+    navigator_device_t n(n_data);
+}
+
 /// test function for navigator
-void navigator_test(navigator_data<navigator_host_t>& n_data) {
+void navigator_test(navigator_view<navigator_host_t> n_data) {
+
+    constexpr int block_dim = 1;
+    constexpr int thread_dim = 1;
+
+    // run the test kernel
+    navigator_test_kernel<<<block_dim, thread_dim>>>(n_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
