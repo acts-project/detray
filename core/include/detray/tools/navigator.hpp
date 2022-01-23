@@ -101,9 +101,16 @@ class navigator {
          **/
         state() = default;
 
+        /** Constructor with memory resource
+         **/
+        state(vecmem::memory_resource &resource) : _candidates(&resource) {}
+
         /** Constructor from state_data
          **/
-        template <typename state_data_t>
+        template <typename state_data_t,
+                  std::enable_if_t<
+                      !std::is_base_of_v<vecmem::memory_resource, state_data_t>,
+                      bool> = true>
         DETRAY_HOST_DEVICE state(state_data_t &state_data)
             : _candidates(state_data._candidates_data) {}
 
@@ -259,7 +266,7 @@ class navigator {
         state_buffer(
             vecmem::data::vector_view<intersection>::size_type n_max_candidates,
             vecmem::memory_resource &resource)
-            : _candidates_buffer(0, n_max_candidates, resource) {}
+            : _candidates_buffer(n_max_candidates, 0, resource) {}
 
         vecmem::data::vector_buffer<intersection> _candidates_buffer;
     };
