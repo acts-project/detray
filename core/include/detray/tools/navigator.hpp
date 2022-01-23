@@ -262,23 +262,6 @@ class navigator {
         dindex _volume_index = dindex_invalid;
     };
 
-    struct state_buffer {
-        state_buffer(
-            vecmem::data::vector_view<intersection>::size_type n_max_candidates,
-            vecmem::memory_resource &resource)
-            : _candidates_buffer(n_max_candidates, 0, resource) {}
-
-        vecmem::data::vector_buffer<intersection> _candidates_buffer;
-    };
-
-    struct state_data {
-        state_data(state_buffer &state_buffer)
-            : _candidates_data(
-                  vecmem::get_data(state_buffer._candidates_buffer)) {}
-
-        vecmem::data::vector_view<intersection> _candidates_data;
-    };
-
     DETRAY_HOST
     navigator(const detector_t &d) : detector(d) {}
 

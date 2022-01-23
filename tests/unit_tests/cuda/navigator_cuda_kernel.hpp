@@ -36,6 +36,6 @@ namespace detray {
 
 /// test function for navigator
 void navigator_test(navigator_view<navigator_host_t> n_data,
-                    typename navigator_host_t::state_data state_data);
+                    vecmem::data::vector_view<intersection>& candidates_data);
 
 }  // namespace detray
