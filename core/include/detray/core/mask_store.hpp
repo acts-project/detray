@@ -281,29 +281,8 @@ struct mask_store_data {
                                 std::index_sequence<ints...> seq)
         : _data(store.data(seq)) {}
 
-    /** Size : Contextual STL like API
-     *
-     * @tparam mask_id the index for the mask_type
-     * @return the size of the vector containing the masks of the required type
-     */
-    template <unsigned int mask_id>
-    size_t size() const {
-        return detail::get<mask_id>(_data).size();
-    }
-
-    /** Retrieve a vector of masks of a certain type (mask group) - const
-     *
-     * @tparam mask_id index of requested mask type in masks container
-     * @return vector of masks of a given type.
-     */
-    template <unsigned int mask_id>
-    constexpr const auto &group() const {
-        return detail::get<mask_id>(_data);
-    }
-
     /** tuple of vecmem data
-     *
-     * **/
+     */
     mask_tuple_data_t _data;
 };
 
