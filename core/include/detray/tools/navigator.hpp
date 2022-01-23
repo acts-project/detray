@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,9 +12,7 @@
 #include <type_traits>
 
 #include "detray/core/intersection.hpp"
-#include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 
@@ -314,29 +312,8 @@ class navigator {
                                   const volume_type &volume) const {
 
         // Get the max number of candidates & run them through the kernel
-        navigation.candidates().reserve(volume.n_objects());
-
-        // Loop over all indexed objects in volume, intersect and fill
-        // @todo - will come from the local object finder
-        for (const auto [obj_idx, obj] :
-             enumerate(detector.surfaces(), volume)) {
-            // Retrieve candidate from the object
-            auto sfi =
-                obj.intersect(track, detector.transforms(), detector.masks());
-
-            // Candidate is invalid if it oversteps too far (this is neg!)
-            if (sfi.path < track.overstep_tolerance) {
-                continue;
-            }
-            // Accept if inside
-            if (sfi.status == e_inside) {
-                // object the candidate belongs to
-                sfi.index = obj_idx;
-                // the next volume if we encounter the candidate
-                sfi.link = std::get<0>(obj.edge());
-                navigation.candidates().push_back(sfi);
-            }
-        }
+        navigation.candidates() =
+            std::move(detector.get_candidates(volume, track));
         // What is the next object we want to reach?
         set_next(navigation);
         navigation.run_inspector("Init: ");
@@ -368,20 +345,14 @@ class navigator {
         else if (navigation.trust_level() >= e_high_trust) {
             while (not navigation.is_exhausted()) {
                 // Only update the next candidate
-                dindex obj_idx = navigation.next()->index;
-                auto obj = detector.surfaces()[obj_idx];
-                auto sfi = obj.intersect(track, detector.transforms(),
-                                         detector.masks());
+                intersection &candidate = *navigation.next();
+                detector.update_candidates(candidate, track);
+                navigation.set_dist(candidate.path);
 
-                sfi.index = obj_idx;
-                sfi.link = std::get<0>(obj.edge());
-                (*navigation.next()) = sfi;
-                navigation.set_dist(sfi.path);
-
-                if (sfi.status == e_inside) {
+                if (candidate.status == e_inside) {
                     // We may be on next object (trust level is high)
-                    if (std::abs(sfi.path) < navigation.tolerance()) {
-                        navigation.set_object(obj_idx);
+                    if (std::abs(candidate.path) < navigation.tolerance()) {
+                        navigation.set_object(candidate.index);
                         navigation.set_status(e_on_object);
                         navigation.set_trust_level(e_high_trust);
                         // Set the next object we want to reach might be end()
@@ -410,14 +381,7 @@ class navigator {
         // - do this when your trust level is low
         else if (navigation.trust_level() == e_fair_trust) {
             for (auto &candidate : navigation.candidates()) {
-                dindex obj_idx = candidate.index;
-                auto obj = detector.surfaces()[obj_idx];
-                auto sfi = obj.intersect(track, detector.transforms(),
-                                         detector.masks());
-                candidate = sfi;
-                candidate.index = obj_idx;
-                candidate.link =
-                    std::get<0>(detector.surfaces()[obj_idx].edge());
+                detector.update_candidates(candidate, track);
             }
             set_next(navigation);
             return;

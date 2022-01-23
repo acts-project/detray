@@ -11,6 +11,7 @@
 #include <string>
 #include <vecmem/memory/memory_resource.hpp>
 
+#include "detray/core/intersection.hpp"
 #include "detray/core/mask_store.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
@@ -434,6 +435,57 @@ class detector {
     DETRAY_HOST_DEVICE
     inline surfaces_finder_type &get_surfaces_finder() {
         return _surfaces_finder;
+    }
+
+    /** Produce navigation candidates for a track in a given volume by calling
+     * the volumes surface finder.
+     *
+     * @param vol the reference volume
+     * @param track the track state
+     *
+     * @return a collection of navigation candidates
+     */
+    DETRAY_HOST_DEVICE
+    template <typename track_t>
+    inline vector_type<intersection> get_candidates(
+        const volume_type &vol, const track_t &track) const {
+        vector_type<intersection> candidates;
+        candidates.reserve(vol.n_objects());
+
+        for (const auto &[sf_idx, surf] : enumerate(_surfaces, vol)) {
+            // Retrieve candidate from the object
+            auto sfi = surf.intersect(track, _transforms, _masks);
+
+            // Candidate is invalid if it oversteps too far (this is neg!)
+            if (sfi.path < track.overstep_tolerance) {
+                continue;
+            }
+            // Accept if inside
+            if (sfi.status == e_inside) {
+                // object the candidate belongs to
+                sfi.index = sf_idx;
+                // the next volume if we encounter the candidate
+                sfi.link = std::get<0>(surf.edge());
+                candidates.push_back(sfi);
+            }
+        }
+        return candidates;
+    }
+
+    /** Update a navigation candidate for a track in a given volume.
+     *
+     * @param vol the reference volume
+     * @param track the track state
+     */
+    DETRAY_HOST_DEVICE
+    template <typename track_t>
+    inline void update_candidates(intersection &candidate,
+                                  const track_t &track) const {
+        auto sf_idx = candidate.index;
+        auto surf = _surfaces[sf_idx];
+        candidate = surf.intersect(track, _transforms, _masks);
+        candidate.index = sf_idx;
+        candidate.link = std::get<0>(_surfaces[sf_idx].edge());
     }
 
     /** Output to string */
