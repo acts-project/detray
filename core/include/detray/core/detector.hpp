@@ -383,10 +383,6 @@ class detector {
         const context ctx, volume_type &volume, surface_container &surfaces,
         mask_container &masks, transform_container &trfs) noexcept(false) {
 
-        // update the n_max_objects_per_volume
-        n_max_objects_per_volume =
-            std::max(surfaces.size(), n_max_objects_per_volume);
-
         // Get the surfaces/portals for a mask type
         auto &typed_surfaces = surfaces[current_type];
         // Get the corresponding transforms
@@ -425,6 +421,13 @@ class detector {
             return fill_containers<current_type + 1, surface_container>(
                 ctx, volume, surfaces, masks, trfs);
         }
+        // update n_max_objects_per_volume
+        else {
+            n_max_objects_per_volume =
+                std::max(n_max_objects_per_volume,
+                         volume.range()[1] - volume.range()[0]);
+        }
+
         // If no mask type fits, don't fill the data.
     }
 

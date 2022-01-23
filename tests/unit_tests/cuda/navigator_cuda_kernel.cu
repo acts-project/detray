@@ -15,9 +15,9 @@ __global__ void navigator_test_kernel(
     vecmem::data::vector_view<intersection> candidates_data) {
 
     navigator_device_t n(n_data);
+    navigator_device_t::state state(candidates_data);
 }
 
-/// test function for navigator
 void navigator_test(navigator_view<navigator_host_t> n_data,
                     vecmem::data::vector_view<intersection>& candidates_data) {
 
@@ -26,6 +26,43 @@ void navigator_test(navigator_view<navigator_host_t> n_data,
 
     // run the test kernel
     navigator_test_kernel<<<block_dim, thread_dim>>>(n_data, candidates_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+__global__ void geometry_navigation_kernel(
+    navigator_view<navigator_host_t> n_data,
+    vecmem::data::jagged_vector_view<intersection> candidates_data) {
+
+    int gid = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (gid >= candidates_data.m_size) {
+        return;
+    }
+
+    navigator_device_t n(n_data);
+    navigator_device_t::state state(candidates_data.m_ptr[gid]);
+
+    /*
+    state.candidates().push_back(intersection{});
+
+    printf("%lu %d \n", static_cast<long unsigned
+    int>(state.candidates()[0].index), state.candidates().size());
+    */
+}
+
+void geometry_navigation_test(
+    navigator_view<navigator_host_t> n_data,
+    vecmem::data::jagged_vector_view<intersection>& candidates_data) {
+
+    constexpr int block_dim = theta_steps;
+    constexpr int thread_dim = phi_steps;
+
+    // run the test kernel
+    geometry_navigation_kernel<<<block_dim, thread_dim>>>(n_data,
+                                                          candidates_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

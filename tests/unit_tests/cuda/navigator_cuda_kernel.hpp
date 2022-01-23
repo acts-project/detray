@@ -31,11 +31,28 @@ using detector_device_t =
              vecmem::device_vector, vecmem::jagged_device_vector>;
 using navigator_host_t = navigator<detector_host_t>;
 using navigator_device_t = navigator<detector_device_t>;
+using nav_context = detector_host_t::context;
+
+// Tolerance for tests
+constexpr double tol = 0.01;
+
+// detector configuration
+constexpr std::size_t n_brl_layers = 4;
+constexpr std::size_t n_edc_layers = 3;
+
+// geomery navigation configurations
+constexpr unsigned int theta_steps = 100;
+constexpr unsigned int phi_steps = 100;
 
 namespace detray {
 
-/// test function for navigator
+/// test function for navigator with single state
 void navigator_test(navigator_view<navigator_host_t> n_data,
                     vecmem::data::vector_view<intersection>& candidates_data);
+
+/// test function for navigator with multi state
+void geometry_navigation_test(
+    navigator_view<navigator_host_t> n_data,
+    vecmem::data::jagged_vector_view<intersection>& candidates_data);
 
 }  // namespace detray

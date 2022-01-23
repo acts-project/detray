@@ -21,19 +21,10 @@ TEST(navigator_cuda, navigator) {
     // vecmem managed memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    using namespace detray;
-
-    /** Tolerance for tests */
-    constexpr double tol = 0.01;
-
-    // create toy geometry
-    std::size_t n_brl_layers = 4;
-    std::size_t n_edc_layers = 3;
     detector_host_t det =
         create_toy_geometry<darray, thrust::tuple, vecmem::vector,
                             vecmem::jagged_vector>(mng_mr, n_brl_layers,
                                                    n_edc_layers);
-    using ctx_type = detector_host_t::context;
 
     // create navigator
     navigator_host_t n(det);
@@ -56,7 +47,7 @@ TEST(navigator_cuda, navigator) {
     copy(candidates_buffer, state.candidates());
 }
 
-TEST(navigator_multi_state_cuda, navigator) {
+TEST(geometry_navigation_cuda, navigator) {
 
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;
@@ -64,19 +55,10 @@ TEST(navigator_multi_state_cuda, navigator) {
     // vecmem managed memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    using namespace detray;
-
-    /** Tolerance for tests */
-    constexpr double tol = 0.01;
-
-    // create toy geometry
-    std::size_t n_brl_layers = 4;
-    std::size_t n_edc_layers = 3;
     detector_host_t det =
         create_toy_geometry<darray, thrust::tuple, vecmem::vector,
                             vecmem::jagged_vector>(mng_mr, n_brl_layers,
                                                    n_edc_layers);
-    using ctx_type = detector_host_t::context;
 
     // create navigator
     navigator_host_t n(det);
@@ -85,16 +67,20 @@ TEST(navigator_multi_state_cuda, navigator) {
     navigator_host_t::state state(mng_mr);
 
     // create navigator candidates buffer
-    vecmem::data::vector_buffer<intersection> candidates_buffer(
-        det.get_n_max_objects_per_volume(), 0, mng_mr);
+    vecmem::data::jagged_vector_buffer<intersection> candidates_buffer(
+        std::vector<std::size_t>(theta_steps * phi_steps,
+                                 det.get_n_max_objects_per_volume()),
+        std::vector<std::size_t>(theta_steps * phi_steps,
+                                 det.get_n_max_objects_per_volume()),
+        mng_mr);
 
     copy.setup(candidates_buffer);
 
     auto n_data = get_data(n);
 
     // run navigator test
-    navigator_test(n_data, candidates_buffer);
+    geometry_navigation_test(n_data, candidates_buffer);
 
     // copy candidates buffer into state candidates
-    copy(candidates_buffer, state.candidates());
+    // copy(candidates_buffer, state.candidates());
 }
