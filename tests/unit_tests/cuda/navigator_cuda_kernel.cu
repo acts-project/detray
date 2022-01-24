@@ -57,10 +57,13 @@ __global__ void geometry_navigation_kernel(
         intersection_record_data.m_ptr[gid]);
 
     /*
-    if (threadIdx.x == 0 ){
-        printf("%d \n", det.masks().size<1>());
+    if (blockIdx.x == 0 && threadIdx.x == 0) {
+        printf("%d \n",
+               thrust::tuple_size<
+                   detector_device_t::mask_container::mask_tuple>::value);
     }
     */
+
     // shoot_ray(n.get_detector(), tracks[gid], intersection_trace);
 
     /*
