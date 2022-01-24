@@ -40,7 +40,7 @@ using transform3 = __plugin::transform3<detray::scalar>;
  */
 template <typename track_type, typename mask_container, typename mask_range,
           unsigned int first_mask_id, unsigned int... remaining_mask_ids>
-inline auto unroll_intersect(
+DETRAY_HOST_DEVICE inline auto unroll_intersect(
     const track_type &track, const transform3 &ctf, const mask_container &masks,
     const mask_range &rng, const unsigned int mask_id, dindex volume_index,
     std::integer_sequence<unsigned int, first_mask_id, remaining_mask_ids...>
@@ -48,6 +48,7 @@ inline auto unroll_intersect(
 
     // Pick the first one for interseciton
     if (mask_id == first_mask_id) {
+
         auto &mask_group = masks.template group<first_mask_id>();
 
         // Check all masks of this surface for intersection
@@ -59,7 +60,9 @@ inline auto unroll_intersect(
                 sfi.index = volume_index;
 
                 // Link to next volume is in first position
-                sfi.link = detail::get<0>(mask.links());
+                // sfi.link = detail::get<0>(mask.links());
+                // NOTE: is it okay?
+                sfi.link = mask.links()[0];
                 return sfi;
             }
         }
@@ -94,9 +97,10 @@ inline auto unroll_intersect(
  **/
 template <typename track_type, typename surface_type,
           typename transform_container, typename mask_container>
-inline const auto intersect(const track_type &track, surface_type &surface,
-                            const transform_container &contextual_transforms,
-                            const mask_container &masks) {
+DETRAY_HOST_DEVICE inline const auto intersect(
+    const track_type &track, surface_type &surface,
+    const transform_container &contextual_transforms,
+    const mask_container &masks) {
     // Gather all information to perform intersections
     const auto &ctf = contextual_transforms[surface.transform()];
     const auto &volume_index = surface.volume();
