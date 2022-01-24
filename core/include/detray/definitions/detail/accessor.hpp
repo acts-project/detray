@@ -49,12 +49,24 @@ constexpr auto get(mask_store_t&& mask_store) noexcept
  *  usage example:
  *  detail::tuple_size< tuple_type >::value
  */
-template <class T>
+template <class T, typename Enable = void>
 struct tuple_size;
 
+// std::tuple
 template <template <typename...> class tuple_type, class... value_types>
-struct tuple_size<tuple_type<value_types...>>
-    : std::integral_constant<std::size_t, sizeof...(value_types)> {};
+struct tuple_size<tuple_type<value_types...>,
+                  typename std::enable_if_t<
+                      std::is_same_v<tuple_type<value_types...>,
+                                     std::tuple<value_types...>> == true>>
+    : std::tuple_size<tuple_type<value_types...>> {};
+
+// thrust::tuple
+template <template <typename...> class tuple_type, class... value_types>
+struct tuple_size<tuple_type<value_types...>,
+                  typename std::enable_if_t<
+                      std::is_same_v<tuple_type<value_types...>,
+                                     thrust::tuple<value_types...>> == true>>
+    : thrust::tuple_size<tuple_type<value_types...>> {};
 
 /** make tuple accessor
  *  users have to specifiy tuple_type for detail::make_tuple
