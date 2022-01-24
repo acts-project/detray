@@ -312,7 +312,7 @@ class detector {
     template <typename... detector_components>
     DETRAY_HOST inline void add_objects(
         const context ctx,
-        detector_components &&...components) noexcept(false) {
+        detector_components &&... components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'mask_defs')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
@@ -452,21 +452,22 @@ class detector {
         vector_type<intersection> candidates;
         candidates.reserve(vol.n_objects());
 
-        for (const auto &[sf_idx, surf] : enumerate(_surfaces, vol)) {
+        for (const auto &[obj_idx, obj] :
+             enumerate(_surfaces, vol.get_neighbors(track.pos))) {
             // Retrieve candidate from the object
-            auto sfi = surf.intersect(track, _transforms, _masks);
+            auto intrs = obj.intersect(track, _transforms, _masks);
 
             // Candidate is invalid if it oversteps too far (this is neg!)
-            if (sfi.path < track.overstep_tolerance) {
+            if (intrs.path < track.overstep_tolerance) {
                 continue;
             }
             // Accept if inside
-            if (sfi.status == e_inside) {
+            if (intrs.status == e_inside) {
                 // object the candidate belongs to
-                sfi.index = sf_idx;
+                intrs.index = obj_idx;
                 // the next volume if we encounter the candidate
-                sfi.link = std::get<0>(surf.edge());
-                candidates.push_back(sfi);
+                intrs.link = std::get<0>(obj.edge());
+                candidates.push_back(intrs);
             }
         }
         return candidates;
@@ -481,11 +482,11 @@ class detector {
     template <typename track_t>
     inline void update_candidates(intersection &candidate,
                                   const track_t &track) const {
-        auto sf_idx = candidate.index;
-        auto surf = _surfaces[sf_idx];
-        candidate = surf.intersect(track, _transforms, _masks);
-        candidate.index = sf_idx;
-        candidate.link = std::get<0>(_surfaces[sf_idx].edge());
+        auto obj_idx = candidate.index;
+        auto obj = _surfaces[obj_idx];
+        candidate = obj.intersect(track, _transforms, _masks);
+        candidate.index = obj_idx;
+        candidate.link = std::get<0>(_surfaces[obj_idx].edge());
     }
 
     /** Output to string */

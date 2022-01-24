@@ -119,8 +119,7 @@ class default_mask_registry : public registry_base<registered_types...> {
     };
 
     template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector,
-              template <typename, std::size_t> class array_t = darray>
+              template <typename...> class vector_t = dvector>
     using mask_container = mask_store<tuple_t, vector_t, registered_types...>;
     using mask_link = typename mask_container<>::mask_link;
     using mask_range = typename mask_container<>::mask_range;
@@ -181,16 +180,16 @@ class default_sf_finder_registry : public registry_base<registered_types...> {
     };
 
     template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector,
-              template <typename, std::size_t> class array_t = darray>
+              template <typename...> class vector_t = dvector>
     using sf_finder_container =
         mask_store<tuple_t, vector_t, registered_types...>;
     using sf_finder_link = typename sf_finder_container<>::mask_link;
 
     /// Surface finders
     enum id : unsigned int {
-        e_z_phi_grid = 0,  // barrel
-        e_r_phi_grid = 1,  // endcap
+        e_brute_force = 0,
+        e_z_phi_grid = 1,  // barrel
+        e_r_phi_grid = 2,  // endcap
         e_any = type_registry::e_any,
         e_unknown = type_registry::e_unknown,
     };

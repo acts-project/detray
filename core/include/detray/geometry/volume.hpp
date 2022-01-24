@@ -34,12 +34,6 @@ class volume {
     using volume_def =
         volume<objects, sf_finders, range_t, array_t, surface_finder_data_t>;
 
-    /*enum grid_type : unsigned int {
-        e_no_grid = 0,
-        e_z_phi_grid = 1,  // barrel
-        e_r_phi_grid = 2,  // endcap
-    };*/
-
     /** Default constructor**/
     volume() = default;
 
@@ -77,6 +71,12 @@ class volume {
     inline void set_surfaces_finder(const dindex entry) {
         _surfaces_finder_data = entry;
     }
+
+    /** set grid type associated with volume */
+    void set_grid_type(typename sf_finders::id val) { _grid_type = val; }
+
+    /** get grid type associated with volume */
+    const auto get_grid_type() const { return _grid_type; }
 
     /** @return if the volume is empty or not */
     DETRAY_HOST_DEVICE inline bool empty() const {
@@ -132,11 +132,11 @@ class volume {
         return std::get<1>(rg) - std::get<0>(rg);
     }
 
-    /** set grid type associated with volume */
-    void set_grid_type(typename sf_finders::id val) { _grid_type = val; }
-
-    /** get grid type associated with volume */
-    const auto get_grid_type() const { return _grid_type; }
+    /** @return the number of elements in a given range */
+    template <typename point_t>
+    DETRAY_HOST_DEVICE inline auto get_neighbors(point_t & /*pt*/) const {
+        return range<objects::e_surface>();
+    }
 
     /** Equality operator
      *

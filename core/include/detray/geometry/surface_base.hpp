@@ -26,7 +26,7 @@ namespace detray {
  */
 template <typename transform_link, typename mask_link = dindex,
           typename volume_link = dindex, typename source_link = bool,
-          typename edge_link = dindex>
+          typename edge_link = dindex, typename intersection_kernel_t = void>
 class surface_base {
     public:
     // Broadcast the type of links

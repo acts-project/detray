@@ -157,7 +157,7 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int mask_id, typename... bounds_type>
-    DETRAY_HOST auto &add_mask(bounds_type &&...mask_bounds) noexcept(false) {
+    DETRAY_HOST auto &add_mask(bounds_type &&... mask_bounds) noexcept(false) {
         // Get the mask group that will be updated
         auto &mask_group = detail::get<mask_id>(_mask_tuple);
         // Construct new mask in place
