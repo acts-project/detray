@@ -197,7 +197,9 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             ray.momentum = 100.;
             ray.overstep_tolerance = -1e-4;
 
-            const auto intersection_trace = shoot_ray(d, ray);
+            std::vector<std::pair<dindex, intersection>> intersection_trace;
+
+            shoot_ray(d, ray, intersection_trace);
 
             detray_stepper::state s_state(ray);
             detray_navigator::state n_state;

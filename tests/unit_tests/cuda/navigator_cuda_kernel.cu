@@ -34,7 +34,10 @@ void navigator_test(navigator_view<navigator_host_t> n_data,
 
 __global__ void geometry_navigation_kernel(
     navigator_view<navigator_host_t> n_data,
-    vecmem::data::jagged_vector_view<intersection> candidates_data) {
+    vecmem::data::jagged_vector_view<intersection> candidates_data,
+    vecmem::data::vector_view<track<nav_context>> tracks_data,
+    vecmem::data::jagged_vector_view<std::pair<dindex, intersection>>
+        intersection_record_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -44,6 +47,13 @@ __global__ void geometry_navigation_kernel(
 
     navigator_device_t n(n_data);
     navigator_device_t::state state(candidates_data.m_ptr[gid]);
+
+    vecmem::device_vector<track<nav_context>> tracks(tracks_data);
+
+    vecmem::device_vector<std::pair<dindex, intersection>> intersection_trace(
+        intersection_record_data.m_ptr[gid]);
+
+    // shoot_ray(n.get_detector(), tracks[gid], intersection_trace);
 
     /*
     state.candidates().push_back(intersection{});
@@ -55,14 +65,17 @@ __global__ void geometry_navigation_kernel(
 
 void geometry_navigation_test(
     navigator_view<navigator_host_t> n_data,
-    vecmem::data::jagged_vector_view<intersection>& candidates_data) {
+    vecmem::data::jagged_vector_view<intersection>& candidates_data,
+    vecmem::data::vector_view<track<nav_context>>& tracks_data,
+    vecmem::data::jagged_vector_view<std::pair<dindex, intersection>>&
+        intersection_record_data) {
 
     constexpr int block_dim = theta_steps;
     constexpr int thread_dim = phi_steps;
 
     // run the test kernel
-    geometry_navigation_kernel<<<block_dim, thread_dim>>>(n_data,
-                                                          candidates_data);
+    geometry_navigation_kernel<<<block_dim, thread_dim>>>(
+        n_data, candidates_data, tracks_data, intersection_record_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

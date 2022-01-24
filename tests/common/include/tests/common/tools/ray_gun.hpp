@@ -20,10 +20,11 @@ namespace detray {
  * @return a sorted vector of volume indices with the corresponding
  *         intersections of the portals that were encountered
  */
-template <typename detector_t, typename ray_t>
-inline auto shoot_ray(const detector_t &detector, const ray_t &ray) {
-
-    std::vector<std::pair<dindex, intersection>> intersection_record;
+template <typename detector_t, typename ray_t,
+          template <typename...> class vector_t>
+DETRAY_HOST_DEVICE inline auto shoot_ray(
+    const detector_t &detector, const ray_t &ray,
+    vector_t<std::pair<dindex, intersection>> &intersection_record) {
 
     // Loop over volumes
     for (const auto &volume : detector.volumes()) {
@@ -54,8 +55,6 @@ inline auto shoot_ray(const detector_t &detector, const ray_t &ray) {
     };
     std::sort(intersection_record.begin(), intersection_record.end(),
               sort_path);
-
-    return intersection_record;
 }
 
 /** Intersect all portals in a detector with a given ray.
@@ -76,7 +75,11 @@ inline auto shoot_ray(const detector_t &detector, const point3 &origin,
 
     track<detray_context> ray = {.pos = origin, .dir = direction};
 
-    return shoot_ray(detector, ray);
+    std::vector<std::pair<dindex, intersection>> intersection_record;
+
+    shoot_ray(detector, ray, intersection_record);
+
+    return intersection_record;
 };
 
 }  // namespace detray

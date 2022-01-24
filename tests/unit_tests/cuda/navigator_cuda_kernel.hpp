@@ -19,6 +19,7 @@
 
 #include "detray/tools/navigator.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
+#include "tests/common/tools/ray_gun.hpp"
 
 using namespace detray;
 
@@ -53,6 +54,9 @@ void navigator_test(navigator_view<navigator_host_t> n_data,
 /// test function for navigator with multi state
 void geometry_navigation_test(
     navigator_view<navigator_host_t> n_data,
-    vecmem::data::jagged_vector_view<intersection>& candidates_data);
+    vecmem::data::jagged_vector_view<intersection>& candidates_data,
+    vecmem::data::vector_view<track<nav_context>>& tracks_data,
+    vecmem::data::jagged_vector_view<std::pair<dindex, intersection>>&
+        intersection_record_data);
 
 }  // namespace detray
