@@ -44,7 +44,7 @@ struct planar_intersector {
                                bool> = true>
     inline intersection intersect(
         const transform3 &trf, const track_type &track, const mask_type &mask,
-        const typename mask_type::mask_tolerance &tolerance =
+        const typename mask_type::mask_tolerance tolerance =
             mask_type::within_epsilon) const {
         return intersect(trf, track.pos, track.dir, mask, tolerance,
                          track.overstep_tolerance);
@@ -72,7 +72,7 @@ struct planar_intersector {
     inline intersection intersect(const transform3 &trf, const point3 &ro,
                                   const vector3 &rd, const mask_type &mask,
                                   const typename mask_type::mask_tolerance
-                                      &tolerance = mask_type::within_epsilon,
+                                      tolerance = mask_type::within_epsilon,
                                   scalar overstep_tolerance = 0.) const {
 
         using local_frame = typename mask_type::local_type;

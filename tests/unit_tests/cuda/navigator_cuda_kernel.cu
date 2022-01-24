@@ -46,6 +46,9 @@ __global__ void geometry_navigation_kernel(
     }
 
     navigator_device_t n(n_data);
+
+    detector_device_t& det = n.get_detector();
+
     navigator_device_t::state state(candidates_data.m_ptr[gid]);
 
     vecmem::device_vector<track<nav_context>> tracks(tracks_data);
@@ -53,6 +56,11 @@ __global__ void geometry_navigation_kernel(
     vecmem::device_vector<std::pair<dindex, intersection>> intersection_trace(
         intersection_record_data.m_ptr[gid]);
 
+    /*
+    if (threadIdx.x == 0 ){
+        printf("%d \n", det.masks().size<1>());
+    }
+    */
     // shoot_ray(n.get_detector(), tracks[gid], intersection_trace);
 
     /*
