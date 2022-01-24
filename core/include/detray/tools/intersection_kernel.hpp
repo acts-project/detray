@@ -60,9 +60,7 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
                 sfi.index = volume_index;
 
                 // Link to next volume is in first position
-                // sfi.link = detail::get<0>(mask.links());
-                // NOTE: is it okay?
-                sfi.link = mask.links()[0];
+                sfi.link = detail::get<0>(mask.links());
                 return sfi;
             }
         }
@@ -70,13 +68,13 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
 
     // The reduced integer sequence
     std::integer_sequence<unsigned int, remaining_mask_ids...> remaining;
-
+    /*
     // Unroll as long as you have at least 1 entries
     if constexpr (remaining.size() >= 1) {
         return (unroll_intersect(track, ctf, masks, rng, mask_id, volume_index,
                                  remaining));
     }
-
+    */
     // No intersection was found
     return intersection{};
 }
