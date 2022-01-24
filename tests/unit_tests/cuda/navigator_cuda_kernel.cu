@@ -64,7 +64,17 @@ __global__ void geometry_navigation_kernel(
     }
     */
 
-    // shoot_ray(n.get_detector(), tracks[gid], intersection_trace);
+    shoot_ray(n.get_detector(), tracks[gid], intersection_trace);
+
+    /*
+    if (blockIdx.x == 0 && threadIdx.x == 0) {
+        for (auto el: intersection_trace){
+            printf("%d \n", el.first);
+
+            printf("%f \n", el.second.path);
+        }
+    }
+    */
 
     /*
     state.candidates().push_back(intersection{});

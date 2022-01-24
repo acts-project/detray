@@ -43,7 +43,8 @@ DETRAY_HOST_DEVICE inline auto shoot_ray(
                 sfi.index = volume.index();
                 // the next volume if we encounter the candidate
                 sfi.link = std::get<0>(sf.edge());
-                intersection_record.emplace_back(sf_idx, sfi);
+                // intersection_record.emplace_back(sf_idx, sfi);
+                intersection_record.push_back({sf_idx, sfi});
             }
         }
     }

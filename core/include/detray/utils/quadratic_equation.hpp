@@ -10,6 +10,8 @@
 #include <cmath>
 #include <tuple>
 
+#include "detray/definitions/qualifiers.hpp"
+
 namespace detray {
 
 /** Struct to solve a quadratic equation of type p[0] * x^2 + p[1] * x + p[2] =
@@ -23,6 +25,7 @@ struct quadratic_equation {
 
     /** Solve the quadratic equation
      **/
+    DETRAY_HOST_DEVICE
     tuple_type<int, array_type<scalar_type, 2>> operator()() const {
         scalar_type discriminant =
             _params[1] * _params[1] - 4 * _params[0] * _params[2];
@@ -37,8 +40,9 @@ struct quadratic_equation {
                                                  : -std::sqrt(discriminant)));
             scalar_type first = q / _params[0];
             scalar_type second = _params[2] / q;
-            array_type<scalar_type, 2> poles = {first, second};
-            std::sort(poles.begin(), poles.end());
+            array_type<scalar_type, 2> poles =
+                first < second ? array_type<scalar_type, 2>{first, second}
+                               : array_type<scalar_type, 2>{second, first};
             return {solutions, poles};
         }
     }

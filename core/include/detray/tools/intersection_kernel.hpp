@@ -68,13 +68,13 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
 
     // The reduced integer sequence
     std::integer_sequence<unsigned int, remaining_mask_ids...> remaining;
-    /*
+
     // Unroll as long as you have at least 1 entries
     if constexpr (remaining.size() >= 1) {
         return (unroll_intersect(track, ctf, masks, rng, mask_id, volume_index,
                                  remaining));
     }
-    */
+
     // No intersection was found
     return intersection{};
 }
