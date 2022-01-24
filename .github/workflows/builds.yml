@@ -116,7 +116,7 @@ jobs:
 
   ubuntu_cuda_debug:
     runs-on: ubuntu-latest
-    container: ghcr.io/acts-project/ubuntu2004_cuda:v13
+    container: ghcr.io/acts-project/ubuntu2004_cuda:v16
     steps:
     - uses: actions/checkout@v2
       with:
