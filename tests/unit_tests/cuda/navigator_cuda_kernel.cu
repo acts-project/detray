@@ -56,6 +56,8 @@ __global__ void geometry_navigation_kernel(
     vecmem::device_vector<intersection_record> intersection_trace(
         intersection_record_data.m_ptr[gid]);
 
+    shoot_ray(n.get_detector(), tracks[gid], intersection_trace);
+
     /*
     if (blockIdx.x == 0 && threadIdx.x == 0) {
         printf("%d \n",
@@ -63,8 +65,6 @@ __global__ void geometry_navigation_kernel(
                    detector_device_t::mask_container::mask_tuple>::value);
     }
     */
-
-    shoot_ray(n.get_detector(), tracks[gid], intersection_trace);
 
     /*
     if (blockIdx.x == 0 && threadIdx.x == 0) {

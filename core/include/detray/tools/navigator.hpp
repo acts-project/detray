@@ -7,6 +7,10 @@
 
 #pragma once
 
+#if defined(__CUDACC__)
+#include <thrust/sort.h>
+#endif
+
 #include <algorithm>
 #include <string>
 #include <type_traits>
@@ -470,8 +474,14 @@ class navigator {
         if (not navigation.candidates().empty()) {
 
             // Take the nearest candidate first
+#if defined(__CUDACC__)
+            thrust::sort(thrust::seq, navigation.candidates().begin(),
+                         navigation.candidates().end());
+#else
             std::sort(navigation.candidates().begin(),
                       navigation.candidates().end());
+#endif
+
             navigation.next() = navigation.candidates().begin();
 
             // Are we still on an object from a previous navigation pass? Then
