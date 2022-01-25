@@ -103,15 +103,31 @@ TEST(utils_enumerate_cuda, enumerate_sequence) {
 
 // This tests the restricted iterator
 TEST(utils_enumerate_cuda, range) {
-    size_t begin = 1;
-    size_t end = 4;
 
-    dvector<int> seq = {0, 1, 2, 3, 4, 5};
+    // Helper object for performing memory copies.
+    vecmem::cuda::copy copy;
 
-    size_t i = 1;
-    for (const auto &v :
-         iterator_range(seq, std::array<size_t, 2>{begin, end})) {
-        ASSERT_NE(v, 5);
-        ASSERT_EQ(v, seq[i++]);
-    }
+    // memory resource
+    vecmem::cuda::managed_memory_resource managed_resource;
+
+    vecmem::vector<int> seq({0, 1, 2, 3, 4, 5}, &managed_resource);
+
+    const size_t begin = 1;
+    const size_t end = 4;
+
+    vecmem::data::vector_buffer<int> check_buffer(
+        static_cast<vecmem::data::vector_buffer<int>::size_type>(begin - end),
+        0, managed_resource);
+    copy.setup(check_buffer);
+
+    auto seq_data = vecmem::get_data(seq);
+
+    iterate_range(check_buffer, seq_data, begin, end);
+
+    vecmem::vector<int> check{&managed_resource};
+    copy(check_buffer, check);
+
+    ASSERT_EQ(check[0], 1);
+    ASSERT_EQ(check[1], 2);
+    ASSERT_EQ(check[2], 3);
 }

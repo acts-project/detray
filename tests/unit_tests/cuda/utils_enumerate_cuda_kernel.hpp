@@ -33,4 +33,8 @@ void enumerate_sequence(vecmem::data::vector_view<dindex>& idx_data,
                         vecmem::data::vector_view<unsigned int>& uint_data,
                         vecmem::data::vector_view<uint_holder>& seq_data);
 
+void iterate_range(vecmem::data::vector_view<int>& check_data,
+                   vecmem::data::vector_view<int>& seq_data,
+                   const size_t& begin, const size_t& end);
+
 }  // namespace detray

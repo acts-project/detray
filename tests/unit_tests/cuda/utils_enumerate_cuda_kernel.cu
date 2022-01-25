@@ -82,4 +82,29 @@ void enumerate_sequence(vecmem::data::vector_view<dindex>& idx_data,
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
+__global__ void iterate_range_kernel(vecmem::data::vector_view<int> check_data,
+                                     vecmem::data::vector_view<int> seq_data,
+                                     const size_t begin, const size_t end) {
+
+    vecmem::device_vector<int> check(check_data);
+    vecmem::device_vector<int> seq(seq_data);
+
+    for (const auto& v :
+         iterator_range(seq, std::array<size_t, 2>{begin, end})) {
+        check.push_back(v);
+    }
+}
+
+void iterate_range(vecmem::data::vector_view<int>& check_data,
+                   vecmem::data::vector_view<int>& seq_data,
+                   const size_t& begin, const size_t& end) {
+
+    // run the kernel
+    iterate_range_kernel<<<1, 1>>>(check_data, seq_data, begin, end);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
 }  // namespace detray
