@@ -11,6 +11,7 @@
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 
 namespace detray {
 
@@ -36,8 +37,8 @@ struct iterator_range {
     template <typename range_type>
     DETRAY_HOST_DEVICE iterator_range(const container_type &iterable,
                                       const range_type &range)
-        : _start(std::begin(iterable) + std::get<0>(range)),
-          _end(std::begin(iterable) + std::get<1>(range)) {}
+        : _start(std::begin(iterable) + detail::get<0>(range)),
+          _end(std::begin(iterable) + detail::get<1>(range)) {}
 
     /** @return start position of range on container. */
     DETRAY_HOST_DEVICE
