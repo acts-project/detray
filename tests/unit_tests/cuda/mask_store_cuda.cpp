@@ -9,7 +9,6 @@
 
 #include <climits>
 #include <cstdlib>
-#include <iostream>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "mask_store_cuda_kernel.hpp"
@@ -25,6 +24,13 @@ TEST(mask_store_cuda, mask_store) {
     mask_store<thrust::tuple, vecmem::vector, rectangle, trapezoid, ring,
                cylinder, single, annulus>
         store(mng_mr);
+
+    constexpr unsigned int e_rectangle2 = 0;
+    constexpr unsigned int e_trapezoid2 = 1;
+    constexpr unsigned int e_ring2 = 2;
+    constexpr unsigned int e_cylinder3 = 3;
+    constexpr unsigned int e_single3 = 4;
+    constexpr unsigned int e_annulus2 = 5;
 
     ASSERT_TRUE(store.template empty<e_annulus2>());
     ASSERT_TRUE(store.template empty<e_cylinder3>());
