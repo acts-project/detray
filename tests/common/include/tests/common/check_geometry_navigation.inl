@@ -197,7 +197,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             ray.momentum = 100.;
             ray.overstep_tolerance = -1e-4;
 
-            std::vector<std::pair<dindex, intersection>> intersection_trace;
+            std::vector<intersection_record> intersection_trace;
 
             shoot_ray(d, ray, intersection_trace);
 
@@ -229,8 +229,8 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                 debug_stream
                     << "-------Intersection trace\n"
                     << "ray gun: "
-                    << "\tsf id: " << intersection_trace[intr_idx].first << ", "
-                    << intersection_trace[intr_idx].second.to_string();
+                    << "\tsf id: " << intersection_trace[intr_idx].sf_idx
+                    << ", " << intersection_trace[intr_idx].sfi.to_string();
                 debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
             }
 
@@ -241,19 +241,19 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
                  ++intr_idx) {
                 if (obj_tracer[intr_idx].index !=
-                    intersection_trace[intr_idx].first) {
+                    intersection_trace[intr_idx].sf_idx) {
                     // Intersection record at portal bound might be flipped
                     if (obj_tracer[intr_idx].index ==
-                            intersection_trace[intr_idx + 1].first and
+                            intersection_trace[intr_idx + 1].sf_idx and
                         obj_tracer[intr_idx + 1].index ==
-                            intersection_trace[intr_idx].first) {
+                            intersection_trace[intr_idx].sf_idx) {
                         // Have already checked the next record
                         ++intr_idx;
                         continue;
                     }
                 }
                 EXPECT_EQ(obj_tracer[intr_idx].index,
-                          intersection_trace[intr_idx].first)
+                          intersection_trace[intr_idx].sf_idx)
                     << debug_printer.to_string() << debug_stream.str();
             }
         }

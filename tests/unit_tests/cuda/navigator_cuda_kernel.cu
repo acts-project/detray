@@ -36,7 +36,7 @@ __global__ void geometry_navigation_kernel(
     navigator_view<navigator_host_t> n_data,
     vecmem::data::jagged_vector_view<intersection> candidates_data,
     vecmem::data::vector_view<track<nav_context>> tracks_data,
-    vecmem::data::jagged_vector_view<std::pair<dindex, intersection>>
+    vecmem::data::jagged_vector_view<intersection_record>
         intersection_record_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -53,7 +53,7 @@ __global__ void geometry_navigation_kernel(
 
     vecmem::device_vector<track<nav_context>> tracks(tracks_data);
 
-    vecmem::device_vector<std::pair<dindex, intersection>> intersection_trace(
+    vecmem::device_vector<intersection_record> intersection_trace(
         intersection_record_data.m_ptr[gid]);
 
     /*
@@ -88,7 +88,7 @@ void geometry_navigation_test(
     navigator_view<navigator_host_t> n_data,
     vecmem::data::jagged_vector_view<intersection>& candidates_data,
     vecmem::data::vector_view<track<nav_context>>& tracks_data,
-    vecmem::data::jagged_vector_view<std::pair<dindex, intersection>>&
+    vecmem::data::jagged_vector_view<intersection_record>&
         intersection_record_data) {
 
     constexpr int block_dim = theta_steps;

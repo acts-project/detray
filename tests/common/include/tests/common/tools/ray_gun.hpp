@@ -7,10 +7,24 @@
 
 #pragma once
 
+#if defined(__CUDACC__)
+#include <thrust/sort.h>
+#endif
+
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
 
 namespace detray {
+
+struct intersection_record {
+    dindex sf_idx;
+    intersection sfi;
+
+    DETRAY_HOST_DEVICE
+    bool operator<(const intersection_record &other) const {
+        return (sfi < other.sfi);
+    }
+};
 
 /** Intersect all portals in a detector with a given ray.
  *
@@ -24,7 +38,7 @@ template <typename detector_t, typename ray_t,
           template <typename...> class vector_t>
 DETRAY_HOST_DEVICE inline auto shoot_ray(
     const detector_t &detector, const ray_t &ray,
-    vector_t<std::pair<dindex, intersection>> &intersection_record) {
+    vector_t<intersection_record> &intersection_records) {
 
     // Loop over volumes
     for (const auto &volume : detector.volumes()) {
@@ -45,18 +59,17 @@ DETRAY_HOST_DEVICE inline auto shoot_ray(
                 sfi.link = std::get<0>(sf.edge());
                 // NOTE: emplace_back seems not defined for device
                 // intersection_record.emplace_back(sf_idx, sfi);
-                intersection_record.push_back(std::make_pair(sf_idx, sfi));
+                intersection_records.push_back({sf_idx, sfi});
             }
         }
     }
 
-    // Sort intersections by distance to origin of the ray
-    auto sort_path = [&](std::pair<dindex, intersection> a,
-                         std::pair<dindex, intersection> b) -> bool {
-        return (a.second < b.second);
-    };
-    std::sort(intersection_record.begin(), intersection_record.end(),
-              sort_path);
+#if defined(__CUDACC__)
+    thrust::sort(thrust::seq, intersection_records.begin(),
+                 intersection_records.end());
+#else
+    std::sort(intersection_records.begin(), intersection_records.end());
+#endif
 }
 
 /** Intersect all portals in a detector with a given ray.
@@ -77,11 +90,11 @@ inline auto shoot_ray(const detector_t &detector, const point3 &origin,
 
     track<detray_context> ray = {.pos = origin, .dir = direction};
 
-    std::vector<std::pair<dindex, intersection>> intersection_record;
+    std::vector<intersection_record> intersection_records;
 
-    shoot_ray(detector, ray, intersection_record);
+    shoot_ray(detector, ray, intersection_records);
 
-    return intersection_record;
+    return intersection_records;
 };
 
 }  // namespace detray

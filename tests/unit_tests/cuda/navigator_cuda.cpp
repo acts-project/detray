@@ -105,7 +105,7 @@ TEST(geometry_navigation_cuda, navigator) {
 
     // create intersection buffer
     const auto n_volumes = det.volumes().size();
-    vecmem::data::jagged_vector_buffer<std::pair<dindex, intersection>>
+    vecmem::data::jagged_vector_buffer<intersection_record>
         intersection_record_buffer(
             std::vector<std::size_t>(theta_steps * phi_steps, 0),
             std::vector<std::size_t>(theta_steps * phi_steps, n_volumes),
