@@ -50,8 +50,7 @@ TEST(utils_enumerate_cuda, sequence_range) {
 
     vecmem::vector<dindex> reference({2, 3, 4, 5, 6, 7});
 
-    const darray<dindex, 2> range = {static_cast<dindex>(2),
-                                     static_cast<dindex>(7)};
+    const darray<dindex, 2> range = {2, 7};
 
     vecmem::data::vector_buffer<dindex> check_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(
