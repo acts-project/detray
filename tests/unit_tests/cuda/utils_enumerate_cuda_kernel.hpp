@@ -19,12 +19,18 @@
 
 namespace detray {
 
-// test function for enumeration with single integer
 void sequence_single(vecmem::data::vector_view<dindex>& check_data,
                      vecmem::data::vector_view<dindex>& single_data);
 
-// test function for enumeration with range
 void sequence_range(const darray<dindex, 2> range,
                     vecmem::data::vector_view<dindex>& check_data);
+
+struct uint_holder {
+    unsigned int ui = 0;
+};
+
+void enumerate_sequence(vecmem::data::vector_view<dindex>& idx_data,
+                        vecmem::data::vector_view<unsigned int>& uint_data,
+                        vecmem::data::vector_view<uint_holder>& seq_data);
 
 }  // namespace detray

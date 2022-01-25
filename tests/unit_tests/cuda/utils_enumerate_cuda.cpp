@@ -7,9 +7,8 @@
 
 #include <gtest/gtest.h>
 
+#include <iostream>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
-//#include <vecmem/memory/cuda/device_memory_resource.hpp>
-//#include <vecmem/memory/cuda/host_memory_resource.hpp>
 
 #include "utils_enumerate_cuda_kernel.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
@@ -45,9 +44,6 @@ TEST(utils_enumerate_cuda, sequence_range) {
     // memory resource
     vecmem::cuda::managed_memory_resource managed_resource;
 
-    // vecmem::cuda::device_memory_resource device_resource;
-    // vecmem::cuda::host_memory_resource host_resource;
-
     vecmem::vector<dindex> reference({2, 3, 4, 5, 6, 7});
 
     const darray<dindex, 2> range = {2, 7};
@@ -57,12 +53,6 @@ TEST(utils_enumerate_cuda, sequence_range) {
             range[1] - range[0] + 1),
         0, managed_resource);
 
-    /*
-     vecmem::data::vector_buffer<dindex> check_buffer(
-         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(
-             range[1] - range[0] + 1),
-         0, device_resource);
-     */
     copy.setup(check_buffer);
 
     sequence_range(range, check_buffer);
@@ -74,16 +64,40 @@ TEST(utils_enumerate_cuda, sequence_range) {
 }
 
 // This tests the convenience enumeration function
-TEST(utils_enumerate_cuda, enumerate) {
+TEST(utils_enumerate_cuda, enumerate_sequence) {
 
-    struct uint_holder {
-        unsigned int ui = 0;
-    };
+    // Helper object for performing memory copies.
+    vecmem::cuda::copy copy;
 
-    dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}};
+    // memory resource
+    vecmem::cuda::managed_memory_resource managed_resource;
 
-    for (auto [i, v] : enumerate(seq)) {
-        ASSERT_EQ(i, v.ui);
+    vecmem::vector<uint_holder> seq({{0}, {1}, {2}, {3}, {4}, {5}},
+                                    &managed_resource);
+
+    vecmem::data::vector_buffer<dindex> idx_buffer(
+        static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
+        0, managed_resource);
+    copy.setup(idx_buffer);
+
+    vecmem::data::vector_buffer<unsigned int> uint_buffer(
+        static_cast<vecmem::data::vector_buffer<unsigned int>::size_type>(
+            seq.size()),
+        0, managed_resource);
+    copy.setup(uint_buffer);
+
+    auto seq_data = vecmem::get_data(seq);
+
+    enumerate_sequence(idx_buffer, uint_buffer, seq_data);
+
+    vecmem::vector<dindex> idx_vec{&managed_resource};
+    copy(idx_buffer, idx_vec);
+
+    vecmem::vector<unsigned int> uint_vec{&managed_resource};
+    copy(uint_buffer, uint_vec);
+
+    for (unsigned int i = 0; i < idx_vec.size(); i++) {
+        ASSERT_EQ(idx_vec[i], static_cast<dindex>(uint_vec[i]));
     }
 }
 
