@@ -8,13 +8,11 @@
 
 #include <climits>
 #include <cmath>
-#include <optional>
 #include <sstream>
 #include <string>
 
 #include "detray/core/intersection.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/masks/mask_identifier.hpp"
 #include "detray/tools/cylinder_intersector.hpp"
 
 namespace detray {
@@ -37,7 +35,6 @@ template <bool kRadialCheck = true,
           typename intersector_type = detray::cylinder_intersector,
           typename mask_local_type = __plugin::cylindrical2<detray::scalar>,
           typename mask_links_type = unsigned int,
-          unsigned int kMaskID = e_cylinder3,
           template <typename, unsigned int> class array_type = darray>
 struct cylinder3 {
     using mask_tolerance = array_type<scalar, 2>;
@@ -51,8 +48,6 @@ struct cylinder3 {
                            std::numeric_limits<scalar>::infinity()};
 
     links_type _links;
-
-    static constexpr unsigned int mask_identifier = kMaskID;
 
     static constexpr mask_tolerance within_epsilon = {
         std::numeric_limits<scalar>::epsilon(),
@@ -76,7 +71,7 @@ struct cylinder3 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    cylinder3<kRadialCheck, intersector_type, local_type, links_type, kMaskID>
+    cylinder3<kRadialCheck, intersector_type, local_type, links_type>
         &operator=(const array_type<scalar, 3> &rhs) {
         _values = rhs;
         return (*this);
@@ -170,7 +165,7 @@ struct cylinder3 {
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
-        ss << "cylinder3 (ID " << kMaskID << "),";
+        ss << "cylinder3,";
         for (const auto &v : _values) {
             ss << "," << v;
         }

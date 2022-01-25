@@ -9,9 +9,11 @@
 
 #include <fstream>
 
+#include "detray/core/type_registry.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/tools/concentric_cylinder_intersector.hpp"
 #include "detray/tools/cylinder_intersector.hpp"
+#include "detray/tools/intersection_kernel.hpp"
 #include "detray/tools/planar_intersector.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
 
@@ -20,7 +22,9 @@ using namespace detray;
 using transform3 = __plugin::transform3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
-using plane_surface = surface_base<transform3>;
+using mask_defs = default_mask_registry<rectangle2<>>;
+using plane_surface =
+    surface_base<mask_defs, intersection_kernel, transform3, dindex>;
 
 #ifdef DETRAY_BENCHMARKS_REP
 unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
@@ -101,7 +105,9 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
         cylinders.push_back(cylinder_mask{r, -10., 10.});
     }
 
-    surface_base<transform3> plain(std::move(transform3()), 0, 0, false);
+    typename mask_defs::link_type mask_link{mask_defs::e_cylinder3, 0};
+    plane_surface plain(std::move(transform3()), std::move(mask_link), 0,
+                        false);
 
     point3 ori = {0., 0., 0.};
 
@@ -162,7 +168,9 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
         cylinders.push_back(cylinder_mask{r, -10., 10.});
     }
 
-    surface_base<transform3> plain(std::move(transform3()), 0, 0, false);
+    typename mask_defs::link_type mask_link{mask_defs::e_cylinder3, 0};
+    plane_surface plain(std::move(transform3()), std::move(mask_link), 0,
+                        false);
 
     point3 ori = {0., 0., 0.};
 

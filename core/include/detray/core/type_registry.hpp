@@ -9,9 +9,11 @@
 
 #include <iostream>
 #include <type_traits>
+#include <utility>
 
 #include "detray/core/mask_store.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/indexing.hpp"
 
 namespace detray {
 
@@ -101,6 +103,9 @@ class default_object_registry : public registry_base<registered_types...> {
         e_unknown = type_registry::e_unknown,
     };
 
+    using link_type = dindex;
+    using range_type = dindex_range;
+
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
 
@@ -118,12 +123,6 @@ class default_mask_registry : public registry_base<registered_types...> {
         n_types = type_registry::n_types,
     };
 
-    template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
-    using mask_container = mask_store<tuple_t, vector_t, registered_types...>;
-    using mask_link = typename mask_container<>::mask_link;
-    using mask_range = typename mask_container<>::mask_range;
-
     /// Give your mask types a name (needs to be consecutive to be matched)
     /// to a type!)
     enum id : unsigned int {
@@ -134,39 +133,23 @@ class default_mask_registry : public registry_base<registered_types...> {
         e_portal_cylinder3 = 3,  // no distinction from surface cylinder
         e_ring2 = 4,
         e_portal_ring2 = 4,
+        e_single3 = 5,
         e_any = type_registry::e_any,
         e_unknown = type_registry::e_unknown,
     };
+
+    template <template <typename...> class tuple_t = dtuple,
+              template <typename...> class vector_t = dvector>
+    using container_type = mask_store<tuple_t, vector_t, registered_types...>;
+    using link_type = typed_index<id>;
+    // using link_type = typename mask_store<>::mask_link;
+    using range_type = typed_index<id, dindex_range>;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
 
     template <unsigned int ID, template <typename...> class tuple_t = dtuple>
     using get_type = typename type_registry::template get_type<ID, tuple_t>;
-
-    /*template <unsigned int current_id = 0>
-    DETRAY_HOST_DEVICE static auto &get_dynamic_type(const unsigned int index) {
-        if (current_id == index) {
-            return get_type<current_id>{};
-        }
-        // Next mask type
-        if constexpr (current_id < mask_container<>::size()) {
-            return get_dynamic_type<current_id + 1>(index);
-        }
-    }*/
-
-    /*template <unsigned int current_type_index = e_surface, typename
-    args_wrapper_t = empty_type, typename first_t = empty_type, typename
-    ...remaining_types> auto type_matcher(const unsigned int index,
-    args_wrapper_t& args, Args &&... args) { if constexpr (not
-    std::is_same_v<first_t, empty_type> and is_defined<current_type_index>()) {
-            if (index != current_type_index) {
-                type_matcher<current_type_index + 1>(index, args, ...);
-            }
-        }
-        using callable = typename get_type<current_type_index>::type;
-        return callable(args...);
-    }*/
 };
 
 /** Registry class for surface finders (e.g. grids) */
@@ -179,20 +162,17 @@ class default_sf_finder_registry : public registry_base<registered_types...> {
         n_types = type_registry::n_types,
     };
 
-    template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
-    using sf_finder_container =
-        mask_store<tuple_t, vector_t, registered_types...>;
-    using sf_finder_link = typename sf_finder_container<>::mask_link;
-
     /// Surface finders
-    enum id : unsigned int {
+    enum id : std::size_t {
         e_brute_force = 0,
         e_z_phi_grid = 1,  // barrel
         e_r_phi_grid = 2,  // endcap
         e_any = type_registry::e_any,
         e_unknown = type_registry::e_unknown,
     };
+
+    using link_type = typed_index<id>;
+    using range_type = typed_index<id, dindex_range>;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;

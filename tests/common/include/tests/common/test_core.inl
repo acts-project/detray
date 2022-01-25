@@ -11,7 +11,10 @@
 #include <cmath>
 
 #include "detray/core/intersection.hpp"
+#include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface_base.hpp"
+#include "detray/masks/unmasked.hpp"
+#include "detray/tools/intersection_kernel.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -23,6 +26,8 @@ using point2 = __plugin::point2<detray::scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
+using mask_defs = default_mask_registry<unmasked<>>;
+using mask_link_t = typename mask_defs::link_type;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
@@ -34,7 +39,9 @@ TEST(ALGEBRA_PLUGIN, surface_base) {
     point3 t{2., 3., 4.};
     transform3 trf(t, z, x);
 
-    surface_base s(std::move(trf), -1, -1, false);
+    mask_link_t mask_id{mask_defs::e_unknown, 0};
+    surface_base<mask_defs, intersection_kernel, transform3, dindex> s(
+        std::move(trf), std::move(mask_id), -1, false);
 }
 
 // This tests the construction of a intresection

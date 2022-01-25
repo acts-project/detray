@@ -24,6 +24,7 @@
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/tools/intersection_kernel.hpp"
 #include "detray/tools/local_object_finder.hpp"
 
 namespace detray {
@@ -73,37 +74,39 @@ class detector {
      *  <intersector_t, local_t, edge_type, mask_id>
      */
     /// edge links: next volume, next (local) object finder
+    // TODO: Move to detector_registry
     using edge_type = array_type<dindex, 2>;
     using rectangle =
         rectangle2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                   edge_type, e_rectangle2>;
+                   edge_type>;
     using trapezoid =
         trapezoid2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                   edge_type, e_trapezoid2>;
-    using annulus =
-        annulus2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                 edge_type, e_annulus2>;
-    using cylinder = cylinder3<false, cylinder_intersector,
-                               __plugin::cylindrical2<detray::scalar>,
-                               edge_type, e_cylinder3>;
+                   edge_type>;
+    using annulus = annulus2<planar_intersector,
+                             __plugin::cartesian2<detray::scalar>, edge_type>;
+    using cylinder =
+        cylinder3<false, cylinder_intersector,
+                  __plugin::cylindrical2<detray::scalar>, edge_type>;
     using disc = ring2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                       edge_type, e_ring2>;
+                       edge_type>;
+    // TODO: Move to detector registry
     using mask_defs =
         default_mask_registry<rectangle, trapezoid, annulus, cylinder, disc>;
     using mask_container =
-        typename mask_defs::mask_container<tuple_type, vector_type>;
+        typename mask_defs::container_type<tuple_type, vector_type>;
 
     /** The Surface definition:
      *  <transform_link, mask_link, volume_link, source_link, edge_link>
      */
     using surface_type =
-        surface_base<transform_link, typename mask_defs::mask_link, volume_link,
-                     source_link, edge_type>;
+        surface_base<mask_defs, intersection_kernel, transform_link,
+                     volume_link, source_link, edge_type>;
     using surface_container = vector_type<surface_type>;
 
     /** The Volume definition:
      *  <object_registry, range_type, array_type>
      */
+    // TODO: Move to detector_registry
     using object_defs = default_object_registry<surface_type>;
 
     /** Temporary container structures that are used to fill the detector.
@@ -111,7 +114,7 @@ class detector {
      * unrolled and filled in lockstep with the masks
      */
     using surface_filling_container =
-        array_type<vector_type<surface_type>, mask_defs::n_types>;
+        array_type<surface_container, mask_defs::n_types>;
     using transform_container = array_type<transform_store, mask_defs::n_types>;
 
     /// Accelerator structure
@@ -136,11 +139,11 @@ class detector {
     using surfaces_circular_axis =
         typename surfaces_regular_circular_grid::axis_p1_t;
 
+    // TODO: Move to detector_registry
     using sf_finder_defs =
         default_sf_finder_registry<surfaces_regular_circular_grid,
                                    surfaces_regular_circular_grid>;
-    using volume_type =
-        volume<object_defs, sf_finder_defs, dindex_range, array_type>;
+    using volume_type = volume<object_defs, sf_finder_defs, array_type>;
 
     detector() = delete;
 
@@ -181,11 +184,13 @@ class detector {
      * @return non-const reference of the new volume
      */
     DETRAY_HOST
-    volume_type &new_volume(const array_type<scalar, 6> &bounds,
-                            dindex surfaces_finder_entry = dindex_invalid) {
+    volume_type &new_volume(
+        const array_type<scalar, 6> &bounds,
+        typename volume_type::sf_finder_link_t sf_finder_link = {
+            sf_finder_defs::e_unknown, dindex_invalid}) {
         volume_type &cvolume = _volumes.emplace_back(bounds);
         cvolume.set_index(_volumes.size() - 1);
-        cvolume.set_surfaces_finder(surfaces_finder_entry);
+        cvolume.set_surfaces_finder(sf_finder_link);
 
         return cvolume;
     }
@@ -330,13 +335,13 @@ class detector {
                     _transforms.contextual_transform(ctx, surf.transform());
                 auto tsl = trf.translation();
 
-                if (vol.get_grid_type() ==
+                if (vol.sf_finder_type() ==
                     volume_type::sf_finders::e_z_phi_grid) {
 
                     point2 location{tsl[2], algebra::getter::phi(tsl)};
                     surfaces_grid.populate(location, std::move(sidx));
 
-                } else if (vol.get_grid_type() ==
+                } else if (vol.sf_finder_type() ==
                            volume_type::sf_finders::e_r_phi_grid) {
 
                     point2 location{algebra::getter::perp(tsl),
@@ -347,9 +352,11 @@ class detector {
         }
 
         // add surfaces grid into surfaces finder
-        auto n_grids = _surfaces_finder.effective_size();
-        _surfaces_finder[n_grids] = surfaces_grid;
-        vol.set_surfaces_finder(n_grids);
+        if (vol.sf_finder_type() != volume_type::sf_finders::e_unknown) {
+            auto n_grids = _surfaces_finder.effective_size();
+            _surfaces_finder[n_grids] = surfaces_grid;
+            vol.set_surfaces_finder({vol.sf_finder_type(), n_grids});
+        }
     }
 
     /** Unrolls the data containers according to the mask type and fill the
@@ -391,7 +398,7 @@ class detector {
 
             // Update the surfaces mask link
             for (auto &obj : typed_surfaces) {
-                detail::get<1>(obj.mask()) += mask_offset;
+                obj.mask() += mask_offset;
                 obj.transform() += trsf_offset;
             }
 

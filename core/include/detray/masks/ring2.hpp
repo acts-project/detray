@@ -13,7 +13,6 @@
 
 #include "detray/core/intersection.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/masks/mask_identifier.hpp"
 #include "detray/tools/planar_intersector.hpp"
 
 namespace detray {
@@ -35,7 +34,6 @@ namespace detray {
 template <typename intersector_type = planar_intersector,
           typename mask_local_type = __plugin::cartesian2<detray::scalar>,
           typename mask_links_type = unsigned int,
-          unsigned int kMaskID = e_ring2,
           template <typename, unsigned int> class array_type = darray>
 struct ring2 {
     using mask_tolerance = scalar;
@@ -46,8 +44,6 @@ struct ring2 {
     mask_values _values = {0., std::numeric_limits<scalar>::infinity()};
 
     links_type _links;
-
-    static constexpr unsigned int mask_identifier = kMaskID;
 
     static constexpr mask_tolerance within_epsilon =
         std::numeric_limits<scalar>::epsilon();
@@ -68,7 +64,7 @@ struct ring2 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    ring2<intersector_type, local_type, links_type, kMaskID> &operator=(
+    ring2<intersector_type, local_type, links_type> &operator=(
         const array_type<scalar, 2> &rhs) {
         _values = rhs;
         return (*this);
@@ -159,7 +155,7 @@ struct ring2 {
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
-        ss << "ring2 (ID " << kMaskID << "),";
+        ss << "ring2,";
         for (const auto &v : _values) {
             ss << "," << v;
         }

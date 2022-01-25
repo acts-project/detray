@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
 
 namespace detray {
@@ -30,7 +29,7 @@ inline auto shoot_ray(const detector_t &detector, const ray_t &ray) {
         for (const auto [sf_idx, sf] : enumerate(detector.surfaces(), volume)) {
             // Retrieve candidate from the object
             auto sfi =
-                intersect(ray, sf, detector.transforms(), detector.masks());
+                sf.intersect(ray, detector.transforms(), detector.masks());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < ray.overstep_tolerance) {

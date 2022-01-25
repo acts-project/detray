@@ -19,6 +19,7 @@ TEST(ALGEBRA_PLUGIN, volume) {
     using namespace detray;
     using namespace __plugin;
 
+    // dummy types
     using surface_t = dindex;
     using sf_finder_t = dindex;
     using object_defs = default_object_registry<surface_t>;
@@ -29,12 +30,14 @@ TEST(ALGEBRA_PLUGIN, volume) {
     darray<scalar, 6> bounds = {0., 10., -5., 5., -M_PI, M_PI};
     volume v1 = volume(bounds);
     v1.set_index(12345);
-    v1.set_surfaces_finder(12);
+    v1.set_surfaces_finder({sf_finder_defs::e_brute_force, 12});
 
     ASSERT_TRUE(v1.empty());
     ASSERT_TRUE(v1.index() == 12345);
     ASSERT_TRUE(v1.bounds() == bounds);
-    ASSERT_TRUE(v1.surfaces_finder_entry() == 12);
+    typename sf_finder_defs::link_type sf_finder_link{
+        sf_finder_defs::e_brute_force, 12};
+    ASSERT_TRUE(v1.sf_finder_link() == sf_finder_link);
 
     // Check surface and portal ranges
     dindex_range surface_range{2, 8};
@@ -52,7 +55,7 @@ TEST(ALGEBRA_PLUGIN, volume) {
     const auto v2 = volume(v1);
     ASSERT_TRUE(v2.index() == 12345);
     ASSERT_TRUE(v2.bounds() == bounds);
-    ASSERT_TRUE(v2.surfaces_finder_entry() == 12);
+    ASSERT_TRUE(v2.sf_finder_link() == sf_finder_link);
     ASSERT_TRUE(v2.range<object_defs::e_surface>() == full_range);
     ASSERT_TRUE(v2.range<object_defs::e_portal>() == full_range);
 }

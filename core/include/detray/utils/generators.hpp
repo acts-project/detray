@@ -41,11 +41,10 @@ static inline dvector<scalar> phi_values(scalar start_phi, scalar end_phi,
  *
  * @return a generated list of vertices
  */
-template <typename intersector_type, typename local_type, typename links_type,
-          unsigned int kMaskContext>
-dvector<point3> vertices(const annulus2<intersector_type, local_type,
-                                        links_type, kMaskContext> &annulus_mask,
-                         unsigned int lseg) {
+template <typename intersector_type, typename local_type, typename links_type>
+dvector<point3> vertices(
+    const annulus2<intersector_type, local_type, links_type> &annulus_mask,
+    unsigned int lseg) {
 
     const auto &m_values = annulus_mask.values();
 
@@ -129,10 +128,10 @@ dvector<point3> vertices(const annulus2<intersector_type, local_type,
  * @return a generated list of vertices
  */
 template <bool kRadialCheck, typename intersector_type, typename local_type,
-          typename links_type, unsigned int kMaskContext>
+          typename links_type>
 dvector<point3> vertices(
-    const cylinder3<kRadialCheck, intersector_type, local_type, links_type,
-                    kMaskContext> & /*annulus_mask*/,
+    const cylinder3<kRadialCheck, intersector_type, local_type, links_type>
+        & /*annulus_mask*/,
     unsigned int /*lseg*/) {
 
     return {};
@@ -147,11 +146,9 @@ dvector<point3> vertices(
  *
  * @return a generated list of vertices
  */
-template <typename intersector_type, typename local_type, typename links_type,
-          unsigned int kMaskContext>
+template <typename intersector_type, typename local_type, typename links_type>
 dvector<point3> vertices(
-    const rectangle2<intersector_type, local_type, links_type, kMaskContext>
-        &rectangle_mask,
+    const rectangle2<intersector_type, local_type, links_type> &rectangle_mask,
     unsigned int /*ignored*/) {
     const auto &m_values = rectangle_mask.values();
     // left hand lower corner
@@ -175,11 +172,10 @@ dvector<point3> vertices(
  *
  * @return a generated list of vertices
  */
-template <typename intersector_type, typename local_type, typename links_type,
-          unsigned int kMaskContext>
-dvector<point3> vertices(const ring2<intersector_type, local_type, links_type,
-                                     kMaskContext> & /*ring_mask*/,
-                         unsigned int /*lseg*/) {
+template <typename intersector_type, typename local_type, typename links_type>
+dvector<point3> vertices(
+    const ring2<intersector_type, local_type, links_type> & /*ring_mask*/,
+    unsigned int /*lseg*/) {
     return {};
 }
 
@@ -192,11 +188,9 @@ dvector<point3> vertices(const ring2<intersector_type, local_type, links_type,
  *
  * @return a generated list of vertices
  */
-template <typename intersector_type, typename local_type, typename links_type,
-          unsigned int kMaskContext>
+template <typename intersector_type, typename local_type, typename links_type>
 dvector<point3> vertices(
-    const trapezoid2<intersector_type, local_type, links_type, kMaskContext>
-        &trapezoid_mask,
+    const trapezoid2<intersector_type, local_type, links_type> &trapezoid_mask,
     unsigned int /* ignored */) {
 
     const auto &m_values = trapezoid_mask.values();

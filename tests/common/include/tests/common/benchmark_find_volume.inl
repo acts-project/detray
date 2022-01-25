@@ -33,7 +33,7 @@ vecmem::host_memory_resource host_mr;
 const unsigned int itest = 10000;
 
 // This test a reference run to deduce the random number
-static void BM_FIND_VOLUMES(benchmark::State & /*state*/){
+static void BM_FIND_VOLUMES(benchmark::State& /*state*/){
 /*auto volume_grid = d.volume_search_grid();
 
 const auto &axis0 = volume_grid.axis_p0();
