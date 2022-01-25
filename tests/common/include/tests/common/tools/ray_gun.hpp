@@ -45,7 +45,7 @@ DETRAY_HOST_DEVICE inline auto shoot_ray(
                 sfi.link = std::get<0>(sf.edge());
                 // NOTE: emplace_back seems not defined for device
                 // intersection_record.emplace_back(sf_idx, sfi);
-                intersection_record.push_back({sf_idx, sfi});
+                intersection_record.push_back(std::make_pair(sf_idx, sfi));
             }
         }
     }
