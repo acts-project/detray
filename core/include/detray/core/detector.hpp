@@ -454,8 +454,8 @@ class detector {
      *
      * @return a collection of navigation candidates
      */
-    DETRAY_HOST_DEVICE
     template <typename track_t>
+    DETRAY_HOST_DEVICE
     inline vector_type<intersection> get_candidates(
         const volume_type &vol, const track_t &track) const {
         vector_type<intersection> candidates;
@@ -487,8 +487,8 @@ class detector {
      * @param vol the reference volume
      * @param track the track state
      */
-    DETRAY_HOST_DEVICE
     template <typename track_t>
+    DETRAY_HOST_DEVICE
     inline void update_candidates(intersection &candidate,
                                   const track_t &track) const {
         auto obj_idx = candidate.index;
