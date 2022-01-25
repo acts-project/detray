@@ -66,12 +66,12 @@ class volume {
     /** get surface finder link associated with volume */
     const auto sf_finder_link() const { return _sf_finder; }
 
-    /** get surface finder link associated with volume */
+    /** get the type of surface finder associated with volume */
     const typename sf_finders::id sf_finder_type() const {
         return detail::get<0>(_sf_finder);
     }
 
-    /** get surface finder link associated with volume */
+    /** get the index of the surface finder associated with volume */
     const auto sf_finder_index() const { return detail::get<1>(_sf_finder); }
 
     /** @return if the volume is empty or not */
@@ -123,12 +123,14 @@ class volume {
     }
 
     /** @return the number of elements in a given range */
-    template <typename range_id>
-    DETRAY_HOST_DEVICE inline dindex n_in_range(range_id &&rg) const {
+    template <typename obj_range_t>
+    DETRAY_HOST_DEVICE inline dindex n_in_range(obj_range_t &&rg) const {
         return detail::get<1>(rg) - detail::get<0>(rg);
     }
 
-    /** @return the number of elements in a given range */
+    /** Stub for the surface finder call.
+     * @return the number of elements in a given range
+     */
     template <typename point_t>
     DETRAY_HOST_DEVICE inline auto get_neighbors(point_t & /*pt*/) const {
         return range<objects::e_surface>();

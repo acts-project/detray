@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <iostream>
-
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
 #include "detray/definitions/detail/accessor.hpp"

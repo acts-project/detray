@@ -7,8 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
-
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/volume.hpp"
 

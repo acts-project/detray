@@ -21,7 +21,7 @@ namespace detray {
  * @tparam volume_link the typ eof the volume/volume link representation
  * @tparam source_link the type of the source/source link representation
  */
-template <typename mask_gegsitry_t, typename intersection_kernel_t,
+template <typename mask_regsitry_t, typename intersection_kernel_t,
           typename transform_link_t = dindex, typename volume_link_t = dindex,
           typename source_link_t = bool,
           typename edge_link_t = typed_index<unsigned int, dindex>>
@@ -29,7 +29,7 @@ class surface_base {
     public:
     // Broadcast the type of links
     using transform_link = transform_link_t;
-    using mask_defs = mask_gegsitry_t;
+    using mask_defs = mask_regsitry_t;
     using mask_link = typename mask_defs::link_type;
     using volume_link = volume_link_t;
     using source_link = source_link_t;

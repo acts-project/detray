@@ -92,8 +92,10 @@ class detector {
     // TODO: Move to detector registry
     using mask_defs =
         default_mask_registry<rectangle, trapezoid, annulus, cylinder, disc>;
-    using mask_container =
-        typename mask_defs::container_type<tuple_type, vector_type>;
+    // using mask_container =
+    //     typename mask_defs::container_type<tuple_type, vector_type>;
+    using mask_container = mask_store<tuple_type, vector_type, rectangle,
+                                      trapezoid, annulus, cylinder, disc>;
 
     /** The Surface definition:
      *  <transform_link, mask_link, volume_link, source_link, edge_link>
