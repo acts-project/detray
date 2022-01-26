@@ -21,29 +21,37 @@ TEST(navigator_cuda, navigator) {
     // vecmem managed memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
+    // Create detector
     detector_host_t det =
         create_toy_geometry<darray, thrust::tuple, vecmem::vector,
                             vecmem::jagged_vector>(mng_mr, n_brl_layers,
                                                    n_edc_layers);
 
-    // create navigator
-    navigator_host_t n(det);
+    // Create navigator
+    navigator_host_t n(det, mng_mr);
 
-    // navigator state
-    navigator_host_t::state state(mng_mr);
-
-    // create navigator candidates buffer
-    vecmem::data::vector_buffer<intersection> candidates_buffer(
-        det.get_n_max_objects_per_volume(), 0, mng_mr);
-
-    copy.setup(candidates_buffer);
-
+    // Get navigator data
     auto n_data = get_data(n);
 
-    // run navigator test
-    navigator_test(n_data, candidates_buffer);
+    // Create Navigator state
+    navigator_host_t::state state(mng_mr);
 
-    // copy candidates buffer into state candidates
+    // Create navigator candidates buffer
+    vecmem::data::vector_buffer<intersection> candidates_buffer(
+        det.get_n_max_objects_per_volume(), 0, mng_mr);
+    copy.setup(candidates_buffer);
+
+    const track<nav_context> track{
+        .pos = {0., 0., 0.},
+        .dir = vector::normalize(vector3{1., 1., 0.}),
+        .momentum = 100,
+        .ctx = nav_context{},
+        .overstep_tolerance = -1e-4};
+
+    // Run navigator test
+    navigator_test(n_data, candidates_buffer, track);
+
+    // Copy candidates buffer into state candidates
     copy(candidates_buffer, state.candidates());
 }
 
@@ -61,7 +69,7 @@ TEST(geometry_navigation_cuda, navigator) {
                                                    n_edc_layers);
 
     // create navigator
-    navigator_host_t n(det);
+    navigator_host_t n(det, mng_mr);
 
     // create the vector of initial track parameters
     vecmem::vector<track<nav_context>> tracks(&mng_mr);

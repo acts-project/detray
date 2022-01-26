@@ -12,20 +12,34 @@ namespace detray {
 
 __global__ void navigator_test_kernel(
     navigator_view<navigator_host_t> n_data,
-    vecmem::data::vector_view<intersection> candidates_data) {
+    vecmem::data::vector_view<intersection> candidates_data,
+    const track<nav_context> traj) {
 
     navigator_device_t n(n_data);
     navigator_device_t::state state(candidates_data);
+
+    auto& detector = n.get_detector();
+
+    // Set initial volume (no grid yet)
+    state.set_volume(0u);
+
+    // Initial status call
+    bool heartbeat = n.status(state, traj);
+
+    // Let's immediately target, nothing should change, as there is full trust
+    // heartbeat = n.target(state, traj);
 }
 
 void navigator_test(navigator_view<navigator_host_t> n_data,
-                    vecmem::data::vector_view<intersection>& candidates_data) {
+                    vecmem::data::vector_view<intersection>& candidates_data,
+                    const track<nav_context>& track) {
 
     constexpr int block_dim = 1;
     constexpr int thread_dim = 1;
 
     // run the test kernel
-    navigator_test_kernel<<<block_dim, thread_dim>>>(n_data, candidates_data);
+    navigator_test_kernel<<<block_dim, thread_dim>>>(n_data, candidates_data,
+                                                     track);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -47,7 +61,7 @@ __global__ void geometry_navigation_kernel(
 
     navigator_device_t n(n_data);
 
-    detector_device_t& det = n.get_detector();
+    auto& det = n.get_detector();
 
     navigator_device_t::state state(candidates_data.m_ptr[gid]);
 
@@ -56,8 +70,9 @@ __global__ void geometry_navigation_kernel(
     vecmem::device_vector<intersection_record> intersection_trace(
         intersection_record_data.m_ptr[gid]);
 
-    shoot_ray(n.get_detector(), tracks[gid], intersection_trace);
-
+    /*
+    shoot_ray(det, tracks[gid], intersection_trace);
+    */
     /*
     if (blockIdx.x == 0 && threadIdx.x == 0) {
         printf("%d \n",

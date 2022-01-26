@@ -270,6 +270,12 @@ class navigator {
     DETRAY_HOST
     navigator(const detector_t &d) : detector(d) {}
 
+    DETRAY_HOST
+    navigator(const detector_t &d, vecmem::memory_resource &resource)
+        : detector(resource) {
+        detector = d;
+    }
+
     template <
         typename navigator_data_type,
         std::enable_if_t<!std::is_base_of_v<detector_t, navigator_data_type>,
@@ -352,8 +358,9 @@ class navigator {
         const volume_type &volume) const {
 
         // Get the max number of candidates & run them through the kernel
+#if !defined(__CUDACC__)  // only for host
         navigation.candidates().reserve(volume.n_objects());
-
+#endif
         // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
         for (const auto [obj_idx, obj] :
@@ -536,6 +543,9 @@ class navigator {
 
     DETRAY_HOST_DEVICE
     auto &get_detector() { return detector; }
+
+    DETRAY_HOST_DEVICE
+    const auto &get_detector() const { return detector; }
 
     private:
     /** the containers for all data */

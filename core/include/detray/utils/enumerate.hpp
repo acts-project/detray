@@ -9,9 +9,9 @@
 #include <tuple>
 #include <type_traits>
 
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
-#include "detray/definitions/detail/accessor.hpp"
 
 namespace detray {
 
