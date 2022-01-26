@@ -41,15 +41,20 @@ TEST(navigator_cuda, navigator) {
         det.get_n_max_objects_per_volume(), 0, mng_mr);
     copy.setup(candidates_buffer);
 
-    const track<nav_context> track{
-        .pos = {0., 0., 0.},
-        .dir = vector::normalize(vector3{1., 1., 0.}),
-        .momentum = 100,
-        .ctx = nav_context{},
-        .overstep_tolerance = -1e-4};
+    // Create a track
+    const track<nav_context> traj{.pos = {0., 0., 0.},
+                                  .dir = vector::normalize(vector3{1., 1., 0.}),
+                                  .momentum = 100,
+                                  .ctx = nav_context{},
+                                  .overstep_tolerance = -1e-4};
+
+    vecmem::vector<track<nav_context> > tracks(&mng_mr);
+    tracks.push_back(traj);
+
+    auto tracks_data = vecmem::get_data(tracks);
 
     // Run navigator test
-    navigator_test(n_data, candidates_buffer, track);
+    navigator_test(n_data, candidates_buffer, tracks_data);
 
     // Copy candidates buffer into state candidates
     copy(candidates_buffer, state.candidates());

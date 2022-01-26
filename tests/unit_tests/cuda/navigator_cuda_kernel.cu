@@ -13,33 +13,45 @@ namespace detray {
 __global__ void navigator_test_kernel(
     navigator_view<navigator_host_t> n_data,
     vecmem::data::vector_view<intersection> candidates_data,
-    const track<nav_context> traj) {
+    vecmem::data::vector_view<track<nav_context>> tracks_data) {
+
+    vecmem::device_vector<track<nav_context>> tracks(tracks_data);
+
+    auto& traj = tracks[threadIdx.x];
 
     navigator_device_t n(n_data);
     navigator_device_t::state state(candidates_data);
 
     auto& detector = n.get_detector();
 
-    // Set initial volume (no grid yet)
+    // Set initial volume
     state.set_volume(0u);
 
-    // Initial status call
+    // Start propagation and record volume IDs
     bool heartbeat = n.status(state, traj);
 
-    // Let's immediately target, nothing should change, as there is full trust
-    // heartbeat = n.target(state, traj);
+    while (heartbeat) {
+        heartbeat = n.target(state, traj);
+
+        traj.pos = traj.pos + state() * traj.dir;
+
+        heartbeat = n.status(state, traj);
+
+        // printf("%lu \n", state.volume());
+    }
 }
 
-void navigator_test(navigator_view<navigator_host_t> n_data,
-                    vecmem::data::vector_view<intersection>& candidates_data,
-                    const track<nav_context>& track) {
+void navigator_test(
+    navigator_view<navigator_host_t> n_data,
+    vecmem::data::vector_view<intersection>& candidates_data,
+    vecmem::data::vector_view<track<nav_context>>& tracks_data) {
 
     constexpr int block_dim = 1;
     constexpr int thread_dim = 1;
 
     // run the test kernel
     navigator_test_kernel<<<block_dim, thread_dim>>>(n_data, candidates_data,
-                                                     track);
+                                                     tracks_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
