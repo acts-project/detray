@@ -141,9 +141,10 @@ class default_mask_registry : public registry_base<registered_types...> {
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using container_type = mask_store<tuple_t, vector_t, registered_types...>;
-    using link_type = typed_index<id>;
-    // using link_type = typename mask_store<>::mask_link;
-    using range_type = typed_index<id, dindex_range>;
+    //using link_type = typed_index<id>;
+    //using link_type = typename mask_store<>::mask_link;
+    using link_type = std::array<dindex, 2>;
+    //using range_type = typed_index<id, dindex_range>;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
@@ -173,7 +174,8 @@ class default_sf_finder_registry : public registry_base<registered_types...> {
 
     //using link_type = typed_index<id>;
     using link_type = std::array<dindex, 2>;
-    using range_type = typed_index<id, dindex_range>;
+    //using range_type = typed_index<id, dindex_range>;
+    using range_type = dindex_range;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;

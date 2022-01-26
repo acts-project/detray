@@ -82,7 +82,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                 EXPECT_EQ(sf_itr->edge(), edges[pti - range[0]]);
                 ++sf_itr;
                 ++trf_index;
-                ++mask_index;
+                ++std::get<1>(mask_index);
             }
         };
 
@@ -106,7 +106,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                 EXPECT_EQ(sf_itr->edge(), edges[0]);
                 ++sf_itr;
                 ++trf_index;
-                ++mask_index;
+                ++std::get<1>(mask_index);
             }
         };
 

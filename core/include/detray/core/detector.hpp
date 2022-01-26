@@ -16,6 +16,7 @@
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/surface_base.hpp"
 #include "detray/geometry/volume.hpp"
@@ -400,7 +401,8 @@ class detector {
 
             // Update the surfaces mask link
             for (auto &obj : typed_surfaces) {
-                obj.mask() += mask_offset;
+                //obj.mask() += mask_offset;
+                detail::get<1>(obj.mask()) += mask_offset;
                 obj.transform() += trsf_offset;
             }
 
