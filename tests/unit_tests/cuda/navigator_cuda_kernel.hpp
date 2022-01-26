@@ -52,12 +52,4 @@ void navigator_test(navigator_view<navigator_host_t> n_data,
                     vecmem::data::vector_view<intersection>& candidates_data,
                     const track<nav_context>& track);
 
-/// test function for navigator with multi state
-void geometry_navigation_test(
-    navigator_view<navigator_host_t> n_data,
-    vecmem::data::jagged_vector_view<intersection>& candidates_data,
-    vecmem::data::vector_view<track<nav_context>>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_record>&
-        intersection_record_data);
-
 }  // namespace detray

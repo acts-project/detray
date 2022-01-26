@@ -145,7 +145,7 @@ inline bool check_connectivity(
  * @return a set of volume connections that were found by portal intersection
  *         of a ray.
  */
-template <typename record_container = dvector<intersection_record>>
+template <typename record_container = dvector<std::pair<dindex, intersection>>>
 inline auto trace_intersections(const record_container &intersection_records,
                                 dindex start_volume = 0) {
     // obj id and obj mother volume
@@ -163,23 +163,24 @@ inline auto trace_intersections(const record_container &intersection_records,
         const type &entry;
 
         // getter
-        inline auto &object_id() const { return entry.sf_idx; }
-        inline auto &inters() const { return entry.sfi; }
-        inline auto &volume_id() const { return entry.sfi.index; }
-        inline auto &volume_link() const { return entry.sfi.link; }
-        inline auto &dist() const { return entry.sfi.path; }
+        inline auto &object_id() const { return entry.first; }
+        inline auto &inters() const { return entry.second; }
+        inline auto &volume_id() const { return entry.second.index; }
+        inline auto &volume_link() const { return entry.second.link; }
+        inline auto &dist() const { return entry.second.path; }
         inline auto r() const {
-            return std::sqrt(entry.sfi.p3[0] * entry.sfi.p3[0] +
-                             entry.sfi.p3[1] * entry.sfi.p3[1]);
+            return std::sqrt(entry.second.p3[0] * entry.second.p3[0] +
+                             entry.second.p3[1] * entry.second.p3[1]);
         }
-        inline auto z() const { return entry.sfi.p3[2]; }
+        inline auto z() const { return entry.second.p3[2]; }
 
         // A portal links to another volume than it belongs to
         inline bool is_portal() const {
-            return entry.sfi.index != entry.sfi.link;
+            return entry.second.index != entry.second.link;
         }
 
-        inline bool is_portal(const intersection_record &inters_pair) const {
+        inline bool is_portal(
+            const std::pair<dindex, intersection> &inters_pair) const {
             const record rec{inters_pair};
             return rec.volume_id() != rec.volume_link();
         }
