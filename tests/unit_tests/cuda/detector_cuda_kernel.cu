@@ -105,4 +105,23 @@ void detector_test(
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
+// cuda kernel to test enumeration
+__global__ void enumerate_test_kernel(detector_view<detector_host_t> det_data) {
+
+}
+
+// implementation of a test function for volume enumeration
+void enumerate_test(detector_view<detector_host_t> det_data) {
+
+    constexpr int block_dim = 1;
+    constexpr int thread_dim = 1;
+
+    // run the test kernel
+    enumerate_test_kernel<<<block_dim, thread_dim>>>(det_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
 }  // namespace detray

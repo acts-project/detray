@@ -51,4 +51,7 @@ void detector_test(
     vecmem::data::vector_view<disc_t>& discs_data,
     vecmem::data::vector_view<cylinder_t>& cylinders_data);
 
+// declaration of a test function for volume enumeration
+void enumerate_test(detector_view<detector_host_t> det_data);
+
 }  // namespace detray

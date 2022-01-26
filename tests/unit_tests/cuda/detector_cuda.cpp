@@ -93,3 +93,23 @@ TEST(detector_cuda, detector) {
         EXPECT_EQ(cylinders_host[i] == cylinders_device[i], true);
     }
 }
+
+// test volume enumeration
+TEST(detector_cuda, enumerate) {
+
+    // memory resource
+    vecmem::cuda::managed_memory_resource mng_mr;
+
+    // create toy geometry
+    detector_host_t toy_det =
+        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
+                            vecmem::jagged_vector>(mng_mr);
+
+    auto ctx0 = typename detector_host_t::context();
+
+    // get data object for toy detector
+    auto toy_det_data = get_data(toy_det);
+
+    // run the test code to test enumerate
+    enumerate_test(toy_det_data);
+}
