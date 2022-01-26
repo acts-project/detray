@@ -21,12 +21,15 @@ TEST(utils_enumerate_cuda, sequence_single) {
     // memory resource
     vecmem::cuda::managed_memory_resource managed_resource;
 
-    vecmem::vector<dindex> check(&managed_resource);
-    check.push_back(0);
-
+    // Input integer (single element vector) as the number of iteration
     vecmem::vector<dindex> single(&managed_resource);
     single.push_back(7);
 
+    // Output integer (single element vector) to count the number of iteration
+    vecmem::vector<dindex> check(&managed_resource);
+    check.push_back(0);
+
+    // Get vector_data object
     auto check_data = vecmem::get_data(check);
     auto single_data = vecmem::get_data(single);
 
@@ -46,19 +49,23 @@ TEST(utils_enumerate_cuda, sequence_range) {
     // memory resource
     vecmem::cuda::managed_memory_resource managed_resource;
 
+    // Input reference vector for test
     vecmem::vector<dindex> reference({2, 3, 4, 5, 6, 7});
 
+    // Const range for enumeration test
     const darray<dindex, 2> range = {2, 7};
 
+    // Output vector buffer for enumeration test
     vecmem::data::vector_buffer<dindex> check_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(
             range[1] - range[0] + 1),
         0, managed_resource);
-
     copy.setup(check_buffer);
 
+    // Run test function
     sequence_range(range, check_buffer);
 
+    // Copy vector buffer to output vector
     vecmem::vector<dindex> check{&managed_resource};
     copy(check_buffer, check);
 
@@ -75,9 +82,11 @@ TEST(utils_enumerate_cuda, enumerate_sequence) {
     // memory resource
     vecmem::cuda::managed_memory_resource managed_resource;
 
+    // Input vector sequence for test
     vecmem::vector<uint_holder> seq({{0}, {1}, {2}, {3}, {4}, {5}},
                                     &managed_resource);
 
+    // Output vector buffer for enumeration test
     vecmem::data::vector_buffer<dindex> idx_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
         0, managed_resource);
@@ -89,10 +98,13 @@ TEST(utils_enumerate_cuda, enumerate_sequence) {
         0, managed_resource);
     copy.setup(uint_buffer);
 
+    // Get vector_data object
     auto seq_data = vecmem::get_data(seq);
 
+    // Run test function
     enumerate_sequence(idx_buffer, uint_buffer, seq_data);
 
+    // Copy vector buffer to output vector
     vecmem::vector<dindex> idx_vec{&managed_resource};
     copy(idx_buffer, idx_vec);
 
@@ -114,20 +126,26 @@ TEST(utils_enumerate_cuda, range) {
     // memory resource
     vecmem::cuda::managed_memory_resource managed_resource;
 
+    // Input vector sequence for test
     vecmem::vector<int> seq({0, 1, 2, 3, 4, 5}, &managed_resource);
 
+    // Begin and end index for iteration
     const size_t begin = 1;
     const size_t end = 4;
 
+    // Output vector buffer for iteration test
     vecmem::data::vector_buffer<int> check_buffer(
         static_cast<vecmem::data::vector_buffer<int>::size_type>(begin - end),
         0, managed_resource);
     copy.setup(check_buffer);
 
+    // Get vector_data object
     auto seq_data = vecmem::get_data(seq);
 
+    // Run test function
     iterate_range(check_buffer, seq_data, begin, end);
 
+    // Copy vector buffer to output vector
     vecmem::vector<int> check{&managed_resource};
     copy(check_buffer, check);
 
