@@ -30,8 +30,10 @@ TEST(utils_enumerate_cuda, sequence_single) {
     auto check_data = vecmem::get_data(check);
     auto single_data = vecmem::get_data(single);
 
+    // Run the test code
     sequence_single(check_data, single_data);
 
+    // Check the result
     ASSERT_EQ(check[0], single[0]);
 }
 
@@ -60,6 +62,7 @@ TEST(utils_enumerate_cuda, sequence_range) {
     vecmem::vector<dindex> check{&managed_resource};
     copy(check_buffer, check);
 
+    // Check the result
     ASSERT_EQ(check, reference);
 }
 
@@ -96,6 +99,7 @@ TEST(utils_enumerate_cuda, enumerate_sequence) {
     vecmem::vector<unsigned int> uint_vec{&managed_resource};
     copy(uint_buffer, uint_vec);
 
+    // Check the result
     for (unsigned int i = 0; i < idx_vec.size(); i++) {
         ASSERT_EQ(idx_vec[i], static_cast<dindex>(uint_vec[i]));
     }
@@ -127,6 +131,7 @@ TEST(utils_enumerate_cuda, range) {
     vecmem::vector<int> check{&managed_resource};
     copy(check_buffer, check);
 
+    // Check the result
     ASSERT_EQ(check[0], 1);
     ASSERT_EQ(check[1], 2);
     ASSERT_EQ(check[2], 3);

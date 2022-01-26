@@ -106,18 +106,37 @@ void detector_test(
 }
 
 // cuda kernel to test enumeration
-__global__ void enumerate_test_kernel(detector_view<detector_host_t> det_data) {
+__global__ void enumerate_test_kernel(
+    detector_view<detector_host_t> det_data,
+    vecmem::data::jagged_vector_view<surface_t> surfaces_data) {
 
+    // Get detector in device
+    detector_device_t detector(det_data);
+
+    // Get surface vector per volume
+    vecmem::device_vector<surface_t> surfaces_device(
+        surfaces_data.m_ptr[threadIdx.x]);
+
+    // Get volume
+    auto& vol = detector.volume_by_index(threadIdx.x);
+
+    // Push_back surfaces to the surface vector
+    for (const auto [obj_idx, obj] : enumerate(detector.surfaces(), vol)) {
+        surfaces_device.push_back(obj);
+    }
 }
 
-// implementation of a test function for volume enumeration
-void enumerate_test(detector_view<detector_host_t> det_data) {
+// implementation of a test function for surface enumeration
+void enumerate_test(detector_view<detector_host_t> det_data,
+                    vecmem::data::jagged_vector_view<surface_t> surfaces_data) {
 
     constexpr int block_dim = 1;
-    constexpr int thread_dim = 1;
+
+    // number of threads = number of volumes
+    int thread_dim = surfaces_data.m_size;
 
     // run the test kernel
-    enumerate_test_kernel<<<block_dim, thread_dim>>>(det_data);
+    enumerate_test_kernel<<<block_dim, thread_dim>>>(det_data, surfaces_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

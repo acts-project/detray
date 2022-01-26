@@ -9,10 +9,12 @@
 
 #include <climits>
 #include <iostream>
+#include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "detector_cuda_kernel.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
+#include "vecmem/utils/cuda/copy.hpp"
 
 using namespace detray;
 
@@ -94,22 +96,60 @@ TEST(detector_cuda, detector) {
     }
 }
 
-// test volume enumeration
+// test surface enumeration
 TEST(detector_cuda, enumerate) {
 
-    // memory resource
+    // Helper object for performing memory copies.
+    vecmem::cuda::copy copy;
+
+    // memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
+    vecmem::cuda::device_memory_resource dev_mr;
 
     // create toy geometry
-    detector_host_t toy_det =
+    detector_host_t detector =
         create_toy_geometry<darray, thrust::tuple, vecmem::vector,
                             vecmem::jagged_vector>(mng_mr);
 
-    auto ctx0 = typename detector_host_t::context();
+    // Get the vector of volumes
+    auto& volumes = detector.volumes();
+
+    // Create and fill the vector of surfaces
+    vecmem::jagged_vector<surface_t> surfaces_host(volumes.size(), &mng_mr);
+
+    for (unsigned int i = 0; i < volumes.size(); i++) {
+        for (const auto [obj_idx, obj] :
+             enumerate(detector.surfaces(), volumes[i])) {
+
+            surfaces_host[i].push_back(obj);
+        }
+    }
+
+    // Create surfaces_buffer with capacity and size
+    std::vector<std::size_t> capacities;
+    for (auto& surfs : surfaces_host) {
+        capacities.push_back(surfs.size());
+    }
+    std::vector<std::size_t> sizes(surfaces_host.size(), 0);
+
+    vecmem::data::jagged_vector_buffer<surface_t> surfaces_buffer(
+        sizes, capacities, dev_mr, &mng_mr);
+
+    // copy setup for surfaces buffer
+    copy.setup(surfaces_buffer);
 
     // get data object for toy detector
-    auto toy_det_data = get_data(toy_det);
+    auto det_data = get_data(detector);
 
     // run the test code to test enumerate
-    enumerate_test(toy_det_data);
+    enumerate_test(det_data, surfaces_buffer);
+
+    // Copy the surfaces_buffer to surfaces_device
+    vecmem::jagged_vector<surface_t> surfaces_device{&mng_mr};
+    copy(surfaces_buffer, surfaces_device);
+
+    // Compare the surfaces_host and surfaces_device
+    for (unsigned int i = 0; i < surfaces_host.size(); i++) {
+        EXPECT_EQ(surfaces_host[i], surfaces_device[i]);
+    }
 }
