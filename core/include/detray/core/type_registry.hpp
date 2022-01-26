@@ -171,7 +171,8 @@ class default_sf_finder_registry : public registry_base<registered_types...> {
         e_unknown = type_registry::e_unknown,
     };
 
-    using link_type = typed_index<id>;
+    //using link_type = typed_index<id>;
+    using link_type = std::array<dindex, 2>;
     using range_type = typed_index<id, dindex_range>;
 
     template <typename T>

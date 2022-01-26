@@ -67,7 +67,7 @@ class volume {
     const auto sf_finder_link() const { return _sf_finder; }
 
     /** get the type of surface finder associated with volume */
-    const typename sf_finders::id sf_finder_type() const {
+    const auto sf_finder_type() const {
         return detail::get<0>(_sf_finder);
     }
 
