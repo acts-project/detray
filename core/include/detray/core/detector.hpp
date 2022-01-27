@@ -423,8 +423,8 @@ class detector {
         }
         // update n_max_objects_per_volume
         else {
-            n_max_objects_per_volume =
-                std::max(n_max_objects_per_volume,
+            _n_max_objects_per_volume =
+                std::max(_n_max_objects_per_volume,
                          volume.range()[1] - volume.range()[0]);
         }
 
@@ -455,8 +455,8 @@ class detector {
     }
 
     DETRAY_HOST_DEVICE
-    inline const auto &get_n_max_objects_per_volume() {
-        return n_max_objects_per_volume;
+    inline const auto &get_n_max_objects_per_volume() const {
+        return _n_max_objects_per_volume;
     }
 
     /** Output to string */
@@ -521,7 +521,7 @@ class detector {
     vecmem::memory_resource *_resource = nullptr;
 
     // maximum number of surfaces per volume for navigation kernel candidates
-    dindex n_max_objects_per_volume = 0;
+    dindex _n_max_objects_per_volume = 0;
 };
 
 /** A static inplementation of detector data for device
