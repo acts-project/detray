@@ -110,7 +110,7 @@ class navigator {
          **/
         state(vecmem::memory_resource &resource) : _candidates(&resource) {}
 
-        /** Constructor from state_data
+        /** Constructor from candidates vector_view
          **/
         DETRAY_HOST_DEVICE state(
             vecmem::data::vector_view<intersection> &candidates_data)
