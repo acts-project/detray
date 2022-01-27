@@ -131,7 +131,7 @@ class navigator {
 
         /** @returns current object that was reached */
         DETRAY_HOST_DEVICE
-        inline decltype(auto) current() { return _next - 1; }
+        inline auto current() { return _next - 1; }
 
         /** @returns next object that we want to reach */
         DETRAY_HOST_DEVICE
