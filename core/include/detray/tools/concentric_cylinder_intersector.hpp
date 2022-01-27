@@ -12,6 +12,7 @@
 
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
 #include "detray/utils/quadratic_equation.hpp"
 
