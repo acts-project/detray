@@ -111,12 +111,8 @@ class navigator {
 
         /** Constructor from state_data
          **/
-        template <typename candidates_data_t,
-                  std::enable_if_t<
-                      std::is_same_v<vecmem::data::vector_view<intersection>,
-                                     candidates_data_t>,
-                      bool> = true>
-        DETRAY_HOST_DEVICE state(candidates_data_t &candidates_data)
+        DETRAY_HOST_DEVICE state(
+            vecmem::data::vector_view<intersection> &candidates_data)
             : _candidates(candidates_data) {}
 
         /** Scalar representation of the navigation state,
