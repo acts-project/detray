@@ -153,12 +153,11 @@ class navigator {
         inline void set_dist(scalar dist) { _distance_to_next = dist; }
 
         /** Call the navigation inspector */
-        /*
+
         DETRAY_HOST_DEVICE
         inline auto run_inspector(std::string &&message) {
             return _inspector(*this, message);
         }
-        */
 
         /** @returns the navigation inspector */
         DETRAY_HOST_DEVICE
@@ -221,7 +220,7 @@ class navigator {
         inline bool abort() {
             _status = e_abort;
             _trust_level = e_no_trust;
-            // run_inspector("Aborted: ");
+            run_inspector("Aborted: ");
             return false;
         }
 
@@ -234,7 +233,7 @@ class navigator {
         inline bool exit() {
             _status = e_on_target;
             _trust_level = e_full_trust;
-            // run_inspector("Exited: ");
+            run_inspector("Exited: ");
             return false;
         }
 
@@ -386,7 +385,7 @@ class navigator {
         }
         // What is the next object we want to reach?
         set_next(navigation);
-        // navigation.run_inspector("Init: ");
+        navigation.run_inspector("Init: ");
     }
 
     /** Helper method to the update the next candidate intersection. Will
@@ -443,7 +442,7 @@ class navigator {
                     }
 
                     // Call the inspector before returning
-                    // navigation.run_inspector("Update (high trust): ");
+                    navigation.run_inspector("Update (high trust): ");
 
                     // Don't sort again when coming from high trust
                     return;
@@ -503,7 +502,7 @@ class navigator {
                 ++navigation.next();
                 navigation.set_status(e_on_object);
                 // Call the inspector on this portal crossing, then go to next
-                // navigation.run_inspector("Skipping direct hit: ");
+                navigation.run_inspector("Skipping direct hit: ");
             }
 
             navigation.set_dist(navigation.next()->path);
@@ -514,7 +513,7 @@ class navigator {
             navigation.set_trust_level(e_full_trust);
 
             // Call the inspector on new status
-            // navigation.run_inspector("Set next: ");
+            navigation.run_inspector("Set next: ");
         }
     }
 
