@@ -110,19 +110,26 @@ __global__ void enumerate_test_kernel(
     detector_view<detector_host_t> det_data,
     vecmem::data::jagged_vector_view<surface_t> surfaces_data) {
 
+    int gid = threadIdx.x + blockIdx.x * blockDim.x;
+
     // Get detector in device
     detector_device_t detector(det_data);
 
     // Get surface vector per volume
-    vecmem::device_vector<surface_t> surfaces_device(
-        surfaces_data.m_ptr[threadIdx.x]);
+    vecmem::jagged_device_vector<surface_t> all_surfaces(surfaces_data);
+
+    if (gid >= all_surfaces.size()) {
+        return;
+    }
+
+    vecmem::device_vector<surface_t> surfaces = all_surfaces.at(gid);
 
     // Get volume
     auto& vol = detector.volume_by_index(threadIdx.x);
 
     // Push_back surfaces to the surface vector
     for (const auto [obj_idx, obj] : enumerate(detector.surfaces(), vol)) {
-        surfaces_device.push_back(obj);
+        surfaces.push_back(obj);
     }
 }
 
@@ -130,10 +137,9 @@ __global__ void enumerate_test_kernel(
 void enumerate_test(detector_view<detector_host_t> det_data,
                     vecmem::data::jagged_vector_view<surface_t> surfaces_data) {
 
-    constexpr int block_dim = 1;
+    constexpr int thread_dim = WARP_SIZE * 2;
 
-    // number of threads = number of volumes
-    int thread_dim = surfaces_data.m_size;
+    int block_dim = surfaces_data.m_size / thread_dim + 1;
 
     // run the test kernel
     enumerate_test_kernel<<<block_dim, thread_dim>>>(det_data, surfaces_data);
