@@ -216,6 +216,8 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                 heartbeat &= n.status(n_state, s_state());
             }
 
+            // TODO: Uncomment when inspector can be used...
+            /*
             auto &obj_tracer =
                 n_state.inspector().template get<object_tracer<1>>();
             auto &debug_printer =
@@ -254,6 +256,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                           intersection_trace[intr_idx].first)
                     << debug_printer.to_string() << debug_stream.str();
             }
+            */
         }
     }
 }
