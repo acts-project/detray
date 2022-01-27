@@ -95,5 +95,41 @@ DETRAY_HOST_DEVICE constexpr tuple_type<unwrap_decay_t<Types>...> make_tuple(
     return tuple_type<unwrap_decay_t<Types>...>(std::forward<Types>(args)...);
 }
 
+/// Trait class to figure out if a given type has a @c reserve(...) function
+template <typename T>
+struct has_reserve {
+
+    private:
+    /// Function returning @c std::true_type for types that do have a @c
+    /// reserve(...) function
+    template <typename C>
+    static constexpr auto check(C*) ->
+        typename std::is_void<decltype(std::declval<C>().reserve(
+            std::declval<typename C::size_type>()))>::type;
+    /// Function returning @c std::false_type for types that fair the previous
+    /// function
+    template <typename>
+    static constexpr std::false_type check(...);
+
+    /// Declare the value type of this trait class
+    typedef decltype(check<T>(nullptr)) type;
+
+    public:
+    /// Value of the check
+    static constexpr bool value = type::value;
+};
+
+/// @name Functions calling or not calling reserve(...) based on whether it's
+/// available
+/// @{
+
+template <typename T, std::enable_if_t<has_reserve<T>::value, bool> = true>
+void call_reserve(T& obj, std::size_t newsize) {
+    obj.reserve(newsize);
+}
+
+template <typename T, std::enable_if_t<!(has_reserve<T>::value), bool> = true>
+void call_reserve(T& obj, std::size_t newsize) {}
+
 }  // namespace detail
 }  // namespace detray

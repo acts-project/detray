@@ -17,6 +17,7 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/core/intersection.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
@@ -355,9 +356,12 @@ class navigator {
         const volume_type &volume) const {
 
         // Get the max number of candidates & run them through the kernel
-#if !defined(__CUDACC__)  // only for host
-        navigation.candidates().reserve(volume.n_objects());
-#endif
+        detail::call_reserve(navigation.candidates(), volume.n_objects());
+        /*
+        #if !defined(__CUDACC__)  // only for host
+                navigation.candidates().reserve(volume.n_objects());
+        #endif
+        */
         // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
         for (const auto [obj_idx, obj] :
