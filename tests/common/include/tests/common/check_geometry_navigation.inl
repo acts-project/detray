@@ -34,7 +34,7 @@ struct object_tracer {
     vector_t<intersection> object_trace = {};
 
     template <typename state_type>
-    auto operator()(state_type &state, std::string & /*message*/) {
+    auto operator()(state_type &state, const char * /*message*/) {
         // Record the candidate of an encountered object
         if (state.status() == navigation_status) {
             object_trace.push_back(std::move(*(state.current())));
@@ -53,8 +53,10 @@ struct print_inspector {
     std::stringstream debug_stream;
 
     template <typename state_type>
-    auto operator()(state_type &state, std::string &message) {
-        debug_stream << message << std::endl;
+    auto operator()(state_type &state, const char *message) {
+        std::string msg(message);
+
+        debug_stream << msg << std::endl;
 
         debug_stream << "Volume\t\t\t\t\t\t" << state.volume() << std::endl;
         debug_stream << "surface kernel size\t\t" << state.candidates().size()
@@ -131,7 +133,7 @@ struct aggregate_inspector {
     inspector_tuple_t _inspectors{};
 
     template <unsigned int current_id = 0, typename state_type>
-    auto operator()(state_type &state, std::string &message) {
+    auto operator()(state_type &state, const char *message) {
         // Call inspector
         std::get<current_id>(_inspectors)(state, message);
 
@@ -216,8 +218,6 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                 heartbeat &= n.status(n_state, s_state());
             }
 
-            // TODO: Uncomment when inspector can be used...
-            /*
             auto &obj_tracer =
                 n_state.inspector().template get<object_tracer<1>>();
             auto &debug_printer =
@@ -256,7 +256,6 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                           intersection_trace[intr_idx].first)
                     << debug_printer.to_string() << debug_stream.str();
             }
-            */
         }
     }
 }
