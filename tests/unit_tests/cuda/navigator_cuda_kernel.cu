@@ -56,8 +56,8 @@ void navigator_test(
     vecmem::data::jagged_vector_view<intersection>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data) {
 
-    constexpr int block_dim = theta_steps;
-    constexpr int thread_dim = phi_steps;
+    constexpr int thread_dim = 64;
+    constexpr int block_dim = theta_steps * phi_steps / thread_dim + 1;
 
     // run the test kernel
     navigator_test_kernel<<<block_dim, thread_dim>>>(

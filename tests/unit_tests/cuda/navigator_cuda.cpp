@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <iostream>
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
@@ -69,6 +70,8 @@ TEST(navigator_cuda, navigator) {
      * Host Volume Record
      */
 
+    /*time*/ auto start_cpu = std::chrono::system_clock::now();
+
     vecmem::jagged_vector<dindex> volume_records_host(theta_steps * phi_steps,
                                                       &mng_mr);
 
@@ -96,9 +99,14 @@ TEST(navigator_cuda, navigator) {
         }
     }
 
+    /*time*/ auto end_cpu = std::chrono::system_clock::now();
+    /*time*/ std::chrono::duration<double> time_cpu = end_cpu - start_cpu;
+
     /**
      * Device Volume Record
      */
+
+    /*time*/ auto start_cuda = std::chrono::system_clock::now();
 
     vecmem::jagged_vector<dindex> volume_records_device(&mng_mr);
 
@@ -136,8 +144,6 @@ TEST(navigator_cuda, navigator) {
     // Copy volume record buffer into volume records device
     copy(volume_records_buffer, volume_records_device);
 
-    // EXPECT_EQ(volume_records_host, volume_records_device);
-
     for (unsigned int i = 0; i < volume_records_host.size(); i++) {
 
         EXPECT_EQ(volume_records_host[i].size(),
@@ -148,4 +154,11 @@ TEST(navigator_cuda, navigator) {
             EXPECT_EQ(volume_records_host[i][j], volume_records_device[i][j]);
         }
     }
+
+    /*time*/ auto end_cuda = std::chrono::system_clock::now();
+    /*time*/ std::chrono::duration<double> time_cuda = end_cuda - start_cuda;
+
+    std::cout << "==> Elpased time ... " << std::endl;
+    std::cout << "CPU: " << time_cpu.count() << std::endl;
+    std::cout << "CUDA: " << time_cuda.count() << std::endl;
 }

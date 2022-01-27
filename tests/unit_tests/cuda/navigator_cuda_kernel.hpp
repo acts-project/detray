@@ -39,8 +39,8 @@ constexpr std::size_t n_brl_layers = 4;
 constexpr std::size_t n_edc_layers = 3;
 
 // geomery navigation configurations
-constexpr unsigned int theta_steps = 10;
-constexpr unsigned int phi_steps = 10;
+constexpr unsigned int theta_steps = 100;
+constexpr unsigned int phi_steps = 100;
 
 namespace detray {
 
