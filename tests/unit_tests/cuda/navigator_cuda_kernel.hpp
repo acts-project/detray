@@ -19,7 +19,6 @@
 
 #include "detray/tools/navigator.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
-#include "tests/common/tools/ray_gun.hpp"
 
 using namespace detray;
 

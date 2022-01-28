@@ -424,8 +424,7 @@ class detector {
         // update n_max_objects_per_volume
         else {
             _n_max_objects_per_volume =
-                std::max(_n_max_objects_per_volume,
-                         volume.range()[1] - volume.range()[0]);
+                std::max(_n_max_objects_per_volume, volume.n_objects());
         }
 
         // If no mask type fits, don't fill the data.
