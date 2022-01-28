@@ -19,18 +19,17 @@ __global__ void navigator_test_kernel(
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     navigator_device_t n(n_data);
-
     vecmem::device_vector<track<nav_context>> tracks(tracks_data);
-
-    auto& traj = tracks[gid];
-
-    navigator_device_t::state state(candidates_data.m_ptr[gid]);
-
+    vecmem::jagged_device_vector<intersection> candidates(candidates_data);
     vecmem::jagged_device_vector<dindex> volume_records(volume_records_data);
 
     if (gid >= tracks.size()) {
         return;
     }
+
+    auto& traj = tracks.at(gid);
+
+    navigator_device_t::state state(candidates.at(gid));
 
     // Set initial volume
     state.set_volume(0u);
@@ -56,7 +55,7 @@ void navigator_test(
     vecmem::data::jagged_vector_view<intersection>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data) {
 
-    constexpr int thread_dim = 64;
+    constexpr int thread_dim = 2 * WARP_SIZE;
     constexpr int block_dim = theta_steps * phi_steps / thread_dim + 1;
 
     // run the test kernel
