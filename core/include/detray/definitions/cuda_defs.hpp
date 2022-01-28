@@ -1,6 +1,6 @@
 /** TRACCC library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,6 +13,9 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+/// Number of threads per Warp
+#define WARP_SIZE 32
 
 /// Helper macro used for checking @c cudaError_t type return values.
 #define DETRAY_CUDA_ERROR_CHECK(ans) \

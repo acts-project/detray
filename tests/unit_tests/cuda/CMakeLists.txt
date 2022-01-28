@@ -7,10 +7,19 @@
 # Enable CUDA as a language.
 enable_language(CUDA)
 
+# grid test
 add_detray_test(grids_grid2_cuda
   "grids_grid2_cuda.cpp"
   "grids_grid2_cuda_kernel.hpp"
   "grids_grid2_cuda_kernel.cu"
+  LINK_LIBRARIES
+  vecmem::cuda)
+
+# enumerate test
+add_detray_test(utils_enumerate_cuda
+  "utils_enumerate_cuda.cpp"
+  "utils_enumerate_cuda_kernel.hpp"
+  "utils_enumerate_cuda_kernel.cu"
   LINK_LIBRARIES
   vecmem::cuda)
 
