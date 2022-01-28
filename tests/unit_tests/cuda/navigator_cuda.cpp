@@ -140,6 +140,9 @@ TEST(navigator_cuda, navigator) {
     auto tracks_data = vecmem::get_data(tracks_device);
 
     // Create navigator candidates buffer
+    // TODO: det.get_n_max_objects_per_volume() is way too many for
+    // candidates size allocation. With the local navigation, the size can be
+    // restricted to much smaller value
     vecmem::data::jagged_vector_buffer<intersection> candidates_buffer(
         std::vector<std::size_t>(theta_steps * phi_steps, 0),
         std::vector<std::size_t>(theta_steps * phi_steps,
