@@ -14,7 +14,8 @@ __global__ void navigator_test_kernel(
     navigator_view<navigator_host_t> n_data,
     vecmem::data::vector_view<track<nav_context>> tracks_data,
     vecmem::data::jagged_vector_view<intersection> candidates_data,
-    vecmem::data::jagged_vector_view<dindex> volume_records_data) {
+    vecmem::data::jagged_vector_view<dindex> volume_records_data,
+    vecmem::data::jagged_vector_view<point3> position_records_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -22,6 +23,8 @@ __global__ void navigator_test_kernel(
     vecmem::device_vector<track<nav_context>> tracks(tracks_data);
     vecmem::jagged_device_vector<intersection> candidates(candidates_data);
     vecmem::jagged_device_vector<dindex> volume_records(volume_records_data);
+    vecmem::jagged_device_vector<point3> position_records(
+        position_records_data);
 
     if (gid >= tracks.size()) {
         return;
@@ -46,6 +49,7 @@ __global__ void navigator_test_kernel(
 
         // Record volume
         volume_records[gid].push_back(state.volume());
+        position_records[gid].push_back(traj.pos);
     }
 }
 
@@ -53,14 +57,16 @@ void navigator_test(
     navigator_view<navigator_host_t> n_data,
     vecmem::data::vector_view<track<nav_context>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection>& candidates_data,
-    vecmem::data::jagged_vector_view<dindex>& volume_records_data) {
+    vecmem::data::jagged_vector_view<dindex>& volume_records_data,
+    vecmem::data::jagged_vector_view<point3>& position_records_data) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;
     constexpr int block_dim = theta_steps * phi_steps / thread_dim + 1;
 
     // run the test kernel
     navigator_test_kernel<<<block_dim, thread_dim>>>(
-        n_data, tracks_data, candidates_data, volume_records_data);
+        n_data, tracks_data, candidates_data, volume_records_data,
+        position_records_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

@@ -48,6 +48,7 @@ void navigator_test(
     navigator_view<navigator_host_t> n_data,
     vecmem::data::vector_view<track<nav_context>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection>& candidates_data,
-    vecmem::data::jagged_vector_view<dindex>& volume_records_data);
+    vecmem::data::jagged_vector_view<dindex>& volume_records_data,
+    vecmem::data::jagged_vector_view<point3>& position_records_data);
 
 }  // namespace detray

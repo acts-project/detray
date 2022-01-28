@@ -76,6 +76,8 @@ TEST(navigator_cuda, navigator) {
 
     vecmem::jagged_vector<dindex> volume_records_host(theta_steps * phi_steps,
                                                       &mng_mr);
+    vecmem::jagged_vector<point3> position_records_host(theta_steps * phi_steps,
+                                                        &mng_mr);
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
@@ -98,6 +100,7 @@ TEST(navigator_cuda, navigator) {
 
             // Record volume
             volume_records_host[i].push_back(state.volume());
+            position_records_host[i].push_back(traj.pos);
         }
     }
 
@@ -111,6 +114,7 @@ TEST(navigator_cuda, navigator) {
     /*time*/ auto start_cuda = std::chrono::system_clock::now();
 
     vecmem::jagged_vector<dindex> volume_records_device(&mng_mr);
+    vecmem::jagged_vector<point3> position_records_device(&mng_mr);
 
     // Create size and capacity vectors for volume record buffer
     std::vector<size_t> sizes;
@@ -124,6 +128,10 @@ TEST(navigator_cuda, navigator) {
     vecmem::data::jagged_vector_buffer<dindex> volume_records_buffer(
         sizes, capacities, dev_mr, &mng_mr);
     copy.setup(volume_records_buffer);
+
+    vecmem::data::jagged_vector_buffer<point3> position_records_buffer(
+        sizes, capacities, dev_mr, &mng_mr);
+    copy.setup(position_records_buffer);
 
     // Get navigator data
     auto n_data = get_data(n);
@@ -141,10 +149,11 @@ TEST(navigator_cuda, navigator) {
 
     // Run navigator test
     navigator_test(n_data, tracks_data, candidates_buffer,
-                   volume_records_buffer);
+                   volume_records_buffer, position_records_buffer);
 
-    // Copy volume record buffer into volume records device
+    // Copy volume record buffer into volume & position records device
     copy(volume_records_buffer, volume_records_device);
+    copy(position_records_buffer, position_records_device);
 
     for (unsigned int i = 0; i < volume_records_host.size(); i++) {
 
@@ -154,6 +163,13 @@ TEST(navigator_cuda, navigator) {
         for (unsigned int j = 0; j < volume_records_host[i].size(); j++) {
 
             EXPECT_EQ(volume_records_host[i][j], volume_records_device[i][j]);
+
+            auto& pos_host = position_records_host[i][j];
+            auto& pos_device = position_records_device[i][j];
+
+            EXPECT_NEAR(pos_host[0], pos_device[0], 1e-3);
+            EXPECT_NEAR(pos_host[1], pos_device[1], 1e-3);
+            EXPECT_NEAR(pos_host[2], pos_device[2], 1e-3);
         }
     }
 
