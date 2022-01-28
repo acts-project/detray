@@ -170,9 +170,9 @@ TEST(navigator_cuda, navigator) {
             auto& pos_host = position_records_host[i][j];
             auto& pos_device = position_records_device[i][j];
 
-            EXPECT_NEAR(pos_host[0], pos_device[0], 1e-3);
-            EXPECT_NEAR(pos_host[1], pos_device[1], 1e-3);
-            EXPECT_NEAR(pos_host[2], pos_device[2], 1e-3);
+            EXPECT_NEAR(pos_host[0], pos_device[0], pos_diff_tolerance);
+            EXPECT_NEAR(pos_host[1], pos_device[1], pos_diff_tolerance);
+            EXPECT_NEAR(pos_host[2], pos_device[2], pos_diff_tolerance);
         }
     }
 

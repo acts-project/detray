@@ -41,6 +41,8 @@ constexpr std::size_t n_edc_layers = 3;
 constexpr unsigned int theta_steps = 100;
 constexpr unsigned int phi_steps = 100;
 
+constexpr scalar pos_diff_tolerance = 1e-3;
+
 namespace detray {
 
 /// test function for navigator with single state
