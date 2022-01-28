@@ -55,11 +55,13 @@ TEST(navigator_cuda, navigator) {
             const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                              cos_theta};
 
-            track<nav_context> ray = {.pos = ori,
-                                      .dir = dir,
-                                      .momentum = 100,
-                                      .ctx = nav_context{},
-                                      .overstep_tolerance = -1e-4};
+            // intialize a track
+            track<nav_context> ray;
+            ray.pos = ori;
+            ray.dir = dir;
+            ray.momentum = 100;
+            ray.ctx = nav_context{};
+            ray.overstep_tolerance = -1e-4;
 
             tracks_host.push_back(ray);
             tracks_device.push_back(ray);
