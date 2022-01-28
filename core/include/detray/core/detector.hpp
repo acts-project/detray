@@ -454,7 +454,7 @@ class detector {
     }
 
     DETRAY_HOST_DEVICE
-    inline const auto &get_n_max_objects_per_volume() const {
+    inline dindex get_n_max_objects_per_volume() const {
         return _n_max_objects_per_volume;
     }
 
