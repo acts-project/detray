@@ -28,7 +28,7 @@ function(add_detray_test name)
 
   target_compile_options(${test_exe_name}
     PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:
-    --expt-relaxed-constexpr>)
+    --expt-relaxed-constexpr -fmad=false>)
   
   # Run the executable as the test.
   add_test( NAME ${test_exe_name} COMMAND $<TARGET_FILE:${test_exe_name}> )

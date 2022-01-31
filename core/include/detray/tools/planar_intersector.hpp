@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,6 +10,7 @@
 
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
+#include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
 
@@ -42,9 +43,9 @@ struct planar_intersector {
     template <typename track_type, typename mask_type,
               std::enable_if_t<std::is_class_v<typename mask_type::local_type>,
                                bool> = true>
-    inline intersection intersect(
+    DETRAY_HOST_DEVICE inline intersection intersect(
         const transform3 &trf, const track_type &track, const mask_type &mask,
-        const typename mask_type::mask_tolerance &tolerance =
+        const typename mask_type::mask_tolerance tolerance =
             mask_type::within_epsilon) const {
         return intersect(trf, track.pos, track.dir, mask, tolerance,
                          track.overstep_tolerance);
@@ -69,11 +70,12 @@ struct planar_intersector {
     template <typename mask_type,
               std::enable_if_t<std::is_class_v<typename mask_type::local_type>,
                                bool> = true>
-    inline intersection intersect(const transform3 &trf, const point3 &ro,
-                                  const vector3 &rd, const mask_type &mask,
-                                  const typename mask_type::mask_tolerance
-                                      &tolerance = mask_type::within_epsilon,
-                                  scalar overstep_tolerance = 0.) const {
+    DETRAY_HOST_DEVICE inline intersection intersect(
+        const transform3 &trf, const point3 &ro, const vector3 &rd,
+        const mask_type &mask,
+        const typename mask_type::mask_tolerance tolerance =
+            mask_type::within_epsilon,
+        scalar overstep_tolerance = 0.) const {
 
         using local_frame = typename mask_type::local_type;
 

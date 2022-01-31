@@ -6,8 +6,14 @@
  */
 #pragma once
 
+#if defined(__CUDACC__)
+#include <thrust/execution_policy.h>
+#include <thrust/sort.h>
+#endif
+
 #include <thrust/tuple.h>
 
+#include <algorithm>
 #include <array>
 #include <tuple>
 #include <type_traits>
@@ -93,6 +99,68 @@ template <template <typename...> class tuple_type, class... Types>
 DETRAY_HOST_DEVICE constexpr tuple_type<unwrap_decay_t<Types>...> make_tuple(
     Types&&... args) {
     return tuple_type<unwrap_decay_t<Types>...>(std::forward<Types>(args)...);
+}
+
+/**
+ *  Trait class to figure out if a given type has a @c reserve(...) function
+ */
+template <typename T>
+struct has_reserve {
+
+    private:
+    /// Function returning @c std::true_type for types that do have a @c
+    /// reserve(...) function
+    template <typename C>
+    static constexpr auto check(C*) ->
+        typename std::is_void<decltype(std::declval<C>().reserve(
+            std::declval<typename C::size_type>()))>::type;
+    /// Function returning @c std::false_type for types that fair the previous
+    /// function
+    template <typename>
+    static constexpr std::false_type check(...);
+
+    /// Declare the value type of this trait class
+    typedef decltype(check<T>(nullptr)) type;
+
+    public:
+    /// Value of the check
+    static constexpr bool value = type::value;
+};
+
+/// @name Functions calling or not calling reserve(...) based on whether it's
+/// available
+/// @{
+
+template <typename T, std::enable_if_t<has_reserve<T>::value, bool> = true>
+DETRAY_HOST_DEVICE void call_reserve(T& obj, std::size_t newsize) {
+    obj.reserve(newsize);
+}
+
+template <typename T, std::enable_if_t<!(has_reserve<T>::value), bool> = true>
+DETRAY_HOST_DEVICE void call_reserve(T& obj, std::size_t newsize) {}
+
+/**
+ *  sequential (single thread) sort function
+ */
+
+template <class RandomIt>
+DETRAY_HOST_DEVICE void sequential_sort(RandomIt first, RandomIt last) {
+
+#if defined(__CUDACC__)
+    thrust::sort(thrust::seq, first, last);
+#elif !defined(__CUDACC__)
+    std::sort(first, last);
+#endif
+}
+
+template <class RandomIt, class Compare>
+DETRAY_HOST_DEVICE void sequential_sort(RandomIt first, RandomIt last,
+                                        Compare comp) {
+#if defined(__CUDACC__)
+    thrust::sort(thrust::seq, first, last, comp);
+#elif !defined(__CUDACC__)
+    std::sort(first, last, comp);
+#endif
 }
 
 }  // namespace detail

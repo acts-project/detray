@@ -77,4 +77,13 @@ foreach(algebra ${algebras})
     vecmem::cuda detray::${algebra})
   target_compile_definitions(detray_test_${algebra}_detector_cuda PRIVATE ${algebra}=${algebra})
 
+  # navigator test
+  add_detray_test(${algebra}_navigator_cuda
+    "navigator_cuda.cpp"
+    "navigator_cuda_kernel.hpp"
+    "navigator_cuda_kernel.cu"
+    LINK_LIBRARIES
+    vecmem::cuda detray::${algebra})
+  target_compile_definitions(detray_test_${algebra}_navigator_cuda PRIVATE ${algebra}=${algebra})
+
 endforeach()

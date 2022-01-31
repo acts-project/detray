@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -62,6 +62,9 @@ class detector {
     using context = typename transform_store::context;
     using surfaces_serializer_type = serializer2;
     using name_map = std::map<dindex, std::string>;
+
+    template <typename T>
+    using vector_t = vector_type<T>;
 
     // TODO: Remove this from detector
     /** Encodes the position in a collection container for the respective
@@ -418,6 +421,12 @@ class detector {
             return fill_containers<current_type + 1, surface_container>(
                 ctx, volume, surfaces, masks, trfs);
         }
+        // update n_max_objects_per_volume
+        else {
+            _n_max_objects_per_volume =
+                std::max(_n_max_objects_per_volume, volume.n_objects());
+        }
+
         // If no mask type fits, don't fill the data.
     }
 
@@ -442,6 +451,11 @@ class detector {
     DETRAY_HOST_DEVICE
     inline surfaces_finder_type &get_surfaces_finder() {
         return _surfaces_finder;
+    }
+
+    DETRAY_HOST_DEVICE
+    inline dindex get_n_max_objects_per_volume() const {
+        return _n_max_objects_per_volume;
     }
 
     /** Output to string */
@@ -504,6 +518,9 @@ class detector {
     surfaces_finder_type _surfaces_finder;
 
     vecmem::memory_resource *_resource = nullptr;
+
+    // maximum number of surfaces per volume for navigation kernel candidates
+    dindex _n_max_objects_per_volume = 0;
 };
 
 /** A static inplementation of detector data for device

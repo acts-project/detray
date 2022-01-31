@@ -1,17 +1,19 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-#include <algorithm>
 #include <string>
 #include <type_traits>
 
+#include "detray/core/detector.hpp"
 #include "detray/core/intersection.hpp"
+#include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
@@ -26,8 +28,8 @@ namespace detray {
  */
 struct void_inspector {
     template <typename state_type>
-    void operator()(const state_type & /*ignored*/, std::string & /*ignored*/) {
-    }
+    DETRAY_HOST_DEVICE void operator()(const state_type & /*ignored*/,
+                                       const char * /*ignored*/) {}
 };
 
 /** The navigator struct is agnostic to the object/primitive type. It
@@ -52,6 +54,7 @@ template <typename detector_t, typename inspector_t = void_inspector>
 class navigator {
 
     public:
+    using detector_type = detector_t;
     using volume_container =
         std::remove_reference_t<decltype(std::declval<detector_t>().volumes())>;
     using volume_type = typename detector_t::volume_type;
@@ -62,6 +65,9 @@ class navigator {
     using objs = typename detector_t::object_id;
 
     using inspector_type = inspector_t;
+
+    template <typename T>
+    using vector_type = typename detector_t::template vector_t<T>;
 
     /** Navigation status flag */
     enum navigation_status : int {
@@ -81,30 +87,6 @@ class navigator {
         e_full_trust = 4   // trust fully: Don't re-evaluate
     };
 
-    /** A nested navigation kernel struct that holds the current candiates.
-     **/
-    template <template <typename...> class vector_type = dvector>
-    struct navigation_kernel {
-
-        // Our list of candidates (intersections with object)
-        vector_type<intersection> candidates = {};
-
-        // The next best candidate
-        typename vector_type<intersection>::iterator next = candidates.end();
-
-        /** Indicate that the kernel is empty */
-        bool empty() const { return candidates.empty(); }
-
-        /** Forward the kernel size */
-        size_t size() const { return candidates.size(); }
-
-        /** Clear the kernel */
-        void clear() {
-            candidates.clear();
-            next = candidates.end();
-        }
-    };
-
     /** A navigation state object used to cache the information of the
      *  current navigation stream. These can be read or set in between
      *  navigation calls.
@@ -115,84 +97,123 @@ class navigator {
         friend class navigator;
 
         public:
+        /** Default constructor
+         **/
+        state() = default;
+
+        /** Constructor with memory resource
+         **/
+        state(vecmem::memory_resource &resource) : _candidates(&resource) {}
+
+        /** Constructor from candidates vector_view
+         **/
+        DETRAY_HOST_DEVICE state(vector_type<intersection> candidates)
+            : _candidates(candidates) {}
+
+        /** Constructor from candidates vector_view
+         **/
+        DETRAY_HOST_DEVICE state(
+            vecmem::data::vector_view<intersection> &candidates_data)
+            : _candidates(candidates_data) {}
+
         /** Scalar representation of the navigation state,
          * @returns distance to next
          **/
+        DETRAY_HOST_DEVICE
         scalar operator()() const { return _distance_to_next; }
 
         /** @returns current candidates */
-        inline const auto &candidates() const { return _kernel.candidates; }
+        DETRAY_HOST_DEVICE
+        inline const auto &candidates() const { return _candidates; }
 
         /** @returns current candidates */
-        inline auto &candidates() { return _kernel.candidates; }
+        DETRAY_HOST_DEVICE
+        inline auto &candidates() { return _candidates; }
 
         /** @returns current object that was reached */
-        inline decltype(auto) current() { return _kernel.next - 1; }
+        DETRAY_HOST_DEVICE
+        inline auto current() { return _next - 1; }
 
         /** @returns next object that we want to reach */
-        inline auto &next() { return _kernel.next; }
+        DETRAY_HOST_DEVICE
+        inline auto &next() { return _next; }
 
-        /** @returns the navigation kernel that contains the candidates */
-        inline const auto &kernel() { return _kernel; }
-
-        /** Clear the current kernel */
-        inline void clear() { _kernel.clear(); }
+        /** Clear the kernel */
+        DETRAY_HOST_DEVICE
+        void clear() {
+            _candidates.clear();
+            _next = _candidates.end();
+        }
 
         /** Update the distance to next candidate */
+        DETRAY_HOST_DEVICE
         inline void set_dist(scalar dist) { _distance_to_next = dist; }
 
         /** Call the navigation inspector */
-        inline auto run_inspector(std::string &&message) {
+
+        DETRAY_HOST_DEVICE
+        inline auto run_inspector(const char *message) {
             return _inspector(*this, message);
         }
 
         /** @returns the navigation inspector */
+        DETRAY_HOST_DEVICE
         inline auto &inspector() { return _inspector; }
 
         /** @returns current object the navigator is on (might be invalid if
          * between objects)
          */
+        DETRAY_HOST_DEVICE
         inline const auto on_object() { return _object_index; }
 
         /** Update current object the navigator is on  */
+        DETRAY_HOST_DEVICE
         inline void set_object(dindex obj) { _object_index = obj; }
 
         /** @returns current navigation status */
+        DETRAY_HOST_DEVICE
         inline const auto status() { return _status; }
 
         /** Set new navigation status */
+        DETRAY_HOST_DEVICE
         inline void set_status(navigation_status stat) { _status = stat; }
 
         /** @returns tolerance to determine if we are on object */
+        DETRAY_HOST_DEVICE
         inline const auto tolerance() { return _on_object_tolerance; }
 
         /** Adjust the on-object tolerance */
+        DETRAY_HOST_DEVICE
         inline void set_tolerance(scalar tol) { _on_object_tolerance = tol; }
 
         /** @returns navigation trust level */
+        DETRAY_HOST_DEVICE
         inline const auto trust_level() { return _trust_level; }
 
         /** Update navigation trust level */
+        DETRAY_HOST_DEVICE
         inline void set_trust_level(navigation_trust_level lvl) {
             _trust_level = lvl;
         }
 
         /** @returns current volume (index) */
+        DETRAY_HOST_DEVICE
         inline const auto volume() { return _volume_index; }
 
         /** Set start/new volume */
+        DETRAY_HOST_DEVICE
         inline void set_volume(dindex v) { _volume_index = v; }
 
         /** Helper method to check if a kernel is exhausted */
-        bool is_exhausted() const {
-            return (_kernel.next == _kernel.candidates.end());
-        }
+        DETRAY_HOST_DEVICE
+        bool is_exhausted() const { return (_next == _candidates.end()); }
 
         /** Navigation state that cannot be recovered from. Leave the other
          *  data for inspection.
          *
          * @return navigation heartbeat (dead)
          */
+        DETRAY_HOST_DEVICE
         inline bool abort() {
             _status = e_abort;
             _trust_level = e_no_trust;
@@ -205,6 +226,7 @@ class navigator {
          *
          * @return navigation heartbeat (dead)
          */
+        DETRAY_HOST_DEVICE
         inline bool exit() {
             _status = e_on_target;
             _trust_level = e_full_trust;
@@ -213,12 +235,15 @@ class navigator {
         }
 
         private:
+        // Our list of candidates (intersections with object)
+        vector_type<intersection> _candidates = {};
+
+        // The next best candidate
+        typename vector_type<intersection>::iterator _next = _candidates.end();
+
         /**  Distance to next - will be cast into a scalar with call operator
          */
         scalar _distance_to_next = std::numeric_limits<scalar>::infinity();
-
-        /** Kernel for the objects */
-        navigation_kernel<> _kernel;
 
         /** The inspector type of this navigation engine */
         inspector_type _inspector = {};
@@ -240,7 +265,21 @@ class navigator {
         dindex _volume_index = dindex_invalid;
     };
 
+    DETRAY_HOST
     navigator(const detector_t &d) : detector(d) {}
+
+    DETRAY_HOST
+    navigator(const detector_t &d, vecmem::memory_resource &resource)
+        : detector(resource) {
+        detector = d;
+    }
+
+    template <
+        typename navigator_data_type,
+        std::enable_if_t<!std::is_base_of_v<detector_t, navigator_data_type>,
+                         bool> = true>
+    DETRAY_HOST_DEVICE navigator(navigator_data_type &n_data)
+        : detector(n_data._detector_view) {}
 
     /** Navigation status() call which established the current navigation
      *  information.
@@ -253,7 +292,8 @@ class navigator {
      * @return a heartbeat to indicate if the navigation is still alive
      **/
     template <typename track_t>
-    inline bool status(state &navigation, const track_t &track) const {
+    DETRAY_HOST_DEVICE inline bool status(state &navigation,
+                                          const track_t &track) const {
 
         bool heartbeat = true;
 
@@ -265,7 +305,7 @@ class navigator {
 
         // Should never be the case after update call (without portals we are
         // trapped)
-        if (navigation.kernel().empty() and heartbeat) {
+        if (navigation.candidates().empty() and heartbeat) {
             return navigation.abort();
         }
 
@@ -286,7 +326,8 @@ class navigator {
      * @return a heartbeat to indicate if the navigation is still alive
      **/
     template <typename track_t>
-    bool target(state &navigation, const track_t &track) const {
+    DETRAY_HOST_DEVICE bool target(state &navigation,
+                                   const track_t &track) const {
 
         // We are already on the right track, nothing left to do
         if (navigation.trust_level() == e_full_trust) {
@@ -310,11 +351,12 @@ class navigator {
      *
      */
     template <typename track_t>
-    inline void initialize_kernel(state &navigation, const track_t &track,
-                                  const volume_type &volume) const {
+    DETRAY_HOST_DEVICE inline void initialize_kernel(
+        state &navigation, const track_t &track,
+        const volume_type &volume) const {
 
         // Get the max number of candidates & run them through the kernel
-        navigation.candidates().reserve(volume.n_objects());
+        detail::call_reserve(navigation.candidates(), volume.n_objects());
 
         // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
@@ -356,8 +398,9 @@ class navigator {
      * @return A boolean condition if kernel is exhausted or not
      */
     template <typename track_t>
-    inline void update_kernel(state &navigation, const track_t &track,
-                              const volume_type &volume) const {
+    DETRAY_HOST_DEVICE inline void update_kernel(
+        state &navigation, const track_t &track,
+        const volume_type &volume) const {
 
         if (navigation.trust_level() == e_no_trust) {
             initialize_kernel(navigation, track, volume);
@@ -428,23 +471,24 @@ class navigator {
      *
      * @param navigation [in, out] navigation state that contains the kernel
      */
+    DETRAY_HOST_DEVICE
     inline void set_next(state &navigation) const {
 
-        auto &kernel = navigation._kernel;
-
         // Sort distance to next & set navigation status
-        if (not kernel.candidates.empty()) {
+        if (not navigation.candidates().empty()) {
 
             // Take the nearest candidate first
-            std::sort(kernel.candidates.begin(), kernel.candidates.end());
-            kernel.next = kernel.candidates.begin();
+            detail::sequential_sort(navigation.candidates().begin(),
+                                    navigation.candidates().end());
+
+            navigation.next() = navigation.candidates().begin();
 
             // Are we still on an object from a previous navigation pass? Then
             // goto the next candidate.
             // This also excludes adjacent portals -> we are on the next portal
             if (navigation() < navigation.tolerance()) {
                 // Set it briefly so that the inspector can catch this state
-                navigation.set_object(kernel.next->index);
+                navigation.set_object(navigation.next()->index);
                 // The next object that we want to reach
                 ++navigation.next();
                 navigation.set_status(e_on_object);
@@ -452,7 +496,7 @@ class navigator {
                 navigation.run_inspector("Skipping direct hit: ");
             }
 
-            navigation.set_dist(kernel.next->path);
+            navigation.set_dist(navigation.next()->path);
             // Generally, we are on our way to some candidate
             navigation.set_status(e_towards_object);
             navigation.set_object(dindex_invalid);
@@ -468,6 +512,7 @@ class navigator {
      *
      * @param navigation is the navigation state
      */
+    DETRAY_HOST_DEVICE
     bool check_volume_switch(state &navigation) const {
         // Check if we need to switch volume index and (re-)initialize
         if (navigation.status() == e_on_object and
@@ -488,9 +533,36 @@ class navigator {
         return true;
     }
 
+    DETRAY_HOST_DEVICE
+    auto &get_detector() { return detector; }
+
+    DETRAY_HOST_DEVICE
+    const auto &get_detector() const { return detector; }
+
     private:
     /** the containers for all data */
     detector_t detector;
 };
+
+template <typename navigator_t>
+struct navigator_data {
+    navigator_data(navigator_t &n)
+        : _detector_data(get_data(n.get_detector())) {}
+
+    detector_data<typename navigator_t::detector_type> _detector_data;
+};
+
+template <typename navigator_t>
+struct navigator_view {
+    navigator_view(navigator_data<navigator_t> &n_data)
+        : _detector_view(n_data._detector_data) {}
+
+    detector_view<typename navigator_t::detector_type> _detector_view;
+};
+
+template <typename navigator_t>
+inline navigator_data<navigator_t> get_data(navigator_t &n) {
+    return n;
+}
 
 }  // namespace detray

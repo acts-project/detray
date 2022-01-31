@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,6 +9,7 @@
 #include <tuple>
 #include <type_traits>
 
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
 
@@ -36,8 +37,8 @@ struct iterator_range {
     template <typename range_type>
     DETRAY_HOST_DEVICE iterator_range(const container_type &iterable,
                                       const range_type &range)
-        : _start(std::begin(iterable) + std::get<0>(range)),
-          _end(std::begin(iterable) + std::get<1>(range)) {}
+        : _start(std::begin(iterable) + detail::get<0>(range)),
+          _end(std::begin(iterable) + detail::get<1>(range)) {}
 
     /** @return start position of range on container. */
     DETRAY_HOST_DEVICE

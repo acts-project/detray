@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,6 +13,7 @@
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
 #include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
 
@@ -40,7 +41,7 @@ using transform3 = __plugin::transform3<detray::scalar>;
  */
 template <typename track_type, typename mask_container, typename mask_range,
           unsigned int first_mask_id, unsigned int... remaining_mask_ids>
-inline auto unroll_intersect(
+DETRAY_HOST_DEVICE inline auto unroll_intersect(
     const track_type &track, const transform3 &ctf, const mask_container &masks,
     const mask_range &rng, const unsigned int mask_id, dindex volume_index,
     std::integer_sequence<unsigned int, first_mask_id, remaining_mask_ids...>
@@ -48,6 +49,7 @@ inline auto unroll_intersect(
 
     // Pick the first one for interseciton
     if (mask_id == first_mask_id) {
+
         auto &mask_group = masks.template group<first_mask_id>();
 
         // Check all masks of this surface for intersection
@@ -94,9 +96,10 @@ inline auto unroll_intersect(
  **/
 template <typename track_type, typename surface_type,
           typename transform_container, typename mask_container>
-inline const auto intersect(const track_type &track, surface_type &surface,
-                            const transform_container &contextual_transforms,
-                            const mask_container &masks) {
+DETRAY_HOST_DEVICE inline const auto intersect(
+    const track_type &track, surface_type &surface,
+    const transform_container &contextual_transforms,
+    const mask_container &masks) {
     // Gather all information to perform intersections
     const auto &ctf = contextual_transforms[surface.transform()];
     const auto &volume_index = surface.volume();

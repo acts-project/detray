@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,6 +12,7 @@
 
 #include "detray/core/intersection.hpp"
 #include "detray/core/track.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
 #include "detray/utils/quadratic_equation.hpp"
 
@@ -52,7 +53,7 @@ struct concentric_cylinder_intersector {
             std::is_same_v<typename mask_type::local_type, cylindrical2> or
                 std::is_same_v<typename mask_type::local_type, detray::unbound>,
             bool> = true>
-    inline intersection intersect(
+    DETRAY_HOST_DEVICE inline intersection intersect(
         const transform3 &trf, const track_type &track, const mask_type &mask,
         const typename mask_type::mask_tolerance &tolerance =
             mask_type::within_epsilon) const {
@@ -82,7 +83,7 @@ struct concentric_cylinder_intersector {
             std::is_same_v<typename mask_type::local_type, cylindrical2> or
                 std::is_same_v<typename mask_type::local_type, detray::unbound>,
             bool> = true>
-    inline intersection intersect(
+    DETRAY_HOST_DEVICE inline intersection intersect(
         const transform3 & /*trf*/, const point3 &ro, const vector3 &rd,
         const mask_type &mask, const dindex /*volume_index*/ = dindex_invalid,
         const typename mask_type::mask_tolerance & /*tolerance*/ =
