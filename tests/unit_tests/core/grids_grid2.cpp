@@ -30,8 +30,8 @@ TEST(grids, grid2_replace_populator) {
 
     using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
-    typename grid2r::axis_p0_t xaxis{10, -5., 5., host_mr};
-    typename grid2r::axis_p1_t yaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p0_type xaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p1_type yaxis{10, -5., 5., host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
@@ -83,8 +83,8 @@ TEST(grids, grid2_replace_populator) {
     using grid2cc = grid2<replace_populator, axis::circular, axis::regular,
                           decltype(serializer)>;
 
-    typename grid2cc::axis_p0_t circular{4, -2., 2., host_mr};
-    typename grid2cc::axis_p1_t closed{5, 0., 5., host_mr};
+    typename grid2cc::axis_p0_type circular{4, -2., 2., host_mr};
+    typename grid2cc::axis_p1_type closed{5, 0., 5., host_mr};
 
     grid2cc g2cc(std::move(circular), std::move(closed), host_mr);
     unsigned int counter = 0;
@@ -112,15 +112,15 @@ TEST(grids, grid2_complete_populator) {
                          decltype(serializer), dvector, djagged_vector, darray,
                          dtuple, dindex, false, 3>;
 
-    typename grid2r::axis_p0_t xaxis{2, -1., 1., host_mr};
-    typename grid2r::axis_p1_t yaxis{2, -1., 1., host_mr};
+    typename grid2r::axis_p0_type xaxis{2, -1., 1., host_mr};
+    typename grid2r::axis_p1_type yaxis{2, -1., 1., host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
     test::point2<detray::scalar> p = {-0.5, -0.5};
-    grid2r::populator_t::store_value invalid = {dindex_invalid, dindex_invalid,
-                                                dindex_invalid};
+    grid2r::populator_type::store_value invalid = {
+        dindex_invalid, dindex_invalid, dindex_invalid};
     for (unsigned int ib0 = 0; ib0 < 2; ++ib0) {
         for (unsigned int ib1 = 0; ib1 < 2; ++ib1) {
             p = {static_cast<scalar>(-0.5 + ib0),
@@ -133,8 +133,8 @@ TEST(grids, grid2_complete_populator) {
     p = {-0.5, -0.5};
     g2.populate(p, 4u);
 
-    grid2r::populator_t::store_value expected = {4u, dindex_invalid,
-                                                 dindex_invalid};
+    grid2r::populator_type::store_value expected = {4u, dindex_invalid,
+                                                    dindex_invalid};
     auto test = g2.bin(p);
     EXPECT_EQ(test, expected);
 
@@ -185,14 +185,14 @@ TEST(grids, grid2_attach_populator) {
 
     using grid2r = grid2<attach_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
-    typename grid2r::axis_p0_t xaxis{2, -1., 1., host_mr};
-    typename grid2r::axis_p1_t yaxis{2, -1., 1., host_mr};
+    typename grid2r::axis_p0_type xaxis{2, -1., 1., host_mr};
+    typename grid2r::axis_p1_type yaxis{2, -1., 1., host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
     test::point2<detray::scalar> p = {-0.5, -0.5};
-    grid2r::populator_t::store_value invalid = {};
+    grid2r::populator_type::store_value invalid = {};
     for (unsigned int ib0 = 0; ib0 < 2; ++ib0) {
         for (unsigned int ib1 = 0; ib1 < 2; ++ib1) {
             p = {static_cast<scalar>(-0.5 + ib0),
@@ -204,7 +204,7 @@ TEST(grids, grid2_attach_populator) {
     p = {-0.5, -0.5};
     g2.populate(p, 4u);
 
-    grid2r::populator_t::store_value expected = {4u};
+    grid2r::populator_type::store_value expected = {4u};
     auto test = g2.bin(p);
     EXPECT_EQ(test, expected);
 
@@ -240,8 +240,8 @@ TEST(grids, grid2_shift) {
     using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
 
-    typename grid2r::axis_p0_t xaxis{10, -5., 5., host_mr};
-    typename grid2r::axis_p1_t yaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p0_type xaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p1_type yaxis{10, -5., 5., host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr, 0);
 
@@ -262,9 +262,10 @@ TEST(grids, grid2_irregular_replace) {
     using grid2ir = grid2<replace_populator, axis::irregular, axis::irregular,
                           decltype(serializer)>;
 
-    typename grid2ir::axis_p0_t xaxis{{-3, -2., 1, 0.5, 0.7, 0.71, 4., 1000.},
-                                      host_mr};
-    typename grid2ir::axis_p1_t yaxis{{0.1, 0.8, 0.9, 10., 12., 15.}, host_mr};
+    typename grid2ir::axis_p0_type xaxis{
+        {-3, -2., 1, 0.5, 0.7, 0.71, 4., 1000.}, host_mr};
+    typename grid2ir::axis_p1_type yaxis{{0.1, 0.8, 0.9, 10., 12., 15.},
+                                         host_mr};
 
     grid2ir g2(std::move(xaxis), std::move(yaxis), host_mr);
 

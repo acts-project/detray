@@ -22,33 +22,32 @@ namespace detray {
  * grid that plays a role of local navigation
  *
  * @tparam N the number of grid elements
- * @tparam array_type the type of the internal array, must have STL semantics
- * @tparam tuple_type the type of the internal tuple, must have STL semantics
- * @tparam vector_type the type of the vector, must have STL semantics
- * @tparam jagged_vector_type the type of the vector of vector, must have STL
+ * @tparam array_t the type of the internal array, must have STL semantics
+ * @tparam tuple_t the type of the internal tuple, must have STL semantics
+ * @tparam vector_t the type of the vector, must have STL semantics
+ * @tparam jagged_vector_t the type of the vector of vector, must have STL
  * semantics
  */
 template <std::size_t N,
-          template <typename, unsigned int> class array_type = darray,
-          template <typename...> class tuple_type = dtuple,
-          template <typename...> class vector_type = dvector,
-          template <typename...> class jagged_vector_type = djagged_vector>
+          template <typename, unsigned int> class array_t = darray,
+          template <typename...> class tuple_t = dtuple,
+          template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector>
 struct surfaces_finder {
 
     static constexpr size_t N_GRIDS = N;
 
     template <typename T, unsigned int I>
-    using array_t = array_type<T, I>;
+    using array_type = array_t<T, I>;
 
     template <typename... Args>
-    using tuple_t = tuple_type<Args...>;
+    using tuple_type = tuple_t<Args...>;
 
     // TODO: We will need to consider regular_regular grid in case the rectangle
     // layer is used in geometry
     using surfaces_regular_circular_grid =
         grid2<attach_populator, axis::regular, axis::circular, serializer2,
-              vector_type, jagged_vector_type, array_type, tuple_type, dindex,
-              false>;
+              vector_t, jagged_vector_t, array_t, tuple_t, dindex, false>;
 
     /** Host costructor
      * @param resource memory resource for the allocation of members
@@ -68,38 +67,38 @@ struct surfaces_finder {
         std::index_sequence<ints...> /*seq*/) {
 
         // TODO: Are raw pointers OK here?
-        array_type<vecmem::memory_resource*, N_GRIDS> resources;
+        array_t<vecmem::memory_resource*, N_GRIDS> resources;
 
         std::fill(resources.begin(), resources.end(), &resource);
-        return array_type<surfaces_regular_circular_grid, N_GRIDS>(
+        return array_t<surfaces_regular_circular_grid, N_GRIDS>(
             {{*resources[ints]...}});
     }
 
     /** Device costructor
-     * @tparam surfaces_finder_data_type The type of input surface_finder_data
+     * @tparam surfaces_finder_data_t The type of input surface_finder_data
      * object
      * @param finder_data input surface_finder_data object
      */
-    template <typename surfaces_finder_data_type,
+    template <typename surfaces_finder_data_t,
               std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
-                                                  surfaces_finder_data_type>,
+                                                  surfaces_finder_data_t>,
                                bool> = true>
-    DETRAY_HOST_DEVICE surfaces_finder(surfaces_finder_data_type& finder_data)
+    DETRAY_HOST_DEVICE surfaces_finder(surfaces_finder_data_t& finder_data)
         : _surface_grids(initialize_device_grids(
               finder_data, std::make_index_sequence<N_GRIDS>{})) {}
 
     /** Aggregate initialization of device grids
      * @tparam ints index_sequence for aggregate initialization
-     * @tparam surfaces_finder_data_type The type of input surface_finder_data
+     * @tparam surfaces_finder_data_t The type of input surface_finder_data
      * object
      * @param finder_data input surface_finder_data object
      * @param seq STL index_sequence object for template parameter deduction
      */
-    template <std::size_t... ints, typename surfaces_finder_data_type>
+    template <std::size_t... ints, typename surfaces_finder_data_t>
     DETRAY_HOST_DEVICE auto initialize_device_grids(
-        surfaces_finder_data_type& finder_data,
+        surfaces_finder_data_t& finder_data,
         std::index_sequence<ints...> /*seq*/) {
-        return array_type<surfaces_regular_circular_grid, N_GRIDS>(
+        return array_t<surfaces_regular_circular_grid, N_GRIDS>(
             {{finder_data._surface_grids_view[ints]...}});
     }
 
@@ -138,56 +137,56 @@ struct surfaces_finder {
     }
 
     /** Array of grids for the local surface navigation  **/
-    array_type<surfaces_regular_circular_grid, N_GRIDS> _surface_grids;
+    array_t<surfaces_regular_circular_grid, N_GRIDS> _surface_grids;
 };
 
 /** A static implemetation of surfaces_finder data for device
- * @tparam surfaces_finder_type The type of host surface_finder
+ * @tparam surfaces_finder_t The type of host surface_finder
  */
-template <typename surfaces_finder_type>
+template <typename surfaces_finder_t>
 struct surfaces_finder_data {
     // type definition
     using surface_grid_t =
-        typename surfaces_finder_type::surfaces_regular_circular_grid;
+        typename surfaces_finder_t::surfaces_regular_circular_grid;
 
-    surfaces_finder_data(surfaces_finder_type& finder,
+    surfaces_finder_data(surfaces_finder_t& finder,
                          vecmem::memory_resource& resource)
         : _surface_grids_data(
               make_grid_data_array(finder._surface_grids, resource)) {}
 
-    typename surfaces_finder_type::template array_t<
-        grid2_data<surface_grid_t>, surfaces_finder_type::N_GRIDS>
+    typename surfaces_finder_t::template array_type<grid2_data<surface_grid_t>,
+                                                    surfaces_finder_t::N_GRIDS>
         _surface_grids_data;
 };
 
 /** A static implemetation of surfaces_finder view for device
- * @tparam surfaces_finder_type The type of host surface_finder
+ * @tparam surfaces_finder_t The type of host surface_finder
  */
-template <typename surfaces_finder_type>
+template <typename surfaces_finder_t>
 struct surfaces_finder_view {
     // type definition
     using surface_grid_t =
-        typename surfaces_finder_type::surfaces_regular_circular_grid;
+        typename surfaces_finder_t::surfaces_regular_circular_grid;
 
-    surfaces_finder_view(surfaces_finder_data<surfaces_finder_type>& data)
+    surfaces_finder_view(surfaces_finder_data<surfaces_finder_t>& data)
         : _surface_grids_view(make_grid_view_array(data._surface_grids_data)) {}
 
-    typename surfaces_finder_type::template array_t<
-        grid2_view<surface_grid_t>, surfaces_finder_type::N_GRIDS>
+    typename surfaces_finder_t::template array_type<grid2_view<surface_grid_t>,
+                                                    surfaces_finder_t::N_GRIDS>
         _surface_grids_view;
 };
 
 /** standalone function for surface_finder_data get function
  */
-template <size_t N, template <typename, unsigned int> class array_type,
-          template <typename...> class tuple_type,
-          template <typename...> class vector_type,
-          template <typename...> class jagged_vector_type>
+template <size_t N, template <typename, unsigned int> class array_t,
+          template <typename...> class tuple_t,
+          template <typename...> class vector_t,
+          template <typename...> class jagged_vector_t>
 inline surfaces_finder_data<
-    surfaces_finder<N, array_type, tuple_type, vector_type, jagged_vector_type>>
-get_data(surfaces_finder<N, array_type, tuple_type, vector_type,
-                         jagged_vector_type>& finder,
-         vecmem::memory_resource& resource) {
+    surfaces_finder<N, array_t, tuple_t, vector_t, jagged_vector_t>>
+get_data(
+    surfaces_finder<N, array_t, tuple_t, vector_t, jagged_vector_t>& finder,
+    vecmem::memory_resource& resource) {
     return {finder, resource};
 }
 

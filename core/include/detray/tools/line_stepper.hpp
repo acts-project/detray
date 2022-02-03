@@ -11,7 +11,7 @@
 namespace detray {
 
 /** Line stepper implementation */
-template <typename track_type, template <typename...> class tuple_type = dtuple>
+template <typename track_t, template <typename...> class tuple_t = dtuple>
 struct line_stepper {
 
     /** State struct holding the track
@@ -21,17 +21,17 @@ struct line_stepper {
      */
     struct state {
 
-        track_type &_track;
+        track_t &_track;
 
         scalar _s = 0.;  //!< Next step
         scalar _pl =
             std::numeric_limits<scalar>::max();  //!< Remaining path limit
 
         state() = delete;
-        state(track_type &t) : _track(t) {}
+        state(track_t &t) : _track(t) {}
 
         /** @return the step and heartbeat given a step length s */
-        tuple_type<scalar, bool> step(scalar s) {
+        tuple_t<scalar, bool> step(scalar s) {
             _pl = (s > _pl) ? s - _pl : _pl - s;
             const bool heartbeat = (_pl > 0.);
             return std::tie(std::min(s, _pl), heartbeat);
@@ -41,7 +41,7 @@ struct line_stepper {
         void set_limit(scalar pl) { _pl = pl; }
 
         /** Call operator casts it itno a const track referenc on @return */
-        const track_type &operator()() const { return _track; }
+        const track_t &operator()() const { return _track; }
     };
 
     /** Take a step, regulared by a constrained step

@@ -17,46 +17,45 @@ namespace detray {
 
 /** A two-dimensional grid for object storage
  *
- * @tparam populator_type  is a prescription what to do when a bin gets
+ * @tparam populator_t  is a prescription what to do when a bin gets
  *pupulated, it broadcasts also the value type
- * @tparam tparam axis_p0_type the type of the first axis
- * @tparam tparam axis_p1_type the type of the second axis
- * @tparam serialzier_type  type of the serializer to the storage represenations
+ * @tparam tparam axis_p0_t the type of the first axis
+ * @tparam tparam axis_p1_t the type of the second axis
+ * @tparam serialzier_t  type of the serializer to the storage represenations
  *
  **/
 template <template <template <typename...> class, template <typename...> class,
                     template <typename, unsigned int> class, typename, bool,
                     unsigned int>
-          class populator_type,
+          class populator_t,
           template <template <typename, unsigned int> class,
                     template <typename...> class>
-          class axis_p0_type,
+          class axis_p0_t,
           template <template <typename, unsigned int> class,
                     template <typename...> class>
-          class axis_p1_type,
-          typename serializer_type,
-          template <typename...> class vector_type = dvector,
-          template <typename...> class jagged_vector_type = djagged_vector,
-          template <typename, unsigned int> class array_type = darray,
-          template <typename...> class tuple_type = dtuple,
-          typename value_type = dindex, bool kSORT = false,
-          unsigned int kDIM = 1>
+          class axis_p1_t,
+          typename serializer_t,
+          template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector,
+          template <typename, unsigned int> class array_t = darray,
+          template <typename...> class tuple_t = dtuple,
+          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 class grid2 {
 
     public:
-    using populator_t = populator_type<vector_type, jagged_vector_type,
-                                       array_type, value_type, kSORT, kDIM>;
-    using serializer_t = serializer_type;
-    using axis_p0_t = axis_p0_type<array_type, vector_type>;
-    using axis_p1_t = axis_p1_type<array_type, vector_type>;
-    using bare_value = typename populator_t::bare_value;
-    using serialized_storage = typename populator_t::serialized_storage;
+    using populator_type =
+        populator_t<vector_t, jagged_vector_t, array_t, value_t, kSORT, kDIM>;
+    using serializer_type = serializer_t;
+    using axis_p0_type = axis_p0_t<array_t, vector_t>;
+    using axis_p1_type = axis_p1_t<array_t, vector_t>;
+    using bare_value = typename populator_type::bare_value;
+    using serialized_storage = typename populator_type::serialized_storage;
     using point2 = __plugin::point2<detray::scalar>;
 
     template <typename neighbor_t>
-    using neighborhood = array_type<array_type<neighbor_t, 2>, 2>;
+    using neighborhood = array_t<array_t<neighbor_t, 2>, 2>;
 
-    static constexpr array_type<dindex, 2> hermit1 = {0u, 0u};
+    static constexpr array_t<dindex, 2> hermit1 = {0u, 0u};
     static constexpr neighborhood<dindex> hermit2 = {hermit1, hermit1};
 
     grid2() = delete;
@@ -76,7 +75,7 @@ class grid2 {
      *
      **/
     DETRAY_HOST
-    grid2(const axis_p0_t &axis_p0, const axis_p1_t &axis_p1,
+    grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
           vecmem::memory_resource &mr,
           const bare_value m_invalid = invalid_value<bare_value>())
         : _axis_p0(axis_p0, mr),
@@ -94,7 +93,8 @@ class grid2 {
      *
      **/
     DETRAY_HOST
-    grid2(axis_p0_t &&axis_p0, axis_p1_t &&axis_p1, vecmem::memory_resource &mr,
+    grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1,
+          vecmem::memory_resource &mr,
           const bare_value m_invalid = invalid_value<bare_value>())
         : _axis_p0(std::move(axis_p0), mr),
           _axis_p1(std::move(axis_p1), mr),
@@ -106,14 +106,13 @@ class grid2 {
 
     /** Constructor from grid data
      **/
-    template <typename grid_view_type,
-              std::enable_if_t<!std::is_same_v<grid2, grid_view_type> &&
-                                   !std::is_base_of_v<vecmem::memory_resource,
-                                                      grid_view_type>,
-                               bool> = true>
-    DETRAY_DEVICE grid2(
-        grid_view_type &grid_data,
-        const bare_value m_invalid = invalid_value<bare_value>())
+    template <typename grid_view_t,
+              std::enable_if_t<
+                  !std::is_same_v<grid2, grid_view_t> &&
+                      !std::is_base_of_v<vecmem::memory_resource, grid_view_t>,
+                  bool> = true>
+    DETRAY_DEVICE grid2(grid_view_t &grid_data, const bare_value m_invalid =
+                                                    invalid_value<bare_value>())
         : _axis_p0(grid_data._axis_p0),
           _axis_p1(grid_data._axis_p1),
           _data_serialized(grid_data._data_view),
@@ -124,23 +123,23 @@ class grid2 {
      * @param offset is the applied offset shift
      *
      **/
-    void shift(const typename populator_t::bare_value &offset) {
+    void shift(const typename populator_type::bare_value &offset) {
         std::for_each(_data_serialized.begin(), _data_serialized.end(),
                       [&](auto &ds) { _populator.shift(ds, offset); });
     }
 
     /** Fill/populate operation
      *
-     * @tparam point2_type the 2D local point type
+     * @tparam point2_t the 2D local point type
      *
      * @param p2 the point in p2 local frame
      * @param fvalue is a single fill value to be filled
      *
      **/
-    template <typename point2_type>
+    template <typename point2_t>
     DETRAY_HOST_DEVICE void populate(
-        const point2_type &p2, typename populator_t::bare_value &&fvalue) {
-        auto sbin = _serializer.template serialize<axis_p0_t, axis_p1_t>(
+        const point2_t &p2, typename populator_type::bare_value &&fvalue) {
+        auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]));
         _populator(_data_serialized[sbin], std::move(fvalue));
     }
@@ -153,14 +152,14 @@ class grid2 {
      **/
     DETRAY_HOST_DEVICE
     void populate(dindex bin0, dindex bin1,
-                  typename populator_t::bare_value &&fvalue) {
-        auto sbin = _serializer.template serialize<axis_p0_t, axis_p1_t>(
+                  typename populator_type::bare_value &&fvalue) {
+        auto sbin = _serializer.template serialize<axis_p0_type, axis_p1_type>(
             _axis_p0, _axis_p1, bin0, bin1);
         _populator(_data_serialized[sbin], std::move(fvalue));
     }
 
     DETRAY_HOST_DEVICE
-    void populate(dindex gbin, typename populator_t::bare_value &&fvalue) {
+    void populate(dindex gbin, typename populator_type::bare_value &&fvalue) {
         dindex bin0 = gbin % _axis_p0.bins();
         dindex bin1 = gbin / _axis_p0.bins();
         populate(bin0, bin1, fvalue);
@@ -176,13 +175,13 @@ class grid2 {
     DETRAY_HOST_DEVICE
     const auto &bin(dindex bin0, dindex bin1) const {
         return _data_serialized[_serializer.template serialize<
-            axis_p0_t, axis_p1_t>(_axis_p0, _axis_p1, bin0, bin1)];
+            axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, bin0, bin1)];
     }
 
     DETRAY_HOST_DEVICE
     auto bin(dindex bin0, dindex bin1) {
         return _data_serialized.at(
-            _serializer.template serialize<axis_p0_t, axis_p1_t>(
+            _serializer.template serialize<axis_p0_type, axis_p1_type>(
                 _axis_p0, _axis_p1, bin0, bin1));
     }
 
@@ -208,8 +207,8 @@ class grid2 {
      **/
     DETRAY_HOST_DEVICE
     const auto &bin(const point2 &p2) const {
-        return _data_serialized[_serializer.template serialize<axis_p0_t,
-                                                               axis_p1_t>(
+        return _data_serialized[_serializer.template serialize<axis_p0_type,
+                                                               axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
     }
 
@@ -221,8 +220,8 @@ class grid2 {
      **/
     DETRAY_HOST_DEVICE
     auto &bin(const point2 &p2) {
-        return _data_serialized[_serializer.template serialize<axis_p0_t,
-                                                               axis_p1_t>(
+        return _data_serialized[_serializer.template serialize<axis_p0_type,
+                                                               axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
     }
 
@@ -239,25 +238,26 @@ class grid2 {
      * @return the sequence of values
      **/
     template <typename neighbor_t>
-    DETRAY_HOST_DEVICE vector_type<typename populator_t::bare_value> zone_t(
+    DETRAY_HOST_DEVICE vector_t<typename populator_type::bare_value> zone_t(
         const point2 &p2, const neighborhood<neighbor_t> &nhood,
         bool sort) const {
         auto zone0 = _axis_p0.zone(p2[0], nhood[0]);
         auto zone1 = _axis_p1.zone(p2[1], nhood[1]);
 
-        vector_type<typename populator_t::bare_value> zone;
+        vector_t<typename populator_type::bare_value> zone;
 
         // Specialization for bare value equal to store value
-        if constexpr (std::is_same_v<typename populator_t::bare_value,
-                                     typename populator_t::store_value>) {
+        if constexpr (std::is_same_v<typename populator_type::bare_value,
+                                     typename populator_type::store_value>) {
             unsigned int iz = 0;
-            zone = vector_type<typename populator_t::bare_value>(
+            zone = vector_t<typename populator_type::bare_value>(
                 zone0.size() * zone1.size(), {});
             for (const auto z1 : zone1) {
                 for (const auto z0 : zone0) {
                     auto sbin =
-                        _serializer.template serialize<axis_p0_t, axis_p1_t>(
-                            _axis_p0, _axis_p1, z0, z1);
+                        _serializer
+                            .template serialize<axis_p0_type, axis_p1_type>(
+                                _axis_p0, _axis_p1, z0, z1);
                     zone[iz++] = _data_serialized[sbin];
                 }
             }
@@ -266,8 +266,9 @@ class grid2 {
             for (const auto z1 : zone1) {
                 for (const auto z0 : zone0) {
                     auto sbin =
-                        _serializer.template serialize<axis_p0_t, axis_p1_t>(
-                            _axis_p0, _axis_p1, z0, z1);
+                        _serializer
+                            .template serialize<axis_p0_type, axis_p1_type>(
+                                _axis_p0, _axis_p1, z0, z1);
                     auto bin_data = _data_serialized[sbin];
                     auto bin_content = _populator.sequence(bin_data);
                     zone.insert(zone.end(), bin_content.begin(),
@@ -294,7 +295,7 @@ class grid2 {
      * @return the sequence of values
      **/
     DETRAY_HOST_DEVICE
-    vector_type<typename populator_t::bare_value> zone(
+    vector_t<typename populator_type::bare_value> zone(
         const point2 &p2, const neighborhood<dindex> &nhood = hermit2,
         bool sort = false) const {
         return zone_t<dindex>(p2, nhood, sort);
@@ -312,7 +313,7 @@ class grid2 {
      * @return the sequence of values
      **/
     DETRAY_HOST_DEVICE
-    vector_type<typename populator_t::bare_value> zone(
+    vector_t<typename populator_type::bare_value> zone(
         const point2 &p2, const neighborhood<scalar> &nhood,
         bool sort = false) const {
         return zone_t<scalar>(p2, nhood, sort);
@@ -320,23 +321,23 @@ class grid2 {
 
     /** Const access to axis p0  */
     DETRAY_HOST_DEVICE
-    const axis_p0_t &axis_p0() const { return _axis_p0; }
+    const axis_p0_type &axis_p0() const { return _axis_p0; }
 
     /** Non-const access to axis p0  */
     DETRAY_HOST_DEVICE
-    axis_p0_t &axis_p0() { return _axis_p0; }
+    axis_p0_type &axis_p0() { return _axis_p0; }
 
     /** Const access to axis p1 */
     DETRAY_HOST_DEVICE
-    const axis_p1_t &axis_p1() const { return _axis_p1; }
+    const axis_p1_type &axis_p1() const { return _axis_p1; }
 
     /** Non-const access to axis p1 */
     DETRAY_HOST_DEVICE
-    axis_p1_t &axis_p1() { return _axis_p1; }
+    axis_p1_type &axis_p1() { return _axis_p1; }
 
     /* Copy of axes in a tuple */
     DETRAY_HOST_DEVICE
-    tuple_type<axis_p0_t, axis_p1_t> axes() const {
+    tuple_t<axis_p0_type, axis_p1_type> axes() const {
         return std::tie(_axis_p0, _axis_p1);
     }
 
@@ -350,17 +351,17 @@ class grid2 {
 
     /** Const acess to the polulator */
     DETRAY_HOST_DEVICE
-    const populator_t &populator() const { return _populator; }
+    const populator_type &populator() const { return _populator; }
 
     DETRAY_HOST_DEVICE
     serialized_storage &data() { return _data_serialized; }
 
     private:
-    axis_p0_t _axis_p0;
-    axis_p1_t _axis_p1;
+    axis_p0_type _axis_p0;
+    axis_p1_type _axis_p1;
     serialized_storage _data_serialized;
-    populator_t _populator;
-    serializer_t _serializer;
+    populator_type _populator;
+    serializer_type _serializer;
 };
 
 /** A two-dimensional grid buffer
@@ -368,9 +369,9 @@ class grid2 {
 template <typename grid2_t>
 struct grid2_buffer {
 
-    using populator_t = typename grid2_t::populator_t;
-    using axis_p0_t = typename grid2_t::axis_p0_t;
-    using axis_p1_t = typename grid2_t::axis_p1_t;
+    using populator_type = typename grid2_t::populator_type;
+    using axis_p0_type = typename grid2_t::axis_p0_type;
+    using axis_p1_type = typename grid2_t::axis_p1_type;
 
     /** Constructor
      *
@@ -381,9 +382,9 @@ struct grid2_buffer {
      * @param resource is the vecmem memory resource
      *
      **/
-    grid2_buffer(const axis_p0_t &axis_p0, const axis_p1_t &axis_p1,
-                 typename populator_t::buffer_size_t sizes,
-                 typename populator_t::buffer_size_t capacities,
+    grid2_buffer(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
+                 typename populator_type::buffer_size_type sizes,
+                 typename populator_type::buffer_size_type capacities,
                  vecmem::memory_resource &resource)
         : _axis_p0(axis_p0),
           _axis_p1(axis_p1),
@@ -391,9 +392,9 @@ struct grid2_buffer {
         // static_assert(axis_p0.bins()*axis_p1.bins() == _buffer.m_size);
     }
 
-    axis_p0_t _axis_p0;
-    axis_p1_t _axis_p1;
-    typename populator_t::vector_buffer_t _buffer;
+    axis_p0_type _axis_p0;
+    axis_p1_type _axis_p1;
+    typename populator_type::vector_buffer_type _buffer;
 };
 
 /** A two-dimensional grid data for gpu device usage
@@ -401,9 +402,9 @@ struct grid2_buffer {
 template <typename grid2_t>
 struct grid2_data {
 
-    using populator_t = typename grid2_t::populator_t;
-    using axis_p0_t = typename grid2_t::axis_p0_t;
-    using axis_p1_t = typename grid2_t::axis_p1_t;
+    using populator_type = typename grid2_t::populator_type;
+    using axis_p0_type = typename grid2_t::axis_p0_type;
+    using axis_p1_type = typename grid2_t::axis_p1_type;
 
     /** Constructor from grid
      *
@@ -414,20 +415,20 @@ struct grid2_data {
     grid2_data(grid2_t &grid, vecmem::memory_resource &resource)
         : _axis_p0(grid.axis_p0(), resource),
           _axis_p1(grid.axis_p1(), resource),
-          _data(populator_t::get_data(grid.data(), resource)) {}
+          _data(populator_type::get_data(grid.data(), resource)) {}
 
-    axis_p0_t _axis_p0;
-    axis_p1_t _axis_p1;
-    typename populator_t::vector_data_t _data;
+    axis_p0_type _axis_p0;
+    axis_p1_type _axis_p1;
+    typename populator_type::vector_data_type _data;
 };
 
 /** A two-dimensional grid view for gpu device usage
  **/
 template <typename grid2_t>
 struct grid2_view {
-    using populator_t = typename grid2_t::populator_t;
-    using axis_p0_t = typename grid2_t::axis_p0_t;
-    using axis_p1_t = typename grid2_t::axis_p1_t;
+    using populator_type = typename grid2_t::populator_type;
+    using axis_p0_type = typename grid2_t::axis_p0_type;
+    using axis_p1_type = typename grid2_t::axis_p1_type;
 
     /** Constructor from grid data
      *
@@ -449,9 +450,9 @@ struct grid2_view {
           _axis_p1(get_data(grid_buffer._axis_p1)),
           _data_view(grid_buffer._buffer) {}
 
-    axis_data<axis_p0_t> _axis_p0;
-    axis_data<axis_p1_t> _axis_p1;
-    typename populator_t::vector_view_t _data_view;
+    axis_data<axis_p0_type> _axis_p0;
+    axis_data<axis_p1_type> _axis_p1;
+    typename populator_type::vector_view_type _data_view;
 };
 
 /** Get grid2_data from grid and memory resource
@@ -459,24 +460,23 @@ struct grid2_view {
 template <template <template <typename...> class, template <typename...> class,
                     template <typename, unsigned int> class, typename, bool,
                     unsigned int>
-          class populator_type,
+          class populator_t,
           template <template <typename, unsigned int> class,
                     template <typename...> class>
-          class axis_p0_type,
+          class axis_p0_t,
           template <template <typename, unsigned int> class,
                     template <typename...> class>
-          class axis_p1_type,
-          typename serializer_type, template <typename...> class vector_type,
-          template <typename...> class jagged_vector_type,
-          template <typename, unsigned int> class array_type,
-          template <typename...> class tuple_type, typename value_type = dindex,
+          class axis_p1_t,
+          typename serializer_t, template <typename...> class vector_t,
+          template <typename...> class jagged_vector_t,
+          template <typename, unsigned int> class array_t,
+          template <typename...> class tuple_t, typename value_t = dindex,
           bool kSORT = false, unsigned int kDIM = 1>
-inline grid2_data<grid2<populator_type, axis_p0_type, axis_p1_type,
-                        serializer_type, vector_type, jagged_vector_type,
-                        array_type, tuple_type, value_type, kSORT, kDIM>>
-get_data(grid2<populator_type, axis_p0_type, axis_p1_type, serializer_type,
-               vector_type, jagged_vector_type, array_type, tuple_type,
-               value_type, kSORT, kDIM> &grid,
+inline grid2_data<
+    grid2<populator_t, axis_p0_t, axis_p1_t, serializer_t, vector_t,
+          jagged_vector_t, array_t, tuple_t, value_t, kSORT, kDIM>>
+get_data(grid2<populator_t, axis_p0_t, axis_p1_t, serializer_t, vector_t,
+               jagged_vector_t, array_t, tuple_t, value_t, kSORT, kDIM> &grid,
          vecmem::memory_resource &resource) {
     return {grid, resource};
 }

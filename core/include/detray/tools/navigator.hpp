@@ -27,8 +27,8 @@ namespace detray {
  *
  */
 struct void_inspector {
-    template <typename state_type>
-    DETRAY_HOST_DEVICE void operator()(const state_type & /*ignored*/,
+    template <typename state_t>
+    DETRAY_HOST_DEVICE void operator()(const state_t & /*ignored*/,
                                        const char * /*ignored*/) {}
 };
 
@@ -48,7 +48,7 @@ struct void_inspector {
  * The heartbeat indicates, that the navigation is still in a valid state.
  *
  * @tparam detector_t the detector to navigate
- * @tparam inspector_type is a validation inspector
+ * @tparam inspector_t is a validation inspector
  */
 template <typename detector_t, typename inspector_t = void_inspector>
 class navigator {
@@ -274,11 +274,10 @@ class navigator {
         detector = d;
     }
 
-    template <
-        typename navigator_data_type,
-        std::enable_if_t<!std::is_base_of_v<detector_t, navigator_data_type>,
-                         bool> = true>
-    DETRAY_HOST_DEVICE navigator(navigator_data_type &n_data)
+    template <typename navigator_data_t,
+              std::enable_if_t<!std::is_base_of_v<detector_t, navigator_data_t>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE navigator(navigator_data_t &n_data)
         : detector(n_data._detector_view) {}
 
     /** Navigation status() call which established the current navigation

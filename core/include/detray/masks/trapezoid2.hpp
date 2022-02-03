@@ -19,7 +19,7 @@
 namespace detray {
 /** This is a simple 2-dimensional mask for a regular trapezoid
  *
- * @tparam intersector_type is a struct used for intersecting this cylinder
+ * @tparam intersector_t is a struct used for intersecting this cylinder
  * @tparam local_type is the default local frame definition type
  * @tparam links_type is an object where the mask can link to
  * @tparam kMaskContext is a unique mask identifier in a certain context
@@ -34,16 +34,16 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <typename intersector_type = planar_intersector,
-          typename mask_local_type = __plugin::cartesian2<detray::scalar>,
-          typename mask_links_type = unsigned int,
+template <typename intersector_t = planar_intersector,
+          typename mask_local_t = __plugin::cartesian2<detray::scalar>,
+          typename mask_links_t = unsigned int,
           unsigned int kMaskContext = e_trapezoid2,
-          template <typename, unsigned int> class array_type = darray>
+          template <typename, unsigned int> class array_t = darray>
 struct trapezoid2 {
-    using mask_tolerance = array_type<scalar, 2>;
-    using mask_values = array_type<scalar, 4>;
-    using links_type = mask_links_type;
-    using local_type = mask_local_type;
+    using mask_tolerance = array_t<scalar, 2>;
+    using mask_values = array_t<scalar, 4>;
+    using links_type = mask_links_t;
+    using local_type = mask_local_t;
 
     mask_values _values = {std::numeric_limits<scalar>::infinity(),
                            std::numeric_limits<scalar>::infinity(),
@@ -79,22 +79,22 @@ struct trapezoid2 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    trapezoid2<intersector_type, local_type, links_type, kMaskContext>
-        &operator=(const array_type<scalar, 3> &rhs) {
+    trapezoid2<intersector_t, local_type, links_type, kMaskContext> &operator=(
+        const array_t<scalar, 3> &rhs) {
         _values = rhs;
         return (*this);
     }
 
     /** Mask operation
      *
-     * @tparam inside_local_type is the type of the local frame (ignored here)
+     * @tparam inside_local_t is the type of the local frame (ignored here)
      *
      * @param p the point to be checked
      * @param t us the tolerance tuple (l0,l1)
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_type>
+    template <typename inside_local_t>
     DETRAY_HOST_DEVICE intersection_status
     is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
         scalar rel_y = (_values[2] + p[1]) * _values[3];
@@ -112,9 +112,7 @@ struct trapezoid2 {
      * checks identity within epsilon and @return s a boolean*
      **/
     DETRAY_HOST_DEVICE
-    bool operator==(const array_type<scalar, 3> &rhs) {
-        return (_values == rhs);
-    }
+    bool operator==(const array_t<scalar, 3> &rhs) { return (_values == rhs); }
 
     /** Equality operator
      *
@@ -145,7 +143,7 @@ struct trapezoid2 {
 
     /** Return an associated intersector type */
     DETRAY_HOST_DEVICE
-    intersector_type intersector() const { return intersector_type{}; };
+    intersector_t intersector() const { return intersector_t{}; };
 
     /** Return the values */
     DETRAY_HOST_DEVICE

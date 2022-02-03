@@ -15,8 +15,7 @@ namespace detray {
 /** Constrained step struct, it is used to regulate the stepping
  *
  */
-template <size_t kDIM,
-          template <typename, unsigned int> class array_type = darray>
+template <size_t kDIM, template <typename, unsigned int> class array_t = darray>
 struct c_step {
 
     /** Possible step constraints */
@@ -27,9 +26,9 @@ struct c_step {
         e_limit = 3
     };
 
-    array_type<scalar, kDIM> _values = {std::numeric_limits<scalar>::max(), 0.,
-                                        std::numeric_limits<scalar>::max(),
-                                        std::numeric_limits<scalar>::max()};
+    array_t<scalar, kDIM> _values = {std::numeric_limits<scalar>::max(), 0.,
+                                     std::numeric_limits<scalar>::max(),
+                                     std::numeric_limits<scalar>::max()};
 
     const scalar operator()() const {
         return std::min_element(_values.begin(), _values.end());

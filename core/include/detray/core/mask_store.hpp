@@ -18,8 +18,8 @@
 namespace detray {
 
 /** A mask store that provides the correct mask containers to client classes. */
-template <template <typename...> class tuple_type = dtuple,
-          template <typename...> class vector_type = dvector,
+template <template <typename...> class tuple_t = dtuple,
+          template <typename...> class vector_t = dvector,
           typename... mask_types>
 class mask_store {
 
@@ -29,11 +29,10 @@ class mask_store {
      * vtuple has different types based on the file location 1) std::tuple in
      * cpp/hpp; 2) thrust::tuple in cu
      */
-    using mask_tuple = vtuple::tuple<vector_type<mask_types>...>;
+    using mask_tuple = vtuple::tuple<vector_t<mask_types>...>;
 
     /** data type for mask_store_data **/
-    using mask_tuple_data =
-        tuple_type<vecmem::data::vector_view<mask_types>...>;
+    using mask_tuple_data = tuple_t<vecmem::data::vector_view<mask_types>...>;
 
     /**
      * tuple_type for mask_tuple makes an illegal memory access error
@@ -46,7 +45,7 @@ class mask_store {
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     mask_store(vecmem::memory_resource &resource)
-        : _mask_tuple(vector_type<mask_types>{&resource}...) {}
+        : _mask_tuple(vector_t<mask_types>{&resource}...) {}
 
     /** Constructor with mask_store_data **/
     template <
@@ -170,7 +169,7 @@ class mask_store {
      * @note in general can throw an exception
      */
     template <unsigned int current_id = 0, typename mask_type>
-    DETRAY_HOST inline void add_masks(vector_type<mask_type> &masks) noexcept(
+    DETRAY_HOST inline void add_masks(vector_t<mask_type> &masks) noexcept(
         false) {
         // Get the mask group that will be updated
         auto &mask_group = detail::get<current_id>(_mask_tuple);
@@ -196,8 +195,8 @@ class mask_store {
      *
      * @note in general can throw an exception
      */
-    template <unsigned int current_id = 0, typename mask_type>
-    DETRAY_HOST inline void add_masks(vector_type<mask_type> &&masks) noexcept(
+    template <unsigned int current_id = 0, typename mask_t>
+    DETRAY_HOST inline void add_masks(vector_t<mask_t> &&masks) noexcept(
         false) {
         // Get the mask group that will be updated
         auto &mask_group = detail::get<current_id>(_mask_tuple);
@@ -242,7 +241,7 @@ class mask_store {
      */
     template <std::size_t... ints>
     DETRAY_HOST mask_tuple_data data(std::index_sequence<ints...> /*seq*/) {
-        return detail::make_tuple<tuple_type>(
+        return detail::make_tuple<tuple_t>(
             vecmem::data::vector_view<mask_types>(
                 vecmem::get_data(detail::get<ints>(_mask_tuple)))...);
     }
@@ -254,7 +253,7 @@ class mask_store {
     DETRAY_DEVICE mask_tuple device(mask_store_data_t &data,
                                     std::index_sequence<ints...> /*seq*/) {
         return vtuple::make_tuple(
-            vector_type<mask_types>(detail::get<ints>(data._data))...);
+            vector_t<mask_types>(detail::get<ints>(data._data))...);
     }
 
     private:
@@ -288,11 +287,11 @@ struct mask_store_data {
 
 /** Get mask_store_data
  **/
-template <template <typename...> class tuple_type,
-          template <typename...> class vector_type, typename... mask_types>
-inline mask_store_data<mask_store<tuple_type, vector_type, mask_types...> >
-get_data(mask_store<tuple_type, vector_type, mask_types...> &store) {
-    return mask_store_data<mask_store<tuple_type, vector_type, mask_types...> >(
+template <template <typename...> class tuple_t,
+          template <typename...> class vector_t, typename... mask_types>
+inline mask_store_data<mask_store<tuple_t, vector_t, mask_types...> > get_data(
+    mask_store<tuple_t, vector_t, mask_types...> &store) {
+    return mask_store_data<mask_store<tuple_t, vector_t, mask_types...> >(
         store, std::make_index_sequence<sizeof...(mask_types)>{});
 }
 

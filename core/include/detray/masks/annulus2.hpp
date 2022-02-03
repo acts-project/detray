@@ -43,17 +43,17 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <typename intersector_type = planar_intersector,
-          typename mask_local_type = __plugin::polar2<detray::scalar>,
-          typename mask_links_type = unsigned int,
+template <typename intersector_t = planar_intersector,
+          typename mask_local_t = __plugin::polar2<detray::scalar>,
+          typename mask_links_t = unsigned int,
           unsigned int kMaskContext = e_annulus2,
-          template <typename, unsigned int> class array_type = darray>
+          template <typename, unsigned int> class array_t = darray>
 struct annulus2 {
-    using mask_tolerance = array_type<scalar, 2>;
-    using mask_values = array_type<scalar, 7>;
+    using mask_tolerance = array_t<scalar, 2>;
+    using mask_values = array_t<scalar, 7>;
     // Export those types
-    using links_type = mask_links_type;
-    using local_type = mask_local_type;
+    using links_type = mask_links_t;
+    using local_type = mask_local_t;
 
     mask_values _values = {0.,
                            std::numeric_limits<scalar>::infinity(),
@@ -94,15 +94,15 @@ struct annulus2 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    annulus2<intersector_type, local_type, links_type, kMaskContext> &operator=(
-        const array_type<scalar, 7> &rhs) {
+    annulus2<intersector_t, local_type, links_type, kMaskContext> &operator=(
+        const array_t<scalar, 7> &rhs) {
         _values = rhs;
         return (*this);
     }
 
     /** Mask operation
      *
-     * @tparam inside_local_type is the local type for checking, needs to be
+     * @tparam inside_local_t is the local type for checking, needs to be
      * specificed
      *
      * @param p the point to be checked in local polar coord
@@ -110,14 +110,14 @@ struct annulus2 {
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_type>
+    template <typename inside_local_t>
     DETRAY_HOST_DEVICE intersection_status
     is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
         // The two quantities to check: r^2 in module system, phi in strips
         // system
 
         // In cartesian coordinates go to modules system by shifting origin
-        if constexpr (std::is_same_v<inside_local_type,
+        if constexpr (std::is_same_v<inside_local_t,
                                      __plugin::cartesian2<detray::scalar> >) {
             // Calculate radial coordinate in module system:
             scalar x_mod = p[0] - _values[4];
@@ -173,9 +173,7 @@ struct annulus2 {
      *
      **/
     DETRAY_HOST_DEVICE
-    bool operator==(const array_type<scalar, 7> &rhs) {
-        return (_values == rhs);
-    }
+    bool operator==(const array_t<scalar, 7> &rhs) { return (_values == rhs); }
 
     /** Equality operator
      *
@@ -205,7 +203,7 @@ struct annulus2 {
 
     /** Return an associated intersector type */
     DETRAY_HOST_DEVICE
-    intersector_type intersector() const { return intersector_type{}; };
+    intersector_t intersector() const { return intersector_t{}; };
 
     /** Return the values */
     DETRAY_HOST_DEVICE

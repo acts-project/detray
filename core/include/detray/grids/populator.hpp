@@ -25,30 +25,29 @@ namespace detray {
 /** A replace populator that swaps whatever current value in the
  * bin with the new one.
  *
- * @tparam value_type the type of a single stored object
+ * @tparam value_t the type of a single stored object
  *
  * @note bare_value and store_value are identicial in this case
  **/
-template <template <typename...> class vector_type = dvector,
-          template <typename...> class jagged_vector_type = djagged_vector,
-          template <typename, unsigned int> class array_type = darray,
-          typename value_type = dindex, bool kSORT = false,
-          unsigned int kDIM = 1>
+template <template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector,
+          template <typename, unsigned int> class array_t = darray,
+          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 struct replace_populator {
     DETRAY_HOST_DEVICE
-    replace_populator(const value_type invalid = invalid_value<value_type>())
+    replace_populator(const value_t invalid = invalid_value<value_t>())
         : m_invalid(invalid) {}
 
-    value_type m_invalid;
+    value_t m_invalid;
 
-    using bare_value = value_type;
-    using store_value = value_type;
-    using serialized_storage = vector_type<store_value>;
+    using bare_value = value_t;
+    using store_value = value_t;
+    using serialized_storage = vector_t<store_value>;
 
-    using vector_view_t = vecmem::data::vector_view<store_value>;
-    using vector_data_t = vecmem::data::vector_view<store_value>;
-    using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
-    using buffer_size_t = typename vector_view_t::size_type;
+    using vector_view_type = vecmem::data::vector_view<store_value>;
+    using vector_data_type = vecmem::data::vector_view<store_value>;
+    using vector_buffer_type = vecmem::data::vector_buffer<store_value>;
+    using buffer_size_type = typename vector_view_type::size_type;
 
     /** Swap the stored value with a new bare value
      *
@@ -67,7 +66,7 @@ struct replace_populator {
      * @return a sequence of bare values
      */
     DETRAY_HOST_DEVICE
-    vector_type<bare_value> sequence(store_value &stored) const {
+    vector_t<bare_value> sequence(store_value &stored) const {
         if (stored != m_invalid) {
             return {stored};
         }
@@ -93,8 +92,8 @@ struct replace_populator {
     /** Return a vector view
      **/
     DETRAY_HOST
-    static vector_data_t get_data(serialized_storage &data,
-                                  vecmem::memory_resource & /*resource*/) {
+    static vector_data_type get_data(serialized_storage &data,
+                                     vecmem::memory_resource & /*resource*/) {
         return vecmem::get_data(data);
     }
 };
@@ -104,32 +103,31 @@ struct replace_populator {
  *
  * @tparam kDIM the dimension of the underlying stored array
  * @tparam kSORT a sorting flag
- * @tparam value_type the type of a single stored object
+ * @tparam value_t the type of a single stored object
  * @tparam m_invalid the chosen invalid type
  *
  * @note bare_value and store_value are different in this case
  **/
 
-template <template <typename...> class vector_type = dvector,
-          template <typename...> class jagged_vector_type = djagged_vector,
-          template <typename, unsigned int> class array_type = darray,
-          typename value_type = dindex, bool kSORT = false,
-          unsigned int kDIM = 1>
+template <template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector,
+          template <typename, unsigned int> class array_t = darray,
+          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 struct complete_populator {
     DETRAY_HOST_DEVICE
-    complete_populator(const value_type invalid = invalid_value<value_type>())
+    complete_populator(const value_t invalid = invalid_value<value_t>())
         : m_invalid(invalid) {}
 
-    value_type m_invalid;
+    value_t m_invalid;
 
-    using bare_value = value_type;
-    using store_value = array_type<bare_value, kDIM>;
-    using serialized_storage = vector_type<store_value>;
+    using bare_value = value_t;
+    using store_value = array_t<bare_value, kDIM>;
+    using serialized_storage = vector_t<store_value>;
 
-    using vector_view_t = vecmem::data::vector_view<store_value>;
-    using vector_data_t = vecmem::data::vector_view<store_value>;
-    using vector_buffer_t = vecmem::data::vector_buffer<store_value>;
-    using buffer_size_t = typename vector_view_t::size_type;
+    using vector_view_type = vecmem::data::vector_view<store_value>;
+    using vector_data_type = vecmem::data::vector_view<store_value>;
+    using vector_buffer_type = vecmem::data::vector_buffer<store_value>;
+    using buffer_size_type = typename vector_view_type::size_type;
 
     /** Complete the stored value with a new bare value - for host
      *
@@ -160,8 +158,8 @@ struct complete_populator {
      * @return a sequence of bare values, @note it will ignore invalid entries
      */
     DETRAY_HOST_DEVICE
-    vector_type<bare_value> sequence(store_value &stored) const {
-        vector_type<bare_value> s;
+    vector_t<bare_value> sequence(store_value &stored) const {
+        vector_t<bare_value> s;
         s.reserve(kDIM);
         for (const auto &val : stored) {
             if (val != m_invalid) {
@@ -198,8 +196,8 @@ struct complete_populator {
     /** Return a vector view
      **/
     DETRAY_HOST
-    static vector_data_t get_data(serialized_storage &data,
-                                  vecmem::memory_resource & /*resource*/) {
+    static vector_data_type get_data(serialized_storage &data,
+                                     vecmem::memory_resource & /*resource*/) {
         return vecmem::get_data(data);
     }
 };
@@ -207,30 +205,29 @@ struct complete_populator {
 /** An attach populator that adds the new value to the
  *
  * @tparam kSORT the sorting directive
- * @tparam value_type the type of a single stored object
+ * @tparam value_t the type of a single stored object
  *
  * @note bare_value and store_value are identicial in this case
  **/
-template <template <typename...> class vector_type = dvector,
-          template <typename...> class jagged_vector_type = djagged_vector,
-          template <typename, unsigned int> class array_type = darray,
-          typename value_type = dindex, bool kSORT = false,
-          unsigned int kDIM = 1>
+template <template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector,
+          template <typename, unsigned int> class array_t = darray,
+          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 struct attach_populator {
     DETRAY_HOST_DEVICE
-    attach_populator(const value_type invalid = invalid_value<value_type>())
+    attach_populator(const value_t invalid = invalid_value<value_t>())
         : m_invalid(invalid) {}
 
-    value_type m_invalid;
+    value_t m_invalid;
 
-    using bare_value = value_type;
-    using store_value = vector_type<bare_value>;
-    using serialized_storage = jagged_vector_type<bare_value>;
+    using bare_value = value_t;
+    using store_value = vector_t<bare_value>;
+    using serialized_storage = jagged_vector_t<bare_value>;
 
-    using vector_view_t = vecmem::data::jagged_vector_view<bare_value>;
-    using vector_data_t = vecmem::data::jagged_vector_data<bare_value>;
-    using vector_buffer_t = vecmem::data::jagged_vector_buffer<bare_value>;
-    using buffer_size_t = std::vector<typename vector_view_t::size_type>;
+    using vector_view_type = vecmem::data::jagged_vector_view<bare_value>;
+    using vector_data_type = vecmem::data::jagged_vector_data<bare_value>;
+    using vector_buffer_type = vecmem::data::jagged_vector_buffer<bare_value>;
+    using buffer_size_type = std::vector<typename vector_view_type::size_type>;
 
     /** Add a new value to the stored value - for host vector
      *
@@ -264,9 +261,7 @@ struct attach_populator {
      * @return a sequence of bare values
      */
     DETRAY_HOST_DEVICE
-    vector_type<bare_value> sequence(store_value &stored) const {
-        return stored;
-    }
+    vector_t<bare_value> sequence(store_value &stored) const { return stored; }
 
     /** Shift operation for unified memory block
      *
@@ -288,8 +283,8 @@ struct attach_populator {
     /** Return a vector data
      **/
     DETRAY_HOST
-    static vector_data_t get_data(serialized_storage &data,
-                                  vecmem::memory_resource &resource) {
+    static vector_data_type get_data(serialized_storage &data,
+                                     vecmem::memory_resource &resource) {
         return vecmem::get_data(data, &resource);
     }
 };
