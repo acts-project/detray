@@ -16,10 +16,10 @@ namespace detray {
  *  index ranges in larger containers that are owned by either the geometry or
  *  the detector implementations.
  *
- * @tparam array_type the type of the internal array, must have STL semantics
+ * @tparam array_t the type of the internal array, must have STL semantics
  */
-template <typename object_registry, typename range_type = dindex_range,
-          template <typename, unsigned int> class array_type = darray>
+template <typename object_registry, typename range_t = dindex_range,
+          template <typename, unsigned int> class array_t = darray>
 class volume {
 
     public:
@@ -28,7 +28,7 @@ class volume {
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
     // used for sfinae
-    using volume_def = volume<object_registry, range_type, array_type>;
+    using volume_def = volume<object_registry, range_t, array_t>;
 
     enum grid_type : unsigned int {
         e_no_grid = 0,
@@ -42,11 +42,11 @@ class volume {
     /** Contructor with bounds
      * @param bounds of the volume
      */
-    volume(const array_type<scalar, 6> &bounds) : _bounds(bounds) {}
+    volume(const array_t<scalar, 6> &bounds) : _bounds(bounds) {}
 
     /** @return the bounds - const access */
     DETRAY_HOST_DEVICE
-    inline const array_type<scalar, 6> &bounds() const { return _bounds; }
+    inline const array_t<scalar, 6> &bounds() const { return _bounds; }
 
     /** @return the name (add an offset for the detector name)*/
     DETRAY_HOST_DEVICE
@@ -93,10 +93,10 @@ class volume {
      */
     template <
         typename object_registry::id range_id = object_registry::id::e_surface>
-    DETRAY_HOST inline void update_range(const range_type &other) {
+    DETRAY_HOST inline void update_range(const range_t &other) {
         auto &rg = std::get<range_id>(_ranges);
         // Range not set yet - initialize
-        constexpr range_type empty{};
+        constexpr range_t empty{};
         if (rg == empty) {
             rg = other;
             // Update
@@ -107,9 +107,9 @@ class volume {
 
     /** @return range of surfaces by surface type - const access */
 
-    template <typename object_type>
+    template <typename object_t>
     DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
-        constexpr auto index = object_registry::template get<object_type>();
+        constexpr auto index = object_registry::template get<object_t>();
         return std::get<index>(_ranges);
     }
 
@@ -126,8 +126,8 @@ class volume {
     }
 
     /** @return the number of elements in a given range */
-    template <typename range_t>
-    DETRAY_HOST_DEVICE inline dindex n_in_range(range_t &&rg) const {
+    template <typename range_type>
+    DETRAY_HOST_DEVICE inline dindex n_in_range(range_type &&rg) const {
         return std::get<1>(rg) - std::get<0>(rg);
     }
 
@@ -150,19 +150,19 @@ class volume {
 
     private:
     /** Bounds section, default for r, z, phi */
-    array_type<scalar, 6> _bounds = {0.,
-                                     std::numeric_limits<scalar>::max(),
-                                     -std::numeric_limits<scalar>::max(),
-                                     std::numeric_limits<scalar>::max(),
-                                     -M_PI,
-                                     M_PI};
+    array_t<scalar, 6> _bounds = {0.,
+                                  std::numeric_limits<scalar>::max(),
+                                  -std::numeric_limits<scalar>::max(),
+                                  std::numeric_limits<scalar>::max(),
+                                  -M_PI,
+                                  M_PI};
 
     /** Volume index */
     dindex _index = dindex_invalid;
 
     /** Ranges in geometry containers for different objects types that belong
      * to this volume */
-    array_type<range_type, object_registry::id::e_object_types> _ranges = {};
+    array_t<range_t, object_registry::id::e_object_types> _ranges = {};
 
     /** Index into the surface finder container */
     dindex _surfaces_finder_entry = dindex_invalid;

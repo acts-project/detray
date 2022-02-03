@@ -24,7 +24,7 @@ using transform3 = __plugin::transform3<detray::scalar>;
 
 /** Variadic unrolled intersection - any integer sequence
  *
- * @tparam track_type The type of the surface container
+ * @tparam track_t The type of the surface container
  * @tparam mask_container The type of the type of the mask container
  * @tparam mask_range The mask range type
  * @tparam first_mask_id The first mask group id
@@ -39,10 +39,10 @@ using transform3 = __plugin::transform3<detray::scalar>;
  *
  * @return an intersection struct (invalid if no intersection was found)
  */
-template <typename track_type, typename mask_container, typename mask_range,
+template <typename track_t, typename mask_container, typename mask_range,
           unsigned int first_mask_id, unsigned int... remaining_mask_ids>
 DETRAY_HOST_DEVICE inline auto unroll_intersect(
-    const track_type &track, const transform3 &ctf, const mask_container &masks,
+    const track_t &track, const transform3 &ctf, const mask_container &masks,
     const mask_range &rng, const unsigned int mask_id, dindex volume_index,
     std::integer_sequence<unsigned int, first_mask_id, remaining_mask_ids...>
     /*available_ids*/) {
@@ -82,8 +82,8 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
 
 /** Kernel method that updates the intersections
  *
- * @tparam track_type The type of the track/context
- * @tparam surface_type The type of the surface container
+ * @tparam track_t The type of the track/context
+ * @tparam surface_t The type of the surface container
  * @tparam transform_container The type of the transform container
  * @tparam mask_container The type of the type of the mask container
  *
@@ -94,10 +94,10 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
  *
  * @return  an intersection struct (invalid if no intersection was found)
  **/
-template <typename track_type, typename surface_type,
-          typename transform_container, typename mask_container>
+template <typename track_t, typename surface_t, typename transform_container,
+          typename mask_container>
 DETRAY_HOST_DEVICE inline const auto intersect(
-    const track_type &track, surface_type &surface,
+    const track_t &track, surface_t &surface,
     const transform_container &contextual_transforms,
     const mask_container &masks) {
     // Gather all information to perform intersections

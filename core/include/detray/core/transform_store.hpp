@@ -17,11 +17,11 @@ namespace detray {
 using transform3 = __plugin::transform3<detray::scalar>;
 
 /** A static inplementation of an alignable transform store */
-template <template <typename...> class vector_type = dvector,
+template <template <typename...> class vector_t = dvector,
           typename context_t = dindex>
 class static_transform_store {
     public:
-    using storage = vector_type<transform3>;
+    using storage = vector_t<transform3>;
     using context = context_t;
 
     static_transform_store() = default;
@@ -81,10 +81,10 @@ class static_transform_store {
      *
      * @return range restricted iterator
      */
-    template <typename range_type>
-    DETRAY_HOST_DEVICE const inline auto range(range_type &&range,
+    template <typename range_t>
+    DETRAY_HOST_DEVICE const inline auto range(range_t &&range,
                                                const context & /*ctx*/) const {
-        return iterator_range(_data, std::forward<range_type>(range));
+        return iterator_range(_data, std::forward<range_t>(range));
     }
 
     /** Reserve memory : Contextual STL like API
@@ -154,7 +154,7 @@ class static_transform_store {
      */
     DETRAY_HOST
     void append(const context &ctx,
-                static_transform_store<vector_type> &&other) noexcept(false) {
+                static_transform_store<vector_t> &&other) noexcept(false) {
         _data.reserve(_data.size() + other.size(ctx));
         _data.insert(_data.end(), std::make_move_iterator(other.begin(ctx)),
                      std::make_move_iterator(other.end(ctx)));
@@ -200,11 +200,11 @@ class static_transform_store {
     }
 
     DETRAY_HOST_DEVICE
-    vector_type<transform3> &data() { return _data; }
+    vector_t<transform3> &data() { return _data; }
 
     private:
     /** Common to surfaces & portals: transform store */
-    vector_type<transform3> _data;
+    vector_t<transform3> _data;
 };
 
 /** A static inplementation of transform store data for device*/
@@ -223,9 +223,9 @@ struct static_transform_store_data {
 
 /** Get transform_store_data
  **/
-template <template <typename...> class vector_type>
-inline static_transform_store_data<static_transform_store<vector_type> >
-get_data(static_transform_store<vector_type> &store) {
+template <template <typename...> class vector_t>
+inline static_transform_store_data<static_transform_store<vector_t> > get_data(
+    static_transform_store<vector_t> &store) {
     return static_transform_store_data(store);
 }
 

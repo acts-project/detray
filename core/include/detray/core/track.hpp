@@ -13,7 +13,7 @@
 namespace detray {
 
 /** Track struct for navigation through the detector */
-template <typename context_type = bool>
+template <typename context_t = bool>
 struct track {
     using point3 = __plugin::point3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
@@ -22,7 +22,7 @@ struct track {
     vector3 dir = {0., 0., 0.};
     vector3 bfield = {0., 0., 0.};
     scalar momentum = std::numeric_limits<scalar>::infinity();
-    context_type ctx = {};
+    context_t ctx = {};
 
     scalar overstep_tolerance = 0.;
 };

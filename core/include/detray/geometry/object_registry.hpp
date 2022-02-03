@@ -10,7 +10,7 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // object registry for unified index geometry
-template <typename surface_type>
+template <typename surface_t>
 struct object_registry {
     // Known primitives
     enum id : unsigned int {
@@ -21,9 +21,9 @@ struct object_registry {
         e_unknown = 2,
     };
 
-    template <typename value_type>
+    template <typename value_t>
     DETRAY_HOST_DEVICE static constexpr auto get() {
-        if constexpr (std::is_same_v<value_type, surface_type>) {
+        if constexpr (std::is_same_v<value_t, surface_t>) {
             return e_surface;
         }
         return e_unknown;

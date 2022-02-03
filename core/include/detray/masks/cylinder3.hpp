@@ -22,7 +22,7 @@ namespace detray {
  *
  * @tparam kRadialCheck is a boolean to steer wheter the radius compatibility
  *needs to be checked
- * @tparam intersector_type is a struct used for intersecting this cylinder
+ * @tparam intersector_t is a struct used for intersecting this cylinder
  * @tparam links_type is an object where the mask can link to
  * @tparam kMaskContext is a unique mask identifier in a certain context
  *
@@ -34,17 +34,17 @@ namespace detray {
  *
  **/
 template <bool kRadialCheck = true,
-          typename intersector_type = detray::cylinder_intersector,
-          typename mask_local_type = __plugin::cylindrical2<detray::scalar>,
-          typename mask_links_type = unsigned int,
+          typename intersector_t = detray::cylinder_intersector,
+          typename mask_local_t = __plugin::cylindrical2<detray::scalar>,
+          typename mask_links_t = unsigned int,
           unsigned int kMaskContext = e_cylinder3,
-          template <typename, unsigned int> class array_type = darray>
+          template <typename, unsigned int> class array_t = darray>
 struct cylinder3 {
-    using mask_tolerance = array_type<scalar, 2>;
+    using mask_tolerance = array_t<scalar, 2>;
     // This masks checks on: radius, -z, +z
-    using mask_values = array_type<scalar, 3>;
-    using links_type = mask_links_type;
-    using local_type = mask_local_type;
+    using mask_values = array_t<scalar, 3>;
+    using links_type = mask_links_t;
+    using local_type = mask_local_t;
 
     mask_values _values = {std::numeric_limits<scalar>::infinity(),
                            -std::numeric_limits<scalar>::infinity(),
@@ -78,9 +78,8 @@ struct cylinder3 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    cylinder3<kRadialCheck, intersector_type, local_type, links_type,
-              kMaskContext>
-        &operator=(const array_type<scalar, 3> &rhs) {
+    cylinder3<kRadialCheck, intersector_t, local_type, links_type, kMaskContext>
+        &operator=(const array_t<scalar, 3> &rhs) {
         _values = rhs;
         return (*this);
     }
@@ -96,7 +95,7 @@ struct cylinder3 {
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_type>
+    template <typename inside_local_t>
     DETRAY_HOST_DEVICE intersection_status
     is_inside(const point3 &p, const mask_tolerance t = within_epsilon) const {
         if constexpr (kRadialCheck) {
@@ -118,9 +117,7 @@ struct cylinder3 {
      * checks identity within epsilon and @return s a boolean*
      **/
     DETRAY_HOST_DEVICE
-    bool operator==(const array_type<scalar, 3> &rhs) {
-        return (_values == rhs);
-    }
+    bool operator==(const array_t<scalar, 3> &rhs) { return (_values == rhs); }
 
     /** Equality operator
      *
@@ -151,7 +148,7 @@ struct cylinder3 {
 
     /** Return an associated intersector type */
     DETRAY_HOST_DEVICE
-    intersector_type intersector() const { return intersector_type{}; };
+    intersector_t intersector() const { return intersector_t{}; };
 
     /** Return the values */
     DETRAY_HOST_DEVICE

@@ -35,8 +35,8 @@ TEST(utils, local_object_finder) {
     using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
 
-    typename grid2r::axis_p0_t xaxis{10, -5., 5., host_mr};
-    typename grid2r::axis_p1_t yaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p0_type xaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p1_type yaxis{10, -5., 5., host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 

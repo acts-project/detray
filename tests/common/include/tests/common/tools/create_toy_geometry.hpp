@@ -288,11 +288,11 @@ inline void create_barrel_grid(surfaces_grid_t &surfaces_grid,
     auto &z_step = std::get<2>(z_axis_info);
 
     // add surface grid
-    typename surfaces_grid_t::axis_p0_t z_axis(cfg.m_binning.second,
-                                               z_start - z_step * 0.5,
-                                               z_end + z_step * 0.5, resource);
-    typename surfaces_grid_t::axis_p1_t phi_axis(cfg.m_binning.first, -M_PI,
-                                                 M_PI, resource);
+    typename surfaces_grid_t::axis_p0_type z_axis(
+        cfg.m_binning.second, z_start - z_step * 0.5, z_end + z_step * 0.5,
+        resource);
+    typename surfaces_grid_t::axis_p1_type phi_axis(cfg.m_binning.first, -M_PI,
+                                                    M_PI, resource);
 
     surfaces_grid = surfaces_grid_t(z_axis, phi_axis, resource);
 }
@@ -468,10 +468,10 @@ inline void create_endcap_grid(surfaces_grid_t &surfaces_grid,
                                config_t cfg) {
     // add surface grid
     // TODO: WHat is the proper value of n_phi_bins?
-    typename surfaces_grid_t::axis_p0_t r_axis(
+    typename surfaces_grid_t::axis_p0_type r_axis(
         cfg.disc_binning.size(), cfg.inner_r, cfg.outer_r, resource);
-    typename surfaces_grid_t::axis_p1_t phi_axis(cfg.disc_binning.front(),
-                                                 -M_PI, M_PI, resource);
+    typename surfaces_grid_t::axis_p1_type phi_axis(cfg.disc_binning.front(),
+                                                    -M_PI, M_PI, resource);
 
     surfaces_grid = surfaces_grid_t(r_axis, phi_axis, resource);
 }

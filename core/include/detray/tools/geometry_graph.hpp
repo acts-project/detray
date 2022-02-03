@@ -49,7 +49,7 @@ struct void_actor {
 template <typename geometry,
           typename node_inspector =
               void_node_inspector<typename geometry::volume_type>,
-          template <typename...> class vector_type = dvector>
+          template <typename...> class vector_t = dvector>
 class geometry_graph {
 
     public:
@@ -70,8 +70,8 @@ class geometry_graph {
      * @param volumes geometry volumes that become the graph nodes
      * @param portals geometry portals link volumes and become edges
      */
-    geometry_graph(const vector_type<typename geometry::volume_type> &volumes,
-                   const vector_type<typename geometry::surface_type> &portals)
+    geometry_graph(const vector_t<typename geometry::volume_type> &volumes,
+                   const vector_t<typename geometry::surface_type> &portals)
         : _nodes(volumes), _edges(portals) {
         build();
     }
@@ -101,7 +101,7 @@ class geometry_graph {
         const auto inspector = node_inspector();
 
         node_t const *current = nullptr;
-        vector_type<bool> visited(_nodes.size(), false);
+        vector_t<bool> visited(_nodes.size(), false);
 
         // Nodes to be visited. Start at first node
         std::queue<node_t const *> node_queue;
@@ -181,10 +181,10 @@ class geometry_graph {
     }
 
     /** Graph nodes */
-    const vector_type<node_t> &_nodes;
+    const vector_t<node_t> &_nodes;
 
     /** Graph edges */
-    const vector_type<edge_t> &_edges;
+    const vector_t<edge_t> &_edges;
 
     /**
      *  The index of the nodes neighbors and a count of edges is kept in the

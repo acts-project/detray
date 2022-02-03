@@ -23,8 +23,8 @@ namespace detray {
 struct serializer2 {
     /** Create a serial bin from two individual bins
      *
-     * @tparam faxis_type is the type of the first axis
-     * @tparam saxis_type is the type of the second axis
+     * @tparam faxis_t is the type of the first axis
+     * @tparam saxis_t is the type of the second axis
      *
      * @param faxis the first axis
      * @param saxis the second axis, unused here
@@ -33,10 +33,10 @@ struct serializer2 {
      *
      * @return a dindex for the memory storage
      */
-    template <typename faxis_type, typename saxis_type>
-    DETRAY_HOST_DEVICE dindex serialize(const faxis_type &faxis,
-                                        const saxis_type & /*saxis*/,
-                                        dindex fbin, dindex sbin) const {
+    template <typename faxis_t, typename saxis_t>
+    DETRAY_HOST_DEVICE dindex serialize(const faxis_t &faxis,
+                                        const saxis_t & /*saxis*/, dindex fbin,
+                                        dindex sbin) const {
 
         dindex offset = sbin * faxis.bins();
         return offset + fbin;
@@ -44,8 +44,8 @@ struct serializer2 {
 
     /** Create a bin tuple from a serialized bin
      *
-     * @tparam faxis_type is the type of the first axis
-     * @tparam saxis_type is the type of the second axis
+     * @tparam faxis_t is the type of the first axis
+     * @tparam saxis_t is the type of the second axis
      *
      * @param faxis the first axis
      * @param saxis the second axis, unused here
@@ -53,11 +53,11 @@ struct serializer2 {
      *
      * @return a 2-dim array of dindex
      */
-    template <typename faxis_type, typename saxis_type,
-              template <typename, unsigned int> class array_type = darray>
-    DETRAY_HOST_DEVICE array_type<dindex, 2> deserialize(
-        const faxis_type &faxis, const saxis_type & /*saxis*/,
-        dindex serialbin) const {
+    template <typename faxis_t, typename saxis_t,
+              template <typename, unsigned int> class array_t = darray>
+    DETRAY_HOST_DEVICE array_t<dindex, 2> deserialize(const faxis_t &faxis,
+                                                      const saxis_t & /*saxis*/,
+                                                      dindex serialbin) const {
         dindex sbin = static_cast<dindex>(serialbin / faxis.bins());
         dindex fbin = serialbin - sbin * faxis.bins();
         return {fbin, sbin};

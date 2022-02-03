@@ -148,9 +148,9 @@ class detector {
         typename surfaces_finder_type::surfaces_regular_circular_grid;
 
     using surfaces_regular_axis =
-        typename surfaces_regular_circular_grid::axis_p0_t;
+        typename surfaces_regular_circular_grid::axis_p0_type;
     using surfaces_circular_axis =
-        typename surfaces_regular_circular_grid::axis_p1_t;
+        typename surfaces_regular_circular_grid::axis_p1_type;
 
     detector() = delete;
 
@@ -163,8 +163,8 @@ class detector {
           _surfaces(&resource),
           _transforms(resource),
           _masks(resource),
-          _volume_grid(std::move(typename volume_grid::axis_p0_t{resource}),
-                       std::move(typename volume_grid::axis_p1_t{resource}),
+          _volume_grid(std::move(typename volume_grid::axis_p0_type{resource}),
+                       std::move(typename volume_grid::axis_p1_type{resource}),
                        resource),
           _surfaces_finder(resource),
           _resource(&resource) {}

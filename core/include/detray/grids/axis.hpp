@@ -24,8 +24,8 @@ namespace axis {
  * The axis is closed, i.e. each underflow bin is mapped to 0
  * and henceforth each overflow bin is mapped to bins-1
  */
-template <template <typename, unsigned int> class array_type = darray,
-          template <typename...> class vector_type = dvector>
+template <template <typename, unsigned int> class array_t = darray,
+          template <typename...> class vector_t = dvector>
 struct regular {
     dindex n_bins;
     scalar min;
@@ -96,7 +96,7 @@ struct regular {
      **/
     DETRAY_HOST_DEVICE
     dindex_range range(scalar v,
-                       const array_type<dindex, 2> &nhood = {0u, 0u}) const {
+                       const array_t<dindex, 2> &nhood = {0u, 0u}) const {
 
         int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
         int ibinmin = ibin - static_cast<int>(nhood[0]);
@@ -116,7 +116,7 @@ struct regular {
      * As the axis is closed it @returns a dindex_range
      **/
     DETRAY_HOST_DEVICE
-    dindex_range range(scalar v, const array_type<scalar, 2> &nhood) const {
+    dindex_range range(scalar v, const array_t<scalar, 2> &nhood) const {
         int nbin =
             static_cast<int>((v - nhood[0] - min) / (max - min) * n_bins);
         int pbin =
@@ -140,7 +140,7 @@ struct regular {
      **/
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE dindex_sequence
-    zone_t(scalar v, const array_type<neighbor_t, 2> &nhood) const {
+    zone_t(scalar v, const array_t<neighbor_t, 2> &nhood) const {
         dindex_range nh_range = range(v, nhood);
         dindex_sequence sequence(static_cast<dindex_sequence::size_type>(
                                      nh_range[1] - nh_range[0] + 1),
@@ -159,7 +159,7 @@ struct regular {
      * As the axis is closed it @returns a dindex_sequence
      **/
     DETRAY_HOST_DEVICE
-    dindex_sequence zone(scalar v, const array_type<dindex, 2> &nhood) const {
+    dindex_sequence zone(scalar v, const array_t<dindex, 2> &nhood) const {
         return zone_t<dindex>(v, nhood);
     }
 
@@ -171,21 +171,21 @@ struct regular {
      * As the axis is closed it @returns a dindex_sequence
      **/
     DETRAY_HOST_DEVICE
-    dindex_sequence zone(scalar v, const array_type<scalar, 2> &nhood) const {
+    dindex_sequence zone(scalar v, const array_t<scalar, 2> &nhood) const {
         return zone_t<scalar>(v, nhood);
     }
 
     /** @return the bin boundaries for a given @param ibin */
     DETRAY_HOST_DEVICE
-    array_type<scalar, 2> borders(dindex ibin) const {
+    array_t<scalar, 2> borders(dindex ibin) const {
         scalar step = (max - min) / n_bins;
         return {min + ibin * step, min + (ibin + 1) * step};
     }
 
     /** @return the values of the borders */
     DETRAY_HOST_DEVICE
-    vector_type<scalar> all_borders() const {
-        vector_type<scalar> borders;
+    vector_t<scalar> all_borders() const {
+        vector_t<scalar> borders;
         borders.reserve(n_bins + 1);
         scalar step = (max - min) / n_bins;
         for (dindex ib = 0; ib < n_bins + 1; ++ib) {
@@ -196,15 +196,15 @@ struct regular {
 
     /** @return the axis span [min, max) */
     DETRAY_HOST_DEVICE
-    array_type<scalar, 2> span() const { return {min, max}; }
+    array_t<scalar, 2> span() const { return {min, max}; }
 };
 
 /** A regular circular axis.
  *
  * The axis is circular, i.e. the underflow bins map into the circular sequence
  */
-template <template <typename, unsigned int> class array_type = darray,
-          template <typename...> class vector_type = dvector>
+template <template <typename, unsigned int> class array_t = darray,
+          template <typename...> class vector_t = dvector>
 struct circular {
 
     dindex n_bins;
@@ -276,7 +276,7 @@ struct circular {
      **/
     DETRAY_HOST_DEVICE
     dindex_range range(scalar v,
-                       const array_type<dindex, 2> nhood = {0u, 0u}) const {
+                       const array_t<dindex, 2> nhood = {0u, 0u}) const {
         dindex gbin = bin(v);
         dindex min_bin = remap(gbin, -static_cast<int>(nhood[0]));
         dindex max_bin = remap(gbin, static_cast<int>(nhood[1]));
@@ -291,7 +291,7 @@ struct circular {
      * As the axis is circular it @returns a dindex_range
      **/
     DETRAY_HOST_DEVICE
-    dindex_range range(scalar v, const array_type<scalar, 2> &nhood) const {
+    dindex_range range(scalar v, const array_t<scalar, 2> &nhood) const {
         dindex nbin = bin(v - nhood[0]);
         dindex pbin = bin(v + nhood[1]);
         return {nbin, pbin};
@@ -308,7 +308,7 @@ struct circular {
      **/
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE dindex_sequence
-    zone_t(scalar v, const array_type<neighbor_t, 2> &nhood) const {
+    zone_t(scalar v, const array_t<neighbor_t, 2> &nhood) const {
         dindex_range nh_range = range(v, nhood);
         if (nh_range[0] < nh_range[1]) {
             dindex_sequence sequence(static_cast<dindex_sequence::size_type>(
@@ -341,7 +341,7 @@ struct circular {
      * As the axis is closed it @returns a dindex_sequence
      **/
     DETRAY_HOST_DEVICE
-    dindex_sequence zone(scalar v, const array_type<dindex, 2> &nhood) const {
+    dindex_sequence zone(scalar v, const array_t<dindex, 2> &nhood) const {
         return zone_t<dindex>(v, nhood);
     }
 
@@ -353,7 +353,7 @@ struct circular {
      * As the axis is closed it @returns a dindex_sequence
      **/
     DETRAY_HOST_DEVICE
-    dindex_sequence zone(scalar v, const array_type<scalar, 2> &nhood) const {
+    dindex_sequence zone(scalar v, const array_t<scalar, 2> &nhood) const {
         return zone_t<scalar>(v, nhood);
     }
 
@@ -378,15 +378,15 @@ struct circular {
 
     /** @return the bin boundaries for a given @param ibin */
     DETRAY_HOST_DEVICE
-    array_type<scalar, 2> borders(dindex ibin) const {
+    array_t<scalar, 2> borders(dindex ibin) const {
         scalar step = (max - min) / n_bins;
         return {min + ibin * step, min + (ibin + 1) * step};
     }
 
     /** @return the values of the borders */
     DETRAY_HOST_DEVICE
-    vector_type<scalar> all_borders() const {
-        vector_type<scalar> borders;
+    vector_t<scalar> all_borders() const {
+        vector_t<scalar> borders;
         borders.reserve(n_bins + 1);
         scalar step = (max - min) / n_bins;
         for (dindex ib = 0; ib < n_bins + 1; ++ib) {
@@ -397,7 +397,7 @@ struct circular {
 
     /** @return the range  */
     DETRAY_HOST_DEVICE
-    array_type<scalar, 2> span() const { return {min, max}; }
+    array_t<scalar, 2> span() const { return {min, max}; }
 };
 
 /** An iregular circular axis.
@@ -405,8 +405,8 @@ struct circular {
  * The axis is closed, i.e. the underflow is mapped into the first,
  * the overflow is mapped into the last.
  */
-template <template <typename, unsigned int> class array_type = darray,
-          template <typename...> class vector_type = dvector>
+template <template <typename, unsigned int> class array_t = darray,
+          template <typename...> class vector_t = dvector>
 struct irregular {
 
     /* dummy bin size, min and max */
@@ -414,7 +414,7 @@ struct irregular {
     scalar min;
     scalar max;
 
-    vector_type<scalar> boundaries;
+    vector_t<scalar> boundaries;
 
     static constexpr unsigned int axis_identifier = 2;
 
@@ -433,7 +433,7 @@ struct irregular {
           boundaries(&resource) {}
 
     /** Constructor with vecmem memory resource - rvalue **/
-    DETRAY_HOST irregular(vector_type<scalar> &&bins,
+    DETRAY_HOST irregular(vector_t<scalar> &&bins,
                           vecmem::memory_resource &resource)
         : n_bins(bins.size() - 1),
           min(bins[0]),
@@ -441,7 +441,7 @@ struct irregular {
           boundaries(bins, &resource) {}
 
     /** Constructor with vecmem memory resource - lvalue **/
-    DETRAY_HOST irregular(vector_type<scalar> &bins,
+    DETRAY_HOST irregular(vector_t<scalar> &bins,
                           vecmem::memory_resource &resource)
         : n_bins(bins.size() - 1),
           min(bins[0]),
@@ -501,7 +501,7 @@ struct irregular {
      **/
     DETRAY_HOST_DEVICE
     dindex_range range(scalar v,
-                       const array_type<dindex, 2> &nhood = {0u, 0u}) const {
+                       const array_t<dindex, 2> &nhood = {0u, 0u}) const {
 
         dindex ibin = bin(v);
         int bins = boundaries.size() - 1;
@@ -522,7 +522,7 @@ struct irregular {
      * As the axis is closed it @returns a dindex_range
      **/
     DETRAY_HOST_DEVICE
-    dindex_range range(scalar v, const array_type<scalar, 2> &nhood) const {
+    dindex_range range(scalar v, const array_t<scalar, 2> &nhood) const {
         dindex nbin = bin(v - nhood[0]);
         dindex pbin = bin(v + nhood[1]);
         return {nbin, pbin};
@@ -539,7 +539,7 @@ struct irregular {
      **/
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE dindex_sequence
-    zone_t(scalar v, const array_type<neighbor_t, 2> nhood) const {
+    zone_t(scalar v, const array_t<neighbor_t, 2> nhood) const {
         dindex_range nh_range = range(v, nhood);
         dindex_sequence sequence(static_cast<dindex_sequence::size_type>(
                                      nh_range[1] - nh_range[0] + 1),
@@ -559,7 +559,7 @@ struct irregular {
      **/
     DETRAY_HOST_DEVICE
     dindex_sequence zone(scalar v,
-                         const array_type<dindex, 2> &nhood = {0, 0}) const {
+                         const array_t<dindex, 2> &nhood = {0, 0}) const {
         return zone_t<dindex>(v, nhood);
     }
 
@@ -571,23 +571,23 @@ struct irregular {
      * As the axis is closed it @returns a dindex_sequence
      **/
     DETRAY_HOST_DEVICE
-    dindex_sequence zone(scalar v, const array_type<scalar, 2> &nhood) const {
+    dindex_sequence zone(scalar v, const array_t<scalar, 2> &nhood) const {
         return zone_t<scalar>(v, nhood);
     }
 
     DETRAY_HOST_DEVICE
     /** @return the bin boundaries for a given @param ibin */
-    array_type<scalar, 2> borders(dindex ibin) const {
+    array_t<scalar, 2> borders(dindex ibin) const {
         return {boundaries[ibin], boundaries[ibin + 1]};
     }
 
     /** @return the values of the borders of all bins */
     DETRAY_HOST
-    vector_type<scalar> all_borders() const { return boundaries; }
+    vector_t<scalar> all_borders() const { return boundaries; }
 
     /** @return the range  */
     DETRAY_HOST_DEVICE
-    array_type<scalar, 2> span() const {
+    array_t<scalar, 2> span() const {
         return {boundaries[0], boundaries[boundaries.size() - 1]};
     }
 };
@@ -597,14 +597,14 @@ struct irregular {
 /**
  * static implementation of axis data for device
  */
-template <typename axis_type, typename Enable = void>
+template <typename axis_t, typename Enable = void>
 struct axis_data;
 
-template <typename axis_type>
-struct axis_data<axis_type,
-                 typename std::enable_if_t<axis_type::axis_identifier == 0>> {
+template <typename axis_t>
+struct axis_data<axis_t,
+                 typename std::enable_if_t<axis_t::axis_identifier == 0>> {
 
-    axis_data(axis_type &axis)
+    axis_data(axis_t &axis)
         : n_bins(axis.n_bins), min(axis.min), max(axis.max) {}
 
     const dindex n_bins;
@@ -612,11 +612,11 @@ struct axis_data<axis_type,
     const scalar max;
 };
 
-template <typename axis_type>
-struct axis_data<axis_type,
-                 typename std::enable_if_t<axis_type::axis_identifier == 1>> {
+template <typename axis_t>
+struct axis_data<axis_t,
+                 typename std::enable_if_t<axis_t::axis_identifier == 1>> {
 
-    axis_data(axis_type &axis)
+    axis_data(axis_t &axis)
         : n_bins(axis.n_bins), min(axis.min), max(axis.max) {}
 
     const dindex n_bins;
@@ -624,11 +624,11 @@ struct axis_data<axis_type,
     const scalar max;
 };
 
-template <typename axis_type>
-struct axis_data<axis_type,
-                 typename std::enable_if_t<axis_type::axis_identifier == 2>> {
+template <typename axis_t>
+struct axis_data<axis_t,
+                 typename std::enable_if_t<axis_t::axis_identifier == 2>> {
 
-    axis_data(axis_type &axis)
+    axis_data(axis_t &axis)
         : n_bins(axis.n_bins),
           min(axis.min),
           max(axis.max),
@@ -643,18 +643,18 @@ struct axis_data<axis_type,
 /**
  * standalone function to get axis_data
  */
-template <template <template <typename, unsigned int> class,
-                    template <typename...> class>
-          class axis_type,
-          template <typename, unsigned int> class array_type,
-          template <typename...> class vector_type,
-          std::enable_if_t<
-              axis_type<array_type, vector_type>::axis_identifier == 0 ||
-                  axis_type<array_type, vector_type>::axis_identifier == 1 ||
-                  axis_type<array_type, vector_type>::axis_identifier == 2,
-              bool> = true>
-inline axis_data<axis_type<array_type, vector_type>> get_data(
-    axis_type<array_type, vector_type> &axis) {
+template <
+    template <template <typename, unsigned int> class,
+              template <typename...> class>
+    class axis_t,
+    template <typename, unsigned int> class array_t,
+    template <typename...> class vector_t,
+    std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 0 ||
+                         axis_t<array_t, vector_t>::axis_identifier == 1 ||
+                         axis_t<array_t, vector_t>::axis_identifier == 2,
+                     bool> = true>
+inline axis_data<axis_t<array_t, vector_t>> get_data(
+    axis_t<array_t, vector_t> &axis) {
     return axis;
 }
 

@@ -53,32 +53,32 @@ constexpr auto get(mask_store_t&& mask_store) noexcept
 /** tuple size accessor
  *
  *  usage example:
- *  detail::tuple_size< tuple_type >::value
+ *  detail::tuple_size< tuple_t >::value
  */
 template <class T, typename Enable = void>
 struct tuple_size;
 
 // std::tuple
-template <template <typename...> class tuple_type, class... value_types>
-struct tuple_size<tuple_type<value_types...>,
+template <template <typename...> class tuple_t, class... value_types>
+struct tuple_size<tuple_t<value_types...>,
                   typename std::enable_if_t<
-                      std::is_same_v<tuple_type<value_types...>,
+                      std::is_same_v<tuple_t<value_types...>,
                                      std::tuple<value_types...>> == true>>
-    : std::tuple_size<tuple_type<value_types...>> {};
+    : std::tuple_size<tuple_t<value_types...>> {};
 
 // thrust::tuple
-template <template <typename...> class tuple_type, class... value_types>
-struct tuple_size<tuple_type<value_types...>,
+template <template <typename...> class tuple_t, class... value_types>
+struct tuple_size<tuple_t<value_types...>,
                   typename std::enable_if_t<
-                      std::is_same_v<tuple_type<value_types...>,
+                      std::is_same_v<tuple_t<value_types...>,
                                      thrust::tuple<value_types...>> == true>>
-    : thrust::tuple_size<tuple_type<value_types...>> {};
+    : thrust::tuple_size<tuple_t<value_types...>> {};
 
 /** make tuple accessor
- *  users have to specifiy tuple_type for detail::make_tuple
+ *  users have to specifiy tuple_t for detail::make_tuple
  *
  *  usage example
- *  detail::make_tuple<tuple_type>(args...)
+ *  detail::make_tuple<tuple_t>(args...)
  */
 
 template <class T>
@@ -95,10 +95,10 @@ template <class T>
 using unwrap_decay_t =
     typename unwrap_refwrapper<typename std::decay<T>::type>::type;
 
-template <template <typename...> class tuple_type, class... Types>
-DETRAY_HOST_DEVICE constexpr tuple_type<unwrap_decay_t<Types>...> make_tuple(
+template <template <typename...> class tuple_t, class... Types>
+DETRAY_HOST_DEVICE constexpr tuple_t<unwrap_decay_t<Types>...> make_tuple(
     Types&&... args) {
-    return tuple_type<unwrap_decay_t<Types>...>(std::forward<Types>(args)...);
+    return tuple_t<unwrap_decay_t<Types>...>(std::forward<Types>(args)...);
 }
 
 /**

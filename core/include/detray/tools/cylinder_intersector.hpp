@@ -29,8 +29,8 @@ struct cylinder_intersector {
 
     /** Intersection method for cylindrical surfaces
      *
-     * @tparam track_type The type of the track carrying the context object
-     * @tparam mask_type The mask type applied to the local frame
+     * @tparam track_t The type of the track carrying the context object
+     * @tparam mask_t The mask type applied to the local frame
      *
      * Contextual part:
      * @param trf the transform of the surface to be intersected
@@ -43,22 +43,22 @@ struct cylinder_intersector {
      * @return the intersection with optional parameters
      **/
     template <
-        typename track_type, typename mask_type,
+        typename track_t, typename mask_t,
         std::enable_if_t<
-            std::is_same_v<typename mask_type::local_type, cylindrical2> or
-                std::is_same_v<typename mask_type::local_type, detray::unbound>,
+            std::is_same_v<typename mask_t::local_type, cylindrical2> or
+                std::is_same_v<typename mask_t::local_type, detray::unbound>,
             bool> = true>
     DETRAY_HOST_DEVICE inline intersection intersect(
-        const transform3 &trf, const track_type &track, const mask_type &mask,
-        const typename mask_type::mask_tolerance tolerance =
-            mask_type::within_epsilon) const {
+        const transform3 &trf, const track_t &track, const mask_t &mask,
+        const typename mask_t::mask_tolerance tolerance =
+            mask_t::within_epsilon) const {
         return intersect(trf, track.pos, track.dir, mask, tolerance,
                          track.overstep_tolerance);
     }
 
     /** Intersection method for cylindrical surfaces
      *
-     * @tparam mask_type The mask type applied to the local frame
+     * @tparam mask_t The mask type applied to the local frame
      *
      * Contextual part:
      * @param trf the transform of the surface to be intersected
@@ -74,19 +74,19 @@ struct cylinder_intersector {
      * @return the intersection with optional parameters
      **/
     template <
-        typename mask_type,
+        typename mask_t,
         std::enable_if_t<
-            std::is_same_v<typename mask_type::local_type, cylindrical2> or
-                std::is_same_v<typename mask_type::local_type, detray::unbound>,
+            std::is_same_v<typename mask_t::local_type, cylindrical2> or
+                std::is_same_v<typename mask_t::local_type, detray::unbound>,
             bool> = true>
     DETRAY_HOST_DEVICE inline intersection intersect(
         const transform3 &trf, const point3 &ro, const vector3 &rd,
-        const mask_type &mask,
-        const typename mask_type::mask_tolerance tolerance =
-            mask_type::within_epsilon,
+        const mask_t &mask,
+        const typename mask_t::mask_tolerance tolerance =
+            mask_t::within_epsilon,
         scalar overstep_tolerance = 0.) const {
 
-        using local_frame = typename mask_type::local_type;
+        using local_frame = typename mask_t::local_type;
 
         scalar r = mask[0];
         const auto &m = trf.matrix();

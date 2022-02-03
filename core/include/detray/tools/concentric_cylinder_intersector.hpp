@@ -22,7 +22,7 @@ class unbound;
 
 /** This is an intersector struct for a concetric cylinder surface
  */
-template <template <typename, unsigned int> class array_type = darray>
+template <template <typename, unsigned int> class array_t = darray>
 struct concentric_cylinder_intersector {
 
     using transform3 = __plugin::transform3<detray::scalar>;
@@ -33,8 +33,8 @@ struct concentric_cylinder_intersector {
 
     /** Intersection method for cylindrical surfaces
      *
-     * @tparam track_type The type of the track caryying also the context object
-     * @tparam mask_type The mask type applied to the local frame
+     * @tparam track_t The type of the track caryying also the context object
+     * @tparam mask_t The mask type applied to the local frame
      *
      * Contextual part:
      * @param trf the transform of the surface surface to be intersected @note
@@ -48,22 +48,22 @@ struct concentric_cylinder_intersector {
      * @return the intersection with optional parameters
      **/
     template <
-        typename track_type, typename mask_type,
+        typename track_t, typename mask_t,
         std::enable_if_t<
-            std::is_same_v<typename mask_type::local_type, cylindrical2> or
-                std::is_same_v<typename mask_type::local_type, detray::unbound>,
+            std::is_same_v<typename mask_t::local_type, cylindrical2> or
+                std::is_same_v<typename mask_t::local_type, detray::unbound>,
             bool> = true>
     DETRAY_HOST_DEVICE inline intersection intersect(
-        const transform3 &trf, const track_type &track, const mask_type &mask,
-        const typename mask_type::mask_tolerance &tolerance =
-            mask_type::within_epsilon) const {
+        const transform3 &trf, const track_t &track, const mask_t &mask,
+        const typename mask_t::mask_tolerance &tolerance =
+            mask_t::within_epsilon) const {
         return intersect(trf, track.pos, track.dir, mask, tolerance,
                          track.overstep_tolerance);
     }
 
     /** Intersection method for cylindrical surfaces
      *
-     * @tparam mask_type The mask type applied to the local frame
+     * @tparam mask_t The mask type applied to the local frame
      *
      * Contextual part:
      * @param trf the transform of the surface to be intersected
@@ -78,19 +78,19 @@ struct concentric_cylinder_intersector {
      * @return the intersection with optional parameters
      **/
     template <
-        typename mask_type,
+        typename mask_t,
         std::enable_if_t<
-            std::is_same_v<typename mask_type::local_type, cylindrical2> or
-                std::is_same_v<typename mask_type::local_type, detray::unbound>,
+            std::is_same_v<typename mask_t::local_type, cylindrical2> or
+                std::is_same_v<typename mask_t::local_type, detray::unbound>,
             bool> = true>
     DETRAY_HOST_DEVICE inline intersection intersect(
         const transform3 & /*trf*/, const point3 &ro, const vector3 &rd,
-        const mask_type &mask, const dindex /*volume_index*/ = dindex_invalid,
-        const typename mask_type::mask_tolerance & /*tolerance*/ =
-            mask_type::within_epsilon,
+        const mask_t &mask, const dindex /*volume_index*/ = dindex_invalid,
+        const typename mask_t::mask_tolerance & /*tolerance*/ =
+            mask_t::within_epsilon,
         scalar overstep_tolerance = 0.) const {
 
-        using local_frame = typename mask_type::local_type;
+        using local_frame = typename mask_t::local_type;
 
         scalar r = mask[0];
 
@@ -110,9 +110,9 @@ struct concentric_cylinder_intersector {
         auto qe_solution = qe();
 
         if (std::get<0>(qe_solution) > overstep_tolerance) {
-            array_type<point3, 2> candidates;
+            array_t<point3, 2> candidates;
             auto u01 = std::get<1>(qe_solution);
-            array_type<scalar, 2> t01 = {0., 0.};
+            array_t<scalar, 2> t01 = {0., 0.};
 
             candidates[0][_x] = u01[0];
             candidates[0][_y] = k * u01[0] + d;

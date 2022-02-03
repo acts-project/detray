@@ -31,11 +31,11 @@ using point3 = __plugin::point3<detray::scalar>;
  * @param absolute_tolerance is an indicator if the tolerance is to be
  *        taken absolute or relative
  */
-template <typename context_type, typename detector_type, typename volume_type,
-          typename grid_type>
-static inline void bin_association(const context_type & /*context*/,
-                                   const detector_type &detector,
-                                   const volume_type &volume, grid_type &grid,
+template <typename context_t, typename detector_t, typename volume_t,
+          typename grid_t>
+static inline void bin_association(const context_t & /*context*/,
+                                   const detector_t &detector,
+                                   const volume_t &volume, grid_t &grid,
                                    const std::array<scalar, 2> &bin_tolerance,
                                    bool absolute_tolerance = true) {
 
@@ -92,7 +92,7 @@ static inline void bin_association(const context_type & /*context*/,
                         surface_masks, mask_range, mask_context,
                         std::make_integer_sequence<
                             dindex, std::tuple_size_v<
-                                        typename detector_type::mask_container::
+                                        typename detector_t::mask_container::
                                             mask_tuple>>{});
 
                     // Usually one mask per surface, but design allows - a
@@ -167,7 +167,7 @@ static inline void bin_association(const context_type & /*context*/,
                         surface_masks, mask_range, mask_context,
                         std::make_integer_sequence<
                             dindex, std::tuple_size_v<
-                                        typename detector_type::mask_container::
+                                        typename detector_t::mask_container::
                                             mask_tuple>>{});
 
                     for (auto &vertices : vertices_per_masks) {

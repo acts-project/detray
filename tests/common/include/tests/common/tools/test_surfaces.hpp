@@ -97,23 +97,23 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
     using disc_grid = grid2<replace_populator, axis::regular, axis::circular,
                             decltype(serializer)>;
 
-    typename cylinder_grid::axis_p0_t rphi_axis_inner = {
+    typename cylinder_grid::axis_p0_type rphi_axis_inner = {
         n_phi, static_cast<scalar>(-volume_inner_r * (M_PI + 0.5 * step_phi)),
         static_cast<scalar>(volume_inner_r * (M_PI - 0.5 * step_phi)), host_mr};
-    typename cylinder_grid::axis_p1_t z_axis_inner = {1, volume_min_z,
-                                                      volume_max_z, host_mr};
-    typename cylinder_grid::axis_p0_t rphi_axis_outer = {
+    typename cylinder_grid::axis_p1_type z_axis_inner = {1, volume_min_z,
+                                                         volume_max_z, host_mr};
+    typename cylinder_grid::axis_p0_type rphi_axis_outer = {
         n_phi, static_cast<scalar>(-volume_outer_r * (M_PI + 0.5 * step_phi)),
         static_cast<scalar>(volume_outer_r * (M_PI - 0.5 * step_phi)), host_mr};
 
-    typename disc_grid::axis_p0_t r_axis_ecn = {1, volume_inner_r,
-                                                volume_outer_r, host_mr};
-    typename disc_grid::axis_p1_t phi_axis_ecn = {
+    typename disc_grid::axis_p0_type r_axis_ecn = {1, volume_inner_r,
+                                                   volume_outer_r, host_mr};
+    typename disc_grid::axis_p1_type phi_axis_ecn = {
         n_phi, static_cast<scalar>(-M_PI - 0.5 * step_phi),
         static_cast<scalar>(M_PI - 0.5 * step_phi), host_mr};
-    typename disc_grid::axis_p0_t r_axis_ecp = {1, volume_inner_r,
-                                                volume_outer_r, host_mr};
-    typename disc_grid::axis_p1_t phi_axis_ecp = {
+    typename disc_grid::axis_p0_type r_axis_ecp = {1, volume_inner_r,
+                                                   volume_outer_r, host_mr};
+    typename disc_grid::axis_p1_type phi_axis_ecp = {
         n_phi, static_cast<scalar>(-M_PI - 0.5 * step_phi),
         static_cast<scalar>(M_PI - 0.5 * step_phi), host_mr};
 
@@ -207,26 +207,26 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
     using disc_grid = grid2<replace_populator, axis::regular, axis::circular,
                             decltype(serializer)>;
 
-    typename cylinder_grid::axis_p0_t rphi_axis_inner = {
+    typename cylinder_grid::axis_p0_type rphi_axis_inner = {
         n_phi, static_cast<scalar>(-volume_inner_r * (M_PI + 0.5 * step_phi)),
         static_cast<scalar>(volume_inner_r * (M_PI - 0.5 * step_phi)), host_mr};
-    typename cylinder_grid::axis_p1_t z_axis_inner = {
+    typename cylinder_grid::axis_p1_type z_axis_inner = {
         n_z, static_cast<scalar>(-0.5 * length_z),
         static_cast<scalar>(0.5 * length_z), host_mr};
-    typename cylinder_grid::axis_p0_t rphi_axis_outer = {
+    typename cylinder_grid::axis_p0_type rphi_axis_outer = {
         n_phi, static_cast<scalar>(-volume_outer_r * (M_PI + 0.5 * step_phi)),
         static_cast<scalar>(volume_outer_r * (M_PI - 0.5 * step_phi)), host_mr};
     // axis::regular<> z_axis_outer = {n_z, static_cast<scalar>(-0.5 *
     // length_z),
     //                                static_cast<scalar>(0.5 * length_z)};
-    typename disc_grid::axis_p0_t r_axis_ecn = {1, volume_inner_r,
-                                                volume_outer_r, host_mr};
-    typename disc_grid::axis_p1_t phi_axis_ecn = {
+    typename disc_grid::axis_p0_type r_axis_ecn = {1, volume_inner_r,
+                                                   volume_outer_r, host_mr};
+    typename disc_grid::axis_p1_type phi_axis_ecn = {
         n_phi, static_cast<scalar>(-M_PI - 0.5 * step_phi),
         static_cast<scalar>(M_PI - 0.5 * step_phi), host_mr};
-    typename disc_grid::axis_p0_t r_axis_ecp = {1, volume_inner_r,
-                                                volume_outer_r, host_mr};
-    typename disc_grid::axis_p1_t phi_axis_ecp = {
+    typename disc_grid::axis_p0_type r_axis_ecp = {1, volume_inner_r,
+                                                   volume_outer_r, host_mr};
+    typename disc_grid::axis_p1_type phi_axis_ecp = {
         n_phi, static_cast<scalar>(-M_PI - 0.5 * step_phi),
         static_cast<scalar>(M_PI - 0.5 * step_phi), host_mr};
 
