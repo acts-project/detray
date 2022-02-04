@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -53,4 +53,4 @@ auto read_from_csv(detector_input_files& files,
 
     return std::make_pair<decltype(d), decltype(name_map)>(std::move(d),
                                                            std::move(name_map));
-};
+}
