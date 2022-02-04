@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -79,10 +79,4 @@ TEST(mask, annulus2) {
                 intersection_status::e_inside);
     ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out4), {0., 0.07}) ==
                 intersection_status::e_inside);
-}
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

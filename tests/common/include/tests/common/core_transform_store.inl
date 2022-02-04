@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -46,10 +46,4 @@ TEST(ALGEBRA_PLUGIN, static_transform_store) {
 
     static_store.emplace_back(ctx0);
     ASSERT_EQ(static_store.size(ctx0), 5u);
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

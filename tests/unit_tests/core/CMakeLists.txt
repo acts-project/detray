@@ -1,26 +1,13 @@
-add_detray_test(grids_axis
-                grids_axis.cpp LINK_LIBRARIES detray::core)
+# Detray library, part of the ACTS project (R&D line)
+#
+# (c) 2021-2022 CERN for the benefit of the ACTS project
+#
+# Mozilla Public License Version 2.0
 
-add_detray_test(grids_grid2
-                grids_grid2.cpp LINK_LIBRARIES detray::core)
-
-add_detray_test(grids_populator
-                grids_populator.cpp LINK_LIBRARIES detray::core)
-
-add_detray_test(grids_serializer
-                grids_serializer.cpp LINK_LIBRARIES detray::core)
-
-add_detray_test(utils_enumerate
-                utils_enumerate.cpp LINK_LIBRARIES detray::core)
-
-add_detray_test(utils_local_object_finder
-                utils_local_object_finder.cpp LINK_LIBRARIES detray::core)
-
-add_detray_test(utils_quadratic_equation
-                utils_quadratic_equation.cpp LINK_LIBRARIES detray::core)
-
-add_detray_test(thrust_tuple
-                thrust_tuple.cpp LINK_LIBRARIES detray::Thrust)
-
-add_detray_test(tuple_accessor
-                tuple_accessor.cpp LINK_LIBRARIES detray::core detray::Thrust)
+# Set up the core tests.
+detray_add_test( core
+   "grids_axis.cpp" "grids_grid2.cpp" "grids_populator.cpp"
+   "grids_serializer.cpp" "thrust_tuple.cpp" "tuple_accessor.cpp"
+   "utils_enumerate.cpp" "utils_local_object_finder.cpp"
+   "utils_quadratic_equation.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core )

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -122,10 +122,4 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
         hash_tree<decltype(adj_scan.at(3)), dindex>(adj_scan.at(3));
 
     EXPECT_EQ(geo_checker_vol3.root(), vol3_hash);*/
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }
