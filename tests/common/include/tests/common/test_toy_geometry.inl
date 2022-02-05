@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -777,10 +777,4 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
                       range[0], {4, 50},
                       {{18, inv_sf_finder}, {leaving_world, inv_sf_finder}});
-}
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

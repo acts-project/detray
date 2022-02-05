@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -272,10 +272,4 @@ TEST(grids, grid2_irregular_replace) {
     test::point2<detray::scalar> p = {-0.5, 0.5};
     g2.populate(p, 4u);
     EXPECT_EQ(g2.bin(p), 4u);
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

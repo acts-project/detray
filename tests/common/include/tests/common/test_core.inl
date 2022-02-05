@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -55,10 +55,4 @@ TEST(ALGEBRA_PLUGIN, intersection) {
     ASSERT_NEAR(intersections[0].path, 1.7, epsilon);
     ASSERT_NEAR(intersections[1].path, 2, epsilon);
     ASSERT_TRUE(std::isinf(intersections[2].path));
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

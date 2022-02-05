@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -52,10 +52,4 @@ TEST(grids, serialize_deserialize) {
     expected_array = {5u, 2u};
     test_array = ser2.deserialize(r6, c12, 17u);
     EXPECT_EQ(test_array, expected_array);
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

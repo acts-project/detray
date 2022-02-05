@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -40,10 +40,4 @@ TEST(mask, rectangle2) {
     // Move outside point inside using a tolerance
     ASSERT_TRUE(r2.is_inside<local_type>(p2_out, {1., 0.5}) ==
                 intersection_status::e_inside);
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

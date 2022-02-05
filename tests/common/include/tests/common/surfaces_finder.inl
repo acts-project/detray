@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -60,10 +60,4 @@ TEST(ALGEBRA_PLUGIN, surfaces_finder) {
     EXPECT_EQ(finder[1].bin(1, 0)[0], 1u);
     EXPECT_EQ(finder[1].bin(0, 1)[0], 2u);
     EXPECT_EQ(finder[1].bin(1, 1)[0], 3u);
-}
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

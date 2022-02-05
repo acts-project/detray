@@ -8,6 +8,12 @@
 cmake_minimum_required( VERSION 3.11 )
 project( detray VERSION 0.4 LANGUAGES CXX )
 
+# Set up the used C++ standard(s).
+set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (host) C++ standard to use" )
+set( CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL "Disable (host) C++ extensions" )
+set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
+set( CMAKE_CUDA_EXTENSIONS FALSE CACHE BOOL "Disable (CUDA) C++ extensions" )
+
 # CMake include(s).
 include( CMakeDependentOption )
 include( GNUInstallDirs )
@@ -27,7 +33,6 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY
 
 # Include the Detray CMake code.
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
-include( detray-compiler-options )
 include( detray-functions )
 
 # Check if CUDA is available.

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -86,10 +86,4 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
     // Local intersection infoimation - unchanged
     ASSERT_NEAR(hit_bound_outside.p2[0], -1., epsilon);
     ASSERT_NEAR(hit_bound_outside.p2[1], -1., epsilon);
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

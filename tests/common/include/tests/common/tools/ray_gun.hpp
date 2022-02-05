@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -74,9 +74,9 @@ inline auto shoot_ray(const detector_t &detector, const point3 &origin,
     using detray_context = typename detector_t::context;
     // detray_context default_context;
 
-    track<detray_context> ray = {.pos = origin, .dir = direction};
+    track<detray_context> ray = {origin, direction};
 
     return shoot_ray(detector, ray);
-};
+}
 
 }  // namespace detray

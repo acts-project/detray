@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -23,10 +23,4 @@ TEST(utils, quad_equation) {
     ASSERT_EQ(std::get<0>(solution), 2);
     ASSERT_NEAR(std::get<1>(solution)[0], -3., 1e-5);
     ASSERT_NEAR(std::get<1>(solution)[1], 0.5, 1e-5);
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

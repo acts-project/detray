@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -54,10 +54,4 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     // const auto &adj = g.adjacency_list();
     // ASSERT_TRUE(adj.at(0) == nbrs_map_v0);
     // ASSERT_TRUE(adj.at(1) == nbrs_map_v1);
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

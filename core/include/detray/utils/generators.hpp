@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -324,6 +324,6 @@ std::vector<point2> r_phi_polygon(scalar rmin, scalar rmax, scalar phimin,
     r_phi_poly.push_back({rmax * cos_min_phi, rmax * sin_min_phi});
 
     return r_phi_poly;
-};
+}
 
 }  // namespace detray

@@ -1,8 +1,11 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021 CERN for the benefit of the ACTS project
+# (c) 2021-2022 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
+
+# CMake include(s).
+include( CMakeParseArguments )
 
 # Helper function for setting up the detray libraries.
 #
@@ -34,9 +37,31 @@ function( detray_add_library fullname basename )
 
 endfunction( detray_add_library )
 
+# Helper function for setting up the detray executables.
+#
+# The detray executables are *not* installed with the project, as they are only
+# used for testing / benchmarking the code. Clients of detray do not need them.
+#
+# Usage: detray_add_executable( foo bar.cpp
+#                               LINK_LIBRARIES detray::core )
+#
+function( detray_add_executable name )
+
+   # Parse the function's options.
+   cmake_parse_arguments( ARG "" "" "LINK_LIBRARIES" ${ARGN} )
+
+   # Create the executable.
+   set( exe_name "detray_${name}" )
+   add_executable( ${exe_name} ${ARG_UNPARSED_ARGUMENTS} )
+   if( ARG_LINK_LIBRARIES )
+      target_link_libraries( ${exe_name} PRIVATE ${ARG_LINK_LIBRARIES} )
+   endif()
+
+endfunction( detray_add_executable )
+
 # Helper function for setting up the detray tests.
 #
-# Usage: detray_add_test( source1.cpp source2.cpp
+# Usage: detray_add_test( core source1.cpp source2.cpp
 #                         LINK_LIBRARIES detray::core )
 #
 function( detray_add_test name )
@@ -54,6 +79,10 @@ function( detray_add_test name )
    # Run the executable as the test.
    add_test( NAME ${test_exe_name}
       COMMAND ${test_exe_name} )
+
+   # Set all properties for the test.
+   set_tests_properties( ${test_exe_name} PROPERTIES
+      ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/data/ )
 
 endfunction( detray_add_test )
 
