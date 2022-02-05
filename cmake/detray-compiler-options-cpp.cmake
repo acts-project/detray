@@ -1,15 +1,11 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021 CERN for the benefit of the ACTS project
+# (c) 2021-2022 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
 # Include the helper function(s).
 include( detray-functions )
-
-# Set the language standards to use.
-set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (Host) C++ standard to use" )
-set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
 
 # Turn on the correct setting for the __cplusplus macro with MSVC.
 if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC" )
@@ -26,6 +22,10 @@ if( ( "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" ) OR
    detray_add_flag( CMAKE_CXX_FLAGS "-Wshadow" )
    detray_add_flag( CMAKE_CXX_FLAGS "-Wunused-local-typedefs" )
 
+   # More rigorous tests for the Debug builds.
+   detray_add_flag( CMAKE_CXX_FLAGS_DEBUG "-Werror" )
+   detray_add_flag( CMAKE_CXX_FLAGS_DEBUG "-pedantic" )
+
 elseif( "${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC" )
 
    # Basic flags for all build modes.
@@ -33,12 +33,7 @@ elseif( "${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC" )
       "${CMAKE_CXX_FLAGS}" )
    detray_add_flag( CMAKE_CXX_FLAGS "/W4" )
 
+   # More rigorous tests for the Debug builds.
+   detray_add_flag( CMAKE_CXX_FLAGS_DEBUG "/WX" )
+
 endif()
-
-# Set the CUDA architecture to build code for.
-set( CMAKE_CUDA_ARCHITECTURES "52" CACHE STRING
-   "CUDA architectures to build device code for" )
-
-# Make CUDA generate debug symbols for the device code as well in a debug
-# build.
-detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-G" )

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,7 +15,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the construction of a static transform store
-TEST(ALGEBRA_PLUGIN, static_transform_store) {
+TEST(ALGEBRA_PLUGIN, static_mask_store) {
 
     vecmem::host_memory_resource host_mr;
 
@@ -82,10 +82,4 @@ TEST(ALGEBRA_PLUGIN, static_transform_store) {
     ASSERT_TRUE(ring_masks.size() == 4);
     ASSERT_TRUE(single_masks.size() == 0);
     ASSERT_TRUE(trapezoid_masks.size() == 1);
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

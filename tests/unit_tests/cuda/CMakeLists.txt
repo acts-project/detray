@@ -1,89 +1,48 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021 CERN for the benefit of the ACTS project
+# (c) 2021-2022 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
 # Enable CUDA as a language.
-enable_language(CUDA)
+enable_language( CUDA )
 
-# grid test
-add_detray_test(grids_grid2_cuda
-  "grids_grid2_cuda.cpp"
-  "grids_grid2_cuda_kernel.hpp"
-  "grids_grid2_cuda_kernel.cu"
-  LINK_LIBRARIES
-  vecmem::cuda)
+# Set the CUDA build flags.
+include( detray-compiler-options-cuda )
 
-# enumerate test
-add_detray_test(utils_enumerate_cuda
-  "utils_enumerate_cuda.cpp"
-  "utils_enumerate_cuda_kernel.hpp"
-  "utils_enumerate_cuda_kernel.cu"
-  LINK_LIBRARIES
-  vecmem::cuda)
+# "Core" tests.
+detray_add_test( core_cuda
+   "grids_grid2_cuda.cpp" "grids_grid2_cuda_kernel.hpp"
+   "grids_grid2_cuda_kernel.cu" "utils_enumerate_cuda.cpp"
+   "utils_enumerate_cuda_kernel.hpp" "utils_enumerate_cuda_kernel.cu"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common vecmem::cuda )
 
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported
 set( algebras "array" )
 if( DETRAY_EIGEN_PLUGIN )
-  list( APPEND algebras "eigen" )
+   list( APPEND algebras "eigen" )
 endif()
 
 foreach(algebra ${algebras})
 
-  # transform store test
-  add_detray_test(${algebra}_transform_store_cuda
-    "transform_store_cuda.cpp"
-    "transform_store_cuda_kernel.hpp"
-    "transform_store_cuda_kernel.cu"
-    LINK_LIBRARIES
-    vecmem::cuda detray::${algebra})
-  target_compile_definitions(detray_test_${algebra}_transform_store_cuda PRIVATE ${algebra}=${algebra})
-
-  # mask store test
-  add_detray_test(${algebra}_mask_store_cuda
-    "mask_store_cuda.cpp"
-    "mask_store_cuda_kernel.hpp"
-    "mask_store_cuda_kernel.cu"
-    LINK_LIBRARIES
-    vecmem::cuda detray::${algebra})
-  target_compile_definitions(detray_test_${algebra}_mask_store_cuda PRIVATE ${algebra}=${algebra})
-
-  # tuple test
-  add_detray_test(${algebra}_tuple_test_cuda
-    "tuple_test_cuda.cpp"
-    "tuple_test_cuda_kernel.hpp"
-    "tuple_test_cuda_kernel.cu"
-    LINK_LIBRARIES
-    vecmem::cuda detray::${algebra})
-  target_compile_definitions(detray_test_${algebra}_tuple_test_cuda PRIVATE ${algebra}=${algebra})
-
-  # surfaces finder test
-  add_detray_test(${algebra}_surfaces_finder_cuda
-    "surfaces_finder_cuda.cpp"
-    "surfaces_finder_cuda_kernel.hpp"
-    "surfaces_finder_cuda_kernel.cu"
-    LINK_LIBRARIES
-    vecmem::cuda detray::${algebra})
-  target_compile_definitions(detray_test_${algebra}_surfaces_finder_cuda PRIVATE ${algebra}=${algebra})
-
-  # detector test
-  add_detray_test(${algebra}_detector_cuda
-    "detector_cuda.cpp"
-    "detector_cuda_kernel.hpp"
-    "detector_cuda_kernel.cu"
-    LINK_LIBRARIES
-    vecmem::cuda detray::${algebra})
-  target_compile_definitions(detray_test_${algebra}_detector_cuda PRIVATE ${algebra}=${algebra})
-
-  # navigator test
-  add_detray_test(${algebra}_navigator_cuda
-    "navigator_cuda.cpp"
-    "navigator_cuda_kernel.hpp"
-    "navigator_cuda_kernel.cu"
-    LINK_LIBRARIES
-    vecmem::cuda detray::${algebra})
-  target_compile_definitions(detray_test_${algebra}_navigator_cuda PRIVATE ${algebra}=${algebra})
+   # Unit tests for the selected algebra.
+   detray_add_test( ${algebra}_cuda
+      "transform_store_cuda.cpp" "transform_store_cuda_kernel.hpp"
+      "transform_store_cuda_kernel.cu"
+      "mask_store_cuda.cpp" "mask_store_cuda_kernel.hpp"
+      "mask_store_cuda_kernel.cu"
+      "tuple_test_cuda.cpp" "tuple_test_cuda_kernel.hpp"
+      "tuple_test_cuda_kernel.cu"
+      "surfaces_finder_cuda.cpp" "surfaces_finder_cuda_kernel.hpp"
+      "surfaces_finder_cuda_kernel.cu"
+      "detector_cuda.cpp" "detector_cuda_kernel.hpp"
+      "detector_cuda_kernel.cu"
+      "navigator_cuda.cpp" "navigator_cuda_kernel.hpp"
+      "navigator_cuda_kernel.cu"
+      LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray_tests_common
+                     detray::${algebra} )
+   target_compile_definitions( detray_test_${algebra}_cuda
+      PRIVATE ${algebra}=${algebra} )
 
 endforeach()

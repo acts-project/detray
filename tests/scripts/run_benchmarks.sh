@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# Detray library, part of the ACTS project (R&D line)
+#
+# (c) 2021-2022 CERN for the benefit of the ACTS project
+#
+# Mozilla Public License Version 2.0
 
 echo "===> CI Benchmark running script for detray"
 
@@ -14,12 +20,12 @@ touch benchmark_${LASTCOMMIT}.csv
 
 for group in eigen array ; do
     echo "===> Running ${group}.benchmarks ..."
-    ./bin/${group}_masks --benchmark_out=${group}_masks.csv --benchmark_out_format=csv
-    ./bin/${group}_intersect_surfaces --benchmark_out=${group}_intersect_surfaces.csv --benchmark_out_format=csv
-    ./bin/${group}_intersect_all --benchmark_out=${group}_intersect_all.csv --benchmark_out_format=csv
+    ./bin/detray_${group}_masks --benchmark_out=${group}_masks.csv --benchmark_out_format=csv
+    ./bin/detray_${group}_intersect_surfaces --benchmark_out=${group}_intersect_surfaces.csv --benchmark_out_format=csv
+    ./bin/detray_${group}_intersect_all --benchmark_out=${group}_intersect_all.csv --benchmark_out_format=csv
 
     echo "===> Extracting benchmark results ..."
-    cat ${group}_masks.csv | tail -n5  > ${group}_masks_cropped.csv 
+    cat ${group}_masks.csv | tail -n5  > ${group}_masks_cropped.csv
     cat ${group}_intersect_surfaces.csv | tail -f -n3 > ${group}_intersect_surfaces_cropped.csv
     cat ${group}_intersect_all.csv | tail -f -n1 > ${group}_intersect_all_cropped.csv
     sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_masks_cropped.csv

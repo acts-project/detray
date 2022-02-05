@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -29,10 +29,4 @@ TEST(ALGEBRA_PLUGIN, read_detector) {
         read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
 
     std::cout << d.to_string(name_map) << std::endl;
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }

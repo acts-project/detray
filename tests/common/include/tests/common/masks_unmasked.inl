@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -21,10 +21,4 @@ TEST(mask, unmasked) {
     ASSERT_TRUE(u.is_inside<local_type>(p2) == e_hit);
     ASSERT_TRUE(u.is_inside<local_type>(p2, true) == e_hit);
     ASSERT_TRUE(u.is_inside<local_type>(p2, false) == e_missed);
-}
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-
-    return RUN_ALL_TESTS();
 }
