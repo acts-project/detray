@@ -523,7 +523,7 @@ class navigator {
     }
 
     DETRAY_HOST_DEVICE
-    const detector_t &get_detector() { return *_detector; }
+    const detector_t &get_detector() const { return *_detector; }
 
     private:
     /** the containers for all data */
