@@ -266,7 +266,7 @@ class navigator {
     };
 
     DETRAY_HOST_DEVICE
-    navigator(detector_t &d) : detector(&d) {}
+    navigator(const detector_t &d) : _detector(&d) {}
 
     /** Navigation status() call which established the current navigation
      *  information.
@@ -288,7 +288,7 @@ class navigator {
         // volume), the kernel will be initialized. Otherwise the candidates
         // are re-evaluated based on current trust level
         update_kernel(navigation, track,
-                      detector->volumes()[navigation.volume()]);
+                      _detector->volumes()[navigation.volume()]);
 
         // Should never be the case after update call (without portals we are
         // trapped)
@@ -348,10 +348,10 @@ class navigator {
         // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
         for (const auto [obj_idx, obj] :
-             enumerate(detector->surfaces(), volume)) {
+             enumerate(_detector->surfaces(), volume)) {
             // Retrieve candidate from the object
-            auto sfi = intersect(track, obj, detector->transforms(),
-                                 detector->masks());
+            auto sfi = intersect(track, obj, _detector->transforms(),
+                                 _detector->masks());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < track.overstep_tolerance) {
@@ -399,10 +399,11 @@ class navigator {
             while (not navigation.is_exhausted()) {
                 // Only update the next candidate
                 dindex obj_idx = navigation.next()->index;
-                auto sfi = intersect(track, detector->surfaces()[obj_idx],
-                                     detector->transforms(), detector->masks());
+                auto sfi =
+                    intersect(track, _detector->surfaces()[obj_idx],
+                              _detector->transforms(), _detector->masks());
                 sfi.index = obj_idx;
-                sfi.link = std::get<0>(detector->surfaces()[obj_idx].edge());
+                sfi.link = std::get<0>(_detector->surfaces()[obj_idx].edge());
                 (*navigation.next()) = sfi;
                 navigation.set_dist(sfi.path);
 
@@ -439,12 +440,13 @@ class navigator {
         else if (navigation.trust_level() == e_fair_trust) {
             for (auto &candidate : navigation.candidates()) {
                 dindex obj_idx = candidate.index;
-                auto sfi = intersect(track, detector->surfaces()[obj_idx],
-                                     detector->transforms(), detector->masks());
+                auto sfi =
+                    intersect(track, _detector->surfaces()[obj_idx],
+                              _detector->transforms(), _detector->masks());
                 candidate = sfi;
                 candidate.index = obj_idx;
                 candidate.link =
-                    std::get<0>(detector->surfaces()[obj_idx].edge());
+                    std::get<0>(_detector->surfaces()[obj_idx].edge());
             }
             set_next(navigation);
             return;
@@ -521,14 +523,14 @@ class navigator {
     }
 
     DETRAY_HOST_DEVICE
-    auto &get_detector() { return detector; }
+    auto &get_detector() { return _detector; }
 
     DETRAY_HOST_DEVICE
-    const auto &get_detector() const { return detector; }
+    const auto &get_detector() const { return _detector; }
 
     private:
     /** the containers for all data */
-    detector_t *detector;
+    const detector_t *_detector;
 };
 
 }  // namespace detray
