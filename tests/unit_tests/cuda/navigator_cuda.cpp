@@ -31,7 +31,7 @@ TEST(navigator_cuda, navigator) {
                                                    n_edc_layers);
 
     // Create navigator
-    navigator_host_t n(det, mng_mr);
+    navigator_host_t n(det);
 
     // Create the vector of initial track parameters
     vecmem::vector<track<nav_context>> tracks_host(&mng_mr);
@@ -133,8 +133,8 @@ TEST(navigator_cuda, navigator) {
         sizes, capacities, dev_mr, &mng_mr);
     copy.setup(position_records_buffer);
 
-    // Get navigator data
-    auto n_data = get_data(n);
+    // Get detector data
+    auto det_data = get_data(det);
 
     // Get tracks data
     auto tracks_data = vecmem::get_data(tracks_device);
@@ -151,7 +151,7 @@ TEST(navigator_cuda, navigator) {
     copy.setup(candidates_buffer);
 
     // Run navigator test
-    navigator_test(n_data, tracks_data, candidates_buffer,
+    navigator_test(det_data, tracks_data, candidates_buffer,
                    volume_records_buffer, position_records_buffer);
 
     // Copy volume record buffer into volume & position records device
