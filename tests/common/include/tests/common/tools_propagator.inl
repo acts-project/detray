@@ -47,7 +47,7 @@ TEST(ALGEBRA_PLUGIN, propagator) {
     using detray_stepper = line_stepper<detray_track>;
 
     detray_stepper s;
-    detray_navigator n(std::move(d));
+    detray_navigator n(d);
 
     using detray_propagator = propagator<detray_stepper, detray_navigator>;
     detray_propagator p(std::move(s), std::move(n));

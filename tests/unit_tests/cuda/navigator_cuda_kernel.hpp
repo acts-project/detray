@@ -47,7 +47,7 @@ namespace detray {
 
 /// test function for navigator with single state
 void navigator_test(
-    navigator_view<navigator_host_t> n_data,
+    detector_view<detector_host_t> det_data,
     vecmem::data::vector_view<track<nav_context>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,

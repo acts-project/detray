@@ -265,20 +265,8 @@ class navigator {
         dindex _volume_index = dindex_invalid;
     };
 
-    DETRAY_HOST
-    navigator(const detector_t &d) : detector(d) {}
-
-    DETRAY_HOST
-    navigator(const detector_t &d, vecmem::memory_resource &resource)
-        : detector(resource) {
-        detector = d;
-    }
-
-    template <typename navigator_data_t,
-              std::enable_if_t<!std::is_base_of_v<detector_t, navigator_data_t>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE navigator(navigator_data_t &n_data)
-        : detector(n_data._detector_view) {}
+    DETRAY_HOST_DEVICE
+    navigator(detector_t &d) : detector(&d) {}
 
     /** Navigation status() call which established the current navigation
      *  information.
@@ -300,7 +288,7 @@ class navigator {
         // volume), the kernel will be initialized. Otherwise the candidates
         // are re-evaluated based on current trust level
         update_kernel(navigation, track,
-                      detector.volumes()[navigation.volume()]);
+                      detector->volumes()[navigation.volume()]);
 
         // Should never be the case after update call (without portals we are
         // trapped)
@@ -360,10 +348,10 @@ class navigator {
         // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
         for (const auto [obj_idx, obj] :
-             enumerate(detector.surfaces(), volume)) {
+             enumerate(detector->surfaces(), volume)) {
             // Retrieve candidate from the object
-            auto sfi =
-                intersect(track, obj, detector.transforms(), detector.masks());
+            auto sfi = intersect(track, obj, detector->transforms(),
+                                 detector->masks());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < track.overstep_tolerance) {
@@ -411,10 +399,10 @@ class navigator {
             while (not navigation.is_exhausted()) {
                 // Only update the next candidate
                 dindex obj_idx = navigation.next()->index;
-                auto sfi = intersect(track, detector.surfaces()[obj_idx],
-                                     detector.transforms(), detector.masks());
+                auto sfi = intersect(track, detector->surfaces()[obj_idx],
+                                     detector->transforms(), detector->masks());
                 sfi.index = obj_idx;
-                sfi.link = std::get<0>(detector.surfaces()[obj_idx].edge());
+                sfi.link = std::get<0>(detector->surfaces()[obj_idx].edge());
                 (*navigation.next()) = sfi;
                 navigation.set_dist(sfi.path);
 
@@ -451,12 +439,12 @@ class navigator {
         else if (navigation.trust_level() == e_fair_trust) {
             for (auto &candidate : navigation.candidates()) {
                 dindex obj_idx = candidate.index;
-                auto sfi = intersect(track, detector.surfaces()[obj_idx],
-                                     detector.transforms(), detector.masks());
+                auto sfi = intersect(track, detector->surfaces()[obj_idx],
+                                     detector->transforms(), detector->masks());
                 candidate = sfi;
                 candidate.index = obj_idx;
                 candidate.link =
-                    std::get<0>(detector.surfaces()[obj_idx].edge());
+                    std::get<0>(detector->surfaces()[obj_idx].edge());
             }
             set_next(navigation);
             return;
@@ -540,28 +528,7 @@ class navigator {
 
     private:
     /** the containers for all data */
-    detector_t detector;
+    detector_t *detector;
 };
-
-template <typename navigator_t>
-struct navigator_data {
-    navigator_data(navigator_t &n)
-        : _detector_data(get_data(n.get_detector())) {}
-
-    detector_data<typename navigator_t::detector_type> _detector_data;
-};
-
-template <typename navigator_t>
-struct navigator_view {
-    navigator_view(navigator_data<navigator_t> &n_data)
-        : _detector_view(n_data._detector_data) {}
-
-    detector_view<typename navigator_t::detector_type> _detector_view;
-};
-
-template <typename navigator_t>
-inline navigator_data<navigator_t> get_data(navigator_t &n) {
-    return n;
-}
 
 }  // namespace detray

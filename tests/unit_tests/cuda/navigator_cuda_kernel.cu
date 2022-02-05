@@ -11,7 +11,7 @@
 namespace detray {
 
 __global__ void navigator_test_kernel(
-    navigator_view<navigator_host_t> n_data,
+    detector_view<detector_host_t> det_data,
     vecmem::data::vector_view<track<nav_context>> tracks_data,
     vecmem::data::jagged_vector_view<intersection> candidates_data,
     vecmem::data::jagged_vector_view<dindex> volume_records_data,
@@ -19,7 +19,7 @@ __global__ void navigator_test_kernel(
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
-    navigator_device_t n(n_data);
+    detector_device_t det(det_data);
     vecmem::device_vector<track<nav_context>> tracks(tracks_data);
     vecmem::jagged_device_vector<intersection> candidates(candidates_data);
     vecmem::jagged_device_vector<dindex> volume_records(volume_records_data);
@@ -29,6 +29,8 @@ __global__ void navigator_test_kernel(
     if (gid >= tracks.size()) {
         return;
     }
+
+    navigator_device_t n(det);
 
     auto& traj = tracks.at(gid);
 
@@ -54,7 +56,7 @@ __global__ void navigator_test_kernel(
 }
 
 void navigator_test(
-    navigator_view<navigator_host_t> n_data,
+    detector_view<detector_host_t> det_data,
     vecmem::data::vector_view<track<nav_context>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
@@ -65,7 +67,7 @@ void navigator_test(
 
     // run the test kernel
     navigator_test_kernel<<<block_dim, thread_dim>>>(
-        n_data, tracks_data, candidates_data, volume_records_data,
+        det_data, tracks_data, candidates_data, volume_records_data,
         position_records_data);
 
     // cuda error check
