@@ -292,8 +292,8 @@ detector_from_csv(const std::string &detector_name,
         detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_o);
     }
 
-    typename detector_t::mask_link mask_index = {dindex_invalid,
-                                                 dindex_invalid};
+    typename detector_t::mask_defs::link_type mask_index = {dindex_invalid,
+                                                            dindex_invalid};
     constexpr auto cylinder_id = detector_t::mask_defs::e_cylinder3;
     constexpr auto rectangle_id = detector_t::mask_defs::e_rectangle2;
     constexpr auto trapezoid_id = detector_t::mask_defs::e_trapezoid2;

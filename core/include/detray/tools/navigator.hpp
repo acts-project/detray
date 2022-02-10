@@ -67,7 +67,7 @@ class navigator {
     using inspector_type = inspector_t;
 
     template <typename T>
-    using vector_type = typename detector_t::template vector_t<T>;
+    using vector_type = typename detector_t::template vector_type<T>;
 
     /** Navigation status flag */
     enum navigation_status : int {
