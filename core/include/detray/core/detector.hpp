@@ -86,12 +86,12 @@ class detector {
     using disc = ring2<planar_intersector, __plugin::cartesian2<detray::scalar>,
                        edge_type>;
 
-    using mask_container = mask_store<tuple_t, vector_t, rectangle, trapezoid,
-                                      annulus, cylinder, disc>;
+    /*using mask_container = mask_store<tuple_t, vector_t, rectangle, trapezoid,
+                                      annulus, cylinder, disc>;*/
     //  TODO: Move to detector registry
     using masks =
         default_mask_registry<rectangle, trapezoid, annulus, cylinder, disc>;
-    //using mask_container = typename masks::container_type;
+    using mask_container = typename masks::template container_type<tuple_t, vector_t>;
 
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
