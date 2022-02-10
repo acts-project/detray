@@ -37,7 +37,7 @@ TEST(detector_cuda, detector) {
     auto& discs_host =
         masks_host.group<detector_host_t::mask_defs::e_portal_ring2>();
     auto& cylinders_host =
-        masks_host.group<detector_host_t::e_portal_cylinder3>();
+        masks_host.group<detector_host_t::mask_defs::e_portal_cylinder3>();
     auto& rectangles_host =
         masks_host.group<detector_host_t::mask_defs::e_rectangle2>();
 
