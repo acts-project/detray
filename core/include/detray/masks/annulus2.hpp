@@ -13,7 +13,6 @@
 
 #include "detray/core/intersection.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/masks/mask_identifier.hpp"
 #include "detray/tools/planar_intersector.hpp"
 
 namespace detray {
@@ -46,7 +45,6 @@ namespace detray {
 template <typename intersector_t = planar_intersector,
           typename mask_local_t = __plugin::polar2<detray::scalar>,
           typename mask_links_t = unsigned int,
-          unsigned int kMaskContext = e_annulus2,
           template <typename, unsigned int> class array_t = darray>
 struct annulus2 {
     using mask_tolerance = array_t<scalar, 2>;
@@ -64,10 +62,6 @@ struct annulus2 {
                            0.};
 
     links_type _links;
-
-    static constexpr unsigned int mask_context = kMaskContext;
-
-    static constexpr unsigned int mask_identifier = e_annulus2;
 
     static constexpr mask_tolerance within_epsilon = {
         std::numeric_limits<scalar>::epsilon(),
@@ -94,7 +88,7 @@ struct annulus2 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    annulus2<intersector_t, local_type, links_type, kMaskContext> &operator=(
+    annulus2<intersector_t, local_type, links_type> &operator=(
         const array_t<scalar, 7> &rhs) {
         _values = rhs;
         return (*this);
@@ -118,7 +112,7 @@ struct annulus2 {
 
         // In cartesian coordinates go to modules system by shifting origin
         if constexpr (std::is_same_v<inside_local_t,
-                                     __plugin::cartesian2<detray::scalar> >) {
+                                     __plugin::cartesian2<detray::scalar>>) {
             // Calculate radial coordinate in module system:
             scalar x_mod = p[0] - _values[4];
             scalar y_mod = p[1] - _values[5];
@@ -225,9 +219,9 @@ struct annulus2 {
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
-        ss << "annulus2," << kMaskContext;
+        ss << "annulus2";
         for (const auto &v : _values) {
-            ss << "," << v;
+            ss << ", " << v;
         }
         return ss.str();
     }

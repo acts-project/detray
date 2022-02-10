@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include "detray/core/type_registry.hpp"
 #include "detray/geometry/volume.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -16,25 +17,12 @@ TEST(ALGEBRA_PLUGIN, volume) {
     using namespace detray;
     using namespace __plugin;
 
-    // Known primitives
-    /*enum object_registrys : unsigned int {
-        e_object_types = 2,
-        e_surface = 0,
-        e_portal = 1,
-        e_any = 1,  // defaults to portal
-    };*/
-    struct object_registry {
-        // Known primitives
-        enum id : unsigned int {
-            e_object_types = 2,
-            e_surface = 0,
-            e_portal = 1,
-            e_any = 1,  // defaults to portal
-            e_unknown = 3,
-        };
-    };
-
-    using volume = volume<object_registry>;
+    // dummy types
+    using surface_t = dindex;
+    // using sf_finder_t = dindex;
+    using object_defs = default_object_registry<surface_t>;
+    // using sf_finder_defs = default_sf_finder_registry<sf_finder_t>;
+    using volume = volume<object_defs>;
 
     // Check construction, setters and getters
     darray<scalar, 6> bounds = {0., 10., -5., 5., -M_PI, M_PI};
@@ -49,24 +37,21 @@ TEST(ALGEBRA_PLUGIN, volume) {
 
     // Check surface and portal ranges
     dindex_range surface_range{2, 8};
-    dindex_range portal_range{20, 24};
-    v1.template update_range<object_registry::id::e_surface>(surface_range);
-    v1.template update_range<object_registry::id::e_portal>(portal_range);
-    ASSERT_TRUE(v1.template range<object_registry::id::e_surface>() ==
-                surface_range);
-    ASSERT_TRUE(v1.template range<object_registry::id::e_portal>() ==
-                portal_range);
+    dindex_range portal_range{8, 24};
+    dindex_range full_range{2, 24};
+    v1.update_range<object_defs::e_surface>(surface_range);
+    v1.update_range<object_defs::e_portal>(portal_range);
+    ASSERT_TRUE(v1.range<object_defs::e_surface>() == full_range);
+    ASSERT_TRUE(v1.range<object_defs::e_portal>() == full_range);
     ASSERT_FALSE(v1.empty());
-    ASSERT_EQ(v1.template n_objects<object_registry::id::e_surface>(), 6);
-    ASSERT_EQ(v1.template n_objects<object_registry::id::e_portal>(), 4);
+    ASSERT_EQ(v1.template n_objects<object_defs::e_surface>(), 22);
+    ASSERT_EQ(v1.template n_objects<object_defs::e_portal>(), 22);
 
     // Check copy constructor
     const auto v2 = volume(v1);
     ASSERT_TRUE(v2.index() == 12345);
     ASSERT_TRUE(v2.bounds() == bounds);
     ASSERT_TRUE(v2.surfaces_finder_entry() == 12);
-    ASSERT_TRUE(v2.template range<object_registry::id::e_surface>() ==
-                surface_range);
-    ASSERT_TRUE(v2.template range<object_registry::id::e_portal>() ==
-                portal_range);
+    ASSERT_TRUE(v2.template range<object_defs::e_surface>() == full_range);
+    ASSERT_TRUE(v2.template range<object_defs::e_portal>() == full_range);
 }

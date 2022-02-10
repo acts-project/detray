@@ -33,7 +33,7 @@ constexpr scalar isclose = 1e-5;
 TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // Create a translated cylinder and test untersection
     transform3 shifted(vector3{3., 2., 10.});
-    cylinder3<false, cylinder_intersector, unbound, unsigned int, 1>
+    cylinder3<false, cylinder_intersector, unbound, unsigned int>
         cylinder_unbound = {4., -10., 10.};
     cylinder_intersector ci;
 
@@ -49,7 +49,7 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
 
     // The same but bound
     cylinder3<false, cylinder_intersector,
-              __plugin::cylindrical2<detray::scalar>, unsigned int, 1>
+              __plugin::cylindrical2<detray::scalar>, unsigned int>
         cylinder_bound = {4., -10., 10.};
     auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.},
                                   vector3{1., 0., 0.}, cylinder_bound);

@@ -62,7 +62,7 @@ class navigator {
     using object_t = typename object_container::value_type;
     using transform_container = typename detector_t::transform_store;
     using mask_container = typename detector_t::mask_container;
-    using objs = typename detector_t::object_id;
+    using objs = typename detector_t::object_defs;
 
     using inspector_type = inspector_t;
 

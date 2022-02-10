@@ -14,6 +14,8 @@
 #include "detray/core/mask_store.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
+#include "detray/core/type_registry.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/object_registry.hpp"
 #include "detray/geometry/surface_base.hpp"
@@ -57,29 +59,14 @@ template <typename detector_registry,
 class detector {
 
     public:
+    template <typename T>
+    using vector_t = vector_type<T>;
+
     /// Forward the alignable container and context
     using transform_store = static_transform_store<vector_type>;
     using context = typename transform_store::context;
     using surfaces_serializer_type = serializer2;
     using name_map = std::map<dindex, std::string>;
-
-    template <typename T>
-    using vector_t = vector_type<T>;
-
-    // TODO: Remove this from detector
-    /** Encodes the position in a collection container for the respective
-        mask type . */
-    enum mask_id : unsigned int {
-        e_mask_types = 5,
-        e_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_annulus2 = 2,
-        e_cylinder3 = 3,
-        e_portal_cylinder3 = 3,  // no distinction from surface cylinder
-        e_portal_ring2 = 4,
-        e_single3 = std::numeric_limits<unsigned int>::max(),
-        e_unknown = std::numeric_limits<unsigned int>::max(),
-    };
 
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
@@ -93,33 +80,35 @@ class detector {
     /// mask types
     using rectangle =
         rectangle2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                   edge_type, e_rectangle2>;
+                   edge_type>;
     using trapezoid =
         trapezoid2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                   edge_type, e_trapezoid2>;
-    using annulus =
-        annulus2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                 edge_type, e_annulus2>;
-    using cylinder = cylinder3<false, cylinder_intersector,
-                               __plugin::cylindrical2<detray::scalar>,
-                               edge_type, e_cylinder3>;
+                   edge_type>;
+    using annulus = annulus2<planar_intersector,
+                             __plugin::cartesian2<detray::scalar>, edge_type>;
+    using cylinder =
+        cylinder3<false, cylinder_intersector,
+                  __plugin::cylindrical2<detray::scalar>, edge_type>;
     using disc = ring2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                       edge_type, e_ring2>;
+                       edge_type>;
 
     using mask_container = mask_store<tuple_type, vector_type, rectangle,
                                       trapezoid, annulus, cylinder, disc>;
+    // TODO: Move to detector registry
+    using mask_defs =
+        default_mask_registry<rectangle, trapezoid, annulus, cylinder, disc>;
 
     /** The Surface definition:
      *  <transform_link, mask_link, volume_link, source_link, edge_link>
      */
-    using surface_type = surface_base<transform_link, mask_link, volume_link,
+    using surface_type = surface_base<mask_defs, transform_link, volume_link,
                                       source_link, edge_type>;
-
-    using object_id = object_registry<surface_type>;
     using surface_container = vector_type<surface_type>;
 
+    // TODO: Move to detector_registry
+    using object_defs = default_object_registry<surface_type>;
     // Volume type
-    using volume_type = volume<object_id, dindex_range, array_type>;
+    using volume_type = volume<object_defs, dindex_range, array_type>;
 
     /// Accelerator structure
 
@@ -133,9 +122,8 @@ class detector {
      * unrolled and filled in lockstep with the masks
      */
     using surface_filling_container =
-        array_type<vector_type<surface_type>, e_mask_types>;
-    using transform_container =
-        array_type<transform_store, mask_id::e_mask_types>;
+        array_type<vector_type<surface_type>, mask_defs::n_types>;
+    using transform_container = array_type<transform_store, mask_defs::n_types>;
 
     // Neighborhood finder, using accelerator data structure
     static constexpr size_t N_GRIDS =
@@ -323,7 +311,7 @@ class detector {
     DETRAY_HOST inline void add_objects(
         const context ctx,
         detector_components &&... components) noexcept(false) {
-        // Fill according to type, starting at type '0' (see 'mask_id')
+        // Fill according to type, starting at type '0' (see 'mask_defs')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
 
@@ -473,11 +461,11 @@ class detector {
             ss << " - name: '" << v.name(names) << "'" << std::endl;
 
             ss << "     contains    "
-               << v.template n_objects<object_id::e_surface>() << " surfaces "
+               << v.template n_objects<object_defs::e_surface>() << " surfaces "
                << std::endl;
 
             ss << "                 "
-               << v.template n_objects<object_id::e_portal>() << " portals "
+               << v.template n_objects<object_defs::e_portal>() << " portals "
                << std::endl;
 
             if (v.surfaces_finder_entry() != dindex_invalid) {

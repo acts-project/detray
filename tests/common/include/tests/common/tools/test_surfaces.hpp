@@ -10,11 +10,13 @@
 #include <functional>
 #include <vecmem/memory/host_memory_resource.hpp>
 
+#include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface_base.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
+#include "detray/masks/rectangle2.hpp"
 #include "detray/tools/local_object_finder.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
@@ -27,24 +29,26 @@ using namespace vector;
 using transform3 = __plugin::transform3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
+using mask_defs = default_mask_registry<rectangle2<>>;
 
 using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 
 /** This method creates a number (distances.size()) planes along a direction
  */
-dvector<surface_base<transform3>> planes_along_direction(
+dvector<surface_base<mask_defs, transform3>> planes_along_direction(
     dvector<scalar> distances, vector3 direction) {
     // Rotation matrix
     vector3 z = direction;
     vector3 x = normalize(vector3{0, -z[2], z[1]});
 
-    dvector<surface_base<transform3>> return_surfaces;
+    dvector<surface_base<mask_defs, transform3>> return_surfaces;
     return_surfaces.reserve(distances.size());
-    for (auto &d : distances) {
+    for (const auto &[idx, d] : enumerate(distances)) {
         vector3 t = d * direction;
         transform3 trf(t, z, x);
-        return_surfaces.push_back(
-            surface_base<transform3>{std::move(trf), 0, 0, false});
+        typename mask_defs::link_type mask_link{mask_defs::e_rectangle2, idx};
+        return_surfaces.emplace_back(std::move(trf), std::move(mask_link), 0,
+                                     false);
     }
     return return_surfaces;
 }

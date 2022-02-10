@@ -33,13 +33,17 @@ namespace {
  */
 template <typename context_t, typename surface_container_t,
           typename mask_container_t, typename transform_container_t,
-          typename edge_links, unsigned int cylinder_id = 3>
+          typename edge_links>
 inline void add_cylinder_surface(const dindex volume_id, context_t &ctx,
                                  surface_container_t &surfaces,
                                  mask_container_t &masks,
                                  transform_container_t &transforms,
                                  const scalar r, const scalar lower_z,
                                  const scalar upper_z, const edge_links edge) {
+    using mask_defs =
+        typename surface_container_t::value_type::value_type::mask_defs;
+    constexpr auto cylinder_id = mask_defs::e_portal_cylinder3;
+
     const scalar min_z = std::min(lower_z, upper_z);
     const scalar max_z = std::max(lower_z, upper_z);
 
@@ -54,7 +58,7 @@ inline void add_cylinder_surface(const dindex volume_id, context_t &ctx,
     masks.template group<cylinder_id>().back().links() = edge;
 
     // add surface
-    typename surface_container_t::value_type::value_type::mask_links mask_link{
+    typename mask_defs::link_type mask_link{
         cylinder_id, masks.template size<cylinder_id>() - 1};
     surfaces[cylinder_id].emplace_back(transforms[cylinder_id].size(ctx) - 1,
                                        mask_link, volume_id, dindex_invalid);
@@ -78,13 +82,17 @@ inline void add_cylinder_surface(const dindex volume_id, context_t &ctx,
  */
 template <typename context_t, typename surface_container_t,
           typename mask_container_t, typename transform_container_t,
-          typename edge_links, unsigned int disc_id = 4>
+          typename edge_links>
 inline void add_disc_surface(const dindex volume_id, context_t &ctx,
                              surface_container_t &surfaces,
                              mask_container_t &masks,
                              transform_container_t &transforms,
                              const scalar inner_r, const scalar outer_r,
                              const scalar z, const edge_links edge) {
+    using mask_defs =
+        typename surface_container_t::value_type::value_type::mask_defs;
+    constexpr auto disc_id = mask_defs::e_portal_ring2;
+
     const scalar min_r = std::min(inner_r, outer_r);
     const scalar max_r = std::max(inner_r, outer_r);
 
@@ -99,8 +107,8 @@ inline void add_disc_surface(const dindex volume_id, context_t &ctx,
     masks.template group<disc_id>().back().links() = edge;
 
     // add surface
-    typename surface_container_t::value_type::value_type::mask_links mask_link{
-        disc_id, masks.template size<disc_id>() - 1};
+    typename mask_defs::link_type mask_link{disc_id,
+                                            masks.template size<disc_id>() - 1};
     surfaces[disc_id].emplace_back(transforms[disc_id].size(ctx) - 1, mask_link,
                                    volume_id, dindex_invalid);
 
@@ -189,19 +197,19 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
  */
 template <typename context_t, typename volume_type,
           typename surface_container_t, typename mask_container_t,
-          typename transform_container_t, typename config_t,
-          unsigned int rectangle_id = 0>
+          typename transform_container_t, typename config_t>
 inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                   surface_container_t &surfaces,
                                   mask_container_t &masks,
                                   transform_container_t &transforms,
                                   config_t cfg) {
+    using mask_defs =
+        typename surface_container_t::value_type::value_type::mask_defs;
+    using mask_link_t = typename mask_defs::link_type;
+    constexpr auto rectangle_id = mask_defs::e_rectangle2;
+
     auto volume_id = vol.index();
     vol.set_grid_type(volume_type::grid_type::e_z_phi_grid);
-
-    /// mask index: type, range
-    using mask_link_t =
-        typename surface_container_t::value_type::value_type::mask_links;
 
     // Create the module centers
 
@@ -238,16 +246,13 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     }
 
     // Create geometry data
-
-    // First value is two for rectangle type, then index into local container
-    mask_link_t m_id = {0, 0};
-
     for (auto &m_center : m_centers) {
 
         // Surfaces with the linking into the local containers
-        m_id = {rectangle_id, masks.template size<rectangle_id>()};
-        surfaces[rectangle_id].emplace_back(transforms[rectangle_id].size(ctx),
-                                            m_id, volume_id, dindex_invalid);
+        mask_link_t m_id = {rectangle_id, masks.template size<rectangle_id>()};
+        const auto trf_index = transforms[rectangle_id].size(ctx);
+        surfaces[rectangle_id].emplace_back(trf_index, m_id, volume_id,
+                                            dindex_invalid);
         surfaces[rectangle_id].back().set_edge({volume_id, dindex_invalid});
         surfaces[rectangle_id].back().set_grid_status(true);
 
@@ -355,17 +360,20 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
  */
 template <typename context_t, typename volume_type,
           typename surface_container_t, typename mask_container_t,
-          typename transform_container_t, typename config_t,
-          unsigned int trapezoid_id = 1>
+          typename transform_container_t, typename config_t>
 void create_endcap_modules(context_t &ctx, volume_type &vol,
                            surface_container_t &surfaces,
                            mask_container_t &masks,
                            transform_container_t &transforms, config_t cfg) {
+    /// mask index: type, range
+    using mask_defs =
+        typename surface_container_t::value_type::value_type::mask_defs;
+    using mask_link_t = typename mask_defs::link_type;
+
+    constexpr auto trapezoid_id = mask_defs::e_trapezoid2;
     auto volume_id = vol.index();
     vol.set_grid_type(volume_type::grid_type::e_r_phi_grid);
 
-    using mask_link_t =
-        typename surface_container_t::value_type::value_type::mask_links;
     // calculate the radii of the rings
     std::vector<scalar> radii;
     // calculate the radial borders
@@ -839,9 +847,6 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
     using detector_t = detector<detector_registry::toy_detector, array_type,
                                 tuple_type, vector_type, jagged_vector_type>;
 
-    // sub-geometry components type
-    using transform_store = typename detector_t::transform_store;
-
     /** Leaving world */
     const dindex leaving_world = dindex_invalid;
 
@@ -958,7 +963,7 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
     detector_t det(resource);
 
     // context object
-    typename transform_store::context ctx0{};
+    typename detector_t::context ctx0{};
 
     brl_m_config brl_config{};
     edc_m_config edc_config{};
