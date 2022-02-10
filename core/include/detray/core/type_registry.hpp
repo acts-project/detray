@@ -142,8 +142,8 @@ class default_mask_registry : public registry_base<registered_types...> {
     using container_type = mask_store<tuple_t, vector_t, registered_types...>;
     // using link_type = typed_index<id>;
     using link_type = typename container_type<>::link_type;
-    // using link_type = std::array<dindex, 2>;
-    //  using range_type = typed_index<id, dindex_range>;
+    //using link_type = std::array<dindex, 2>;
+    // using range_type = typed_index<id, dindex_range>;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
