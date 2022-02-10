@@ -18,6 +18,13 @@ TEST(mask_store_cuda, mask_store) {
 
     using cartesian2 = __plugin::cartesian2<detray::scalar>;
 
+    constexpr unsigned int e_rectangle2 = 0;
+    constexpr unsigned int e_trapezoid2 = 1;
+    constexpr unsigned int e_ring2 = 2;
+    constexpr unsigned int e_cylinder3 = 3;
+    constexpr unsigned int e_single3 = 4;
+    constexpr unsigned int e_annulus2 = 5;
+    
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
@@ -66,13 +73,6 @@ TEST(mask_store_cuda, mask_store) {
     vecmem::jagged_vector<intersection_status> output_host(5, &mng_mr);
 
     /** get mask objects **/
-    constexpr unsigned int e_rectangle2 = 0;
-    constexpr unsigned int e_trapezoid2 = 1;
-    constexpr unsigned int e_ring2 = 2;
-    constexpr unsigned int e_cylinder3 = 3;
-    constexpr unsigned int e_single3 = 4;
-    constexpr unsigned int e_annulus2 = 5;
-
     const auto& rectangle_mask = store.group<e_rectangle2>()[0];
     const auto& trapezoid_mask = store.group<e_trapezoid2>()[0];
     const auto& ring_mask = store.group<e_ring2>()[0];
