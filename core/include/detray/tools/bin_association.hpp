@@ -41,7 +41,7 @@ static inline void bin_association(const context_t & /*context*/,
 
     // Get surfaces, transforms and masks
     const auto &dc = detector.data();
-    const auto &surface_masks = detector.masks();
+    const auto &surface_masks = detector.mask_store();
 
     const auto &bounds = volume.bounds();
     bool is_cylinder =

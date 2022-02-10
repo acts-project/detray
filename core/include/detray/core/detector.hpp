@@ -64,9 +64,9 @@ class detector {
     using name_map = std::map<dindex, std::string>;
 
     /// Forward the alignable container and context
-    using transform_store = static_transform_store<vector_t>;
-    using transform_link = typename transform_store::link_type;
-    using context = typename transform_store::context;
+    using transform_container = static_transform_store<vector_t>;
+    using transform_link = typename transform_container::link_type;
+    using context = typename transform_container::context;
 
     /// edge links: next volume, next (local) object finder
     using edge_type = array_t<dindex, 2>;
@@ -86,20 +86,20 @@ class detector {
     using disc = ring2<planar_intersector, __plugin::cartesian2<detray::scalar>,
                        edge_type>;
 
-    // using mask_container = mask_store<tuple_type, vector_type, rectangle,
-    //                                   trapezoid, annulus, cylinder, disc>;
+    //using mask_container = mask_store<tuple_t, vector_t, rectangle, trapezoid,
+    //                                  annulus, cylinder, disc>;
     //  TODO: Move to detector registry
-    using mask_defs =
+    using masks =
         default_mask_registry<rectangle, trapezoid, annulus, cylinder, disc>;
     using mask_container =
-        typename mask_defs::container_type<tuple_t, vector_t>;
+         typename masks::container_type<tuple_t, vector_t>;
 
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
     /** The Surface definition:
      *  <transform_link, volume_link, source_link, edge_link>
      */
-    using surface_type = surface_base<mask_defs, transform_link, volume_link,
+    using surface_type = surface_base<masks, transform_link, volume_link,
                                       source_link, edge_type>;
     using surface_container = vector_t<surface_type>;
 
@@ -113,8 +113,9 @@ class detector {
      * unrolled and filled in lockstep with the masks
      */
     using surface_filling_container =
-        array_t<vector_t<surface_type>, mask_defs::n_types>;
-    using transform_container = array_t<transform_store, mask_defs::n_types>;
+        array_t<vector_t<surface_type>, masks::n_types>;
+    using transform_filling_container =
+        array_t<transform_container, masks::n_types>;
 
     /// Accelerator structure
 
@@ -225,19 +226,19 @@ class detector {
 
     /** @return all surface/portal masks in the geometry - const access */
     DETRAY_HOST_DEVICE
-    inline auto &masks() const { return _masks; }
+    inline auto &mask_store() const { return _masks; }
 
     /** @return all surface/portal masks in the geometry - non-const access */
     DETRAY_HOST_DEVICE
-    inline auto &masks() { return _masks; }
+    inline auto &mask_store() { return _masks; }
 
     /** Add pre-built mask store
      *
      * @param masks the conatiner for surface masks
      */
     DETRAY_HOST
-    inline void add_mask_store(mask_container &&masks) {
-        _masks = std::move(masks);
+    inline void add_mask_store(mask_container &&msks) {
+        _masks = std::move(msks);
     }
 
     /** Get all transform in an index range from the detector
@@ -248,8 +249,8 @@ class detector {
      * @return ranged iterator to the object transforms
      */
     DETRAY_HOST_DEVICE
-    inline const auto transforms(const dindex_range &range,
-                                 const context &ctx = {}) const {
+    inline const auto transform_store(const dindex_range &range,
+                                      const context &ctx = {}) const {
         return _transforms.range(range, ctx);
     }
 
@@ -260,12 +261,12 @@ class detector {
      * @return detector transform store
      */
     DETRAY_HOST_DEVICE
-    inline const auto &transforms(const context & /*ctx*/ = {}) const {
+    inline const auto &transform_store(const context & /*ctx*/ = {}) const {
         return _transforms;
     }
 
     DETRAY_HOST_DEVICE
-    inline auto &transforms(const context & /*ctx*/ = {}) {
+    inline auto &transform_store(const context & /*ctx*/ = {}) {
         return _transforms;
     }
 
@@ -274,7 +275,7 @@ class detector {
      * @param transf the constianer for surface transforms
      */
     DETRAY_HOST
-    inline void add_transform_store(transform_store &&transf) {
+    inline void add_transform_store(transform_container &&transf) {
         _transforms = std::move(transf);
     }
 
@@ -288,7 +289,7 @@ class detector {
     const auto data(const context & /*ctx*/ = {}) const {
         struct data_core {
             const dvector<volume_type> &volumes;
-            const transform_store &transforms;
+            const transform_container &transforms;
             const mask_container &masks;
             const surface_container &surfaces;
         };
@@ -310,7 +311,7 @@ class detector {
     DETRAY_HOST inline void add_objects(
         const context ctx,
         detector_components &&... components) noexcept(false) {
-        // Fill according to type, starting at type '0' (see 'mask_defs')
+        // Fill according to type, starting at type '0' (see 'masks')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
 
@@ -368,14 +369,15 @@ class detector {
     template <unsigned int current_type = 0, typename surface_container>
     DETRAY_HOST inline void fill_containers(
         const context ctx, volume_type &volume, surface_container &surfaces,
-        mask_container &masks, transform_container &trfs) noexcept(false) {
+        mask_container &msks,
+        transform_filling_container &trfs) noexcept(false) {
 
         // Get the surfaces/portals for a mask type
         auto &typed_surfaces = surfaces[current_type];
         // Get the corresponding transforms
         const auto &object_transforms = trfs[current_type];
         // and the corresponding masks
-        auto &object_masks = masks.template group<current_type>();
+        auto &object_masks = msks.template group<current_type>();
 
         if (not object_transforms.empty(ctx) and not typed_surfaces.empty()) {
             // Current offsets into detectors containers
@@ -406,7 +408,7 @@ class detector {
                       std::tuple_size_v<typename mask_container::mask_tuple> -
                           1) {
             return fill_containers<current_type + 1, surface_container>(
-                ctx, volume, surfaces, masks, trfs);
+                ctx, volume, surfaces, msks, trfs);
         }
         // update n_max_objects_per_volume
         else {
@@ -494,7 +496,7 @@ class detector {
     surface_container _surfaces;
 
     /** Keeps all of the transform data in contiguous memory*/
-    transform_store _transforms;
+    transform_container _transforms;
 
     /** Surface and portal masks of the detector in contiguous memory */
     mask_container _masks;
@@ -520,7 +522,7 @@ struct detector_data {
     using volume_t = typename detector_type::volume_type;
     using surface_t = typename detector_type::surface_type;
     using mask_container_t = typename detector_type::mask_container;
-    using transform_store_t = typename detector_type::transform_store;
+    using transform_container_t = typename detector_type::transform_container;
     using volume_grid_t = typename detector_type::volume_grid;
     using surfaces_finder_t = typename detector_type::surfaces_finder_type;
 
@@ -538,7 +540,7 @@ struct detector_data {
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
     mask_store_data<mask_container_t> _masks_data;
-    static_transform_store_data<transform_store_t> _transforms_data;
+    static_transform_store_data<transform_container_t> _transforms_data;
     grid2_data<volume_grid_t> _volume_grid_data;
     surfaces_finder_data<surfaces_finder_t> _surfaces_finder_data;
 };
@@ -552,7 +554,7 @@ struct detector_view {
     using volume_t = typename detector_type::volume_type;
     using surface_t = typename detector_type::surface_type;
     using mask_container_t = typename detector_type::mask_container;
-    using transform_store_t = typename detector_type::transform_store;
+    using transform_container_t = typename detector_type::transform_container;
     using volume_grid_t = typename detector_type::volume_grid;
     using surfaces_finder_t = typename detector_type::surfaces_finder_type;
 
@@ -568,7 +570,7 @@ struct detector_view {
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
     mask_store_data<mask_container_t> _masks_data;
-    static_transform_store_data<transform_store_t> _transforms_data;
+    static_transform_store_data<transform_container_t> _transforms_data;
     grid2_view<volume_grid_t> _volume_grid_view;
     surfaces_finder_view<surfaces_finder_t> _surfaces_finder_view;
 };

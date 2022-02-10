@@ -23,10 +23,10 @@ TEST(ALGEBRA_PLUGIN, detector) {
     using point3 = __plugin::point3<detray::scalar>;
 
     using detector_t = detector<detector_registry::default_detector>;
-    using mask_defs = typename detector_t::mask_defs;
+    using mask_defs = typename detector_t::masks;
 
     detector_t::context ctx0{};
-    detector_t::transform_container trfs;
+    detector_t::transform_filling_container trfs;
     detector_t::mask_container masks(host_mr);
     detector_t::surface_filling_container surfaces = {};
 

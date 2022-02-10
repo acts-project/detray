@@ -132,14 +132,15 @@ inline void add_disc_surface(const dindex volume_id, context_t &ctx,
  * @param module_factory functor that adds module surfaces to volume
  */
 
-template <typename detector_t, typename factory_t,
-          std::enable_if_t<std::is_invocable_v<
-                               factory_t, typename detector_t::context &,
-                               typename detector_t::volume_type &,
-                               typename detector_t::surface_filling_container &,
-                               typename detector_t::mask_container &,
-                               typename detector_t::transform_container &>,
-                           bool> = true>
+template <
+    typename detector_t, typename factory_t,
+    std::enable_if_t<
+        std::is_invocable_v<factory_t, typename detector_t::context &,
+                            typename detector_t::volume_type &,
+                            typename detector_t::surface_filling_container &,
+                            typename detector_t::mask_container &,
+                            typename detector_t::transform_filling_container &>,
+        bool> = true>
 void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
                        typename detector_t::context &ctx,
                        const scalar lay_inner_r, const scalar lay_outer_r,
@@ -160,7 +161,7 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
     // Add module surfaces to volume
     typename detector_t::surface_filling_container surfaces = {};
     typename detector_t::mask_container masks = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::transform_filling_container transforms = {resource};
 
     // fill the surfaces
     module_factory(ctx, cyl_volume, surfaces, masks, transforms);
@@ -513,7 +514,7 @@ inline void add_beampipe(
 
     typename detector_t::surface_filling_container surfaces = {};
     typename detector_t::mask_container masks = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::transform_filling_container transforms = {resource};
 
     auto &beampipe =
         det.new_volume({beampipe_vol_size.first, beampipe_vol_size.second,
@@ -604,7 +605,7 @@ inline void add_endcap_barrel_connection(
 
     typename detector_t::surface_filling_container surfaces = {};
     typename detector_t::mask_container masks = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::transform_filling_container transforms = {resource};
 
     auto &connector_gap =
         det.new_volume({edc_inner_r, edc_outer_r, min_z, max_z, -M_PI, M_PI});
@@ -913,7 +914,8 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
             typename detector_t::volume_type & /*volume*/,
             typename detector_t::surface_filling_container & /*surfaces*/,
             typename detector_t::mask_container & /*masks*/,
-            typename detector_t::transform_container & /*transforms*/) {}
+            typename detector_t::transform_filling_container & /*transforms*/) {
+        }
         void operator()(typename detector_t::surfaces_regular_circular_grid
                             & /*surfaces_grid*/,
                         vecmem::memory_resource & /*resource*/) {}
@@ -928,7 +930,7 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
             typename detector_t::volume_type &volume,
             typename detector_t::surface_filling_container &surfaces,
             typename detector_t::mask_container &masks,
-            typename detector_t::transform_container &transforms) {
+            typename detector_t::transform_filling_container &transforms) {
             create_barrel_modules(ctx, volume, surfaces, masks, transforms,
                                   cfg);
         }
@@ -948,7 +950,7 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
             typename detector_t::volume_type &volume,
             typename detector_t::surface_filling_container &surfaces,
             typename detector_t::mask_container &masks,
-            typename detector_t::transform_container &transforms) {
+            typename detector_t::transform_filling_container &transforms) {
             create_endcap_modules(ctx, volume, surfaces, masks, transforms,
                                   cfg);
         }

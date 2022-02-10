@@ -55,15 +55,7 @@ class navigator {
 
     public:
     using detector_type = detector_t;
-    using volume_container =
-        std::remove_reference_t<decltype(std::declval<detector_t>().volumes())>;
     using volume_type = typename detector_t::volume_type;
-    using object_container = typename detector_t::surface_container;
-    using object_t = typename object_container::value_type;
-    using transform_container = typename detector_t::transform_store;
-    using mask_container = typename detector_t::mask_container;
-    using objs = typename detector_t::object_defs;
-
     using inspector_type = inspector_t;
 
     template <typename T>
@@ -350,8 +342,8 @@ class navigator {
         for (const auto [obj_idx, obj] :
              enumerate(_detector->surfaces(), volume)) {
             // Retrieve candidate from the object
-            auto sfi = intersect(track, obj, _detector->transforms(),
-                                 _detector->masks());
+            auto sfi = intersect(track, obj, _detector->transform_store(),
+                                 _detector->mask_store());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < track.overstep_tolerance) {
@@ -399,9 +391,9 @@ class navigator {
             while (not navigation.is_exhausted()) {
                 // Only update the next candidate
                 dindex obj_idx = navigation.next()->index;
-                auto sfi =
-                    intersect(track, _detector->surfaces()[obj_idx],
-                              _detector->transforms(), _detector->masks());
+                auto sfi = intersect(track, _detector->surfaces()[obj_idx],
+                                     _detector->transform_store(),
+                                     _detector->mask_store());
                 sfi.index = obj_idx;
                 sfi.link = std::get<0>(_detector->surfaces()[obj_idx].edge());
                 (*navigation.next()) = sfi;
@@ -440,9 +432,9 @@ class navigator {
         else if (navigation.trust_level() == e_fair_trust) {
             for (auto &candidate : navigation.candidates()) {
                 dindex obj_idx = candidate.index;
-                auto sfi =
-                    intersect(track, _detector->surfaces()[obj_idx],
-                              _detector->transforms(), _detector->masks());
+                auto sfi = intersect(track, _detector->surfaces()[obj_idx],
+                                     _detector->transform_store(),
+                                     _detector->mask_store());
                 candidate = sfi;
                 candidate.index = obj_idx;
                 candidate.link =
