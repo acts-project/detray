@@ -19,10 +19,23 @@ namespace detray {
 /** Base class for a type registry that allows to map indices to types and vice
  * versa.
  *
+ * @tparam IDs enum that references the types (not used in base class)
  * @tparam registered_types the types that can be mapped to indices
  */
-template <typename... registered_types>
-class registry_base {
+template <class IDs, bool /*put checks on IDs type*/,
+          typename... registered_types>
+class registry_base;
+
+template <class IDs, typename... registered_types>
+class registry_base<IDs, false, registered_types...> {
+    // Produce meaningful error
+    static_assert(
+        std::is_enum_v<IDs>,
+        "First template parameter of a type registry must be the type enum!");
+};
+
+template <class IDs, typename... registered_types>
+class registry_base<IDs, true, registered_types...> {
     public:
     /** Conventions for some basic info */
     enum : unsigned int {
@@ -86,9 +99,11 @@ class registry_base {
 
 /** Registry for geometric objects.*/
 template <typename... registered_types>
-class object_definitions : public registry_base<registered_types...> {
+class object_registry
+    : public registry_base<unsigned int, true, registered_types...> {
     public:
-    using type_registry = registry_base<registered_types...>;
+    using type_registry =
+        registry_base<unsigned int, true, registered_types...>;
 
     enum : unsigned int {
         n_types = type_registry::n_types,
@@ -113,10 +128,12 @@ class object_definitions : public registry_base<registered_types...> {
 };
 
 /** Registry object for masks */
-template <typename... registered_types>
-class mask_definitions : public registry_base<registered_types...> {
+template <class IDs, typename... registered_types>
+class mask_registry
+    : public registry_base<IDs, std::is_enum_v<IDs>, registered_types...> {
     public:
-    using type_registry = registry_base<registered_types...>;
+    using type_registry =
+        registry_base<IDs, std::is_enum_v<IDs>, registered_types...>;
 
     enum : unsigned int {
         n_types = type_registry::n_types,
@@ -124,18 +141,8 @@ class mask_definitions : public registry_base<registered_types...> {
         e_unknown = type_registry::e_unknown,
     };
 
-    /// Give your mask types a name (needs to be consecutive to be matched)
-    /// to a type!)
-    enum id : unsigned int {
-        e_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_annulus2 = 2,
-        e_cylinder3 = 3,
-        e_portal_cylinder3 = 3,  // no distinction from surface cylinder
-        e_ring2 = 4,
-        e_portal_ring2 = 4,
-        e_single3 = 5,
-    };
+    // Make the type IDs accessible
+    using id = IDs;
 
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
@@ -153,9 +160,10 @@ class mask_definitions : public registry_base<registered_types...> {
 
 /** Registry class for surface finders (e.g. grids) */
 template <typename... registered_types>
-class sf_finder_registry : public registry_base<registered_types...> {
+class sf_finder_registry
+    : public registry_base<void, true, registered_types...> {
     public:
-    using type_registry = registry_base<registered_types...>;
+    using type_registry = registry_base<void, true, registered_types...>;
 
     enum : unsigned int {
         n_types = type_registry::n_types,

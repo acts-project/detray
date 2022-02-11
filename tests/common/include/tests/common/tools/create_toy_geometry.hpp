@@ -11,7 +11,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/detector.hpp"
-#include "tests/common/tools/detector_registry.hpp"
+#include "tests/common/tools/detector_metadata.hpp"
 
 namespace detray {
 
@@ -42,7 +42,7 @@ inline void add_cylinder_surface(const dindex volume_id, context_t &ctx,
                                  const scalar upper_z, const edge_links edge) {
     using mask_defs =
         typename surface_container_t::value_type::value_type::mask_defs;
-    constexpr auto cylinder_id = mask_defs::e_portal_cylinder3;
+    constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder3;
 
     const scalar min_z = std::min(lower_z, upper_z);
     const scalar max_z = std::max(lower_z, upper_z);
@@ -58,7 +58,7 @@ inline void add_cylinder_surface(const dindex volume_id, context_t &ctx,
     masks.template group<cylinder_id>().back().links() = edge;
 
     // add surface
-    typename mask_defs::link_type mask_link{
+    typename mask_container_t::link_type mask_link{
         cylinder_id, masks.template size<cylinder_id>() - 1};
     surfaces[cylinder_id].emplace_back(transforms[cylinder_id].size(ctx) - 1,
                                        mask_link, volume_id, dindex_invalid);
@@ -91,7 +91,7 @@ inline void add_disc_surface(const dindex volume_id, context_t &ctx,
                              const scalar z, const edge_links edge) {
     using mask_defs =
         typename surface_container_t::value_type::value_type::mask_defs;
-    constexpr auto disc_id = mask_defs::e_portal_ring2;
+    constexpr auto disc_id = mask_defs::id::e_portal_ring2;
 
     const scalar min_r = std::min(inner_r, outer_r);
     const scalar max_r = std::max(inner_r, outer_r);
@@ -107,8 +107,8 @@ inline void add_disc_surface(const dindex volume_id, context_t &ctx,
     masks.template group<disc_id>().back().links() = edge;
 
     // add surface
-    typename mask_defs::link_type mask_link{disc_id,
-                                            masks.template size<disc_id>() - 1};
+    typename mask_container_t::link_type mask_link{
+        disc_id, masks.template size<disc_id>() - 1};
     surfaces[disc_id].emplace_back(transforms[disc_id].size(ctx) - 1, mask_link,
                                    volume_id, dindex_invalid);
 
@@ -206,8 +206,8 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                   config_t cfg) {
     using mask_defs =
         typename surface_container_t::value_type::value_type::mask_defs;
-    using mask_link_t = typename mask_defs::link_type;
-    constexpr auto rectangle_id = mask_defs::e_rectangle2;
+    using mask_link_t = typename mask_container_t::link_type;
+    constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
 
     auto volume_id = vol.index();
     vol.set_grid_type(volume_type::grid_type::e_z_phi_grid);
@@ -369,9 +369,9 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     /// mask index: type, range
     using mask_defs =
         typename surface_container_t::value_type::value_type::mask_defs;
-    using mask_link_t = typename mask_defs::link_type;
+    using mask_link_t = typename mask_container_t::link_type;
 
-    constexpr auto trapezoid_id = mask_defs::e_trapezoid2;
+    constexpr auto trapezoid_id = mask_defs::id::e_trapezoid2;
     auto volume_id = vol.index();
     vol.set_grid_type(volume_type::grid_type::e_r_phi_grid);
 
@@ -836,17 +836,17 @@ void add_barrel_detector(
  *
  * @returns a complete detector object
  */
-template <template <typename, unsigned int> class array_type = darray,
-          template <typename...> class tuple_type = dtuple,
-          template <typename...> class vector_type = dvector,
-          template <typename...> class jagged_vector_type = djagged_vector>
+template <template <typename, unsigned int> class array_t = darray,
+          template <typename...> class tuple_t = dtuple,
+          template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector>
 auto create_toy_geometry(vecmem::memory_resource &resource,
                          std::size_t n_brl_layers = 4,
                          std::size_t n_edc_layers = 3) {
 
     // detector type
-    using detector_t = detector<detector_registry::toy_detector, array_type,
-                                tuple_type, vector_type, jagged_vector_type>;
+    using detector_t = detector<detector_registry::toy_detector, array_t,
+                                tuple_t, vector_t, jagged_vector_t>;
 
     /** Leaving world */
     const dindex leaving_world = dindex_invalid;

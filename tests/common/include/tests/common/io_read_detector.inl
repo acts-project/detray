@@ -13,9 +13,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/detector.hpp"
-#include "detray/core/transform_store.hpp"
-#include "detray/io/csv_io.hpp"
-#include "tests/common/tools/detector_registry.hpp"
+#include "tests/common/tools/detector_metadata.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command

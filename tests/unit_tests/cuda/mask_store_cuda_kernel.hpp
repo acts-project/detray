@@ -41,7 +41,7 @@ using trapezoid = trapezoid2<>;
 
 /** Enumerate different mask types for convenience
  **/
-enum mask_context : unsigned int {
+enum mask_ids : unsigned int {
     e_rectangle2 = 0,
     e_trapezoid2 = 1,
     e_ring2 = 2,

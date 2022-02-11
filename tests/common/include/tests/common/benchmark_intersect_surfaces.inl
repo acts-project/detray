@@ -18,10 +18,15 @@
 
 using namespace detray;
 
+enum mask_ids : unsigned int {
+    e_rectangle2 = 0,
+    e_cylinder3 = 0,
+};
+
 using transform3 = __plugin::transform3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
-using mask_defs = mask_definitions<rectangle2<>>;
+using mask_defs = mask_registry<mask_ids, rectangle2<>, cylinder3<>>;
 using plane_surface = surface_base<mask_defs, transform3>;
 
 #ifdef DETRAY_BENCHMARKS_REP
@@ -97,13 +102,15 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
     unsigned int sfhit = 0;
     unsigned int sfmiss = 0;
 
+    // using cylinder_mask = mask_defs::template
+    // get_type<mask_defs::id::e_cylinder3>::type;
     using cylinder_mask = cylinder3<false, cylinder_intersector>;
     dvector<cylinder_mask> cylinders;
     for (auto r : dists) {
         cylinders.push_back(cylinder_mask{r, -10., 10.});
     }
 
-    typename mask_defs::link_type mask_link{mask_defs::e_cylinder3, 0};
+    typename mask_defs::link_type mask_link{mask_defs::id::e_cylinder3, 0};
     plane_surface plain(std::move(transform3()), std::move(mask_link), 0,
                         false);
 
@@ -166,7 +173,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
         cylinders.push_back(cylinder_mask{r, -10., 10.});
     }
 
-    typename mask_defs::link_type mask_link{mask_defs::e_cylinder3, 0};
+    typename mask_defs::link_type mask_link{mask_defs::id::e_cylinder3, 0};
     plane_surface plain(std::move(transform3()), std::move(mask_link), 0,
                         false);
 

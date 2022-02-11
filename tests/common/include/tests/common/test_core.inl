@@ -21,11 +21,15 @@ using namespace detray;
 
 using point2 = __plugin::point2<detray::scalar>;
 
+enum mask_ids : unsigned int {
+    e_unmasked = 0,
+};
+
 // Three-dimensional definitions
 using transform3 = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
-using mask_defs = mask_definitions<unmasked<>>;
+using mask_defs = mask_registry<mask_ids, unmasked<>>;
 using mask_link_t = typename mask_defs::link_type;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
@@ -38,7 +42,7 @@ TEST(ALGEBRA_PLUGIN, surface_base) {
     point3 t{2., 3., 4.};
     transform3 trf(t, z, x);
 
-    mask_link_t mask_id{mask_defs::e_unknown, 0};
+    mask_link_t mask_id{mask_defs::id::e_unmasked, 0};
     surface_base<mask_defs, transform3> s(std::move(trf), std::move(mask_id),
                                           -1, false);
 }

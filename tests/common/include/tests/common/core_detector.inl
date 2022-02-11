@@ -11,7 +11,7 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/core/transform_store.hpp"
-#include "tests/common/tools/detector_registry.hpp"
+#include "tests/common/tools/detector_metadata.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -23,7 +23,7 @@ TEST(ALGEBRA_PLUGIN, detector) {
     using point3 = __plugin::point3<detray::scalar>;
 
     using detector_t = detector<detector_registry::default_detector>;
-    using mask_defs = typename detector_t::masks;
+    using mask_ids = typename detector_t::masks::id;
 
     detector_t::context ctx0{};
     detector_t::transform_filling_container trfs;
@@ -32,18 +32,18 @@ TEST(ALGEBRA_PLUGIN, detector) {
 
     /// Surface 0
     point3 t0{0., 0., 0.};
-    trfs[mask_defs::e_rectangle2].emplace_back(ctx0, t0);
-    masks.template add_mask<mask_defs::e_rectangle2>(-3., 3.);
+    trfs[mask_ids::e_rectangle2].emplace_back(ctx0, t0);
+    masks.template add_mask<mask_ids::e_rectangle2>(-3., 3.);
 
     /// Surface 1
     point3 t1{1., 0., 0.};
-    trfs[mask_defs::e_annulus2].emplace_back(ctx0, t1);
-    masks.template add_mask<mask_defs::e_annulus2>(1., 2., 3., 4., 5., 6., 7.);
+    trfs[mask_ids::e_annulus2].emplace_back(ctx0, t1);
+    masks.template add_mask<mask_ids::e_annulus2>(1., 2., 3., 4., 5., 6., 7.);
 
     /// Surface 2
     point3 t2{2., 0., 0.};
-    trfs[mask_defs::e_trapezoid2].emplace_back(ctx0, t2);
-    masks.template add_mask<mask_defs::e_trapezoid2>(1., 2., 3.);
+    trfs[mask_ids::e_trapezoid2].emplace_back(ctx0, t2);
+    masks.template add_mask<mask_ids::e_trapezoid2>(1., 2., 3.);
 
     detector_t d(host_mr);
 

@@ -292,12 +292,12 @@ detector_from_csv(const std::string &detector_name,
         detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_o);
     }
 
-    typename detector_t::masks::link_type mask_index = {dindex_invalid,
-                                                        dindex_invalid};
-    constexpr auto cylinder_id = detector_t::masks::e_cylinder3;
-    constexpr auto rectangle_id = detector_t::masks::e_rectangle2;
-    constexpr auto trapezoid_id = detector_t::masks::e_trapezoid2;
-    constexpr auto annulus_id = detector_t::masks::e_annulus2;
+    using mask_defs = typename detector_t::masks;
+    typename mask_defs::link_type mask_index = {dindex_invalid, dindex_invalid};
+    constexpr auto cylinder_id = mask_defs::id::e_cylinder3;
+    constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
+    constexpr auto trapezoid_id = mask_defs::id::e_trapezoid2;
+    constexpr auto annulus_id = mask_defs::id::e_annulus2;
 
     // (C) Read the surfaces and fill it
     while (s_reader.read(io_surface)) {

@@ -20,7 +20,7 @@ TEST(ALGEBRA_PLUGIN, volume) {
     // dummy types
     using surface_t = dindex;
     // using sf_finder_t = dindex;
-    using object_defs = object_definitions<surface_t>;
+    using object_defs = object_registry<surface_t>;
     // using sf_finder_defs = default_sf_finder_registry<sf_finder_t>;
     using volume = volume<object_defs>;
 

@@ -22,31 +22,37 @@
 #include "detray/utils/indexing.hpp"
 
 namespace detray {
+
 vecmem::host_memory_resource host_mr;
 
 using namespace vector;
 
+enum plane_mask_ids : unsigned int {
+    e_rectangle2 = 0,
+};
+
 using transform3 = __plugin::transform3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
-using mask_defs = mask_definitions<rectangle2<>>;
+using plane_masks = mask_registry<plane_mask_ids, rectangle2<>>;
 
 using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 
 /** This method creates a number (distances.size()) planes along a direction
  */
-dvector<surface_base<mask_defs, transform3>> planes_along_direction(
+dvector<surface_base<plane_masks, transform3>> planes_along_direction(
     dvector<scalar> distances, vector3 direction) {
     // Rotation matrix
     vector3 z = direction;
     vector3 x = normalize(vector3{0, -z[2], z[1]});
 
-    dvector<surface_base<mask_defs, transform3>> return_surfaces;
+    dvector<surface_base<plane_masks, transform3>> return_surfaces;
     return_surfaces.reserve(distances.size());
     for (const auto &[idx, d] : enumerate(distances)) {
         vector3 t = d * direction;
         transform3 trf(t, z, x);
-        typename mask_defs::link_type mask_link{mask_defs::e_rectangle2, idx};
+        typename plane_masks::link_type mask_link{plane_masks::id::e_rectangle2,
+                                                  idx};
         return_surfaces.emplace_back(std::move(trf), std::move(mask_link), 0,
                                      false);
     }

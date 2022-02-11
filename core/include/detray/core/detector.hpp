@@ -14,7 +14,6 @@
 #include "detray/core/mask_store.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
-#include "detray/core/type_registry.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/surface_base.hpp"
@@ -23,7 +22,6 @@
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
-#include "detray/masks/masks.hpp"
 #include "detray/tools/local_object_finder.hpp"
 
 namespace detray {
@@ -49,7 +47,7 @@ using point2 = __plugin::point2<detray::scalar>;
  * surfaces grids
  *
  */
-template <typename detector_registry,
+template <typename metadata,
           template <typename, unsigned int> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
@@ -64,47 +62,26 @@ class detector {
     using name_map = std::map<dindex, std::string>;
 
     /// Forward the alignable container and context
-    using transform_container = static_transform_store<vector_t>;
+    using transform_container =
+        typename metadata::template transform_store<vector_t>;
     using transform_link = typename transform_container::link_type;
     using context = typename transform_container::context;
 
-    /// edge links: next volume, next (local) object finder
-    using edge_type = array_t<dindex, 2>;
-
-    /// mask types
-    using rectangle =
-        rectangle2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                   edge_type>;
-    using trapezoid =
-        trapezoid2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                   edge_type>;
-    using annulus = annulus2<planar_intersector,
-                             __plugin::cartesian2<detray::scalar>, edge_type>;
-    using cylinder =
-        cylinder3<false, cylinder_intersector,
-                  __plugin::cylindrical2<detray::scalar>, edge_type>;
-    using disc = ring2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                       edge_type>;
-
-    /*using mask_container = mask_store<tuple_t, vector_t, rectangle, trapezoid,
-                                      annulus, cylinder, disc>;*/
-    //  TODO: Move to detector registry
-    using masks =
-        mask_definitions<rectangle, trapezoid, annulus, cylinder, disc>;
+    /// Forward mask types
+    using masks = typename metadata::mask_definitions;
     using mask_container =
         typename masks::template container_type<tuple_t, vector_t>;
 
+    /// edge links: next volume, next (local) object finder
+    // TODO: Remove from surface
+    using edge_type = array_t<dindex, 2>;
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
-    /** The Surface definition:
-     *  <transform_link, volume_link, source_link, edge_link>
-     */
     using surface_type = surface_base<masks, transform_link, volume_link,
                                       source_link, edge_type>;
-    using surface_container = vector_t<surface_type>;
 
-    // TODO: Move to detector_registry
-    using objects = object_definitions<surface_type>;
+    using objects = typename metadata::object_definitions<surface_type>;
+    using surface_container = vector_t<surface_type>;
     // Volume type
     using volume_type = volume<objects, dindex_range, array_t>;
 
@@ -112,6 +89,7 @@ class detector {
      * The respective objects are sorted by mask type, so that they can be
      * unrolled and filled in lockstep with the masks
      */
+    // TODO: Move to volume builder in the future
     using surface_filling_container =
         array_t<vector_t<surface_type>, masks::n_types>;
     using transform_filling_container =
@@ -127,10 +105,9 @@ class detector {
     // Neighborhood finder, using accelerator data structure
     using surfaces_serializer_type = serializer2;
 
-    static constexpr size_t N_GRIDS =
-        static_cast<size_t>(detector_registry::n_grids);
     using surfaces_finder_type =
-        surfaces_finder<N_GRIDS, array_t, tuple_t, vector_t, jagged_vector_t>;
+        surfaces_finder<metadata::n_grids, array_t, tuple_t, vector_t,
+                        jagged_vector_t>;
 
     using surfaces_regular_circular_grid =
         typename surfaces_finder_type::surfaces_regular_circular_grid;

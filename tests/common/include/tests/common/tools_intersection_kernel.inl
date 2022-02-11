@@ -28,6 +28,12 @@ TEST(tools, intersection_kernel_single) {
 
     vecmem::host_memory_resource host_mr;
 
+    enum mask_ids : unsigned int {
+        e_rectangle2 = 0,
+        e_trapezoid2 = 1,
+        e_annulus2 = 2,
+    };
+
     /// Surface components:
     using edge_t = darray<dindex, 1>;
     using source_link_t = dindex;
@@ -41,9 +47,9 @@ TEST(tools, intersection_kernel_single) {
     using annulus_t = annulus2<planar_intersector,
                                __plugin::cartesian2<detray::scalar>, edge_t>;
 
-    using mask_defs = mask_definitions<rectangle_t, trapezoid_t, annulus_t>;
-    using mask_container_t =
-        typename mask_defs::container_type<dtuple, dvector>;
+    using mask_defs =
+        mask_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
+    using mask_container_t = typename mask_defs::container_type<>;
 
     /// The Surface definition:
     /// <transform_link, volume_link, source_link, link_type_in_mask>
@@ -66,9 +72,9 @@ TEST(tools, intersection_kernel_single) {
     mask_store.template add_mask<1>(10., 20., 30.);
     mask_store.template add_mask<2>(15., 55., 0.75, 1.95, 2., -2.);
     // The surfaces and their store
-    surface_t rectangle_surface(0u, {mask_defs::e_rectangle2, 0}, 0, 0);
-    surface_t trapezoid_surface(1u, {mask_defs::e_trapezoid2, 0}, 0, 1);
-    surface_t annulus_surface(2u, {mask_defs::e_annulus2, 0}, 0, 2);
+    surface_t rectangle_surface(0u, {mask_defs::id::e_rectangle2, 0}, 0, 0);
+    surface_t trapezoid_surface(1u, {mask_defs::id::e_trapezoid2, 0}, 0, 1);
+    surface_t annulus_surface(2u, {mask_defs::id::e_annulus2, 0}, 0, 2);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
 
