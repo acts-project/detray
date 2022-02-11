@@ -108,7 +108,7 @@ class volume {
     /** @return range of surfaces by surface type - const access */
     template <typename object_t>
     DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
-        constexpr auto index = objects::template get_id<object_t>();
+        constexpr auto index = objects::template get_index<object_t>::value;
         return detail::get<index>(_ranges);
     }
 
