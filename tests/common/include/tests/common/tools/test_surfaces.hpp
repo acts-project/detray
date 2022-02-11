@@ -29,7 +29,7 @@ using namespace vector;
 using transform3 = __plugin::transform3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
-using mask_defs = default_mask_registry<rectangle2<>>;
+using mask_defs = mask_definitions<rectangle2<>>;
 
 using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 

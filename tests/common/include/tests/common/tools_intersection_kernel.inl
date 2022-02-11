@@ -32,18 +32,16 @@ TEST(tools, intersection_kernel_single) {
     using edge_t = darray<dindex, 1>;
     using source_link_t = dindex;
     /// - masks, with mask identifiers 0,1,2
-    using surface_rectangle =
+    using rectangle_t =
         rectangle2<planar_intersector, __plugin::cartesian2<detray::scalar>,
                    edge_t>;
-    using surface_trapezoid =
+    using trapezoid_t =
         trapezoid2<planar_intersector, __plugin::cartesian2<detray::scalar>,
                    edge_t>;
-    using surface_annulus =
-        annulus2<planar_intersector, __plugin::cartesian2<detray::scalar>,
-                 edge_t>;
+    using annulus_t = annulus2<planar_intersector,
+                               __plugin::cartesian2<detray::scalar>, edge_t>;
 
-    using mask_defs = default_mask_registry<surface_rectangle,
-                                            surface_trapezoid, surface_annulus>;
+    using mask_defs = mask_definitions<rectangle_t, trapezoid_t, annulus_t>;
     using mask_container_t =
         typename mask_defs::container_type<dtuple, dvector>;
 

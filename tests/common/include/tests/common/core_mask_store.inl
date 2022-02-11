@@ -31,8 +31,8 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     using trapezoid = trapezoid2<>;
 
     // Types must be sorted according to their id (here: masks/mask_identifier)
-    using mask_defs = default_mask_registry<rectangle, trapezoid, annulus,
-                                            cylinder, ring, single>;
+    using mask_defs =
+        mask_definitions<rectangle, trapezoid, annulus, cylinder, ring, single>;
     using mask_container_t =
         typename mask_defs::container_type<dtuple, dvector>;
     mask_container_t store(host_mr);

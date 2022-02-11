@@ -36,7 +36,7 @@ using detector_device_t =
              vecmem::device_vector, vecmem::jagged_device_vector>;
 using volume_t = typename detector_host_t::volume_type;
 using surface_t = typename detector_host_t::surface_type;
-using transform_store_t = typename detector_host_t::transform_store;
+using transform_store_t = typename detector_host_t::transform_container;
 using rectangle_t = typename detector_host_t::rectangle;
 using disc_t = typename detector_host_t::disc;
 using cylinder_t = typename detector_host_t::cylinder;

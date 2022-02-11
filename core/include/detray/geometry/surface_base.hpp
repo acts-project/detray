@@ -20,7 +20,7 @@ namespace detray {
  * @tparam volume_link the typ eof the volume/volume link representation
  * @tparam source_link the type of the source/source link representation
  */
-template <typename mask_regsitry_t, typename transform_link,
+template <typename mask_regsitry_t, typename transform_link = dindex,
           typename volume_link = dindex, typename source_link = bool,
           typename edge_link = dindex>
 class surface_base {

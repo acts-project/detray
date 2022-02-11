@@ -54,11 +54,9 @@ class geometry_graph {
 
     public:
     // Objects ids of the geometry
-    using object_defs = typename geometry::object_defs;
-
+    using object_defs = typename geometry::objects;
     // Graph nodes
     using node_t = typename geometry::volume_type;
-
     // Graph edges
     using edge_t = typename geometry::surface_type;
 

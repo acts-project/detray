@@ -21,7 +21,7 @@ using namespace detray;
 using transform3 = __plugin::transform3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
-using mask_defs = default_mask_registry<rectangle2<>>;
+using mask_defs = mask_definitions<rectangle2<>>;
 using plane_surface = surface_base<mask_defs, transform3>;
 
 #ifdef DETRAY_BENCHMARKS_REP

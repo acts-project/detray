@@ -29,7 +29,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     auto& surfaces = toy_det.surfaces();
     auto& surfaces_finder = toy_det.get_surfaces_finder();
     auto& transforms = toy_det.transform_store();
-    auto& masks = toy_det.get_mask_store();
+    auto& masks = toy_det.mask_store();
     auto& rectangles = masks.template group<0>();
     auto& trapezoids = masks.template group<1>();
     auto& annuli = masks.template group<2>();

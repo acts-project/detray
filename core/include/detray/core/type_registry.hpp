@@ -86,7 +86,7 @@ class registry_base {
 
 /** Registry for geometric objects.*/
 template <typename... registered_types>
-class default_object_registry : public registry_base<registered_types...> {
+class object_definitions : public registry_base<registered_types...> {
     public:
     using type_registry = registry_base<registered_types...>;
 
@@ -114,7 +114,7 @@ class default_object_registry : public registry_base<registered_types...> {
 
 /** Registry object for masks */
 template <typename... registered_types>
-class default_mask_registry : public registry_base<registered_types...> {
+class mask_definitions : public registry_base<registered_types...> {
     public:
     using type_registry = registry_base<registered_types...>;
 
@@ -142,8 +142,7 @@ class default_mask_registry : public registry_base<registered_types...> {
     using container_type = mask_store<tuple_t, vector_t, registered_types...>;
     // using link_type = typed_index<id>;
     using link_type = typename container_type<>::link_type;
-    //using link_type = std::array<dindex, 2>;
-    // using range_type = typed_index<id, dindex_range>;
+    using range_type = typename container_type<>::range_type;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
@@ -154,7 +153,7 @@ class default_mask_registry : public registry_base<registered_types...> {
 
 /** Registry class for surface finders (e.g. grids) */
 template <typename... registered_types>
-class default_sf_finder_registry : public registry_base<registered_types...> {
+class sf_finder_registry : public registry_base<registered_types...> {
     public:
     using type_registry = registry_base<registered_types...>;
 
@@ -172,8 +171,8 @@ class default_sf_finder_registry : public registry_base<registered_types...> {
     };
 
     // using link_type = typed_index<id>;
-    using link_type = std::array<dindex, 2>;
     // using range_type = typed_index<id, dindex_range>;
+    using link_type = std::array<dindex, 2>;
     using range_type = dindex_range;
 
     template <typename T>

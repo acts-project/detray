@@ -343,7 +343,7 @@ class navigator {
              enumerate(_detector->surfaces(), volume)) {
             // Retrieve candidate from the object
             auto sfi = intersect(track, obj, _detector->transform_store(),
-                                 _detector->get_mask_store());
+                                 _detector->mask_store());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < track.overstep_tolerance) {
@@ -393,7 +393,7 @@ class navigator {
                 dindex obj_idx = navigation.next()->index;
                 auto sfi = intersect(track, _detector->surfaces()[obj_idx],
                                      _detector->transform_store(),
-                                     _detector->get_mask_store());
+                                     _detector->mask_store());
                 sfi.index = obj_idx;
                 sfi.link = std::get<0>(_detector->surfaces()[obj_idx].edge());
                 (*navigation.next()) = sfi;
@@ -434,7 +434,7 @@ class navigator {
                 dindex obj_idx = candidate.index;
                 auto sfi = intersect(track, _detector->surfaces()[obj_idx],
                                      _detector->transform_store(),
-                                     _detector->get_mask_store());
+                                     _detector->mask_store());
                 candidate = sfi;
                 candidate.index = obj_idx;
                 candidate.link =

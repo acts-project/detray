@@ -38,7 +38,7 @@ auto [d, name_map] =
     read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
 
 using detector_t = decltype(d);
-constexpr auto k_surfaces = detector_t::object_defs::e_surface;
+constexpr auto k_surfaces = detector_t::objects::e_surface;
 
 using detray_context = detector_t::context;
 detray_context default_context;

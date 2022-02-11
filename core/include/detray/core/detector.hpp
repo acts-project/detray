@@ -90,8 +90,9 @@ class detector {
                                       annulus, cylinder, disc>;*/
     //  TODO: Move to detector registry
     using masks =
-        default_mask_registry<rectangle, trapezoid, annulus, cylinder, disc>;
-    using mask_container = typename masks::template container_type<tuple_t, vector_t>;
+        mask_definitions<rectangle, trapezoid, annulus, cylinder, disc>;
+    using mask_container =
+        typename masks::template container_type<tuple_t, vector_t>;
 
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
@@ -103,9 +104,9 @@ class detector {
     using surface_container = vector_t<surface_type>;
 
     // TODO: Move to detector_registry
-    using object_defs = default_object_registry<surface_type>;
+    using objects = object_definitions<surface_type>;
     // Volume type
-    using volume_type = volume<object_defs, dindex_range, array_t>;
+    using volume_type = volume<objects, dindex_range, array_t>;
 
     /** Temporary container structures that are used to fill the detector.
      * The respective objects are sorted by mask type, so that they can be
@@ -225,11 +226,11 @@ class detector {
 
     /** @return all surface/portal masks in the geometry - const access */
     DETRAY_HOST_DEVICE
-    inline auto &get_mask_store() const { return _masks; }
+    inline auto &mask_store() const { return _masks; }
 
     /** @return all surface/portal masks in the geometry - non-const access */
     DETRAY_HOST_DEVICE
-    inline auto &get_mask_store() { return _masks; }
+    inline auto &mask_store() { return _masks; }
 
     /** Add pre-built mask store
      *
@@ -309,7 +310,7 @@ class detector {
     template <typename... detector_components>
     DETRAY_HOST inline void add_objects(
         const context ctx,
-        detector_components &&... components) noexcept(false) {
+        detector_components &&...components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'masks')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }
@@ -461,11 +462,11 @@ class detector {
             ss << " - name: '" << v.name(names) << "'" << std::endl;
 
             ss << "     contains    "
-               << v.template n_objects<object_defs::e_surface>() << " surfaces "
+               << v.template n_objects<objects::e_surface>() << " surfaces "
                << std::endl;
 
             ss << "                 "
-               << v.template n_objects<object_defs::e_portal>() << " portals "
+               << v.template n_objects<objects::e_portal>() << " portals "
                << std::endl;
 
             if (v.surfaces_finder_entry() != dindex_invalid) {
@@ -528,8 +529,8 @@ struct detector_data {
     detector_data(detector_type &det)
         : _volumes_data(vecmem::get_data(det.volumes())),
           _surfaces_data(vecmem::get_data(det.surfaces())),
-          _masks_data(get_data(det.masks())),
-          _transforms_data(get_data(det.transforms())),
+          _masks_data(get_data(det.mask_store())),
+          _transforms_data(get_data(det.transform_store())),
           _volume_grid_data(
               get_data(det.volume_search_grid(), *det.resource())),
           _surfaces_finder_data(

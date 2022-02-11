@@ -25,7 +25,7 @@ using point2 = __plugin::point2<detray::scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
-using mask_defs = default_mask_registry<unmasked<>>;
+using mask_defs = mask_definitions<unmasked<>>;
 using mask_link_t = typename mask_defs::link_type;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
