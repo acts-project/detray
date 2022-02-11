@@ -80,7 +80,8 @@ class detector {
     using surface_type = surface_base<masks, transform_link, volume_link,
                                       source_link, edge_type>;
 
-    using objects = typename metadata::object_definitions<surface_type>;
+    using objects =
+        typename metadata::template object_definitions<surface_type>;
     using surface_container = vector_t<surface_type>;
     // Volume type
     using volume_type = volume<objects, dindex_range, array_t>;
