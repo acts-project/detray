@@ -37,9 +37,15 @@ using detector_device_t =
 using volume_t = typename detector_host_t::volume_type;
 using surface_t = typename detector_host_t::surface_type;
 using transform_store_t = typename detector_host_t::transform_container;
-using rectangle_t = typename detector_host_t::rectangle;
-using disc_t = typename detector_host_t::disc;
-using cylinder_t = typename detector_host_t::cylinder;
+using mask_defs = typename detector_host_t::masks;
+
+constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
+constexpr auto disc_id = mask_defs::id::e_portal_ring2;
+constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder3;
+
+using rectangle_t = typename mask_defs::template get_type<rectangle_id>::type;
+using disc_t = typename mask_defs::template get_type<disc_id>::type;
+using cylinder_t = typename mask_defs::template get_type<cylinder_id>::type;
 
 /// declaration of a test function for detector
 void detector_test(

@@ -50,7 +50,8 @@ class registry_base<ID, true, registered_types...> {
      */
     template <typename object_t>
     DETRAY_HOST_DEVICE static constexpr unsigned int get_id() {
-        return unroll_ids<object_t, registered_types...>();
+        return unroll_ids<std::remove_reference_t<object_t>,
+                          registered_types...>();
     }
 
     /** Checks whether a given types is known in the registry.*/
@@ -77,8 +78,8 @@ class registry_base<ID, true, registered_types...> {
      */
     template <ID type_id, template <typename...> class tuple_t = dtuple>
     struct get_type {
-        using type =
-            decltype(std::get<type_id>(tuple_t<registered_types...>{}));
+        using type = std::remove_reference_t<decltype(std::get<type_id>(
+            tuple_t<registered_types...>{}))>;
     };
 
     private:
