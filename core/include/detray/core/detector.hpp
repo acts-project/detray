@@ -22,7 +22,6 @@
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
-#include "detray/tools/local_object_finder.hpp"
 
 namespace detray {
 
@@ -36,19 +35,14 @@ using point2 = __plugin::point2<detray::scalar>;
  * This class is a heavy templated detector definition class, that sets the
  * interface between geometry, navigator and grid.
  *
+ * @tparam metadata helper that defines collection and link types centrally
  * @tparam array_type the type of the internal array, must have STL semantics
  * @tparam tuple_type the type of the internal tuple, must have STL semantics
  * @tparam vector_type the type of the internal array, must have STL semantics
- * @tparam alignable_store the type of the transform store
- * @tparam geometry_type the geometry implementation to be used
- * @tparam surfaces_populator_type the type of populator used to fill the
- * surfaces grids
- * @tparam surfaces_serializer_type the type of the memory serializer for the
- * surfaces grids
- *
+ * @tparam source_link the surface source link
  */
 template <typename metadata,
-          template <typename, unsigned int> class array_t = darray,
+          template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector,
@@ -96,27 +90,18 @@ class detector {
     using transform_filling_container =
         array_t<transform_container, masks::n_types>;
 
-    /// Accelerator structure
+    /// Accelerator structures
 
-    /// Volume grid definition
-    using volume_grid =
-        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
-              vector_t, jagged_vector_t, array_t, tuple_t, dindex>;
+    /// Volume finder definition
+    using volume_finder =
+        typename metadata::template volume_finder<array_t, vector_t, tuple_t,
+                                                  jagged_vector_t>;
 
-    // Neighborhood finder, using accelerator data structure
-    using surfaces_serializer_type = serializer2;
-
+    /// Surface finder definition
+    // TODO: Move to volume builder
     using surfaces_finder_type =
-        surfaces_finder<metadata::n_grids, array_t, tuple_t, vector_t,
-                        jagged_vector_t>;
-
-    using surfaces_regular_circular_grid =
-        typename surfaces_finder_type::surfaces_regular_circular_grid;
-
-    using surfaces_regular_axis =
-        typename surfaces_regular_circular_grid::axis_p0_type;
-    using surfaces_circular_axis =
-        typename surfaces_regular_circular_grid::axis_p1_type;
+        typename metadata::template surface_finder<array_t, vector_t, tuple_t,
+                                                   jagged_vector_t>;
 
     detector() = delete;
 
@@ -129,9 +114,10 @@ class detector {
           _surfaces(&resource),
           _transforms(resource),
           _masks(resource),
-          _volume_grid(std::move(typename volume_grid::axis_p0_type{resource}),
-                       std::move(typename volume_grid::axis_p1_type{resource}),
-                       resource),
+          _volume_finder(
+              std::move(typename volume_finder::axis_p0_type{resource}),
+              std::move(typename volume_finder::axis_p1_type{resource}),
+              resource),
           _surfaces_finder(resource),
           _resource(&resource) {}
 
@@ -145,7 +131,7 @@ class detector {
           _surfaces(det_data._surfaces_data),
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
-          _volume_grid(det_data._volume_grid_view),
+          _volume_finder(det_data._volume_finder_view),
           _surfaces_finder(det_data._surfaces_finder_view) {}
 
     /** Add a new volume and retrieve a reference to it
@@ -190,7 +176,7 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto &volume_by_pos(const point3 &p) const {
         point2 p2 = {getter::perp(p), p[2]};
-        dindex volume_index = _volume_grid.bin(p2);
+        dindex volume_index = _volume_finder.bin(p2);
         return _volumes[volume_index];
     }
 
@@ -402,18 +388,18 @@ class detector {
      * @param v_grid the volume grid to be added
      */
     DETRAY_HOST
-    inline void add_volume_grid(volume_grid &&v_grid) {
-        _volume_grid = std::move(v_grid);
+    inline void add_volume_finder(volume_finder &&v_grid) {
+        _volume_finder = std::move(v_grid);
     }
 
     /** @return the volume grid - const access */
     DETRAY_HOST_DEVICE
-    inline const volume_grid &volume_search_grid() const {
-        return _volume_grid;
+    inline const volume_finder &volume_search_grid() const {
+        return _volume_finder;
     }
 
     DETRAY_HOST_DEVICE
-    inline volume_grid &volume_search_grid() { return _volume_grid; }
+    inline volume_finder &volume_search_grid() { return _volume_finder; }
 
     DETRAY_HOST_DEVICE
     inline surfaces_finder_type &get_surfaces_finder() {
@@ -479,7 +465,7 @@ class detector {
     /** Surface and portal masks of the detector in contiguous memory */
     mask_container _masks;
 
-    volume_grid _volume_grid;
+    volume_finder _volume_finder;
 
     /* TODO: surfaces_finder needs to be refactored */
     surfaces_finder_type _surfaces_finder;
@@ -501,7 +487,7 @@ struct detector_data {
     using surface_t = typename detector_type::surface_type;
     using mask_container_t = typename detector_type::mask_container;
     using transform_container_t = typename detector_type::transform_container;
-    using volume_grid_t = typename detector_type::volume_grid;
+    using volume_finder_t = typename detector_type::volume_finder;
     using surfaces_finder_t = typename detector_type::surfaces_finder_type;
 
     detector_data(detector_type &det)
@@ -509,7 +495,7 @@ struct detector_data {
           _surfaces_data(vecmem::get_data(det.surfaces())),
           _masks_data(get_data(det.mask_store())),
           _transforms_data(get_data(det.transform_store())),
-          _volume_grid_data(
+          _volume_finder_data(
               get_data(det.volume_search_grid(), *det.resource())),
           _surfaces_finder_data(
               get_data(det.get_surfaces_finder(), *det.resource())) {}
@@ -519,7 +505,7 @@ struct detector_data {
     vecmem::data::vector_view<surface_t> _surfaces_data;
     mask_store_data<mask_container_t> _masks_data;
     static_transform_store_data<transform_container_t> _transforms_data;
-    grid2_data<volume_grid_t> _volume_grid_data;
+    grid2_data<volume_finder_t> _volume_finder_data;
     surfaces_finder_data<surfaces_finder_t> _surfaces_finder_data;
 };
 
@@ -533,7 +519,7 @@ struct detector_view {
     using surface_t = typename detector_type::surface_type;
     using mask_container_t = typename detector_type::mask_container;
     using transform_container_t = typename detector_type::transform_container;
-    using volume_grid_t = typename detector_type::volume_grid;
+    using volume_finder_t = typename detector_type::volume_finder;
     using surfaces_finder_t = typename detector_type::surfaces_finder_type;
 
     detector_view(detector_data<detector_type> &det_data)
@@ -541,7 +527,7 @@ struct detector_view {
           _surfaces_data(det_data._surfaces_data),
           _masks_data(det_data._masks_data),
           _transforms_data(det_data._transforms_data),
-          _volume_grid_view(det_data._volume_grid_data),
+          _volume_finder_view(det_data._volume_finder_data),
           _surfaces_finder_view(det_data._surfaces_finder_data) {}
 
     // members
@@ -549,7 +535,7 @@ struct detector_view {
     vecmem::data::vector_view<surface_t> _surfaces_data;
     mask_store_data<mask_container_t> _masks_data;
     static_transform_store_data<transform_container_t> _transforms_data;
-    grid2_view<volume_grid_t> _volume_grid_view;
+    grid2_view<volume_finder_t> _volume_finder_view;
     surfaces_finder_view<surfaces_finder_t> _surfaces_finder_view;
 };
 

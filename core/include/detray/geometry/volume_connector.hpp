@@ -22,7 +22,7 @@ template <typename detector_t,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector>
 void connect_cylindrical_volumes(
-    detector_t &d, const typename detector_t::volume_grid &volume_grid) {
+    detector_t &d, const typename detector_t::volume_finder &volume_grid) {
     typename detector_t::context default_context = {};
 
     // The grid is populated, now create portal surfaces

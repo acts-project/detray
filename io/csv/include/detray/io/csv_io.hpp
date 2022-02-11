@@ -226,15 +226,19 @@ detector_from_csv(const std::string &detector_name,
     // Create the surface finders & reserve
     std::map<volume_layer_index, dindex> surface_finder_entries;
 
-    using surfaces_r_axis = typename detector_t::surfaces_regular_axis;
-    using surfaces_z_axis = typename detector_t::surfaces_regular_axis;
-    using surfaces_phi_axis = typename detector_t::surfaces_circular_axis;
-
-    using surfaces_r_phi_grid =
-        typename detector_t::surfaces_regular_circular_grid;
-    using surfaces_z_phi_grid =
-        typename detector_t::surfaces_regular_circular_grid;
     using surfaces_finder = typename detector_t::surfaces_finder_type;
+    using surfaces_regular_circular_grid =
+        typename surfaces_finder::surfaces_regular_circular_grid;
+
+    using surfaces_r_axis =
+        typename surfaces_regular_circular_grid::axis_p0_type;
+    using surfaces_z_axis =
+        typename surfaces_regular_circular_grid::axis_p0_type;
+    using surfaces_phi_axis =
+        typename surfaces_regular_circular_grid::axis_p1_type;
+
+    using surfaces_r_phi_grid = surfaces_regular_circular_grid;
+    using surfaces_z_phi_grid = surfaces_regular_circular_grid;
 
     surfaces_finder &detector_surfaces_finders = d.get_surfaces_finder();
 
@@ -511,8 +515,8 @@ detector_from_csv(const std::string &detector_name,
     axis::irregular<darray, dvector> raxis{{rs}, resource};
     axis::irregular<darray, dvector> zaxis{{zs}, resource};
 
-    typename detector_t::volume_grid v_grid(std::move(raxis), std::move(zaxis),
-                                            resource);
+    typename detector_t::volume_finder v_grid(std::move(raxis),
+                                              std::move(zaxis), resource);
 
     // A step into the volume (stepsilon), can be read in from the smallest
     // difference
@@ -607,7 +611,7 @@ detector_from_csv(const std::string &detector_name,
                                 vector_type>(d, v_grid);
 
     // Add the volume grid to the detector
-    d.add_volume_grid(std::move(v_grid));
+    d.add_volume_finder(std::move(v_grid));
 
     return d;
 }

@@ -7,8 +7,13 @@
 
 #pragma once
 
+#include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
+#include "detray/grids/axis.hpp"
+#include "detray/grids/grid2.hpp"
+#include "detray/grids/populator.hpp"
+#include "detray/grids/serializer2.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/utils/indexing.hpp"
 
@@ -66,6 +71,22 @@ struct full_metadata {
     using mask_definitions =
         mask_registry<mask_ids, rectangle, trapezoid, annulus, cylinder, disc>;
 
+    // Accelerator types
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using volume_finder =
+        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
+              vector_t, jagged_vector_t, array_t, tuple_t, dindex>;
+
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using surface_finder =
+        surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>;
+
     dynamic_data _data;
 };
 
@@ -98,6 +119,22 @@ struct toy_metadata {
     using mask_definitions =
         mask_registry<mask_ids, rectangle, trapezoid, cylinder, disc>;
 
+    // Accelerator types
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using volume_finder =
+        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
+              vector_t, jagged_vector_t, array_t, tuple_t, dindex>;
+
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using surface_finder =
+        surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>;
+
     volume_stats _data;
 };
 
@@ -124,6 +161,10 @@ struct telescope_metadata {
 
     // How to store and link masks
     using mask_definitions = mask_registry<mask_ids, rectangle>;
+
+    // Accelerator types
+    using volume_finder = void;
+    using surface_finder = void;
 };
 
 struct detector_registry {

@@ -155,8 +155,8 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
 
     auto &cyl_volume =
         det.new_volume({inner_r, outer_r, lower_z, upper_z, -M_PI, M_PI});
-    typename detector_t::surfaces_regular_circular_grid cyl_surfaces_grid(
-        resource);
+    typename detector_t::surfaces_finder_type::surfaces_regular_circular_grid
+        cyl_surfaces_grid(resource);
 
     // Add module surfaces to volume
     typename detector_t::surface_filling_container surfaces = {};
@@ -916,8 +916,8 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
             typename detector_t::mask_container & /*masks*/,
             typename detector_t::transform_filling_container & /*transforms*/) {
         }
-        void operator()(typename detector_t::surfaces_regular_circular_grid
-                            & /*surfaces_grid*/,
+        void operator()(typename detector_t::surfaces_finder_type::
+                            surfaces_regular_circular_grid & /*surfaces_grid*/,
                         vecmem::memory_resource & /*resource*/) {}
     };
 
@@ -934,9 +934,9 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
             create_barrel_modules(ctx, volume, surfaces, masks, transforms,
                                   cfg);
         }
-        void operator()(
-            typename detector_t::surfaces_regular_circular_grid &surfaces_grid,
-            vecmem::memory_resource &resource) {
+        void operator()(typename detector_t::surfaces_finder_type::
+                            surfaces_regular_circular_grid &surfaces_grid,
+                        vecmem::memory_resource &resource) {
             create_barrel_grid(surfaces_grid, resource, cfg);
         }
     };
@@ -954,9 +954,9 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
             create_endcap_modules(ctx, volume, surfaces, masks, transforms,
                                   cfg);
         }
-        void operator()(
-            typename detector_t::surfaces_regular_circular_grid &surfaces_grid,
-            vecmem::memory_resource &resource) {
+        void operator()(typename detector_t::surfaces_finder_type::
+                            surfaces_regular_circular_grid &surfaces_grid,
+                        vecmem::memory_resource &resource) {
             create_endcap_grid(surfaces_grid, resource, cfg);
         }
     };
