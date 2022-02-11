@@ -36,7 +36,7 @@ template <bool kRadialCheck = true,
           typename intersector_t = detray::cylinder_intersector,
           typename mask_local_t = __plugin::cylindrical2<detray::scalar>,
           typename mask_links_t = unsigned int,
-          template <typename, unsigned int> class array_t = darray>
+          template <typename, std::size_t> class array_t = darray>
 struct cylinder3 {
     using mask_tolerance = array_t<scalar, 2>;
     // This masks checks on: radius, -z, +z

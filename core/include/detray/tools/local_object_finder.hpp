@@ -66,7 +66,7 @@ struct local_zone_finder {
 
 /** A zone finder for a single object */
 template <typename value_t, typename vector_t = dvector<value_t>,
-          template <typename, unsigned int> class array_t = darray>
+          template <typename, std::size_t> class array_t = darray>
 struct local_single_finder {
 
     using point2 = __plugin::point2<detray::scalar>;

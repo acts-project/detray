@@ -31,7 +31,7 @@ namespace detray {
  **/
 template <template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector,
-          template <typename, unsigned int> class array_t = darray,
+          template <typename, std::size_t> class array_t = darray,
           typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 struct replace_populator {
     DETRAY_HOST_DEVICE
@@ -111,7 +111,7 @@ struct replace_populator {
 
 template <template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector,
-          template <typename, unsigned int> class array_t = darray,
+          template <typename, std::size_t> class array_t = darray,
           typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 struct complete_populator {
     DETRAY_HOST_DEVICE
@@ -211,7 +211,7 @@ struct complete_populator {
  **/
 template <template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector,
-          template <typename, unsigned int> class array_t = darray,
+          template <typename, std::size_t> class array_t = darray,
           typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 struct attach_populator {
     DETRAY_HOST_DEVICE

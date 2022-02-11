@@ -836,7 +836,7 @@ void add_barrel_detector(
  *
  * @returns a complete detector object
  */
-template <template <typename, unsigned int> class array_t = darray,
+template <template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector>

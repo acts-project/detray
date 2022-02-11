@@ -542,7 +542,7 @@ struct detector_view {
 /** stand alone function for detector_data get function
  **/
 template <
-    typename detector_registry, template <typename, unsigned int> class array_t,
+    typename detector_registry, template <typename, std::size_t> class array_t,
     template <typename...> class tuple_t, template <typename...> class vector_t,
     template <typename...> class jagged_vector_t, typename source_link>
 inline detector_data<detector<detector_registry, array_t, tuple_t, vector_t,

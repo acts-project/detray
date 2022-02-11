@@ -22,25 +22,27 @@ namespace detray {
  * @tparam IDs enum that references the types (not used in base class)
  * @tparam registered_types the types that can be mapped to indices
  */
-template <class IDs, bool /*put checks on IDs type*/,
+template <class ID, bool /*put checks on IDs type*/,
           typename... registered_types>
 class registry_base;
 
-template <class IDs, typename... registered_types>
-class registry_base<IDs, false, registered_types...> {
-    // Produce meaningful error
+template <class ID, typename... registered_types>
+class registry_base<ID, false, registered_types...> {
+    // Produce meaningful errors
     static_assert(
-        std::is_enum_v<IDs>,
+        std::is_enum_v<ID>,
         "First template parameter of a type registry must be the type enum!");
+    static_assert(std::is_convertible_v<ID, std::size_t>,
+                  "Type enum must be convertible to std::size_t!");
 };
 
-template <class IDs, typename... registered_types>
-class registry_base<IDs, true, registered_types...> {
+template <class ID, typename... registered_types>
+class registry_base<ID, true, registered_types...> {
     public:
     /** Conventions for some basic info */
     enum : unsigned int {
         n_types = sizeof...(registered_types),
-        e_any = 0,  // sizeof...(registered_types),
+        e_any = sizeof...(registered_types),
         e_unknown = sizeof...(registered_types) + 1,
     };
 
@@ -58,24 +60,25 @@ class registry_base<IDs, true, registered_types...> {
     }
 
     /** Checks whether a given index can be mapped to a type.*/
-    template <unsigned int ID>
+    template <ID type_id>
     DETRAY_HOST_DEVICE static constexpr bool is_valid_id() {
-        return 0 <= ID and ID < n_types;
+        return 0 <= type_id and type_id < n_types;
     }
 
     /** Extract an index and check it.*/
     template <typename object_t>
     struct get_index {
-        static constexpr unsigned int value = get_id<object_t>();
+        static constexpr ID value = get_id<object_t>();
         constexpr bool operator()() noexcept { return is_valid_id<value>(); }
     };
 
     /** Return a type for an index. If the index cannot be mapped, there will be
      * a compiler error.
      */
-    template <unsigned int index, template <typename...> class tuple_t = dtuple>
+    template <ID type_id, template <typename...> class tuple_t = dtuple>
     struct get_type {
-        using type = decltype(std::get<index>(tuple_t<registered_types...>{}));
+        using type =
+            decltype(std::get<type_id>(tuple_t<registered_types...>{}));
     };
 
     private:
@@ -85,7 +88,7 @@ class registry_base<IDs, true, registered_types...> {
     /** Gets the position of a type in a parameter pack, without using tuples.*/
     template <typename object_t, typename first_t = empty_type,
               typename... remaining_types>
-    DETRAY_HOST_DEVICE static constexpr unsigned int unroll_ids() {
+    DETRAY_HOST_DEVICE static constexpr ID unroll_ids() {
         if constexpr (not std::is_same_v<first_t, empty_type> and
                       not std::is_same_v<object_t, first_t>) {
             return unroll_ids<object_t, remaining_types...>();
@@ -123,17 +126,22 @@ class object_registry
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
 
-    template <unsigned int ID, template <typename...> class tuple_t = dtuple>
-    using get_type = typename type_registry::template get_type<ID, tuple_t>;
+    template <unsigned int type_id,
+              template <typename...> class tuple_t = dtuple>
+    using get_type =
+        typename type_registry::template get_type<type_id, tuple_t>;
 };
 
 /** Registry object for masks */
-template <class IDs, typename... registered_types>
+template <class ID, typename... registered_types>
 class mask_registry
-    : public registry_base<IDs, std::is_enum_v<IDs>, registered_types...> {
+    : public registry_base<
+          ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
+          registered_types...> {
     public:
-    using type_registry =
-        registry_base<IDs, std::is_enum_v<IDs>, registered_types...>;
+    using type_registry = registry_base<
+        ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
+        registered_types...>;
 
     enum : unsigned int {
         n_types = type_registry::n_types,
@@ -142,7 +150,7 @@ class mask_registry
     };
 
     // Make the type IDs accessible
-    using id = IDs;
+    using id = ID;
 
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
@@ -154,16 +162,19 @@ class mask_registry
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
 
-    template <unsigned int ID, template <typename...> class tuple_t = dtuple>
-    using get_type = typename type_registry::template get_type<ID, tuple_t>;
+    template <ID type_id, template <typename...> class tuple_t = dtuple>
+    using get_type =
+        typename type_registry::template get_type<type_id, tuple_t>;
 };
 
 /** Registry class for surface finders (e.g. grids) */
+// TODO: Merge with mask registry
 template <typename... registered_types>
 class sf_finder_registry
-    : public registry_base<void, true, registered_types...> {
+    : public registry_base<unsigned int, true, registered_types...> {
     public:
-    using type_registry = registry_base<void, true, registered_types...>;
+    using type_registry =
+        registry_base<unsigned int, true, registered_types...>;
 
     enum : unsigned int {
         n_types = type_registry::n_types,
@@ -186,8 +197,10 @@ class sf_finder_registry
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
 
-    template <unsigned int ID, template <typename...> class tuple_t = dtuple>
-    using get_type = typename type_registry::template get_type<ID, tuple_t>;
+    template <unsigned int type_id,
+              template <typename...> class tuple_t = dtuple>
+    using get_type =
+        typename type_registry::template get_type<type_id, tuple_t>;
 };
 
 }  // namespace detray

@@ -16,7 +16,7 @@
 #include "vecmem/containers/jagged_vector.hpp"
 
 namespace detray {
-template <typename value_t, unsigned int kDIM>
+template <typename value_t, std::size_t kDIM>
 using darray = std::array<value_t, kDIM>;
 
 template <typename value_t>

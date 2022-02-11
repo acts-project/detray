@@ -18,7 +18,7 @@
 #include <thrust/tuple.h>
 
 #include "detray/core/detector.hpp"
-#include "tests/common/tools/detector_registry.hpp"
+#include "tests/common/tools/detector_metadata.hpp"
 
 #pragma once
 

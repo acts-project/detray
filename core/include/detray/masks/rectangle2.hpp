@@ -35,7 +35,7 @@ namespace detray {
 template <typename intersector_t = planar_intersector,
           typename mask_local_t = __plugin::cartesian2<detray::scalar>,
           typename mask_links_t = unsigned int,
-          template <typename, unsigned int> class array_t = darray>
+          template <typename, std::size_t> class array_t = darray>
 struct rectangle2 {
     using mask_tolerance = array_t<scalar, 2>;
     using mask_values = array_t<scalar, 2>;

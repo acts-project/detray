@@ -32,7 +32,7 @@ namespace detray {
 template <unsigned int kCheckIndex, typename intersector_t = planar_intersector,
           typename mask_links_t = __plugin::cartesian2<detray::scalar>,
           typename mask_local_t = bool,
-          template <typename, unsigned int> class array_t = darray>
+          template <typename, std::size_t> class array_t = darray>
 struct single3 {
 
     using mask_tolerance = scalar;

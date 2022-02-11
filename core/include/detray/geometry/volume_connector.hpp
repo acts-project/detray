@@ -18,7 +18,7 @@ namespace detray {
 /// @param volume_grid [in] the indexed volume grid
 ///
 template <typename detector_t,
-          template <typename, unsigned int> class array_type = darray,
+          template <typename, std::size_t> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector>
 void connect_cylindrical_volumes(

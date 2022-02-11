@@ -17,7 +17,7 @@ namespace detray {
 /**
  * detailed implementation of make_grid_data_array with index_sequence
  */
-template <template <typename, size_t> class array_t, typename grid_t,
+template <template <typename, std::size_t> class array_t, typename grid_t,
           std::size_t N, std::size_t... ints>
 auto make_grid_data_array(array_t<grid_t, N>& arr,
                           vecmem::memory_resource& resource,
@@ -31,7 +31,7 @@ auto make_grid_data_array(array_t<grid_t, N>& arr,
  * @param resource is the memory_resource
  * @return is the output array of grid2_data
  */
-template <template <typename, size_t> class array_t, typename grid_t,
+template <template <typename, std::size_t> class array_t, typename grid_t,
           std::size_t N>
 auto make_grid_data_array(array_t<grid_t, N>& arr,
                           vecmem::memory_resource& resource) {
@@ -41,7 +41,7 @@ auto make_grid_data_array(array_t<grid_t, N>& arr,
 /**
  * detailed implementation of make_grid_view_array with index_sequence
  */
-template <template <typename, size_t> class array_t, typename grid_t,
+template <template <typename, std::size_t> class array_t, typename grid_t,
           std::size_t N, std::size_t... ints>
 auto make_grid_view_array(array_t<grid2_data<grid_t>, N>& arr,
                           std::index_sequence<ints...> /*seq*/) {
@@ -54,7 +54,7 @@ auto make_grid_view_array(array_t<grid2_data<grid_t>, N>& arr,
  * @param resource is the memory_resource
  * @return is the output array of grid2_view
  */
-template <template <typename, size_t> class array_t, typename grid_t,
+template <template <typename, std::size_t> class array_t, typename grid_t,
           std::size_t N>
 auto make_grid_view_array(array_t<grid2_data<grid_t>, N>& arr) {
     return make_grid_view_array(arr, std::make_index_sequence<N>{});

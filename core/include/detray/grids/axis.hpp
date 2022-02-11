@@ -24,7 +24,7 @@ namespace axis {
  * The axis is closed, i.e. each underflow bin is mapped to 0
  * and henceforth each overflow bin is mapped to bins-1
  */
-template <template <typename, unsigned int> class array_t = darray,
+template <template <typename, std::size_t> class array_t = darray,
           template <typename...> class vector_t = dvector>
 struct regular {
     dindex n_bins;
@@ -203,7 +203,7 @@ struct regular {
  *
  * The axis is circular, i.e. the underflow bins map into the circular sequence
  */
-template <template <typename, unsigned int> class array_t = darray,
+template <template <typename, std::size_t> class array_t = darray,
           template <typename...> class vector_t = dvector>
 struct circular {
 
@@ -405,7 +405,7 @@ struct circular {
  * The axis is closed, i.e. the underflow is mapped into the first,
  * the overflow is mapped into the last.
  */
-template <template <typename, unsigned int> class array_t = darray,
+template <template <typename, std::size_t> class array_t = darray,
           template <typename...> class vector_t = dvector>
 struct irregular {
 
@@ -644,10 +644,10 @@ struct axis_data<axis_t,
  * standalone function to get axis_data
  */
 template <
-    template <template <typename, unsigned int> class,
+    template <template <typename, std::size_t> class,
               template <typename...> class>
     class axis_t,
-    template <typename, unsigned int> class array_t,
+    template <typename, std::size_t> class array_t,
     template <typename...> class vector_t,
     std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 0 ||
                          axis_t<array_t, vector_t>::axis_identifier == 1 ||
