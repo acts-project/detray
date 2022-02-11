@@ -43,7 +43,7 @@ namespace detray {
 ///
 /// @return a detector object
 template <typename detector_registry,
-          template <typename, unsigned int> class array_type = darray,
+          template <typename, std::size_t> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
