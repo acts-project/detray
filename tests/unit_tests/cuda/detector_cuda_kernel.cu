@@ -43,14 +43,14 @@ __global__ void detector_test_kernel(
     }
 
     // copy objects - transforms
-    auto& trfs = det_device.transforms();
+    auto& trfs = det_device.transform_store();
     for (unsigned int i = 0; i < trfs.size(typename detector_host_t::context());
          i++) {
         transforms_device.data()[i] = trfs.data()[i];
     }
 
     // copy objects - masks
-    auto& masks = det_device.masks();
+    auto& masks = det_device.mask_store();
     auto& rectangles =
         masks.template group<detector_host_t::masks::e_rectangle2>();
     for (unsigned int i = 0; i < rectangles.size(); i++) {
