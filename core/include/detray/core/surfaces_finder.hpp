@@ -178,7 +178,7 @@ struct surfaces_finder_view {
 
 /** standalone function for surface_finder_data get function
  */
-template <size_t N, template <typename, unsigned int> class array_t,
+template <std::size_t N, template <typename, std::size_t> class array_t,
           template <typename...> class tuple_t,
           template <typename...> class vector_t,
           template <typename...> class jagged_vector_t>
