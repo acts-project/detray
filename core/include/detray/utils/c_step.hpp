@@ -15,7 +15,7 @@ namespace detray {
 /** Constrained step struct, it is used to regulate the stepping
  *
  */
-template <size_t kDIM, template <typename, unsigned int> class array_t = darray>
+template <size_t kDIM, template <typename, std::size_t> class array_t = darray>
 struct c_step {
 
     /** Possible step constraints */

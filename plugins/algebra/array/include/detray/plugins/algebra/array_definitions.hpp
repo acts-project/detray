@@ -14,7 +14,7 @@ namespace detray {
 
 using scalar = DETRAY_CUSTOM_SCALARTYPE;
 
-template <typename value_type, unsigned int kDIM>
+template <typename value_type, std::size_t kDIM>
 using darray = std::array<value_type, kDIM>;
 
 template <typename value_type>

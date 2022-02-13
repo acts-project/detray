@@ -25,19 +25,19 @@ namespace detray {
  *
  **/
 template <template <template <typename...> class, template <typename...> class,
-                    template <typename, unsigned int> class, typename, bool,
+                    template <typename, std::size_t> class, typename, bool,
                     unsigned int>
           class populator_t,
-          template <template <typename, unsigned int> class,
+          template <template <typename, std::size_t> class,
                     template <typename...> class>
           class axis_p0_t,
-          template <template <typename, unsigned int> class,
+          template <template <typename, std::size_t> class,
                     template <typename...> class>
           class axis_p1_t,
           typename serializer_t,
           template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector,
-          template <typename, unsigned int> class array_t = darray,
+          template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 class grid2 {
@@ -458,18 +458,18 @@ struct grid2_view {
 /** Get grid2_data from grid and memory resource
  **/
 template <template <template <typename...> class, template <typename...> class,
-                    template <typename, unsigned int> class, typename, bool,
+                    template <typename, std::size_t> class, typename, bool,
                     unsigned int>
           class populator_t,
-          template <template <typename, unsigned int> class,
+          template <template <typename, std::size_t> class,
                     template <typename...> class>
           class axis_p0_t,
-          template <template <typename, unsigned int> class,
+          template <template <typename, std::size_t> class,
                     template <typename...> class>
           class axis_p1_t,
           typename serializer_t, template <typename...> class vector_t,
           template <typename...> class jagged_vector_t,
-          template <typename, unsigned int> class array_t,
+          template <typename, std::size_t> class array_t,
           template <typename...> class tuple_t, typename value_t = dindex,
           bool kSORT = false, unsigned int kDIM = 1>
 inline grid2_data<

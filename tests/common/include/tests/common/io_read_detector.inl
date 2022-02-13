@@ -13,9 +13,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/detector.hpp"
-#include "detray/core/transform_store.hpp"
-#include "detray/io/csv_io.hpp"
-#include "tests/common/tools/detector_registry.hpp"
+#include "tests/common/tools/detector_metadata.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -25,8 +23,8 @@ TEST(ALGEBRA_PLUGIN, read_detector) {
     vecmem::host_memory_resource host_mr;
     using namespace detray;
 
-    auto [d, name_map] =
+    /*auto [d, name_map] =
         read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
 
-    std::cout << d.to_string(name_map) << std::endl;
+    std::cout << d.to_string(name_map) << std::endl;*/
 }

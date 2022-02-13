@@ -24,17 +24,17 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     using detector_t = decltype(toy_det);
     using volume_t = typename detector_t::volume_type;
     using context_t = typename decltype(toy_det)::context;
+    using mask_ids = typename detector_t::masks::id;
     context_t ctx{};
     auto& volumes = toy_det.volumes();
     auto& surfaces = toy_det.surfaces();
     auto& surfaces_finder = toy_det.get_surfaces_finder();
-    auto& transforms = toy_det.transforms();
-    auto& masks = toy_det.masks();
-    auto& rectangles = masks.template group<0>();
-    auto& trapezoids = masks.template group<1>();
-    auto& annuli = masks.template group<2>();
-    auto& cylinders = masks.template group<3>();
-    auto& discs = masks.template group<4>();
+    auto& transforms = toy_det.transform_store();
+    auto& masks = toy_det.mask_store();
+    auto& rectangles = masks.template group<mask_ids::e_rectangle2>();
+    auto& trapezoids = masks.template group<mask_ids::e_trapezoid2>();
+    auto& cylinders = masks.template group<mask_ids::e_portal_cylinder3>();
+    auto& discs = masks.template group<mask_ids::e_portal_ring2>();
 
     /** source link */
     const dindex inv_sf_finder = dindex_invalid;
@@ -45,13 +45,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 20);
     EXPECT_EQ(surfaces.size(), 3244);
-    EXPECT_EQ(surfaces_finder.size(), decltype(toy_det)::N_GRIDS);
+    EXPECT_EQ(surfaces_finder.size(), detector_registry::toy_detector::n_grids);
     EXPECT_EQ(surfaces_finder.effective_size(),
               n_brl_layers + 2 * n_edc_layers);
     EXPECT_EQ(transforms.size(ctx), 3244);
     EXPECT_EQ(rectangles.size(), 2492);
     EXPECT_EQ(trapezoids.size(), 648);
-    EXPECT_EQ(annuli.size(), 0);
     EXPECT_EQ(cylinders.size(), 52);
     EXPECT_EQ(discs.size(), 52);
 
@@ -158,13 +157,14 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check links of beampipe itself
     range = {0, 1};
     test_module_links(vol_itr->index(), surfaces.begin(), range, range[0],
-                      {3, 0}, {{vol_itr->index(), inv_sf_finder}});
+                      {mask_ids::e_cylinder3, 0},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check links of portals
     // cylinder portals
     range = {1, 8};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 1},
+                      range[0], {mask_ids::e_portal_cylinder3, 1},
                       {{1, inv_sf_finder},
                        {2, inv_sf_finder},
                        {3, inv_sf_finder},
@@ -174,7 +174,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                        {7, inv_sf_finder}});
     range = {8, 14};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 8},
+                      range[0], {mask_ids::e_portal_cylinder3, 8},
                       {{14, inv_sf_finder},
                        {15, inv_sf_finder},
                        {16, inv_sf_finder},
@@ -185,7 +185,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // disc portals
     range = {14, 16};
     test_portal_links(
-        vol_itr->index(), surfaces.begin() + range[0], range, range[0], {4, 0},
+        vol_itr->index(), surfaces.begin() + range[0], range, range[0],
+        {mask_ids::e_portal_ring2, 0},
         {{leaving_world, inv_sf_finder}, {leaving_world, inv_sf_finder}});
 
     //
@@ -204,7 +205,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check the trapezoid modules
     range = {16, 124};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {1, 0}, {{vol_itr->index(), inv_sf_finder}});
+                      range[0], {mask_ids::e_trapezoid2, 0},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check link of surfaces in surface finder
     test_surfaces_grid(vol_itr, surfaces_finder, surfaces, range);
@@ -213,12 +215,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {124, 126};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 14},
+                      range[0], {mask_ids::e_portal_cylinder3, 14},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {126, 128};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 2},
+                      range[0], {mask_ids::e_portal_ring2, 2},
                       {{leaving_world, inv_sf_finder}, {2, inv_sf_finder}});
 
     //
@@ -239,12 +241,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {128, 130};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 16},
+                      range[0], {mask_ids::e_portal_cylinder3, 16},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {130, 132};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 4},
+                      range[0], {mask_ids::e_portal_ring2, 4},
                       {{1, inv_sf_finder}, {3, inv_sf_finder}});
 
     //
@@ -263,7 +265,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check the trapezoid modules
     range = {132, 240};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {1, 108}, {{vol_itr->index(), inv_sf_finder}});
+                      range[0], {mask_ids::e_trapezoid2, 108},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check link of surfaces in surface finder
     test_surfaces_grid(vol_itr, surfaces_finder, surfaces, range);
@@ -272,12 +275,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {240, 242};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 18},
+                      range[0], {mask_ids::e_portal_cylinder3, 18},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {242, 244};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 6},
+                      range[0], {mask_ids::e_portal_ring2, 6},
                       {{2, inv_sf_finder}, {4, inv_sf_finder}});
 
     //
@@ -298,12 +301,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {244, 246};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 20},
+                      range[0], {mask_ids::e_portal_cylinder3, 20},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {246, 248};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 8},
+                      range[0], {mask_ids::e_portal_ring2, 8},
                       {{3, inv_sf_finder}, {5, inv_sf_finder}});
 
     //
@@ -322,7 +325,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check the trapezoid modules
     range = {248, 356};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {1, 216}, {{vol_itr->index(), inv_sf_finder}});
+                      range[0], {mask_ids::e_trapezoid2, 216},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check link of surfaces in surface finder
     test_surfaces_grid(vol_itr, surfaces_finder, surfaces, range);
@@ -331,12 +335,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {356, 358};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 22},
+                      range[0], {mask_ids::e_portal_cylinder3, 22},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {358, 360};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 10},
+                      range[0], {mask_ids::e_portal_ring2, 10},
                       {{4, inv_sf_finder}, {6, inv_sf_finder}});
 
     //
@@ -357,12 +361,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {360, 362};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 24},
+                      range[0], {mask_ids::e_portal_cylinder3, 24},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {362, 370};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 12},
+                      range[0], {mask_ids::e_portal_ring2, 12},
                       {{5, inv_sf_finder},
                        {7, inv_sf_finder},
                        {8, inv_sf_finder},
@@ -392,7 +396,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check links of modules
     range = {370, 594};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {0, 0}, {{vol_itr->index(), inv_sf_finder}});
+                      range[0], {mask_ids::e_rectangle2, 0},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check link of surfaces in surface finder
     test_surfaces_grid(vol_itr, surfaces_finder, surfaces, range);
@@ -401,13 +406,13 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {594, 596};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 26},
+                      range[0], {mask_ids::e_portal_cylinder3, 26},
                       {{0, inv_sf_finder}, {8, inv_sf_finder}});
 
     // disc portals
     range = {596, 598};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 20},
+                      range[0], {mask_ids::e_portal_ring2, 20},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
     //
@@ -428,12 +433,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {598, 600};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 28},
+                      range[0], {mask_ids::e_portal_cylinder3, 28},
                       {{7, inv_sf_finder}, {9, inv_sf_finder}});
     // disc portals
     range = {600, 602};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 22},
+                      range[0], {mask_ids::e_portal_ring2, 22},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
     //
@@ -452,7 +457,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check links of modules
     range = {602, 1050};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {0, 224}, {{vol_itr->index(), inv_sf_finder}});
+                      range[0], {mask_ids::e_rectangle2, 224},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check link of surfaces in surface finder
     test_surfaces_grid(vol_itr, surfaces_finder, surfaces, range);
@@ -461,13 +467,13 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {1050, 1052};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 30},
+                      range[0], {mask_ids::e_portal_cylinder3, 30},
                       {{8, inv_sf_finder}, {10, inv_sf_finder}});
 
     // disc portals
     range = {1052, 1054};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 24},
+                      range[0], {mask_ids::e_portal_ring2, 24},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
     //
@@ -488,12 +494,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {1054, 1056};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 32},
+                      range[0], {mask_ids::e_portal_cylinder3, 32},
                       {{9, inv_sf_finder}, {11, inv_sf_finder}});
     // disc portals
     range = {1056, 1058};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 26},
+                      range[0], {mask_ids::e_portal_ring2, 26},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
     //
@@ -512,7 +518,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check links of modules
     range = {1058, 1786};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {0, 672}, {{vol_itr->index(), inv_sf_finder}});
+                      range[0], {mask_ids::e_rectangle2, 672},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check link of surfaces in surface finder
     test_surfaces_grid(vol_itr, surfaces_finder, surfaces, range);
@@ -521,13 +528,13 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {1786, 1788};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 34},
+                      range[0], {mask_ids::e_portal_cylinder3, 34},
                       {{10, inv_sf_finder}, {12, inv_sf_finder}});
 
     // disc portals
     range = {1788, 1790};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 28},
+                      range[0], {mask_ids::e_portal_ring2, 28},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
     //
@@ -548,12 +555,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {1790, 1792};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 36},
+                      range[0], {mask_ids::e_portal_cylinder3, 36},
                       {{11, inv_sf_finder}, {13, inv_sf_finder}});
     // disc portals
     range = {1792, 1794};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 30},
+                      range[0], {mask_ids::e_portal_ring2, 30},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
     //
@@ -572,7 +579,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check links of modules
     range = {1794, 2886};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {0, 1400}, {{vol_itr->index(), inv_sf_finder}});
+                      range[0], {mask_ids::e_rectangle2, 1400},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check link of surfaces in surface finder
     test_surfaces_grid(vol_itr, surfaces_finder, surfaces, range);
@@ -581,13 +589,13 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {2886, 2888};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 38},
+                      range[0], {mask_ids::e_portal_cylinder3, 38},
                       {{12, inv_sf_finder}, {leaving_world, inv_sf_finder}});
 
     // disc portals
     range = {2888, 2890};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 32},
+                      range[0], {mask_ids::e_portal_ring2, 32},
                       {{6, inv_sf_finder}, {14, inv_sf_finder}});
 
     //
@@ -612,12 +620,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {2890, 2892};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 40},
+                      range[0], {mask_ids::e_portal_cylinder3, 40},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {2892, 2900};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 34},
+                      range[0], {mask_ids::e_portal_ring2, 34},
                       {{15, inv_sf_finder},
                        {7, inv_sf_finder},
                        {8, inv_sf_finder},
@@ -643,7 +651,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check the trapezoid modules
     range = {2900, 3008};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {1, 324}, {{vol_itr->index(), inv_sf_finder}});
+                      range[0], {mask_ids::e_trapezoid2, 324},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check link of surfaces in surface finder
     test_surfaces_grid(vol_itr, surfaces_finder, surfaces, range);
@@ -652,12 +661,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {3008, 3010};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 42},
+                      range[0], {mask_ids::e_portal_cylinder3, 42},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {3010, 3012};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 42},
+                      range[0], {mask_ids::e_portal_ring2, 42},
                       {{14, inv_sf_finder}, {16, inv_sf_finder}});
 
     //
@@ -678,12 +687,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {3012, 3014};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 44},
+                      range[0], {mask_ids::e_portal_cylinder3, 44},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {3014, 3016};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 44},
+                      range[0], {mask_ids::e_portal_ring2, 44},
                       {{15, inv_sf_finder}, {17, inv_sf_finder}});
 
     //
@@ -702,7 +711,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check the trapezoid modules
     range = {3016, 3124};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {1, 432}, {{vol_itr->index(), inv_sf_finder}});
+                      range[0], {mask_ids::e_trapezoid2, 432},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check link of surfaces in surface finder
     test_surfaces_grid(vol_itr, surfaces_finder, surfaces, range);
@@ -711,12 +721,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {3124, 3126};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 46},
+                      range[0], {mask_ids::e_portal_cylinder3, 46},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {3126, 3128};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 46},
+                      range[0], {mask_ids::e_portal_ring2, 46},
                       {{16, inv_sf_finder}, {18, inv_sf_finder}});
 
     //
@@ -737,12 +747,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {3128, 3130};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 48},
+                      range[0], {mask_ids::e_portal_cylinder3, 48},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {3130, 3132};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 48},
+                      range[0], {mask_ids::e_portal_ring2, 48},
                       {{17, inv_sf_finder}, {19, inv_sf_finder}});
 
     //
@@ -761,7 +771,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check the trapezoid modules
     range = {3132, 3240};
     test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {1, 540}, {{vol_itr->index(), inv_sf_finder}});
+                      range[0], {mask_ids::e_trapezoid2, 540},
+                      {{vol_itr->index(), inv_sf_finder}});
 
     // Check link of surfaces in surface finder
     test_surfaces_grid(vol_itr, surfaces_finder, surfaces, range);
@@ -770,11 +781,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {3240, 3242};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {3, 50},
+                      range[0], {mask_ids::e_portal_cylinder3, 50},
                       {{0, inv_sf_finder}, {leaving_world, inv_sf_finder}});
     // disc portals
     range = {3242, 3244};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {4, 50},
+                      range[0], {mask_ids::e_portal_ring2, 50},
                       {{18, inv_sf_finder}, {leaving_world, inv_sf_finder}});
 }

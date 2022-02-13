@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/indexing.hpp"
 
@@ -13,22 +14,22 @@ namespace detray {
 
 /** Volume class that acts as a logical container in the geometry for geometry
  *  objects, such as module surfaces or portals. The information is kept as
- *  index ranges in larger containers that are owned by either the geometry or
- *  the detector implementations.
+ *  index ranges into larger containers that are owned by the detector
+ *  implementation.
  *
  * @tparam array_t the type of the internal array, must have STL semantics
  */
-template <typename object_registry, typename range_t = dindex_range,
-          template <typename, unsigned int> class array_t = darray>
+template <typename object_registry_t, typename range_t = dindex_range,
+          template <typename, std::size_t> class array_t = darray>
 class volume {
 
     public:
     // The type of objects a volume can contain
-    using objects = typename object_registry::id;
+    using objects = object_registry_t;
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
     // used for sfinae
-    using volume_def = volume<object_registry, range_t, array_t>;
+    using volume_def = volume<object_registry_t, range_t, array_t>;
 
     enum grid_type : unsigned int {
         e_no_grid = 0,
@@ -76,12 +77,11 @@ class volume {
 
     /** @return if the volume is empty or not */
     DETRAY_HOST_DEVICE inline bool empty() const {
-        return n_objects<object_registry::id::e_surface>() == 0;
+        return n_objects<objects::e_surface>() == 0;
     }
 
     /** @return the number of surfaces in the volume */
-    template <
-        typename object_registry::id range_id = object_registry::id::e_surface>
+    template <typename objects::id range_id = objects::e_surface>
     DETRAY_HOST_DEVICE inline auto n_objects() const {
         return n_in_range(range<range_id>());
     }
@@ -91,33 +91,31 @@ class volume {
      *
      * @param other Surface index range
      */
-    template <
-        typename object_registry::id range_id = object_registry::id::e_surface>
+    template <typename objects::id range_id = objects::e_surface>
     DETRAY_HOST inline void update_range(const range_t &other) {
-        auto &rg = std::get<range_id>(_ranges);
+        auto &rg = detail::get<range_id>(_ranges);
         // Range not set yet - initialize
         constexpr range_t empty{};
         if (rg == empty) {
             rg = other;
-            // Update
         } else {
-            std::get<1>(rg) += n_in_range(other);
+            // Update
+            assert(detail::get<1>(rg) == detail::get<0>(other));
+            detail::get<1>(rg) = detail::get<1>(other);
         }
     }
 
     /** @return range of surfaces by surface type - const access */
-
     template <typename object_t>
     DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
-        constexpr auto index = object_registry::template get<object_t>();
-        return std::get<index>(_ranges);
+        constexpr auto index = objects::template get_index<object_t>::value;
+        return detail::get<index>(_ranges);
     }
 
     /** @return range of surfaces- const access */
-    template <
-        typename object_registry::id range_id = object_registry::id::e_surface>
+    template <typename objects::id range_id = objects::e_surface>
     DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
-        return std::get<range_id>(_ranges);
+        return detail::get<range_id>(_ranges);
     }
 
     /** @return _ranges */
@@ -128,7 +126,7 @@ class volume {
     /** @return the number of elements in a given range */
     template <typename range_type>
     DETRAY_HOST_DEVICE inline dindex n_in_range(range_type &&rg) const {
-        return std::get<1>(rg) - std::get<0>(rg);
+        return detail::get<1>(rg) - detail::get<0>(rg);
     }
 
     /** set grid type associated with volume */
@@ -162,7 +160,7 @@ class volume {
 
     /** Ranges in geometry containers for different objects types that belong
      * to this volume */
-    array_t<range_t, object_registry::id::e_object_types> _ranges = {};
+    array_t<range_t, objects::n_types> _ranges = {};
 
     /** Index into the surface finder container */
     dindex _surfaces_finder_entry = dindex_invalid;

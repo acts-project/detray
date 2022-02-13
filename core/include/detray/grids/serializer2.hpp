@@ -54,7 +54,7 @@ struct serializer2 {
      * @return a 2-dim array of dindex
      */
     template <typename faxis_t, typename saxis_t,
-              template <typename, unsigned int> class array_t = darray>
+              template <typename, std::size_t> class array_t = darray>
     DETRAY_HOST_DEVICE array_t<dindex, 2> deserialize(const faxis_t &faxis,
                                                       const saxis_t & /*saxis*/,
                                                       dindex serialbin) const {

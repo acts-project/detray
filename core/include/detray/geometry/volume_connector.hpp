@@ -18,11 +18,11 @@ namespace detray {
 /// @param volume_grid [in] the indexed volume grid
 ///
 template <typename detector_t,
-          template <typename, unsigned int> class array_type = darray,
+          template <typename, std::size_t> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector>
 void connect_cylindrical_volumes(
-    detector_t &d, const typename detector_t::volume_grid &volume_grid) {
+    detector_t &d, const typename detector_t::volume_finder &volume_grid) {
     typename detector_t::context default_context = {};
 
     // The grid is populated, now create portal surfaces
@@ -221,7 +221,7 @@ void connect_cylindrical_volumes(
         typename detector_t::surface_filling_container portals = {};
         vecmem::host_memory_resource local_mask_resource;
         typename detector_t::mask_container portal_masks(local_mask_resource);
-        typename detector_t::transform_container portal_transforms;
+        typename detector_t::transform_filling_container portal_transforms;
 
         // The bounds can be used for the mask and transform information
         const auto &volume_bounds = volume.bounds();
@@ -244,12 +244,12 @@ void connect_cylindrical_volumes(
                     0., 0., volume_bounds[bound_index]};
 
                 // Get the mask context group and fill it
-                constexpr auto disc_id = detector_t::mask_id::e_portal_ring2;
+                constexpr auto disc_id = detector_t::masks::id::e_portal_ring2;
                 auto &disc_portal_transforms =
                     std::get<disc_id>(portal_transforms);
                 auto &disc_portals = std::get<disc_id>(portals);
 
-                typename portal_t::mask_links mask_index = {
+                typename portal_t::mask_link mask_index = {
                     disc_id, portal_masks.template size<disc_id>()};
                 // Create a stub mask for every unique index
                 for (auto &info_ : portals_info) {
@@ -290,12 +290,12 @@ void connect_cylindrical_volumes(
             if (not portals_info.empty()) {
                 // Get the mask context group and fill it
                 constexpr auto cylinder_id =
-                    detector_t::mask_id::e_portal_cylinder3;
+                    detector_t::masks::id::e_portal_cylinder3;
                 auto &cylinder_portal_transforms =
                     std::get<cylinder_id>(portal_transforms);
                 auto &cylinder_portals = std::get<cylinder_id>(portals);
 
-                typename portal_t::mask_links mask_index = {
+                typename portal_t::mask_link mask_index = {
                     cylinder_id, portal_masks.template size<cylinder_id>()};
                 for (auto &info_ : portals_info) {
                     // Add new mask to container

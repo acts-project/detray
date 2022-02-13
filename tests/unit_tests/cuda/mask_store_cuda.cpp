@@ -9,7 +9,6 @@
 
 #include <climits>
 #include <cstdlib>
-#include <iostream>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "mask_store_cuda_kernel.hpp"

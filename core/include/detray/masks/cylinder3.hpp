@@ -14,7 +14,6 @@
 
 #include "detray/core/intersection.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/masks/mask_identifier.hpp"
 #include "detray/tools/cylinder_intersector.hpp"
 
 namespace detray {
@@ -37,8 +36,7 @@ template <bool kRadialCheck = true,
           typename intersector_t = detray::cylinder_intersector,
           typename mask_local_t = __plugin::cylindrical2<detray::scalar>,
           typename mask_links_t = unsigned int,
-          unsigned int kMaskContext = e_cylinder3,
-          template <typename, unsigned int> class array_t = darray>
+          template <typename, std::size_t> class array_t = darray>
 struct cylinder3 {
     using mask_tolerance = array_t<scalar, 2>;
     // This masks checks on: radius, -z, +z
@@ -51,10 +49,6 @@ struct cylinder3 {
                            std::numeric_limits<scalar>::infinity()};
 
     links_type _links;
-
-    static constexpr unsigned int mask_context = kMaskContext;
-
-    static constexpr unsigned int mask_identifier = e_cylinder3;
 
     static constexpr mask_tolerance within_epsilon = {
         std::numeric_limits<scalar>::epsilon(),
@@ -78,8 +72,8 @@ struct cylinder3 {
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    cylinder3<kRadialCheck, intersector_t, local_type, links_type, kMaskContext>
-        &operator=(const array_t<scalar, 3> &rhs) {
+    cylinder3<kRadialCheck, intersector_t, local_type, links_type> &operator=(
+        const array_t<scalar, 3> &rhs) {
         _values = rhs;
         return (*this);
     }
@@ -170,9 +164,9 @@ struct cylinder3 {
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
-        ss << "cylinder3," << kMaskContext;
+        ss << "cylinder3";
         for (const auto &v : _values) {
-            ss << "," << v;
+            ss << ", " << v;
         }
         return ss.str();
     }

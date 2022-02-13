@@ -39,6 +39,17 @@ using ring = ring2<>;
 using single = single3<0>;
 using trapezoid = trapezoid2<>;
 
+/** Enumerate different mask types for convenience
+ **/
+enum mask_ids : unsigned int {
+    e_rectangle2 = 0,
+    e_trapezoid2 = 1,
+    e_ring2 = 2,
+    e_cylinder3 = 3,
+    e_single3 = 4,
+    e_annulus2 = 5,
+};
+
 /// test function for mask store
 void mask_test(
     mask_store_data<mask_store<thrust::tuple, dvector, rectangle, trapezoid,

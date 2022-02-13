@@ -22,7 +22,7 @@ class unbound;
 
 /** This is an intersector struct for a concetric cylinder surface
  */
-template <template <typename, unsigned int> class array_t = darray>
+template <template <typename, std::size_t> class array_t = darray>
 struct concentric_cylinder_intersector {
 
     using transform3 = __plugin::transform3<detray::scalar>;

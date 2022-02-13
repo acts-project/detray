@@ -32,12 +32,11 @@ TEST(detector_cuda, detector) {
     // host objects
     auto& volumes_host = toy_det.volumes();
     auto& surfaces_host = toy_det.surfaces();
-    auto& transforms_host = toy_det.transforms();
-    auto& masks_host = toy_det.masks();
-    auto& discs_host = masks_host.group<detector_host_t::e_portal_ring2>();
-    auto& cylinders_host =
-        masks_host.group<detector_host_t::e_portal_cylinder3>();
-    auto& rectangles_host = masks_host.group<detector_host_t::e_rectangle2>();
+    auto& transforms_host = toy_det.transform_store();
+    auto& masks_host = toy_det.mask_store();
+    auto& discs_host = masks_host.group<disc_id>();
+    auto& cylinders_host = masks_host.group<cylinder_id>();
+    auto& rectangles_host = masks_host.group<rectangle_id>();
 
     // copied outpus from device side
     vecmem::vector<volume_t> volumes_device(volumes_host.size(), &mng_mr);

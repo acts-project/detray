@@ -43,7 +43,7 @@ namespace detray {
 ///
 /// @return a detector object
 template <typename detector_registry,
-          template <typename, unsigned int> class array_type = darray,
+          template <typename, std::size_t> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
@@ -90,7 +90,7 @@ detector_from_csv(const std::string &detector_name,
     typename detector_t::volume_type *c_volume = nullptr;
     typename detector_t::surface_filling_container c_surfaces;
     typename detector_t::mask_container c_masks(resource);
-    typename detector_t::transform_container c_transforms;
+    typename detector_t::transform_filling_container c_transforms;
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
 
@@ -226,15 +226,19 @@ detector_from_csv(const std::string &detector_name,
     // Create the surface finders & reserve
     std::map<volume_layer_index, dindex> surface_finder_entries;
 
-    using surfaces_r_axis = typename detector_t::surfaces_regular_axis;
-    using surfaces_z_axis = typename detector_t::surfaces_regular_axis;
-    using surfaces_phi_axis = typename detector_t::surfaces_circular_axis;
-
-    using surfaces_r_phi_grid =
-        typename detector_t::surfaces_regular_circular_grid;
-    using surfaces_z_phi_grid =
-        typename detector_t::surfaces_regular_circular_grid;
     using surfaces_finder = typename detector_t::surfaces_finder_type;
+    using surfaces_regular_circular_grid =
+        typename surfaces_finder::surfaces_regular_circular_grid;
+
+    using surfaces_r_axis =
+        typename surfaces_regular_circular_grid::axis_p0_type;
+    using surfaces_z_axis =
+        typename surfaces_regular_circular_grid::axis_p0_type;
+    using surfaces_phi_axis =
+        typename surfaces_regular_circular_grid::axis_p1_type;
+
+    using surfaces_r_phi_grid = surfaces_regular_circular_grid;
+    using surfaces_z_phi_grid = surfaces_regular_circular_grid;
 
     surfaces_finder &detector_surfaces_finders = d.get_surfaces_finder();
 
@@ -292,12 +296,12 @@ detector_from_csv(const std::string &detector_name,
         detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_o);
     }
 
-    typename detector_t::mask_link mask_index = {dindex_invalid,
-                                                 dindex_invalid};
-    constexpr auto cylinder_id = detector_t::mask_id::e_cylinder3;
-    constexpr auto rectangle_id = detector_t::mask_id::e_rectangle2;
-    constexpr auto trapezoid_id = detector_t::mask_id::e_trapezoid2;
-    constexpr auto annulus_id = detector_t::mask_id::e_annulus2;
+    using mask_defs = typename detector_t::masks;
+    typename mask_defs::link_type mask_index = {dindex_invalid, dindex_invalid};
+    constexpr auto cylinder_id = mask_defs::id::e_cylinder3;
+    constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
+    constexpr auto trapezoid_id = mask_defs::id::e_trapezoid2;
+    constexpr auto annulus_id = mask_defs::id::e_annulus2;
 
     // (C) Read the surfaces and fill it
     while (s_reader.read(io_surface)) {
@@ -313,7 +317,8 @@ detector_from_csv(const std::string &detector_name,
 
                 c_surfaces = typename detector_t::surface_filling_container();
                 c_masks = typename detector_t::mask_container(resource);
-                c_transforms = typename detector_t::transform_container();
+                c_transforms =
+                    typename detector_t::transform_filling_container();
             }
 
             // Find and fill the bounds
@@ -510,8 +515,8 @@ detector_from_csv(const std::string &detector_name,
     axis::irregular<darray, dvector> raxis{{rs}, resource};
     axis::irregular<darray, dvector> zaxis{{zs}, resource};
 
-    typename detector_t::volume_grid v_grid(std::move(raxis), std::move(zaxis),
-                                            resource);
+    typename detector_t::volume_finder v_grid(std::move(raxis),
+                                              std::move(zaxis), resource);
 
     // A step into the volume (stepsilon), can be read in from the smallest
     // difference
@@ -606,7 +611,7 @@ detector_from_csv(const std::string &detector_name,
                                 vector_type>(d, v_grid);
 
     // Add the volume grid to the detector
-    d.add_volume_grid(std::move(v_grid));
+    d.add_volume_finder(std::move(v_grid));
 
     return d;
 }

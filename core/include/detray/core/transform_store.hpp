@@ -21,6 +21,7 @@ template <template <typename...> class vector_t = dvector,
           typename context_t = dindex>
 class static_transform_store {
     public:
+    using link_type = dindex;
     using storage = vector_t<transform3>;
     using context = context_t;
 

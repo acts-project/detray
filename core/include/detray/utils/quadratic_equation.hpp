@@ -18,7 +18,7 @@ namespace detray {
  * 0
  */
 template <typename scalar_t,
-          template <typename, unsigned int> class array_t = darray,
+          template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple>
 struct quadratic_equation {
     array_t<scalar_t, 3> _params = {0., 0., 0.};

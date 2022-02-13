@@ -54,11 +54,9 @@ class geometry_graph {
 
     public:
     // Objects ids of the geometry
-    using object_id = typename geometry::object_id;
-
+    using object_defs = typename geometry::objects;
     // Graph nodes
     using node_t = typename geometry::volume_type;
-
     // Graph edges
     using edge_t = typename geometry::surface_type;
 
@@ -118,7 +116,7 @@ class geometry_graph {
             inspector(*current);
 
             // Visit neighbors and perform action
-            actor(*current, current->template range<object_id::e_portal>());
+            actor(*current, current->template range<object_defs::e_portal>());
 
             // Add neightbors to queue
             for (const auto &edg : range(_edges, *current)) {

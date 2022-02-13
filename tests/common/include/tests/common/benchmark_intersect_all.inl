@@ -14,11 +14,9 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/detector.hpp"
-#include "detray/core/transform_store.hpp"
-#include "detray/io/csv_io.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "tests/common/tools/detector_registry.hpp"
+#include "tests/common/tools/detector_metadata.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
 using namespace detray;
@@ -38,9 +36,9 @@ auto [d, name_map] =
     read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
 
 using detector_t = decltype(d);
-constexpr auto k_surfaces = detector_t::object_id::e_surface;
+constexpr auto k_surfaces = detector_t::objects::e_surface;
 
-using detray_context = decltype(d)::transform_store::context;
+using detray_context = detector_t::context;
 detray_context default_context;
 
 const auto data_core = d.data(default_context);
@@ -60,7 +58,7 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
     // point3 ori = {0., 0., 0.};
 
     for (auto _ : state) {
-        track<static_transform_store<>::context> track;
+        track<detray_context> track;
         track.pos = point3<detray::scalar>{0., 0., 0.};
 
         // Loops of theta values
