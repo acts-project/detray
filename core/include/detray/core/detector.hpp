@@ -271,7 +271,7 @@ class detector {
     template <typename... detector_components>
     DETRAY_HOST inline void add_objects(
         const context ctx,
-        detector_components &&...components) noexcept(false) {
+        detector_components &&... components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'masks')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }

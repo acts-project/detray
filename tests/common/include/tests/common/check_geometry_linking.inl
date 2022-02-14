@@ -9,7 +9,7 @@
 
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/tools/geometry_graph.hpp"
+#include "detray/tools/volume_graph.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
@@ -35,7 +35,7 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
     using detector_t = decltype(toy_det);
 
     // Build the graph
-    const auto g = geometry_graph<detector_t>(
+    const auto g = volume_graph<detector_t>(
         toy_det.volumes(), toy_det.surfaces(), toy_det.mask_store());
     // const auto &adj_linking = g.adjacency_list();
 

@@ -11,7 +11,7 @@
 #include <map>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/tools/geometry_graph.hpp"
+#include "detray/tools/volume_graph.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -32,7 +32,7 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
         }
     };
 
-    using graph = geometry_graph<detector_t, volume_printout>;
+    using graph = volume_graph<detector_t, volume_printout>;
 
     // Build the graph
     graph g = graph(det.volumes(), det.surfaces(), det.mask_store());

@@ -7,7 +7,7 @@
 # Set up all of the "standard" tests.
 detray_add_test( array
    "array_annulus2.cpp" "array_core.cpp" "array_cylinder_intersection.cpp"
-   "array_cylinder3.cpp" "array_detector.cpp" "array_geometry_graph.cpp"
+   "array_cylinder3.cpp" "array_detector.cpp" "array_geometry_volume_graph.cpp"
    "array_geometry_linking.cpp" "array_geometry_navigation.cpp"
    "array_geometry_scan.cpp" "array_intersection_kernel.cpp"
    "array_line_stepper.cpp" "array_mask_store.cpp" "array_navigator.cpp"

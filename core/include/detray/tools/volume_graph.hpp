@@ -51,7 +51,7 @@ template <typename geometry,
           typename node_inspector =
               void_node_inspector<typename geometry::volume_type>,
           template <typename...> class vector_t = dvector>
-class geometry_graph {
+class volume_graph {
 
     public:
     // Objects ids of the geometry
@@ -218,22 +218,22 @@ class geometry_graph {
     using edge_iter = typename edge_collection::iterator;
 
     /** Default constructor */
-    geometry_graph() = delete;
+    volume_graph() = delete;
 
     /** Build from existing nodes and edges, which are provide by the geometry.
      *
      * @param volumes geometry volumes that become the graph nodes
      * @param portals geometry portals link volumes and become edges
      */
-    geometry_graph(const vector_t<typename geometry::volume_type> &volumes,
-                   const vector_t<typename geometry::surface_type> &surfaces,
-                   const typename geometry::mask_container &masks)
+    volume_graph(const vector_t<typename geometry::volume_type> &volumes,
+                 const vector_t<typename geometry::surface_type> &surfaces,
+                 const typename geometry::mask_container &masks)
         : _nodes(volumes, surfaces), _edges(masks) {
         build();
     }
 
     /** Default destructor: we don't own anything */
-    ~geometry_graph() = default;
+    ~volume_graph() = default;
 
     /** @return number of volumes */
     size_t n_nodes() const { return _nodes.size(); }

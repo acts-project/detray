@@ -45,7 +45,7 @@ namespace detray {
  **/
 template <typename intersector_t = planar_intersector,
           typename mask_local_t = __plugin::polar2<detray::scalar>,
-          typename mask_links_t = unsigned int,
+          typename mask_links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 struct annulus2 {
     // Export types

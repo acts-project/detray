@@ -7,7 +7,7 @@
 # Set up all of the "standard" tests.
 detray_add_test( smatrix
    "smatrix_annulus2.cpp" "smatrix_core.cpp" "smatrix_cylinder_intersection.cpp"
-   "smatrix_cylinder3.cpp" "smatrix_detector.cpp" "smatrix_geometry_graph.cpp"
+   "smatrix_cylinder3.cpp" "smatrix_detector.cpp" "smatrix_geometry_volume_graph.cpp"
    "smatrix_geometry_linking.cpp" "smatrix_geometry_navigation.cpp"
    "smatrix_geometry_scan.cpp" "smatrix_intersection_kernel.cpp"
    "smatrix_line_stepper.cpp" "smatrix_mask_store.cpp" "smatrix_navigator.cpp"

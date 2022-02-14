@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/eigen_definitions.hpp"
-#include "tests/common/geometry_graph.inl"
+#include "tests/common/geometry_volume_graph.inl"
