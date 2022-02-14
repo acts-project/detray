@@ -41,30 +41,30 @@ struct void_actor {
  * This class provides a graph algorithm that walk along the volumes of a given
  * geomtery and uses the portals to check reachability between the volumes.
  *
- * @tparam geometry the type of geometry we want to walk along.
+ * @tparam detector_t the type of geometry we want to walk along.
  * @tparam node_inspector the type of inspection to perform when a node is
  *         visited
  *
- * @note The geometry has to expose the volume/portal interface.
+ * @note The detector has to expose the volume/portal interface.
  */
-template <typename geometry,
+template <typename detector_t,
           typename node_inspector =
-              void_node_inspector<typename geometry::volume_type>,
+              void_node_inspector<typename detector_t::volume_type>,
           template <typename...> class vector_t = dvector>
 class volume_graph {
 
     public:
     // Objects ids of the geometry
-    using object_defs = typename geometry::objects;
-    using volume_container_t = vector_t<typename geometry::volume_type>;
-    using surface_container_t = vector_t<typename geometry::surface_type>;
-    using mask_container_t = typename geometry::mask_container;
+    using object_defs = typename detector_t::objects;
+    using volume_container_t = vector_t<typename detector_t::volume_type>;
+    using surface_container_t = vector_t<typename detector_t::surface_type>;
+    using mask_container_t = typename detector_t::mask_container;
 
     /** Builds a graph node from the detector collections on the fly. */
     struct node_collection {
         struct node {
 
-            node(const typename geometry::volume_type &volume,
+            node(const typename detector_t::volume_type &volume,
                  const surface_container_t &surfaces)
                 : _idx(volume.index()) {
                 for (const auto &sf : range(surfaces, volume)) {
@@ -76,7 +76,7 @@ class volume_graph {
             const auto &edges() const { return _edge_links; }
 
             dindex _idx;
-            vector_t<typename geometry::surface_type::mask_link> _edge_links;
+            vector_t<typename detector_t::surface_type::mask_link> _edge_links;
         };
 
         struct iterator {
@@ -125,7 +125,7 @@ class volume_graph {
 
     /** Builds a graph edge from the detector mask collection on the fly. */
     struct edge_collection {
-        using mask_edge_t = typename geometry::surface_type::edge_type;
+        using mask_edge_t = typename detector_t::surface_type::edge_type;
 
         struct edge {
             edge(const dindex volume_id, const dindex link)
@@ -188,7 +188,7 @@ class volume_graph {
                 }
 
                 // Next mask type
-                using mask_defs = typename geometry::surface_type::mask_defs;
+                using mask_defs = typename detector_t::surface_type::mask_defs;
                 if constexpr (current_id < mask_defs::n_types - 1) {
                     return build_edges_vector<current_id + 1>(volume_id,
                                                               mask_edge, masks);
@@ -201,7 +201,7 @@ class volume_graph {
 
         using value_type = edge;
 
-        edge_collection(const typename geometry::mask_container &masks)
+        edge_collection(const typename detector_t::mask_container &masks)
             : _edges(masks) {}
 
         std::size_t size() const { return dindex_invalid; }
@@ -220,15 +220,14 @@ class volume_graph {
     /** Default constructor */
     volume_graph() = delete;
 
-    /** Build from existing nodes and edges, which are provide by the geometry.
+    /** Build from existing nodes and edges, which are provide by the detector.
      *
-     * @param volumes geometry volumes that become the graph nodes
-     * @param portals geometry portals link volumes and become edges
+     * @param det provides: geometry volumes that become the graph nodes,
+     * surfaces which are needed to index the correct masks and the
+     * masks that link to volumes and become graph edges
      */
-    volume_graph(const vector_t<typename geometry::volume_type> &volumes,
-                 const vector_t<typename geometry::surface_type> &surfaces,
-                 const typename geometry::mask_container &masks)
-        : _nodes(volumes, surfaces), _edges(masks) {
+    volume_graph(const detector_t &det)
+        : _nodes(det.volumes(), det.surfaces()), _edges(det.mask_store()) {
         build();
     }
 

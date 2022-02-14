@@ -35,11 +35,10 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
     using detector_t = decltype(toy_det);
 
     // Build the graph
-    const auto g = volume_graph<detector_t>(
-        toy_det.volumes(), toy_det.surfaces(), toy_det.mask_store());
-    // const auto &adj_linking = g.adjacency_list();
+    volume_graph graph(toy_det);
+    // const auto &adj_linking = graph.adjacency_list();
 
-    std::cout << g.to_string() << std::endl;
+    std::cout << graph.to_string() << std::endl;
 
     // TODO: Join these sub trees into a single comprehensive tree
     /*auto geo_checker_vol0 =

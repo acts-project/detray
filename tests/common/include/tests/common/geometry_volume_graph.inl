@@ -32,17 +32,15 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
         }
     };
 
-    using graph = volume_graph<detector_t, volume_printout>;
-
     // Build the graph
-    graph g = graph(det.volumes(), det.surfaces(), det.mask_store());
+    volume_graph<detector_t, volume_printout> graph(det);
 
     // Is everything accessible from the graph?
-    EXPECT_EQ(g.n_nodes(), det.volumes().size());
+    EXPECT_EQ(graph.n_nodes(), det.volumes().size());
 
-    std::cout << g.to_string() << std::endl;
+    std::cout << graph.to_string() << std::endl;
     std::cout << "Walking through geometry: " << std::endl;
-    // g.bfs();
+    // graph.bfs();
 
     // Volume 0 has 3 portals to volume 1 and two surfaces linking to itself
     // std::map<dindex, dindex> nbrs_map_v0{{0, 2}, {1, 3}};
@@ -50,7 +48,7 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     // std::map<dindex, dindex> nbrs_map_v1{{0, 4}, {1, 2}};
 
     // Check this with graph
-    // const auto &adj = g.adjacency_list();
+    // const auto &adj = graph.adjacency_list();
     // ASSERT_TRUE(adj.at(0) == nbrs_map_v0);
     // ASSERT_TRUE(adj.at(1) == nbrs_map_v1);
 }
