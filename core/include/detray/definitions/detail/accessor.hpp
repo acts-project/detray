@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/indexing.hpp"
 
 namespace detray {
 
@@ -40,6 +41,11 @@ namespace detail {
  */
 using std::get;
 using thrust::get;
+
+template <std::size_t id>
+dindex get(dindex idx) noexcept {
+    return idx;
+}
 
 template <std::size_t id, typename mask_store_t,
           std::enable_if_t<std::is_class_v<typename std::remove_reference_t<

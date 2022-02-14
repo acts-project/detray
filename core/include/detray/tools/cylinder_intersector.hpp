@@ -116,6 +116,7 @@ struct cylinder_intersector {
                     mask.template is_inside<local_frame>(local3, tolerance);
                 scalar rdr = getter::perp(local3 + 0.1 * rd);
                 is.direction = rdr > r ? e_along : e_opposite;
+                is.link = mask.volume_link();
                 return is;
             }
         }

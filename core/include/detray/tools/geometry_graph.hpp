@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <cstddef>
 #include <iterator>
 #include <map>
 #include <queue>
@@ -55,10 +56,166 @@ class geometry_graph {
     public:
     // Objects ids of the geometry
     using object_defs = typename geometry::objects;
+    using volume_container_t = vector_t<typename geometry::volume_type>;
+    using surface_container_t = vector_t<typename geometry::surface_type>;
+    using mask_container_t = typename geometry::mask_container;
+
+    /** Builds a graph node from the detector collections on the fly. */
+    struct node_collection {
+        struct node {
+
+            node(const typename geometry::volume_type &volume,
+                 const surface_container_t &surfaces)
+                : _idx(volume.index()) {
+                for (const auto &sf : range(surfaces, volume)) {
+                    _edge_links.push_back(sf.mask());
+                }
+            }
+
+            dindex index() const { return _idx; }
+            const auto &edges() const { return _edge_links; }
+
+            dindex _idx;
+            vector_t<typename geometry::surface_type::mask_link> _edge_links;
+        };
+
+        struct iterator {
+            using value_type = node;
+            using volume_iter =
+                decltype(std::begin(std::declval<volume_container_t>()));
+
+            iterator(volume_iter &&vol_itr, const surface_container_t &surfaces)
+                : _vol_itr(vol_itr), _surfaces(surfaces) {}
+
+            node operator*() { return node(*_vol_itr, _surfaces); }
+
+            // Prefix increment
+            iterator &operator++() {
+                ++_vol_itr;
+                return *this;
+            }
+
+            bool operator==(const iterator &rhs) {
+                return _vol_itr == rhs._vol_itr and
+                       &_surfaces == &rhs._surfaces;
+            };
+
+            bool operator!=(const iterator &rhs) {
+                return _vol_itr != rhs._vol_itr or &_surfaces != &rhs._surfaces;
+            };
+
+            volume_iter _vol_itr;
+            const surface_container_t &_surfaces;
+        };
+
+        using value_type = node;
+
+        node_collection(const volume_container_t &volumes,
+                        const surface_container_t &surfaces)
+            : _volumes(volumes), _surfaces(surfaces) {}
+
+        std::size_t size() const { return _volumes.size(); }
+        node front() const { return node(_volumes.front(), _surfaces); }
+        iterator begin() const { return iterator(_volumes.begin(), _surfaces); }
+        iterator end() const { return iterator(_volumes.end(), _surfaces); }
+
+        const volume_container_t &_volumes;
+        const surface_container_t &_surfaces;
+    };
+
+    /** Builds a graph edge from the detector mask collection on the fly. */
+    struct edge_collection {
+        using mask_edge_t = typename geometry::surface_type::edge_type;
+
+        struct edge {
+            edge(const dindex volume_id, const dindex link)
+                : _from(volume_id), _to(link) {}
+
+            dindex from() const { return _from; }
+            dindex to() const { return _to; }
+
+            dindex _from, _to;
+        };
+
+        struct iterator {
+            using value_type = edge;
+            using edge_iter =
+                decltype(std::begin(std::declval<vector_t<edge>>()));
+
+            iterator(const dindex volume_id, const mask_edge_t &mask_edge,
+                     const edge_collection &edges) {
+                build_edges_vector(volume_id, mask_edge, edges.get_container());
+                _itr = _edges.begin();
+            }
+
+            edge operator*() { return *_itr; }
+
+            // Prefix increment
+            iterator &operator++() {
+                ++_itr;
+                return *this;
+            }
+
+            iterator &begin() {
+                _itr = _edges.begin();
+                return *this;
+            }
+            iterator &end() {
+                _itr = _edges.end();
+                return *this;
+            }
+
+            bool operator==(const iterator &rhs) {
+                return _itr == rhs._itr and &_edges == &rhs._edges;
+            };
+
+            bool operator!=(const iterator &rhs) {
+                return _itr != rhs._itr and &_edges != &rhs._edges;
+            };
+
+            template <std::size_t current_id = 0>
+            inline void build_edges_vector(const dindex volume_id,
+                                           const mask_edge_t &mask_edge,
+                                           const mask_container_t &masks) {
+
+                if (detail::get<0>(mask_edge) == current_id) {
+                    // Get the mask group that will be updated
+                    const auto &mask_group = masks.template group<current_id>();
+                    const auto mask_range = detail::get<1>(mask_edge);
+                    for (const auto &mask : range(mask_group, mask_range)) {
+                        _edges.emplace_back(volume_id, mask.volume_link());
+                    }
+                }
+
+                // Next mask type
+                using mask_defs = typename geometry::surface_type::mask_defs;
+                if constexpr (current_id < mask_defs::n_types - 1) {
+                    return build_edges_vector<current_id + 1>(volume_id,
+                                                              mask_edge, masks);
+                }
+            }
+
+            edge_iter _itr;
+            vector_t<edge> _edges;
+        };
+
+        using value_type = edge;
+
+        edge_collection(const typename geometry::mask_container &masks)
+            : _edges(masks) {}
+
+        std::size_t size() const { return dindex_invalid; }
+        const mask_container_t &get_container() const { return _edges; }
+
+        const mask_container_t &_edges;
+    };
+
     // Graph nodes
-    using node_t = typename geometry::volume_type;
+    using node_type = typename node_collection::value_type;
+    using node_iter = typename node_collection::iterator;
     // Graph edges
-    using edge_t = typename geometry::surface_type;
+    using edge_type = typename edge_collection::value_type;
+    using edge_iter = typename edge_collection::iterator;
 
     /** Default constructor */
     geometry_graph() = delete;
@@ -69,8 +226,9 @@ class geometry_graph {
      * @param portals geometry portals link volumes and become edges
      */
     geometry_graph(const vector_t<typename geometry::volume_type> &volumes,
-                   const vector_t<typename geometry::surface_type> &portals)
-        : _nodes(volumes), _edges(portals) {
+                   const vector_t<typename geometry::surface_type> &surfaces,
+                   const typename geometry::mask_container &masks)
+        : _nodes(volumes, surfaces), _edges(masks) {
         build();
     }
 
@@ -84,7 +242,7 @@ class geometry_graph {
     const auto &nodes() const { return _nodes; }
 
     /** @return number of surfaces/portals in the geometry */
-    size_t n_edges() const { return _edges.size(); }
+    // size_t n_edges() const { return _edges.size(); }
 
     /** @return all surfaces/portals in the geometry */
     const auto &edges() const { return _edges; }
@@ -93,17 +251,18 @@ class geometry_graph {
     auto &adjacency_list() const { return adj_list; }
 
     /** Walks breadth first through the geometry objects. */
-    template <typename action_t = void_actor<node_t>>
+    /*template <typename action_t = void_actor<node_type>>
     void bfs(action_t actor = {}) const {
         // Do node inspection
         const auto inspector = node_inspector();
 
-        node_t const *current = nullptr;
+        node_type const *current = nullptr;
         vector_t<bool> visited(_nodes.size(), false);
 
         // Nodes to be visited. Start at first node
-        std::queue<node_t const *> node_queue;
-        node_queue.push(&(_nodes[0]));
+        std::queue<node_type const *> node_queue;
+        node first_node = _nodes.front();
+        node_queue.push(&(first_node));
 
         // Visit adjacent nodes and check current one
         while (not node_queue.empty()) {
@@ -119,12 +278,14 @@ class geometry_graph {
             actor(*current, current->template range<object_defs::e_portal>());
 
             // Add neightbors to queue
-            for (const auto &edg : range(_edges, *current)) {
-                // Retrieve the node index the edge points to
-                dindex nbr = std::get<0>(edg.edge());
-                // If not leaving world and if not visited, enqueue the node
-                if ((nbr != dindex_invalid and nbr > 0) and not visited[nbr]) {
-                    node_queue.push(&(_nodes[nbr]));
+            for (const auto &edg_link : current->edges()) {
+                for (const auto &edg :
+    edge_collection::iterator(current->index(), edg_link, _edges)) { dindex nbr
+    = edg.to();
+                    // If not leaving world and if not visited, enqueue the node
+                    if ((nbr != dindex_invalid and nbr > 0) and not
+    visited[nbr]) { node_queue.push(&(_nodes[nbr]));
+                    }
                 }
             }
 
@@ -132,7 +293,7 @@ class geometry_graph {
             visited[current->index()] = true;
             node_queue.pop();
         }
-    }
+    }*/
 
     /** @returns the linking description as a string */
     inline const std::string to_string() const {
@@ -163,26 +324,27 @@ class geometry_graph {
 
     private:
     /** Go through the nodes and fill adjacency list. Root node is always at
-     * zero.
+     *  zero.
      */
     void build() {
         for (const auto &n : _nodes) {
             // Count the number of edges for a particluar neighbor
             std::map<dindex, dindex> neighbors = {};
 
-            // Only works for non batched geometries
-            for (const auto &edg : range(_edges, n)) {
-                neighbors[std::get<0>(edg.edge())]++;
+            for (const auto &edg_link : n.edges()) {
+                for (const auto edg : edge_iter(n.index(), edg_link, _edges)) {
+                    neighbors[edg.to()]++;
+                }
             }
             adj_list[n.index()] = neighbors;
         }
     }
 
     /** Graph nodes */
-    const vector_t<node_t> &_nodes;
+    node_collection _nodes;
 
     /** Graph edges */
-    const vector_t<edge_t> &_edges;
+    edge_collection _edges;
 
     /**
      *  The index of the nodes neighbors and a count of edges is kept in the

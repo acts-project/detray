@@ -12,6 +12,7 @@
 #include <string>
 
 #include "detray/core/intersection.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/tools/planar_intersector.hpp"
 
@@ -35,7 +36,7 @@ namespace detray {
  **/
 template <typename intersector_t = planar_intersector,
           typename mask_local_t = __plugin::cartesian2<detray::scalar>,
-          typename mask_links_t = unsigned int,
+          typename mask_links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 struct trapezoid2 {
     using mask_tolerance = array_t<scalar, 2>;
@@ -64,9 +65,11 @@ struct trapezoid2 {
      * @param half_length_2 half length in loc1
      */
     DETRAY_HOST_DEVICE
-    trapezoid2(scalar half_length_0, scalar half_length_1, scalar half_length_2)
+    trapezoid2(scalar half_length_0, scalar half_length_1, scalar half_length_2,
+               links_type links)
         : _values{half_length_0, half_length_1, half_length_2,
-                  static_cast<scalar>(1. / (2. * half_length_2))} {}
+                  static_cast<scalar>(1. / (2. * half_length_2))},
+          _links(links) {}
 
     /** Assignment operator from an array, convenience function
      *
@@ -147,13 +150,29 @@ struct trapezoid2 {
     DETRAY_HOST_DEVICE
     constexpr local_type local() const { return local_type{}; }
 
-    /** Return the volume link - const reference */
+    /** @return the links - const reference */
     DETRAY_HOST_DEVICE
     const links_type &links() const { return _links; }
 
-    /** Return the volume link - non-const access */
+    /** @return the links - non-const access */
     DETRAY_HOST_DEVICE
     links_type &links() { return _links; }
+
+    /** @return the volume link - const reference */
+    DETRAY_HOST_DEVICE
+    dindex volume_link() const { return detail::get<0>(_links); }
+
+    /** @return the volume link - non-const access */
+    DETRAY_HOST_DEVICE
+    dindex volume_link() { return detail::get<0>(_links); }
+
+    /** @return the surface finder link - const reference */
+    DETRAY_HOST_DEVICE
+    dindex finder_link() const { return detail::get<1>(_links); }
+
+    /** @return the surface finder link - non-const access */
+    DETRAY_HOST_DEVICE
+    dindex finder_link() { return detail::get<1>(_links); }
 
     /** Transform to a string for output debugging */
     DETRAY_HOST

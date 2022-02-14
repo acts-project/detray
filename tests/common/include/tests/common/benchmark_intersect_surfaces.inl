@@ -31,7 +31,7 @@ using mask_defs =
     mask_registry<mask_ids, rectangle2<>,
                   cylinder3<false, cylinder_intersector>,
                   cylinder3<false, concentric_cylinder_intersector<>>>;
-using plane_surface = surface_base<mask_defs, transform3>;
+using plane_surface = surface<mask_defs, transform3>;
 
 #ifdef DETRAY_BENCHMARKS_REP
 unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
@@ -53,7 +53,7 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
     unsigned int sfhit = 0;
     unsigned int sfmiss = 0;
 
-    rectangle2<> rect = {10., 20.};
+    rectangle2<> rect{10., 20., 0u};
     point3 ori = {0., 0., 0.};
 
     for (auto _ : state) {
@@ -110,11 +110,11 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
         typename mask_defs::template get_type<e_cylinder3>::type;
     dvector<cylinder_mask> cylinders;
     for (auto r : dists) {
-        cylinders.push_back(cylinder_mask{r, -10., 10.});
+        cylinders.push_back(cylinder_mask{r, -10., 10., 0u});
     }
 
     typename mask_defs::link_type mask_link{e_cylinder3, 0};
-    plane_surface plain(std::move(transform3()), std::move(mask_link), 0,
+    plane_surface plain(std::move(transform3()), std::move(mask_link), 0, false,
                         false);
 
     point3 ori = {0., 0., 0.};
@@ -175,11 +175,11 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     ;
     dvector<cylinder_mask> cylinders;
     for (auto r : dists) {
-        cylinders.push_back(cylinder_mask{r, -10., 10.});
+        cylinders.push_back(cylinder_mask{r, -10., 10., 0u});
     }
 
     typename mask_defs::link_type mask_link{e_conc_cylinder3, 0};
-    plane_surface plain(std::move(transform3()), std::move(mask_link), 0,
+    plane_surface plain(std::move(transform3()), std::move(mask_link), 0, false,
                         false);
 
     point3 ori = {0., 0., 0.};

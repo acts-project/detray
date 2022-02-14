@@ -72,7 +72,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                 EXPECT_EQ(sf_itr->volume(), vol_index);
                 EXPECT_EQ(sf_itr->transform(), trf_index);
                 EXPECT_EQ(sf_itr->mask(), mask_index);
-                EXPECT_EQ(sf_itr->edge(), edges[pti - range[0]]);
+                // EXPECT_EQ(sf_itr->edge(), edges[pti - range[0]]);
                 sf_itr++;
                 trf_index++;
                 mask_index[1]++;
@@ -96,7 +96,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                 EXPECT_EQ(sf_itr->volume(), vol_index);
                 EXPECT_EQ(sf_itr->transform(), trf_index);
                 EXPECT_EQ(sf_itr->mask(), mask_index);
-                EXPECT_EQ(sf_itr->edge(), edges[0]);
+                // EXPECT_EQ(sf_itr->edge(), edges[0]);
                 sf_itr++;
                 trf_index++;
                 mask_index[1]++;

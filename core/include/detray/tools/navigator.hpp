@@ -353,8 +353,6 @@ class navigator {
             if (sfi.status == e_inside) {
                 // object the candidate belongs to
                 sfi.index = obj_idx;
-                // the next volume if we encounter the candidate
-                sfi.link = std::get<0>(obj.edge());
                 navigation.candidates().push_back(sfi);
             }
         }
@@ -395,7 +393,6 @@ class navigator {
                                      _detector->transform_store(),
                                      _detector->mask_store());
                 sfi.index = obj_idx;
-                sfi.link = std::get<0>(_detector->surfaces()[obj_idx].edge());
                 (*navigation.next()) = sfi;
                 navigation.set_dist(sfi.path);
 
@@ -437,8 +434,6 @@ class navigator {
                                      _detector->mask_store());
                 candidate = sfi;
                 candidate.index = obj_idx;
-                candidate.link =
-                    std::get<0>(_detector->surfaces()[obj_idx].edge());
             }
             set_next(navigation);
             return;

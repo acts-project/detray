@@ -11,7 +11,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/type_registry.hpp"
-#include "detray/geometry/surface_base.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
@@ -40,13 +40,13 @@ using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 
 /** This method creates a number (distances.size()) planes along a direction
  */
-dvector<surface_base<plane_masks, transform3>> planes_along_direction(
+dvector<surface<plane_masks, transform3>> planes_along_direction(
     dvector<scalar> distances, vector3 direction) {
     // Rotation matrix
     vector3 z = direction;
     vector3 x = normalize(vector3{0, -z[2], z[1]});
 
-    dvector<surface_base<plane_masks, transform3>> return_surfaces;
+    dvector<surface<plane_masks, transform3>> return_surfaces;
     return_surfaces.reserve(distances.size());
     for (const auto &[idx, d] : enumerate(distances)) {
         vector3 t = d * direction;
@@ -54,7 +54,7 @@ dvector<surface_base<plane_masks, transform3>> planes_along_direction(
         typename plane_masks::link_type mask_link{plane_masks::id::e_rectangle2,
                                                   idx};
         return_surfaces.emplace_back(std::move(trf), std::move(mask_link), 0,
-                                     false);
+                                     false, false);
     }
     return return_surfaces;
 }

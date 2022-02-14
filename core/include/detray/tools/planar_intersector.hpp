@@ -94,6 +94,7 @@ struct planar_intersector {
             is.p2 = local_converter(trf, is.p3);
             is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
             is.direction = is.path > overstep_tolerance ? e_along : e_opposite;
+            is.link = mask.volume_link();
             return is;
         }
         return intersection{};

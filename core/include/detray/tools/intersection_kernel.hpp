@@ -108,11 +108,10 @@ DETRAY_HOST_DEVICE inline const auto intersect(
     const auto &mask_range = detail::get<1>(mask_link);
 
     // Unroll the intersection depending on the mask container size
+    using mask_defs = typename surface_t::mask_defs;
     return unroll_intersect(
         track, ctf, masks, mask_range, mask_id, volume_index,
-        std::make_integer_sequence<
-            unsigned int,
-            detail::tuple_size<typename mask_container::mask_tuple>::value>{});
+        std::make_integer_sequence<unsigned int, mask_defs::n_types>{});
 }
 
 }  // namespace detray

@@ -42,7 +42,7 @@ static void BM_RECTANGLE2_MASK(benchmark::State &state) {
     using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
-    rectangle2<> r = {3, 4};
+    rectangle2<> r{3, 4, 0u};
 
     scalar world = 10.;
     scalar area = 4 * r[0] * r[1];
@@ -84,7 +84,7 @@ static void BM_TRAPEZOID2_MASK(benchmark::State &state) {
     using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
-    trapezoid2<> t = {2, 3, 4};
+    trapezoid2<> t{2, 3, 4, 0u};
 
     scalar world = 10.;
     scalar area = 2 * (t[0] + t[1]) * t[2];
@@ -126,7 +126,7 @@ static void BM_RING2_MASK(benchmark::State &state) {
     using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
-    ring2<> r = {0., 5.};
+    ring2<> r{0., 5., 0u};
 
     scalar world = 10.;
     scalar area = r[1] * r[1] * M_PI;
@@ -167,7 +167,7 @@ static void BM_DISC2_MASK(benchmark::State &state) {
     using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
-    ring2<> r = {2., 5.};
+    ring2<> r{2., 5., 0u};
 
     scalar world = 10.;
     scalar area = (r[1] * r[1] - r[0] * r[0]) * M_PI;
@@ -208,7 +208,7 @@ static void BM_CYLINDER3_MASK(benchmark::State &state) {
     using local_type = __plugin::transform3<detray::scalar>;
     using point3 = __plugin::point3<detray::scalar>;
 
-    cylinder3<> c = {3., 5.};
+    cylinder3<> c{3., 5., 0., 0u};
 
     scalar world = 10.;
 
@@ -253,7 +253,7 @@ static void BM_ANNULUS_MASK(benchmark::State &state) {
     using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
-    annulus2<> ann = {2.5, 5., -0.64299, 4.13173, 1., 0.5};
+    annulus2<> ann{2.5, 5., -0.64299, 4.13173, 1., 0.5, 0., 0u};
 
     scalar world = 10.;
 

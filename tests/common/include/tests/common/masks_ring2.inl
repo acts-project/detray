@@ -24,7 +24,7 @@ TEST(mask, ring2) {
     point2 p2_c_edge = {0., 3.5};
     point2 p2_c_out = {3.5, 3.5};
 
-    ring2<> r2 = {0., 3.5};
+    ring2<> r2{0., 3.5, 0u};
 
     ASSERT_EQ(r2[0], 0.);
     ASSERT_EQ(r2[1], 3.5);

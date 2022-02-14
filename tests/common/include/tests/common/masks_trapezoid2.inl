@@ -26,7 +26,7 @@ TEST(mask, trapezoid2) {
     scalar hy = 2.;
     scalar divisor = 1. / (2. * hy);
 
-    trapezoid2<> t2 = {hx_miny, hx_maxy, hy};
+    trapezoid2<> t2{hx_miny, hx_maxy, hy, 0u};
 
     ASSERT_EQ(t2[0], hx_miny);
     ASSERT_EQ(t2[1], hx_maxy);

@@ -9,6 +9,8 @@
 
 #include <limits>
 
+#include "detray/utils/containers.hpp"
+
 namespace detray {
 using dindex = unsigned long;
 dindex constexpr dindex_invalid = std::numeric_limits<dindex>::max();

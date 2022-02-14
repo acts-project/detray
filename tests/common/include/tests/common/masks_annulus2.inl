@@ -38,7 +38,7 @@ TEST(mask, annulus2) {
         return point2{r, phi};
     };
 
-    annulus2<> ann2 = {minR, maxR, minPhi, maxPhi, offset[0], offset[1]};
+    annulus2<> ann2{minR, maxR, minPhi, maxPhi, offset[0], offset[1], 0., 0u};
 
     ASSERT_EQ(ann2[0], static_cast<scalar>(7.2));
     ASSERT_EQ(ann2[1], static_cast<scalar>(12.0));

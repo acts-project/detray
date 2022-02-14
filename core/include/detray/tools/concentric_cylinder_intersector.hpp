@@ -140,6 +140,7 @@ struct concentric_cylinder_intersector {
                 is.status = mask.template is_inside<local_frame>(is.p3);
                 scalar rdir = getter::perp(is.p3 + 0.1 * rd);
                 is.direction = rdir > r ? e_along : e_opposite;
+                is.link = mask.volume_link();
                 return is;
             }
         }

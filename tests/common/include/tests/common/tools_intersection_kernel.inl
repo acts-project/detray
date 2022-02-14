@@ -12,7 +12,7 @@
 #include "detray/core/mask_store.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
-#include "detray/geometry/surface_base.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/tools/concentric_cylinder_intersector.hpp"
 #include "detray/tools/cylinder_intersector.hpp"
@@ -35,7 +35,7 @@ TEST(tools, intersection_kernel_single) {
     };
 
     /// Surface components:
-    using edge_t = darray<dindex, 1>;
+    using edge_t = dindex;
     using source_link_t = dindex;
     /// - masks, with mask identifiers 0,1,2
     using rectangle_t =
@@ -53,8 +53,7 @@ TEST(tools, intersection_kernel_single) {
 
     /// The Surface definition:
     /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t =
-        surface_base<mask_defs, dindex, dindex, source_link_t, edge_t>;
+    using surface_t = surface<mask_defs, dindex, dindex, source_link_t>;
     using surface_container_t = dvector<surface_t>;
 
     // The transforms & their store
@@ -68,13 +67,15 @@ TEST(tools, intersection_kernel_single) {
     transform_store.push_back(static_context, annulus_transform);
     // The masks & their store
     mask_container_t mask_store(host_mr);
-    mask_store.template add_mask<0>(10., 10.);
-    mask_store.template add_mask<1>(10., 20., 30.);
-    mask_store.template add_mask<2>(15., 55., 0.75, 1.95, 2., -2.);
+    mask_store.template add_mask<0>(10., 10., 0);
+    mask_store.template add_mask<1>(10., 20., 30., 0);
+    mask_store.template add_mask<2>(15., 55., 0.75, 1.95, 2., -2., 0., 0);
     // The surfaces and their store
-    surface_t rectangle_surface(0u, {mask_defs::id::e_rectangle2, 0}, 0, 0);
-    surface_t trapezoid_surface(1u, {mask_defs::id::e_trapezoid2, 0}, 0, 1);
-    surface_t annulus_surface(2u, {mask_defs::id::e_annulus2, 0}, 0, 2);
+    surface_t rectangle_surface(0u, {mask_defs::id::e_rectangle2, 0}, 0, 0,
+                                false);
+    surface_t trapezoid_surface(1u, {mask_defs::id::e_trapezoid2, 0}, 0, 1,
+                                false);
+    surface_t annulus_surface(2u, {mask_defs::id::e_annulus2, 0}, 0, 2, false);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
 

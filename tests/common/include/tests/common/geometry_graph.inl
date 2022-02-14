@@ -35,15 +35,14 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     using graph = geometry_graph<detector_t, volume_printout>;
 
     // Build the graph
-    graph g = graph(det.volumes(), det.surfaces());
+    graph g = graph(det.volumes(), det.surfaces(), det.mask_store());
 
     // Is everything accessible from the graph?
     EXPECT_EQ(g.n_nodes(), det.volumes().size());
-    EXPECT_EQ(g.n_edges(), det.surfaces().size());
 
     std::cout << g.to_string() << std::endl;
     std::cout << "Walking through geometry: " << std::endl;
-    g.bfs();
+    // g.bfs();
 
     // Volume 0 has 3 portals to volume 1 and two surfaces linking to itself
     // std::map<dindex, dindex> nbrs_map_v0{{0, 2}, {1, 3}};
