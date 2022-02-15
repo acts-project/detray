@@ -12,7 +12,7 @@ namespace detray {
 
 __global__ void navigator_test_kernel(
     detector_view<detector_host_t> det_data,
-    vecmem::data::vector_view<track<nav_context>> tracks_data,
+    vecmem::data::vector_view<free_track_parameters> tracks_data,
     vecmem::data::jagged_vector_view<intersection> candidates_data,
     vecmem::data::jagged_vector_view<dindex> volume_records_data,
     vecmem::data::jagged_vector_view<point3> position_records_data) {
@@ -20,7 +20,7 @@ __global__ void navigator_test_kernel(
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     detector_device_t det(det_data);
-    vecmem::device_vector<track<nav_context>> tracks(tracks_data);
+    vecmem::device_vector<free_track_parameters> tracks(tracks_data);
     vecmem::jagged_device_vector<intersection> candidates(candidates_data);
     vecmem::jagged_device_vector<dindex> volume_records(volume_records_data);
     vecmem::jagged_device_vector<point3> position_records(
@@ -45,19 +45,19 @@ __global__ void navigator_test_kernel(
     while (heartbeat) {
         heartbeat = n.target(state, traj);
 
-        traj.pos = traj.pos + state() * traj.dir;
+        traj.set_pos(traj.pos() + state() * traj.dir());
 
         heartbeat = n.status(state, traj);
 
         // Record volume
         volume_records[gid].push_back(state.volume());
-        position_records[gid].push_back(traj.pos);
+        position_records[gid].push_back(traj.pos());
     }
 }
 
 void navigator_test(
     detector_view<detector_host_t> det_data,
-    vecmem::data::vector_view<track<nav_context>>& tracks_data,
+    vecmem::data::vector_view<free_track_parameters>& tracks_data,
     vecmem::data::jagged_vector_view<intersection>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data) {

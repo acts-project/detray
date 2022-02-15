@@ -11,12 +11,12 @@
 #include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/core/track.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/io/csv_io.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
 #include "detray/tools/propagator.hpp"
+#include "detray/tools/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
@@ -34,15 +34,11 @@ TEST(ALGEBRA_PLUGIN, propagator) {
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
-    using detray_context = decltype(d)::context;
-    using detray_track = track<detray_context>;
+    using detray_track = free_track_parameters;
 
-    detray_track traj;
-    traj.pos = {0., 0., 0.};
-    traj.dir = vector::normalize(__plugin::vector3<detray::scalar>{1., 1., 0.});
-    traj.ctx = detray_context{};
-    traj.momentum = 100.;
-    traj.overstep_tolerance = -1e-4;
+    __plugin::point3<scalar> pos{0., 0., 0.};
+    __plugin::vector3<scalar> mom{1., 1., 0.};
+    detray_track traj(pos, 0, mom, -1);
 
     using detray_stepper = line_stepper<detray_track>;
 

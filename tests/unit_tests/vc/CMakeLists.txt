@@ -15,7 +15,7 @@ detray_add_test( vc_array
    "vc_array_navigator.cpp" "vc_array_planar_intersection.cpp"
    "vc_array_propagator.cpp" "vc_array_rectangle2.cpp" "vc_array_ring2.cpp"
    "vc_array_single3.cpp" "vc_array_surfaces_finder.cpp"
-   "vc_array_toy_geometry.cpp" "vc_array_transform_store.cpp"
+   "vc_array_toy_geometry.cpp" "vc_array_track.cpp" "vc_array_transform_store.cpp"
    "vc_array_trapezoid2.cpp" "vc_array_unmasked.cpp" "vc_array_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::vc_array )
 

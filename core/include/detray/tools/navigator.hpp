@@ -346,7 +346,7 @@ class navigator {
                                  _detector->mask_store());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
-            if (sfi.path < track.overstep_tolerance) {
+            if (sfi.path < track.overstep_tolerance()) {
                 continue;
             }
             // Accept if inside

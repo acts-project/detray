@@ -7,9 +7,9 @@
 
 #include <gtest/gtest.h>
 
-#include "detray/core/track.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/tools/line_stepper.hpp"
+#include "detray/tools/track.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -18,14 +18,11 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     using namespace detray;
     using namespace __plugin;
 
-    using detray_track = track<static_transform_store<>::context>;
+    using detray_track = free_track_parameters;
 
-    detray_track traj;
-    traj.pos = {0., 0., 0.};
-    traj.dir = vector::normalize(vector3<detray::scalar>{1., 1., 0.});
-    traj.ctx = static_transform_store<>::context{};
-    traj.momentum = 100.;
-    traj.overstep_tolerance = -1e-5;
+    point3<scalar> pos{0., 0., 0.};
+    vector3<scalar> mom{1., 1., 0.};
+    detray_track traj(pos, 0, mom, -1);
 
     line_stepper<detray_track>::state lstate(traj);
 
@@ -33,9 +30,9 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     bool heartbeat = lstepper.step(lstate, 10.);
     ASSERT_TRUE(heartbeat);
 
-    ASSERT_FLOAT_EQ(traj.pos[0], 10. / sqrt(2));
-    ASSERT_FLOAT_EQ(traj.pos[1], 10. / sqrt(2));
-    ASSERT_FLOAT_EQ(traj.pos[2], 0.);
+    ASSERT_FLOAT_EQ(traj.pos()[0], 10. / sqrt(2));
+    ASSERT_FLOAT_EQ(traj.pos()[1], 10. / sqrt(2));
+    ASSERT_FLOAT_EQ(traj.pos()[2], 0.);
 
     // Step with limit
     lstate.set_limit(20.);

@@ -13,7 +13,7 @@ detray_add_test( array
    "array_line_stepper.cpp" "array_mask_store.cpp" "array_navigator.cpp"
    "array_planar_intersection.cpp" "array_propagator.cpp" "array_rectangle2.cpp"
    "array_ring2.cpp" "array_single3.cpp" "array_surfaces_finder.cpp"
-   "array_toy_geometry.cpp" "array_transform_store.cpp" "array_trapezoid2.cpp"
+   "array_toy_geometry.cpp" "array_track.cpp" "array_transform_store.cpp" "array_trapezoid2.cpp"
    "array_unmasked.cpp" "array_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::array )
 

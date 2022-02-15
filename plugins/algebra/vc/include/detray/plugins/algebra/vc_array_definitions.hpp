@@ -4,6 +4,7 @@
 #include <tuple>
 
 #include "algebra/vc_vc.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "vecmem/containers/jagged_vector.hpp"
 #include "vecmem/containers/vector.hpp"
 
@@ -31,5 +32,10 @@ using dtuple = std::tuple<types...>;
 
 namespace getter = algebra::getter;
 namespace vector = algebra::vector;
+
+template <typename T, std::size_t ROWS, std::size_t COLS>
+using matrix = __plugin::matrix_type<T, ROWS, COLS>;
+template <typename T, std::size_t N>
+using sym_matrix = matrix<T, N, N>;
 
 }  // namespace detray

@@ -34,8 +34,8 @@ TEST(navigator_cuda, navigator) {
     navigator_host_t n(det);
 
     // Create the vector of initial track parameters
-    vecmem::vector<track<nav_context>> tracks_host(&mng_mr);
-    vecmem::vector<track<nav_context>> tracks_device(&mng_mr);
+    vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
+    vecmem::vector<free_track_parameters> tracks_device(&mng_mr);
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
@@ -52,16 +52,10 @@ TEST(navigator_cuda, navigator) {
             scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
             scalar sin_phi = std::sin(phi);
             scalar cos_phi = std::cos(phi);
-            const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                             cos_theta};
+            vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
 
             // intialize a track
-            track<nav_context> ray;
-            ray.pos = ori;
-            ray.dir = dir;
-            ray.momentum = 100;
-            ray.ctx = nav_context{};
-            ray.overstep_tolerance = -1e-4;
+            free_track_parameters ray(ori, 0, dir, -1);
 
             tracks_host.push_back(ray);
             tracks_device.push_back(ray);
@@ -82,7 +76,6 @@ TEST(navigator_cuda, navigator) {
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
         auto& traj = tracks_host[i];
-
         navigator_host_t::state state(mng_mr);
 
         // Set initial volume
@@ -94,13 +87,13 @@ TEST(navigator_cuda, navigator) {
         while (heartbeat) {
             heartbeat = n.target(state, traj);
 
-            traj.pos = traj.pos + state() * traj.dir;
+            traj.set_pos(traj.pos() + state() * traj.dir());
 
             heartbeat = n.status(state, traj);
 
             // Record volume
             volume_records_host[i].push_back(state.volume());
-            position_records_host[i].push_back(traj.pos);
+            position_records_host[i].push_back(traj.pos());
         }
     }
 

@@ -10,7 +10,6 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/mask_store.hpp"
-#include "detray/core/track.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface_base.hpp"
@@ -19,6 +18,7 @@
 #include "detray/tools/cylinder_intersector.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/tools/planar_intersector.hpp"
+#include "detray/tools/track.hpp"
 #include "detray/utils/enumerate.hpp"
 
 using namespace detray;
@@ -78,9 +78,9 @@ TEST(tools, intersection_kernel_single) {
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
 
-    track<decltype(transform_store)::context> track;
-    track.pos = point3{0., 0., 0.};
-    track.dir = vector::normalize(vector3{0.01, 0.01, 10.});
+    point3 pos{0., 0., 0.};
+    vector3 mom{0.01, 0.01, 10.};
+    free_track_parameters track(pos, 0, mom, -1);
 
     // Validation data
     point3 expected_rectangle{0.01, 0.01, 10.};

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -58,8 +58,7 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
     // point3 ori = {0., 0., 0.};
 
     for (auto _ : state) {
-        track<detray_context> track;
-        track.pos = point3<detray::scalar>{0., 0., 0.};
+        point3<detray::scalar> pos{0., 0., 0.};
 
         // Loops of theta values
         for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -73,8 +72,10 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                 scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
                 scalar sin_phi = std::sin(phi);
                 scalar cos_phi = std::cos(phi);
-                track.dir = {cos_phi * sin_theta, sin_phi * sin_theta,
-                             cos_theta};
+                vector3<detray::scalar> dir{cos_phi * sin_theta,
+                                            sin_phi * sin_theta, cos_theta};
+
+                free_track_parameters track(pos, 0, dir, -1);
 
                 // Loop over volumes
                 for (const auto &v : d.volumes()) {
