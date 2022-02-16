@@ -14,10 +14,10 @@
 #include <utility>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/core/track.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
+#include "detray/tools/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/ray_gun.hpp"
 
@@ -159,12 +159,10 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     auto d = create_toy_geometry(host_mr);
 
     // Create the navigator
-    using detray_context = decltype(d)::context;
-    using detray_track = track<detray_context>;
     using detray_inspector =
         aggregate_inspector<object_tracer<1>, print_inspector>;
     using detray_navigator = navigator<decltype(d), detray_inspector>;
-    using detray_stepper = line_stepper<detray_track>;
+    using detray_stepper = line_stepper<free_track_parameters>;
 
     detray_navigator n(d);
     detray_stepper s;
@@ -192,22 +190,19 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
 
             // Now follow that ray and check, if we find the same
             // volumes and distances along the way
-            track<detray_context> ray;
-            ray.pos = ori;
-            ray.dir = dir;
-            ray.ctx = detray_context{};
-            ray.momentum = 100.;
-            ray.overstep_tolerance = -1e-4;
+            ray r{ori, dir};
 
-            const auto intersection_trace = shoot_ray(d, ray);
+            const auto intersection_trace = shoot_ray(d, r);
 
-            detray_stepper::state s_state(ray);
+            free_track_parameters track(ori, 0, dir, -1);
+
+            detray_stepper::state s_state(track);
             detray_navigator::state n_state;
 
             // Always start a new ray at detector origin
             n_state.set_volume(0u);
 
-            bool heartbeat = n.status(n_state, ray);
+            bool heartbeat = n.status(n_state, track);
             // Run while there is a heartbeat
             while (heartbeat) {
                 // (Re-)target

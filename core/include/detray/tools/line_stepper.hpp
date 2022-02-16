@@ -1,7 +1,7 @@
 
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -53,7 +53,7 @@ struct line_stepper {
      */
     bool step(state &s, scalar es) const {
         const auto [sl, heartbeat] = s.step(es);
-        s._track.pos = s._track.pos + s._track.dir * sl;
+        s._track.set_pos(s._track.pos() + s._track.dir() * sl);
         return heartbeat;
     }
 };

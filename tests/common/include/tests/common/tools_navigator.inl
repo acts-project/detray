@@ -10,8 +10,8 @@
 #include <map>
 
 #include "detray/core/mask_store.hpp"
-#include "detray/core/track.hpp"
 #include "detray/tools/navigator.hpp"
+#include "detray/tools/track.hpp"
 #include "detray/utils/indexing.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 
@@ -72,7 +72,7 @@ inline void check_step(navigator_t &nav, state_t &state, track_t &trck,
                        dindex vol_id, std::size_t n_candidates,
                        dindex current_id, dindex next_id) {
     // Step onto the surface in volume
-    trck.pos = trck.pos + state() * trck.dir;
+    trck.set_pos(trck.pos() + state() * trck.dir());
     state.set_trust_level(navigator_t::navigation_trust_level::e_high_trust);
     ASSERT_TRUE(nav.status(state, trck));
     // The status is: on surface 491
@@ -105,15 +105,11 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     auto toy_det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
     navigator n(toy_det);
     using toy_navigator = decltype(n);
-    using nav_context = decltype(toy_det)::context;
 
     // test track
-    track<nav_context> traj;
-    traj.pos = {0., 0., 0.};
-    traj.dir = vector::normalize(vector3{1., 1., 0.});
-    traj.ctx = nav_context{};
-    traj.momentum = 100.;
-    traj.overstep_tolerance = -1e-4;
+    point3 pos{0., 0., 0.};
+    vector3 mom{1., 1., 0.};
+    free_track_parameters traj(pos, 0, mom, -1);
 
     toy_navigator::state state;
     // Set initial volume (no grid yet)
@@ -152,7 +148,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_NEAR(state(), 19., tol);
 
     // Let's make half the step towards the beampipe
-    traj.pos = traj.pos + 0.5 * state() * traj.dir;
+    traj.set_pos(traj.pos() + 0.5 * state() * traj.dir());
     // Could be externally set by actor (in the future)
     state.set_trust_level(toy_navigator::navigation_trust_level::e_high_trust);
     ASSERT_TRUE(n.status(state, traj));
@@ -175,7 +171,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     check_step(n, state, traj, 0, 2, 0, 7);
 
     // Step onto portal 7 in volume 0
-    traj.pos = traj.pos + state() * traj.dir;
+    traj.set_pos(traj.pos() + state() * traj.dir());
     ASSERT_TRUE(n.status(state, traj));
     // We are in the first barrel layer now (vol 7)
     check_volume_switch<toy_navigator>(state, 7);
@@ -228,7 +224,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
         }
 
         // Step onto the portal in volume
-        traj.pos = traj.pos + state() * traj.dir;
+        traj.set_pos(traj.pos() + state() * traj.dir());
         state.set_trust_level(
             toy_navigator::navigation_trust_level::e_high_trust);
 

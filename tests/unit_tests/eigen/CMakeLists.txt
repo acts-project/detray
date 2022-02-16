@@ -13,7 +13,7 @@ detray_add_test( eigen
    "eigen_line_stepper.cpp" "eigen_mask_store.cpp" "eigen_navigator.cpp"
    "eigen_planar_intersection.cpp" "eigen_propagator.cpp" "eigen_rectangle2.cpp"
    "eigen_ring2.cpp" "eigen_single3.cpp" "eigen_surfaces_finder.cpp"
-   "eigen_toy_geometry.cpp" "eigen_transform_store.cpp" "eigen_trapezoid2.cpp"
+   "eigen_toy_geometry.cpp" "eigen_track.cpp" "eigen_transform_store.cpp" "eigen_trapezoid2.cpp"
    "eigen_unmasked.cpp" "eigen_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::eigen )
 

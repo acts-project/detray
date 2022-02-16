@@ -13,7 +13,7 @@ detray_add_test( smatrix
    "smatrix_line_stepper.cpp" "smatrix_mask_store.cpp" "smatrix_navigator.cpp"
    "smatrix_planar_intersection.cpp" "smatrix_propagator.cpp"
    "smatrix_rectangle2.cpp" "smatrix_ring2.cpp" "smatrix_single3.cpp"
-   "smatrix_surfaces_finder.cpp" "smatrix_toy_geometry.cpp"
+   "smatrix_surfaces_finder.cpp" "smatrix_toy_geometry.cpp" "smatrix_track.cpp"
    "smatrix_transform_store.cpp" "smatrix_trapezoid2.cpp" "smatrix_unmasked.cpp"
    "smatrix_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::smatrix )

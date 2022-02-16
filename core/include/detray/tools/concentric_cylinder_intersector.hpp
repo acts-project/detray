@@ -11,8 +11,8 @@
 #include <type_traits>
 
 #include "detray/core/intersection.hpp"
-#include "detray/core/track.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/tools/track.hpp"
 #include "detray/utils/indexing.hpp"
 #include "detray/utils/quadratic_equation.hpp"
 
@@ -57,8 +57,8 @@ struct concentric_cylinder_intersector {
         const transform3 &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance &tolerance =
             mask_t::within_epsilon) const {
-        return intersect(trf, track.pos, track.dir, mask, tolerance,
-                         track.overstep_tolerance);
+        return intersect(trf, track.pos(), track.dir(), mask, tolerance,
+                         track.overstep_tolerance());
     }
 
     /** Intersection method for cylindrical surfaces
