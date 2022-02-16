@@ -159,11 +159,10 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     auto d = create_toy_geometry(host_mr);
 
     // Create the navigator
-    using detray_track = free_track_parameters;
     using detray_inspector =
         aggregate_inspector<object_tracer<1>, print_inspector>;
     using detray_navigator = navigator<decltype(d), detray_inspector>;
-    using detray_stepper = line_stepper<detray_track>;
+    using detray_stepper = line_stepper<free_track_parameters>;
 
     detray_navigator n(d);
     detray_stepper s;
