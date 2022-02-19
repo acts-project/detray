@@ -59,7 +59,6 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
 
             if (sfi.status == e_inside) {
                 sfi.index = volume_index;
-                sfi.link = mask.volume_link();
                 return sfi;
             }
         }
