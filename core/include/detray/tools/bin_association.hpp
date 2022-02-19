@@ -14,6 +14,7 @@
 
 #include "detray/tools/associator.hpp"
 #include "detray/tools/generators.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/utils/enumerate.hpp"
 
 namespace detray {
