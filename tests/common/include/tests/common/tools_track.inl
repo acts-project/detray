@@ -9,7 +9,8 @@
 
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
-#include "detray/geometry/surface_base.hpp"
+#include "detray/geometry/surface.hpp"
+#include "detray/masks/rectangle2.hpp"
 #include "detray/tools/track.hpp"
 
 using namespace detray;
@@ -23,14 +24,14 @@ enum mask_ids : unsigned int {
     e_rectangle2 = 0,
 };
 
-using mask_defs = mask_registry<mask_ids>;
+using mask_defs = mask_registry<mask_ids, rectangle2<>>;
 
 TEST(tools, bound_track_parameters) {
 
     // surface container
-    std::vector<surface_base<mask_defs>> surfaces;
-    surfaces.emplace_back(0, mask_defs::link_type{0, 0}, 0, 0);
-    surfaces.emplace_back(1, mask_defs::link_type{0, 0}, 0, 0);
+    std::vector<surface<mask_defs>> surfaces;
+    surfaces.emplace_back(0, mask_defs::link_type{0, 0}, 0, 0, false);
+    surfaces.emplace_back(1, mask_defs::link_type{0, 0}, 0, 0, false);
 
     // transform container
     static_transform_store trfs;
