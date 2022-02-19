@@ -32,7 +32,6 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
     // Build the geometry (modeled as a unified index geometry)
     vecmem::host_memory_resource host_mr;
     auto toy_det = create_toy_geometry(host_mr);
-    using detector_t = decltype(toy_det);
 
     // Build the graph
     volume_graph graph(toy_det);
