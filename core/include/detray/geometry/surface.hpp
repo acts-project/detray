@@ -67,7 +67,7 @@ class surface {
         : _trf(trf), _mask(mask), _vol(vol), _src(src), _is_portal(is_pt) {}
 
     // Portal vs module decision must be made explicitly
-    surface() = delete;
+    surface() = default;
     surface(const surface &lhs) = default;
     ~surface() = default;
 
