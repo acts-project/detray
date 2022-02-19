@@ -12,6 +12,7 @@
 #include <tuple>
 #include <vector>
 
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/grids/associator.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/generators.hpp"
@@ -85,8 +86,8 @@ static inline void bin_association(const context_t & /*context*/,
                     // Unroll the mask container and generate vertices
                     const auto &transform = dc.transforms[sf.transform()];
 
-                    const auto &mask_context = std::get<0>(mask_link);
-                    const auto &mask_range = std::get<1>(mask_link);
+                    const auto &mask_context = detail::get<0>(mask_link);
+                    const auto &mask_range = detail::get<1>(mask_link);
 
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         surface_masks, mask_range, mask_context,
@@ -160,8 +161,8 @@ static inline void bin_association(const context_t & /*context*/,
                     // Unroll the mask container and generate vertices
                     const auto &transform = dc.transforms[sf.transform()];
 
-                    const auto &mask_context = std::get<0>(mask_link);
-                    const auto &mask_range = std::get<1>(mask_link);
+                    const auto &mask_context = detail::get<0>(mask_link);
+                    const auto &mask_range = detail::get<1>(mask_link);
 
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         surface_masks, mask_range, mask_context,

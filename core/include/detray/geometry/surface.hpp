@@ -101,7 +101,7 @@ class surface {
      * @param offset update the position when move into new collection
      */
     DETRAY_HOST
-    void update_mask(dindex offset) { detail::get<1>(_mask) += offset; }
+    void update_mask(dindex offset) { _mask += offset; }
 
     /** Access to the mask  */
     DETRAY_HOST_DEVICE

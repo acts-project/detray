@@ -31,7 +31,8 @@ class mask_store {
      * cpp/hpp; 2) thrust::tuple in cu
      */
     using mask_tuple = vtuple::tuple<vector_t<mask_types>...>;
-    using link_type = std::array<dindex, 2>;
+    using link_type = typed_index<unsigned int, dindex>;
+    // using link_type = std::array<dindex, 2>;
     using range_type = tuple_t<std::size_t, darray<dindex, 2>>;
 
     /** data type for mask_store_data **/
