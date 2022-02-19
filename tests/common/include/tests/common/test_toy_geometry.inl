@@ -4,26 +4,33 @@
  *
  * Mozilla Public License Version 2.0
  */
-
 #include <gtest/gtest.h>
+
+#include <type_traits>
 
 #include "detray/definitions/detail/accessor.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 
 using namespace detray;
 
-template <std::size_t current_id = 0, typename container_t, typename link_t>
+template <std::size_t current_id = 0, std::size_t n_types = 4,
+          typename container_t, typename link_t>
 inline auto get_edge(const container_t& collection, const link_t& links) {
 
-    if (current_id == std::get<0>(links)) {
+    if (current_id == detail::get<0>(links)) {
         auto& group = detail::get<current_id>(collection);
-        return group[std::get<1>(links)].links();
+        return group[detail::get<1>(links)].links();
     }
 
     // Next type
-    if constexpr (current_id < 4 - 1) {
+    if constexpr (current_id < n_types - 1) {
         return get_edge<current_id + 1>(collection, links);
     }
+    // Group no 0 will always exist
+    using group_t =
+        std::remove_reference_t<decltype(detail::get<0>(collection))>;
+    using edge_t = typename group_t::value_type::links_type;
+    return edge_t{};
 }
 
 // This test check the building of the tml based toy geometry
