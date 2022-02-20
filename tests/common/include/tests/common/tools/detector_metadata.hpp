@@ -90,6 +90,14 @@ struct full_metadata {
     using surface_finder =
         surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>;
 
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using sf_finder_definitions =
+        sf_finder_registry<typename surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>::surfaces_regular_circular_grid,
+                           typename surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>::surfaces_regular_circular_grid>;
+
     dynamic_data _data;
 };
 
@@ -137,6 +145,14 @@ struct toy_metadata {
               template <typename...> class jagged_vector_t = djagged_vector>
     using surface_finder =
         surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>;
+
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using sf_finder_definitions =
+        sf_finder_registry<typename surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>::surfaces_regular_circular_grid,
+                           typename surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>::surfaces_regular_circular_grid>;
 
     volume_stats _data;
 };

@@ -89,17 +89,16 @@ class detector {
         array_t<transform_container, masks::n_types>;
 
     /// Accelerator structures
+    using surfaces_finders =
+        typename metadata::template sf_finder_definitions<array_t, vector_t, tuple_t, jagged_vector_t>;
 
     /// Volume finder definition
     using volume_finder =
         typename metadata::template volume_finder<array_t, vector_t, tuple_t,
                                                   jagged_vector_t>;
 
-    /// Surface finder definition
-    // TODO: Move to volume builder
-    using surfaces_finder_type =
-        typename metadata::template surface_finder<array_t, vector_t, tuple_t,
-                                                   jagged_vector_t>;
+    using surfaces_finder_type = typename metadata::template surface_finder<array_t, vector_t, tuple_t,
+                                                  jagged_vector_t>;
 
     detector() = delete;
 

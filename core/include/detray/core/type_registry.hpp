@@ -209,8 +209,8 @@ class sf_finder_registry
     };
 
     /// Surface finders
-    enum id : std::size_t {
-        e_brute_force = 0,
+    enum id : unsigned int {
+        e_default = 0,
         e_z_phi_grid = 1,  // barrel
         e_r_phi_grid = 2,  // endcap
     };
@@ -221,8 +221,7 @@ class sf_finder_registry
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
 
-    template <unsigned int type_id,
-              template <typename...> class tuple_t = dtuple>
+    template <unsigned int type_id, template <typename...> class tuple_t = dtuple>
     using get_type =
         typename type_registry::template get_type<type_id, tuple_t>;
 };
