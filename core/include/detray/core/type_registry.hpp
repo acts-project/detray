@@ -102,8 +102,8 @@ class registry_base<ID, true, registered_types...> {
      */
     template <ID type_id, template <typename...> class tuple_t = dtuple>
     struct get_type {
-        using type = std::remove_reference_t<decltype(std::get<type_id>(
-            tuple_t<registered_types...>{}))>;
+        using type = std::remove_reference_t<decltype(
+            std::get<type_id>(tuple_t<registered_types...>{}))>;
     };
 
     private:
@@ -181,7 +181,7 @@ class mask_registry
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using container_type =
-        mask_store<tuple_t, vector_t, ID, registered_types...>;
+        mask_store<tuple_t, vector_t, unsigned int, registered_types...>;
     using link_type = typename container_type<>::link_type;
     using range_type = typename container_type<>::range_type;
 
