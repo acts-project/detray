@@ -81,13 +81,11 @@ static inline void bin_association(const context_t & /*context*/,
 
                 // Run through the surfaces and associate them by contour
                 for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
-                    const auto &mask_link = sf.mask();
-
                     // Unroll the mask container and generate vertices
                     const auto &transform = dc.transforms[sf.transform()];
 
-                    const auto &mask_context = detail::get<0>(mask_link);
-                    const auto &mask_range = detail::get<1>(mask_link);
+                    const auto &mask_context = sf.mask_type();
+                    const auto &mask_range = sf.mask_range();
 
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         surface_masks, mask_range, mask_context,
@@ -156,13 +154,12 @@ static inline void bin_association(const context_t & /*context*/,
 
                 // Loop over the surfaces within a volume
                 for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
-                    const auto &mask_link = sf.mask();
 
                     // Unroll the mask container and generate vertices
                     const auto &transform = dc.transforms[sf.transform()];
 
-                    const auto &mask_context = detail::get<0>(mask_link);
-                    const auto &mask_range = detail::get<1>(mask_link);
+                    const auto &mask_context = sf.mask_type();
+                    const auto &mask_range = sf.mask_range();
 
                     auto vertices_per_masks = unroll_masks_for_vertices(
                         surface_masks, mask_range, mask_context,

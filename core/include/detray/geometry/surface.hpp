@@ -111,6 +111,22 @@ class surface {
     DETRAY_HOST_DEVICE
     const mask_link &mask() const { return _mask; }
 
+    /** Access to the mask id */
+    DETRAY_HOST_DEVICE
+    auto mask_type() { return detail::get<0>(_mask); }
+
+    /** @return the mask link */
+    DETRAY_HOST_DEVICE
+    auto mask_type() const { return detail::get<0>(_mask); }
+
+    /** Access to the mask  */
+    DETRAY_HOST_DEVICE
+    const auto &mask_range() { return detail::get<1>(_mask); }
+
+    /** @return the mask link */
+    DETRAY_HOST_DEVICE
+    const auto &mask_range() const { return detail::get<1>(_mask); }
+
     /** Access to the volume */
     DETRAY_HOST_DEVICE
     volume_link volume() { return _vol; }
@@ -134,10 +150,10 @@ class surface {
     bool is_portal() const { return _is_portal; }
 
     private:
-    transform_link _trf;
+    transform_link_t _trf;
     mask_link _mask;
-    volume_link _vol;
-    source_link _src;
+    volume_link_t _vol;
+    source_link_t _src;
     bool _is_portal;
     bool _in_grid = false;
 };

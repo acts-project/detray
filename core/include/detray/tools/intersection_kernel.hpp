@@ -99,10 +99,9 @@ DETRAY_HOST_DEVICE inline const auto intersect(
     const mask_container &masks) {
     // Gather all information to perform intersections
     const auto &ctf = contextual_transforms[surface.transform()];
-    const auto &volume_index = surface.volume();
-    const auto &mask_link = surface.mask();
-    const auto &mask_id = detail::get<0>(mask_link);
-    const auto &mask_range = detail::get<1>(mask_link);
+    const auto volume_index = surface.volume();
+    const auto mask_id = surface.mask_type();
+    const auto &mask_range = surface.mask_range();
 
     // Unroll the intersection depending on the mask container size
     using mask_defs = typename surface_t::mask_defs;
