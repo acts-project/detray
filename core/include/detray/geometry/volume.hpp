@@ -150,7 +150,7 @@ class volume {
      * @return the neighboring surfaces
      */
     template <typename point_t>
-    DETRAY_HOST_DEVICE inline auto get_neighbors(point_t & /*pt*/) const {
+    DETRAY_HOST_DEVICE inline auto neighborhood(const point_t & /*pt*/) const {
         return range<objects::e_surface>();
     }
 
