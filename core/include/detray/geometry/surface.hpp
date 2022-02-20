@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/intersection_kernel.hpp"
 
 namespace detray {
 
@@ -22,7 +23,8 @@ namespace detray {
  * @tparam source_link_t the type of the source link representation
  */
 template <typename mask_regsitry_t, typename transform_link_t = dindex,
-          typename volume_link_t = dindex, typename source_link_t = bool>
+          typename volume_link_t = dindex, typename source_link_t = bool,
+          typename intersection_kernel_t = intersection_kernel>
 class surface {
 
     public:
@@ -148,6 +150,28 @@ class surface {
     /** Is this instance a portal in the sense of the unified_index_geometry? */
     DETRAY_HOST_DEVICE
     bool is_portal() const { return _is_portal; }
+
+    /** Kernel method that updates the intersections
+     *
+     * @tparam track_t The type of the track/context
+     * @tparam transform_container_t The type of the transform container
+     * @tparam mask_container_t The type of the mask container
+     *
+     * @param track the track information including the contexts
+     * @param contextual_transform the transform container
+     * @param masks the tuple mask container to for the intersection
+     *
+     * @return  an intersection struct (invalid if no intersection was found)
+     **/
+    template <typename track_t, typename transform_container_t,
+              typename mask_container_t>
+    inline constexpr auto intersect(
+        const track_t &track,
+        const transform_container_t &contextual_transforms,
+        const mask_container_t &masks) const {
+        return intersection_kernel_t{}(*this, track, contextual_transforms,
+                                       masks);
+    }
 
     private:
     transform_link_t _trf;

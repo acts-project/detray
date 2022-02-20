@@ -81,8 +81,8 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                 for (const auto &v : d.volumes()) {
                     // Loop over all surfaces in volume
                     for (const auto sf : range(data_core.surfaces, v)) {
-                        auto sfi = intersect(track, sf, data_core.transforms,
-                                             data_core.masks);
+                        auto sfi = sf.intersect(track, data_core.transforms,
+                                                data_core.masks);
 
                         benchmark::DoNotOptimize(hits);
                         benchmark::DoNotOptimize(missed);

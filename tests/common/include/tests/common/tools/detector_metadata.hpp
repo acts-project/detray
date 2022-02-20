@@ -183,7 +183,7 @@ struct telescope_metadata {
     using mask_definitions =
         mask_registry<mask_ids, rectangle, unbounded_plane>;
 
-    // Accelerator types (are not used)
+    // Accelerator types (are not used in telescope)
     template <template <typename, std::size_t> class array_t = darray,
               template <typename...> class vector_t = dvector,
               template <typename...> class tuple_t = dtuple,
@@ -198,6 +198,13 @@ struct telescope_metadata {
               template <typename...> class jagged_vector_t = djagged_vector>
     using surface_finder =
         surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>;
+
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using sf_finder_definitions =
+        sf_finder_registry<>;
 };
 
 struct detector_registry {

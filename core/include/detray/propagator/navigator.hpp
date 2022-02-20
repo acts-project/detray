@@ -417,8 +417,8 @@ class navigator {
         for (const auto [obj_idx, obj] :
              enumerate(_detector->surfaces(), volume)) {
 
-            auto candidate = intersect(track, obj, _detector->transform_store(),
-                                       _detector->mask_store());
+            auto candidate = obj.intersect(track, _detector->transform_store(),
+                                     _detector->mask_store());
             // Accept potential next target
             if (is_reachable(candidate, track)) {
                 candidate.index = obj_idx;
@@ -630,9 +630,10 @@ class navigator {
     DETRAY_HOST_DEVICE inline void update_candidate(
         const track_t &track, intersection_type &candidate) const {
         const dindex obj_idx = candidate.index;
-        candidate =
-            intersect(track, _detector->surface_by_index(obj_idx),
-                      _detector->transform_store(), _detector->mask_store());
+        candidate = _detector->surface_by_index(obj_idx).intersect(track, 
+                                     _detector->transform_store(),
+                                     _detector->mask_store());
+                      
 
         candidate.index = obj_idx;
     }

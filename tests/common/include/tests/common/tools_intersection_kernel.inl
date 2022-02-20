@@ -93,7 +93,8 @@ TEST(tools, intersection_kernel_single) {
     // Try the intersection - with automated dispatching via the kernel
     unsigned int it = 0;
     for (const auto &_surface : surfaces) {
-        auto sfi = intersect(track, _surface, transform_store, mask_store);
+        auto sfi =
+            intersection_kernel{}(_surface, track, transform_store, mask_store);
 
         ASSERT_NEAR(sfi.p3[0], expected_points[it][0], 1e-7);
         ASSERT_NEAR(sfi.p3[1], expected_points[it][1], 1e-7);

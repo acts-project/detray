@@ -139,12 +139,6 @@ class volume {
     DETRAY_HOST_DEVICE inline dindex n_in_range(range_type &&rg) const {
         return detail::get<1>(rg) - detail::get<0>(rg);
     }
-
-    /** set grid type associated with volume */
-    void set_grid_type(grid_type val) { _grid_type = val; }
-
-    /** get grid type associated with volume */
-    auto get_grid_type() const { return _grid_type; }
     
     /** Stub for the surface finder call (returns all surfaces for the moment).
      * @return the neighboring surfaces

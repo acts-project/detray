@@ -48,8 +48,8 @@ inline auto shoot_ray(const detector_t &detector, const ray &r) {
     for (const auto &volume : detector.volumes()) {
         for (const auto [sf_idx, sf] : enumerate(detector.surfaces(), volume)) {
             // Retrieve candidate from the object
-            auto sfi = intersect(r, sf, detector.transform_store(),
-                                 detector.mask_store());
+            auto sfi = sf.intersect(r, detector.transform_store(),
+                                    detector.mask_store());
 
             // Candidate is invalid if it oversteps too far (this is neg!)
             if (sfi.path < r.overstep_tolerance()) {
