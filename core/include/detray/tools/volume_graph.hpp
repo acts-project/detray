@@ -181,7 +181,9 @@ class volume_graph {
 
                 if (detail::get<0>(mask_link) == current_id) {
                     // Get the mask group that will be updated
-                    const auto &mask_group = masks.template group<current_id>();
+                    const auto &mask_group =
+                        masks.template group<mask_container_t::to_id(
+                            current_id)>();
                     const auto mask_range = detail::get<1>(mask_link);
                     for (const auto &mask : range(mask_group, mask_range)) {
                         _edges.emplace_back(volume_id, mask.volume_link());

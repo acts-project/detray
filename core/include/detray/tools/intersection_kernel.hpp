@@ -39,21 +39,23 @@ using transform3 = __plugin::transform3<detray::scalar>;
  *
  * @return an intersection struct (invalid if no intersection was found)
  */
-template <typename track_t, typename mask_container, typename mask_range,
+template <typename track_t, typename mask_container_t, typename mask_range_t,
           unsigned int first_mask_id, unsigned int... remaining_mask_ids>
 DETRAY_HOST_DEVICE inline auto unroll_intersect(
-    const track_t &track, const transform3 &ctf, const mask_container &masks,
-    const mask_range &rng, const unsigned int mask_id, dindex volume_index,
+    const track_t &track, const transform3 &ctf, const mask_container_t &masks,
+    const mask_range_t &mask_range,
+    const typename mask_container_t::id_type mask_id, dindex volume_index,
     std::integer_sequence<unsigned int, first_mask_id, remaining_mask_ids...>
     /*available_ids*/) {
 
     // Pick the first one for interseciton
     if (mask_id == first_mask_id) {
 
-        auto &mask_group = masks.template group<first_mask_id>();
+        auto &mask_group =
+            masks.template group<mask_container_t::to_id(first_mask_id)>();
 
         // Check all masks of this surface for intersection
-        for (const auto &mask : range(mask_group, rng)) {
+        for (const auto &mask : range(mask_group, mask_range)) {
             auto sfi =
                 std::move(mask.intersector().intersect(ctf, track, mask));
 
@@ -69,8 +71,8 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
 
     // Unroll as long as you have at least 1 entries
     if constexpr (remaining.size() >= 1) {
-        return (unroll_intersect(track, ctf, masks, rng, mask_id, volume_index,
-                                 remaining));
+        return (unroll_intersect(track, ctf, masks, mask_range, mask_id,
+                                 volume_index, remaining));
     }
 
     // No intersection was found

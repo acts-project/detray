@@ -338,12 +338,14 @@ class detector {
         // Get the corresponding transforms
         const auto &object_transforms = trfs[current_type];
         // and the corresponding masks
-        auto &object_masks = msks.template group<current_type>();
+        auto &object_masks =
+            msks.template group<mask_container::to_id(current_type)>();
 
         if (not object_transforms.empty(ctx) and not typed_surfaces.empty()) {
             // Current offsets into detectors containers
             const auto trsf_offset = _transforms.size(ctx);
-            const auto mask_offset = _masks.template size<current_type>();
+            const auto mask_offset =
+                _masks.template size<mask_container::to_id(current_type)>();
 
             // Fill the correct mask type
             _masks.add_masks(object_masks);

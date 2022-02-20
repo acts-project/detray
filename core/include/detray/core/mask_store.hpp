@@ -21,7 +21,7 @@ namespace detray {
 /** A mask store that provides the correct mask containers to client classes. */
 template <template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
-          typename... mask_types>
+          typename ID = unsigned int, typename... mask_types>
 class mask_store {
 
     public:
@@ -30,9 +30,10 @@ class mask_store {
      * vtuple has different types based on the file location 1) std::tuple in
      * cpp/hpp; 2) thrust::tuple in cu
      */
+    using id_type = ID;
     using mask_tuple = vtuple::tuple<vector_t<mask_types>...>;
-    using link_type = typed_index<unsigned int, dindex>;
-    using range_type = typed_index<unsigned int, dindex_range>;
+    using link_type = typed_index<ID, dindex>;
+    using range_type = typed_index<ID, dindex_range>;
 
     /** data type for mask_store_data **/
     using mask_tuple_data = tuple_t<vecmem::data::vector_view<mask_types>...>;
@@ -61,12 +62,16 @@ class mask_store {
         : _mask_tuple(device(
               store_data, std::make_index_sequence<sizeof...(mask_types)>{})) {}
 
+    DETRAY_HOST_DEVICE static constexpr ID to_id(const std::size_t index) {
+        return static_cast<ID>(index);
+    }
+
     /** Size : Contextual STL like API
      *
      * @tparam mask_id the index for the mask_type
      * @return the size of the vector containing the masks of the required type
      */
-    template <std::size_t mask_id>
+    template <ID mask_id>
     DETRAY_HOST_DEVICE size_t size() const {
         return detail::get<mask_id>(_mask_tuple).size();
     }
@@ -84,7 +89,7 @@ class mask_store {
      * @return whether the vector containing the masks of the required type
      * is empty
      */
-    template <std::size_t mask_id>
+    template <ID mask_id>
     DETRAY_HOST_DEVICE bool empty() const {
         return detail::get<mask_id>(_mask_tuple).empty();
     }
@@ -94,7 +99,7 @@ class mask_store {
      * @tparam mask_id index of requested mask type in masks container
      * @return vector of masks of a given type.
      */
-    template <std::size_t mask_id>
+    template <ID mask_id>
     DETRAY_HOST_DEVICE constexpr auto &group() {
         return detail::get<mask_id>(_mask_tuple);
     }
@@ -104,7 +109,7 @@ class mask_store {
      * @tparam mask_id index of requested mask type in masks container
      * @return vector of masks of a given type.
      */
-    template <std::size_t mask_id>
+    template <ID mask_id>
     DETRAY_HOST_DEVICE constexpr const auto &group() const {
         return detail::get<mask_id>(_mask_tuple);
     }
@@ -132,7 +137,7 @@ class mask_store {
      *
      * @note in general can throw an exception
      */
-    template <std::size_t mask_id, typename... bounds_type>
+    template <ID mask_id, typename... bounds_type>
     DETRAY_HOST auto &add_mask(bounds_type &&... mask_bounds) noexcept(false) {
         // Get the mask group that will be updated
         auto &mask_group = detail::get<mask_id>(_mask_tuple);
@@ -270,10 +275,11 @@ struct mask_store_data {
 /** Get mask_store_data
  **/
 template <template <typename...> class tuple_t,
-          template <typename...> class vector_t, typename... mask_types>
-inline mask_store_data<mask_store<tuple_t, vector_t, mask_types...>> get_data(
-    mask_store<tuple_t, vector_t, mask_types...> &store) {
-    return mask_store_data<mask_store<tuple_t, vector_t, mask_types...>>(
+          template <typename...> class vector_t, typename ID,
+          typename... mask_types>
+inline mask_store_data<mask_store<tuple_t, vector_t, ID, mask_types...>>
+get_data(mask_store<tuple_t, vector_t, ID, mask_types...> &store) {
+    return mask_store_data<mask_store<tuple_t, vector_t, ID, mask_types...>>(
         store, std::make_index_sequence<sizeof...(mask_types)>{});
 }
 
