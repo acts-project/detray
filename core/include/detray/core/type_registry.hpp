@@ -181,7 +181,7 @@ class mask_registry
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using container_type =
-        mask_store<tuple_t, vector_t, unsigned int, registered_types...>;
+        mask_store<tuple_t, vector_t, ID, registered_types...>;
     using link_type = typename container_type<>::link_type;
     using range_type = typename container_type<>::range_type;
 
