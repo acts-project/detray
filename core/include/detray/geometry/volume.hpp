@@ -19,17 +19,22 @@ namespace detray {
  *
  * @tparam array_t the type of the internal array, must have STL semantics
  */
-template <typename object_registry_t, typename range_t = dindex_range,
+template <typename object_registry_t, typename sf_finder_registry_t,
           template <typename, std::size_t> class array_t = darray>
 class volume {
 
     public:
     // The type of objects a volume can contain
     using objects = object_registry_t;
+    using obj_link_type = typename objects::link_type;
+    using obj_range_type = typename objects::range_type;
+    using sf_finders = sf_finder_registry_t;
+    using sf_finder_link_type = typename sf_finders::link_type;
+
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
     // used for sfinae
-    using volume_def = volume<object_registry_t, range_t, array_t>;
+    using volume_def = volume<objects, sf_finders, array_t>;
 
     enum grid_type : unsigned int {
         e_no_grid = 0,
@@ -63,17 +68,23 @@ class volume {
     DETRAY_HOST
     inline void set_index(const dindex index) { _index = index; }
 
-    /** @return the entry into the local surface finders */
-    DETRAY_HOST_DEVICE
-    inline dindex surfaces_finder_entry() const {
-        return _surfaces_finder_entry;
+    /** set surface finder link associated with volume */
+    DETRAY_HOST
+    void set_surfaces_finder(const sf_finder_link_type link) {
+        _sf_finder = link;
     }
 
-    /** @param entry the entry into the local surface finders */
-    DETRAY_HOST
-    inline void set_surfaces_finder(const dindex entry) {
-        _surfaces_finder_entry = entry;
-    }
+    /** @return the surface finder link associated with the volume */
+    DETRAY_HOST_DEVICE
+    const sf_finder_link_type &sf_finder_link() const { return _sf_finder; }
+
+    /** @return the type of surface finder associated with the volume */
+    DETRAY_HOST_DEVICE
+    const auto sf_finder_type() const { return detail::get<0>(_sf_finder); }
+
+    /** @return the index of the surface finder associated with volume */
+    DETRAY_HOST_DEVICE
+    const auto &sf_finder_index() const { return detail::get<1>(_sf_finder); }
 
     /** @return if the volume is empty or not */
     DETRAY_HOST_DEVICE inline bool empty() const {
@@ -92,10 +103,10 @@ class volume {
      * @param other Surface index range
      */
     template <typename objects::id range_id = objects::e_surface>
-    DETRAY_HOST inline void update_range(const range_t &other) {
+    DETRAY_HOST inline void update_range(const obj_range_type &other) {
         auto &rg = detail::get<range_id>(_ranges);
         // Range not set yet - initialize
-        constexpr range_t empty{};
+        constexpr obj_range_type empty{};
         if (rg == empty) {
             rg = other;
         } else {
@@ -134,6 +145,14 @@ class volume {
 
     /** get grid type associated with volume */
     auto get_grid_type() const { return _grid_type; }
+    
+    /** Stub for the surface finder call (returns all surfaces for the moment).
+     * @return the neighboring surfaces
+     */
+    template <typename point_t>
+    DETRAY_HOST_DEVICE inline auto get_neighbors(point_t & /*pt*/) const {
+        return range<objects::e_surface>();
+    }
 
     /** Equality operator
      *
@@ -142,8 +161,7 @@ class volume {
     DETRAY_HOST_DEVICE
     bool operator==(const volume &rhs) const {
         return (_bounds == rhs._bounds && _index == rhs._index &&
-                _ranges == rhs._ranges &&
-                _surfaces_finder_entry == rhs._surfaces_finder_entry);
+                _ranges == rhs._ranges && _sf_finder == rhs._sf_finder);
     }
 
     private:
@@ -160,13 +178,10 @@ class volume {
 
     /** Ranges in geometry containers for different objects types that belong
      * to this volume */
-    array_t<range_t, objects::n_types> _ranges = {};
+    array_t<obj_range_type, objects::n_types> _ranges = {};
 
-    /** Index into the surface finder container */
-    dindex _surfaces_finder_entry = dindex_invalid;
-
-    /** grid type associated with volume **/
-    grid_type _grid_type = e_no_grid;
+    /** Links to a specific surface finder for this volume */
+    sf_finder_link_type _sf_finder = {};
 };
 
 }  // namespace detray

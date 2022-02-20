@@ -102,8 +102,8 @@ class registry_base<ID, true, registered_types...> {
      */
     template <ID type_id, template <typename...> class tuple_t = dtuple>
     struct get_type {
-        using type = std::remove_reference_t<decltype(
-            std::get<type_id>(tuple_t<registered_types...>{}))>;
+        using type = std::remove_reference_t<decltype(std::get<type_id>(
+            tuple_t<registered_types...>{}))>;
     };
 
     private:
@@ -215,13 +215,14 @@ class sf_finder_registry
         e_r_phi_grid = 2,  // endcap
     };
 
-    using link_type = typed_index<id>;
-    using range_type = typed_index<id, dindex_range>;
+    using link_type = typed_index<unsigned int>;
+    using range_type = typed_index<unsigned int, dindex_range>;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
 
-    template <unsigned int type_id, template <typename...> class tuple_t = dtuple>
+    template <unsigned int type_id,
+              template <typename...> class tuple_t = dtuple>
     using get_type =
         typename type_registry::template get_type<type_id, tuple_t>;
 };

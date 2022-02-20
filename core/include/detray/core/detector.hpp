@@ -37,9 +37,9 @@ using point2 = __plugin::point2<detray::scalar>;
  * interface between geometry, navigator and grid.
  *
  * @tparam metadata helper that defines collection and link types centrally
- * @tparam array_type the type of the internal array, must have STL semantics
- * @tparam tuple_type the type of the internal tuple, must have STL semantics
- * @tparam vector_type the type of the internal array, must have STL semantics
+ * @tparam array_t the type of the internal array, must have STL semantics
+ * @tparam tuple_t the type of the internal tuple, must have STL semantics
+ * @tparam vector_t the type of the internal array, must have STL semantics
  * @tparam source_link the surface source link
  */
 template <typename metadata,
@@ -67,16 +67,20 @@ class detector {
     using mask_container =
         typename masks::template container_type<tuple_t, vector_t>;
 
-    /// volume index: volume the surface belongs to
+    /// Forward surface definition
     using volume_link = dindex;
     using surface_type =
         surface<masks, transform_link, volume_link, source_link>;
-
     using objects =
         typename metadata::template object_definitions<surface_type>;
     using surface_container = vector_t<surface_type>;
-    // Volume type
-    using volume_type = volume<objects, dindex_range, array_t>;
+
+    /// Forward accelerator structures
+    using surfaces_finders = typename metadata::template sf_finder_definitions<
+        array_t, vector_t, tuple_t, jagged_vector_t>;
+
+    /// Assemble volume type
+    using volume_type = volume<objects, surfaces_finders, array_t>;
 
     /** Temporary container structures that are used to fill the detector.
      * The respective objects are sorted by mask type, so that they can be
@@ -87,18 +91,15 @@ class detector {
         array_t<vector_t<surface_type>, masks::n_types>;
     using transform_filling_container =
         array_t<transform_container, masks::n_types>;
-
-    /// Accelerator structures
-    using surfaces_finders =
-        typename metadata::template sf_finder_definitions<array_t, vector_t, tuple_t, jagged_vector_t>;
-
     /// Volume finder definition
     using volume_finder =
         typename metadata::template volume_finder<array_t, vector_t, tuple_t,
                                                   jagged_vector_t>;
 
-    using surfaces_finder_type = typename metadata::template surface_finder<array_t, vector_t, tuple_t,
-                                                  jagged_vector_t>;
+    // TODO: remove
+    using surfaces_finder_type =
+        typename metadata::template surface_finder<array_t, vector_t, tuple_t,
+                                                   jagged_vector_t>;
 
     detector() = delete;
 
@@ -140,11 +141,13 @@ class detector {
      * @return non-const reference of the new volume
      */
     DETRAY_HOST
-    volume_type &new_volume(const array_t<scalar, 6> &bounds,
-                            dindex surfaces_finder_entry = dindex_invalid) {
+    volume_type &new_volume(
+        const array_t<scalar, 6> &bounds,
+        typename volume_type::sf_finder_link_type sf_finder_link = {
+            surfaces_finders::e_unknown, dindex_invalid}) {
         volume_type &cvolume = _volumes.emplace_back(bounds);
         cvolume.set_index(_volumes.size() - 1);
-        cvolume.set_surfaces_finder(surfaces_finder_entry);
+        cvolume.set_surfaces_finder(sf_finder_link);
 
         return cvolume;
     }
@@ -289,7 +292,7 @@ class detector {
     template <typename grid_type>
     DETRAY_HOST inline void add_surfaces_grid(const context ctx,
                                               volume_type &vol,
-                                              grid_type &surfaces_grid) {
+                                              grid_type &&surfaces_grid) {
         // iterate over surfaces to fill the grid
         for (const auto [surf_idx, surf] : enumerate(_surfaces, vol)) {
             if (surf.get_grid_status() == true) {
@@ -299,14 +302,14 @@ class detector {
                     _transforms.contextual_transform(ctx, surf.transform());
                 auto tsl = trf.translation();
 
-                if (vol.get_grid_type() ==
-                    volume_type::grid_type::e_z_phi_grid) {
+                if (vol.sf_finder_type() ==
+                    surfaces_finders::id::e_z_phi_grid) {
 
                     point2 location{tsl[2], algebra::getter::phi(tsl)};
                     surfaces_grid.populate(location, std::move(sidx));
 
-                } else if (vol.get_grid_type() ==
-                           volume_type::grid_type::e_r_phi_grid) {
+                } else if (vol.sf_finder_type() ==
+                           surfaces_finders::id::e_r_phi_grid) {
 
                     point2 location{algebra::getter::perp(tsl),
                                     algebra::getter::phi(tsl)};
@@ -316,9 +319,11 @@ class detector {
         }
 
         // add surfaces grid into surfaces finder
-        auto n_grids = _surfaces_finder.effective_size();
-        _surfaces_finder[n_grids] = surfaces_grid;
-        vol.set_surfaces_finder(n_grids);
+        if (vol.sf_finder_type() != surfaces_finders::e_unknown) {
+            auto n_grids = _surfaces_finder.effective_size();
+            _surfaces_finder[n_grids] = surfaces_grid;
+            vol.set_surfaces_finder({vol.sf_finder_type(), n_grids});
+        }
     }
 
     /** Unrolls the data containers according to the mask type and fill the
@@ -377,9 +382,7 @@ class detector {
         }
 
         // Next mask type
-        if constexpr (current_type <
-                      std::tuple_size_v<typename mask_container::mask_tuple> -
-                          1) {
+        if constexpr (current_type < masks::n_types - 1) {
             return fill_containers<current_type + 1, surface_container>(
                 ctx, volume, surfaces, msks, trfs);
         }

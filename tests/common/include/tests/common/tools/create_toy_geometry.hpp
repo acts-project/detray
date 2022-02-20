@@ -174,8 +174,8 @@ void create_cyl_volume(
                      inner_r, outer_r, upper_z, edges[3]);
 
     det.add_objects(ctx, cyl_volume, surfaces, masks, transforms);
-    if (cyl_volume.get_grid_type() !=
-        detector_t::volume_type::grid_type::e_no_grid) {
+    if (cyl_volume.sf_finder_type() !=
+        detector_t::surfaces_finders::e_unknown) {
         det.add_surfaces_grid(ctx, cyl_volume, cyl_surfaces_grid);
     }
 }
@@ -208,7 +208,8 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     auto volume_id = vol.index();
     edge_t mask_edge{volume_id, dindex_invalid};
 
-    vol.set_grid_type(volume_type::grid_type::e_z_phi_grid);
+    vol.set_surfaces_finder(
+        {volume_type::sf_finders::e_z_phi_grid, dindex_invalid});
 
     // Create the module centers
 
@@ -371,7 +372,8 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     auto volume_id = vol.index();
     edge_t mask_edge{volume_id, dindex_invalid};
 
-    vol.set_grid_type(volume_type::grid_type::e_r_phi_grid);
+    vol.set_surfaces_finder(
+        {volume_type::sf_finders::e_r_phi_grid, dindex_invalid});
 
     // calculate the radii of the rings
     std::vector<scalar> radii;
