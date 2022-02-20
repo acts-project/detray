@@ -62,7 +62,9 @@ class registry_base<ID, true, registered_types...> {
 
     /** Checks whether a given index can be mapped to a type.*/
     DETRAY_HOST_DEVICE static constexpr bool is_valid(
-        const std::size_t type_id) { return type_id < n_types; }
+        const std::size_t type_id) {
+        return type_id < n_types;
+    }
 
     /** Extract an index and check it.*/
     template <typename object_t>
