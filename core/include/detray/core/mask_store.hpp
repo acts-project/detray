@@ -70,7 +70,7 @@ class mask_store {
         if (ref_idx == index) {
             // Produce a more helpful error than the usual tuple index error
             static_assert(
-                std::size_t{0} <= ref_idx and ref_idx < sizeof...(mask_types),
+                ref_idx < sizeof...(mask_types),
                 "Index out of range: Please make sure that indices and type "
                 "enums match the number of types in container.");
             return static_cast<id_type>(index);
