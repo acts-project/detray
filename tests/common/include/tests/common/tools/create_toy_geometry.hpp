@@ -174,8 +174,10 @@ void create_cyl_volume(
                      inner_r, outer_r, upper_z, edges[3]);
 
     det.add_objects(ctx, cyl_volume, surfaces, masks, transforms);
-    if (cyl_volume.sf_finder_type() !=
-        detector_t::surfaces_finders::e_unknown) {
+    if (cyl_volume.sf_finder_type() ==
+            detector_t::surfaces_finders::id::e_z_phi_grid or
+        cyl_volume.sf_finder_type() ==
+            detector_t::surfaces_finders::id::e_r_phi_grid) {
         det.add_surfaces_grid(ctx, cyl_volume, cyl_surfaces_grid);
     }
 }

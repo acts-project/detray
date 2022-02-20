@@ -319,7 +319,8 @@ class detector {
         }
 
         // add surfaces grid into surfaces finder
-        if (vol.sf_finder_type() != surfaces_finders::e_unknown) {
+        if (vol.sf_finder_type() == surfaces_finders::id::e_z_phi_grid or
+            vol.sf_finder_type() == surfaces_finders::id::e_r_phi_grid) {
             auto n_grids = _surfaces_finder.effective_size();
             _surfaces_finder[n_grids] = surfaces_grid;
             vol.set_surfaces_finder({vol.sf_finder_type(), n_grids});
