@@ -73,13 +73,13 @@ class mask_store {
                 std::size_t{0} <= ref_idx and ref_idx < sizeof...(mask_types),
                 "Index out of range: Please make sure that indices and type "
                 "enums match the number of types in container.");
-            return static_cast<ID>(index);
+            return static_cast<id_type>(index);
         }
         if constexpr (ref_idx < sizeof...(mask_types) - 1) {
             return to_id<ref_idx + 1>(index);
         }
         // This produces a compiler error when used in type unrolling code
-        return static_cast<ID>(sizeof...(mask_types));
+        return static_cast<id_type>(sizeof...(mask_types));
     }
 
     /** Size : Contextual STL like API
@@ -87,7 +87,7 @@ class mask_store {
      * @tparam mask_id the index for the mask_type
      * @return the size of the vector containing the masks of the required type
      */
-    template <ID mask_id>
+    template <std::size_t mask_id>
     DETRAY_HOST_DEVICE size_t size() const {
         return detail::get<mask_id>(_mask_tuple).size();
     }
@@ -105,7 +105,7 @@ class mask_store {
      * @return whether the vector containing the masks of the required type
      * is empty
      */
-    template <ID mask_id>
+    template <std::size_t mask_id>
     DETRAY_HOST_DEVICE bool empty() const {
         return detail::get<mask_id>(_mask_tuple).empty();
     }
@@ -115,7 +115,7 @@ class mask_store {
      * @tparam mask_id index of requested mask type in masks container
      * @return vector of masks of a given type.
      */
-    template <ID mask_id>
+    template <std::size_t mask_id>
     DETRAY_HOST_DEVICE constexpr auto &group() {
         return detail::get<mask_id>(_mask_tuple);
     }
@@ -125,7 +125,7 @@ class mask_store {
      * @tparam mask_id index of requested mask type in masks container
      * @return vector of masks of a given type.
      */
-    template <ID mask_id>
+    template <std::size_t mask_id>
     DETRAY_HOST_DEVICE constexpr const auto &group() const {
         return detail::get<mask_id>(_mask_tuple);
     }
@@ -153,7 +153,7 @@ class mask_store {
      *
      * @note in general can throw an exception
      */
-    template <ID mask_id, typename... bounds_type>
+    template <std::size_t mask_id, typename... bounds_type>
     DETRAY_HOST auto &add_mask(bounds_type &&... mask_bounds) noexcept(false) {
         // Get the mask group that will be updated
         auto &mask_group = detail::get<mask_id>(_mask_tuple);
