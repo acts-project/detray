@@ -96,7 +96,7 @@ class mask_store {
      * @return the number of mask types in the store
      */
     DETRAY_HOST_DEVICE constexpr std::size_t size() const {
-        return detail::tuple_size<mask_tuple>::value;
+        return sizeof...(mask_types);
     }
 
     /** Empty : Contextual STL like API
@@ -184,7 +184,7 @@ class mask_store {
         }
 
         // Next mask type
-        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
+        if constexpr (current_id < sizeof...(mask_types) - 1) {
             return add_masks<current_id + 1>(masks);
         }
     }
@@ -213,7 +213,7 @@ class mask_store {
         }
 
         // Next mask type
-        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
+        if constexpr (current_id < sizeof...(mask_types) - 1) {
             return add_masks<current_id + 1>(masks);
         }
     }
@@ -234,7 +234,7 @@ class mask_store {
         add_masks(mask_group);
 
         // Next mask type
-        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
+        if constexpr (current_id < sizeof...(mask_types) - 1) {
             return append_masks<current_id + 1>(other);
         }
     }
