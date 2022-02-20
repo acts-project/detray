@@ -38,11 +38,6 @@ class mask_store {
     /** data type for mask_store_data **/
     using mask_tuple_data = tuple_t<vecmem::data::vector_view<mask_types>...>;
 
-    /**
-     * tuple_type for mask_tuple makes an illegal memory access error
-     */
-    // using mask_tuple = tuple_type<vector_type<mask_types>...>;
-
     /** Default constructor **/
     mask_store() = delete;
 
@@ -62,8 +57,29 @@ class mask_store {
         : _mask_tuple(device(
               store_data, std::make_index_sequence<sizeof...(mask_types)>{})) {}
 
+    /** Enforce usage of mask_id types in the code and do some (limited)
+     *  checking.
+     *
+     * @tparam ref_idx matches to index arg to perform static checks
+     * @param index argument to be converted to valid id type
+     *
+     * @return the matching ID type.
+     */
+    template <std::size_t ref_idx = 0>
     DETRAY_HOST_DEVICE static constexpr ID to_id(const std::size_t index) {
-        return static_cast<ID>(index);
+        if (ref_idx == index) {
+            // Produce a more helpful error than the usual tuple index error
+            static_assert(
+                std::size_t{0} <= ref_idx and ref_idx < sizeof...(mask_types),
+                "Index out of range: Please make sure that indices and type "
+                "enums match the number of types in container.");
+            return static_cast<ID>(index);
+        }
+        if constexpr (ref_idx < sizeof...(mask_types) - 1) {
+            return to_id<ref_idx + 1>(index);
+        }
+        // This produces a compiler error when used in type unrolling code
+        return static_cast<ID>(sizeof...(mask_types));
     }
 
     /** Size : Contextual STL like API

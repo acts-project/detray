@@ -31,8 +31,8 @@ class surface {
     using mask_defs = mask_regsitry_t;
     using mask_link = typename mask_defs::link_type;
     // At least one mask type is present in any geometry
-    using edge_type = typename mask_defs::template get_type<
-        static_cast<typename mask_defs::id>(0)>::type::links_type;
+    using edge_type = typename mask_defs::template get_type<mask_defs::to_id(
+        0)>::type::links_type;
     using volume_link = volume_link_t;
     using source_link = source_link_t;
 

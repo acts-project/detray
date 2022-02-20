@@ -40,7 +40,7 @@ template <class ID, typename... registered_types>
 class registry_base<ID, true, registered_types...> {
     public:
     /** Conventions for some basic info */
-    enum : unsigned int {
+    enum : std::size_t {
         n_types = sizeof...(registered_types),
         e_any = sizeof...(registered_types),
         e_unknown = sizeof...(registered_types) + 1,
@@ -61,17 +61,41 @@ class registry_base<ID, true, registered_types...> {
     }
 
     /** Checks whether a given index can be mapped to a type.*/
-    template <ID type_id>
-    DETRAY_HOST_DEVICE static constexpr bool is_valid_id() {
-        return 0 <= type_id and type_id < n_types;
+    DETRAY_HOST_DEVICE static constexpr bool is_valid(
+        const std::size_t type_id) {
+        return std::size_t{0} <= type_id and type_id < n_types;
     }
 
     /** Extract an index and check it.*/
     template <typename object_t>
     struct get_index {
         static constexpr ID value = get_id<object_t>();
-        constexpr bool operator()() noexcept { return is_valid_id<value>(); }
+        constexpr bool operator()() noexcept { return is_valid(value); }
     };
+
+    /** Convert index to ID and do some (limited) checking.
+     *
+     * @tparam ref_idx matches to index arg to perform static checks
+     * @param index argument to be converted to valid id type
+     *
+     * @return the matching ID type.
+     */
+    template <std::size_t ref_idx = 0>
+    DETRAY_HOST_DEVICE static constexpr ID to_id(const std::size_t index) {
+        if (ref_idx == index) {
+            // Produce a more helpful error than the usual tuple index error
+            static_assert(
+                is_valid(ref_idx),
+                "Index out of range: Please make sure that indices and type "
+                "enums match the number of types in container.");
+            return static_cast<ID>(index);
+        }
+        if constexpr (ref_idx < sizeof...(registered_types) - 1) {
+            return to_id<ref_idx + 1>(index);
+        }
+        // This produces a compiler error when used in type unrolling code
+        return static_cast<ID>(sizeof...(registered_types));
+    }
 
     /** Return a type for an index. If the index cannot be mapped, there will be
      * a compiler error.
@@ -109,7 +133,7 @@ class object_registry
     using type_registry =
         registry_base<unsigned int, true, registered_types...>;
 
-    enum : unsigned int {
+    enum : std::size_t {
         n_types = type_registry::n_types,
         e_any = type_registry::e_any,
         e_unknown = type_registry::e_unknown,
@@ -144,7 +168,7 @@ class mask_registry
         ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
         registered_types...>;
 
-    enum : unsigned int {
+    enum : std::size_t {
         n_types = type_registry::n_types,
         e_any = type_registry::e_any,
         e_unknown = type_registry::e_unknown,
@@ -177,7 +201,7 @@ class sf_finder_registry
     using type_registry =
         registry_base<unsigned int, true, registered_types...>;
 
-    enum : unsigned int {
+    enum : std::size_t {
         n_types = type_registry::n_types,
         e_any = type_registry::e_any,
         e_unknown = type_registry::e_unknown,
