@@ -24,7 +24,7 @@ TEST(mask, single3_0) {
     point3 p3_out = {1.5, -9.8, 8.};
 
     scalar h0 = 1.;
-    single3<0> m1_0 = {-h0, h0};
+    single3<0> m1_0{-h0, h0, 0u};
 
     ASSERT_EQ(m1_0[0], -h0);
     ASSERT_EQ(m1_0[1], h0);

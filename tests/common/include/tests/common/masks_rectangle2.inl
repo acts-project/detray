@@ -26,7 +26,7 @@ TEST(mask, rectangle2) {
     scalar hx = 1.;
     scalar hy = 9.3;
 
-    rectangle2<> r2 = {hx, hy};
+    rectangle2<> r2{hx, hy, 0u};
 
     ASSERT_EQ(r2[0], hx);
     ASSERT_EQ(r2[1], hy);

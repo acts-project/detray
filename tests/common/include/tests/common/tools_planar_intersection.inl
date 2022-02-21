@@ -62,7 +62,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
     ASSERT_NEAR(hit_bound.p2[1], -1., epsilon);
 
     // The same test but bound to local frame & masked - inside
-    rectangle2<> rect_for_inside = {3., 3.};
+    rectangle2<> rect_for_inside{3., 3., 0u};
     auto hit_bound_inside = pi.intersect(shifted, point3{2., 1., 0.},
                                          vector3{0., 0., 1.}, rect_for_inside);
     ASSERT_TRUE(hit_bound_inside.status == intersection_status::e_inside);
@@ -75,7 +75,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
     ASSERT_NEAR(hit_bound_inside.p2[1], -1., epsilon);
 
     // The same test but bound to local frame & masked - outside
-    rectangle2<> rect_for_outside = {0.5, 3.5};
+    rectangle2<> rect_for_outside{0.5, 3.5, 0u};
     auto hit_bound_outside = pi.intersect(
         shifted, point3{2., 1., 0.}, vector3{0., 0., 1.}, rect_for_outside);
     ASSERT_TRUE(hit_bound_outside.status == intersection_status::e_outside);

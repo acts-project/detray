@@ -4,13 +4,34 @@
  *
  * Mozilla Public License Version 2.0
  */
-
 #include <gtest/gtest.h>
+
+#include <type_traits>
 
 #include "detray/definitions/detail/accessor.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 
 using namespace detray;
+
+template <std::size_t current_id = 0, std::size_t n_types = 4,
+          typename container_t, typename link_t>
+inline auto get_edge(const container_t& collection, const link_t& links) {
+
+    if (current_id == detail::get<0>(links)) {
+        auto& group = detail::get<current_id>(collection);
+        return group[detail::get<1>(links)].links();
+    }
+
+    // Next type
+    if constexpr (current_id < n_types - 1) {
+        return get_edge<current_id + 1>(collection, links);
+    }
+    // Group no 0 will always exist
+    using group_t =
+        std::remove_reference_t<decltype(detail::get<0>(collection))>;
+    using edge_t = typename group_t::value_type::links_type;
+    return edge_t{};
+}
 
 // This test check the building of the tml based toy geometry
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
@@ -31,10 +52,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     auto& surfaces_finder = toy_det.get_surfaces_finder();
     auto& transforms = toy_det.transform_store();
     auto& masks = toy_det.mask_store();
-    auto& rectangles = masks.template group<mask_ids::e_rectangle2>();
-    auto& trapezoids = masks.template group<mask_ids::e_trapezoid2>();
-    auto& cylinders = masks.template group<mask_ids::e_portal_cylinder3>();
-    auto& discs = masks.template group<mask_ids::e_portal_ring2>();
 
     /** source link */
     const dindex inv_sf_finder = dindex_invalid;
@@ -49,10 +66,10 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(surfaces_finder.effective_size(),
               n_brl_layers + 2 * n_edc_layers);
     EXPECT_EQ(transforms.size(ctx), 3244);
-    EXPECT_EQ(rectangles.size(), 2492);
-    EXPECT_EQ(trapezoids.size(), 648);
-    EXPECT_EQ(cylinders.size(), 52);
-    EXPECT_EQ(discs.size(), 52);
+    EXPECT_EQ(masks.template size<mask_ids::e_rectangle2>(), 2492);
+    EXPECT_EQ(masks.template size<mask_ids::e_trapezoid2>(), 648);
+    EXPECT_EQ(masks.template size<mask_ids::e_portal_cylinder3>(), 52);
+    EXPECT_EQ(masks.template size<mask_ids::e_portal_ring2>(), 52);
 
     /** Test the links of portals (into the next volume or invalid if we leave
      * the detector).
@@ -64,20 +81,21 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
      * @param mask_index type and index of portal mask in respective mask cont
      * @param edges links to next volume and next surfaces finder
      */
-    auto test_portal_links =
-        [](dindex vol_index, decltype(surfaces.begin())&& sf_itr,
-           darray<dindex, 2>& range, dindex trf_index,
-           darray<dindex, 2>&& mask_index, dvector<darray<dindex, 2>>&& edges) {
-            for (dindex pti = range[0]; pti < range[1]; pti++) {
-                EXPECT_EQ(sf_itr->volume(), vol_index);
-                EXPECT_EQ(sf_itr->transform(), trf_index);
-                EXPECT_EQ(sf_itr->mask(), mask_index);
-                EXPECT_EQ(sf_itr->edge(), edges[pti - range[0]]);
-                sf_itr++;
-                trf_index++;
-                mask_index[1]++;
-            }
-        };
+    auto test_portal_links = [&](dindex vol_index,
+                                 decltype(surfaces.begin())&& sf_itr,
+                                 darray<dindex, 2>& range, dindex trf_index,
+                                 darray<dindex, 2>&& mask_index,
+                                 dvector<darray<dindex, 2>>&& edges) {
+        for (dindex pti = range[0]; pti < range[1]; pti++) {
+            EXPECT_EQ(sf_itr->volume(), vol_index);
+            EXPECT_EQ(sf_itr->transform(), trf_index);
+            EXPECT_EQ(sf_itr->mask(), mask_index);
+            EXPECT_EQ(get_edge(masks, sf_itr->mask()), edges[pti - range[0]]);
+            sf_itr++;
+            trf_index++;
+            mask_index[1]++;
+        }
+    };
 
     /** Test the links of module surface (alway stay in their volume).
      *
@@ -88,20 +106,21 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
      * @param mask_index type and index of module mask in respective mask cont
      * @param edges links to next volume and next surfaces finder
      */
-    auto test_module_links =
-        [](dindex vol_index, decltype(surfaces.begin())&& sf_itr,
-           darray<dindex, 2>& range, dindex trf_index,
-           darray<dindex, 2>&& mask_index, dvector<darray<dindex, 2>>&& edges) {
-            for (dindex pti = range[0]; pti < range[1]; pti++) {
-                EXPECT_EQ(sf_itr->volume(), vol_index);
-                EXPECT_EQ(sf_itr->transform(), trf_index);
-                EXPECT_EQ(sf_itr->mask(), mask_index);
-                EXPECT_EQ(sf_itr->edge(), edges[0]);
-                sf_itr++;
-                trf_index++;
-                mask_index[1]++;
-            }
-        };
+    auto test_module_links = [&](dindex vol_index,
+                                 decltype(surfaces.begin())&& sf_itr,
+                                 darray<dindex, 2>& range, dindex trf_index,
+                                 darray<dindex, 2>&& mask_index,
+                                 dvector<darray<dindex, 2>>&& edges) {
+        for (dindex pti = range[0]; pti < range[1]; pti++) {
+            EXPECT_EQ(sf_itr->volume(), vol_index);
+            EXPECT_EQ(sf_itr->transform(), trf_index);
+            EXPECT_EQ(sf_itr->mask(), mask_index);
+            EXPECT_EQ(get_edge(masks, sf_itr->mask()), edges[0]);
+            sf_itr++;
+            trf_index++;
+            mask_index[1]++;
+        }
+    };
 
     /** Test the surface grid.
      *

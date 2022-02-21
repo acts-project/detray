@@ -7,7 +7,7 @@
 # Set up all of the "standard" tests.
 detray_add_test( eigen
    "eigen_annulus2.cpp" "eigen_core.cpp" "eigen_cylinder_intersection.cpp"
-   "eigen_cylinder3.cpp" "eigen_detector.cpp" "eigen_geometry_graph.cpp"
+   "eigen_cylinder3.cpp" "eigen_detector.cpp" "eigen_geometry_volume_graph.cpp"
    "eigen_geometry_linking.cpp" "eigen_geometry_navigation.cpp"
    "eigen_geometry_scan.cpp" "eigen_intersection_kernel.cpp"
    "eigen_line_stepper.cpp" "eigen_mask_store.cpp" "eigen_navigator.cpp"

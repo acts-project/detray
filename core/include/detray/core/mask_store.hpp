@@ -89,27 +89,6 @@ class mask_store {
         return detail::get<mask_id>(_mask_tuple).empty();
     }
 
-    /** Retrieve a single mask - const
-     *
-     * @tparam current_id the index for the mask_type
-     *
-     * @param mask_id the index for the mask_type
-     * @param mask_index the index for the mask
-     *
-     * @return the required mask
-     */
-    template <std::size_t current_id = 0>
-    DETRAY_HOST_DEVICE const auto &mask(const std::size_t mask_id,
-                                        const dindex mask_index) const {
-        if (current_id == mask_id) {
-            return group<current_id>()[mask_index];
-        }
-        // Next mask type
-        if constexpr (current_id < detail::tuple_size<mask_tuple>::value - 1) {
-            return mask<current_id + 1>(mask_id, mask_index);
-        }
-    }
-
     /** Retrieve a vector of masks of a certain type (mask group)
      *
      * @tparam mask_id index of requested mask type in masks container

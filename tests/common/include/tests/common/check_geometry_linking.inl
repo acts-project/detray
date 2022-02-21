@@ -9,7 +9,7 @@
 
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/tools/geometry_graph.hpp"
+#include "detray/tools/volume_graph.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
@@ -32,14 +32,12 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
     // Build the geometry (modeled as a unified index geometry)
     vecmem::host_memory_resource host_mr;
     auto toy_det = create_toy_geometry(host_mr);
-    using detector_t = decltype(toy_det);
 
     // Build the graph
-    const auto g =
-        geometry_graph<detector_t>(toy_det.volumes(), toy_det.surfaces());
-    // const auto &adj_linking = g.adjacency_list();
+    volume_graph graph(toy_det);
+    // const auto &adj_linking = graph.adjacency_list();
 
-    std::cout << g.to_string() << std::endl;
+    std::cout << graph.to_string() << std::endl;
 
     // TODO: Join these sub trees into a single comprehensive tree
     /*auto geo_checker_vol0 =

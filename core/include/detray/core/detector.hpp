@@ -16,7 +16,7 @@
 #include "detray/core/transform_store.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/geometry/surface_base.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/geometry/volume.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
@@ -66,13 +66,10 @@ class detector {
     using mask_container =
         typename masks::template container_type<tuple_t, vector_t>;
 
-    /// edge links: next volume, next (local) object finder
-    // TODO: Remove from surface
-    using edge_type = array_t<dindex, 2>;
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
-    using surface_type = surface_base<masks, transform_link, volume_link,
-                                      source_link, edge_type>;
+    using surface_type =
+        surface<masks, transform_link, volume_link, source_link>;
 
     using objects =
         typename metadata::template object_definitions<surface_type>;
@@ -354,8 +351,8 @@ class detector {
 
             // Update the surfaces mask link
             for (auto &obj : typed_surfaces) {
-                detail::get<1>(obj.mask()) += mask_offset;
-                obj.transform() += trsf_offset;
+                obj.update_mask(mask_offset);
+                obj.update_transform(trsf_offset);
             }
 
             // Now put the updated objects into the geometry

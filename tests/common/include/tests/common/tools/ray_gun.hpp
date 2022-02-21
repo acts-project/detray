@@ -57,8 +57,6 @@ inline auto shoot_ray(const detector_t &detector, const ray &r) {
             if (sfi.status == e_inside) {
                 // object the candidate belongs to
                 sfi.index = volume.index();
-                // the next volume if we encounter the candidate
-                sfi.link = std::get<0>(sf.edge());
                 intersection_record.emplace_back(sf_idx, sfi);
             }
         }

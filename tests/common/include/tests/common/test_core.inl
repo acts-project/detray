@@ -12,7 +12,7 @@
 
 #include "detray/core/intersection.hpp"
 #include "detray/core/type_registry.hpp"
-#include "detray/geometry/surface_base.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/masks/unmasked.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -35,7 +35,7 @@ using mask_link_t = typename mask_defs::link_type;
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
 // This tests the construction of a surface_base object
-TEST(ALGEBRA_PLUGIN, surface_base) {
+TEST(ALGEBRA_PLUGIN, surface) {
     // Preparatioon work, create a transform
     vector3 z = vector::normalize(vector3{3., 2., 1.});
     vector3 x = vector::normalize(vector3{2., -3., 0.});
@@ -43,8 +43,8 @@ TEST(ALGEBRA_PLUGIN, surface_base) {
     transform3 trf(t, z, x);
 
     mask_link_t mask_id{mask_defs::id::e_unmasked, 0};
-    surface_base<mask_defs, transform3> s(std::move(trf), std::move(mask_id),
-                                          -1, false);
+    surface<mask_defs, transform3> s(std::move(trf), std::move(mask_id), -1,
+                                     false, false);
 }
 
 // This tests the construction of a intresection

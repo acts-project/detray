@@ -12,6 +12,7 @@
 #include <string>
 
 #include "detray/core/intersection.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/tools/planar_intersector.hpp"
 
@@ -30,8 +31,8 @@ namespace detray {
  *
  **/
 template <unsigned int kCheckIndex, typename intersector_t = planar_intersector,
-          typename mask_links_t = __plugin::cartesian2<detray::scalar>,
-          typename mask_local_t = bool,
+          typename mask_local_t = __plugin::cartesian2<detray::scalar>,
+          typename mask_links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 struct single3 {
 
@@ -126,13 +127,29 @@ struct single3 {
     DETRAY_HOST_DEVICE
     constexpr local_type local() const { return local_type{}; }
 
-    /** Return the volume link - const reference */
+    /** @return the links - const reference */
     DETRAY_HOST_DEVICE
     const links_type &links() const { return _links; }
 
-    /** Return the volume link - non-const access */
+    /** @return the links - non-const access */
     DETRAY_HOST_DEVICE
     links_type &links() { return _links; }
+
+    /** @return the volume link - const reference */
+    DETRAY_HOST_DEVICE
+    dindex volume_link() const { return detail::get<0>(_links); }
+
+    /** @return the volume link - non-const access */
+    DETRAY_HOST_DEVICE
+    dindex volume_link() { return detail::get<0>(_links); }
+
+    /** @return the surface finder link - const reference */
+    DETRAY_HOST_DEVICE
+    dindex finder_link() const { return detail::get<1>(_links); }
+
+    /** @return the surface finder link - non-const access */
+    DETRAY_HOST_DEVICE
+    dindex finder_link() { return detail::get<1>(_links); }
 
     /** Transform to a string for output debugging */
     DETRAY_HOST

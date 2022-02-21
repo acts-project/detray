@@ -11,7 +11,6 @@
 #include <cmath>
 
 #include "detray/core/intersection.hpp"
-#include "detray/geometry/surface_base.hpp"
 #include "detray/masks/cylinder3.hpp"
 #include "detray/tools/concentric_cylinder_intersector.hpp"
 #include "detray/tools/cylinder_intersector.hpp"
@@ -34,7 +33,7 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // Create a translated cylinder and test untersection
     transform3 shifted(vector3{3., 2., 10.});
     cylinder3<false, cylinder_intersector, unbound, unsigned int>
-        cylinder_unbound = {4., -10., 10.};
+        cylinder_unbound{4., -10., 10., 0u};
     cylinder_intersector ci;
 
     // Unbound local frame test
@@ -50,7 +49,7 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // The same but bound
     cylinder3<false, cylinder_intersector,
               __plugin::cylindrical2<detray::scalar>, unsigned int>
-        cylinder_bound = {4., -10., 10.};
+        cylinder_bound{4., -10., 10., 0u};
     auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.},
                                   vector3{1., 0., 0.}, cylinder_bound);
     ASSERT_TRUE(hit_bound.status == intersection_status::e_inside);
@@ -70,7 +69,7 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     scalar r = 4.;
     scalar hz = 10.;
     transform3 identity(vector3{0., 0., 0.});
-    cylinder3<false> cylinder = {r, -hz, hz};
+    cylinder3<false> cylinder{r, -hz, hz, 0u};
     cylinder_intersector ci;
     concentric_cylinder_intersector cci;
 

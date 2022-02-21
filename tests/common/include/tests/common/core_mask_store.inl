@@ -53,7 +53,7 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(store.empty<id::e_single3>());
     ASSERT_TRUE(store.empty<id::e_trapezoid2>());
 
-    store.add_mask<id::e_cylinder3>(1., 0.5, 2.0);
+    store.add_mask<id::e_cylinder3>(1., 0.5, 2.0, 0u);
 
     ASSERT_TRUE(store.empty<id::e_annulus2>());
     ASSERT_EQ(store.size<id::e_cylinder3>(), 1);
@@ -62,11 +62,11 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(store.empty<id::e_single3>());
     ASSERT_TRUE(store.empty<id::e_trapezoid2>());
 
-    store.add_mask<id::e_cylinder3>(1., 1.5, 2.0);
-    store.add_mask<id::e_trapezoid2>(0.5, 1.5, 4.0);
-    store.add_mask<id::e_rectangle2>(1.0, 2.0);
-    store.add_mask<id::e_rectangle2>(2.0, 1.0);
-    store.add_mask<id::e_rectangle2>(10.0, 100.0);
+    store.add_mask<id::e_cylinder3>(1., 1.5, 2.0, 0u);
+    store.add_mask<id::e_trapezoid2>(0.5, 1.5, 4.0, 0u);
+    store.add_mask<id::e_rectangle2>(1.0, 2.0, 0u);
+    store.add_mask<id::e_rectangle2>(2.0, 1.0, 0u);
+    store.add_mask<id::e_rectangle2>(10.0, 100.0, 0u);
 
     ASSERT_TRUE(store.empty<id::e_annulus2>());
     ASSERT_EQ(store.size<id::e_cylinder3>(), 2);
@@ -75,11 +75,11 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(store.empty<id::e_single3>());
     ASSERT_EQ(store.size<id::e_trapezoid2>(), 1);
 
-    store.add_mask<id::e_annulus2>(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
-    store.add_mask<id::e_ring2>(10.0, 100.0);
-    store.add_mask<id::e_ring2>(10.0, 100.0);
-    store.add_mask<id::e_ring2>(10.0, 100.0);
-    store.add_mask<id::e_ring2>(10.0, 100.0);
+    store.add_mask<id::e_annulus2>(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 0u);
+    store.add_mask<id::e_ring2>(10.0, 100.0, 0u);
+    store.add_mask<id::e_ring2>(10.0, 100.0, 0u);
+    store.add_mask<id::e_ring2>(10.0, 100.0, 0u);
+    store.add_mask<id::e_ring2>(10.0, 100.0, 0u);
 
     const auto &annulus_masks = store.group<id::e_annulus2>();
     const auto &cylinder_masks = store.group<id::e_cylinder3>();
