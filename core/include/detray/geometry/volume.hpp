@@ -9,6 +9,7 @@
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/tools/neighborhood_kernel.hpp"
 
 namespace detray {
 
@@ -20,7 +21,8 @@ namespace detray {
  * @tparam array_t the type of the internal array, must have STL semantics
  */
 template <typename object_registry_t, typename sf_finder_registry_t,
-          template <typename, std::size_t> class array_t = darray>
+          template <typename, std::size_t> class array_t = darray,
+          typename neighborhood_kernel_t = neighborhood_kernel>
 class volume {
 
     public:
@@ -143,9 +145,11 @@ class volume {
     /** Stub for the surface finder call (returns all surfaces for the moment).
      * @return the neighboring surfaces
      */
-    template <typename point_t>
-    DETRAY_HOST_DEVICE inline auto neighborhood(const point_t & /*pt*/) const {
-        return range<objects::e_surface>();
+    template <typename track_t, typename sf_finder_container_t>
+    DETRAY_HOST_DEVICE inline auto neighborhood(
+        const track_t &trk,
+        const sf_finder_container_t &surface_finders) const {
+        return neighborhood_kernel_t{}(*this, trk, surface_finders);
     }
 
     /** Equality operator

@@ -420,9 +420,12 @@ class detector {
     }
 
     DETRAY_HOST_DEVICE
-    inline surfaces_finder_type &get_surfaces_finder() {
+    inline const surfaces_finder_type &sf_finders_store() const {
         return _surfaces_finder;
     }
+
+    DETRAY_HOST_DEVICE
+    inline surfaces_finder_type &sf_finders_store() { return _surfaces_finder; }
 
     DETRAY_HOST_DEVICE
     inline dindex get_n_max_objects_per_volume() const {

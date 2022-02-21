@@ -68,6 +68,7 @@ detray_add_library( detray_core core
    "include/detray/tools/generators.hpp"
    "include/detray/tools/grid_array_helper.hpp"
    "include/detray/tools/local_object_finder.hpp"
+   "include/detray/tools/neighborhood_kernel.hpp"
    # utils include(s)   
    "include/detray/utils/enumerate.hpp"
    "include/detray/utils/invalid_values.hpp" )

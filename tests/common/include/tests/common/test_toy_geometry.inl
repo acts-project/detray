@@ -51,7 +51,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     context_t ctx{};
     auto& volumes = toy_det.volumes();
     auto& surfaces = toy_det.surfaces();
-    auto& surfaces_finder = toy_det.get_surfaces_finder();
+    auto& surfaces_finder = toy_det.sf_finders_store();
     auto& transforms = toy_det.transform_store();
     auto& masks = toy_det.mask_store();
 

@@ -241,7 +241,7 @@ detector_from_csv(const std::string &detector_name,
     using surfaces_r_phi_grid = surfaces_regular_circular_grid;
     using surfaces_z_phi_grid = surfaces_regular_circular_grid;
 
-    surfaces_finder &detector_surfaces_finders = d.get_surfaces_finder();
+    surfaces_finder &detector_surfaces_finders = d.sf_finders_store();
 
     // (B) Pre-read the grids & create local object finders
     int sg_counts = 0;
