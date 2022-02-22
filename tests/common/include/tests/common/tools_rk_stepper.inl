@@ -33,7 +33,6 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     constexpr unsigned int theta_steps = 100;
     constexpr unsigned int phi_steps = 100;
     constexpr unsigned int rk_steps = 100;
-    constexpr scalar path_limit = 100 * unit_constants::mm;
 
     // Constant magnetic field
     vector3 B{0, 0, 2 * unit_constants::T};
@@ -71,7 +70,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             // RK Stepping into forward direction
             rk_stepper_type::state forward_state(traj);
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(forward_state, path_limit);
+                rk_stepper.step(forward_state);
             }
 
             // get relative error by dividing error with path length
@@ -88,7 +87,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             traj.flip();
             rk_stepper_type::state backward_state(traj);
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(backward_state, path_limit);
+                rk_stepper.step(backward_state);
             }
 
             // get relative error by dividing error with path length

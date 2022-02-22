@@ -64,14 +64,14 @@ TEST(rk_stepper_cuda, rk_stepper) {
         rk_stepper_type::state forward_state(traj);
 
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk.step(forward_state, path_limit);
+            rk.step(forward_state);
         }
 
         // Backward direction
         traj.flip();
         rk_stepper_type::state backward_state(traj);
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk.step(backward_state, path_limit);
+            rk.step(backward_state);
         }
 
         path_lengths.push_back(forward_state._path_accumulated +

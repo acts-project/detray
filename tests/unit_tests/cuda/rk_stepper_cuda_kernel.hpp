@@ -35,7 +35,6 @@ using rk_stepper_type = rk_stepper<mag_field_type, free_track_parameters>;
 constexpr unsigned int theta_steps = 100;
 constexpr unsigned int phi_steps = 100;
 constexpr unsigned int rk_steps = 100;
-constexpr scalar path_limit = 100 * unit_constants::mm;
 
 constexpr scalar epsilon = 1e-5;
 

@@ -62,12 +62,13 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
     /** Take a step, regulared by a constrained step
      *
      * @param s The state object that chaches
-     * @param es The external step, e.g. from navigation
+     * @param path_limit maximum stepsize provided by the navigator
      *
      * @return returning the heartbeat, indicating if the stepping is alive
      */
     DETRAY_HOST_DEVICE
-    bool step(state& stepping, const scalar es) {
+    bool step(state& stepping,
+              const scalar path_limit = std::numeric_limits<scalar>::max()) {
         auto& sd = stepping._step_data;
 
         scalar error_estimate = 0;
@@ -137,7 +138,7 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
             n_step_trials++;
         }
 
-        stepping._step_size = std::min(stepping._step_size, es);
+        stepping._step_size = std::min(stepping._step_size, path_limit);
 
         auto h = stepping._step_size;
         auto pos = stepping().pos();
