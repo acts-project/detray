@@ -104,6 +104,7 @@ struct bound_track_parameters {
 struct free_track_parameters {
     using point3 = __plugin::vector3<scalar>;
     using vector3 = __plugin::vector3<scalar>;
+    using vector2 = __plugin::vector2<scalar>;
     using vector_type = free_vector;
     using covariance_type = free_sym_matrix;
     using jacobian_type = free_matrix;
@@ -163,6 +164,13 @@ struct free_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
+    void set_dir(const vector3& dir) {
+        getter::element(_vector, e_free_dir0, 0) = dir[0];
+        getter::element(_vector, e_free_dir1, 0) = dir[1];
+        getter::element(_vector, e_free_dir2, 0) = dir[2];
+    }
+
+    DETRAY_HOST_DEVICE
     scalar time() const { return getter::element(_vector, e_free_time, 0); }
 
     DETRAY_HOST_DEVICE
@@ -176,6 +184,21 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar qop() const { return getter::element(_vector, e_free_qoverp, 0); }
+
+    DETRAY_HOST_DEVICE
+    scalar pT() const {
+        auto dir = this->dir();
+        return std::abs(1. / this->qop() *
+                        getter::perp(vector2{dir[0], dir[1]}));
+    }
+
+    DETRAY_HOST_DEVICE
+    void flip() {
+        getter::element(_vector, e_free_dir0, 0) *= -1.;
+        getter::element(_vector, e_free_dir1, 0) *= -1.;
+        getter::element(_vector, e_free_dir2, 0) *= -1.;
+        getter::element(_vector, e_free_qoverp, 0) *= -1.;
+    }
 
     private:
     vector_type _vector;

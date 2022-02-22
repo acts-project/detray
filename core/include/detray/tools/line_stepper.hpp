@@ -1,4 +1,3 @@
-
 /** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2021-2022 CERN for the benefit of the ACTS project
@@ -8,27 +7,26 @@
 
 #pragma once
 
+// detray tools
+#include "detray/tools/base_stepper.hpp"
+
+// detray definitions
+#include "detray/definitions/qualifiers.hpp"
+
 namespace detray {
 
 /** Line stepper implementation */
 template <typename track_t, template <typename...> class tuple_t = dtuple>
-struct line_stepper {
+class line_stepper final : public base_stepper<track_t, tuple_t> {
 
-    /** State struct holding the track
-     *
-     * It has to cast into a const track via the call
-     * operat.
-     */
-    struct state {
+    public:
+    using base_type = base_stepper<track_t, tuple_t>;
 
-        track_t &_track;
+    struct state : public base_type::state {
+        state(track_t &t) : base_type::state(t) {}
 
-        scalar _s = 0.;  //!< Next step
-        scalar _pl =
-            std::numeric_limits<scalar>::max();  //!< Remaining path limit
-
-        state() = delete;
-        state(track_t &t) : _track(t) {}
+        // Remaining path limit
+        scalar _pl = std::numeric_limits<scalar>::max();
 
         /** @return the step and heartbeat given a step length s */
         tuple_t<scalar, bool> step(scalar s) {
@@ -39,9 +37,6 @@ struct line_stepper {
 
         /** Set the path limit to a scalar @param l */
         void set_limit(scalar pl) { _pl = pl; }
-
-        /** Call operator casts it itno a const track referenc on @return */
-        const track_t &operator()() const { return _track; }
     };
 
     /** Take a step, regulared by a constrained step
@@ -51,7 +46,8 @@ struct line_stepper {
      *
      * @return returning the heartbeat, indicating if the stepping is alive
      */
-    bool step(state &s, scalar es) const {
+    DETRAY_HOST_DEVICE
+    bool step(state &s, scalar es) {
         const auto [sl, heartbeat] = s.step(es);
         s._track.set_pos(s._track.pos() + s._track.dir() * sl);
         return heartbeat;

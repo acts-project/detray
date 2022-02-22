@@ -50,8 +50,7 @@ struct propagator {
      * @return a track at output
      */
     template <typename track_t, typename track_inspector_t>
-    track_t propagate(const track_t &t_in,
-                      track_inspector_t &t_inspector) const {
+    track_t propagate(const track_t &t_in, track_inspector_t &t_inspector) {
 
         track_t t_out(t_in);
         typename stepper_t::state s_state(t_out);
