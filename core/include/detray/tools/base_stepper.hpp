@@ -10,6 +10,7 @@
 // detray definitions
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 
 // detray tools
 #include "detray/tools/track.hpp"
@@ -67,6 +68,9 @@ class base_stepper {
         };
 
         navigation_direction _nav_dir = e_forward;
+
+        DETRAY_HOST_DEVICE
+        void release_step_size() {}
     };
 };
 

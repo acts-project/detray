@@ -35,7 +35,7 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
         state(track_t& t) : base_type::state(t) {}
 
         // step size
-        scalar _step_size = 1.;
+        scalar _step_size = 1. * unit_constants::mm;
 
         // error tolerance
         scalar _tolerance = 1e-4;
@@ -57,6 +57,9 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
         };
 
         stepping_data _step_data;
+
+        DETRAY_HOST_DEVICE
+        void release_step_size() { _step_size = 1. * unit_constants::mm; }
     };
 
     /** Take a step, regulared by a constrained step

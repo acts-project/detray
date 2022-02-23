@@ -410,6 +410,9 @@ class navigator {
                         // The distance to next will be updated with next high
                         // trust call
                         ++navigation.next();
+
+                        // Release step size
+                        stepping.release_step_size();
                     }
                     // we are certainly not on the next object. Trust fully
                     else {
