@@ -263,23 +263,23 @@ class navigator {
     /** Navigation status() call which established the current navigation
      *  information.
      *
-     * @tparam track_t type of the track (including context)
+     * @tparam stepper_state_t type of stepper state
      *
      * @param navigation [in, out] is the navigation state object
-     * @param track [in] is the track infromation
+     * @param stepping the stepper state
      *
      * @return a heartbeat to indicate if the navigation is still alive
      **/
-    template <typename track_t>
+    template <typename stepper_state_t>
     DETRAY_HOST_DEVICE inline bool status(state &navigation,
-                                          const track_t &track) const {
+                                          stepper_state_t &stepping) const {
 
         bool heartbeat = true;
 
         // If there is no_trust (e.g. at the beginning of the navigation in a
         // volume), the kernel will be initialized. Otherwise the candidates
         // are re-evaluated based on current trust level
-        update_kernel(navigation, track,
+        update_kernel(navigation, stepping,
                       _detector->volumes()[navigation.volume()]);
 
         // Should never be the case after update call (without portals we are
@@ -297,16 +297,16 @@ class navigator {
     /** Target function of the navigator, finds the next candidates
      *  and set the distance to next
      *
-     * @tparam track_t type of the track (including context)
+     * @tparam stepper_state_t type of stepper state
      *
      * @param navigation is the navigation state
-     * @param track is the current track information
+     * @param stepping the stepper state
      *
      * @return a heartbeat to indicate if the navigation is still alive
      **/
-    template <typename track_t>
+    template <typename stepper_state_t>
     DETRAY_HOST_DEVICE bool target(state &navigation,
-                                   const track_t &track) const {
+                                   stepper_state_t &stepping) const {
 
         // We are already on the right track, nothing left to do
         if (navigation.trust_level() == e_full_trust) {
@@ -316,23 +316,25 @@ class navigator {
 
         // Re-establish navigation status after [external] changes to
         // the navigation state
-        return status(navigation, track);
+        return status(navigation, stepping);
     }
 
     /** Helper method to intersect all objects of a surface/portal store
      *
-     * @tparam track_t type of the track (including context)
+     * @tparam stepper_state_t type of stepper state
      * @tparam range_t the type of range in the detector data containers
      *
      * @param navigation [in, out] navigation state that contains the kernel
-     * @param track the track information
+     * @param stepping the stepper state
      * @param volume the current tracking volume
      *
      */
-    template <typename track_t>
+    template <typename stepper_state_t>
     DETRAY_HOST_DEVICE inline void initialize_kernel(
-        state &navigation, const track_t &track,
+        state &navigation, stepper_state_t &stepping,
         const volume_type &volume) const {
+
+        const auto &track = stepping();
 
         // Get the max number of candidates & run them through the kernel
         detail::call_reserve(navigation.candidates(), volume.n_objects());
@@ -365,22 +367,24 @@ class navigator {
      *  initialize candidates if there is no trust in the current navigation
      *  state.
      *
-     * @tparam track_t type of the track (including context)
+     * @tparam stepper_state_t type of stepper state
      * @tparam range the type of range in the detector data containers
      *
      * @param navigation [in, out] navigation state that contains the kernel
-     * @param track the track information
+     * @param stepping the stepper state
      * @param volume the current tracking volume
      *
      * @return A boolean condition if kernel is exhausted or not
      */
-    template <typename track_t>
+    template <typename stepper_state_t>
     DETRAY_HOST_DEVICE inline void update_kernel(
-        state &navigation, const track_t &track,
+        state &navigation, stepper_state_t &stepping,
         const volume_type &volume) const {
 
+        const auto &track = stepping();
+
         if (navigation.trust_level() == e_no_trust) {
-            initialize_kernel(navigation, track, volume);
+            initialize_kernel(navigation, stepping, volume);
             return;
         }
         // Update current candidate, or close neighbors

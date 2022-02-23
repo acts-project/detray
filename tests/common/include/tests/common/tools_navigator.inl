@@ -10,6 +10,7 @@
 #include <map>
 
 #include "detray/core/mask_store.hpp"
+#include "detray/tools/base_stepper.hpp"
 #include "detray/tools/navigator.hpp"
 #include "detray/tools/track.hpp"
 #include "detray/utils/indexing.hpp"
@@ -66,15 +67,18 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
 }
 
 /** Checks an entire step to next barrel surface */
-template <typename navigator_t, typename state_t = typename navigator_t::state,
-          typename track_t>
-inline void check_step(navigator_t &nav, state_t &state, track_t &trck,
-                       dindex vol_id, std::size_t n_candidates,
-                       dindex current_id, dindex next_id) {
+template <typename navigator_t, typename state_t, typename stepper_state_t>
+inline void check_step(navigator_t &nav, state_t &state,
+                       stepper_state_t &stepping, dindex vol_id,
+                       std::size_t n_candidates, dindex current_id,
+                       dindex next_id) {
+
+    auto &trck = stepping();
+
     // Step onto the surface in volume
     trck.set_pos(trck.pos() + state() * trck.dir());
     state.set_trust_level(navigator_t::navigation_trust_level::e_high_trust);
-    ASSERT_TRUE(nav.status(state, trck));
+    ASSERT_TRUE(nav.status(state, stepping));
     // The status is: on surface 491
     check_on_surface<navigator_t>(state, vol_id, n_candidates, current_id,
                                   next_id);
@@ -82,7 +86,7 @@ inline void check_step(navigator_t &nav, state_t &state, track_t &trck,
               navigator_t::navigation_trust_level::e_high_trust);
 
     // Let's target - i.e. update the distance to next_id
-    ASSERT_TRUE(nav.target(state, trck));
+    ASSERT_TRUE(nav.target(state, stepping));
     // Should be on our way to the next ovelapping module
     // this is still the next surface, since we did not step
     check_towards_surface<navigator_t>(state, vol_id, n_candidates, next_id);
@@ -105,11 +109,13 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     auto toy_det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
     navigator n(toy_det);
     using toy_navigator = decltype(n);
+    using stepper = base_stepper<free_track_parameters>;
 
     // test track
     point3 pos{0., 0., 0.};
     vector3 mom{1., 1., 0.};
     free_track_parameters traj(pos, 0, mom, -1);
+    typename stepper::state stepping(traj);
 
     toy_navigator::state state;
     // Set initial volume (no grid yet)
@@ -131,7 +137,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     //
 
     // Initial status call
-    bool heartbeat = n.status(state, traj);
+    bool heartbeat = n.status(state, stepping);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
     // The status is towards beampipe
@@ -141,7 +147,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     ASSERT_NEAR(state(), 19., tol);
 
     // Let's immediately target, nothing should change, as there is full trust
-    heartbeat = n.target(state, traj);
+    heartbeat = n.target(state, stepping);
     ASSERT_TRUE(heartbeat);
     // The status remains: towards surface
     check_towards_surface<toy_navigator>(state, 0, 2, 0);
@@ -151,7 +157,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     traj.set_pos(traj.pos() + 0.5 * state() * traj.dir());
     // Could be externally set by actor (in the future)
     state.set_trust_level(toy_navigator::navigation_trust_level::e_high_trust);
-    ASSERT_TRUE(n.status(state, traj));
+    ASSERT_TRUE(n.status(state, stepping));
     // The status remains: towards surface
     check_towards_surface<toy_navigator>(state, 0, 2, 0);
     ASSERT_NEAR(state(), 9.5, tol);
@@ -160,7 +166,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
               toy_navigator::navigation_trust_level::e_full_trust);
 
     // Let's immediately target, nothing should change, as there is full trust
-    ASSERT_TRUE(n.target(state, traj));
+    ASSERT_TRUE(n.target(state, stepping));
     check_towards_surface<toy_navigator>(state, 0, 2, 0);
     ASSERT_NEAR(state(), 9.5, tol);
     // Trust level is restored
@@ -168,11 +174,11 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
               toy_navigator::navigation_trust_level::e_full_trust);
 
     // Now step onto the beampipe (idx 0)
-    check_step(n, state, traj, 0, 2, 0, 7);
+    check_step(n, state, stepping, 0, 2, 0, 7);
 
     // Step onto portal 7 in volume 0
     traj.set_pos(traj.pos() + state() * traj.dir());
-    ASSERT_TRUE(n.status(state, traj));
+    ASSERT_TRUE(n.status(state, stepping));
     // We are in the first barrel layer now (vol 7)
     check_volume_switch<toy_navigator>(state, 7);
 
@@ -210,7 +216,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
         check_volume_switch<toy_navigator>(state, vol_id);
 
         // New target call will initialize volume
-        ASSERT_TRUE(n.target(state, traj));
+        ASSERT_TRUE(n.target(state, stepping));
         // The status is: on adjacent portal in volume, towards next candidate
         // This includes overlapping modules and the adjacent portal we are
         // already on
@@ -219,7 +225,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
 
         // Step through the module surfaces
         for (std::size_t sf = 0; sf < sf_seq.size() - 1; ++sf) {
-            check_step(n, state, traj, vol_id, n_candidates, sf_seq[sf],
+            check_step(n, state, stepping, vol_id, n_candidates, sf_seq[sf],
                        sf_seq[sf + 1]);
         }
 
@@ -230,11 +236,11 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
 
         // Check agianst last volume
         if (vol_id != last_vol_id) {
-            ASSERT_TRUE(n.status(state, traj));
+            ASSERT_TRUE(n.status(state, stepping));
         }
         // we leave the detector
         else {
-            ASSERT_FALSE(n.status(state, traj));
+            ASSERT_FALSE(n.status(state, stepping));
             // The status is: on portal
             ASSERT_EQ(state.status(),
                       toy_navigator::navigation_status::e_on_target);

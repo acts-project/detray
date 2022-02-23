@@ -77,23 +77,24 @@ TEST(navigator_cuda, navigator) {
 
         auto& traj = tracks_host[i];
         navigator_host_t::state state(mng_mr);
+        stepper_t::state stepping(traj);
 
         // Set initial volume
         state.set_volume(0u);
 
         // Start propagation and record volume IDs
-        bool heartbeat = n.status(state, traj);
+        bool heartbeat = n.status(state, stepping);
 
         while (heartbeat) {
-            heartbeat = n.target(state, traj);
+            heartbeat = n.target(state, stepping);
 
-            traj.set_pos(traj.pos() + state() * traj.dir());
+            stepping().set_pos(stepping().pos() + state() * stepping().dir());
 
-            heartbeat = n.status(state, traj);
+            heartbeat = n.status(state, stepping);
 
             // Record volume
             volume_records_host[i].push_back(state.volume());
-            position_records_host[i].push_back(traj.pos());
+            position_records_host[i].push_back(stepping().pos());
         }
     }
 
