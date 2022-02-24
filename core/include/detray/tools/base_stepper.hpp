@@ -10,7 +10,6 @@
 // detray definitions
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/definitions/units.hpp"
 
 // detray tools
 #include "detray/tools/track.hpp"
