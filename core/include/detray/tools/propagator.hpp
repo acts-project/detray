@@ -7,14 +7,16 @@
 
 #pragma once
 
+#include "detray/definitions/qualifiers.hpp"
+
 namespace detray {
 
 /** A sterily track inspector instance */
-struct void_track_inspector {
+struct void_propagator_inspector {
 
-    /** Void operator */
-    template <typename track_t>
-    void operator()(const track_t & /*ignored*/) {
+    /** void operator **/
+    template <typename... args>
+    DETRAY_HOST_DEVICE void operator()(const args &... /*ignored*/) {
         return;
     }
 };
@@ -49,8 +51,9 @@ struct propagator {
      *
      * @return a track at output
      */
-    template <typename track_t, typename track_inspector_t>
-    track_t propagate(const track_t &t_in, track_inspector_t &t_inspector) {
+    template <typename track_t, typename propagator_inspector_t>
+    track_t propagate(const track_t &t_in,
+                      propagator_inspector_t &propagator_inspector) {
 
         track_t t_out(t_in);
         typename stepper_t::state s_state(t_out);
@@ -59,16 +62,18 @@ struct propagator {
         n_state.set_volume(0u);
 
         bool heartbeat = _navigator.status(n_state, s_state);
-        t_inspector(t_out);
+
         // Run while there is a heartbeat
         while (heartbeat) {
             // (Re-)target
             heartbeat &= _navigator.target(n_state, s_state);
             // Take the step
             heartbeat &= _stepper.step(s_state, n_state());
-            t_inspector(t_out);
+
             // And check the status
             heartbeat &= _navigator.status(n_state, s_state);
+
+            propagator_inspector(n_state, s_state);
         }
         return t_out;
     }

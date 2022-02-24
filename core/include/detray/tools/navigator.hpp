@@ -26,7 +26,7 @@ namespace detray {
  * the current navigation state information.
  *
  */
-struct void_inspector {
+struct void_navigator_inspector {
     template <typename state_t>
     DETRAY_HOST_DEVICE void operator()(const state_t & /*ignored*/,
                                        const char * /*ignored*/) {}
@@ -50,7 +50,7 @@ struct void_inspector {
  * @tparam detector_t the detector to navigate
  * @tparam inspector_t is a validation inspector
  */
-template <typename detector_t, typename inspector_t = void_inspector>
+template <typename detector_t, typename inspector_t = void_navigator_inspector>
 class navigator {
 
     public:
@@ -156,7 +156,7 @@ class navigator {
          * between objects)
          */
         DETRAY_HOST_DEVICE
-        inline const auto on_object() { return _object_index; }
+        inline const auto on_object() const { return _object_index; }
 
         /** Update current object the navigator is on  */
         DETRAY_HOST_DEVICE
@@ -164,7 +164,7 @@ class navigator {
 
         /** @returns current navigation status */
         DETRAY_HOST_DEVICE
-        inline const auto status() { return _status; }
+        inline const auto status() const { return _status; }
 
         /** Set new navigation status */
         DETRAY_HOST_DEVICE
@@ -190,7 +190,7 @@ class navigator {
 
         /** @returns current volume (index) */
         DETRAY_HOST_DEVICE
-        inline const auto volume() { return _volume_index; }
+        inline const auto volume() const { return _volume_index; }
 
         /** Set start/new volume */
         DETRAY_HOST_DEVICE
