@@ -11,6 +11,7 @@
 #include <string>
 #include <vecmem/memory/memory_resource.hpp>
 
+#include "detray/core/intersection.hpp"
 #include "detray/core/mask_store.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
@@ -448,6 +449,21 @@ class detector {
     /** @return the pointer of memoery resource */
     DETRAY_HOST
     auto resource() { return _resource; }
+
+    /** @return the vecmem jagged vector buffer for surface candidates */
+    // TODO: det.get_n_max_objects_per_volume() is way too many for
+    // candidates size allocation. With the local navigation, the size can be
+    // restricted to much smaller value
+    vecmem::data::jagged_vector_buffer<intersection> create_candidates_buffer(
+        const unsigned int n_tracks,
+        vecmem::memory_resource &device_resource) const {
+
+        return vecmem::data::jagged_vector_buffer<intersection>(
+            std::vector<std::size_t>(n_tracks, 0),
+            std::vector<std::size_t>(n_tracks,
+                                     this->get_n_max_objects_per_volume()),
+            device_resource, _resource);
+    }
 
     private:
     /** Contains the geometrical relations */

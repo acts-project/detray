@@ -55,7 +55,9 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
 
     void_propagator_inspector vi;
 
-    /*auto end = */ p.propagate(traj, vi);
+    detray_propagator::state state(traj);
+
+    /*auto end = */ p.propagate(state, vi);
 }
 
 struct helix_inspector {
@@ -166,5 +168,7 @@ TEST(ALGEBRA_PLUGIN, propagator_rk_stepper) {
 
     combined_inspector ci{helix_inspector(helix), print_inspector{}};
 
-    p.propagate(traj, ci);
+    detray_propagator::state state(traj);
+
+    p.propagate(state, ci);
 }

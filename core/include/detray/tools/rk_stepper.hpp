@@ -12,6 +12,7 @@
 
 // detray definitions
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 
 namespace detray {
 
@@ -116,6 +117,7 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
         size_t n_step_trials = 0;
 
         while (!try_rk4(stepping._step_size)) {
+
             step_size_scaling = std::min(
                 std::max(0.25,
                          std::sqrt(std::sqrt((stepping._tolerance /

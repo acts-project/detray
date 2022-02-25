@@ -33,6 +33,9 @@ struct propagator {
     stepper_t _stepper;
     navigator_t _navigator;
 
+    template <typename T>
+    using vector_type = typename navigator_t::template vector_type<T>;
+
     /** Can not be default constructed */
     propagator() = delete;
     /** Only valid constructor with a
@@ -43,6 +46,16 @@ struct propagator {
     propagator(stepper_t &&s, navigator_t &&n)
         : _stepper(std::move(s)), _navigator(std::move(n)) {}
 
+    struct state {
+
+        template <typename track_t>
+        state(track_t &t_in, vector_type<intersection> candidates = {})
+            : _stepping(t_in), _navigation(candidates) {}
+
+        typename stepper_t::state _stepping;
+        typename navigator_t::state _navigation;
+    };
+
     /** Propagate method
      *
      * @tparam track_t is the type of the track
@@ -51,13 +64,13 @@ struct propagator {
      *
      * @return a track at output
      */
-    template <typename track_t, typename propagator_inspector_t>
-    track_t propagate(const track_t &t_in,
-                      propagator_inspector_t &propagator_inspector) {
+    template <typename state_t, typename propagator_inspector_t>
+    DETRAY_HOST_DEVICE void propagate(
+        state_t &p_state, propagator_inspector_t &propagator_inspector) {
 
-        track_t t_out(t_in);
-        typename stepper_t::state s_state(t_out);
-        typename navigator_t::state n_state;
+        auto &n_state = p_state._navigation;
+        auto &s_state = p_state._stepping;
+
         // For now, always start at zero
         n_state.set_volume(0u);
 
@@ -75,7 +88,6 @@ struct propagator {
 
             propagator_inspector(n_state, s_state);
         }
-        return t_out;
     }
 };
 

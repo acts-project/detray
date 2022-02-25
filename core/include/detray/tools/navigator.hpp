@@ -102,12 +102,6 @@ class navigator {
         DETRAY_HOST_DEVICE state(vector_type<intersection> candidates)
             : _candidates(candidates) {}
 
-        /** Constructor from candidates vector_view
-         **/
-        DETRAY_HOST_DEVICE state(
-            vecmem::data::vector_view<intersection> &candidates_data)
-            : _candidates(candidates_data) {}
-
         /** Scalar representation of the navigation state,
          * @returns distance to next
          **/
