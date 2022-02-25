@@ -81,6 +81,8 @@ TEST(propagator_cuda, propagator) {
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
+        if (i != 9402) continue;
+
         track_inspector<vecmem::vector> ti(mng_mr);
 
         // Create the propagator state
