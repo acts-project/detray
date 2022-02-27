@@ -254,6 +254,21 @@ class navigator {
     DETRAY_HOST_DEVICE
     navigator(const detector_t &d) : _detector(&d) {}
 
+    template <typename track_t>
+    DETRAY_HOST_DEVICE inline intersection update_next_candidate(
+        state &navigation, const track_t &track) const {
+
+        dindex obj_idx = navigation.next()->index;
+        auto sfi =
+            intersect(track, _detector->surfaces()[obj_idx],
+                      _detector->transform_store(), _detector->mask_store());
+        sfi.index = obj_idx;
+        (*navigation.next()) = sfi;
+        navigation.set_dist(sfi.path);
+
+        return sfi;
+    }
+
     /** Navigation status() call which established the current navigation
      *  information.
      *
@@ -273,21 +288,15 @@ class navigator {
 
         if (navigation.trust_level() >= e_high_trust) {
             while (not navigation.is_exhausted()) {
-                // Only update the next candidate
 
-                dindex obj_idx = navigation.next()->index;
-                auto sfi = intersect(track, _detector->surfaces()[obj_idx],
-                                     _detector->transform_store(),
-                                     _detector->mask_store());
-                sfi.index = obj_idx;
-                (*navigation.next()) = sfi;
-                navigation.set_dist(sfi.path);
+                // Only update the next candidate
+                auto sfi = update_next_candidate(navigation, track);
 
                 if (sfi.status == e_inside) {
                     // We may be on next object (trust level is high)
                     if (std::abs(sfi.path) < navigation.tolerance()) {
 
-                        navigation.set_object(obj_idx);
+                        navigation.set_object(sfi.index);
                         navigation.set_status(e_on_object);
                         navigation.set_trust_level(e_high_trust);
 
@@ -337,37 +346,32 @@ class navigator {
     DETRAY_HOST_DEVICE bool target(state &navigation,
                                    stepper_state_t &stepping) const {
 
+        bool heartbeat = true;
         const auto &track = stepping();
 
         // get surface candidates when there is no trust
         if (navigation.trust_level() == e_no_trust) {
+
             initialize_kernel(navigation, track,
                               _detector->volumes()[navigation.volume()]);
 
-            // Release step size
             stepping.release_step_size();
 
-            return true;
+            return heartbeat;
         }
 
         // set the distance to the target surface
         else if (navigation.trust_level() == e_high_trust) {
-            // Release step size
+
             stepping.release_step_size();
 
             while (not navigation.is_exhausted()) {
 
                 // Only update the next candidate
-                dindex obj_idx = navigation.next()->index;
-                auto sfi = intersect(track, _detector->surfaces()[obj_idx],
-                                     _detector->transform_store(),
-                                     _detector->mask_store());
-                sfi.index = obj_idx;
-                (*navigation.next()) = sfi;
-                navigation.set_dist(sfi.path);
+                auto sfi = update_next_candidate(navigation, track);
 
                 if (sfi.status == e_inside) {
-                    return true;
+                    return heartbeat;
                 }
 
                 // If not inside: increase and switch to next
@@ -375,7 +379,7 @@ class navigator {
             }
         }
 
-        return true;
+        return heartbeat;
     }
 
     /** Helper method to intersect all objects of a surface/portal store
