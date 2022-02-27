@@ -136,8 +136,9 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     // beampipe
     //
 
-    // Initial status call
-    bool heartbeat = n.status(state, stepping);
+    // Initial target call
+    bool heartbeat = n.target(state, stepping);
+    heartbeat = n.status(state, stepping);
     // Test that the navigator has a heartbeat
     ASSERT_TRUE(heartbeat);
     // The status is towards beampipe
@@ -217,6 +218,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
 
         // New target call will initialize volume
         ASSERT_TRUE(n.target(state, stepping));
+
         // The status is: on adjacent portal in volume, towards next candidate
         // This includes overlapping modules and the adjacent portal we are
         // already on

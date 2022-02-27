@@ -371,12 +371,23 @@ class navigator {
                 auto sfi = update_next_candidate(navigation, track);
 
                 if (sfi.status == e_inside) {
+
+                    // Navigator goes towards the next target
+                    navigation.set_object(dindex_invalid);
+                    navigation.set_status(e_towards_object);
+                    navigation.set_trust_level(e_full_trust);
+
                     return heartbeat;
                 }
 
                 // If not inside: increase and switch to next
                 ++navigation.next();
             }
+        }
+
+        else if (navigation.trust_level() == e_full_trust) {
+            // Do nothing for full trust
+            return heartbeat;
         }
 
         return heartbeat;
