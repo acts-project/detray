@@ -79,6 +79,59 @@ struct track_inspector {
             _intersection_record.push_back(
                 {navigation.on_object(), stepping().pos()});
         }
+
+        std::stringstream stream;
+
+        stream << std::left << std::setw(30);
+        switch (static_cast<int>(navigation.status())) {
+            case -3:
+                stream << "status: on_target";
+                break;
+            case -2:
+                stream << "status: abort";
+                break;
+            case -1:
+                stream << "status: unknowm";
+                break;
+            case 0:
+                stream << "status: towards_surface";
+                break;
+            case 1:
+                stream << "status: on_surface";
+                break;
+        };
+
+        if (navigation.volume() == dindex_invalid) {
+            stream << "volume: " << std::setw(10) << "invalid";
+        } else {
+            stream << "volume: " << std::setw(10) << navigation.volume();
+        }
+
+        if (navigation.on_object() == dindex_invalid) {
+            stream << "surface: " << std::setw(14) << "invalid";
+        } else {
+            stream << "surface: " << std::setw(14) << navigation.on_object();
+        }
+
+        stream << "step_size: " << std::setw(10)
+               << stepping._previous_step_size;
+
+        stream << "step_size: " << std::setw(10) << stepping._step_size;
+
+        // std::cout << stream.str() << std::endl;
+
+        /*
+        if (stepping._previous_step_size > 0) {
+            std::cout << stream.str() << std::endl;
+
+            auto& candidates = navigation.candidates();
+
+            for (auto c: candidates){
+                std::cout << "(" << c.index << " " << c.path <<")" ;
+            }
+            std::cout << std::endl;
+        }
+        */
     }
 
     vector_type<volume_pos> _intersection_record;

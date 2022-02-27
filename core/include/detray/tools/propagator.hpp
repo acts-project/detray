@@ -74,12 +74,15 @@ struct propagator {
         // For now, always start at zero
         n_state.set_volume(0u);
 
-        bool heartbeat = _navigator.status(n_state, s_state);
+        // bool heartbeat = _navigator.status(n_state, s_state);
+        bool heartbeat = true;
 
         // Run while there is a heartbeat
         while (heartbeat) {
+
             // (Re-)target
             heartbeat &= _navigator.target(n_state, s_state);
+
             // Take the step
             heartbeat &= _stepper.step(s_state, n_state());
 
