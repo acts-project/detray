@@ -118,7 +118,7 @@ class navigator {
 
         /** @returns current object that was reached */
         DETRAY_HOST_DEVICE
-        inline auto current() { return _next - 1; }
+        inline auto current() const { return _next - 1; }
 
         /** @returns next object that we want to reach */
         DETRAY_HOST_DEVICE
@@ -174,7 +174,7 @@ class navigator {
 
         /** @returns navigation trust level */
         DETRAY_HOST_DEVICE
-        inline const auto trust_level() { return _trust_level; }
+        inline const auto trust_level() const { return _trust_level; }
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE

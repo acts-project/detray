@@ -43,13 +43,15 @@ struct propagator {
      * @param n navigator
      * by move semantics
      **/
+    DETRAY_HOST_DEVICE
     propagator(stepper_t &&s, navigator_t &&n)
         : _stepper(std::move(s)), _navigator(std::move(n)) {}
 
     struct state {
 
         template <typename track_t>
-        state(track_t &t_in, vector_type<intersection> candidates = {})
+        DETRAY_HOST_DEVICE state(track_t &t_in,
+                                 vector_type<intersection> candidates = {})
             : _stepping(t_in), _navigation(candidates) {}
 
         typename stepper_t::state _stepping;

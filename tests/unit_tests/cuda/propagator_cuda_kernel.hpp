@@ -56,40 +56,37 @@ constexpr std::size_t n_edc_layers = 3;
 constexpr unsigned int theta_steps = 100;
 constexpr unsigned int phi_steps = 100;
 
-constexpr scalar epsilon = 1e-5;
+constexpr scalar pos_diff_tolerance = 1e-3;
 
 namespace detray {
-
-struct volume_pos {
-    dindex volume;
-    point3 position;
-};
 
 template <template <typename...> class vector_type>
 struct track_inspector {
 
     track_inspector(vecmem::memory_resource& resource)
-        : _intersection_record(&resource) {}
+        : _intersections(&resource) {}
+
+    DETRAY_HOST_DEVICE
+    track_inspector(vector_type<intersection> intersection_record)
+        : _intersections(intersection_record) {}
 
     template <typename navigator_state_t, typename stepper_state_t>
     DETRAY_HOST_DEVICE void operator()(const navigator_state_t& navigation,
-                                       const stepper_state_t& stepping) {
-        // Record when track is on object
-        if (navigation.status() == 1) {
-            _intersection_record.push_back(
-                {navigation.on_object(), stepping().pos()});
+                                       const stepper_state_t& /*stepping*/) {
+        // Record when status == e_on_object and trust_level == e_high_trust
+        if (navigation.status() == 1 && navigation.trust_level() == 3) {
+            _intersections.push_back(*navigation.current());
         }
-
-        std::stringstream stream;
     }
 
-    vector_type<volume_pos> _intersection_record;
+    vector_type<intersection> _intersections;
 };
 
 /// test function for propagator with single state
 void propagator_test(
     detector_view<detector_host_type> det_data,
     vecmem::data::vector_view<free_track_parameters>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection>& candidates_data);
+    vecmem::data::jagged_vector_view<intersection>& candidates_data,
+    vecmem::data::jagged_vector_view<intersection>& intersections_data);
 
 }  // namespace detray

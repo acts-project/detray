@@ -77,7 +77,7 @@ TEST(propagator_cuda, propagator) {
     propagator_host_type p(std::move(s), std::move(n));
 
     // Create vector for track recording
-    vecmem::jagged_vector<volume_pos> host_intersection_records(&mng_mr);
+    vecmem::jagged_vector<intersection> host_intersection_records(&mng_mr);
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
@@ -90,15 +90,60 @@ TEST(propagator_cuda, propagator) {
         p.propagate(state, ti);
 
         // push back the intersection record
-        host_intersection_records.push_back(ti._intersection_record);
+        host_intersection_records.push_back(ti._intersections);
+
+        // Ensure that the tracks reach the end of the world
+        EXPECT_EQ(state._navigation.volume(), dindex_invalid);
     }
 
     /**
      * Device propagation
      */
 
+    // Get detector data
+    auto det_data = get_data(det);
+
+    // Get tracks data
+    auto tracks_data = vecmem::get_data(tracks_device);
+
     // Create navigator candidates buffer
     auto candidates_buffer =
         det.create_candidates_buffer(theta_steps * phi_steps, dev_mr);
     copy.setup(candidates_buffer);
+
+    // Create vector for track recording
+    vecmem::jagged_vector<intersection> device_intersection_records(&mng_mr);
+
+    // Create vector buffer for track recording
+    std::vector<std::size_t> sizes(theta_steps * phi_steps, 0);
+    std::vector<std::size_t> capacities;
+    for (auto& r : host_intersection_records) {
+        capacities.push_back(r.size());
+    }
+
+    vecmem::data::jagged_vector_buffer<intersection> intersections_buffer(
+        sizes, capacities, dev_mr, &mng_mr);
+    copy.setup(intersections_buffer);
+
+    // Run the propagator test for GPU device
+    propagator_test(det_data, tracks_data, candidates_buffer,
+                    intersections_buffer);
+
+    // copy back intersection record
+    copy(intersections_buffer, device_intersection_records);
+
+    for (unsigned int i = 0; i < host_intersection_records.size(); i++) {
+        for (unsigned int j = 0; j < host_intersection_records[i].size(); j++) {
+            auto& host_intersection = host_intersection_records[i][j];
+            auto& device_intersection = device_intersection_records[i][j];
+
+            EXPECT_EQ(host_intersection.link, device_intersection.link);
+            EXPECT_NEAR(host_intersection.p3[0], device_intersection.p3[0],
+                        pos_diff_tolerance);
+            EXPECT_NEAR(host_intersection.p3[1], device_intersection.p3[1],
+                        pos_diff_tolerance);
+            EXPECT_NEAR(host_intersection.p3[2], device_intersection.p3[2],
+                        pos_diff_tolerance);
+        }
+    }
 }
