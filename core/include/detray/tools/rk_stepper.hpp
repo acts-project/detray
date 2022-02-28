@@ -62,7 +62,7 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
         stepping_data _step_data;
 
         DETRAY_HOST_DEVICE
-        void release_step_size() { _step_size = 1. * unit_constants::mm; }
+        void release_step_size(const scalar step) { _step_size = step; }
     };
 
     /** Take a step, regulared by a constrained step

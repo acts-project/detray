@@ -355,15 +355,13 @@ class navigator {
             initialize_kernel(navigation, track,
                               _detector->volumes()[navigation.volume()]);
 
-            stepping.release_step_size();
+            stepping.release_step_size(navigation());
 
             return heartbeat;
         }
 
         // set the distance to the target surface
         else if (navigation.trust_level() == e_high_trust) {
-
-            stepping.release_step_size();
 
             while (not navigation.is_exhausted()) {
 
@@ -376,6 +374,8 @@ class navigator {
                     navigation.set_object(dindex_invalid);
                     navigation.set_status(e_towards_object);
                     navigation.set_trust_level(e_full_trust);
+
+                    stepping.release_step_size(navigation());
 
                     return heartbeat;
                 }
