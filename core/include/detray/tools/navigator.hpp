@@ -504,6 +504,22 @@ class navigator {
     DETRAY_HOST_DEVICE
     const detector_t &get_detector() const { return *_detector; }
 
+    /** @return the vecmem jagged vector buffer for surface candidates */
+    // TODO: det.get_n_max_objects_per_volume() is way too many for
+    // candidates size allocation. With the local navigation, the size can be
+    // restricted to much smaller value
+    DETRAY_HOST
+    vecmem::data::jagged_vector_buffer<intersection> create_candidates_buffer(
+        const unsigned int n_tracks,
+        vecmem::memory_resource &device_resource) const {
+
+        return vecmem::data::jagged_vector_buffer<intersection>(
+            std::vector<std::size_t>(n_tracks, 0),
+            std::vector<std::size_t>(n_tracks,
+                                     _detector->get_n_max_objects_per_volume()),
+            device_resource, _detector->resource());
+    }
+
     private:
     /** the containers for all data */
     const detector_t *_detector;

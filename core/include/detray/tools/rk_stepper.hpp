@@ -38,8 +38,6 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
         // TODO: Define default step size somewhere
         scalar _step_size = 1. * unit_constants::mm;
 
-        scalar _previous_step_size;
-
         // error tolerance
         scalar _tolerance = 1e-4;
 
@@ -161,7 +159,6 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
         stepping().set_dir(dir);
 
         stepping._path_accumulated += h;
-        stepping._previous_step_size = h;
 
         // state.stepping.derivative.template head<3>() = dir;
         // state.stepping.derivative.template segment<3>(4) = sd.k4;
