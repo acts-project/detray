@@ -30,8 +30,10 @@ TEST(tools, bound_track_parameters) {
 
     // surface container
     std::vector<surface<mask_defs>> surfaces;
-    surfaces.emplace_back(0, mask_defs::link_type{0, 0}, 0, 0, false);
-    surfaces.emplace_back(1, mask_defs::link_type{0, 0}, 0, 0, false);
+    surfaces.emplace_back(0, mask_defs::link_type{e_rectangle2, 0}, 0, 0,
+                          false);
+    surfaces.emplace_back(1, mask_defs::link_type{e_rectangle2, 0}, 0, 0,
+                          false);
 
     // transform container
     static_transform_store trfs;
