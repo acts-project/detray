@@ -264,7 +264,6 @@ class navigator {
                       _detector->transform_store(), _detector->mask_store());
         sfi.index = obj_idx;
         (*navigation.next()) = sfi;
-        navigation.set_dist(sfi.path);
 
         return sfi;
     }
@@ -291,6 +290,7 @@ class navigator {
 
                 // Only update the next candidate
                 auto sfi = update_next_candidate(navigation, track);
+                navigation.set_dist(sfi.path);
 
                 if (sfi.status == e_inside) {
                     // We may be on next object (trust level is high)
@@ -360,6 +360,20 @@ class navigator {
             return heartbeat;
         }
 
+        // Loop over all candidates and intersect again all candidates
+        // - do this when your trust level is low
+        else if (navigation.trust_level() == e_fair_trust) {
+
+            while (not navigation.is_exhausted()) {
+                update_next_candidate(navigation, track);
+                ++navigation.next();
+            }
+
+            set_next(navigation);
+
+            return heartbeat;
+        }
+
         // set the distance to the target surface
         else if (navigation.trust_level() == e_high_trust) {
 
@@ -367,6 +381,7 @@ class navigator {
 
                 // Only update the next candidate
                 auto sfi = update_next_candidate(navigation, track);
+                navigation.set_dist(sfi.path);
 
                 if (sfi.status == e_inside) {
 
