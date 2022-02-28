@@ -46,6 +46,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     using volume_t = typename detector_t::volume_type;
     using context_t = typename decltype(toy_det)::context;
     using mask_ids = typename detector_t::masks::id;
+    using mask_link_t = typename detector_t::surface_type::mask_link;
     context_t ctx{};
     auto& volumes = toy_det.volumes();
     auto& surfaces = toy_det.surfaces();
@@ -84,16 +85,16 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     auto test_portal_links = [&](dindex vol_index,
                                  decltype(surfaces.begin())&& sf_itr,
                                  darray<dindex, 2>& range, dindex trf_index,
-                                 darray<dindex, 2>&& mask_index,
+                                 mask_link_t&& mask_index,
                                  dvector<darray<dindex, 2>>&& edges) {
-        for (dindex pti = range[0]; pti < range[1]; pti++) {
+        for (dindex pti = range[0]; pti < range[1]; ++pti) {
             EXPECT_EQ(sf_itr->volume(), vol_index);
             EXPECT_EQ(sf_itr->transform(), trf_index);
             EXPECT_EQ(sf_itr->mask(), mask_index);
             EXPECT_EQ(get_edge(masks, sf_itr->mask()), edges[pti - range[0]]);
-            sf_itr++;
-            trf_index++;
-            mask_index[1]++;
+            ++sf_itr;
+            ++trf_index;
+            ++mask_index;
         }
     };
 
@@ -106,21 +107,20 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
      * @param mask_index type and index of module mask in respective mask cont
      * @param edges links to next volume and next surfaces finder
      */
-    auto test_module_links = [&](dindex vol_index,
-                                 decltype(surfaces.begin())&& sf_itr,
-                                 darray<dindex, 2>& range, dindex trf_index,
-                                 darray<dindex, 2>&& mask_index,
-                                 dvector<darray<dindex, 2>>&& edges) {
-        for (dindex pti = range[0]; pti < range[1]; pti++) {
-            EXPECT_EQ(sf_itr->volume(), vol_index);
-            EXPECT_EQ(sf_itr->transform(), trf_index);
-            EXPECT_EQ(sf_itr->mask(), mask_index);
-            EXPECT_EQ(get_edge(masks, sf_itr->mask()), edges[0]);
-            sf_itr++;
-            trf_index++;
-            mask_index[1]++;
-        }
-    };
+    auto test_module_links =
+        [&](dindex vol_index, decltype(surfaces.begin())&& sf_itr,
+            darray<dindex, 2>& range, dindex trf_index,
+            mask_link_t&& mask_index, dvector<darray<dindex, 2>>&& edges) {
+            for (dindex pti = range[0]; pti < range[1]; ++pti) {
+                EXPECT_EQ(sf_itr->volume(), vol_index);
+                EXPECT_EQ(sf_itr->transform(), trf_index);
+                EXPECT_EQ(sf_itr->mask(), mask_index);
+                EXPECT_EQ(get_edge(masks, sf_itr->mask()), edges[0]);
+                ++sf_itr;
+                ++trf_index;
+                ++mask_index;
+            }
+        };
 
     /** Test the surface grid.
      *
@@ -139,8 +139,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             std::vector<dindex> indices;
 
             // Check if right volume is linked to surface in grid
-            for (unsigned int i = 0; i < sf_grid.axis_p0().bins(); i++) {
-                for (unsigned int j = 0; j < sf_grid.axis_p1().bins(); j++) {
+            for (unsigned int i = 0; i < sf_grid.axis_p0().bins(); ++i) {
+                for (unsigned int j = 0; j < sf_grid.axis_p1().bins(); ++j) {
                     auto sf_indices = sf_grid.bin(i, j);
                     for (auto sf_idx : sf_indices) {
                         EXPECT_EQ(sf_container[sf_idx].volume(),
@@ -153,7 +153,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             // Check if surface indices are consistent with given range of
             // modules
             EXPECT_EQ(indices.size(), range[1] - range[0]);
-            for (dindex pti = range[0]; pti < range[1]; pti++) {
+            for (dindex pti = range[0]; pti < range[1]; ++pti) {
                 EXPECT_TRUE(std::find(indices.begin(), indices.end(), pti) !=
                             indices.end());
             }
@@ -213,7 +213,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., -825., -815., -M_PI, M_PI};
     range = {16, 128};
     EXPECT_EQ(vol_itr->index(), 1);
@@ -247,7 +247,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., -815., -705., -M_PI, M_PI};
     range = {128, 132};
     EXPECT_EQ(vol_itr->index(), 2);
@@ -273,7 +273,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., -705., -695., -M_PI, M_PI};
     range = {132, 244};
     EXPECT_EQ(vol_itr->index(), 3);
@@ -307,7 +307,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., -695., -605., -M_PI, M_PI};
     range = {244, 248};
     EXPECT_EQ(vol_itr->index(), 4);
@@ -333,7 +333,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., -605., -595., -M_PI, M_PI};
     range = {248, 360};
     EXPECT_EQ(vol_itr->index(), 5);
@@ -367,7 +367,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., -595., -500., -M_PI, M_PI};
     range = {360, 370};
     EXPECT_EQ(vol_itr->index(), 6);
@@ -404,7 +404,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 38., -500., 500, -M_PI, M_PI};
     range = {370, 598};
     EXPECT_EQ(vol_itr->index(), 7);
@@ -439,7 +439,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {38., 64., -500., 500, -M_PI, M_PI};
     range = {598, 602};
     EXPECT_EQ(vol_itr->index(), 8);
@@ -465,7 +465,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {64., 80., -500., 500, -M_PI, M_PI};
     range = {602, 1054};
     EXPECT_EQ(vol_itr->index(), 9);
@@ -500,7 +500,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {80., 108., -500., 500, -M_PI, M_PI};
     range = {1054, 1058};
     EXPECT_EQ(vol_itr->index(), 10);
@@ -526,7 +526,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {108., 124., -500., 500, -M_PI, M_PI};
     range = {1058, 1790};
     EXPECT_EQ(vol_itr->index(), 11);
@@ -561,7 +561,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {124., 164., -500., 500, -M_PI, M_PI};
     range = {1790, 1794};
     EXPECT_EQ(vol_itr->index(), 12);
@@ -587,7 +587,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {164., 180., -500., 500, -M_PI, M_PI};
     range = {1794, 2890};
     EXPECT_EQ(vol_itr->index(), 13);
@@ -626,7 +626,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., 500., 595., -M_PI, M_PI};
     range = {2890, 2900};
     EXPECT_EQ(vol_itr->index(), 14);
@@ -659,7 +659,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., 595., 605., -M_PI, M_PI};
     range = {2900, 3012};
     EXPECT_EQ(vol_itr->index(), 15);
@@ -693,7 +693,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., 605., 695., -M_PI, M_PI};
     range = {3012, 3016};
     EXPECT_EQ(vol_itr->index(), 16);
@@ -719,7 +719,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., 695., 705., -M_PI, M_PI};
     range = {3016, 3128};
     EXPECT_EQ(vol_itr->index(), 17);
@@ -753,7 +753,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., 705., 815., -M_PI, M_PI};
     range = {3128, 3132};
     EXPECT_EQ(vol_itr->index(), 18);
@@ -779,7 +779,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     //
 
     // Check volume
-    vol_itr++;
+    ++vol_itr;
     bounds = {27., 180., 815., 825., -M_PI, M_PI};
     range = {3132, 3244};
     EXPECT_EQ(vol_itr->index(), 19);

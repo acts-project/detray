@@ -31,8 +31,8 @@ class surface {
     using mask_defs = mask_regsitry_t;
     using mask_link = typename mask_defs::link_type;
     // At least one mask type is present in any geometry
-    using edge_type = typename mask_defs::template get_type<
-        static_cast<typename mask_defs::id>(0)>::type::links_type;
+    using edge_type = typename mask_defs::template get_type<mask_defs::to_id(
+        0)>::type::links_type;
     using volume_link = volume_link_t;
     using source_link = source_link_t;
 
@@ -101,7 +101,7 @@ class surface {
      * @param offset update the position when move into new collection
      */
     DETRAY_HOST
-    void update_mask(dindex offset) { detail::get<1>(_mask) += offset; }
+    void update_mask(dindex offset) { _mask += offset; }
 
     /** Access to the mask  */
     DETRAY_HOST_DEVICE
@@ -110,6 +110,22 @@ class surface {
     /** @return the mask link */
     DETRAY_HOST_DEVICE
     const mask_link &mask() const { return _mask; }
+
+    /** Access to the mask id */
+    DETRAY_HOST_DEVICE
+    auto mask_type() { return detail::get<0>(_mask); }
+
+    /** @return the mask link */
+    DETRAY_HOST_DEVICE
+    auto mask_type() const { return detail::get<0>(_mask); }
+
+    /** Access to the mask  */
+    DETRAY_HOST_DEVICE
+    const auto &mask_range() { return detail::get<1>(_mask); }
+
+    /** @return the mask link */
+    DETRAY_HOST_DEVICE
+    const auto &mask_range() const { return detail::get<1>(_mask); }
 
     /** Access to the volume */
     DETRAY_HOST_DEVICE
@@ -134,10 +150,10 @@ class surface {
     bool is_portal() const { return _is_portal; }
 
     private:
-    transform_link _trf;
+    transform_link_t _trf;
     mask_link _mask;
-    volume_link _vol;
-    source_link _src;
+    volume_link_t _vol;
+    source_link_t _src;
     bool _is_portal;
     bool _in_grid = false;
 };
