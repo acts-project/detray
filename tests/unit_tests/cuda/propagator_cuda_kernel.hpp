@@ -73,8 +73,8 @@ struct track_inspector {
     template <typename navigator_state_t, typename stepper_state_t>
     DETRAY_HOST_DEVICE void operator()(const navigator_state_t& navigation,
                                        const stepper_state_t& /*stepping*/) {
-        // Record when status == e_on_object and trust_level == e_high_trust
-        if (navigation.status() == 1 && navigation.trust_level() == 3) {
+        // Record when status == e_on_object
+        if (navigation.status() == 1) {
             _intersections.push_back(*navigation.current());
         }
     }

@@ -88,10 +88,10 @@ struct propagator {
             // Take the step
             heartbeat &= _stepper.step(s_state, n_state());
 
+            propagator_inspector(n_state, s_state);
+
             // And check the status
             heartbeat &= _navigator.status(n_state, s_state);
-
-            propagator_inspector(n_state, s_state);
         }
     }
 };
