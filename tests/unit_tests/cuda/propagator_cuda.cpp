@@ -48,14 +48,14 @@ TEST(propagator_cuda, propagator) {
             scalar sin_phi = std::sin(phi);
             scalar cos_phi = std::cos(phi);
             vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
-            mom = 10000. * mom;
+            mom = 10. * mom;
 
             // intialize a track
-            free_track_parameters ray(ori, 0, mom, -1);
+            free_track_parameters traj(ori, 0, mom, -1);
 
             // Put it into vector of trajectories
-            tracks_host.push_back(ray);
-            tracks_device.push_back(ray);
+            tracks_host.push_back(traj);
+            tracks_device.push_back(traj);
         }
     }
 
