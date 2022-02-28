@@ -12,7 +12,6 @@
 #include <tuple>
 #include <vector>
 
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/grids/associator.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/generators.hpp"

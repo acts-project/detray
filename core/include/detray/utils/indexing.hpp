@@ -93,7 +93,10 @@ struct typed_index {
 
 namespace detail {
 
-using std::get;
+template <std::size_t ID>
+dindex get(dindex idx) noexcept {
+    return idx;
+}
 
 /** Custom get function for the typed_index struct. Get the type. */
 template <std::size_t ID, typename id_type, typename index_type,
