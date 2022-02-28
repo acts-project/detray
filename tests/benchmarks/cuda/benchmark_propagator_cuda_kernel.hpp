@@ -50,7 +50,7 @@ using propagator_device_type =
 
 // detector configuration
 constexpr std::size_t n_brl_layers = 4;
-constexpr std::size_t n_edc_layers = 3;
+constexpr std::size_t n_edc_layers = 7;
 
 // geomery navigation configurations
 constexpr unsigned int theta_steps = 100;
