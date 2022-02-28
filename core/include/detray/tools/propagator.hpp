@@ -7,14 +7,16 @@
 
 #pragma once
 
+#include "detray/definitions/qualifiers.hpp"
+
 namespace detray {
 
 /** A sterily track inspector instance */
-struct void_track_inspector {
+struct void_propagator_inspector {
 
-    /** Void operator */
-    template <typename track_t>
-    void operator()(const track_t & /*ignored*/) {
+    /** void operator **/
+    template <typename... args>
+    DETRAY_HOST_DEVICE void operator()(const args &... /*ignored*/) {
         return;
     }
 };
@@ -31,6 +33,9 @@ struct propagator {
     stepper_t _stepper;
     navigator_t _navigator;
 
+    template <typename T>
+    using vector_type = typename navigator_t::template vector_type<T>;
+
     /** Can not be default constructed */
     propagator() = delete;
     /** Only valid constructor with a
@@ -38,8 +43,20 @@ struct propagator {
      * @param n navigator
      * by move semantics
      **/
+    DETRAY_HOST_DEVICE
     propagator(stepper_t &&s, navigator_t &&n)
         : _stepper(std::move(s)), _navigator(std::move(n)) {}
+
+    struct state {
+
+        template <typename track_t>
+        DETRAY_HOST_DEVICE state(track_t &t_in,
+                                 vector_type<intersection> candidates = {})
+            : _stepping(t_in), _navigation(candidates) {}
+
+        typename stepper_t::state _stepping;
+        typename navigator_t::state _navigation;
+    };
 
     /** Propagate method
      *
@@ -49,28 +66,33 @@ struct propagator {
      *
      * @return a track at output
      */
-    template <typename track_t, typename track_inspector_t>
-    track_t propagate(const track_t &t_in, track_inspector_t &t_inspector) {
+    template <typename state_t, typename propagator_inspector_t>
+    DETRAY_HOST_DEVICE void propagate(
+        state_t &p_state, propagator_inspector_t &propagator_inspector) {
 
-        track_t t_out(t_in);
-        typename stepper_t::state s_state(t_out);
-        typename navigator_t::state n_state;
+        auto &n_state = p_state._navigation;
+        auto &s_state = p_state._stepping;
+
         // For now, always start at zero
         n_state.set_volume(0u);
 
-        bool heartbeat = _navigator.status(n_state, s_state());
-        t_inspector(t_out);
+        // bool heartbeat = _navigator.status(n_state, s_state);
+        bool heartbeat = true;
+
         // Run while there is a heartbeat
         while (heartbeat) {
+
             // (Re-)target
-            heartbeat &= _navigator.target(n_state, s_state());
+            heartbeat &= _navigator.target(n_state, s_state);
+
             // Take the step
             heartbeat &= _stepper.step(s_state, n_state());
-            t_inspector(t_out);
+
+            propagator_inspector(n_state, s_state);
+
             // And check the status
-            heartbeat &= _navigator.status(n_state, s_state());
+            heartbeat &= _navigator.status(n_state, s_state);
         }
-        return t_out;
     }
 };
 

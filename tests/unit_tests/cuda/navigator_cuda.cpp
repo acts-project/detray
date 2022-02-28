@@ -77,23 +77,24 @@ TEST(navigator_cuda, navigator) {
 
         auto& traj = tracks_host[i];
         navigator_host_t::state state(mng_mr);
+        stepper_t::state stepping(traj);
 
         // Set initial volume
         state.set_volume(0u);
 
         // Start propagation and record volume IDs
-        bool heartbeat = n.status(state, traj);
+        bool heartbeat = true;
 
         while (heartbeat) {
-            heartbeat = n.target(state, traj);
+            heartbeat = n.target(state, stepping);
 
-            traj.set_pos(traj.pos() + state() * traj.dir());
+            stepping().set_pos(stepping().pos() + state() * stepping().dir());
 
-            heartbeat = n.status(state, traj);
+            heartbeat = n.status(state, stepping);
 
             // Record volume
             volume_records_host[i].push_back(state.volume());
-            position_records_host[i].push_back(traj.pos());
+            position_records_host[i].push_back(stepping().pos());
         }
     }
 
@@ -133,14 +134,8 @@ TEST(navigator_cuda, navigator) {
     auto tracks_data = vecmem::get_data(tracks_device);
 
     // Create navigator candidates buffer
-    // TODO: det.get_n_max_objects_per_volume() is way too many for
-    // candidates size allocation. With the local navigation, the size can be
-    // restricted to much smaller value
-    vecmem::data::jagged_vector_buffer<intersection> candidates_buffer(
-        std::vector<std::size_t>(theta_steps * phi_steps, 0),
-        std::vector<std::size_t>(theta_steps * phi_steps,
-                                 det.get_n_max_objects_per_volume()),
-        dev_mr, &mng_mr);
+    auto candidates_buffer =
+        n.create_candidates_buffer(theta_steps * phi_steps, dev_mr);
     copy.setup(candidates_buffer);
 
     // Run navigator test

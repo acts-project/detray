@@ -11,6 +11,7 @@
 #include <string>
 #include <vecmem/memory/memory_resource.hpp>
 
+#include "detray/core/intersection.hpp"
 #include "detray/core/mask_store.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
@@ -449,7 +450,7 @@ class detector {
 
     /** @return the pointer of memoery resource */
     DETRAY_HOST
-    auto resource() { return _resource; }
+    auto resource() const { return _resource; }
 
     private:
     /** Contains the geometrical relations */

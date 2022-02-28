@@ -26,7 +26,7 @@ namespace detray {
  * the current navigation state information.
  *
  */
-struct void_inspector {
+struct void_navigator_inspector {
     template <typename state_t>
     DETRAY_HOST_DEVICE void operator()(const state_t & /*ignored*/,
                                        const char * /*ignored*/) {}
@@ -50,7 +50,7 @@ struct void_inspector {
  * @tparam detector_t the detector to navigate
  * @tparam inspector_t is a validation inspector
  */
-template <typename detector_t, typename inspector_t = void_inspector>
+template <typename detector_t, typename inspector_t = void_navigator_inspector>
 class navigator {
 
     public:
@@ -102,12 +102,6 @@ class navigator {
         DETRAY_HOST_DEVICE state(vector_type<intersection> candidates)
             : _candidates(candidates) {}
 
-        /** Constructor from candidates vector_view
-         **/
-        DETRAY_HOST_DEVICE state(
-            vecmem::data::vector_view<intersection> &candidates_data)
-            : _candidates(candidates_data) {}
-
         /** Scalar representation of the navigation state,
          * @returns distance to next
          **/
@@ -124,7 +118,7 @@ class navigator {
 
         /** @returns current object that was reached */
         DETRAY_HOST_DEVICE
-        inline auto current() { return _next - 1; }
+        inline auto current() const { return _next - 1; }
 
         /** @returns next object that we want to reach */
         DETRAY_HOST_DEVICE
@@ -156,7 +150,7 @@ class navigator {
          * between objects)
          */
         DETRAY_HOST_DEVICE
-        inline const auto on_object() { return _object_index; }
+        inline const auto on_object() const { return _object_index; }
 
         /** Update current object the navigator is on  */
         DETRAY_HOST_DEVICE
@@ -164,7 +158,7 @@ class navigator {
 
         /** @returns current navigation status */
         DETRAY_HOST_DEVICE
-        inline const auto status() { return _status; }
+        inline const auto status() const { return _status; }
 
         /** Set new navigation status */
         DETRAY_HOST_DEVICE
@@ -180,7 +174,7 @@ class navigator {
 
         /** @returns navigation trust level */
         DETRAY_HOST_DEVICE
-        inline const auto trust_level() { return _trust_level; }
+        inline const auto trust_level() const { return _trust_level; }
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
@@ -190,7 +184,7 @@ class navigator {
 
         /** @returns current volume (index) */
         DETRAY_HOST_DEVICE
-        inline const auto volume() { return _volume_index; }
+        inline const auto volume() const { return _volume_index; }
 
         /** Set start/new volume */
         DETRAY_HOST_DEVICE
@@ -260,27 +254,71 @@ class navigator {
     DETRAY_HOST_DEVICE
     navigator(const detector_t &d) : _detector(&d) {}
 
+    template <typename track_t>
+    DETRAY_HOST_DEVICE inline intersection update_next_candidate(
+        state &navigation, const track_t &track) const {
+
+        dindex obj_idx = navigation.next()->index;
+        auto sfi =
+            intersect(track, _detector->surfaces()[obj_idx],
+                      _detector->transform_store(), _detector->mask_store());
+        sfi.index = obj_idx;
+        (*navigation.next()) = sfi;
+
+        return sfi;
+    }
+
     /** Navigation status() call which established the current navigation
      *  information.
      *
-     * @tparam track_t type of the track (including context)
+     * @tparam stepper_state_t type of stepper state
      *
      * @param navigation [in, out] is the navigation state object
-     * @param track [in] is the track infromation
+     * @param stepping the stepper state
      *
      * @return a heartbeat to indicate if the navigation is still alive
      **/
-    template <typename track_t>
+    template <typename stepper_state_t>
     DETRAY_HOST_DEVICE inline bool status(state &navigation,
-                                          const track_t &track) const {
-
+                                          stepper_state_t &stepping) const {
         bool heartbeat = true;
 
-        // If there is no_trust (e.g. at the beginning of the navigation in a
-        // volume), the kernel will be initialized. Otherwise the candidates
-        // are re-evaluated based on current trust level
-        update_kernel(navigation, track,
-                      _detector->volumes()[navigation.volume()]);
+        const auto &track = stepping();
+
+        if (navigation.trust_level() >= e_high_trust) {
+            while (not navigation.is_exhausted()) {
+
+                // Only update the next candidate
+                auto sfi = update_next_candidate(navigation, track);
+                navigation.set_dist(sfi.path);
+
+                if (sfi.status == e_inside) {
+                    // We may be on next object (trust level is high)
+                    if (std::abs(sfi.path) < navigation.tolerance()) {
+
+                        navigation.set_object(sfi.index);
+                        navigation.set_status(e_on_object);
+                        navigation.set_trust_level(e_high_trust);
+
+                        ++navigation.next();
+                    }
+                    // we are certainly not on the next object. Trust fully
+                    else {
+                        navigation.set_object(dindex_invalid);
+                        navigation.set_status(e_towards_object);
+                        navigation.set_trust_level(e_full_trust);
+                    }
+
+                    // Call the inspector before returning
+                    navigation.run_inspector("Update (high trust): ");
+
+                    // Don't sort again when coming from high trust
+                    break;
+                }
+                // If not inside: increase and switch to next
+                ++navigation.next();
+            }
+        }
 
         // Should never be the case after update call (without portals we are
         // trapped)
@@ -297,44 +335,93 @@ class navigator {
     /** Target function of the navigator, finds the next candidates
      *  and set the distance to next
      *
-     * @tparam track_t type of the track (including context)
+     * @tparam stepper_state_t type of stepper state
      *
      * @param navigation is the navigation state
-     * @param track is the current track information
+     * @param stepping the stepper state
      *
      * @return a heartbeat to indicate if the navigation is still alive
      **/
-    template <typename track_t>
+    template <typename stepper_state_t>
     DETRAY_HOST_DEVICE bool target(state &navigation,
-                                   const track_t &track) const {
+                                   stepper_state_t &stepping) const {
 
-        // We are already on the right track, nothing left to do
-        if (navigation.trust_level() == e_full_trust) {
-            // heartbeat
-            return true;
+        bool heartbeat = true;
+        const auto &track = stepping();
+
+        // get surface candidates when there is no trust
+        if (navigation.trust_level() == e_no_trust) {
+
+            initialize_kernel(navigation, track,
+                              _detector->volumes()[navigation.volume()]);
+
+            stepping.release_step_size(navigation());
+
+            return heartbeat;
         }
 
-        // Re-establish navigation status after [external] changes to
-        // the navigation state
-        return status(navigation, track);
+        // Loop over all candidates and intersect again all candidates
+        // - do this when your trust level is low
+        else if (navigation.trust_level() == e_fair_trust) {
+
+            while (not navigation.is_exhausted()) {
+                update_next_candidate(navigation, track);
+                ++navigation.next();
+            }
+
+            set_next(navigation);
+
+            return heartbeat;
+        }
+
+        // set the distance to the target surface
+        else if (navigation.trust_level() == e_high_trust) {
+
+            while (not navigation.is_exhausted()) {
+
+                // Only update the next candidate
+                auto sfi = update_next_candidate(navigation, track);
+                navigation.set_dist(sfi.path);
+
+                if (sfi.status == e_inside) {
+
+                    // Navigator goes towards the next target
+                    navigation.set_object(dindex_invalid);
+                    navigation.set_status(e_towards_object);
+                    navigation.set_trust_level(e_full_trust);
+
+                    stepping.release_step_size(navigation());
+
+                    return heartbeat;
+                }
+
+                // If not inside: increase and switch to next
+                ++navigation.next();
+            }
+        }
+
+        else if (navigation.trust_level() == e_full_trust) {
+            // Do nothing for full trust
+            return heartbeat;
+        }
+
+        return heartbeat;
     }
 
     /** Helper method to intersect all objects of a surface/portal store
      *
-     * @tparam track_t type of the track (including context)
+     * @tparam stepper_state_t type of stepper state
      * @tparam range_t the type of range in the detector data containers
      *
      * @param navigation [in, out] navigation state that contains the kernel
-     * @param track the track information
+     * @param stepping the stepper state
      * @param volume the current tracking volume
      *
      */
     template <typename track_t>
     DETRAY_HOST_DEVICE inline void initialize_kernel(
-        state &navigation, const track_t &track,
-        const volume_type &volume) const {
+        state &navigation, track_t &track, const volume_type &volume) const {
 
-        // Get the max number of candidates & run them through the kernel
         detail::call_reserve(navigation.candidates(), volume.n_objects());
 
         // Loop over all indexed objects in volume, intersect and fill
@@ -359,88 +446,6 @@ class navigator {
         // What is the next object we want to reach?
         set_next(navigation);
         navigation.run_inspector("Init: ");
-    }
-
-    /** Helper method to the update the next candidate intersection. Will
-     *  initialize candidates if there is no trust in the current navigation
-     *  state.
-     *
-     * @tparam track_t type of the track (including context)
-     * @tparam range the type of range in the detector data containers
-     *
-     * @param navigation [in, out] navigation state that contains the kernel
-     * @param track the track information
-     * @param volume the current tracking volume
-     *
-     * @return A boolean condition if kernel is exhausted or not
-     */
-    template <typename track_t>
-    DETRAY_HOST_DEVICE inline void update_kernel(
-        state &navigation, const track_t &track,
-        const volume_type &volume) const {
-
-        if (navigation.trust_level() == e_no_trust) {
-            initialize_kernel(navigation, track, volume);
-            return;
-        }
-        // Update current candidate, or close neighbors
-        // - do this only when you trust level is high
-        else if (navigation.trust_level() >= e_high_trust) {
-            while (not navigation.is_exhausted()) {
-                // Only update the next candidate
-                dindex obj_idx = navigation.next()->index;
-                auto sfi = intersect(track, _detector->surfaces()[obj_idx],
-                                     _detector->transform_store(),
-                                     _detector->mask_store());
-                sfi.index = obj_idx;
-                (*navigation.next()) = sfi;
-                navigation.set_dist(sfi.path);
-
-                if (sfi.status == e_inside) {
-                    // We may be on next object (trust level is high)
-                    if (std::abs(sfi.path) < navigation.tolerance()) {
-                        navigation.set_object(obj_idx);
-                        navigation.set_status(e_on_object);
-                        navigation.set_trust_level(e_high_trust);
-                        // Set the next object we want to reach might be end()
-                        // The distance to next will be updated with next high
-                        // trust call
-                        ++navigation.next();
-                    }
-                    // we are certainly not on the next object. Trust fully
-                    else {
-                        navigation.set_object(dindex_invalid);
-                        navigation.set_status(e_towards_object);
-                        navigation.set_trust_level(e_full_trust);
-                    }
-
-                    // Call the inspector before returning
-                    navigation.run_inspector("Update (high trust): ");
-
-                    // Don't sort again when coming from high trust
-                    return;
-                }
-                // If not inside: increase and switch to next
-                ++navigation.next();
-            }
-        }
-        // Loop over all candidates and intersect again all candidates
-        // - do this when your trust level is low
-        else if (navigation.trust_level() == e_fair_trust) {
-            for (auto &candidate : navigation.candidates()) {
-                dindex obj_idx = candidate.index;
-                auto sfi = intersect(track, _detector->surfaces()[obj_idx],
-                                     _detector->transform_store(),
-                                     _detector->mask_store());
-                candidate = sfi;
-                candidate.index = obj_idx;
-            }
-            set_next(navigation);
-            return;
-        }
-
-        // Do nothing on full trust
-        return;
     }
 
     /** Helper method to sort within the kernel and find next object
@@ -491,11 +496,13 @@ class navigator {
     DETRAY_HOST_DEVICE
     bool check_volume_switch(state &navigation) const {
         // Check if we need to switch volume index and (re-)initialize
+
         if (navigation.status() == e_on_object and
             navigation.volume() != navigation.current()->link) {
 
             // Set volume index to the next volume provided by the object
             navigation.set_volume(navigation.current()->link);
+
             navigation.clear();
             navigation.set_trust_level(e_no_trust);
 
@@ -511,6 +518,22 @@ class navigator {
 
     DETRAY_HOST_DEVICE
     const detector_t &get_detector() const { return *_detector; }
+
+    /** @return the vecmem jagged vector buffer for surface candidates */
+    // TODO: det.get_n_max_objects_per_volume() is way too many for
+    // candidates size allocation. With the local navigation, the size can be
+    // restricted to much smaller value
+    DETRAY_HOST
+    vecmem::data::jagged_vector_buffer<intersection> create_candidates_buffer(
+        const unsigned int n_tracks,
+        vecmem::memory_resource &device_resource) const {
+
+        return vecmem::data::jagged_vector_buffer<intersection>(
+            std::vector<std::size_t>(n_tracks, 0),
+            std::vector<std::size_t>(n_tracks,
+                                     _detector->get_n_max_objects_per_volume()),
+            device_resource, _detector->resource());
+    }
 
     private:
     /** the containers for all data */
