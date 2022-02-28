@@ -1,14 +1,18 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-#include <algorithm>
-#include <limits>
+// Project include(s).
+#include "detray/definitions/invalid_values.hpp"
+#include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/indexing.hpp"
+
+// VecMem include(s).
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>
 #include <vecmem/containers/data/jagged_vector_view.hpp>
 #include <vecmem/containers/data/vector_buffer.hpp>
@@ -16,9 +20,9 @@
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
 
-#include "detray/definitions/invalid_values.hpp"
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/indexing.hpp"
+// System include(s).
+#include <algorithm>
+#include <limits>
 
 namespace detray {
 
@@ -45,7 +49,9 @@ struct replace_populator {
     using serialized_storage = vector_t<store_value>;
 
     using vector_view_type = vecmem::data::vector_view<store_value>;
+    using const_vector_view_type = vecmem::data::vector_view<const store_value>;
     using vector_data_type = vecmem::data::vector_view<store_value>;
+    using const_vector_data_type = vecmem::data::vector_view<const store_value>;
     using vector_buffer_type = vecmem::data::vector_buffer<store_value>;
     using buffer_size_type = typename vector_view_type::size_type;
 
@@ -88,14 +94,6 @@ struct replace_populator {
      */
     DETRAY_HOST_DEVICE
     store_value init() const { return m_invalid; }
-
-    /** Return a vector view
-     **/
-    DETRAY_HOST
-    static vector_data_type get_data(serialized_storage &data,
-                                     vecmem::memory_resource & /*resource*/) {
-        return vecmem::get_data(data);
-    }
 };
 
 /** A complete populator that adds values to the internal
@@ -125,7 +123,9 @@ struct complete_populator {
     using serialized_storage = vector_t<store_value>;
 
     using vector_view_type = vecmem::data::vector_view<store_value>;
+    using const_vector_view_type = vecmem::data::vector_view<const store_value>;
     using vector_data_type = vecmem::data::vector_view<store_value>;
+    using const_vector_data_type = vecmem::data::vector_view<const store_value>;
     using vector_buffer_type = vecmem::data::vector_buffer<store_value>;
     using buffer_size_type = typename vector_view_type::size_type;
 
@@ -192,14 +192,6 @@ struct complete_populator {
         }
         return init_bin;
     }
-
-    /** Return a vector view
-     **/
-    DETRAY_HOST
-    static vector_data_type get_data(serialized_storage &data,
-                                     vecmem::memory_resource & /*resource*/) {
-        return vecmem::get_data(data);
-    }
 };
 
 /** An attach populator that adds the new value to the
@@ -225,7 +217,11 @@ struct attach_populator {
     using serialized_storage = jagged_vector_t<bare_value>;
 
     using vector_view_type = vecmem::data::jagged_vector_view<bare_value>;
+    using const_vector_view_type =
+        vecmem::data::jagged_vector_view<const bare_value>;
     using vector_data_type = vecmem::data::jagged_vector_data<bare_value>;
+    using const_vector_data_type =
+        vecmem::data::jagged_vector_data<const bare_value>;
     using vector_buffer_type = vecmem::data::jagged_vector_buffer<bare_value>;
     using buffer_size_type = std::vector<typename vector_view_type::size_type>;
 
@@ -279,14 +275,6 @@ struct attach_populator {
      **/
     DETRAY_HOST_DEVICE
     store_value init() const { return {}; }
-
-    /** Return a vector data
-     **/
-    DETRAY_HOST
-    static vector_data_type get_data(serialized_storage &data,
-                                     vecmem::memory_resource &resource) {
-        return vecmem::get_data(data, &resource);
-    }
 };
 
 }  // namespace detray

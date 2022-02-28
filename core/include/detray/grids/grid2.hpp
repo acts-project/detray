@@ -1,17 +1,19 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-#include <vecmem/memory/memory_resource.hpp>
-
+// Detray include(s).
 #include "detray/definitions/invalid_values.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/grids/axis.hpp"
+
+// VecMem include(s).
+#include <vecmem/memory/memory_resource.hpp>
 
 namespace detray {
 
@@ -111,10 +113,11 @@ class grid2 {
                   !std::is_same_v<grid2, grid_view_t> &&
                       !std::is_base_of_v<vecmem::memory_resource, grid_view_t>,
                   bool> = true>
-    DETRAY_DEVICE grid2(grid_view_t &grid_data, const bare_value m_invalid =
-                                                    invalid_value<bare_value>())
-        : _axis_p0(grid_data._axis_p0),
-          _axis_p1(grid_data._axis_p1),
+    DETRAY_HOST_DEVICE grid2(
+        const grid_view_t &grid_data,
+        const bare_value m_invalid = invalid_value<bare_value>())
+        : _axis_p0(grid_data._axis_p0_view),
+          _axis_p1(grid_data._axis_p1_view),
           _data_serialized(grid_data._data_view),
           _populator(m_invalid) {}
 
@@ -355,6 +358,8 @@ class grid2 {
 
     DETRAY_HOST_DEVICE
     serialized_storage &data() { return _data_serialized; }
+    DETRAY_HOST_DEVICE
+    const serialized_storage &data() const { return _data_serialized; }
 
     private:
     axis_p0_type _axis_p0;
@@ -364,10 +369,116 @@ class grid2 {
     serializer_type _serializer;
 };
 
+/// Helper function creating a @c vecmem::data::vector_view object
+template <typename TYPE, typename ALLOC>
+DETRAY_HOST vecmem::data::vector_view<TYPE> get_data(
+    std::vector<TYPE, ALLOC> &vec, vecmem::memory_resource &) {
+
+    return vecmem::get_data(vec);
+}
+
+/// Helper function creating a @c vecmem::data::vector_view object
+template <typename TYPE, typename ALLOC>
+DETRAY_HOST vecmem::data::vector_view<const TYPE> get_data(
+    const std::vector<TYPE, ALLOC> &vec, vecmem::memory_resource &) {
+
+    return vecmem::get_data(vec);
+}
+
+/// Helper function creating a @c vecmem::data::jagged_vector_data object
+template <typename TYPE, typename ALLOC1, typename ALLOC2>
+DETRAY_HOST vecmem::data::jagged_vector_data<TYPE> get_data(
+    std::vector<std::vector<TYPE, ALLOC1>, ALLOC2> &vec,
+    vecmem::memory_resource &resource) {
+
+    return vecmem::get_data(vec, &resource);
+}
+
+/// Helper function creating a @c vecmem::data::vector_view object
+template <typename TYPE, typename ALLOC1, typename ALLOC2>
+DETRAY_HOST vecmem::data::jagged_vector_data<const TYPE> get_data(
+    const std::vector<std::vector<TYPE, ALLOC1>, ALLOC2> &vec,
+    vecmem::memory_resource &resource) {
+
+    return vecmem::get_data(vec, &resource);
+}
+
+/** A two-dimensional (non-const) grid view for gpu device usage
+ **/
+template <typename grid2_t>
+struct grid2_view {
+    axis_data<typename grid2_t::axis_p0_type, scalar> _axis_p0_view;
+    axis_data<typename grid2_t::axis_p1_type, scalar> _axis_p1_view;
+    typename grid2_t::populator_type::vector_view_type _data_view;
+};
+
+/** A two-dimensional (const) grid view for gpu device usage
+ **/
+template <typename grid2_t>
+struct const_grid2_view {
+    axis_data<typename grid2_t::axis_p0_type, const scalar> _axis_p0_view;
+    axis_data<typename grid2_t::axis_p1_type, const scalar> _axis_p1_view;
+    typename grid2_t::populator_type::const_vector_view_type _data_view;
+};
+
+/** A two-dimensional (non-const) grid data for gpu device usage
+ **/
+template <typename grid2_t>
+struct grid2_data : public grid2_view<grid2_t> {
+
+    /** Constructor from grid
+     *
+     * @param grid is the input grid from host
+     * @param resource is the vecmem memory resource
+     *
+     **/
+    grid2_data(grid2_t &grid, vecmem::memory_resource &resource)
+        : _axis_p0(grid.axis_p0(), resource),
+          _axis_p1(grid.axis_p1(), resource),
+          _data(detray::get_data(grid.data(), resource)) {
+        grid2_view<grid2_t>::_axis_p0_view = detray::get_data(_axis_p0);
+        grid2_view<grid2_t>::_axis_p1_view = detray::get_data(_axis_p1);
+        grid2_view<grid2_t>::_data_view = _data;
+    }
+
+    typename grid2_t::axis_p0_type _axis_p0;
+    typename grid2_t::axis_p1_type _axis_p1;
+    typename grid2_t::populator_type::vector_data_type _data;
+};
+
+/** A two-dimensional (const) grid data for gpu device usage
+ **/
+template <typename grid2_t>
+struct const_grid2_data : public const_grid2_view<grid2_t> {
+
+    /** Constructor from grid
+     *
+     * @param grid is the input grid from host
+     * @param resource is the vecmem memory resource
+     *
+     **/
+    const_grid2_data(const grid2_t &grid, vecmem::memory_resource &resource)
+        : _axis_p0(grid.axis_p0(), resource),
+          _axis_p1(grid.axis_p1(), resource),
+          _data(detray::get_data(grid.data(), resource)) {
+        const typename grid2_t::axis_p0_type &const_axis_p0 = _axis_p0;
+        const_grid2_view<grid2_t>::_axis_p0_view =
+            detray::get_data(const_axis_p0);
+        const typename grid2_t::axis_p1_type &const_axis_p1 = _axis_p1;
+        const_grid2_view<grid2_t>::_axis_p1_view =
+            detray::get_data(const_axis_p1);
+        const_grid2_view<grid2_t>::_data_view = _data;
+    }
+
+    typename grid2_t::axis_p0_type _axis_p0;
+    typename grid2_t::axis_p1_type _axis_p1;
+    typename grid2_t::populator_type::const_vector_data_type _data;
+};
+
 /** A two-dimensional grid buffer
  **/
 template <typename grid2_t>
-struct grid2_buffer {
+struct grid2_buffer : public grid2_view<grid2_t> {
 
     using populator_type = typename grid2_t::populator_type;
     using axis_p0_type = typename grid2_t::axis_p0_type;
@@ -389,70 +500,14 @@ struct grid2_buffer {
         : _axis_p0(axis_p0),
           _axis_p1(axis_p1),
           _buffer(sizes, capacities, resource) {
-        // static_assert(axis_p0.bins()*axis_p1.bins() == _buffer.m_size);
+        grid2_view<grid2_t>::_axis_p0_view = detray::get_data(_axis_p0);
+        grid2_view<grid2_t>::_axis_p1_view = detray::get_data(_axis_p1);
+        grid2_view<grid2_t>::_data_view = _buffer;
     }
 
     axis_p0_type _axis_p0;
     axis_p1_type _axis_p1;
     typename populator_type::vector_buffer_type _buffer;
-};
-
-/** A two-dimensional grid data for gpu device usage
- **/
-template <typename grid2_t>
-struct grid2_data {
-
-    using populator_type = typename grid2_t::populator_type;
-    using axis_p0_type = typename grid2_t::axis_p0_type;
-    using axis_p1_type = typename grid2_t::axis_p1_type;
-
-    /** Constructor from grid
-     *
-     * @param grid is the input grid from host
-     * @param resource is the vecmem memory resource
-     *
-     **/
-    grid2_data(grid2_t &grid, vecmem::memory_resource &resource)
-        : _axis_p0(grid.axis_p0(), resource),
-          _axis_p1(grid.axis_p1(), resource),
-          _data(populator_type::get_data(grid.data(), resource)) {}
-
-    axis_p0_type _axis_p0;
-    axis_p1_type _axis_p1;
-    typename populator_type::vector_data_type _data;
-};
-
-/** A two-dimensional grid view for gpu device usage
- **/
-template <typename grid2_t>
-struct grid2_view {
-    using populator_type = typename grid2_t::populator_type;
-    using axis_p0_type = typename grid2_t::axis_p0_type;
-    using axis_p1_type = typename grid2_t::axis_p1_type;
-
-    /** Constructor from grid data
-     *
-     * @param grid data is the input grid data
-     *
-     **/
-    grid2_view(grid2_data<grid2_t> &grid_data)
-        : _axis_p0(get_data(grid_data._axis_p0)),
-          _axis_p1(get_data(grid_data._axis_p1)),
-          _data_view(grid_data._data) {}
-
-    /** Constructor from grid data
-     *
-     * @param grid data is the input grid data
-     *
-     **/
-    grid2_view(grid2_buffer<grid2_t> &grid_buffer)
-        : _axis_p0(get_data(grid_buffer._axis_p0)),
-          _axis_p1(get_data(grid_buffer._axis_p1)),
-          _data_view(grid_buffer._buffer) {}
-
-    axis_data<axis_p0_type> _axis_p0;
-    axis_data<axis_p1_type> _axis_p1;
-    typename populator_type::vector_view_type _data_view;
 };
 
 /** Get grid2_data from grid and memory resource
@@ -478,6 +533,33 @@ inline grid2_data<
 get_data(grid2<populator_t, axis_p0_t, axis_p1_t, serializer_t, vector_t,
                jagged_vector_t, array_t, tuple_t, value_t, kSORT, kDIM> &grid,
          vecmem::memory_resource &resource) {
+    return {grid, resource};
+}
+
+/** Get const_grid2_data from grid and memory resource
+ **/
+template <template <template <typename...> class, template <typename...> class,
+                    template <typename, std::size_t> class, typename, bool,
+                    unsigned int>
+          class populator_t,
+          template <template <typename, std::size_t> class,
+                    template <typename...> class>
+          class axis_p0_t,
+          template <template <typename, std::size_t> class,
+                    template <typename...> class>
+          class axis_p1_t,
+          typename serializer_t, template <typename...> class vector_t,
+          template <typename...> class jagged_vector_t,
+          template <typename, std::size_t> class array_t,
+          template <typename...> class tuple_t, typename value_t = dindex,
+          bool kSORT = false, unsigned int kDIM = 1>
+inline const_grid2_data<
+    grid2<populator_t, axis_p0_t, axis_p1_t, serializer_t, vector_t,
+          jagged_vector_t, array_t, tuple_t, value_t, kSORT, kDIM>>
+get_data(
+    const grid2<populator_t, axis_p0_t, axis_p1_t, serializer_t, vector_t,
+                jagged_vector_t, array_t, tuple_t, value_t, kSORT, kDIM> &grid,
+    vecmem::memory_resource &resource) {
     return {grid, resource};
 }
 
