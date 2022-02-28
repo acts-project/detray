@@ -56,11 +56,11 @@ struct iterator_range {
 
     /** @return element at position i, relative to iterator range. */
     DETRAY_HOST_DEVICE
-    inline decltype(auto) operator[](const dindex i) { return *(_start + i); }
+    inline auto &operator[](const dindex i) { return *(_start + i); }
 
     /** @return element at position i, relative to iterator range - const */
     DETRAY_HOST_DEVICE
-    inline decltype(auto) operator[](const dindex i) const {
+    inline const auto &operator[](const dindex i) const {
         return *(_start + i);
     }
 
