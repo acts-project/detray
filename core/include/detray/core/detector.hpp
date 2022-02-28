@@ -282,7 +282,7 @@ class detector {
                                               volume_type &vol,
                                               grid_type &surfaces_grid) {
         // iterate over surfaces to fill the grid
-        for (const auto &[surf_idx, surf] : enumerate(_surfaces, vol)) {
+        for (const auto [surf_idx, surf] : enumerate(_surfaces, vol)) {
             if (surf.get_grid_status() == true) {
                 auto sidx = surf_idx;
 
