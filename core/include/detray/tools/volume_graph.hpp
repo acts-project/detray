@@ -126,6 +126,7 @@ class volume_graph {
     /** Builds a graph edge from the detector mask collection on the fly. */
     struct edge_collection {
         using mask_edge_t = typename detector_t::surface_type::edge_type;
+        using mask_link_t = typename detector_t::surface_type::mask_link;
 
         struct edge {
             edge(const dindex volume_id, const dindex link)
@@ -142,9 +143,9 @@ class volume_graph {
             using edge_iter =
                 decltype(std::begin(std::declval<vector_t<edge>>()));
 
-            iterator(const dindex volume_id, const mask_edge_t &mask_edge,
+            iterator(const dindex volume_id, const mask_link_t &mask_link,
                      const edge_collection &edges) {
-                build_edges_vector(volume_id, mask_edge, edges.get_container());
+                build_edges_vector(volume_id, mask_link, edges.get_container());
                 _itr = _edges.begin();
             }
 
@@ -175,13 +176,15 @@ class volume_graph {
 
             template <std::size_t current_id = 0>
             inline void build_edges_vector(const dindex volume_id,
-                                           const mask_edge_t &mask_edge,
+                                           const mask_link_t &mask_link,
                                            const mask_container_t &masks) {
 
-                if (detail::get<0>(mask_edge) == current_id) {
+                if (detail::get<0>(mask_link) == current_id) {
                     // Get the mask group that will be updated
-                    const auto &mask_group = masks.template group<current_id>();
-                    const auto mask_range = detail::get<1>(mask_edge);
+                    const auto &mask_group =
+                        masks.template group<mask_container_t::to_id(
+                            current_id)>();
+                    const auto mask_range = detail::get<1>(mask_link);
                     for (const auto &mask : range(mask_group, mask_range)) {
                         _edges.emplace_back(volume_id, mask.volume_link());
                     }
@@ -191,7 +194,7 @@ class volume_graph {
                 using mask_defs = typename detector_t::surface_type::mask_defs;
                 if constexpr (current_id < mask_defs::n_types - 1) {
                     return build_edges_vector<current_id + 1>(volume_id,
-                                                              mask_edge, masks);
+                                                              mask_link, masks);
                 }
             }
 

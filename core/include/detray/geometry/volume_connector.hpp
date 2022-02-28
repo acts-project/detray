@@ -9,6 +9,8 @@
 
 #include <vecmem/memory/host_memory_resource.hpp>
 
+#include "detray/definitions/detail/accessor.hpp"
+
 namespace detray {
 /// Connector method for cylindrical volumes without phi separation
 ///
@@ -261,8 +263,8 @@ void connect_cylindrical_volumes(
                     portal_masks.template add_mask<disc_id>(
                         std::get<0>(info_)[0], std::get<0>(info_)[1], edge);
 
-                    std::get<1>(mask_index) =
-                        portal_masks.template size<disc_id>();
+                    mask_index = {disc_id,
+                                  portal_masks.template size<disc_id>()};
 
                     // Save the data
                     disc_portals.emplace_back(
@@ -305,8 +307,8 @@ void connect_cylindrical_volumes(
                         volume_bounds[bound_index], cylinder_range[0],
                         cylinder_range[1], edge);
 
-                    std::get<1>(mask_index) =
-                        portal_masks.template size<cylinder_id>();
+                    mask_index = {cylinder_id,
+                                  portal_masks.template size<cylinder_id>()};
 
                     // Create the portal
                     cylinder_portals.emplace_back(
