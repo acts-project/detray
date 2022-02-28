@@ -66,7 +66,7 @@ struct iterator_range {
 
     /** @return the offset of the range start into the container. */
     DETRAY_HOST_DEVICE
-    inline const auto offset(const container_t &iterable) {
+    inline auto offset(const container_t &iterable) {
         return std::distance(_start, std::begin(iterable));
     }
 

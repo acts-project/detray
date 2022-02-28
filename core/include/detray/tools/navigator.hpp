@@ -150,7 +150,11 @@ class navigator {
          * between objects)
          */
         DETRAY_HOST_DEVICE
+<<<<<<< HEAD
         inline const auto on_object() const { return _object_index; }
+=======
+        inline auto on_object() { return _object_index; }
+>>>>>>> 8a72a3e (clean warnings)
 
         /** Update current object the navigator is on  */
         DETRAY_HOST_DEVICE
@@ -158,7 +162,11 @@ class navigator {
 
         /** @returns current navigation status */
         DETRAY_HOST_DEVICE
+<<<<<<< HEAD
         inline const auto status() const { return _status; }
+=======
+        inline auto status() { return _status; }
+>>>>>>> 8a72a3e (clean warnings)
 
         /** Set new navigation status */
         DETRAY_HOST_DEVICE
@@ -166,7 +174,7 @@ class navigator {
 
         /** @returns tolerance to determine if we are on object */
         DETRAY_HOST_DEVICE
-        inline const auto tolerance() { return _on_object_tolerance; }
+        inline auto tolerance() { return _on_object_tolerance; }
 
         /** Adjust the on-object tolerance */
         DETRAY_HOST_DEVICE
@@ -174,7 +182,11 @@ class navigator {
 
         /** @returns navigation trust level */
         DETRAY_HOST_DEVICE
+<<<<<<< HEAD
         inline const auto trust_level() const { return _trust_level; }
+=======
+        inline auto trust_level() { return _trust_level; }
+>>>>>>> 8a72a3e (clean warnings)
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
@@ -184,7 +196,11 @@ class navigator {
 
         /** @returns current volume (index) */
         DETRAY_HOST_DEVICE
+<<<<<<< HEAD
         inline const auto volume() const { return _volume_index; }
+=======
+        inline auto volume() { return _volume_index; }
+>>>>>>> 8a72a3e (clean warnings)
 
         /** Set start/new volume */
         DETRAY_HOST_DEVICE
