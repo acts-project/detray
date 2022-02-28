@@ -101,10 +101,24 @@ template <class T>
 using unwrap_decay_t =
     typename unwrap_refwrapper<typename std::decay<T>::type>::type;
 
-template <template <typename...> class tuple_t, class... Types>
-DETRAY_HOST_DEVICE constexpr tuple_t<unwrap_decay_t<Types>...> make_tuple(
-    Types&&... args) {
-    return tuple_t<unwrap_decay_t<Types>...>(std::forward<Types>(args)...);
+// make_tuple for std::tuple
+template <template <typename...> class tuple_t, class... value_types,
+          std::enable_if_t<std::is_same_v<tuple_t<value_types...>,
+                                          std::tuple<value_types...>>,
+                           bool> = true>
+DETRAY_HOST_DEVICE constexpr std::tuple<unwrap_decay_t<value_types>...>
+make_tuple(value_types&&... args) {
+    return std::make_tuple(args...);
+}
+
+// make_tuple for thrust::tuple
+template <template <typename...> class tuple_t, class... value_types,
+          std::enable_if_t<std::is_same_v<tuple_t<value_types...>,
+                                          thrust::tuple<value_types...>>,
+                           bool> = true>
+DETRAY_HOST_DEVICE constexpr thrust::tuple<unwrap_decay_t<value_types>...>
+make_tuple(value_types&&... args) {
+    return thrust::make_tuple(args...);
 }
 
 /**
