@@ -15,9 +15,6 @@
 
 using namespace detray;
 
-// Helper object for performing memory copies.
-vecmem::cuda::copy copy;
-
 // VecMem memory resource(s)
 vecmem::cuda::managed_memory_resource mng_mr;
 vecmem::cuda::device_memory_resource dev_mr;
@@ -28,14 +25,10 @@ detector_host_type det =
                         vecmem::jagged_vector>(mng_mr, n_brl_layers,
                                                n_edc_layers);
 
-// Create the vector of initial track parameters
-vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
-vecmem::vector<free_track_parameters> tracks_device(&mng_mr);
-
-// Set origin position of tracks
-const point3 ori{0., 0., 0.};
-
 void fill_tracks(vecmem::vector<free_track_parameters> &tracks) {
+    // Set origin position of tracks
+    const point3 ori{0., 0., 0.};
+
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
         scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
@@ -61,11 +54,59 @@ void fill_tracks(vecmem::vector<free_track_parameters> &tracks) {
 
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
     for (auto _ : state) {
+
+        // Get tracks
+        vecmem::vector<free_track_parameters> tracks(&mng_mr);
+        fill_tracks(tracks);
+
+        // Set the magnetic field
+        const vector3 B{0, 0, 2 * unit_constants::T};
+        field_type B_field(B);
+
+        // Create RK stepper
+        rk_stepper_type s(B_field);
+
+        // Create navigator
+        navigator_host_type n(det);
+
+        // Create propagator
+        propagator_host_type p(std::move(s), std::move(n));
+
+        for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
+
+            void_propagator_inspector vi;
+
+            // Create the propagator state
+            propagator_host_type::state p_state(tracks[i]);
+
+            // Run propagation
+            p.propagate(p_state, vi);
+        }
     }
 }
 
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
     for (auto _ : state) {
+        // Helper object for performing memory copies.
+        vecmem::cuda::copy copy;
+
+        // Get tracks
+        vecmem::vector<free_track_parameters> tracks(&mng_mr);
+        fill_tracks(tracks);
+
+        // Get detector data
+        auto det_data = get_data(det);
+
+        // Get tracks data
+        auto tracks_data = vecmem::get_data(tracks);
+
+        // Create navigator candidates buffer
+        auto candidates_buffer =
+            det.create_candidates_buffer(theta_steps * phi_steps, dev_mr);
+        copy.setup(candidates_buffer);
+
+        // Run the propagator test for GPU device
+        propagator_benchmark(det_data, tracks_data, candidates_buffer);
     }
 }
 
