@@ -116,8 +116,7 @@ struct print_inspector {
             stream << "surface: " << std::setw(14) << navigation.on_object();
         }
 
-        stream << "step_size: " << std::setw(10)
-               << stepping._previous_step_size;
+        stream << "step_size: " << std::setw(10) << stepping._step_size;
 
         std::cout << stream.str() << std::endl;
     }

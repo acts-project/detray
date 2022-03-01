@@ -264,7 +264,6 @@ class navigator {
                       _detector->transform_store(), _detector->mask_store());
         sfi.index = obj_idx;
         (*navigation.next()) = sfi;
-        navigation.set_dist(sfi.path);
 
         return sfi;
     }
@@ -291,6 +290,7 @@ class navigator {
 
                 // Only update the next candidate
                 auto sfi = update_next_candidate(navigation, track);
+                navigation.set_dist(sfi.path);
 
                 if (sfi.status == e_inside) {
                     // We may be on next object (trust level is high)
@@ -360,6 +360,20 @@ class navigator {
             return heartbeat;
         }
 
+        // Loop over all candidates and intersect again all candidates
+        // - do this when your trust level is low
+        else if (navigation.trust_level() == e_fair_trust) {
+
+            while (not navigation.is_exhausted()) {
+                update_next_candidate(navigation, track);
+                ++navigation.next();
+            }
+
+            set_next(navigation);
+
+            return heartbeat;
+        }
+
         // set the distance to the target surface
         else if (navigation.trust_level() == e_high_trust) {
 
@@ -367,6 +381,7 @@ class navigator {
 
                 // Only update the next candidate
                 auto sfi = update_next_candidate(navigation, track);
+                navigation.set_dist(sfi.path);
 
                 if (sfi.status == e_inside) {
 
@@ -503,6 +518,22 @@ class navigator {
 
     DETRAY_HOST_DEVICE
     const detector_t &get_detector() const { return *_detector; }
+
+    /** @return the vecmem jagged vector buffer for surface candidates */
+    // TODO: det.get_n_max_objects_per_volume() is way too many for
+    // candidates size allocation. With the local navigation, the size can be
+    // restricted to much smaller value
+    DETRAY_HOST
+    vecmem::data::jagged_vector_buffer<intersection> create_candidates_buffer(
+        const unsigned int n_tracks,
+        vecmem::memory_resource &device_resource) const {
+
+        return vecmem::data::jagged_vector_buffer<intersection>(
+            std::vector<std::size_t>(n_tracks, 0),
+            std::vector<std::size_t>(n_tracks,
+                                     _detector->get_n_max_objects_per_volume()),
+            device_resource, _detector->resource());
+    }
 
     private:
     /** the containers for all data */

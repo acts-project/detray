@@ -10,7 +10,7 @@
 #include <map>
 
 #include "detray/core/mask_store.hpp"
-#include "detray/tools/base_stepper.hpp"
+#include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
 #include "detray/tools/track.hpp"
 #include "detray/utils/indexing.hpp"
@@ -67,16 +67,16 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
 }
 
 /** Checks an entire step to next barrel surface */
-template <typename navigator_t, typename state_t, typename stepper_state_t>
-inline void check_step(navigator_t &nav, state_t &state,
+template <typename navigator_t, typename stepper_t, typename state_t,
+          typename stepper_state_t>
+inline void check_step(navigator_t &nav, stepper_t stepper, state_t &state,
                        stepper_state_t &stepping, dindex vol_id,
                        std::size_t n_candidates, dindex current_id,
                        dindex next_id) {
 
-    auto &trck = stepping();
-
     // Step onto the surface in volume
-    trck.set_pos(trck.pos() + state() * trck.dir());
+    stepper.step(stepping, state());
+
     state.set_trust_level(navigator_t::navigation_trust_level::e_high_trust);
     ASSERT_TRUE(nav.status(state, stepping));
     // The status is: on surface 491
@@ -109,12 +109,13 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
     auto toy_det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
     navigator n(toy_det);
     using toy_navigator = decltype(n);
-    using stepper = base_stepper<free_track_parameters>;
+    using stepper = line_stepper<free_track_parameters>;
 
     // test track
     point3 pos{0., 0., 0.};
     vector3 mom{1., 1., 0.};
     free_track_parameters traj(pos, 0, mom, -1);
+    stepper s;
     typename stepper::state stepping(traj);
 
     toy_navigator::state state;
@@ -175,7 +176,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
               toy_navigator::navigation_trust_level::e_full_trust);
 
     // Now step onto the beampipe (idx 0)
-    check_step(n, state, stepping, 0, 2, 0, 7);
+    check_step(n, s, state, stepping, 0, 2, 0, 7);
 
     // Step onto portal 7 in volume 0
     traj.set_pos(traj.pos() + state() * traj.dir());
@@ -227,7 +228,7 @@ TEST(ALGEBRA_PLUGIN, single_type_navigator) {
 
         // Step through the module surfaces
         for (std::size_t sf = 0; sf < sf_seq.size() - 1; ++sf) {
-            check_step(n, state, stepping, vol_id, n_candidates, sf_seq[sf],
+            check_step(n, s, state, stepping, vol_id, n_candidates, sf_seq[sf],
                        sf_seq[sf + 1]);
         }
 
