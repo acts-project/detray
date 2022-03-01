@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -20,7 +20,7 @@ TEST(surfaces_finder_cuda, surfaces_finder) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     /** Make surface finder object **/
-    surfaces_finder<n_grids, std::array, thrust::tuple, vecmem::vector,
+    surfaces_finder<n_grids, darray, thrust::tuple, vecmem::vector,
                     vecmem::jagged_vector>
         finder(mng_mr);
 

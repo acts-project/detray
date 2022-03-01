@@ -62,6 +62,11 @@ using device_grid2_attach =
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
           std::tuple, test::point3<detray::scalar>, false>;
 
+using const_device_grid2_attach =
+    grid2<attach_populator, axis::circular, axis::regular, serializer2,
+          vecmem::device_vector, vecmem::jagged_device_vector, darray,
+          std::tuple, const test::point3<detray::scalar>, false>;
+
 // test function for replace populator
 void grid_replace_test(grid2_view<host_grid2_replace> grid_view);
 
@@ -72,7 +77,7 @@ void grid_replace_ci_test(grid2_view<host_grid2_replace_ci> grid_view);
 void grid_complete_test(grid2_view<host_grid2_complete> grid_view);
 
 // read test function for grid with attach populator
-void grid_attach_read_test(grid2_view<host_grid2_attach> grid_view);
+void grid_attach_read_test(const_grid2_view<host_grid2_attach> grid_view);
 
 // fill test function for grid buffer with attach populator
 void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view);
