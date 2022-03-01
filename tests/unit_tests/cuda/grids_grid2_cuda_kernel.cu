@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -39,8 +39,8 @@ __global__ void grid_replace_test_kernel(
 // grid_replace_test implementation
 void grid_replace_test(grid2_view<host_grid2_replace> grid_view) {
 
-    const auto& axis0 = grid_view._axis_p0;
-    const auto& axis1 = grid_view._axis_p1;
+    const auto& axis0 = grid_view._axis_p0_view;
+    const auto& axis1 = grid_view._axis_p1_view;
 
     int block_dim = 1;
     dim3 thread_dim(axis0.n_bins, axis1.n_bins);
@@ -77,8 +77,8 @@ __global__ void grid_replace_ci_test_kernel(
 // test function for replace populator with circular and irregular axis
 void grid_replace_ci_test(grid2_view<host_grid2_replace_ci> grid_view) {
 
-    const auto& axis0 = grid_view._axis_p0;
-    const auto& axis1 = grid_view._axis_p1;
+    const auto& axis0 = grid_view._axis_p0_view;
+    const auto& axis1 = grid_view._axis_p1_view;
 
     int block_dim = 1;
     dim3 thread_dim(axis0.n_bins, axis1.n_bins);
@@ -123,8 +123,8 @@ __global__ void grid_complete_kernel(
 // grid_complete_test implementation
 void grid_complete_test(grid2_view<host_grid2_complete> grid_view) {
 
-    const auto& axis0 = grid_view._axis_p0;
-    const auto& axis1 = grid_view._axis_p1;
+    const auto& axis0 = grid_view._axis_p0_view;
+    const auto& axis1 = grid_view._axis_p1_view;
 
     int block_dim = 1;
     dim3 thread_dim(axis0.n_bins, axis1.n_bins);
@@ -143,11 +143,11 @@ void grid_complete_test(grid2_view<host_grid2_complete> grid_view) {
 
 // cuda kernel for attach_read_test
 __global__ void grid_attach_read_test_kernel(
-    grid2_view<host_grid2_attach> grid_view) {
+    const_grid2_view<host_grid2_attach> grid_view) {
 
     // Let's try building the grid object
-    device_grid2_attach g2_device(grid_view,
-                                  test::point3<detray::scalar>{0, 0, 0});
+    const_device_grid2_attach g2_device(grid_view,
+                                        test::point3<detray::scalar>{0, 0, 0});
 
     auto data = g2_device.bin(threadIdx.x, threadIdx.y);
 
@@ -157,10 +157,10 @@ __global__ void grid_attach_read_test_kernel(
 }
 
 // attach_read_test implementation
-void grid_attach_read_test(grid2_view<host_grid2_attach> grid_view) {
+void grid_attach_read_test(const_grid2_view<host_grid2_attach> grid_view) {
 
-    const auto& axis0 = grid_view._axis_p0;
-    const auto& axis1 = grid_view._axis_p1;
+    const auto& axis0 = grid_view._axis_p0_view;
+    const auto& axis1 = grid_view._axis_p1_view;
 
     int block_dim = 1;
     dim3 thread_dim(axis0.n_bins, axis1.n_bins);
@@ -203,8 +203,8 @@ __global__ void grid_attach_fill_test_kernel(
 // attach_fill_test implementation
 void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view) {
 
-    const auto& axis0 = grid_view._axis_p0;
-    const auto& axis1 = grid_view._axis_p1;
+    const auto& axis0 = grid_view._axis_p0_view;
+    const auto& axis1 = grid_view._axis_p1_view;
 
     dim3 block_dim(axis0.n_bins, axis1.n_bins);
     int thread_dim = 100;

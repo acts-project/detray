@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -83,7 +83,8 @@ struct surfaces_finder {
               std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
                                                   surfaces_finder_data_t>,
                                bool> = true>
-    DETRAY_HOST_DEVICE surfaces_finder(surfaces_finder_data_t& finder_data)
+    DETRAY_HOST_DEVICE surfaces_finder(
+        const surfaces_finder_data_t& finder_data)
         : _surface_grids(initialize_device_grids(
               finder_data, std::make_index_sequence<N_GRIDS>{})) {}
 
@@ -96,10 +97,11 @@ struct surfaces_finder {
      */
     template <std::size_t... ints, typename surfaces_finder_data_t>
     DETRAY_HOST_DEVICE auto initialize_device_grids(
-        surfaces_finder_data_t& finder_data,
+        const surfaces_finder_data_t& finder_data,
         std::index_sequence<ints...> /*seq*/) {
-        return array_t<surfaces_regular_circular_grid, N_GRIDS>(
-            {{finder_data._surface_grids_view[ints]...}});
+        return array_t<surfaces_regular_circular_grid, N_GRIDS>{
+            surfaces_regular_circular_grid{
+                finder_data._surface_grids_view[ints]}...};
     }
 
     /** return the size of array of grids
