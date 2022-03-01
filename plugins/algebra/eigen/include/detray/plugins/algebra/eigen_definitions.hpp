@@ -10,6 +10,7 @@
 
 #define __plugin algebra::eigen
 #define ALGEBRA_PLUGIN eigen
+#define ALGEBRA_TRANSFORM3_NAMESPACE algebra::eigen::math
 
 namespace detray {
 

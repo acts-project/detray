@@ -10,6 +10,7 @@
 
 #define __plugin algebra::array
 #define ALGEBRA_PLUGIN array
+#define ALGEBRA_TRANSFORM3_NAMESPACE algebra::cmath
 
 namespace detray {
 

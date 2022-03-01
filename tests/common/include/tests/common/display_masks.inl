@@ -18,16 +18,12 @@
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
-using transform3 = __plugin::transform3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point3 = __plugin::point3<detray::scalar>;
-
 TEST(display, annulus2) {
-    detray::global_xy_view gxy;
+    global_xy_view gxy;
 
     // First rectangle
     transform3 transform{};
-    annulus2<> annulus = {7.2, 12.0, 0.74195, 1.33970, 0., -2., 2.};
+    annulus2<> annulus = {7.2, 12.0, 0.74195, 1.33970, 0., -2., 2., 0u};
 
     color c = {0.2, 0.8, 0.6, 0.9};
     display(false);
@@ -36,11 +32,11 @@ TEST(display, annulus2) {
 }
 
 TEST(display, rectangle2) {
-    detray::global_xy_view gxy;
+    global_xy_view gxy;
 
     // First rectangle
     transform3 transform{};
-    rectangle2<> rectangle = {3., 4.};
+    rectangle2<> rectangle = {3., 4., 1u};
 
     color c = {0.5, 0.2, 0.6, 0.9};
     display(false);
@@ -49,11 +45,11 @@ TEST(display, rectangle2) {
 }
 
 TEST(display, trapezoid2) {
-    detray::global_xy_view gxy;
+    global_xy_view gxy;
 
     // First rectangle
     transform3 transform{};
-    trapezoid2<> trapezoid = {3., 4., 5.};
+    trapezoid2<> trapezoid = {3., 4., 5., 2u};
 
     color c = {0.5, 0.4, 0.4, 0.9};
     display(false);

@@ -23,6 +23,11 @@ if( DETRAY_IO_CSV )
       LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::io
                      detray::array )
 endif()
+if ( DETRAY_IO_JSON )
+   detray_add_test( array_json_io "array_io_json.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::io
+                  detray::array )
+endif()
 if( DETRAY_DISPLAY )
    detray_add_test( array_display_masks "array_display_masks.cpp"
       LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::display
