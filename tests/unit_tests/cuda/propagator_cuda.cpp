@@ -108,7 +108,7 @@ TEST(propagator_cuda, propagator) {
 
     // Create navigator candidates buffer
     auto candidates_buffer =
-        n.create_candidates_buffer(theta_steps * phi_steps, dev_mr);
+        create_candidates_buffer(det, theta_steps * phi_steps, dev_mr);
     copy.setup(candidates_buffer);
 
     // Create vector for track recording

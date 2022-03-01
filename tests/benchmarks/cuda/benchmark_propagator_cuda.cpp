@@ -7,8 +7,10 @@
 
 #include <benchmark/benchmark.h>
 
+#include <vecmem/memory/binary_page_memory_resource.hpp>
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "benchmark_propagator_cuda_kernel.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
@@ -102,7 +104,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
         // Create navigator candidates buffer
         auto candidates_buffer =
-            det.create_candidates_buffer(theta_steps * phi_steps, dev_mr);
+            create_candidates_buffer(det, theta_steps * phi_steps, dev_mr);
         copy.setup(candidates_buffer);
 
         // Run the propagator test for GPU device
