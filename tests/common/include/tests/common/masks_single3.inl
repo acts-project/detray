@@ -24,7 +24,7 @@ TEST(mask, single3_0) {
     point3 p3_out = {1.5, -9.8, 8.};
 
     scalar h0 = 1.;
-    single3<0> m1_0{-h0, h0, 0u};
+    single3<0> m1_0{{-h0, h0}, 0u};
 
     ASSERT_EQ(m1_0[0], -h0);
     ASSERT_EQ(m1_0[1], h0);
@@ -50,7 +50,7 @@ TEST(mask, single3_1) {
     point3 p3_out = {1.5, -9.8, 8.};
 
     scalar h1 = 9.3;
-    single3<1> m1_1 = {-h1, h1};
+    single3<1> m1_1 = {{-h1, h1}};
 
     ASSERT_EQ(m1_1[0], -h1);
     ASSERT_EQ(m1_1[1], h1);
@@ -76,7 +76,7 @@ TEST(mask, single3_2) {
     point3 p3_out = {1.5, -9.8, 8.};
 
     scalar h2 = 2.;
-    single3<2> m1_2 = {-h2, h2};
+    single3<2> m1_2 = {{-h2, h2}};
 
     ASSERT_EQ(m1_2[0], -h2);
     ASSERT_EQ(m1_2[1], h2);

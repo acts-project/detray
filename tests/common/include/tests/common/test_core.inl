@@ -19,16 +19,11 @@
 
 using namespace detray;
 
-using point2 = __plugin::point2<detray::scalar>;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 enum mask_ids : unsigned int {
     e_unmasked = 0,
 };
-
-// Three-dimensional definitions
-using transform3 = __plugin::transform3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point3 = __plugin::point3<detray::scalar>;
 using mask_defs = mask_registry<mask_ids, unmasked<>>;
 using mask_link_t = typename mask_defs::link_type;
 

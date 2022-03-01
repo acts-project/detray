@@ -27,21 +27,9 @@ vecmem::host_memory_resource host_mr;
 
 darray<dindex, 2> zone22 = {2u, 2u};
 
-// This runs a reference test with random numbers only
-/*static void BM_RERERENCE_GRID(benchmark::State &state) {
-    for (auto _ : state) {
-        for (unsigned int itest = 0; itest < 1000000; ++itest) {
-            test::point2 p = {static_cast<scalar>((rand() % 50) * 0.5),
-                              static_cast<scalar>((rand() % 120) * 0.5)};
-        }
-    }
-}*/
-
-serializer2 serializer;
-
 // TrackML detector has 25 x 60 cells int he detector grid
-using grid2r = grid2<replace_populator, axis::regular, axis::regular,
-                     decltype(serializer)>;
+using grid2r =
+    grid2<replace_populator, axis::regular, axis::regular, serializer2>;
 grid2r::axis_p0_type xaxisr{25, 0., 25., host_mr};
 grid2r::axis_p1_type yaxisr{60, 0., 60., host_mr};
 
@@ -84,8 +72,8 @@ auto construct_irregular_grid() {
         yboundaries.push_back(i);
     }
 
-    using grid2ir = grid2<replace_populator, axis::irregular, axis::irregular,
-                          decltype(serializer)>;
+    using grid2ir =
+        grid2<replace_populator, axis::irregular, axis::irregular, serializer2>;
 
     grid2ir::axis_p0_type xaxisir{xboundaries, host_mr};
     grid2ir::axis_p1_type yaxisir{yboundaries, host_mr};

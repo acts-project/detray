@@ -17,13 +17,13 @@
 
 // This tests the construction of a detector class
 TEST(ALGEBRA_PLUGIN, detector) {
-    vecmem::host_memory_resource host_mr;
 
     using namespace detray;
-    using point3 = __plugin::point3<detray::scalar>;
 
     using detector_t = detector<detector_registry::default_detector>;
     using mask_ids = typename detector_t::masks::id;
+
+    vecmem::host_memory_resource host_mr;
 
     detector_t::context ctx0{};
     detector_t::transform_filling_container trfs;
