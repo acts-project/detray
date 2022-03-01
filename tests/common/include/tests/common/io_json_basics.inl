@@ -48,7 +48,8 @@ TEST(IO_JSON, write_read_transform) {
 
     auto translation_in = t3_in.translation();
 
-    constexpr detray::scalar epsilon = std::numeric_limits<detray::scalar>::epsilon();
+    constexpr detray::scalar epsilon =
+        std::numeric_limits<detray::scalar>::epsilon();
 
     ASSERT_NEAR(translation_in[0], x, epsilon);
     ASSERT_NEAR(translation_in[1], y, epsilon);

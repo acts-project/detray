@@ -38,7 +38,8 @@ void to_json(nlohmann::json& j, const __plugin::transform3<detray::scalar>& t) {
     j["rotation"] = rdata;
 }
 
-void from_json(const nlohmann::json& j, __plugin::transform3<detray::scalar>& t) {
+void from_json(const nlohmann::json& j,
+               __plugin::transform3<detray::scalar>& t) {
 
     detray::darray<detray::scalar, 9> rdata = {1., 0., 0., 0., 1.,
                                                0., 0., 0., 1.};
@@ -71,4 +72,4 @@ void from_json(const nlohmann::json& j, __plugin::transform3<detray::scalar>& t)
     t = __plugin::transform3<detray::scalar>(ma);
 }
 
-}  // namespace __plugin::math
+}  // namespace ALGEBRA_TRANSFORM3_NAMESPACE
