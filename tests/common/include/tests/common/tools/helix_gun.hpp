@@ -29,7 +29,7 @@ class helix_gun {
         _scaler = _R * std::sqrt(1 + std::pow(_vz_over_vt, 2));
 
         // get new z direction
-        _ez = vector::normalize(mag_field);
+        _ez = vector::normalize(_mag_field);
 
         // get new y direction
         scalar q = _vertex.qop() > 0 ? 1 : -1.;

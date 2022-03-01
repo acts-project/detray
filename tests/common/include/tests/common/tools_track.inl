@@ -14,11 +14,7 @@
 #include "detray/tools/track.hpp"
 
 using namespace detray;
-using point2 = __plugin::point2<detray::scalar>;
-using point3 = __plugin::point3<detray::scalar>;
 using vector2 = __plugin::vector2<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
 
 enum mask_ids : unsigned int {
     e_rectangle2 = 0,
@@ -37,7 +33,7 @@ TEST(tools, bound_track_parameters) {
 
     // transform container
     static_transform_store trfs;
-    typename decltype(trfs)::context ctx;
+    typename decltype(trfs)::context ctx{};
 
     vector3 z1 = vector::normalize(vector3{1, 0., 0.});
     vector3 x1 = vector::normalize(vector3{0., 0., 1.});

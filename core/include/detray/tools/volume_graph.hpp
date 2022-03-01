@@ -24,7 +24,7 @@ namespace detray {
  */
 template <typename node_t>
 struct void_node_inspector {
-    bool operator()(const node_t &n) { return true; }
+    bool operator()(const node_t & /*n*/) { return true; }
 };
 
 /** Placeholder struct for an action while walking through the graph.*/

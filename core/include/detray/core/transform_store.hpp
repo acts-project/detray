@@ -70,8 +70,8 @@ class static_transform_store {
      * @return range restricted iterator
      */
     DETRAY_HOST_DEVICE
-    const inline auto range(const size_t begin, const size_t end,
-                            const context & /*ctx*/) const {
+    inline auto range(const size_t begin, const size_t end,
+                      const context & /*ctx*/) const {
         return iterator_range(_data, dindex_range{begin, end});
     }
 
@@ -83,8 +83,8 @@ class static_transform_store {
      * @return range restricted iterator
      */
     template <typename range_t>
-    DETRAY_HOST_DEVICE const inline auto range(range_t &&range,
-                                               const context & /*ctx*/) const {
+    DETRAY_HOST_DEVICE inline auto range(range_t &&range,
+                                         const context & /*ctx*/) const {
         return iterator_range(_data, std::forward<range_t>(range));
     }
 
