@@ -10,7 +10,6 @@
 #include <vecmem/memory/binary_page_memory_resource.hpp>
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
-#include <vecmem/memory/host_memory_resource.hpp>
 
 #include "benchmark_propagator_cuda_kernel.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
@@ -18,14 +17,10 @@
 using namespace detray;
 
 // VecMem memory resource(s)
+vecmem::host_memory_resource host_mr;
 vecmem::cuda::managed_memory_resource mng_mr;
 vecmem::cuda::device_memory_resource dev_mr;
-
-// Create the toy geometry
-detector_host_type det =
-    create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                        vecmem::jagged_vector>(mng_mr, n_brl_layers,
-                                               n_edc_layers);
+vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
 void fill_tracks(vecmem::vector<free_track_parameters> &tracks) {
     // Set origin position of tracks
@@ -55,11 +50,22 @@ void fill_tracks(vecmem::vector<free_track_parameters> &tracks) {
 }
 
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
+
+    // Create the toy geometry
+    detector_host_type det =
+        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
+                            vecmem::jagged_vector>(host_mr, n_brl_layers,
+                                                   n_edc_layers);
+
     for (auto _ : state) {
 
+        state.PauseTiming();
+
         // Get tracks
-        vecmem::vector<free_track_parameters> tracks(&mng_mr);
+        vecmem::vector<free_track_parameters> tracks(&host_mr);
         fill_tracks(tracks);
+
+        state.ResumeTiming();
 
         // Set the magnetic field
         const vector3 B{0, 0, 2 * unit_constants::T};
@@ -88,13 +94,22 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 }
 
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
+
+    // Create the toy geometry
+    detector_host_type det =
+        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
+                            vecmem::jagged_vector>(bp_mng_mr, n_brl_layers,
+                                                   n_edc_layers);
+
     for (auto _ : state) {
-        // Helper object for performing memory copies.
-        vecmem::cuda::copy copy;
+
+        state.PauseTiming();
 
         // Get tracks
-        vecmem::vector<free_track_parameters> tracks(&mng_mr);
+        vecmem::vector<free_track_parameters> tracks(&bp_mng_mr);
         fill_tracks(tracks);
+
+        state.ResumeTiming();
 
         // Get detector data
         auto det_data = get_data(det);
@@ -103,6 +118,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         auto tracks_data = vecmem::get_data(tracks);
 
         // Create navigator candidates buffer
+        vecmem::cuda::copy copy;
         auto candidates_buffer =
             create_candidates_buffer(det, theta_steps * phi_steps, dev_mr);
         copy.setup(candidates_buffer);
