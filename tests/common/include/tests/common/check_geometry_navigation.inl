@@ -202,15 +202,16 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             // Always start a new ray at detector origin
             n_state.set_volume(0u);
 
-            bool heartbeat = n.status(n_state, track);
+            bool heartbeat = true;
+
             // Run while there is a heartbeat
             while (heartbeat) {
                 // (Re-)target
-                heartbeat &= n.target(n_state, s_state());
+                heartbeat &= n.target(n_state, s_state);
                 // Take the step
                 heartbeat &= s.step(s_state, n_state());
                 // And check the status
-                heartbeat &= n.status(n_state, s_state());
+                heartbeat &= n.status(n_state, s_state);
             }
 
             auto &obj_tracer =

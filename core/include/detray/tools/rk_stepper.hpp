@@ -12,6 +12,7 @@
 
 // detray definitions
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 
 namespace detray {
 
@@ -34,8 +35,8 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
         DETRAY_HOST_DEVICE
         state(track_t& t) : base_type::state(t) {}
 
-        // step size
-        scalar _step_size = 1.;
+        // TODO: Define default step size somewhere
+        scalar _step_size = 1. * unit_constants::mm;
 
         // error tolerance
         scalar _tolerance = 1e-4;
@@ -57,6 +58,9 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
         };
 
         stepping_data _step_data;
+
+        DETRAY_HOST_DEVICE
+        void release_step_size(const scalar step) { _step_size = step; }
     };
 
     /** Take a step, regulared by a constrained step
@@ -111,6 +115,7 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
         size_t n_step_trials = 0;
 
         while (!try_rk4(stepping._step_size)) {
+
             step_size_scaling = std::min(
                 std::max(0.25,
                          std::sqrt(std::sqrt((stepping._tolerance /

@@ -207,17 +207,17 @@ dvector<point3> vertices(
 
 /** Specialized method to generate vertices per maks group
  *
- * @tparam mask_group is the type of the split out mask group from all masks
- * @tparam mask_range is the type of the according mask range object
+ * @tparam mask_group_t is the type of the split out mask group from all masks
+ * @tparam mask_range_t is the type of the according mask range object
  *
  * @param masks is the associated (and split out) mask group
  * @param range is the range list of masks to be processed
  *
  * @return a jagged vector of points of the mask vertices (one per maks)
  **/
-template <typename mask_group, typename mask_range>
-auto vertices_for_mask_group(const mask_group &masks, const mask_range &range,
-                             dindex n_segments = 1) {
+template <typename mask_group_t, typename mask_range_t>
+auto vertices_for_mask_group(const mask_group_t &masks,
+                             const mask_range_t &range, dindex n_segments = 1) {
     dvector<dvector<point3>> mask_vertices = {};
     for (auto i : sequence(range)) {
         const auto &mask = masks[i];
@@ -228,68 +228,68 @@ auto vertices_for_mask_group(const mask_group &masks, const mask_range &range,
 
 /** Variadic unrolled intersection - last entry
  *
- * @tparam mask_container is the type of the type of the mask container
- * @tparam mask_range is the mask range type
- * @tparam last_mask_context is the last mask group context
+ * @tparam mask_container_t is the type of the type of the mask container
+ * @tparam mask_range_t is the mask range type
+ * @tparam last_mask_id is the last mask group id
  *
  * @param masks the masks container
  * @param range the range within the mask group to be checked
- * @param mask_context the last mask group context
+ * @param mask_id the last mask group id
  *
  * @return a jagged vector of points of the mask vertices (one per maks)
  **/
-template <typename mask_container, typename mask_range,
-          dindex last_mask_context>
-auto vertices_for_last_mask_group(const mask_container &masks,
-                                  const mask_range &range,
-                                  dindex mask_context) {
+template <typename mask_container_t, typename mask_range_t, dindex last_mask_id>
+auto vertices_for_last_mask_group(const mask_container_t &masks,
+                                  const mask_range_t &range, dindex mask_id) {
     dvector<dvector<point3>> mask_vertices = {};
-    if (mask_context == last_mask_context) {
+    if (mask_id == last_mask_id) {
         mask_vertices = vertices_for_mask_group(
-            masks.template group<last_mask_context>(), range);
+            masks.template group<mask_container_t::to_id(last_mask_id)>(),
+            range);
     }
     return mask_vertices;
 }
 
 /** Variadic unrolled intersection - any integer sequence
  *
- * @tparam mask_container is the type of the type of the mask container
- * @tparam mask_range is the mask range type
- * @tparam first_mask_context is the first mask group context
+ * @tparam mask_container_t is the type of the type of the mask container
+ * @tparam mask_range_t is the mask range type
+ * @tparam first_mask_id is the first mask group id
  *
  * @param masks the masks container
  * @param range the range within the mask group to be checked
- * @param mask_context the last mask group context
- * @param available_contices the mask contices to be checked
+ * @param mask_id the last mask group id
+ * @param available_ids the mask contices to be checked
  *
  * @return a jagged vector of points of the mask vertices (one per maks)
  **/
-template <typename mask_container, typename mask_range,
-          dindex first_mask_context, dindex... remaining_mask_context>
+template <typename mask_container_t, typename mask_range_t,
+          dindex first_mask_id, dindex... remaining_mask_ids>
 auto unroll_masks_for_vertices(
-    const mask_container &masks, const mask_range &range, dindex mask_context,
-    std::integer_sequence<dindex, first_mask_context, remaining_mask_context...>
-    /*available_contices*/) {
+    const mask_container_t &masks, const mask_range_t &range, dindex mask_id,
+    std::integer_sequence<dindex, first_mask_id, remaining_mask_ids...>
+    /*available_ids*/) {
     // Pick the first one for interseciton
-    if (mask_context == first_mask_context) {
+    if (mask_id == first_mask_id) {
         return vertices_for_mask_group(
-            masks.template group<first_mask_context>(), range);
+            masks.template group<mask_container_t::to_id(first_mask_id)>(),
+            range);
     }
     // The reduced integer sequence
-    std::integer_sequence<dindex, remaining_mask_context...> remaining;
+    std::integer_sequence<dindex, remaining_mask_ids...> remaining;
     // Unroll as long as you have at least 2 entries
     if constexpr (remaining.size() > 1) {
         auto mask_vertices =
-            unroll_masks_for_vertices(masks, range, mask_context, remaining);
+            unroll_masks_for_vertices(masks, range, mask_id, remaining);
         if (not mask_vertices.empty()) {
             return mask_vertices;
         }
     }
     // Last chance - intersect the last index if possible
     return vertices_for_last_mask_group<
-        mask_container, mask_range,
-        std::tuple_size_v<typename mask_container::mask_tuple> - 1>(
-        masks, range, mask_context);
+        mask_container_t, mask_range_t,
+        std::tuple_size_v<typename mask_container_t::mask_tuple> - 1>(
+        masks, range, mask_id);
 }
 
 /** Create a r-phi polygon from principle parameters

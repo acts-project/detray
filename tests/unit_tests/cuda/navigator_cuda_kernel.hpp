@@ -17,6 +17,7 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
+#include "detray/tools/base_stepper.hpp"
 #include "detray/tools/navigator.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 
@@ -31,6 +32,7 @@ using detector_device_t =
              vecmem::device_vector, vecmem::jagged_device_vector>;
 using navigator_host_t = navigator<detector_host_t>;
 using navigator_device_t = navigator<detector_device_t>;
+using stepper_t = base_stepper<free_track_parameters>;
 using nav_context = detector_host_t::context;
 
 // detector configuration

@@ -67,6 +67,9 @@ class base_stepper {
         };
 
         navigation_direction _nav_dir = e_forward;
+
+        DETRAY_HOST_DEVICE
+        void release_step_size(const scalar /*step*/) {}
     };
 };
 
