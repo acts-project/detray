@@ -22,7 +22,12 @@ vecmem::cuda::managed_memory_resource mng_mr;
 vecmem::cuda::device_memory_resource dev_mr;
 vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
-void fill_tracks(vecmem::vector<free_track_parameters> &tracks) {
+// detector configuration
+constexpr std::size_t n_brl_layers = 4;
+constexpr std::size_t n_edc_layers = 7;
+
+void fill_tracks(vecmem::vector<free_track_parameters> &tracks,
+                 const unsigned int theta_steps, const unsigned int phi_steps) {
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
 
@@ -63,7 +68,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
         // Get tracks
         vecmem::vector<free_track_parameters> tracks(&host_mr);
-        fill_tracks(tracks);
+        fill_tracks(tracks, state.range(0), state.range(0));
 
         state.ResumeTiming();
 
@@ -80,12 +85,12 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
         // Create propagator
         propagator_host_type p(std::move(s), std::move(n));
 
-        for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
+        for (auto &track : tracks) {
 
             void_propagator_inspector vi;
 
             // Create the propagator state
-            propagator_host_type::state p_state(tracks[i]);
+            propagator_host_type::state p_state(track);
 
             // Run propagation
             p.propagate(p_state, vi);
@@ -107,7 +112,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
         // Get tracks
         vecmem::vector<free_track_parameters> tracks(&bp_mng_mr);
-        fill_tracks(tracks);
+        fill_tracks(tracks, state.range(0), state.range(0));
 
         state.ResumeTiming();
 
@@ -120,7 +125,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         // Create navigator candidates buffer
         vecmem::cuda::copy copy;
         auto candidates_buffer =
-            create_candidates_buffer(det, theta_steps * phi_steps, dev_mr);
+            create_candidates_buffer(det, tracks.size(), dev_mr);
         copy.setup(candidates_buffer);
 
         // Run the propagator test for GPU device
@@ -128,7 +133,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
     }
 }
 
-BENCHMARK(BM_PROPAGATOR_CPU);
-BENCHMARK(BM_PROPAGATOR_CUDA);
+BENCHMARK(BM_PROPAGATOR_CPU)->RangeMultiplier(2)->Range(8, 256);
+BENCHMARK(BM_PROPAGATOR_CUDA)->RangeMultiplier(2)->Range(8, 256);
 
 BENCHMARK_MAIN();

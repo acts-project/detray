@@ -48,14 +48,6 @@ using propagator_host_type = propagator<rk_stepper_type, navigator_host_type>;
 using propagator_device_type =
     propagator<rk_stepper_type, navigator_device_type>;
 
-// detector configuration
-constexpr std::size_t n_brl_layers = 4;
-constexpr std::size_t n_edc_layers = 7;
-
-// geomery navigation configurations
-constexpr unsigned int theta_steps = 100;
-constexpr unsigned int phi_steps = 100;
-
 namespace detray {
 
 /// test function for propagator with single state
