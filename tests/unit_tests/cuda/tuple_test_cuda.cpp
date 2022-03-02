@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -19,8 +19,7 @@ TEST(tuple_test_cuda, tuple_test) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // mask_store-like tuple container
-    vec_tuple<thrust::tuple, vecmem::vector, int, float, double> input_host(
-        mng_mr);
+    vec_tuple<thrust::tuple, dvector, int, float, double> input_host(mng_mr);
     detail::get<0>(input_host._tuple) = vecmem::vector<int>({1, 2, 3});
     detail::get<1>(input_host._tuple) = vecmem::vector<float>({1.1, 5, 6});
     detail::get<2>(input_host._tuple) = vecmem::vector<double>({2.1, 2.2, 0.});

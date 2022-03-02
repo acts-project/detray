@@ -18,34 +18,28 @@
 
 using namespace detray;
 
-enum mask_ids : unsigned int {
-    e_rectangle2 = 0,
-    e_cylinder3 = 1,
-    e_conc_cylinder3 = 2,
-};
-
-using transform3 = __plugin::transform3<detray::scalar>;
-using point3 = __plugin::point3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using mask_defs =
-    mask_registry<mask_ids, rectangle2<>,
-                  cylinder3<false, cylinder_intersector>,
-                  cylinder3<false, concentric_cylinder_intersector<>>>;
-using plane_surface = surface<mask_defs, transform3>;
-
 #ifdef DETRAY_BENCHMARKS_REP
 unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
 #else
 unsigned int gbench_repetitions = 0;
 #endif
 
+enum mask_ids : unsigned int {
+    e_rectangle2 = 0,
+    e_cylinder3 = 1,
+    e_conc_cylinder3 = 2,
+};
+
+using mask_defs =
+    mask_registry<mask_ids, rectangle2<>,
+                  cylinder3<false, cylinder_intersector>,
+                  cylinder3<false, concentric_cylinder_intersector<>>>;
+using plane_surface = surface<mask_defs, transform3>;
+
 unsigned int theta_steps = 1000;
 unsigned int phi_steps = 1000;
 
 dvector<scalar> dists = {1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
-
-auto planes =
-    planes_along_direction(dists, vector::normalize(vector3{1., 1., 1.}));
 
 // This test runs intersection with all surfaces of the TrackML detector
 static void BM_INTERSECT_PLANES(benchmark::State &state) {
@@ -53,6 +47,8 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
     unsigned int sfhit = 0;
     unsigned int sfmiss = 0;
 
+    auto planes =
+        planes_along_direction(dists, vector::normalize(vector3{1., 1., 1.}));
     rectangle2<> rect{10., 20., 0u};
     point3 ori = {0., 0., 0.};
 
@@ -103,19 +99,19 @@ BENCHMARK(BM_INTERSECT_PLANES)
 // This test runs intersection with all surfaces of the TrackML detector
 static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
-    unsigned int sfhit = 0;
-    unsigned int sfmiss = 0;
-
     using cylinder_mask =
         typename mask_defs::template get_type<e_cylinder3>::type;
+
+    unsigned int sfhit = 0;
+    unsigned int sfmiss = 0;
     dvector<cylinder_mask> cylinders;
+
     for (auto r : dists) {
         cylinders.push_back(cylinder_mask{r, -10., 10., 0u});
     }
 
     typename mask_defs::link_type mask_link{e_cylinder3, 0};
-    plane_surface plain(std::move(transform3()), std::move(mask_link), 0, false,
-                        false);
+    plane_surface plain(transform3(), mask_link, 0, false, false);
 
     point3 ori = {0., 0., 0.};
 
@@ -179,8 +175,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     }
 
     typename mask_defs::link_type mask_link{e_conc_cylinder3, 0};
-    plane_surface plain(std::move(transform3()), std::move(mask_link), 0, false,
-                        false);
+    plane_surface plain(transform3(), mask_link, 0, false, false);
 
     point3 ori = {0., 0., 0.};
 

@@ -133,7 +133,7 @@ class volume {
     void set_grid_type(grid_type val) { _grid_type = val; }
 
     /** get grid type associated with volume */
-    const auto get_grid_type() const { return _grid_type; }
+    auto get_grid_type() const { return _grid_type; }
 
     /** Equality operator
      *

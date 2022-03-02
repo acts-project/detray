@@ -1,18 +1,23 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
+// Detray include(s).
+#include "grids_grid2_cuda_kernel.hpp"
+
+// VecMem include(s).
+#include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/utils/cuda/copy.hpp>
+
+// GTest include(s).
 #include <gtest/gtest.h>
 
+// System include(s).
 #include <climits>
 #include <iostream>
-#include <vecmem/memory/cuda/managed_memory_resource.hpp>
-
-#include "grids_grid2_cuda_kernel.hpp"
-#include "vecmem/utils/cuda/copy.hpp"
 
 using namespace detray;
 
@@ -194,7 +199,8 @@ TEST(grids_cuda, grid2_attach_populator) {
     }
 
     // get grid_data
-    auto g2_data = get_data(g2, mng_mr);
+    const host_grid2_attach& const_g2 = g2;
+    auto g2_data = get_data(const_g2, mng_mr);
 
     // Read the grid
     grid_attach_read_test(g2_data);

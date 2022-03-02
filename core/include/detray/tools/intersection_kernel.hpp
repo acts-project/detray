@@ -95,7 +95,7 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
  **/
 template <typename track_t, typename surface_t, typename transform_container,
           typename mask_container>
-DETRAY_HOST_DEVICE inline const auto intersect(
+DETRAY_HOST_DEVICE inline auto intersect(
     const track_t &track, surface_t &surface,
     const transform_container &contextual_transforms,
     const mask_container &masks) {

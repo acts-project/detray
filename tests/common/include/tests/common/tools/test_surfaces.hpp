@@ -28,7 +28,7 @@ vecmem::host_memory_resource host_mr;
 using namespace vector;
 
 enum plane_mask_ids : unsigned int {
-    e_rectangle2 = 0,
+    e_plane_rectangle2 = 0,
 };
 
 using transform3 = __plugin::transform3<detray::scalar>;
@@ -51,8 +51,8 @@ dvector<surface<plane_masks, transform3>> planes_along_direction(
     for (const auto &[idx, d] : enumerate(distances)) {
         vector3 t = d * direction;
         transform3 trf(t, z, x);
-        typename plane_masks::link_type mask_link{plane_masks::id::e_rectangle2,
-                                                  idx};
+        typename plane_masks::link_type mask_link{
+            plane_masks::id::e_plane_rectangle2, idx};
         return_surfaces.emplace_back(std::move(trf), std::move(mask_link), 0,
                                      false, false);
     }

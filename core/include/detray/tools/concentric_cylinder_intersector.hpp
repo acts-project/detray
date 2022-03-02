@@ -18,7 +18,7 @@
 
 namespace detray {
 
-class unbound;
+struct unbound;
 
 /** This is an intersector struct for a concetric cylinder surface
  */

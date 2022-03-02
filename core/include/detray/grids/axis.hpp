@@ -1,20 +1,26 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-#include <algorithm>
+// Project include(s).
+#include "detray/definitions/invalid_values.hpp"
+#include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/indexing.hpp"
+
+// VecMem include(s).
 #include <vecmem/containers/data/vector_view.hpp>
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 
-#include "detray/definitions/invalid_values.hpp"
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/indexing.hpp"
+// System include(s).
+#include <algorithm>
+#include <cstddef>
+#include <type_traits>
 
 namespace detray {
 
@@ -34,12 +40,14 @@ struct regular {
     static constexpr unsigned int axis_identifier = 0;
 
     /** Defualt constructor for dummy axis **/
+    DETRAY_HOST_DEVICE
     regular()
         : n_bins(invalid_value<dindex>()),
           min(0.),
           max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
     regular(vecmem::memory_resource & /*resource*/)
         : n_bins(invalid_value<dindex>()),
           min(0.),
@@ -60,7 +68,7 @@ struct regular {
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<regular, axis_data_t>, bool> = true>
-    DETRAY_HOST_DEVICE regular(axis_data_t &axis_data)
+    DETRAY_HOST_DEVICE regular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
     /** Return the number of bins */
@@ -214,12 +222,14 @@ struct circular {
     static constexpr unsigned int axis_identifier = 1;
 
     /** Defualt constructor for dummy axis **/
+    DETRAY_HOST_DEVICE
     circular()
         : n_bins(invalid_value<dindex>()),
           min(0.),
           max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
     circular(vecmem::memory_resource & /*resource*/)
         : n_bins(invalid_value<dindex>()),
           min(0.),
@@ -240,7 +250,7 @@ struct circular {
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<circular, axis_data_t>, bool> = true>
-    DETRAY_HOST_DEVICE circular(axis_data_t &axis_data)
+    DETRAY_HOST_DEVICE circular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
     /** Return the number of bins */
@@ -419,6 +429,7 @@ struct irregular {
     static constexpr unsigned int axis_identifier = 2;
 
     /** Defualt constructor for dummy axis **/
+    DETRAY_HOST_DEVICE
     irregular()
         : n_bins(invalid_value<dindex>()),
           min(0.),
@@ -426,6 +437,7 @@ struct irregular {
           boundaries({}) {}
 
     /** Constructor with vecmem memory resource **/
+    DETRAY_HOST
     irregular(vecmem::memory_resource &resource)
         : n_bins(invalid_value<dindex>()),
           min(0.),
@@ -441,7 +453,7 @@ struct irregular {
           boundaries(bins, &resource) {}
 
     /** Constructor with vecmem memory resource - lvalue **/
-    DETRAY_HOST irregular(vector_t<scalar> &bins,
+    DETRAY_HOST irregular(const vector_t<scalar> &bins,
                           vecmem::memory_resource &resource)
         : n_bins(bins.size() - 1),
           min(bins[0]),
@@ -460,7 +472,7 @@ struct irregular {
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<irregular, axis_data_t>, bool> = true>
-    DETRAY_HOST_DEVICE irregular(axis_data_t &axis_data)
+    DETRAY_HOST_DEVICE irregular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins),
           min(axis_data.min),
           max(axis_data.max),
@@ -597,65 +609,101 @@ struct irregular {
 /**
  * static implementation of axis data for device
  */
-template <typename axis_t, typename Enable = void>
+template <typename axis_t, typename scalar_t, typename Enable = void>
 struct axis_data;
 
-template <typename axis_t>
-struct axis_data<axis_t,
-                 typename std::enable_if_t<axis_t::axis_identifier == 0>> {
+template <typename axis_t, typename scalar_t>
+struct axis_data<axis_t, scalar_t,
+                 typename std::enable_if_t<(axis_t::axis_identifier == 0) ||
+                                           (axis_t::axis_identifier == 1)>> {
 
-    axis_data(axis_t &axis)
-        : n_bins(axis.n_bins), min(axis.min), max(axis.max) {}
-
-    const dindex n_bins;
-    const scalar min;
-    const scalar max;
+    dindex n_bins;
+    std::remove_cv_t<scalar_t> min;
+    std::remove_cv_t<scalar_t> max;
 };
 
-template <typename axis_t>
-struct axis_data<axis_t,
-                 typename std::enable_if_t<axis_t::axis_identifier == 1>> {
-
-    axis_data(axis_t &axis)
-        : n_bins(axis.n_bins), min(axis.min), max(axis.max) {}
-
-    const dindex n_bins;
-    const scalar min;
-    const scalar max;
-};
-
-template <typename axis_t>
-struct axis_data<axis_t,
+template <typename axis_t, typename scalar_t>
+struct axis_data<axis_t, scalar_t,
                  typename std::enable_if_t<axis_t::axis_identifier == 2>> {
 
-    axis_data(axis_t &axis)
-        : n_bins(axis.n_bins),
-          min(axis.min),
-          max(axis.max),
-          boundaries(vecmem::get_data(axis.boundaries)) {}
-
-    const dindex n_bins;
-    const scalar min;
-    const scalar max;
-    vecmem::data::vector_view<scalar> boundaries;
+    dindex n_bins;
+    std::remove_cv_t<scalar_t> min;
+    std::remove_cv_t<scalar_t> max;
+    vecmem::data::vector_view<scalar_t> boundaries;
 };
 
 /**
- * standalone function to get axis_data
+ * standalone function to get axis_data (non-const)
  */
-template <
-    template <template <typename, std::size_t> class,
-              template <typename...> class>
-    class axis_t,
-    template <typename, std::size_t> class array_t,
-    template <typename...> class vector_t,
-    std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 0 ||
-                         axis_t<array_t, vector_t>::axis_identifier == 1 ||
-                         axis_t<array_t, vector_t>::axis_identifier == 2,
-                     bool> = true>
-inline axis_data<axis_t<array_t, vector_t>> get_data(
+template <template <template <typename, std::size_t> class,
+                    template <typename...> class>
+          class axis_t,
+          template <typename, std::size_t> class array_t,
+          template <typename...> class vector_t,
+          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 0 ||
+                               axis_t<array_t, vector_t>::axis_identifier == 1,
+                           bool> = true>
+inline axis_data<axis_t<array_t, vector_t>, scalar> get_data(
     axis_t<array_t, vector_t> &axis) {
-    return axis;
+
+    axis_data<axis_t<array_t, vector_t>, scalar> result{axis.n_bins, axis.min,
+                                                        axis.max};
+    return result;
+}
+
+/**
+ * standalone function to get axis_data (non-const)
+ */
+template <template <template <typename, std::size_t> class,
+                    template <typename...> class>
+          class axis_t,
+          template <typename, std::size_t> class array_t,
+          template <typename...> class vector_t,
+          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 2,
+                           bool> = true>
+inline axis_data<axis_t<array_t, vector_t>, scalar> get_data(
+    axis_t<array_t, vector_t> &axis) {
+
+    axis_data<axis_t<array_t, vector_t>, scalar> result{
+        axis.n_bins, axis.min, axis.max, vecmem::get_data(axis.boundaries)};
+    return result;
+}
+
+/**
+ * standalone function to get axis_data (const)
+ */
+template <template <template <typename, std::size_t> class,
+                    template <typename...> class>
+          class axis_t,
+          template <typename, std::size_t> class array_t,
+          template <typename...> class vector_t,
+          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 0 ||
+                               axis_t<array_t, vector_t>::axis_identifier == 1,
+                           bool> = true>
+inline axis_data<axis_t<array_t, vector_t>, const scalar> get_data(
+    const axis_t<array_t, vector_t> &axis) {
+
+    axis_data<axis_t<array_t, vector_t>, const scalar> result{
+        axis.n_bins, axis.min, axis.max};
+    return result;
+}
+
+/**
+ * standalone function to get axis_data (const)
+ */
+template <template <template <typename, std::size_t> class,
+                    template <typename...> class>
+          class axis_t,
+          template <typename, std::size_t> class array_t,
+          template <typename...> class vector_t,
+          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 2,
+                           bool> = true>
+inline axis_data<axis_t<array_t, vector_t>, const scalar> get_data(
+    const axis_t<array_t, vector_t> &axis) {
+
+    axis_data<axis_t<array_t, vector_t>, const scalar> result{
+        axis.n_bins, axis.min, axis.max, vecmem::get_data(axis.boundaries)};
+    return result;
 }
 
 }  // namespace detray

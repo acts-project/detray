@@ -211,8 +211,8 @@ class detector {
      * @return ranged iterator to the object transforms
      */
     DETRAY_HOST_DEVICE
-    inline const auto transform_store(const dindex_range &range,
-                                      const context &ctx = {}) const {
+    inline auto transform_store(const dindex_range &range,
+                                const context &ctx = {}) const {
         return _transforms.range(range, ctx);
     }
 
@@ -248,7 +248,7 @@ class detector {
      * @return a struct that contains references to all relevant containers.
      */
     DETRAY_HOST_DEVICE
-    const auto data(const context & /*ctx*/ = {}) const {
+    auto data(const context & /*ctx*/ = {}) const {
         struct data_core {
             const dvector<volume_type> &volumes;
             const transform_container &transforms;
@@ -282,7 +282,7 @@ class detector {
                                               volume_type &vol,
                                               grid_type &surfaces_grid) {
         // iterate over surfaces to fill the grid
-        for (const auto &[surf_idx, surf] : enumerate(_surfaces, vol)) {
+        for (const auto [surf_idx, surf] : enumerate(_surfaces, vol)) {
             if (surf.get_grid_status() == true) {
                 auto sidx = surf_idx;
 
@@ -400,6 +400,11 @@ class detector {
 
     DETRAY_HOST_DEVICE
     inline volume_finder &volume_search_grid() { return _volume_finder; }
+
+    DETRAY_HOST_DEVICE
+    inline const surfaces_finder_type &get_surfaces_finder() const {
+        return _surfaces_finder;
+    }
 
     DETRAY_HOST_DEVICE
     inline surfaces_finder_type &get_surfaces_finder() {

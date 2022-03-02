@@ -108,7 +108,7 @@ class navigator {
         DETRAY_HOST_DEVICE
         scalar operator()() const { return _distance_to_next; }
 
-        /** @returns current candidates */
+        /** @returns current candidates - const */
         DETRAY_HOST_DEVICE
         inline const auto &candidates() const { return _candidates; }
 
@@ -119,6 +119,10 @@ class navigator {
         /** @returns current object that was reached */
         DETRAY_HOST_DEVICE
         inline auto current() const { return _next - 1; }
+
+        /** @returns next object that we want to reach - const */
+        DETRAY_HOST_DEVICE
+        inline const auto &next() const { return _next; }
 
         /** @returns next object that we want to reach */
         DETRAY_HOST_DEVICE
@@ -136,7 +140,6 @@ class navigator {
         inline void set_dist(scalar dist) { _distance_to_next = dist; }
 
         /** Call the navigation inspector */
-
         DETRAY_HOST_DEVICE
         inline auto run_inspector(const char *message) {
             return _inspector(*this, message);
@@ -147,34 +150,34 @@ class navigator {
         inline auto &inspector() { return _inspector; }
 
         /** @returns current object the navigator is on (might be invalid if
-         * between objects)
+         * between objects) - const
          */
         DETRAY_HOST_DEVICE
-        inline const auto on_object() const { return _object_index; }
+        inline auto on_object() const { return _object_index; }
 
         /** Update current object the navigator is on  */
         DETRAY_HOST_DEVICE
         inline void set_object(dindex obj) { _object_index = obj; }
 
-        /** @returns current navigation status */
+        /** @returns current navigation status - const */
         DETRAY_HOST_DEVICE
-        inline const auto status() const { return _status; }
+        inline auto status() const { return _status; }
 
         /** Set new navigation status */
         DETRAY_HOST_DEVICE
         inline void set_status(navigation_status stat) { _status = stat; }
 
-        /** @returns tolerance to determine if we are on object */
+        /** @returns tolerance to determine if we are on object - const */
         DETRAY_HOST_DEVICE
-        inline const auto tolerance() { return _on_object_tolerance; }
+        inline auto tolerance() const { return _on_object_tolerance; }
 
         /** Adjust the on-object tolerance */
         DETRAY_HOST_DEVICE
         inline void set_tolerance(scalar tol) { _on_object_tolerance = tol; }
 
-        /** @returns navigation trust level */
+        /** @returns navigation trust level - const */
         DETRAY_HOST_DEVICE
-        inline const auto trust_level() const { return _trust_level; }
+        inline auto trust_level() const { return _trust_level; }
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
@@ -182,15 +185,15 @@ class navigator {
             _trust_level = lvl;
         }
 
-        /** @returns current volume (index) */
+        /** @returns current volume (index) - const */
         DETRAY_HOST_DEVICE
-        inline const auto volume() const { return _volume_index; }
+        inline auto volume() const { return _volume_index; }
 
         /** Set start/new volume */
         DETRAY_HOST_DEVICE
         inline void set_volume(dindex v) { _volume_index = v; }
 
-        /** Helper method to check if a kernel is exhausted */
+        /** Helper method to check if a kernel is exhausted - const */
         DETRAY_HOST_DEVICE
         bool is_exhausted() const { return (_next == _candidates.end()); }
 

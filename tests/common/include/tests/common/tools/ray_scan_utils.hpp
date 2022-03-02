@@ -159,8 +159,7 @@ inline auto trace_intersections(const record_container &intersection_records,
 
     // Readable access to the data of a recorded intersection
     struct record {
-        using type = typename record_container::value_type;
-        const type &entry;
+        const typename record_container::value_type &entry;
 
         // getter
         inline auto &object_id() const { return entry.first; }
