@@ -62,6 +62,19 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
                             vecmem::jagged_vector>(host_mr, n_brl_layers,
                                                    n_edc_layers);
 
+    // Set the magnetic field
+    const vector3 B{0, 0, 2 * unit_constants::T};
+    field_type B_field(B);
+
+    // Create RK stepper
+    rk_stepper_type s(B_field);
+
+    // Create navigator
+    navigator_host_type n(det);
+
+    // Create propagator
+    propagator_host_type p(std::move(s), std::move(n));
+
     for (auto _ : state) {
 
         state.PauseTiming();
@@ -71,19 +84,6 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
         fill_tracks(tracks, state.range(0), state.range(0));
 
         state.ResumeTiming();
-
-        // Set the magnetic field
-        const vector3 B{0, 0, 2 * unit_constants::T};
-        field_type B_field(B);
-
-        // Create RK stepper
-        rk_stepper_type s(B_field);
-
-        // Create navigator
-        navigator_host_type n(det);
-
-        // Create propagator
-        propagator_host_type p(std::move(s), std::move(n));
 
         for (auto &track : tracks) {
 
@@ -106,6 +106,12 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
                             vecmem::jagged_vector>(bp_mng_mr, n_brl_layers,
                                                    n_edc_layers);
 
+    // Get detector data
+    auto det_data = get_data(det);
+
+    // vecmem copy helper object
+    vecmem::cuda::copy copy;
+
     for (auto _ : state) {
 
         state.PauseTiming();
@@ -116,14 +122,10 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
         state.ResumeTiming();
 
-        // Get detector data
-        auto det_data = get_data(det);
-
         // Get tracks data
         auto tracks_data = vecmem::get_data(tracks);
 
         // Create navigator candidates buffer
-        vecmem::cuda::copy copy;
         auto candidates_buffer =
             create_candidates_buffer(det, tracks.size(), dev_mr);
         copy.setup(candidates_buffer);
