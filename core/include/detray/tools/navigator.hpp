@@ -532,7 +532,7 @@ class navigator {
 // candidates size allocation. With the local navigation, the size can be
 // restricted to much smaller value
 template <typename detector_t>
-DETRAY_HOST static vecmem::data::jagged_vector_buffer<intersection>
+DETRAY_HOST vecmem::data::jagged_vector_buffer<intersection>
 create_candidates_buffer(const detector_t &det, const unsigned int n_tracks,
                          vecmem::memory_resource &device_resource) {
     return vecmem::data::jagged_vector_buffer<intersection>(
