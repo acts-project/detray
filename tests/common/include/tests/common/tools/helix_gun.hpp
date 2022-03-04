@@ -34,8 +34,13 @@ class helix_gun {
         // R [mm] =  pT [GeV] / B [T] in natrual unit
         _R = std::abs(getter::norm(pT) / getter::norm(mag_field));
 
-        // Get vz over vt in new coordinate
-        _vz_over_vt = pz / getter::norm(pT);
+        // Handle the case of pT ~ 0
+        if (getter::norm(pT) < 1e-20) {
+            _vz_over_vt = std::numeric_limits<scalar>::infinity();
+        } else {
+            // Get vz over vt in new coordinate
+            _vz_over_vt = pz / getter::norm(pT);
+        }
 
         _scaler = _R * std::sqrt(1 + std::pow(_vz_over_vt, 2));
 
@@ -51,6 +56,12 @@ class helix_gun {
     scalar radius() const { return _R; }
 
     point3 operator()(scalar path_length) const {
+
+        // Handle the case of pT ~ 0
+        if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
+            return _vertex.pos() + path_length * _ez;
+        }
+
         // Requested path length is coverted to parameterized value (t) by
         // dividing it with scaling factor
         scalar t = path_length / _scaler;
