@@ -206,7 +206,7 @@ struct free_track_parameters {
     private:
     vector_type _vector;
     covariance_type _covariance;
-    scalar _overstep_tolerance = -1e-3;
+    scalar _overstep_tolerance = -1e-4;
 };
 
 }  // namespace detray
