@@ -16,7 +16,7 @@ struct void_propagator_inspector {
 
     /** void operator **/
     template <typename... args>
-    DETRAY_HOST_DEVICE void operator()(const args &... /*ignored*/) {
+    DETRAY_HOST_DEVICE void operator()(const args &.../*ignored*/) {
         return;
     }
 };
@@ -76,14 +76,11 @@ struct propagator {
         // For now, always start at zero
         n_state.set_volume(0u);
 
-        // bool heartbeat = _navigator.status(n_state, s_state);
         bool heartbeat = true;
-
+        // initialize the navigation
+        heartbeat &= _navigator.init(n_state, s_state);
         // Run while there is a heartbeat
         while (heartbeat) {
-
-            // (Re-)target
-            heartbeat &= _navigator.target(n_state, s_state);
 
             // Take the step
             heartbeat &= _stepper.step(s_state, n_state());

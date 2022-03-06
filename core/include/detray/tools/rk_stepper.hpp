@@ -38,19 +38,22 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
         // TODO: Define default step size somewhere
         scalar _step_size = 1. * unit_constants::mm;
 
-        // error tolerance
+        /// error tolerance
         scalar _tolerance = 1e-4;
 
-        // step size cutoff value
+        /// step size cutoff value
         scalar _step_size_cutoff = 1e-4;
 
-        // maximum trial number of RK stepping
+        /// step size cutoff value
+        scalar _max_step_size = 5. * unit_constants::mm;
+
+        /// maximum trial number of RK stepping
         size_t _max_rk_step_trials = 10000;
 
-        // accumulated path length
+        /// accumulated path length
         scalar _path_accumulated = 0;
 
-        // stepping data required for RKN4
+        /// stepping data required for RKN4
         struct stepping_data {
             vector3 b_first, b_middle, b_last;
             vector3 k1, k2, k3, k4;
@@ -59,8 +62,8 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
 
         stepping_data _step_data;
 
-        DETRAY_HOST_DEVICE
-        void release_step_size(const scalar step) { _step_size = step; }
+        // DETRAY_HOST_DEVICE
+        // void set_step_size(const scalar step) { _step_size = step; }
     };
 
     /** Take a step, regulared by a constrained step
@@ -71,16 +74,16 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
      * @return returning the heartbeat, indicating if the stepping is alive
      */
     DETRAY_HOST_DEVICE
-    bool step(state& stepping,
-              const scalar path_limit = std::numeric_limits<scalar>::max()) {
+    bool step(state& stepping, scalar step_size_estimate) {
         auto& sd = stepping._step_data;
+        stepping.set_step_size(step_size_estimate);
 
         scalar error_estimate = 0;
 
         // First Runge-Kutta point
         sd.b_first =
             _magnetic_field.get_field(stepping().pos(), context_type{});
-        sd.k1 = evaluatek(stepping, sd.b_first, 0);
+        sd.k1 = evaluate_k(stepping, sd.b_first, 0);
 
         const auto try_rk4 = [&](const scalar& h) -> bool {
             // State the square and half of the step size
@@ -92,15 +95,15 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
             // Second Runge-Kutta point
             const vector3 pos1 = pos + half_h * dir + h2 * 0.125 * sd.k1;
             sd.b_middle = _magnetic_field.get_field(pos1, context_type{});
-            sd.k2 = evaluatek(stepping, sd.b_middle, 1, half_h, sd.k1);
+            sd.k2 = evaluate_k(stepping, sd.b_middle, 1, half_h, sd.k1);
 
             // Third Runge-Kutta point
-            sd.k3 = evaluatek(stepping, sd.b_middle, 2, half_h, sd.k2);
+            sd.k3 = evaluate_k(stepping, sd.b_middle, 2, half_h, sd.k2);
 
             // Last Runge-Kutta point
             const vector3 pos2 = pos + h * dir + h2 * 0.5 * sd.k3;
             sd.b_last = _magnetic_field.get_field(pos2, context_type{});
-            sd.k4 = evaluatek(stepping, sd.b_last, 3, h, sd.k3);
+            sd.k4 = evaluate_k(stepping, sd.b_last, 3, h, sd.k3);
 
             // Compute and check the local integration error estimate
             // @Todo
@@ -143,9 +146,10 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
             n_step_trials++;
         }
 
-        stepping._step_size = std::min(stepping._step_size, path_limit);
+        stepping._step_size =
+            std::min(stepping._step_size, stepping._max_step_size);
 
-        auto h = stepping._step_size;
+        const auto h = stepping._step_size;
         auto pos = stepping().pos();
         auto dir = stepping().dir();
 
@@ -160,6 +164,14 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
 
         stepping._path_accumulated += h;
 
+        // If the parameter is off track too much or given step_size is not
+        // appropriate
+        if (stepping._path_accumulated > stepping._max_pathlength) {
+            // Too many trials, have to abort
+            printf("too many rk4 trials. will break. \n");
+            return false;
+        }
+
         // state.stepping.derivative.template head<3>() = dir;
         // state.stepping.derivative.template segment<3>(4) = sd.k4;
 
@@ -167,9 +179,9 @@ class rk_stepper final : public base_stepper<track_t, tuple_t> {
     }
 
     DETRAY_HOST_DEVICE
-    inline vector3 evaluatek(const state& stepping, const vector3& b_field,
-                             const int i, const scalar h = 0.,
-                             const vector3& k_prev = vector3{0, 0, 0}) {
+    inline vector3 evaluate_k(const state& stepping, const vector3& b_field,
+                              const int i, const scalar h = 0.,
+                              const vector3& k_prev = vector3{0, 0, 0}) {
         vector3 k_new;
         auto qop = stepping().qop();
         auto dir = stepping().dir();

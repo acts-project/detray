@@ -10,6 +10,7 @@
 // detray definitions
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 
 // detray tools
 #include "detray/tools/track.hpp"
@@ -34,30 +35,33 @@ class base_stepper {
 
         state() = delete;
 
+        /// Sets track parameters.
         DETRAY_HOST_DEVICE
         state(track_t &t) : _track(t) {}
 
-        // free track parameter
+        /// free track parameter
         track_t &_track;
 
-        // jacobian
+        /// jacobian
         bound_matrix _jacobian;
 
-        // jacobian transport matrix
+        /// jacobian transport matrix
         free_matrix _jac_transport;
 
-        // jacobian transformation
+        /// jacobian transformation
         bound_to_free_matrix _jac_to_global;
 
-        // covariance matrix on surface
+        /// covariance matrix on surface
         bound_matrix _cov;
 
-        // The propagation derivative
+        /// The propagation derivative
         free_vector _derivative;
 
+        /// @returns track parameters - const access
         DETRAY_HOST_DEVICE
         track_t &operator()() { return _track; }
 
+        /// @returns track parameters.
         DETRAY_HOST_DEVICE
         const track_t &operator()() const { return _track; }
 
@@ -68,8 +72,16 @@ class base_stepper {
 
         navigation_direction _nav_dir = e_forward;
 
+        /// step size cutoff value
+        scalar _max_pathlength = 0.5 * unit_constants::m;
+
+        /// Set next step size
         DETRAY_HOST_DEVICE
-        void release_step_size(const scalar /*step*/) {}
+        void set_step_size(const scalar /*step*/) {}
+
+        /// Set next step size and release constrained stepping
+        DETRAY_HOST_DEVICE
+        void release_step_size() {}
     };
 };
 

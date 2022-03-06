@@ -71,7 +71,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             // RK Stepping into forward direction
             rk_stepper_type::state forward_state(traj);
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(forward_state);
+                rk_stepper.step(forward_state, forward_state._max_step_size);
             }
 
             // get relative error by dividing error with path length
@@ -88,7 +88,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             traj.flip();
             rk_stepper_type::state backward_state(traj);
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(backward_state);
+                rk_stepper.step(backward_state, backward_state._max_step_size);
             }
 
             // get relative error by dividing error with path length

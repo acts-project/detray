@@ -77,10 +77,10 @@ struct print_inspector {
 
         switch (static_cast<int>(state.status())) {
             case -3:
-                debug_stream << "status\t\t\t\t\ton_target" << std::endl;
+                debug_stream << "status\t\t\t\t\tabort" << std::endl;
                 break;
             case -2:
-                debug_stream << "status\t\t\t\t\tabort" << std::endl;
+                debug_stream << "status\t\t\t\t\texit" << std::endl;
                 break;
             case -1:
                 debug_stream << "status\t\t\t\t\tunknowm" << std::endl;
@@ -167,8 +167,8 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     detray_navigator n(d);
     detray_stepper s;
 
-    unsigned int theta_steps = 100;
-    unsigned int phi_steps = 100;
+    unsigned int theta_steps = 1;
+    unsigned int phi_steps = 1;
 
     const point3 ori{0., 0., 0.};
     // dindex start_index = n.detector.volume_by_pos(ori).index();
@@ -203,13 +203,11 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             n_state.set_volume(0u);
 
             bool heartbeat = true;
-
+            n.init(n_state, s_state);
             // Run while there is a heartbeat
             while (heartbeat) {
-                // (Re-)target
-                heartbeat &= n.target(n_state, s_state);
                 // Take the step
-                heartbeat &= s.step(s_state, n_state());
+                heartbeat &= s.step(s_state, n_state);
                 // And check the status
                 heartbeat &= n.status(n_state, s_state);
             }

@@ -178,13 +178,23 @@ class detector {
         return _volumes[volume_index];
     }
 
-    /** @return all objects of a given type - const access */
+    /** @return all surfaces - const access */
     DETRAY_HOST_DEVICE
-    inline auto &surfaces() const { return _surfaces; }
+    inline const auto &surfaces() const { return _surfaces; }
 
-    /** @return all objects of a given type - non-const access */
+    /** @return all surfaces - non-const access */
     DETRAY_HOST_DEVICE
     inline auto &surfaces() { return _surfaces; }
+
+    /** @return a surface by index - const access */
+    DETRAY_HOST_DEVICE
+    inline const auto &get_surface(dindex sfidx) const {
+        return _surfaces[sfidx];
+    }
+
+    /** @return a surface by index - non-const access */
+    DETRAY_HOST_DEVICE
+    inline auto &get_surface(dindex sfidx) { return _surfaces[sfidx]; }
 
     /** @return all surface/portal masks in the geometry - const access */
     DETRAY_HOST_DEVICE

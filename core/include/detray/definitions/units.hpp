@@ -14,6 +14,12 @@ namespace unit_constants {
 // Length, native unit mm
 constexpr double mm = 1.0;
 
+// Length, convert to cm
+constexpr double cm = 10.0;
+
+// Length, convert to m
+constexpr double m = 1000.0;
+
 // Energy/mass/momentum, native unit GeV
 constexpr double GeV = 1.0;
 
