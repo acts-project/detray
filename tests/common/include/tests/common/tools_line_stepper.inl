@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 #include "detray/core/transform_store.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/track.hpp"
 
