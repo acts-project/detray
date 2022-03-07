@@ -18,7 +18,7 @@ struct void_inspector {
 
     /** void operator **/
     template <typename... args>
-    DETRAY_HOST_DEVICE void operator()(const args &.../*ignored*/) {
+    DETRAY_HOST_DEVICE void operator()(const args &... /*ignored*/) {
         return;
     }
 };

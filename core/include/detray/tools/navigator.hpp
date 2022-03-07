@@ -266,7 +266,7 @@ class navigator {
         scalar _distance_to_next = std::numeric_limits<scalar>::infinity();
 
         /** The inspector type of this navigation engine */
-        inspector_type _inspector = {};
+        inspector_type _inspector;
 
         /** Index of a object (surface/portal) if is reached, otherwise invalid
          */
@@ -310,7 +310,7 @@ class navigator {
         update_kernel(navigation, stepping);
 
         // Did we hit a portal? (kernel needs to be re-initialized)
-        heartbeat = check_volume_switch(navigation, stepping);
+        heartbeat = check_volume_switch(navigation);
 
         // If after the update call no trust could be restored, local
         // navigation might be exhausted or we switched volumes: re-initialize
@@ -540,9 +540,7 @@ class navigator {
      *
      * @param navigation is the navigation state
      */
-    template <typename stepper_state_t>
-    DETRAY_HOST_DEVICE bool check_volume_switch(
-        state &navigation, stepper_state_t &stepping) const {
+    DETRAY_HOST_DEVICE bool check_volume_switch(state &navigation) const {
         // Check if we need to switch volume index and (re-)initialize
         if (navigation.status() == navigation::e_on_target and
             navigation.volume() != navigation.current()->link) {

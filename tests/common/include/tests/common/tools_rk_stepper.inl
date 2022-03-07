@@ -32,7 +32,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     // RK stepper configurations
     constexpr unsigned int theta_steps = 100;
     constexpr unsigned int phi_steps = 100;
-    constexpr unsigned int rk_steps = 100;
+    //constexpr unsigned int rk_steps = 100;
 
     // Constant magnetic field
     vector3 B{1 * unit_constants::T, 1 * unit_constants::T,
