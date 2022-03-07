@@ -80,8 +80,6 @@ TEST(propagator_cuda, propagator) {
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
-        printf("%d \n", i);
-
         track_inspector<vecmem::vector> ti(mng_mr);
 
         // Create the propagator state
@@ -94,7 +92,8 @@ TEST(propagator_cuda, propagator) {
         host_intersection_records.push_back(ti._intersections);
 
         // Ensure that the tracks reach the end of the world
-        EXPECT_EQ(state._navigation.volume(), dindex_invalid);
+        ASSERT_EQ(state._navigation.volume(), dindex_invalid);
+        ASSERT_EQ(state._navigation.direction(), 0);
     }
 
     /**
