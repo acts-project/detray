@@ -86,6 +86,7 @@ struct planar_intersector {
 
         // Intersection code
         scalar denom = vector::dot(rd, sn);
+
         if (denom != 0.0) {
             intersection is;
             is.path = vector::dot(sn, st - ro) / denom;

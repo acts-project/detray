@@ -163,6 +163,7 @@ TEST(tools, free_track_parameters) {
     EXPECT_FLOAT_EQ(trck1.dir()[0], getter::element(param, e_free_dir0, 0));
     EXPECT_FLOAT_EQ(trck1.dir()[1], getter::element(param, e_free_dir1, 0));
     EXPECT_FLOAT_EQ(trck1.dir()[2], getter::element(param, e_free_dir2, 0));
+    EXPECT_FLOAT_EQ(getter::norm(trck1.mom()), getter::norm(mom));
     EXPECT_FLOAT_EQ(trck1.time(), getter::element(param, e_free_time, 0));
     EXPECT_FLOAT_EQ(trck1.qop(), getter::element(param, e_free_qoverp, 0));
     EXPECT_FLOAT_EQ(trck1.pT(),
@@ -176,6 +177,7 @@ TEST(tools, free_track_parameters) {
     EXPECT_FLOAT_EQ(trck2.dir()[0], mom[0] / getter::norm(mom));
     EXPECT_FLOAT_EQ(trck2.dir()[1], mom[1] / getter::norm(mom));
     EXPECT_FLOAT_EQ(trck2.dir()[2], mom[2] / getter::norm(mom));
+    EXPECT_FLOAT_EQ(getter::norm(trck2.mom()), getter::norm(mom));
     EXPECT_FLOAT_EQ(trck2.time(), time);
     EXPECT_FLOAT_EQ(trck2.qop(), charge / getter::norm(mom));
     EXPECT_FLOAT_EQ(trck2.pT(),

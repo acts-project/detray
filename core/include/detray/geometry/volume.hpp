@@ -146,6 +146,19 @@ class volume {
                 _surfaces_finder_entry == rhs._surfaces_finder_entry);
     }
 
+    template <typename point3>
+    DETRAY_HOST_DEVICE bool is_inside(point3 p) const {
+        auto r = getter::perp(p);
+        auto z = p[2];
+
+        if (r < _bounds[0] || r > _bounds[1] || z < _bounds[2] ||
+            z > _bounds[3]) {
+            return false;
+        }
+
+        return true;
+    }
+
     private:
     /** Bounds section, default for r, z, phi */
     array_t<scalar, 6> _bounds = {0.,

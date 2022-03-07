@@ -11,7 +11,7 @@
 namespace detray {
 
 __global__ void propagator_test_kernel(
-    detector_view<detector_host_type> det_data,
+    detector_view<detector_host_type> det_data, const vector3 B,
     vecmem::data::vector_view<free_track_parameters> tracks_data,
     vecmem::data::jagged_vector_view<intersection> candidates_data,
     vecmem::data::jagged_vector_view<intersection> intersections_data) {
@@ -29,7 +29,6 @@ __global__ void propagator_test_kernel(
     }
 
     // Set the magnetic field
-    const vector3 B{0, 0, 2 * unit_constants::T};
     field_type B_field(B);
 
     // Create RK stepper
@@ -52,7 +51,7 @@ __global__ void propagator_test_kernel(
 }
 
 void propagator_test(
-    detector_view<detector_host_type> det_data,
+    detector_view<detector_host_type> det_data, const vector3 B,
     vecmem::data::vector_view<free_track_parameters>& tracks_data,
     vecmem::data::jagged_vector_view<intersection>& candidates_data,
     vecmem::data::jagged_vector_view<intersection>& intersections_data) {
@@ -62,7 +61,7 @@ void propagator_test(
 
     // run the test kernel
     propagator_test_kernel<<<block_dim, thread_dim>>>(
-        det_data, tracks_data, candidates_data, intersections_data);
+        det_data, B, tracks_data, candidates_data, intersections_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

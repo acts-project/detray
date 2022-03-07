@@ -79,6 +79,12 @@ class navigator {
         e_full_trust = 4   // trust fully: Don't re-evaluate
     };
 
+    /** Navigation direction flag */
+    enum navigation_direction : int {
+        e_forward = 0,
+        e_backward = 1,
+    };
+
     /** A navigation state object used to cache the information of the
      *  current navigation stream. These can be read or set in between
      *  navigation calls.
@@ -185,6 +191,14 @@ class navigator {
             _trust_level = lvl;
         }
 
+        /** @returns navigation trust level - const */
+        DETRAY_HOST_DEVICE
+        inline auto direction() const { return _nav_dir; }
+
+        /** Update navigation trust level */
+        DETRAY_HOST_DEVICE
+        inline void set_direction(navigation_direction dir) { _nav_dir = dir; }
+
         /** @returns current volume (index) - const */
         DETRAY_HOST_DEVICE
         inline auto volume() const { return _volume_index; }
@@ -252,6 +266,9 @@ class navigator {
 
         /** Volume we are currently navigating in */
         dindex _volume_index = dindex_invalid;
+
+        /** The navigation direction */
+        navigation_direction _nav_dir = e_forward;
     };
 
     DETRAY_HOST_DEVICE
@@ -286,10 +303,11 @@ class navigator {
                                           stepper_state_t &stepping) const {
         bool heartbeat = true;
 
-        const auto &track = stepping();
+        auto &track = stepping();
 
         if (navigation.trust_level() >= e_high_trust) {
-            while (not navigation.is_exhausted()) {
+
+            if (not navigation.is_exhausted()) {
 
                 // Only update the next candidate
                 auto sfi = update_next_candidate(navigation, track);
@@ -315,11 +333,24 @@ class navigator {
                     // Call the inspector before returning
                     navigation.run_inspector("Update (high trust): ");
 
-                    // Don't sort again when coming from high trust
-                    break;
                 }
-                // If not inside: increase and switch to next
-                ++navigation.next();
+
+                // if the first candidate is invalid, re-evaulate all candidates
+                else {
+                    navigation.set_status(e_unknown);
+                    navigation.set_trust_level(e_no_trust);
+                    check_direction_consistenty(navigation, stepping);
+
+                    return heartbeat;
+                }
+            }
+
+            else if (navigation.is_exhausted()) {
+                navigation.set_status(e_unknown);
+                navigation.set_trust_level(e_no_trust);
+                check_direction_consistenty(navigation, stepping);
+
+                return heartbeat;
             }
         }
 
@@ -330,7 +361,7 @@ class navigator {
         }
 
         // Did we hit a portal? (kernel needs to be re-initialized next time)
-        heartbeat = check_volume_switch(navigation);
+        heartbeat = check_volume_switch(navigation, stepping);
 
         return heartbeat;
     }
@@ -425,6 +456,8 @@ class navigator {
     DETRAY_HOST_DEVICE inline void initialize_kernel(
         state &navigation, track_t &track, const volume_type &volume) const {
 
+        navigation.clear();
+
         detail::call_reserve(navigation.candidates(), volume.n_objects());
 
         // Loop over all indexed objects in volume, intersect and fill
@@ -472,20 +505,24 @@ class navigator {
             // This also excludes adjacent portals -> we are on the next portal
             if (navigation() < navigation.tolerance()) {
                 // Set it briefly so that the inspector can catch this state
+                navigation.set_dist(navigation.next()->path);
                 navigation.set_object(navigation.next()->index);
+                navigation.set_status(e_on_object);
+
                 // The next object that we want to reach
                 ++navigation.next();
-                navigation.set_status(e_on_object);
                 // Call the inspector on this portal crossing, then go to next
                 navigation.run_inspector("Skipping direct hit: ");
             }
 
-            navigation.set_dist(navigation.next()->path);
-            // Generally, we are on our way to some candidate
-            navigation.set_status(e_towards_object);
-            navigation.set_object(dindex_invalid);
-            // This is only called after full (re-)evaluation
-            navigation.set_trust_level(e_full_trust);
+            if (not navigation.is_exhausted()) {
+                navigation.set_dist(navigation.next()->path);
+                // Generally, we are on our way to some candidate
+                navigation.set_status(e_towards_object);
+                navigation.set_object(dindex_invalid);
+                // This is only called after full (re-)evaluation
+                navigation.set_trust_level(e_full_trust);
+            }
 
             // Call the inspector on new status
             navigation.run_inspector("Set next: ");
@@ -496,10 +533,13 @@ class navigator {
      *
      * @param navigation is the navigation state
      */
-    DETRAY_HOST_DEVICE
-    bool check_volume_switch(state &navigation) const {
-        // Check if we need to switch volume index and (re-)initialize
+    template <typename stepper_state_t>
+    DETRAY_HOST_DEVICE bool check_volume_switch(
+        state &navigation, stepper_state_t &stepping) const {
 
+        auto &track = stepping();
+
+        // Check if we need to switch volume index and (re-)initialize
         if (navigation.status() == e_on_object and
             navigation.volume() != navigation.current()->link) {
 
@@ -509,6 +549,12 @@ class navigator {
             navigation.clear();
             navigation.set_trust_level(e_no_trust);
 
+            // if the track direction is backward, flip it back
+            if (navigation.direction() == e_backward) {
+                navigation.set_direction(e_forward);
+                track.flip();
+            }
+
             // We reached the end of the detector world
             if (navigation.volume() == dindex_invalid) {
                 // heartbeat
@@ -517,6 +563,34 @@ class navigator {
         }
         // heartbeat
         return true;
+    }
+
+    template <typename stepper_state_t>
+    DETRAY_HOST_DEVICE void check_direction_consistenty(
+        state &navigation, stepper_state_t &stepping) const {
+        auto &track = stepping();
+
+        const auto &vol = _detector->volumes()[navigation.volume()];
+
+        // if the track is outside the volume, change the navigation
+        // direction
+        if (!vol.is_inside(track.pos()) &&
+            navigation.direction() == e_forward) {
+            navigation.set_direction(e_backward);
+            track.flip();
+        }
+
+        else if (!vol.is_inside(track.pos()) &&
+                 navigation.direction() == e_backward) {
+            navigation.set_direction(e_forward);
+            track.flip();
+        }
+
+        else if (vol.is_inside(track.pos()) &&
+                 navigation.direction() == e_backward) {
+            navigation.set_direction(e_forward);
+            track.flip();
+        }
     }
 
     DETRAY_HOST_DEVICE

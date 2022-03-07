@@ -55,8 +55,11 @@ constexpr std::size_t n_edc_layers = 3;
 // geomery navigation configurations
 constexpr unsigned int theta_steps = 100;
 constexpr unsigned int phi_steps = 100;
-
 constexpr scalar pos_diff_tolerance = 1e-3;
+
+// magnetic field
+const vector3 B{1 * unit_constants::T, 1 * unit_constants::T,
+                1 * unit_constants::T};
 
 namespace detray {
 
@@ -72,9 +75,9 @@ struct track_inspector {
 
     template <typename navigator_state_t, typename stepper_state_t>
     DETRAY_HOST_DEVICE void operator()(const navigator_state_t& navigation,
-                                       const stepper_state_t& /*stepping*/) {
+                                       const stepper_state_t& stepping) {
         // Record when status == e_on_object
-        if (navigation.status() == 1) {
+        if (navigation.status() == 1 && not navigation.is_exhausted()) {
             _intersections.push_back(*navigation.current());
         }
     }
@@ -84,7 +87,7 @@ struct track_inspector {
 
 /// test function for propagator with single state
 void propagator_test(
-    detector_view<detector_host_type> det_data,
+    detector_view<detector_host_type> det_data, const vector3 B,
     vecmem::data::vector_view<free_track_parameters>& tracks_data,
     vecmem::data::jagged_vector_view<intersection>& candidates_data,
     vecmem::data::jagged_vector_view<intersection>& intersections_data);

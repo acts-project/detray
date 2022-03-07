@@ -35,7 +35,8 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     constexpr unsigned int rk_steps = 100;
 
     // Constant magnetic field
-    vector3 B{0, 0, 2 * unit_constants::T};
+    vector3 B{1 * unit_constants::T, 1 * unit_constants::T,
+              1 * unit_constants::T};
     mag_field_type mag_field(B);
 
     // RK stepper

@@ -64,7 +64,6 @@ TEST(propagator_cuda, propagator) {
      */
 
     // Set the magnetic field
-    const vector3 B{0, 0, 2 * unit_constants::T};
     field_type B_field(B);
 
     // Create RK stepper
@@ -126,13 +125,14 @@ TEST(propagator_cuda, propagator) {
     copy.setup(intersections_buffer);
 
     // Run the propagator test for GPU device
-    propagator_test(det_data, tracks_data, candidates_buffer,
+    propagator_test(det_data, B, tracks_data, candidates_buffer,
                     intersections_buffer);
 
     // copy back intersection record
     copy(intersections_buffer, device_intersection_records);
 
     for (unsigned int i = 0; i < host_intersection_records.size(); i++) {
+
         for (unsigned int j = 0; j < host_intersection_records[i].size(); j++) {
             auto& host_intersection = host_intersection_records[i][j];
             auto& device_intersection = device_intersection_records[i][j];

@@ -20,21 +20,33 @@ class helix_gun {
     helix_gun(free_track_parameters vertex, vector3 mag_field)
         : _vertex(vertex), _mag_field(mag_field) {
 
-        // R [mm] =  p [GeV] / B [T] in natrual unit
-        _R = std::abs(_vertex.pT() / getter::norm(mag_field));
+        // get new z direction along the b field
+        _ez = vector::normalize(_mag_field);
 
-        vector3 dir = _vertex.dir();
-        _vz_over_vt = dir[2] / getter::perp(dir);
+        vector3 p = _vertex.mom();
+
+        // get longitudinal momentum in new coordinate
+        scalar pz = vector::dot(p, _ez);
+
+        // get transverse momentum in new coordinate
+        vector3 pT = p - pz * _ez;
+
+        // R [mm] =  pT [GeV] / B [T] in natrual unit
+        _R = std::abs(getter::norm(pT) / getter::norm(mag_field));
+
+        // Handle the case of pT ~ 0
+        if (getter::norm(pT) < 1e-20) {
+            _vz_over_vt = std::numeric_limits<scalar>::infinity();
+        } else {
+            // Get vz over vt in new coordinate
+            _vz_over_vt = pz / getter::norm(pT);
+        }
 
         _scaler = _R * std::sqrt(1 + std::pow(_vz_over_vt, 2));
 
-        // get new z direction
-        _ez = vector::normalize(_mag_field);
-
         // get new y direction
         scalar q = _vertex.qop() > 0 ? 1 : -1.;
-        vector3 y =
-            -1 * q * vector::normalize(dir - vector::dot(dir, _ez) * _ez);
+        vector3 y = -1 * q * vector::normalize(pT);
         _ey = vector::normalize(y);
 
         // get new x direction
@@ -44,6 +56,12 @@ class helix_gun {
     scalar radius() const { return _R; }
 
     point3 operator()(scalar path_length) const {
+
+        // Handle the case of pT ~ 0
+        if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
+            return _vertex.pos() + path_length * _ez;
+        }
+
         // Requested path length is coverted to parameterized value (t) by
         // dividing it with scaling factor
         scalar t = path_length / _scaler;
