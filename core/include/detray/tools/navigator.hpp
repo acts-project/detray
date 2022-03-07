@@ -344,14 +344,6 @@ class navigator {
                     return heartbeat;
                 }
             }
-
-            else if (navigation.is_exhausted()) {
-                navigation.set_status(e_unknown);
-                navigation.set_trust_level(e_no_trust);
-                check_direction_consistenty(navigation, stepping);
-
-                return heartbeat;
-            }
         }
 
         // Should never be the case after update call (without portals we are
