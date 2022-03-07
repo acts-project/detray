@@ -342,7 +342,6 @@ class navigator {
     /** Helper method to intersect all objects of a surface/portal store
      *
      * @tparam track_t type of the track (including context)
-     * @tparam range_t the type of range in the detector data containers
      *
      * @param navigation [in, out] navigation state that contains the kernel
      * @param track the track information
@@ -384,6 +383,15 @@ class navigator {
         navigation.run_inspector("Init complete: ");
     }
 
+    /** Helper method that updates a single candidate
+     *
+     * @tparam track_t type of the track (including context)
+     *
+     * @param navigation [in, out] navigation state that contains the kernel
+     * @param track the track information
+     * @param volume the current tracking volume
+     *
+     */
     template <typename track_t>
     DETRAY_HOST_DEVICE inline void update_candidate(
         const track_t &track, intersection &candidate) const {
@@ -402,9 +410,6 @@ class navigator {
      *
      * @param navigation [in, out] navigation state that contains the kernel
      * @param stepping the track information in the stepper state
-     * @param volume the current tracking volume
-     *
-     * @return A boolean condition whether kernel is exhausted or not
      */
     template <typename stepper_state_t>
     DETRAY_HOST_DEVICE inline void update_kernel(
@@ -476,7 +481,8 @@ class navigator {
             for (auto &candidate : navigation.candidates()) {
                 update_candidate(track, candidate);
                 // Disregard this candidate
-                if (candidate.status != e_inside) {
+                if ((candidate.status != e_inside) or
+                    (candidate.path < track.overstep_tolerance())) {
                     candidate.path = std::numeric_limits<scalar>::max();
                 }
             }
@@ -558,6 +564,7 @@ class navigator {
         return true;
     }
 
+    /// @returns pointer to detector
     DETRAY_HOST_DEVICE
     const detector_t &get_detector() const { return *_detector; }
 

@@ -88,7 +88,7 @@ class base_stepper {
         /// Update and check the path limit against a new @param step size.
         DETRAY_HOST_DEVICE
         inline bool check_path_limit() {
-            _path_limit = _path_limit - _step_size;
+            _path_limit -= _step_size;
             if (_path_limit <= 0.) {
                 return false;
             }
