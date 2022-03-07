@@ -75,7 +75,7 @@ inline void check_step(navigator_t &n, stepper_t &s, nav_state_t &n_state,
     // Step onto the surface in volume
     s.step(s_state, n_state);
     // Stepper reduced trust level
-    ASSERT_EQ(n_state.trust_level(), navigation::e_high_trust);
+    ASSERT_TRUE(n_state.trust_level() == navigation::e_high_trust);
     ASSERT_TRUE(n.update(n_state, s_state));
     // Trust level is restored
     ASSERT_EQ(n_state.trust_level(), navigation::e_full_trust);
@@ -148,8 +148,8 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
     // Let's make half the step towards the beampipe
     s.step(s_state, n_state, n_state() * 0.5);
-    // Stepper reduced trust level
-    ASSERT_EQ(n_state.trust_level(), e_high_trust);
+    // Stepper reduced trust level (hit step constrint -> only fair trust)
+    ASSERT_TRUE(n_state.trust_level() == e_fair_trust);
     // Re-navigate
     ASSERT_TRUE(n.update(n_state, s_state));
     // Trust level is restored
@@ -171,7 +171,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
     // Step onto portal 7 in volume 0
     s.step(s_state, n_state);
-    ASSERT_EQ(n_state.trust_level(), e_high_trust);
+    ASSERT_TRUE(n_state.trust_level() == e_high_trust);
     ASSERT_TRUE(n.update(n_state, s_state));
     ASSERT_EQ(n_state.trust_level(), e_full_trust);
 

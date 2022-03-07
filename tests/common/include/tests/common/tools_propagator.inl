@@ -7,12 +7,9 @@
 
 #include <gtest/gtest.h>
 
-#include <iomanip>
-#include <iostream>
-#include <map>
-#include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
+#include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
@@ -25,6 +22,7 @@
 #include "tests/common/tools/read_geometry.hpp"
 
 constexpr scalar epsilon = 1e-4;
+constexpr scalar path_limit = 10 * unit_constants::cm;
 
 // This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
@@ -55,9 +53,10 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     propagation::void_inspector vi;
 
     propagator_t::state state(traj);
+    state._stepping.set_path_limit(path_limit);
 
-    // EXPECT_TRUE(p.propagate(state, vi)) <<
-    // state._navigation.inspector().to_string() << std::endl;
+    EXPECT_TRUE(p.propagate(state, vi))
+        << state._navigation.inspector().to_string() << std::endl;
 }
 
 struct helix_inspector {
@@ -68,6 +67,7 @@ struct helix_inspector {
     DETRAY_HOST_DEVICE void operator()(const navigator_state_t& /*navigation*/,
                                        const stepper_state_t& stepping) {
         auto pos = stepping().pos();
+        // const scalar accumulated_path = path_limit - stepping.path_limit();
         auto true_pos = _helix(stepping._path_accumulated);
 
         auto relative_error = 1 / stepping._path_accumulated * (pos - true_pos);
@@ -149,8 +149,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             helix_gun helix(traj, B);
             combined_inspector ci{helix_inspector(helix),
                                     propagation::print_inspector{}};
-
             propagator_t::state state(traj);
+            state._stepping.set_path_limit(path_limit);
 
             EXPECT_TRUE(p.propagate(state, ci))
                 << state._navigation.inspector().to_string() << std::endl;

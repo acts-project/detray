@@ -25,7 +25,8 @@ struct void_inspector {
 
 }  // namespace propagation
 
-/** Templated propagator class, using a
+/** Templated propagator class, using a stepper and a navigator object in
+ *  succession.
  *
  * @tparam stepper_t for the transport
  * @tparam navigator_t for the navigation
@@ -42,6 +43,7 @@ struct propagator {
 
     /** Can not be default constructed */
     propagator() = delete;
+
     /** Only valid constructor with a
      * @param s stepper
      * @param n navigator
@@ -51,6 +53,7 @@ struct propagator {
     propagator(stepper_t &&s, navigator_t &&n)
         : _stepper(std::move(s)), _navigator(std::move(n)) {}
 
+    /** Propagation that state aggregates a stepping and a navigation state */
     struct state {
 
         template <typename track_t>
@@ -64,11 +67,13 @@ struct propagator {
 
     /** Propagate method
      *
-     * @tparam track_t is the type of the track
+     * @tparam state_t is the propagation state type
+     * @tparam inspector_t is the type of a propagation inspector
      *
-     * @param t_in the track at input
+     * @param p_state the state of a propagation
+     * @param inspector the inspector
      *
-     * @return a track at output
+     * @return propagation success.
      */
     template <typename state_t,
               typename inspector_t = propagation::void_inspector>
@@ -85,7 +90,7 @@ struct propagator {
         while (heartbeat) {
 
             // Take the step
-            heartbeat &= _stepper.step(s_state, n_state());
+            heartbeat &= _stepper.step(s_state, n_state);
 
             inspector(n_state, s_state);
 
@@ -93,7 +98,7 @@ struct propagator {
             heartbeat &= _navigator.update(n_state, s_state);
         }
 
-        return heartbeat;
+        return n_state.is_complete();
     }
 };
 

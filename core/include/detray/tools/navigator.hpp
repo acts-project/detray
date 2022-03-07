@@ -244,6 +244,16 @@ class navigator {
             return false;
         }
 
+        /** Check whether navigation was completed
+         *
+         * @return navigation status
+         */
+        DETRAY_HOST_DEVICE
+        inline bool is_complete() const {
+            // Normal exit for this navigation?
+            return _status == navigation::e_exit;
+        }
+
         private:
         // Our list of candidates (intersections with object)
         vector_type<intersection> _candidates = {};
@@ -302,10 +312,12 @@ class navigator {
         // Did we hit a portal? (kernel needs to be re-initialized)
         heartbeat = check_volume_switch(navigation, stepping);
 
-        // If still no trust could be restored, local navigation might be
-        // exhausted: re-initialize current volume
+        // If after the update call no trust could be restored, local
+        // navigation might be exhausted or we switched volumes: re-initialize
+        // volume
         if (navigation.trust_level() == navigation::e_no_trust or
             navigation.is_exhausted()) {
+            navigation.clear();
             update_kernel(navigation, stepping);
         }
 
@@ -424,12 +436,12 @@ class navigator {
                 // If candidate is inside, this is the next target
                 if (candidate.status == e_inside) {
                     // Did we arrive on onbject?
-                    if (std::abs(candidate.path) < navigation.tolerance()) {
+                    if (candidate.path < navigation.tolerance()) {
                         navigation.set_object(candidate.index);
                         navigation.set_status(navigation::e_on_target);
                         // Release stepping constraints
                         stepping.release_step_size();
-                        // Set the next object we want to reach might be end()
+                        // Set the next object we want to reach - might be end()
                         ++navigation.next();
                         if (not navigation.is_exhausted()) {
                             update_candidate(track, *navigation.next());
@@ -460,7 +472,6 @@ class navigator {
         }
         // Re-evaluate all currently available candidates
         // - do this when your navigation state is stale, but not invalid
-        // (fair trust)
         else if (navigation.trust_level() == navigation::e_fair_trust) {
             for (auto &candidate : navigation.candidates()) {
                 update_candidate(track, candidate);
@@ -472,6 +483,7 @@ class navigator {
             set_next(navigation, stepping);
             // Kernel is exhausted (no surface in this volume is reachable)
             if (navigation() == std::numeric_limits<scalar>::max()) {
+                // Initialize the new volume in the next update call
                 navigation.set_no_trust();
             }
             // Call the inspector before returning
@@ -497,10 +509,10 @@ class navigator {
 
             // Are we still on an object from a previous navigation pass? Then
             // goto the next candidate.
-            // This also updates adjacent portals -> we are automatically on
-            // the next portal
+            // This mainly updates adjacent portals -> we are automatically on
+            // the next portal in the new volume
             if (navigation() < navigation.tolerance()) {
-                // Set temporarily, so that inspector can catch this state
+                // Set temporarily, so that the inspector can catch this state
                 navigation.set_status(navigation::e_on_target);
                 navigation.set_object(navigation.next()->index);
                 // The next object that we want to reach (cache is sorted)
@@ -536,17 +548,14 @@ class navigator {
             navigation.volume() != navigation.current()->link) {
             // Set volume index to the next volume provided by the object
             navigation.set_volume(navigation.current()->link);
+            // Initialize the new volume in the next update call
+            navigation.set_no_trust();
 
             // We reached the end of the detector world
             if (navigation.volume() == dindex_invalid) {
                 // heartbeat
                 return navigation.exit();
             }
-
-            // New volume: initialize the kernel
-            navigation.clear();
-            initialize_kernel(navigation, stepping,
-                              _detector->volume_by_index(navigation.volume()));
         }
         return true;
     }

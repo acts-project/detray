@@ -34,22 +34,16 @@ class rk_stepper final : public base_stepper<track_t> {
         DETRAY_HOST_DEVICE
         state(track_t& t) : base_type::state(t) {}
 
-        // TODO: Define default step size somewhere
-        scalar _step_size = 1. * unit_constants::mm;
-
         /// error tolerance
         scalar _tolerance = 1e-4;
 
         /// step size cutoff value
         scalar _step_size_cutoff = 1e-4;
 
-        /// step size cutoff value
-        scalar _max_step_size = 5. * unit_constants::mm;
-
         /// maximum trial number of RK stepping
         size_t _max_rk_step_trials = 10000;
 
-        /// accumulated path length
+        // accumulated path length
         scalar _path_accumulated = 0;
 
         /// stepping data required for RKN4
@@ -61,21 +55,38 @@ class rk_stepper final : public base_stepper<track_t> {
 
         stepping_data _step_data;
 
-        // DETRAY_HOST_DEVICE
-        // void set_step_size(const scalar step) { _step_size = step; }
+        /// Update the track state by Runge-Kutta-Nystrom integration.
+        DETRAY_HOST_DEVICE
+        inline void advance_track() {
+            const auto& sd = this->_step_data;
+            const auto& h = this->_step_size;
+            auto& track = this->_track;
+            auto pos = track.pos();
+            auto dir = track.dir();
+
+            // Update the track parameters according to the equations of motion
+            pos = pos + h * dir + h * h / 6. * (sd.k1 + sd.k2 + sd.k3);
+            track.set_pos(pos);
+
+            dir = dir + h / 6. * (sd.k1 + 2. * (sd.k2 + sd.k3) + sd.k4);
+            dir = vector::normalize(dir);
+            track.set_dir(dir);
+        }
     };
 
-    /** Take a step, regulared by a constrained step
+    /** Take a step, using an adaptive Runge-Kutta algorithm.
      *
-     * @param s The state object that chaches
-     * @param path_limit maximum stepsize provided by the navigator
+     * @param stepping The state object of a stepper
+     * @param navigation The state object of a navigator
+     * @param max_step_size Maximal distance for this step
      *
      * @return returning the heartbeat, indicating if the stepping is alive
      */
-    DETRAY_HOST_DEVICE
-    bool step(state& stepping, scalar step_size_estimate) {
+    template <typename navigation_state_t>
+    DETRAY_HOST_DEVICE bool step(
+        state& stepping, navigation_state_t& navigation,
+        scalar max_step_size = std::numeric_limits<scalar>::max()) {
         auto& sd = stepping._step_data;
-        stepping.set_step_size(step_size_estimate);
 
         scalar error_estimate = 0;
 
@@ -113,18 +124,21 @@ class rk_stepper final : public base_stepper<track_t> {
             return (error_estimate <= stepping._tolerance);
         };
 
+        // Initial step size estimate
+        stepping.set_step_size(navigation());
         scalar step_size_scaling = 1.;
         size_t n_step_trials = 0;
 
+        // Adjust initial step size to integration error
         while (!try_rk4(stepping._step_size)) {
 
             step_size_scaling = std::min(
-                std::max(0.25,
+                std::max(0.25 * unit_constants::mm,
                          std::sqrt(std::sqrt((stepping._tolerance /
                                               std::abs(2. * error_estimate))))),
                 4.);
 
-            stepping._step_size = stepping._step_size * step_size_scaling;
+            stepping._step_size *= step_size_scaling;
 
             // If step size becomes too small the particle remains at the
             // initial place
@@ -145,31 +159,29 @@ class rk_stepper final : public base_stepper<track_t> {
             n_step_trials++;
         }
 
-        stepping._step_size =
-            std::min(stepping._step_size, stepping._max_step_size);
+        // Decide final step size and inform navigator
+        // Not a severe change to track state expected
+        if (stepping.step_size() < max_step_size) {
+            navigation.set_high_trust();
+        }
+        // Step hit a constraint - the track state was probably severly altered
+        else {
+            stepping.set_step_size(max_step_size);
+            // Not a severe change to thrack state
+            navigation.set_fair_trust();
+        }
 
-        const auto h = stepping._step_size;
-        auto pos = stepping().pos();
-        auto dir = stepping().dir();
-
-        // Update the track parameters according to the equations of motion
-        pos = pos + h * dir + h * h / 6. * (sd.k1 + sd.k2 + sd.k3);
-        stepping().set_pos(pos);
-
-        dir = dir + h / 6. * (sd.k1 + 2. * (sd.k2 + sd.k3) + sd.k4);
-        dir = vector::normalize(dir);
-
-        stepping().set_dir(dir);
-
-        stepping._path_accumulated += h;
-
-        // If the parameter is off track too much or given step_size is not
-        // appropriate
-        if (stepping._path_accumulated > stepping._max_pathlength) {
-            // Too many trials, have to abort
-            printf("too many rk4 trials. will break. \n");
+        // Update and check path limit
+        if (not stepping.check_path_limit()) {
+            printf("Above maximal path length!\n");
+            // State is broken
+            navigation.set_no_trust();
             return false;
         }
+
+        stepping._path_accumulated += stepping._step_size;
+        // Update track state
+        stepping.advance_track();
 
         // state.stepping.derivative.template head<3>() = dir;
         // state.stepping.derivative.template segment<3>(4) = sd.k4;

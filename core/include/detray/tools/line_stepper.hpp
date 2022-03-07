@@ -27,40 +27,54 @@ class line_stepper final : public base_stepper<track_t> {
     struct state : public base_type::state {
         state(track_t &t) : base_type::state(t) {}
 
-        // Remaining path limit
-        scalar _path_limit = std::numeric_limits<scalar>::max();
-
-        scalar _step_size = std::numeric_limits<scalar>::infinity();
-
-        /** Set the path limit to a scalar @param l */
-        void set_limit(scalar pl) { _path_limit = pl; }
-
-        /// Set next step size
+        /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE
-        void set_step_size(const scalar /*step*/) {}
+        inline void advance_track() {
+            auto &track = this->_track;
+            track.set_pos(track.pos() + track.dir() * this->_step_size);
+        }
     };
 
     /** Take a step, regulared by a constrained step
      *
-     * @param s The state object that chaches
-     * @param es The external step, e.g. from navigation
+     * @param stepping The state object of a stepper
+     * @param navigation The state object of a navigator
+     * @param max_step_size Maximal distance for this step
      *
      * @return returning the heartbeat, indicating if the stepping is alive
      */
     template <typename navigation_state_t>
     DETRAY_HOST_DEVICE bool step(
-        state &s, navigation_state_t &navigation,
+        state &stepping, navigation_state_t &navigation,
         scalar max_step_size = std::numeric_limits<scalar>::max()) {
+
+        // Distance to next surface as fixed step size
         scalar step_size = navigation();
-        s._path_limit = (step_size > s._path_limit) ? step_size - s._path_limit
-                                                    : s._path_limit - step_size;
-        if (s._path_limit <= 0.) {
+
+        // Inform navigator
+        // Not a severe change to track state expected
+        if (step_size < max_step_size) {
+            stepping.set_step_size(step_size);
+            navigation.set_high_trust();
+        }
+        // Step hit a constraint - the track state was probably severly altered
+        else {
+            stepping.set_step_size(max_step_size);
+            // Not a severe change to thrack state
+            navigation.set_fair_trust();
+        }
+
+        // Update and check path limit
+        if (not stepping.check_path_limit()) {
+            printf("Above maximal path length!\n");
+            // State is broken
+            navigation.set_no_trust();
             return false;
         }
-        s._step_size =
-            std::min(step_size, std::min(s._path_limit, max_step_size));
-        s._track.set_pos(s._track.pos() + s._track.dir() * s._step_size);
-        navigation.set_high_trust();
+
+        // Update track state
+        stepping.advance_track();
+
         return true;
     }
 };
