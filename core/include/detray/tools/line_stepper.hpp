@@ -60,13 +60,13 @@ class line_stepper final : public base_stepper<track_t> {
         // Step hit a constraint - the track state was probably severly altered
         else {
             stepping.set_step_size(max_step_size);
-            // Not a severe change to thrack state
+            // Re-evaluate all candidates
             navigation.set_fair_trust();
         }
 
         // Update and check path limit
         if (not stepping.check_path_limit()) {
-            printf("Above maximal path length!\n");
+            printf("Stepper: Above maximal path length!\n");
             // State is broken
             navigation.set_no_trust();
             return false;

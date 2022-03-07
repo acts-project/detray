@@ -22,7 +22,7 @@
 #include "tests/common/tools/read_geometry.hpp"
 
 constexpr scalar epsilon = 1e-4;
-constexpr scalar path_limit = 10 * unit_constants::cm;
+constexpr scalar path_limit = 100 * unit_constants::cm;
 
 // This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
@@ -67,10 +67,11 @@ struct helix_inspector {
     DETRAY_HOST_DEVICE void operator()(const navigator_state_t& /*navigation*/,
                                        const stepper_state_t& stepping) {
         auto pos = stepping().pos();
-        // const scalar accumulated_path = path_limit - stepping.path_limit();
-        auto true_pos = _helix(stepping._path_accumulated);
+        const scalar path_accumulated =
+            path_limit - stepping.dist_to_path_limit();
+        auto true_pos = _helix(path_accumulated);
 
-        auto relative_error = 1 / stepping._path_accumulated * (pos - true_pos);
+        auto relative_error = 1 / path_accumulated * (pos - true_pos);
 
         EXPECT_NEAR(getter::norm(relative_error), 0, epsilon);
     }

@@ -79,7 +79,7 @@ class base_stepper {
 
         /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
-        inline scalar path_limit() const { return _path_limit; }
+        inline scalar dist_to_path_limit() const { return _path_limit; }
 
         /// Set the path limit to a scalar @param pl
         DETRAY_HOST_DEVICE
@@ -88,8 +88,7 @@ class base_stepper {
         /// Update and check the path limit against a new @param step size.
         DETRAY_HOST_DEVICE
         inline bool check_path_limit() {
-            _path_limit = (_step_size > _path_limit) ? _step_size - _path_limit
-                                                     : _path_limit - _step_size;
+            _path_limit = _path_limit - _step_size;
             if (_path_limit <= 0.) {
                 return false;
             }
