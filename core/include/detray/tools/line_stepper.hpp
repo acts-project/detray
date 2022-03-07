@@ -11,8 +11,6 @@
 #include "detray/tools/base_stepper.hpp"
 
 // detray definitions
-#include <climits>
-
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
@@ -57,7 +55,8 @@ class line_stepper final : public base_stepper<track_t> {
             stepping.set_step_size(step_size);
             navigation.set_high_trust();
         }
-        // Step hit a constraint - the track state was probably severly altered
+        // Step size hit a constraint - the track state was probably changed a
+        // lot
         else {
             stepping.set_step_size(max_step_size);
             // Re-evaluate all candidates

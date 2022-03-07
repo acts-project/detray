@@ -40,6 +40,15 @@ constexpr scalar epsilon = 1e-5;
 
 namespace detray {
 
+// dummy navigation struct
+struct nav_state {
+    scalar operator()() const { return 1. * unit_constants::mm; }
+    inline void set_full_trust() {}
+    inline void set_high_trust() {}
+    inline void set_fair_trust() {}
+    inline void set_no_trust() {}
+};
+
 // test function for Runge-Kutta stepper
 void rk_stepper_test(
     vecmem::data::vector_view<free_track_parameters>& tracks_data,

@@ -43,9 +43,6 @@ class rk_stepper final : public base_stepper<track_t> {
         /// maximum trial number of RK stepping
         size_t _max_rk_step_trials = 10000;
 
-        // accumulated path length
-        scalar _path_accumulated = 0;
-
         /// stepping data required for RKN4
         struct stepping_data {
             vector3 b_first, b_middle, b_last;
@@ -164,10 +161,11 @@ class rk_stepper final : public base_stepper<track_t> {
         if (stepping.step_size() < max_step_size) {
             navigation.set_high_trust();
         }
-        // Step hit a constraint - the track state was probably severly altered
+        // Step size hit a constraint - the track state was probably changed a
+        // lot
         else {
             stepping.set_step_size(max_step_size);
-            // Not a severe change to thrack state
+            // Re-evaluate all candidates
             navigation.set_fair_trust();
         }
 
@@ -179,7 +177,6 @@ class rk_stepper final : public base_stepper<track_t> {
             return false;
         }
 
-        stepping._path_accumulated += stepping._step_size;
         // Update track state
         stepping.advance_track();
 

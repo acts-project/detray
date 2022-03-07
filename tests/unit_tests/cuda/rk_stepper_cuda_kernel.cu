@@ -26,6 +26,7 @@ __global__ void rk_stepper_test_kernel(
 
     // Define RK stepper
     rk_stepper_type rk(B);
+    nav_state n_state{};
 
     // Get a track
     auto& traj = tracks.at(gid);
@@ -33,14 +34,14 @@ __global__ void rk_stepper_test_kernel(
     // Forward direction
     rk_stepper_type::state forward_state(traj);
     for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-        rk.step(forward_state);
+        rk.step(forward_state, n_state);
     }
 
     // Backward direction
     traj.flip();
     rk_stepper_type::state backward_state(traj);
     for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-        rk.step(backward_state);
+        rk.step(backward_state, n_state);
     }
 }
 
