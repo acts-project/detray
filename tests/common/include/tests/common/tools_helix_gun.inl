@@ -60,3 +60,30 @@ TEST(tools, helix_gun) {
     EXPECT_NEAR(full_turn[1], 0., R * epsilon);
     EXPECT_NEAR(full_turn[2], 2 * pz_along / B_mag * M_PI, R * epsilon);
 }
+
+TEST(tools, helix_gun_small_pT) {
+
+    using vector3 = vector3<scalar>;
+    using point3 = point3<scalar>;
+
+    point3 pos{0., 0., 0.};
+    scalar time = 0.;
+    vector3 mom{0., 0., 1.};
+    scalar q = -1.;
+
+    // vertex
+    free_track_parameters vertex(pos, time, mom, q);
+
+    // magnetic field
+    vector3 B{0, 0, 1 * unit_constants::T};
+
+    // helix gun
+    helix_gun helix(vertex, B);
+
+    // After 10 mm
+    scalar path_length = 10;
+    point3 helix_pos = helix(path_length);
+    point3 true_pos = pos + path_length * vector::normalize(mom);
+
+    EXPECT_EQ(true_pos, helix_pos);
+}
