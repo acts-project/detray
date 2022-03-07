@@ -77,7 +77,7 @@ struct track_inspector {
     DETRAY_HOST_DEVICE void operator()(const navigator_state_t& navigation,
                                        const stepper_state_t& /*stepping*/) {
         // Record when status == e_on_object
-        if (navigation.status() == 1 && not navigation.is_exhausted()) {
+        if (navigation.status() == 1) {
             _intersections.push_back(*navigation.current());
         }
     }

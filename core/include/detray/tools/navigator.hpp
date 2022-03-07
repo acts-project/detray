@@ -68,6 +68,7 @@ class navigator {
         e_unknown = -1,
         e_towards_object = 0,  // move towards next object
         e_on_object = 1,       // reached object
+        e_on_portal = 2,       // reached portal
     };
 
     /** Navigation trust level */
@@ -495,12 +496,7 @@ class navigator {
             // Are we still on an object from a previous navigation pass? Then
             // goto the next candidate.
             // This also excludes adjacent portals -> we are on the next portal
-            if (navigation() < navigation.tolerance()) {
-                // Set it briefly so that the inspector can catch this state
-                navigation.set_dist(navigation.next()->path);
-                navigation.set_object(navigation.next()->index);
-                navigation.set_status(e_on_object);
-
+            if (navigation.status() == e_on_object) {
                 // The next object that we want to reach
                 ++navigation.next();
                 // Call the inspector on this portal crossing, then go to next
@@ -537,8 +533,6 @@ class navigator {
 
             // Set volume index to the next volume provided by the object
             navigation.set_volume(navigation.current()->link);
-
-            navigation.clear();
             navigation.set_trust_level(e_no_trust);
 
             // if the track direction is backward, flip it back
