@@ -32,7 +32,7 @@ class helix_gun {
         vector3 pT = p - pz * _ez;
 
         // R [mm] =  pT [GeV] / B [T] in natrual unit
-        _R = std::abs(getter::norm(pT) / getter::norm(mag_field));
+        _R = getter::norm(pT) / getter::norm(mag_field);
 
         // Handle the case of pT ~ 0
         if (getter::norm(pT) < 1e-20) {
