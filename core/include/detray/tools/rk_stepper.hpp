@@ -18,12 +18,11 @@ namespace detray {
 
 /** Runge-Kutta-Nystrom 4th order stepper implementation */
 template <typename magnetic_field_t, typename track_t,
-          template <typename...> class tuple_t = dtuple,
           template <typename, std::size_t> class array_t = darray>
-class rk_stepper final : public base_stepper<track_t, tuple_t> {
+class rk_stepper final : public base_stepper<track_t> {
 
     public:
-    using base_type = base_stepper<track_t, tuple_t>;
+    using base_type = base_stepper<track_t>;
     using point3 = __plugin::point3<scalar>;
     using vector3 = __plugin::vector3<scalar>;
     using context_type = typename magnetic_field_t::context_type;

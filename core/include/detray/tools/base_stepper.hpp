@@ -18,7 +18,7 @@
 namespace detray {
 
 /** abstract stepper implementation */
-template <typename track_t, template <typename...> class tuple_t = dtuple>
+template <typename track_t>
 class base_stepper {
 
     public:

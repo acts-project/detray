@@ -11,8 +11,10 @@
 
 namespace detray {
 
-/** A sterily track inspector instance */
-struct void_propagator_inspector {
+namespace propagation {
+
+/** A void inpector that does nothing. */
+struct void_inspector {
 
     /** void operator **/
     template <typename... args>
@@ -21,7 +23,9 @@ struct void_propagator_inspector {
     }
 };
 
-/** Tempalted propagator class, using a
+}  // namespace propagation
+
+/** Templated propagator class, using a
  *
  * @tparam stepper_t for the transport
  * @tparam navigator_t for the navigation
@@ -66,30 +70,30 @@ struct propagator {
      *
      * @return a track at output
      */
-    template <typename state_t, typename propagator_inspector_t>
-    DETRAY_HOST_DEVICE void propagate(
-        state_t &p_state, propagator_inspector_t &propagator_inspector) {
+    template <typename state_t,
+              typename inspector_t = propagation::void_inspector>
+    DETRAY_HOST_DEVICE bool propagate(state_t &p_state,
+                                      inspector_t &inspector) {
 
         auto &n_state = p_state._navigation;
         auto &s_state = p_state._stepping;
 
-        // For now, always start at zero
-        n_state.set_volume(0u);
-
-        bool heartbeat = true;
         // initialize the navigation
-        heartbeat &= _navigator.init(n_state, s_state);
+        bool heartbeat = _navigator.init(n_state, s_state);
+
         // Run while there is a heartbeat
         while (heartbeat) {
 
             // Take the step
             heartbeat &= _stepper.step(s_state, n_state());
 
-            propagator_inspector(n_state, s_state);
+            inspector(n_state, s_state);
 
             // And check the status
-            heartbeat &= _navigator.status(n_state, s_state);
+            heartbeat &= _navigator.update(n_state, s_state);
         }
+
+        return heartbeat;
     }
 };
 

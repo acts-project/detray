@@ -15,94 +15,15 @@
 #include "detray/tools/track.hpp"
 #include "detray/utils/indexing.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
+#include "tests/common/tools/inspectors.hpp"
 
 namespace detray {
-/** A navigation inspector that prints information about the current navigation
- * state. Meant for debugging.
- */
-struct print_inspector {
-
-    // Debug output if an error in the trace is discovered
-    std::stringstream debug_stream;
-
-    template <typename state_type>
-    auto operator()(state_type &state, const char *message) {
-        std::string msg(message);
-
-        debug_stream << msg << std::endl;
-
-        debug_stream << "Volume\t\t\t\t\t\t" << state.volume() << std::endl;
-        debug_stream << "surface kernel size\t\t" << state.candidates().size()
-                     << std::endl;
-
-        debug_stream << "Surface candidates: " << std::endl;
-        for (const auto &sf_cand : state.candidates()) {
-            debug_stream << sf_cand.to_string();
-        }
-        if (not state.candidates().empty()) {
-            debug_stream << "=> next: ";
-            if (state.is_exhausted()) {
-                debug_stream << "exhausted" << std::endl;
-            } else {
-                debug_stream << " -> " << state.next()->index << std::endl;
-            }
-        }
-
-        switch (static_cast<int>(state.status())) {
-            case -3:
-                debug_stream << "status\t\t\t\t\tabort" << std::endl;
-                break;
-            case -2:
-                debug_stream << "status\t\t\t\t\texit" << std::endl;
-                break;
-            case -1:
-                debug_stream << "status\t\t\t\t\tunknowm" << std::endl;
-                break;
-            case 0:
-                debug_stream << "status\t\t\t\t\ttowards_surface" << std::endl;
-                break;
-            case 1:
-                debug_stream << "status\t\t\t\t\ton_surface" << std::endl;
-                break;
-            case 2:
-                debug_stream << "status\t\t\t\t\ttowards_portal" << std::endl;
-                break;
-            case 3:
-                debug_stream << "status\t\t\t\t\ton_portal" << std::endl;
-                break;
-        };
-        debug_stream << "current object\t\t" << state.on_object() << std::endl;
-        debug_stream << "distance to next\t";
-        if (std::abs(state()) < state.tolerance()) {
-            debug_stream << "on obj (within tol)" << std::endl;
-        } else {
-            debug_stream << state() << std::endl;
-        }
-        switch (state.trust_level()) {
-            case 0:
-                debug_stream << "trust\t\t\t\t\tno_trust" << std::endl;
-                break;
-            case 1:
-                debug_stream << "trust\t\t\t\t\tfair_trust" << std::endl;
-                break;
-            case 3:
-                debug_stream << "trust\t\t\t\t\thigh_trust" << std::endl;
-                break;
-            case 4:
-                debug_stream << "trust\t\t\t\t\tfull_trust" << std::endl;
-                break;
-        };
-        debug_stream << std::endl;
-    }
-
-    std::string to_string() { return debug_stream.str(); }
-};
 
 /** Checks for a correct 'towards_surface' state */
 template <typename navigator_t, typename state_t = typename navigator_t::state>
 inline void check_towards_surface(state_t &state, dindex vol_id,
                                   std::size_t n_candidates, dindex next_id) {
-    ASSERT_EQ(state.status(), navigator_t::navigation_status::e_towards_object);
+    ASSERT_EQ(state.status(), navigation::e_towards_object);
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.candidates().size(), n_candidates);
     // If we are towards some object, we have no current one (even if we are
@@ -110,10 +31,8 @@ inline void check_towards_surface(state_t &state, dindex vol_id,
     ASSERT_EQ(state.on_object(), dindex_invalid);
     // the portal is still the next object, since we did not step
     ASSERT_EQ(state.next()->index, next_id);
-    ASSERT_TRUE((state.trust_level() ==
-                 navigator_t::navigation_trust_level::e_full_trust) or
-                (state.trust_level() ==
-                 navigator_t::navigation_trust_level::e_high_trust));
+    ASSERT_TRUE((state.trust_level() == navigation::e_full_trust) or
+                (state.trust_level() == navigation::e_high_trust));
 }
 
 /** Checks for a correct 'on_surface' state */
@@ -122,7 +41,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
                              std::size_t n_candidates, dindex current_id,
                              dindex next_id) {
     // The status is: on surface
-    ASSERT_EQ(state.status(), navigator_t::navigation_status::e_on_target);
+    ASSERT_EQ(state.status(), navigation::e_on_target);
     // Points towards next candidate
     ASSERT_TRUE(std::abs(state()) > state.tolerance());
     ASSERT_EQ(state.volume(), vol_id);
@@ -130,8 +49,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
     ASSERT_EQ(state.on_object(), current_id);
     // points to the next surface now
     ASSERT_EQ(state.next()->index, next_id);
-    ASSERT_EQ(state.trust_level(),
-              navigator_t::navigation_trust_level::e_full_trust);
+    ASSERT_EQ(state.trust_level(), navigation::e_full_trust);
 }
 
 /** Checks for a correctly handled volume switch */
@@ -140,19 +58,31 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
     // Switched to next volume
     ASSERT_EQ(state.volume(), vol_id);
     // The status is towards first surface in new volume
-    ASSERT_EQ(state.status(), navigator_t::navigation_status::e_towards_object);
+    ASSERT_EQ(state.status(), navigation::e_towards_object);
     // Kernel is newly initialized
     ASSERT_FALSE(state.is_exhausted());
-    ASSERT_EQ(state.trust_level(),
-              navigator_t::navigation_trust_level::e_full_trust);
+    ASSERT_EQ(state.trust_level(), navigation::e_full_trust);
 }
 
-/** Checks an entire step to next barrel surface */
-template <typename navigator_t, typename state_t, typename stepper_state_t>
-inline void check_step(navigator_t &nav, state_t &state,
-                       stepper_state_t &stepping, dindex vol_id,
+/** Checks an entire step onto the next surface */
+template <typename navigator_t, typename stepper_t, typename nav_state_t,
+          typename stepper_state_t>
+inline void check_step(navigator_t &n, stepper_t &s, nav_state_t &n_state,
+                       stepper_state_t &s_state, dindex vol_id,
                        std::size_t n_candidates, dindex current_id,
-                       dindex next_id) {}
+                       dindex next_id) {
+
+    // Step onto the surface in volume
+    s.step(s_state, n_state);
+    // Stepper reduced trust level
+    ASSERT_EQ(n_state.trust_level(), navigation::e_high_trust);
+    ASSERT_TRUE(n.update(n_state, s_state));
+    // Trust level is restored
+    ASSERT_EQ(n_state.trust_level(), navigation::e_full_trust);
+    // The status is on surface
+    check_on_surface<navigator_t>(n_state, vol_id, n_candidates, current_id,
+                                  next_id);
+}
 
 }  // namespace detray
 
@@ -161,6 +91,8 @@ inline void check_step(navigator_t &nav, state_t &state,
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, navigator) {
     using namespace detray;
+    using namespace detray::navigation;
+
     vecmem::host_memory_resource host_mr;
 
     /** Tolerance for tests */
@@ -170,8 +102,8 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     std::size_t n_edc_layers = 3;
     auto toy_det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
     using detector_t = decltype(toy_det);
-    // using inspector_t = nav_void_inspector;
-    using inspector_t = print_inspector;
+    // using inspector_t = navigation::void_inspector;
+    using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;
     navigator_t n(toy_det);
     using stepper_t = line_stepper<free_track_parameters>;
@@ -181,86 +113,67 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     vector3 mom{1., 1., 0.};
     free_track_parameters traj(pos, 0, mom, -1);
     stepper_t s;
-    typename stepper_t::state stepping(traj);
+    typename stepper_t::state s_state(traj);
 
-    navigator_t::state state;
-    // Set initial volume (no grid yet)
-    state.set_volume(0u);
+    navigator_t::state n_state;
 
     // Check that the state is unitialized
-    // Volume is invalid
-    ASSERT_EQ(state.volume(), 0u);
+    // Default volume is zero
+    ASSERT_EQ(n_state.volume(), 0u);
     // No surface candidates
-    ASSERT_EQ(state.candidates().size(), 0u);
+    ASSERT_EQ(n_state.candidates().size(), 0u);
     // You can not trust the state
-    ASSERT_EQ(state.trust_level(),
-              navigator_t::navigation_trust_level::e_no_trust);
+    ASSERT_EQ(n_state.trust_level(), e_no_trust);
     // The status is unkown
-    ASSERT_EQ(state.status(), navigator_t::navigation_status::e_unknown);
+    ASSERT_EQ(n_state.status(), e_unknown);
 
     //
     // beampipe
     //
 
-    // Initial target call
+    // Initialize navigation
     // Test that the navigator has a heartbeat
-    ASSERT_TRUE(n.init(state, stepping));
+    ASSERT_TRUE(n.init(n_state, s_state));
     // The status is towards beampipe
     // Two candidates: beampipe and portal
     // First candidate is the beampipe
-    check_towards_surface<navigator_t>(state, 0, 2, 0);
-    ASSERT_NEAR(state(), 19., tol);
+    check_towards_surface<navigator_t>(n_state, 0, 2, 0);
+    // Distance to beampipe surface
+    ASSERT_NEAR(n_state(), 19., tol);
 
     // Let's immediately target, nothing should change, as there is full trust
-    ASSERT_TRUE(n.status(state, stepping));
-    // The status remains: towards surface
-    check_towards_surface<navigator_t>(state, 0, 2, 0);
-    ASSERT_NEAR(state(), 19., tol);
+    ASSERT_TRUE(n.update(n_state, s_state));
+    check_towards_surface<navigator_t>(n_state, 0, 2, 0);
+    ASSERT_NEAR(n_state(), 19., tol);
 
     // Let's make half the step towards the beampipe
-    // traj.set_pos(traj.pos() + 0.5 * state() * traj.dir());
-    s.step(stepping, state, state() * 0.5);
+    s.step(s_state, n_state, n_state() * 0.5);
     // Stepper reduced trust level
-    ASSERT_EQ(state.trust_level(),
-              navigator_t::navigation_trust_level::e_high_trust);
-    ASSERT_TRUE(n.status(state, stepping));
-    // The status remains: towards surface
-    check_towards_surface<navigator_t>(state, 0, 2, 0);
-    ASSERT_NEAR(state(), 9.5, tol);
+    ASSERT_EQ(n_state.trust_level(), e_high_trust);
+    // Re-navigate
+    ASSERT_TRUE(n.update(n_state, s_state));
     // Trust level is restored
-    ASSERT_EQ(state.trust_level(),
-              navigator_t::navigation_trust_level::e_full_trust);
+    ASSERT_EQ(n_state.trust_level(), e_full_trust);
+    // The status remains: towards surface
+    check_towards_surface<navigator_t>(n_state, 0, 2, 0);
+    // Distance to beampipe is now halved
+    ASSERT_NEAR(n_state(), 9.5, tol);
 
     // Let's immediately target, nothing should change, as there is full trust
-    ASSERT_TRUE(n.status(state, stepping));
-    check_towards_surface<navigator_t>(state, 0, 2, 0);
-    ASSERT_NEAR(state(), 9.5, tol);
-    // Trust level is restored
-    ASSERT_EQ(state.trust_level(),
-              navigator_t::navigation_trust_level::e_full_trust);
+    ASSERT_TRUE(n.update(n_state, s_state));
+    check_towards_surface<navigator_t>(n_state, 0, 2, 0);
+    ASSERT_NEAR(n_state(), 9.5, tol);
 
     // Now step onto the beampipe (idx 0)
-    s.step(stepping, state);
-    // Stepper reduced trust level
-    ASSERT_EQ(state.trust_level(),
-              navigator_t::navigation_trust_level::e_high_trust);
-    ASSERT_TRUE(n.status(state, stepping));
-    ASSERT_EQ(state.trust_level(),
-              navigator_t::navigation_trust_level::e_full_trust);
-    // The status is on surface
-    check_on_surface<navigator_t>(state, 0, 2, 0, 7);
-    ASSERT_NEAR(state(), 8, tol);
+    check_step(n, s, n_state, s_state, 0, 2, 0, 7);
+    // New target: Distance to the beampipe volume cylinder portal
+    ASSERT_NEAR(n_state(), 8, tol);
 
     // Step onto portal 7 in volume 0
-    s.step(stepping, state);
-    // Stepper reduced trust level
-    ASSERT_EQ(state.trust_level(),
-              navigator_t::navigation_trust_level::e_high_trust);
-    ASSERT_TRUE(n.status(state, stepping));
-    ASSERT_EQ(state.trust_level(),
-              navigator_t::navigation_trust_level::e_full_trust);
-    // We are in the first barrel layer now (vol 7)
-    check_volume_switch<navigator_t>(state, 7);
+    s.step(s_state, n_state);
+    ASSERT_EQ(n_state.trust_level(), e_high_trust);
+    ASSERT_TRUE(n.update(n_state, s_state));
+    ASSERT_EQ(n_state.trust_level(), e_full_trust);
 
     //
     // barrel
@@ -293,51 +206,36 @@ TEST(ALGEBRA_PLUGIN, navigator) {
         std::size_t n_candidates = sf_seq.size() + 1;
 
         // We switched to next barrel volume
-        check_volume_switch<navigator_t>(state, vol_id);
-
-        // New target call will initialize volume
-        ASSERT_TRUE(n.status(state, stepping));
+        check_volume_switch<navigator_t>(n_state, vol_id);
 
         // The status is: on adjacent portal in volume, towards next candidate
         // This includes overlapping modules and the adjacent portal we are
         // already on
-        check_towards_surface<navigator_t>(state, vol_id, n_candidates,
+        check_towards_surface<navigator_t>(n_state, vol_id, n_candidates,
                                            sf_seq.front());
 
         // Step through the module surfaces
         for (std::size_t sf = 0; sf < sf_seq.size() - 1; ++sf) {
-            // Now step onto the beampipe (idx 0)
-            s.step(stepping, state);
-            // Stepper reduced trust level
-            ASSERT_EQ(state.trust_level(),
-                      navigator_t::navigation_trust_level::e_high_trust);
-            ASSERT_TRUE(n.status(state, stepping));
-            // The status is on surface
-            check_on_surface<navigator_t>(state, vol_id, n_candidates,
-                                          sf_seq[sf], sf_seq[sf + 1]);
+            check_step(n, s, n_state, s_state, vol_id, n_candidates, sf_seq[sf],
+                       sf_seq[sf + 1]);
         }
 
         // Step onto the portal in volume
-        s.step(stepping, state);
+        s.step(s_state, n_state);
 
         // Check agianst last volume
-        if (vol_id != last_vol_id) {
-            ASSERT_TRUE(n.status(state, stepping));
-        }
-        // we leave the detector
-        else {
-            ASSERT_FALSE(n.status(state, stepping));
+        if (vol_id == last_vol_id) {
+            ASSERT_FALSE(n.update(n_state, s_state));
             // The status is: exited
-            ASSERT_EQ(state.status(), navigator_t::navigation_status::e_exit);
+            ASSERT_EQ(n_state.status(), e_exit);
             // Switch to next volume leads out of the detector world -> exit
-            ASSERT_EQ(state.volume(), dindex_invalid);
+            ASSERT_EQ(n_state.volume(), dindex_invalid);
             // We know we went out of the detector
-            ASSERT_EQ(state.trust_level(),
-                      navigator_t::navigation_trust_level::e_full_trust);
+            ASSERT_EQ(n_state.trust_level(), e_full_trust);
+        } else {
+            ASSERT_TRUE(n.update(n_state, s_state));
         }
     }
 
-    if constexpr (not std::is_same_v<inspector_t, nav_void_inspector>) {
-        std::cout << state.inspector().to_string() << std::endl;
-    }
+    // std::cout << n_state.inspector().to_string() << std::endl;
 }

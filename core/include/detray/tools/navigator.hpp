@@ -7,13 +7,10 @@
 
 #pragma once
 
-#include <iostream>
-#include <string>
 #include <type_traits>
 
 #include "detray/core/detector.hpp"
 #include "detray/core/intersection.hpp"
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
@@ -21,29 +18,50 @@
 
 namespace detray {
 
+namespace navigation {
+
+/** Navigation status flag */
+enum status : int {
+    e_abort = -3,
+    e_exit = -2,
+    e_unknown = -1,
+    e_towards_object = 0,  // move towards next object
+    e_on_target = 1,       // reached object
+};
+
+/** Navigation trust level */
+enum trust_level : int {
+    e_no_trust = 0,    // re-initialize the volume (e.g. local navigation)
+    e_fair_trust = 1,  // update the distance & order of the
+                       // (preselected) candidates
+    e_high_trust = 3,  // update the distance to the next candidate
+    e_full_trust = 4   // don't update anything
+};
+
 /** A void inpector that does nothing.
  *
  * Inspectors can be plugged in to understand the
  * the current navigation state information.
  *
  */
-struct nav_void_inspector {
+struct void_inspector {
     template <typename state_t>
     DETRAY_HOST_DEVICE void operator()(const state_t & /*ignored*/,
                                        const char * /*ignored*/) {}
 };
 
-/** The navigator struct is agnostic to the object/primitive type. It
- *  only requires a link to the next navigation volume in every candidate
- *  that is computed by intersection from the objects. A module surface should
- *  link back to the volume it is conained in, while a portal surface links
- *  to the next volume in the direction of the track
+}  // namespace navigation
+
+/** The navigator struct is initialized around a detector object, but is itself
+ *  agnostic to the object/primitive type. It only requires a link to the next
+ *  navigation volume in every candidate that is computed by intersection from
+ *  the objects. A module surface should link back to the volume it is conained
+ *  in, while a portal surface links to the next volume in the direction of the
+ *  track.
  *
- * It follows the structure of the Acts::Navigator:
- * a sequence of
- * - status()
- * - target()
+ * It follows an init() call and then a sequence of
  * [- step()]
+ * - update()
  * calls.
  *
  * The heartbeat indicates, that the navigation is still in a valid state.
@@ -51,34 +69,16 @@ struct nav_void_inspector {
  * @tparam detector_t the detector to navigate
  * @tparam inspector_t is a validation inspector
  */
-template <typename detector_t, typename inspector_t = nav_void_inspector>
+template <typename detector_t,
+          typename inspector_t = navigation::void_inspector>
 class navigator {
 
     public:
     using inspector_type = inspector_t;
-
     using detector_type = detector_t;
     using volume_type = typename detector_t::volume_type;
     template <typename T>
     using vector_type = typename detector_t::template vector_type<T>;
-
-    /** Navigation status flag */
-    enum navigation_status : int {
-        e_abort = -3,
-        e_exit = -2,
-        e_unknown = -1,
-        e_towards_object = 0,  // move towards next object
-        e_on_target = 1,       // reached object
-    };
-
-    /** Navigation trust level */
-    enum navigation_trust_level : int {
-        e_no_trust = 0,    // re-evalute the candidates all over
-        e_fair_trust = 1,  // re-evaluate the distance & order of the
-                           // (preselected) candidates
-        e_high_trust = 3,  // re-evaluate the distance to the next candidate
-        e_full_trust = 4   // trust fully: Don't re-evaluate
-    };
 
     /** A navigation state object used to cache the information of the
      *  current navigation stream. These can be read or set in between
@@ -166,7 +166,7 @@ class navigator {
 
         /** Set new navigation status */
         DETRAY_HOST_DEVICE
-        inline void set_status(navigation_status stat) { _status = stat; }
+        inline void set_status(navigation::status stat) { _status = stat; }
 
         /** @returns tolerance to determine if we are on object - const */
         DETRAY_HOST_DEVICE
@@ -186,19 +186,25 @@ class navigator {
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
-        inline void set_no_trust() { _trust_level = e_no_trust; }
+        inline void set_no_trust() { _trust_level = navigation::e_no_trust; }
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
-        inline void set_full_trust() { _trust_level = e_full_trust; }
+        inline void set_full_trust() {
+            _trust_level = navigation::e_full_trust;
+        }
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
-        inline void set_high_trust() { _trust_level = e_high_trust; }
+        inline void set_high_trust() {
+            _trust_level = navigation::e_high_trust;
+        }
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
-        inline void set_fair_trust() { _trust_level = e_fair_trust; }
+        inline void set_fair_trust() {
+            _trust_level = navigation::e_fair_trust;
+        }
 
         /** @returns current volume (index) - const */
         DETRAY_HOST_DEVICE
@@ -219,8 +225,8 @@ class navigator {
          */
         DETRAY_HOST_DEVICE
         inline bool abort() {
-            _status = e_abort;
-            _trust_level = e_no_trust;
+            _status = navigation::e_abort;
+            _trust_level = navigation::e_no_trust;
             run_inspector("Aborted: ");
             return false;
         }
@@ -232,8 +238,8 @@ class navigator {
          */
         DETRAY_HOST_DEVICE
         inline bool exit() {
-            _status = e_exit;
-            _trust_level = e_full_trust;
+            _status = navigation::e_exit;
+            _trust_level = navigation::e_full_trust;
             run_inspector("Exited: ");
             return false;
         }
@@ -257,16 +263,16 @@ class navigator {
         dindex _object_index = dindex_invalid;
 
         /**  The navigation status */
-        navigation_status _status = e_unknown;
+        navigation::status _status = navigation::e_unknown;
 
         /** The on object tolerance - permille */
         scalar _on_object_tolerance = 1e-3;
 
         /** The navigation trust level */
-        navigation_trust_level _trust_level = e_no_trust;
+        navigation::trust_level _trust_level = navigation::e_no_trust;
 
         /** Volume we are currently navigating in */
-        dindex _volume_index = dindex_invalid;
+        dindex _volume_index = 0;
     };
 
     DETRAY_HOST_DEVICE
@@ -283,7 +289,7 @@ class navigator {
      * @return a heartbeat to indicate if the navigation is still alive
      **/
     template <typename stepper_state_t>
-    DETRAY_HOST_DEVICE inline bool status(state &navigation,
+    DETRAY_HOST_DEVICE inline bool update(state &navigation,
                                           stepper_state_t &stepping) const {
 
         bool heartbeat = true;
@@ -298,13 +304,13 @@ class navigator {
 
         // If still no trust could be restored, local navigation might be
         // exhausted: re-initialize current volume
-        if (navigation.trust_level() == e_no_trust or
+        if (navigation.trust_level() == navigation::e_no_trust or
             navigation.is_exhausted()) {
             update_kernel(navigation, stepping);
         }
 
         // Should never be the case after complete update call
-        if (navigation.trust_level() != e_full_trust) {
+        if (navigation.trust_level() != navigation::e_full_trust) {
             heartbeat = navigation.abort();
         }
 
@@ -318,7 +324,7 @@ class navigator {
 
         // Re-establish navigation status after [external] changes to
         // the navigation state
-        return status(navigation, stepping);
+        return update(navigation, stepping);
     }
 
     /** Helper method to intersect all objects of a surface/portal store
@@ -393,14 +399,14 @@ class navigator {
         state &navigation, stepper_state_t &stepping) const {
 
         // Current candidate is up to date, nothing left to do
-        if (navigation.trust_level() == e_full_trust) {
+        if (navigation.trust_level() == navigation::e_full_trust) {
             return;
         }
 
         const volume_type &volume =
             _detector->volume_by_index(navigation.volume());
         // Navigation state is broken/not initialized
-        if (navigation.trust_level() == e_no_trust) {
+        if (navigation.trust_level() == navigation::e_no_trust) {
             initialize_kernel(navigation, stepping, volume);
             return;
         }
@@ -409,7 +415,7 @@ class navigator {
         // Update only the current candidate, or close neighbors if we miss the
         // current candidate - do this only when the navigation state is still
         // largely consistent (high trust)
-        if (navigation.trust_level() == e_high_trust) {
+        if (navigation.trust_level() == navigation::e_high_trust) {
             while (not navigation.is_exhausted()) {
 
                 intersection &candidate = *navigation.next();
@@ -420,7 +426,7 @@ class navigator {
                     // Did we arrive on onbject?
                     if (std::abs(candidate.path) < navigation.tolerance()) {
                         navigation.set_object(candidate.index);
-                        navigation.set_status(e_on_target);
+                        navigation.set_status(navigation::e_on_target);
                         // Release stepping constraints
                         stepping.release_step_size();
                         // Set the next object we want to reach might be end()
@@ -439,7 +445,7 @@ class navigator {
                     // we are not on the next object
                     else {
                         navigation.set_object(dindex_invalid);
-                        navigation.set_status(e_towards_object);
+                        navigation.set_status(navigation::e_towards_object);
                     }
                     // After update, trust in candidate is restored
                     navigation.set_full_trust();
@@ -455,7 +461,7 @@ class navigator {
         // Re-evaluate all currently available candidates
         // - do this when your navigation state is stale, but not invalid
         // (fair trust)
-        else if (navigation.trust_level() == e_fair_trust) {
+        else if (navigation.trust_level() == navigation::e_fair_trust) {
             for (auto &candidate : navigation.candidates()) {
                 update_candidate(track, candidate);
                 // Disregard this candidate
@@ -495,7 +501,7 @@ class navigator {
             // the next portal
             if (navigation() < navigation.tolerance()) {
                 // Set temporarily, so that inspector can catch this state
-                navigation.set_status(e_on_target);
+                navigation.set_status(navigation::e_on_target);
                 navigation.set_object(navigation.next()->index);
                 // The next object that we want to reach (cache is sorted)
                 ++navigation.next();
@@ -503,12 +509,12 @@ class navigator {
                 navigation.run_inspector("Skipping direct hit: ");
             }
             // Now, we are on our way to the next candidate
-            navigation.set_status(e_towards_object);
+            navigation.set_status(navigation::e_towards_object);
             navigation.set_object(dindex_invalid);
             // After update, trust is restored
             navigation.set_full_trust();
         } else {
-            navigation.set_status(e_unknown);
+            navigation.set_status(navigation::e_unknown);
             navigation.set_object(dindex_invalid);
             navigation.set_no_trust();
         }
@@ -526,7 +532,7 @@ class navigator {
     DETRAY_HOST_DEVICE bool check_volume_switch(
         state &navigation, stepper_state_t &stepping) const {
         // Check if we need to switch volume index and (re-)initialize
-        if (navigation.status() == e_on_target and
+        if (navigation.status() == navigation::e_on_target and
             navigation.volume() != navigation.current()->link) {
             // Set volume index to the next volume provided by the object
             navigation.set_volume(navigation.current()->link);

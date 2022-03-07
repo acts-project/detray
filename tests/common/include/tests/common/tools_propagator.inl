@@ -13,9 +13,7 @@
 #include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/core/transform_store.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
-#include "detray/io/csv_io.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
 #include "detray/tools/propagator.hpp"
@@ -23,6 +21,7 @@
 #include "detray/tools/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/helix_gun.hpp"
+#include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
 constexpr scalar epsilon = 1e-4;
@@ -38,26 +37,27 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     auto d = create_toy_geometry(host_mr);
 
     // Create the navigator
-    using detray_navigator = navigator<decltype(d)>;
-    using detray_track = free_track_parameters;
+    using navigator_t = navigator<decltype(d), navigation::print_inspector>;
+    using track_t = free_track_parameters;
 
     __plugin::point3<scalar> pos{0., 0., 0.};
     __plugin::vector3<scalar> mom{1., 1., 0.};
-    detray_track traj(pos, 0, mom, -1);
+    track_t traj(pos, 0, mom, -1);
 
-    using detray_stepper = line_stepper<detray_track>;
+    using stepper_t = line_stepper<track_t>;
 
-    detray_stepper s;
-    detray_navigator n(std::move(d));
+    stepper_t s;
+    navigator_t n(d);
 
-    using detray_propagator = propagator<detray_stepper, detray_navigator>;
-    detray_propagator p(std::move(s), std::move(n));
+    using propagator_t = propagator<stepper_t, navigator_t>;
+    propagator_t p(std::move(s), std::move(n));
 
-    void_propagator_inspector vi;
+    propagation::void_inspector vi;
 
-    detray_propagator::state state(traj);
+    propagator_t::state state(traj);
 
-    /*auto end = */  // p.propagate(state, vi);
+    // EXPECT_TRUE(p.propagate(state, vi)) <<
+    // state._navigation.inspector().to_string() << std::endl;
 }
 
 struct helix_inspector {
@@ -78,165 +78,15 @@ struct helix_inspector {
     helix_gun _helix;
 };
 
-struct print_inspector {
-
-    template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(const navigator_state_t& navigation,
-                                       const stepper_state_t& stepping) {
-        std::stringstream stream;
-
-        stream << std::left << std::setw(30);
-        switch (static_cast<int>(navigation.status())) {
-            case -3:
-                stream << "status: on_target";
-                break;
-            case -2:
-                stream << "status: abort";
-                break;
-            case -1:
-                stream << "status: unknowm";
-                break;
-            case 0:
-                stream << "status: towards_surface";
-                break;
-            case 1:
-                stream << "status: on_surface";
-                break;
-        };
-
-        if (navigation.volume() == dindex_invalid) {
-            stream << "volume: " << std::setw(10) << "invalid";
-        } else {
-            stream << "volume: " << std::setw(10) << navigation.volume();
-        }
-
-        if (navigation.on_object() == dindex_invalid) {
-            stream << "surface: " << std::setw(14) << "invalid";
-        } else {
-            stream << "surface: " << std::setw(14) << navigation.on_object();
-        }
-
-        stream << "step_size: " << std::setw(10) << stepping._step_size;
-
-        // std::cout << stream.str() << std::endl;
-    }
-};
-
 struct combined_inspector {
     helix_inspector _hi;
-    print_inspector _pi;
+    propagation::print_inspector _pi;
 
     template <typename navigator_state_t, typename stepper_state_t>
     DETRAY_HOST_DEVICE void operator()(navigator_state_t& navigation,
                                        const stepper_state_t& stepping) {
         _hi(navigation, stepping);
         _pi(navigation, stepping);
-    }
-};
-
-/** A navigation inspector that prints information about the current navigation
- * state. Meant for debugging.
- */
-struct navigator_print_inspector {
-
-    // Debug output if an error in the trace is discovered
-    std::stringstream debug_stream;
-
-    template <typename state_type>
-    auto operator()(state_type& state, const char* message) {
-        std::string msg(message);
-
-        debug_stream << msg << std::endl;
-
-        debug_stream << "Volume\t\t\t\t\t\t" << state.volume() << std::endl;
-        debug_stream << "surface kernel size\t\t" << state.candidates().size()
-                     << std::endl;
-
-        debug_stream << "Surface candidates: " << std::endl;
-        for (const auto& sf_cand : state.candidates()) {
-            debug_stream << sf_cand.to_string();
-        }
-        if (not state.candidates().empty()) {
-            debug_stream << "=> next: ";
-            if (state.is_exhausted()) {
-                debug_stream << "exhausted" << std::endl;
-            } else {
-                debug_stream << " -> " << state.next()->index << std::endl;
-            }
-        }
-
-        switch (static_cast<int>(state.status())) {
-            case -3:
-                debug_stream << "status\t\t\t\t\ton_target" << std::endl;
-                break;
-            case -2:
-                debug_stream << "status\t\t\t\t\tabort" << std::endl;
-                break;
-            case -1:
-                debug_stream << "status\t\t\t\t\tunknowm" << std::endl;
-                break;
-            case 0:
-                debug_stream << "status\t\t\t\t\ttowards_surface" << std::endl;
-                break;
-            case 1:
-                debug_stream << "status\t\t\t\t\ton_surface" << std::endl;
-                break;
-            case 2:
-                debug_stream << "status\t\t\t\t\ttowards_portal" << std::endl;
-                break;
-            case 3:
-                debug_stream << "status\t\t\t\t\ton_portal" << std::endl;
-                break;
-        };
-        debug_stream << "current object\t\t" << state.on_object() << std::endl;
-        debug_stream << "distance to next\t";
-        if (std::abs(state()) < state.tolerance()) {
-            debug_stream << "on obj (within tol)" << std::endl;
-        } else {
-            debug_stream << state() << std::endl;
-        }
-        switch (state.trust_level()) {
-            case 0:
-                debug_stream << "trust\t\t\t\t\tno_trust" << std::endl;
-                break;
-            case 1:
-                debug_stream << "trust\t\t\t\t\tfair_trust" << std::endl;
-                break;
-            case 3:
-                debug_stream << "trust\t\t\t\t\thigh_trust" << std::endl;
-                break;
-            case 4:
-                debug_stream << "trust\t\t\t\t\tfull_trust" << std::endl;
-                break;
-        };
-        debug_stream << std::endl;
-    }
-
-    std::string to_string() { return debug_stream.str(); }
-};
-
-/** A navigation inspector that aggregates a number of different inspectors.*/
-template <typename... Inspectors>
-struct aggregate_inspector {
-
-    using inspector_tuple_t = std::tuple<Inspectors...>;
-    inspector_tuple_t _inspectors{};
-
-    template <unsigned int current_id = 0, typename state_type>
-    auto operator()(state_type& state, const char* message) {
-        // Call inspector
-        std::get<current_id>(_inspectors)(state, message);
-
-        // Next mask type
-        if constexpr (current_id <
-                      std::tuple_size<inspector_tuple_t>::value - 1) {
-            return operator()<current_id + 1>(state, message);
-        }
-    }
-
-    template <typename inspector_t>
-    decltype(auto) get() {
-        return std::get<inspector_t>(_inspectors);
     }
 };
 
@@ -262,22 +112,22 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Create the navigator
-    using detray_navigator = navigator<decltype(d), navigator_print_inspector>;
-    using detray_b_field = constant_magnetic_field<>;
-    using detray_stepper = rk_stepper<detray_b_field, free_track_parameters>;
-    using detray_propagator = propagator<detray_stepper, detray_navigator>;
+    using navigator_t = navigator<decltype(d), navigation::print_inspector>;
+    using b_field_t = constant_magnetic_field<>;
+    using stepper_t = rk_stepper<b_field_t, free_track_parameters>;
+    using propagator_t = propagator<stepper_t, navigator_t>;
 
     // Constant magnetic field
     // vector3 B{0, 0, 2 * unit_constants::T};
     vector3 B = GetParam();
-    detray_b_field b_field(B);
+    b_field_t b_field(B);
 
     // Set initial position and momentum of tracks
     const point3 ori{0., 0., 0.};
 
-    detray_stepper s(b_field);
-    detray_navigator n(std::move(d));
-    detray_propagator p(std::move(s), std::move(n));
+    stepper_t s(b_field);
+    navigator_t n(d);
+    propagator_t p(std::move(s), std::move(n));
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -297,14 +147,13 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             // intialize a track
             free_track_parameters traj(ori, 0, mom, -1);
             helix_gun helix(traj, B);
-            combined_inspector ci{helix_inspector(helix), print_inspector{}};
+            combined_inspector ci{helix_inspector(helix),
+                                    propagation::print_inspector{}};
 
-            detray_propagator::state state(traj);
+            propagator_t::state state(traj);
 
-            p.propagate(state, ci);
-
-            // Ensure that the tracks reach the end of the world
-            EXPECT_EQ(state._navigation.volume(), dindex_invalid);
+            EXPECT_TRUE(p.propagate(state, ci))
+                << state._navigation.inspector().to_string() << std::endl;
         }
     }
 }

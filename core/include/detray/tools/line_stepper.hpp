@@ -18,11 +18,11 @@
 namespace detray {
 
 /** Line stepper implementation */
-template <typename track_t, template <typename...> class tuple_t = dtuple>
-class line_stepper final : public base_stepper<track_t, tuple_t> {
+template <typename track_t>
+class line_stepper final : public base_stepper<track_t> {
 
     public:
-    using base_type = base_stepper<track_t, tuple_t>;
+    using base_type = base_stepper<track_t>;
 
     struct state : public base_type::state {
         state(track_t &t) : base_type::state(t) {}
