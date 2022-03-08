@@ -148,7 +148,7 @@ class navigator {
          * between objects) - const
          */
         DETRAY_HOST_DEVICE
-        inline auto on_object() const { return _object_index; }
+        inline auto current_object() const { return _object_index; }
 
         /** Update current object the navigator is on  */
         DETRAY_HOST_DEVICE
@@ -212,6 +212,28 @@ class navigator {
         DETRAY_HOST_DEVICE
         bool is_exhausted() const { return (_next == _candidates.end()); }
 
+        /** Helper method to check if a kernel is exhausted - const */
+        template <typename track_t>
+        DETRAY_HOST_DEVICE inline bool is_on_object(track_t &track,
+                                                    intersection &candidate) {
+            if ((candidate.path < _on_object_tolerance) and
+                (candidate.path > track.overstep_tolerance())) {
+                this->set_object(candidate.index);
+                this->set_status(navigation::e_on_target);
+                return true;
+            }
+            return false;
+        }
+
+        /** Helper to determine if a candidate has been invalidated
+         *
+         * @param candidate the candidate to be invalidated
+         */
+        // TODO: Come up with a more specific way
+        DETRAY_HOST_DEVICE inline bool is_reachable() const {
+            return _next->path != std::numeric_limits<scalar>::max();
+        }
+
         /** Navigation state that cannot be recovered from. Leave the other
          *  data for inspection.
          *
@@ -250,38 +272,44 @@ class navigator {
         }
 
         private:
-        // Our list of candidates (intersections with object)
+        /// Our list of candidates (intersections with object)
         vector_type<intersection> _candidates = {};
 
-        // The next best candidate
+        /// The next best candidate
         typename vector_type<intersection>::iterator _next = _candidates.end();
 
-        /**  Distance to next - will be cast into a scalar with call operator
-         */
+        /// Distance to next - will be cast into a scalar with call operator
         scalar _distance_to_next = std::numeric_limits<scalar>::infinity();
 
-        /** The inspector type of this navigation engine */
+        /// The inspector type of this navigation engine
         inspector_type _inspector;
 
-        /** Index of a object (surface/portal) if is reached, otherwise invalid
-         */
+        /// Index of a object (surface/portal) if is reached, otherwise invalid
         dindex _object_index = dindex_invalid;
 
-        /**  The navigation status */
+        /// The navigation status
         navigation::status _status = navigation::e_unknown;
 
-        /** The on object tolerance - permille */
+        /// The on object tolerance - permille
         scalar _on_object_tolerance = 1e-3;
 
-        /** The navigation trust level */
+        /// The navigation trust level
         navigation::trust_level _trust_level = navigation::e_no_trust;
 
-        /** Volume we are currently navigating in */
+        /// Volume we are currently navigating in
         dindex _volume_index = 0;
     };
 
     DETRAY_HOST_DEVICE
     navigator(const detector_t &d) : _detector(&d) {}
+
+    /// Alias call to update for readbility
+    template <typename stepper_state_t>
+    DETRAY_HOST_DEVICE bool init(state &navigation,
+                                 stepper_state_t &stepping) const {
+        // Establish navigation status before the first step
+        return update(navigation, stepping);
+    }
 
     /** Navigation status() call which established the current navigation
      *  information.
@@ -289,31 +317,35 @@ class navigator {
      * @tparam track_t type of the track (including context)
      *
      * @param navigation [in, out] is the navigation state object
-     * @param track [in] is the track infromation
+     * @param stepping stepper state that contains the track
      *
      * @return a heartbeat to indicate if the navigation is still alive
      **/
     template <typename stepper_state_t>
     DETRAY_HOST_DEVICE inline bool update(state &navigation,
                                           stepper_state_t &stepping) const {
-
         bool heartbeat = true;
 
-        // If there is no_trust (e.g. at the beginning of the navigation in a
-        // volume), the kernel will be initialized. Otherwise the candidates
-        // are re-evaluated based on current trust level
-        update_kernel(navigation, stepping);
+        if (navigation.candidates().capacity() != 0)
+            // navigation.run_inspector("Before update: ");
+
+            // If there is no_trust (e.g. at the beginning of the navigation in
+            // a volume), the kernel will be initialized. Otherwise the
+            // candidates are re-evaluated based on current trust level
+            update_kernel(navigation, stepping);
 
         // Did we hit a portal? Then switch volume
         heartbeat &= check_volume_switch(navigation);
 
-        // If no trust could be restored for the current state, local
+        // If no trust could be restored for the current state, (local)
         // navigation might be exhausted or we switched volumes:
         // (re-)initialize volume
         if (navigation.trust_level() == navigation::e_no_trust) {
             navigation.clear();
             update_kernel(navigation, stepping);
         }
+
+        // navigation.run_inspector("Update complete: ");
 
         // Should never be the case after complete update call
         if (navigation.trust_level() != navigation::e_full_trust) {
@@ -323,21 +355,12 @@ class navigator {
         return heartbeat;
     }
 
-    /// Alias call to update.
-    template <typename stepper_state_t>
-    DETRAY_HOST_DEVICE bool init(state &navigation,
-                                 stepper_state_t &stepping) const {
-
-        // Re-establish navigation status after [external] changes to
-        // the navigation state
-        return update(navigation, stepping);
-    }
-
     /** Helper method to intersect all objects of a surface/portal store
      *
-     * @tparam track_t type of the track (including context)
+     * @tparam stepper_state_t state type of the stepper object
      *
      * @param navigation [in, out] navigation state that contains the kernel
+     * @param stepping stepper state that contains the track
      * @param track the track information
      * @param volume the current tracking volume
      */
@@ -355,22 +378,23 @@ class navigator {
         // @todo - will come from the local object finder
         for (const auto [obj_idx, obj] :
              enumerate(_detector->surfaces(), volume)) {
-            // Retrieve candidate from the object
-            auto sfi = intersect(track, obj, _detector->transform_store(),
-                                 _detector->mask_store());
 
-            // Candidate is invalid if it oversteps too far (this is neg!)
-            if (sfi.path < track.overstep_tolerance()) {
+            auto candidate = intersect(track, obj, _detector->transform_store(),
+                                       _detector->mask_store());
+
+            // Candidate is invalid if it oversteps too far (usually a surface
+            // in the diagonally opposite direction in the detector geometry or
+            // one that we already left behind us)
+            if (candidate.path < track.overstep_tolerance()) {
                 continue;
             }
             // Accept if inside
-            if (sfi.status == e_inside) {
-                // object the candidate belongs to
-                sfi.index = obj_idx;
-                navigation.candidates().push_back(sfi);
+            if (candidate.status == e_inside) {
+                candidate.index = obj_idx;
+                navigation.candidates().push_back(candidate);
             }
         }
-        // What is the next object we want to reach?
+        // What is the closest object we can reach?
         set_next(track, navigation, stepping);
 
         navigation.run_inspector("Init complete: ");
@@ -381,7 +405,6 @@ class navigator {
      * @tparam track_t type of the track (including context)
      *
      * @param track the track information
-     *
      */
     template <typename track_t>
     DETRAY_HOST_DEVICE inline void update_candidate(
@@ -398,15 +421,14 @@ class navigator {
      *  an unreachable value
      *
      * @param candidate the candidate to be invalidated
-     *
      */
     DETRAY_HOST_DEVICE inline void invalidate_candidate(
         intersection &candidate) const {
         candidate.path = std::numeric_limits<scalar>::max();
     }
 
-    /** Helper method to the update the next candidate intersection based on
-     *  trust level. Will initialize kernel if there is no trust.
+    /** Helper method to update the next candidate intersection based on
+     *  trust level. Will initialize the kernel if there is no trust.
      *
      * @tparam stepper_state_t type of the stepper
      *
@@ -434,31 +456,29 @@ class navigator {
         // Update only the current candidate, or close neighbors if we miss the
         // current candidate - do this only when the navigation state is still
         // largely consistent (high trust)
-        if (navigation.trust_level() == navigation::e_high_trust) {
+        if (navigation.trust_level() == navigation::e_high_trust or
+            navigation.candidates().size() == 1) {
             while (not navigation.is_exhausted()) {
 
                 intersection &candidate = *navigation.next();
                 update_candidate(track, candidate);
 
-                // If candidate is inside, this is the next target
+                // If candidate is inside, this is likely the next target
                 if (candidate.status == e_inside) {
-                    // Did we arrive on onbject?
-                    if (candidate.path < navigation.tolerance() and
-                        candidate.path > track.overstep_tolerance()) {
-                        navigation.set_object(candidate.index);
-                        navigation.set_status(navigation::e_on_target);
+
+                    if (navigation.is_on_object(track, candidate)) {
                         // Release stepping constraints
                         stepping.release_step_size();
                         // Set the next object we want to reach - might be end()
                         ++navigation.next();
                         if (not navigation.is_exhausted()) {
+                            // Ready the next candidate in line
                             update_candidate(track, *navigation.next());
                         } else {
-                            // Next candidate is end() of cache, we might be on
-                            // portal to next volume or outside neighborhood
+                            // There is no next candidate left - re-evaluate
                             navigation.set_no_trust();
                             navigation.run_inspector(
-                                "Update (high trust, kernel exhausted): ");
+                                "Update (high trust, kernel exhausted):");
                             return;
                         }
                     }
@@ -469,14 +489,16 @@ class navigator {
                     }
                     // After update, trust in candidate is restored
                     navigation.set_full_trust();
-                    // Call the inspector before returning
-                    navigation.run_inspector("Update (high trust): ");
+                    navigation.run_inspector("Update (high trust):");
                     // Don't sort again when coming from high trust
                     return;
                 }
                 // Try next candidate
                 ++navigation.next();
             }
+            // Kernel is exhausted at this point
+            // Call the inspector before returning
+            navigation.run_inspector("Update (high trust) no candidate found:");
         }
         // Re-evaluate all currently available candidates
         // - do this when your navigation state is stale, but not invalid
@@ -489,16 +511,18 @@ class navigator {
                     invalidate_candidate(candidate);
                 }
             }
+            // Sort again
             set_next(track, navigation, stepping);
-            // Kernel is exhausted (no surface in this volume is reachable)
-            if (navigation() == std::numeric_limits<scalar>::max()) {
-                // Initialize the new volume in the next update call
+            // No surface in this volume is reachable: Kernel is exhausted
+            if (not navigation.is_reachable()) {
+                // Re-initialize the volume in the next update call
                 navigation.set_no_trust();
             }
             // Call the inspector before returning
             navigation.run_inspector("Update (fair trust): ");
         }
-        // No suitable candidate could be found - re-initialize
+
+        // Finally, if no candidate was found, trust could no be restored
         if (navigation.is_exhausted()) {
             navigation.set_no_trust();
         }
@@ -517,6 +541,17 @@ class navigator {
             // Sort distance to next & set navigation status
             detail::sequential_sort(navigation.candidates().begin(),
                                     navigation.candidates().end());
+
+            // Remove unreachable elements
+            auto not_reachable = [](intersection cand) {
+                return cand.path == std::numeric_limits<scalar>::max();
+            };
+            const auto first_invalid_cand =
+                std::find_if(navigation.candidates().begin(),
+                             navigation.candidates().end(), not_reachable);
+            navigation.candidates().erase(first_invalid_cand,
+                                          navigation.candidates().end());
+
             // Take the nearest candidate first
             navigation.next() = navigation.candidates().begin();
 
@@ -524,17 +559,18 @@ class navigator {
             // goto the next candidate.
             // This mainly updates adjacent portals -> we are automatically on
             // the next portal in the new volume
-            if (navigation() < navigation.tolerance() and
-                navigation() > track.overstep_tolerance()) {
+            if (navigation.is_on_object(track, *navigation.next())) {
+                // Set the next object that we want to reach (cache is sorted)
+                ++navigation.next();
                 // Set temporarily, so that the inspector can catch this state
                 navigation.set_status(navigation::e_on_target);
-                navigation.set_object(navigation.next()->index);
-                // Make sure we don't go back, even if we overstepped
-                invalidate_candidate(*navigation.next());
-                // The next object that we want to reach (cache is sorted)
-                ++navigation.next();
+                navigation.set_object(navigation.current()->index);
                 // Call the inspector on this portal crossing, then go to next
                 navigation.run_inspector("Skipping direct hit: ");
+                if (navigation.is_exhausted()) {
+                    navigation.set_no_trust();
+                    return;
+                }
             }
             // Now, we are on our way to the next candidate
             navigation.set_status(navigation::e_towards_object);
@@ -558,9 +594,11 @@ class navigator {
      */
     DETRAY_HOST_DEVICE bool check_volume_switch(state &navigation) const {
         // Check if we need to switch volume index and (re-)initialize
+        // Do this when we are on a portal that has a volume link different to
+        // the volume we currently navigate in
         if (navigation.status() == navigation::e_on_target and
             navigation.volume() != navigation.current()->link) {
-            // Set volume index to the next volume provided by the object
+            // Set volume index to the next volume provided by the portal
             navigation.set_volume(navigation.current()->link);
             // Initialize the new volume in the next update call
             navigation.set_no_trust();

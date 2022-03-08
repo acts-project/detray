@@ -28,7 +28,7 @@ inline void check_towards_surface(state_t &state, dindex vol_id,
     ASSERT_EQ(state.candidates().size(), n_candidates);
     // If we are towards some object, we have no current one (even if we are
     // geometrically still there)
-    ASSERT_EQ(state.on_object(), dindex_invalid);
+    ASSERT_EQ(state.current_object(), dindex_invalid);
     // the portal is still the next object, since we did not step
     ASSERT_EQ(state.next()->index, next_id);
     ASSERT_TRUE((state.trust_level() == navigation::e_full_trust) or
@@ -46,7 +46,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
     ASSERT_TRUE(std::abs(state()) > state.tolerance());
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.candidates().size(), n_candidates);
-    ASSERT_EQ(state.on_object(), current_id);
+    ASSERT_EQ(state.current_object(), current_id);
     // points to the next surface now
     ASSERT_EQ(state.next()->index, next_id);
     ASSERT_EQ(state.trust_level(), navigation::e_full_trust);

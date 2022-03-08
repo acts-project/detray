@@ -11,6 +11,8 @@
 #include "detray/tools/base_stepper.hpp"
 
 // detray definitions
+#include <iostream>
+
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
@@ -43,6 +45,9 @@ class rk_stepper final : public base_stepper<track_t> {
         /// maximum trial number of RK stepping
         size_t _max_rk_step_trials = 10000;
 
+        /// Accumulated path length
+        scalar _path_length = 0.;
+
         /// stepping data required for RKN4
         struct stepping_data {
             vector3 b_first, b_middle, b_last;
@@ -68,6 +73,8 @@ class rk_stepper final : public base_stepper<track_t> {
             dir = dir + h / 6. * (sd.k1 + 2. * (sd.k2 + sd.k3) + sd.k4);
             dir = vector::normalize(dir);
             track.set_dir(dir);
+
+            this->_path_length += h;
         }
     };
 
@@ -173,7 +180,8 @@ class rk_stepper final : public base_stepper<track_t> {
 
         // Update and check path limit
         if (not stepping.check_path_limit()) {
-            printf("Stepper: Above maximal path length!\n");
+            std::cout << "Stepper: Above maximal path length!\n"
+                      << stepping.dist_to_path_limit() << std::endl;
             // State is broken
             return navigation.abort();
         }

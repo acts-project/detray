@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <climits>
+
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
@@ -18,7 +20,7 @@ struct void_inspector {
 
     /** void operator **/
     template <typename... args>
-    DETRAY_HOST_DEVICE void operator()(const args &... /*ignored*/) {
+    DETRAY_HOST_DEVICE void operator()(const args &.../*ignored*/) {
         return;
     }
 };
@@ -77,8 +79,9 @@ struct propagator {
      */
     template <typename state_t,
               typename inspector_t = propagation::void_inspector>
-    DETRAY_HOST_DEVICE bool propagate(state_t &p_state,
-                                      inspector_t &inspector) {
+    DETRAY_HOST_DEVICE bool propagate(
+        state_t &p_state, inspector_t &inspector,
+        scalar max_step_size = std::numeric_limits<scalar>::max()) {
 
         auto &n_state = p_state._navigation;
         auto &s_state = p_state._stepping;
@@ -90,7 +93,7 @@ struct propagator {
         while (heartbeat) {
 
             // Take the step
-            heartbeat &= _stepper.step(s_state, n_state);
+            heartbeat &= _stepper.step(s_state, n_state, max_step_size);
 
             inspector(n_state, s_state);
 

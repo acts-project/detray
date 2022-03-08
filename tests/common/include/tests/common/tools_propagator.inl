@@ -22,7 +22,7 @@
 #include "tests/common/tools/read_geometry.hpp"
 
 constexpr scalar epsilon = 1e-4;
-constexpr scalar path_limit = 100 * unit_constants::cm;
+constexpr scalar path_limit = 2 * unit_constants::m;
 
 // This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
@@ -102,12 +102,12 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using vector3 = __plugin::vector3<scalar>;
 
     // geomery navigation configurations
-    constexpr unsigned int theta_steps = 10;
-    constexpr unsigned int phi_steps = 10;
+    constexpr unsigned int theta_steps = 100;
+    constexpr unsigned int phi_steps = 100;
 
     // detector configuration
     constexpr std::size_t n_brl_layers = 4;
-    constexpr std::size_t n_edc_layers = 1;
+    constexpr std::size_t n_edc_layers = 7;
 
     vecmem::host_memory_resource host_mr;
     auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
@@ -143,6 +143,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
             // intialize a track
             vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
+            vector::normalize(mom);
             mom = 10. * mom;
             free_track_parameters traj(ori, 0, mom, -1);
             traj.set_overstep_tolerance(-0.01 * unit_constants::mm);
@@ -154,7 +155,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             propagator_t::state state(traj);
             state._stepping.set_path_limit(path_limit);
             std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-            EXPECT_TRUE(p.propagate(state, ci))
+            EXPECT_TRUE(p.propagate(state, ci, 5. * unit_constants::mm))
                 << state._navigation.inspector().to_string() << std::endl;
         }
     }

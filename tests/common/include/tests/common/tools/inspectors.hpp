@@ -73,7 +73,7 @@ struct print_inspector {
     std::stringstream debug_stream;
 
     template <typename state_type>
-    auto operator()(state_type &state, const char *message) {
+    auto operator()(const state_type &state, const char *message) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t\t";
 
@@ -118,7 +118,8 @@ struct print_inspector {
                 std::endl; break; case e_on_target: debug_stream << "status" <<
                 tabs << "on_portal" << std::endl; break;*/
         };
-        debug_stream << "current object\t\t" << state.on_object() << std::endl;
+        debug_stream << "current object\t\t" << state.current_object()
+                     << std::endl;
         debug_stream << "distance to next\t";
         if (std::abs(state()) < state.tolerance()) {
             debug_stream << "on obj (within tol)" << std::endl;
@@ -181,10 +182,11 @@ struct print_inspector {
             stream << "volume: " << std::setw(10) << navigation.volume();
         }
 
-        if (navigation.on_object() == dindex_invalid) {
+        if (navigation.current_object() == dindex_invalid) {
             stream << "surface: " << std::setw(14) << "invalid";
         } else {
-            stream << "surface: " << std::setw(14) << navigation.on_object();
+            stream << "surface: " << std::setw(14)
+                   << navigation.current_object();
         }
 
         stream << "step_size: " << std::setw(10) << stepping._step_size;
