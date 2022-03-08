@@ -220,7 +220,8 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline bool abort() {
             _status = navigation::e_abort;
-            _trust_level = navigation::e_no_trust;
+            // Don't do anything if aborted
+            _trust_level = navigation::e_full_trust;
             run_inspector("Aborted: ");
             return false;
         }
@@ -307,7 +308,7 @@ class navigator {
         heartbeat &= check_volume_switch(navigation);
 
         // If no trust could be restored for the current state, local
-        // navigation might be exhausted or we switched volumes: 
+        // navigation might be exhausted or we switched volumes:
         // (re-)initialize volume
         if (navigation.trust_level() == navigation::e_no_trust) {
             navigation.clear();
@@ -370,7 +371,7 @@ class navigator {
             }
         }
         // What is the next object we want to reach?
-        set_next(navigation, stepping);
+        set_next(track, navigation, stepping);
 
         navigation.run_inspector("Init complete: ");
     }
@@ -379,9 +380,7 @@ class navigator {
      *
      * @tparam track_t type of the track (including context)
      *
-     * @param navigation [in, out] navigation state that contains the kernel
      * @param track the track information
-     * @param volume the current tracking volume
      *
      */
     template <typename track_t>
@@ -393,6 +392,17 @@ class navigator {
                       _detector->transform_store(), _detector->mask_store());
 
         candidate.index = obj_idx;
+    }
+
+    /** Helper method that invalidates a candidate by setting its path length to
+     *  an unreachable value
+     *
+     * @param candidate the candidate to be invalidated
+     *
+     */
+    DETRAY_HOST_DEVICE inline void invalidate_candidate(
+        intersection &candidate) const {
+        candidate.path = std::numeric_limits<scalar>::max();
     }
 
     /** Helper method to the update the next candidate intersection based on
@@ -433,7 +443,8 @@ class navigator {
                 // If candidate is inside, this is the next target
                 if (candidate.status == e_inside) {
                     // Did we arrive on onbject?
-                    if (candidate.path < navigation.tolerance()) {
+                    if (candidate.path < navigation.tolerance() and
+                        candidate.path > track.overstep_tolerance()) {
                         navigation.set_object(candidate.index);
                         navigation.set_status(navigation::e_on_target);
                         // Release stepping constraints
@@ -475,10 +486,10 @@ class navigator {
                 // Disregard this candidate
                 if ((candidate.status != e_inside) or
                     (candidate.path < track.overstep_tolerance())) {
-                    candidate.path = std::numeric_limits<scalar>::max();
+                    invalidate_candidate(candidate);
                 }
             }
-            set_next(navigation, stepping);
+            set_next(track, navigation, stepping);
             // Kernel is exhausted (no surface in this volume is reachable)
             if (navigation() == std::numeric_limits<scalar>::max()) {
                 // Initialize the new volume in the next update call
@@ -497,8 +508,8 @@ class navigator {
      *
      * @param navigation [in, out] navigation state that contains the kernel
      */
-    template <typename stepper_state_t>
-    DETRAY_HOST_DEVICE inline void set_next(state &navigation,
+    template <typename track_t, typename stepper_state_t>
+    DETRAY_HOST_DEVICE inline void set_next(track_t &track, state &navigation,
                                             stepper_state_t &stepping) const {
 
         if (not navigation.candidates().empty()) {
@@ -513,10 +524,13 @@ class navigator {
             // goto the next candidate.
             // This mainly updates adjacent portals -> we are automatically on
             // the next portal in the new volume
-            if (std::abs(navigation()) < navigation.tolerance()) {
+            if (navigation() < navigation.tolerance() and
+                navigation() > track.overstep_tolerance()) {
                 // Set temporarily, so that the inspector can catch this state
                 navigation.set_status(navigation::e_on_target);
                 navigation.set_object(navigation.next()->index);
+                // Make sure we don't go back, even if we overstepped
+                invalidate_candidate(*navigation.next());
                 // The next object that we want to reach (cache is sorted)
                 ++navigation.next();
                 // Call the inspector on this portal crossing, then go to next

@@ -102,12 +102,12 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using vector3 = __plugin::vector3<scalar>;
 
     // geomery navigation configurations
-    constexpr unsigned int theta_steps = 100;
-    constexpr unsigned int phi_steps = 100;
+    constexpr unsigned int theta_steps = 10;
+    constexpr unsigned int phi_steps = 10;
 
     // detector configuration
     constexpr std::size_t n_brl_layers = 4;
-    constexpr std::size_t n_edc_layers = 7;
+    constexpr std::size_t n_edc_layers = 1;
 
     vecmem::host_memory_resource host_mr;
     auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
@@ -128,7 +128,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
-    
+
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
         scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
@@ -145,23 +145,25 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
             mom = 10. * mom;
             free_track_parameters traj(ori, 0, mom, -1);
-            traj.set_overstep_tolerance(-5. * unit_constants::mm);
+            traj.set_overstep_tolerance(-0.01 * unit_constants::mm);
 
             helix_gun helix(traj, B);
             combined_inspector ci{helix_inspector(helix),
-                                    propagation::print_inspector{}};
+                                  propagation::print_inspector{}};
 
             propagator_t::state state(traj);
             state._stepping.set_path_limit(path_limit);
             std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-            EXPECT_TRUE(p.propagate(state, ci)) << state._navigation.inspector().to_string() << std::endl;
+            EXPECT_TRUE(p.propagate(state, ci))
+                << state._navigation.inspector().to_string() << std::endl;
         }
     }
 }
 
 INSTANTIATE_TEST_SUITE_P(PropagatorValidation, PropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             0, 0, 2 * unit_constants::T}));
+                             0., 1. * unit_constants::T,
+                             1. * unit_constants::T}));
 
 /*
 INSTANTIATE_TEST_SUITE_P(
