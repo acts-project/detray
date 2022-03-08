@@ -118,7 +118,7 @@ struct print_inspector {
 
         stream << "step_size: " << std::setw(10) << stepping._step_size;
 
-        std::cout << stream.str() << std::endl;
+        // std::cout << stream.str() << std::endl;
     }
 };
 
@@ -134,15 +134,26 @@ struct combined_inspector {
     }
 };
 
-TEST(ALGEBRA_PLUGIN, propagator_rk_stepper) {
+class PropagatorWithRkStepper
+    : public ::testing::TestWithParam<__plugin::vector3<scalar>> {};
+
+TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     using namespace detray;
     using namespace __plugin;
     using point3 = __plugin::point3<scalar>;
     using vector3 = __plugin::vector3<scalar>;
 
+    // geomery navigation configurations
+    constexpr unsigned int theta_steps = 100;
+    constexpr unsigned int phi_steps = 100;
+
+    // detector configuration
+    constexpr std::size_t n_brl_layers = 4;
+    constexpr std::size_t n_edc_layers = 7;
+
     vecmem::host_memory_resource host_mr;
-    auto d = create_toy_geometry(host_mr);
+    auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Create the navigator
     using detray_navigator = navigator<decltype(d)>;
@@ -151,23 +162,55 @@ TEST(ALGEBRA_PLUGIN, propagator_rk_stepper) {
     using detray_propagator = propagator<detray_stepper, detray_navigator>;
 
     // Constant magnetic field
-    vector3 B{0, 0, 2 * unit_constants::T};
+    // vector3 B{0, 0, 2 * unit_constants::T};
+    vector3 B = GetParam();
     detray_b_field b_field(B);
 
     // Set initial position and momentum of tracks
-    const point3 pos{0., 0., 0.};
-    const vector3 mom{1., 1., 0.};
+    const point3 ori{0., 0., 0.};
 
     detray_stepper s(b_field);
     detray_navigator n(std::move(d));
     detray_propagator p(std::move(s), std::move(n));
 
-    free_track_parameters traj(pos, 0, mom, -1);
-    helix_gun helix(traj, B);
+    // Loops of theta values ]0,pi[
+    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
+        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
+        scalar sin_theta = std::sin(theta);
+        scalar cos_theta = std::cos(theta);
 
-    combined_inspector ci{helix_inspector(helix), print_inspector{}};
+        // Loops of phi values [-pi, pi]
+        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
+            // The direction
+            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
+            scalar sin_phi = std::sin(phi);
+            scalar cos_phi = std::cos(phi);
+            vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
+            mom = 10. * mom;
 
-    detray_propagator::state state(traj);
+            // intialize a track
+            free_track_parameters traj(ori, 0, mom, -1);
+            helix_gun helix(traj, B);
+            combined_inspector ci{helix_inspector(helix), print_inspector{}};
 
-    p.propagate(state, ci);
+            detray_propagator::state state(traj);
+
+            p.propagate(state, ci);
+
+            // Ensure that the tracks reach the end of the world
+            EXPECT_EQ(state._navigation.volume(), dindex_invalid);
+        }
+    }
 }
+
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation, PropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             0, 0, 2 * unit_constants::T}));
+
+/*
+INSTANTIATE_TEST_SUITE_P(
+    PropagatorValidation, PropagatorWithRkStepper,
+    ::testing::Values(__plugin::vector3<scalar>{0, 0, 2 * unit_constants::T},
+__plugin::vector3<scalar>{1 * unit_constants::T, 1 * unit_constants::T, 1 *
+unit_constants::T}));
+*/
