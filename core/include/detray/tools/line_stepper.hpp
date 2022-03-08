@@ -67,8 +67,7 @@ class line_stepper final : public base_stepper<track_t> {
         if (not stepping.check_path_limit()) {
             printf("Stepper: Above maximal path length!\n");
             // State is broken
-            navigation.set_no_trust();
-            return false;
+            return navigation.abort();
         }
 
         // Update track state

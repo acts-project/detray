@@ -28,6 +28,7 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
         inline void set_high_trust() {}
         inline void set_fair_trust() {}
         inline void set_no_trust() {}
+        inline bool abort() { return false; }
     };
 
     point3<scalar> pos{0., 0., 0.};

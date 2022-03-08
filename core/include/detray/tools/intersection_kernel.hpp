@@ -7,15 +7,15 @@
 
 #pragma once
 
-#include <tuple>
-#include <utility>
-
 #include "detray/core/intersection.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/tools/track.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
+
+#include <tuple>
+#include <utility>
 
 namespace detray {
 
@@ -58,7 +58,7 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
         for (const auto &mask : range(mask_group, mask_range)) {
             auto sfi =
                 std::move(mask.intersector().intersect(ctf, track, mask));
-
+ 
             if (sfi.status == e_inside) {
                 sfi.index = volume_index;
                 return sfi;

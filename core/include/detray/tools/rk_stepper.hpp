@@ -143,7 +143,8 @@ class rk_stepper final : public base_stepper<track_t> {
                 std::abs(stepping._step_size_cutoff)) {
                 // Not moving due to too low momentum needs an aborter
                 printf("Stepper: step size is too small. will break. \n");
-                return false;
+                // State is broken
+                return navigation.abort();
             }
 
             // If the parameter is off track too much or given step_size is not
@@ -151,7 +152,8 @@ class rk_stepper final : public base_stepper<track_t> {
             if (n_step_trials > stepping._max_rk_step_trials) {
                 // Too many trials, have to abort
                 printf("Stepper: too many rk4 trials. will break. \n");
-                return false;
+                // State is broken
+                return navigation.abort();
             }
             n_step_trials++;
         }
@@ -173,8 +175,7 @@ class rk_stepper final : public base_stepper<track_t> {
         if (not stepping.check_path_limit()) {
             printf("Stepper: Above maximal path length!\n");
             // State is broken
-            navigation.set_no_trust();
-            return false;
+            return navigation.abort();
         }
 
         // Update track state

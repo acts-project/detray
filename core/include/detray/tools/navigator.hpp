@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include "detray/core/detector.hpp"
 #include "detray/core/intersection.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -135,10 +133,6 @@ class navigator {
             _candidates.clear();
             _next = _candidates.end();
         }
-
-        /** Update the distance to next candidate */
-        // DETRAY_HOST_DEVICE
-        // inline void set_dist(scalar dist) { _distance_to_next = dist; }
 
         /** Call the navigation inspector */
         DETRAY_HOST_DEVICE
@@ -309,27 +303,26 @@ class navigator {
         // are re-evaluated based on current trust level
         update_kernel(navigation, stepping);
 
-        // Did we hit a portal? (kernel needs to be re-initialized)
-        heartbeat = check_volume_switch(navigation);
+        // Did we hit a portal? Then switch volume
+        heartbeat &= check_volume_switch(navigation);
 
-        // If after the update call no trust could be restored, local
-        // navigation might be exhausted or we switched volumes: re-initialize
-        // volume
-        if (navigation.trust_level() == navigation::e_no_trust or
-            navigation.is_exhausted()) {
+        // If no trust could be restored for the current state, local
+        // navigation might be exhausted or we switched volumes: 
+        // (re-)initialize volume
+        if (navigation.trust_level() == navigation::e_no_trust) {
             navigation.clear();
             update_kernel(navigation, stepping);
         }
 
         // Should never be the case after complete update call
         if (navigation.trust_level() != navigation::e_full_trust) {
-            heartbeat = navigation.abort();
+            heartbeat &= navigation.abort();
         }
 
         return heartbeat;
     }
 
-    /// Alias call to status.
+    /// Alias call to update.
     template <typename stepper_state_t>
     DETRAY_HOST_DEVICE bool init(state &navigation,
                                  stepper_state_t &stepping) const {
@@ -346,7 +339,6 @@ class navigator {
      * @param navigation [in, out] navigation state that contains the kernel
      * @param track the track information
      * @param volume the current tracking volume
-     *
      */
     template <typename stepper_state_t>
     DETRAY_HOST_DEVICE inline void initialize_kernel(
@@ -495,6 +487,10 @@ class navigator {
             // Call the inspector before returning
             navigation.run_inspector("Update (fair trust): ");
         }
+        // No suitable candidate could be found - re-initialize
+        if (navigation.is_exhausted()) {
+            navigation.set_no_trust();
+        }
     }
 
     /** Helper method to sort within the kernel and find next object
@@ -517,7 +513,7 @@ class navigator {
             // goto the next candidate.
             // This mainly updates adjacent portals -> we are automatically on
             // the next portal in the new volume
-            if (navigation() < navigation.tolerance()) {
+            if (std::abs(navigation()) < navigation.tolerance()) {
                 // Set temporarily, so that the inspector can catch this state
                 navigation.set_status(navigation::e_on_target);
                 navigation.set_object(navigation.next()->index);

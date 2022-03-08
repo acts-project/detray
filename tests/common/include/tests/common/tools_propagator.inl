@@ -119,42 +119,42 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using propagator_t = propagator<stepper_t, navigator_t>;
 
     // Constant magnetic field
-    // vector3 B{0, 0, 2 * unit_constants::T};
     vector3 B = GetParam();
     b_field_t b_field(B);
-
-    // Set initial position and momentum of tracks
-    const point3 ori{0., 0., 0.};
 
     stepper_t s(b_field);
     navigator_t n(d);
     propagator_t p(std::move(s), std::move(n));
 
+    // Set origin position of tracks
+    const point3 ori{0., 0., 0.};
+    
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
         scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
         scalar sin_theta = std::sin(theta);
         scalar cos_theta = std::cos(theta);
-
         // Loops of phi values [-pi, pi]
         for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
             // The direction
             scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
             scalar sin_phi = std::sin(phi);
             scalar cos_phi = std::cos(phi);
-            vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
-            mom = 10. * mom;
 
             // intialize a track
+            vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
+            mom = 10. * mom;
             free_track_parameters traj(ori, 0, mom, -1);
+            traj.set_overstep_tolerance(-5. * unit_constants::mm);
+
             helix_gun helix(traj, B);
             combined_inspector ci{helix_inspector(helix),
                                     propagation::print_inspector{}};
+
             propagator_t::state state(traj);
             state._stepping.set_path_limit(path_limit);
-
-            EXPECT_TRUE(p.propagate(state, ci))
-                << state._navigation.inspector().to_string() << std::endl;
+            std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+            EXPECT_TRUE(p.propagate(state, ci)) << state._navigation.inspector().to_string() << std::endl;
         }
     }
 }
