@@ -7,11 +7,9 @@
 
 #pragma once
 
-#include <algorithm>
-#include <functional>
-
 #include "detray/core/detector.hpp"
 #include "detray/core/intersection.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/tools/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
@@ -149,14 +147,14 @@ class navigator {
         }
 
         /** @returns the navigation inspector */
-        DETRAY_HOST_DEVICE
+        DETRAY_HOST
         inline auto &inspector() { return _inspector; }
 
         /** @returns current object the navigator is on (might be invalid if
          * between objects) - const
          */
         DETRAY_HOST_DEVICE
-        inline auto current_object() const { return _object_index; }
+        inline auto current_object() const -> dindex { return _object_index; }
 
         /** Update current object the navigator is on  */
         DETRAY_HOST_DEVICE
@@ -164,7 +162,7 @@ class navigator {
 
         /** @returns current navigation status - const */
         DETRAY_HOST_DEVICE
-        inline auto status() const { return _status; }
+        inline auto status() const -> navigation::status { return _status; }
 
         /** Set new navigation status */
         DETRAY_HOST_DEVICE
@@ -172,11 +170,7 @@ class navigator {
 
         /** @returns tolerance to determine if we are on object - const */
         DETRAY_HOST_DEVICE
-        inline auto target() const { return _next->index; }
-
-        /** @returns tolerance to determine if we are on object - const */
-        DETRAY_HOST_DEVICE
-        inline auto tolerance() const { return _on_object_tolerance; }
+        inline auto tolerance() const -> scalar { return _on_object_tolerance; }
 
         /** Adjust the on-object tolerance */
         DETRAY_HOST_DEVICE
@@ -184,7 +178,15 @@ class navigator {
 
         /** @returns navigation trust level - const */
         DETRAY_HOST_DEVICE
-        inline auto trust_level() const { return _trust_level; }
+        inline auto trust_level() const -> navigation::trust_level {
+            return _trust_level;
+        }
+
+        /** Update navigation trust level */
+        DETRAY_HOST_DEVICE
+        inline void set_trust_level(navigation::trust_level tr_lvl) {
+            _trust_level = tr_lvl;
+        }
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
@@ -210,7 +212,7 @@ class navigator {
 
         /** @returns current volume (index) - const */
         DETRAY_HOST_DEVICE
-        inline auto volume() const { return _volume_index; }
+        inline auto volume() const -> dindex { return _volume_index; }
 
         /** Set start/new volume */
         DETRAY_HOST_DEVICE
@@ -218,19 +220,29 @@ class navigator {
 
         /** Helper method to check if a kernel is exhausted - const */
         DETRAY_HOST_DEVICE
-        bool is_exhausted() const { return (_next == _candidates.end()); }
+        inline auto is_exhausted() const -> bool {
+            return (_next == _candidates.end());
+        }
 
         /** Helper method to check if a kernel is exhausted - const */
         template <typename track_t>
-        DETRAY_HOST_DEVICE inline bool is_on_object(track_t &track,
-                                                    intersection &candidate) {
+        DETRAY_HOST_DEVICE inline auto is_on_object(
+            const track_t &track, const intersection &candidate) const -> bool {
             if ((candidate.path < _on_object_tolerance) and
                 (candidate.path > track.overstep_tolerance())) {
-                this->set_object(candidate.index);
-                this->set_status(navigation::e_on_target);
                 return true;
             }
             return false;
+        }
+
+        /** Helper method to set common state values */
+        DETRAY_HOST_DEVICE
+        inline void set_state(const navigation::status status,
+                              const dindex obj_idx,
+                              const navigation::trust_level trust_level) {
+            this->set_object(obj_idx);
+            this->set_trust_level(trust_level);
+            this->set_status(status);
         }
 
         /** Navigation state that cannot be recovered from. Leave the other
@@ -239,7 +251,7 @@ class navigator {
          * @return navigation heartbeat (dead)
          */
         DETRAY_HOST_DEVICE
-        inline bool abort() {
+        inline auto abort() -> bool {
             _status = navigation::e_abort;
             // Don't do anything if aborted
             _trust_level = navigation::e_full_trust;
@@ -253,7 +265,7 @@ class navigator {
          * @return navigation heartbeat (dead)
          */
         DETRAY_HOST_DEVICE
-        inline bool exit() {
+        inline auto exit() -> bool {
             _status = navigation::e_exit;
             _trust_level = navigation::e_full_trust;
             run_inspector("Exited: ");
@@ -265,7 +277,7 @@ class navigator {
          * @return navigation status
          */
         DETRAY_HOST_DEVICE
-        inline bool is_complete() const {
+        inline auto is_complete() const -> bool {
             // Normal exit for this navigation?
             return _status == navigation::e_exit;
         }
@@ -439,12 +451,15 @@ class navigator {
                 if (candidate.status == e_inside) {
 
                     if (navigation.is_on_object(track, candidate)) {
+                        navigation.set_state(navigation::e_on_target,
+                                             candidate.index,
+                                             navigation::e_full_trust);
                         // Release stepping constraints
                         stepping.release_step_size();
                         // Set the next object we want to reach - might be end()
                         ++navigation.next();
                         if (not navigation.is_exhausted() or
-                            not is_reachable(*navigation.next())) {
+                            navigation() < track.overstep_tolerance()) {
                             // Ready the next candidate in line
                             continue;
                         } else {
@@ -457,11 +472,11 @@ class navigator {
                     }
                     // we are not on the next object
                     else {
-                        navigation.set_object(dindex_invalid);
-                        navigation.set_status(navigation::e_towards_object);
+                        navigation.set_state(navigation::e_towards_object,
+                                             dindex_invalid,
+                                             navigation::e_full_trust);
                     }
                     // After update, trust in candidate is restored
-                    navigation.set_full_trust();
                     navigation.run_inspector("Update (high trust):");
                     // Don't sort again when coming from high trust
                     return;
@@ -514,17 +529,8 @@ class navigator {
             // Sort distance to next & set navigation status
             detail::sequential_sort(navigation.candidates().begin(),
                                     navigation.candidates().end());
-
             // Remove unreachable elements
-            auto not_reachable = [](intersection &cand) {
-                return cand.path == std::numeric_limits<scalar>::max();
-            };
-            const auto first_invalid_cand =
-                std::find_if(navigation.candidates().begin(),
-                             navigation.candidates().end(), not_reachable);
-            navigation.candidates().erase(first_invalid_cand,
-                                          navigation.candidates().end());
-
+            remove_invalid_candidates(navigation.candidates());
             // Take the nearest candidate first
             navigation.next() = navigation.candidates().begin();
 
@@ -533,27 +539,26 @@ class navigator {
             // This mainly updates adjacent portals -> we are automatically on
             // the next portal in the new volume
             if (navigation.is_on_object(track, *navigation.next())) {
-                // Set temporarily, so that the inspector can catch this state
-                navigation.set_status(navigation::e_on_target);
                 // Set the next object that we want to reach (cache is sorted)
                 ++navigation.next();
-                navigation.set_object(navigation.current()->index);
+                // Set temporarily, so that the inspector can catch this state
+                navigation.set_state(navigation::e_on_target,
+                                     navigation.current()->index,
+                                     navigation::e_full_trust);
                 // Call the inspector on this portal crossing, then go to next
                 navigation.run_inspector("Skipping direct hit: ");
-                if (navigation.is_exhausted()) {
+                if (navigation.is_exhausted() or
+                    not is_reachable(*navigation.next())) {
                     navigation.set_no_trust();
                     return;
                 }
             }
             // Now, we are on our way to the next candidate
-            navigation.set_status(navigation::e_towards_object);
-            navigation.set_object(dindex_invalid);
-            // After update, trust is restored
-            navigation.set_full_trust();
+            navigation.set_state(navigation::e_towards_object, dindex_invalid,
+                                 navigation::e_full_trust);
         } else {
-            navigation.set_status(navigation::e_unknown);
-            navigation.set_object(dindex_invalid);
-            navigation.set_no_trust();
+            navigation.set_state(navigation::e_unknown, dindex_invalid,
+                                 navigation::e_no_trust);
         }
         // Release stepping constraints
         stepping.release_step_size();
@@ -565,7 +570,8 @@ class navigator {
      *
      * @param navigation is the navigation state
      */
-    DETRAY_HOST_DEVICE bool check_volume_switch(state &navigation) const {
+    DETRAY_HOST_DEVICE
+    bool check_volume_switch(state &navigation) const {
         // Check if we need to switch volume index and (re-)initialize
         // Do this when we are on a portal that has a volume link different to
         // the volume we currently navigate in
@@ -608,18 +614,37 @@ class navigator {
      *
      * @param candidate the candidate to be invalidated
      */
-    DETRAY_HOST_DEVICE inline void invalidate_candidate(
-        intersection &candidate) const {
+    DETRAY_HOST_DEVICE
+    inline void invalidate_candidate(intersection &candidate) const {
         candidate.path = std::numeric_limits<scalar>::max();
     }
 
     /** Helper to determine if a candidate has been invalidated
      *
      * @param candidate the candidate to be invalidated
+     * @returns true if is reachable by track
      */
-    DETRAY_HOST_DEVICE inline bool is_reachable(intersection &candidate) const {
+    DETRAY_HOST_DEVICE
+    inline bool is_reachable(intersection &candidate) const {
         return candidate.path != std::numeric_limits<scalar>::max() or
                candidate.status != e_missed;
+    }
+
+    /** Helper to evict all unreachable/invalid candidates from candidates cache
+     *
+     * @param candidates the candidates to be cleaned
+     */
+    template <typename cache_t>
+    DETRAY_HOST_DEVICE inline void remove_invalid_candidates(
+        cache_t &candidates) const {
+        // TODO: Find more performant solution
+        auto not_reachable = [](intersection cand) {
+            return cand.path == std::numeric_limits<scalar>::max() or
+                   cand.status == e_missed;
+        };
+        auto first_invalid_cand = detail::find_if(
+            candidates.begin(), candidates.end(), not_reachable);
+        candidates.erase(first_invalid_cand, candidates.end());
     }
 
     /// @returns pointer to detector
