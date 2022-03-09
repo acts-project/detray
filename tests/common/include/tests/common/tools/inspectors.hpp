@@ -70,7 +70,7 @@ struct object_tracer {
 struct print_inspector {
 
     // Debug output if an error in the trace is discovered
-    std::stringstream debug_stream;
+    std::stringstream debug_stream{};
 
     template <typename state_type>
     auto operator()(const state_type &state, const char *message) {
@@ -152,7 +152,7 @@ namespace propagation {
 
 struct print_inspector {
 
-    std::stringstream stream;
+    std::stringstream stream{};
 
     template <typename navigator_state_t, typename stepper_state_t>
     DETRAY_HOST_DEVICE void operator()(const navigator_state_t &navigation,
