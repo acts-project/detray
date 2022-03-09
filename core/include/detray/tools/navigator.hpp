@@ -356,8 +356,6 @@ class navigator {
             update_kernel(navigation, stepping);
         }
 
-        // navigation.run_inspector("Update complete: ");
-
         // Should never be the case after complete update call
         if (navigation.trust_level() != navigation::e_full_trust) {
             heartbeat &= navigation.abort();
@@ -407,8 +405,7 @@ class navigator {
         }
         // What is the closest object we can reach?
         set_next(track, navigation, stepping);
-
-        navigation.run_inspector("Init complete: ");
+        // navigation.run_inspector("Init complete: ");
     }
 
     /** Helper method to update the next candidate intersection based on
@@ -460,6 +457,9 @@ class navigator {
                         ++navigation.next();
                         if (not navigation.is_exhausted() or
                             navigation() < track.overstep_tolerance()) {
+                            // After update, trust in candidate is restored
+                            navigation.run_inspector(
+                                "Update next (high trust):");
                             // Ready the next candidate in line
                             continue;
                         } else {
@@ -485,8 +485,9 @@ class navigator {
                 ++navigation.next();
             }
             // Kernel is exhausted at this point
-            // Call the inspector before returning
-            navigation.run_inspector("Update (high trust) no candidate found:");
+            // Call the inspector before returning (only for debugging)
+            // navigation.run_inspector("Update (high trust) no candidate
+            // found:");
         }
         // Re-evaluate all currently available candidates
         // - do this when your navigation state is stale, but not invalid
@@ -507,9 +508,8 @@ class navigator {
                 navigation.set_no_trust();
             }
             // Call the inspector before returning
-            navigation.run_inspector("Update (fair trust): ");
+            // navigation.run_inspector("Update (fair trust): ");
         }
-
         // Finally, if no candidate was found, trust could no be restored
         if (navigation.is_exhausted()) {
             navigation.set_no_trust();
@@ -563,7 +563,7 @@ class navigator {
         // Release stepping constraints
         stepping.release_step_size();
         // Call the inspector on new status
-        navigation.run_inspector("Set next: ");
+        // navigation.run_inspector("Set next: ");
     }
 
     /** Helper method to check and perform a volume switch

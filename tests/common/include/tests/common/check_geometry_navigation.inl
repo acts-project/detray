@@ -36,8 +36,8 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     navigator_t n(d);
     stepper_t s;
 
-    unsigned int theta_steps = 100;
-    unsigned int phi_steps = 100;
+    unsigned int theta_steps = 1;
+    unsigned int phi_steps = 1;
 
     const point3 ori{0., 0., 0.};
     dindex start_index = 0;  // d.volume_by_pos(ori).index();
