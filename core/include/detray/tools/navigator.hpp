@@ -93,6 +93,8 @@ class navigator {
     class state {
         friend class navigator;
 
+        using candidate_itr_t = typename vector_type<intersection>::iterator;
+
         public:
         /** Default constructor
          **/
@@ -115,23 +117,43 @@ class navigator {
 
         /** @returns current candidates - const */
         DETRAY_HOST_DEVICE
-        inline const auto &candidates() const { return _candidates; }
+        inline auto candidates() const -> const vector_type<intersection> & {
+            return _candidates;
+        }
 
         /** @returns current candidates */
         DETRAY_HOST_DEVICE
-        inline auto &candidates() { return _candidates; }
+        inline auto candidates() -> vector_type<intersection> & {
+            return _candidates;
+        }
 
         /** @returns current object that was reached */
         DETRAY_HOST_DEVICE
-        inline auto current() const { return _next - 1; }
+        inline auto current() const -> const candidate_itr_t {
+            return _next - 1;
+        }
 
         /** @returns next object that we want to reach - const */
         DETRAY_HOST_DEVICE
-        inline const auto &next() const { return _next; }
+        inline auto next() const -> const candidate_itr_t & { return _next; }
 
         /** @returns next object that we want to reach */
         DETRAY_HOST_DEVICE
-        inline auto &next() { return _next; }
+        inline auto next() -> candidate_itr_t & { return _next; }
+
+        /** @returns next object that we want to reach - const */
+        DETRAY_HOST_DEVICE
+        inline auto last() const -> const candidate_itr_t & { return _last; }
+
+        /** @returns next object that we want to reach */
+        DETRAY_HOST_DEVICE
+        inline auto last() -> candidate_itr_t & { return _last; }
+
+        /** Updates the iterator position of the last valid candidate */
+        DETRAY_HOST_DEVICE
+        inline void set_last(candidate_itr_t &&new_last) {
+            _last = std::move(new_last);
+        }
 
         /** Clear the kernel */
         DETRAY_HOST_DEVICE
@@ -221,7 +243,7 @@ class navigator {
         /** Helper method to check if a kernel is exhausted - const */
         DETRAY_HOST_DEVICE
         inline auto is_exhausted() const -> bool {
-            return (_next == _candidates.end());
+            return (_next == this->last());
         }
 
         /** Helper method to check if a kernel is exhausted - const */
@@ -287,7 +309,10 @@ class navigator {
         vector_type<intersection> _candidates = {};
 
         /// The next best candidate
-        typename vector_type<intersection>::iterator _next = _candidates.end();
+        candidate_itr_t _next = _candidates.end();
+
+        /// The last reachable candidate
+        candidate_itr_t _last = _candidates.end();
 
         /// Distance to next - will be cast into a scalar with call operator
         scalar _distance_to_next = std::numeric_limits<scalar>::infinity();
@@ -482,12 +507,14 @@ class navigator {
         // Re-evaluate all currently available candidates
         // - do this when your navigation state is stale, but not invalid
         else if (navigation.trust_level() == navigation::e_fair_trust) {
-            for (auto &candidate : navigation.candidates()) {
-                update_candidate(track, candidate);
+            // for (auto &candidate : navigation.candidates()) {
+            for (auto cand_itr = navigation.candidates().begin();
+                 cand_itr != navigation.last(); ++cand_itr) {
+                update_candidate(track, *cand_itr);
                 // Disregard this candidate
-                if (not is_reachable(candidate, track)) {
+                if (not is_reachable(*cand_itr, track)) {
                     // Forcefully set dist to numeric max for sorting
-                    invalidate_candidate(candidate);
+                    invalidate_candidate(*cand_itr);
                 }
             }
             // Sort again
@@ -519,8 +546,17 @@ class navigator {
             // Sort distance to next & set navigation status
             detail::sequential_sort(navigation.candidates().begin(),
                                     navigation.candidates().end());
-            // Remove unreachable elements
-            remove_invalid_candidates(navigation.candidates());
+
+            // Re-sort after fair trust can result in many invalidated
+            // candidates - ignore them
+            if (navigation.trust_level() == navigation::e_fair_trust) {
+                // Remove unreachable elements
+                navigation.set_last(find_invalid(navigation.candidates()));
+                // navigation.last() = navigation.candidates().end();
+            } else {
+                navigation.last() = navigation.candidates().end();
+            }
+
             // Take the nearest candidate first
             navigation.next() = navigation.candidates().begin();
 
@@ -627,16 +663,14 @@ class navigator {
      * @param candidates the candidates to be cleaned
      */
     template <typename cache_t>
-    DETRAY_HOST_DEVICE inline void remove_invalid_candidates(
-        cache_t &candidates) const {
-        // TODO: Find more performant solution
-        auto not_reachable = [](intersection cand) {
-            return cand.path == std::numeric_limits<scalar>::max() or
-                   cand.status == e_missed;
+    DETRAY_HOST_DEVICE inline auto find_invalid(cache_t &candidates) const {
+        // Member functions cannot be used here easily (?)
+        auto not_reachable = [](intersection &candidate) {
+            return candidate.path == std::numeric_limits<scalar>::max();
         };
-        auto first_invalid_cand = detail::find_if(
-            candidates.begin(), candidates.end(), not_reachable);
-        candidates.erase(first_invalid_cand, candidates.end());
+
+        return detail::find_if(candidates.begin(), candidates.end(),
+                               not_reachable);
     }
 
     /// @returns pointer to detector
