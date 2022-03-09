@@ -152,10 +152,11 @@ namespace propagation {
 
 struct print_inspector {
 
+    std::stringstream stream;
+
     template <typename navigator_state_t, typename stepper_state_t>
     DETRAY_HOST_DEVICE void operator()(const navigator_state_t &navigation,
                                        const stepper_state_t &stepping) {
-        std::stringstream stream;
 
         stream << std::left << std::setw(30);
         switch (static_cast<int>(navigation.status())) {
@@ -190,9 +191,9 @@ struct print_inspector {
         }
 
         stream << "step_size: " << std::setw(10) << stepping._step_size;
-
-        std::cout << stream.str() << std::endl;
     }
+
+    std::string to_string() { return stream.str(); }
 };
 
 }  // namespace propagation

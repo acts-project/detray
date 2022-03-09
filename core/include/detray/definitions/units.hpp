@@ -11,6 +11,9 @@ namespace detray {
 
 namespace unit_constants {
 
+// Length, native unit um
+constexpr double um = 0.001;
+
 // Length, native unit mm
 constexpr double mm = 1.0;
 

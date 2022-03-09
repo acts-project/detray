@@ -73,7 +73,7 @@ struct helix_inspector {
 
         auto relative_error = 1 / path_accumulated * (pos - true_pos);
 
-        EXPECT_NEAR(getter::norm(relative_error), 0, epsilon);
+        ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
     }
 
     helix_gun _helix;
@@ -144,9 +144,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             // intialize a track
             vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
             vector::normalize(mom);
-            mom = 10. * mom;
+            mom = 10. * unit_constants::GeV * mom;
             free_track_parameters traj(ori, 0, mom, -1);
-            traj.set_overstep_tolerance(-0.01 * unit_constants::mm);
+            traj.set_overstep_tolerance(-10 * unit_constants::um);
 
             helix_gun helix(traj, B);
             combined_inspector ci{helix_inspector(helix),
@@ -154,8 +154,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
             propagator_t::state state(traj);
             state._stepping.set_path_limit(path_limit);
-            std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-            EXPECT_TRUE(p.propagate(state, ci, 5. * unit_constants::mm))
+
+            ASSERT_TRUE(p.propagate(state, ci, 5. * unit_constants::mm))
+                << ci._pi.to_string() << std::endl
                 << state._navigation.inspector().to_string() << std::endl;
         }
     }
@@ -166,7 +167,7 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation1, PropagatorWithRkStepper,
                              0. * unit_constants::T, 0. * unit_constants::T,
                              2. * unit_constants::T}));
 
-/*INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
                              0. * unit_constants::T, 1. * unit_constants::T,
                              1. * unit_constants::T}));
@@ -179,4 +180,4 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation3, PropagatorWithRkStepper,
 INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
                              1. * unit_constants::T, 1. * unit_constants::T,
-                             1. * unit_constants::T}));*/
+                             1. * unit_constants::T}));
