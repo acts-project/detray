@@ -74,8 +74,9 @@ TEST(rk_stepper_cuda, rk_stepper) {
             rk.step(backward_state, n_state);
         }
 
-        path_lengths.push_back(forward_state._path_accumulated +
-                               backward_state._path_accumulated);
+        path_lengths.push_back(2 * path_limit -
+                               forward_state.dist_to_path_limit() -
+                               backward_state.dist_to_path_limit());
     }
 
     // Get tracks data
