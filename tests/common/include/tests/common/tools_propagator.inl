@@ -21,7 +21,7 @@
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
-constexpr scalar epsilon = 1e-4;
+constexpr scalar epsilon = 5e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
 
 // This tests the basic functionality of the propagator
