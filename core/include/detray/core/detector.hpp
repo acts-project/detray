@@ -188,13 +188,13 @@ class detector {
 
     /** @return a surface by index - const access */
     DETRAY_HOST_DEVICE
-    inline const auto &get_surface(dindex sfidx) const {
+    inline const auto &surface_by_index(dindex sfidx) const {
         return _surfaces[sfidx];
     }
 
     /** @return a surface by index - non-const access */
     DETRAY_HOST_DEVICE
-    inline auto &get_surface(dindex sfidx) { return _surfaces[sfidx]; }
+    inline auto &surface_by_index(dindex sfidx) { return _surfaces[sfidx]; }
 
     /** @return all surface/portal masks in the geometry - const access */
     DETRAY_HOST_DEVICE
@@ -282,7 +282,7 @@ class detector {
     template <typename... detector_components>
     DETRAY_HOST inline void add_objects(
         const context ctx,
-        detector_components &&... components) noexcept(false) {
+        detector_components &&...components) noexcept(false) {
         // Fill according to type, starting at type '0' (see 'masks')
         fill_containers(ctx, std::forward<detector_components>(components)...);
     }

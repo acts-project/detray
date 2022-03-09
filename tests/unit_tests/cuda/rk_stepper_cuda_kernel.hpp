@@ -17,6 +17,7 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/tools/rk_stepper.hpp"

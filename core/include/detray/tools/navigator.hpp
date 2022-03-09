@@ -102,6 +102,7 @@ class navigator {
 
         /** Constructor with memory resource
          **/
+        DETRAY_HOST
         state(vecmem::memory_resource &resource) : _candidates(&resource) {}
 
         /** Constructor from candidates vector_view
@@ -628,7 +629,7 @@ class navigator {
         const track_t &track, intersection &candidate) const {
         const dindex obj_idx = candidate.index;
         candidate =
-            intersect(track, _detector->get_surface(obj_idx),
+            intersect(track, _detector->surface_by_index(obj_idx),
                       _detector->transform_store(), _detector->mask_store());
 
         candidate.index = obj_idx;
