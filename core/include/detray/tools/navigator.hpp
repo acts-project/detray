@@ -390,15 +390,8 @@ class navigator {
 
             auto candidate = intersect(track, obj, _detector->transform_store(),
                                        _detector->mask_store());
-
-            // Candidate is invalid if it oversteps too far (usually a surface
-            // in the diagonally opposite direction in the detector geometry or
-            // one that we already left behind us)
-            if (candidate.path < track.overstep_tolerance()) {
-                continue;
-            }
-            // Accept if inside
-            if (candidate.status == e_inside) {
+            // Accept potential next target
+            if (is_reachable(candidate, track)) {
                 candidate.index = obj_idx;
                 navigation.candidates().push_back(candidate);
             }
@@ -444,8 +437,8 @@ class navigator {
                 intersection &candidate = *navigation.next();
                 update_candidate(track, candidate);
 
-                // If candidate is inside, this is likely the next target
-                if (candidate.status == e_inside) {
+                // This is likely the next target
+                if (is_reachable(candidate, track)) {
 
                     if (navigation.is_on_object(track, candidate)) {
                         navigation.set_state(navigation::e_on_target,
@@ -455,9 +448,7 @@ class navigator {
                         stepping.release_step_size();
                         // Set the next object we want to reach - might be end()
                         ++navigation.next();
-                        if (not navigation.is_exhausted() or
-                            navigation() < track.overstep_tolerance()) {
-                            // After update, trust in candidate is restored
+                        if (not navigation.is_exhausted()) {
                             navigation.run_inspector(
                                 "Update next (high trust):");
                             // Ready the next candidate in line
@@ -475,9 +466,8 @@ class navigator {
                         navigation.set_state(navigation::e_towards_object,
                                              dindex_invalid,
                                              navigation::e_full_trust);
+                        navigation.run_inspector("Update (high trust):");
                     }
-                    // After update, trust in candidate is restored
-                    navigation.run_inspector("Update (high trust):");
                     // Don't sort again when coming from high trust
                     return;
                 }
@@ -495,15 +485,15 @@ class navigator {
             for (auto &candidate : navigation.candidates()) {
                 update_candidate(track, candidate);
                 // Disregard this candidate
-                if ((candidate.status != e_inside) or
-                    (candidate.path < track.overstep_tolerance())) {
+                if (not is_reachable(candidate, track)) {
+                    // Forcefully set dist to numeric max for sorting
                     invalidate_candidate(candidate);
                 }
             }
             // Sort again
             set_next(track, navigation, stepping);
             // No surface in this volume is reachable: Kernel is exhausted
-            if (not is_reachable(*navigation.next())) {
+            if (not is_reachable(*navigation.next(), track)) {
                 // Re-initialize the volume in the next update call
                 navigation.set_no_trust();
             }
@@ -548,7 +538,7 @@ class navigator {
                 // Call the inspector on this portal crossing, then go to next
                 navigation.run_inspector("Skipping direct hit: ");
                 if (navigation.is_exhausted() or
-                    not is_reachable(*navigation.next())) {
+                    not is_reachable(*navigation.next(), track)) {
                     navigation.set_no_trust();
                     return;
                 }
@@ -624,10 +614,12 @@ class navigator {
      * @param candidate the candidate to be invalidated
      * @returns true if is reachable by track
      */
-    DETRAY_HOST_DEVICE
-    inline bool is_reachable(intersection &candidate) const {
-        return candidate.path != std::numeric_limits<scalar>::max() or
-               candidate.status != e_missed;
+    template <typename track_t>
+    DETRAY_HOST_DEVICE inline bool is_reachable(intersection &candidate,
+                                                track_t &track) const {
+        return candidate.status == e_inside and
+               candidate.path >= track.overstep_tolerance() and
+               candidate.path < std::numeric_limits<scalar>::max();
     }
 
     /** Helper to evict all unreachable/invalid candidates from candidates cache
