@@ -43,12 +43,14 @@ namespace detray {
 
 // dummy navigation struct
 struct nav_state {
-    scalar operator()() const { return 1. * unit_constants::mm; }
-    inline void set_full_trust() {}
-    inline void set_high_trust() {}
-    inline void set_fair_trust() {}
-    inline void set_no_trust() {}
-    inline bool abort() { return false; }
+    DETRAY_HOST_DEVICE scalar operator()() const {
+        return 1. * unit_constants::mm;
+    }
+    DETRAY_HOST_DEVICE inline void set_full_trust() {}
+    DETRAY_HOST_DEVICE inline void set_high_trust() {}
+    DETRAY_HOST_DEVICE inline void set_fair_trust() {}
+    DETRAY_HOST_DEVICE inline void set_no_trust() {}
+    DETRAY_HOST_DEVICE inline bool abort() { return false; }
 };
 
 // test function for Runge-Kutta stepper
