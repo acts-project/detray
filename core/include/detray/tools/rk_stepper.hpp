@@ -11,8 +11,6 @@
 #include "detray/tools/base_stepper.hpp"
 
 // detray definitions
-#include <iostream>
-
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
@@ -180,8 +178,7 @@ class rk_stepper final : public base_stepper<track_t> {
 
         // Update and check path limit
         if (not stepping.check_path_limit()) {
-            std::cout << "Stepper: Above maximal path length!\n"
-                      << stepping.dist_to_path_limit() << std::endl;
+            printf("Stepper: Above maximal path length!\n");
             // State is broken
             return navigation.abort();
         }
