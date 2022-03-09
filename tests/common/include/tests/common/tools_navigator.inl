@@ -38,15 +38,16 @@ inline void check_towards_surface(state_t &state, dindex vol_id,
 /** Checks for a correct 'on_surface' state */
 template <typename navigator_t, typename state_t = typename navigator_t::state>
 inline void check_on_surface(state_t &state, dindex vol_id,
-                             std::size_t n_candidates, dindex current_id,
+                             std::size_t n_candidates, dindex /*current_id*/,
                              dindex next_id) {
-    // The status is: on surface
-    ASSERT_EQ(state.status(), navigation::e_on_target);
+    // The status is: on surface/towards surface if the next candidate is
+    // immediately updated and set in the same update call
+    ASSERT_EQ(state.status(), navigation::e_towards_object);
     // Points towards next candidate
     ASSERT_TRUE(std::abs(state()) > state.tolerance());
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.candidates().size(), n_candidates);
-    ASSERT_EQ(state.current_object(), current_id);
+    ASSERT_EQ(state.current_object(), dindex_invalid /*current_id*/);
     // points to the next surface now
     ASSERT_EQ(state.next()->index, next_id);
     ASSERT_EQ(state.trust_level(), navigation::e_full_trust);
