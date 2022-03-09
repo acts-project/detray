@@ -161,15 +161,22 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     }
 }
 
-INSTANTIATE_TEST_SUITE_P(PropagatorValidation, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation1, PropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             0., 1. * unit_constants::T,
+                             0. * unit_constants::T, 0. * unit_constants::T,
+                             2. * unit_constants::T}));
+
+/*INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             0. * unit_constants::T, 1. * unit_constants::T,
                              1. * unit_constants::T}));
 
-/*
-INSTANTIATE_TEST_SUITE_P(
-    PropagatorValidation, PropagatorWithRkStepper,
-    ::testing::Values(__plugin::vector3<scalar>{0, 0, 2 * unit_constants::T},
-__plugin::vector3<scalar>{1 * unit_constants::T, 1 * unit_constants::T, 1 *
-unit_constants::T}));
-*/
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation3, PropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             1. * unit_constants::T, 0. * unit_constants::T,
+                             1. * unit_constants::T}));
+
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             1. * unit_constants::T, 1. * unit_constants::T,
+                             1. * unit_constants::T}));*/

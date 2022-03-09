@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include <algorithm>
+#include <functional>
+
 #include "detray/core/detector.hpp"
 #include "detray/core/intersection.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -57,15 +60,20 @@ struct void_inspector {
  *  in, while a portal surface links to the next volume in the direction of the
  *  track.
  *
- * It follows an init() call and then a sequence of
- * [- step()]
- * - update()
- * calls.
+ *  This navigator applies a trust level based update of its candidate
+ *  (intersection) cache. The trust level, and with it the appropriate update
+ *  policy, must be set by an actor. Otherwise, no update will be performed.
+ *
+ *  It is set up by an init() call and then follows a sequence of
+ *  [- step()]
+ *  - update()
+ *  calls.
  *
  * The heartbeat indicates, that the navigation is still in a valid state.
  *
  * @tparam detector_t the detector to navigate
- * @tparam inspector_t is a validation inspector
+ * @tparam inspector_t is a validation inspector that can record information
+ *         about the navaigation state at different points of the nav. flow.
  */
 template <typename detector_t,
           typename inspector_t = navigation::void_inspector>
@@ -223,15 +231,6 @@ class navigator {
                 return true;
             }
             return false;
-        }
-
-        /** Helper to determine if a candidate has been invalidated
-         *
-         * @param candidate the candidate to be invalidated
-         */
-        // TODO: Come up with a more specific way
-        DETRAY_HOST_DEVICE inline bool is_reachable() const {
-            return _next->path != std::numeric_limits<scalar>::max();
         }
 
         /** Navigation state that cannot be recovered from. Leave the other
@@ -400,33 +399,6 @@ class navigator {
         navigation.run_inspector("Init complete: ");
     }
 
-    /** Helper method that updates a single candidate
-     *
-     * @tparam track_t type of the track (including context)
-     *
-     * @param track the track information
-     */
-    template <typename track_t>
-    DETRAY_HOST_DEVICE inline void update_candidate(
-        const track_t &track, intersection &candidate) const {
-        const dindex obj_idx = candidate.index;
-        candidate =
-            intersect(track, _detector->get_surface(obj_idx),
-                      _detector->transform_store(), _detector->mask_store());
-
-        candidate.index = obj_idx;
-    }
-
-    /** Helper method that invalidates a candidate by setting its path length to
-     *  an unreachable value
-     *
-     * @param candidate the candidate to be invalidated
-     */
-    DETRAY_HOST_DEVICE inline void invalidate_candidate(
-        intersection &candidate) const {
-        candidate.path = std::numeric_limits<scalar>::max();
-    }
-
     /** Helper method to update the next candidate intersection based on
      *  trust level. Will initialize the kernel if there is no trust.
      *
@@ -471,9 +443,10 @@ class navigator {
                         stepping.release_step_size();
                         // Set the next object we want to reach - might be end()
                         ++navigation.next();
-                        if (not navigation.is_exhausted()) {
+                        if (not navigation.is_exhausted() or
+                            not is_reachable(*navigation.next())) {
                             // Ready the next candidate in line
-                            update_candidate(track, *navigation.next());
+                            continue;
                         } else {
                             // There is no next candidate left - re-evaluate
                             navigation.set_no_trust();
@@ -514,7 +487,7 @@ class navigator {
             // Sort again
             set_next(track, navigation, stepping);
             // No surface in this volume is reachable: Kernel is exhausted
-            if (not navigation.is_reachable()) {
+            if (not is_reachable(*navigation.next())) {
                 // Re-initialize the volume in the next update call
                 navigation.set_no_trust();
             }
@@ -543,7 +516,7 @@ class navigator {
                                     navigation.candidates().end());
 
             // Remove unreachable elements
-            auto not_reachable = [](intersection cand) {
+            auto not_reachable = [](intersection &cand) {
                 return cand.path == std::numeric_limits<scalar>::max();
             };
             const auto first_invalid_cand =
@@ -560,10 +533,10 @@ class navigator {
             // This mainly updates adjacent portals -> we are automatically on
             // the next portal in the new volume
             if (navigation.is_on_object(track, *navigation.next())) {
-                // Set the next object that we want to reach (cache is sorted)
-                ++navigation.next();
                 // Set temporarily, so that the inspector can catch this state
                 navigation.set_status(navigation::e_on_target);
+                // Set the next object that we want to reach (cache is sorted)
+                ++navigation.next();
                 navigation.set_object(navigation.current()->index);
                 // Call the inspector on this portal crossing, then go to next
                 navigation.run_inspector("Skipping direct hit: ");
@@ -610,6 +583,43 @@ class navigator {
             }
         }
         return true;
+    }
+
+    /** Helper method that updates a single candidate
+     *
+     * @tparam track_t type of the track (including context)
+     *
+     * @param track the track information
+     */
+    template <typename track_t>
+    DETRAY_HOST_DEVICE inline void update_candidate(
+        const track_t &track, intersection &candidate) const {
+        const dindex obj_idx = candidate.index;
+        candidate =
+            intersect(track, _detector->get_surface(obj_idx),
+                      _detector->transform_store(), _detector->mask_store());
+
+        candidate.index = obj_idx;
+    }
+
+    /** Helper method that invalidates a candidate by setting its path length to
+     *  an unreachable value. It then gets sorted to the back of the candidates
+     *  cache.
+     *
+     * @param candidate the candidate to be invalidated
+     */
+    DETRAY_HOST_DEVICE inline void invalidate_candidate(
+        intersection &candidate) const {
+        candidate.path = std::numeric_limits<scalar>::max();
+    }
+
+    /** Helper to determine if a candidate has been invalidated
+     *
+     * @param candidate the candidate to be invalidated
+     */
+    DETRAY_HOST_DEVICE inline bool is_reachable(intersection &candidate) const {
+        return candidate.path != std::numeric_limits<scalar>::max() or
+               candidate.status != e_missed;
     }
 
     /// @returns pointer to detector
