@@ -37,6 +37,9 @@ using cylinder = cylinder3<false, cylinder_intersector,
                            __plugin::cylindrical2<detray::scalar>, edge_type>;
 using disc =
     ring2<planar_intersector, __plugin::cartesian2<detray::scalar>, edge_type>;
+using unbounded_plane =
+    unmasked<planar_intersector, __plugin::cartesian2<detray::scalar>,
+             edge_type>;
 
 /// Defines all available types
 template <typename dynamic_data, std::size_t NGRIDS = 1>
@@ -157,10 +160,12 @@ struct telescope_metadata {
     /// to a type!)
     enum mask_ids : unsigned int {
         e_rectangle2 = 0,
+        e_unbounded_plane2 = 1,
     };
 
     // How to store and link masks
-    using mask_definitions = mask_registry<mask_ids, rectangle>;
+    using mask_definitions =
+        mask_registry<mask_ids, rectangle, unbounded_plane>;
 
     // Accelerator types
     template <template <typename, std::size_t> class array_t = darray,

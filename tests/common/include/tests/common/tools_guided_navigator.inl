@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -176,13 +176,18 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     stepper_t stepper(b_field);
     stepper_t::state step_state(pilot_track);
 
+    // Create telescope detector of either unbounded planes or rectangles
+    constexpr bool unbounded = true;
+    constexpr bool rectangles = false;
     // Number of plane surfaces
     dindex n_surfaces = 10;
     // Total distance between the all surfaces, as seen by the stepper
     scalar tel_length = 500. * unit_constants::mm;
-    // Build telescope detector
-    const auto telescope_det = create_telescope_detector(
+    // Build telescope detector with unbounded planes
+    const auto telescope_det = create_telescope_detector<unbounded>(
         host_mr, pilot_track, stepper, n_surfaces, tel_length);
+    // const auto telescope_det = create_telescope_detector<rectangles>(
+    //     host_mr, pilot_track, stepper, n_surfaces, tel_length);
 
     // Building the telescope geometry should not change the track state
     ASSERT_TRUE(pilot_track.pos() == pos);
@@ -228,7 +233,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     }
 
     //
-    // Directly step through detector
+    // Step through detector directly
     //
     // Reset track
     free_track_parameters new_track(pos, 0, mom, -1);

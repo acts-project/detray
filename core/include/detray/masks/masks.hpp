@@ -13,3 +13,4 @@
 #include "detray/masks/ring2.hpp"
 #include "detray/masks/single3.hpp"
 #include "detray/masks/trapezoid2.hpp"
+#include "detray/masks/unmasked.hpp"

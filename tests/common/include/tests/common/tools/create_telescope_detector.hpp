@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,6 +15,11 @@
 namespace detray {
 
 namespace {
+
+using telescope_types = detector_registry::telescope_detector;
+
+constexpr auto rectangle_id = telescope_types::mask_ids::e_rectangle2;
+constexpr auto unbounded_id = telescope_types::mask_ids::e_unbounded_plane2;
 
 /** Helper method for positioning the plane surfaces
  *
@@ -60,20 +65,19 @@ inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
  * @param transforms container to add new transform to
  * @param cfg config struct for module creation
  */
-template <typename context_t, typename track_t, typename stepper_t,
-          typename volume_type, typename surface_container_t,
-          typename mask_container_t, typename transform_container_t,
-          typename config_t>
+template <telescope_types::mask_ids mask_id, typename context_t,
+          typename track_t, typename stepper_t, typename volume_type,
+          typename surface_container_t, typename mask_container_t,
+          typename transform_container_t, typename config_t>
 inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
                              volume_type &vol, surface_container_t &surfaces,
                              mask_container_t &masks,
                              transform_container_t &transforms, config_t cfg) {
     using surface_t = typename surface_container_t::value_type::value_type;
-    using mask_defs = typename surface_t::mask_defs;
+    // using mask_defs = typename surface_t::mask_defs;
     using edge_t = typename surface_t::edge_type;
     using mask_link_t = typename mask_container_t::link_type;
 
-    constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
     auto volume_id = vol.index();
     edge_t mask_edge{volume_id, dindex_invalid};
 
@@ -83,22 +87,24 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
 
     // Create geometry data
     for (const auto &m_center : m_positions) {
-        // for (auto pos_itr = m_positions.begin(); pos_itr !=
-        // m_positions.end(); ++pos_itr) {
 
         // Surfaces with the linking into the local containers
-        mask_link_t mask_id{rectangle_id, masks.template size<rectangle_id>()};
-        const auto trf_index = transforms[rectangle_id].size(ctx);
-        surfaces[rectangle_id].emplace_back(trf_index, mask_id, volume_id,
-                                            dindex_invalid, false);
-        surfaces[rectangle_id].back().set_grid_status(false);
+        mask_link_t mask_link{mask_id, masks.template size<mask_id>()};
+        const auto trf_index = transforms[mask_id].size(ctx);
+        surfaces[mask_id].emplace_back(trf_index, mask_link, volume_id,
+                                       dindex_invalid, false);
+        surfaces[mask_id].back().set_grid_status(false);
 
-        // The rectangle bounds for this module
+        // The last surface acts as portal that leaves the telescope
         if (m_center == m_positions.back()) {
             mask_edge = {dindex_invalid, dindex_invalid};
-            masks.template add_mask<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
-                                                  mask_edge);
+        }
+
+        if constexpr (mask_id == unbounded_id) {
+            // No bounds for this module
+            masks.template add_mask<unbounded_id>(mask_edge);
         } else {
+            // The rectangle bounds for this module
             masks.template add_mask<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
                                                   mask_edge);
         }
@@ -113,13 +119,8 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
                           std::cos(m_phi + cfg.m_tilt_phi), 0.};
 
         // Create the module transform
-        transforms[rectangle_id].emplace_back(ctx, m_center, m_local_z,
-                                              m_local_x);
+        transforms[mask_id].emplace_back(ctx, m_center, m_local_z, m_local_x);
     }
-
-    // The last surface acts as portal that leaves the telescope
-    // auto &mask_group = masks.template group<rectangle_id>();
-    // mask_group.back().volume_link() = dindex_invalid;
 }
 
 }  // namespace
@@ -145,8 +146,7 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
  *
  * @returns a complete detector object
  */
-// TODO: Add unbounded option
-template <typename track_t, typename stepper_t,
+template <bool unbounded_planes = true, typename track_t, typename stepper_t,
           template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
@@ -159,8 +159,8 @@ auto create_telescope_detector(vecmem::memory_resource &resource, track_t track,
                                scalar tilt_phi = 0.0) {
 
     // detector type
-    using detector_t = detector<detector_registry::telescope_detector, array_t,
-                                tuple_t, vector_t, jagged_vector_t>;
+    using detector_t =
+        detector<telescope_types, array_t, tuple_t, vector_t, jagged_vector_t>;
 
     // module parameters
     struct plane_config {
@@ -178,7 +178,8 @@ auto create_telescope_detector(vecmem::memory_resource &resource, track_t track,
     plane_config pl_config{half_x, half_y, tilt_phi, tel_length, n_surfaces};
 
     // volume boundaries are not needed. Same goes for portals
-    det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
+    det.new_volume(
+        {tel_length, tel_length, tel_length, tel_length, -M_PI, M_PI});
     typename detector_t::volume_type &vol = det.volume_by_index(0);
 
     // Add module surfaces to volume
@@ -186,8 +187,13 @@ auto create_telescope_detector(vecmem::memory_resource &resource, track_t track,
     typename detector_t::mask_container masks = {resource};
     typename detector_t::transform_filling_container transforms = {resource};
 
-    create_telescope(ctx, track, stepper, vol, surfaces, masks, transforms,
-                     pl_config);
+    if constexpr (unbounded_planes) {
+        create_telescope<unbounded_id>(ctx, track, stepper, vol, surfaces,
+                                       masks, transforms, pl_config);
+    } else {
+        create_telescope<rectangle_id>(ctx, track, stepper, vol, surfaces,
+                                       masks, transforms, pl_config);
+    }
 
     det.add_objects(ctx, vol, surfaces, masks, transforms);
 
