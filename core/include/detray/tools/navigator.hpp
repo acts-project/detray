@@ -363,13 +363,10 @@ class navigator {
                                           stepper_state_t &stepping) const {
         bool heartbeat = true;
 
-        if (navigation.candidates().capacity() != 0)
-            // navigation.run_inspector("Before update: ");
-
-            // If there is no_trust (e.g. at the beginning of the navigation in
-            // a volume), the kernel will be initialized. Otherwise the
-            // candidates are re-evaluated based on current trust level
-            update_kernel(navigation, stepping);
+        // If there is no_trust (e.g. at the beginning of the navigation in
+        // a volume), the kernel will be initialized. Otherwise the
+        // candidates are re-evaluated based on current trust level
+        update_kernel(navigation, stepping);
 
         // Did we hit a portal? Then switch volume
         heartbeat &= check_volume_switch(navigation);
@@ -424,6 +421,7 @@ class navigator {
         }
         // What is the closest object we can reach?
         set_next(track, navigation, stepping);
+        // Call the inspector before returning (only for debugging)
         // navigation.run_inspector("Init complete: ");
     }
 
@@ -525,7 +523,7 @@ class navigator {
                 // Re-initialize the volume in the next update call
                 navigation.set_no_trust();
             }
-            // Call the inspector before returning
+            // Call the inspector before returning (only for debugging)
             // navigation.run_inspector("Update (fair trust): ");
         }
         // Finally, if no candidate was found, trust could no be restored
@@ -589,7 +587,7 @@ class navigator {
         }
         // Release stepping constraints
         stepping.release_step_size();
-        // Call the inspector on new status
+        // Call the inspector before returning (only for debugging)
         // navigation.run_inspector("Set next: ");
     }
 
