@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/array_definitions.hpp"
-#include "tests/common/guided_navigator.inl"
+#include "tests/common/tools_guided_navigator.inl"

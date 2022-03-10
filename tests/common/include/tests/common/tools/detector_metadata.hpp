@@ -143,7 +143,7 @@ struct telescope_metadata {
 
     // How many grids have to be built
     enum grids : std::size_t {
-        n_grids = 1,
+        n_grids = 0,
     };
 
     // How to store and link transforms
@@ -163,8 +163,20 @@ struct telescope_metadata {
     using mask_definitions = mask_registry<mask_ids, rectangle>;
 
     // Accelerator types
-    using volume_finder = void;
-    using surface_finder = void;
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using volume_finder =
+        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
+              vector_t, jagged_vector_t, array_t, tuple_t, dindex>;
+
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using surface_finder =
+        surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>;
 };
 
 struct detector_registry {
