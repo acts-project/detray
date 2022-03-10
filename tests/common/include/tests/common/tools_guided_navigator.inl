@@ -7,16 +7,16 @@
 
 #include <gtest/gtest.h>
 
-#include "detray/definitions/units.hpp"
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
 #include "detray/tools/rk_stepper.hpp"
 #include "detray/tools/track.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
-
-#include <vecmem/memory/host_memory_resource.hpp>
 
 /// @note __plugin has to be defined with a preprocessor command
 namespace detray {
@@ -150,14 +150,13 @@ struct aggregate_inspector {
     }
 };
 
-} // namespace detray
+}  // namespace detray
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
 
-    using inspector_t =
-        aggregate_inspector<object_tracer<1>, print_inspector>;
+    using inspector_t = aggregate_inspector<object_tracer<1>, print_inspector>;
     using b_field_t = constant_magnetic_field<>;
     using stepper_t = rk_stepper<b_field_t, free_track_parameters>;
 
@@ -209,7 +208,8 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
         nav_state.inspector().template get<object_tracer<1>>();
     auto &debug_printer =
         nav_state.inspector().template get<print_inspector>();
-    EXPECT_EQ(obj_tracer.object_trace.size(), sf_sequence.size()) << debug_printer.to_string();
+    EXPECT_EQ(obj_tracer.object_trace.size(), sf_sequence.size()) <<
+    debug_printer.to_string();
 
     // Every iteration steps through one surface
     for (const auto &sf_id : sf_sequence) {

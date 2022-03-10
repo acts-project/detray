@@ -5,11 +5,11 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <vecmem/memory/host_memory_resource.hpp>
+
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
-
-#include <vecmem/memory/host_memory_resource.hpp>
 
 namespace detray {
 
@@ -24,7 +24,7 @@ namespace {
  *
  * @return a vector of the module positions along the trajectory
  */
-template<typename track_t, typename stepper_t>
+template <typename track_t, typename stepper_t>
 inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
                                             scalar tel_length,
                                             dindex n_surfaces) {
@@ -60,15 +60,13 @@ inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
  * @param cfg config struct for module creation
  */
 template <typename context_t, typename track_t, typename stepper_t,
-          typename volume_type,
-          typename surface_container_t, typename mask_container_t,
-          typename transform_container_t, typename config_t>
-inline void create_telescope(context_t &ctx, track_t &track, 
-                             stepper_t &stepper, volume_type &vol,
-                             surface_container_t &surfaces,
+          typename volume_type, typename surface_container_t,
+          typename mask_container_t, typename transform_container_t,
+          typename config_t>
+inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
+                             volume_type &vol, surface_container_t &surfaces,
                              mask_container_t &masks,
-                             transform_container_t &transforms,
-                             config_t cfg) {
+                             transform_container_t &transforms, config_t cfg) {
     using surface_t = typename surface_container_t::value_type::value_type;
     using mask_defs = typename surface_t::mask_defs;
     using edge_t = typename surface_t::edge_type;
@@ -79,15 +77,16 @@ inline void create_telescope(context_t &ctx, track_t &track,
     edge_t mask_edge{volume_id, dindex_invalid};
 
     // Create the module centers
-    const std::vector<point3> m_positions = 
-                       module_positions(track, stepper, cfg.tel_length, cfg.n_surfaces);
+    const std::vector<point3> m_positions =
+        module_positions(track, stepper, cfg.tel_length, cfg.n_surfaces);
 
     // Create geometry data
     for (const auto &m_center : m_positions) {
-    //for (auto pos_itr = m_positions.begin(); pos_itr != m_positions.end(); ++pos_itr) {
+        // for (auto pos_itr = m_positions.begin(); pos_itr !=
+        // m_positions.end(); ++pos_itr) {
 
         // Surfaces with the linking into the local containers
-        mask_link_t mask_id {rectangle_id, masks.template size<rectangle_id>()};
+        mask_link_t mask_id{rectangle_id, masks.template size<rectangle_id>()};
         const auto trf_index = transforms[rectangle_id].size(ctx);
         surfaces[rectangle_id].emplace_back(trf_index, mask_id, volume_id,
                                             dindex_invalid, false);
@@ -97,11 +96,10 @@ inline void create_telescope(context_t &ctx, track_t &track,
         if (m_center == m_positions.back()) {
             mask_edge = {dindex_invalid, dindex_invalid};
             masks.template add_mask<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
-                                                mask_edge);
-        }
-        else {
+                                                  mask_edge);
+        } else {
             masks.template add_mask<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
-                                              mask_edge);
+                                                  mask_edge);
         }
         // Build the transform
         // The local phi
@@ -119,14 +117,14 @@ inline void create_telescope(context_t &ctx, track_t &track,
     }
 
     // The last surface acts as portal that leaves the telescope
-    //auto &mask_group = masks.template group<rectangle_id>();
-    //mask_group.back().volume_link() = dindex_invalid;
+    // auto &mask_group = masks.template group<rectangle_id>();
+    // mask_group.back().volume_link() = dindex_invalid;
 }
 
 }  // namespace
 
 /** Builds a detray geometry that contains only one volume with plane surfaces,
- *  where the last surface is the portal that leaves the telescope. The 
+ *  where the last surface is the portal that leaves the telescope. The
  *  detector is auto-constructed by following a track state through space with
  *  the help of a dedicated stepper. The track and stepper determine the
  *  positions of the plane surfaces, so that the stepping distance between
@@ -152,12 +150,11 @@ template <typename track_t, typename stepper_t,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector>
-auto create_telescope_detector(vecmem::memory_resource &resource, 
-                               track_t track, stepper_t &stepper,
-                               dindex n_surfaces = 10, 
+auto create_telescope_detector(vecmem::memory_resource &resource, track_t track,
+                               stepper_t &stepper, dindex n_surfaces = 10,
                                scalar tel_length = 500. * unit_constants::mm,
-                               scalar half_x = 20. * unit_constants::mm, 
-                               scalar half_y = 20. * unit_constants::mm, 
+                               scalar half_x = 20. * unit_constants::mm,
+                               scalar half_y = 20. * unit_constants::mm,
                                scalar tilt_phi = 0.0) {
 
     // detector type
@@ -188,7 +185,8 @@ auto create_telescope_detector(vecmem::memory_resource &resource,
     typename detector_t::mask_container masks = {resource};
     typename detector_t::transform_filling_container transforms = {resource};
 
-    create_telescope(ctx, track, stepper, vol, surfaces, masks, transforms, pl_config);
+    create_telescope(ctx, track, stepper, vol, surfaces, masks, transforms,
+                     pl_config);
 
     det.add_objects(ctx, vol, surfaces, masks, transforms);
 
