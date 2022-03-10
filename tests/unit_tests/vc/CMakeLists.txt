@@ -10,7 +10,7 @@ detray_add_test( vc_array
    "vc_array_cylinder_intersection.cpp" "vc_array_cylinder3.cpp"
    "vc_array_detector.cpp" "vc_array_geometry_volume_graph.cpp"
    "vc_array_geometry_linking.cpp" "vc_array_geometry_navigation.cpp"
-   "vc_array_geometry_scan.cpp" "vc_array_helix_gun.cpp" "vc_array_intersection_kernel.cpp"
+   "vc_array_geometry_scan.cpp" "vc_array_guided_navigator.cpp" "vc_array_helix_gun.cpp" "vc_array_intersection_kernel.cpp"
    "vc_array_line_stepper.cpp" "vc_array_mask_store.cpp"
    "vc_array_navigator.cpp" "vc_array_planar_intersection.cpp"
    "vc_array_propagator.cpp" "vc_array_rectangle2.cpp" "vc_array_ring2.cpp" 
