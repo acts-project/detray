@@ -171,6 +171,9 @@ struct free_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
+    vector3 mom() const { return 1. / std::abs(this->qop()) * this->dir(); }
+
+    DETRAY_HOST_DEVICE
     scalar time() const { return getter::element(_vector, e_free_time, 0); }
 
     DETRAY_HOST_DEVICE
