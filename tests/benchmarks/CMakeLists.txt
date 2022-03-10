@@ -16,3 +16,8 @@ endif()
 if( DETRAY_VC_PLUGIN )
    add_subdirectory( vc )
 endif()
+
+# Set up all of the "device" tests.
+if( DETRAY_BUILD_CUDA )
+   add_subdirectory( cuda )
+endif()
