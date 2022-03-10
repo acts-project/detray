@@ -37,7 +37,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
 
     auto hit_unbound = pi.intersect(shifted, point3{2., 1., 0.},
                                     vector3{0., 0., 1.}, unmasked_unbound);
-    ASSERT_TRUE(hit_unbound.status == intersection_status::e_hit);
+    ASSERT_TRUE(hit_unbound.status == intersection_status::e_inside);
     ASSERT_TRUE(hit_unbound.direction == intersection_direction::e_along);
     // Global intersection information
     ASSERT_NEAR(hit_unbound.p3[0], 2., epsilon);
@@ -47,10 +47,11 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
                 hit_unbound.p2[1] == not_defined);
 
     // The same test but bound to local frame
-    unmasked<__plugin::cartesian2<detray::scalar> > unmasked_bound{};
+    unmasked<planar_intersector, __plugin::cartesian2<detray::scalar> >
+        unmasked_bound{};
     auto hit_bound = pi.intersect(shifted, point3{2., 1., 0.},
                                   vector3{0., 0., 1.}, unmasked_bound);
-    ASSERT_TRUE(hit_bound.status == intersection_status::e_hit);
+    ASSERT_TRUE(hit_bound.status == intersection_status::e_inside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound.p3[0], 2., epsilon);
     ASSERT_NEAR(hit_bound.p3[1], 1., epsilon);
