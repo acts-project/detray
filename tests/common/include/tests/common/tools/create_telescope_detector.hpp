@@ -5,6 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <iostream>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/detector.hpp"
@@ -178,7 +179,7 @@ auto create_telescope_detector(vecmem::memory_resource &resource, track_t track,
 
     // volume boundaries are not needed. Same goes for portals
     det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
-    typename detector_t::volume_type vol = det.volume_by_index(0);
+    typename detector_t::volume_type &vol = det.volume_by_index(0);
 
     // Add module surfaces to volume
     typename detector_t::surface_filling_container surfaces = {};

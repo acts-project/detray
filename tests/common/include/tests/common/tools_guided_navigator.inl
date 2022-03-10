@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include <iostream>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/definitions/qualifiers.hpp"
@@ -16,6 +17,7 @@
 #include "detray/tools/navigator.hpp"
 #include "detray/tools/rk_stepper.hpp"
 #include "detray/tools/track.hpp"
+#include "detray/tools/volume_graph.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -177,41 +179,47 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     // Total distance between the all surfaces, as seen by the stepper
     scalar tel_length = 500. * unit_constants::mm;
     // Build telescope detector
-    const auto det = create_telescope_detector(host_mr, track, stepper,
-                                               n_surfaces, tel_length);
+    const auto telescope_det = create_telescope_detector(
+        host_mr, track, stepper, n_surfaces, tel_length);
+        
+    // Building the telescope geometry should not change the track state
+    ASSERT_TRUE(track.pos() == pos);
+    // Build the graph
+    volume_graph graph(telescope_det);
+    std::cout << graph.to_string() << std::endl;
 
-    using guided_navigator = navigator<decltype(det), inspector_t>;
+    using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
 
-    guided_navigator nav(det);
+    guided_navigator nav(telescope_det);
     guided_navigator::state nav_state;
+    // Set initial volume (no grid yet)
+    nav_state.set_volume(0u);
 
     // Guided navigation
     bool heartbeat = true;
-    /*while (heartbeat) {
+    while (heartbeat) {
         // (Re-)target
         heartbeat &= nav.target(nav_state, step_state);
         // Take the step
         heartbeat &= stepper.step(step_state, nav_state());
         // Enforce evaluation of only the next surface in the telescope
-        nav_state.set_trust_level(guided_navigator::navigation_trust_level::e_high_trust);
+        nav_state.set_trust_level(
+            guided_navigator::navigation_trust_level::e_high_trust);
         // And check the status
         heartbeat &= nav.status(nav_state, step_state);
     }
 
-    auto &debug_printer =
-        nav_state.inspector().template get<print_inspector>();*/
-    ASSERT_TRUE(heartbeat);  // << debug_printer.to_string();*/
+    // Check that navigator exited
+    auto &debug_printer = nav_state.inspector().template get<print_inspector>();
+    ASSERT_TRUE(nav_state.status() == -3) << debug_printer.to_string();
 
     // sequence of surfaces we expect to see
-    /*std::vector<dindex> sf_sequence = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    auto &obj_tracer =
-        nav_state.inspector().template get<object_tracer<1>>();
-    auto &debug_printer =
-        nav_state.inspector().template get<print_inspector>();
-    EXPECT_EQ(obj_tracer.object_trace.size(), sf_sequence.size()) <<
-    debug_printer.to_string();
-
-    // Every iteration steps through one surface
-    for (const auto &sf_id : sf_sequence) {
-    }*/
+    std::vector<dindex> sf_sequence = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    auto &obj_tracer = nav_state.inspector().template get<object_tracer<1>>();
+    // Check the surfaces that have been visited by the navigation
+    ASSERT_TRUE(obj_tracer.object_trace.size() == sf_sequence.size());
+    for (size_t i = 0; i < sf_sequence.size(); ++i) {
+        const auto &candidate = obj_tracer.object_trace[i];
+        EXPECT_TRUE(candidate.index == sf_sequence[i]);
+    }
 }
