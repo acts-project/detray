@@ -162,17 +162,19 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using b_field_t = constant_magnetic_field<>;
     using stepper_t = rk_stepper<b_field_t, free_track_parameters>;
 
+    constexpr scalar tol = 1e-4;
+
     vecmem::host_memory_resource host_mr;
 
     point3 pos{0., 0., 0.};
     vector3 mom{1., 0., 0.};
-    free_track_parameters track(pos, 0, mom, -1);
+    free_track_parameters pilot_track(pos, 0, mom, -1);
 
     vector3 B{0, 0, 2 * unit_constants::T};
     b_field_t b_field(B);
 
     stepper_t stepper(b_field);
-    stepper_t::state step_state(track);
+    stepper_t::state step_state(pilot_track);
 
     // Number of plane surfaces
     dindex n_surfaces = 10;
@@ -180,10 +182,10 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     scalar tel_length = 500. * unit_constants::mm;
     // Build telescope detector
     const auto telescope_det = create_telescope_detector(
-        host_mr, track, stepper, n_surfaces, tel_length);
-        
+        host_mr, pilot_track, stepper, n_surfaces, tel_length);
+
     // Building the telescope geometry should not change the track state
-    ASSERT_TRUE(track.pos() == pos);
+    ASSERT_TRUE(pilot_track.pos() == pos);
     // Build the graph
     volume_graph graph(telescope_det);
     std::cout << graph.to_string() << std::endl;
@@ -195,7 +197,9 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     // Set initial volume (no grid yet)
     nav_state.set_volume(0u);
 
-    // Guided navigation
+    //
+    // Use navigator to step through telescope
+    //
     bool heartbeat = true;
     while (heartbeat) {
         // (Re-)target
@@ -218,8 +222,26 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     auto &obj_tracer = nav_state.inspector().template get<object_tracer<1>>();
     // Check the surfaces that have been visited by the navigation
     ASSERT_TRUE(obj_tracer.object_trace.size() == sf_sequence.size());
-    for (size_t i = 0; i < sf_sequence.size(); ++i) {
+    for (size_t i = 0; i < n_surfaces; ++i) {
         const auto &candidate = obj_tracer.object_trace[i];
         EXPECT_TRUE(candidate.index == sf_sequence[i]);
     }
+
+    //
+    // Directly step through detector
+    //
+    // Reset track
+    free_track_parameters new_track(pos, 0, mom, -1);
+    stepper_t::state new_step_state(new_track);
+    scalar step_size = tel_length / n_surfaces;
+    heartbeat = true;
+    for (size_t i = 0; i < n_surfaces - 1; ++i) {
+        // Take the step
+        heartbeat &= stepper.step(new_step_state, step_size);
+    }
+    EXPECT_TRUE(heartbeat);
+    EXPECT_NEAR(step_state._path_accumulated, new_step_state._path_accumulated,
+                tol);
+    EXPECT_NEAR(getter::norm(new_track.pos() - pilot_track.pos()), 0, tol);
+    EXPECT_NEAR(getter::norm(new_track.dir() - pilot_track.dir()), 0, tol);
 }
