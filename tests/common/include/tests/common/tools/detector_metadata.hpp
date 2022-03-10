@@ -167,7 +167,7 @@ struct telescope_metadata {
     using mask_definitions =
         mask_registry<mask_ids, rectangle, unbounded_plane>;
 
-    // Accelerator types
+    // Accelerator types (are not used)
     template <template <typename, std::size_t> class array_t = darray,
               template <typename...> class vector_t = dvector,
               template <typename...> class tuple_t = dtuple,

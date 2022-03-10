@@ -5,7 +5,6 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <iostream>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/detector.hpp"
@@ -56,10 +55,11 @@ inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
 
 /** Helper function that creates the telescope surfaces.
  *
+ * @param mask_id id of the plane surface shape, either unbounded or recangular
  * @param ctx geometric context
  * @param track pilot track along which the modules should be placed
  * @param b_field determines the trajectory
- * @param volume_id volume the portal should be added to
+ * @param volume volume the planes should be added to
  * @param surfaces container to add new surface to
  * @param masks container to add new cylinder mask to
  * @param transforms container to add new transform to
@@ -70,15 +70,14 @@ template <telescope_types::mask_ids mask_id, typename context_t,
           typename surface_container_t, typename mask_container_t,
           typename transform_container_t, typename config_t>
 inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
-                             volume_type &vol, surface_container_t &surfaces,
+                             volume_type &volume, surface_container_t &surfaces,
                              mask_container_t &masks,
                              transform_container_t &transforms, config_t cfg) {
     using surface_t = typename surface_container_t::value_type::value_type;
-    // using mask_defs = typename surface_t::mask_defs;
     using edge_t = typename surface_t::edge_type;
     using mask_link_t = typename mask_container_t::link_type;
 
-    auto volume_id = vol.index();
+    auto volume_id = volume.index();
     edge_t mask_edge{volume_id, dindex_invalid};
 
     // Create the module centers
@@ -112,11 +111,9 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
         // The local phi
         scalar m_phi = algebra::getter::phi(m_center);
         // Local z axis is the normal vector
-        vector3 m_local_z{std::cos(m_phi + cfg.m_tilt_phi),
-                          std::sin(m_phi + cfg.m_tilt_phi), 0.};
+        vector3 m_local_z{std::cos(m_phi), std::sin(m_phi), 0.};
         // Local x axis the normal to local y,z
-        vector3 m_local_x{-std::sin(m_phi + cfg.m_tilt_phi),
-                          std::cos(m_phi + cfg.m_tilt_phi), 0.};
+        vector3 m_local_x{-std::sin(m_phi), std::cos(m_phi), 0.};
 
         // Create the module transform
         transforms[mask_id].emplace_back(ctx, m_center, m_local_z, m_local_x);
@@ -132,6 +129,8 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
  *  positions of the plane surfaces, so that the stepping distance between
  *  them is evenly spaced along the length of the telescope.
  *
+ * @tparam unbounded_planes build the telescope with unbounded plane surfaces
+ *         (true) or rectangle surfaces (false)
  * @tparam track_t the type of the pilot track
  * @tparam stepper_t the stepper type that advances the track state
  *
@@ -142,7 +141,6 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
  * @param tel_length the total length of the steps by the stepper
  * @param half_x the x half length of the recangle mask
  * @param half_y the y half length of the recangle mask
- * @param tilt_phi an additional tilt of the plane surfaces in phi
  *
  * @returns a complete detector object
  */
@@ -155,8 +153,7 @@ auto create_telescope_detector(vecmem::memory_resource &resource, track_t track,
                                stepper_t &stepper, dindex n_surfaces = 10,
                                scalar tel_length = 500. * unit_constants::mm,
                                scalar half_x = 20. * unit_constants::mm,
-                               scalar half_y = 20. * unit_constants::mm,
-                               scalar tilt_phi = 0.0) {
+                               scalar half_y = 20. * unit_constants::mm) {
 
     // detector type
     using detector_t =
@@ -166,7 +163,6 @@ auto create_telescope_detector(vecmem::memory_resource &resource, track_t track,
     struct plane_config {
         scalar m_half_x;
         scalar m_half_y;
-        scalar m_tilt_phi;
         scalar tel_length;
         dindex n_surfaces;
     };
@@ -175,7 +171,7 @@ auto create_telescope_detector(vecmem::memory_resource &resource, track_t track,
     detector_t det(resource);
 
     typename detector_t::context ctx{};
-    plane_config pl_config{half_x, half_y, tilt_phi, tel_length, n_surfaces};
+    plane_config pl_config{half_x, half_y, tel_length, n_surfaces};
 
     // volume boundaries are not needed. Same goes for portals
     det.new_volume(

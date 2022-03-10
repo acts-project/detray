@@ -7,7 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/definitions/qualifiers.hpp"
@@ -17,7 +16,6 @@
 #include "detray/tools/navigator.hpp"
 #include "detray/tools/rk_stepper.hpp"
 #include "detray/tools/track.hpp"
-#include "detray/tools/volume_graph.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -178,22 +176,17 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
 
     // Create telescope detector of either unbounded planes or rectangles
     constexpr bool unbounded = true;
-    constexpr bool rectangles = false;
-    // Number of plane surfaces
+    // constexpr bool rectangles = false;
+    //  Number of plane surfaces
     dindex n_surfaces = 10;
-    // Total distance between the all surfaces, as seen by the stepper
+    // Total distance between all of the surfaces, as seen by the stepper
     scalar tel_length = 500. * unit_constants::mm;
     // Build telescope detector with unbounded planes
     const auto telescope_det = create_telescope_detector<unbounded>(
         host_mr, pilot_track, stepper, n_surfaces, tel_length);
+    // Build telescope detector with rectangular planes
     // const auto telescope_det = create_telescope_detector<rectangles>(
     //     host_mr, pilot_track, stepper, n_surfaces, tel_length);
-
-    // Building the telescope geometry should not change the track state
-    ASSERT_TRUE(pilot_track.pos() == pos);
-    // Build the graph
-    volume_graph graph(telescope_det);
-    std::cout << graph.to_string() << std::endl;
 
     using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
 
@@ -241,12 +234,12 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     scalar step_size = tel_length / n_surfaces;
     heartbeat = true;
     for (size_t i = 0; i < n_surfaces - 1; ++i) {
-        // Take the step
+        // Take a step
         heartbeat &= stepper.step(new_step_state, step_size);
     }
     EXPECT_TRUE(heartbeat);
     EXPECT_NEAR(step_state._path_accumulated, new_step_state._path_accumulated,
                 tol);
-    EXPECT_NEAR(getter::norm(new_track.pos() - pilot_track.pos()), 0, tol);
-    EXPECT_NEAR(getter::norm(new_track.dir() - pilot_track.dir()), 0, tol);
+    EXPECT_NEAR(getter::norm(new_track.pos() - pilot_track.pos()), 0., tol);
+    EXPECT_NEAR(getter::norm(new_track.dir() - pilot_track.dir()), 0., tol);
 }
