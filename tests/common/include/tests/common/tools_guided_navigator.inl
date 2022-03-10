@@ -199,8 +199,8 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     }
 
     auto &debug_printer =
-        nav_state.inspector().template get<print_inspector>();
-    ASSERT_TRUE(heartbeat) << debug_printer.to_string();*/
+        nav_state.inspector().template get<print_inspector>();*/
+    ASSERT_TRUE(heartbeat);  // << debug_printer.to_string();*/
 
     // sequence of surfaces we expect to see
     /*std::vector<dindex> sf_sequence = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
