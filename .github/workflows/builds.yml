@@ -102,7 +102,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Debug -DDETRAY_BENCHMARKS=Off
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Debug 
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -130,7 +130,6 @@ jobs:
         cmake -B build -S . \
           -DCMAKE_BUILD_TYPE=Debug \
           -DDETRAY_EIGEN_PLUGIN=On \
-          -DDETRAY_BENCHMARKS=Off \
           -DCMAKE_CUDA_COMPILER=$(which nvcc) \
           -DDETRAY_BUILD_CUDA=On
 
@@ -158,7 +157,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DDETRAY_BENCHMARKS=Off
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
