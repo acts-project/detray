@@ -397,18 +397,14 @@ class volume_graph {
         _adj_matrix.resize(dim * dim);
 
         for (const auto &n : _nodes) {
-            std::cout << "volume: " << n.index() << std::endl;
             // Only works for non batched geometries
             for (const auto &edg_link : n.half_edges()) {
                 // Build an edge
                 for (const auto edg : edge_iter(n.index(), edg_link, _edges)) {
-                    std::cout << "edge: " << edg.to() << std::endl;
                     const dindex elem = edg.to() < dindex_invalid
                                             ? dim * n.index() + edg.to()
                                             : dim * n.index() + dim - 1;
-                    std::cout << elem << std::endl;
                     _adj_matrix[elem]++;
-                    std::cout << _adj_matrix[elem] << std::endl;
                 }
             }
         }
