@@ -420,6 +420,11 @@ class detector {
     }
 
     DETRAY_HOST_DEVICE
+    inline surfaces_finder_type &get_surfaces_finder() {
+        return _surfaces_finder;
+    }
+
+    DETRAY_HOST_DEVICE
     inline const surfaces_finder_type &sf_finders_store() const {
         return _surfaces_finder;
     }
