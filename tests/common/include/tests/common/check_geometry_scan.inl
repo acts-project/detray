@@ -18,7 +18,8 @@
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
-constexpr std::size_t root_hash = 687;// TODO: Find hash function wihtout coll.!
+constexpr std::size_t root_hash =
+    687;  // TODO: Find hash function wihtout coll.!
 
 /** Print and adjacency list */
 void print_adj(const dvector<dindex> &adjacency_matrix) {
@@ -33,14 +34,15 @@ void print_adj(const dvector<dindex> &adjacency_matrix) {
             if (degr == 0) {
                 continue;
             }
-            std::string n_occur = degr > 1 ? "\t\t\t\t(" + std::to_string(degr) + "x)" : "";
+            std::string n_occur =
+                degr > 1 ? "\t\t\t\t(" + std::to_string(degr) + "x)" : "";
 
             // Edge that leads out of the detector world
             if (j == dim - 1 and degr != 0) {
                 std::cout << "    -> leaving world " + n_occur << std::endl;
-            }
-            else {
-                std::cout << "    -> " << std::to_string(j) + "\t" + n_occur << std::endl;
+            } else {
+                std::cout << "    -> " << std::to_string(j) + "\t" + n_occur
+                          << std::endl;
             }
         }
     }
@@ -102,7 +104,7 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
 
     print_adj(adj_scan);
 
-    //ASSERT_EQ(adj_linking, adj_scan);
+    // ASSERT_EQ(adj_linking, adj_scan);
     auto geo_checker = hash_tree(adj_scan);
     ASSERT_EQ(geo_checker.root(), root_hash);
 }

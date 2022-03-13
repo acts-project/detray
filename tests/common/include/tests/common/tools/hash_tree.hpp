@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,49 +17,44 @@
 
 namespace detray {
 
-/** Default hash function makes use of default node in the hash tree.*/
+/// Default hash function makes use of default node in the hash tree.
 template <typename value_t>
 struct default_hash {
     using hash_type = std::size_t;
     using data_hasher = std::hash<value_t>;
     using node_hasher = std::hash<hash_type>;
 
-    decltype(auto) operator()(const value_t &v) {
-        return data_hasher{}(v);
-    }
+    auto operator()(const value_t &v) { return data_hasher{}(v); }
 
-    decltype(auto) operator()(const hash_type &left, const hash_type &right) {
+    auto operator()(const hash_type &left, const hash_type &right) {
         return node_hasher{}(left) + node_hasher{}(right);
     }
 };
 
-/**
- * @brief Builds a hash tree from the data of an input collection.
- *
- * This class provides a graph algorithm that walk along the volumes of a given
- * geomtery and uses the portals to check reachability between the volumes.
- *
- * @tparam hash_function the type hashing that can be called on the collection
- *                       data.
- * @tparam input collection the type of data collection to be hased
- * @tparam node_type how carries the hashes and links
- */
-template <typename input_collection_t,
-          typename data_t = typename input_collection_t::value_type,
-          typename hash_function_t = default_hash<data_t>,
-          std::enable_if_t<std::is_invocable_v<hash_function_t, data_t>,
-          bool> = true,
-          typename hash_t = decltype(std::declval<hash_function_t>()(data_t{0})),
-          std::enable_if_t<std::is_invocable_v<hash_function_t, hash_t>,
-          bool> = true,
-          template <typename> class vector_t = dvector>
+/// @brief Builds a hash tree from the data of an input collection.
+///
+/// This class provides a graph algorithm that walk along the volumes of a given
+/// geomtery and uses the portals to check reachability between the volumes.
+///
+/// @tparam hash_function the type hashing that can be called on the collection
+///                       data.
+/// @tparam input collection the type of data collection to be hased
+/// @tparam node_type how carries the hashes and links
+template <
+    typename input_collection_t,
+    typename data_t = typename input_collection_t::value_type,
+    typename hash_function_t = default_hash<data_t>,
+    std::enable_if_t<std::is_invocable_v<hash_function_t, data_t>, bool> = true,
+    typename hash_t = decltype(std::declval<hash_function_t>()(data_t{0})),
+    std::enable_if_t<std::is_invocable_v<hash_function_t, hash_t>, bool> = true,
+    template <typename> class vector_t = dvector>
 class hash_tree {
 
     public:
     using hash_function = hash_function_t;
     using hash_type = hash_t;
 
-    /** Default node in the hash tree.*/
+    /// Default node in the hash tree.
     struct hashed_node {
 
         hashed_node(hash_t hash)
@@ -78,29 +73,28 @@ class hash_tree {
         }
     };
 
-    /** No empty tree */
+    /// No empty tree
     hash_tree() = delete;
 
-    /** Build from existing nodes and edges, which are provide by the geometry.
-     *
-     * @param volumes geometry volumes that become the graph nodes
-     * @param portals geometry portals link volumes and become edges
-     */
-    hash_tree(const input_collection_t &data, const hash_function_t & /*hf*/ = {}) : _hash(hash_function_t{}) {
+    /// Build from existing nodes and edges, which are provide by the geometry.
+    ///
+    /// @param volumes geometry volumes that become the graph nodes
+    /// @param portals geometry portals link volumes and become edges
+    hash_tree(const input_collection_t &data,
+              const hash_function_t & /*hf*/ = {})
+        : _hash(hash_function_t{}) {
         build(data);
     }
 
-    /** Default destructor */
+    /// Default destructor
     ~hash_tree() = default;
 
-    /** @return the root hash of the tree, which is always the last node in the
-     *         node storage by way of construction. It is the fingeprint of the
-     *         input data.
-     */
+    /// @return the root hash of the tree, which is always the last node in the
+    ///         node storage by way of construction. It is the fingeprint of the
+    ///         input data.
     auto root() { return _tree.back().key(); }
 
-
-    /** @returns the hash tree as a string */
+    /// @returns the hash tree as a string
     inline const std::string to_string() const {
         std::stringstream ss;
         for (const auto &n : _tree) {
@@ -110,8 +104,7 @@ class hash_tree {
     };
 
     private:
-    /** Go through the the input data and recursively build the tree.
-     */
+    /// Go through the the input data and recursively build the tree.
     void build(const input_collection_t &input_data) noexcept(false) {
         // Build leaves from input data type
         for (const auto &data : input_data) {
@@ -121,7 +114,7 @@ class hash_tree {
         if (input_data.size() % 2 != 0) {
             _tree.emplace_back(_hash(0));
         }
-        // Size of the tree is already known (all iterators stay valid in 
+        // Size of the tree is already known (all iterators stay valid in
         // recursion)
         // we might need to add one dummy node per level
         auto n_levels = static_cast<std::size_t>(std::log(input_data.size()));
@@ -130,18 +123,19 @@ class hash_tree {
         build(_tree.begin(), _tree.size());
     }
 
-    /** Build the hash tree recursively.
-     *
-     * @param first_child the beginning of the nodes for which to construct
-     *                    the parents in this iteration.
-     */
+    /// Build the hash tree recursively.
+    ///
+    /// @param first_child the beginning of the nodes for which to construct
+    ///                    the parents in this iteration.
     template <typename iterator_t>
     void build(iterator_t &&first_child, std::size_t n_prev_level) {
-        auto last_child = first_child + n_prev_level;
         // base case
         if (n_prev_level <= 1) {
             return;
         }
+
+        auto last_child = first_child + n_prev_level;
+
         // Run over previous tree level to build the next level
         for (auto current_child = first_child; current_child != last_child;
              current_child += 2) {
@@ -154,24 +148,23 @@ class hash_tree {
             (current_child + 1)->set_parent(_tree.size() - 1);
 
             // Set the indices as distances in the contiguous container
-            dindex left_child_idx =
-                std::distance(current_child, _tree.begin());
+            dindex left_child_idx = std::distance(current_child, _tree.begin());
             parent.set_children(left_child_idx, left_child_idx + 1);
         }
         auto n_level = static_cast<std::size_t>(0.5 * n_prev_level);
-        //  Need dummy leaf node?
+        // Need dummy leaf node for next level?
         if (n_level % 2 != 0 and n_level > 1) {
             _tree.emplace_back(0);
-           n_level++;
+            n_level++;
         }
         // begin next time where we ended this time
         build(last_child, n_level);
     }
 
-    /** How to encode tha node data */
+    /// How to encode tha node data
     hash_function_t _hash;
 
-    /** Tree nodes */
+    /// Tree nodes
     vector_t<hashed_node> _tree = {};
 };
 

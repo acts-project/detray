@@ -370,11 +370,10 @@ template <
     std::enable_if_t<
         std::is_same_v<typename surface_trace_type::value_type, entry_type>,
         bool> = true>
-inline auto build_adjacency(
-    const portal_trace_type &portal_trace,
-    const surface_trace_type &surface_trace,
-    dvector<dindex> &adj_matrix,
-    std::unordered_set<dindex> &obj_hashes) {
+inline auto build_adjacency(const portal_trace_type &portal_trace,
+                            const surface_trace_type &surface_trace,
+                            dvector<dindex> &adj_matrix,
+                            std::unordered_set<dindex> &obj_hashes) {
 
     const dindex dim = static_cast<dindex>(std::sqrt(adj_matrix.size()));
 
@@ -398,7 +397,8 @@ inline auto build_adjacency(
 
         if (obj_hashes.find(pt_index_1) == obj_hashes.end()) {
             dindex mat_elem_vol1;
-            // Assume the return link for now (filtering out portals that leave world)
+            // Assume the return link for now (filtering out portals that leave
+            // world)
             if (vol_index_2 != dindex_invalid) {
                 mat_elem_vol1 = dim * vol_index_1 + vol_index_2;
 
@@ -406,8 +406,7 @@ inline auto build_adjacency(
                     adj_matrix[dim * vol_index_2 + vol_index_1]++;
                     obj_hashes.insert(pt_index_2);
                 }
-            }
-            else {
+            } else {
                 mat_elem_vol1 = dim * vol_index_1 + dim - 1;
             }
             adj_matrix[mat_elem_vol1]++;

@@ -56,7 +56,7 @@ class volume_graph {
     using surface_container_t = vector_t<typename detector_t::surface_type>;
     using mask_container_t = typename detector_t::mask_container;
 
-    /// @brief Builds a graph node from the detector collections on the fly. 
+    /// @brief Builds a graph node from the detector collections on the fly.
     ///
     /// The node collection builds a graph node from a volume and the mask
     /// links in its surfaces, which are half edges of the graph. Every node
@@ -64,7 +64,7 @@ class volume_graph {
     /// edges.
     struct node_collection {
 
-        /// A node in the graph has an index (volume index) and a collction of 
+        /// A node in the graph has an index (volume index) and a collction of
         /// edge that belong to it (mask link of every surface in the volume).
         /// One mask link is a half edge in the graph.
         struct node {
@@ -152,10 +152,10 @@ class volume_graph {
         const surface_container_t &_surfaces;
     };
 
-    /// @brief Builds graph edges from the detector mask collection on the fly. /// 
-    /// Iterates through the detectors mask store given a volume id (graph node)
-    /// The graph edges are constructed for the node on the fly from the half
-    /// edges in the @c _edges collection (detector masks).
+    /// @brief Builds graph edges from the detector mask collection on the fly.
+    /// /// Iterates through the detectors mask store given a volume id (graph
+    /// node) The graph edges are constructed for the node on the fly from the
+    /// half edges in the @c _edges collection (detector masks).
     struct edge_collection {
         /// The link to the next volume
         using mask_edge_t = typename detector_t::surface_type::edge_type;
@@ -174,11 +174,16 @@ class volume_graph {
             dindex _from, _to;
         };
 
+        /// @brief Iterator that constructs graph edges from mask links on the
+        /// fly
         struct iterator {
+            // Iterator type defs
             using value_type = edge;
             using edge_iter =
                 decltype(std::begin(std::declval<vector_t<edge>>()));
 
+            /// Constructor from a volume id and the masks of one of its
+            /// surfaces
             iterator(const dindex volume_id, const mask_link_t &mask_link,
                      const edge_collection &edges) {
                 build_edges_vector(volume_id, mask_link, edges.get_container());
@@ -217,7 +222,7 @@ class volume_graph {
             }
 
             /// @brief BUilds the collection of graph edges for a given node.
-            /// 
+            ///
             /// From the volume index, a mask link owned by one of the volumes
             /// surfaces and the detector mask container, a vector of graph
             /// edges is built. The mask container needs to be unrolled to find
@@ -286,14 +291,16 @@ class volume_graph {
     /// surfaces which are needed to index the correct masks and the
     /// masks that link to volumes and become graph edges.
     volume_graph(const detector_t &det)
-        : _nodes(det.volumes(), det.surfaces()), _edges(det.mask_store()) {
+        : _nodes(det.volumes(), det.surfaces()),
+          _edges(det.mask_store()),
+          _adj_matrix{0} {
         build();
     }
 
     /// Default destructor: we don't own anything.
     ~volume_graph() = default;
 
-    /// @return number of nodes 
+    /// @return number of nodes
     size_t n_nodes() const { return _nodes.size(); }
 
     /// @return node collection - const access. */
@@ -353,89 +360,57 @@ class volume_graph {
         }
     }*/
 
-
     /// @returns the linking description as a string.
     inline const std::string to_string() const {
-        std::stringstream ss;
+        std::stringstream stream;
         std::size_t dim = n_nodes() + 1;
         for (const auto &n : _nodes) {
-            ss << "[>>] Node with index " << n.index() << std::endl;
-            ss << " -> edges: " << std::endl;
+            stream << "[>>] Node with index " << n.index() << std::endl;
+            stream << " -> edges: " << std::endl;
             for (std::size_t i = 0; i < dim; ++i) {
                 const auto degr = _adj_matrix[dim * n.index() + i];
                 if (degr == 0) {
                     continue;
                 }
-                std::string n_occur = degr > 1 ? "\t\t\t\t(" + std::to_string(degr) + "x)" : "";
+                std::string n_occur =
+                    degr > 1 ? "\t\t\t\t(" + std::to_string(degr) + "x)" : "";
 
                 // Edge that leads out of the detector world
                 if (i == dim - 1 and degr != 0) {
-                    ss << "    -> leaving world " + n_occur << std::endl;
-                }
-                else {
-                    ss << "    -> " << std::to_string(i) + "\t" + n_occur << std::endl;
+                    stream << "    -> leaving world " + n_occur << std::endl;
+                } else {
+                    stream << "    -> " << std::to_string(i) + "\t" + n_occur
+                           << std::endl;
                 }
             }
         }
-        return ss.str();
+        return stream.str();
     }
 
-    /** @returns the linking description as a string */
-    /*inline const std::string to_string() const {
-        std::stringstream ss;
-        const auto print_neighbor =
-            [&](const std::pair<const dindex, const dindex> &n) -> std::string {
-            // Print the number of edges, if it is greater than one
-            std::string n_occur =
-                n.second > 1 ? "\t\t(" + std::to_string(n.second) + "x)" : "";
-
-            // Edge that leads out of the detector world
-            if (n.first == dindex_invalid) {
-                return "leaving world" + n_occur;
-            }
-
-            return std::to_string(n.first) + "\t\t\t" + n_occur;
-        };
-        for (const auto &n : _nodes) {
-            ss << "[>>] Node with index " << n.index() << std::endl;
-            ss << " -> neighbors: " << std::endl;
-            const auto &neighbors = adj_list.at(n.index());
-            for (const auto &nbr : neighbors) {
-                ss << "    -> " << print_neighbor(nbr) << std::endl;
-            }
-        }
-        return ss.str();
-    };*/
-
     private:
-
-    /// @brief Go through the nodes and fill adjacency matrix. 
+    /// @brief Go through the nodes and fill adjacency matrix.
     ///
-    /// Root node is always at zero. 
+    /// Root node is always at zero.
     void build() {
         // Leave space for the world volume (links to dindex_invalid)
         const std::size_t dim = n_nodes() + 1;
-        _adj_matrix.reserve(dim * dim);
+        _adj_matrix.resize(dim * dim);
 
         for (const auto &n : _nodes) {
+            std::cout << "volume: " << n.index() << std::endl;
             // Only works for non batched geometries
             for (const auto &edg_link : n.half_edges()) {
                 // Build an edge
                 for (const auto edg : edge_iter(n.index(), edg_link, _edges)) {
-                    const dindex elem = edg.to() < dindex_invalid ? dim * n.index() + edg.to() : dim * n.index() + dim - 1;
+                    std::cout << "edge: " << edg.to() << std::endl;
+                    const dindex elem = edg.to() < dindex_invalid
+                                            ? dim * n.index() + edg.to()
+                                            : dim * n.index() + dim - 1;
+                    std::cout << elem << std::endl;
                     _adj_matrix[elem]++;
+                    std::cout << _adj_matrix[elem] << std::endl;
                 }
             }
-
-            // Count the number of edges for a particluar neighbor
-            /*std::map<dindex, dindex> neighbors = {};
-
-            for (const auto &edg_link : n.edges()) {
-                for (const auto edg : edge_iter(n.index(), edg_link, _edges)) {
-                    neighbors[edg.to()]++;
-                }
-            }
-            adj_list[n.index()] = neighbors;*/
         }
     }
 
@@ -446,7 +421,7 @@ class volume_graph {
     edge_collection _edges;
 
     /// Adjacency matrix
-    vector_t<dindex> _adj_matrix;
+    vector_t<dindex> _adj_matrix = {};
 };
 
 }  // namespace detray
