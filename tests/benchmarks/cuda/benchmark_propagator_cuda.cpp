@@ -87,7 +87,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
         for (auto &track : tracks) {
 
-            void_propagator_inspector vi;
+            propagation::void_inspector vi;
 
             // Create the propagator state
             propagator_host_type::state p_state(track);

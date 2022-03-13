@@ -38,7 +38,7 @@ __global__ void propagator_benchmark_kernel(
     // Create propagator
     propagator_device_type p(std::move(s), std::move(n));
 
-    void_propagator_inspector vi;
+    propagation::void_inspector vi;
 
     // Create the propagator state
     propagator_device_type::state p_state(tracks.at(gid), candidates.at(gid));

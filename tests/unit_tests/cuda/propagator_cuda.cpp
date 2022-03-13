@@ -13,7 +13,10 @@
 #include "propagator_cuda_kernel.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
-TEST(propagator_cuda, propagator) {
+class CudaPropagatorWithRkStepper
+    : public ::testing::TestWithParam<__plugin::vector3<scalar>> {};
+
+TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;
@@ -64,7 +67,7 @@ TEST(propagator_cuda, propagator) {
      */
 
     // Set the magnetic field
-    const vector3 B{0, 0, 2 * unit_constants::T};
+    vector3 B = GetParam();
     field_type B_field(B);
 
     // Create RK stepper
@@ -91,9 +94,6 @@ TEST(propagator_cuda, propagator) {
 
         // push back the intersection record
         host_intersection_records.push_back(ti._intersections);
-
-        // Ensure that the tracks reach the end of the world
-        EXPECT_EQ(state._navigation.volume(), dindex_invalid);
     }
 
     /**
@@ -147,3 +147,23 @@ TEST(propagator_cuda, propagator) {
         }
     }
 }
+
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation1, CudaPropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             0. * unit_constants::T, 0. * unit_constants::T,
+                             2. * unit_constants::T}));
+
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation2, CudaPropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             0. * unit_constants::T, 1. * unit_constants::T,
+                             1. * unit_constants::T}));
+
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation3, CudaPropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             1. * unit_constants::T, 0. * unit_constants::T,
+                             1. * unit_constants::T}));
+
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation4, CudaPropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             1. * unit_constants::T, 1. * unit_constants::T,
+                             1. * unit_constants::T}));
