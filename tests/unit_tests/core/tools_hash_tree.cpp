@@ -7,37 +7,66 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <iostream>
 
 // detray test
-#include "tests/common/test_defs.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 
-/// @note __plugin has to be defined with a preprocessor command
+namespace {
+template <typename hasher_t, typename digest_collection_t>
+void test_hash(std::size_t first_child, std::size_t n_prev_level,
+               digest_collection_t &digests) {
+    // base case
+    if (n_prev_level <= 1) {
+        return;
+    }
+
+    auto last_child = first_child + n_prev_level;
+
+    // Run over previous tree level to build the next level
+    for (std::size_t i = first_child; i < last_child; i += 2) {
+        auto digest = hasher_t{}(digests[i], digests[i + 1]);
+        digests.push_back(digest);
+    }
+    std::size_t n_level = static_cast<std::size_t>(0.5 * n_prev_level);
+    // Need dummy leaf node for next level?
+    if (n_level % 2 != 0 and n_level > 1) {
+        digests.push_back(0);
+        n_level++;
+    }
+    // begin next time where we ended this time
+    test_hash<hasher_t>(last_child, n_level, digests);
+}
+
+}  // namespace
 
 // This tests the correctness of the hash tree tool
 TEST(ALGEBRA_PLUGIN, hash_tree) {
     using namespace detray;
 
-    dvector<dindex> test_matrix_1 = {1, 1, 1, 1, 1, 1};
+    dvector<dindex> test_matrix = {1, 1, 1, 1, 1, 1};
 
-    auto ht_1 = hash_tree(test_matrix_1);
-    decltype(ht_1)::hash_function hasher{};
-    using hash_type = decltype(ht_1)::hash_type;
+    auto ht = hash_tree(test_matrix);
+    using hash_tree_t = decltype(ht);
+    hash_tree_t::hash_function hasher{};
 
-    dvector<hash_type> digests{};
-    for (auto input : test_matrix_1) {
+    dvector<hash_tree_t::hash_type> digests{};
+    // Build up first level
+    for (auto input : test_matrix) {
         digests.push_back(hasher(input));
     }
-    digests.push_back(0);
-
-
-    std::cout << ht_1.to_string() << std::endl;
-    
-    dvector<dindex> adj_mat_truth = {2, 3, 0, 4, 2, 0, 0, 0, 0};
+    // Build the other levels
+    test_hash<hash_tree_t::hash_function>(0, digests.size(), digests);
 
     // Check this with graph
-    ASSERT_EQ(ht_1.root(), 6);
+    EXPECT_EQ(ht.root(), 6);
+
+    const auto tree_data = ht.tree();
+    EXPECT_EQ(digests.size(), tree_data.size());
+    for (std::size_t n_idx = 0; n_idx < tree_data.size(); ++n_idx) {
+        EXPECT_EQ(digests[n_idx], tree_data[n_idx].key());
+    }
 }
 
 int main(int argc, char **argv) {

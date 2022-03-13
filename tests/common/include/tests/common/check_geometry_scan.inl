@@ -63,7 +63,7 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
     // std::cout << graph.to_string() << std::endl;
 
     // Now get the adjaceny matrix from ray scan
-    dvector<dindex> adj_mat_scan(adj_linking.size(), 0);
+    dvector<dindex> adj_mat_scan(adj_mat.size(), 0);
     // Keep track of the objects that have already been seen per volume
     std::unordered_set<dindex> obj_hashes = {};
 

@@ -6,11 +6,10 @@
  */
 #pragma once
 
-#include <functional>
+#include <cmath>
 #include <iostream>
 #include <iterator>
 #include <type_traits>
-#include <utility>
 
 #include "detray/utils/enumerate.hpp"
 #include "detray/utils/indexing.hpp"
@@ -102,6 +101,9 @@ class hash_tree {
         }
         return ss.str();
     };
+
+    /// @returns the tree data structure
+    const vector_t<hashed_node> &tree() const { return _tree; }
 
     private:
     /// Go through the the input data and recursively build the tree.

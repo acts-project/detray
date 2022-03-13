@@ -21,7 +21,7 @@ using namespace detray;
 
 namespace __plugin {
 
-constexpr std::size_t root_hash = 687;
+constexpr std::size_t root_hash = 3244;
 
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
