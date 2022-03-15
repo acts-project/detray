@@ -17,144 +17,18 @@
 #include "detray/tools/rk_stepper.hpp"
 #include "detray/tools/track.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
+#include "tests/common/tools/inspectors.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 namespace detray {
 
 using vector3 = __plugin::vector3<detray::scalar>;
-
-/** A navigation inspector that relays information about the encountered
- *  objects the way we need them to compare with the ray
- */
-template <int navigation_status = 0,
-          template <typename...> class vector_t = dvector>
-struct object_tracer {
-
-    // record all object id the navigator encounters
-    vector_t<intersection> object_trace = {};
-
-    template <typename state_type>
-    auto operator()(state_type &state, const char * /*message*/) {
-        // Record the candidate of an encountered object
-        if (state.status() == navigation_status) {
-            object_trace.push_back(std::move(*(state.current())));
-        }
-    }
-
-    auto operator[](std::size_t i) { return object_trace[i]; }
-};
-
-/** A navigation inspector that prints information about the current navigation
- * state. Meant for debugging.
- */
-struct print_inspector {
-
-    // Debug output if an error in the trace is discovered
-    std::stringstream debug_stream;
-
-    template <typename state_type>
-    auto operator()(state_type &state, const char *message) {
-        std::string msg(message);
-
-        debug_stream << msg << std::endl;
-
-        debug_stream << "Volume\t\t\t\t\t\t" << state.volume() << std::endl;
-        debug_stream << "surface kernel size\t\t" << state.candidates().size()
-                     << std::endl;
-
-        debug_stream << "Surface candidates: " << std::endl;
-        for (const auto &sf_cand : state.candidates()) {
-            debug_stream << sf_cand.to_string();
-        }
-        if (not state.candidates().empty()) {
-            debug_stream << "=> next: ";
-            if (state.is_exhausted()) {
-                debug_stream << "exhausted" << std::endl;
-            } else {
-                debug_stream << " -> " << state.next()->index << std::endl;
-            }
-        }
-
-        switch (static_cast<int>(state.status())) {
-            case -3:
-                debug_stream << "status\t\t\t\t\ton_target" << std::endl;
-                break;
-            case -2:
-                debug_stream << "status\t\t\t\t\tabort" << std::endl;
-                break;
-            case -1:
-                debug_stream << "status\t\t\t\t\tunknowm" << std::endl;
-                break;
-            case 0:
-                debug_stream << "status\t\t\t\t\ttowards_surface" << std::endl;
-                break;
-            case 1:
-                debug_stream << "status\t\t\t\t\ton_surface" << std::endl;
-                break;
-            case 2:
-                debug_stream << "status\t\t\t\t\ttowards_portal" << std::endl;
-                break;
-            case 3:
-                debug_stream << "status\t\t\t\t\ton_portal" << std::endl;
-                break;
-        };
-        debug_stream << "current object\t\t" << state.on_object() << std::endl;
-        debug_stream << "distance to next\t";
-        if (std::abs(state()) < state.tolerance()) {
-            debug_stream << "on obj (within tol)" << std::endl;
-        } else {
-            debug_stream << state() << std::endl;
-        }
-        switch (state.trust_level()) {
-            case 0:
-                debug_stream << "trust\t\t\t\t\tno_trust" << std::endl;
-                break;
-            case 1:
-                debug_stream << "trust\t\t\t\t\tfair_trust" << std::endl;
-                break;
-            case 3:
-                debug_stream << "trust\t\t\t\t\thigh_trust" << std::endl;
-                break;
-            case 4:
-                debug_stream << "trust\t\t\t\t\tfull_trust" << std::endl;
-                break;
-        };
-        debug_stream << std::endl;
-    }
-
-    std::string to_string() { return debug_stream.str(); }
-};
-
-/** A navigation inspector that aggregates a number of different inspectors.*/
-template <typename... Inspectors>
-struct aggregate_inspector {
-
-    using inspector_tuple_t = std::tuple<Inspectors...>;
-    inspector_tuple_t _inspectors{};
-
-    template <unsigned int current_id = 0, typename state_type>
-    auto operator()(state_type &state, const char *message) {
-        // Call inspector
-        std::get<current_id>(_inspectors)(state, message);
-
-        // Next mask type
-        if constexpr (current_id <
-                      std::tuple_size<inspector_tuple_t>::value - 1) {
-            return operator()<current_id + 1>(state, message);
-        }
-    }
-
-    template <typename inspector_t>
-    decltype(auto) get() {
-        return std::get<inspector_t>(_inspectors);
-    }
-};
-
-}  // namespace detray
+}
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
+    using namespace detray::navigation;
 
     using inspector_t = aggregate_inspector<object_tracer<1>, print_inspector>;
     using b_field_t = constant_magnetic_field<>;
@@ -167,6 +41,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     point3 pos{0., 0., 0.};
     vector3 mom{1., 0., 0.};
     free_track_parameters pilot_track(pos, 0, mom, -1);
+    pilot_track.set_overstep_tolerance(-10 * unit_constants::um);
 
     vector3 B{0, 0, 2 * unit_constants::T};
     b_field_t b_field(B);
@@ -192,34 +67,30 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
 
     guided_navigator nav(telescope_det);
     guided_navigator::state nav_state;
-    // Set initial volume (no grid yet)
-    nav_state.set_volume(0u);
 
     //
     // Use navigator to step through telescope
     //
-    bool heartbeat = true;
+    bool heartbeat = nav.init(nav_state, step_state);
+
     while (heartbeat) {
-        // (Re-)target
-        heartbeat &= nav.target(nav_state, step_state);
         // Take the step
-        heartbeat &= stepper.step(step_state, nav_state());
+        heartbeat &= stepper.step(step_state, nav_state);
         // Enforce evaluation of only the next surface in the telescope
-        nav_state.set_trust_level(
-            guided_navigator::navigation_trust_level::e_high_trust);
+        nav_state.set_trust_level(e_high_trust);
         // And check the status
-        heartbeat &= nav.status(nav_state, step_state);
+        heartbeat &= nav.update(nav_state, step_state);
     }
 
     // Check that navigator exited
     auto &debug_printer = nav_state.inspector().template get<print_inspector>();
-    ASSERT_TRUE(nav_state.status() == -3) << debug_printer.to_string();
+    ASSERT_TRUE(nav_state.is_complete()) << debug_printer.to_string();
 
     // sequence of surfaces we expect to see
     std::vector<dindex> sf_sequence = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     auto &obj_tracer = nav_state.inspector().template get<object_tracer<1>>();
     // Check the surfaces that have been visited by the navigation
-    ASSERT_TRUE(obj_tracer.object_trace.size() == sf_sequence.size());
+    EXPECT_TRUE(obj_tracer.object_trace.size() == sf_sequence.size());
     for (size_t i = 0; i < n_surfaces; ++i) {
         const auto &candidate = obj_tracer.object_trace[i];
         EXPECT_TRUE(candidate.index == sf_sequence[i]);
@@ -228,18 +99,30 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     //
     // Step through detector directly
     //
+    // dummy navigation struct
+    struct navigation_state {
+        scalar operator()() const { return _step_size; }
+        inline void set_full_trust() {}
+        inline void set_high_trust() {}
+        inline void set_fair_trust() {}
+        inline void set_no_trust() {}
+        inline bool abort() { return false; }
+
+        scalar _step_size;
+    };
+    navigation_state new_nav_state{tel_length / (n_surfaces - 1)};
+
     // Reset track
     free_track_parameters new_track(pos, 0, mom, -1);
     stepper_t::state new_step_state(new_track);
-    scalar step_size = tel_length / n_surfaces;
+
     heartbeat = true;
     for (size_t i = 0; i < n_surfaces - 1; ++i) {
         // Take a step
-        heartbeat &= stepper.step(new_step_state, step_size);
+        heartbeat &= stepper.step(new_step_state, new_nav_state);
     }
     EXPECT_TRUE(heartbeat);
-    EXPECT_NEAR(step_state._path_accumulated, new_step_state._path_accumulated,
-                tol);
+    EXPECT_NEAR(step_state._path_length, new_step_state._path_length, tol);
     EXPECT_NEAR(getter::norm(new_track.pos() - pilot_track.pos()), 0., tol);
     EXPECT_NEAR(getter::norm(new_track.dir() - pilot_track.dir()), 0., tol);
 }

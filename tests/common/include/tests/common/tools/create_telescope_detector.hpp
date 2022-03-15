@@ -33,12 +33,24 @@ template <typename track_t, typename stepper_t>
 inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
                                             scalar tel_length,
                                             dindex n_surfaces) {
+    // dummy navigation struct
+    struct navigation_state {
+        scalar operator()() const { return _step_size; }
+        inline void set_full_trust() {}
+        inline void set_high_trust() {}
+        inline void set_fair_trust() {}
+        inline void set_no_trust() {}
+        inline bool abort() { return false; }
+
+        scalar _step_size;
+    };
+
     // create and fill the positions
     std::vector<point3> m_positions;
     m_positions.reserve(n_surfaces);
 
     // space between surfaces
-    scalar plane_dist = tel_length / (n_surfaces - 1);
+    navigation_state n_state{tel_length / (n_surfaces - 1)};
 
     // Find exact position by walking along track
     typename stepper_t::state step_state(track);
@@ -46,7 +58,7 @@ inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
     m_positions.push_back(track.pos());
     for (size_t i = 1; i < size_t{n_surfaces}; ++i) {
         // advance the track state to the next plane position
-        stepper.step(step_state, plane_dist);
+        stepper.step(step_state, n_state);
         m_positions.push_back(track.pos());
     }
 
