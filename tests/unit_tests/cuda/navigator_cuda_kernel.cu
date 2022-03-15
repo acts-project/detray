@@ -41,14 +41,12 @@ __global__ void navigator_test_kernel(
     state.set_volume(0u);
 
     // Start propagation and record volume IDs
-    bool heartbeat = true;
-
+    bool heartbeat = n.init(state, stepping);
     while (heartbeat) {
-        heartbeat = n.target(state, stepping);
 
         stepping().set_pos(stepping().pos() + state() * stepping().dir());
 
-        heartbeat = n.status(state, stepping);
+        heartbeat = n.update(state, stepping);
 
         // Record volume
         volume_records[gid].push_back(state.volume());

@@ -33,6 +33,7 @@ TEST(rk_stepper_cuda, rk_stepper) {
 
     // Define RK stepper
     rk_stepper_type rk(B);
+    nav_state n_state{};
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -62,20 +63,20 @@ TEST(rk_stepper_cuda, rk_stepper) {
 
         // Forward direction
         rk_stepper_type::state forward_state(traj);
-
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk.step(forward_state);
+            rk.step(forward_state, n_state);
         }
 
         // Backward direction
         traj.flip();
         rk_stepper_type::state backward_state(traj);
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk.step(backward_state);
+            rk.step(backward_state, n_state);
         }
 
-        path_lengths.push_back(forward_state._path_accumulated +
-                               backward_state._path_accumulated);
+        path_lengths.push_back(2 * path_limit -
+                               forward_state.dist_to_path_limit() -
+                               backward_state.dist_to_path_limit());
     }
 
     // Get tracks data

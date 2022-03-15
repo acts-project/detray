@@ -16,41 +16,64 @@
 namespace detray {
 
 /** Line stepper implementation */
-template <typename track_t, template <typename...> class tuple_t = dtuple>
-class line_stepper final : public base_stepper<track_t, tuple_t> {
+template <typename track_t>
+class line_stepper final : public base_stepper<track_t> {
 
     public:
-    using base_type = base_stepper<track_t, tuple_t>;
+    using base_type = base_stepper<track_t>;
 
     struct state : public base_type::state {
         state(track_t &t) : base_type::state(t) {}
 
-        // Remaining path limit
-        scalar _pl = std::numeric_limits<scalar>::max();
-
-        /** @return the step and heartbeat given a step length s */
-        tuple_t<scalar, bool> step(scalar s) {
-            _pl = (s > _pl) ? s - _pl : _pl - s;
-            const bool heartbeat = (_pl > 0.);
-            return std::tie(std::min(s, _pl), heartbeat);
+        /// Update the track state in a straight line.
+        DETRAY_HOST_DEVICE
+        inline void advance_track() {
+            auto &track = this->_track;
+            track.set_pos(track.pos() + track.dir() * this->_step_size);
         }
-
-        /** Set the path limit to a scalar @param l */
-        void set_limit(scalar pl) { _pl = pl; }
     };
 
     /** Take a step, regulared by a constrained step
      *
-     * @param s The state object that chaches
-     * @param es The external step, e.g. from navigation
+     * @param stepping The state object of a stepper
+     * @param navigation The state object of a navigator
+     * @param max_step_size Maximal distance for this step
      *
      * @return returning the heartbeat, indicating if the stepping is alive
      */
-    DETRAY_HOST_DEVICE
-    bool step(state &s, scalar es) {
-        const auto [sl, heartbeat] = s.step(es);
-        s._track.set_pos(s._track.pos() + s._track.dir() * sl);
-        return heartbeat;
+    template <typename navigation_state_t>
+    DETRAY_HOST_DEVICE bool step(
+        state &stepping, navigation_state_t &navigation,
+        scalar max_step_size = std::numeric_limits<scalar>::max()) {
+
+        // Distance to next surface as fixed step size
+        scalar step_size = navigation();
+
+        // Inform navigator
+        // Not a severe change to track state expected
+        if (step_size < max_step_size) {
+            stepping.set_step_size(step_size);
+            navigation.set_high_trust();
+        }
+        // Step size hit a constraint - the track state was probably changed a
+        // lot
+        else {
+            stepping.set_step_size(max_step_size);
+            // Re-evaluate all candidates
+            navigation.set_fair_trust();
+        }
+
+        // Update and check path limit
+        if (not stepping.check_path_limit()) {
+            printf("Stepper: Above maximal path length!\n");
+            // State is broken
+            return navigation.abort();
+        }
+
+        // Update track state
+        stepping.advance_track();
+
+        return true;
     }
 };
 

@@ -7,15 +7,10 @@
 
 #include <gtest/gtest.h>
 
-#include <iomanip>
-#include <iostream>
-#include <map>
-#include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/core/transform_store.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
-#include "detray/io/csv_io.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/navigator.hpp"
 #include "detray/tools/propagator.hpp"
@@ -23,9 +18,11 @@
 #include "detray/tools/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/helix_gun.hpp"
+#include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
-constexpr scalar epsilon = 1e-4;
+constexpr scalar epsilon = 5e-4;
+constexpr scalar path_limit = 2 * unit_constants::m;
 
 // This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
@@ -38,26 +35,28 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     auto d = create_toy_geometry(host_mr);
 
     // Create the navigator
-    using detray_navigator = navigator<decltype(d)>;
-    using detray_track = free_track_parameters;
+    using navigator_t = navigator<decltype(d), navigation::print_inspector>;
+    using track_t = free_track_parameters;
 
     __plugin::point3<scalar> pos{0., 0., 0.};
     __plugin::vector3<scalar> mom{1., 1., 0.};
-    detray_track traj(pos, 0, mom, -1);
+    track_t traj(pos, 0, mom, -1);
 
-    using detray_stepper = line_stepper<detray_track>;
+    using stepper_t = line_stepper<track_t>;
 
-    detray_stepper s;
-    detray_navigator n(std::move(d));
+    stepper_t s;
+    navigator_t n(d);
 
-    using detray_propagator = propagator<detray_stepper, detray_navigator>;
-    detray_propagator p(std::move(s), std::move(n));
+    using propagator_t = propagator<stepper_t, navigator_t>;
+    propagator_t p(std::move(s), std::move(n));
 
-    void_propagator_inspector vi;
+    propagation::void_inspector vi;
 
-    detray_propagator::state state(traj);
+    propagator_t::state state(traj);
+    state._stepping.set_path_limit(path_limit);
 
-    /*auto end = */ p.propagate(state, vi);
+    EXPECT_TRUE(p.propagate(state, vi))
+        << state._navigation.inspector().to_string() << std::endl;
 }
 
 struct helix_inspector {
@@ -68,66 +67,24 @@ struct helix_inspector {
     DETRAY_HOST_DEVICE void operator()(const navigator_state_t& /*navigation*/,
                                        const stepper_state_t& stepping) {
         auto pos = stepping().pos();
-        auto true_pos = _helix(stepping._path_accumulated);
+        const scalar path_accumulated =
+            path_limit - stepping.dist_to_path_limit();
+        auto true_pos = _helix(path_accumulated);
 
-        auto relative_error = 1 / stepping._path_accumulated * (pos - true_pos);
+        auto relative_error = 1 / path_accumulated * (pos - true_pos);
 
-        EXPECT_NEAR(getter::norm(relative_error), 0, epsilon);
+        ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
     }
 
     helix_gun _helix;
 };
 
-struct print_inspector {
-
-    template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(const navigator_state_t& navigation,
-                                       const stepper_state_t& stepping) {
-        std::stringstream stream;
-
-        stream << std::left << std::setw(30);
-        switch (static_cast<int>(navigation.status())) {
-            case -3:
-                stream << "status: on_target";
-                break;
-            case -2:
-                stream << "status: abort";
-                break;
-            case -1:
-                stream << "status: unknowm";
-                break;
-            case 0:
-                stream << "status: towards_surface";
-                break;
-            case 1:
-                stream << "status: on_surface";
-                break;
-        };
-
-        if (navigation.volume() == dindex_invalid) {
-            stream << "volume: " << std::setw(10) << "invalid";
-        } else {
-            stream << "volume: " << std::setw(10) << navigation.volume();
-        }
-
-        if (navigation.on_object() == dindex_invalid) {
-            stream << "surface: " << std::setw(14) << "invalid";
-        } else {
-            stream << "surface: " << std::setw(14) << navigation.on_object();
-        }
-
-        stream << "step_size: " << std::setw(10) << stepping._step_size;
-
-        // std::cout << stream.str() << std::endl;
-    }
-};
-
 struct combined_inspector {
     helix_inspector _hi;
-    print_inspector _pi;
+    propagation::print_inspector _pi;
 
     template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(const navigator_state_t& navigation,
+    DETRAY_HOST_DEVICE void operator()(navigator_state_t& navigation,
                                        const stepper_state_t& stepping) {
         _hi(navigation, stepping);
         _pi(navigation, stepping);
@@ -156,61 +113,71 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Create the navigator
-    using detray_navigator = navigator<decltype(d)>;
-    using detray_b_field = constant_magnetic_field<>;
-    using detray_stepper = rk_stepper<detray_b_field, free_track_parameters>;
-    using detray_propagator = propagator<detray_stepper, detray_navigator>;
+    using navigator_t = navigator<decltype(d), navigation::print_inspector>;
+    using b_field_t = constant_magnetic_field<>;
+    using stepper_t = rk_stepper<b_field_t, free_track_parameters>;
+    using propagator_t = propagator<stepper_t, navigator_t>;
 
     // Constant magnetic field
-    // vector3 B{0, 0, 2 * unit_constants::T};
     vector3 B = GetParam();
-    detray_b_field b_field(B);
+    b_field_t b_field(B);
 
-    // Set initial position and momentum of tracks
+    stepper_t s(b_field);
+    navigator_t n(d);
+    propagator_t p(std::move(s), std::move(n));
+
+    // Set origin position of tracks
     const point3 ori{0., 0., 0.};
-
-    detray_stepper s(b_field);
-    detray_navigator n(std::move(d));
-    detray_propagator p(std::move(s), std::move(n));
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
         scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
         scalar sin_theta = std::sin(theta);
         scalar cos_theta = std::cos(theta);
-
         // Loops of phi values [-pi, pi]
         for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
             // The direction
             scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
             scalar sin_phi = std::sin(phi);
             scalar cos_phi = std::cos(phi);
-            vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
-            mom = 10. * mom;
 
             // intialize a track
+            vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
+            vector::normalize(mom);
+            mom = 10. * unit_constants::GeV * mom;
             free_track_parameters traj(ori, 0, mom, -1);
+            traj.set_overstep_tolerance(-10 * unit_constants::um);
+
             helix_gun helix(traj, B);
-            combined_inspector ci{helix_inspector(helix), print_inspector{}};
+            combined_inspector ci{helix_inspector(helix),
+                                  propagation::print_inspector{}};
 
-            detray_propagator::state state(traj);
+            propagator_t::state state(traj);
+            state._stepping.set_path_limit(path_limit);
 
-            p.propagate(state, ci);
-
-            // Ensure that the tracks reach the end of the world
-            EXPECT_EQ(state._navigation.volume(), dindex_invalid);
+            ASSERT_TRUE(p.propagate(state, ci, 5. * unit_constants::mm))
+                << ci._pi.to_string() << std::endl
+                << state._navigation.inspector().to_string() << std::endl;
         }
     }
 }
 
-INSTANTIATE_TEST_SUITE_P(PropagatorValidation, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation1, PropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             0, 0, 2 * unit_constants::T}));
+                             0. * unit_constants::T, 0. * unit_constants::T,
+                             2. * unit_constants::T}));
 
-/*
-INSTANTIATE_TEST_SUITE_P(
-    PropagatorValidation, PropagatorWithRkStepper,
-    ::testing::Values(__plugin::vector3<scalar>{0, 0, 2 * unit_constants::T},
-__plugin::vector3<scalar>{1 * unit_constants::T, 1 * unit_constants::T, 1 *
-unit_constants::T}));
-*/
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             0. * unit_constants::T, 1. * unit_constants::T,
+                             1. * unit_constants::T}));
+
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation3, PropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             1. * unit_constants::T, 0. * unit_constants::T,
+                             1. * unit_constants::T}));
+
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
+                         ::testing::Values(__plugin::vector3<scalar>{
+                             1. * unit_constants::T, 1. * unit_constants::T,
+                             1. * unit_constants::T}));

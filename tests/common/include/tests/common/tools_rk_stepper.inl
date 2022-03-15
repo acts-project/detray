@@ -18,9 +18,19 @@ using namespace detray;
 using namespace __plugin;
 
 constexpr scalar epsilon = 1e-4;
+constexpr scalar path_limit = 100 * unit_constants::cm;
 
 // This tests the base functionality of the Runge-Kutta stepper
 TEST(ALGEBRA_PLUGIN, rk_stepper) {
+    // dummy navigation struct
+    struct nav_state {
+        scalar operator()() const { return 1. * unit_constants::mm; }
+        inline void set_full_trust() {}
+        inline void set_high_trust() {}
+        inline void set_fair_trust() {}
+        inline void set_no_trust() {}
+        inline bool abort() { return false; }
+    };
 
     // type definitions
     using vector3 = vector3<scalar>;
@@ -41,6 +51,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
     // RK stepper
     rk_stepper_type rk_stepper(mag_field);
+    nav_state n_state{};
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
@@ -70,12 +81,14 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
             // RK Stepping into forward direction
             rk_stepper_type::state forward_state(traj);
+            forward_state.set_path_limit(path_limit);
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(forward_state);
+                rk_stepper.step(forward_state, n_state);
             }
 
             // get relative error by dividing error with path length
-            auto path_accumulated = forward_state._path_accumulated;
+            auto path_accumulated =
+                path_limit - forward_state.dist_to_path_limit();
             auto helix_pos = helix(path_accumulated);
             auto forward_pos = forward_state().pos();
             auto forward_relative_error =
@@ -87,12 +100,14 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             // RK Stepping into backward direction
             traj.flip();
             rk_stepper_type::state backward_state(traj);
+            backward_state.set_path_limit(path_limit);
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(backward_state);
+                rk_stepper.step(backward_state, n_state);
             }
 
             // get relative error by dividing error with path length
-            path_accumulated += backward_state._path_accumulated;
+            path_accumulated +=
+                path_limit - backward_state.dist_to_path_limit();
             auto backward_pos = backward_state().pos();
             auto backward_relative_error =
                 1. / path_accumulated * (backward_pos - ori);

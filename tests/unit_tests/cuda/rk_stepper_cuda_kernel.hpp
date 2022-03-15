@@ -17,6 +17,7 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/tools/rk_stepper.hpp"
@@ -37,8 +38,21 @@ constexpr unsigned int phi_steps = 100;
 constexpr unsigned int rk_steps = 100;
 
 constexpr scalar epsilon = 1e-5;
+constexpr scalar path_limit = 2 * unit_constants::m;
 
 namespace detray {
+
+// dummy navigation struct
+struct nav_state {
+    DETRAY_HOST_DEVICE scalar operator()() const {
+        return 1. * unit_constants::mm;
+    }
+    DETRAY_HOST_DEVICE inline void set_full_trust() {}
+    DETRAY_HOST_DEVICE inline void set_high_trust() {}
+    DETRAY_HOST_DEVICE inline void set_fair_trust() {}
+    DETRAY_HOST_DEVICE inline void set_no_trust() {}
+    DETRAY_HOST_DEVICE inline bool abort() { return false; }
+};
 
 // test function for Runge-Kutta stepper
 void rk_stepper_test(

@@ -8,6 +8,7 @@
 
 #if defined(__CUDACC__)
 #include <thrust/execution_policy.h>
+#include <thrust/find.h>
 #include <thrust/sort.h>
 #endif
 
@@ -175,6 +176,18 @@ DETRAY_HOST_DEVICE void sequential_sort(RandomIt first, RandomIt last,
     thrust::sort(thrust::seq, first, last, comp);
 #elif !defined(__CUDACC__)
     std::sort(first, last, comp);
+#endif
+}
+
+/**
+ *  find_if implementation for device
+ */
+template <class RandomIt, class Predicate>
+DETRAY_HOST_DEVICE auto find_if(RandomIt first, RandomIt last, Predicate comp) {
+#if defined(__CUDACC__)
+    return thrust::find_if(thrust::seq, first, last, comp);
+#elif !defined(__CUDACC__)
+    return std::find_if(first, last, comp);
 #endif
 }
 

@@ -7,12 +7,16 @@
 
 #pragma once
 
+#include <climits>
+
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
 
-/** A sterily track inspector instance */
-struct void_propagator_inspector {
+namespace propagation {
+
+/** A void inpector that does nothing. */
+struct void_inspector {
 
     /** void operator **/
     template <typename... args>
@@ -21,7 +25,10 @@ struct void_propagator_inspector {
     }
 };
 
-/** Tempalted propagator class, using a
+}  // namespace propagation
+
+/** Templated propagator class, using a stepper and a navigator object in
+ *  succession.
  *
  * @tparam stepper_t for the transport
  * @tparam navigator_t for the navigation
@@ -38,6 +45,7 @@ struct propagator {
 
     /** Can not be default constructed */
     propagator() = delete;
+
     /** Only valid constructor with a
      * @param s stepper
      * @param n navigator
@@ -47,6 +55,7 @@ struct propagator {
     propagator(stepper_t &&s, navigator_t &&n)
         : _stepper(std::move(s)), _navigator(std::move(n)) {}
 
+    /** Propagation that state aggregates a stepping and a navigation state */
     struct state {
 
         template <typename track_t>
@@ -60,39 +69,39 @@ struct propagator {
 
     /** Propagate method
      *
-     * @tparam track_t is the type of the track
+     * @tparam state_t is the propagation state type
+     * @tparam inspector_t is the type of a propagation inspector
      *
-     * @param t_in the track at input
+     * @param p_state the state of a propagation
+     * @param inspector the inspector
      *
-     * @return a track at output
+     * @return propagation success.
      */
-    template <typename state_t, typename propagator_inspector_t>
-    DETRAY_HOST_DEVICE void propagate(
-        state_t &p_state, propagator_inspector_t &propagator_inspector) {
+    template <typename state_t,
+              typename inspector_t = propagation::void_inspector>
+    DETRAY_HOST_DEVICE bool propagate(
+        state_t &p_state, inspector_t &inspector,
+        scalar max_step_size = std::numeric_limits<scalar>::max()) {
 
         auto &n_state = p_state._navigation;
         auto &s_state = p_state._stepping;
 
-        // For now, always start at zero
-        n_state.set_volume(0u);
-
-        // bool heartbeat = _navigator.status(n_state, s_state);
-        bool heartbeat = true;
+        // initialize the navigation
+        bool heartbeat = _navigator.init(n_state, s_state);
 
         // Run while there is a heartbeat
         while (heartbeat) {
 
-            // (Re-)target
-            heartbeat &= _navigator.target(n_state, s_state);
-
             // Take the step
-            heartbeat &= _stepper.step(s_state, n_state());
+            heartbeat &= _stepper.step(s_state, n_state, max_step_size);
 
-            propagator_inspector(n_state, s_state);
+            inspector(n_state, s_state);
 
             // And check the status
-            heartbeat &= _navigator.status(n_state, s_state);
+            heartbeat &= _navigator.update(n_state, s_state);
         }
+
+        return n_state.is_complete();
     }
 };
 

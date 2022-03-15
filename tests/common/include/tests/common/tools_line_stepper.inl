@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 #include "detray/core/transform_store.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/tools/line_stepper.hpp"
 #include "detray/tools/track.hpp"
 
@@ -20,25 +21,38 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
 
     using detray_track = free_track_parameters;
 
+    // dummy navigation struct
+    struct nav_state {
+        scalar operator()() const { return 1. * unit_constants::mm; }
+        inline void set_full_trust() {}
+        inline void set_high_trust() {}
+        inline void set_fair_trust() {}
+        inline void set_no_trust() {}
+        inline bool abort() { return false; }
+    };
+
     point3<scalar> pos{0., 0., 0.};
     vector3<scalar> mom{1., 1., 0.};
     detray_track traj(pos, 0, mom, -1);
 
     line_stepper<detray_track>::state lstate(traj);
+    nav_state n_state{};
 
     line_stepper<detray_track> lstepper;
-    bool heartbeat = lstepper.step(lstate, 10.);
-    ASSERT_TRUE(heartbeat);
+    ASSERT_TRUE(lstepper.step(lstate, n_state));
 
-    ASSERT_FLOAT_EQ(traj.pos()[0], 10. / sqrt(2));
-    ASSERT_FLOAT_EQ(traj.pos()[1], 10. / sqrt(2));
+    ASSERT_FLOAT_EQ(traj.pos()[0], 1. / std::sqrt(2));
+    ASSERT_FLOAT_EQ(traj.pos()[1], 1. / std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[2], 0.);
 
-    // Step with limit
-    lstate.set_limit(20.);
-    heartbeat = lstepper.step(lstate, 10.);
-    ASSERT_TRUE(heartbeat);
+    // Only step 1.5 mm further, then break
+    lstate.set_path_limit(1.5);
+    ASSERT_TRUE(lstepper.step(lstate, n_state));
 
-    heartbeat = lstepper.step(lstate, 10.);
-    ASSERT_FALSE(heartbeat);
+    ASSERT_FLOAT_EQ(traj.pos()[0], std::sqrt(2));
+    ASSERT_FLOAT_EQ(traj.pos()[1], std::sqrt(2));
+    ASSERT_FLOAT_EQ(traj.pos()[2], 0.);
+
+    // breaks
+    ASSERT_FALSE(lstepper.step(lstate, n_state));
 }
