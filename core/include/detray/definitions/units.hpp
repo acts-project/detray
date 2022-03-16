@@ -23,6 +23,12 @@ constexpr double cm = 10.0;
 // Length, convert to m
 constexpr double m = 1000.0;
 
+// Energy/mass/momentum, native unit keV
+constexpr double keV = 0.000001;
+
+// Energy/mass/momentum, native unit MeV
+constexpr double MeV = 0.001;
+
 // Energy/mass/momentum, native unit GeV
 constexpr double GeV = 1.0;
 
