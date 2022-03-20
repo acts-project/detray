@@ -22,7 +22,9 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     using namespace __plugin;
 
     vecmem::host_memory_resource host_mr;
-    auto det = create_toy_geometry(host_mr);
+    dindex n_brl_layers = 4;
+    dindex n_edc_layers = 1;
+    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
     using detector_t = decltype(det);
 
     /// Prints linking information for every node when visited
@@ -42,13 +44,36 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     std::cout << "Walking through geometry: " << std::endl;
     // graph.bfs();
 
-    // Volume 0 has 3 portals to volume 1 and two surfaces linking to itself
-    // std::map<dindex, dindex> nbrs_map_v0{{0, 2}, {1, 3}};
-    // Volume 1 has 4 portals to volume 0 and two surfaces linking to itself
-    // std::map<dindex, dindex> nbrs_map_v1{{0, 4}, {1, 2}};
+    const auto &adj_mat = graph.adjacency_matrix();
+
+    // toy geometry 1 endcap layer, 4 barrel layers, including gap layers
+    dvector<dindex> adj_mat_truth = {// beampipe
+                                     1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 2,
+                                     // endcap layer 1
+                                     1, 108, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+                                     // connector layer
+                                     1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1,
+                                     // barrel layer 1
+                                     1, 0, 1, 224, 1, 0, 0, 0, 0, 0, 1, 0, 0,
+                                     // barrel gap 1
+                                     0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0,
+                                     // barrel layer 2
+                                     0, 0, 1, 0, 1, 448, 1, 0, 0, 0, 1, 0, 0,
+                                     // barrel gap 2
+                                     0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0,
+                                     // barrel layer 3
+                                     0, 0, 1, 0, 0, 0, 1, 728, 1, 0, 1, 0, 0,
+                                     // barrel gap 3
+                                     0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0,
+                                     // barrel layer 4
+                                     0, 0, 1, 0, 0, 0, 0, 0, 1, 1092, 1, 0, 1,
+                                     // connector layer
+                                     1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1,
+                                     // endcap laer 2
+                                     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 108, 2,
+                                     // world volume
+                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     // Check this with graph
-    // const auto &adj = graph.adjacency_list();
-    // ASSERT_TRUE(adj.at(0) == nbrs_map_v0);
-    // ASSERT_TRUE(adj.at(1) == nbrs_map_v1);
+    ASSERT_TRUE(adj_mat == adj_mat_truth);
 }

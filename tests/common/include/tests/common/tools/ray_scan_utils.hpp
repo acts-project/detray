@@ -349,4 +349,72 @@ inline auto build_adjacency(
     return adj_list;
 }
 
+/** Build an adjacency list from intersection traces.
+ *
+ * @tparam portal_trace_type container of portal link pairs
+ * @tparam surface_trace_type container of surface links
+ *
+ * @param portal_trace the portal indices and their volume links (in adjacent
+ *                     portal pairs)
+ * @param surface_trace the surface indices and their volume links
+ * @param obj_hashes record which surfaces/portals were already added
+ *
+ * @return an adjacency list from the traced ray scan of a given geometry.
+ */
+template <
+    typename portal_trace_type, typename surface_trace_type,
+    typename entry_type = std::pair<dindex, dindex>,
+    std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
+                                    std::pair<entry_type, entry_type>>,
+                     bool> = true,
+    std::enable_if_t<
+        std::is_same_v<typename surface_trace_type::value_type, entry_type>,
+        bool> = true>
+inline auto build_adjacency(const portal_trace_type &portal_trace,
+                            const surface_trace_type &surface_trace,
+                            dvector<dindex> &adj_matrix,
+                            std::unordered_set<dindex> &obj_hashes) {
+
+    const dindex dim = static_cast<dindex>(std::sqrt(adj_matrix.size()));
+
+    // Every surface that was recorded adds a link to the mother volume
+    for (const auto &record : surface_trace) {
+        const auto sf_index = std::get<0>(record);
+        const auto vol_index = std::get<1>(record);
+        // Check whether we have seen this surface in this volume before
+        if (obj_hashes.find(sf_index) == obj_hashes.end()) {
+            adj_matrix[dim * vol_index + vol_index]++;
+            obj_hashes.insert(sf_index);
+        }
+    }
+
+    // Portal in first volume links to second volume in the record
+    for (const auto &record : portal_trace) {
+        const auto pt_index_1 = std::get<0>(record.first);
+        const auto vol_index_1 = std::get<1>(record.first);
+        const auto pt_index_2 = std::get<0>(record.second);
+        const auto vol_index_2 = std::get<1>(record.second);
+
+        if (obj_hashes.find(pt_index_1) == obj_hashes.end()) {
+            dindex mat_elem_vol1;
+            // Assume the return link for now (filtering out portals that leave
+            // world)
+            if (vol_index_2 != dindex_invalid) {
+                mat_elem_vol1 = dim * vol_index_1 + vol_index_2;
+
+                if (obj_hashes.find(pt_index_2) == obj_hashes.end()) {
+                    adj_matrix[dim * vol_index_2 + vol_index_1]++;
+                    obj_hashes.insert(pt_index_2);
+                }
+            } else {
+                mat_elem_vol1 = dim * vol_index_1 + dim - 1;
+            }
+            adj_matrix[mat_elem_vol1]++;
+            obj_hashes.insert(pt_index_1);
+        }
+    }
+
+    return adj_matrix;
+}
+
 }  // namespace detray

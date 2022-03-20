@@ -10,6 +10,7 @@
 #include <iostream>
 #include <vecmem/memory/host_memory_resource.hpp>
 
+#include "detray/tools/volume_graph.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 #include "tests/common/tools/ray_scan_utils.hpp"
@@ -17,32 +18,32 @@
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
-constexpr std::size_t vol0_hash = 2;
-constexpr std::size_t vol1_hash = 2;  // TODO: Find hash function wihtout coll.!
-constexpr std::size_t vol2_hash = 10;
-constexpr std::size_t vol3_hash = 1798;
+constexpr std::size_t root_hash =
+    687;  // TODO: Find hash function wihtout coll.!
 
 /** Print and adjacency list */
-void print_adj(std::map<dindex, std::map<dindex, dindex>> &adjacency_list) {
-    const auto print_neighbor =
-        [&](const std::pair<const dindex, const dindex> &n) -> std::string {
-        // Print the number of edges, if it is greater than one
-        std::string n_occur =
-            n.second > 1 ? "\t\t(" + std::to_string(n.second) + "x)" : "";
+void print_adj(const dvector<dindex> &adjacency_matrix) {
 
-        // Edge that leads out of the detector world
-        if (n.first == dindex_invalid) {
-            return "leaving world" + n_occur;
-        }
+    std::size_t dim = static_cast<dindex>(std::sqrt(adjacency_matrix.size()));
 
-        return std::to_string(n.first) + "\t\t\t" + n_occur;
-    };
+    for (std::size_t i = 0; i < dim - 1; ++i) {
+        std::cout << "[>>] Node with index " << i << std::endl;
+        std::cout << " -> edges: " << std::endl;
+        for (std::size_t j = 0; j < dim; ++j) {
+            const auto degr = adjacency_matrix[dim * i + j];
+            if (degr == 0) {
+                continue;
+            }
+            std::string n_occur =
+                degr > 1 ? "\t\t\t\t(" + std::to_string(degr) + "x)" : "";
 
-    for (const auto &[vol_index, neighbors] : adjacency_list) {
-        std::cout << "[>>] Node with index " << vol_index << std::endl;
-        std::cout << " -> neighbors: " << std::endl;
-        for (const auto &nbr : neighbors) {
-            std::cout << "    -> " << print_neighbor(nbr) << std::endl;
+            // Edge that leads out of the detector world
+            if (j == dim - 1 and degr != 0) {
+                std::cout << "    -> leaving world " + n_occur << std::endl;
+            } else {
+                std::cout << "    -> " << std::to_string(j) + "\t" + n_occur
+                          << std::endl;
+            }
         }
     }
 }
@@ -55,10 +56,14 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
     vecmem::host_memory_resource host_mr;
     auto toy_det = create_toy_geometry(host_mr);
 
-    // Now get the adjaceny list from ray scan
+    // Build the graph
+    volume_graph graph(toy_det);
+    const auto &adj_mat = graph.adjacency_matrix();
 
-    // Adjacency list to be filled in ray scan
-    std::map<dindex, std::map<dindex, dindex>> adj_scan = {};
+    // std::cout << graph.to_string() << std::endl;
+
+    // Now get the adjaceny matrix from ray scan
+    dvector<dindex> adj_mat_scan(adj_mat.size(), 0);
     // Keep track of the objects that have already been seen per volume
     std::unordered_set<dindex> obj_hashes = {};
 
@@ -93,32 +98,21 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
             ASSERT_TRUE(check_connectivity(portal_trace));
 
             // Discover new linking information from this trace
-            build_adjacency(portal_trace, surface_trace, adj_scan, obj_hashes);
+            build_adjacency(portal_trace, surface_trace, adj_mat_scan,
+                            obj_hashes);
         }
     }
 
-    print_adj(adj_scan);
+    // print_adj(adj_scan);
+    // ASSERT_TRUE(adj_mat == adj_mat_truth);
 
-    // TODO: Join these sub trees into a single comprehensive tree
-    /*auto geo_checker_vol0 =
-        hash_tree<decltype(adj_scan.at(0)), dindex>(adj_scan.at(0));
+    // ASSERT_EQ(adj_linking, adj_scan);
+    // auto geo_checker = hash_tree(adj_mat_scan);
+    // ASSERT_EQ(geo_checker.root(), root_hash);
+}
 
-    EXPECT_EQ(geo_checker_vol0.root(), vol0_hash);
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-    // This one fails, because the ray scan is kept very coarse for performance
-    // reasons (run on the CI)
-    auto geo_checker_vol1 =
-        hash_tree<decltype(adj_scan.at(1)), dindex>(adj_scan.at(1));
-
-    EXPECT_EQ(geo_checker_vol1.root(), vol1_hash);
-
-    auto geo_checker_vol2 =
-        hash_tree<decltype(adj_scan.at(2)), dindex>(adj_scan.at(2));
-
-    EXPECT_EQ(geo_checker_vol2.root(), vol2_hash);
-
-    auto geo_checker_vol3 =
-        hash_tree<decltype(adj_scan.at(3)), dindex>(adj_scan.at(3));
-
-    EXPECT_EQ(geo_checker_vol3.root(), vol3_hash);*/
+    return RUN_ALL_TESTS();
 }
