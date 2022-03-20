@@ -141,7 +141,7 @@ struct toy_metadata {
     volume_stats _data;
 };
 
-/// Defines a detector with only rectangle surfaces
+/// Defines a detector with only rectangle/unbounded surfaces
 struct telescope_metadata {
 
     // How many grids have to be built

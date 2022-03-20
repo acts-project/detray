@@ -20,19 +20,17 @@ using telescope_types = detector_registry::telescope_detector;
 constexpr auto rectangle_id = telescope_types::mask_ids::e_rectangle2;
 constexpr auto unbounded_id = telescope_types::mask_ids::e_unbounded_plane2;
 
-/** Helper method for positioning the plane surfaces
- *
- * @param track pilot track along which the modules should be placed
- * @param b_field determines the trajectory
- * @param tel_length the length of the telescope
- * @param n_surfaces the number of plane surfaces
- *
- * @return a vector of the module positions along the trajectory
- */
+/// Helper method for positioning the plane surfaces
+///
+/// @param track pilot track along which the modules should be placed
+/// @param b_field determines the trajectory
+/// @param tel_length the length of the telescope
+/// @param n_surfaces the number of plane surfaces
+///
+/// @return a vector of the module positions along the trajectory
 template <typename track_t, typename stepper_t>
 inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
-                                            scalar tel_length,
-                                            dindex n_surfaces) {
+                                            std::vector<scalar> &steps) {
     // dummy navigation struct
     struct navigation_state {
         scalar operator()() const { return _step_size; }
@@ -42,41 +40,46 @@ inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
         inline void set_no_trust() {}
         inline bool abort() { return false; }
 
-        scalar _step_size;
+        scalar _step_size = 0;
     };
 
     // create and fill the positions
     std::vector<point3> m_positions;
-    m_positions.reserve(n_surfaces);
+    m_positions.reserve(steps.size());
 
     // space between surfaces
-    navigation_state n_state{tel_length / (n_surfaces - 1)};
+    navigation_state n_state{};
 
     // Find exact position by walking along track
     typename stepper_t::state step_state(track);
 
-    m_positions.push_back(track.pos());
-    for (size_t i = 1; i < size_t{n_surfaces}; ++i) {
+    // Calculate step size from module positions. The modules will only be
+    // placed at the given position if the b-field allows for it. Otherwise, by
+    // virtue of the stepper, the distance will be shorter and the surface
+    // remains reachable in a single step.
+    scalar prev_dist = 0.;
+    for (const auto &dist : steps) {
         // advance the track state to the next plane position
+        n_state._step_size = dist - prev_dist;
         stepper.step(step_state, n_state);
         m_positions.push_back(track.pos());
+        prev_dist = dist;
     }
 
     return m_positions;
 }
 
-/** Helper function that creates the telescope surfaces.
- *
- * @param mask_id id of the plane surface shape, either unbounded or recangular
- * @param ctx geometric context
- * @param track pilot track along which the modules should be placed
- * @param b_field determines the trajectory
- * @param volume volume the planes should be added to
- * @param surfaces container to add new surface to
- * @param masks container to add new cylinder mask to
- * @param transforms container to add new transform to
- * @param cfg config struct for module creation
- */
+/// Helper function that creates the telescope surfaces.
+///
+/// @param mask_id id of the plane surface shape, either unbounded or recangular
+/// @param ctx geometric context
+/// @param track pilot track along which the modules should be placed
+/// @param b_field determines the trajectory
+/// @param volume volume the planes should be added to
+/// @param surfaces container to add new surface to
+/// @param masks container to add new cylinder mask to
+/// @param transforms container to add new transform to
+/// @param cfg config struct for module creation
 template <telescope_types::mask_ids mask_id, typename context_t,
           typename track_t, typename stepper_t, typename volume_type,
           typename surface_container_t, typename mask_container_t,
@@ -84,7 +87,7 @@ template <telescope_types::mask_ids mask_id, typename context_t,
 inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
                              volume_type &volume, surface_container_t &surfaces,
                              mask_container_t &masks,
-                             transform_container_t &transforms, config_t cfg) {
+                             transform_container_t &transforms, config_t &cfg) {
     using surface_t = typename surface_container_t::value_type::value_type;
     using edge_t = typename surface_t::edge_type;
     using mask_link_t = typename mask_container_t::link_type;
@@ -94,7 +97,7 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
 
     // Create the module centers
     const std::vector<point3> m_positions =
-        module_positions(track, stepper, cfg.tel_length, cfg.n_surfaces);
+        module_positions(track, stepper, cfg.dists);
 
     // Create geometry data
     for (const auto &m_center : m_positions) {
@@ -134,36 +137,63 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
 
 }  // namespace
 
-/** Builds a detray geometry that contains only one volume with plane surfaces,
- *  where the last surface is the portal that leaves the telescope. The
- *  detector is auto-constructed by following a track state through space with
- *  the help of a dedicated stepper. The track and stepper determine the
- *  positions of the plane surfaces, so that the stepping distance between
- *  them is evenly spaced along the length of the telescope.
- *
- * @tparam unbounded_planes build the telescope with unbounded plane surfaces
- *         (true) or rectangle surfaces (false)
- * @tparam track_t the type of the pilot track
- * @tparam stepper_t the stepper type that advances the track state
- *
- * @param resource the memory resource for the detector containers
- * @param track the pilot track along which the surfaces are positioned
- * @param stepper that advances the track through the length of the telescope
- * @param n_surfaces the number of surfaces that are placed in the geometry
- * @param tel_length the total length of the steps by the stepper
- * @param half_x the x half length of the recangle mask
- * @param half_y the y half length of the recangle mask
- *
- * @returns a complete detector object
- */
-template <bool unbounded_planes = true, typename track_t, typename stepper_t,
+/// Build the telescope geometry from a fixed length and number of surfaces.
+///
+/// @param n_surfaces the number of surfaces that are placed in the geometry
+/// @param tel_length the total length of the steps by the stepper
+auto create_telescope_detector(vecmem::memory_resource &resource,
+                               dindex n_surfaces = 10,
+                               scalar tel_length = 500. * unit_constants::mm,
+                               track_t track = {{0, 0, 0}, 0, {0, 0, 1}, -1},
+                               stepper_t stepper = {},
+                               scalar half_x = 20. * unit_constants::mm,
+                               scalar half_y = 20. * unit_constants::mm) {
+    // Generate equidistant positions
+    std::vector<scalar> positions = {};
+    scalar pos = 0.;
+    scalar dist = tel_length / (n_surfaces - 1);
+    for (std::size_t i = 0; i < n_surfaces; ++i) {
+        custom_dists.push_back(pos);
+        pos += dist;
+    }
+
+    // Build the geometry
+    return create_telescope_detector(resource, positions, track, stepper,
+                                     half_x, half_y);
+}
+
+/// Builds a detray geometry that contains only one volume with plane surfaces,
+/// where the last surface is the portal that leaves the telescope. The
+/// detector is auto-constructed by following a track state through space with
+/// the help of a dedicated stepper. The track and stepper determine the
+/// positions of the plane surfaces, so that the stepping distance between
+/// them is evenly spaced along the length of the telescope.
+///
+/// @tparam unbounded_planes build the telescope with unbounded plane surfaces
+///        (true) or rectangle surfaces (false)
+/// @tparam track_t the type of the pilot track
+/// @tparam stepper_t the stepper type that advances the track state
+///
+/// @param resource the memory resource for the detector containers
+/// @param pos the module positions. These only correspond to the actual module
+///            positions for a straight line pilot track
+/// @param track the pilot track along which the surfaces are positioned
+/// @param stepper that advances the track through the length of the telescope
+/// @param half_x the x half length of the recangle mask
+/// @param half_y the y half length of the recangle mask
+///
+/// @returns a complete detector object
+template <bool unbounded_planes = true,
+          typename track_t = free_track_parameters,
+          typename stepper_t = line_stepper<track_t>,
           template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector>
-auto create_telescope_detector(vecmem::memory_resource &resource, track_t track,
-                               stepper_t &stepper, dindex n_surfaces = 10,
-                               scalar tel_length = 500. * unit_constants::mm,
+auto create_telescope_detector(vecmem::memory_resource &resource,
+                               std::vector<scalar> pos = {},
+                               track_t track = {{0, 0, 0}, 0, {0, 0, 1}, -1},
+                               stepper_t stepper = {},
                                scalar half_x = 20. * unit_constants::mm,
                                scalar half_y = 20. * unit_constants::mm) {
 
@@ -175,15 +205,14 @@ auto create_telescope_detector(vecmem::memory_resource &resource, track_t track,
     struct plane_config {
         scalar m_half_x;
         scalar m_half_y;
-        scalar tel_length;
-        dindex n_surfaces;
+        std::vector<scalar> &pos;
     };
 
     // create empty detector
     detector_t det(resource);
 
     typename detector_t::context ctx{};
-    plane_config pl_config{half_x, half_y, tel_length, n_surfaces};
+    plane_config pl_config{half_x, half_y, pos};
 
     // volume boundaries are not needed. Same goes for portals
     det.new_volume(

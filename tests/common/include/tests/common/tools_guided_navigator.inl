@@ -56,12 +56,15 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     dindex n_surfaces = 10;
     // Total distance between all of the surfaces, as seen by the stepper
     scalar tel_length = 500. * unit_constants::mm;
+
+    std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
+                                     300., 350, 400,  450., 500.};
     // Build telescope detector with unbounded planes
     const auto telescope_det = create_telescope_detector<unbounded>(
-        host_mr, pilot_track, stepper, n_surfaces, tel_length);
+        host_mr, n_surfaces, tel_length, {}, pilot_track, stepper);
     // Build telescope detector with rectangular planes
     // const auto telescope_det = create_telescope_detector<rectangles>(
-    //     host_mr, pilot_track, stepper, n_surfaces, tel_length);
+    //     host_mr, n_surfaces, tel_length, {}, pilot_track, stepper);
 
     using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
 
@@ -90,11 +93,13 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     std::vector<dindex> sf_sequence = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     auto &obj_tracer = nav_state.inspector().template get<object_tracer<1>>();
     // Check the surfaces that have been visited by the navigation
-    EXPECT_TRUE(obj_tracer.object_trace.size() == sf_sequence.size());
+    EXPECT_EQ(obj_tracer.object_trace.size(), sf_sequence.size());
     for (size_t i = 0; i < n_surfaces; ++i) {
         const auto &candidate = obj_tracer.object_trace[i];
+        std::cout << candidate.index << std::endl;
         EXPECT_TRUE(candidate.index == sf_sequence[i]);
     }
+    std::cout << obj_tracer.object_trace.back().index << std::endl;
 
     //
     // Step through detector directly
@@ -122,7 +127,14 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
         heartbeat &= stepper.step(new_step_state, new_nav_state);
     }
     EXPECT_TRUE(heartbeat);
-    EXPECT_NEAR(step_state._path_length, new_step_state._path_length, tol);
-    EXPECT_NEAR(getter::norm(new_track.pos() - pilot_track.pos()), 0., tol);
-    EXPECT_NEAR(getter::norm(new_track.dir() - pilot_track.dir()), 0., tol);
+    EXPECT_NEAR(
+        std::fabs(step_state._path_length - new_step_state._path_length) /
+            step_state._path_length,
+        0., tol);
+    EXPECT_NEAR(getter::norm(new_track.pos() - pilot_track.pos()) /
+                    getter::norm(pilot_track.pos()),
+                0., tol);
+    EXPECT_NEAR(getter::norm(new_track.dir() - pilot_track.dir()) /
+                    getter::norm(pilot_track.dir()),
+                0., tol);
 }
