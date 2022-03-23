@@ -5,6 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <limits>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/detector.hpp"
@@ -13,12 +14,28 @@
 
 namespace detray {
 
+// use unbounded or rectangular surfaces
+constexpr bool unbounded = true;
+constexpr bool rectangular = false;
+
 namespace {
 
 using telescope_types = detector_registry::telescope_detector;
 
 constexpr auto rectangle_id = telescope_types::mask_ids::e_rectangle2;
 constexpr auto unbounded_id = telescope_types::mask_ids::e_unbounded_plane2;
+
+struct module_placement {
+    point3 _pos;
+    vector3 _dir;
+
+    bool operator==(const module_placement &other) const {
+        bool is_same = true;
+        is_same &= (_pos == other._pos);
+        is_same &= (_dir == other._dir);
+        return is_same;
+    }
+};
 
 /// Helper method for positioning the plane surfaces
 ///
@@ -29,8 +46,8 @@ constexpr auto unbounded_id = telescope_types::mask_ids::e_unbounded_plane2;
 ///
 /// @return a vector of the module positions along the trajectory
 template <typename track_t, typename stepper_t>
-inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
-                                            std::vector<scalar> &steps) {
+inline std::vector<module_placement> module_positions(
+    track_t &track, stepper_t &stepper, std::vector<scalar> &steps) {
     // dummy navigation struct
     struct navigation_state {
         scalar operator()() const { return _step_size; }
@@ -44,7 +61,7 @@ inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
     };
 
     // create and fill the positions
-    std::vector<point3> m_positions;
+    std::vector<module_placement> m_positions;
     m_positions.reserve(steps.size());
 
     // space between surfaces
@@ -62,7 +79,7 @@ inline std::vector<point3> module_positions(track_t &track, stepper_t &stepper,
         // advance the track state to the next plane position
         n_state._step_size = dist - prev_dist;
         stepper.step(step_state, n_state);
-        m_positions.push_back(track.pos());
+        m_positions.push_back({track.pos(), track.dir()});
         prev_dist = dist;
     }
 
@@ -96,11 +113,11 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
     edge_t mask_edge{volume_id, dindex_invalid};
 
     // Create the module centers
-    const std::vector<point3> m_positions =
-        module_positions(track, stepper, cfg.dists);
+    const std::vector<module_placement> m_placements =
+        module_positions(track, stepper, cfg.pos);
 
     // Create geometry data
-    for (const auto &m_center : m_positions) {
+    for (const auto &m_placement : m_placements) {
 
         // Surfaces with the linking into the local containers
         mask_link_t mask_link{mask_id, masks.template size<mask_id>()};
@@ -110,7 +127,7 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
         surfaces[mask_id].back().set_grid_status(false);
 
         // The last surface acts as portal that leaves the telescope
-        if (m_center == m_positions.back()) {
+        if (m_placement == m_placements.back()) {
             mask_edge = {dindex_invalid, dindex_invalid};
         }
 
@@ -123,15 +140,27 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
                                                   mask_edge);
         }
         // Build the transform
-        // The local phi
-        scalar m_phi = algebra::getter::phi(m_center);
-        // Local z axis is the normal vector
-        vector3 m_local_z{std::cos(m_phi), std::sin(m_phi), 0.};
-        // Local x axis the normal to local y,z
-        vector3 m_local_x{-std::sin(m_phi), std::cos(m_phi), 0.};
+        // Local z axis is the global normal vector
+        vector3 m_local_z = algebra::vector::normalize(m_placement._dir);
 
-        // Create the module transform
-        transforms[mask_id].emplace_back(ctx, m_center, m_local_z, m_local_x);
+        // Project onto the weakest direction component of the normal vector
+        vector3 e_i{0., 0., 0.};
+        scalar min = std::numeric_limits<scalar>::infinity();
+        dindex i = dindex_invalid;
+        for (unsigned int k = 0; k < 3; ++k) {
+            if (m_local_z[k] < min) {
+                min = m_local_z[k];
+                i = k;
+            }
+        }
+        e_i[i] = 1.;
+        vector3 proj = algebra::vector::dot(m_local_z, e_i) * m_local_z;
+        // Local x axis is the normal to local y,z
+        vector3 m_local_x = algebra::vector::normalize(e_i - proj);
+
+        // Create the global-to-local transform of the module
+        transforms[mask_id].emplace_back(ctx, m_placement._pos, m_local_z,
+                                         m_local_x);
     }
 }
 
@@ -141,25 +170,31 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
 ///
 /// @param n_surfaces the number of surfaces that are placed in the geometry
 /// @param tel_length the total length of the steps by the stepper
-auto create_telescope_detector(vecmem::memory_resource &resource,
-                               dindex n_surfaces = 10,
-                               scalar tel_length = 500. * unit_constants::mm,
-                               track_t track = {{0, 0, 0}, 0, {0, 0, 1}, -1},
-                               stepper_t stepper = {},
-                               scalar half_x = 20. * unit_constants::mm,
-                               scalar half_y = 20. * unit_constants::mm) {
+template <bool unbounded_planes = true,
+          typename track_t = free_track_parameters,
+          typename stepper_t = line_stepper<track_t>,
+          template <typename, std::size_t> class array_t = darray,
+          template <typename...> class tuple_t = dtuple,
+          template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector>
+auto create_telescope_detector(
+    vecmem::memory_resource &resource, dindex n_surfaces = 10,
+    scalar tel_length = 500. * unit_constants::mm,
+    track_t track = {{0., 0., 0.}, 0., {0., 0., 1.}, -1.},
+    stepper_t stepper = {}, scalar half_x = 20. * unit_constants::mm,
+    scalar half_y = 20. * unit_constants::mm) {
     // Generate equidistant positions
     std::vector<scalar> positions = {};
     scalar pos = 0.;
     scalar dist = tel_length / (n_surfaces - 1);
     for (std::size_t i = 0; i < n_surfaces; ++i) {
-        custom_dists.push_back(pos);
+        positions.push_back(pos);
         pos += dist;
     }
 
     // Build the geometry
-    return create_telescope_detector(resource, positions, track, stepper,
-                                     half_x, half_y);
+    return create_telescope_detector<unbounded_planes>(
+        resource, positions, track, stepper, half_x, half_y);
 }
 
 /// Builds a detray geometry that contains only one volume with plane surfaces,
@@ -215,8 +250,7 @@ auto create_telescope_detector(vecmem::memory_resource &resource,
     plane_config pl_config{half_x, half_y, pos};
 
     // volume boundaries are not needed. Same goes for portals
-    det.new_volume(
-        {tel_length, tel_length, tel_length, tel_length, -M_PI, M_PI});
+    det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
     typename detector_t::volume_type &vol = det.volume_by_index(0);
 
     // Add module surfaces to volume
