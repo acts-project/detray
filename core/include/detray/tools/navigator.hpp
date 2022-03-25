@@ -20,7 +20,7 @@ namespace detray {
 namespace navigation {
 
 /** Navigation status flag */
-enum status : int {
+enum class status {
     e_abort = -3,
     e_exit = -2,
     e_unknown = -1,
@@ -29,12 +29,11 @@ enum status : int {
 };
 
 /** Navigation trust level */
-enum trust_level : int {
-    e_no_trust = 0,    // re-initialize the volume (e.g. local navigation)
-    e_fair_trust = 1,  // update the distance & order of the
-                       // (preselected) candidates
-    e_high_trust = 3,  // update the distance to the next candidate
-    e_full_trust = 4   // don't update anything
+enum class trust_level {
+    e_no_trust = 0,  // re-initialize the volume (e.g. local navigation)
+    e_fair = 1,  // update the distance & order of the (preselected) candidates
+    e_high = 3,  // update the distance to the next candidate
+    e_full = 4   // don't update anything
 };
 
 /** A void inpector that does nothing.
@@ -165,8 +164,11 @@ class navigator {
 
         /** Call the navigation inspector */
         DETRAY_HOST_DEVICE
-        inline auto run_inspector(const char *message) {
-            return _inspector(*this, message);
+        inline void run_inspector(const char *message) {
+            if constexpr (not std::is_same_v<inspector_type,
+                                             navigation::void_inspector>) {
+                _inspector(*this, message);
+            }
         }
 
         /** @returns the navigation inspector */
@@ -213,24 +215,26 @@ class navigator {
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
-        inline void set_no_trust() { _trust_level = navigation::e_no_trust; }
+        inline void set_no_trust() {
+            _trust_level = navigation::trust_level::e_no_trust;
+        }
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
         inline void set_full_trust() {
-            _trust_level = navigation::e_full_trust;
+            _trust_level = navigation::trust_level::e_full;
         }
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
         inline void set_high_trust() {
-            _trust_level = navigation::e_high_trust;
+            _trust_level = navigation::trust_level::e_high;
         }
 
         /** Update navigation trust level */
         DETRAY_HOST_DEVICE
         inline void set_fair_trust() {
-            _trust_level = navigation::e_fair_trust;
+            _trust_level = navigation::trust_level::e_fair;
         }
 
         /** @returns current volume (index) - const */
@@ -262,9 +266,9 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline void set_state(const navigation::status status,
                               const dindex obj_idx,
-                              const navigation::trust_level trust_level) {
+                              const navigation::trust_level trust_lvl) {
             this->set_object(obj_idx);
-            this->set_trust_level(trust_level);
+            this->set_trust_level(trust_lvl);
             this->set_status(status);
         }
 
@@ -275,9 +279,9 @@ class navigator {
          */
         DETRAY_HOST_DEVICE
         inline auto abort() -> bool {
-            _status = navigation::e_abort;
+            _status = navigation::status::e_abort;
             // Don't do anything if aborted
-            _trust_level = navigation::e_full_trust;
+            _trust_level = navigation::trust_level::e_full;
             run_inspector("Aborted: ");
             return false;
         }
@@ -289,8 +293,8 @@ class navigator {
          */
         DETRAY_HOST_DEVICE
         inline auto exit() -> bool {
-            _status = navigation::e_exit;
-            _trust_level = navigation::e_full_trust;
+            _status = navigation::status::e_exit;
+            _trust_level = navigation::trust_level::e_full;
             run_inspector("Exited: ");
             return false;
         }
@@ -302,7 +306,7 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline auto is_complete() const -> bool {
             // Normal exit for this navigation?
-            return _status == navigation::e_exit;
+            return _status == navigation::status::e_exit;
         }
 
         private:
@@ -325,13 +329,14 @@ class navigator {
         dindex _object_index = dindex_invalid;
 
         /// The navigation status
-        navigation::status _status = navigation::e_unknown;
+        navigation::status _status = navigation::status::e_unknown;
 
         /// The on object tolerance - permille
         scalar _on_object_tolerance = 1e-3;
 
         /// The navigation trust level
-        navigation::trust_level _trust_level = navigation::e_no_trust;
+        navigation::trust_level _trust_level =
+            navigation::trust_level::e_no_trust;
 
         /// Volume we are currently navigating in
         dindex _volume_index = 0;
@@ -374,13 +379,13 @@ class navigator {
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted or we switched volumes:
         // (re-)initialize volume
-        if (navigation.trust_level() == navigation::e_no_trust) {
+        if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
             navigation.clear();
             update_kernel(navigation, stepping);
         }
 
         // Should never be the case after complete update call
-        if (navigation.trust_level() != navigation::e_full_trust) {
+        if (navigation.trust_level() != navigation::trust_level::e_full) {
             heartbeat &= navigation.abort();
         }
 
@@ -422,7 +427,7 @@ class navigator {
         // What is the closest object we can reach?
         set_next(track, navigation, stepping);
         // Call the inspector before returning (only for debugging)
-        // navigation.run_inspector("Init complete: ");
+        navigation.run_inspector("Init complete: ");
     }
 
     /** Helper method to update the next candidate intersection based on
@@ -438,14 +443,14 @@ class navigator {
         state &navigation, stepper_state_t &stepping) const {
 
         // Current candidate is up to date, nothing left to do
-        if (navigation.trust_level() == navigation::e_full_trust) {
+        if (navigation.trust_level() == navigation::trust_level::e_full) {
             return;
         }
 
         const volume_type &volume =
             _detector->volume_by_index(navigation.volume());
         // Navigation state is broken/not initialized
-        if (navigation.trust_level() == navigation::e_no_trust) {
+        if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
             initialize_kernel(navigation, stepping, volume);
             return;
         }
@@ -454,7 +459,7 @@ class navigator {
         // Update only the current candidate, or close neighbors if we miss the
         // current candidate - do this only when the navigation state is still
         // largely consistent (high trust)
-        if (navigation.trust_level() == navigation::e_high_trust or
+        if (navigation.trust_level() == navigation::trust_level::e_high or
             navigation.candidates().size() == 1) {
             while (not navigation.is_exhausted()) {
 
@@ -465,11 +470,11 @@ class navigator {
                 if (is_reachable(candidate, track)) {
 
                     if (navigation.is_on_object(track, candidate)) {
-                        navigation.set_state(navigation::e_on_target,
+                        navigation.set_state(navigation::status::e_on_target,
                                              candidate.index,
-                                             navigation::e_full_trust);
-                        // Release stepping constraints
-                        stepping.release_step_size();
+                                             navigation::trust_level::e_full);
+                        // Release stepping constraint from actors
+                        stepping.constraint.template release<>();
                         // Set the next object we want to reach - might be end()
                         ++navigation.next();
                         if (not navigation.is_exhausted()) {
@@ -487,9 +492,9 @@ class navigator {
                     }
                     // we are not on the next object
                     else {
-                        navigation.set_state(navigation::e_towards_object,
-                                             dindex_invalid,
-                                             navigation::e_full_trust);
+                        navigation.set_state(
+                            navigation::status::e_towards_object,
+                            dindex_invalid, navigation::trust_level::e_full);
                         navigation.run_inspector("Update (high trust):");
                     }
                     // Don't sort again when coming from high trust
@@ -500,20 +505,17 @@ class navigator {
             }
             // Kernel is exhausted at this point
             // Call the inspector before returning (only for debugging)
-            // navigation.run_inspector("Update (high trust) no candidate
-            // found:");
+            navigation.run_inspector("Update (high trust) no candidate found:");
         }
         // Re-evaluate all currently available candidates
         // - do this when your navigation state is stale, but not invalid
-        else if (navigation.trust_level() == navigation::e_fair_trust) {
-            // for (auto &candidate : navigation.candidates()) {
-            for (auto cand_itr = navigation.candidates().begin();
-                 cand_itr != navigation.last(); ++cand_itr) {
-                update_candidate(track, *cand_itr);
+        else if (navigation.trust_level() == navigation::trust_level::e_fair) {
+            for (auto &candidate : navigation.candidates()) {
+                update_candidate(track, candidate);
                 // Disregard this candidate
-                if (not is_reachable(*cand_itr, track)) {
+                if (not is_reachable(candidate, track)) {
                     // Forcefully set dist to numeric max for sorting
-                    invalidate_candidate(*cand_itr);
+                    invalidate_candidate(candidate);
                 }
             }
             // Sort again
@@ -524,7 +526,7 @@ class navigator {
                 navigation.set_no_trust();
             }
             // Call the inspector before returning (only for debugging)
-            // navigation.run_inspector("Update (fair trust): ");
+            navigation.run_inspector("Update (fair trust): ");
         }
         // Finally, if no candidate was found, trust could no be restored
         if (navigation.is_exhausted()) {
@@ -548,10 +550,9 @@ class navigator {
 
             // Re-sort after fair trust can result in many invalidated
             // candidates - ignore them
-            if (navigation.trust_level() == navigation::e_fair_trust) {
+            if (navigation.trust_level() == navigation::trust_level::e_fair) {
                 // Remove unreachable elements
                 navigation.set_last(find_invalid(navigation.candidates()));
-                // navigation.last() = navigation.candidates().end();
             } else {
                 navigation.set_last(navigation.candidates().end());
             }
@@ -567,9 +568,9 @@ class navigator {
                 // Set the next object that we want to reach (cache is sorted)
                 ++navigation.next();
                 // Set temporarily, so that the inspector can catch this state
-                navigation.set_state(navigation::e_on_target,
+                navigation.set_state(navigation::status::e_on_target,
                                      navigation.current()->index,
-                                     navigation::e_full_trust);
+                                     navigation::trust_level::e_full);
                 // Call the inspector on this portal crossing, then go to next
                 navigation.run_inspector("Skipping direct hit: ");
                 if (navigation.is_exhausted() or
@@ -579,16 +580,17 @@ class navigator {
                 }
             }
             // Now, we are on our way to the next candidate
-            navigation.set_state(navigation::e_towards_object, dindex_invalid,
-                                 navigation::e_full_trust);
+            navigation.set_state(navigation::status::e_towards_object,
+                                 dindex_invalid,
+                                 navigation::trust_level::e_full);
         } else {
-            navigation.set_state(navigation::e_unknown, dindex_invalid,
-                                 navigation::e_no_trust);
+            navigation.set_state(navigation::status::e_unknown, dindex_invalid,
+                                 navigation::trust_level::e_no_trust);
         }
-        // Release stepping constraints
-        stepping.release_step_size();
+        // Release stepping constraints from actors
+        stepping.constraint.template release<>();
         // Call the inspector before returning (only for debugging)
-        // navigation.run_inspector("Set next: ");
+        navigation.run_inspector("Set next: ");
     }
 
     /** Helper method to check and perform a volume switch
@@ -600,7 +602,7 @@ class navigator {
         // Check if we need to switch volume index and (re-)initialize
         // Do this when we are on a portal that has a volume link different to
         // the volume we currently navigate in
-        if (navigation.status() == navigation::e_on_target and
+        if (navigation.status() == navigation::status::e_on_target and
             navigation.volume() != navigation.current()->link) {
             // Set volume index to the next volume provided by the portal
             navigation.set_volume(navigation.current()->link);

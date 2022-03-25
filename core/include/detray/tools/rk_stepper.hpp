@@ -16,10 +16,16 @@
 
 namespace detray {
 
-/** Runge-Kutta-Nystrom 4th order stepper implementation */
+/// Runge-Kutta-Nystrom 4th order stepper implementation
+///
+/// @tparam magnetic_field_t the type of magnetic field
+/// @tparam track_t the type of track that is being advanced by the stepper
+/// @tparam constraint_ the type of constraints on the stepper
 template <typename magnetic_field_t, typename track_t,
+          // typename nav_update_policy_t = step::always_init,
+          typename constraint_t = unconstrained_step,
           template <typename, std::size_t> class array_t = darray>
-class rk_stepper final : public base_stepper<track_t> {
+class rk_stepper final : public base_stepper<track_t, constraint_t> {
 
     public:
     using base_type = base_stepper<track_t>;
@@ -28,7 +34,7 @@ class rk_stepper final : public base_stepper<track_t> {
     using context_type = typename magnetic_field_t::context_type;
 
     DETRAY_HOST_DEVICE
-    rk_stepper(magnetic_field_t mag_field) : _magnetic_field(mag_field) {}
+    rk_stepper(magnetic_field_t& mag_field) : _magnetic_field(mag_field) {}
 
     struct state : public base_type::state {
         DETRAY_HOST_DEVICE
@@ -163,6 +169,8 @@ class rk_stepper final : public base_stepper<track_t> {
             n_step_trials++;
         }
 
+        // Resolve how the navigator should perform an update
+        // nav_policy(stepping, navigation);
         // Decide final step size and inform navigator
         // Not a severe change to track state expected
         if (stepping.step_size() < max_step_size) {
@@ -210,7 +218,7 @@ class rk_stepper final : public base_stepper<track_t> {
     }
 
     private:
-    magnetic_field_t _magnetic_field;
+    magnetic_field_t& _magnetic_field;
 };
 
 }  // namespace detray

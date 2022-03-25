@@ -50,6 +50,7 @@ detray_add_library( detray_core core
    "include/detray/tools/navigator.hpp"
    "include/detray/tools/planar_intersector.hpp"
    "include/detray/tools/propagator.hpp"
+   "include/detray/toolt/step_constraints.hpp"
    "include/detray/tools/track.hpp"   
    "include/detray/tools/track_parameterization.hpp"
    "include/detray/tools/rk_stepper.hpp"

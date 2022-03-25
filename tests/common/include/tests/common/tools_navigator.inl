@@ -23,7 +23,7 @@ namespace detray {
 template <typename navigator_t, typename state_t = typename navigator_t::state>
 inline void check_towards_surface(state_t &state, dindex vol_id,
                                   std::size_t n_candidates, dindex next_id) {
-    ASSERT_EQ(state.status(), navigation::e_towards_object);
+    ASSERT_EQ(state.status(), navigation::status::e_towards_object);
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.candidates().size(), n_candidates);
     // If we are towards some object, we have no current one (even if we are
@@ -31,8 +31,8 @@ inline void check_towards_surface(state_t &state, dindex vol_id,
     ASSERT_EQ(state.current_object(), dindex_invalid);
     // the portal is still the next object, since we did not step
     ASSERT_EQ(state.next()->index, next_id);
-    ASSERT_TRUE((state.trust_level() == navigation::e_full_trust) or
-                (state.trust_level() == navigation::e_high_trust));
+    ASSERT_TRUE((state.trust_level() == navigation::trust_level::e_full) or
+                (state.trust_level() == navigation::trust_level::e_high));
 }
 
 /** Checks for a correct 'on_surface' state */
@@ -42,7 +42,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
                              dindex next_id) {
     // The status is: on surface/towards surface if the next candidate is
     // immediately updated and set in the same update call
-    ASSERT_EQ(state.status(), navigation::e_towards_object);
+    ASSERT_EQ(state.status(), navigation::status::e_towards_object);
     // Points towards next candidate
     ASSERT_TRUE(std::abs(state()) > state.tolerance());
     ASSERT_EQ(state.volume(), vol_id);
@@ -50,7 +50,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
     ASSERT_EQ(state.current_object(), dindex_invalid /*current_id*/);
     // points to the next surface now
     ASSERT_EQ(state.next()->index, next_id);
-    ASSERT_EQ(state.trust_level(), navigation::e_full_trust);
+    ASSERT_EQ(state.trust_level(), navigation::trust_level::e_full);
 }
 
 /** Checks for a correctly handled volume switch */
@@ -59,10 +59,10 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
     // Switched to next volume
     ASSERT_EQ(state.volume(), vol_id);
     // The status is towards first surface in new volume
-    ASSERT_EQ(state.status(), navigation::e_towards_object);
+    ASSERT_EQ(state.status(), navigation::status::e_towards_object);
     // Kernel is newly initialized
     ASSERT_FALSE(state.is_exhausted());
-    ASSERT_EQ(state.trust_level(), navigation::e_full_trust);
+    ASSERT_EQ(state.trust_level(), navigation::trust_level::e_full);
 }
 
 /** Checks an entire step onto the next surface */
@@ -76,10 +76,10 @@ inline void check_step(navigator_t &n, stepper_t &s, nav_state_t &n_state,
     // Step onto the surface in volume
     s.step(s_state, n_state);
     // Stepper reduced trust level
-    ASSERT_TRUE(n_state.trust_level() == navigation::e_high_trust);
+    ASSERT_TRUE(n_state.trust_level() == navigation::trust_level::e_high);
     ASSERT_TRUE(n.update(n_state, s_state));
     // Trust level is restored
-    ASSERT_EQ(n_state.trust_level(), navigation::e_full_trust);
+    ASSERT_EQ(n_state.trust_level(), navigation::trust_level::e_full);
     // The status is on surface
     check_on_surface<navigator_t>(n_state, vol_id, n_candidates, current_id,
                                   next_id);
@@ -124,9 +124,9 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     // No surface candidates
     ASSERT_EQ(n_state.candidates().size(), 0u);
     // You can not trust the state
-    ASSERT_EQ(n_state.trust_level(), e_no_trust);
+    ASSERT_EQ(n_state.trust_level(), trust_level::e_no_trust);
     // The status is unkown
-    ASSERT_EQ(n_state.status(), e_unknown);
+    ASSERT_EQ(n_state.status(), status::e_unknown);
 
     //
     // beampipe
@@ -150,11 +150,11 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     // Let's make half the step towards the beampipe
     s.step(s_state, n_state, n_state() * 0.5);
     // Stepper reduced trust level (hit step constrint -> only fair trust)
-    ASSERT_TRUE(n_state.trust_level() == e_fair_trust);
+    ASSERT_TRUE(n_state.trust_level() == trust_level::e_fair);
     // Re-navigate
     ASSERT_TRUE(n.update(n_state, s_state));
     // Trust level is restored
-    ASSERT_EQ(n_state.trust_level(), e_full_trust);
+    ASSERT_EQ(n_state.trust_level(), trust_level::e_full);
     // The status remains: towards surface
     check_towards_surface<navigator_t>(n_state, 0, 2, 0);
     // Distance to beampipe is now halved
@@ -172,9 +172,9 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
     // Step onto portal 7 in volume 0
     s.step(s_state, n_state);
-    ASSERT_TRUE(n_state.trust_level() == e_high_trust);
+    ASSERT_TRUE(n_state.trust_level() == trust_level::e_high);
     ASSERT_TRUE(n.update(n_state, s_state));
-    ASSERT_EQ(n_state.trust_level(), e_full_trust);
+    ASSERT_EQ(n_state.trust_level(), trust_level::e_full);
 
     //
     // barrel
@@ -228,11 +228,11 @@ TEST(ALGEBRA_PLUGIN, navigator) {
         if (vol_id == last_vol_id) {
             ASSERT_FALSE(n.update(n_state, s_state));
             // The status is: exited
-            ASSERT_EQ(n_state.status(), e_exit);
+            ASSERT_EQ(n_state.status(), status::e_exit);
             // Switch to next volume leads out of the detector world -> exit
             ASSERT_EQ(n_state.volume(), dindex_invalid);
             // We know we went out of the detector
-            ASSERT_EQ(n_state.trust_level(), e_full_trust);
+            ASSERT_EQ(n_state.trust_level(), trust_level::e_full);
         } else {
             ASSERT_TRUE(n.update(n_state, s_state));
         }

@@ -15,12 +15,18 @@
 
 namespace detray {
 
-/** Line stepper implementation */
-template <typename track_t>
-class line_stepper final : public base_stepper<track_t> {
+/// Straight line stepper implementation
+///
+/// @tparam track_t the type of track that is being advanced by the stepper
+/// @tparam constraint_ the type of constraints on the stepper
+template <typename track_t,
+          /*typename nav_update_policy_t = step::always_init*/
+          typename constraint_t = unconstrained_step>
+class line_stepper final : public base_stepper<track_t, constraint_t> {
 
     public:
     using base_type = base_stepper<track_t>;
+    // using nav_policy = nav_update_policy_t;
 
     struct state : public base_type::state {
         DETRAY_HOST_DEVICE
@@ -55,7 +61,8 @@ class line_stepper final : public base_stepper<track_t> {
         // Distance to next surface as fixed step size
         scalar step_size = navigation();
 
-        // Inform navigator
+        // Resolve how the navigator should perform an update
+        // nav_policy(stepping, navigation);
         // Not a severe change to track state expected
         if (step_size < max_step_size) {
             stepping.set_step_size(step_size);

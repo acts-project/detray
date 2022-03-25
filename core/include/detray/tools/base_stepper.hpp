@@ -11,12 +11,16 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // detray tools
+#include "detray/tools/step_constraints.hpp"
 #include "detray/tools/track.hpp"
 
 namespace detray {
 
-/** abstract stepper implementation */
-template <typename track_t>
+/// Base stepper implementation
+///
+/// @tparam track_t the type of track that is being advanced by the stepper
+/// @tparam constraint_ the type of constraints on the stepper
+template <typename track_t, typename constraint_t = unconstrained_step>
 class base_stepper {
 
     public:
@@ -63,12 +67,10 @@ class base_stepper {
         DETRAY_HOST_DEVICE
         const track_t &operator()() const { return _track; }
 
-        enum navigation_direction : int {
-            e_forward = 1,
-            e_backward = -1,
-        };
+        step::direction _nav_dir = step::direction::e_forward;
 
-        navigation_direction _nav_dir = e_forward;
+        // Stepping constraints
+        constraint_t constraint = {};
 
         /// Remaining path length
         scalar _path_limit = std::numeric_limits<scalar>::max();
