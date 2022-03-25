@@ -25,11 +25,16 @@ class line_stepper final : public base_stepper<track_t> {
     struct state : public base_type::state {
         state(track_t &t) : base_type::state(t) {}
 
+        /// Accumulated path length
+        scalar _path_length = 0.;
+
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE
         inline void advance_track() {
             auto &track = this->_track;
             track.set_pos(track.pos() + track.dir() * this->_step_size);
+
+            this->_path_length += this->_step_size;
         }
     };
 

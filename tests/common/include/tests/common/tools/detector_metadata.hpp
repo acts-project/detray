@@ -37,6 +37,9 @@ using cylinder = cylinder3<false, cylinder_intersector,
                            __plugin::cylindrical2<detray::scalar>, edge_type>;
 using disc =
     ring2<planar_intersector, __plugin::cartesian2<detray::scalar>, edge_type>;
+using unbounded_plane =
+    unmasked<planar_intersector, __plugin::cartesian2<detray::scalar>,
+             edge_type>;
 
 /// Defines all available types
 template <typename dynamic_data, std::size_t NGRIDS = 1>
@@ -138,12 +141,12 @@ struct toy_metadata {
     volume_stats _data;
 };
 
-/// Defines a detector with only rectangle surfaces
+/// Defines a detector with only rectangle/unbounded surfaces
 struct telescope_metadata {
 
     // How many grids have to be built
     enum grids : std::size_t {
-        n_grids = 1,
+        n_grids = 0,
     };
 
     // How to store and link transforms
@@ -157,14 +160,28 @@ struct telescope_metadata {
     /// to a type!)
     enum mask_ids : unsigned int {
         e_rectangle2 = 0,
+        e_unbounded_plane2 = 1,
     };
 
     // How to store and link masks
-    using mask_definitions = mask_registry<mask_ids, rectangle>;
+    using mask_definitions =
+        mask_registry<mask_ids, rectangle, unbounded_plane>;
 
-    // Accelerator types
-    using volume_finder = void;
-    using surface_finder = void;
+    // Accelerator types (are not used)
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using volume_finder =
+        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
+              vector_t, jagged_vector_t, array_t, tuple_t, dindex>;
+
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using surface_finder =
+        surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>;
 };
 
 struct detector_registry {

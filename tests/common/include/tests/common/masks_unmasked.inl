@@ -17,7 +17,7 @@ TEST(mask, unmasked) {
     point2 p2 = {0.5, -9.};
 
     unmasked u;
-    ASSERT_TRUE(u.is_inside<local_type>(p2) == e_hit);
-    ASSERT_TRUE(u.is_inside<local_type>(p2, true) == e_hit);
-    ASSERT_TRUE(u.is_inside<local_type>(p2, false) == e_missed);
+    ASSERT_TRUE(u.is_inside<local_type>(p2) == e_inside);
+    ASSERT_TRUE(u.is_inside<local_type>(p2, true) == e_inside);
+    ASSERT_TRUE(u.is_inside<local_type>(p2, false) == e_outside);
 }

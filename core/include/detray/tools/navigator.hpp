@@ -553,7 +553,7 @@ class navigator {
                 navigation.set_last(find_invalid(navigation.candidates()));
                 // navigation.last() = navigation.candidates().end();
             } else {
-                navigation.last() = navigation.candidates().end();
+                navigation.set_last(navigation.candidates().end());
             }
 
             // Take the nearest candidate first
