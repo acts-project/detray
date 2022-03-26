@@ -17,8 +17,8 @@
 
 #include <vecmem/containers/device_vector.hpp>
 
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/detail/accessor.hpp"
 
 #pragma once
 

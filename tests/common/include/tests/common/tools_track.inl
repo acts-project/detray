@@ -11,7 +11,7 @@
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/masks/rectangle2.hpp"
-#include "detray/tools/track.hpp"
+#include "detray/propagator/track.hpp"
 
 using namespace detray;
 using vector2 = __plugin::vector2<detray::scalar>;

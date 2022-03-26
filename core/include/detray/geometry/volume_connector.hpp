@@ -9,7 +9,7 @@
 
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/definitions/detail/accessor.hpp"
+#include "detray/utils/detail/accessor.hpp"
 
 namespace detray {
 /// Connector method for cylindrical volumes without phi separation

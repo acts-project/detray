@@ -10,8 +10,8 @@
 #include <matplot/matplot.h>
 
 #include "detray/style/styles.hpp"
+#include "detray/tools/generators.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/generators.hpp"
 #include "detray/view/views.hpp"
 
 namespace detray {

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "detray/tools/intersection_kernel.hpp"
+#include "detray/intersection/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
 
 namespace detray {

@@ -8,7 +8,7 @@
 
 // detray tools
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/tools/track_parameterization.hpp"
+#include "detray/definitions/track_parameterization.hpp"
 #include "detray/utils/indexing.hpp"
 
 namespace detray {

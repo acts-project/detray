@@ -10,10 +10,10 @@
 #include <fstream>
 
 #include "detray/core/type_registry.hpp"
+#include "detray/intersection/concentric_cylinder_intersector.hpp"
+#include "detray/intersection/cylinder_intersector.hpp"
+#include "detray/intersection/planar_intersector.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/tools/concentric_cylinder_intersector.hpp"
-#include "detray/tools/cylinder_intersector.hpp"
-#include "detray/tools/planar_intersector.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
 
 using namespace detray;

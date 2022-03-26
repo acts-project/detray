@@ -9,9 +9,9 @@
 
 #include <cmath>
 
-#include "detray/definitions/invalid_values.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/containers.hpp"
+#include "detray/utils/invalid_values.hpp"
 
 #ifdef DETRAY_CUSTOM_SCALARTYPE
 using detray_scalar = DETRAY_CUSTOM_SCALARTYPE;

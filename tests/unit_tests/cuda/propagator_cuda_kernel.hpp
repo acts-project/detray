@@ -19,10 +19,10 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
-#include "detray/tools/navigator.hpp"
-#include "detray/tools/propagator.hpp"
-#include "detray/tools/rk_stepper.hpp"
-#include "detray/tools/track.hpp"
+#include "detray/propagator/navigator.hpp"
+#include "detray/propagator/propagator.hpp"
+#include "detray/propagator/rk_stepper.hpp"
+#include "detray/propagator/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 
 using namespace detray;

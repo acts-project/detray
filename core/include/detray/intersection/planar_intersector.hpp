@@ -8,9 +8,9 @@
 
 #include <type_traits>
 
-#include "detray/core/intersection.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/tools/track.hpp"
+#include "detray/intersection/intersection.hpp"
+#include "detray/propagator/track.hpp"
 
 namespace detray {
 

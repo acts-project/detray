@@ -12,9 +12,9 @@
 #include <tuple>
 #include <vector>
 
-#include "detray/grids/associator.hpp"
+#include "detray/tools/associator.hpp"
+#include "detray/tools/generators.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/generators.hpp"
 
 namespace detray {
 using point2 = __plugin::point2<detray::scalar>;
