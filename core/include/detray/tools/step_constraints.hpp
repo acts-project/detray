@@ -34,7 +34,7 @@ enum constraint : std::size_t {
 /// Direction in which the integration is performed
 enum direction : int {
     e_forward = 1,
-    e_unknown = 0,
+    e_unknown = std::numeric_limits<int>::max(),
     e_backward = -1,
 };
 
@@ -56,38 +56,6 @@ struct unconstrained_step {
     /// Remove constraints
     template <step::constraint type = step::constraint::e_actor>
     DETRAY_HOST_DEVICE constexpr void release() {}
-};
-
-/// Struct that holds the current step size constraint, regardless of type.
-struct single_constraint_step {
-
-    /// Register a new @param step_size constraint
-    template <step::constraint type = step::constraint::e_actor>
-    DETRAY_HOST_DEVICE void set(scalar step_size) {
-        _direction = step_size > 0 ? step::direction::e_forward
-                                   : step::direction::e_backward;
-
-        _constraint = std::min(_constraint, _direction * step_size);
-    }
-
-    /// @returns the current step size constraint
-    template <step::constraint type = step::constraint::e_all>
-    DETRAY_HOST_DEVICE scalar size() {
-        return _direction * _constraint;
-    }
-
-    /// Remove all constraints
-    template <step::constraint type = step::constraint::e_actor>
-    DETRAY_HOST_DEVICE void release() {
-        _constraint = std::numeric_limits<scalar>::max();
-    }
-
-    /// Current navigation direction. Can only be changed after step size
-    /// release by first step size registration.
-    step::direction _direction = step::direction::e_forward;
-
-    /// Current strongest step size constraint
-    scalar _constraint = std::numeric_limits<scalar>::max();
 };
 
 /// Struct that can be configured with a number of different step sizes by other
@@ -143,7 +111,7 @@ struct constrained_step {
 
     /// Current navigation direction. Can only be changed after step size
     /// release by first step size registration.
-    step::direction _direction = step::direction::e_forward;
+    step::direction _direction = step::direction::e_unknown;
 
     /// Current strongets step size constraint
     array_t<scalar, 4> _constraints = {
