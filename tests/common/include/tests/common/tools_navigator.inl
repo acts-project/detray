@@ -107,7 +107,8 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;
     navigator_t n(toy_det);
-    using stepper_t = line_stepper<free_track_parameters>;
+    using constraint_t = constrained_step<>;
+    using stepper_t = line_stepper<free_track_parameters, constraint_t>;
 
     // test track
     point3 pos{0., 0., 0.};
@@ -148,7 +149,10 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_NEAR(n_state(), 19., tol);
 
     // Let's make half the step towards the beampipe
-    s.step(s_state, n_state, n_state() * 0.5);
+    s_state.template set_constraint<step::constraint::e_user>(n_state() * 0.5);
+    s.step(s_state, n_state);
+    // Release user constraint again
+    s_state.template release_constraint<step::constraint::e_user>();
     // Stepper reduced trust level (hit step constrint -> only fair trust)
     ASSERT_TRUE(n_state.trust_level() == trust_level::e_fair);
     // Re-navigate

@@ -80,8 +80,7 @@ struct propagator {
     template <typename state_t,
               typename inspector_t = propagation::void_inspector>
     DETRAY_HOST_DEVICE bool propagate(
-        state_t &p_state, inspector_t &inspector,
-        scalar max_step_size = std::numeric_limits<scalar>::max()) {
+        state_t &p_state, inspector_t &inspector) {
 
         auto &n_state = p_state._navigation;
         auto &s_state = p_state._stepping;
@@ -93,7 +92,7 @@ struct propagator {
         while (heartbeat) {
 
             // Take the step
-            heartbeat &= _stepper.step(s_state, n_state, max_step_size);
+            heartbeat &= _stepper.step(s_state, n_state);
 
             inspector(n_state, s_state);
 

@@ -28,7 +28,7 @@ template <typename magnetic_field_t, typename track_t,
 class rk_stepper final : public base_stepper<track_t, constraint_t> {
 
     public:
-    using base_type = base_stepper<track_t>;
+    using base_type = base_stepper<track_t, constraint_t>;
     using point3 = __plugin::point3<scalar>;
     using vector3 = __plugin::vector3<scalar>;
     using context_type = typename magnetic_field_t::context_type;
@@ -91,9 +91,8 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
      * @return returning the heartbeat, indicating if the stepping is alive
      */
     template <typename navigation_state_t>
-    DETRAY_HOST_DEVICE bool step(
-        state& stepping, navigation_state_t& navigation,
-        scalar max_step_size = std::numeric_limits<scalar>::max()) {
+    DETRAY_HOST_DEVICE bool step(state& stepping,
+                                 navigation_state_t& navigation) {
         auto& sd = stepping._step_data;
 
         scalar error_estimate = 0;
@@ -173,13 +172,13 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
         // nav_policy(stepping, navigation);
         // Decide final step size and inform navigator
         // Not a severe change to track state expected
-        if (stepping.step_size() < max_step_size) {
+        if (stepping.step_size() < stepping.constraints().template size<>()) {
             navigation.set_high_trust();
         }
         // Step size hit a constraint - the track state was probably changed a
         // lot
         else {
-            stepping.set_step_size(max_step_size);
+            stepping.set_step_size(stepping.constraints().template size<>());
             // Re-evaluate all candidates
             navigation.set_fair_trust();
         }

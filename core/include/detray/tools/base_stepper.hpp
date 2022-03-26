@@ -20,7 +20,7 @@ namespace detray {
 ///
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
-template <typename track_t, typename constraint_t = unconstrained_step>
+template <typename track_t, typename constraint_t>
 class base_stepper {
 
     public:
@@ -70,7 +70,7 @@ class base_stepper {
         step::direction _nav_dir = step::direction::e_forward;
 
         // Stepping constraints
-        constraint_t constraint = {};
+        constraint_t _constraint = {};
 
         /// Remaining path length
         scalar _path_limit = std::numeric_limits<scalar>::max();
@@ -81,6 +81,22 @@ class base_stepper {
         /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
         inline scalar dist_to_path_limit() const { return _path_limit; }
+
+        /// @returns access to this states step constraints
+        DETRAY_HOST_DEVICE
+        inline constraint_t &constraints() { return _constraint; }
+
+        /// Set new step constraint
+        template <step::constraint type = step::constraint::e_actor>
+        DETRAY_HOST_DEVICE inline void set_constraint(scalar step_size) {
+            _constraint.template set<type>(step_size);
+        }
+
+        /// Remove [all] constraints
+        template <step::constraint type = step::constraint::e_actor>
+        DETRAY_HOST_DEVICE inline void release_constraint() {
+            _constraint.template release<type>();
+        }
 
         /// Set the path limit to a scalar @param pl
         DETRAY_HOST_DEVICE
