@@ -16,7 +16,7 @@ detray_add_library( detray_core core
    "include/detray/core/transform_store.hpp"
    "include/detray/core/type_registry.hpp"
    # definitions include(s)
-   "include/detray/definitions/cuda_defs.hpp"
+   "include/detray/definitions/cuda_definitions.hpp"
    "include/detray/definitions/qualifiers.hpp"
    "include/detray/definitions/track_parameterization.hpp"
    "include/detray/definitions/units.hpp"

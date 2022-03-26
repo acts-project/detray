@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/definitions/cuda_defs.hpp"
+#include "detray/definitions/cuda_definitions.hpp"
 #include "utils_enumerate_cuda_kernel.hpp"
 
 namespace detray {
