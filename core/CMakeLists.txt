@@ -54,7 +54,6 @@ detray_add_library( detray_core core
    "include/detray/tools/track.hpp"   
    "include/detray/tools/track_parameterization.hpp"
    "include/detray/tools/rk_stepper.hpp"
-   "include/detray/utils/c_step.hpp"
    "include/detray/utils/containers.hpp"
    "include/detray/utils/enumerate.hpp"
    "include/detray/utils/generators.hpp"
