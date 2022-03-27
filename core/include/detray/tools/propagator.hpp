@@ -79,8 +79,8 @@ struct propagator {
      */
     template <typename state_t,
               typename inspector_t = propagation::void_inspector>
-    DETRAY_HOST_DEVICE bool propagate(
-        state_t &p_state, inspector_t &inspector) {
+    DETRAY_HOST_DEVICE bool propagate(state_t &p_state,
+                                      inspector_t &inspector) {
 
         auto &n_state = p_state._navigation;
         auto &s_state = p_state._stepping;

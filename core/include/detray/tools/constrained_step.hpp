@@ -49,7 +49,8 @@ struct unconstrained_step {
 
     /// @returns the current step size constraint
     template <step::constraint type = step::constraint::e_all>
-    DETRAY_HOST_DEVICE constexpr scalar size(const step::direction /*dir*/ = step::direction::e_forward) const {
+    DETRAY_HOST_DEVICE constexpr scalar size(
+        const step::direction /*dir*/ = step::direction::e_forward) const {
         return std::numeric_limits<scalar>::max();
     }
 
@@ -68,13 +69,13 @@ struct constrained_step {
         step::constraint type,
         std::enable_if_t<not(type == step::constraint::e_all), bool> = true>
     DETRAY_HOST_DEVICE void set(const scalar step_size) {
-        _constraints[type] =
-            std::min(_constraints[type], std::abs(step_size));
+        _constraints[type] = std::min(_constraints[type], std::abs(step_size));
     }
 
     /// @returns the current step size constraint for a given type or overall
     template <step::constraint type = step::constraint::e_all>
-    DETRAY_HOST_DEVICE scalar size(const step::direction dir = step::direction::e_forward) const {
+    DETRAY_HOST_DEVICE scalar
+    size(const step::direction dir = step::direction::e_forward) const {
         if constexpr (type == step::constraint::e_all) {
             return dir * min();
         } else {
