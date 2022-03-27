@@ -152,7 +152,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     s_state.template set_constraint<step::constraint::e_user>(n_state() * 0.5);
     s.step(s_state, n_state);
     // Release user constraint again
-    s_state.template release_constraint<step::constraint::e_user>();
+    s_state.template release_step<step::constraint::e_user>();
     // Stepper reduced trust level (hit step constrint -> only fair trust)
     ASSERT_TRUE(n_state.trust_level() == trust_level::e_fair);
     // Re-navigate

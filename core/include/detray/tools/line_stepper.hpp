@@ -24,7 +24,6 @@ class line_stepper final : public base_stepper<track_t, constraint_t> {
 
     public:
     using base_type = base_stepper<track_t, constraint_t>;
-    // using nav_policy = nav_update_policy_t;
 
     struct state : public base_type::state {
         DETRAY_HOST_DEVICE
@@ -58,17 +57,24 @@ class line_stepper final : public base_stepper<track_t, constraint_t> {
         // Distance to next surface as fixed step size
         scalar step_size = navigation();
 
+        // Update navigation direction
+        const step::direction dir = step_size > 0 ? step::direction::e_forward
+                                                  : step::direction::e_backward;
+        stepping.set_direction(dir);
+
         // Resolve how the navigator should perform an update
         // nav_policy(stepping, navigation);
         // Not a severe change to track state expected
-        if (step_size < stepping.constraints().template size<>()) {
+        if (step_size <
+            stepping.constraints().template size<>(stepping.direction())) {
             stepping.set_step_size(step_size);
             navigation.set_high_trust();
         }
         // Step size hit a constraint - the track state was probably changed a
         // lot
         else {
-            stepping.set_step_size(stepping.constraints().template size<>());
+            stepping.set_step_size(
+                stepping.constraints().template size<>(stepping.direction()));
             // Re-evaluate all candidates
             navigation.set_fair_trust();
         }

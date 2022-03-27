@@ -45,17 +45,17 @@ struct unconstrained_step {
 
     /// Register a new @param step_size constraint
     template <step::constraint type>
-    DETRAY_HOST_DEVICE constexpr void set(scalar /*step_size*/) {}
+    DETRAY_HOST_DEVICE constexpr void set(const scalar /*step_size*/) const {}
 
     /// @returns the current step size constraint
     template <step::constraint type = step::constraint::e_all>
-    DETRAY_HOST_DEVICE constexpr scalar size() {
+    DETRAY_HOST_DEVICE constexpr scalar size(const step::direction /*dir*/ = step::direction::e_forward) const {
         return std::numeric_limits<scalar>::max();
     }
 
     /// Remove constraints
     template <step::constraint type = step::constraint::e_actor>
-    DETRAY_HOST_DEVICE constexpr void release() {}
+    DETRAY_HOST_DEVICE constexpr void release() const {}
 };
 
 /// Struct that can be configured with a number of different step sizes by other
@@ -67,20 +67,18 @@ struct constrained_step {
     template <
         step::constraint type,
         std::enable_if_t<not(type == step::constraint::e_all), bool> = true>
-    DETRAY_HOST_DEVICE void set(scalar step_size) {
-        _direction = step_size > 0 ? step::direction::e_forward
-                                   : step::direction::e_backward;
+    DETRAY_HOST_DEVICE void set(const scalar step_size) {
         _constraints[type] =
-            std::min(_constraints[type], _direction * step_size);
+            std::min(_constraints[type], std::abs(step_size));
     }
 
     /// @returns the current step size constraint for a given type or overall
     template <step::constraint type = step::constraint::e_all>
-    DETRAY_HOST_DEVICE scalar size() {
+    DETRAY_HOST_DEVICE scalar size(const step::direction dir = step::direction::e_forward) const {
         if constexpr (type == step::constraint::e_all) {
-            return _direction * min();
+            return dir * min();
         } else {
-            return _direction * _constraints[type];
+            return dir * _constraints[type];
         }
     }
 
@@ -98,7 +96,7 @@ struct constrained_step {
     }
 
     /// @returns the strongest constraint
-    DETRAY_HOST_DEVICE scalar min() {
+    DETRAY_HOST_DEVICE scalar min() const {
         scalar min_constr = std::numeric_limits<scalar>::max();
         min_constr =
             std::min(min_constr, _constraints[step::constraint::e_accuracy]);
@@ -108,10 +106,6 @@ struct constrained_step {
             std::min(min_constr, _constraints[step::constraint::e_aborter]);
         return std::min(min_constr, _constraints[step::constraint::e_user]);
     }
-
-    /// Current navigation direction. Can only be changed after step size
-    /// release by first step size registration.
-    step::direction _direction = step::direction::e_unknown;
 
     /// Current strongets step size constraint
     array_t<scalar, 4> _constraints = {

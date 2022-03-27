@@ -471,7 +471,8 @@ class navigator {
                                              candidate.index,
                                              navigation::trust_level::e_full);
                         // Release stepping constraint from actors
-                        stepping.template release_constraint<>();
+                        stepping
+                            .template release_step<step::constraint::e_actor>();
                         // Set the next object we want to reach - might be end()
                         ++navigation.next();
                         if (not navigation.is_exhausted()) {
@@ -569,7 +570,7 @@ class navigator {
                                      navigation.current()->index,
                                      navigation::trust_level::e_full);
                 // Release actor constraints
-                stepping.template release_constraint<>();
+                stepping.template release_step<step::constraint::e_actor>();
                 // Call the inspector on this portal crossing, then go to next
                 navigation.run_inspector("Skipping direct hit: ");
                 if (navigation.is_exhausted() or

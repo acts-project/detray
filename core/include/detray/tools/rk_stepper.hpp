@@ -11,6 +11,8 @@
 #include "detray/tools/base_stepper.hpp"
 
 // detray definitions
+#include <iostream>
+
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
@@ -167,17 +169,24 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
             n_step_trials++;
         }
 
-        // Resolve how the navigator should perform an update
-        // nav_policy(stepping, navigation);
+        // Update navigation direction
+        const step::direction dir = stepping._step_size >= 0
+                                        ? step::direction::e_forward
+                                        : step::direction::e_backward;
+        stepping.set_direction(dir);
+
         // Decide final step size and inform navigator
         // Not a severe change to track state expected
-        if (stepping.step_size() < stepping.constraints().template size<>()) {
+        if (std::abs(stepping.step_size()) <
+            std::abs(
+                stepping.constraints().template size<>(stepping.direction()))) {
             navigation.set_high_trust();
         }
         // Step size hit a constraint - the track state was probably changed a
         // lot
         else {
-            stepping.set_step_size(stepping.constraints().template size<>());
+            stepping.set_step_size(
+                stepping.constraints().template size<>(stepping.direction()));
             // Re-evaluate all candidates
             navigation.set_fair_trust();
         }
