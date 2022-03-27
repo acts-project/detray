@@ -16,17 +16,6 @@
 
 namespace detray {
 
-namespace step {
-
-/// Direction in which the integration is performed
-enum direction : int {
-    e_forward = 1,
-    e_unknown = std::numeric_limits<int>::max(),
-    e_backward = -1,
-};
-
-}  // namespace step
-
 /// Base stepper implementation
 ///
 /// @tparam track_t the type of track that is being advanced by the stepper
@@ -124,7 +113,7 @@ class base_stepper {
 
         /// Update and check the path limit against a new @param step size.
         DETRAY_HOST_DEVICE
-        inline bool check_path_limit() const {
+        inline bool check_path_limit() {
             _path_limit -= _step_size;
             if (_path_limit <= 0.) {
                 return false;

@@ -18,6 +18,13 @@ namespace detray {
 // Add constraints for steppers
 namespace step {
 
+/// Direction in which the integration is performed
+enum direction : int {
+    e_forward = 1,
+    e_unknown = std::numeric_limits<int>::max(),
+    e_backward = -1,
+};
+
 /// the types of constraints
 /// from accuracy - this can vary up and down given a good step estimator
 /// from actor    - this would be a typical navigation step
