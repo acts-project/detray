@@ -27,6 +27,8 @@
 
 using namespace detray;
 
+using intersection_t = line_plane_intersection;
+
 using detector_host_type =
     detector<detector_registry::toy_detector, darray, thrust::tuple,
              vecmem::vector, vecmem::jagged_vector>;
@@ -50,6 +52,6 @@ namespace detray {
 void propagator_benchmark(
     detector_view<detector_host_type> det_data,
     vecmem::data::vector_view<free_track_parameters>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection>& candidates_data);
+    vecmem::data::jagged_vector_view<intersection_t>& candidates_data);
 
 }  // namespace detray
