@@ -16,6 +16,17 @@
 
 namespace detray {
 
+namespace step {
+
+/// Direction in which the integration is performed
+enum direction : int {
+    e_forward = 1,
+    e_unknown = std::numeric_limits<int>::max(),
+    e_backward = -1,
+};
+
+}  // namespace step
+
 /// Base stepper implementation
 ///
 /// @tparam track_t the type of track that is being advanced by the stepper
@@ -91,11 +102,11 @@ class base_stepper {
 
         /// @returns access to this states step constraints
         DETRAY_HOST_DEVICE
-        inline const constraint_t &constraints() { return _constraint; }
+        inline const constraint_t &constraints() const { return _constraint; }
 
         /// @returns the navigation direction
         DETRAY_HOST_DEVICE
-        inline step::direction direction() { return _direction; }
+        inline step::direction direction() const { return _direction; }
 
         /// Remove [all] constraints
         template <step::constraint type = step::constraint::e_actor>
@@ -113,7 +124,7 @@ class base_stepper {
 
         /// Update and check the path limit against a new @param step size.
         DETRAY_HOST_DEVICE
-        inline bool check_path_limit() {
+        inline bool check_path_limit() const {
             _path_limit -= _step_size;
             if (_path_limit <= 0.) {
                 return false;

@@ -11,8 +11,6 @@
 #include "detray/tools/base_stepper.hpp"
 
 // detray definitions
-#include <iostream>
-
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 

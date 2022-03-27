@@ -108,7 +108,7 @@ struct constrained_step {
         return std::min(min_constr, _constraints[step::constraint::e_user]);
     }
 
-    /// Current strongets step size constraint
+    /// Current step size constraints from accuracy, actors, aborters or user
     array_t<scalar, 4> _constraints = {
         std::numeric_limits<scalar>::max(), std::numeric_limits<scalar>::max(),
         std::numeric_limits<scalar>::max(), std::numeric_limits<scalar>::max()};
