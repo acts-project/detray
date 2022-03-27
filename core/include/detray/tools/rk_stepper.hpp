@@ -33,7 +33,8 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
     using context_type = typename magnetic_field_t::context_type;
 
     DETRAY_HOST_DEVICE
-    rk_stepper(magnetic_field_t& mag_field) : _magnetic_field(mag_field) {}
+    rk_stepper(const magnetic_field_t& mag_field)
+        : _magnetic_field(mag_field) {}
 
     struct state : public base_type::state {
         DETRAY_HOST_DEVICE
