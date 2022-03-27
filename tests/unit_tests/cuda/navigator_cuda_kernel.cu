@@ -33,6 +33,7 @@ __global__ void navigator_test_kernel(
     navigator_device_t n(det);
 
     auto& traj = tracks.at(gid);
+    stepper_t stepper;
     stepper_t::state stepping(traj);
 
     navigator_device_t::state state(candidates.at(gid));
@@ -44,7 +45,7 @@ __global__ void navigator_test_kernel(
     bool heartbeat = n.init(state, stepping);
     while (heartbeat) {
 
-        stepping().set_pos(stepping().pos() + state() * stepping().dir());
+        heartbeat &= stepper.step(stepping, state);
 
         heartbeat = n.update(state, stepping);
 

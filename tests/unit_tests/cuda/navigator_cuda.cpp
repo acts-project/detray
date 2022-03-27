@@ -7,8 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <chrono>
-#include <iostream>
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
@@ -66,8 +64,6 @@ TEST(navigator_cuda, navigator) {
      * Host Volume Record
      */
 
-    /*time*/ auto start_cpu = std::chrono::system_clock::now();
-
     vecmem::jagged_vector<dindex> volume_records_host(theta_steps * phi_steps,
                                                       &mng_mr);
     vecmem::jagged_vector<point3> position_records_host(theta_steps * phi_steps,
@@ -77,15 +73,16 @@ TEST(navigator_cuda, navigator) {
 
         auto& traj = tracks_host[i];
         navigator_host_t::state state(mng_mr);
+        stepper_t stepper;
         stepper_t::state stepping(traj);
 
         // Start propagation and record volume IDs
         bool heartbeat = n.init(state, stepping);
         while (heartbeat) {
 
-            stepping().set_pos(stepping().pos() + state() * stepping().dir());
+            heartbeat &= stepper.step(stepping, state);
 
-            heartbeat = n.update(state, stepping);
+            heartbeat &= n.update(state, stepping);
 
             // Record volume
             volume_records_host[i].push_back(state.volume());
@@ -93,14 +90,9 @@ TEST(navigator_cuda, navigator) {
         }
     }
 
-    /*time*/ auto end_cpu = std::chrono::system_clock::now();
-    /*time*/ std::chrono::duration<double> time_cpu = end_cpu - start_cpu;
-
     /**
      * Device Volume Record
      */
-
-    /*time*/ auto start_cuda = std::chrono::system_clock::now();
 
     vecmem::jagged_vector<dindex> volume_records_device(&mng_mr);
     vecmem::jagged_vector<point3> position_records_device(&mng_mr);
@@ -158,11 +150,4 @@ TEST(navigator_cuda, navigator) {
             EXPECT_NEAR(pos_host[2], pos_device[2], pos_diff_tolerance);
         }
     }
-
-    /*time*/ auto end_cuda = std::chrono::system_clock::now();
-    /*time*/ std::chrono::duration<double> time_cuda = end_cuda - start_cuda;
-
-    std::cout << "==> Elpased time ... " << std::endl;
-    std::cout << "CPU: " << time_cpu.count() << std::endl;
-    std::cout << "CUDA: " << time_cuda.count() << std::endl;
 }
