@@ -62,7 +62,7 @@ TEST(mask_store_cuda, mask_store) {
     }
 
     /** host output for intersection status **/
-    vecmem::jagged_vector<intersection_status> output_host(5, &mng_mr);
+    vecmem::jagged_vector<intersection::status> output_host(5, &mng_mr);
 
     /** get mask objects **/
     const auto& rectangle_mask = store.group<e_rectangle2>()[0];
@@ -89,7 +89,7 @@ TEST(mask_store_cuda, mask_store) {
     vecmem::cuda::copy copy;
 
     /** device output for intersection status **/
-    vecmem::data::jagged_vector_buffer<intersection_status> output_buffer(
+    vecmem::data::jagged_vector_buffer<intersection::status> output_buffer(
         {0, 0, 0, 0, 0}, {n_points, n_points, n_points, n_points, n_points},
         mng_mr);
 
@@ -102,7 +102,7 @@ TEST(mask_store_cuda, mask_store) {
     /** run the kernel **/
     mask_test(store_data, input_point2_data, input_point3_data, output_buffer);
 
-    vecmem::jagged_vector<intersection_status> output_device(&mng_mr);
+    vecmem::jagged_vector<intersection::status> output_device(&mng_mr);
     copy(output_buffer, output_device);
 
     /** Compare the values **/

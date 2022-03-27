@@ -18,7 +18,7 @@ __global__ void mask_test_kernel(
         store_data,
     vecmem::data::vector_view<point2> input_point2_data,
     vecmem::data::vector_view<point3> input_point3_data,
-    vecmem::data::jagged_vector_view<intersection_status> output_data) {
+    vecmem::data::jagged_vector_view<intersection::status> output_data) {
 
     using cartesian2 = __plugin::cartesian2<detray::scalar>;
 
@@ -30,7 +30,7 @@ __global__ void mask_test_kernel(
     /** get mask objects **/
     vecmem::device_vector<point2> input_point2(input_point2_data);
     vecmem::device_vector<point3> input_point3(input_point3_data);
-    vecmem::jagged_device_vector<intersection_status> output_device(
+    vecmem::jagged_device_vector<intersection::status> output_device(
         output_data);
 
     const auto& rectangle_mask = store.group<e_rectangle2>()[0];
@@ -61,7 +61,7 @@ void mask_test(
         store_data,
     vecmem::data::vector_view<point2>& input_point2_data,
     vecmem::data::vector_view<point3>& input_point3_data,
-    vecmem::data::jagged_vector_view<intersection_status>& output_data) {
+    vecmem::data::jagged_vector_view<intersection::status>& output_data) {
 
     int block_dim = 1;
     int thread_dim = 1;
