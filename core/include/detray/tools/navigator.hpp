@@ -165,10 +165,7 @@ class navigator {
         /** Call the navigation inspector */
         DETRAY_HOST_DEVICE
         inline void run_inspector(const char *message) {
-            if constexpr (not std::is_same_v<inspector_type,
-                                             navigation::void_inspector>) {
-                _inspector(*this, message);
-            }
+            _inspector(*this, message);
         }
 
         /** @returns the navigation inspector */

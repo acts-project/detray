@@ -22,7 +22,6 @@ namespace detray {
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
 template <typename magnetic_field_t, typename track_t,
-          // typename nav_update_policy_t = step::always_init,
           typename constraint_t = unconstrained_step,
           template <typename, std::size_t> class array_t = darray>
 class rk_stepper final : public base_stepper<track_t, constraint_t> {

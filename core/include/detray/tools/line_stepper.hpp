@@ -19,9 +19,7 @@ namespace detray {
 ///
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
-template <typename track_t,
-          /*typename nav_update_policy_t = step::always_init*/
-          typename constraint_t = unconstrained_step>
+template <typename track_t, typename constraint_t = unconstrained_step>
 class line_stepper final : public base_stepper<track_t, constraint_t> {
 
     public:
