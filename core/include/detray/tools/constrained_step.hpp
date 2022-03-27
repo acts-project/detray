@@ -31,13 +31,6 @@ enum constraint : std::size_t {
     e_all = 4
 };
 
-/// Direction in which the integration is performed
-enum direction : int {
-    e_forward = 1,
-    e_unknown = std::numeric_limits<int>::max(),
-    e_backward = -1,
-};
-
 }  // namespace step
 
 /// Struct that represents unconstrained stepping
