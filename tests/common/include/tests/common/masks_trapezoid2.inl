@@ -34,12 +34,12 @@ TEST(mask, trapezoid2) {
     ASSERT_EQ(t2[3], divisor);
 
     ASSERT_TRUE(t2.is_inside<local_type>(p2_in) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(t2.is_inside<local_type>(p2_edge) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(t2.is_inside<local_type>(p2_out) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(t2.is_inside<local_type>(p2_out, {1., 0.5}) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
 }

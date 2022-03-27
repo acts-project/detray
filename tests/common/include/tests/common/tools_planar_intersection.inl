@@ -37,8 +37,8 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
 
     auto hit_unbound = pi.intersect(shifted, point3{2., 1., 0.},
                                     vector3{0., 0., 1.}, unmasked_unbound);
-    ASSERT_TRUE(hit_unbound.status == intersection_status::e_inside);
-    ASSERT_TRUE(hit_unbound.direction == intersection_direction::e_along);
+    ASSERT_TRUE(hit_unbound.status == intersection::status::e_inside);
+    ASSERT_TRUE(hit_unbound.direction == intersection::direction::e_along);
     // Global intersection information
     ASSERT_NEAR(hit_unbound.p3[0], 2., epsilon);
     ASSERT_NEAR(hit_unbound.p3[1], 1., epsilon);
@@ -51,7 +51,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
         unmasked_bound{};
     auto hit_bound = pi.intersect(shifted, point3{2., 1., 0.},
                                   vector3{0., 0., 1.}, unmasked_bound);
-    ASSERT_TRUE(hit_bound.status == intersection_status::e_inside);
+    ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound.p3[0], 2., epsilon);
     ASSERT_NEAR(hit_bound.p3[1], 1., epsilon);
@@ -64,7 +64,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
     rectangle2<> rect_for_inside{3., 3., 0u};
     auto hit_bound_inside = pi.intersect(shifted, point3{2., 1., 0.},
                                          vector3{0., 0., 1.}, rect_for_inside);
-    ASSERT_TRUE(hit_bound_inside.status == intersection_status::e_inside);
+    ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound_inside.p3[0], 2., epsilon);
     ASSERT_NEAR(hit_bound_inside.p3[1], 1., epsilon);
@@ -77,7 +77,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
     rectangle2<> rect_for_outside{0.5, 3.5, 0u};
     auto hit_bound_outside = pi.intersect(
         shifted, point3{2., 1., 0.}, vector3{0., 0., 1.}, rect_for_outside);
-    ASSERT_TRUE(hit_bound_outside.status == intersection_status::e_outside);
+    ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound_outside.p3[0], 2., epsilon);
     ASSERT_NEAR(hit_bound_outside.p3[1], 1., epsilon);

@@ -77,6 +77,7 @@ template <typename detector_t,
 class navigator {
 
     public:
+    using intersection_t = line_plane_intersection;
     using inspector_type = inspector_t;
     using detector_type = detector_t;
     using volume_type = typename detector_t::volume_type;
@@ -92,7 +93,7 @@ class navigator {
     class state {
         friend class navigator;
 
-        using candidate_itr_t = typename vector_type<intersection>::iterator;
+        using candidate_itr_t = typename vector_type<intersection_t>::iterator;
 
         public:
         /** Default constructor
@@ -106,7 +107,7 @@ class navigator {
 
         /** Constructor from candidates vector_view
          **/
-        DETRAY_HOST_DEVICE state(vector_type<intersection> candidates)
+        DETRAY_HOST_DEVICE state(vector_type<intersection_t> candidates)
             : _candidates(candidates) {}
 
         /** Scalar representation of the navigation state,
@@ -117,13 +118,13 @@ class navigator {
 
         /** @returns current candidates - const */
         DETRAY_HOST_DEVICE
-        inline auto candidates() const -> const vector_type<intersection> & {
+        inline auto candidates() const -> const vector_type<intersection_t> & {
             return _candidates;
         }
 
         /** @returns current candidates */
         DETRAY_HOST_DEVICE
-        inline auto candidates() -> vector_type<intersection> & {
+        inline auto candidates() -> vector_type<intersection_t> & {
             return _candidates;
         }
 
@@ -251,7 +252,8 @@ class navigator {
         /** Helper method to check if a kernel is exhausted - const */
         template <typename track_t>
         DETRAY_HOST_DEVICE inline auto is_on_object(
-            const track_t &track, const intersection &candidate) const -> bool {
+            const track_t &track, const intersection_t &candidate) const
+            -> bool {
             if ((candidate.path < _on_object_tolerance) and
                 (candidate.path > track.overstep_tolerance())) {
                 return true;
@@ -308,7 +310,7 @@ class navigator {
 
         private:
         /// Our list of candidates (intersections with object)
-        vector_type<intersection> _candidates = {};
+        vector_type<intersection_t> _candidates = {};
 
         /// The next best candidate
         candidate_itr_t _next = _candidates.end();
@@ -460,7 +462,7 @@ class navigator {
             navigation.candidates().size() == 1) {
             while (not navigation.is_exhausted()) {
 
-                intersection &candidate = *navigation.next();
+                intersection_t &candidate = *navigation.next();
                 update_candidate(track, candidate);
 
                 // This is likely the next target
@@ -624,7 +626,7 @@ class navigator {
      */
     template <typename track_t>
     DETRAY_HOST_DEVICE inline void update_candidate(
-        const track_t &track, intersection &candidate) const {
+        const track_t &track, intersection_t &candidate) const {
         const dindex obj_idx = candidate.index;
         candidate =
             intersect(track, _detector->surface_by_index(obj_idx),
@@ -640,7 +642,7 @@ class navigator {
      * @param candidate the candidate to be invalidated
      */
     DETRAY_HOST_DEVICE
-    inline void invalidate_candidate(intersection &candidate) const {
+    inline void invalidate_candidate(intersection_t &candidate) const {
         candidate.path = std::numeric_limits<scalar>::max();
     }
 
@@ -650,9 +652,9 @@ class navigator {
      * @returns true if is reachable by track
      */
     template <typename track_t>
-    DETRAY_HOST_DEVICE inline bool is_reachable(intersection &candidate,
+    DETRAY_HOST_DEVICE inline bool is_reachable(intersection_t &candidate,
                                                 track_t &track) const {
-        return candidate.status == e_inside and
+        return candidate.status == intersection::status::e_inside and
                candidate.path >= track.overstep_tolerance() and
                candidate.path < std::numeric_limits<scalar>::max();
     }
@@ -664,7 +666,7 @@ class navigator {
     template <typename cache_t>
     DETRAY_HOST_DEVICE inline auto find_invalid(cache_t &candidates) const {
         // Member functions cannot be used here easily (?)
-        auto not_reachable = [](intersection &candidate) {
+        auto not_reachable = [](intersection_t &candidate) {
             return candidate.path == std::numeric_limits<scalar>::max();
         };
 
@@ -681,11 +683,11 @@ class navigator {
     // candidates size allocation. With the local navigation, the size can be
     // restricted to much smaller value
     DETRAY_HOST
-    vecmem::data::jagged_vector_buffer<intersection> create_candidates_buffer(
+    vecmem::data::jagged_vector_buffer<intersection_t> create_candidates_buffer(
         const unsigned int n_tracks,
         vecmem::memory_resource &device_resource) const {
 
-        return vecmem::data::jagged_vector_buffer<intersection>(
+        return vecmem::data::jagged_vector_buffer<intersection_t>(
             std::vector<std::size_t>(n_tracks, 0),
             std::vector<std::size_t>(n_tracks,
                                      _detector->get_n_max_objects_per_volume()),
@@ -702,10 +704,10 @@ class navigator {
 // candidates size allocation. With the local navigation, the size can be
 // restricted to much smaller value
 template <typename detector_t>
-DETRAY_HOST vecmem::data::jagged_vector_buffer<intersection>
+DETRAY_HOST vecmem::data::jagged_vector_buffer<line_plane_intersection>
 create_candidates_buffer(const detector_t &det, const unsigned int n_tracks,
                          vecmem::memory_resource &device_resource) {
-    return vecmem::data::jagged_vector_buffer<intersection>(
+    return vecmem::data::jagged_vector_buffer<line_plane_intersection>(
         std::vector<std::size_t>(n_tracks, 0),
         std::vector<std::size_t>(n_tracks, det.get_n_max_objects_per_volume()),
         device_resource, det.resource());

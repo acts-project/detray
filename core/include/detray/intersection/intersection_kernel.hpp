@@ -59,7 +59,7 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
             auto sfi =
                 std::move(mask.intersector().intersect(ctf, track, mask));
 
-            if (sfi.status == e_inside) {
+            if (sfi.status == intersection::status::e_inside) {
                 sfi.index = volume_index;
                 return sfi;
             }
@@ -76,7 +76,7 @@ DETRAY_HOST_DEVICE inline auto unroll_intersect(
     }
 
     // No intersection was found
-    return intersection{};
+    return line_plane_intersection{};
 }
 
 /** Kernel method that updates the intersections

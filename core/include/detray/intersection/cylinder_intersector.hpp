@@ -21,6 +21,8 @@ struct unbound;
  */
 struct cylinder_intersector {
 
+    using intersection_t = line_plane_intersection;
+
     using transform3 = __plugin::transform3<detray::scalar>;
     using point3 = __plugin::point3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
@@ -48,7 +50,7 @@ struct cylinder_intersector {
             std::is_same_v<typename mask_t::local_type, cylindrical2> or
                 std::is_same_v<typename mask_t::local_type, detray::unbound>,
             bool> = true>
-    DETRAY_HOST_DEVICE inline intersection intersect(
+    DETRAY_HOST_DEVICE inline intersection_t intersect(
         const transform3 &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon) const {
@@ -79,7 +81,7 @@ struct cylinder_intersector {
             std::is_same_v<typename mask_t::local_type, cylindrical2> or
                 std::is_same_v<typename mask_t::local_type, detray::unbound>,
             bool> = true>
-    DETRAY_HOST_DEVICE inline intersection intersect(
+    DETRAY_HOST_DEVICE inline intersection_t intersect(
         const transform3 &trf, const point3 &ro, const vector3 &rd,
         const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
@@ -106,7 +108,7 @@ struct cylinder_intersector {
             auto t01 = std::get<1>(qe_solution);
             scalar t = (t01[0] > overstep_tolerance) ? t01[0] : t01[1];
             if (t > overstep_tolerance) {
-                intersection is;
+                intersection_t is;
                 is.path = t;
                 is.p3 = ro + is.path * rd;
                 constexpr local_frame local_converter{};
@@ -115,12 +117,13 @@ struct cylinder_intersector {
                 is.status =
                     mask.template is_inside<local_frame>(local3, tolerance);
                 scalar rdr = getter::perp(local3 + 0.1 * rd);
-                is.direction = rdr > r ? e_along : e_opposite;
+                is.direction = rdr > r ? intersection::direction::e_along
+                                       : intersection::direction::e_opposite;
                 is.link = mask.volume_link();
                 return is;
             }
         }
-        return intersection{};
+        return intersection_t{};
     }
 };
 

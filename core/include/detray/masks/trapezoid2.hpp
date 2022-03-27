@@ -92,14 +92,14 @@ struct trapezoid2 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_t>
-    DETRAY_HOST_DEVICE intersection_status
-    is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection::status is_inside(
+        const point2 &p, const mask_tolerance t = within_epsilon) const {
         scalar rel_y = (_values[2] + p[1]) * _values[3];
         return (std::abs(p[0]) <=
                     _values[0] + rel_y * (_values[1] - _values[0]) + t[0] and
                 std::abs(p[1]) <= _values[2] + t[1])
-                   ? e_inside
-                   : e_outside;
+                   ? intersection::status::e_inside
+                   : intersection::status::e_outside;
     }
 
     /** Equality operator from an array, convenience function

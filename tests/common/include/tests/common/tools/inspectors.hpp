@@ -51,7 +51,7 @@ template <status navigation_status = status::e_unknown,
 struct object_tracer {
 
     // record all object id the navigator encounters
-    vector_t<intersection> object_trace = {};
+    vector_t<line_plane_intersection> object_trace = {};
 
     template <typename state_type>
     auto operator()(state_type &state, const char * /*message*/) {

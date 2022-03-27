@@ -92,18 +92,18 @@ struct cylinder3 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_t>
-    DETRAY_HOST_DEVICE intersection_status
-    is_inside(const point3 &p, const mask_tolerance t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection::status is_inside(
+        const point3 &p, const mask_tolerance t = within_epsilon) const {
         if constexpr (kRadialCheck) {
             scalar r = getter::perp(p);
             if (std::abs(r - _values[0]) >=
                 t[0] + 5 * std::numeric_limits<scalar>::epsilon()) {
-                return e_missed;
+                return intersection::status::e_missed;
             }
         }
         return (_values[1] - t[1] <= p[2] and p[2] <= _values[2] + t[1])
-                   ? e_inside
-                   : e_outside;
+                   ? intersection::status::e_inside
+                   : intersection::status::e_outside;
     }
 
     /** Equality operator from an array, convenience function

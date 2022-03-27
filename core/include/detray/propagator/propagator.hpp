@@ -20,7 +20,7 @@ struct void_inspector {
 
     /** void operator **/
     template <typename... args>
-    DETRAY_HOST_DEVICE void operator()(const args &... /*ignored*/) {
+    DETRAY_HOST_DEVICE void operator()(const args &.../*ignored*/) {
         return;
     }
 };
@@ -59,8 +59,8 @@ struct propagator {
     struct state {
 
         template <typename track_t>
-        DETRAY_HOST_DEVICE state(track_t &t_in,
-                                 vector_type<intersection> candidates = {})
+        DETRAY_HOST_DEVICE state(
+            track_t &t_in, vector_type<line_plane_intersection> candidates = {})
             : _stepping(t_in), _navigation(candidates) {}
 
         typename stepper_t::state _stepping;

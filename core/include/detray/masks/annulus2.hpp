@@ -109,8 +109,8 @@ struct annulus2 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_t>
-    DETRAY_HOST_DEVICE intersection_status
-    is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection::status is_inside(
+        const point2 &p, const mask_tolerance t = within_epsilon) const {
         // The two quantities to check: r^2 in module system, phi in strips
         // system
 
@@ -127,14 +127,14 @@ struct annulus2 {
             scalar maxR_tol = _values[1] + t[0];
 
             if (r_mod2 < minR_tol * minR_tol or r_mod2 > maxR_tol * maxR_tol)
-                return e_outside;
+                return intersection::status::e_outside;
 
             scalar phi_strp = getter::phi(p) - _values[6];
             // Check phi boundaries, which are well def. in local frame
             return (phi_strp >= _values[2] - t[1] and
                     phi_strp <= _values[3] + t[1])
-                       ? e_inside
-                       : e_outside;
+                       ? intersection::status::e_inside
+                       : intersection::status::e_outside;
         }
         // polar strip coordinates given
         else {
@@ -143,7 +143,7 @@ struct annulus2 {
 
             // Check phi boundaries, which are well def. in local frame
             if (phi_strp < _values[2] - t[1] || phi_strp > _values[3] + t[1])
-                return e_outside;
+                return intersection::status::e_outside;
 
             // Now go to module frame to check r boundaries. Use the origin
             // shift in polar coordinates for that
@@ -160,8 +160,8 @@ struct annulus2 {
 
             return (r_mod2 >= minR_tol * minR_tol and
                     r_mod2 <= maxR_tol * maxR_tol)
-                       ? e_inside
-                       : e_outside;
+                       ? intersection::status::e_inside
+                       : intersection::status::e_outside;
         }
     }
 

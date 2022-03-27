@@ -18,6 +18,8 @@ namespace detray {
  */
 struct planar_intersector {
 
+    using intersection_t = line_plane_intersection;
+
     using transform3 = __plugin::transform3<detray::scalar>;
     using point3 = __plugin::point3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
@@ -43,7 +45,7 @@ struct planar_intersector {
     template <typename track_t, typename mask_t,
               std::enable_if_t<std::is_class_v<typename mask_t::local_type>,
                                bool> = true>
-    DETRAY_HOST_DEVICE inline intersection intersect(
+    DETRAY_HOST_DEVICE inline intersection_t intersect(
         const transform3 &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon) const {
@@ -70,7 +72,7 @@ struct planar_intersector {
     template <typename mask_t,
               std::enable_if_t<std::is_class_v<typename mask_t::local_type>,
                                bool> = true>
-    DETRAY_HOST_DEVICE inline intersection intersect(
+    DETRAY_HOST_DEVICE inline intersection_t intersect(
         const transform3 &trf, const point3 &ro, const vector3 &rd,
         const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
@@ -87,17 +89,19 @@ struct planar_intersector {
         // Intersection code
         scalar denom = vector::dot(rd, sn);
         if (denom != 0.0) {
-            intersection is;
+            intersection_t is;
             is.path = vector::dot(sn, st - ro) / denom;
             is.p3 = ro + is.path * rd;
             constexpr local_frame local_converter{};
             is.p2 = local_converter(trf, is.p3);
             is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
-            is.direction = is.path > overstep_tolerance ? e_along : e_opposite;
+            is.direction = is.path > overstep_tolerance
+                               ? intersection::direction::e_along
+                               : intersection::direction::e_opposite;
             is.link = mask.volume_link();
             return is;
         }
-        return intersection{};
+        return intersection_t{};
     }
 };
 

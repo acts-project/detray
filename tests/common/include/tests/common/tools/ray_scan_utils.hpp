@@ -145,7 +145,7 @@ inline bool check_connectivity(
  * @return a set of volume connections that were found by portal intersection
  *         of a ray.
  */
-template <typename record_container = dvector<std::pair<dindex, intersection>>>
+template <typename record_container = dvector<std::pair<dindex, line_plane_intersection>>>
 inline auto trace_intersections(const record_container &intersection_records,
                                 dindex start_volume = 0) {
     // obj id and obj mother volume
@@ -179,7 +179,7 @@ inline auto trace_intersections(const record_container &intersection_records,
         }
 
         inline bool is_portal(
-            const std::pair<dindex, intersection> &inters_pair) const {
+            const std::pair<dindex, line_plane_intersection> &inters_pair) const {
             const record rec{inters_pair};
             return rec.volume_id() != rec.volume_link();
         }
