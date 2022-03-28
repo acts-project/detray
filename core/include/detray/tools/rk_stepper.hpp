@@ -224,7 +224,7 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
     }
 
     private:
-    magnetic_field_t& _magnetic_field;
+    const magnetic_field_t& _magnetic_field;
 };
 
 }  // namespace detray
