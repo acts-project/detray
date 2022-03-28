@@ -11,7 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // detray utils
-#include "detray/utils/indexing.hpp"
+#include "detray/definitions/indexing.hpp"
 
 namespace detray {
 

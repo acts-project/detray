@@ -7,9 +7,9 @@
 #pragma once
 
 // detray tools
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parameterization.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

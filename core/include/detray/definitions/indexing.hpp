@@ -9,7 +9,7 @@
 
 #include <limits>
 
-#include "detray/utils/containers.hpp"
+#include "detray/definitions/containers.hpp"
 
 namespace detray {
 using dindex = unsigned long;

@@ -8,7 +8,7 @@
 
 #include <type_traits>
 
-#include "detray/utils/detail/accessor.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 
 using namespace detray;

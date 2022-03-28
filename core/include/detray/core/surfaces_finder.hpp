@@ -5,12 +5,12 @@
  * Mozilla Public License Version 2.0
  */
 
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/tools/grid_array_helper.hpp"
-#include "detray/utils/detail/accessor.hpp"
 
 #pragma once
 

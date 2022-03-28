@@ -11,10 +11,10 @@
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 
+#include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/detail/accessor.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

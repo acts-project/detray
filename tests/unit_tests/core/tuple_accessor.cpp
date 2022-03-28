@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-#include "detray/utils/detail/accessor.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 
 // Thrust include(s).
 #include <thrust/tuple.h>

@@ -6,9 +6,9 @@
  */
 #pragma once
 
+#include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/detail/accessor.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

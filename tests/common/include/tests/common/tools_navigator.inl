@@ -10,10 +10,10 @@
 #include <map>
 
 #include "detray/core/mask_store.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/track.hpp"
-#include "detray/utils/indexing.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
 

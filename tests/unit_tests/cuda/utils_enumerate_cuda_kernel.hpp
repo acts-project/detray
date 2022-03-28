@@ -11,8 +11,8 @@
 #include "tests/common/test_defs.hpp"
 
 // detray core
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/indexing.hpp"
 
 // vecmem core
 #include "vecmem/containers/device_vector.hpp"

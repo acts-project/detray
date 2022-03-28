@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "detray/utils/detail/accessor.hpp"
+#include "detray/definitions/detail/accessor.hpp"
 
 namespace detray {
 

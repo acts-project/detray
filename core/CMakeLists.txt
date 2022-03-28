@@ -16,10 +16,13 @@ detray_add_library( detray_core core
    "include/detray/core/transform_store.hpp"
    "include/detray/core/type_registry.hpp"
    # definitions include(s)
+   "include/detray/definitions/containers.hpp"
    "include/detray/definitions/cuda_definitions.hpp"
+   "include/detray/definitions/indexing.hpp"  
    "include/detray/definitions/qualifiers.hpp"
    "include/detray/definitions/track_parameterization.hpp"
    "include/detray/definitions/units.hpp"
+   "include/detray/definitions/detail/accessor.hpp"  
    # field include(s)
    "include/detray/field/constant_magnetic_field.hpp"
    # geometry include(s)
@@ -62,10 +65,7 @@ detray_add_library( detray_core core
    "include/detray/tools/generators.hpp"
    "include/detray/tools/grid_array_helper.hpp"
    "include/detray/tools/local_object_finder.hpp"
-   # utils include(s)
-   "include/detray/utils/detail/accessor.hpp"
-   "include/detray/utils/containers.hpp"
+   # utils include(s)   
    "include/detray/utils/enumerate.hpp"
-   "include/detray/utils/indexing.hpp" 
    "include/detray/utils/invalid_values.hpp" )
 target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)

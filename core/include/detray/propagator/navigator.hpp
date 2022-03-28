@@ -8,12 +8,12 @@
 #pragma once
 
 #include "detray/core/detector.hpp"
+#include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
-#include "detray/utils/detail/accessor.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

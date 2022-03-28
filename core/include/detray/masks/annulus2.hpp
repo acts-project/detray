@@ -11,10 +11,10 @@
 #include <sstream>
 #include <string>
 
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/planar_intersector.hpp"
-#include "detray/utils/detail/accessor.hpp"
 
 namespace detray {
 /** This is a 2-dimensional mask for the annulus geometry that is

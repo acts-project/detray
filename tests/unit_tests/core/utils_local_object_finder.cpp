@@ -14,13 +14,13 @@
 #include "tests/common/test_defs.hpp"
 
 // detray core
+#include "detray/definitions/indexing.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/tools/local_object_finder.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/indexing.hpp"
 
 using namespace detray;
 
