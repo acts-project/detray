@@ -21,9 +21,9 @@ namespace getter = algebra::getter;
 namespace vector = algebra::vector;
 namespace matrix = algebra::matrix;
 
-// Define matrix actor
+// Define matrix operator
 template <typename T>
-using matrix_actor =
+using matrix_operator =
     matrix::actor<std::size_t, T, matrix::determinant::preset0<std::size_t, T>,
                   matrix::inverse::preset0<std::size_t, T>>;
 

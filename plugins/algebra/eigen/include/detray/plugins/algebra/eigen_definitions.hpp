@@ -21,8 +21,8 @@ namespace getter = algebra::getter;
 namespace vector = algebra::vector;
 namespace matrix = algebra::matrix;
 
-// Define matrix actor
+// Define matrix operator
 template <typename T>
-using matrix_actor = matrix::actor<T>;
+using matrix_operator = matrix::actor<T>;
 
 }  // namespace detray
