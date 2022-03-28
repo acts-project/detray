@@ -10,6 +10,7 @@
 #include <limits>
 
 #include "detray/definitions/containers.hpp"
+#include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
 using dindex = unsigned long;
