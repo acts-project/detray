@@ -11,6 +11,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
+#include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -23,6 +24,70 @@
 
 constexpr scalar epsilon = 5e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
+
+struct print_actor : actor<> {
+
+    using actor_type = print_actor;
+
+    /// Printer id
+    struct state {
+        int printer_id = 1;
+    };
+
+    /// Do this actors work and then call the observers on the updated status
+    void operator()(result<actor_type> &res) {
+        std::cout << "This is print actor: " << res.state.printer_id
+                  << std::endl;
+    }
+
+    template <typename subj_result_t>
+    void operator()(result<actor_type> &res, subj_result_t &subject_result) {
+        std::cout << "This is print actor: " << res.state.printer_id
+                  << ", observing actor: " << subject_result.state.printer_id
+                  << std::endl;
+    }
+};
+
+template <typename... observers>
+struct example_actor : actor<observers...> {
+
+    using actor_type = example_actor<observers...>;
+
+    /// Printer id
+    struct state {
+        int printer_id = 3;
+    };
+
+    /// Print your id
+    void operator()(result<actor_type> &res) {
+        std::cout << "This is something actor: " << res.state.printer_id
+                  << std::endl;
+    }
+
+    /// Print your id
+    template <typename result_t>
+    void operator()(result<actor_type> &res, result_t & /*subject_result*/) {
+        std::cout << "This is something actor: " << res.state.printer_id
+                  << std::endl;
+    }
+};
+
+// Test the actor chain on some dummy actor types
+TEST(ALGEBRA_PLUGIN, actor_chain) {
+    using namespace detray;
+
+    // observer types
+    using composite1 = composite_actor<dtuple, example_actor, print_actor>;
+    // using composite2 = composite_actor<dtuple, do_smth_actor, print_actor1>;
+    // using composite3 = composite_actor<do_smth_actor, dtuple, composite2>;
+
+    using actor_chain_t = actor_chain<dtuple, composite1>;
+
+    actor_chain_t actors{};
+    actor_chain_t::state actor_states;
+
+    actors(actor_states);
+}
 
 // This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
@@ -61,11 +126,11 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
 
 struct helix_inspector {
 
-    helix_inspector(const helix_gun& helix) : _helix(helix) {}
+    helix_inspector(const helix_gun &helix) : _helix(helix) {}
 
     template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(const navigator_state_t& /*navigation*/,
-                                       const stepper_state_t& stepping) {
+    DETRAY_HOST_DEVICE void operator()(const navigator_state_t & /*navigation*/,
+                                       const stepper_state_t &stepping) {
         auto pos = stepping().pos();
         const scalar path_accumulated =
             path_limit - stepping.dist_to_path_limit();
@@ -85,8 +150,8 @@ struct combined_inspector {
     propagation::print_inspector _pi;
 
     template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(navigator_state_t& navigation,
-                                       const stepper_state_t& stepping) {
+    DETRAY_HOST_DEVICE void operator()(navigator_state_t &navigation,
+                                       const stepper_state_t &stepping) {
         _hi(navigation, stepping);
         _pi(navigation, stepping);
     }
