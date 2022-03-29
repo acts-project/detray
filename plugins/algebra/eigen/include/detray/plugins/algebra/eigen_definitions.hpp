@@ -1,41 +1,28 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
 
-#include <array>
-#include <map>
-#include <tuple>
-
+// Algebra-Plugins include
 #include "algebra/eigen_eigen.hpp"
-#include "detray/definitions/qualifiers.hpp"
-#include "vecmem/containers/jagged_vector.hpp"
-#include "vecmem/containers/vector.hpp"
 
 #define __plugin algebra::eigen
 #define ALGEBRA_PLUGIN eigen
 
 namespace detray {
 
+// Define scalar type
 using scalar = DETRAY_CUSTOM_SCALARTYPE;
 
-template <typename value_type, std::size_t kDIM>
-using darray = std::array<value_type, kDIM>;
-
-template <typename value_type>
-using dvector = vecmem::vector<value_type>;
-
-template <typename value_type>
-using djagged_vector = vecmem::jagged_vector<value_type>;
-
-template <typename key_type, typename value_type>
-using dmap = std::map<key_type, value_type>;
-
-template <class... types>
-using dtuple = std::tuple<types...>;
-
+// Define namespace(s)
 namespace getter = algebra::getter;
 namespace vector = algebra::vector;
+namespace matrix = algebra::matrix;
 
-template <typename T, std::size_t ROWS, std::size_t COLS>
-using matrix = __plugin::matrix_type<T, ROWS, COLS>;
-template <typename T, std::size_t N>
-using sym_matrix = matrix<T, N, N>;
+// Define matrix operator
+template <typename T>
+using matrix_operator = matrix::actor<T>;
 
 }  // namespace detray

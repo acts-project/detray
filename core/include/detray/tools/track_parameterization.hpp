@@ -58,20 +58,23 @@ enum free_indices : unsigned int {
 };
 
 // Shorthand vector/matrix types related to bound track parameters.
-using bound_vector = matrix<scalar, e_bound_size, 1>;
-using bound_matrix = matrix<scalar, e_bound_size, e_bound_size>;
-using bound_sym_matrix = sym_matrix<scalar, e_bound_size>;
+using bound_vector = __plugin::matrix_type<scalar, e_bound_size, 1>;
+using bound_matrix = __plugin::matrix_type<scalar, e_bound_size, e_bound_size>;
+using bound_sym_matrix =
+    __plugin::matrix_type<scalar, e_bound_size, e_bound_size>;
 
 // Mapping from bound track parameters.
-using bound_to_free_matrix = matrix<scalar, e_free_size, e_bound_size>;
+using bound_to_free_matrix =
+    __plugin::matrix_type<scalar, e_free_size, e_bound_size>;
 
 // Shorthand vector/matrix types related to free track parameters.
-using free_vector = matrix<scalar, e_free_size, 1>;
-using free_matrix = matrix<scalar, e_free_size, e_free_size>;
-using free_sym_matrix = sym_matrix<scalar, e_free_size>;
+using free_vector = __plugin::matrix_type<scalar, e_free_size, 1>;
+using free_matrix = __plugin::matrix_type<scalar, e_free_size, e_free_size>;
+using free_sym_matrix = __plugin::matrix_type<scalar, e_free_size, e_free_size>;
 
 // Mapping from free track parameters.
-using free_to_bound_matrix = matrix<scalar, e_bound_size, e_free_size>;
-using free_to_path_matrix = matrix<scalar, 1, e_free_size>;
+using free_to_bound_matrix =
+    __plugin::matrix_type<scalar, e_bound_size, e_free_size>;
+using free_to_path_matrix = __plugin::matrix_type<scalar, 1, e_free_size>;
 
 }  // namespace detray
