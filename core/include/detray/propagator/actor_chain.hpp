@@ -12,8 +12,8 @@
 #include <utility>
 
 #include "detray/definitions/detail/accessor.hpp"
-#include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
 
@@ -22,7 +22,10 @@ template <typename actor_t>
 struct result {
     using state_type = typename actor_t::state;
 
-    state_type state{};
+    state_type &state() { return _state; }
+    const state_type &state() const { return _state; }
+
+    state_type _state{};
 };
 
 /// Base class actor implementation
@@ -30,43 +33,7 @@ struct result {
 /// It implements the call and observer handling infrastructure that all
 /// actors need to comply with.
 ///
-/// @tparam observers the type of actors/aborters that observe this actor
-template <typename... observers>
 struct actor {
-
-    /// Register the components as observers
-    /*using observer_list_type = tuple_t<observers...>;
-    /// List of observer result types
-    using observer_results_type = tuple_t<result<observers>...>;*/
-
-    /// Defines the actors state
-    struct state {};
-
-    // protected:
-
-    /// Call all observers on this actors result
-    template <typename actor_t, typename observer_t, typename observer_result_t>
-    constexpr inline void notify(result<actor_t> &res, observer_t &observer,
-                                 observer_result_t &observer_result) {
-        observer(observer_result, res);
-    }
-
-    /// Call all observers on this actors result
-    template <typename actor_t, template <typename...> class tuple_t,
-              std::size_t... indices>
-    constexpr inline void notify(
-        result<actor_t> &res, tuple_t<observers...> &observer_list,
-        tuple_t<result<observers>...> &observer_results,
-        std::index_sequence<indices...> /*ids*/) {
-        (notify(res, detail::get<indices>(observer_list),
-                detail::get<indices>(observer_results)),
-         ...);
-    }
-};
-
-/// Base actor that does not observe any other actors
-template <>
-struct actor<> {
 
     /// Defines the actors state
     struct state {};
@@ -82,13 +49,13 @@ struct actor<> {
 /// @tparam actor_t the type of actor implemented by the composition.
 /// @tparam observers the component actor that are the observers to this actor.
 template <template <typename...> class tuple_t = dtuple,
-          template <typename...> class actor_t = actor, typename... observers>
+          typename actor_impl_t = actor, typename... observers>
 struct composite_actor {
 
     public:
-    using composite_type = composite_actor<tuple_t, actor_t, observers...>;
+    using composite_type = composite_actor<tuple_t, actor_impl_t, observers...>;
     /// The composite is an actor in itself
-    using actor_type = actor_t<observers...>;
+    using actor_type = actor_impl_t;
     /// Aggregate this actors state with its component states
     using actor_result_type = result<actor_type>;
     /// Register the components as observers
@@ -96,39 +63,56 @@ struct composite_actor {
     /// List of observer result types
     using observer_results_type = tuple_t<result<observers>...>;
     /// Complete result of the composite
-    using result_type = std::pair<actor_result_type, observer_results_type>;
+    // using result_type = std::pair<actor_result_type, observer_results_type>;
 
-    /// Contains the actors states
-    struct state {
+    /// Contains the observers states
+    struct state : public actor_impl_t::state {
+
         /// Additional data from components
-        result_type _data{};
+        observer_results_type observer_states{};
     };
 
     /// Do this actors work and then call the observers on the updated status
     template <typename subj_result_t>
-    void operator()(result<composite_type> &res,
+    void operator()(typename result<composite_type>::state_type &comp_state,
                     subj_result_t &subject_result) {
         // Do your own work ...
-        _actor(detail::get<0>(res.state._data), subject_result);
+        _actor(comp_state, subject_result);
 
         // Then run the observers on the updated state
-        _actor.notify(detail::get<0>(res.state._data), _observers,
-                      detail::get<1>(res.state._data),
-                      std::make_index_sequence<sizeof...(observers)>{});
+        notify(comp_state, _observers, comp_state.observer_states,
+               std::make_index_sequence<sizeof...(observers)>{});
     }
 
     /// Do this actors work and then call the observers on the updated status
-    void operator()(result<composite_type> &res) {
+    void operator()(typename result<composite_type>::state_type &comp_state) {
         // Do your own work ...
-        _actor(detail::get<0>(res.state._data));
+        _actor(comp_state);
 
         // Then run the observers on the updated state
-        _actor.notify(detail::get<0>(res.state._data), _observers,
-                      detail::get<1>(res.state._data),
-                      std::make_index_sequence<sizeof...(observers)>{});
+        notify(comp_state, _observers, comp_state.observer_states,
+               std::make_index_sequence<sizeof...(observers)>{});
     }
 
     private:
+    /// Call all observers on this actors result
+    template <typename state_t, typename observer_t, typename observer_result_t>
+    constexpr inline void notify(state_t &comp_state, observer_t &observer,
+                                 observer_result_t &observer_result) {
+        observer(observer_result.state(), comp_state);
+    }
+
+    /// Call all observers on this actors result
+    template <typename state_t, std::size_t... indices>
+    constexpr inline void notify(
+        state_t &comp_state, tuple_t<observers...> &observer_list,
+        tuple_t<result<observers>...> &observer_results,
+        std::index_sequence<indices...> /*ids*/) {
+        (notify(comp_state, detail::get<indices>(observer_list),
+                detail::get<indices>(observer_results)),
+         ...);
+    }
+
     /// Keep the observers (might be composites again)
     actor_type _actor = {};
     observer_list_type _observers = {};
@@ -163,9 +147,9 @@ class actor_chain {
 
     private:
     /// Call all observers on this actors result
-    template <typename actor_t, typename actor_result_t>
-    constexpr inline void run(actor_t &actor, actor_result_t &actor_result) {
-        actor(actor_result);
+    template <typename actor_t>
+    constexpr inline void run(actor_t &actor, result<actor_t> &actor_result) {
+        actor(actor_result.state());
     }
 
     /// Call all observers on this actors result

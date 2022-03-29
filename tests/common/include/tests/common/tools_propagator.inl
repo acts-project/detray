@@ -25,9 +25,7 @@
 constexpr scalar epsilon = 5e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
 
-struct print_actor : actor<> {
-
-    using actor_type = print_actor;
+struct print_actor {
 
     /// Printer id
     struct state {
@@ -35,23 +33,20 @@ struct print_actor : actor<> {
     };
 
     /// Do this actors work and then call the observers on the updated status
-    void operator()(result<actor_type> &res) {
-        std::cout << "This is print actor: " << res.state.printer_id
-                  << std::endl;
+    template <typename state_t>
+    void operator()(state_t &res) {
+        std::cout << "This is print actor: " << res.printer_id << std::endl;
     }
 
-    template <typename subj_result_t>
-    void operator()(result<actor_type> &res, subj_result_t &subject_result) {
-        std::cout << "This is print actor: " << res.state.printer_id
-                  << ", observing actor: " << subject_result.state.printer_id
+    template <typename state_t, typename subj_result_t>
+    void operator()(state_t &res, subj_result_t &subject_result) {
+        std::cout << "This is print actor: " << res.printer_id
+                  << ", observing actor: " << subject_result.printer_id
                   << std::endl;
     }
 };
 
-template <typename... observers>
-struct example_actor : actor<observers...> {
-
-    using actor_type = example_actor<observers...>;
+struct example_actor {
 
     /// Printer id
     struct state {
@@ -59,16 +54,15 @@ struct example_actor : actor<observers...> {
     };
 
     /// Print your id
-    void operator()(result<actor_type> &res) {
-        std::cout << "This is something actor: " << res.state.printer_id
-                  << std::endl;
+    template <typename state_t>
+    void operator()(state_t &res) {
+        std::cout << "This is something actor: " << res.printer_id << std::endl;
     }
 
     /// Print your id
-    template <typename result_t>
-    void operator()(result<actor_type> &res, result_t & /*subject_result*/) {
-        std::cout << "This is something actor: " << res.state.printer_id
-                  << std::endl;
+    template <typename state_t, typename subj_result_t>
+    void operator()(state_t &res, subj_result_t & /*subject_result*/) {
+        std::cout << "This is something actor: " << res.printer_id << std::endl;
     }
 };
 
@@ -77,15 +71,16 @@ TEST(ALGEBRA_PLUGIN, actor_chain) {
     using namespace detray;
 
     // observer types
-    using composite1 = composite_actor<dtuple, example_actor, print_actor>;
-    using composite2 =
+    using composite1 =
         composite_actor<dtuple, example_actor, print_actor, print_actor>;
-    // using composite3 = composite_actor<do_smth_actor, dtuple, composite2>;
+    using composite2 = composite_actor<dtuple, example_actor, print_actor>;
+    using composite3 = composite_actor<dtuple, composite2, composite1>;
 
-    using actor_chain_t = actor_chain<dtuple, composite1, composite2>;
+    using actor_chain_t =
+        actor_chain<dtuple, composite1, composite2, composite3>;
 
     actor_chain_t actors{};
-    actor_chain_t::state actor_states;
+    actor_chain_t::state actor_states{};
 
     actors(actor_states);
 }
