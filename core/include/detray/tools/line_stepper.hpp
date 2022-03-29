@@ -11,6 +11,8 @@
 #include "detray/tools/base_stepper.hpp"
 
 // detray definitions
+#include <cmath>
+
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
@@ -65,8 +67,9 @@ class line_stepper final : public base_stepper<track_t, constraint_t> {
         // Resolve how the navigator should perform an update
         // nav_policy(stepping, navigation);
         // Not a severe change to track state expected
-        if (step_size <
-            stepping.constraints().template size<>(stepping.direction())) {
+        if (std::abs(step_size) <
+            std::abs(
+                stepping.constraints().template size<>(stepping.direction()))) {
             stepping.set_step_size(step_size);
             navigation.set_high_trust();
         }
