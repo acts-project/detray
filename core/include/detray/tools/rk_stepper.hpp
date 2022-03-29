@@ -11,24 +11,32 @@
 #include "detray/tools/base_stepper.hpp"
 
 // detray definitions
+#include <cmath>
+
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
 namespace detray {
 
-/** Runge-Kutta-Nystrom 4th order stepper implementation */
+/// Runge-Kutta-Nystrom 4th order stepper implementation
+///
+/// @tparam magnetic_field_t the type of magnetic field
+/// @tparam track_t the type of track that is being advanced by the stepper
+/// @tparam constraint_ the type of constraints on the stepper
 template <typename magnetic_field_t, typename track_t,
+          typename constraint_t = unconstrained_step,
           template <typename, std::size_t> class array_t = darray>
-class rk_stepper final : public base_stepper<track_t> {
+class rk_stepper final : public base_stepper<track_t, constraint_t> {
 
     public:
-    using base_type = base_stepper<track_t>;
+    using base_type = base_stepper<track_t, constraint_t>;
     using point3 = __plugin::point3<scalar>;
     using vector3 = __plugin::vector3<scalar>;
     using context_type = typename magnetic_field_t::context_type;
 
     DETRAY_HOST_DEVICE
-    rk_stepper(magnetic_field_t mag_field) : _magnetic_field(mag_field) {}
+    rk_stepper(const magnetic_field_t& mag_field)
+        : _magnetic_field(mag_field) {}
 
     struct state : public base_type::state {
         DETRAY_HOST_DEVICE
@@ -85,9 +93,8 @@ class rk_stepper final : public base_stepper<track_t> {
      * @return returning the heartbeat, indicating if the stepping is alive
      */
     template <typename navigation_state_t>
-    DETRAY_HOST_DEVICE bool step(
-        state& stepping, navigation_state_t& navigation,
-        scalar max_step_size = std::numeric_limits<scalar>::max()) {
+    DETRAY_HOST_DEVICE bool step(state& stepping,
+                                 navigation_state_t& navigation) {
         auto& sd = stepping._step_data;
 
         scalar error_estimate = 0;
@@ -163,15 +170,24 @@ class rk_stepper final : public base_stepper<track_t> {
             n_step_trials++;
         }
 
+        // Update navigation direction
+        const step::direction dir = stepping._step_size >= 0
+                                        ? step::direction::e_forward
+                                        : step::direction::e_backward;
+        stepping.set_direction(dir);
+
         // Decide final step size and inform navigator
         // Not a severe change to track state expected
-        if (stepping.step_size() < max_step_size) {
+        if (std::abs(stepping.step_size()) <
+            std::abs(
+                stepping.constraints().template size<>(stepping.direction()))) {
             navigation.set_high_trust();
         }
         // Step size hit a constraint - the track state was probably changed a
         // lot
         else {
-            stepping.set_step_size(max_step_size);
+            stepping.set_step_size(
+                stepping.constraints().template size<>(stepping.direction()));
             // Re-evaluate all candidates
             navigation.set_fair_trust();
         }
@@ -210,7 +226,7 @@ class rk_stepper final : public base_stepper<track_t> {
     }
 
     private:
-    magnetic_field_t _magnetic_field;
+    const magnetic_field_t& _magnetic_field;
 };
 
 }  // namespace detray
