@@ -41,7 +41,7 @@ detray_add_library( detray_core core
    "include/detray/tools/base_stepper.hpp"
    "include/detray/tools/bin_association.hpp"
    "include/detray/tools/concentric_cylinder_intersector.hpp"
-   "include/detray/toolt/constrained_step.hpp"
+   "include/detray/tools/constrained_step.hpp"
    "include/detray/tools/cylinder_intersector.hpp"
    "include/detray/tools/volume_graph.hpp"
    "include/detray/tools/grid_array_helper.hpp"
