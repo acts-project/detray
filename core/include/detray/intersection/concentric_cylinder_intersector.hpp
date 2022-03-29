@@ -25,7 +25,7 @@ struct unbound;
 template <template <typename, std::size_t> class array_t = darray>
 struct concentric_cylinder_intersector {
 
-    using intersection_t = line_plane_intersection;
+    using intersection_type = line_plane_intersection;
 
     using transform3 = __plugin::transform3<detray::scalar>;
     using point3 = __plugin::point3<detray::scalar>;
@@ -55,7 +55,7 @@ struct concentric_cylinder_intersector {
             std::is_same_v<typename mask_t::local_type, cylindrical2> or
                 std::is_same_v<typename mask_t::local_type, detray::unbound>,
             bool> = true>
-    DETRAY_HOST_DEVICE inline intersection_t intersect(
+    DETRAY_HOST_DEVICE inline intersection_type intersect(
         const transform3 &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance &tolerance =
             mask_t::within_epsilon) const {
@@ -85,7 +85,7 @@ struct concentric_cylinder_intersector {
             std::is_same_v<typename mask_t::local_type, cylindrical2> or
                 std::is_same_v<typename mask_t::local_type, detray::unbound>,
             bool> = true>
-    DETRAY_HOST_DEVICE inline intersection_t intersect(
+    DETRAY_HOST_DEVICE inline intersection_type intersect(
         const transform3 & /*trf*/, const point3 &ro, const vector3 &rd,
         const mask_t &mask, const dindex /*volume_index*/ = dindex_invalid,
         const typename mask_t::mask_tolerance & /*tolerance*/ =
@@ -134,7 +134,7 @@ struct concentric_cylinder_intersector {
                                     ? 1
                                     : 0);
             if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance) {
-                intersection_t is;
+                intersection_type is;
                 is.p3 = candidates[cindex];
                 is.path = t01[cindex];
 
@@ -147,7 +147,7 @@ struct concentric_cylinder_intersector {
                 return is;
             }
         }
-        return intersection_t{};
+        return intersection_type{};
     }
 };
 

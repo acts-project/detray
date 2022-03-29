@@ -18,7 +18,7 @@ namespace detray {
  */
 struct planar_intersector {
 
-    using intersection_t = line_plane_intersection;
+    using intersection_type = line_plane_intersection;
 
     using transform3 = __plugin::transform3<detray::scalar>;
     using point3 = __plugin::point3<detray::scalar>;
@@ -45,7 +45,7 @@ struct planar_intersector {
     template <typename track_t, typename mask_t,
               std::enable_if_t<std::is_class_v<typename mask_t::local_type>,
                                bool> = true>
-    DETRAY_HOST_DEVICE inline intersection_t intersect(
+    DETRAY_HOST_DEVICE inline intersection_type intersect(
         const transform3 &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon) const {
@@ -72,7 +72,7 @@ struct planar_intersector {
     template <typename mask_t,
               std::enable_if_t<std::is_class_v<typename mask_t::local_type>,
                                bool> = true>
-    DETRAY_HOST_DEVICE inline intersection_t intersect(
+    DETRAY_HOST_DEVICE inline intersection_type intersect(
         const transform3 &trf, const point3 &ro, const vector3 &rd,
         const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
@@ -89,7 +89,7 @@ struct planar_intersector {
         // Intersection code
         scalar denom = vector::dot(rd, sn);
         if (denom != 0.0) {
-            intersection_t is;
+            intersection_type is;
             is.path = vector::dot(sn, st - ro) / denom;
             is.p3 = ro + is.path * rd;
             constexpr local_frame local_converter{};
@@ -101,7 +101,7 @@ struct planar_intersector {
             is.link = mask.volume_link();
             return is;
         }
-        return intersection_t{};
+        return intersection_type{};
     }
 };
 
