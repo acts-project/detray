@@ -22,12 +22,14 @@ endif()
 set( CMAKE_CUDA_ARCHITECTURES "52" CACHE STRING
    "CUDA architectures to build device code for" )
 
+if( "${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA" )
 # Allow to use functions in device code that are constexpr, even if they are
 # not marked with __device__.
 detray_add_flag( CMAKE_CUDA_FLAGS "--expt-relaxed-constexpr" )
 
 # Turn off fast math for the device code.
 detray_add_flag( CMAKE_CUDA_FLAGS "-fmad=false" )
+endif()
 
 # Make CUDA generate debug symbols for the device code as well in a debug
 # build.

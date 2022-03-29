@@ -22,8 +22,8 @@ TEST(transform_store_cuda, transform_store) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     static_transform_store<> static_store(mng_mr);
-    static_transform_store<>::context ctx0;
-    static_transform_store<>::context ctx1;
+    static_transform_store<>::context ctx0{};
+    static_transform_store<>::context ctx1{};
 
     ASSERT_TRUE(static_store.empty(ctx0));
 
