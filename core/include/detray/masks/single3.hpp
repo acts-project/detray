@@ -73,12 +73,12 @@ struct single3 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_t>
-    DETRAY_HOST_DEVICE intersection_status
-    is_inside(const point3 &p, const mask_tolerance t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection::status is_inside(
+        const point3 &p, const mask_tolerance t = within_epsilon) const {
         return (_values[0] - t <= p[kCheckIndex] and
                 p[kCheckIndex] <= _values[1] + t)
-                   ? e_inside
-                   : e_outside;
+                   ? intersection::status::e_inside
+                   : intersection::status::e_outside;
     }
 
     /** Equality operator from an array, convenience function

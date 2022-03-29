@@ -59,8 +59,8 @@ struct propagator {
     struct state {
 
         template <typename track_t>
-        DETRAY_HOST_DEVICE state(track_t &t_in,
-                                 vector_type<intersection> candidates = {})
+        DETRAY_HOST_DEVICE state(
+            track_t &t_in, vector_type<line_plane_intersection> candidates = {})
             : _stepping(t_in), _navigation(candidates) {}
 
         typename stepper_t::state _stepping;

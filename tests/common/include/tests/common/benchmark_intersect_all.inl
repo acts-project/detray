@@ -86,7 +86,7 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
 
                         benchmark::DoNotOptimize(hits);
                         benchmark::DoNotOptimize(missed);
-                        if (sfi.status == intersection_status::e_inside) {
+                        if (sfi.status == intersection::status::e_inside) {
                             /* state.PauseTiming();
                             if (stream_file)
                             {

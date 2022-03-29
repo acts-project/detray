@@ -49,34 +49,34 @@ TEST(mask, annulus2) {
     ASSERT_EQ(ann2[6], static_cast<scalar>(0.));
 
     ASSERT_TRUE(ann2.is_inside<cartesian>(p2_in + offset) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out1 + offset) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out2 + offset) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out3 + offset) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out4 + offset) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out1 + offset, {1.3, 0.}) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out4 + offset, {0., 0.07}) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
 
     ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_in)) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out1)) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out2)) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out3)) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out4)) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out1), {1.3, 0.}) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out4), {0., 0.07}) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
 }

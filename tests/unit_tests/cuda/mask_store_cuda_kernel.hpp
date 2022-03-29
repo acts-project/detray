@@ -57,6 +57,6 @@ void mask_test(
         store_data,
     vecmem::data::vector_view<point2>& input_point2_data,
     vecmem::data::vector_view<point3>& input_point3_data,
-    vecmem::data::jagged_vector_view<intersection_status>& output_data);
+    vecmem::data::jagged_vector_view<intersection::status>& output_data);
 
 }  // namespace detray

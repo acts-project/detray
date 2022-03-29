@@ -80,7 +80,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     propagator_host_type p(std::move(s), std::move(n));
 
     // Create vector for track recording
-    vecmem::jagged_vector<intersection> host_intersection_records(&mng_mr);
+    vecmem::jagged_vector<intersection_t> host_intersection_records(&mng_mr);
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
@@ -112,7 +112,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     copy.setup(candidates_buffer);
 
     // Create vector for track recording
-    vecmem::jagged_vector<intersection> device_intersection_records(&mng_mr);
+    vecmem::jagged_vector<intersection_t> device_intersection_records(&mng_mr);
 
     // Create vector buffer for track recording
     std::vector<std::size_t> sizes(theta_steps * phi_steps, 0);
@@ -121,7 +121,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         capacities.push_back(r.size());
     }
 
-    vecmem::data::jagged_vector_buffer<intersection> intersections_buffer(
+    vecmem::data::jagged_vector_buffer<intersection_t> intersections_buffer(
         sizes, capacities, dev_mr, &mng_mr);
     copy.setup(intersections_buffer);
 

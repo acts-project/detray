@@ -27,6 +27,8 @@
 
 using namespace detray;
 
+using intersection_t = line_plane_intersection;
+
 using detector_host_type =
     detector<detector_registry::toy_detector, darray, thrust::tuple,
              vecmem::vector, vecmem::jagged_vector>;
@@ -63,7 +65,7 @@ struct track_inspector {
         : _intersections(&resource) {}
 
     DETRAY_HOST_DEVICE
-    track_inspector(vector_type<intersection> intersection_record)
+    track_inspector(vector_type<intersection_t> intersection_record)
         : _intersections(intersection_record) {}
 
     template <typename navigator_state_t, typename stepper_state_t>
@@ -75,14 +77,14 @@ struct track_inspector {
         }
     }
 
-    vector_type<intersection> _intersections;
+    vector_type<intersection_t> _intersections;
 };
 
 /// test function for propagator with single state
 void propagator_test(
     detector_view<detector_host_type> det_data,
     vecmem::data::vector_view<free_track_parameters>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection>& candidates_data,
-    vecmem::data::jagged_vector_view<intersection>& intersections_data);
+    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
+    vecmem::data::jagged_vector_view<intersection_t>& intersections_data);
 
 }  // namespace detray

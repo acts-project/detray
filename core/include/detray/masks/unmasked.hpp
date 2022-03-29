@@ -43,10 +43,11 @@ struct unmasked {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename local_t>
-    DETRAY_HOST_DEVICE inline intersection_status is_inside(
+    DETRAY_HOST_DEVICE inline intersection::status is_inside(
         const point2 & /*ignored*/,
         const mask_tolerance &t = within_epsilon) const {
-        return t ? e_inside : e_outside;
+        return t ? intersection::status::e_inside
+                 : intersection::status::e_outside;
     }
 
     /** Mask operation

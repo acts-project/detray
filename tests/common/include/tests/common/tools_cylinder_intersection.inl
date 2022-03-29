@@ -37,7 +37,7 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // Unbound local frame test
     auto hit_unbound = ci.intersect(shifted, point3{3., 2., 5.},
                                     vector3{1., 0., 0.}, cylinder_unbound);
-    ASSERT_TRUE(hit_unbound.status == intersection_status::e_inside);
+    ASSERT_TRUE(hit_unbound.status == intersection::status::e_inside);
     ASSERT_NEAR(hit_unbound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_unbound.p3[1], 2., epsilon);
     ASSERT_NEAR(hit_unbound.p3[2], 5., epsilon);
@@ -50,7 +50,7 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
         cylinder_bound{4., -10., 10., 0u};
     auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.},
                                   vector3{1., 0., 0.}, cylinder_bound);
-    ASSERT_TRUE(hit_bound.status == intersection_status::e_inside);
+    ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_bound.p3[1], 2., epsilon);
     ASSERT_NEAR(hit_bound.p3[2], 5., epsilon);
@@ -78,10 +78,11 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     auto hit_cylinrical = ci.intersect(identity, ori, dir, cylinder);
     auto hit_cocylindrical = cci.intersect(identity, ori, dir, cylinder);
 
-    ASSERT_TRUE(hit_cylinrical.status == intersection_status::e_inside);
-    ASSERT_TRUE(hit_cocylindrical.status == intersection_status::e_inside);
-    ASSERT_TRUE(hit_cylinrical.direction == intersection_direction::e_along);
-    ASSERT_TRUE(hit_cocylindrical.direction == intersection_direction::e_along);
+    ASSERT_TRUE(hit_cylinrical.status == intersection::status::e_inside);
+    ASSERT_TRUE(hit_cocylindrical.status == intersection::status::e_inside);
+    ASSERT_TRUE(hit_cylinrical.direction == intersection::direction::e_along);
+    ASSERT_TRUE(hit_cocylindrical.direction ==
+                intersection::direction::e_along);
 
     ASSERT_NEAR(getter::perp(hit_cylinrical.p3), r, isclose);
     ASSERT_NEAR(getter::perp(hit_cocylindrical.p3), r, isclose);

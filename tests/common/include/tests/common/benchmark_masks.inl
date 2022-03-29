@@ -61,7 +61,8 @@ static void BM_RECTANGLE2_MASK(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(inside);
                 benchmark::DoNotOptimize(outside);
-                if (r.is_inside<local_type>(point2{x, y}) == e_inside) {
+                if (r.is_inside<local_type>(point2{x, y}) ==
+                    intersection::status::e_inside) {
                     ++inside;
                 } else {
                     ++outside;
@@ -103,7 +104,8 @@ static void BM_TRAPEZOID2_MASK(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(inside);
                 benchmark::DoNotOptimize(outside);
-                if (t.is_inside<local_type>(point2{x, y}) == e_inside) {
+                if (t.is_inside<local_type>(point2{x, y}) ==
+                    intersection::status::e_inside) {
                     ++inside;
                 } else {
                     ++outside;
@@ -145,7 +147,8 @@ static void BM_RING2_MASK(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(inside);
                 benchmark::DoNotOptimize(outside);
-                if (r.is_inside<local_type>(point2{x, y}) == e_inside) {
+                if (r.is_inside<local_type>(point2{x, y}) ==
+                    intersection::status::e_inside) {
                     ++inside;
                 } else {
                     ++outside;
@@ -186,7 +189,8 @@ static void BM_DISC2_MASK(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(inside);
                 benchmark::DoNotOptimize(outside);
-                if (r.is_inside<local_type>(point2{x, y}) == e_inside) {
+                if (r.is_inside<local_type>(point2{x, y}) ==
+                    intersection::status::e_inside) {
                     ++inside;
                 } else {
                     ++outside;
@@ -230,7 +234,7 @@ static void BM_CYLINDER3_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     if (c.is_inside<local_type>(point3{x, y, z}, {0.1, 0.}) ==
-                        e_inside) {
+                        intersection::status::e_inside) {
                         ++inside;
                     } else {
                         ++outside;
@@ -270,7 +274,8 @@ static void BM_ANNULUS_MASK(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(inside);
                 benchmark::DoNotOptimize(outside);
-                if (ann.is_inside<local_type>(point2{x, y}) == e_inside) {
+                if (ann.is_inside<local_type>(point2{x, y}) ==
+                    intersection::status::e_inside) {
                     ++inside;
                 } else {
                     ++outside;

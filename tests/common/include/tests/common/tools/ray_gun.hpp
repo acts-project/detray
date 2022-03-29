@@ -40,7 +40,9 @@ struct ray {
 template <typename detector_t>
 inline auto shoot_ray(const detector_t &detector, const ray &r) {
 
-    std::vector<std::pair<dindex, intersection>> intersection_record;
+    using intersection_t = line_plane_intersection;
+
+    std::vector<std::pair<dindex, intersection_t>> intersection_record;
 
     // Loop over volumes
     for (const auto &volume : detector.volumes()) {
@@ -54,7 +56,7 @@ inline auto shoot_ray(const detector_t &detector, const ray &r) {
                 continue;
             }
             // Accept if inside
-            if (sfi.status == e_inside) {
+            if (sfi.status == intersection::status::e_inside) {
                 // object the candidate belongs to
                 sfi.index = volume.index();
                 intersection_record.emplace_back(sf_idx, sfi);
@@ -63,8 +65,8 @@ inline auto shoot_ray(const detector_t &detector, const ray &r) {
     }
 
     // Sort intersections by distance to origin of the ray
-    auto sort_path = [&](std::pair<dindex, intersection> a,
-                         std::pair<dindex, intersection> b) -> bool {
+    auto sort_path = [&](std::pair<dindex, intersection_t> a,
+                         std::pair<dindex, intersection_t> b) -> bool {
         return (a.second < b.second);
     };
     std::sort(intersection_record.begin(), intersection_record.end(),

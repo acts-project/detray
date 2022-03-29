@@ -29,22 +29,23 @@ TEST(mask, ring2) {
     ASSERT_EQ(r2[0], 0.);
     ASSERT_EQ(r2[1], 3.5);
 
-    ASSERT_TRUE(r2.is_inside<polar>(p2_pl_in) == intersection_status::e_inside);
+    ASSERT_TRUE(r2.is_inside<polar>(p2_pl_in) ==
+                intersection::status::e_inside);
     ASSERT_TRUE(r2.is_inside<polar>(p2_pl_edge) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(r2.is_inside<polar>(p2_pl_out) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(r2.is_inside<polar>(p2_pl_out, 1.2) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
 
     ASSERT_TRUE(r2.is_inside<cartesian>(p2_c_in) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(r2.is_inside<cartesian>(p2_c_edge) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(r2.is_inside<cartesian>(p2_c_out) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(r2.is_inside<cartesian>(p2_c_out, 1.45) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
 }

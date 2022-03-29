@@ -82,17 +82,19 @@ struct ring2 {
      * @return an intersection status e_inside / e_outside
      **/
     template <typename inside_local_t>
-    DETRAY_HOST_DEVICE intersection_status
-    is_inside(const point2 &p, const mask_tolerance t = within_epsilon) const {
+    DETRAY_HOST_DEVICE intersection::status is_inside(
+        const point2 &p, const mask_tolerance t = within_epsilon) const {
         if constexpr (std::is_same_v<inside_local_t,
                                      __plugin::cartesian2<detray::scalar>>) {
             scalar r = getter::perp(p);
-            return (r + t >= _values[0] and r <= _values[1] + t) ? e_inside
-                                                                 : e_outside;
+            return (r + t >= _values[0] and r <= _values[1] + t)
+                       ? intersection::status::e_inside
+                       : intersection::status::e_outside;
         }
 
-        return (p[0] + t >= _values[0] and p[0] <= _values[1] + t) ? e_inside
-                                                                   : e_outside;
+        return (p[0] + t >= _values[0] and p[0] <= _values[1] + t)
+                   ? intersection::status::e_inside
+                   : intersection::status::e_outside;
     }
 
     /** Equality operator from an array, convenience function

@@ -76,7 +76,7 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);
-                    if (is.status == e_inside) {
+                    if (is.status == intersection::status::e_inside) {
                         ++sfhit;
                     } else {
                         ++sfmiss;
@@ -141,7 +141,7 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);
-                    if (is.status == e_inside) {
+                    if (is.status == intersection::status::e_inside) {
                         ++sfhit;
                     } else {
                         ++sfmiss;
@@ -202,7 +202,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);
-                    if (is.status == e_inside) {
+                    if (is.status == intersection::status::e_inside) {
                         ++sfhit;
                     } else {
                         ++sfmiss;

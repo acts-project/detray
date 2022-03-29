@@ -32,12 +32,12 @@ TEST(mask, rectangle2) {
     ASSERT_EQ(r2[1], hy);
 
     ASSERT_TRUE(r2.is_inside<local_type>(p2_in) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(r2.is_inside<local_type>(p2_edge) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(r2.is_inside<local_type>(p2_out) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(r2.is_inside<local_type>(p2_out, {1., 0.5}) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
 }

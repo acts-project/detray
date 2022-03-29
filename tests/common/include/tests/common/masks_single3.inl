@@ -30,14 +30,14 @@ TEST(mask, single3_0) {
     ASSERT_EQ(m1_0[1], h0);
 
     ASSERT_TRUE(m1_0.is_inside<local_type>(p3_in) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(m1_0.is_inside<local_type>(p3_edge) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(m1_0.is_inside<local_type>(p3_out) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t0 not t1
     ASSERT_TRUE(m1_0.is_inside<local_type>(p3_out, 0.6) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
 }
 
 // This tests the basic function of a rectangle
@@ -56,14 +56,14 @@ TEST(mask, single3_1) {
     ASSERT_EQ(m1_1[1], h1);
 
     ASSERT_TRUE(m1_1.is_inside<local_type>(p3_in) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(m1_1.is_inside<local_type>(p3_edge) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(m1_1.is_inside<local_type>(p3_out) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
     ASSERT_TRUE(m1_1.is_inside<local_type>(p3_out, 0.6) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
 }
 
 // This tests the basic function of a rectangle
@@ -82,12 +82,12 @@ TEST(mask, single3_2) {
     ASSERT_EQ(m1_2[1], h2);
 
     ASSERT_TRUE(m1_2.is_inside<local_type>(p3_in) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(m1_2.is_inside<local_type>(p3_edge) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
     ASSERT_TRUE(m1_2.is_inside<local_type>(p3_out) ==
-                intersection_status::e_outside);
+                intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
     ASSERT_TRUE(m1_2.is_inside<local_type>(p3_out, 6.1) ==
-                intersection_status::e_inside);
+                intersection::status::e_inside);
 }

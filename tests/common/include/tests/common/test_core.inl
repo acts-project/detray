@@ -45,16 +45,18 @@ TEST(ALGEBRA_PLUGIN, surface) {
 // This tests the construction of a intresection
 TEST(ALGEBRA_PLUGIN, intersection) {
 
-    intersection i0 = {2., point3{0.3, 0.5, 0.7}, point2{0.2, 0.4},
-                       intersection_status::e_hit};
+    using intersection_t = line_plane_intersection;
 
-    intersection i1 = {1.7, point3{0.2, 0.3, 0.}, point2{0.2, 0.4},
-                       intersection_status::e_inside};
+    intersection_t i0 = {2., point3{0.3, 0.5, 0.7}, point2{0.2, 0.4},
+                         intersection::status::e_hit};
 
-    intersection invalid;
-    ASSERT_TRUE(invalid.status == intersection_status::e_missed);
+    intersection_t i1 = {1.7, point3{0.2, 0.3, 0.}, point2{0.2, 0.4},
+                         intersection::status::e_inside};
 
-    dvector<intersection> intersections = {invalid, i0, i1};
+    intersection_t invalid;
+    ASSERT_TRUE(invalid.status == intersection::status::e_missed);
+
+    dvector<intersection_t> intersections = {invalid, i0, i1};
     std::sort(intersections.begin(), intersections.end());
 
     ASSERT_NEAR(intersections[0].path, 1.7, epsilon);
