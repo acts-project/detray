@@ -10,12 +10,12 @@
 #include <tuple>
 #include <utility>
 
-#include "detray/core/intersection.hpp"
 #include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/tools/track.hpp"
+#include "detray/intersection/intersection.hpp"
+#include "detray/propagator/track.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

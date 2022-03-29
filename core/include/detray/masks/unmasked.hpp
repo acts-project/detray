@@ -8,9 +8,9 @@
 
 #include <string>
 
-#include "detray/core/intersection.hpp"
-#include "detray/tools/planar_intersector.hpp"
-#include "detray/utils/unbound.hpp"
+#include "detray/intersection/intersection.hpp"
+#include "detray/intersection/planar_intersector.hpp"
+#include "detray/intersection/unbound.hpp"
 
 namespace detray {
 

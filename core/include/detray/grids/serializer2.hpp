@@ -9,8 +9,8 @@
 
 #include <algorithm>
 
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 /** Struct that helps taking a two-dimensional binning into

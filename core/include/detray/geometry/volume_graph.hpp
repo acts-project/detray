@@ -13,8 +13,8 @@
 #include <string>
 #include <utility>
 
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

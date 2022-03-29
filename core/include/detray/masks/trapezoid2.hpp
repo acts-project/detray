@@ -11,10 +11,10 @@
 #include <sstream>
 #include <string>
 
-#include "detray/core/intersection.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/tools/planar_intersector.hpp"
+#include "detray/intersection/intersection.hpp"
+#include "detray/intersection/planar_intersector.hpp"
 
 namespace detray {
 /** This is a simple 2-dimensional mask for a regular trapezoid

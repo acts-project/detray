@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/invalid_values.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/indexing.hpp"
+#include "detray/utils/invalid_values.hpp"
 
 // VecMem include(s).
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>

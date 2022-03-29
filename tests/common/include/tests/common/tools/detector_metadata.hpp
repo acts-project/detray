@@ -10,12 +10,12 @@
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

@@ -11,7 +11,6 @@
 #include <string>
 #include <vecmem/memory/memory_resource.hpp>
 
-#include "detray/core/intersection.hpp"
 #include "detray/core/mask_store.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
@@ -23,6 +22,7 @@
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
+#include "detray/intersection/intersection.hpp"
 
 namespace detray {
 

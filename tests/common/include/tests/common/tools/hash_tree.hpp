@@ -11,8 +11,8 @@
 #include <iterator>
 #include <type_traits>
 
+#include "detray/definitions/indexing.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

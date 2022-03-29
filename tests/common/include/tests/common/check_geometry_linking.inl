@@ -9,7 +9,7 @@
 
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/tools/volume_graph.hpp"
+#include "detray/geometry/volume_graph.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"

@@ -11,8 +11,8 @@
 #include <utility>
 
 #include "detray/core/mask_store.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

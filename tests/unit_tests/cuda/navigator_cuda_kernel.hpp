@@ -17,8 +17,8 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
-#include "detray/tools/line_stepper.hpp"
-#include "detray/tools/navigator.hpp"
+#include "detray/propagator/line_stepper.hpp"
+#include "detray/propagator/navigator.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 
 using namespace detray;

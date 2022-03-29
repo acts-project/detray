@@ -8,9 +8,9 @@
 #pragma once
 
 // Detray include(s).
-#include "detray/definitions/invalid_values.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/grids/axis.hpp"
+#include "detray/utils/invalid_values.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/memory_resource.hpp>

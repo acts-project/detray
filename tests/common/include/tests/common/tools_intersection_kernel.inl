@@ -13,12 +13,12 @@
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/intersection/concentric_cylinder_intersector.hpp"
+#include "detray/intersection/cylinder_intersector.hpp"
+#include "detray/intersection/intersection_kernel.hpp"
+#include "detray/intersection/planar_intersector.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/tools/concentric_cylinder_intersector.hpp"
-#include "detray/tools/cylinder_intersector.hpp"
-#include "detray/tools/intersection_kernel.hpp"
-#include "detray/tools/planar_intersector.hpp"
-#include "detray/tools/track.hpp"
+#include "detray/propagator/track.hpp"
 #include "detray/utils/enumerate.hpp"
 
 using namespace detray;

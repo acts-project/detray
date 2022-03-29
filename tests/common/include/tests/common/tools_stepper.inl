@@ -9,9 +9,9 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
-#include "detray/tools/line_stepper.hpp"
-#include "detray/tools/rk_stepper.hpp"
-#include "detray/tools/track.hpp"
+#include "detray/propagator/line_stepper.hpp"
+#include "detray/propagator/rk_stepper.hpp"
+#include "detray/propagator/track.hpp"
 #include "tests/common/tools/helix_gun.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command

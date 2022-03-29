@@ -11,6 +11,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/type_registry.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
@@ -19,7 +20,6 @@
 #include "detray/masks/rectangle2.hpp"
 #include "detray/tools/local_object_finder.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

@@ -7,9 +7,10 @@
 #pragma once
 
 #include <climits>
+#include <sstream>
 
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/indexing.hpp"
 
 namespace detray {
 

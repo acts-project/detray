@@ -11,8 +11,8 @@
 #include <climits>
 #include <type_traits>
 
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/containers.hpp"
 
 namespace detray {
 

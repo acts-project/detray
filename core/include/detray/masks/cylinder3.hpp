@@ -12,10 +12,10 @@
 #include <sstream>
 #include <string>
 
-#include "detray/core/intersection.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/tools/cylinder_intersector.hpp"
+#include "detray/intersection/cylinder_intersector.hpp"
+#include "detray/intersection/intersection.hpp"
 
 namespace detray {
 /** This is a simple mask for a full cylinder

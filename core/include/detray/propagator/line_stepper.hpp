@@ -8,7 +8,7 @@
 #pragma once
 
 // detray tools
-#include "detray/tools/base_stepper.hpp"
+#include "detray/propagator/base_stepper.hpp"
 
 // detray definitions
 #include <cmath>

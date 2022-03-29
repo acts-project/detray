@@ -11,8 +11,8 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // detray tools
-#include "detray/tools/constrained_step.hpp"
-#include "detray/tools/track.hpp"
+#include "detray/propagator/constrained_step.hpp"
+#include "detray/propagator/track.hpp"
 
 namespace detray {
 

@@ -11,7 +11,7 @@
 #include "tests/common/test_defs.hpp"
 
 // detray core
-#include "detray/utils/quadratic_equation.hpp"
+#include "detray/intersection/quadratic_equation.hpp"
 
 using namespace detray;
 
