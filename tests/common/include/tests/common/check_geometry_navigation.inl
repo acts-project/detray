@@ -21,6 +21,8 @@ using namespace detray;
 
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, geometry_discovery) {
+    using namespace navigation;
+
     // vecmem::host_memory_resource host_mr;
     // auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
@@ -28,8 +30,8 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     auto d = create_toy_geometry(host_mr);
 
     // Create the navigator
-    using inspector_t = aggregate_inspector<navigation::object_tracer<1>,
-                                            navigation::print_inspector>;
+    using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
+                                            print_inspector>;
     using navigator_t = navigator<decltype(d), inspector_t>;
     using stepper_t = line_stepper<free_track_parameters>;
 
@@ -81,9 +83,9 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
 
             auto &obj_tracer =
                 n_state.inspector()
-                    .template get<navigation::object_tracer<1>>();
+                    .template get<object_tracer<status::e_on_target>>();
             auto &debug_printer =
-                n_state.inspector().template get<navigation::print_inspector>();
+                n_state.inspector().template get<print_inspector>();
 
             std::stringstream debug_stream;
             for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();

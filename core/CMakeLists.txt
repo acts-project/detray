@@ -54,6 +54,7 @@ detray_add_library( detray_core core
    "include/detray/masks/unmasked.hpp"   
    # propagator include(s)
    "include/detray/propagator/base_stepper.hpp"
+   "include/detray/propagator/constrained_step.hpp"
    "include/detray/propagator/line_stepper.hpp"
    "include/detray/propagator/navigator.hpp"
    "include/detray/propagator/propagator.hpp"

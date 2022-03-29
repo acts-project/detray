@@ -27,10 +27,6 @@
 
 using namespace detray;
 
-// type definitions
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
-
 using detector_host_type =
     detector<detector_registry::toy_detector, darray, thrust::tuple,
              vecmem::vector, vecmem::jagged_vector>;

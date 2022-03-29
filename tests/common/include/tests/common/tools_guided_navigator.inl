@@ -30,7 +30,8 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
     using namespace detray::navigation;
 
-    using inspector_t = aggregate_inspector<object_tracer<1>, print_inspector>;
+    using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
+                                            print_inspector>;
     using b_field_t = constant_magnetic_field<>;
     using stepper_t = rk_stepper<b_field_t, free_track_parameters>;
 
@@ -70,13 +71,14 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
         heartbeat &= stepper.step(step_state, nav_state);
 
         // Enforce evaluation of only the next surface in the telescope
-        nav_state.set_trust_level(e_high_trust);
+        nav_state.set_trust_level(trust_level::e_high);
 
         heartbeat &= nav.update(nav_state, step_state);
     }
 
     auto &debug_printer = nav_state.inspector().template get<print_inspector>();
-    auto &obj_tracer = nav_state.inspector().template get<object_tracer<1>>();
+    auto &obj_tracer = nav_state.inspector()
+                           .template get<object_tracer<status::e_on_target>>();
 
     // Check that navigator exited
     ASSERT_TRUE(nav_state.is_complete()) << debug_printer.to_string();

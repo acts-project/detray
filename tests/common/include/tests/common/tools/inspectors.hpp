@@ -46,7 +46,7 @@ namespace navigation {
 /** A navigation inspector that relays information about the encountered
  *  objects the way we need them to compare with the ray
  */
-template <int navigation_status = 0,
+template <status navigation_status = status::e_unknown,
           template <typename...> class vector_t = dvector>
 struct object_tracer {
 
@@ -97,26 +97,22 @@ struct print_inspector {
         }
 
         switch (state.status()) {
-            case e_abort:
+            case status::e_abort:
                 debug_stream << "status" << tabs << "abort" << std::endl;
                 break;
-            case e_exit:
+            case status::e_exit:
                 debug_stream << "status" << tabs << "exit" << std::endl;
                 break;
-            case e_unknown:
+            case status::e_unknown:
                 debug_stream << "status" << tabs << "unknowm" << std::endl;
                 break;
-            case e_towards_object:
+            case status::e_towards_object:
                 debug_stream << "status" << tabs << "towards_surface"
                              << std::endl;
                 break;
-            case e_on_target:
+            case status::e_on_target:
                 debug_stream << "status" << tabs << "on_surface" << std::endl;
                 break;
-                /*case e_towards_object:
-                    debug_stream << "status" << tabs << "towards_portal" <<
-                std::endl; break; case e_on_target: debug_stream << "status" <<
-                tabs << "on_portal" << std::endl; break;*/
         };
         debug_stream << "current object\t\t" << state.current_object()
                      << std::endl;
@@ -127,16 +123,16 @@ struct print_inspector {
             debug_stream << state() << std::endl;
         }
         switch (state.trust_level()) {
-            case e_no_trust:
+            case trust_level::e_no_trust:
                 debug_stream << "trust" << tabs << "no_trust" << std::endl;
                 break;
-            case e_fair_trust:
+            case trust_level::e_fair:
                 debug_stream << "trust" << tabs << "fair_trust" << std::endl;
                 break;
-            case e_high_trust:
+            case trust_level::e_high:
                 debug_stream << "trust" << tabs << "high_trust" << std::endl;
                 break;
-            case e_full_trust:
+            case trust_level::e_full:
                 debug_stream << "trust" << tabs << "full_trust" << std::endl;
                 break;
         };
@@ -159,20 +155,20 @@ struct print_inspector {
                                        const stepper_state_t &stepping) {
 
         stream << std::left << std::setw(30);
-        switch (static_cast<int>(navigation.status())) {
-            case navigation::e_abort:
+        switch (navigation.status()) {
+            case navigation::status::e_abort:
                 stream << "status: abort";
                 break;
-            case navigation::e_exit:
+            case navigation::status::e_exit:
                 stream << "status: exit";
                 break;
-            case navigation::e_unknown:
+            case navigation::status::e_unknown:
                 stream << "status: unknowm";
                 break;
-            case navigation::e_towards_object:
+            case navigation::status::e_towards_object:
                 stream << "status: towards_surface";
                 break;
-            case navigation::e_on_target:
+            case navigation::status::e_on_target:
                 stream << "status: on_surface";
                 break;
         };

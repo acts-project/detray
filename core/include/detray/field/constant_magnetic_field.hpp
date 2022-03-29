@@ -27,7 +27,9 @@ class constant_magnetic_field {
     constant_magnetic_field(vector3 field) : _field(field) {}
 
     DETRAY_HOST_DEVICE
-    vector3 get_field(point3 /*pos*/, context_t /*ctx*/) { return _field; }
+    const vector3 &get_field(point3 /*pos*/, context_t /*ctx*/) const {
+        return _field;
+    }
 
     vector3 _field;
 };
