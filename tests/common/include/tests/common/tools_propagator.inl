@@ -113,9 +113,11 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Create the navigator
-    using navigator_t = navigator<decltype(d), navigation::print_inspector>;
+    using navigator_t = navigator<decltype(d)>;
     using b_field_t = constant_magnetic_field<>;
-    using stepper_t = rk_stepper<b_field_t, free_track_parameters>;
+    using constraints_t = constrained_step<>;
+    using stepper_t =
+        rk_stepper<b_field_t, free_track_parameters, constraints_t>;
     using propagator_t = propagator<stepper_t, navigator_t>;
 
     // Constant magnetic field
@@ -154,10 +156,12 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
             propagator_t::state state(traj);
             state._stepping.set_path_limit(path_limit);
+            state._stepping
+                .template set_constraint<step::constraint::e_accuracy>(
+                    5. * unit_constants::mm);
 
-            ASSERT_TRUE(p.propagate(state, ci, 5. * unit_constants::mm))
-                << ci._pi.to_string() << std::endl
-                << state._navigation.inspector().to_string() << std::endl;
+            ASSERT_TRUE(p.propagate(state, ci))
+                << ci._pi.to_string() << std::endl;
         }
     }
 }
