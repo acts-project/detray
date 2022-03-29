@@ -25,5 +25,7 @@ target_compile_definitions( detray_eigen
 # though they are set up from a "system include path". So I had to explicitly
 # disable the warning triggered by those headers, for anything that uses them.
 # This is pretty bad, as we're now blind to these types of warnings/errors. :-(
+if ( "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" )
 target_compile_options( detray_eigen INTERFACE
    $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe --diag_suppress=20012> )
+endif()
