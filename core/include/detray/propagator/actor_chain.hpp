@@ -34,6 +34,11 @@ struct result {
 template <typename... observers>
 struct actor {
 
+    /// Register the components as observers
+    /*using observer_list_type = tuple_t<observers...>;
+    /// List of observer result types
+    using observer_results_type = tuple_t<result<observers>...>;*/
+
     /// Defines the actors state
     struct state {};
 
@@ -51,10 +56,11 @@ struct actor {
               std::size_t... indices>
     constexpr inline void notify(
         result<actor_t> &res, tuple_t<observers...> &observer_list,
-        tuple_t<result<observers...>> &observer_results,
+        tuple_t<result<observers>...> &observer_results,
         std::index_sequence<indices...> /*ids*/) {
-        notify(res, detail::get<indices...>(observer_list),
-               detail::get<indices...>(observer_results));
+        (notify(res, detail::get<indices>(observer_list),
+                detail::get<indices>(observer_results)),
+         ...);
     }
 };
 
@@ -88,7 +94,7 @@ struct composite_actor {
     /// Register the components as observers
     using observer_list_type = tuple_t<observers...>;
     /// List of observer result types
-    using observer_results_type = tuple_t<result<observers...>>;
+    using observer_results_type = tuple_t<result<observers>...>;
     /// Complete result of the composite
     using result_type = std::pair<actor_result_type, observer_results_type>;
 
@@ -167,8 +173,8 @@ class actor_chain {
     constexpr inline void run(actor_list_type &actors,
                               actor_results_type &actor_results,
                               std::index_sequence<indices...> /*ids*/) {
-        run(detail::get<indices...>(actors),
-            detail::get<indices...>(actor_results));
+        (run(detail::get<indices>(actors), detail::get<indices>(actor_results)),
+         ...);
     }
 
     private:

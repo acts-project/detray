@@ -78,10 +78,11 @@ TEST(ALGEBRA_PLUGIN, actor_chain) {
 
     // observer types
     using composite1 = composite_actor<dtuple, example_actor, print_actor>;
-    // using composite2 = composite_actor<dtuple, do_smth_actor, print_actor1>;
+    using composite2 =
+        composite_actor<dtuple, example_actor, print_actor, print_actor>;
     // using composite3 = composite_actor<do_smth_actor, dtuple, composite2>;
 
-    using actor_chain_t = actor_chain<dtuple, composite1>;
+    using actor_chain_t = actor_chain<dtuple, composite1, composite2>;
 
     actor_chain_t actors{};
     actor_chain_t::state actor_states;
