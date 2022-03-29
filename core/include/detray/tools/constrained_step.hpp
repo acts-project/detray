@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/containers.hpp"
 
 namespace detray {
 
