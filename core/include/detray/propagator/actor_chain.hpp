@@ -7,132 +7,187 @@
 
 #pragma once
 
-#include <iostream>
 #include <type_traits>
 #include <utility>
 
 #include "detray/definitions/detail/accessor.hpp"
-#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
 
 /// Base class actor implementation
 ///
-/// It implements the call and observer handling infrastructure that all
-/// actors need to comply with.
+/// It implements the call and typedef infrastructure that all actors need to
+/// comply with. Every actor has an id that defines the position of its state
+/// objects in the actor state tuple that is accessible through actor_chain
 ///
+/// @tparam ID the actors id needed to link it to its state
 template <std::size_t ID>
-struct actor {
+class actor {
+
+    /// The type of the actor is referenced when the actor type of a composition
+    /// is resolved
+    using actor_type = actor<ID>;
 
     /// Defines the actors state
     struct state {
         static constexpr std::size_t _id{ID};
     };
 
-    /// Do this actors work and then call the observers on the updated status
+    /// Call to the implementation of the actor.
+    ///
+    /// @param results the state of the actor
+    /// @param p_state the state of the propagator (stepper and navigator)
     template <typename propagator_state_t>
-    void operator()(actor<ID>::state &results, propagator_state_t &p_state) {}
+    void operator()(actor<ID>::state & /*results*/,
+                    propagator_state_t & /*p_state*/) {}
 
-    /// Do this actors work and then call the observers on the updated status
+    /// Call to the implementation of the actor.
+    ///
+    /// @param results the state of the actor
+    /// @param subject_results the state of the actor this actor is an observer
+    ///                        of (if any)
+    /// @param p_state the state of the propagator (stepper and navigator)
     template <typename subj_result_t, typename propagator_state_t>
-    void operator()(actor<ID>::state &results, subj_result_t &subject_result,
-                    propagator_state_t &p_state) {}
+    void operator()(actor<ID>::state & /*results*/,
+                    subj_result_t & /*subject_result*/,
+                    propagator_state_t & /*p_state*/) {}
 };
 
 /// Composition of actors
 ///
-/// The composite represents an actor together with its observers. It delegates
-/// all calls to its observer actors in addition to its own implementation.
+/// The composition represents an actor together with its observers. In
+/// addition to running its own implementation, it notifies its observing actors
 ///
-/// @tparam actor_t the type of actor implemented by the composition.
-/// @tparam observers the component actor that are the observers to this actor.
+/// @tparam ID the id for the composition is the id of the actor it implements.
+/// @tparam tuple_t the tuple used to unroll observer types.
+/// @tparam actor_impl_t the actor the compositions implements itself.
+/// @tparam observers a pack of observing actors that get called on the updated
+///         actor state of the compositions actor implementation.
 template <std::size_t ID, template <typename...> class tuple_t = dtuple,
           template <std::size_t> class actor_impl_t = actor,
           typename... observers>
-struct composite_actor : public actor_impl_t<ID> {
+class composite_actor : public actor_impl_t<ID> {
 
     public:
-    /// The composite is an actor in itself
+    /// The composite is an actor in itself. If it is derived from another
+    /// composition, it will just implement the same actor as its base class.
+    /// I.e. it is impossible to observe another composition's observers.
     using actor_type = typename actor_impl_t<ID>::actor_type;
     /// Register the components as observers
     using observer_list_type = tuple_t<observers...>;
 
-    /// Inherited state type
+    /// State type for the actor that is implemented by the composition
     struct state : public actor_type::state {};
 
-    /// Do this actors work and then call the observers on the updated status
+    /// Call to the implementation of the actor.
+    ///
+    /// First runs its own implementation, then passes the updated state to its
+    /// observers.
+    ///
+    /// @param results the states of the all actors in the chain
+    /// @param p_state the state of the propagator (stepper and navigator)
     template <typename actor_results_t, typename propagator_state_t>
     void operator()(actor_results_t &results, propagator_state_t &p_state) {
         // Do your own work ...
-        static_cast<actor_type *>(this)->operator()(
-            detail::get<typename actor_type::state>(results), p_state);
+        static_cast<actor_type *>(this)->operator()(detail::get<ID>(results),
+                                                    p_state);
 
         // Then run the observers on the updated state
-        notify(detail::get<typename actor_type::state>(results), _observers,
-               results, p_state,
+        notify(detail::get<ID>(results), _observers, results, p_state,
                std::make_index_sequence<sizeof...(observers)>{});
     }
 
-    /// Do this actors work and then call the observers on the updated status
+    /// Call to the implementation of the actor (the actor being an observer
+    /// itself)
+    ///
+    /// First runs its own implementation, then passes the updated state to its
+    /// observers.
+    ///
+    /// @param results the states of the all actors in the chain
+    /// @param subject_results the state of the actor this actor is an observer
+    ///                        of
+    /// @param p_state the state of the propagator (stepper and navigator)
     template <typename actor_results_t, typename subj_result_t,
               typename propagator_state_t>
     void operator()(actor_results_t &results, subj_result_t &subject_result,
                     propagator_state_t &p_state) {
         // Do your own work ...
 
-        static_cast<actor_type *>(this)->operator()(
-            detail::get<typename actor_type::state>(results), subject_result,
-            p_state);
+        static_cast<actor_type *>(this)->operator()(detail::get<ID>(results),
+                                                    subject_result, p_state);
 
         // Then run the observers on the updated state
-        notify(detail::get<typename actor_type::state>(results), _observers,
-               results, p_state,
+        notify(detail::get<ID>(results), _observers, results, p_state,
                std::make_index_sequence<sizeof...(observers)>{});
     }
 
     private:
-    /// Call all observers on this actors result
+    /// Notifies the observing actors, when this actor is a composite itself
+    ///
+    /// In order to distinguish between actors and composite actors, the
+    /// template signature is resolved.
+    ///
+    /// @param actor_state the state of this compositions actor as the subject
+    ///                    to all of its observers
+    /// @param observer one of the observer
+    /// @param results the states of the all actors in the chain
+    /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t obs_ID, template <typename...> class comp_tuple_t,
               template <std::size_t> class comp_actor_impl_t,
               typename... comp_observers,
               template <std::size_t, template <typename...> class,
                         template <std::size_t> class, typename...>
               class observer_t,
-              typename observer_results_t, typename propagator_state_t>
+              typename actor_results_t, typename propagator_state_t>
     constexpr inline void notify(
         typename actor_type::state &actor_state,
         observer_t<obs_ID, comp_tuple_t, comp_actor_impl_t, comp_observers...>
             &observer,
-        observer_results_t &observer_results, propagator_state_t &p_state) {
+        actor_results_t &results, propagator_state_t &p_state) {
 
-        observer(observer_results, actor_state, p_state);
+        observer(results, actor_state, p_state);
     }
 
-    /// Call all observers on this actors result
+    /// Notifies the observing actors, normal case.
+    ///
+    /// In order to distinguish between actors and composite actors, the
+    /// template signature is resolved.
+    ///
+    /// @param actor_state the state of this compositions actor as the subject
+    ///                    to all of its observers
+    /// @param observer one of the observer
+    /// @param results the states of the all actors in the chain
+    /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t obs_ID, template <std::size_t> class observer_t,
-              typename observer_results_t, typename propagator_state_t>
+              typename actor_results_t, typename propagator_state_t>
     constexpr inline void notify(typename actor_type::state &actor_state,
                                  observer_t<obs_ID> &observer,
-                                 observer_results_t &observer_results,
+                                 actor_results_t &results,
                                  propagator_state_t &p_state) {
 
-        observer(
-            detail::get<typename observer_t<obs_ID>::state>(observer_results),
-            actor_state, p_state);
+        observer(detail::get<obs_ID>(results), actor_state, p_state);
     }
 
-    /// Call all observers on this actors result
+    /// Resolve the observer notification.
+    ///
+    /// Unrolls the observer types and runs the notification for each of them.
+    ///
+    /// @param actor_state the state of this compositions actor as the subject
+    ///                    to all of its observers
+    /// @param observer_list all observers of the actor
+    /// @param results the states of the all actors in the chain
+    /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t... indices, typename observer_results_t,
               typename propagator_state_t>
     constexpr inline void notify(typename actor_type::state &actor_state,
                                  observer_list_type &observer_list,
-                                 observer_results_t &observer_results,
+                                 actor_results_t &results,
                                  propagator_state_t &p_state,
                                  std::index_sequence<indices...> /*ids*/) {
 
-        (notify(actor_state, detail::get<indices>(observer_list),
-                observer_results, p_state),
+        (notify(actor_state, detail::get<indices>(observer_list), results,
+                p_state),
          ...);
     }
 
@@ -140,26 +195,37 @@ struct composite_actor : public actor_impl_t<ID> {
     observer_list_type _observers = {};
 };
 
-/// The actor chain is the interface to a composition of actors
+/// The interface to the actors and aborters in the propagation.
 ///
+/// It can hold both simple actors, as well as an actor with its observers.
+/// The states of the actors need to be passed to the chain in an external tuple
 ///
+/// @tparam tuple_t tuple type used to resolve the actor types
+/// @tparam actors_t the types of the actors in the chain.
 template <template <typename...> class tuple_t = dtuple, typename... actors_t>
 class actor_chain {
+
     public:
-    /// Start of the actor call
+    /// Types of the actors that are registered in the chain
     using actor_list_type = tuple_t<actors_t...>;
 
-    /// Do this actors work and then call the observers on the updated status
+    /// Call all actors in the chain.
+    ///
+    /// @param results the states of the actors.
+    /// @param p_state the propagation state.
     template <typename actor_results_t, typename propagator_state_t>
     void operator()(actor_results_t &results, propagator_state_t &p_state) {
 
-        // Run all actors and their observers
         run(_actors, results, p_state,
             std::make_index_sequence<sizeof...(actors_t)>{});
     }
 
     private:
-    /// Call all observers on this actors result
+    /// Call a composition of actors.
+    ///
+    /// @param comp_actr the composite actor
+    /// @param results states of all actors (only bare actors)
+    /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t ID, template <typename...> class comp_tuple_t,
               template <std::size_t> class actor_impl_t, typename... observers,
               template <std::size_t, template <typename...> class,
@@ -167,20 +233,28 @@ class actor_chain {
               class actor_t,
               typename actor_results_t, typename propagator_state_t>
     constexpr inline void run(
-        actor_t<ID, comp_tuple_t, actor_impl_t, observers...> &actr,
+        actor_t<ID, comp_tuple_t, actor_impl_t, observers...> &comp_actr,
         actor_results_t &results, propagator_state_t &p_state) {
-        actr(results, p_state);
+        comp_actr(results, p_state);
     }
 
-    /// Call all observers on this actors result
+    /// Call a single actor.
+    ///
+    /// @param actr the actor
+    /// @param results states of all actors (only bare actors)
+    /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t ID, template <std::size_t> class actor_t,
               typename actor_results_t, typename propagator_state_t>
     constexpr inline void run(actor_t<ID> &actr, actor_results_t &results,
                               propagator_state_t &p_state) {
-        actr(detail::get<typename actor_t<ID>::state>(results), p_state);
+        actr(detail::get<ID>(results), p_state);
     }
 
-    /// Call all observers on this actors result
+    /// Resolve the actor calls.
+    ///
+    /// @param actors list of all actors
+    /// @param results states of all actors (only bare actors)
+    /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t... indices, typename actor_results_t,
               typename propagator_state_t>
     constexpr inline void run(actor_list_type &actors, actor_results_t &results,
@@ -190,6 +264,7 @@ class actor_chain {
     }
 
     private:
+    /// Tuple of actors
     actor_list_type _actors = {};
 };
 
