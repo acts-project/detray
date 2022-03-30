@@ -36,22 +36,24 @@ struct print_actor : actor<ID> {
 
     /// Printer id
     struct state : actor<ID>::state {
-        int printer_id = 1;
+        int out = 1;
     };
 
     /// Print the ID of the type and the id in its state
     template <typename propagator_state_t>
-    void operator()(typename print_actor<ID>::state &res,
+    void operator()(typename print_actor<ID>::state &printer_state,
                     propagator_state_t & /*p_state*/) {
-        std::cout << "This is print actor: " << res._id << ", " << std::endl;
+        std::cout << "This is print actor: " << printer_state._id << " : "
+                  << printer_state.out << std::endl;
     }
 
-    template <typename subj_result_t, typename propagator_state_t>
-    void operator()(typename print_actor<ID>::state &res,
-                    subj_result_t &subject_result,
+    template <typename subj_state_t, typename propagator_state_t>
+    void operator()(typename print_actor<ID>::state &printer_state,
+                    subj_state_t &subject_state,
                     propagator_state_t & /*p_state*/) {
-        std::cout << "This is print actor: " << res._id
-                  << ", observing actor: " << subject_result._id << std::endl;
+        std::cout << "This is print actor: " << printer_state._id
+                  << ", observing actor: " << subject_state._id << " : "
+                  << printer_state.out << std::endl;
     }
 };
 
@@ -61,26 +63,27 @@ struct example_actor : actor<ID> {
     using actor_type = example_actor<ID>;
 
     /// Printer id
-    struct state : actor<ID>::state {
-        int printer_id = 2;
-    };
+    struct state : actor<ID>::state {};
 
     /// Print your id
     template <typename propagator_state_t>
-    void operator()(typename example_actor<ID>::state &res,
+    void operator()(typename example_actor<ID>::state &example_state,
                     propagator_state_t & /*p_state*/) {
-        std::cout << "This is example actor: " << res._id << std::endl;
+        std::cout << "This is example actor: " << example_state._id
+                  << std::endl;
     }
 
     /// Print your id
-    template <typename subj_result_t, typename propagator_state_t>
-    void operator()(typename example_actor<ID>::state &res,
-                    subj_result_t & /*subject_result*/,
+    template <typename subj_state_t, typename propagator_state_t>
+    void operator()(typename example_actor<ID>::state &example_state,
+                    subj_state_t & /*subject_state*/,
                     propagator_state_t & /*p_state*/) {
-        std::cout << "This is example actor: " << res._id << std::endl;
+        std::cout << "This is example actor: " << example_state._id
+                  << std::endl;
     }
 };
 
+/// empty propagator state
 struct dummy_prop_state {};
 
 // observer types (always the ID of the actor that is implemented by the

@@ -32,7 +32,7 @@ class actor {
 
     /// Defines the actors state
     struct state {
-        static constexpr std::size_t _id{ID};
+        const std::size_t _id{ID};
     };
 
     /// Call to the implementation of the actor.
