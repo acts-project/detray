@@ -5,14 +5,16 @@
  * Mozilla Public License Version 2.0
  */
 
+#include "rk_stepper_vecpar.hpp"
+
 #include <gtest/gtest.h>
 
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "rk_stepper_cuda_kernel.hpp"
+#include "vecpar/all/main.hpp"
 
-TEST(rk_stepper_cuda, rk_stepper) {
+TEST(rk_stepper_algo_vecpar, rk_stepper) {
 
     // VecMem memory resource(s)
     vecmem::host_memory_resource host_mr;
@@ -79,11 +81,9 @@ TEST(rk_stepper_cuda, rk_stepper) {
                                backward_state.dist_to_path_limit());
     }
 
-    // Get tracks data
-    auto tracks_data = vecmem::get_data(tracks_device);
-
-    // Run RK stepper cuda kernel
-    rk_stepper_test(tracks_data, B);
+    // Run RK stepper
+    rk_stepper_algorithm rk_stepper_algo;
+    vecpar::parallel_map(rk_stepper_algo, mng_mr, tracks_device, B);
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
         auto host_pos = tracks_host[i].pos();
@@ -98,7 +98,7 @@ TEST(rk_stepper_cuda, rk_stepper) {
 }
 
 /*
-TEST(rk_stepper_cuda, rk_stepper_timed) {
+TEST(rk_stepper_algo_vecpar, rk_stepper_timed) {
 
     // VecMem memory resource(s)
     vecmem::host_memory_resource host_mr;
@@ -107,6 +107,7 @@ TEST(rk_stepper_cuda, rk_stepper_timed) {
     // Create the vector of initial track parameters
     vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
     vecmem::vector<free_track_parameters> tracks_device(&mng_mr);
+    vecmem::vector<free_track_parameters> tracks_benchmark(&mng_mr);
 
     // Create the vector of accumulated path lengths
     vecmem::vector<scalar> path_lengths(&host_mr);
@@ -116,8 +117,6 @@ TEST(rk_stepper_cuda, rk_stepper_timed) {
 
     // Set the magnetic field
     const vector3 B{0, 0, 2 * unit_constants::T};
-    std::chrono::time_point<std::chrono::steady_clock> start_time;
-    std::chrono::time_point<std::chrono::steady_clock> end_time;
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -138,16 +137,81 @@ TEST(rk_stepper_cuda, rk_stepper_timed) {
 
             tracks_host.push_back(traj);
             tracks_device.push_back(traj);
+            tracks_benchmark.push_back(traj);
         }
     }
 
-    // Define RK stepper
-    rk_stepper_type rk(B);
     nav_state n_state{};
 
+    std::chrono::time_point<std::chrono::steady_clock> start_time;
+    std::chrono::time_point<std::chrono::steady_clock> end_time;
+
+#if defined(_OPENMP)
+    start_time = std::chrono::steady_clock::now();
+
+    // Define RK stepper
+    rk_stepper_type rk(B);
+
+    #pragma omp parallel for
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
         auto& traj = tracks_host[i];
+
+        // Forward direction
+        rk_stepper_type::state forward_state(traj);
+
+        for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
+            rk.step(forward_state, n_state);
+        }
+
+        // Backward direction
+        traj.flip();
+        rk_stepper_type::state backward_state(traj);
+        for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
+            rk.step(backward_state, n_state);
+        }
+    }
+
+    end_time = std::chrono::steady_clock::now();
+
+    std::chrono::duration<double> time_cpu = end_time - start_time;
+    printf("CPU OMP time  = %f s\n", time_cpu.count());
+#else
+    start_time = std::chrono::steady_clock::now();
+
+   // Define RK stepper
+   rk_stepper_type rk(B);
+
+   for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
+
+       auto& traj = tracks_host[i];
+
+       // Forward direction
+       rk_stepper_type::state forward_state(traj);
+
+       for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
+           rk.step(forward_state, n_state);
+       }
+
+       // Backward direction
+       traj.flip();
+       rk_stepper_type::state backward_state(traj);
+       for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
+           rk.step(backward_state, n_state);
+       }
+   }
+
+   end_time = std::chrono::steady_clock::now();
+
+   std::chrono::duration<double> time_cpu = end_time - start_time;
+   printf("CPU seq time  = %f s\n", time_cpu.count());
+#endif
+
+    /// get data for test bench
+
+    for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
+
+        auto& traj = tracks_benchmark[i];
 
         // Forward direction
         rk_stepper_type::state forward_state(traj);
@@ -166,18 +230,17 @@ TEST(rk_stepper_cuda, rk_stepper_timed) {
         path_lengths.push_back(2 * path_limit -
                                forward_state.dist_to_path_limit() -
                                backward_state.dist_to_path_limit());
+
     }
 
+    // Run RK stepper in parallel on CPU/GPU
     start_time = std::chrono::steady_clock::now();
-    // Get tracks data
-    auto tracks_data = vecmem::get_data(tracks_device);
-
-    // Run RK stepper cuda kernel
-    rk_stepper_test(tracks_data, B);
+    rk_stepper_algorithm rk_stepper_algo;
+    vecpar::parallel_map(rk_stepper_algo, mng_mr, tracks_device, B);
     end_time = std::chrono::steady_clock::now();
 
     std::chrono::duration<double> time_par = end_time - start_time;
-    printf("CUDA time  = %f s\n", time_par.count());
+    printf("CPU/GPU_vecpar_clang time  = %f s\n", time_par.count());
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
         auto host_pos = tracks_host[i].pos();
@@ -190,4 +253,4 @@ TEST(rk_stepper_cuda, rk_stepper_timed) {
         EXPECT_NEAR(getter::norm(device_relative_error), 0, epsilon);
     }
 }
-*/
+ */

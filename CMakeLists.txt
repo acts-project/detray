@@ -167,6 +167,21 @@ if( DETRAY_SETUP_BENCHMARK )
    endif()
 endif()
 
+# Set up vecpar.
+option( DETRAY_SETUP_VECPAR
+        "Set up the vecpar target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_VECPAR
+        "Pick up an existing installation of vecpar from the build environment"
+        FALSE )
+if( DETRAY_SETUP_VECPAR)
+   if( DETRAY_USE_SYSTEM_VECPAR )
+      find_package( vecpar REQUIRED )
+   else()
+      add_subdirectory( extern/vecpar )
+   endif()
+endif()
+
+
 # Set up all of the libraries of the project.
 add_subdirectory( core )
 add_subdirectory( plugins )
