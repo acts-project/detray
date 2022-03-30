@@ -12,7 +12,7 @@ if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC" )
    detray_add_flag( CMAKE_CXX_FLAGS "/Zc:__cplusplus" )
 endif()
 
-# Respect inifitiy expressions for IntelLLVM
+# Respect infinity expressions for IntelLLVM
 if ( "${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM")
    detray_add_flag( CMAKE_CXX_FLAGS "-fhonor-infinities")
 endif()
