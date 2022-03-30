@@ -25,64 +25,91 @@
 constexpr scalar epsilon = 5e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
 
-struct print_actor {
+template <std::size_t ID>
+struct print_actor : actor<ID> {
+
+    using actor_type = print_actor<ID>;
 
     /// Printer id
-    struct state {
+    struct state : actor<ID>::state {
         int printer_id = 1;
     };
 
     /// Do this actors work and then call the observers on the updated status
-    template <typename state_t>
-    void operator()(state_t &res) {
-        std::cout << "This is print actor: " << res.printer_id << std::endl;
+    template <typename propagator_state_t>
+    void operator()(typename print_actor<ID>::state &res,
+                    propagator_state_t & /*p_state*/) {
+        std::cout << "This is print actor: " << res._id << std::endl;
     }
 
-    template <typename state_t, typename subj_result_t>
-    void operator()(state_t &res, subj_result_t &subject_result) {
-        std::cout << "This is print actor: " << res.printer_id
-                  << ", observing actor: " << subject_result.printer_id
-                  << std::endl;
+    template <typename subj_result_t, typename propagator_state_t>
+    void operator()(typename print_actor<ID>::state &res,
+                    subj_result_t &subject_result,
+                    propagator_state_t & /*p_state*/) {
+        std::cout << "This is print actor: " << res._id
+                  << ", observing actor: " << subject_result._id << std::endl;
     }
 };
 
-struct example_actor {
+template <std::size_t ID>
+struct example_actor : actor<ID> {
+
+    using actor_type = example_actor<ID>;
 
     /// Printer id
-    struct state {
-        int printer_id = 3;
+    struct state : actor<ID>::state {
+        int printer_id = 2;
     };
 
     /// Print your id
-    template <typename state_t>
-    void operator()(state_t &res) {
-        std::cout << "This is something actor: " << res.printer_id << std::endl;
+    template <typename propagator_state_t>
+    void operator()(typename example_actor<ID>::state &res,
+                    propagator_state_t & /*p_state*/) {
+        std::cout << "This is something actor: " << res._id << std::endl;
     }
 
     /// Print your id
-    template <typename state_t, typename subj_result_t>
-    void operator()(state_t &res, subj_result_t & /*subject_result*/) {
-        std::cout << "This is something actor: " << res.printer_id << std::endl;
+    template <typename subj_result_t, typename propagator_state_t>
+    void operator()(typename example_actor<ID>::state &res,
+                    subj_result_t & /*subject_result*/,
+                    propagator_state_t & /*p_state*/) {
+        std::cout << "This is something actor: " << res._id << std::endl;
     }
 };
 
+struct dummy_prop_state {};
+
+using print_actor_t = print_actor<1>;
+
+// observer types
+using composite1 =
+    composite_actor<0, dtuple, example_actor, print_actor_t, print_actor_t>;
+template <std::size_t ID>
+using composite2 = composite_actor<ID, dtuple, example_actor, print_actor_t>;
+template <std::size_t ID>
+using composite3 = composite_actor<ID, dtuple, composite2, composite1>;
+using composite4 = composite_actor<2, dtuple, composite3, composite1>;
+
 // Test the actor chain on some dummy actor types
 TEST(ALGEBRA_PLUGIN, actor_chain) {
+
     using namespace detray;
+    using namespace __plugin;
 
-    // observer types
-    using composite1 =
-        composite_actor<dtuple, example_actor, print_actor, print_actor>;
-    using composite2 = composite_actor<dtuple, example_actor, print_actor>;
-    using composite3 = composite_actor<dtuple, composite2, composite1>;
+    example_actor<0>::state example_state_1{};
+    example_actor<2>::state example_state_2{};
+    print_actor_t::state print_state{};
 
-    using actor_chain_t =
-        actor_chain<dtuple, composite1, composite2, composite3>;
+    dummy_prop_state p_state{};
+
+    // auto actor_states = std::forward_as_tuple(print_state, example_state_1);
+    auto actor_states =
+        std::make_tuple<>(example_state_1, print_state, example_state_2);
+    using actor_chain_t = actor_chain<dtuple, composite1, composite2<2>,
+                                      composite3<2>, composite4>;
 
     actor_chain_t actors{};
-    actor_chain_t::state actor_states{};
-
-    actors(actor_states);
+    actors(actor_states, p_state);
 }
 
 // This tests the basic functionality of the propagator
