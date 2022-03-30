@@ -25,9 +25,13 @@
 constexpr scalar epsilon = 5e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
 
+namespace {
+
+/// Dummy actor that prints its ID and a number
 template <std::size_t ID>
 struct print_actor : actor<ID> {
 
+    /// This implementations actor type
     using actor_type = print_actor<ID>;
 
     /// Printer id
@@ -35,11 +39,11 @@ struct print_actor : actor<ID> {
         int printer_id = 1;
     };
 
-    /// Do this actors work and then call the observers on the updated status
+    /// Print the ID of the type and the id in its state
     template <typename propagator_state_t>
     void operator()(typename print_actor<ID>::state &res,
                     propagator_state_t & /*p_state*/) {
-        std::cout << "This is print actor: " << res._id << std::endl;
+        std::cout << "This is print actor: " << res._id << ", " << std::endl;
     }
 
     template <typename subj_result_t, typename propagator_state_t>
@@ -65,7 +69,7 @@ struct example_actor : actor<ID> {
     template <typename propagator_state_t>
     void operator()(typename example_actor<ID>::state &res,
                     propagator_state_t & /*p_state*/) {
-        std::cout << "This is something actor: " << res._id << std::endl;
+        std::cout << "This is example actor: " << res._id << std::endl;
     }
 
     /// Print your id
@@ -73,22 +77,29 @@ struct example_actor : actor<ID> {
     void operator()(typename example_actor<ID>::state &res,
                     subj_result_t & /*subject_result*/,
                     propagator_state_t & /*p_state*/) {
-        std::cout << "This is something actor: " << res._id << std::endl;
+        std::cout << "This is example actor: " << res._id << std::endl;
     }
 };
 
 struct dummy_prop_state {};
 
-using print_actor_t = print_actor<1>;
+// observer types (always the ID of the actor that is implemented by the
+// composition must be given, since it refers to its state object)
+using print_actor_t = print_actor<2>;
 
-// observer types
+// Implements example_actor using state no. 0
 using composite1 =
     composite_actor<0, dtuple, example_actor, print_actor_t, print_actor_t>;
+// Implements example_actor using state no. 'ID'
 template <std::size_t ID>
 using composite2 = composite_actor<ID, dtuple, example_actor, print_actor_t>;
+// Implements example_actor (through composite2) using state no. 'ID'
 template <std::size_t ID>
 using composite3 = composite_actor<ID, dtuple, composite2, composite1>;
-using composite4 = composite_actor<2, dtuple, composite3, composite1>;
+// Implements example_actor (through composite2<-composite3) using state no. 1
+using composite4 = composite_actor<1, dtuple, composite3, composite1>;
+
+}  // anonymous namespace
 
 // Test the actor chain on some dummy actor types
 TEST(ALGEBRA_PLUGIN, actor_chain) {
@@ -96,19 +107,24 @@ TEST(ALGEBRA_PLUGIN, actor_chain) {
     using namespace detray;
     using namespace __plugin;
 
+    // The actor states (can be reused between actors, e.g. for the printer or
+    // empty states)
     example_actor<0>::state example_state_1{};
-    example_actor<2>::state example_state_2{};
-    print_actor_t::state print_state{};
+    example_actor<1>::state example_state_2{};
+    print_actor_t::state printer_state{};
 
+    // Aggregate actor states to be able to pass them through the chain
+    auto actor_states =
+        std::make_tuple<>(example_state_1, example_state_2, printer_state);
+
+    // Propagator state
     dummy_prop_state p_state{};
 
-    // auto actor_states = std::forward_as_tuple(print_state, example_state_1);
-    auto actor_states =
-        std::make_tuple<>(example_state_1, print_state, example_state_2);
-    using actor_chain_t = actor_chain<dtuple, composite1, composite2<2>,
-                                      composite3<2>, composite4>;
-
+    // Chain of actors
+    using actor_chain_t = actor_chain<dtuple, example_actor<0>, composite1,
+                                      composite2<1>, composite3<1>, composite4>;
     actor_chain_t actors{};
+    // Run
     actors(actor_states, p_state);
 }
 

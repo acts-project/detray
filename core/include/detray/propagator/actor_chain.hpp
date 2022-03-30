@@ -25,6 +25,7 @@ namespace detray {
 template <std::size_t ID>
 class actor {
 
+    public:
     /// The type of the actor is referenced when the actor type of a composition
     /// is resolved
     using actor_type = actor<ID>;
@@ -178,7 +179,7 @@ class composite_actor : public actor_impl_t<ID> {
     /// @param observer_list all observers of the actor
     /// @param results the states of the all actors in the chain
     /// @param p_state the state of the propagator (stepper and navigator)
-    template <std::size_t... indices, typename observer_results_t,
+    template <std::size_t... indices, typename actor_results_t,
               typename propagator_state_t>
     constexpr inline void notify(typename actor_type::state &actor_state,
                                  observer_list_type &observer_list,
