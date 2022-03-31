@@ -26,7 +26,11 @@ set( ALGEBRA_PLUGINS_INCLUDE_EIGEN TRUE CACHE BOOL
 set( ALGEBRA_PLUGINS_INCLUDE_VC TRUE CACHE BOOL
    "Turn on the build of algebra::vc_array" )
 set( ALGEBRA_PLUGINS_INCLUDE_VECMEM TRUE CACHE BOOL
-   "Turn on the build of algebra::vecmem_array" )
+   "Turn on the build of algebra::vecmem_array" )   
+# Build smatrix plugin only when it needs to be
+# ROOT is not provided in native github compilers :/
+set( ALGEBRA_PLUGINS_INCLUDE_SMATRIX ${DETRAY_SMATRIX_PLUGIN}
+   CACHE BOOL "Turn on/off the build of algebra::smatrix" )
 
 set( ALGEBRA_PLUGINS_SETUP_EIGEN3 TRUE CACHE BOOL
    "Have Algebra Plugins set up Eigen3 for itself" )

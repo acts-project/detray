@@ -126,7 +126,7 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
 
             // Compute and check the local integration error estimate
             // @Todo
-            const auto err_vec = h2 * (sd.k1 - sd.k2 - sd.k3 + sd.k4);
+            const vector3 err_vec = h2 * (sd.k1 - sd.k2 - sd.k3 + sd.k4);
             error_estimate =
                 std::max(getter::norm(err_vec), static_cast<scalar>(1e-20));
 
