@@ -91,16 +91,11 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     ASSERT_FLOAT_EQ(c_traj.pos()[1], 1. / std::sqrt(2));
     ASSERT_FLOAT_EQ(c_traj.pos()[2], 0.);
 
-    // Only step 1.5 mm further, then break
-    l_state.set_path_limit(1.5);
     ASSERT_TRUE(l_stepper.step(l_state, n_state));
 
     ASSERT_FLOAT_EQ(traj.pos()[0], std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[1], std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[2], 0.);
-
-    // breaks
-    ASSERT_FALSE(l_stepper.step(l_state, n_state));
 }
 
 // This tests the base functionality of the Runge-Kutta stepper
@@ -167,8 +162,6 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             ASSERT_NEAR(crk_state.constraints().template size<>(),
                         0.5 * unit_constants::mm, epsilon);
 
-            rk_state.set_path_limit(path_limit);
-            crk_state.set_path_limit(path_limit);
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
                 rk_stepper.step(rk_state, n_state);
                 crk_stepper.step(crk_state, n_state);
@@ -176,41 +169,36 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             }
 
             // get relative error by dividing error with path length
-            ASSERT_NEAR(rk_state.dist_to_path_limit(),
-                        crk_state.dist_to_path_limit(), epsilon);
+            ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(),
+                        epsilon);
             ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()), 0,
                         epsilon);
 
-            scalar path_accumulated =
-                path_limit - rk_state.dist_to_path_limit();
-            point3 helix_pos = helix(path_accumulated);
+            point3 helix_pos = helix(rk_state.path_length());
             point3 forward_pos = rk_state().pos();
-            vector3 forward_relative_error =
-                static_cast<scalar>(1. / path_accumulated) *
-                (forward_pos - helix_pos);
+            auto forward_relative_error =
+                (1. / rk_state.path_length()) * (forward_pos - helix_pos);
 
             // Make sure that relative error is smaller than epsion
             EXPECT_NEAR(getter::norm(forward_relative_error), 0, epsilon);
 
             // Roll the same track back to the origin
-            n_state._step_size = -1. * unit_constants::mm;
-            scalar bw_startig_point = rk_state.dist_to_path_limit();
+            scalar path_length = rk_state.path_length();
+            n_state._step_size *= -1. * unit_constants::mm;
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
                 rk_stepper.step(rk_state, n_state);
                 crk_stepper.step(crk_state, n_state);
                 crk_stepper.step(crk_state, n_state);
             }
 
-            ASSERT_NEAR(rk_state.dist_to_path_limit(),
-                        crk_state.dist_to_path_limit(), epsilon);
+            ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(),
+                        epsilon);
             ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()), 0,
                         epsilon);
 
-            path_accumulated = rk_state.dist_to_path_limit() - bw_startig_point;
             point3 backward_pos = rk_state().pos();
-            vector3 backward_relative_error =
-                static_cast<scalar>(1. / path_accumulated) *
-                (backward_pos - ori);
+            auto backward_relative_error =
+                (1. / (2. * path_length)) * (backward_pos - ori);
 
             // Make sure that relative error is smaller than epsion
             EXPECT_NEAR(getter::norm(backward_relative_error), 0, epsilon);

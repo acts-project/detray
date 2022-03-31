@@ -47,13 +47,9 @@ struct helix_inspector : actor {
 
         auto &stepping = prop_state._stepping;
         auto pos = stepping().pos();
-        const scalar path_accumulated =
-            path_limit - stepping.dist_to_path_limit();
-        auto true_pos = inspector_state._helix(path_accumulated);
+        auto true_pos = inspector_state._helix(stepping.path_length());
 
-        // Use a cast to resolve expression type
-        auto relative_error =
-            static_cast<point3>(1 / path_accumulated * (pos - true_pos));
+        point3 relative_error{1 / stepping.path_length() * (pos - true_pos)};
 
         ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
     }
@@ -85,8 +81,7 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     propagator_t p(std::move(s), std::move(n));
 
     propagator_t::state state(traj);
-    state._stepping.set_path_limit(path_limit);
-
+    
     EXPECT_TRUE(p.propagate(state))
         << state._navigation.inspector().to_string() << std::endl;
 }
@@ -159,7 +154,6 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
                 std::tie(helix_insp_state, print_insp_state);
 
             propagator_t::state state(traj, actor_states);
-            state._stepping.set_path_limit(path_limit);
             state._stepping
                 .template set_constraint<step::constraint::e_accuracy>(
                     5. * unit_constants::mm);
