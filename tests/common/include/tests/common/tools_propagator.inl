@@ -95,7 +95,6 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     propagator_t p(std::move(s), std::move(n));
 
     propagator_t::state state(traj);
-
     EXPECT_TRUE(p.propagate(state))
         << state._navigation.inspector().to_string() << std::endl;
 }

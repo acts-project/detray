@@ -19,9 +19,9 @@ namespace detray {
 /// Aborter that checks whether the track has exceeded its pathlimit
 struct pathlimit_aborter : actor {
 
-    // Pathlimit for a single propagation workflow
+    /// Pathlimit for a single propagation workflow
     struct aborter_state {
-        // Absolute path limit
+        /// Absolute path limit
         scalar _path_limit = std::numeric_limits<scalar>::max();
 
         /// Set the path limit to a scalar @param pl
