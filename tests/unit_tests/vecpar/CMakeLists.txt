@@ -12,13 +12,14 @@ if( DETRAY_EIGEN_PLUGIN )
 endif()
 
 ### CPU tests
-if (TARGET vecpar::all)
+find_package(OpenMP QUIET)
+if ((TARGET vecpar::all) AND (TARGET OpenMP::OpenMP_CXX))
     foreach(algebra ${algebras})
        # Unit tests for the selected algebra.
        detray_add_test( ${algebra}_vecpar_cpu
                "rk_stepper_vecpar.cpp" "rk_stepper_vecpar.hpp"
                LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray_tests_common
-               detray::${algebra} vecpar::all)
+               detray::${algebra} vecpar::all OpenMP::OpenMP_CXX)
 
        target_compile_definitions( detray_test_${algebra}_vecpar_cpu
                PRIVATE ${algebra}=${algebra} )
@@ -42,7 +43,7 @@ if (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         detray_add_test(${algebra}_vecpar_gpu
                 "rk_stepper_vecpar.cpp" "rk_stepper_vecpar.hpp"
                 LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray_tests_common
-                detray::${algebra} vecpar::all)
+                detray::${algebra} vecpar::all CUDA::cudart)
 
         target_compile_definitions( detray_test_${algebra}_vecpar_gpu
                 PRIVATE ${algebra}=${algebra} )
