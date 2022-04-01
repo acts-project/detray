@@ -135,10 +135,13 @@ TEST(ALGEBRA_PLUGIN, actor_chain) {
     using namespace detray;
     using namespace __plugin;
 
+    constexpr std::size_t exmpl_1 = 0;
+    constexpr std::size_t exmpl_2 = 1;
+
     // The actor states (can be reused between actors, e.g. for the printer or
     // empty states)
-    example_actor<0>::state example_state_1{};
-    example_actor<1>::state example_state_2{};
+    example_actor<exmpl_1>::state example_state_1{};
+    example_actor<exmpl_2>::state example_state_2{};
     print_actor_t::state printer_state{};
 
     // Aggregate actor states to be able to pass them through the chain
@@ -150,11 +153,12 @@ TEST(ALGEBRA_PLUGIN, actor_chain) {
     empty_prop_state p_state{};
 
     // Chain of actors
-    using actor_chain_t = actor_chain<dtuple, example_actor<0>, composite1,
-                                      composite2<1>, composite3<1>, composite4>;
-    actor_chain_t actors{};
+    using actor_chain_t =
+        actor_chain<dtuple, example_actor<exmpl_1>, composite1,
+                    composite2<exmpl_2>, composite3<exmpl_2>, composite4>;
+    actor_chain_t run_actors{};
     // Run
-    actors(actor_states, p_state);
+    run_actors(actor_states, p_state);
 }
 
 // This tests the basic functionality of the propagator

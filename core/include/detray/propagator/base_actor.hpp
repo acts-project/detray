@@ -73,7 +73,7 @@ class composite_actor : public actor_impl_t<ID> {
     DETRAY_HOST_DEVICE void operator()(actor_states_t &states,
                                        propagator_state_t &p_state) const {
         // Do your own work ...
-        static_cast<actor_type const *const>(this)->operator()(
+        static_cast<actor_type const *>(this)->operator()(
             detail::get<ID>(states), p_state);
 
         // Then run the observers on the updated state
@@ -96,7 +96,7 @@ class composite_actor : public actor_impl_t<ID> {
                                        subj_state_t &subject_state,
                                        propagator_state_t &p_state) const {
         // Do your own work ...
-        static_cast<actor_type const *const>(this)->operator()(
+        static_cast<actor_type const *>(this)->operator()(
             detail::get<ID>(states), subject_state, p_state);
 
         // Then run the observers on the updated state
