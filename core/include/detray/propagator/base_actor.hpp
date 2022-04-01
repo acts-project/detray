@@ -34,25 +34,6 @@ class actor {
     struct state {
         const std::size_t _id{ID};
     };
-
-    /// Call to the implementation of the actor.
-    ///
-    /// @param actor_state the state of the actor
-    /// @param p_state the state of the propagator (stepper and navigator)
-    // template <typename propagator_state_t>
-    // void operator()(actor<ID>::state & /*actor_state*/,
-    //                 propagator_state_t & /*p_state*/) {}
-
-    /// Call to the implementation of the actor.
-    ///
-    /// @param actor_state the state of the actor
-    /// @param subject_state the state of the actor this actor is an observer
-    ///                      of (if any)
-    /// @param p_state the state of the propagator (stepper and navigator)
-    // template <typename subj_state_t, typename propagator_state_t>
-    // void operator()(actor<ID>::state & /*actor_state*/,
-    //                 subj_state_t & /*subject_state*/,
-    //                 propagator_state_t & /*p_state*/) {}
 };
 
 /// Composition of actors

@@ -219,7 +219,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using constraints_t = constrained_step<>;
     using stepper_t =
         rk_stepper<b_field_t, free_track_parameters, constraints_t>;
-    using actor_chain_t = actor_chain<dtuple, helix_inspector<inspct_id>,
+    using actor_chain_t = actor_chain<dtuple, helix_inspector<helix_id>,
                                       propagation::print_inspector<printer_id>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
