@@ -89,6 +89,7 @@ class actor_chain {
     const actor_list_type _actors = {};
 };
 
+/// Empty actor chain (placeholder)
 template <>
 class actor_chain<> {
 

@@ -19,6 +19,8 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
+#include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -86,12 +88,11 @@ struct track_inspector : actor<ID> {
 };
 
 // Assemble propagator type
-using actor_chain_host_type = actor_chain<thrust::tuple, track_inspector<0>>;
-using actor_chain_device_type = actor_chain<thrust::tuple, track_inspector<0>>;
+using actor_chain_type = actor_chain<thrust::tuple, track_inspector<0>>;
 using propagator_host_type =
-    propagator<rk_stepper_type, navigator_host_type, actor_chain_host_type>;
+    propagator<rk_stepper_type, navigator_host_type, actor_chain_type>;
 using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type, actor_chain_device_type>;
+    propagator<rk_stepper_type, navigator_device_type, actor_chain_type>;
 
 /// test function for propagator with single state
 void propagator_test(

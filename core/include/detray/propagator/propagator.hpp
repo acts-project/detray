@@ -26,6 +26,9 @@ struct propagator {
     stepper_t _stepper;
     navigator_t _navigator;
 
+    // Register the actor types
+    const actor_chain_t run_actors{};
+
     template <typename T>
     using vector_type = typename navigator_t::template vector_type<T>;
 
@@ -74,9 +77,6 @@ struct propagator {
         auto &n_state = p_state._navigation;
         auto &s_state = p_state._stepping;
         auto &actor_states = p_state._actor_states;
-
-        // Register the actor types
-        const actor_chain_t run_actors{};
 
         // initialize the navigation
         bool heartbeat = _navigator.init(n_state, s_state);
