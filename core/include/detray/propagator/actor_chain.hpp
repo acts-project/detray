@@ -34,7 +34,8 @@ class actor_chain {
     /// @param states the states of the actors.
     /// @param p_state the propagation state.
     template <typename actor_states_t, typename propagator_state_t>
-    void operator()(actor_states_t &states, propagator_state_t &p_state) const {
+    DETRAY_HOST_DEVICE void operator()(actor_states_t &states,
+                                       propagator_state_t &p_state) const {
 
         run(states, p_state, std::make_index_sequence<sizeof...(actors_t)>{});
     }
@@ -51,7 +52,7 @@ class actor_chain {
                         template <std::size_t> class, typename...>
               class actor_t,
               typename actor_states_t, typename propagator_state_t>
-    constexpr inline void run(
+    DETRAY_HOST_DEVICE inline void run(
         const actor_t<ID, comp_tuple_t, actor_impl_t, observers...> &comp_actr,
         actor_states_t &states, propagator_state_t &p_state) const {
         comp_actr(states, p_state);
@@ -64,8 +65,9 @@ class actor_chain {
     /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t ID, template <std::size_t> class actor_t,
               typename actor_states_t, typename propagator_state_t>
-    constexpr inline void run(const actor_t<ID> &actr, actor_states_t &states,
-                              propagator_state_t &p_state) const {
+    DETRAY_HOST_DEVICE inline void run(const actor_t<ID> &actr,
+                                       actor_states_t &states,
+                                       propagator_state_t &p_state) const {
         actr(detail::get<ID>(states), p_state);
     }
 
@@ -76,9 +78,9 @@ class actor_chain {
     /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t... indices, typename actor_states_t,
               typename propagator_state_t>
-    constexpr inline void run(actor_states_t &states,
-                              propagator_state_t &p_state,
-                              std::index_sequence<indices...> /*ids*/) const {
+    DETRAY_HOST_DEVICE inline void run(
+        actor_states_t &states, propagator_state_t &p_state,
+        std::index_sequence<indices...> /*ids*/) const {
         (run(detail::get<indices>(_actors), states, p_state), ...);
     }
 
@@ -99,8 +101,9 @@ class actor_chain<> {
     /// @param states the states of the actors.
     /// @param p_state the propagation state.
     template <typename actor_states_t, typename propagator_state_t>
-    void operator()(actor_states_t & /*states*/,
-                    propagator_state_t & /*p_state*/) const {}
+    DETRAY_HOST_DEVICE void operator()(actor_states_t & /*states*/,
+                                       propagator_state_t & /*p_state*/) const {
+    }
 };
 
 }  // namespace detray

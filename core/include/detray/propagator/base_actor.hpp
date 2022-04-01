@@ -70,7 +70,8 @@ class composite_actor : public actor_impl_t<ID> {
     /// @param states the states of the all actors in the chain
     /// @param p_state the state of the propagator (stepper and navigator)
     template <typename actor_states_t, typename propagator_state_t>
-    void operator()(actor_states_t &states, propagator_state_t &p_state) const {
+    DETRAY_HOST_DEVICE void operator()(actor_states_t &states,
+                                       propagator_state_t &p_state) const {
         // Do your own work ...
         static_cast<actor_type const *const>(this)->operator()(
             detail::get<ID>(states), p_state);
@@ -91,8 +92,9 @@ class composite_actor : public actor_impl_t<ID> {
     /// @param p_state the state of the propagator (stepper and navigator)
     template <typename actor_states_t, typename subj_state_t,
               typename propagator_state_t>
-    void operator()(actor_states_t &states, subj_state_t &subject_state,
-                    propagator_state_t &p_state) const {
+    DETRAY_HOST_DEVICE void operator()(actor_states_t &states,
+                                       subj_state_t &subject_state,
+                                       propagator_state_t &p_state) const {
         // Do your own work ...
         static_cast<actor_type const *const>(this)->operator()(
             detail::get<ID>(states), subject_state, p_state);
@@ -120,7 +122,7 @@ class composite_actor : public actor_impl_t<ID> {
                         template <std::size_t> class, typename...>
               class observer_t,
               typename actor_states_t, typename propagator_state_t>
-    constexpr inline void notify(
+    DETRAY_HOST_DEVICE inline void notify(
         const observer_t<obs_ID, comp_tuple_t, comp_actor_impl_t,
                          comp_observers...> &observer,
         actor_states_t &states, typename actor_type::state &actor_state,
@@ -141,10 +143,10 @@ class composite_actor : public actor_impl_t<ID> {
     /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t obs_ID, template <std::size_t> class observer_t,
               typename actor_states_t, typename propagator_state_t>
-    constexpr inline void notify(const observer_t<obs_ID> &observer,
-                                 actor_states_t &states,
-                                 typename actor_type::state &actor_state,
-                                 propagator_state_t &p_state) const {
+    DETRAY_HOST_DEVICE inline void notify(
+        const observer_t<obs_ID> &observer, actor_states_t &states,
+        typename actor_type::state &actor_state,
+        propagator_state_t &p_state) const {
 
         observer(detail::get<obs_ID>(states), actor_state, p_state);
     }
@@ -160,7 +162,7 @@ class composite_actor : public actor_impl_t<ID> {
     /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t... indices, typename actor_states_t,
               typename propagator_state_t>
-    constexpr inline void notify(
+    DETRAY_HOST_DEVICE inline void notify(
         const observer_list_type &observer_list, actor_states_t &states,
         typename actor_type::state &actor_state, propagator_state_t &p_state,
         std::index_sequence<indices...> /*ids*/) const {
