@@ -45,9 +45,9 @@ using field_type = constant_magnetic_field<>;
 using rk_stepper_type = rk_stepper<field_type, free_track_parameters>;
 
 using propagator_host_type =
-    propagator<rk_stepper_type, navigator_host_type, actor_chain<>>;
+    propagator<rk_stepper_type, navigator_host_type, empty_chain>;
 using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type, actor_chain<>>;
+    propagator<rk_stepper_type, navigator_device_type, empty_chain>;
 
 namespace detray {
 

@@ -90,8 +90,7 @@ class actor_chain {
 };
 
 /// Empty actor chain (placeholder)
-template <>
-class actor_chain<> {
+class empty_chain {
 
     public:
     /// Empty states replaces a real actor states container

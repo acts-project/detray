@@ -180,9 +180,9 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     stepper_t s;
     navigator_t n(d);
 
-    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
+    using propagator_t = propagator<stepper_t, navigator_t, empty_chain>;
     propagator_t p(std::move(s), std::move(n));
-    propagator_t::state<actor_chain<>::state> state(traj);
+    propagator_t::state<empty_chain::state> state(traj);
     state._stepping.set_path_limit(path_limit);
 
     EXPECT_TRUE(p.propagate(state))
