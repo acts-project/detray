@@ -42,10 +42,6 @@ using navigator_device_type = navigator<detector_device_type>;
 using field_type = constant_magnetic_field<>;
 using rk_stepper_type = rk_stepper<field_type, free_track_parameters>;
 
-using propagator_host_type = propagator<rk_stepper_type, navigator_host_type>;
-using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type>;
-
 // detector configuration
 constexpr std::size_t n_brl_layers = 4;
 constexpr std::size_t n_edc_layers = 3;
@@ -58,27 +54,44 @@ constexpr scalar pos_diff_tolerance = 1e-3;
 
 namespace detray {
 
-template <template <typename...> class vector_type>
-struct track_inspector {
+template <std::size_t ID>
+struct track_inspector : actor<ID> {
 
-    track_inspector(vecmem::memory_resource& resource)
-        : _intersections(&resource) {}
+    using actor_type = track_inspector<ID>;
 
-    DETRAY_HOST_DEVICE
-    track_inspector(vector_type<intersection_t> intersection_record)
-        : _intersections(intersection_record) {}
+    template <template <typename...> class vector_type>
+    struct state : actor<ID>::state {
 
-    template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(const navigator_state_t& navigation,
-                                       const stepper_state_t& /*stepping*/) {
+        state(vecmem::memory_resource& resource) : _intersections(&resource) {}
+
+        DETRAY_HOST_DEVICE
+        state(vector_type<intersection_t> intersection_record)
+            : _intersections(intersection_record) {}
+
+        vector_type<intersection_t> _intersections;
+    };
+
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        typename actor_type::state& inspector_state,
+        const propagator_state_t& prop_state) const {
+
+        const navigation = prop_state._navigation;
+
         // Record when status == e_on_target
         if (navigation.status() == navigation::status::e_on_target) {
             _intersections.push_back(*navigation.current());
         }
     }
-
-    vector_type<intersection_t> _intersections;
 };
+
+// Assemble propagator type
+using actor_chain_host_type = actor_chain<thrust::tuple, track_inspector<0>>;
+using actor_chain_device_type = actor_chain<thrust::tuple, track_inspector<0>>;
+using propagator_host_type =
+    propagator<rk_stepper_type, navigator_host_type, actor_chain_host_type>;
+using propagator_device_type =
+    propagator<rk_stepper_type, navigator_device_type, actor_chain_device_type>;
 
 /// test function for propagator with single state
 void propagator_test(

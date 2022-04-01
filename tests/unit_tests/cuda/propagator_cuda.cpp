@@ -79,21 +79,24 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     // Create propagator
     propagator_host_type p(std::move(s), std::move(n));
 
+    auto actor_states =
+        detail::make_tuple(track_inspector<0>::state<vecmem::vector>(mng_mr));
+
     // Create vector for track recording
     vecmem::jagged_vector<intersection_t> host_intersection_records(&mng_mr);
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
-        track_inspector<vecmem::vector> ti(mng_mr);
-
         // Create the propagator state
-        propagator_host_type::state state(tracks_host[i]);
+        propagator_host_type::state<decltype(actor_states)> state(
+            tracks_host[i], actor_states);
 
         // Run propagation
-        p.propagate(state, ti);
+        p.propagate(state);
 
         // push back the intersection record
-        host_intersection_records.push_back(ti._intersections);
+        host_intersection_records.push_back(
+            detail::get<0>(actor_states)._intersections);
     }
 
     /**
