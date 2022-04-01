@@ -73,9 +73,10 @@ struct track_inspector : actor<ID> {
         vector_type<intersection_t> _intersections;
     };
 
-    template <typename propagator_state_t>
+    template <template <typename...> class vector_type,
+              typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        typename actor_type::state& inspector_state,
+        typename actor_type::state<vector_type>& inspector_state,
         const propagator_state_t& prop_state) const {
 
         const navigation = prop_state._navigation;
