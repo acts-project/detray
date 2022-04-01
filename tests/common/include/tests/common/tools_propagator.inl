@@ -184,9 +184,9 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     propagator_t p(std::move(s), std::move(n));
     propagator_t::state<actor_chain<>::state> state(traj);
     state._stepping.set_path_limit(path_limit);
-    bool heartbeat = p.template propagate(state);
-    EXPECT_TRUE(heartbeat) << state._navigation.inspector().to_string()
-                           << std::endl;
+
+    EXPECT_TRUE(p.propagate(state))
+        << state._navigation.inspector().to_string() << std::endl;
 }
 
 class PropagatorWithRkStepper
@@ -207,7 +207,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     constexpr std::size_t n_brl_layers = 4;
     constexpr std::size_t n_edc_layers = 7;
 
-    constexpr std::size_t inspct_id = 0;
+    constexpr std::size_t helix_id = 0;
     constexpr std::size_t printer_id = 1;
 
     vecmem::host_memory_resource host_mr;
@@ -235,7 +235,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     const point3 ori{0., 0., 0.};
 
     auto actor_states =
-        std::make_tuple(helix_inspector<inspct_id>::state(helix_gun{}),
+        std::make_tuple(helix_inspector<helix_id>::state(helix_gun{}),
                         propagation::print_inspector<printer_id>::state{});
 
     // Loops of theta values ]0,pi[
@@ -257,7 +257,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             free_track_parameters traj(ori, 0, mom, -1);
             traj.set_overstep_tolerance(-10 * unit_constants::um);
 
-            detail::get<inspct_id>(actor_states)._helix.init(traj, &B);
+            detail::get<helix_id>(actor_states)._helix.init(traj, &B);
 
             propagator_t::state<decltype(actor_states)> state(
                 traj, std::move(actor_states));
