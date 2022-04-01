@@ -17,40 +17,26 @@ class helix_gun {
     using vector3 = __plugin::vector3<scalar>;
     using vector2 = __plugin::vector2<scalar>;
 
-    helix_gun(free_track_parameters vertex, vector3 mag_field)
+    helix_gun() = default;
+
+    helix_gun(const free_track_parameters vertex,
+              vector3 const *const mag_field)
         : _vertex(vertex), _mag_field(mag_field) {
 
-        // get new z direction along the b field
-        _ez = vector::normalize(_mag_field);
+        init();
+    }
 
-        vector3 p = _vertex.mom();
+    /// Sets up a new helix from
+    /// @param vertex the particle origin and
+    /// @param mag_field a b field access.
+    void init(const free_track_parameters vertex,
+              vector3 const *const mag_field) {
 
-        // get longitudinal momentum in new coordinate
-        scalar pz = vector::dot(p, _ez);
+        // set new values
+        _vertex = vertex;
+        _mag_field = mag_field;
 
-        // get transverse momentum in new coordinate
-        vector3 pT = p - pz * _ez;
-
-        // R [mm] =  pT [GeV] / B [T] in natrual unit
-        _R = getter::norm(pT) / getter::norm(mag_field);
-
-        // Handle the case of pT ~ 0
-        if (getter::norm(pT) < 1e-20) {
-            _vz_over_vt = std::numeric_limits<scalar>::infinity();
-        } else {
-            // Get vz over vt in new coordinate
-            _vz_over_vt = pz / getter::norm(pT);
-        }
-
-        _scaler = _R * std::sqrt(1 + std::pow(_vz_over_vt, 2));
-
-        // get new y direction
-        scalar q = _vertex.qop() > 0 ? 1 : -1.;
-        vector3 y = -1 * q * vector::normalize(pT);
-        _ey = vector::normalize(y);
-
-        // get new x direction
-        _ex = vector::cross(_ey, _ez);
+        init();
     }
 
     scalar radius() const { return _R; }
@@ -74,24 +60,60 @@ class helix_gun {
     }
 
     private:
+    /// (Re-)init the helix
+    void init() {
+
+        // get new z direction along the b field
+        _ez = vector::normalize(*_mag_field);
+
+        vector3 p = _vertex.mom();
+
+        // get longitudinal momentum in new coordinate
+        scalar pz = vector::dot(p, _ez);
+
+        // get transverse momentum in new coordinate
+        vector3 pT = p - pz * _ez;
+
+        // R [mm] =  pT [GeV] / B [T] in natrual unit
+        _R = getter::norm(pT) / getter::norm(*_mag_field);
+
+        // Handle the case of pT ~ 0
+        if (getter::norm(pT) < 1e-20) {
+            _vz_over_vt = std::numeric_limits<scalar>::infinity();
+        } else {
+            // Get vz over vt in new coordinate
+            _vz_over_vt = pz / getter::norm(pT);
+        }
+
+        _scaler = _R * std::sqrt(1 + std::pow(_vz_over_vt, 2));
+
+        // get new y direction
+        scalar q = _vertex.qop() > 0 ? 1 : -1.;
+        vector3 y = -1 * q * vector::normalize(pT);
+        _ey = vector::normalize(y);
+
+        // get new x direction
+        _ex = vector::cross(_ey, _ez);
+    }
+
     // origin of particle
-    const free_track_parameters _vertex;
+    free_track_parameters _vertex = {};
 
     // B field
-    const vector3 _mag_field;
+    vector3 const *_mag_field;
 
     // Radius [mm] of helix
-    scalar _R;
+    scalar _R{0};
 
     // new coordinated whose z axis is parallel to B field
-    vector3 _ex;
-    vector3 _ey;
-    vector3 _ez;
+    vector3 _ex = {};
+    vector3 _ey = {};
+    vector3 _ez = {};
 
     // velocity in new z axis divided by transverse velocity
-    scalar _vz_over_vt;
+    scalar _vz_over_vt{0};
     // The scaling factor that convert arc length into parametrized length
-    scalar _scaler;
+    scalar _scaler{0};
 };
 
 }  // namespace detray

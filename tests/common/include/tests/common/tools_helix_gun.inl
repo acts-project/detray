@@ -40,7 +40,7 @@ TEST(tools, helix_gun) {
     scalar pt = std::sqrt(std::pow(p_mag, 2) - std::pow(pz_along, 2));
 
     // helix gun
-    helix_gun helix(vertex, B);
+    helix_gun helix(vertex, &B);
 
     // radius of helix
     scalar R = helix.radius();
@@ -78,7 +78,7 @@ TEST(tools, helix_gun_small_pT) {
     vector3 B{0, 0, 1 * unit_constants::T};
 
     // helix gun
-    helix_gun helix(vertex, B);
+    helix_gun helix(vertex, &B);
 
     // After 10 mm
     scalar path_length = 10;

@@ -42,16 +42,16 @@ struct print_actor : actor<ID> {
 
     /// Print the ID of the type and the id in its state
     template <typename propagator_state_t>
-    void operator()(typename print_actor<ID>::state &printer_state,
-                    propagator_state_t & /*p_state*/) {
+    void operator()(const typename print_actor<ID>::state &printer_state,
+                    const propagator_state_t & /*p_state*/) const {
         std::cout << "This is print actor: " << printer_state._id << " : "
                   << printer_state.out << std::endl;
     }
 
     template <typename subj_state_t, typename propagator_state_t>
-    void operator()(typename print_actor<ID>::state &printer_state,
-                    subj_state_t &subject_state,
-                    propagator_state_t & /*p_state*/) {
+    void operator()(const typename print_actor<ID>::state &printer_state,
+                    const subj_state_t &subject_state,
+                    const propagator_state_t & /*p_state*/) const {
         std::cout << "This is print actor: " << printer_state._id
                   << ", observing actor: " << subject_state._id << " : "
                   << printer_state.out << std::endl;
@@ -68,24 +68,21 @@ struct example_actor : actor<ID> {
 
     /// Print your id
     template <typename propagator_state_t>
-    void operator()(typename example_actor<ID>::state &example_state,
-                    propagator_state_t & /*p_state*/) {
+    void operator()(const typename example_actor<ID>::state &example_state,
+                    const propagator_state_t & /*p_state*/) const {
         std::cout << "This is example actor: " << example_state._id
                   << std::endl;
     }
 
     /// Print your id
     template <typename subj_state_t, typename propagator_state_t>
-    void operator()(typename example_actor<ID>::state &example_state,
-                    subj_state_t & /*subject_state*/,
-                    propagator_state_t & /*p_state*/) {
+    void operator()(const typename example_actor<ID>::state &example_state,
+                    const subj_state_t & /*subject_state*/,
+                    const propagator_state_t & /*p_state*/) const {
         std::cout << "This is example actor: " << example_state._id
                   << std::endl;
     }
 };
-
-/// empty propagator state
-struct dummy_prop_state {};
 
 // observer types (always the ID of the actor that is implemented by the
 // composition must be given, since it refers to its state object)
@@ -103,6 +100,33 @@ using composite3 = composite_actor<ID, dtuple, composite2, composite1>;
 // Implements example_actor (through composite2<-composite3) using state no. 1
 using composite4 = composite_actor<1, dtuple, composite3, composite1>;
 
+template <std::size_t ID>
+struct helix_inspector : actor<ID> {
+
+    using actor_type = helix_inspector<ID>;
+
+    struct state : actor<ID>::state {
+        state(helix_gun &&h) : _helix(h) {}
+        helix_gun _helix;
+    };
+
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        const typename helix_inspector<ID>::state &inspector_state,
+        const propagator_state_t &prop_state) const {
+
+        auto &stepping = prop_state._stepping;
+        auto pos = stepping().pos();
+        const scalar path_accumulated =
+            path_limit - stepping.dist_to_path_limit();
+        auto true_pos = inspector_state._helix(path_accumulated);
+
+        auto relative_error = 1 / path_accumulated * (pos - true_pos);
+
+        ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
+    }
+};
+
 }  // anonymous namespace
 
 // Test the actor chain on some dummy actor types
@@ -119,10 +143,11 @@ TEST(ALGEBRA_PLUGIN, actor_chain) {
 
     // Aggregate actor states to be able to pass them through the chain
     auto actor_states =
-        std::make_tuple<>(example_state_1, example_state_2, printer_state);
+        std::make_tuple(example_state_1, example_state_2, printer_state);
 
     // Propagator state
-    dummy_prop_state p_state{};
+    struct empty_prop_state {};
+    empty_prop_state p_state{};
 
     // Chain of actors
     using actor_chain_t = actor_chain<dtuple, example_actor<0>, composite1,
@@ -155,50 +180,14 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     stepper_t s;
     navigator_t n(d);
 
-    using propagator_t = propagator<stepper_t, navigator_t>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
     propagator_t p(std::move(s), std::move(n));
-
-    propagation::void_inspector vi;
-
-    propagator_t::state state(traj);
+    propagator_t::state<actor_chain<>::state> state(traj);
     state._stepping.set_path_limit(path_limit);
-
-    EXPECT_TRUE(p.propagate(state, vi))
-        << state._navigation.inspector().to_string() << std::endl;
+    bool heartbeat = p.template propagate(state);
+    EXPECT_TRUE(heartbeat) << state._navigation.inspector().to_string()
+                           << std::endl;
 }
-
-struct helix_inspector {
-
-    helix_inspector(const helix_gun &helix) : _helix(helix) {}
-
-    template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(const navigator_state_t & /*navigation*/,
-                                       const stepper_state_t &stepping) {
-        auto pos = stepping().pos();
-        const scalar path_accumulated =
-            path_limit - stepping.dist_to_path_limit();
-        auto true_pos = _helix(path_accumulated);
-
-        __plugin::vector3<scalar> relative_error =
-            1 / path_accumulated * (pos - true_pos);
-
-        ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
-    }
-
-    helix_gun _helix;
-};
-
-struct combined_inspector {
-    helix_inspector _hi;
-    propagation::print_inspector _pi;
-
-    template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(navigator_state_t &navigation,
-                                       const stepper_state_t &stepping) {
-        _hi(navigation, stepping);
-        _pi(navigation, stepping);
-    }
-};
 
 class PropagatorWithRkStepper
     : public ::testing::TestWithParam<__plugin::vector3<scalar>> {};
@@ -218,6 +207,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     constexpr std::size_t n_brl_layers = 4;
     constexpr std::size_t n_edc_layers = 7;
 
+    constexpr std::size_t inspct_id = 0;
+    constexpr std::size_t printer_id = 1;
+
     vecmem::host_memory_resource host_mr;
     auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
@@ -227,7 +219,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using constraints_t = constrained_step<>;
     using stepper_t =
         rk_stepper<b_field_t, free_track_parameters, constraints_t>;
-    using propagator_t = propagator<stepper_t, navigator_t>;
+    using actor_chain_t = actor_chain<dtuple, helix_inspector<inspct_id>,
+                                      propagation::print_inspector<printer_id>>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Constant magnetic field
     vector3 B = GetParam();
@@ -239,6 +233,10 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
+
+    auto actor_states =
+        std::make_tuple(helix_inspector<inspct_id>::state(helix_gun{}),
+                        propagation::print_inspector<printer_id>::state{});
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -259,18 +257,19 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             free_track_parameters traj(ori, 0, mom, -1);
             traj.set_overstep_tolerance(-10 * unit_constants::um);
 
-            helix_gun helix(traj, B);
-            combined_inspector ci{helix_inspector(helix),
-                                  propagation::print_inspector{}};
+            detail::get<inspct_id>(actor_states)._helix.init(traj, &B);
 
-            propagator_t::state state(traj);
+            propagator_t::state<decltype(actor_states)> state(
+                traj, std::move(actor_states));
             state._stepping.set_path_limit(path_limit);
             state._stepping
                 .template set_constraint<step::constraint::e_accuracy>(
                     5. * unit_constants::mm);
 
-            ASSERT_TRUE(p.propagate(state, ci))
-                << ci._pi.to_string() << std::endl;
+            const auto &printer_state = detail::get<printer_id>(actor_states);
+
+            ASSERT_TRUE(p.propagate(state))
+                << printer_state.to_string() << std::endl;
         }
     }
 }

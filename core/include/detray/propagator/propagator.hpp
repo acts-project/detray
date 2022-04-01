@@ -13,20 +13,6 @@
 
 namespace detray {
 
-namespace propagation {
-
-/** A void inpector that does nothing. */
-struct void_inspector {
-
-    /** void operator **/
-    template <typename... args>
-    DETRAY_HOST_DEVICE void operator()(const args &... /*ignored*/) {
-        return;
-    }
-};
-
-}  // namespace propagation
-
 /** Templated propagator class, using a stepper and a navigator object in
  *  succession.
  *
@@ -34,7 +20,7 @@ struct void_inspector {
  * @tparam navigator_t for the navigation
  *
  **/
-template <typename stepper_t, typename navigator_t>
+template <typename stepper_t, typename navigator_t, typename actor_chain_t>
 struct propagator {
 
     stepper_t _stepper;
@@ -56,15 +42,20 @@ struct propagator {
         : _stepper(std::move(s)), _navigator(std::move(n)) {}
 
     /** Propagation that state aggregates a stepping and a navigation state */
+    template <typename actor_states_t = bool>
     struct state {
 
         template <typename track_t>
         DETRAY_HOST_DEVICE state(
-            track_t &t_in, vector_type<line_plane_intersection> candidates = {})
-            : _stepping(t_in), _navigation(candidates) {}
+            track_t &t_in, actor_states_t &&actor_states = {},
+            vector_type<line_plane_intersection> &&candidates = {})
+            : _stepping(t_in),
+              _navigation(std::move(candidates)),
+              _actor_states(std::move(actor_states)) {}
 
         typename stepper_t::state _stepping;
         typename navigator_t::state _navigation;
+        actor_states_t _actor_states;
     };
 
     /** Propagate method
@@ -77,13 +68,15 @@ struct propagator {
      *
      * @return propagation success.
      */
-    template <typename state_t,
-              typename inspector_t = propagation::void_inspector>
-    DETRAY_HOST_DEVICE bool propagate(state_t &p_state,
-                                      inspector_t &inspector) {
+    template <typename state_t>
+    DETRAY_HOST_DEVICE bool propagate(state_t &p_state) {
 
         auto &n_state = p_state._navigation;
         auto &s_state = p_state._stepping;
+        auto &actor_states = p_state._actor_states;
+
+        // Register the actor types
+        const actor_chain_t run_actors{};
 
         // initialize the navigation
         bool heartbeat = _navigator.init(n_state, s_state);
@@ -94,10 +87,11 @@ struct propagator {
             // Take the step
             heartbeat &= _stepper.step(s_state, n_state);
 
-            inspector(n_state, s_state);
-
             // And check the status
             heartbeat &= _navigator.update(n_state, s_state);
+
+            // Run all registered actors
+            run_actors(actor_states, p_state);
         }
 
         return n_state.is_complete();
