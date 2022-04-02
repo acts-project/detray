@@ -61,7 +61,7 @@ namespace detray {
 template <std::size_t ID, template <typename...> class vector_t>
 struct track_inspector : actor<ID> {
 
-    using actor_type = track_inspector<ID>;
+    using actor_type = track_inspector<ID, vector_t>;
 
     struct state : actor<ID>::state {
 
@@ -76,7 +76,7 @@ struct track_inspector : actor<ID> {
 
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        typename track_inspector<ID>::state& inspector_state,
+        typename track_inspector<ID, vector_t>::state& inspector_state,
         const propagator_state_t& prop_state) const {
 
         const navigation = prop_state._navigation;
