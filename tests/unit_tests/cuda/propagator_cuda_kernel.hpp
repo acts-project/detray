@@ -79,20 +79,23 @@ struct track_inspector : actor<ID> {
         typename track_inspector<ID, vector_t>::state& inspector_state,
         const propagator_state_t& prop_state) const {
 
-        const auto navigation = prop_state._navigation;
+        const auto& navigation = prop_state._navigation;
 
         // Record when status == e_on_target
         if (navigation.status() == navigation::status::e_on_target) {
-            _intersections.push_back(*navigation.current());
+            inspector_state._intersections.push_back(*navigation.current());
         }
     }
 };
 
 // Assemble propagator type
+using track_inspector_host_type = track_inspector<insp_id, vecmem::vector>;
+using track_inspector_device_type =
+    track_inspector<insp_id, vecmem::device_vector>;
 using actor_chain_host_type =
-    actor_chain<thrust::tuple, track_inspector<insp_id, vecmem::vector>>;
+    actor_chain<thrust::tuple, track_inspector_host_type>;
 using actor_chain_device_type =
-    actor_chain<thrust::tuple, track_inspector<insp_id, vecmem::device_vector>>;
+    actor_chain<thrust::tuple, track_inspector_device_type>;
 using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain_host_type>;
 using propagator_device_type =
