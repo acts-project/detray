@@ -13,7 +13,7 @@ message( STATUS "Building vecpar as part of the Detray project" )
 
 # Declare where to get vecpar from.
 set( DETRAY_VECPAR_SOURCE
-        "URL;https://github.com/wr-hamburg/vecpar/archive/refs/tags/v0.0.1.tar.gz;URL_MD5;d955c08dd08d1f8333b31dc4ae3a653e"
+        "URL;https://github.com/wr-hamburg/vecpar/archive/refs/tags/v0.0.2.tar.gz;URL_MD5;dc2a35b7dfd840d543f096a0fafbb5f2"
         CACHE STRING "Source for vecpar, when built as part of this project")
 
 mark_as_advanced( DETRAY_VECPAR_SOURCE )
@@ -31,7 +31,7 @@ if (${OpenMP_FOUND})
 endif()
 
 find_package(CUDAToolkit QUIET)
-if (${CUDAToolkit_FOUND})
+if (${CUDAToolkit_FOUND} AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
     message(STATUS "Build vecpar CUDA backend")
     set( VECPAR_BUILD_CUDA_BACKEND TRUE CACHE BOOL
             "Build vecpar CUDA backend")
