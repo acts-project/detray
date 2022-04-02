@@ -54,29 +54,29 @@ constexpr unsigned int phi_steps = 100;
 
 constexpr scalar pos_diff_tolerance = 1e-3;
 
+constexpr std::size_t insp_id = 0;
+
 namespace detray {
 
-template <std::size_t ID>
+template <std::size_t ID, template <typename...> class vector_t>
 struct track_inspector : actor<ID> {
 
     using actor_type = track_inspector<ID>;
 
-    template <template <typename...> class vector_type>
     struct state : actor<ID>::state {
 
         state(vecmem::memory_resource& resource) : _intersections(&resource) {}
 
         DETRAY_HOST_DEVICE
-        state(vector_type<intersection_t> intersection_record)
+        state(vector_t<intersection_t> intersection_record)
             : _intersections(intersection_record) {}
 
-        vector_type<intersection_t> _intersections;
+        vector_t<intersection_t> _intersections;
     };
 
-    template <template <typename...> class vector_type,
-              typename propagator_state_t>
+    template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        typename actor_type::state<vector_type>& inspector_state,
+        typename track_inspector<ID>::state& inspector_state,
         const propagator_state_t& prop_state) const {
 
         const navigation = prop_state._navigation;
@@ -89,11 +89,14 @@ struct track_inspector : actor<ID> {
 };
 
 // Assemble propagator type
-using actor_chain_type = actor_chain<thrust::tuple, track_inspector<0>>;
+using actor_chain_host_type =
+    actor_chain<thrust::tuple, track_inspector<insp_id, vecmem::vector>>;
+using actor_chain_device_type =
+    actor_chain<thrust::tuple, track_inspector<insp_id, vecmem::device_vector>>;
 using propagator_host_type =
-    propagator<rk_stepper_type, navigator_host_type, actor_chain_type>;
+    propagator<rk_stepper_type, navigator_host_type, actor_chain_host_type>;
 using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type, actor_chain_type>;
+    propagator<rk_stepper_type, navigator_device_type, actor_chain_device_type>;
 
 /// test function for propagator with single state
 void propagator_test(

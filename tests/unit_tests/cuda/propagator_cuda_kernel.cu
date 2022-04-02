@@ -42,9 +42,8 @@ __global__ void propagator_test_kernel(
     propagator_device_type p(std::move(s), std::move(n));
 
     // Create track inspector
-    auto actor_states =
-        detail::make_tuple(track_inspector<0>::state<vecmem::device_vector>(
-            intersections.at(gid)));
+    auto actor_states = detail::make_tuple(
+        track_inspector_device_type::state(intersections.at(gid)));
 
     // Create the propagator state
     propagator_device_type::state<decltype(actor_states)> state(
