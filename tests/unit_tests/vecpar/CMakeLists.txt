@@ -13,7 +13,7 @@ endif()
 
 ### CPU tests
 find_package(OpenMP QUIET)
-if ((TARGET vecpar::all) AND (TARGET OpenMP::OpenMP_CXX))
+if ((TARGET vecpar::all) AND (TARGET vecpar::omp))
     foreach(algebra ${algebras})
        # Unit tests for the selected algebra.
        detray_add_test( ${algebra}_vecpar_cpu
@@ -31,12 +31,8 @@ endif()
 
 
 ### GPU tests can be built only by Clang compiler +nvptx support
-### Set COMPILER_BUILD_PTX to TRUE when this is the case;
-set(COMPILER_BUILD_PTX False)
-
-if (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        AND (${COMPILER_BUILD_PTX} AND (TARGET vecpar::all)))
-
+find_package(CUDAToolkit)
+if ((TARGET vecpar::all) AND (TARGET vecpar::cuda))
     foreach(algebra ${algebras})
 
         # Unit tests for the selected algebra.
@@ -50,7 +46,7 @@ if (("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
         target_compile_options( detray_test_${algebra}_vecpar_gpu PUBLIC
                 $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
-                $<$<COMPILE_LANGUAGE:CXX>:-x cuda --offload-arch=sm_52>)
+                $<$<COMPILE_LANGUAGE:CXX>:-x cuda --offload-arch=sm_${CMAKE_CUDA_ARCHITECTURES}>)
     endforeach()
 endif()
 
