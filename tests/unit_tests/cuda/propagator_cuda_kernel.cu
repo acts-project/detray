@@ -42,7 +42,7 @@ __global__ void propagator_test_kernel(
     propagator_device_type p(std::move(s), std::move(n));
 
     // Create track inspector
-    auto actor_states = detail::make_tuple(
+    auto actor_states = thrust::make_tuple(
         track_inspector_device_type::state(intersections.at(gid)));
 
     // Create the propagator state
