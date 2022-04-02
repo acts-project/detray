@@ -80,7 +80,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     propagator_host_type p(std::move(s), std::move(n));
 
     auto actor_states =
-        detail::make_tuple(track_inspector_host_type::state(mng_mr));
+        thrust::make_tuple(track_inspector_host_type::state(mng_mr));
 
     // Create vector for track recording
     vecmem::jagged_vector<intersection_t> host_intersection_records(&mng_mr);
