@@ -79,7 +79,7 @@ struct track_inspector : actor<ID> {
         typename track_inspector<ID, vector_t>::state& inspector_state,
         const propagator_state_t& prop_state) const {
 
-        const navigation = prop_state._navigation;
+        const auto navigation = prop_state._navigation;
 
         // Record when status == e_on_target
         if (navigation.status() == navigation::status::e_on_target) {
