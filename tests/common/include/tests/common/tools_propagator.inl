@@ -146,7 +146,7 @@ TEST(ALGEBRA_PLUGIN, actor_chain) {
 
     // Aggregate actor states to be able to pass them through the chain
     auto actor_states =
-        detail::make_tuple(example_state_1, example_state_2, printer_state);
+        std::make_tuple(example_state_1, example_state_2, printer_state);
 
     // Propagator state
     struct empty_prop_state {};
