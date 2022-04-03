@@ -59,12 +59,12 @@ constexpr std::size_t insp_id = 0;
 namespace detray {
 
 template <std::size_t ID>
-struct track_inspector : actor<ID> {
+struct track_inspector /*: actor<ID>*/ {
 
     using actor_type = track_inspector<ID>;
 
     template <template <typename...> class vector_t>
-    struct state : actor<ID>::state {
+    struct state /*: actor<ID>::state*/ {
         using intersection_t = line_plane_intersection;
 
         state(vecmem::memory_resource& resource) : _intersections(&resource) {}
@@ -79,7 +79,7 @@ struct track_inspector : actor<ID> {
     template <template <typename...> class vector_t,
               typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        typename track_inspector<ID>::state<vector_t>& inspector_state,
+        track_inspector<ID>::state<vector_t>& inspector_state,
         const propagator_state_t& prop_state) const {
 
         const auto& navigation = prop_state._navigation;
@@ -92,16 +92,12 @@ struct track_inspector : actor<ID> {
 };
 
 // Assemble propagator type
-using track_inspector_host_type = track_inspector<insp_id>;
-using track_inspector_device_type = track_inspector<insp_id>;
-using actor_chain_host_type =
-    actor_chain<thrust::tuple, track_inspector_host_type>;
-using actor_chain_device_type =
-    actor_chain<thrust::tuple, track_inspector_device_type>;
+using inspector_t = track_inspector<insp_id>;
+using actor_chain_t = actor_chain<thrust::tuple, inspector_t>;
 using propagator_host_type =
-    propagator<rk_stepper_type, navigator_host_type, actor_chain_host_type>;
+    propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
 using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type, actor_chain_device_type>;
+    propagator<rk_stepper_type, navigator_device_type, actor_chain_t>;
 
 /// test function for propagator with single state
 void propagator_test(
