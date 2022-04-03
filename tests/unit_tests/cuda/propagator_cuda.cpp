@@ -89,7 +89,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
         // Create the propagator state
         propagator_host_type::state<decltype(actor_states)> state(
-            tracks_host[i], actor_states);
+            tracks_host[i], std::move(actor_states));
 
         // Run propagation
         p.propagate(state);

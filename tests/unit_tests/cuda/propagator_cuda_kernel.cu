@@ -47,7 +47,7 @@ __global__ void propagator_test_kernel(
 
     // Create the propagator state
     propagator_device_type::state<decltype(actor_states)> state(
-        tracks[gid], actor_states, candidates.at(gid));
+        tracks[gid], std::move(actor_states), candidates.at(gid));
 
     // Run propagation
     p.propagate(state);
