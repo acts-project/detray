@@ -43,7 +43,7 @@ __global__ void propagator_test_kernel(
 
     // Create track inspector
     auto actor_states = thrust::make_tuple(
-        inspector_t::state<device::vector>(intersections.at(gid)));
+        inspector_t::state<vecmem::device_vector>(intersections.at(gid)));
 
     // Create the propagator state
     propagator_device_type::state<decltype(actor_states)> state(
