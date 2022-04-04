@@ -36,8 +36,8 @@ __global__ void rk_stepper_test_kernel(
     crk_stepper_t::state crk_state(traj);
 
     // Forward direction
-    crk_state.template set_constraint<constraint::e_user>(0.5 *
-                                                          unit_constants::mm);
+    crk_state.template set_constraint<step::constraint::e_user>(
+        0.5 * unit_constants::mm);
     n_state._step_size = 1. * unit_constants::mm;
     for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
         rk_stepper.step(rk_state, n_state);

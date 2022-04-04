@@ -11,6 +11,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
+#include "detray/propagator/aborters.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -26,7 +27,7 @@
 namespace {
 
 constexpr scalar epsilon = 5e-4;
-constexpr scalar path_limit = 2 * unit_constants::m;
+constexpr scalar path_limit = 5 * unit_constants::cm;
 
 /// Compare helical track positions for stepper
 struct helix_inspector : actor {
@@ -114,7 +115,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using constraints_t = constrained_step<>;
     using stepper_t =
         rk_stepper<b_field_t, free_track_parameters, constraints_t>;
-    using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector>;
+    using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector, pathlimit_aborter>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Constant magnetic field
@@ -145,21 +146,48 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             vector::normalize(mom);
             mom = 10. * unit_constants::GeV * mom;
             free_track_parameters traj(ori, 0, mom, -1);
+            free_track_parameters lim_traj(ori, 0, mom, -1);
             traj.set_overstep_tolerance(-10 * unit_constants::um);
+            lim_traj.set_overstep_tolerance(-10 * unit_constants::um);
 
             helix_inspector::state_type helix_insp_state{helix_gun{traj, &B}};
             print_inspector::state_type print_insp_state{};
+            print_inspector::state_type lim_print_insp_state{};
+            pathlimit_aborter::state_type unlimted_aborter_state{};
+            pathlimit_aborter::state_type pathlimit_aborter_state{};
+            // Set maximal path length
+            pathlimit_aborter_state.set_path_limit(path_limit);
 
             actor_chain_t::state actor_states =
-                std::tie(helix_insp_state, print_insp_state);
+                std::tie(helix_insp_state, print_insp_state, unlimted_aborter_state);
 
+            actor_chain_t::state lim_actor_states =
+                std::tie(helix_insp_state, lim_print_insp_state, pathlimit_aborter_state);
+
+            // Init propagator states
             propagator_t::state state(traj, actor_states);
+
+            propagator_t::state lim_state(lim_traj, lim_actor_states);
+
+            // Set step constraints
             state._stepping
                 .template set_constraint<step::constraint::e_accuracy>(
                     5. * unit_constants::mm);
+            lim_state._stepping
+                .template set_constraint<step::constraint::e_accuracy>(
+                    5. * unit_constants::mm);
 
+            // Propagate
             ASSERT_TRUE(p.propagate(state))
                 << print_insp_state.to_string() << std::endl;
+
+            // Propagate with path limit
+            ASSERT_NEAR(
+                pathlimit_aborter_state.path_limit(),
+                path_limit, epsilon);
+            ASSERT_FALSE(p.propagate(lim_state))
+                << lim_print_insp_state.to_string() << std::endl;
+            ASSERT_TRUE(lim_state._stepping.path_length() <= path_limit);
         }
     }
 }

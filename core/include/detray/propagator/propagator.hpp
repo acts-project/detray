@@ -8,6 +8,7 @@
 #pragma once
 
 #include <climits>
+#include <iostream>
 
 #include "detray/definitions/qualifiers.hpp"
 
@@ -58,6 +59,9 @@ struct propagator {
               _navigation(std::move(candidates)),
               _actor_states(actor_states) {}
 
+        // Is the propagation still alive?
+        bool _heartbeat = false;
+
         typename stepper_t::state _stepping;
         typename navigator_t::state _navigation;
         typename actor_chain_t::state _actor_states;
@@ -80,16 +84,16 @@ struct propagator {
         auto actor_states = p_state._actor_states;
 
         // initialize the navigation
-        bool heartbeat = _navigator.init(n_state, s_state);
+        p_state._heartbeat = _navigator.init(n_state, s_state);
 
         // Run while there is a heartbeat
-        while (heartbeat) {
+        while (p_state._heartbeat) {
 
             // Take the step
-            heartbeat &= _stepper.step(s_state, n_state);
+            p_state._heartbeat &= _stepper.step(s_state, n_state);
 
             // And check the status
-            heartbeat &= _navigator.update(n_state, s_state);
+            p_state._heartbeat &= _navigator.update(n_state, s_state);
 
             // Run all registered actors
             run_actors(actor_states, p_state);

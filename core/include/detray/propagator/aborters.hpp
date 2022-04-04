@@ -9,23 +9,20 @@
 
 // detray definitions
 #include <climits>
+#include <iostream>
 
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/base_stepper.hpp"
 
 namespace detray {
 
 /// Aborter that checks whether the track has exceeded its pathlimit
-///
-/// @tparam ID the actor id for this aborter ties its state instance
-template <std::size_t ID>
-struct pathlimit_aborter : actor<ID> {
-
-    // Tag this actor
-    using actor_type = pathlimit_aborter<ID>;
+struct pathlimit_aborter : actor {
 
     // Pathlimit for a single propagation workflow
-    struct state : actor<ID>::state {
+    struct aborter_state {
+        // Absolute path limit
         scalar _path_limit = std::numeric_limits<scalar>::max();
 
         /// Set the path limit to a scalar @param pl
@@ -35,10 +32,18 @@ struct pathlimit_aborter : actor<ID> {
         /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
         inline scalar path_limit() const { return _path_limit; }
-    }
+    };
 
+    /// Broadcast state type to actor chain
+    using state_type = aborter_state;
+
+    /// Enforces the path limit on a stepper state
+    ///
+    /// @param abrt_state contains the path limit
+    /// @param prop_state state of the propagation
     template <typename propagator_state_t>
-    void operator()(actor_type::state &state, propagator_state_t &prop_state) {
+    void operator()(const state_type &abrt_state,
+                    propagator_state_t &prop_state) const {
         auto &step_state = prop_state._stepping;
         auto &nav_state = prop_state._navigation;
 
@@ -46,16 +51,21 @@ struct pathlimit_aborter : actor<ID> {
         if (nav_state.is_complete()) {
             return;
         }
+        // std::cout << "Path limit: " << abrt_state.path_limit() << ", track
+        // length: "
+        //<< std::abs(prop_state._stepping.path_length()) << std::endl;
 
-        state.path_limit() -= std::abs(_step_size);
-        if (state.path_limit() <= 0.) {
+        if (abrt_state.path_limit() <=
+            std::abs(prop_state._stepping.path_length())) {
             printf("Abort: Stepper above maximal path length!\n");
             // Stop navigation
-            nav_state.abort();
+            prop_state._heartbeat &= nav_state.abort();
         }
 
+        // Don't go over the path limit in the next step
         step_state.template set_constraint<step::constraint::e_aborter>(
-            state._path_limit);
+            abrt_state.path_limit() -
+            std::abs(prop_state._stepping.path_length()));
     }
 };
 
