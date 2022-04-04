@@ -13,13 +13,15 @@ message( STATUS "Building vecpar as part of the Detray project" )
 
 # Declare where to get vecpar from.
 set( DETRAY_VECPAR_SOURCE
-        "URL;https://github.com/wr-hamburg/vecpar/archive/refs/tags/v0.0.2.tar.gz;URL_MD5;dc2a35b7dfd840d543f096a0fafbb5f2"
+        "URL;https://github.com/wr-hamburg/vecpar/archive/refs/tags/v0.0.1.tar.gz;URL_MD5;a220b11b801a8869904fc1ad34b6aa10"
         CACHE STRING "Source for vecpar, when built as part of this project")
 
 mark_as_advanced( DETRAY_VECPAR_SOURCE )
 FetchContent_Declare( vecpar ${DETRAY_VECPAR_SOURCE} )
 
-# Options used in the build of vecpar.
+# Options used in the build of vecpar
+set( VECPAR_SETUP_VECMEM FALSE CACHE BOOL
+        "Do not set up VecMem in vecpar" )
 set( VECPAR_BUILD_TESTS FALSE CACHE BOOL
         "Turn off the build of the vecpar unit tests")
 
