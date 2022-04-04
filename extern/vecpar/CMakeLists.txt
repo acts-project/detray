@@ -24,6 +24,8 @@ set( VECPAR_SETUP_VECMEM FALSE CACHE BOOL
         "Do not set up VecMem in vecpar" )
 set( VECPAR_BUILD_TESTS FALSE CACHE BOOL
         "Turn off the build of the vecpar unit tests")
+set( VECPAR_BUILD_CUDA_BACKEND ${DETRAY_BUILD_CUDA} CACHE BOOL
+        "Turn off the build of the vecpar unit tests")
 
 find_package(OpenMP QUIET)
 if (${OpenMP_FOUND})
@@ -32,11 +34,13 @@ if (${OpenMP_FOUND})
         "Build vecpar OpenMP backend")
 endif()
 
-find_package(CUDAToolkit QUIET)
-if (${CUDAToolkit_FOUND} AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
-    message(STATUS "Build vecpar CUDA backend")
-    set( VECPAR_BUILD_CUDA_BACKEND TRUE CACHE BOOL
+if (DETRAY_BUILD_CUDA)
+    find_package(CUDAToolkit QUIET)
+    if (${CUDAToolkit_FOUND} AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
+        message(STATUS "Build vecpar CUDA backend")
+        set( VECPAR_BUILD_CUDA_BACKEND TRUE CACHE BOOL
             "Build vecpar CUDA backend")
+    endif()
 endif()
 
 # Get it into the current directory.
