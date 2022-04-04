@@ -59,12 +59,12 @@ constexpr std::size_t insp_id = 0;
 namespace detray {
 
 template <std::size_t ID>
-struct track_inspector /*: actor<ID>*/ {
+struct track_inspector : actor<ID> {
 
     using actor_type = track_inspector<ID>;
 
     template <template <typename...> class vector_t>
-    struct state /*: actor<ID>::state*/ {
+    struct state : actor<ID>::state {
         using intersection_t = line_plane_intersection;
 
         state(vecmem::memory_resource& resource) : _intersections(&resource) {}
