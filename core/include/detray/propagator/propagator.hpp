@@ -8,7 +8,6 @@
 #pragma once
 
 #include <climits>
-#include <iostream>
 
 #include "detray/definitions/qualifiers.hpp"
 

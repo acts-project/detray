@@ -9,7 +9,6 @@
 
 // detray definitions
 #include <climits>
-#include <iostream>
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
