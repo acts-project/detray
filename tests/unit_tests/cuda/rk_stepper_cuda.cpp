@@ -4,7 +4,7 @@
  *
  * Mozilla Public License Version 2.0
  */
-
+#include <chrono>
 #include <gtest/gtest.h>
 
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
@@ -135,8 +135,6 @@ TEST(rk_stepper_cuda, rk_stepper_timed) {
 
     // Set the magnetic field
     const vector3 B{0, 0, 2 * unit_constants::T};
-    std::chrono::time_point<std::chrono::steady_clock> start_time;
-    std::chrono::time_point<std::chrono::steady_clock> end_time;
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -187,13 +185,13 @@ TEST(rk_stepper_cuda, rk_stepper_timed) {
                                backward_state.dist_to_path_limit());
     }
 
-    start_time = std::chrono::steady_clock::now();
+    auto start_time = std::chrono::high_resolution_clock::now();
     // Get tracks data
     auto tracks_data = vecmem::get_data(tracks_device);
 
     // Run RK stepper cuda kernel
     rk_stepper_test(tracks_data, B);
-    end_time = std::chrono::steady_clock::now();
+    auto end_time = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> time_par = end_time - start_time;
     printf("CUDA time  = %f s\n", time_par.count());

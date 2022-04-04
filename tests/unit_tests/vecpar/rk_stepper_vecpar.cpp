@@ -8,6 +8,7 @@
 #include "rk_stepper_vecpar.hpp"
 
 #include <gtest/gtest.h>
+#include <chrono>
 
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -141,16 +142,15 @@ TEST(rk_stepper_algo_vecpar, rk_stepper_timed) {
         }
     }
 
-    nav_state n_state{};
-
-    std::chrono::time_point<std::chrono::steady_clock> start_time;
-    std::chrono::time_point<std::chrono::steady_clock> end_time;
+    std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
+    std::chrono::time_point<std::chrono::high_resolution_clock> end_time;
 
 #if defined(_OPENMP)
-    start_time = std::chrono::steady_clock::now();
+    start_time = std::chrono::high_resolution_clock::now();
 
     // Define RK stepper
     rk_stepper_type rk(B);
+    nav_state n_state{};
 
     #pragma omp parallel for
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
@@ -172,15 +172,16 @@ TEST(rk_stepper_algo_vecpar, rk_stepper_timed) {
         }
     }
 
-    end_time = std::chrono::steady_clock::now();
+    end_time = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> time_cpu = end_time - start_time;
     printf("CPU OMP time  = %f s\n", time_cpu.count());
 #else
-    start_time = std::chrono::steady_clock::now();
+    start_time = std::chrono::high_resolution_clock::now();
 
    // Define RK stepper
    rk_stepper_type rk(B);
+   nav_state n_state{};
 
    for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
@@ -201,7 +202,7 @@ TEST(rk_stepper_algo_vecpar, rk_stepper_timed) {
        }
    }
 
-   end_time = std::chrono::steady_clock::now();
+   end_time = std::chrono::high_resolution_clock::now();
 
    std::chrono::duration<double> time_cpu = end_time - start_time;
    printf("CPU seq time  = %f s\n", time_cpu.count());
@@ -234,10 +235,10 @@ TEST(rk_stepper_algo_vecpar, rk_stepper_timed) {
     }
 
     // Run RK stepper in parallel on CPU/GPU
-    start_time = std::chrono::steady_clock::now();
+    start_time = std::chrono::high_resolution_clock::now();
     rk_stepper_algorithm rk_stepper_algo;
     vecpar::parallel_map(rk_stepper_algo, mng_mr, tracks_device, B);
-    end_time = std::chrono::steady_clock::now();
+    end_time = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> time_par = end_time - start_time;
     printf("CPU/GPU_vecpar_clang time  = %f s\n", time_par.count());
@@ -253,4 +254,4 @@ TEST(rk_stepper_algo_vecpar, rk_stepper_timed) {
         EXPECT_NEAR(getter::norm(device_relative_error), 0, epsilon);
     }
 }
- */
+*/
