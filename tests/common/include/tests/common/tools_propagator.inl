@@ -187,7 +187,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
                 path_limit, epsilon);
             ASSERT_FALSE(p.propagate(lim_state))
                 << lim_print_insp_state.to_string() << std::endl;
-            ASSERT_TRUE(lim_state._stepping.path_length() <= path_limit);
+            ASSERT_TRUE(lim_state._stepping.path_length() <
+                        path_limit + epsilon);
         }
     }
 }

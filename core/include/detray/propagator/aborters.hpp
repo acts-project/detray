@@ -41,7 +41,7 @@ struct pathlimit_aborter : actor {
     /// @param abrt_state contains the path limit
     /// @param prop_state state of the propagation
     template <typename propagator_state_t>
-    void operator()(const state_type &abrt_state,
+    void operator()(state_type &abrt_state,
                     propagator_state_t &prop_state) const {
         auto &step_state = prop_state._stepping;
         auto &nav_state = prop_state._navigation;
@@ -50,21 +50,18 @@ struct pathlimit_aborter : actor {
         if (nav_state.is_complete()) {
             return;
         }
-        // std::cout << "Path limit: " << abrt_state.path_limit() << ", track
-        // length: "
-        //<< std::abs(prop_state._stepping.path_length()) << std::endl;
 
-        if (abrt_state.path_limit() <=
-            std::abs(prop_state._stepping.path_length())) {
-            printf("Abort: Stepper above maximal path length!\n");
+        // Check the path limit
+        abrt_state._path_limit -= std::abs(prop_state._stepping.step_size());
+        if (abrt_state.path_limit() <= 0) {
+            //printf("Abort: Stepper above maximal path length!\n");
             // Stop navigation
             prop_state._heartbeat &= nav_state.abort();
         }
 
         // Don't go over the path limit in the next step
         step_state.template set_constraint<step::constraint::e_aborter>(
-            abrt_state.path_limit() -
-            std::abs(prop_state._stepping.path_length()));
+            abrt_state.path_limit());
     }
 };
 

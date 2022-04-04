@@ -39,7 +39,7 @@ constexpr unsigned int theta_steps = 100;
 constexpr unsigned int phi_steps = 100;
 constexpr unsigned int rk_steps = 100;
 
-constexpr scalar epsilon = 1e-5;
+constexpr scalar epsilon = 1e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
 
 namespace detray {

@@ -112,9 +112,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
         rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
 
     // RK stepper configurations
-    constexpr unsigned int theta_steps = 2;
-    constexpr unsigned int phi_steps = 2;
-    constexpr unsigned int rk_steps = 2;
+    constexpr unsigned int theta_steps = 100;
+    constexpr unsigned int phi_steps = 100;
+    constexpr unsigned int rk_steps = 100;
 
     // Constant magnetic field
     vector3 B{1 * unit_constants::T, 1 * unit_constants::T,
@@ -137,7 +137,6 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
         // Loops of phi values [-pi, pi]
         for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-
             // The direction
             scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
             scalar sin_phi = std::sin(phi);
@@ -147,7 +146,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
             vector3 mom = p_mag * dir;
             free_track_parameters traj(ori, 0, mom, -1);
-            free_track_parameters c_traj(ori, 0, mom, -1);
+            free_track_parameters c_traj(traj);
 
             // helix gun
             helix_gun helix(traj, &B);
@@ -171,8 +170,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             // get relative error by dividing error with path length
             ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(),
                         epsilon);
-            ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()), 0,
-                        epsilon);
+            ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
+                            rk_state.path_length(),
+                        0, epsilon);
 
             point3 helix_pos = helix(rk_state.path_length());
             point3 forward_pos = rk_state().pos();
@@ -183,6 +183,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             EXPECT_NEAR(getter::norm(forward_relative_error), 0, epsilon);
 
             // Roll the same track back to the origin
+            // Use the same path length, since there is no overstepping
             scalar path_length = rk_state.path_length();
             n_state._step_size *= -1. * unit_constants::mm;
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
@@ -193,8 +194,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
             ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(),
                         epsilon);
-            ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()), 0,
-                        epsilon);
+            ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
+                            (2 * path_length),
+                        0, epsilon);
 
             point3 backward_pos = rk_state().pos();
             auto backward_relative_error =

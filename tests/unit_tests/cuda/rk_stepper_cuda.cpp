@@ -48,7 +48,8 @@ TEST(rk_stepper_cuda, rk_stepper) {
             scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
             scalar sin_phi = std::sin(phi);
             scalar cos_phi = std::cos(phi);
-            vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
+            const vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
+                              cos_theta};
 
             // intialize a track
             free_track_parameters traj(ori, 0, dir, -1);
@@ -61,10 +62,11 @@ TEST(rk_stepper_cuda, rk_stepper) {
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
         auto& traj = tracks_host[i];
+        free_track_parameters c_traj(traj);
 
         // Forward direction
         rk_stepper_t::state rk_state(traj);
-        crk_stepper_t::state crk_state(traj);
+        crk_stepper_t::state crk_state(c_traj);
 
         crk_state.template set_constraint<step::constraint::e_user>(
             0.5 * unit_constants::mm);
@@ -82,6 +84,8 @@ TEST(rk_stepper_cuda, rk_stepper) {
 
         // Backward direction
         // Roll the same track back to the origin
+        // Use the same path length, since there is no overstepping
+        scalar path_length = rk_state.path_length();
         n_state._step_size *= -1. * unit_constants::mm;
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
             rk_stepper.step(rk_state, n_state);
@@ -91,7 +95,7 @@ TEST(rk_stepper_cuda, rk_stepper) {
 
         EXPECT_NEAR(rk_state.path_length(), crk_state.path_length(), epsilon);
 
-        path_lengths.push_back(crk_state.path_length());
+        path_lengths.push_back(2 * path_length);
     }
 
     // Get tracks data

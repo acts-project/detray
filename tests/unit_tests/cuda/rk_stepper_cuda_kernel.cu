@@ -31,9 +31,10 @@ __global__ void rk_stepper_test_kernel(
 
     // Get a track
     auto& traj = tracks.at(gid);
+    free_track_parameters c_traj(traj);
 
     rk_stepper_t::state rk_state(traj);
-    crk_stepper_t::state crk_state(traj);
+    crk_stepper_t::state crk_state(c_traj);
 
     // Forward direction
     crk_state.template set_constraint<step::constraint::e_user>(
@@ -47,7 +48,6 @@ __global__ void rk_stepper_test_kernel(
 
     // Backward direction
     // Roll the same track back to the origin
-    scalar path_length = rk_state.path_length();
     n_state._step_size *= -1. * unit_constants::mm;
     for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
         rk_stepper.step(rk_state, n_state);
