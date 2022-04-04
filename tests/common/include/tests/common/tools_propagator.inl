@@ -154,9 +154,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             print_inspector::state_type print_insp_state{};
             print_inspector::state_type lim_print_insp_state{};
             pathlimit_aborter::state_type unlimted_aborter_state{};
-            pathlimit_aborter::state_type pathlimit_aborter_state{};
-            // Set maximal path length
-            pathlimit_aborter_state.set_path_limit(path_limit);
+            pathlimit_aborter::state_type pathlimit_aborter_state{path_limit};
 
             actor_chain_t::state actor_states =
                 std::tie(helix_insp_state, print_insp_state, unlimted_aborter_state);
