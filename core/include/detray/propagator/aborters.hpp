@@ -9,6 +9,7 @@
 
 // detray definitions
 #include <climits>
+#include <iostream>
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
@@ -50,6 +51,9 @@ struct pathlimit_aborter : actor {
         if (nav_state.is_complete()) {
             return;
         }
+        // std::cout << "Path limit: " << abrt_state.path_limit() << ", track
+        // length: "
+        //<< std::abs(prop_state._stepping.path_length()) << std::endl;
 
         // Check the path limit
         abrt_state._path_limit -= std::abs(prop_state._stepping.step_size());
