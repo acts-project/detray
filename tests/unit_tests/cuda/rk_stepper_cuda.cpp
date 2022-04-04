@@ -32,7 +32,8 @@ TEST(rk_stepper_cuda, rk_stepper) {
     const vector3 B{0, 0, 2 * unit_constants::T};
 
     // Define RK stepper
-    rk_stepper_type rk(B);
+    rk_stepper_t rk_stepper(B);
+    crk_stepper_t crk_stepper(B);
     nav_state n_state{};
 
     // Loops of theta values ]0,pi[
@@ -62,21 +63,36 @@ TEST(rk_stepper_cuda, rk_stepper) {
         auto& traj = tracks_host[i];
 
         // Forward direction
-        rk_stepper_type::state forward_state(traj);
+        rk_stepper_t::state rk_state(traj);
+        crk_stepper_t::state crk_state(traj);
+
+        crk_state.template set_constraint<constraint::e_user>(
+            0.5 * unit_constants::mm);
+        n_state._step_size = 1. * unit_constants::mm;
+        ASSERT_NEAR(crk_state.constraints().template size<>(),
+                    0.5 * unit_constants::mm, epsilon);
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk.step(forward_state, n_state);
+            rk_stepper.step(rk_state, n_state);
+            crk_stepper.step(crk_state, n_state);
+            crk_stepper.step(crk_state, n_state);
         }
+
+        // check constrained steps
+        EXPECT_NEAR(rk_state.path_length(), crk_state.path_length(), epsilon);
 
         // Backward direction
-        traj.flip();
-        rk_stepper_type::state backward_state(traj);
+        // Roll the same track back to the origin
+        scalar path_length = rk_state.path_length();
+        n_state._step_size *= -1. * unit_constants::mm;
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk.step(backward_state, n_state);
+            rk_stepper.step(rk_state, n_state);
+            crk_stepper.step(crk_state, n_state);
+            crk_stepper.step(crk_state, n_state);
         }
 
-        path_lengths.push_back(2 * path_limit -
-                               forward_state.dist_to_path_limit() -
-                               backward_state.dist_to_path_limit());
+        EXPECT_NEAR(rk_state.path_length(), crk_state.path_length(), epsilon);
+
+        path_lengths.push_back(crk_stepper.path_length());
     }
 
     // Get tracks data

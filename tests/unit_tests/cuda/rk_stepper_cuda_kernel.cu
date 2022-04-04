@@ -24,24 +24,35 @@ __global__ void rk_stepper_test_kernel(
         return;
     }
 
-    // Define RK stepper
-    rk_stepper_type rk(B);
+    // Define RK [constrained] stepper
+    rk_stepper_t rk_stepper(B);
+    crk_stepper_t crk_stepper(B);
     nav_state n_state{};
 
     // Get a track
     auto& traj = tracks.at(gid);
 
+    rk_stepper_t::state rk_state(traj);
+    crk_stepper_t::state crk_state(traj);
+
     // Forward direction
-    rk_stepper_type::state forward_state(traj);
+    crk_state.template set_constraint<constraint::e_user>(0.5 *
+                                                          unit_constants::mm);
+    n_state._step_size = 1. * unit_constants::mm;
     for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-        rk.step(forward_state, n_state);
+        rk_stepper.step(rk_state, n_state);
+        crk_stepper.step(crk_state, n_state);
+        crk_stepper.step(crk_state, n_state);
     }
 
     // Backward direction
-    traj.flip();
-    rk_stepper_type::state backward_state(traj);
+    // Roll the same track back to the origin
+    scalar path_length = rk_state.path_length();
+    n_state._step_size *= -1. * unit_constants::mm;
     for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-        rk.step(backward_state, n_state);
+        rk_stepper.step(rk_state, n_state);
+        crk_stepper.step(crk_state, n_state);
+        crk_stepper.step(crk_state, n_state);
     }
 }
 

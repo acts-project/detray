@@ -8,17 +8,17 @@
 #pragma once
 
 // detray definitions
+#include <climits>
+
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/actor_chain.hpp"
-
-#include <climits>
 
 namespace detray {
 
 /// Aborter that checks whether the track has exceeded its pathlimit
 ///
 /// @tparam ID the actor id for this aborter ties its state instance
-template<std::size_t ID>
+template <std::size_t ID>
 struct pathlimit_aborter : actor<ID> {
 
     // Tag this actor
@@ -38,7 +38,7 @@ struct pathlimit_aborter : actor<ID> {
     }
 
     template <typename propagator_state_t>
-    void operator()(actor_type::state & state, propagator_state_t& prop_state) {
+    void operator()(actor_type::state &state, propagator_state_t &prop_state) {
         auto &step_state = prop_state._stepping;
         auto &nav_state = prop_state._navigation;
 
@@ -54,7 +54,8 @@ struct pathlimit_aborter : actor<ID> {
             nav_state.abort();
         }
 
-        step_state.template set_constraint<step::constraint::e_aborter>(state._path_limit);
+        step_state.template set_constraint<step::constraint::e_aborter>(
+            state._path_limit);
     }
 };
 
