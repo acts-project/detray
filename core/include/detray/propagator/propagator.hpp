@@ -45,12 +45,11 @@ struct propagator {
         : _stepper(std::move(s)), _navigator(std::move(n)) {}
 
     /** Propagation that state aggregates a stepping and a navigation state */
-    template <typename actor_states_t = bool>
     struct state {
 
         template <typename track_t>
         DETRAY_HOST_DEVICE state(
-            track_t &t_in, actor_states_t &&actor_states = {},
+            track_t &t_in, typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(t_in),
               _navigation(std::move(candidates)),
@@ -58,7 +57,7 @@ struct propagator {
 
         typename stepper_t::state _stepping;
         typename navigator_t::state _navigation;
-        actor_states_t _actor_states;
+        typename actor_chain_t::state _actor_states;
     };
 
     /** Propagate method

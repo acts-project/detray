@@ -147,21 +147,20 @@ struct print_inspector {
 
 namespace propagation {
 
-template <std::size_t ID>
-struct print_inspector : actor<ID> {
+struct print_inspector : actor {
 
-    using actor_type = print_inspector<ID>;
-
-    struct state : actor<ID>::state {
+    struct print_inspector_state {
         std::stringstream stream{};
 
         std::string to_string() const { return stream.str(); }
     };
 
+    using actor_type = print_inspector;
+    using state_type = print_inspector_state;
+
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        typename actor_type::state &printer,
-        const propagation_state_t &prop_state) const {
+        state_type &printer, const propagation_state_t &prop_state) const {
         const auto &navigation = prop_state._navigation;
         const auto &stepping = prop_state._stepping;
 

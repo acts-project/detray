@@ -54,35 +54,33 @@ constexpr unsigned int phi_steps = 100;
 
 constexpr scalar pos_diff_tolerance = 1e-3;
 
-constexpr std::size_t insp_id = 0;
-
 namespace detray {
 
-template <std::size_t ID>
-struct track_inspector : actor<ID> {
+template <template <typename...> class vector_t>
+struct track_inspector : actor {
 
-    using actor_type = track_inspector<ID>;
-
-    template <template <typename...> class vector_t>
-    struct state : actor<ID>::state {
+    struct track_inspector_state {
         using intersection_t = line_plane_intersection;
 
-        state(vecmem::memory_resource& resource) : _intersections(&resource) {}
+        track_inspector_state(vecmem::memory_resource &resource)
+            : _intersections(&resource) {}
 
         DETRAY_HOST_DEVICE
-        state(vector_t<intersection_t> intersection_record)
+        track_inspector_state(vector_t<intersection_t> intersection_record)
             : _intersections(intersection_record) {}
 
         vector_t<intersection_t> _intersections;
     };
 
-    template <template <typename...> class vector_t,
-              typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(
-        track_inspector<ID>::state<vector_t>& inspector_state,
-        const propagator_state_t& prop_state) const {
+    using actor_type = track_inspector<vector_t>;
+    using state_type = track_inspector_state;
 
-        const auto& navigation = prop_state._navigation;
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        state_type &inspector_state,
+        const propagator_state_t &prop_state) const {
+
+        const auto &navigation = prop_state._navigation;
 
         // Record when status == e_on_target
         if (navigation.status() == navigation::status::e_on_target) {
@@ -92,18 +90,20 @@ struct track_inspector : actor<ID> {
 };
 
 // Assemble propagator type
-using inspector_t = track_inspector<insp_id>;
-using actor_chain_t = actor_chain<thrust::tuple, inspector_t>;
+using inspector_host_t = track_inspector<vecmem::vector>;
+using inspector_device_t = track_inspector<vecmem::device_vector>;
+using actor_chain_host_t = actor_chain<thrust::tuple, inspector_host_t>;
+using actor_chain_device_t = actor_chain<thrust::tuple, inspector_host_t>;
 using propagator_host_type =
-    propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
+    propagator<rk_stepper_type, navigator_host_type, actor_chain_host_t>;
 using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type, actor_chain_t>;
+    propagator<rk_stepper_type, navigator_device_type, actor_chain_device_t>;
 
 /// test function for propagator with single state
 void propagator_test(
     detector_view<detector_host_type> det_data,
-    vecmem::data::vector_view<free_track_parameters>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
-    vecmem::data::jagged_vector_view<intersection_t>& intersections_data);
+    vecmem::data::vector_view<free_track_parameters> &tracks_data,
+    vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
+    vecmem::data::jagged_vector_view<intersection_t> &intersections_data);
 
 }  // namespace detray

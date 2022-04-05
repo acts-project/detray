@@ -22,25 +22,26 @@ namespace detray {
 /// objects in the actor state tuple that is accessible through actor_chain
 ///
 /// @tparam ID the actors id needed to link it to its state
-template <std::size_t ID>
+// template <std::size_t ID = 0>
 class actor {
 
     public:
     /// The type of the actor is referenced when the actor type of a composition
     /// is resolved
-    using actor_type = actor<ID>;
+    using actor_type = actor;
 
     /// Tag whether this is a composite type
     struct is_comp_actor : public std::false_type {};
 
     /// Defines the actors state
-    struct state {
+    struct base_state {
         /// @return the actors ID
-        constexpr static std::size_t get_id() { return ID; }
+        // constexpr static std::size_t get_id() { return ID; }
     };
+    using state_type = base_state;
 
     /// @return the actors ID
-    constexpr static std::size_t get_id() { return ID; }
+    // constexpr static std::size_t get_id() { return ID; }
 };
 
 /// Composition of actors
@@ -53,16 +54,16 @@ class actor {
 /// @tparam actor_impl_t the actor the compositions implements itself.
 /// @tparam observers a pack of observing actors that get called on the updated
 ///         actor state of the compositions actor implementation.
-template <std::size_t ID, template <typename...> class tuple_t = dtuple,
-          template <std::size_t> class actor_impl_t = actor,
-          typename... observers>
-class composite_actor : public actor_impl_t<ID> {
+template <template <typename...> class tuple_t = dtuple,
+          class actor_impl_t = actor, typename... observers>
+class composite_actor : public actor_impl_t {
 
     public:
     /// The composite is an actor in itself. If it is derived from another
     /// composition, it will just implement the same actor as its base class.
     /// I.e. it is impossible to observe another composition's observers.
-    using actor_type = typename actor_impl_t<ID>::actor_type;
+    using actor_type = typename actor_impl_t::actor_type;
+    using state_type = typename actor_type::state_type;
 
     /// Tag whether this is a composite type (shadows the def in the actor)
     struct is_comp_actor : public std::true_type {};
@@ -78,21 +79,25 @@ class composite_actor : public actor_impl_t<ID> {
     /// @param subject_state the state of the actor this actor observes. Uses
     ///                      a dummy type if this is not an observing actor.
     template <typename actor_states_t, typename propagator_state_t,
-              typename subj_state_t = typename actor<ID>::state>
+              typename subj_state_t = typename actor::state_type>
     DETRAY_HOST_DEVICE void operator()(
         actor_states_t &states, propagator_state_t &p_state,
         subj_state_t &&subject_state = {}) const {
         // Do your own work ...
-        if constexpr (std::is_same_v<subj_state_t, typename actor<ID>::state>) {
+        if constexpr (std::is_same_v<subj_state_t,
+                                     typename actor::state_type>) {
             static_cast<actor_type const *>(this)->operator()(
-                detail::get<ID>(states), p_state);
+                detail::get<typename actor_type::state_type &>(states),
+                p_state);
         } else {
             static_cast<actor_type const *>(this)->operator()(
-                detail::get<ID>(states), p_state, subject_state);
+                detail::get<typename actor_type::state_type &>(states), p_state,
+                subject_state);
         }
 
         // Then run the observers on the updated state
-        notify(_observers, states, detail::get<ID>(states), p_state,
+        notify(_observers, states,
+               detail::get<typename actor_type::state_type &>(states), p_state,
                std::make_index_sequence<sizeof...(observers)>{});
     }
 
@@ -114,8 +119,8 @@ class composite_actor : public actor_impl_t<ID> {
                                           actor_impl_state_t &actor_state,
                                           propagator_state_t &p_state) const {
         if constexpr (not typename observer_t::is_comp_actor()) {
-            observer(detail::get<observer_t::get_id()>(states), actor_state,
-                     p_state);
+            observer(detail::get<typename observer_t::state_type &>(states),
+                     actor_state, p_state);
         } else {
             observer(states, actor_state, p_state);
         }

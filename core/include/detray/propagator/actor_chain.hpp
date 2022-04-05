@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <functional>
 #include <type_traits>
 #include <utility>
 
@@ -14,6 +15,11 @@
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
+
+/*template<typename actor_t>
+struct state_wrapper {
+    using type = typename actor_t::state_type;
+};*/
 
 /// The interface to the actors and aborters in the propagation.
 ///
@@ -28,6 +34,7 @@ class actor_chain {
     public:
     /// Types of the actors that are registered in the chain
     using actor_list_type = tuple_t<actors_t...>;
+    using state = tuple_t<typename actors_t::state_type &...>;
 
     /// Call all actors in the chain.
     ///
@@ -52,7 +59,7 @@ class actor_chain {
                                        actor_states_t &states,
                                        propagator_state_t &p_state) const {
         if constexpr (not typename actor_t::is_comp_actor()) {
-            actr(detail::get<actor_t::get_id()>(states), p_state);
+            actr(detail::get<typename actor_t::state_type &>(states), p_state);
         } else {
             actr(states, p_state);
         }
