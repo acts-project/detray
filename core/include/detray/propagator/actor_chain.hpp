@@ -63,26 +63,12 @@ class actor_chain {
     /// @param actr the actor
     /// @param states states of all actors (only bare actors)
     /// @param p_state the state of the propagator (stepper and navigator)
-    template <std::size_t ID, typename arg1, typename... args,
-              template <std::size_t, typename, typename...> class actor_t,
-              typename actor_states_t, typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline void run(const actor_t<ID, arg1, args...> &actr,
+    template <typename actor_t, typename actor_states_t,
+              typename propagator_state_t>
+    DETRAY_HOST_DEVICE inline void run(const actor_t &actr,
                                        actor_states_t &states,
                                        propagator_state_t &p_state) const {
-        actr(detail::get<ID>(states), p_state);
-    }
-
-    /// Call a single actor.
-    ///
-    /// @param actr the actor
-    /// @param states states of all actors (only bare actors)
-    /// @param p_state the state of the propagator (stepper and navigator)
-    template <std::size_t ID, template <std::size_t> class actor_t,
-              typename actor_states_t, typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline void run(const actor_t<ID> &actr,
-                                       actor_states_t &states,
-                                       propagator_state_t &p_state) const {
-        actr(detail::get<ID>(states), p_state);
+        actr(detail::get<actor_t::get_id()>(states), p_state);
     }
 
     /// Resolve the actor calls.

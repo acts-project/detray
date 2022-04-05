@@ -44,7 +44,7 @@ struct print_actor : actor<ID> {
     template <typename propagator_state_t>
     void operator()(const typename print_actor<ID>::state &printer_state,
                     const propagator_state_t & /*p_state*/) const {
-        std::cout << "This is print actor: " << printer_state._id << " : "
+        std::cout << "This is print actor: " << printer_state.get_id() << " : "
                   << printer_state.out << std::endl;
     }
 
@@ -52,8 +52,8 @@ struct print_actor : actor<ID> {
     void operator()(const typename print_actor<ID>::state &printer_state,
                     const subj_state_t &subject_state,
                     const propagator_state_t & /*p_state*/) const {
-        std::cout << "This is print actor: " << printer_state._id
-                  << ", observing actor: " << subject_state._id << " : "
+        std::cout << "This is print actor: " << printer_state.get_id()
+                  << ", observing actor: " << subject_state.get_id() << " : "
                   << printer_state.out << std::endl;
     }
 };
@@ -70,7 +70,7 @@ struct example_actor : actor<ID> {
     template <typename propagator_state_t>
     void operator()(const typename example_actor<ID>::state &example_state,
                     const propagator_state_t & /*p_state*/) const {
-        std::cout << "This is example actor: " << example_state._id
+        std::cout << "This is example actor: " << example_state.get_id()
                   << std::endl;
     }
 
@@ -79,7 +79,7 @@ struct example_actor : actor<ID> {
     void operator()(const typename example_actor<ID>::state &example_state,
                     const subj_state_t & /*subject_state*/,
                     const propagator_state_t & /*p_state*/) const {
-        std::cout << "This is example actor: " << example_state._id
+        std::cout << "This is example actor: " << example_state.get_id()
                   << std::endl;
     }
 };

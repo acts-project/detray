@@ -32,8 +32,11 @@ class actor {
 
     /// Defines the actors state
     struct state {
-        const std::size_t _id{ID};
+
+        constexpr static std::size_t get_id() { return ID; }
     };
+
+    constexpr static std::size_t get_id() { return ID; }
 };
 
 /// Composition of actors
@@ -141,14 +144,15 @@ class composite_actor : public actor_impl_t<ID> {
     /// @param observer one of the observers
     /// @param states the states of all actors in the chain
     /// @param p_state the state of the propagator (stepper and navigator)
-    template <std::size_t obs_ID, template <std::size_t> class observer_t,
-              typename actor_states_t, typename propagator_state_t>
+    template <typename observer_t, typename actor_states_t,
+              typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void notify(
-        const observer_t<obs_ID> &observer, actor_states_t &states,
+        const observer_t &observer, actor_states_t &states,
         typename actor_type::state &actor_state,
         propagator_state_t &p_state) const {
 
-        observer(detail::get<obs_ID>(states), actor_state, p_state);
+        observer(detail::get<observer_t::get_id()>(states), actor_state,
+                 p_state);
     }
 
     /// Resolve the observer notification.
