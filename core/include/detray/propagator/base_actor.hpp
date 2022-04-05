@@ -67,42 +67,29 @@ class composite_actor : public actor_impl_t<ID> {
     /// Tag whether this is a composite type (shadows the def in the actor)
     struct is_comp_actor : public std::true_type {};
 
-    /// Call to the implementation of the actor.
-    ///
-    /// First runs its own implementation, then passes the updated state to its
-    /// observers.
-    ///
-    /// @param states the states of the all actors in the chain
-    /// @param p_state the state of the propagator (stepper and navigator)
-    template <typename actor_states_t, typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(actor_states_t &states,
-                                       propagator_state_t &p_state) const {
-        // Do your own work ...
-        static_cast<actor_type const *>(this)->operator()(
-            detail::get<ID>(states), p_state);
-
-        // Then run the observers on the updated state
-        notify(_observers, states, detail::get<ID>(states), p_state,
-               std::make_index_sequence<sizeof...(observers)>{});
-    }
-
-    /// Call to the implementation of the actor (the actor being an observer
-    /// itself)
+    /// Call to the implementation of the actor (the actor possibly being an
+    /// observer itself)
     ///
     /// First runs its own implementation, then passes the updated state to its
     /// observers.
     ///
     /// @param states the states of all actors in the chain
-    /// @param subject_state the state of the actor this actor observes
     /// @param p_state the state of the propagator (stepper and navigator)
-    template <typename actor_states_t, typename subj_state_t,
-              typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(actor_states_t &states,
-                                       subj_state_t &subject_state,
-                                       propagator_state_t &p_state) const {
+    /// @param subject_state the state of the actor this actor observes. Uses
+    ///                      a dummy type if this is not an observing actor.
+    template <typename actor_states_t, typename propagator_state_t,
+              typename subj_state_t = typename actor<ID>::state>
+    DETRAY_HOST_DEVICE void operator()(
+        actor_states_t &states, propagator_state_t &p_state,
+        subj_state_t &&subject_state = {}) const {
         // Do your own work ...
-        static_cast<actor_type const *>(this)->operator()(
-            detail::get<ID>(states), subject_state, p_state);
+        if constexpr (std::is_same_v<subj_state_t, typename actor<ID>::state>) {
+            static_cast<actor_type const *>(this)->operator()(
+                detail::get<ID>(states), p_state);
+        } else {
+            static_cast<actor_type const *>(this)->operator()(
+                detail::get<ID>(states), p_state, subject_state);
+        }
 
         // Then run the observers on the updated state
         notify(_observers, states, detail::get<ID>(states), p_state,

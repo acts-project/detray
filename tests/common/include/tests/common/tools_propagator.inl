@@ -127,6 +127,37 @@ struct helix_inspector : actor<ID> {
     }
 };
 
+template <template <typename...> class vector_t, std::size_t ID = 2>
+struct track_inspector : actor<ID> {
+
+    using actor_type = track_inspector<vector_t, ID>;
+
+    struct state : actor<ID>::state {
+        using intersection_t = line_plane_intersection;
+
+        state(vecmem::memory_resource &resource) : _intersections(&resource) {}
+
+        DETRAY_HOST_DEVICE
+        state(vector_t<intersection_t> intersection_record)
+            : _intersections(intersection_record) {}
+
+        vector_t<intersection_t> _intersections;
+    };
+
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        track_inspector<vector_t, ID>::state &inspector_state,
+        const propagator_state_t &prop_state) const {
+
+        const auto &navigation = prop_state._navigation;
+
+        // Record when status == e_on_target
+        if (navigation.status() == navigation::status::e_on_target) {
+            inspector_state._intersections.push_back(*navigation.current());
+        }
+    }
+};
+
 }  // anonymous namespace
 
 // Test the actor chain on some dummy actor types
@@ -224,7 +255,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using stepper_t =
         rk_stepper<b_field_t, free_track_parameters, constraints_t>;
     using actor_chain_t = actor_chain<dtuple, helix_inspector<helix_id>,
-                                      propagation::print_inspector<printer_id>>;
+                                      propagation::print_inspector<printer_id>,
+                                      track_inspector<vecmem::vector>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Constant magnetic field
@@ -240,7 +272,16 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     auto actor_states =
         std::make_tuple(helix_inspector<helix_id>::state(helix_gun{}),
-                        propagation::print_inspector<printer_id>::state{});
+                        propagation::print_inspector<printer_id>::state{},
+                        track_inspector<vecmem::vector>::state{host_mr});
+    double v1{0};
+    float v2{1};
+    int v3{3};
+
+    auto test_tuple = thrust::make_tuple(v1, v2, v3);
+    int result = detail::get<int>(test_tuple);
+
+    std::cout << "RESULT: " << result << std::endl;
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {

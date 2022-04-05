@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <array>
+#include <climits>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -35,6 +36,26 @@ namespace vtuple = std;
 
 namespace detail {
 
+namespace {
+struct empty_type {};
+
+/// Unroll a parameter pack without using a tuple.
+///
+/// Returns the position of the type counted from the back!
+template <typename query_t, typename first_t = empty_type,
+          typename... remaining_types>
+DETRAY_HOST_DEVICE constexpr std::size_t unroll_ids() {
+    if constexpr (not std::is_same_v<first_t, empty_type> and
+                  not std::is_same_v<query_t, first_t>) {
+        return unroll_ids<query_t, remaining_types...>();
+    }
+    if constexpr (std::is_same_v<query_t, first_t>) {
+        return sizeof...(remaining_types) + 1;
+    }
+    return std::numeric_limits<std::size_t>::max();
+}
+}  // anonymous namespace
+
 /** get function accessor
  *
  *  usage example:
@@ -50,6 +71,17 @@ template <std::size_t id, typename mask_store_t,
 constexpr auto get(mask_store_t&& mask_store) noexcept
     -> decltype(get<id>(std::forward<mask_store_t>(mask_store).masks())) {
     return get<id>(std::forward<mask_store_t>(mask_store).masks());
+}
+
+/// Retrieve an element from a thrust tuple by value.
+template <typename query_t, template <typename...> class tuple_t,
+          class... value_types,
+          std::enable_if_t<std::is_same_v<tuple_t<value_types...>,
+                                          thrust::tuple<value_types...>>,
+                           bool> = true>
+DETRAY_HOST_DEVICE constexpr auto get(tuple_t<value_types...>& tuple) noexcept {
+    return thrust::get<sizeof...(value_types) -
+                       unroll_ids<query_t, value_types...>()>(tuple);
 }
 
 /** tuple size accessor
