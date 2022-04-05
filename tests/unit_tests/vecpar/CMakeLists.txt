@@ -49,6 +49,3 @@ if ((TARGET vecpar::all) AND (TARGET vecpar::cuda))
                 $<$<COMPILE_LANGUAGE:CXX>:-x cuda --offload-arch=sm_${CMAKE_CUDA_ARCHITECTURES}>)
     endforeach()
 endif()
-
-
-

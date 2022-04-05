@@ -13,7 +13,7 @@ message( STATUS "Building vecpar as part of the Detray project" )
 
 # Declare where to get vecpar from.
 set( DETRAY_VECPAR_SOURCE
-        "URL;https://github.com/wr-hamburg/vecpar/archive/refs/tags/v0.0.1.tar.gz;URL_MD5;a220b11b801a8869904fc1ad34b6aa10"
+        "URL;https://github.com/wr-hamburg/vecpar/archive/refs/tags/v0.0.1.tar.gz;URL_MD5;bea7613bdc1e0c3f22f1dfd6ae27dfaf"
         CACHE STRING "Source for vecpar, when built as part of this project")
 
 mark_as_advanced( DETRAY_VECPAR_SOURCE )
@@ -27,7 +27,7 @@ set( VECPAR_BUILD_TESTS FALSE CACHE BOOL
 set( VECPAR_BUILD_CUDA_BACKEND ${DETRAY_BUILD_CUDA} CACHE BOOL
         "Turn off the build of the vecpar unit tests")
 
-find_package(OpenMP QUIET)
+find_package(OpenMP)
 if (${OpenMP_FOUND})
     message(STATUS "Build vecpar OpenMP backend")
     set( VECPAR_BUILD_OMP_BACKEND TRUE CACHE BOOL
@@ -35,11 +35,13 @@ if (${OpenMP_FOUND})
 endif()
 
 if (DETRAY_BUILD_CUDA)
-    find_package(CUDAToolkit QUIET)
-    if (${CUDAToolkit_FOUND} AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
-        message(STATUS "Build vecpar CUDA backend")
-        set( VECPAR_BUILD_CUDA_BACKEND TRUE CACHE BOOL
-            "Build vecpar CUDA backend")
+    find_package(CUDAToolkit)
+    if (CUDAToolkit_FOUND)
+        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+            message(STATUS "Build vecpar CUDA backend")
+            set( VECPAR_BUILD_CUDA_BACKEND TRUE CACHE BOOL
+                "Build vecpar CUDA backend")
+        endif()
     endif()
 endif()
 
