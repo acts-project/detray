@@ -39,6 +39,8 @@ class actor {
     constexpr static std::size_t get_id() { return ID; }
 };
 
+class comp_actor {};
+
 /// Composition of actors
 ///
 /// The composition represents an actor together with its observers. In
@@ -52,7 +54,7 @@ class actor {
 template <std::size_t ID, template <typename...> class tuple_t = dtuple,
           template <std::size_t> class actor_impl_t = actor,
           typename... observers>
-class composite_actor : public actor_impl_t<ID> {
+class composite_actor : private comp_actor, public actor_impl_t<ID> {
 
     public:
     /// The composite is an actor in itself. If it is derived from another
@@ -118,18 +120,14 @@ class composite_actor : public actor_impl_t<ID> {
     /// @param observer one of the observers
     /// @param states the states of all actors in the chain
     /// @param p_state the state of the propagator (stepper and navigator)
-    template <std::size_t obs_ID, template <typename...> class comp_tuple_t,
-              template <std::size_t> class comp_actor_impl_t,
-              typename... comp_observers,
-              template <std::size_t, template <typename...> class,
-                        template <std::size_t> class, typename...>
-              class observer_t,
-              typename actor_states_t, typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline void notify(
-        const observer_t<obs_ID, comp_tuple_t, comp_actor_impl_t,
-                         comp_observers...> &observer,
-        actor_states_t &states, typename actor_type::state &actor_state,
-        propagator_state_t &p_state) const {
+    template <typename observer_t, typename actor_states_t,
+              typename actor_impl_state_t, typename propagator_state_t,
+              std::enable_if_t<std::is_base_of_v<comp_actor, observer_t>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE inline void notify(const observer_t &observer,
+                                          actor_states_t &states,
+                                          actor_impl_state_t &actor_state,
+                                          propagator_state_t &p_state) const {
 
         observer(states, actor_state, p_state);
     }
@@ -145,7 +143,9 @@ class composite_actor : public actor_impl_t<ID> {
     /// @param states the states of all actors in the chain
     /// @param p_state the state of the propagator (stepper and navigator)
     template <typename observer_t, typename actor_states_t,
-              typename propagator_state_t>
+              typename propagator_state_t,
+              std::enable_if_t<not std::is_base_of_v<comp_actor, observer_t>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline void notify(
         const observer_t &observer, actor_states_t &states,
         typename actor_type::state &actor_state,

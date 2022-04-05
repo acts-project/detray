@@ -12,6 +12,7 @@
 
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/propagator/base_actor.hpp"
 
 namespace detray {
 
@@ -46,15 +47,12 @@ class actor_chain {
     /// @param comp_actr the composite actor
     /// @param states states of all actors (only bare actors)
     /// @param p_state the state of the propagator (stepper and navigator)
-    template <std::size_t ID, template <typename...> class comp_tuple_t,
-              template <std::size_t> class actor_impl_t, typename... observers,
-              template <std::size_t, template <typename...> class,
-                        template <std::size_t> class, typename...>
-              class actor_t,
-              typename actor_states_t, typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline void run(
-        const actor_t<ID, comp_tuple_t, actor_impl_t, observers...> &comp_actr,
-        actor_states_t &states, propagator_state_t &p_state) const {
+    template <
+        typename actor_t, typename actor_states_t, typename propagator_state_t,
+        std::enable_if_t<std::is_base_of_v<comp_actor, actor_t>, bool> = true>
+    DETRAY_HOST_DEVICE inline void run(const actor_t &comp_actr,
+                                       actor_states_t &states,
+                                       propagator_state_t &p_state) const {
         comp_actr(states, p_state);
     }
 
@@ -63,8 +61,10 @@ class actor_chain {
     /// @param actr the actor
     /// @param states states of all actors (only bare actors)
     /// @param p_state the state of the propagator (stepper and navigator)
-    template <typename actor_t, typename actor_states_t,
-              typename propagator_state_t>
+    template <
+        typename actor_t, typename actor_states_t, typename propagator_state_t,
+        std::enable_if_t<not std::is_base_of_v<comp_actor, actor_t>, bool> =
+            true>
     DETRAY_HOST_DEVICE inline void run(const actor_t &actr,
                                        actor_states_t &states,
                                        propagator_state_t &p_state) const {
@@ -76,8 +76,8 @@ class actor_chain {
     /// @param actors list of all actors
     /// @param states states of all actors (only bare actors)
     /// @param p_state the state of the propagator (stepper and navigator)
-    template <std::size_t... indices, typename actor_states_t,
-              typename propagator_state_t>
+    template <typename actor_states_t, typename propagator_state_t,
+              std::size_t... indices>
     DETRAY_HOST_DEVICE inline void run(
         actor_states_t &states, propagator_state_t &p_state,
         std::index_sequence<indices...> /*ids*/) const {
