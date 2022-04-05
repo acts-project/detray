@@ -37,7 +37,6 @@ struct print_actor : actor {
     };
 
     /// This implementations actor type
-    using actor_type = print_actor;
     using state_type = print_actor_state;
 
     /// Print the ID of the type and the id in its state
@@ -65,7 +64,6 @@ struct example_actor : actor {
     /// Printer id
     struct example_actor_state {};
 
-    using actor_type = example_actor;
     using state_type = example_actor_state;
 
     /// Print your id
@@ -105,7 +103,6 @@ struct helix_inspector : actor {
         helix_gun _helix;
     };
 
-    using actor_type = helix_inspector;
     using state_type = helix_inspector_state;
 
     template <typename propagator_state_t>
@@ -176,7 +173,7 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     stepper_t s;
     navigator_t n(d);
 
-    using propagator_t = propagator<stepper_t, navigator_t, empty_chain>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
     propagator_t p(std::move(s), std::move(n));
     propagator_t::state state(traj);
     state._stepping.set_path_limit(path_limit);

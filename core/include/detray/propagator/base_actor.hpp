@@ -16,32 +16,20 @@
 namespace detray {
 
 /// Base class actor implementation
-///
-/// It implements the call and typedef infrastructure that all actors need to
-/// comply with. Every actor has an id that defines the position of its state
-/// objects in the actor state tuple that is accessible through actor_chain
-///
-/// @tparam ID the actors id needed to link it to its state
-// template <std::size_t ID = 0>
-class actor {
-
-    public:
-    /// The type of the actor is referenced when the actor type of a composition
-    /// is resolved
-    using actor_type = actor;
-
+struct actor {
     /// Tag whether this is a composite type
     struct is_comp_actor : public std::false_type {};
 
     /// Defines the actors state
-    struct base_state {
-        /// @return the actors ID
-        // constexpr static std::size_t get_id() { return ID; }
-    };
-    using state_type = base_state;
+    struct base_state {};
 
-    /// @return the actors ID
-    // constexpr static std::size_t get_id() { return ID; }
+    // Implicit tag as actor that is inherited by all actors
+    struct actor_type {
+        using type = actor;
+        using state_type = base_state;
+    };
+
+    // using state_type = base_state;
 };
 
 /// Composition of actors
@@ -49,7 +37,6 @@ class actor {
 /// The composition represents an actor together with its observers. In
 /// addition to running its own implementation, it notifies its observing actors
 ///
-/// @tparam ID the id for the composition is the id of the actor it implements.
 /// @tparam tuple_t the tuple used to unroll observer types.
 /// @tparam actor_impl_t the actor the compositions implements itself.
 /// @tparam observers a pack of observing actors that get called on the updated
@@ -59,14 +46,16 @@ template <template <typename...> class tuple_t = dtuple,
 class composite_actor : public actor_impl_t {
 
     public:
+    /// Tag whether this is a composite type (shadows the def in the actor)
+    struct is_comp_actor : public std::true_type {};
+
     /// The composite is an actor in itself. If it is derived from another
     /// composition, it will just implement the same actor as its base class.
     /// I.e. it is impossible to observe another composition's observers.
-    using actor_type = typename actor_impl_t::actor_type;
+    using actor_type = typename std::conditional<
+        static_cast<bool>(typename actor_impl_t::is_comp_actor()),
+        typename actor_impl_t::actor_type, actor_impl_t>::type;
     using state_type = typename actor_type::state_type;
-
-    /// Tag whether this is a composite type (shadows the def in the actor)
-    struct is_comp_actor : public std::true_type {};
 
     /// Call to the implementation of the actor (the actor possibly being an
     /// observer itself)
@@ -79,13 +68,13 @@ class composite_actor : public actor_impl_t {
     /// @param subject_state the state of the actor this actor observes. Uses
     ///                      a dummy type if this is not an observing actor.
     template <typename actor_states_t, typename propagator_state_t,
-              typename subj_state_t = typename actor::state_type>
+              typename subj_state_t = typename actor::base_state>
     DETRAY_HOST_DEVICE void operator()(
         actor_states_t &states, propagator_state_t &p_state,
         subj_state_t &&subject_state = {}) const {
         // Do your own work ...
         if constexpr (std::is_same_v<subj_state_t,
-                                     typename actor::state_type>) {
+                                     typename actor::base_state>) {
             static_cast<actor_type const *>(this)->operator()(
                 detail::get<typename actor_type::state_type &>(states),
                 p_state);
@@ -107,10 +96,10 @@ class composite_actor : public actor_impl_t {
     /// In order to distinguish between actors and composite actors, the
     /// template signature is resolved.
     ///
-    /// @param actor_state the state of this compositions actor as the subject
-    ///                    to all of its observers
     /// @param observer one of the observers
     /// @param states the states of all actors in the chain
+    /// @param actor_state the state of this compositions actor as the subject
+    ///                    to all of its observers
     /// @param p_state the state of the propagator (stepper and navigator)
     template <typename observer_t, typename actor_states_t,
               typename actor_impl_state_t, typename propagator_state_t>
@@ -130,10 +119,10 @@ class composite_actor : public actor_impl_t {
     ///
     /// Unrolls the observer types and runs the notification for each of them.
     ///
-    /// @param actor_state the state of this compositions actor as the subject
-    ///                    to all of its observers
     /// @param observer_list all observers of the actor
     /// @param states the states of all actors in the chain
+    /// @param actor_state the state of this compositions actor as the subject
+    ///                    to all of its observers
     /// @param p_state the state of the propagator (stepper and navigator)
     template <std::size_t... indices, typename actor_states_t,
               typename actor_impl_state_t, typename propagator_state_t>

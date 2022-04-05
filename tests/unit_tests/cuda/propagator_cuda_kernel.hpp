@@ -72,7 +72,6 @@ struct track_inspector : actor {
         vector_t<intersection_t> _intersections;
     };
 
-    using actor_type = track_inspector<vector_t>;
     using state_type = track_inspector_state;
 
     template <typename propagator_state_t>

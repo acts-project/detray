@@ -155,7 +155,6 @@ struct print_inspector : actor {
         std::string to_string() const { return stream.str(); }
     };
 
-    using actor_type = print_inspector;
     using state_type = print_inspector_state;
 
     template <typename propagation_state_t>

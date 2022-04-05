@@ -75,7 +75,7 @@ struct propagator {
 
         auto &n_state = p_state._navigation;
         auto &s_state = p_state._stepping;
-        auto &actor_states = p_state._actor_states;
+        auto actor_states = p_state._actor_states;
 
         // initialize the navigation
         bool heartbeat = _navigator.init(n_state, s_state);

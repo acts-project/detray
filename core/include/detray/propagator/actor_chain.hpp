@@ -16,11 +16,6 @@
 
 namespace detray {
 
-/*template<typename actor_t>
-struct state_wrapper {
-    using type = typename actor_t::state_type;
-};*/
-
 /// The interface to the actors and aborters in the propagation.
 ///
 /// It can hold both simple actors, as well as an actor with its observers.
@@ -34,6 +29,7 @@ class actor_chain {
     public:
     /// Types of the actors that are registered in the chain
     using actor_list_type = tuple_t<actors_t...>;
+    // Type of states tuple that is used in the propagator
     using state = tuple_t<typename actors_t::state_type &...>;
 
     /// Call all actors in the chain.
@@ -50,7 +46,7 @@ class actor_chain {
     private:
     /// Call the actors. Either single actor or composition.
     ///
-    /// @param actr the actor
+    /// @param actr the actor (might be a composite actor)
     /// @param states states of all actors (only bare actors)
     /// @param p_state the state of the propagator (stepper and navigator)
     template <typename actor_t, typename actor_states_t,
@@ -67,7 +63,6 @@ class actor_chain {
 
     /// Resolve the actor calls.
     ///
-    /// @param actors list of all actors
     /// @param states states of all actors (only bare actors)
     /// @param p_state the state of the propagator (stepper and navigator)
     template <typename actor_states_t, typename propagator_state_t,
@@ -84,7 +79,8 @@ class actor_chain {
 };
 
 /// Empty actor chain (placeholder)
-class empty_chain {
+template <>
+class actor_chain<> {
 
     public:
     /// Empty states replaces a real actor states container
