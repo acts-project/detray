@@ -49,7 +49,7 @@ class actor_chain {
     /// @param p_state the state of the propagator (stepper and navigator)
     template <
         typename actor_t, typename actor_states_t, typename propagator_state_t,
-        std::enable_if_t<std::is_base_of_v<comp_actor, actor_t>, bool> = true>
+              std::enable_if_t<std::is_same_v<typename actor_t::is_comp_type, std::true_type>, bool> = true>
     DETRAY_HOST_DEVICE inline void run(const actor_t &comp_actr,
                                        actor_states_t &states,
                                        propagator_state_t &p_state) const {
@@ -63,8 +63,8 @@ class actor_chain {
     /// @param p_state the state of the propagator (stepper and navigator)
     template <
         typename actor_t, typename actor_states_t, typename propagator_state_t,
-        std::enable_if_t<not std::is_base_of_v<comp_actor, actor_t>, bool> =
-            true>
+              std::enable_if_t<std::is_same_v<typename actor_t::is_comp_type, std::false_type>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline void run(const actor_t &actr,
                                        actor_states_t &states,
                                        propagator_state_t &p_state) const {

@@ -269,7 +269,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
                 .template set_constraint<step::constraint::e_accuracy>(
                     5. * unit_constants::mm);
 
-            const auto &printer_state = detail::get<printer_id>(actor_states);
+            const auto &printer_state =
+                detail::get<printer_id>(state._actor_states);
 
             ASSERT_TRUE(p.propagate(state))
                 << printer_state.to_string() << std::endl;
