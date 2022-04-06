@@ -52,7 +52,8 @@ class composite_actor : public actor_impl_t {
     /// composition, it will just implement the same actor as its base class.
     /// I.e. it is impossible to observe another composition's observers.
     using actor_type =
-        std::conditional_t<(typename actor_impl_t::is_comp_actor()),
+        std::conditional_t<static_cast<bool>(
+                               typename actor_impl_t::is_comp_actor()),
                            typename actor_impl_t::actor_type, actor_impl_t>;
     using state_type = typename actor_type::state_type;
 
