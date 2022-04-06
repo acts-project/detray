@@ -39,8 +39,8 @@ __global__ void propagator_benchmark_kernel(
     propagator_device_type p(std::move(s), std::move(n));
 
     // Create the propagator state
-    propagator_device_type::state p_state(tracks.at(gid), empty_chain::state{},
-                                          candidates.at(gid));
+    propagator_device_type::state p_state(
+        tracks.at(gid), actor_chain<>::state{}, candidates.at(gid));
 
     // Run propagation
     p.propagate(p_state);
