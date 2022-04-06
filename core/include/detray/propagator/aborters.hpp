@@ -41,8 +41,8 @@ struct pathlimit_aborter : actor {
     /// @param abrt_state contains the path limit
     /// @param prop_state state of the propagation
     template <typename propagator_state_t>
-    void operator()(state_type &abrt_state,
-                    propagator_state_t &prop_state) const {
+    DETRAY_HOST_DEVICE void operator()(state_type &abrt_state,
+                                       propagator_state_t &prop_state) const {
         auto &step_state = prop_state._stepping;
         auto &nav_state = prop_state._navigation;
 

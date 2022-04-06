@@ -82,7 +82,7 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     propagator_t p(std::move(s), std::move(n));
 
     propagator_t::state state(traj);
-    
+
     EXPECT_TRUE(p.propagate(state))
         << state._navigation.inspector().to_string() << std::endl;
 }
@@ -156,11 +156,12 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             pathlimit_aborter::state_type unlimted_aborter_state{};
             pathlimit_aborter::state_type pathlimit_aborter_state{path_limit};
 
-            actor_chain_t::state actor_states =
-                std::tie(helix_insp_state, print_insp_state, unlimted_aborter_state);
+            actor_chain_t::state actor_states = std::tie(
+                helix_insp_state, print_insp_state, unlimted_aborter_state);
 
             actor_chain_t::state lim_actor_states =
-                std::tie(helix_insp_state, lim_print_insp_state, pathlimit_aborter_state);
+                std::tie(helix_insp_state, lim_print_insp_state,
+                         pathlimit_aborter_state);
 
             // Init propagator states
             propagator_t::state state(traj, actor_states);
@@ -180,9 +181,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
                 << print_insp_state.to_string() << std::endl;
 
             // Propagate with path limit
-            ASSERT_NEAR(
-                pathlimit_aborter_state.path_limit(),
-                path_limit, epsilon);
+            ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit,
+                        epsilon);
             ASSERT_FALSE(p.propagate(lim_state))
                 << lim_print_insp_state.to_string() << std::endl;
             ASSERT_TRUE(lim_state._stepping.path_length() <
