@@ -224,12 +224,6 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
 
-    helix_inspector::state_type helix_insp_state{helix_gun{}};
-    propagation::print_inspector::state_type print_insp_state{};
-
-    actor_chain_t::state actor_states =
-        std::tie(helix_insp_state, print_insp_state);
-
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
         scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
@@ -249,8 +243,11 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             free_track_parameters traj(ori, 0, mom, -1);
             traj.set_overstep_tolerance(-10 * unit_constants::um);
 
-            std::get<helix_inspector::state_type &>(actor_states)
-                ._helix.init(traj, &B);
+            helix_inspector::state_type helix_insp_state{helix_gun{traj, &B}};
+            propagation::print_inspector::state_type print_insp_state{};
+
+            actor_chain_t::state actor_states =
+                std::tie(helix_insp_state, print_insp_state);
 
             propagator_t::state state(traj, actor_states);
             state._stepping.set_path_limit(path_limit);

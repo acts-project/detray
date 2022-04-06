@@ -134,8 +134,6 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     const point3 ori{0., 0., 0.};
     scalar p_mag = 10;
 
-    helix_gun helix{};
-
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
         scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
@@ -157,7 +155,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             free_track_parameters c_traj(ori, 0, mom, -1);
 
             // helix gun
-            helix.init(traj, &B);
+            helix_gun helix(traj, &B);
 
             // RK Stepping into forward direction
             rk_stepper_t::state rk_state(traj);

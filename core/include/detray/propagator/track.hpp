@@ -23,7 +23,7 @@ struct bound_track_parameters {
     using covariance_type = bound_matrix;
     using jacobian_type = bound_matrix;
 
-    bound_track_parameters() = default;
+    bound_track_parameters() = delete;
 
     bound_track_parameters(const dindex& sf_idx, const vector_type& params,
                            const covariance_type& cov)
@@ -98,9 +98,9 @@ struct bound_track_parameters {
     scalar qop() const { return getter::element(_vector, e_bound_qoverp, 0); }
 
     private:
-    dindex _surface_link{dindex_invalid};
-    vector_type _vector = {};
-    covariance_type _covariance = {};
+    dindex _surface_link;
+    vector_type _vector;
+    covariance_type _covariance;
 };
 
 struct free_track_parameters {
@@ -111,7 +111,7 @@ struct free_track_parameters {
     using covariance_type = free_sym_matrix;
     using jacobian_type = free_matrix;
 
-    free_track_parameters() = default;
+    free_track_parameters() = delete;
 
     free_track_parameters(const vector_type& params, const covariance_type& cov)
         : _vector(params), _covariance(cov) {}
@@ -208,8 +208,8 @@ struct free_track_parameters {
     }
 
     private:
-    vector_type _vector = {};
-    covariance_type _covariance = {};
+    vector_type _vector;
+    covariance_type _covariance;
     scalar _overstep_tolerance = -1e-4;
 };
 

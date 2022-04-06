@@ -17,51 +17,11 @@ class helix_gun {
     using vector3 = __plugin::vector3<scalar>;
     using vector2 = __plugin::vector2<scalar>;
 
-    helix_gun() = default;
+    helix_gun() = delete;
 
     helix_gun(const free_track_parameters vertex,
               vector3 const *const mag_field)
         : _vertex(vertex), _mag_field(mag_field) {
-
-        init();
-    }
-
-    /// Sets up a new helix from
-    /// @param vertex the particle origin and
-    /// @param mag_field a b field access.
-    void init(const free_track_parameters vertex,
-              vector3 const *const mag_field) {
-
-        // set new values
-        _vertex = vertex;
-        _mag_field = mag_field;
-
-        init();
-    }
-
-    scalar radius() const { return _R; }
-
-    point3 operator()(scalar path_length) const {
-
-        // Handle the case of pT ~ 0
-        if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
-            return _vertex.pos() + path_length * _ez;
-        }
-
-        // Requested path length is coverted to parameterized value (t) by
-        // dividing it with scaling factor
-        scalar t = path_length / _scaler;
-
-        vector3 X = (_R * std::cos(t) - _R) * _ex;
-        vector3 Y = (_R * std::sin(t)) * _ey;
-        vector3 Z = (_R * _vz_over_vt * t) * _ez;
-
-        return _vertex.pos() + X + Y + Z;
-    }
-
-    private:
-    /// (Re-)init the helix
-    void init() {
 
         // get new z direction along the b field
         _ez = vector::normalize(*_mag_field);
@@ -96,24 +56,45 @@ class helix_gun {
         _ex = vector::cross(_ey, _ez);
     }
 
+    scalar radius() const { return _R; }
+
+    point3 operator()(scalar path_length) const {
+
+        // Handle the case of pT ~ 0
+        if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
+            return _vertex.pos() + path_length * _ez;
+        }
+
+        // Requested path length is coverted to parameterized value (t) by
+        // dividing it with scaling factor
+        scalar t = path_length / _scaler;
+
+        vector3 X = (_R * std::cos(t) - _R) * _ex;
+        vector3 Y = (_R * std::sin(t)) * _ey;
+        vector3 Z = (_R * _vz_over_vt * t) * _ez;
+
+        return _vertex.pos() + X + Y + Z;
+    }
+
+    private:
     // origin of particle
-    free_track_parameters _vertex = {};
+    free_track_parameters _vertex;
 
     // B field
     vector3 const *_mag_field;
 
     // Radius [mm] of helix
-    scalar _R{0};
+    scalar _R;
 
     // new coordinated whose z axis is parallel to B field
-    vector3 _ex = {};
-    vector3 _ey = {};
-    vector3 _ez = {};
+    vector3 _ex;
+    vector3 _ey;
+    vector3 _ez;
 
     // velocity in new z axis divided by transverse velocity
-    scalar _vz_over_vt{0};
+    scalar _vz_over_vt;
     // The scaling factor that convert arc length into parametrized length
-    scalar _scaler{0};
+    scalar _scaler;
 };
 
 }  // namespace detray
