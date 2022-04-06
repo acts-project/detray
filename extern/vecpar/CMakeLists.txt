@@ -13,7 +13,7 @@ message( STATUS "Building vecpar as part of the Detray project" )
 
 # Declare where to get vecpar from.
 set( DETRAY_VECPAR_SOURCE
-        "URL;https://github.com/wr-hamburg/vecpar/archive/refs/tags/v0.0.1.tar.gz;URL_MD5;bea7613bdc1e0c3f22f1dfd6ae27dfaf"
+        "URL;https://github.com/wr-hamburg/vecpar/archive/refs/tags/v0.0.1.tar.gz;URL_MD5;4f00886652bd659ba8e375287a793d6e"
         CACHE STRING "Source for vecpar, when built as part of this project")
 
 mark_as_advanced( DETRAY_VECPAR_SOURCE )
