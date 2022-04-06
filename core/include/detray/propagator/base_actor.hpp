@@ -23,13 +23,12 @@ struct actor {
     /// Defines the actors state
     struct base_state {};
 
-    // Implicit tag as actor that is inherited by all actors
+    // Implicit tag as actor that is inherited by all actors (needed only to
+    // compile the conditional in composite_actor)
     struct actor_type {
         using type = actor;
         using state_type = base_state;
     };
-
-    // using state_type = base_state;
 };
 
 /// Composition of actors
@@ -46,15 +45,15 @@ template <template <typename...> class tuple_t = dtuple,
 class composite_actor : public actor_impl_t {
 
     public:
-    /// Tag whether this is a composite type (shadows the def in the actor)
+    /// Tag whether this is a composite type (hides the def in the actor)
     struct is_comp_actor : public std::true_type {};
 
     /// The composite is an actor in itself. If it is derived from another
     /// composition, it will just implement the same actor as its base class.
     /// I.e. it is impossible to observe another composition's observers.
-    using actor_type = typename std::conditional<
-        static_cast<bool>(typename actor_impl_t::is_comp_actor()),
-        typename actor_impl_t::actor_type, actor_impl_t>::type;
+    using actor_type =
+        std::conditional_t<(typename actor_impl_t::is_comp_actor()),
+                           typename actor_impl_t::actor_type, actor_impl_t>;
     using state_type = typename actor_type::state_type;
 
     /// Call to the implementation of the actor (the actor possibly being an
@@ -73,6 +72,7 @@ class composite_actor : public actor_impl_t {
         actor_states_t &states, propagator_state_t &p_state,
         subj_state_t &&subject_state = {}) const {
         // Do your own work ...
+        // Two cases: simple actor or observing actor (needs subject state)
         if constexpr (std::is_same_v<subj_state_t,
                                      typename actor::base_state>) {
             static_cast<actor_type const *>(this)->operator()(
@@ -107,6 +107,7 @@ class composite_actor : public actor_impl_t {
                                           actor_states_t &states,
                                           actor_impl_state_t &actor_state,
                                           propagator_state_t &p_state) const {
+        // Two cases: observer is a simple actor or a composite actor
         if constexpr (not typename observer_t::is_comp_actor()) {
             observer(detail::get<typename observer_t::state_type &>(states),
                      actor_state, p_state);

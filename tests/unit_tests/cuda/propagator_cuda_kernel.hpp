@@ -60,7 +60,6 @@ template <template <typename...> class vector_t>
 struct track_inspector : actor {
 
     struct track_inspector_state {
-        using intersection_t = line_plane_intersection;
 
         track_inspector_state(vecmem::memory_resource &resource)
             : _intersections(&resource) {}
@@ -92,7 +91,7 @@ struct track_inspector : actor {
 using inspector_host_t = track_inspector<vecmem::vector>;
 using inspector_device_t = track_inspector<vecmem::device_vector>;
 using actor_chain_host_t = actor_chain<thrust::tuple, inspector_host_t>;
-using actor_chain_device_t = actor_chain<thrust::tuple, inspector_host_t>;
+using actor_chain_device_t = actor_chain<thrust::tuple, inspector_device_t>;
 using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain_host_t>;
 using propagator_device_type =

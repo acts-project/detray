@@ -22,6 +22,7 @@ using namespace __plugin;
 /// Actor that prints its ID and a number
 struct print_actor : detray::actor {
 
+    /// State keeps an internal string representation
     struct print_actor_state {
         std::stringstream stream{};
 
@@ -31,13 +32,15 @@ struct print_actor : detray::actor {
     // Broadcast state type to actor chain
     using state_type = print_actor_state;
 
-    /// Print the ID of the type and the id in its state
+    /// Actor implementation: append call notification to internal string
     template <typename propagator_state_t>
     void operator()(state_type &printer_state,
                     const propagator_state_t & /*p_state*/) const {
         printer_state.stream << "[print actor]:";
     }
 
+    /// Observing actor implementation: append call notification to internal
+    /// string
     template <typename subj_state_t, typename propagator_state_t>
     void operator()(state_type &printer_state,
                     const subj_state_t &subject_state,
@@ -54,23 +57,21 @@ struct example_actor : detray::actor {
     /// actor state
     struct example_actor_state {
 
-        example_actor_state() {}
-
         // Keep dynamic data per propagation stream
-        vector_t<float> some_state;
+        vector_t<float> some_state = {};
     };
 
     // Broadcast state type to actor chain
     using state_type = example_actor_state;
 
-    /// Actor implementation
+    /// Actor implementation: Counts vector elements
     template <typename propagator_state_t>
     void operator()(state_type &example_state,
                     const propagator_state_t & /*p_state*/) const {
         example_state.some_state.push_back(example_state.some_state.size());
     }
 
-    /// Actor implementation when observing another actor
+    /// Observing actor implementation: Counts vector elements (division)
     template <typename subj_state_t, typename propagator_state_t>
     void operator()(state_type &example_state,
                     const subj_state_t &subject_state,

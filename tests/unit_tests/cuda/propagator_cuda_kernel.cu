@@ -42,8 +42,7 @@ __global__ void propagator_test_kernel(
     propagator_device_type p(std::move(s), std::move(n));
 
     // Create track inspector
-    inspector_device_t::state_type<vecmem::device_vector> insp_state(
-        intersections.at(gid));
+    inspector_device_t::state_type insp_state(intersections.at(gid));
 
     // Create the propagator state
     propagator_device_type::state state(tracks[gid], thrust::tie(insp_state),

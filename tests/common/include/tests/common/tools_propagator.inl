@@ -28,8 +28,10 @@ namespace {
 constexpr scalar epsilon = 5e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
 
+/// Compare helical track positions for stepper
 struct helix_inspector : actor {
 
+    // Keeps the state of a helix gun to calculate track positions
     struct helix_inspector_state {
         helix_inspector_state(helix_gun &&h) : _helix(h) {}
         helix_gun _helix;
@@ -37,6 +39,7 @@ struct helix_inspector : actor {
 
     using state_type = helix_inspector_state;
 
+    /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
         const state_type &inspector_state,
@@ -66,21 +69,19 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     // auto [d, name_map] = read_from_csv(tml_files, host_mr);
     auto d = create_toy_geometry(host_mr);
 
-    // Create the navigator
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
     using track_t = free_track_parameters;
+    using stepper_t = line_stepper<track_t>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     __plugin::point3<scalar> pos{0., 0., 0.};
     __plugin::vector3<scalar> mom{1., 1., 0.};
     track_t traj(pos, 0, mom, -1);
 
-    using stepper_t = line_stepper<track_t>;
-
     stepper_t s;
     navigator_t n(d);
-
-    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
     propagator_t p(std::move(s), std::move(n));
+
     propagator_t::state state(traj);
     state._stepping.set_path_limit(path_limit);
 
@@ -161,12 +162,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
                 .template set_constraint<step::constraint::e_accuracy>(
                     5. * unit_constants::mm);
 
-            const auto &printer_state =
-                std::get<propagation::print_inspector::state_type &>(
-                    state._actor_states);
-
             ASSERT_TRUE(p.propagate(state))
-                << printer_state.to_string() << std::endl;
+                << print_insp_state.to_string() << std::endl;
         }
     }
 }
