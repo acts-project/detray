@@ -93,9 +93,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         p.propagate(state);
 
         // push back the intersection record
-        host_intersection_records.push_back(
-            detail::get<inspector_host_t::state_type&>(state._actor_states)
-                ._intersections);
+        host_intersection_records.push_back(insp_state._intersections);
     }
 
     /**
