@@ -23,78 +23,10 @@
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
-constexpr scalar epsilon = 5e-4;
-constexpr scalar path_limit = 2 * unit_constants::m;
-
 namespace {
 
-/// Dummy actor that prints its ID and a number
-struct print_actor : actor {
-
-    /// Printer id
-    struct print_actor_state {
-        int out = 1;
-    };
-
-    /// This implementations actor type
-    using state_type = print_actor_state;
-
-    /// Print the ID of the type and the id in its state
-    template <typename propagator_state_t>
-    void operator()(const state_type &printer_state,
-                    const propagator_state_t & /*p_state*/) const {
-        std::cout
-            << "This is print actor: " /*<< printer_state.get_id() */ << " : "
-            << printer_state.out << std::endl;
-    }
-
-    template <typename subj_state_t, typename propagator_state_t>
-    void operator()(const state_type &printer_state,
-                    const subj_state_t & /*subject_state*/,
-                    const propagator_state_t & /*p_state*/) const {
-        std::cout << "This is print actor: " /*<< printer_state.get_id()*/
-                  << ", observing actor: "
-                  << /*subject_state.get_id() << */ " : " << printer_state.out
-                  << std::endl;
-    }
-};
-
-struct example_actor : actor {
-
-    /// Printer id
-    struct example_actor_state {};
-
-    using state_type = example_actor_state;
-
-    /// Print your id
-    template <typename propagator_state_t>
-    void operator()(const state_type & /*example_state*/,
-                    const propagator_state_t & /*p_state*/) const {
-        std::cout << "This is example actor: " << 5 << std::endl;
-    }
-
-    /// Print your id
-    template <typename subj_state_t, typename propagator_state_t>
-    void operator()(const state_type & /*example_state*/,
-                    const subj_state_t & /*subject_state*/,
-                    const propagator_state_t & /*p_state*/) const {
-        std::cout << "This is example actor: " << 5 << std::endl;
-    }
-};
-
-// observer types (always the ID of the actor that is implemented by the
-// composition must be given, since it refers to its state object)
-using print_actor_t = print_actor;
-
-// Implements example_actor using state no. 0
-using composite1 =
-    composite_actor<dtuple, example_actor, print_actor_t, print_actor_t>;
-// Implements example_actor using state no. 'ID'
-using composite2 = composite_actor<dtuple, example_actor, print_actor_t>;
-// Implements example_actor (through composite2) using state no. 'ID'
-using composite3 = composite_actor<dtuple, composite2, composite1>;
-// Implements example_actor (through composite2<-composite3) using state no. 1
-using composite4 = composite_actor<dtuple, composite3, composite1>;
+constexpr scalar epsilon = 5e-4;
+constexpr scalar path_limit = 2 * unit_constants::m;
 
 struct helix_inspector : actor {
 
@@ -123,32 +55,6 @@ struct helix_inspector : actor {
 };
 
 }  // anonymous namespace
-
-// Test the actor chain on some dummy actor types
-TEST(ALGEBRA_PLUGIN, actor_chain) {
-
-    using namespace detray;
-    using namespace __plugin;
-
-    // The actor states (can be reused between actors, e.g. for the printer or
-    // empty states)
-    example_actor::state_type example_state{};
-    print_actor_t::state_type printer_state{};
-
-    // Aggregate actor states to be able to pass them through the chain
-    auto actor_states = std::tie(example_state, printer_state);
-
-    // Propagator state
-    struct empty_prop_state {};
-    empty_prop_state p_state{};
-
-    // Chain of actors
-    using actor_chain_t = actor_chain<dtuple, example_actor, composite1,
-                                      composite2, composite3, composite4>;
-    actor_chain_t run_actors{};
-    // Run
-    run_actors(actor_states, p_state);
-}
 
 // This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
