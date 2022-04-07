@@ -22,5 +22,3 @@ if( DETRAY_BUILD_CUDA )
    add_subdirectory( cuda )
    add_subdirectory( vecpar )
 endif()
-
-
