@@ -72,22 +72,23 @@ class composite_actor : public actor_impl_t {
     DETRAY_HOST_DEVICE void operator()(
         actor_states_t &states, propagator_state_t &p_state,
         subj_state_t &&subject_state = {}) const {
+
+        // State of the primary actor that is implement by this composite actor
+        auto &actor_state = detail::get<state_type &>(states);
+
         // Do your own work ...
         // Two cases: simple actor or observing actor (needs subject state)
         if constexpr (std::is_same_v<subj_state_t,
                                      typename actor::base_state>) {
-            static_cast<actor_type const *>(this)->operator()(
-                detail::get<typename actor_type::state_type &>(states),
-                p_state);
+            static_cast<actor_type const *>(this)->operator()(actor_state,
+                                                              p_state);
         } else {
             static_cast<actor_type const *>(this)->operator()(
-                detail::get<typename actor_type::state_type &>(states), p_state,
-                subject_state);
+                actor_state, p_state, subject_state);
         }
 
         // Then run the observers on the updated state
-        notify(_observers, states,
-               detail::get<typename actor_type::state_type &>(states), p_state,
+        notify(_observers, states, actor_state, p_state,
                std::make_index_sequence<sizeof...(observers)>{});
     }
 

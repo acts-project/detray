@@ -95,6 +95,7 @@ class PropagatorWithRkStepper
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     using namespace detray;
+    using namespace propagation;
     using namespace __plugin;
     using point3 = __plugin::point3<scalar>;
     using vector3 = __plugin::vector3<scalar>;
@@ -116,8 +117,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using constraints_t = constrained_step<>;
     using stepper_t =
         rk_stepper<b_field_t, free_track_parameters, constraints_t>;
-    using actor_chain_t =
-        actor_chain<dtuple, helix_inspector, propagation::print_inspector>;
+    using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Constant magnetic field
@@ -151,7 +151,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             traj.set_overstep_tolerance(-10 * unit_constants::um);
 
             helix_inspector::state_type helix_insp_state{helix_gun{traj, &B}};
-            propagation::print_inspector::state_type print_insp_state{};
+            print_inspector::state_type print_insp_state{};
 
             actor_chain_t::state actor_states =
                 std::tie(helix_insp_state, print_insp_state);
