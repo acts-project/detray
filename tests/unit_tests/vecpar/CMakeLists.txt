@@ -25,7 +25,7 @@ if ((TARGET vecpar::all) AND (TARGET vecpar::omp))
                PRIVATE ${algebra}=${algebra} )
 
        target_compile_options( detray_test_${algebra}_vecpar_cpu PUBLIC
-               $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>)
+               $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>)
     endforeach()
 endif()
 
@@ -45,7 +45,7 @@ if ((TARGET vecpar::all) AND (TARGET vecpar::cuda))
                 PRIVATE ${algebra}=${algebra} )
 
         target_compile_options( detray_test_${algebra}_vecpar_gpu PUBLIC
-                $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>
+                $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
                 $<$<COMPILE_LANGUAGE:CXX>:-x cuda --offload-arch=sm_${CMAKE_CUDA_ARCHITECTURES}>)
     endforeach()
 endif()
