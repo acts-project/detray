@@ -115,7 +115,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using constraints_t = constrained_step<>;
     using stepper_t =
         rk_stepper<b_field_t, free_track_parameters, constraints_t>;
-    using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector, pathlimit_aborter>;
+    using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector,
+                                      pathlimit_aborter>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Constant magnetic field
@@ -150,22 +151,22 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             traj.set_overstep_tolerance(-10 * unit_constants::um);
             lim_traj.set_overstep_tolerance(-10 * unit_constants::um);
 
+            // Build actor states: the helix inspector can be shared
             helix_inspector::state_type helix_insp_state{helix_gun{traj, &B}};
             print_inspector::state_type print_insp_state{};
             print_inspector::state_type lim_print_insp_state{};
             pathlimit_aborter::state_type unlimted_aborter_state{};
             pathlimit_aborter::state_type pathlimit_aborter_state{path_limit};
 
+            // Create actor states tuples
             actor_chain_t::state actor_states = std::tie(
                 helix_insp_state, print_insp_state, unlimted_aborter_state);
-
             actor_chain_t::state lim_actor_states =
                 std::tie(helix_insp_state, lim_print_insp_state,
                          pathlimit_aborter_state);
 
             // Init propagator states
             propagator_t::state state(traj, actor_states);
-
             propagator_t::state lim_state(lim_traj, lim_actor_states);
 
             // Set step constraints
@@ -176,7 +177,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
                 .template set_constraint<step::constraint::e_accuracy>(
                     5. * unit_constants::mm);
 
-            // Propagate
+            // Propagate the entire detector
             ASSERT_TRUE(p.propagate(state))
                 << print_insp_state.to_string() << std::endl;
 
