@@ -4,7 +4,6 @@
  *
  * Mozilla Public License Version 2.0
  */
-#include <chrono>
 #include <gtest/gtest.h>
 
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
@@ -115,96 +114,3 @@ TEST(rk_stepper_cuda, rk_stepper) {
         EXPECT_NEAR(getter::norm(device_relative_error), 0, epsilon);
     }
 }
-
-/*
-TEST(rk_stepper_cuda, rk_stepper_timed) {
-
-    // VecMem memory resource(s)
-    vecmem::host_memory_resource host_mr;
-    vecmem::cuda::managed_memory_resource mng_mr;
-
-    // Create the vector of initial track parameters
-    vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
-    vecmem::vector<free_track_parameters> tracks_device(&mng_mr);
-
-    // Create the vector of accumulated path lengths
-    vecmem::vector<scalar> path_lengths(&host_mr);
-
-    // Set origin position of tracks
-    const point3 ori{0., 0., 0.};
-
-    // Set the magnetic field
-    const vector3 B{0, 0, 2 * unit_constants::T};
-
-    // Loops of theta values ]0,pi[
-    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
-        scalar sin_theta = std::sin(theta);
-        scalar cos_theta = std::cos(theta);
-
-        // Loops of phi values [-pi, pi]
-        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-            // The direction
-            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-            scalar sin_phi = std::sin(phi);
-            scalar cos_phi = std::cos(phi);
-            vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
-
-            // intialize a track
-            free_track_parameters traj(ori, 0, dir, -1);
-
-            tracks_host.push_back(traj);
-            tracks_device.push_back(traj);
-        }
-    }
-
-    // Define RK stepper
-    rk_stepper_type rk(B);
-    nav_state n_state{};
-
-    for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
-
-        auto& traj = tracks_host[i];
-
-        // Forward direction
-        rk_stepper_type::state forward_state(traj);
-
-        for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk.step(forward_state, n_state);
-        }
-
-        // Backward direction
-        traj.flip();
-        rk_stepper_type::state backward_state(traj);
-        for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk.step(backward_state, n_state);
-        }
-
-        path_lengths.push_back(2 * path_limit -
-                               forward_state.dist_to_path_limit() -
-                               backward_state.dist_to_path_limit());
-    }
-
-    auto start_time = std::chrono::high_resolution_clock::now();
-    // Get tracks data
-    auto tracks_data = vecmem::get_data(tracks_device);
-
-    // Run RK stepper cuda kernel
-    rk_stepper_test(tracks_data, B);
-    auto end_time = std::chrono::high_resolution_clock::now();
-
-    std::chrono::duration<double> time_par = end_time - start_time;
-    printf("CUDA time  = %f s\n", time_par.count());
-
-    for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
-        auto host_pos = tracks_host[i].pos();
-        auto device_pos = tracks_device[i].pos();
-
-        auto host_relative_error = 1. / path_lengths[i] * (host_pos - ori);
-        auto device_relative_error = 1. / path_lengths[i] * (device_pos - ori);
-
-        EXPECT_NEAR(getter::norm(host_relative_error), 0, epsilon);
-        EXPECT_NEAR(getter::norm(device_relative_error), 0, epsilon);
-    }
-}
-*/
