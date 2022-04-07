@@ -14,6 +14,18 @@
 
 #include "vecpar/all/main.hpp"
 
+vecpar::config getConfig() {
+
+#if !defined(__CUDA__)
+    vecpar::config config{};  // let the OpenMP runtime choose
+#else
+    constexpr int thread_dim = 2 * 32;
+    constexpr int block_dim = theta_steps * phi_steps / thread_dim + 1;
+    vecpar::config config{block_dim, thread_dim};
+#endif
+    return config;
+}
+
 TEST(rk_stepper_algo_vecpar, rk_stepper) {
 
     // VecMem memory resource(s)
@@ -81,14 +93,10 @@ TEST(rk_stepper_algo_vecpar, rk_stepper) {
                                backward_state.dist_to_path_limit());
     }
 
-
-    constexpr int thread_dim = 2 * 32;
-    constexpr int block_dim = theta_steps * phi_steps / thread_dim + 1;
-    vecpar::config config{block_dim, thread_dim};
-
     // Run RK stepper
     rk_stepper_algorithm rk_stepper_algo;
-    vecpar::parallel_map(rk_stepper_algo, mng_mr, config, tracks_device, B);
+    vecpar::parallel_map(rk_stepper_algo, mng_mr, getConfig(), tracks_device,
+                         B);
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
         auto host_pos = tracks_host[i].pos();

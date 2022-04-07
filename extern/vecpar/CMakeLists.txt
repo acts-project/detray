@@ -22,27 +22,26 @@ FetchContent_Declare( vecpar ${DETRAY_VECPAR_SOURCE} )
 # Options used in the build of vecpar
 set( VECPAR_SETUP_VECMEM FALSE CACHE BOOL
         "Do not set up VecMem in vecpar" )
+
+# Disable unit tests
 set( VECPAR_BUILD_TESTS FALSE CACHE BOOL
         "Turn off the build of the vecpar unit tests")
-set( VECPAR_BUILD_CUDA_BACKEND ${DETRAY_BUILD_CUDA} CACHE BOOL
-        "Turn off the build of the vecpar unit tests")
 
+# Enable OpenMP backend only if there is OpenMP support
 find_package(OpenMP)
-if (${OpenMP_FOUND})
-    message(STATUS "Build vecpar OpenMP backend")
-    set( VECPAR_BUILD_OMP_BACKEND TRUE CACHE BOOL
-        "Build vecpar OpenMP backend")
+set( VECPAR_BUILD_OMP_BACKEND ${OpenMP_FOUND} CACHE BOOL
+        "Enable/disable vecpar OpenMP backend")
+
+# Enable CUDA backend only if there is CUDA support
+set( VECPAR_BUILD_CUDA_BACKEND ${DETRAY_BUILD_CUDA} CACHE BOOL
+        "Enable/disable vecpar CUDA backend")
+
+if ( VECPAR_BUILD_OMP_BACKEND )
+    message(STATUS "Build vecpar OpenMP backend" )
 endif()
 
-if (DETRAY_BUILD_CUDA)
-    find_package(CUDAToolkit)
-    if (CUDAToolkit_FOUND)
-        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-            message(STATUS "Build vecpar CUDA backend")
-            set( VECPAR_BUILD_CUDA_BACKEND TRUE CACHE BOOL
-                "Build vecpar CUDA backend")
-        endif()
-    endif()
+if ( VECPAR_BUILD_CUDA_BACKEND )
+    message(STATUS "Build vecpar CUDA backend" )
 endif()
 
 # Get it into the current directory.
