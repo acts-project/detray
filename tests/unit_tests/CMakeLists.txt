@@ -20,5 +20,6 @@ endif()
 # Set up all of the "device" tests.
 if( DETRAY_BUILD_CUDA )
    add_subdirectory( cuda )
-   add_subdirectory( vecpar )
 endif()
+
+add_subdirectory( vecpar )

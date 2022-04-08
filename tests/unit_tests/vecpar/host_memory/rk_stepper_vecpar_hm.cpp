@@ -5,36 +5,22 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "rk_stepper_vecpar.hpp"
+#include "../algorithm/rk_stepper_vecpar.hpp"
 
 #include <gtest/gtest.h>
 
-#include <vecmem/memory/cuda/managed_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "vecpar/all/main.hpp"
 
-vecpar::config getConfig() {
-
-#if !defined(__CUDA__)
-    vecpar::config config{};  // let the OpenMP runtime choose
-#else
-    constexpr int thread_dim = 2 * 32;
-    constexpr int block_dim = theta_steps * phi_steps / thread_dim + 1;
-    vecpar::config config{block_dim, thread_dim};
-#endif
-    return config;
-}
-
-TEST(rk_stepper_algo_vecpar, rk_stepper) {
+TEST(rk_stepper_algo_vecpar, rk_stepper_host_memory) {
 
     // VecMem memory resource(s)
     vecmem::host_memory_resource host_mr;
-    vecmem::cuda::managed_memory_resource mng_mr;
 
     // Create the vector of initial track parameters
-    vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
-    vecmem::vector<free_track_parameters> tracks_device(&mng_mr);
+    vecmem::vector<free_track_parameters> tracks_host(&host_mr);
+    vecmem::vector<free_track_parameters> tracks_device(&host_mr);
 
     // Create the vector of accumulated path lengths
     vecmem::vector<scalar> path_lengths(&host_mr);
@@ -95,7 +81,7 @@ TEST(rk_stepper_algo_vecpar, rk_stepper) {
 
     // Run RK stepper
     rk_stepper_algorithm rk_stepper_algo;
-    vecpar::parallel_map(rk_stepper_algo, mng_mr, getConfig(), tracks_device,
+    vecpar::parallel_map(rk_stepper_algo, host_mr, getConfig(), tracks_device,
                          B);
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
