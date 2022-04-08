@@ -9,7 +9,6 @@
 
 #include <map>
 
-#include "detray/core/mask_store.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
@@ -19,7 +18,7 @@
 
 namespace detray {
 
-/** Checks for a correct 'towards_surface' state */
+/// Checks for a correct 'towards_surface' state
 template <typename navigator_t, typename state_t = typename navigator_t::state>
 inline void check_towards_surface(state_t &state, dindex vol_id,
                                   std::size_t n_candidates, dindex next_id) {
@@ -35,7 +34,7 @@ inline void check_towards_surface(state_t &state, dindex vol_id,
                 (state.trust_level() == navigation::trust_level::e_high));
 }
 
-/** Checks for a correct 'on_surface' state */
+/// Checks for a correct 'on_surface' state
 template <typename navigator_t, typename state_t = typename navigator_t::state>
 inline void check_on_surface(state_t &state, dindex vol_id,
                              std::size_t n_candidates, dindex /*current_id*/,
@@ -53,7 +52,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
     ASSERT_EQ(state.trust_level(), navigation::trust_level::e_full);
 }
 
-/** Checks for a correctly handled volume switch */
+/// Checks for a correctly handled volume switch
 template <typename navigator_t, typename state_t = typename navigator_t::state>
 inline void check_volume_switch(state_t &state, dindex vol_id) {
     // Switched to next volume
@@ -65,7 +64,7 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
     ASSERT_EQ(state.trust_level(), navigation::trust_level::e_full);
 }
 
-/** Checks an entire step onto the next surface */
+/// Checks an entire step onto the next surface
 template <typename navigator_t, typename stepper_t, typename nav_state_t,
           typename stepper_state_t>
 inline void check_step(navigator_t &n, stepper_t &s, nav_state_t &n_state,
@@ -75,6 +74,7 @@ inline void check_step(navigator_t &n, stepper_t &s, nav_state_t &n_state,
 
     // Step onto the surface in volume
     s.step(s_state, n_state);
+    n_state.set_high_trust();
     // Stepper reduced trust level
     ASSERT_TRUE(n_state.trust_level() == navigation::trust_level::e_high);
     ASSERT_TRUE(n.update(n_state, s_state));
@@ -89,21 +89,20 @@ inline void check_step(navigator_t &n, stepper_t &s, nav_state_t &n_state,
 
 /// @note __plugin has to be defined with a preprocessor command
 
-// This tests the construction and general methods of the navigator
+/// This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, navigator) {
     using namespace detray;
     using namespace detray::navigation;
 
     vecmem::host_memory_resource host_mr;
 
-    /** Tolerance for tests */
+    /// Tolerance for tests
     constexpr double tol = 0.01;
 
     std::size_t n_brl_layers = 4;
     std::size_t n_edc_layers = 3;
     auto toy_det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
     using detector_t = decltype(toy_det);
-    // using inspector_t = navigation::void_inspector;
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;
     navigator_t n(toy_det);
@@ -143,17 +142,13 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     // Distance to beampipe surface
     ASSERT_NEAR(n_state(), 19., tol);
 
-    // Let's immediately target, nothing should change, as there is full trust
-    ASSERT_TRUE(n.update(n_state, s_state));
-    check_towards_surface<navigator_t>(n_state, 0, 2, 0);
-    ASSERT_NEAR(n_state(), 19., tol);
-
     // Let's make half the step towards the beampipe
     s_state.template set_constraint<step::constraint::e_user>(n_state() * 0.5);
     s.step(s_state, n_state);
+    // Navigation policy might reduce trust level to fair trust
+    n_state.set_fair_trust();
     // Release user constraint again
     s_state.template release_step<step::constraint::e_user>();
-    // Stepper reduced trust level (hit step constrint -> only fair trust)
     ASSERT_TRUE(n_state.trust_level() == trust_level::e_fair);
     // Re-navigate
     ASSERT_TRUE(n.update(n_state, s_state));
@@ -169,6 +164,11 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     check_towards_surface<navigator_t>(n_state, 0, 2, 0);
     ASSERT_NEAR(n_state(), 9.5, tol);
 
+    // Let's immediately target, nothing should change, as there is full trust
+    ASSERT_TRUE(n.update(n_state, s_state));
+    check_towards_surface<navigator_t>(n_state, 0, 2, 0);
+    ASSERT_NEAR(n_state(), 9.5, tol);
+
     // Now step onto the beampipe (idx 0)
     check_step(n, s, n_state, s_state, 0, 2, 0, 7);
     // New target: Distance to the beampipe volume cylinder portal
@@ -176,6 +176,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
     // Step onto portal 7 in volume 0
     s.step(s_state, n_state);
+    n_state.set_high_trust();
     ASSERT_TRUE(n_state.trust_level() == trust_level::e_high);
     ASSERT_TRUE(n.update(n_state, s_state));
     ASSERT_EQ(n_state.trust_level(), trust_level::e_full);
@@ -227,6 +228,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
         // Step onto the portal in volume
         s.step(s_state, n_state);
+        n_state.set_high_trust();
 
         // Check agianst last volume
         if (vol_id == last_vol_id) {
@@ -242,5 +244,5 @@ TEST(ALGEBRA_PLUGIN, navigator) {
         }
     }
 
-    // std::cout << n_state.inspector().to_string() << std::endl;
+    ASSERT_TRUE(n_state.is_complete()) << n_state.inspector().to_string();
 }

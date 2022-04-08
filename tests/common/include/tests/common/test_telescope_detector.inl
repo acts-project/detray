@@ -77,7 +77,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     //
 
     // Same telescope, but in x direction
-    point3 pos{0., 0., 0.};
+    /*point3 pos{0., 0., 0.};
     vector3 mom{1., 0., 0.};
     free_track_parameters pilot_track(pos, 0, mom, -1);
 
@@ -157,5 +157,5 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
         heartbeat_tel &= rk_step_z.step(s_tel, n_tel);
         heartbeat_tel &= nav_tel.update(n_tel, s_tel);
     }
-    ASSERT_TRUE(n_tel.is_complete()) << n_tel.inspector().to_string();
+    ASSERT_TRUE(n_tel.is_complete()) << n_tel.inspector().to_string();*/
 }

@@ -10,6 +10,7 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/propagator/line_stepper.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
 
 namespace detray {

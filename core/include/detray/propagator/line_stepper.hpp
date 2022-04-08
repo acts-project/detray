@@ -61,22 +61,14 @@ class line_stepper final : public base_stepper<track_t, constraint_t> {
                                                   : step::direction::e_backward;
         stepping.set_direction(dir);
 
-        // Resolve how the navigator should perform an update
-        // nav_policy(stepping, navigation);
-        // Not a severe change to track state expected
-        if (std::abs(step_size) <
+        // Check constraints
+        if (std::abs(step_size) >
             std::abs(
                 stepping.constraints().template size<>(stepping.direction()))) {
-            stepping.set_step_size(step_size);
-            navigation.set_high_trust();
-        }
-        // Step size hit a constraint - the track state was probably changed a
-        // lot
-        else {
             stepping.set_step_size(
                 stepping.constraints().template size<>(stepping.direction()));
-            // Re-evaluate all candidates
-            navigation.set_fair_trust();
+        } else {
+            stepping.set_step_size(step_size);
         }
 
         // Update track state
