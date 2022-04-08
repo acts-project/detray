@@ -51,7 +51,9 @@ struct helix_inspector : actor {
             path_limit - stepping.dist_to_path_limit();
         auto true_pos = inspector_state._helix(path_accumulated);
 
-        auto relative_error = 1 / path_accumulated * (pos - true_pos);
+        // Use a cast to resolve expression type
+        auto relative_error =
+            static_cast<point3>(1 / path_accumulated * (pos - true_pos));
 
         ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
     }
@@ -101,8 +103,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using vector3 = __plugin::vector3<scalar>;
 
     // geomery navigation configurations
-    constexpr unsigned int theta_steps = 100;
-    constexpr unsigned int phi_steps = 100;
+    constexpr unsigned int theta_steps = 1;
+    constexpr unsigned int phi_steps = 1;
 
     // detector configuration
     constexpr std::size_t n_brl_layers = 4;
