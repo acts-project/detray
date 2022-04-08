@@ -22,6 +22,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
 #include "vecpar/core/algorithms/parallelizable_map.hpp"
+#include "vecpar/core/definitions/config.hpp"
 
 using namespace detray;
 
@@ -53,6 +54,18 @@ struct nav_state {
     DETRAY_HOST_DEVICE inline void set_no_trust() {}
     DETRAY_HOST_DEVICE inline bool abort() { return false; }
 };
+
+static inline vecpar::config getConfig() {
+
+#if !defined(__CUDA__)
+    vecpar::config config{};  // let the OpenMP runtime choose
+#else
+    constexpr int thread_dim = 2 * 32;
+    constexpr int block_dim = theta_steps * phi_steps / thread_dim + 1;
+    vecpar::config config{block_dim, thread_dim};
+#endif
+    return config;
+}
 
 struct rk_stepper_algorithm
     : public vecpar::algorithm::parallelizable_mmap<free_track_parameters,
