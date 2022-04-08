@@ -20,14 +20,11 @@
 #include "tests/common/tools/inspectors.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
-namespace detray {
-
-using vector3 = __plugin::vector3<detray::scalar>;
-}
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, telescope_detector) {
     using namespace detray;
+    using vector3 = __plugin::vector3<detray::scalar>;
 
     using b_field_t = constant_magnetic_field<>;
     using ln_stepper_t = line_stepper<free_track_parameters>;
@@ -77,7 +74,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     //
 
     // Same telescope, but in x direction
-    /*point3 pos{0., 0., 0.};
+    point3 pos{0., 0., 0.};
     vector3 mom{1., 0., 0.};
     free_track_parameters pilot_track(pos, 0, mom, -1);
 
@@ -114,6 +111,10 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
         heartbeat_z1 &= rk_step_x.step(s_z1, n_z1);
         heartbeat_z2 &= rk_step_x.step(s_z2, n_z2);
         heartbeat_x &= rk_step_z.step(s_x, n_x);
+
+        n_z1.set_high_trust();
+        n_z2.set_high_trust();
+        n_x.set_high_trust();
 
         heartbeat_z1 &= nav_z1.update(n_z1, s_z1);
         heartbeat_z2 &= nav_z2.update(n_z2, s_z2);
@@ -155,7 +156,8 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
 
     while (heartbeat_tel) {
         heartbeat_tel &= rk_step_z.step(s_tel, n_tel);
+        n_tel.set_high_trust();
         heartbeat_tel &= nav_tel.update(n_tel, s_tel);
     }
-    ASSERT_TRUE(n_tel.is_complete()) << n_tel.inspector().to_string();*/
+    ASSERT_TRUE(n_tel.is_complete()) << n_tel.inspector().to_string();
 }

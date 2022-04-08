@@ -49,7 +49,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     unsigned int phi_steps = 1;
 
     const point3 ori{0., 0., 0.};
-    dindex start_index = 0;  // d.volume_by_pos(ori).index();
+    // d.volume_by_pos(ori).index();
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {

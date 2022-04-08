@@ -22,15 +22,12 @@
 #include "tests/common/tools/inspectors.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
-namespace detray {
-
-using vector3 = __plugin::vector3<detray::scalar>;
-}
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
-    using namespace detray::navigation;
+    using namespace navigation;
+    using vector3 = __plugin::vector3<detray::scalar>;
 
     vecmem::host_memory_resource host_mr;
 
@@ -42,14 +39,15 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
         create_telescope_detector<unbounded>(host_mr, positions);
 
     // Inspectors are optional, of course
-    /*using inspector_t =
-    aggregate_inspector<object_tracer<status::e_on_target>, print_inspector>;
+    using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
+                                            print_inspector>;
     using b_field_t = constant_magnetic_field<>;
     using runge_kutta_stepper = rk_stepper<b_field_t, free_track_parameters>;
     using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
-    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter,
-    default_policy>; using propagator_t = propagator<runge_kutta_stepper,
-    guided_navigator, actor_chain_t>;
+    using actor_chain_t =
+        actor_chain<dtuple, pathlimit_aborter, guided_navigation>;
+    using propagator_t =
+        propagator<runge_kutta_stepper, guided_navigator, actor_chain_t>;
 
     // track must point into the direction of the telescope
     point3 pos{0., 0., 0.};
@@ -63,7 +61,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
 
     // Actors
     pathlimit_aborter::state_type pathlimit{1. * unit_constants::m};
-    default_policy::state_type policy{};
+    guided_navigation::state_type policy{};
     actor_chain_t::state actor_states = std::tie(pathlimit, policy);
 
     // Propagator
@@ -88,5 +86,5 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     for (size_t i = 0; i < sf_sequence.size(); ++i) {
         auto &candidate = obj_tracer.object_trace[i];
         EXPECT_TRUE(candidate.index == sf_sequence[i]);
-    }*/
+    }
 }

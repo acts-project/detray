@@ -240,20 +240,12 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, array_t>::step(
                                          : step::direction::e_backward;
     stepping.set_direction(step_dir);
 
-    // Decide final step size and inform navigator
-    // Not a severe change to track state expected
-    if (std::abs(stepping.step_size()) <
+    // Check constraints
+    if (std::abs(stepping.step_size()) >
         std::abs(
             stepping.constraints().template size<>(stepping.direction()))) {
-        navigation.set_high_trust();
-    }
-    // Step size hit a constraint - the track state was probably changed a
-    // lot
-    else {
         stepping.set_step_size(
             stepping.constraints().template size<>(stepping.direction()));
-        // Re-evaluate all candidates
-        navigation.set_fair_trust();
     }
 
     // Update the derivative
