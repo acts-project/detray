@@ -46,11 +46,12 @@ struct helix_inspector : actor {
         const state_type &inspector_state,
         const propagator_state_t &prop_state) const {
 
-        auto &stepping = prop_state._stepping;
-        auto pos = stepping().pos();
-        auto true_pos = inspector_state._helix(stepping.path_length());
+        const auto &stepping = prop_state._stepping;
+        const auto pos = stepping().pos();
+        const auto true_pos = inspector_state._helix(stepping.path_length());
 
-        point3 relative_error{1 / stepping.path_length() * (pos - true_pos)};
+        const point3 relative_error{1 / stepping.path_length() *
+                                    (pos - true_pos)};
 
         ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
     }

@@ -174,17 +174,17 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
                             rk_state.path_length(),
                         0, epsilon);
 
-            point3 helix_pos = helix(rk_state.path_length());
-            point3 forward_pos = rk_state().pos();
-            auto forward_relative_error =
-                (1. / rk_state.path_length()) * (forward_pos - helix_pos);
+            const auto helix_pos = helix(rk_state.path_length());
+            const auto forward_pos = rk_state().pos();
+            const point3 forward_relative_error{(1. / rk_state.path_length()) *
+                                                (forward_pos - helix_pos)};
 
             // Make sure that relative error is smaller than epsion
             EXPECT_NEAR(getter::norm(forward_relative_error), 0, epsilon);
 
             // Roll the same track back to the origin
             // Use the same path length, since there is no overstepping
-            scalar path_length = rk_state.path_length();
+            const scalar path_length = rk_state.path_length();
             n_state._step_size *= -1. * unit_constants::mm;
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
                 rk_stepper.step(rk_state, n_state);
@@ -198,9 +198,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
                             (2 * path_length),
                         0, epsilon);
 
-            point3 backward_pos = rk_state().pos();
-            auto backward_relative_error =
-                (1. / (2. * path_length)) * (backward_pos - ori);
+            const auto backward_pos = rk_state().pos();
+            const point3 backward_relative_error{1. / (2. * path_length) *
+                                                 (backward_pos - ori)};
 
             // Make sure that relative error is smaller than epsion
             EXPECT_NEAR(getter::norm(backward_relative_error), 0, epsilon);
