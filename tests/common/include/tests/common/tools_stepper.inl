@@ -185,8 +185,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
                 path_limit - rk_state.dist_to_path_limit();
             point3 helix_pos = helix(path_accumulated);
             point3 forward_pos = rk_state().pos();
-            auto forward_relative_error =
-                (1. / path_accumulated) * (forward_pos - helix_pos);
+            vector3 forward_relative_error =
+                static_cast<scalar>(1. / path_accumulated) *
+                (forward_pos - helix_pos);
 
             // Make sure that relative error is smaller than epsion
             EXPECT_NEAR(getter::norm(forward_relative_error), 0, epsilon);
@@ -207,8 +208,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
             path_accumulated = rk_state.dist_to_path_limit() - bw_startig_point;
             point3 backward_pos = rk_state().pos();
-            auto backward_relative_error =
-                (1. / path_accumulated) * (backward_pos - ori);
+            vector3 backward_relative_error =
+                static_cast<scalar>(1. / path_accumulated) *
+                (backward_pos - ori);
 
             // Make sure that relative error is smaller than epsion
             EXPECT_NEAR(getter::norm(backward_relative_error), 0, epsilon);
