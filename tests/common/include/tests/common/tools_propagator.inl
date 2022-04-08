@@ -103,8 +103,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using vector3 = __plugin::vector3<scalar>;
 
     // geomery navigation configurations
-    constexpr unsigned int theta_steps = 1;
-    constexpr unsigned int phi_steps = 1;
+    constexpr unsigned int theta_steps = 100;
+    constexpr unsigned int phi_steps = 100;
 
     // detector configuration
     constexpr std::size_t n_brl_layers = 4;
