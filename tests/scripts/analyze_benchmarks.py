@@ -1,9 +1,13 @@
+import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-benchmarks = pd.read_csv('benchmarks_history.csv').groupby(['name'])
+benchmarks = pd.read_csv(sys.argv[1]).groupby(['name'])
 for bench in benchmarks :
+    # Skip groups that contain "/"
+    if "/" in bench[0]:
+        continue
     gbenchmarks = bench[1].groupby(['group']);        
     maxl = 0
     for gbench in gbenchmarks :                

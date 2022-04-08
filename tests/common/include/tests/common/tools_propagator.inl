@@ -71,7 +71,8 @@ struct helix_inspector {
             path_limit - stepping.dist_to_path_limit();
         auto true_pos = _helix(path_accumulated);
 
-        auto relative_error = 1 / path_accumulated * (pos - true_pos);
+        __plugin::vector3<scalar> relative_error =
+            1 / path_accumulated * (pos - true_pos);
 
         ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
     }

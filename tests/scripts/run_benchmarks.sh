@@ -8,21 +8,30 @@
 
 echo "===> CI Benchmark running script for detray"
 
-export PWD_BUILD=$(pwd)
-cd ${GITHUB_WORKSPACE}
+# Set the script path
+BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Set workspace directory
+if [ -z "${GITHUB_WORKSPACE}" ]; then
+    WORKSPACE=${BASEDIR}/../../
+else
+    WORKSPACE=${GITHUB_WORKSPACE}
+fi
+
+# Generate a CSV file in data directory
 export LASTCOMMIT=$(git log -n1 | head -n1 | cut -b 8-14)
+export DETRAY_TEST_DATA_DIR=${WORKSPACE}/data/
+
+touch ${WORKSPACE}/benchmark_${LASTCOMMIT}.csv
+
 echo "===> Benchmark pipeline for commit ${LASTCOMMIT}"
-cd ${PWD_BUILD}
 
-export DETRAY_TEST_DATA_DIR=${GITHUB_WORKSPACE}/data/
-
-touch benchmark_${LASTCOMMIT}.csv
-
+# Run the benchmarks
 for group in eigen array ; do
     echo "===> Running ${group}.benchmarks ..."
-    ./bin/detray_${group}_masks --benchmark_out=${group}_masks.csv --benchmark_out_format=csv
-    ./bin/detray_${group}_intersect_surfaces --benchmark_out=${group}_intersect_surfaces.csv --benchmark_out_format=csv
-    ./bin/detray_${group}_intersect_all --benchmark_out=${group}_intersect_all.csv --benchmark_out_format=csv
+    ${WORKSPACE}/build/bin/detray_${group}_masks --benchmark_out=${group}_masks.csv --benchmark_out_format=csv
+    ${WORKSPACE}/build/bin/detray_${group}_intersect_surfaces --benchmark_out=${group}_intersect_surfaces.csv --benchmark_out_format=csv
+    ${WORKSPACE}/build/bin/detray_${group}_intersect_all --benchmark_out=${group}_intersect_all.csv --benchmark_out_format=csv
 
     echo "===> Extracting benchmark results ..."
     cat ${group}_masks.csv | tail -n5  > ${group}_masks_cropped.csv
@@ -39,33 +48,45 @@ done
 cat benchmark_${LASTCOMMIT}.csv
 
 echo "===> Install components for benchmark analysis ..."
+
 pip3 install matplotlib numpy pandas
 
 echo "===> Download benchmark history ..."
 
-cd ${GITHUB_WORKSPACE}
-
+# Configure Github user
 git config --local user.email "action@github.com"
 git config --local user.name "GitHub Action"
 
-git fetch --no-recurse-submodules
-cd extern/algebra-plugins
-git reset --hard origin/main
-cd -
-git submodule update --init --recursive
-
+# Checkout to benchmark branch
+git fetch origin
 git checkout -b gh-pages origin/gh-pages
-cp archive/benchmarks/benchmarks_history.csv ${PWD_BUILD}/.
-cd ${PWD_BUILD}
-cat benchmark_${LASTCOMMIT}.csv >> benchmarks_history.csv
+
+# Bring analysis script
+git checkout ${LASTCOMMIT} -- ${WORKSPACE}/tests/scripts/analyze_benchmarks.py 
+
+# Record the benchmark result into benchmarks_history 
+BENCHMARK_HISTORY_FILE=${WORKSPACE}/archive/benchmarks/benchmarks_history.csv
+cat ${WORKSPACE}/benchmark_${LASTCOMMIT}.csv >> ${BENCHMARK_HISTORY_FILE}
 
 echo "===> Running benchmark analysis ..."
-python3 -i analyze_benchmarks.py
 
-echo "===> Prepare for uploading results ..."
-cp benchmarks_history.csv ${GITHUB_WORKSPACE}/archive/benchmarks/benchmarks_history.csv
-cp *.png  ${GITHUB_WORKSPACE}/figures/.
-cd ${GITHUB_WORKSPACE}
-git add archive/benchmarks/benchmarks_history.csv
-git add figures/*.png
-git commit -m"updating benchmark data for commit ${LASTCOMMIT}" -a
+cd ${WORKSPACE}
+python3 ${BASEDIR}/analyze_benchmarks.py ${BENCHMARK_HISTORY_FILE}
+
+echo "===> Commiting the results ..."
+
+cp ${WORKSPACE}/*.png  ${WORKSPACE}/figures/.
+
+git add ${BENCHMARK_HISTORY_FILE}
+git add ${WORKSPACE}/figures/*.png
+
+git commit -m "updating benchmark data for commit ${LASTCOMMIT}" -a
+
+if [ -z "${GITHUB_WORKSPACE}" ]; then
+    echo "===> Exit"
+else
+    echo "===> Uploading the results"
+    # CI stuck here...
+    #git push origin gh-pages
+    echo "===> Exit"
+fi
