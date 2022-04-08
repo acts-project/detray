@@ -9,6 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/line_stepper.hpp"
+#include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
 #include "tests/common/tools/helix_gun.hpp"
@@ -43,7 +44,8 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     // Line stepper with and without constrained stepping
     using line_stepper_t = line_stepper<free_track_parameters>;
     using cline_stepper_t =
-        line_stepper<free_track_parameters, constrained_step<>>;
+        line_stepper<free_track_parameters, step::default_policy,
+                     constrained_step<>>;
 
     point3<scalar> pos{0., 0., 0.};
     vector3<scalar> mom{1., 1., 0.};
@@ -110,8 +112,8 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
     using mag_field_t = constant_magnetic_field<>;
     using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
-    using crk_stepper_t =
-        rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
+    using crk_stepper_t = rk_stepper<mag_field_t, free_track_parameters,
+                                     step::default_policy, constrained_step<>>;
 
     // RK stepper configurations
     constexpr unsigned int theta_steps = 100;

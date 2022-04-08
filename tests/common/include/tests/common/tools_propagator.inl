@@ -85,7 +85,7 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
     using track_t = free_track_parameters;
     using stepper_t = line_stepper<track_t>;
-    using actor_chain_t = actor_chain<dtuple, default_policy>;
+    using actor_chain_t = actor_chain<dtuple, step::default_policy>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     point3 pos{0., 0., 0.};
@@ -93,7 +93,7 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     track_t traj(pos, 0, mom, -1);
 
     // Actors
-    default_policy::state_type policy{};
+    step::default_policy::state_type policy{};
     actor_chain_t::state actor_states = std::tie(policy);
 
     propagator_t p(stepper_t{}, navigator_t{d});
@@ -129,10 +129,10 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using navigator_t = navigator<decltype(d)>;
     using b_field_t = constant_magnetic_field<>;
     using constraints_t = constrained_step<>;
-    using stepper_t =
-        rk_stepper<b_field_t, free_track_parameters, constraints_t>;
+    using stepper_t = rk_stepper<b_field_t, free_track_parameters,
+                                 step::default_policy, constraints_t>;
     using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector,
-                                      pathlimit_aborter, default_policy>;
+                                      pathlimit_aborter, step::default_policy>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Constant magnetic field
@@ -140,7 +140,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     b_field_t b_field(B);
 
     // Genral actor states
-    default_policy::state_type policy{};
+    step::default_policy::state_type policy{};
 
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{b_field}, navigator_t{d});

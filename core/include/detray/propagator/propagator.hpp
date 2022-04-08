@@ -91,6 +91,12 @@ struct propagator {
             // Take the step
             p_state._heartbeat &= _stepper.step(s_state, n_state);
 
+            // Call the stepper's navigation policy before the navigator runs
+            detail::get<typename stepper_t::policy_type>(run_actors.actors())(
+                detail::get<typename stepper_t::policy_type::state_type &>(
+                    actor_states),
+                p_state);
+
             // And check the status
             p_state._heartbeat &= _navigator.update(n_state, s_state);
 

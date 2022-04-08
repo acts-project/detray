@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/propagator/navigation_policies.hpp"
 
 namespace detray {
 
@@ -20,12 +21,14 @@ namespace detray {
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
 template <typename magnetic_field_t, typename track_t,
+          typename policy_t = step::default_policy,
           typename constraint_t = unconstrained_step,
           template <typename, std::size_t> class array_t = darray>
 class rk_stepper final : public base_stepper<track_t, constraint_t> {
 
     public:
     using base_type = base_stepper<track_t, constraint_t>;
+    using policy_type = policy_t;
     using point3 = __plugin::point3<scalar>;
     using vector2 = __plugin::vector2<scalar>;
     using vector3 = __plugin::vector3<scalar>;

@@ -11,6 +11,7 @@
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/propagator/line_stepper.hpp"
+#include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
@@ -107,7 +108,8 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     using navigator_t = navigator<detector_t, inspector_t>;
     navigator_t n(toy_det);
     using constraint_t = constrained_step<>;
-    using stepper_t = line_stepper<free_track_parameters, constraint_t>;
+    using stepper_t =
+        line_stepper<free_track_parameters, step::default_policy, constraint_t>;
 
     // test track
     point3 pos{0., 0., 0.};

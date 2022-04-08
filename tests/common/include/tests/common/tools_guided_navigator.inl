@@ -42,7 +42,8 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
                                             print_inspector>;
     using b_field_t = constant_magnetic_field<>;
-    using runge_kutta_stepper = rk_stepper<b_field_t, free_track_parameters>;
+    using runge_kutta_stepper =
+        rk_stepper<b_field_t, free_track_parameters, guided_navigation>;
     using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
     using actor_chain_t =
         actor_chain<dtuple, pathlimit_aborter, guided_navigation>;

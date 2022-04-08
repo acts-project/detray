@@ -47,11 +47,15 @@ struct guided_navigation : actor {
     }
 };
 
+namespace step {
+
 /// During guided navigation only the next surface should be re-evaluated. This
 /// maps to the 'high trust' level in the navigator
 struct default_policy : actor {
 
-    struct state_type {};
+    struct state_type {
+        scalar _path_length{0};
+    };
 
     /// Sets the navigation trust level to 'no trust'
     ///
@@ -80,5 +84,7 @@ struct default_policy : actor {
         }
     }
 };
+
+}  // namespace step
 
 }  // namespace detray

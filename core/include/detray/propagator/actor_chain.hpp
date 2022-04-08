@@ -42,6 +42,9 @@ class actor_chain {
         run(states, p_state, std::make_index_sequence<sizeof...(actors_t)>{});
     }
 
+    /// @returns the actor list
+    const actor_list_type &actors() const { return _actors; }
+
     private:
     /// Call the actors. Either single actor or composition.
     ///
@@ -72,9 +75,8 @@ class actor_chain {
         (run(detail::get<indices>(_actors), states, p_state), ...);
     }
 
-    private:
     /// Tuple of actors
-    const actor_list_type _actors = {};
+    actor_list_type _actors = {};
 };
 
 /// Empty actor chain (placeholder)

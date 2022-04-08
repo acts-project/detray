@@ -14,6 +14,7 @@
 #include <cmath>
 
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/propagator/navigation_policies.hpp"
 
 namespace detray {
 
@@ -21,11 +22,13 @@ namespace detray {
 ///
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
-template <typename track_t, typename constraint_t = unconstrained_step>
+template <typename track_t, typename policy_t = step::default_policy,
+          typename constraint_t = unconstrained_step>
 class line_stepper final : public base_stepper<track_t, constraint_t> {
 
     public:
     using base_type = base_stepper<track_t, constraint_t>;
+    using policy_type = policy_t;
 
     struct state : public base_type::state {
         DETRAY_HOST_DEVICE

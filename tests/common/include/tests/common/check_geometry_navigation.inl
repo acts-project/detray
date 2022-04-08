@@ -35,11 +35,11 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                                             print_inspector>;
     using navigator_t = navigator<decltype(det), inspector_t>;
     using stepper_t = line_stepper<free_track_parameters>;
-    using actor_chain_t = actor_chain<dtuple, default_policy>;
+    using actor_chain_t = actor_chain<dtuple, step::default_policy>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Actors
-    default_policy::state_type policy{};
+    step::default_policy::state_type policy{};
     actor_chain_t::state actor_states = std::tie(policy);
 
     // Propagator
