@@ -48,7 +48,7 @@ __global__ void propagator_test_kernel(
     inspector_device_t::state_type insp_state(
         path_lengths.at(gid), positions.at(gid), jac_transports.at(gid));
     pathlimit_aborter::state_type aborter_state{path_limit};
-    step::default_policy::policy_type::state_type pol_state{};
+    step::default_policy::state_type pol_state{};
 
     // Create the propagator state
     propagator_device_type::state state(
