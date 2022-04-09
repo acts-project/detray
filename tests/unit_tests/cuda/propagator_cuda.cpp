@@ -87,7 +87,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         // Create the propagator state
         inspector_host_t::state_type insp_state{mng_mr};
         pathlimit_aborter::state_type pathlimit_state{path_limit};
-        step::default_policy::state_type pol_state{};
+        step::default_policy::policy_type::state_type pol_state{};
 
         propagator_host_type::state state(
             tracks_host[i],

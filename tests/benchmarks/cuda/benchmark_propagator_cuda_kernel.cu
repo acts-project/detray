@@ -39,7 +39,7 @@ __global__ void propagator_benchmark_kernel(
     propagator_device_type p(std::move(s), std::move(n));
 
     // Actor states
-    step::default_policy::state_type policies{};
+    step::default_policy::policy_type::state_type policies{};
 
     // Create the propagator state
     propagator_device_type::state p_state(tracks.at(gid), thrust::tie(policies),

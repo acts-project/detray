@@ -20,11 +20,15 @@
 #include "tests/common/tools/inspectors.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
+namespace detray {
+
+using vector3 = __plugin::vector3<detray::scalar>;
+
+}
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, telescope_detector) {
     using namespace detray;
-    using vector3 = __plugin::vector3<detray::scalar>;
 
     using b_field_t = constant_magnetic_field<>;
     using ln_stepper_t = line_stepper<free_track_parameters>;
