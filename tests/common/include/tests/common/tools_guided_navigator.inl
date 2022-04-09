@@ -22,12 +22,16 @@
 #include "tests/common/tools/inspectors.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
+namespace detray {
+
+using vector3 = __plugin::vector3<detray::scalar>;
+
+}
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
     using namespace navigation;
-    using vector3 = __plugin::vector3<detray::scalar>;
 
     vecmem::host_memory_resource host_mr;
 

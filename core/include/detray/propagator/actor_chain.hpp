@@ -43,7 +43,7 @@ class actor_chain {
     }
 
     /// @returns the actor list
-    const actor_list_type &actors() const { return _actors; }
+    DETRAY_HOST_DEVICE const actor_list_type &actors() const { return _actors; }
 
     private:
     /// Call the actors. Either single actor or composition.
