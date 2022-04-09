@@ -44,10 +44,9 @@ using navigator_device_type = navigator<detector_device_type>;
 
 using field_type = constant_magnetic_field<>;
 using rk_stepper_type = rk_stepper<field_type, free_track_parameters>;
-using actor_chain_t =
-    actor_chain<thrust::tuple,
-                step::default_policy> using propagator_host_type =
-        propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
+using actor_chain_t = actor_chain<thrust::tuple, step::default_policy>;
+using propagator_host_type =
+    propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
 using propagator_device_type =
     propagator<rk_stepper_type, navigator_device_type, actor_chain_t>;
 

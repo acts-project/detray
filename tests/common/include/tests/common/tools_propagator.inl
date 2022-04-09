@@ -76,9 +76,6 @@ struct helix_inspector : actor {
 /// This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
 
-    using point3 = __plugin::point3<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
-
     vecmem::host_memory_resource host_mr;
     auto d = create_toy_geometry(host_mr);
 
@@ -111,8 +108,6 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     using namespace detray;
     using namespace propagation;
-    using point3 = __plugin::point3<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
 
     // geomery navigation configurations
     constexpr unsigned int theta_steps = 50;
