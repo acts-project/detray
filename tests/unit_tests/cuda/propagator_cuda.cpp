@@ -87,9 +87,11 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         // Create the propagator state
         inspector_host_t::state_type insp_state{mng_mr};
         pathlimit_aborter::state_type pathlimit_state{path_limit};
+        step::default_policy::state_type pol_state{};
 
         propagator_host_type::state state(
-            tracks_host[i], thrust::tie(insp_state, pathlimit_state));
+            tracks_host[i],
+            thrust::tie(insp_state, pathlimit_state, pol_state));
 
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
             constrainted_step_size);

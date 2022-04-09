@@ -86,9 +86,11 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
         state.ResumeTiming();
 
         for (auto &track : tracks) {
+            // Reset actor states
+            step::default_policy::state_type policy{};
 
             // Create the propagator state
-            propagator_host_type::state p_state(track);
+            propagator_host_type::state p_state(track, std::tie(policy));
 
             // Run propagation
             p.propagate(p_state);

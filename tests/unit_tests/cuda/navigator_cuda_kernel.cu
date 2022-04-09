@@ -47,6 +47,8 @@ __global__ void navigator_test_kernel(
 
         heartbeat &= stepper.step(stepping, state);
 
+        state.set_high_trust();
+
         heartbeat = n.update(state, stepping);
 
         // Record volume

@@ -21,6 +21,7 @@
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -44,10 +45,11 @@ using navigator_device_type = navigator<detector_device_type>;
 using field_type = constant_magnetic_field<>;
 using rk_stepper_type = rk_stepper<field_type, free_track_parameters>;
 
-using propagator_host_type =
-    propagator<rk_stepper_type, navigator_host_type, actor_chain<>>;
+using propagator_host_type = propagator<rk_stepper_type, navigator_host_type,
+                                        actor_chain<step::default_policy>>;
 using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type, actor_chain<>>;
+    propagator<rk_stepper_type, navigator_device_type,
+               actor_chain<step::default_policy>>;
 
 namespace detray {
 
