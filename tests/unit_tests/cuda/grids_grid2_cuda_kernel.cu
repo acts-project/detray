@@ -239,9 +239,6 @@ __global__ void grid_attach_assign_test_kernel(
 // attach_fill_test implementation
 void grid_attach_assign_test(grid2_view<host_grid2_attach> grid_view) {
 
-    const auto& axis0 = grid_view._axis_p0_view;
-    const auto& axis1 = grid_view._axis_p1_view;
-
     int block_dim = 1;
     dim3 thread_dim(2, 2);
 
