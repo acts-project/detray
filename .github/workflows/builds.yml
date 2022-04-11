@@ -15,7 +15,7 @@ jobs:
     # The different build modes to test.
     strategy:
       matrix:
-        BUILD_TYPE: ["Release", "Debug"]
+        BUILD_TYPE: ["Debug"]
         PLATFORM:
           - OS: "ubuntu-latest"
             GENERATOR: "Unix Makefiles"
@@ -40,11 +40,6 @@ jobs:
     # Perform the build.
     - name: Build
       run: cmake --build build --config ${{ matrix.BUILD_TYPE }}
-    # Run the unit test(s).
-    - name: Test
-      run: |
-        cd build
-        ctest --output-on-failure -C ${{ matrix.BUILD_TYPE }}
 
   # Containerised build jobs.
   container:
@@ -52,7 +47,7 @@ jobs:
     # The different build modes to test.
     strategy:
       matrix:
-        BUILD_TYPE: ["Release", "Debug"]
+        BUILD_TYPE: ["Release"]
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "HOST"
@@ -97,6 +92,6 @@ jobs:
         ctest --output-on-failure
     # Run the Benchmarks(s) only for HOST && Release && float    
     - name: Benchmark
-      if: "matrix.PLATFORM.NAME == 'HOST' && matrix.BUILD_TYPE == 'Release'"
+      if: "matrix.PLATFORM.NAME == 'HOST'"
       run: |
         source ${GITHUB_WORKSPACE}/tests/scripts/run_benchmarks.sh
