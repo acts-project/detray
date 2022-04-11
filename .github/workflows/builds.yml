@@ -42,7 +42,7 @@ jobs:
       run: cmake --build build --config ${{ matrix.BUILD_TYPE }}
 
   # Containerised build jobs.
-  container:
+  host-container:
 
     # The different build modes to test.
     strategy:
@@ -53,6 +53,52 @@ jobs:
           - NAME: "HOST"
             CONTAINER: "ghcr.io/acts-project/ubuntu2004:v20"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
+
+    # The system to run on.
+    runs-on: ubuntu-latest
+    container: ${{ matrix.PLATFORM.CONTAINER }}
+
+    # Use BASH as the shell from the image.
+    defaults:
+      run:
+        shell: bash
+
+    # The build/test steps to execute.
+    steps:
+    # Use a standard checkout of the code.
+    - uses: actions/checkout@v2
+    # Run the CMake configuration.
+    - name: Configure
+      run: |
+        source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} ${{ matrix.PLATFORM.OPTIONS }} -S ${GITHUB_WORKSPACE} -B build
+    # Perform the build.
+    - name: Build
+      run: |
+        source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
+        cmake --build build
+    # Run the unit test(s).
+    - name: Test
+      if: "matrix.BUILD_TYPE == 'Release'"
+      run: |
+        cd build
+        source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
+        ctest --output-on-failure
+    # Run the Benchmarks(s) only for Release build type
+    - name: Benchmark
+      if: "matrix.BUILD_TYPE == 'Release'"
+      run: |
+        source ${GITHUB_WORKSPACE}/tests/scripts/run_benchmarks.sh
+
+  # Containerised build jobs.
+  device-container:
+
+    # The different build modes to test.
+    strategy:
+      matrix:
+        BUILD_TYPE: ["Debug"]
+        SCALAR_TYPE: ["float", "double"]
+        PLATFORM:
           - NAME: "CUDA"
             CONTAINER: "ghcr.io/acts-project/ubuntu2004_cuda:v20"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
@@ -83,15 +129,4 @@ jobs:
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
         cmake --build build
-    # Run the unit test(s).
-    - name: Test
-      if: "matrix.PLATFORM.NAME == 'HOST' && matrix.BUILD_TYPE == 'Release'"
-      run: |
-        cd build
-        source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
-        ctest --output-on-failure
-    # Run the Benchmarks(s) only for HOST && Release && float    
-    - name: Benchmark
-      if: "matrix.PLATFORM.NAME == 'HOST' && matrix.BUILD_TYPE == 'Release'"
-      run: |
-        source ${GITHUB_WORKSPACE}/tests/scripts/run_benchmarks.sh
+
