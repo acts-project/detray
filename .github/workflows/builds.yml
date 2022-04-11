@@ -47,7 +47,7 @@ jobs:
     # The different build modes to test.
     strategy:
       matrix:
-        BUILD_TYPE: ["Release"]
+        BUILD_TYPE: ["Release", "Debug"]
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "HOST"
@@ -85,13 +85,13 @@ jobs:
         cmake --build build
     # Run the unit test(s).
     - name: Test
-      if: "matrix.PLATFORM.NAME == 'HOST'"
+      if: "matrix.PLATFORM.NAME == 'HOST' && matrix.BUILD_TYPE == 'Release'"
       run: |
         cd build
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
         ctest --output-on-failure
     # Run the Benchmarks(s) only for HOST && Release && float    
     - name: Benchmark
-      if: "matrix.PLATFORM.NAME == 'HOST'"
+      if: "matrix.PLATFORM.NAME == 'HOST' && matrix.BUILD_TYPE == 'Release'"
       run: |
         source ${GITHUB_WORKSPACE}/tests/scripts/run_benchmarks.sh
