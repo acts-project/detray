@@ -211,8 +211,7 @@ struct telescope_metadata {
               template <typename...> class vector_t = dvector,
               template <typename...> class tuple_t = dtuple,
               template <typename...> class jagged_vector_t = djagged_vector>
-    using sf_finder_definitions =
-        sf_finder_registry<>;
+    using sf_finder_definitions = sf_finder_registry<>;
 };
 
 struct detector_registry {

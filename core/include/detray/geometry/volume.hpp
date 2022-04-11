@@ -141,7 +141,7 @@ class volume {
     DETRAY_HOST_DEVICE inline dindex n_in_range(range_type &&rg) const {
         return detail::get<1>(rg) - detail::get<0>(rg);
     }
-    
+
     /** Stub for the surface finder call (returns all surfaces for the moment).
      * @return the neighboring surfaces
      */
