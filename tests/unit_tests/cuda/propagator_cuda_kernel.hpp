@@ -19,6 +19,8 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
+#include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -42,10 +44,6 @@ using navigator_device_type = navigator<detector_device_type>;
 using field_type = constant_magnetic_field<>;
 using rk_stepper_type = rk_stepper<field_type, free_track_parameters>;
 
-using propagator_host_type = propagator<rk_stepper_type, navigator_host_type>;
-using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type>;
-
 // detector configuration
 constexpr std::size_t n_brl_layers = 4;
 constexpr std::size_t n_edc_layers = 3;
@@ -58,33 +56,52 @@ constexpr scalar pos_diff_tolerance = 1e-3;
 
 namespace detray {
 
-template <template <typename...> class vector_type>
-struct track_inspector {
+template <template <typename...> class vector_t>
+struct track_inspector : actor {
 
-    track_inspector(vecmem::memory_resource& resource)
-        : _intersections(&resource) {}
+    struct track_inspector_state {
 
-    DETRAY_HOST_DEVICE
-    track_inspector(vector_type<intersection_t> intersection_record)
-        : _intersections(intersection_record) {}
+        track_inspector_state(vecmem::memory_resource &resource)
+            : _intersections(&resource) {}
 
-    template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(const navigator_state_t& navigation,
-                                       const stepper_state_t& /*stepping*/) {
+        DETRAY_HOST_DEVICE
+        track_inspector_state(vector_t<intersection_t> intersection_record)
+            : _intersections(intersection_record) {}
+
+        vector_t<intersection_t> _intersections;
+    };
+
+    using state_type = track_inspector_state;
+
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        state_type &inspector_state,
+        const propagator_state_t &prop_state) const {
+
+        const auto &navigation = prop_state._navigation;
+
         // Record when status == e_on_target
         if (navigation.status() == navigation::status::e_on_target) {
-            _intersections.push_back(*navigation.current());
+            inspector_state._intersections.push_back(*navigation.current());
         }
     }
-
-    vector_type<intersection_t> _intersections;
 };
+
+// Assemble propagator type
+using inspector_host_t = track_inspector<vecmem::vector>;
+using inspector_device_t = track_inspector<vecmem::device_vector>;
+using actor_chain_host_t = actor_chain<thrust::tuple, inspector_host_t>;
+using actor_chain_device_t = actor_chain<thrust::tuple, inspector_device_t>;
+using propagator_host_type =
+    propagator<rk_stepper_type, navigator_host_type, actor_chain_host_t>;
+using propagator_device_type =
+    propagator<rk_stepper_type, navigator_device_type, actor_chain_device_t>;
 
 /// test function for propagator with single state
 void propagator_test(
     detector_view<detector_host_type> det_data,
-    vecmem::data::vector_view<free_track_parameters>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
-    vecmem::data::jagged_vector_view<intersection_t>& intersections_data);
+    vecmem::data::vector_view<free_track_parameters> &tracks_data,
+    vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
+    vecmem::data::jagged_vector_view<intersection_t> &intersections_data);
 
 }  // namespace detray
