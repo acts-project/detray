@@ -155,7 +155,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             free_track_parameters c_traj(ori, 0, mom, -1);
 
             // helix gun
-            helix_gun helix(traj, B);
+            helix_gun helix(traj, &B);
 
             // RK Stepping into forward direction
             rk_stepper_t::state rk_state(traj);

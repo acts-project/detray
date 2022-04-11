@@ -23,6 +23,8 @@ struct bound_track_parameters {
     using covariance_type = bound_matrix;
     using jacobian_type = bound_matrix;
 
+    bound_track_parameters() = delete;
+
     bound_track_parameters(const dindex& sf_idx, const vector_type& params,
                            const covariance_type& cov)
         : _surface_link(sf_idx), _vector(params), _covariance(cov) {}
@@ -108,6 +110,8 @@ struct free_track_parameters {
     using vector_type = free_vector;
     using covariance_type = free_sym_matrix;
     using jacobian_type = free_matrix;
+
+    free_track_parameters() = delete;
 
     free_track_parameters(const vector_type& params, const covariance_type& cov)
         : _vector(params), _covariance(cov) {}

@@ -17,11 +17,14 @@ class helix_gun {
     using vector3 = __plugin::vector3<scalar>;
     using vector2 = __plugin::vector2<scalar>;
 
-    helix_gun(free_track_parameters vertex, vector3 mag_field)
+    helix_gun() = delete;
+
+    helix_gun(const free_track_parameters vertex,
+              vector3 const *const mag_field)
         : _vertex(vertex), _mag_field(mag_field) {
 
         // get new z direction along the b field
-        _ez = vector::normalize(_mag_field);
+        _ez = vector::normalize(*_mag_field);
 
         vector3 p = _vertex.mom();
 
@@ -32,7 +35,7 @@ class helix_gun {
         vector3 pT = p - pz * _ez;
 
         // R [mm] =  pT [GeV] / B [T] in natrual unit
-        _R = getter::norm(pT) / getter::norm(mag_field);
+        _R = getter::norm(pT) / getter::norm(*_mag_field);
 
         // Handle the case of pT ~ 0
         if (getter::norm(pT) < 1e-20) {
@@ -75,10 +78,10 @@ class helix_gun {
 
     private:
     // origin of particle
-    const free_track_parameters _vertex;
+    free_track_parameters _vertex;
 
     // B field
-    const vector3 _mag_field;
+    vector3 const *_mag_field;
 
     // Radius [mm] of helix
     scalar _R;
