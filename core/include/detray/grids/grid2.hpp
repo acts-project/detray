@@ -484,7 +484,24 @@ struct grid2_buffer : public grid2_view<grid2_t> {
     using axis_p0_type = typename grid2_t::axis_p0_type;
     using axis_p1_type = typename grid2_t::axis_p1_type;
 
-    /** Constructor
+    /** Constructor with size vector
+     *
+     * @param axis_p0 is the first axis
+     * @param axis_p1 is the second axis
+     * @param sizes is the intial size of vector
+     * @param resource is the vecmem memory resource
+     *
+     **/
+    grid2_buffer(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
+                 typename populator_type::buffer_size_type sizes,
+                 vecmem::memory_resource &resource)
+        : _axis_p0(axis_p0), _axis_p1(axis_p1), _buffer(sizes, resource) {
+        grid2_view<grid2_t>::_axis_p0_view = detray::get_data(_axis_p0);
+        grid2_view<grid2_t>::_axis_p1_view = detray::get_data(_axis_p1);
+        grid2_view<grid2_t>::_data_view = _buffer;
+    }
+
+    /** Constructor with size and capacity vector
      *
      * @param axis_p0 is the first axis
      * @param axis_p1 is the second axis

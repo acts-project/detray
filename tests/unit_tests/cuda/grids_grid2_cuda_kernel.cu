@@ -217,6 +217,39 @@ void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view) {
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
+/*---------------------------------------------------------
+  assign test function for grid buffer with attach populator
+  ---------------------------------------------------------*/
+
+__global__ void grid_attach_assign_test_kernel(
+    grid2_view<host_grid2_attach> grid_view) {
+
+    // Let's try building the grid object
+    device_grid2_attach g2_device(grid_view);
+
+    auto pts = g2_device.bin(threadIdx.x, threadIdx.y);
+
+    for (std::size_t i = 0; i < pts.size(); i++) {
+        pts[i] = {static_cast<detray::scalar>(i),
+                  static_cast<detray::scalar>(i + 1),
+                  static_cast<detray::scalar>(i + 2)};
+    }
+}
+
+// attach_fill_test implementation
+void grid_attach_assign_test(grid2_view<host_grid2_attach> grid_view) {
+
+    int block_dim = 1;
+    dim3 thread_dim(2, 2);
+
+    // run the kernel
+    grid_attach_assign_test_kernel<<<block_dim, thread_dim>>>(grid_view);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
 // cuda kernel for array_test
 template <template <typename, size_t> class array_type>
 __global__ void grid_array_test_kernel(
