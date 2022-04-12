@@ -22,7 +22,7 @@ TEST(ALGEBRA_PLUGIN, volume) {
     using sf_finder_t = dindex;
     using object_defs = object_registry<surface_t>;
     using sf_finder_defs = sf_finder_registry<sf_finder_t>;
-    using volume = volume<object_defs, sf_finder_defs>;
+    using volume = volume<object_defs, sf_finder_defs::link_type>;
 
     // Check construction, setters and getters
     darray<scalar, 6> bounds = {0., 10., -5., 5., -M_PI, M_PI};
@@ -33,8 +33,7 @@ TEST(ALGEBRA_PLUGIN, volume) {
     ASSERT_TRUE(v1.empty());
     ASSERT_TRUE(v1.index() == 12345);
     ASSERT_TRUE(v1.bounds() == bounds);
-    typename sf_finder_defs::link_type sf_finder_link{sf_finder_defs::e_unknown,
-                                                      12};
+    sf_finder_defs::link_type sf_finder_link{sf_finder_defs::e_unknown, 12};
     ASSERT_TRUE(v1.sf_finder_link() == sf_finder_link);
 
     // Check surface and portal ranges

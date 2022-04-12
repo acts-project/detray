@@ -21,23 +21,22 @@ struct intersection_kernel {
     /// Transform definition
     using transform3 = __plugin::transform3<detray::scalar>;
 
-    /** Variadic unrolled intersection - any integer sequence
-     *
-     * @tparam track_t The type of the surface container
-     * @tparam mask_container The type of the type of the mask container
-     * @tparam mask_range The mask range type
-     * @tparam first_mask_id The first mask group id
-     *
-     * @param tack the track information containing the context
-     * @param ctf the contextual transform (context resolved)
-     * @param masks the masks container
-     * @param rng the range within the mask group to be checked
-     * @param mask_id the current mask group id
-     * @param available_ids the mask ids to be checked (only needed to set the
-     *                      first mask id for the call)
-     *
-     * @return an intersection struct (invalid if no intersection was found)
-     */
+    /// Variadic unrolled intersection - any integer sequence
+    ///
+    /// @tparam track_t The type of the surface container
+    /// @tparam mask_container The type of the type of the mask container
+    /// @tparam mask_range The mask range type
+    /// @tparam first_mask_id The first mask group id
+    ///
+    /// @param tack the track information containing the context
+    /// @param ctf the contextual transform (context resolved)
+    /// @param masks the masks container
+    /// @param rng the range within the mask group to be checked
+    /// @param mask_id the current mask group id
+    /// @param available_ids the mask ids to be checked (only needed to set the
+    ///                      first mask id for the call)
+    ///
+    /// @return an intersection struct (invalid if no intersection was found)
     template <typename track_t, typename mask_container_t,
               typename mask_range_t, unsigned int first_mask_id,
               unsigned int... remaining_mask_ids>
@@ -80,26 +79,24 @@ struct intersection_kernel {
         return line_plane_intersection{};
     }
 
-    /** Kernel method that updates the intersections
-     *
-     * @tparam surface_type The type of the surface container
-     * @tparam track_type The type of the track/context
-     * @tparam transform_container The type of the transform container
-     * @tparam mask_container The type of the type of the mask container
-     *
-     * @param track the track information including the contexts
-     * @param surface the surface type to be intersected
-     * @param contextual_transform the transform container
-     * @param masks the tuple mask container to for the intersection
-     *
-     * @return  an intersection struct (invalid if no intersection was found)
-     **/
+    /// Kernel method that updates the intersections
+    ///
+    /// @tparam surface_type The type of the surface container
+    /// @tparam track_type The type of the track/context
+    /// @tparam transform_container The type of the transform container
+    /// @tparam mask_container The type of the type of the mask container
+    ///
+    /// @param track the track information including the contexts
+    /// @param surface the surface type to be intersected
+    /// @param contextual_transform the transform container
+    /// @param masks the tuple mask container to for the intersection
+    ///
+    /// @return  an intersection struct (invalid if no intersection was found)
     template <typename surface_t, typename track_t,
               typename transform_container_t, typename mask_container_t>
-    inline const auto operator()(
-        const surface_t &surface, const track_t &track,
-        const transform_container_t &contextual_transforms,
-        const mask_container_t &masks) {
+    inline auto operator()(const surface_t &surface, const track_t &track,
+                           const transform_container_t &contextual_transforms,
+                           const mask_container_t &masks) {
         // Gather all information to perform intersections
         // TODO: Add context
         const auto &ctf = contextual_transforms[surface.transform()];

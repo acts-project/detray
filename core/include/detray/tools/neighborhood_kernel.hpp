@@ -18,23 +18,22 @@ namespace detray {
 
 struct neighborhood_kernel {
 
-    /** Variadic unrolled neighborhood lookups - any integer sequence
-     *
-     * @tparam track_t The type of the track
-     * @tparam finder_container_t The type of the type of the finder container
-     * @tparam finder_range_t The surface finder range type
-     * @tparam first_finder_id The first surface finder group id
-     *
-     * @param tack the track information
-     * @param surface_finders the masks container
-     * @param finder_id the range within the mask group to be checked
-     * @param finder_range the current mask group id
-     * @param available_ids the finder ids to be checked (only needed to set the
-     *                      first id for the call)
-     *
-     * @return a collection of neighboring surface indices (empty if no
-     * surface finder could be matched)
-     */
+    /// Variadic unrolled neighborhood lookups - any integer sequence
+    ///
+    /// @tparam track_t The type of the track
+    /// @tparam finder_container_t The type of the type of the finder container
+    /// @tparam finder_range_t The surface finder range type
+    /// @tparam first_finder_id The first surface finder group id
+    ///
+    /// @param tack the track information
+    /// @param surface_finders the masks container
+    /// @param finder_id the range within the mask group to be checked
+    /// @param finder_range the current mask group id
+    /// @param available_ids the finder ids to be checked (only needed to set
+    ///                      the first id for the call)
+    ///
+    /// @return a collection of neighboring surface indices (empty if no
+    /// surface finder could be matched)
     template <typename track_t, typename finder_container_t,
               typename finder_range_t, unsigned int first_finder_id,
               unsigned int... remaining_finder_ids>
@@ -64,20 +63,19 @@ struct neighborhood_kernel {
         return;
     }
 
-    /** Kernel method that does a surface neighborhood lookup given a surface
-     *  finder link provided by a volume.
-     *
-     * @tparam volume_t The calling volume
-     * @tparam track_t The type of the track
-     * @tparam sf_finder_container_t The type of the surface finder container
-     *
-     * @param track the track information
-     * @param volume the mother volume
-     *
-     * @return an collection of surface indices (invalid if no finder matches)
-     **/
+    /// Kernel method that does a surface neighborhood lookup given a surface
+    ///  finder link provided by a volume.
+    ///
+    /// @tparam volume_t The calling volume
+    /// @tparam track_t The type of the track
+    /// @tparam sf_finder_container_t The type of the surface finder container
+    ///
+    /// @param track the track information
+    /// @param volume the mother volume
+    ///
+    /// @return an collection of surface indices (invalid if no finder matches)
     template <typename volume_t, typename track_t, typename finder_container_t>
-    inline const auto operator()(const volume_t &volume,
+    inline auto operator()(const volume_t &volume,
                                  const track_t & /*track*/,
                                  const finder_container_t & /*sf_finders*/) {
 

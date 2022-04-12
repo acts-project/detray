@@ -15,13 +15,12 @@
 
 namespace detray {
 
-/** Templated surface class for detector surfaces and portals
- *
- * @tparam transform_link_t the type of the transform link representation
- * @tparam mask_link_t the type of the mask link representation
- * @tparam volume_link_t the typ eof the volume link representation
- * @tparam source_link_t the type of the source link representation
- */
+/// Templated surface class for detector surfaces and portals
+///
+/// @tparam transform_link_t the type of the transform link representation
+/// @tparam mask_link_t the type of the mask link representation
+/// @tparam volume_link_t the typ eof the volume link representation
+/// @tparam source_link_t the type of the source link representation
 template <typename mask_regsitry_t, typename transform_link_t = dindex,
           typename volume_link_t = dindex, typename source_link_t = bool,
           typename intersection_kernel_t = intersection_kernel>
@@ -38,15 +37,13 @@ class surface {
     using volume_link = volume_link_t;
     using source_link = source_link_t;
 
-    /** Constructor with full arguments - move semantics
-     *
-     * @param trf the transform for positioning and 3D local frame
-     * @param msk the mask/mask link for this surface
-     * @param vol the volume link for this surface
-     * @param src the source object/source link this surface is representing
-     * @param is_pt remember whether this is a portal or not
-     *
-     **/
+    /// Constructor with full arguments - move semantics
+    ///
+    /// @param trf the transform for positioning and 3D local frame
+    /// @param msk the mask/mask link for this surface
+    /// @param vol the volume link for this surface
+    /// @param src the source object/source link this surface is representing
+    /// @param is_pt remember whether this is a portal or not
     surface(transform_link &&trf, mask_link &&mask, volume_link &&vol,
             source_link &&src, bool is_pt)
         : _trf(std::move(trf)),
@@ -55,114 +52,107 @@ class surface {
           _src(std::move(src)),
           _is_portal(std::move(is_pt)) {}
 
-    /** Constructor with full arguments - copy semantics
-     *
-     * @param trf the transform for positioning and 3D local frame
-     * @param msk the mask/mask link for this surface
-     * @param vol the volume link for this surface
-     * @param src the source object/source link this surface is representing
-     * @param is_pt remember whether this is a portal or not
-     *
-     **/
+    /// Constructor with full arguments - copy semantics
+    ///
+    /// @param trf the transform for positioning and 3D local frame
+    /// @param msk the mask/mask link for this surface
+    /// @param vol the volume link for this surface
+    /// @param src the source object/source link this surface is representing
+    /// @param is_pt remember whether this is a portal or not
     surface(const transform_link &trf, const mask_link &mask,
             const volume_link vol, const source_link &src, bool is_pt)
         : _trf(trf), _mask(mask), _vol(vol), _src(src), _is_portal(is_pt) {}
 
-    // Portal vs module decision must be made explicitly
+    /// Portal vs module decision must be made explicitly
     surface() = default;
     surface(const surface &lhs) = default;
     ~surface() = default;
 
-    /** Equality operator
-     *
-     * @param rhs is the right hand side to be compared to
-     */
+    /// Equality operator
+    ///
+    /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
     bool operator==(const surface &rhs) const {
         return (_trf == rhs._trf and _mask == rhs._mask and _vol == rhs._vol and
                 _src == rhs._src and _is_portal == rhs._is_portal);
     }
 
-    /** Update the transform index
-     *
-     * @param offset update the position when move into new collection
-     */
+    /// Update the transform index
+    ///
+    /// @param offset update the position when move into new collection
     DETRAY_HOST
     void update_transform(dindex offset) { _trf += offset; }
 
-    /** Access to the transform index */
+    /// Access to the transform index
     DETRAY_HOST_DEVICE
     const transform_link &transform() { return _trf; }
 
-    /** @return the transform index */
+    /// @return the transform index
     DETRAY_HOST_DEVICE
     const transform_link &transform() const { return _trf; }
 
-    /** Update the mask link
-     *
-     * @param offset update the position when move into new collection
-     */
+    /// Update the mask link
+    ///
+    /// @param offset update the position when move into new collection
     DETRAY_HOST
     void update_mask(dindex offset) { _mask += offset; }
 
-    /** Access to the mask  */
+    /// Access to the mask
     DETRAY_HOST_DEVICE
     const mask_link &mask() { return _mask; }
 
-    /** @return the mask link */
+    /// @return the mask link
     DETRAY_HOST_DEVICE
     const mask_link &mask() const { return _mask; }
 
-    /** Access to the mask id */
+    /// Access to the mask id
     DETRAY_HOST_DEVICE
     auto mask_type() { return detail::get<0>(_mask); }
 
-    /** @return the mask link */
-    DETRAY_HOST_DEVICE
+    /// @return the mask link
     auto mask_type() const { return detail::get<0>(_mask); }
 
-    /** Access to the mask  */
+    /// Access to the mask
     DETRAY_HOST_DEVICE
     const auto &mask_range() { return detail::get<1>(_mask); }
 
-    /** @return the mask link */
+    /// @return the mask link
     DETRAY_HOST_DEVICE
     const auto &mask_range() const { return detail::get<1>(_mask); }
 
-    /** Access to the volume */
+    /// Access to the volume
     DETRAY_HOST_DEVICE
     volume_link volume() { return _vol; }
 
-    /** @return the volume index */
+    /// @return the volume index
     DETRAY_HOST_DEVICE
     const volume_link volume() const { return _vol; }
 
-    /** @return the source link */
+    /// @return the source link
     DETRAY_HOST_DEVICE
     const source_link &source() const { return _src; }
 
-    /** @return if the surface belongs to grid **/
+    /// @return if the surface belongs to grid
     auto get_grid_status() const { return _in_grid; }
 
-    /** set if the surface belongs to grid **/
+    /// set if the surface belongs to grid
     void set_grid_status(bool status) { _in_grid = status; }
 
-    /** Is this instance a portal in the sense of the unified_index_geometry? */
+    /// Is this instance a portal in the sense of the unified_index_geometry?
     DETRAY_HOST_DEVICE
     bool is_portal() const { return _is_portal; }
 
-    /** Kernel method that updates the intersections
-     *
-     * @tparam track_t The type of the track/context
-     * @tparam transform_container_t The type of the transform container
-     * @tparam mask_container_t The type of the mask container
-     *
-     * @param track the track information including the contexts
-     * @param contextual_transform the transform container
-     * @param masks the tuple mask container to for the intersection
-     *
-     * @return  an intersection struct (invalid if no intersection was found)
-     **/
+    /// Kernel method that updates the intersections
+    ///
+    /// @tparam track_t The type of the track/context
+    /// @tparam transform_container_t The type of the transform container
+    /// @tparam mask_container_t The type of the mask container
+    ///
+    /// @param track the track information including the contexts
+    /// @param contextual_transform the transform container
+    /// @param masks the tuple mask container to for the intersection
+    ///
+    /// @return  an intersection struct (invalid if no intersection was found)
     template <typename track_t, typename transform_container_t,
               typename mask_container_t>
     inline constexpr auto intersect(

@@ -210,8 +210,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     auto volume_id = vol.index();
     edge_t mask_edge{volume_id, dindex_invalid};
 
-    vol.set_surfaces_finder(
-        {volume_type::sf_finders::e_z_phi_grid, dindex_invalid});
+    vol.set_surfaces_finder({cfg.grid_id, dindex_invalid});
 
     // Create the module centers
 
@@ -374,8 +373,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     auto volume_id = vol.index();
     edge_t mask_edge{volume_id, dindex_invalid};
 
-    vol.set_surfaces_finder(
-        {volume_type::sf_finders::e_r_phi_grid, dindex_invalid});
+    vol.set_surfaces_finder({cfg.grid_id, dindex_invalid});
 
     // calculate the radii of the rings
     std::vector<scalar> radii;
@@ -849,7 +847,7 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
     using detector_t = detector<detector_registry::toy_detector, array_t,
                                 tuple_t, vector_t, jagged_vector_t>;
 
-    /** Leaving world */
+    /// Leaving world
     const dindex leaving_world = dindex_invalid;
 
     //
@@ -870,6 +868,9 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         scalar m_radial_stagger = 0.5;  // 2.;
         scalar m_long_overlap = 2.;     // 5.;
         std::pair<int, int> m_binning = {16, 14};
+
+        typename detector_t::surfaces_finders::id grid_id{
+            detector_t::surfaces_finders::id::e_z_phi_grid};
 
         // return the first z position of module
         std::tuple<scalar, scalar, scalar> get_z_axis_info() {
@@ -898,6 +899,10 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         scalar outer_r = 180.;
         scalar edc_position = 600.;
         scalar ring_stagger = 1.0;
+
+        typename detector_t::surfaces_finders::id grid_id{
+            detector_t::surfaces_finders::id::e_r_phi_grid};
+
         // Parameters for both rings of modules
         std::vector<scalar> m_phi_stagger = {4.0, 4.0};
         std::vector<scalar> m_phi_sub_stagger = {0.5, 0.};
