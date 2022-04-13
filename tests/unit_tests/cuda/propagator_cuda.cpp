@@ -54,6 +54,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
             // intialize a track
             free_track_parameters traj(ori, 0, mom, -1);
+            traj.set_overstep_tolerance(overstep_tolerance);
 
             // Put it into vector of trajectories
             tracks_host.push_back(traj);
@@ -90,6 +91,11 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         // Create the propagator state
         propagator_host_type::state state(tracks_host[i],
                                           thrust::tie(insp_state));
+
+        state._stepping.template set_constraint<step::constraint::e_accuracy>(
+            constrainted_step_size);
+
+        state._stepping.set_tolerance(rk_tolerance);
 
         // Run propagation
         p.propagate(state);
@@ -151,12 +157,23 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         ASSERT_TRUE(host_positions[i].size() > 0);
 
         for (unsigned int j = 0; j < host_positions[i].size(); j++) {
+
+            auto host_pl = host_path_lengths[i][j];
+            auto device_pl = device_path_lengths[i][j];
+
+            // ASSERT_NEAR((host_pl - device_pl) / host_pl, 0, is_close);
+
+            ASSERT_EQ(host_positions[i].size(), device_positions[i].size());
+
+            ASSERT_NEAR(host_pl, device_pl, host_pl * is_close);
+
             auto& host_pos = host_positions[i][j];
             auto& device_pos = device_positions[i][j];
 
-            EXPECT_NEAR(host_pos[0], device_pos[0], pos_diff_tolerance);
-            EXPECT_NEAR(host_pos[1], device_pos[1], pos_diff_tolerance);
-            EXPECT_NEAR(host_pos[2], device_pos[2], pos_diff_tolerance);
+            auto relative_error =
+                static_cast<point3>(1. / host_pl * (host_pos - device_pos));
+
+            ASSERT_NEAR(getter::norm(relative_error), 0, is_close);
         }
     }
 
@@ -167,6 +184,8 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
             auto& host_J = host_jac_transports[i][j];
             auto& device_J = device_jac_transports[i][j];
 
+            auto pl = host_path_lengths[i][j];
+
             for (__plugin::size_type row = 0; row < e_free_size; row++) {
                 for (__plugin::size_type col = 0; col < e_free_size; col++) {
 
@@ -175,7 +194,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
                     auto device_val =
                         matrix_operator().element(device_J, row, col);
 
-                    EXPECT_NEAR(host_val, device_val, error_diff_tolerance);
+                    ASSERT_NEAR((host_val - device_val) / pl, 0, is_close);
                 }
             }
         }

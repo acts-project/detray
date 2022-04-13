@@ -52,6 +52,11 @@ __global__ void propagator_test_kernel(
     propagator_device_type::state state(tracks[gid], thrust::tie(insp_state),
                                         candidates.at(gid));
 
+    state._stepping.set_tolerance(rk_tolerance);
+
+    state._stepping.template set_constraint<step::constraint::e_accuracy>(
+        constrainted_step_size);
+
     // Run propagation
     p.propagate(state);
 }

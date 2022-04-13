@@ -55,6 +55,10 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
             array_t<scalar, 4> k_qop;
         } _step_data;
 
+        // Set the local error tolerenace
+        DETRAY_HOST_DEVICE
+        inline void set_tolerance(scalar tol) { _tolerance = tol; };
+
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
         inline void advance_track();

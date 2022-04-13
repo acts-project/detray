@@ -41,8 +41,10 @@ using detector_device_type =
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 
+using constraints_t = constrained_step<>;
 using field_type = constant_magnetic_field<>;
-using rk_stepper_type = rk_stepper<field_type, free_track_parameters>;
+using rk_stepper_type =
+    rk_stepper<field_type, free_track_parameters, constraints_t>;
 
 using matrix_operator = standard_matrix_operator<scalar>;
 
@@ -51,13 +53,13 @@ constexpr std::size_t n_brl_layers = 4;
 constexpr std::size_t n_edc_layers = 3;
 
 // geomery navigation configurations
-constexpr unsigned int theta_steps = 1;
-constexpr unsigned int phi_steps = 1;
+constexpr unsigned int theta_steps = 10;
+constexpr unsigned int phi_steps = 10;
 
-constexpr scalar pos_diff_tolerance = 1e-3;
-constexpr scalar error_diff_tolerance = 1;
-
-// constexpr scalar error_tolerance = 1e-4;
+constexpr scalar rk_tolerance = 1e-4;
+constexpr scalar overstep_tolerance = -1e-4;
+constexpr scalar constrainted_step_size = 1. * unit_constants::mm;
+constexpr scalar is_close = 1e-4;
 
 namespace detray {
 
