@@ -55,6 +55,7 @@ constexpr unsigned int theta_steps = 100;
 constexpr unsigned int phi_steps = 100;
 
 constexpr scalar pos_diff_tolerance = 1e-3;
+constexpr scalar error_diff_tolerance = 1;
 
 namespace detray {
 

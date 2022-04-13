@@ -166,7 +166,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
                     auto device_val =
                         matrix_operator().element(device_J, row, col);
 
-                    EXPECT_NEAR(host_val, device_val, pos_diff_tolerance);
+                    EXPECT_NEAR(host_val, device_val, error_diff_tolerance);
                 }
             }
         }
