@@ -79,6 +79,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     propagator_host_type p(std::move(s), std::move(n));
 
     // Create vector for track recording
+    vecmem::jagged_vector<scalar> host_path_lengths(&mng_mr);
     vecmem::jagged_vector<vector3> host_positions(&mng_mr);
     vecmem::jagged_vector<free_matrix> host_jac_transports(&mng_mr);
 
@@ -94,6 +95,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         p.propagate(state);
 
         // Record the step information
+        host_path_lengths.push_back(insp_state._path_lengths);
         host_positions.push_back(insp_state._positions);
         host_jac_transports.push_back(insp_state._jac_transports);
     }
@@ -120,21 +122,31 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         capacities.push_back(r.size());
     }
 
+    vecmem::data::jagged_vector_buffer<scalar> path_lengths_buffer(
+        sizes, capacities, mng_mr);
     vecmem::data::jagged_vector_buffer<vector3> positions_buffer(
         sizes, capacities, mng_mr);
-    copy.setup(positions_buffer);
     vecmem::data::jagged_vector_buffer<free_matrix> jac_transports_buffer(
         sizes, capacities, mng_mr);
+
+    copy.setup(path_lengths_buffer);
+    copy.setup(positions_buffer);
     copy.setup(jac_transports_buffer);
 
     // Run the propagator test for GPU device
     propagator_test(det_data, B, tracks_data, candidates_buffer,
-                    positions_buffer, jac_transports_buffer);
+                    path_lengths_buffer, positions_buffer,
+                    jac_transports_buffer);
+
+    vecmem::jagged_vector<scalar> device_path_lengths(&mng_mr);
+    vecmem::jagged_vector<vector3> device_positions(&mng_mr);
+    vecmem::jagged_vector<free_matrix> device_jac_transports(&mng_mr);
+
+    copy(path_lengths_buffer, device_path_lengths);
+    copy(positions_buffer, device_positions);
+    copy(jac_transports_buffer, device_jac_transports);
 
     // Compare the positions
-    vecmem::jagged_vector<vector3> device_positions(&mng_mr);
-    copy(positions_buffer, device_positions);
-
     for (unsigned int i = 0; i < host_positions.size(); i++) {
         ASSERT_TRUE(host_positions[i].size() > 0);
 
@@ -149,9 +161,6 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     }
 
     // Compare the jacobian transports
-    vecmem::jagged_vector<free_matrix> device_jac_transports(&mng_mr);
-    copy(jac_transports_buffer, device_jac_transports);
-
     for (unsigned int i = 0; i < host_jac_transports.size(); i++) {
         for (unsigned int j = 0; j < host_jac_transports[i].size(); j++) {
 

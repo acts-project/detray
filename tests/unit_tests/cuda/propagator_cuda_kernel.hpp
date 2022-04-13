@@ -51,11 +51,13 @@ constexpr std::size_t n_brl_layers = 4;
 constexpr std::size_t n_edc_layers = 3;
 
 // geomery navigation configurations
-constexpr unsigned int theta_steps = 100;
-constexpr unsigned int phi_steps = 100;
+constexpr unsigned int theta_steps = 1;
+constexpr unsigned int phi_steps = 1;
 
 constexpr scalar pos_diff_tolerance = 1e-3;
 constexpr scalar error_diff_tolerance = 1;
+
+// constexpr scalar error_tolerance = 1e-4;
 
 namespace detray {
 
@@ -65,13 +67,19 @@ struct track_inspector : actor {
     struct track_inspector_state {
 
         track_inspector_state(vecmem::memory_resource &resource)
-            : _positions(&resource), _jac_transports(&resource) {}
+            : _path_lengths(&resource),
+              _positions(&resource),
+              _jac_transports(&resource) {}
 
         DETRAY_HOST_DEVICE
-        track_inspector_state(vector_t<vector3> positions,
+        track_inspector_state(vector_t<scalar> path_lengths,
+                              vector_t<vector3> positions,
                               vector_t<free_matrix> jac_transports)
-            : _positions(positions), _jac_transports(jac_transports) {}
+            : _path_lengths(path_lengths),
+              _positions(positions),
+              _jac_transports(jac_transports) {}
 
+        vector_t<scalar> _path_lengths;
         vector_t<vector3> _positions;
         vector_t<free_matrix> _jac_transports;
     };
@@ -86,6 +94,7 @@ struct track_inspector : actor {
         const auto &stepping = prop_state._stepping;
 
         // Record only on the object
+        inspector_state._path_lengths.push_back(stepping.path_length());
         inspector_state._positions.push_back(stepping().pos());
         inspector_state._jac_transports.push_back(stepping._jac_transport);
     }
@@ -106,6 +115,7 @@ void propagator_test(
     detector_view<detector_host_type> det_data, const vector3 B,
     vecmem::data::vector_view<free_track_parameters> &tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
+    vecmem::data::jagged_vector_view<scalar> &path_lengths_data,
     vecmem::data::jagged_vector_view<vector3> &positions_data,
     vecmem::data::jagged_vector_view<free_matrix> &jac_transports_data);
 
