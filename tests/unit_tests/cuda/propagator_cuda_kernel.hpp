@@ -44,6 +44,8 @@ using navigator_device_type = navigator<detector_device_type>;
 using field_type = constant_magnetic_field<>;
 using rk_stepper_type = rk_stepper<field_type, free_track_parameters>;
 
+using matrix_operator = standard_matrix_operator<scalar>;
+
 // detector configuration
 constexpr std::size_t n_brl_layers = 4;
 constexpr std::size_t n_edc_layers = 3;
@@ -62,13 +64,15 @@ struct track_inspector : actor {
     struct track_inspector_state {
 
         track_inspector_state(vecmem::memory_resource &resource)
-            : _intersections(&resource) {}
+            : _positions(&resource), _jac_transports(&resource) {}
 
         DETRAY_HOST_DEVICE
-        track_inspector_state(vector_t<intersection_t> intersection_record)
-            : _intersections(intersection_record) {}
+        track_inspector_state(vector_t<vector3> positions,
+                              vector_t<free_matrix> jac_transports)
+            : _positions(positions), _jac_transports(jac_transports) {}
 
-        vector_t<intersection_t> _intersections;
+        vector_t<vector3> _positions;
+        vector_t<free_matrix> _jac_transports;
     };
 
     using state_type = track_inspector_state;
@@ -78,12 +82,11 @@ struct track_inspector : actor {
         state_type &inspector_state,
         const propagator_state_t &prop_state) const {
 
-        const auto &navigation = prop_state._navigation;
+        const auto &stepping = prop_state._stepping;
 
-        // Record when status == e_on_target
-        if (navigation.status() == navigation::status::e_on_target) {
-            inspector_state._intersections.push_back(*navigation.current());
-        }
+        // Record only on the object
+        inspector_state._positions.push_back(stepping().pos());
+        inspector_state._jac_transports.push_back(stepping._jac_transport);
     }
 };
 
@@ -99,9 +102,10 @@ using propagator_device_type =
 
 /// test function for propagator with single state
 void propagator_test(
-    detector_view<detector_host_type> det_data,
+    detector_view<detector_host_type> det_data, const vector3 B,
     vecmem::data::vector_view<free_track_parameters> &tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
-    vecmem::data::jagged_vector_view<intersection_t> &intersections_data);
+    vecmem::data::jagged_vector_view<vector3> &positions_data,
+    vecmem::data::jagged_vector_view<free_matrix> &jac_transports_data);
 
 }  // namespace detray

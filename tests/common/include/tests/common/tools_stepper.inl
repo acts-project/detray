@@ -5,14 +5,16 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// detray include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
 #include "tests/common/tools/helix_gun.hpp"
+
+// google-test include(s)
+#include <gtest/gtest.h>
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -214,6 +216,100 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
             // Make sure that relative error is smaller than epsion
             EXPECT_NEAR(getter::norm(backward_relative_error), 0, epsilon);
+        }
+    }
+}
+
+// This tests the covariance transport in rk stepper
+TEST(ALGEBRA_PLUGIN, covariance_transport) {
+
+    using vector3 = vector3<scalar>;
+    using point3 = point3<scalar>;
+    using matrix_operator = standard_matrix_operator<scalar>;
+    using mag_field_t = constant_magnetic_field<>;
+    using crk_stepper_t =
+        rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
+
+    // Generate track starting point
+    point3 pos{0., 0., 0.};
+    scalar time = 0.;
+    vector3 mom{0.01, 0.01, 0.01};
+    scalar q = -1.;
+
+    free_track_parameters vertex(pos, time, mom, q);
+
+    // Fill covariance matrix
+    auto covariance0 =
+        matrix_operator().template zero<e_free_size, e_free_size>();
+
+    matrix_operator().element(covariance0, e_free_pos0, e_free_pos0) = 0.1;
+    matrix_operator().element(covariance0, e_free_pos1, e_free_pos1) = 0.1;
+    matrix_operator().element(covariance0, e_free_pos2, e_free_pos2) = 0.1;
+    matrix_operator().element(covariance0, e_free_dir0, e_free_dir0) = 0.1;
+    matrix_operator().element(covariance0, e_free_dir1, e_free_dir1) = 0.1;
+    matrix_operator().element(covariance0, e_free_dir2, e_free_dir2) = 0.;
+    matrix_operator().element(covariance0, e_free_qoverp, e_free_qoverp) = 0.;
+
+    vertex.set_covariance(covariance0);
+
+    // magnetic field
+    vector3 B{0, 0, 10. * unit_constants::T};
+
+    // helix gun
+    helix_gun helix(vertex, &B);
+
+    // Path length per turn
+    scalar S = 2. * getter::norm(mom) / getter::norm(B) * M_PI;
+
+    // RK stepper and its state
+    mag_field_t mag_field(B);
+    crk_stepper_t::state crk_state(vertex);
+
+    // Decrease tolerance down to 1e-8
+    crk_state._tolerance = 1e-8;
+
+    crk_stepper_t crk_stepper(mag_field);
+
+    // Run stepper for one turn
+    unsigned int max_steps = 1e4;
+    for (unsigned int i = 0; i < max_steps; i++) {
+
+        crk_state.set_constraint(S - crk_state.path_length());
+
+        n_state._step_size = std::numeric_limits<scalar>::max();
+
+        crk_stepper.step(crk_state, n_state);
+
+        if (std::abs(S - crk_state.path_length()) < 1e-6) {
+            break;
+        }
+
+        // Make sure that we didn't reach the end of for loop
+        ASSERT_TRUE(i < max_steps - 1);
+    }
+
+    auto jac_transport = crk_state._jac_transport;
+
+    ///// Jacobian check with Helix Gun
+    auto J = helix.jacobian(crk_state.path_length());
+
+    for (size_type i = 0; i < e_free_size; i++) {
+        for (size_type j = 0; j < e_free_size; j++) {
+            EXPECT_NEAR(matrix_operator().element(jac_transport, i, j),
+                        matrix_operator().element(J, i, j),
+                        crk_state.path_length() * epsilon);
+        }
+    }
+
+    // Check if covariance doesn't change after one turn
+    free_matrix covariance1 = jac_transport * crk_state().covariance() *
+                              matrix_operator().transpose(jac_transport);
+
+    for (size_type i = 0; i < e_free_size; i++) {
+        for (size_type j = 0; j < e_free_size; j++) {
+            EXPECT_NEAR(matrix_operator().element(covariance0, i, j),
+                        matrix_operator().element(covariance1, i, j),
+                        crk_state.path_length() * epsilon);
         }
     }
 }

@@ -69,6 +69,7 @@ detray_add_library( detray_core core
    "include/detray/tools/grid_array_helper.hpp"
    "include/detray/tools/local_object_finder.hpp"
    # utils include(s)   
+   "include/detray/utils/algebra_helpers.hpp"
    "include/detray/utils/enumerate.hpp"
    "include/detray/utils/invalid_values.hpp" )
 target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)

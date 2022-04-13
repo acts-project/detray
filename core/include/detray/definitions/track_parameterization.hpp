@@ -9,7 +9,7 @@ namespace detray {
 
 /// Components of a bound track parameters vector.
 ///
-enum bound_indices : unsigned int {
+enum bound_indices : __plugin::size_type {
     // Local position on the reference surface.
     // This is intentionally named different from the position components in
     // the other data vectors, to clarify that this is defined on a surface
@@ -37,7 +37,7 @@ enum bound_indices : unsigned int {
 /// This must be a regular `enum` and not a scoped `enum class` to allow
 /// implicit conversion to an integer. The enum value are thus visible directly
 /// in `namespace Acts` and are prefixed to avoid naming collisions.
-enum free_indices : unsigned int {
+enum free_indices : __plugin::size_type {
     // Spatial position
     // The spatial position components must be stored as one continous block.
     e_free_pos0 = 0u,
