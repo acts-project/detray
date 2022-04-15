@@ -12,7 +12,7 @@
 namespace detray {
 
 template <typename scalar_t>
-struct vector_helpers {
+struct column_wise_op {
 
     using vector3 = __plugin::vector3<scalar_t>;
 
@@ -40,10 +40,10 @@ struct vector_helpers {
         return ret;
     }
 
-    /// Column-wise dot product between matrix (m) and vector (v)
+    /// Column-wise multiplication between matrix (m) and vector (v)
     DETRAY_HOST_DEVICE
-    inline matrix_type<3, 3> dot(const matrix_type<3, 3>& m,
-                                 const vector3& v) const {
+    inline matrix_type<3, 3> multiply(const matrix_type<3, 3>& m,
+                                      const vector3& v) const {
         matrix_type<3, 3> ret;
 
         for (size_type i = 0; i < 3; i++) {

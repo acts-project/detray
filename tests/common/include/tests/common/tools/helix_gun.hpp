@@ -128,13 +128,13 @@ class helix_gun {
 
         drdt = drdt + std::sin(_K * s) / _K * I33;
 
-        const auto H0 = vector_helpers<scalar>().dot(I33, _h0);
+        const auto H0 = column_wise_op<scalar>().multiply(I33, _h0);
         drdt = drdt + (_K * s - std::sin(_K * s)) / _K *
-                          vector_helpers<scalar>().dot(
+                          column_wise_op<scalar>().multiply(
                               matrix_operator().transpose(H0), _h0);
 
         drdt = drdt + (std::cos(_K * s) - 1) / _K *
-                          vector_helpers<scalar>().cross(I33, _h0);
+                          column_wise_op<scalar>().cross(I33, _h0);
 
         matrix_operator().set_block(ret, drdt, 0, 4);
 
@@ -142,10 +142,10 @@ class helix_gun {
         auto dtdt = Z33;
         dtdt = dtdt + std::cos(_K * s) * I33;
         dtdt = dtdt + (1 - std::cos(_K * s)) *
-                          vector_helpers<scalar>().dot(
+                          column_wise_op<scalar>().multiply(
                               matrix_operator().transpose(H0), _h0);
         dtdt =
-            dtdt - std::sin(_K * s) * vector_helpers<scalar>().cross(I33, _h0);
+            dtdt - std::sin(_K * s) * column_wise_op<scalar>().cross(I33, _h0);
 
         matrix_operator().set_block(ret, dtdt, 4, 4);
 

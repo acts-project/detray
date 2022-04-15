@@ -86,13 +86,13 @@ void detray::rk_stepper<magnetic_field_t, track_t, constraint_t,
     auto dk3dT = matrix_operator().template identity<3, 3>();
     auto dk4dT = matrix_operator().template identity<3, 3>();
 
-    dk1dT = qop * vector_helpers<scalar>().cross(dk1dT, sd.b_first);
+    dk1dT = qop * column_wise_op<scalar>().cross(dk1dT, sd.b_first);
     dk2dT = dk2dT + half_h * dk1dT;
-    dk2dT = qop * vector_helpers<scalar>().cross(dk2dT, sd.b_middle);
+    dk2dT = qop * column_wise_op<scalar>().cross(dk2dT, sd.b_middle);
     dk3dT = dk3dT + half_h * dk2dT;
-    dk3dT = qop * vector_helpers<scalar>().cross(dk3dT, sd.b_middle);
+    dk3dT = qop * column_wise_op<scalar>().cross(dk3dT, sd.b_middle);
     dk4dT = dk4dT + h * dk3dT;
-    dk4dT = qop * vector_helpers<scalar>().cross(dk4dT, sd.b_last);
+    dk4dT = qop * column_wise_op<scalar>().cross(dk4dT, sd.b_last);
 
     // dFdT and dGdT are top-left 3x3 submatrix of equation (17)
     auto dFdT = matrix_operator().template identity<3, 3>();
