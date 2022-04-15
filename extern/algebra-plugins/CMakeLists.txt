@@ -12,17 +12,11 @@ include( FetchContent )
 message( STATUS "Building Algebra Plugins as part of the Detray project" )
 
 # Declare where to get Algebra Plugins from.
-#set( DETRAY_ALGEBRA_PLUGINS_SOURCE
-#   "URL;https://github.com/acts-project/algebra-plugins/archive/refs/tags/v0.9.2.tar.gz;URL_MD5;7965f746a28381a1bccaebd2133284bf"
-#   CACHE STRING "Source for Algebra Plugins, when built as part of this project" )
-#mark_as_advanced( DETRAY_ALGEBRA_PLUGINS_SOURCE )
-#FetchContent_Declare( AlgebraPlugins ${DETRAY_ALGEBRA_PLUGINS_SOURCE} )
-
-FetchContent_Declare( AlgebraPlugins 
- GIT_REPOSITORY https://github.com/beomki-yeo/algebra-plugins.git
- GIT_TAG feat-matrix-vector-operations
-)
-
+set( DETRAY_ALGEBRA_PLUGINS_SOURCE
+   "URL;https://github.com/acts-project/algebra-plugins/archive/refs/tags/v0.10.0.tar.gz;URL_MD5;91e04307f2cdeda5dc541104fedb6860"
+   CACHE STRING "Source for Algebra Plugins, when built as part of this project" )
+mark_as_advanced( DETRAY_ALGEBRA_PLUGINS_SOURCE )
+FetchContent_Declare( AlgebraPlugins ${DETRAY_ALGEBRA_PLUGINS_SOURCE} )
 
 # Options used in the build of Algebra Plugins.
 set( ALGEBRA_PLUGINS_BUILD_TESTING FALSE CACHE BOOL
