@@ -10,9 +10,10 @@
 // detray tools
 #include "detray/propagator/base_stepper.hpp"
 
-// detray definitions
+// system include
 #include <cmath>
 
+// detray definitions
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
@@ -49,9 +50,6 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
 
         /// maximum trial number of RK stepping
         size_t _max_rk_step_trials = 10000;
-
-        /// Accumulated path length
-        scalar _path_length = 0.;
 
         /// stepping data required for RKN4
         struct stepping_data {
@@ -107,8 +105,8 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
             // State the square and half of the step size
             const scalar h2 = h * h;
             const scalar half_h = h * 0.5;
-            auto pos = stepping().pos();
-            auto dir = stepping().dir();
+            const auto pos = stepping().pos();
+            const auto dir = stepping().dir();
 
             // Second Runge-Kutta point
             const vector3 pos1 = pos + half_h * dir + h2 * 0.125 * sd.k1;
@@ -117,7 +115,6 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
 
             // Third Runge-Kutta point
             sd.k3 = evaluate_k(stepping, sd.b_middle, 2, half_h, sd.k2);
-
             // Last Runge-Kutta point
             const vector3 pos2 = pos + h * dir + h2 * 0.5 * sd.k3;
             sd.b_last = _magnetic_field.get_field(pos2, context_type{});
@@ -191,13 +188,6 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
             navigation.set_fair_trust();
         }
 
-        // Update and check path limit
-        if (not stepping.check_path_limit()) {
-            printf("Stepper: Above maximal path length!\n");
-            // State is broken
-            return navigation.abort();
-        }
-
         // Update track state
         stepping.advance_track();
 
@@ -212,8 +202,8 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
                               const int i, const scalar h = 0.,
                               const vector3& k_prev = vector3{0, 0, 0}) {
         vector3 k_new;
-        auto qop = stepping().qop();
-        auto dir = stepping().dir();
+        const auto qop = stepping().qop();
+        const auto dir = stepping().dir();
 
         if (i == 0) {
             k_new = qop * vector::cross(dir, b_field);
