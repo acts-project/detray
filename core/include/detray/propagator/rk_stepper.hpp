@@ -10,10 +10,10 @@
 // detray tools
 #include "detray/propagator/base_stepper.hpp"
 
-// detray definitions
+// system include
 #include <cmath>
-#include <iostream>
 
+// detray definitions
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
