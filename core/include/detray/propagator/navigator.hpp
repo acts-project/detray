@@ -351,9 +351,7 @@ class navigator {
     DETRAY_HOST_DEVICE bool init(state &navigation,
                                  stepper_state_t &stepping) const {
         // Establish navigation status before the first step
-        bool heartbeat = update(navigation, stepping);
-        navigation.set_high_trust();
-        return heartbeat;
+        return update(navigation, stepping);
     }
 
     /** Navigation status() call which established the current navigation
