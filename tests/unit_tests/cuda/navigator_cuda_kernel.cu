@@ -36,7 +36,10 @@ __global__ void navigator_test_kernel(
     stepper_t stepper;
     stepper_t::state stepping(traj);
 
-    navigator_device_t::state state(candidates.at(gid));
+    navigator_device_t::state navigation(candidates.at(gid));
+
+    prop_state<stepper_t::state, navigator_host_t::state> propagation{
+        stepping, navigation};
 
     // Set initial volume
     state.set_volume(0u);
@@ -45,14 +48,14 @@ __global__ void navigator_test_kernel(
     bool heartbeat = n.init(state, stepping);
     while (heartbeat) {
 
-        heartbeat &= stepper.step(stepping, state);
+        heartbeat &= stepper.step(propagation);
 
         state.set_high_trust();
 
-        heartbeat = n.update(state, stepping);
+        heartbeat = n.update(navigation, stepping);
 
         // Record volume
-        volume_records[gid].push_back(state.volume());
+        volume_records[gid].push_back(navigation.volume());
         position_records[gid].push_back(stepping().pos());
     }
 }

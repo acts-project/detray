@@ -20,6 +20,8 @@
 using namespace detray;
 using namespace __plugin;
 
+namespace {
+
 constexpr scalar epsilon = 1e-4;
 constexpr scalar path_limit = 100 * unit_constants::cm;
 
@@ -42,6 +44,8 @@ struct prop_state {
     stepping_t &_stepping;
     navigation_t &_navigation;
 };
+
+}  // namespace
 
 // This tests the base functionality of the line stepper
 TEST(ALGEBRA_PLUGIN, line_stepper) {
