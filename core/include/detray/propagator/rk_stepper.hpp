@@ -22,7 +22,7 @@ namespace detray {
 /// @tparam constraint_ the type of constraints on the stepper
 template <typename magnetic_field_t, typename track_t,
           typename constraint_t = unconstrained_step,
-          typename policy_t = step::default_policy,
+          typename policy_t = stepper_default_policy,
           template <typename, std::size_t> class array_t = darray>
 class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
 

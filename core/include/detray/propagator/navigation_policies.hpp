@@ -52,13 +52,11 @@ struct guided_navigation : actor {
     }
 };
 
-namespace step {
-
 /// Default navigation update policy for the steppers: If a constraint has been
 /// hit, lower the trustlevel to 'fair trust', otherwise stay in 'high trust'.
 /// The reasoning is, that the track state might have changed much when a
 /// constraint was triggered.
-struct default_policy : actor {
+struct stepper_default_policy : actor {
 
     struct state_type {};
 
@@ -88,7 +86,5 @@ struct default_policy : actor {
         }
     }
 };
-
-}  // namespace step
 
 }  // namespace detray
