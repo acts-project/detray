@@ -36,7 +36,6 @@ struct nav_state {
 
     scalar _step_size = 1. * unit_constants::mm;
 };
-nav_state n_state{};
 
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
