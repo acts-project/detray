@@ -48,12 +48,11 @@ __global__ void propagator_test_kernel(
     inspector_device_t::state_type insp_state(
         path_lengths.at(gid), positions.at(gid), jac_transports.at(gid));
     pathlimit_aborter::state_type aborter_state{path_limit};
-    step::default_policy::state_type pol_state{};
 
     // Create the propagator state
-    propagator_device_type::state state(
-        tracks[gid], thrust::tie(insp_state, aborter_state, pol_state),
-        candidates.at(gid));
+    propagator_device_type::state state(tracks[gid],
+                                        thrust::tie(insp_state, aborter_state),
+                                        candidates.at(gid));
 
     state._stepping.set_tolerance(rk_tolerance);
 

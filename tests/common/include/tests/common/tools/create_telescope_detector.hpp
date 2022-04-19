@@ -61,6 +61,12 @@ inline std::vector<module_placement> module_positions(
         scalar _step_size = 0;
     };
 
+    // dummy propagator state
+    struct prop_state {
+        typename stepper_t::state &_stepping;
+        navigation_state &_navigation;
+    };
+
     // create and fill the positions
     std::vector<module_placement> m_positions;
     m_positions.reserve(steps.size());
@@ -70,6 +76,7 @@ inline std::vector<module_placement> module_positions(
 
     // Find exact position by walking along track
     typename stepper_t::state step_state(track);
+    prop_state propagation{step_state, n_state};
 
     // Calculate step size from module positions. The modules will only be
     // placed at the given position if the b-field allows for it. Otherwise, by
@@ -79,7 +86,7 @@ inline std::vector<module_placement> module_positions(
     for (const auto &dist : steps) {
         // advance the track state to the next plane position
         n_state._step_size = dist - prev_dist;
-        stepper.step(step_state, n_state);
+        stepper.step(propagation);
         m_positions.push_back({track.pos(), track.dir()});
         prev_dist = dist;
     }

@@ -47,10 +47,10 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
                                             print_inspector>;
     using b_field_t = constant_magnetic_field<>;
     using runge_kutta_stepper =
-        rk_stepper<b_field_t, free_track_parameters, guided_navigation>;
+        rk_stepper<b_field_t, free_track_parameters, unconstrained_step,
+                   guided_navigation>;
     using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
-    using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter, guided_navigation>;
+    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
     using propagator_t =
         propagator<runge_kutta_stepper, guided_navigator, actor_chain_t>;
 
@@ -61,17 +61,13 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     vector3 B{0, 0, 1 * unit_constants::T};
     b_field_t b_field(B);
 
-    runge_kutta_stepper stepper(b_field);
-    guided_navigator nav(telescope_det);
-
     // Actors
     pathlimit_aborter::state_type pathlimit{1. * unit_constants::m};
-    guided_navigation::state_type policy{};
-    actor_chain_t::state actor_states = std::tie(pathlimit, policy);
 
     // Propagator
-    propagator_t p(std::move(stepper), std::move(nav));
-    propagator_t::state guided_state(track, actor_states);
+    propagator_t p(runge_kutta_stepper{b_field},
+                   guided_navigator{telescope_det});
+    propagator_t::state guided_state(track, std::tie(pathlimit));
 
     // Propagate
     p.propagate(guided_state);

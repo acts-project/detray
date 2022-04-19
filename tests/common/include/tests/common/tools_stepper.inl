@@ -9,7 +9,6 @@
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
 #include "tests/common/tools/helix_gun.hpp"
@@ -37,6 +36,13 @@ struct nav_state {
 };
 nav_state n_state{};
 
+// dummy propagator state
+template <typename stepping_t, typename navigation_t>
+struct prop_state {
+    stepping_t &_stepping;
+    navigation_t &_navigation;
+};
+
 // This tests the base functionality of the line stepper
 TEST(ALGEBRA_PLUGIN, line_stepper) {
     using namespace step;
@@ -44,8 +50,7 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     // Line stepper with and without constrained stepping
     using line_stepper_t = line_stepper<free_track_parameters>;
     using cline_stepper_t =
-        line_stepper<free_track_parameters, step::default_policy,
-                     constrained_step<>>;
+        line_stepper<free_track_parameters, constrained_step<>>;
 
     point3<scalar> pos{0., 0., 0.};
     vector3<scalar> mom{1., 1., 0.};
@@ -56,6 +61,10 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     cline_stepper_t cl_stepper;
     line_stepper_t::state l_state(traj);
     cline_stepper_t::state cl_state(c_traj);
+
+    prop_state<line_stepper_t::state, nav_state> propagation{l_state, n_state};
+    prop_state<cline_stepper_t::state, nav_state> c_propagation{cl_state,
+                                                                n_state};
 
     // Test the setting of step constraints
     cl_state.template set_constraint<constraint::e_accuracy>(
@@ -82,10 +91,10 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
                 0.5 * unit_constants::mm, epsilon);
 
     // Run a few steps
-    ASSERT_TRUE(l_stepper.step(l_state, n_state));
+    ASSERT_TRUE(l_stepper.step(propagation));
     // Step constraint to half step size
-    ASSERT_TRUE(cl_stepper.step(cl_state, n_state));
-    ASSERT_TRUE(cl_stepper.step(cl_state, n_state));
+    ASSERT_TRUE(cl_stepper.step(c_propagation));
+    ASSERT_TRUE(cl_stepper.step(c_propagation));
 
     ASSERT_FLOAT_EQ(traj.pos()[0], 1. / std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[1], 1. / std::sqrt(2));
@@ -95,7 +104,7 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     ASSERT_FLOAT_EQ(c_traj.pos()[1], 1. / std::sqrt(2));
     ASSERT_FLOAT_EQ(c_traj.pos()[2], 0.);
 
-    ASSERT_TRUE(l_stepper.step(l_state, n_state));
+    ASSERT_TRUE(l_stepper.step(propagation));
 
     ASSERT_FLOAT_EQ(traj.pos()[0], std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[1], std::sqrt(2));
@@ -112,8 +121,8 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
     using mag_field_t = constant_magnetic_field<>;
     using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
-    using crk_stepper_t = rk_stepper<mag_field_t, free_track_parameters,
-                                     step::default_policy, constrained_step<>>;
+    using crk_stepper_t =
+        rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
 
     // RK stepper configurations
     constexpr unsigned int theta_steps = 100;
@@ -159,6 +168,11 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             rk_stepper_t::state rk_state(traj);
             crk_stepper_t::state crk_state(c_traj);
 
+            prop_state<rk_stepper_t::state, nav_state> propagation{rk_state,
+                                                                   n_state};
+            prop_state<crk_stepper_t::state, nav_state> c_propagation{crk_state,
+                                                                      n_state};
+
             crk_state.template set_constraint<constraint::e_user>(
                 0.5 * unit_constants::mm);
             n_state._step_size = 1. * unit_constants::mm;
@@ -166,9 +180,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
                         0.5 * unit_constants::mm, epsilon);
 
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(rk_state, n_state);
-                crk_stepper.step(crk_state, n_state);
-                crk_stepper.step(crk_state, n_state);
+                rk_stepper.step(propagation);
+                crk_stepper.step(c_propagation);
+                crk_stepper.step(c_propagation);
             }
 
             // get relative error by dividing error with path length
@@ -191,9 +205,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             const scalar path_length = rk_state.path_length();
             n_state._step_size *= -1. * unit_constants::mm;
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(rk_state, n_state);
-                crk_stepper.step(crk_state, n_state);
-                crk_stepper.step(crk_state, n_state);
+                rk_stepper.step(propagation);
+                crk_stepper.step(c_propagation);
+                crk_stepper.step(c_propagation);
             }
 
             ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(),
@@ -219,8 +233,8 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     using point3 = point3<scalar>;
     using matrix_operator = standard_matrix_operator<scalar>;
     using mag_field_t = constant_magnetic_field<>;
-    using crk_stepper_t = rk_stepper<mag_field_t, free_track_parameters, void,
-                                     constrained_step<>>;
+    using crk_stepper_t =
+        rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
 
     // Generate track starting point
     point3 pos{0., 0., 0.};
@@ -257,6 +271,8 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     mag_field_t mag_field(B);
     crk_stepper_t::state crk_state(vertex);
 
+    prop_state<crk_stepper_t::state, nav_state> propagation{crk_state, n_state};
+
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = 1e-8;
 
@@ -270,7 +286,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
 
         n_state._step_size = S;
 
-        crk_stepper.step(crk_state, n_state);
+        crk_stepper.step(propagation);
 
         if (std::abs(S - crk_state.path_length()) < 1e-6) {
             break;
@@ -282,7 +298,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
 
     auto jac_transport = crk_state._jac_transport;
 
-    ///// Jacobian check with Helix Gun
+    // Jacobian check with Helix Gun
     auto J = helix.jacobian(crk_state.path_length());
 
     for (size_type i = 0; i < e_free_size; i++) {

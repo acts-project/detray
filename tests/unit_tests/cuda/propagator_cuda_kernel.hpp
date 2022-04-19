@@ -22,7 +22,6 @@
 #include "detray/propagator/aborters.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_actor.hpp"
-#include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -108,11 +107,10 @@ struct track_inspector : actor {
 // Assemble propagator type
 using inspector_host_t = track_inspector<vecmem::vector>;
 using inspector_device_t = track_inspector<vecmem::device_vector>;
-using actor_chain_host_t = actor_chain<thrust::tuple, inspector_host_t,
-                                       pathlimit_aborter, step::default_policy>;
+using actor_chain_host_t =
+    actor_chain<thrust::tuple, inspector_host_t, pathlimit_aborter>;
 using actor_chain_device_t =
-    actor_chain<thrust::tuple, inspector_device_t, pathlimit_aborter,
-                step::default_policy>;
+    actor_chain<thrust::tuple, inspector_device_t, pathlimit_aborter>;
 using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain_host_t>;
 using propagator_device_type =

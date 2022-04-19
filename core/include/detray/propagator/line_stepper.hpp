@@ -23,12 +23,13 @@ namespace detray {
 ///
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
-template <typename track_t, typename policy_t = step::default_policy,
-          typename constraint_t = unconstrained_step>
-class line_stepper final : public base_stepper<track_t, constraint_t> {
+template <typename track_t, typename constraint_t = unconstrained_step,
+          typename policy_t = step::default_policy>
+class line_stepper final
+    : public base_stepper<track_t, constraint_t, policy_t> {
 
     public:
-    using base_type = base_stepper<track_t, constraint_t>;
+    using base_type = base_stepper<track_t, constraint_t, policy_t>;
     using policy_type = policy_t;
 
     struct state : public base_type::state {
@@ -52,12 +53,12 @@ class line_stepper final : public base_stepper<track_t, constraint_t> {
     /// @param max_step_size Maximal distance for this step
     ///
     /// @return returning the heartbeat, indicating if the stepping is alive
-    template <typename navigation_state_t>
-    DETRAY_HOST_DEVICE bool step(state &stepping,
-                                 navigation_state_t &navigation) {
-
+    template <typename propagation_state_t>
+    DETRAY_HOST_DEVICE bool step(propagation_state_t &propagation) {
+        // Get stepper state
+        state &stepping = propagation._stepping;
         // Distance to next surface as fixed step size
-        scalar step_size = navigation();
+        scalar step_size = propagation._navigation();
 
         // Update navigation direction
         const step::direction dir = step_size > 0 ? step::direction::e_forward
@@ -76,6 +77,9 @@ class line_stepper final : public base_stepper<track_t, constraint_t> {
 
         // Update track state
         stepping.advance_track();
+
+        // Call navigation update policy
+        policy_t{}(stepping.policy_state(), propagation);
 
         return true;
     }

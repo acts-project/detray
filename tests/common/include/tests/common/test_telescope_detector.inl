@@ -22,9 +22,20 @@
 /// @note __plugin has to be defined with a preprocessor command
 namespace detray {
 
+namespace {
+
 using vector3 = __plugin::vector3<detray::scalar>;
 
-}
+// dummy propagator state
+template <typename stepping_t, typename navigation_t>
+struct prop_state {
+    stepping_t &_stepping;
+    navigation_t &_navigation;
+};
+
+}  // anonymous namespace
+
+}  // namespace detray
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, telescope_detector) {
@@ -102,6 +113,10 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     navigator<decltype(x_tel_det), inspector_t> nav_x(x_tel_det);
     decltype(nav_z1)::state n_z1, n_z2, n_x;
 
+    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_z1{s_z1, n_z1};
+    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_z2{s_z2, n_z2};
+    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_x{s_x, n_x};
+
     bool heartbeat_z1 = nav_z1.init(n_z1, s_z1);
     bool heartbeat_z2 = nav_z2.init(n_z2, s_z2);
     bool heartbeat_x = nav_x.init(n_x, s_x);
@@ -112,9 +127,9 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
         EXPECT_TRUE(heartbeat_z2);
         EXPECT_TRUE(heartbeat_x);
 
-        heartbeat_z1 &= rk_step_x.step(s_z1, n_z1);
-        heartbeat_z2 &= rk_step_x.step(s_z2, n_z2);
-        heartbeat_x &= rk_step_z.step(s_x, n_x);
+        heartbeat_z1 &= rk_step_x.step(p_z1);
+        heartbeat_z2 &= rk_step_x.step(p_z2);
+        heartbeat_x &= rk_step_z.step(p_x);
 
         n_z1.set_high_trust();
         n_z2.set_high_trust();
@@ -156,10 +171,13 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     rk_stepper_t::state s_tel(pilot_track);
     navigator<decltype(tel_det), inspector_t> nav_tel(tel_det);
     decltype(nav_tel)::state n_tel;
+    prop_state<rk_stepper_t::state, decltype(nav_tel)::state> p_tel{s_tel,
+                                                                    n_tel};
+
     bool heartbeat_tel = nav_tel.init(n_tel, s_tel);
 
     while (heartbeat_tel) {
-        heartbeat_tel &= rk_step_z.step(s_tel, n_tel);
+        heartbeat_tel &= rk_step_z.step(p_tel);
         n_tel.set_high_trust();
         heartbeat_tel &= nav_tel.update(n_tel, s_tel);
     }

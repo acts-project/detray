@@ -15,7 +15,6 @@
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -82,20 +81,15 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
     using track_t = free_track_parameters;
     using stepper_t = line_stepper<track_t>;
-    using actor_chain_t = actor_chain<dtuple, step::default_policy>;
-    using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     point3 pos{0., 0., 0.};
     vector3 mom{1., 1., 0.};
     track_t traj(pos, 0, mom, -1);
 
-    // Actors
-    step::default_policy::state_type policy{};
-    actor_chain_t::state actor_states = std::tie(policy);
-
     propagator_t p(stepper_t{}, navigator_t{d});
 
-    propagator_t::state state(traj, actor_states);
+    propagator_t::state state(traj);
 
     EXPECT_TRUE(p.propagate(state))
         << state._navigation.inspector().to_string() << std::endl;
@@ -124,18 +118,15 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using navigator_t = navigator<decltype(d)>;
     using b_field_t = constant_magnetic_field<>;
     using constraints_t = constrained_step<>;
-    using stepper_t = rk_stepper<b_field_t, free_track_parameters,
-                                 step::default_policy, constraints_t>;
+    using stepper_t =
+        rk_stepper<b_field_t, free_track_parameters, constraints_t>;
     using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector,
-                                      pathlimit_aborter, step::default_policy>;
+                                      pathlimit_aborter>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Constant magnetic field
     vector3 B = GetParam();
     b_field_t b_field(B);
-
-    // Genral actor states
-    step::default_policy::state_type policy{};
 
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{b_field}, navigator_t{d});
@@ -172,12 +163,11 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             pathlimit_aborter::state_type pathlimit_aborter_state{path_limit};
 
             // Create actor states tuples
-            actor_chain_t::state actor_states =
-                std::tie(helix_insp_state, print_insp_state,
-                         unlimted_aborter_state, policy);
+            actor_chain_t::state actor_states = std::tie(
+                helix_insp_state, print_insp_state, unlimted_aborter_state);
             actor_chain_t::state lim_actor_states =
                 std::tie(helix_insp_state, lim_print_insp_state,
-                         pathlimit_aborter_state, policy);
+                         pathlimit_aborter_state);
 
             // Init propagator states
             propagator_t::state state(traj, actor_states);

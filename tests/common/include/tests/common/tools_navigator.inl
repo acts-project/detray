@@ -11,13 +11,21 @@
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
 namespace detray {
+
+namespace {
+
+// dummy propagator state
+template <typename stepping_t, typename navigation_t>
+struct prop_state {
+    stepping_t &_stepping;
+    navigation_t &_navigation;
+};
 
 /// Checks for a correct 'towards_surface' state
 template <typename navigator_t, typename state_t = typename navigator_t::state>
@@ -66,25 +74,26 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
 }
 
 /// Checks an entire step onto the next surface
-template <typename navigator_t, typename stepper_t, typename nav_state_t,
-          typename stepper_state_t>
-inline void check_step(navigator_t &n, stepper_t &s, nav_state_t &n_state,
-                       stepper_state_t &s_state, dindex vol_id,
-                       std::size_t n_candidates, dindex current_id,
-                       dindex next_id) {
+template <typename navigator_t, typename stepper_t, typename prop_state_t>
+inline void check_step(navigator_t &n, stepper_t &s, prop_state_t &propagation,
+                       dindex vol_id, std::size_t n_candidates,
+                       dindex current_id, dindex next_id) {
+    auto &n_state = propagation._navigation;
 
     // Step onto the surface in volume
-    s.step(s_state, n_state);
+    s.step(propagation);
     n_state.set_high_trust();
     // Stepper reduced trust level
     ASSERT_TRUE(n_state.trust_level() == navigation::trust_level::e_high);
-    ASSERT_TRUE(n.update(n_state, s_state));
+    ASSERT_TRUE(n.update(n_state, propagation._stepping));
     // Trust level is restored
     ASSERT_EQ(n_state.trust_level(), navigation::trust_level::e_full);
     // The status is on surface
     check_on_surface<navigator_t>(n_state, vol_id, n_candidates, current_id,
                                   next_id);
 }
+
+}  // anonymous namespace
 
 }  // namespace detray
 
@@ -106,19 +115,21 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     using detector_t = decltype(toy_det);
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;
-    navigator_t n(toy_det);
     using constraint_t = constrained_step<>;
-    using stepper_t =
-        line_stepper<free_track_parameters, step::default_policy, constraint_t>;
+    using stepper_t = line_stepper<free_track_parameters, constraint_t>;
 
     // test track
     point3 pos{0., 0., 0.};
     vector3 mom{1., 1., 0.};
     free_track_parameters traj(pos, 0, mom, -1);
-    stepper_t s;
-    typename stepper_t::state s_state(traj);
 
+    stepper_t s;
+    navigator_t n(toy_det);
+
+    stepper_t::state s_state(traj);
     navigator_t::state n_state;
+    prop_state<stepper_t::state, navigator_t::state> propagation{s_state,
+                                                                 n_state};
 
     // Check that the state is unitialized
     // Default volume is zero
@@ -146,7 +157,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
     // Let's make half the step towards the beampipe
     s_state.template set_constraint<step::constraint::e_user>(n_state() * 0.5);
-    s.step(s_state, n_state);
+    s.step(propagation);
     // Navigation policy might reduce trust level to fair trust
     n_state.set_fair_trust();
     // Release user constraint again
@@ -172,12 +183,12 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_NEAR(n_state(), 9.5, tol);
 
     // Now step onto the beampipe (idx 0)
-    check_step(n, s, n_state, s_state, 0, 2, 0, 7);
+    check_step(n, s, propagation, 0, 2, 0, 7);
     // New target: Distance to the beampipe volume cylinder portal
     ASSERT_NEAR(n_state(), 8, tol);
 
     // Step onto portal 7 in volume 0
-    s.step(s_state, n_state);
+    s.step(propagation);
     n_state.set_high_trust();
     ASSERT_TRUE(n_state.trust_level() == trust_level::e_high);
     ASSERT_TRUE(n.update(n_state, s_state));
@@ -224,12 +235,12 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
         // Step through the module surfaces
         for (std::size_t sf = 0; sf < sf_seq.size() - 1; ++sf) {
-            check_step(n, s, n_state, s_state, vol_id, n_candidates, sf_seq[sf],
+            check_step(n, s, propagation, vol_id, n_candidates, sf_seq[sf],
                        sf_seq[sf + 1]);
         }
 
         // Step onto the portal in volume
-        s.step(s_state, n_state);
+        s.step(propagation);
         n_state.set_high_trust();
 
         // Check agianst last volume

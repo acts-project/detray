@@ -12,7 +12,6 @@
 
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/track.hpp"
@@ -35,12 +34,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                                             print_inspector>;
     using navigator_t = navigator<decltype(det), inspector_t>;
     using stepper_t = line_stepper<free_track_parameters>;
-    using actor_chain_t = actor_chain<dtuple, step::default_policy>;
-    using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
-
-    // Actors
-    step::default_policy::state_type policy{};
-    actor_chain_t::state actor_states = std::tie(policy);
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
     propagator_t prop(stepper_t{}, navigator_t{det});
@@ -72,7 +66,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             const auto intersection_trace = shoot_ray(det, r);
 
             free_track_parameters track(ori, 0, dir, -1);
-            propagator_t::state prop_state(track, actor_states);
+            propagator_t::state prop_state(track);
 
             prop.propagate(prop_state);
 

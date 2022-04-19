@@ -38,12 +38,9 @@ __global__ void propagator_benchmark_kernel(
     // Create propagator
     propagator_device_type p(std::move(s), std::move(n));
 
-    // Actor states
-    step::default_policy::state_type policies{};
-
     // Create the propagator state
-    propagator_device_type::state p_state(tracks.at(gid), thrust::tie(policies),
-                                          candidates.at(gid));
+    propagator_device_type::state p_state(
+        tracks.at(gid), actor_chain<>::state{}, candidates.at(gid));
 
     // Run propagation
     p.propagate(p_state);

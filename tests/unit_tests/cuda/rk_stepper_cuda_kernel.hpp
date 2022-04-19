@@ -20,7 +20,6 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
-#include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
 
@@ -32,8 +31,8 @@ using point3 = __plugin::point3<scalar>;
 
 using mag_field_t = constant_magnetic_field<>;
 using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
-using crk_stepper_t = rk_stepper<mag_field_t, free_track_parameters,
-                                 step::default_policy, constrained_step<>>;
+using crk_stepper_t =
+    rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
 
 // geomery navigation configurations
 constexpr unsigned int theta_steps = 100;
