@@ -23,8 +23,7 @@ namespace matrix = algebra::matrix;
 
 // Define matrix operator
 template <typename T>
-using matrix_operator =
-    matrix::actor<std::size_t, T, matrix::determinant::preset0<std::size_t, T>,
-                  matrix::inverse::preset0<std::size_t, T>>;
+using matrix_operator = matrix::actor<T, matrix::determinant::preset0<T>,
+                                      matrix::inverse::preset0<T>>;
 
 }  // namespace detray

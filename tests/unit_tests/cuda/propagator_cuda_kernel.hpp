@@ -50,8 +50,8 @@ constexpr std::size_t n_brl_layers = 4;
 constexpr std::size_t n_edc_layers = 3;
 
 // geomery navigation configurations
-constexpr unsigned int theta_steps = 100;
-constexpr unsigned int phi_steps = 100;
+constexpr unsigned int theta_steps = 10;
+constexpr unsigned int phi_steps = 10;
 
 constexpr scalar pos_diff_tolerance = 1e-3;
 constexpr scalar path_limit = 2 * unit_constants::m;
@@ -64,14 +64,13 @@ struct track_inspector : actor {
     struct track_inspector_state {
 
         track_inspector_state(vecmem::memory_resource &resource)
-            : _intersections(&resource) {}
+            : _positions(&resource) {}
 
         DETRAY_HOST_DEVICE
-        track_inspector_state(vector_t<intersection_t> intersection_record)
-            : _intersections(intersection_record) {}
+        track_inspector_state(vector_t<vector3> positions)
+            : _positions(positions) {}
 
-        // Intersections per track
-        vector_t<intersection_t> _intersections;
+        vector_t<vector3> _positions;
     };
 
     using state_type = track_inspector_state;
@@ -81,12 +80,10 @@ struct track_inspector : actor {
         state_type &inspector_state,
         const propagator_state_t &prop_state) const {
 
-        const auto &navigation = prop_state._navigation;
+        const auto &stepping = prop_state._stepping;
 
-        // Record when status == e_on_target
-        if (navigation.status() == navigation::status::e_on_target) {
-            inspector_state._intersections.push_back(*navigation.current());
-        }
+        // Record only on the object
+        inspector_state._positions.push_back(stepping().pos());
     }
 };
 
@@ -104,9 +101,9 @@ using propagator_device_type =
 
 /// test function for propagator with single state
 void propagator_test(
-    detector_view<detector_host_type> det_data,
+    detector_view<detector_host_type> det_data, const vector3 B,
     vecmem::data::vector_view<free_track_parameters> &tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
-    vecmem::data::jagged_vector_view<intersection_t> &intersections_data);
+    vecmem::data::jagged_vector_view<vector3> &positions_data);
 
 }  // namespace detray

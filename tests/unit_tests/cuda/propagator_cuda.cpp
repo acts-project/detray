@@ -67,7 +67,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
      */
 
     // Set the magnetic field
-    vector3 B = GetParam();
+    const vector3 B = GetParam();
     field_type B_field(B);
 
     // Create RK stepper
@@ -78,8 +78,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     propagator_host_type p(std::move(s), std::move(n));
 
     // Create vector for track recording
-    vecmem::jagged_vector<intersection_t> host_intersection_records(&mng_mr);
-
+    vecmem::jagged_vector<vector3> host_positions(&mng_mr);
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
         // Create the propagator state
@@ -92,8 +91,8 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         // Run propagation
         p.propagate(state);
 
-        // push back the intersection record
-        host_intersection_records.push_back(insp_state._intersections);
+        // push back the positions
+        host_positions.push_back(insp_state._positions);
     }
 
     /**
@@ -112,38 +111,36 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     copy.setup(candidates_buffer);
 
     // Create vector for track recording
-    vecmem::jagged_vector<intersection_t> device_intersection_records(&mng_mr);
+    vecmem::jagged_vector<vector3> device_positions(&mng_mr);
 
     // Create vector buffer for track recording
     std::vector<std::size_t> sizes(theta_steps * phi_steps, 0);
     std::vector<std::size_t> capacities;
-    for (auto& r : host_intersection_records) {
+    for (auto& r : host_positions) {
         capacities.push_back(r.size());
     }
 
-    vecmem::data::jagged_vector_buffer<intersection_t> intersections_buffer(
+    vecmem::data::jagged_vector_buffer<vector3> positions_buffer(
         sizes, capacities, dev_mr, &mng_mr);
-    copy.setup(intersections_buffer);
+    copy.setup(positions_buffer);
 
     // Run the propagator test for GPU device
-    propagator_test(det_data, tracks_data, candidates_buffer,
-                    intersections_buffer);
+    propagator_test(det_data, B, tracks_data, candidates_buffer,
+                    positions_buffer);
 
     // copy back intersection record
-    copy(intersections_buffer, device_intersection_records);
+    copy(positions_buffer, device_positions);
 
-    for (unsigned int i = 0; i < host_intersection_records.size(); i++) {
-        for (unsigned int j = 0; j < host_intersection_records[i].size(); j++) {
-            auto& host_intersection = host_intersection_records[i][j];
-            auto& device_intersection = device_intersection_records[i][j];
+    for (unsigned int i = 0; i < host_positions.size(); i++) {
+        ASSERT_TRUE(host_positions[i].size() > 0);
 
-            EXPECT_EQ(host_intersection.link, device_intersection.link);
-            EXPECT_NEAR(host_intersection.p3[0], device_intersection.p3[0],
-                        pos_diff_tolerance);
-            EXPECT_NEAR(host_intersection.p3[1], device_intersection.p3[1],
-                        pos_diff_tolerance);
-            EXPECT_NEAR(host_intersection.p3[2], device_intersection.p3[2],
-                        pos_diff_tolerance);
+        for (unsigned int j = 0; j < host_positions[i].size(); j++) {
+            auto& host_pos = host_positions[i][j];
+            auto& device_pos = device_positions[i][j];
+
+            EXPECT_NEAR(host_pos[0], device_pos[0], pos_diff_tolerance);
+            EXPECT_NEAR(host_pos[1], device_pos[1], pos_diff_tolerance);
+            EXPECT_NEAR(host_pos[2], device_pos[2], pos_diff_tolerance);
         }
     }
 }
