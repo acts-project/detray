@@ -81,7 +81,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     vecmem::jagged_vector<scalar> host_path_lengths(&mng_mr);
     vecmem::jagged_vector<vector3> host_positions(&mng_mr);
     vecmem::jagged_vector<free_matrix> host_jac_transports(&mng_mr);
-    
+
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
         // Create the propagator state

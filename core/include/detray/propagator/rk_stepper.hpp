@@ -13,9 +13,6 @@
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/navigation_policies.hpp"
 
-// system include
-#include <cmath>
-
 namespace detray {
 
 /// Runge-Kutta-Nystrom 4th order stepper implementation

@@ -219,8 +219,8 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     using point3 = point3<scalar>;
     using matrix_operator = standard_matrix_operator<scalar>;
     using mag_field_t = constant_magnetic_field<>;
-    using crk_stepper_t =
-        rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
+    using crk_stepper_t = rk_stepper<mag_field_t, free_track_parameters, void,
+                                     constrained_step<>>;
 
     // Generate track starting point
     point3 pos{0., 0., 0.};
@@ -268,7 +268,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
 
         crk_state.set_constraint(S - crk_state.path_length());
 
-        n_state._step_size = std::numeric_limits<scalar>::max();
+        n_state._step_size = S;
 
         crk_stepper.step(crk_state, n_state);
 

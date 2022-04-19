@@ -7,14 +7,15 @@
 
 #pragma once
 
+// detray definitions
+#include "detray/definitions/qualifiers.hpp"
+
 // detray tools
 #include "detray/propagator/base_stepper.hpp"
-
-// detray definitions
-#include <cmath>
-
-#include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/navigation_policies.hpp"
+
+// system includes
+#include <cmath>
 
 namespace detray {
 
@@ -44,14 +45,13 @@ class line_stepper final : public base_stepper<track_t, constraint_t> {
         }
     };
 
-    /** Take a step, regulared by a constrained step
-     *
-     * @param stepping The state object of a stepper
-     * @param navigation The state object of a navigator
-     * @param max_step_size Maximal distance for this step
-     *
-     * @return returning the heartbeat, indicating if the stepping is alive
-     */
+    /// Take a step, regulared by a constrained step
+    ///
+    /// @param stepping The state object of a stepper
+    /// @param navigation The state object of a navigator
+    /// @param max_step_size Maximal distance for this step
+    ///
+    /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename navigation_state_t>
     DETRAY_HOST_DEVICE bool step(state &stepping,
                                  navigation_state_t &navigation) {

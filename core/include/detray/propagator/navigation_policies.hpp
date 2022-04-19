@@ -8,10 +8,11 @@
 #pragma once
 
 // detray definitions
-#include <climits>
-
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
+
+// system includes
+#include <climits>
 
 namespace detray {
 
@@ -58,6 +59,7 @@ namespace step {
 struct default_policy : actor {
 
     /// State of the policy keeps track of the path length
+    /// to make sure it is not called twice during propagation
     struct policy_state {
         scalar _path_length{0};
         scalar _tolerance{std::numeric_limits<scalar>::epsilon()};
