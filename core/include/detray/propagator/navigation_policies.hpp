@@ -25,11 +25,12 @@ struct always_init : actor {
     /// Sets the navigation trust level to 'no trust'
     ///
     /// @param pol_state not used
-    /// @param prop_state state of the propagation
+    /// @param propagation state of the propagation
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(const state_type & /*pol_state*/,
-                                       propagator_state_t &prop_state) const {
-        prop_state._navigation.set_no_trust();
+    DETRAY_HOST_DEVICE inline void operator()(
+        const state_type & /*pol_state*/,
+        propagator_state_t &propagation) const {
+        propagation._navigation.set_no_trust();
     }
 };
 
@@ -42,11 +43,12 @@ struct guided_navigation : actor {
     /// Sets the navigation trust level to 'no trust'
     ///
     /// @param pol_state not used
-    /// @param prop_state state of the propagation
+    /// @param propagation state of the propagation
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(const state_type & /*pol_state*/,
-                                       propagator_state_t &prop_state) const {
-        prop_state._navigation.set_high_trust();
+    DETRAY_HOST_DEVICE inline void operator()(
+        const state_type & /*pol_state*/,
+        propagator_state_t &propagation) const {
+        propagation._navigation.set_high_trust();
     }
 };
 
@@ -58,35 +60,18 @@ namespace step {
 /// constraint was triggered.
 struct default_policy : actor {
 
-    /// State of the policy keeps track of the path length
-    /// to make sure it is not called twice during propagation
-    struct policy_state {
-        scalar _path_length{0};
-        scalar _tolerance{std::numeric_limits<scalar>::epsilon()};
-    };
+    struct state_type {};
 
-    using state_type = policy_state;
-
-    /// Sets the navigation trust level to 'no trust'
+    /// Sets the navigation trust level depending on the step size limit
     ///
     /// @param pol_state not used
-    /// @param prop_state state of the propagation
+    /// @param propagation state of the propagation
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void operator()(
-        state_type &pol_state, propagator_state_t &prop_state) const {
+        state_type & /*pol_state*/, propagator_state_t &propagation) const {
 
-        const auto &stepping = prop_state._stepping;
-
-        // This is run after the navigator update - do nothing
-        if (std::abs(pol_state._path_length - stepping.path_length()) <
-            pol_state._tolerance) {
-            return;
-        }
-
-        // Update path length when the stepper advanced the track state
-        pol_state._path_length = stepping.path_length();
-
-        auto &navigation = prop_state._navigation;
+        const auto &stepping = propagation._stepping;
+        auto &navigation = propagation._navigation;
 
         // Not a severe change to track state expected
         if (std::abs(stepping.step_size()) <
