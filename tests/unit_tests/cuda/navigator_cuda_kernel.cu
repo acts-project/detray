@@ -34,12 +34,12 @@ __global__ void navigator_test_kernel(
 
     auto& traj = tracks.at(gid);
     stepper_t stepper;
-    stepper_t::state stepping(traj);
 
-    navigator_device_t::state navigation(candidates.at(gid));
+    prop_state<navigator_host_t::state> propagation{
+        stepper_t::state{traj}, navigator_device_t::state{candidates.at(gid)}};
 
-    prop_state<stepper_t::state, navigator_host_t::state> propagation{
-        stepping, navigation};
+    navigator_device_t::state& navigation = propagation._navigation;
+    stepper_t::state& stepping = propagation._stepping;
 
     // Set initial volume
     state.set_volume(0u);

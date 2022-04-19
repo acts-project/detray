@@ -29,8 +29,8 @@ using vector3 = __plugin::vector3<detray::scalar>;
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
 struct prop_state {
-    stepping_t &_stepping;
-    navigation_t &_navigation;
+    stepping_t _stepping;
+    navigation_t _navigation;
 };
 
 }  // anonymous namespace
@@ -104,18 +104,26 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     mom = {1., 0., 0.};
     free_track_parameters test_track3(pos, 0, mom, -1);
 
-    rk_stepper_t::state s_z1(test_track1);
-    rk_stepper_t::state s_z2(test_track2);
-    rk_stepper_t::state s_x(test_track3);
-
     navigator<decltype(z_tel_det1), inspector_t> nav_z1(z_tel_det1);
     navigator<decltype(z_tel_det2), inspector_t> nav_z2(z_tel_det2);
     navigator<decltype(x_tel_det), inspector_t> nav_x(x_tel_det);
-    decltype(nav_z1)::state n_z1, n_z2, n_x;
+    using n_state_t = decltype(nav_z1)::state;
+    using s_state_t = rk_stepper_t::state;
 
-    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_z1{s_z1, n_z1};
-    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_z2{s_z2, n_z2};
-    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_x{s_x, n_x};
+    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_z1{
+        s_state_t(test_track1), n_state_t{}};
+    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_z2{
+        s_state_t(test_track2), n_state_t{}};
+    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_x{
+        s_state_t(test_track3), n_state_t{}};
+
+    rk_stepper_t::state &s_z1 = p_z1._stepping;
+    rk_stepper_t::state &s_z2 = p_z2._stepping;
+    rk_stepper_t::state &s_x = p_x._stepping;
+
+    decltype(nav_z1)::state &n_z1 = p_z1._navigation;
+    decltype(nav_z1)::state &n_z2 = p_z2._navigation;
+    decltype(nav_z1)::state &n_x = p_x._navigation;
 
     bool heartbeat_z1 = nav_z1.init(n_z1, s_z1);
     bool heartbeat_z2 = nav_z2.init(n_z2, s_z2);
@@ -168,11 +176,12 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
         host_mr, n_surfaces, tel_length, pilot_track, rk_step_z);
 
     // make at least sure it is navigatable
-    rk_stepper_t::state s_tel(pilot_track);
     navigator<decltype(tel_det), inspector_t> nav_tel(tel_det);
-    decltype(nav_tel)::state n_tel;
-    prop_state<rk_stepper_t::state, decltype(nav_tel)::state> p_tel{s_tel,
-                                                                    n_tel};
+
+    prop_state<rk_stepper_t::state, decltype(nav_tel)::state> p_tel{
+        rk_stepper_t::state{pilot_track}, decltype(nav_tel)::state{}};
+    rk_stepper_t::state &s_tel = p_tel._stepping;
+    decltype(nav_tel)::state &n_tel = p_tel._navigation;
 
     bool heartbeat_tel = nav_tel.init(n_tel, s_tel);
 

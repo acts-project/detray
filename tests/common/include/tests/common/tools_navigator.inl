@@ -23,8 +23,8 @@ namespace {
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
 struct prop_state {
-    stepping_t &_stepping;
-    navigation_t &_navigation;
+    stepping_t _stepping;
+    navigation_t _navigation;
 };
 
 /// Checks for a correct 'towards_surface' state
@@ -126,10 +126,10 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     stepper_t s;
     navigator_t n(toy_det);
 
-    stepper_t::state s_state(traj);
-    navigator_t::state n_state;
-    prop_state<stepper_t::state, navigator_t::state> propagation{s_state,
-                                                                 n_state};
+    prop_state<stepper_t::state, navigator_t::state> propagation{
+        stepper_t::state{traj}, navigator_t::state{}};
+    navigator_t::state &n_state = propagation._navigation;
+    stepper_t::state &s_state = propagation._stepping;
 
     // Check that the state is unitialized
     // Default volume is zero

@@ -41,8 +41,8 @@ nav_state n_state{};
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
 struct prop_state {
-    stepping_t &_stepping;
-    navigation_t &_navigation;
+    stepping_t _stepping;
+    navigation_t _navigation;
 };
 
 }  // namespace
@@ -63,12 +63,13 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
 
     line_stepper_t l_stepper;
     cline_stepper_t cl_stepper;
-    line_stepper_t::state l_state(traj);
-    cline_stepper_t::state cl_state(c_traj);
 
-    prop_state<line_stepper_t::state, nav_state> propagation{l_state, n_state};
-    prop_state<cline_stepper_t::state, nav_state> c_propagation{cl_state,
-                                                                n_state};
+    prop_state<line_stepper_t::state, nav_state> propagation{
+        line_stepper_t::state{traj}, nav_state{}};
+    prop_state<cline_stepper_t::state, nav_state> c_propagation{
+        cline_stepper_t::state{c_traj}, nav_state{}};
+
+    cline_stepper_t::state &cl_state = c_propagation._stepping;
 
     // Test the setting of step constraints
     cl_state.template set_constraint<constraint::e_accuracy>(
@@ -169,13 +170,16 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             helix_gun helix(traj, &B);
 
             // RK Stepping into forward direction
-            rk_stepper_t::state rk_state(traj);
-            crk_stepper_t::state crk_state(c_traj);
+            prop_state<rk_stepper_t::state, nav_state> propagation{
+                rk_stepper_t::state{traj}, nav_state{}};
+            prop_state<crk_stepper_t::state, nav_state> c_propagation{
+                crk_stepper_t::state{c_traj}, nav_state{}};
 
-            prop_state<rk_stepper_t::state, nav_state> propagation{rk_state,
-                                                                   n_state};
-            prop_state<crk_stepper_t::state, nav_state> c_propagation{crk_state,
-                                                                      n_state};
+            rk_stepper_t::state &rk_state = propagation._stepping;
+            crk_stepper_t::state &crk_state = c_propagation._stepping;
+
+            // Retrieve one of the navigation states
+            nav_state &n_state = propagation._navigation;
 
             crk_state.template set_constraint<constraint::e_user>(
                 0.5 * unit_constants::mm);
@@ -273,9 +277,11 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
 
     // RK stepper and its state
     mag_field_t mag_field(B);
-    crk_stepper_t::state crk_state(vertex);
 
-    prop_state<crk_stepper_t::state, nav_state> propagation{crk_state, n_state};
+    prop_state<crk_stepper_t::state, nav_state> propagation{
+        crk_stepper_t::state{vertex}, nav_state{}};
+    crk_stepper_t::state &crk_state = propagation._stepping;
+    nav_state &n_state = propagation._navigation;
 
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = 1e-8;
