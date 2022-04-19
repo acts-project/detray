@@ -31,9 +31,6 @@ class line_stepper final : public base_stepper<track_t, constraint_t> {
         DETRAY_HOST_DEVICE
         state(track_t &t) : base_type::state(t) {}
 
-        /// Accumulated path length
-        scalar _path_length = 0.;
-
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE
         inline void advance_track() {
@@ -80,13 +77,6 @@ class line_stepper final : public base_stepper<track_t, constraint_t> {
                 stepping.constraints().template size<>(stepping.direction()));
             // Re-evaluate all candidates
             navigation.set_fair_trust();
-        }
-
-        // Update and check path limit
-        if (not stepping.check_path_limit()) {
-            printf("Stepper: Above maximal path length!\n");
-            // State is broken
-            return navigation.abort();
         }
 
         // Update track state

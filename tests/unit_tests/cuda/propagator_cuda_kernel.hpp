@@ -19,6 +19,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
+#include "detray/propagator/aborters.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/navigator.hpp"
@@ -60,6 +61,7 @@ constexpr scalar rk_tolerance = 1e-4;
 constexpr scalar overstep_tolerance = -1e-4;
 constexpr scalar constrainted_step_size = 1. * unit_constants::mm;
 constexpr scalar is_close = 1e-4;
+constexpr scalar path_limit = 2 * unit_constants::m;
 
 namespace detray {
 
@@ -105,8 +107,10 @@ struct track_inspector : actor {
 // Assemble propagator type
 using inspector_host_t = track_inspector<vecmem::vector>;
 using inspector_device_t = track_inspector<vecmem::device_vector>;
-using actor_chain_host_t = actor_chain<thrust::tuple, inspector_host_t>;
-using actor_chain_device_t = actor_chain<thrust::tuple, inspector_device_t>;
+using actor_chain_host_t =
+    actor_chain<thrust::tuple, inspector_host_t, pathlimit_aborter>;
+using actor_chain_device_t =
+    actor_chain<thrust::tuple, inspector_device_t, pathlimit_aborter>;
 using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain_host_t>;
 using propagator_device_type =

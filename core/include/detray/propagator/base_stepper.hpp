@@ -73,19 +73,16 @@ class base_stepper {
         DETRAY_HOST_DEVICE
         const track_t &operator()() const { return _track; }
 
-        step::direction _direction = step::direction::e_forward;
+        step::direction _direction{step::direction::e_forward};
 
         // Stepping constraints
         constraint_t _constraint = {};
 
-        /// Remaining path length
-        scalar _path_limit = std::numeric_limits<scalar>::max();
+        /// Track path length
+        scalar _path_length{0};
 
         /// Current step size
-        scalar _step_size = std::numeric_limits<scalar>::infinity();
-
-        /// Accumulated path length
-        scalar _path_length = 0.;
+        scalar _step_size{std::numeric_limits<scalar>::infinity()};
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>
@@ -112,24 +109,6 @@ class base_stepper {
             _constraint.template release<type>();
         }
 
-        /// Set the path limit to a scalar @param pl
-        DETRAY_HOST_DEVICE
-        inline void set_path_limit(const scalar pl) { _path_limit = pl; }
-
-        /// @returns this states remaining path length.
-        DETRAY_HOST_DEVICE
-        inline scalar dist_to_path_limit() const { return _path_limit; }
-
-        /// Update and check the path limit against a new @param step size.
-        DETRAY_HOST_DEVICE
-        inline bool check_path_limit() {
-            _path_limit -= _step_size;
-            if (_path_limit <= 0.) {
-                return false;
-            }
-            return true;
-        }
-
         /// Set next step size
         DETRAY_HOST_DEVICE
         inline void set_step_size(const scalar step) { _step_size = step; }
@@ -138,7 +117,7 @@ class base_stepper {
         DETRAY_HOST_DEVICE
         inline scalar step_size() const { return _step_size; }
 
-        /// @returns the path length
+        /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
         inline scalar path_length() const { return _path_length; }
     };

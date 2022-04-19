@@ -61,8 +61,8 @@ void detray::rk_stepper<magnetic_field_t, track_t, constraint_t,
     const auto& h = this->_step_size;
     // const auto& mass = this->_mass;
     auto& track = this->_track;
-    auto dir = track.dir();
-    auto qop = track.qop();
+    const auto dir = track.dir();
+    const auto qop = track.qop();
 
     // Half step length
     scalar half_h = h * 0.5;
@@ -140,8 +140,8 @@ auto detray::rk_stepper<magnetic_field_t, track_t, constraint_t,
     -> vector3 {
     auto& track = this->_track;
 
-    auto qop = track.qop();
-    auto dir = track.dir();
+    const auto qop = track.qop();
+    const auto dir = track.dir();
 
     vector3 k_new;
 
@@ -254,13 +254,6 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, array_t>::step(
             stepping.constraints().template size<>(stepping.direction()));
         // Re-evaluate all candidates
         navigation.set_fair_trust();
-    }
-
-    // Update and check path limit
-    if (not stepping.check_path_limit()) {
-        printf("Stepper: Above maximal path length!\n");
-        // State is broken
-        return navigation.abort();
     }
 
     // Update the derivative
