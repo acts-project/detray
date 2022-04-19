@@ -38,6 +38,8 @@ struct helix_inspector : actor {
         helix_gun _helix;
     };
 
+    using size_type = __plugin::size_type;
+    using matrix_operator = standard_matrix_operator<scalar>;
     using state_type = helix_inspector_state;
 
     /// Check that the stepper remains on the right helical track for its pos.
@@ -54,6 +56,16 @@ struct helix_inspector : actor {
                                     (pos - true_pos)};
 
         ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
+
+        auto true_J = inspector_state._helix.jacobian(stepping.path_length());
+        for (size_type i = 0; i < e_free_size; i++) {
+            for (size_type j = 0; j < e_free_size; j++) {
+                ASSERT_NEAR(
+                    matrix_operator().element(stepping._jac_transport, i, j),
+                    matrix_operator().element(true_J, i, j),
+                    stepping.path_length() * epsilon * 10);
+            }
+        }
     }
 };
 

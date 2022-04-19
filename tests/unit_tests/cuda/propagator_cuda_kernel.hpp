@@ -42,8 +42,12 @@ using detector_device_type =
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 
+using constraints_t = constrained_step<>;
 using field_type = constant_magnetic_field<>;
-using rk_stepper_type = rk_stepper<field_type, free_track_parameters>;
+using rk_stepper_type =
+    rk_stepper<field_type, free_track_parameters, constraints_t>;
+
+using matrix_operator = standard_matrix_operator<scalar>;
 
 // detector configuration
 constexpr std::size_t n_brl_layers = 4;
@@ -53,7 +57,10 @@ constexpr std::size_t n_edc_layers = 3;
 constexpr unsigned int theta_steps = 10;
 constexpr unsigned int phi_steps = 10;
 
-constexpr scalar pos_diff_tolerance = 1e-3;
+constexpr scalar rk_tolerance = 1e-4;
+constexpr scalar overstep_tolerance = -1e-4;
+constexpr scalar constrainted_step_size = 1. * unit_constants::mm;
+constexpr scalar is_close = 1e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
 
 namespace detray {
@@ -64,13 +71,21 @@ struct track_inspector : actor {
     struct track_inspector_state {
 
         track_inspector_state(vecmem::memory_resource &resource)
-            : _positions(&resource) {}
+            : _path_lengths(&resource),
+              _positions(&resource),
+              _jac_transports(&resource) {}
 
         DETRAY_HOST_DEVICE
-        track_inspector_state(vector_t<vector3> positions)
-            : _positions(positions) {}
+        track_inspector_state(vector_t<scalar> path_lengths,
+                              vector_t<vector3> positions,
+                              vector_t<free_matrix> jac_transports)
+            : _path_lengths(path_lengths),
+              _positions(positions),
+              _jac_transports(jac_transports) {}
 
+        vector_t<scalar> _path_lengths;
         vector_t<vector3> _positions;
+        vector_t<free_matrix> _jac_transports;
     };
 
     using state_type = track_inspector_state;
@@ -83,7 +98,9 @@ struct track_inspector : actor {
         const auto &stepping = prop_state._stepping;
 
         // Record only on the object
+        inspector_state._path_lengths.push_back(stepping.path_length());
         inspector_state._positions.push_back(stepping().pos());
+        inspector_state._jac_transports.push_back(stepping._jac_transport);
     }
 };
 
@@ -104,6 +121,8 @@ void propagator_test(
     detector_view<detector_host_type> det_data, const vector3 B,
     vecmem::data::vector_view<free_track_parameters> &tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
-    vecmem::data::jagged_vector_view<vector3> &positions_data);
+    vecmem::data::jagged_vector_view<scalar> &path_lengths_data,
+    vecmem::data::jagged_vector_view<vector3> &positions_data,
+    vecmem::data::jagged_vector_view<free_matrix> &jac_transports_data);
 
 }  // namespace detray

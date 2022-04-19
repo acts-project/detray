@@ -22,7 +22,7 @@ namespace vector = algebra::vector;
 namespace matrix = algebra::matrix;
 
 // Define matrix operator
-template <typename T>
-using matrix_operator = matrix::actor<T>;
+template <typename scalar_t>
+using standard_matrix_operator = matrix::actor<scalar_t>;
 
 }  // namespace detray
