@@ -29,7 +29,7 @@ using vector3 = __plugin::vector3<detray::scalar>;
 TEST(ALGEBRA_PLUGIN, telescope_detector) {
     using namespace detray;
 
-    using b_field_t = constant_magnetic_field<>;
+    using b_field_t = constant_magnetic_field<scalar>;
     using ln_stepper_t = line_stepper<free_track_parameters>;
     using rk_stepper_t = rk_stepper<b_field_t, free_track_parameters>;
     using inspector_t = navigation::print_inspector;

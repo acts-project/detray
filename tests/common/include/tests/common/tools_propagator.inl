@@ -124,7 +124,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // Create the navigator
     using navigator_t = navigator<decltype(d)>;
-    using b_field_t = constant_magnetic_field<>;
+    using b_field_t = constant_magnetic_field<scalar>;
     using constraints_t = constrained_step<>;
     using stepper_t =
         rk_stepper<b_field_t, free_track_parameters, constraints_t>;

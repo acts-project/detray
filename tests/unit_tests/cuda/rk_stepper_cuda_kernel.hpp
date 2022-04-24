@@ -29,7 +29,7 @@ using namespace detray;
 using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 
-using mag_field_t = constant_magnetic_field<>;
+using mag_field_t = constant_magnetic_field<scalar>;
 using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
 using crk_stepper_t =
     rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;

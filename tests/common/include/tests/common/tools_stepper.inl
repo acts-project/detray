@@ -108,7 +108,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     using vector3 = vector3<scalar>;
     using point3 = point3<scalar>;
 
-    using mag_field_t = constant_magnetic_field<>;
+    using mag_field_t = constant_magnetic_field<scalar>;
     using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
     using crk_stepper_t =
         rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
@@ -216,7 +216,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     using vector3 = vector3<scalar>;
     using point3 = point3<scalar>;
     using matrix_operator = standard_matrix_operator<scalar>;
-    using mag_field_t = constant_magnetic_field<>;
+    using mag_field_t = constant_magnetic_field<scalar>;
     using crk_stepper_t =
         rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
 

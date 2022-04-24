@@ -32,7 +32,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
 
     using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
                                             print_inspector>;
-    using b_field_t = constant_magnetic_field<>;
+    using b_field_t = constant_magnetic_field<scalar>;
     using stepper_t = rk_stepper<b_field_t, free_track_parameters>;
 
     vecmem::host_memory_resource host_mr;

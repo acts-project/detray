@@ -41,7 +41,7 @@ using detector_device_type =
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 
-using field_type = constant_magnetic_field<>;
+using field_type = constant_magnetic_field<scalar>;
 using rk_stepper_type = rk_stepper<field_type, free_track_parameters>;
 
 using propagator_host_type =

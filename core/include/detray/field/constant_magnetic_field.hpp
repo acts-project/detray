@@ -15,12 +15,12 @@
 
 namespace detray {
 
-template <typename context_t = dindex>
+template <typename scalar_t, typename context_t = dindex>
 class constant_magnetic_field {
 
     public:
-    using vector3 = __plugin::vector3<scalar>;
-    using point3 = __plugin::point3<scalar>;
+    using vector3 = __plugin::vector3<scalar_t>;
+    using point3 = __plugin::point3<scalar_t>;
     using context_type = context_t;
 
     DETRAY_HOST_DEVICE
