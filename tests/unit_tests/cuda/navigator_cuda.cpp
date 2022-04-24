@@ -86,7 +86,7 @@ TEST(navigator_cuda, navigator) {
 
             heartbeat &= stepper.step(propagation);
 
-            state.set_high_trust();
+            navigation.set_high_trust();
 
             heartbeat &= n.update(navigation, stepping);
 
