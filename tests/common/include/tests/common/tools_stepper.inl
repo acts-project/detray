@@ -179,10 +179,12 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
             // Retrieve one of the navigation states
             nav_state &n_state = propagation._navigation;
+            nav_state &cn_state = c_propagation._navigation;
 
             crk_state.template set_constraint<constraint::e_user>(
                 0.5 * unit_constants::mm);
             n_state._step_size = 1. * unit_constants::mm;
+            cn_state._step_size = 1. * unit_constants::mm;
             ASSERT_NEAR(crk_state.constraints().template size<>(),
                         0.5 * unit_constants::mm, epsilon);
 
@@ -211,6 +213,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             // Use the same path length, since there is no overstepping
             const scalar path_length = rk_state.path_length();
             n_state._step_size *= -1. * unit_constants::mm;
+            cn_state._step_size *= -1. * unit_constants::mm;
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
                 rk_stepper.step(propagation);
                 crk_stepper.step(c_propagation);
