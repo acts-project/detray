@@ -64,15 +64,14 @@ TEST(rk_stepper_cuda, rk_stepper) {
         free_track_parameters c_traj(traj);
 
         // RK Stepping into forward direction
-        prop_state<rk_stepper_t::state, nav_state> propagation{
-            rk_stepper_t::state{traj}, nav_state{}};
-        prop_state<crk_stepper_t::state, nav_state> c_propagation{
+        prop_state<rk_stepper_t::state> propagation{rk_stepper_t::state{traj},
+                                                    nav_state{}};
+        prop_state<crk_stepper_t::state> c_propagation{
             crk_stepper_t::state{c_traj}, nav_state{}};
 
         rk_stepper_t::state &rk_state = propagation._stepping;
         crk_stepper_t::state &crk_state = c_propagation._stepping;
 
-        // Retrieve one of the navigation states
         nav_state &n_state = propagation._navigation;
         nav_state &cn_state = c_propagation._navigation;
 
