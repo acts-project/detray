@@ -42,7 +42,7 @@ __global__ void navigator_test_kernel(
     stepper_t::state& stepping = propagation._stepping;
 
     // Set initial volume
-    state.set_volume(0u);
+    navigation.set_volume(0u);
 
     // Start propagation and record volume IDs
     bool heartbeat = n.init(navigation, stepping);
