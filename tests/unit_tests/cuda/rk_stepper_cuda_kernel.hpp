@@ -25,6 +25,8 @@
 
 using namespace detray;
 
+namespace {
+
 // type definitions
 using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
@@ -42,8 +44,6 @@ constexpr unsigned int rk_steps = 100;
 constexpr scalar epsilon = 1e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
 
-namespace detray {
-
 // dummy navigation struct
 struct nav_state {
     DETRAY_HOST_DEVICE scalar operator()() const { return _step_size; }
@@ -55,6 +55,17 @@ struct nav_state {
 
     scalar _step_size = 1. * unit_constants::mm;
 };
+
+// dummy propagator state
+template <typename stepper_t>
+struct prop_state {
+    typename stepper_t::state _stepping;
+    nav_state _navigation;
+};
+
+}  // anonymous namespace
+
+namespace detray {
 
 // test function for Runge-Kutta stepper
 void rk_stepper_test(

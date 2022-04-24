@@ -27,32 +27,34 @@ __global__ void rk_stepper_test_kernel(
     // Define RK [constrained] stepper
     rk_stepper_t rk_stepper(B);
     crk_stepper_t crk_stepper(B);
-    nav_state n_state{};
 
     // Get a track
     auto& traj = tracks.at(gid);
     free_track_parameters c_traj(traj);
 
-    rk_stepper_t::state rk_state(traj);
-    crk_stepper_t::state crk_state(c_traj);
+    // RK Stepping into forward direction
+    prop_state<rk_stepper_t::state, nav_state> propagation{
+        rk_stepper_t::state{traj}, nav_state{}};
+    prop_state<crk_stepper_t::state, nav_state> c_propagation{
+        crk_stepper_t::state{c_traj}, nav_state{}};
 
     // Forward direction
     crk_state.template set_constraint<step::constraint::e_user>(
         0.5 * unit_constants::mm);
     n_state._step_size = 1. * unit_constants::mm;
     for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-        rk_stepper.step(rk_state, n_state);
-        crk_stepper.step(crk_state, n_state);
-        crk_stepper.step(crk_state, n_state);
+        rk_stepper.step(propagation);
+        crk_stepper.step(c_propagation);
+        crk_stepper.step(c_propagation);
     }
 
     // Backward direction
     // Roll the same track back to the origin
     n_state._step_size *= -1. * unit_constants::mm;
     for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-        rk_stepper.step(rk_state, n_state);
-        crk_stepper.step(crk_state, n_state);
-        crk_stepper.step(crk_state, n_state);
+        rk_stepper.step(propagation);
+        crk_stepper.step(c_propagation);
+        crk_stepper.step(c_propagation);
     }
 }
 
