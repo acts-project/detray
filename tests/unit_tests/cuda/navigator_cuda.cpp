@@ -75,9 +75,9 @@ TEST(navigator_cuda, navigator) {
         stepper_t stepper;
 
         prop_state<navigator_host_t::state> propagation{
-            stepper_t::state{traj}, navigator_device_t::state{mng_mr}};
+            stepper_t::state{traj}, navigator_host_t::state{mng_mr}};
 
-        navigator_device_t::state& navigation = propagation._navigation;
+        navigator_host_t::state& navigation = propagation._navigation;
         stepper_t::state& stepping = propagation._stepping;
 
         // Start propagation and record volume IDs
