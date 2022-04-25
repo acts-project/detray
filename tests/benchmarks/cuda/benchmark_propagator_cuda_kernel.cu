@@ -40,7 +40,7 @@ __global__ void propagator_benchmark_kernel(
     propagator_device_type<stepper_policy_t> p(std::move(s), std::move(n));
 
     // Create the propagator state
-    propagator_device_type<stepper_policy_t>::state p_state(
+    typename propagator_device_type<stepper_policy_t>::state p_state(
         tracks.at(gid), actor_chain<>::state{}, candidates.at(gid));
 
     // Run propagation

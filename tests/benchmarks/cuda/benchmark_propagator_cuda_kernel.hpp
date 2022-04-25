@@ -49,6 +49,7 @@ using rk_stepper_type =
 template <typename stepper_policy_t>
 using propagator_host_type = propagator<rk_stepper_type<stepper_policy_t>,
                                         navigator_host_type, actor_chain<>>;
+template <typename stepper_policy_t>
 using propagator_device_type = propagator<rk_stepper_type<stepper_policy_t>,
                                           navigator_device_type, actor_chain<>>;
 
