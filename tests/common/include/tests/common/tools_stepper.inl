@@ -20,6 +20,8 @@
 using namespace detray;
 using namespace __plugin;
 
+namespace {
+
 constexpr scalar epsilon = 1e-4;
 constexpr scalar path_limit = 100 * unit_constants::cm;
 
@@ -34,7 +36,15 @@ struct nav_state {
 
     scalar _step_size = 1. * unit_constants::mm;
 };
-nav_state n_state{};
+
+// dummy propagator state
+template <typename stepping_t, typename navigation_t>
+struct prop_state {
+    stepping_t _stepping;
+    navigation_t _navigation;
+};
+
+}  // namespace
 
 // This tests the base functionality of the line stepper
 TEST(ALGEBRA_PLUGIN, line_stepper) {
@@ -52,8 +62,13 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
 
     line_stepper_t l_stepper;
     cline_stepper_t cl_stepper;
-    line_stepper_t::state l_state(traj);
-    cline_stepper_t::state cl_state(c_traj);
+
+    prop_state<line_stepper_t::state, nav_state> propagation{
+        line_stepper_t::state{traj}, nav_state{}};
+    prop_state<cline_stepper_t::state, nav_state> c_propagation{
+        cline_stepper_t::state{c_traj}, nav_state{}};
+
+    cline_stepper_t::state &cl_state = c_propagation._stepping;
 
     // Test the setting of step constraints
     cl_state.template set_constraint<constraint::e_accuracy>(
@@ -80,10 +95,10 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
                 0.5 * unit_constants::mm, epsilon);
 
     // Run a few steps
-    ASSERT_TRUE(l_stepper.step(l_state, n_state));
+    ASSERT_TRUE(l_stepper.step(propagation));
     // Step constraint to half step size
-    ASSERT_TRUE(cl_stepper.step(cl_state, n_state));
-    ASSERT_TRUE(cl_stepper.step(cl_state, n_state));
+    ASSERT_TRUE(cl_stepper.step(c_propagation));
+    ASSERT_TRUE(cl_stepper.step(c_propagation));
 
     ASSERT_FLOAT_EQ(traj.pos()[0], 1. / std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[1], 1. / std::sqrt(2));
@@ -93,7 +108,7 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     ASSERT_FLOAT_EQ(c_traj.pos()[1], 1. / std::sqrt(2));
     ASSERT_FLOAT_EQ(c_traj.pos()[2], 0.);
 
-    ASSERT_TRUE(l_stepper.step(l_state, n_state));
+    ASSERT_TRUE(l_stepper.step(propagation));
 
     ASSERT_FLOAT_EQ(traj.pos()[0], std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[1], std::sqrt(2));
@@ -154,19 +169,29 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             helix_gun helix(traj, &B);
 
             // RK Stepping into forward direction
-            rk_stepper_t::state rk_state(traj);
-            crk_stepper_t::state crk_state(c_traj);
+            prop_state<rk_stepper_t::state, nav_state> propagation{
+                rk_stepper_t::state{traj}, nav_state{}};
+            prop_state<crk_stepper_t::state, nav_state> c_propagation{
+                crk_stepper_t::state{c_traj}, nav_state{}};
+
+            rk_stepper_t::state &rk_state = propagation._stepping;
+            crk_stepper_t::state &crk_state = c_propagation._stepping;
+
+            // Retrieve one of the navigation states
+            nav_state &n_state = propagation._navigation;
+            nav_state &cn_state = c_propagation._navigation;
 
             crk_state.template set_constraint<constraint::e_user>(
                 0.5 * unit_constants::mm);
             n_state._step_size = 1. * unit_constants::mm;
+            cn_state._step_size = 1. * unit_constants::mm;
             ASSERT_NEAR(crk_state.constraints().template size<>(),
                         0.5 * unit_constants::mm, epsilon);
 
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(rk_state, n_state);
-                crk_stepper.step(crk_state, n_state);
-                crk_stepper.step(crk_state, n_state);
+                rk_stepper.step(propagation);
+                crk_stepper.step(c_propagation);
+                crk_stepper.step(c_propagation);
             }
 
             // get relative error by dividing error with path length
@@ -188,10 +213,11 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
             // Use the same path length, since there is no overstepping
             const scalar path_length = rk_state.path_length();
             n_state._step_size *= -1. * unit_constants::mm;
+            cn_state._step_size *= -1. * unit_constants::mm;
             for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(rk_state, n_state);
-                crk_stepper.step(crk_state, n_state);
-                crk_stepper.step(crk_state, n_state);
+                rk_stepper.step(propagation);
+                crk_stepper.step(c_propagation);
+                crk_stepper.step(c_propagation);
             }
 
             ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(),
@@ -253,7 +279,11 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
 
     // RK stepper and its state
     mag_field_t mag_field(B);
-    crk_stepper_t::state crk_state(vertex);
+
+    prop_state<crk_stepper_t::state, nav_state> propagation{
+        crk_stepper_t::state{vertex}, nav_state{}};
+    crk_stepper_t::state &crk_state = propagation._stepping;
+    nav_state &n_state = propagation._navigation;
 
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = 1e-8;
@@ -266,9 +296,9 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
 
         crk_state.set_constraint(S - crk_state.path_length());
 
-        n_state._step_size = std::numeric_limits<scalar>::max();
+        n_state._step_size = S;
 
-        crk_stepper.step(crk_state, n_state);
+        crk_stepper.step(propagation);
 
         if (std::abs(S - crk_state.path_length()) < 1e-6) {
             break;
@@ -280,7 +310,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
 
     auto jac_transport = crk_state._jac_transport;
 
-    ///// Jacobian check with Helix Gun
+    // Jacobian check with Helix Gun
     auto J = helix.jacobian(crk_state.path_length());
 
     for (size_type i = 0; i < e_free_size; i++) {

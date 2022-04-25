@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/propagator/navigation_policies.hpp"
 
 namespace detray {
 
@@ -21,11 +22,13 @@ namespace detray {
 /// @tparam constraint_ the type of constraints on the stepper
 template <typename magnetic_field_t, typename track_t,
           typename constraint_t = unconstrained_step,
+          typename policy_t = stepper_default_policy,
           template <typename, std::size_t> class array_t = darray>
-class rk_stepper final : public base_stepper<track_t, constraint_t> {
+class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
 
     public:
-    using base_type = base_stepper<track_t, constraint_t>;
+    using base_type = base_stepper<track_t, constraint_t, policy_t>;
+    using policy_type = policy_t;
     using point3 = __plugin::point3<scalar>;
     using vector2 = __plugin::vector2<scalar>;
     using vector3 = __plugin::vector3<scalar>;
@@ -80,9 +83,8 @@ class rk_stepper final : public base_stepper<track_t, constraint_t> {
      *
      * @return returning the heartbeat, indicating if the stepping is alive
      */
-    template <typename navigation_state_t>
-    DETRAY_HOST_DEVICE bool step(state& stepping,
-                                 navigation_state_t& navigation);
+    template <typename propagation_state_t>
+    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation);
 
     private:
     const magnetic_field_t _magnetic_field;

@@ -66,39 +66,35 @@ struct propagator {
         typename actor_chain_t::state _actor_states;
     };
 
-    /// Propagate method
+    /// Propagate method: Coordinates the calls of the stepper, navigator and
+    /// all registered actors.
     ///
     /// @tparam state_t is the propagation state type
-    /// @tparam inspector_t is the type of a propagation inspector
     ///
-    /// @param p_state the state of a propagation
-    /// @param inspector the inspector
+    /// @param propagation the state of a propagation flow
     ///
     /// @return propagation success.
     template <typename state_t>
-    DETRAY_HOST_DEVICE bool propagate(state_t &p_state) {
-
-        auto &n_state = p_state._navigation;
-        auto &s_state = p_state._stepping;
-        auto actor_states = p_state._actor_states;
+    DETRAY_HOST_DEVICE bool propagate(state_t &propagation) {
 
         // initialize the navigation
-        p_state._heartbeat = _navigator.init(n_state, s_state);
+        propagation._heartbeat = _navigator.init(propagation);
 
         // Run while there is a heartbeat
-        while (p_state._heartbeat) {
+        while (propagation._heartbeat) {
 
             // Take the step
-            p_state._heartbeat &= _stepper.step(s_state, n_state);
+            propagation._heartbeat &= _stepper.step(propagation);
 
             // And check the status
-            p_state._heartbeat &= _navigator.update(n_state, s_state);
+            propagation._heartbeat &= _navigator.update(propagation);
 
             // Run all registered actors
-            run_actors(actor_states, p_state);
+            run_actors(propagation._actor_states, propagation);
         }
 
-        return n_state.is_complete();
+        // Pass on the whether the propagation was successful
+        return propagation._navigation.is_complete();
     }
 };
 

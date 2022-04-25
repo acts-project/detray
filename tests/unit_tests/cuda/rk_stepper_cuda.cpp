@@ -34,7 +34,6 @@ TEST(rk_stepper_cuda, rk_stepper) {
     // Define RK stepper
     rk_stepper_t rk_stepper(B);
     crk_stepper_t crk_stepper(B);
-    nav_state n_state{};
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -61,22 +60,31 @@ TEST(rk_stepper_cuda, rk_stepper) {
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
-        auto& traj = tracks_host[i];
+        auto &traj = tracks_host[i];
         free_track_parameters c_traj(traj);
 
-        // Forward direction
-        rk_stepper_t::state rk_state(traj);
-        crk_stepper_t::state crk_state(c_traj);
+        // RK Stepping into forward direction
+        prop_state<rk_stepper_t::state> propagation{rk_stepper_t::state{traj},
+                                                    nav_state{}};
+        prop_state<crk_stepper_t::state> c_propagation{
+            crk_stepper_t::state{c_traj}, nav_state{}};
+
+        rk_stepper_t::state &rk_state = propagation._stepping;
+        crk_stepper_t::state &crk_state = c_propagation._stepping;
+
+        nav_state &n_state = propagation._navigation;
+        nav_state &cn_state = c_propagation._navigation;
 
         crk_state.template set_constraint<step::constraint::e_user>(
             0.5 * unit_constants::mm);
         n_state._step_size = 1. * unit_constants::mm;
+        cn_state._step_size = 1. * unit_constants::mm;
         ASSERT_NEAR(crk_state.constraints().template size<>(),
                     0.5 * unit_constants::mm, epsilon);
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk_stepper.step(rk_state, n_state);
-            crk_stepper.step(crk_state, n_state);
-            crk_stepper.step(crk_state, n_state);
+            rk_stepper.step(propagation);
+            crk_stepper.step(c_propagation);
+            crk_stepper.step(c_propagation);
         }
 
         // check constrained steps
@@ -87,10 +95,11 @@ TEST(rk_stepper_cuda, rk_stepper) {
         // Use the same path length, since there is no overstepping
         scalar path_length = rk_state.path_length();
         n_state._step_size *= -1. * unit_constants::mm;
+        cn_state._step_size *= -1. * unit_constants::mm;
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk_stepper.step(rk_state, n_state);
-            crk_stepper.step(crk_state, n_state);
-            crk_stepper.step(crk_state, n_state);
+            rk_stepper.step(propagation);
+            crk_stepper.step(c_propagation);
+            crk_stepper.step(c_propagation);
         }
 
         EXPECT_NEAR(rk_state.path_length(), crk_state.path_length(), epsilon);

@@ -10,6 +10,7 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/propagator/line_stepper.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
 
 namespace detray {
@@ -60,15 +61,19 @@ inline std::vector<module_placement> module_positions(
         scalar _step_size = 0;
     };
 
+    // dummy propagator state
+    struct prop_state {
+        typename stepper_t::state _stepping;
+        navigation_state _navigation;
+    };
+
     // create and fill the positions
     std::vector<module_placement> m_positions;
     m_positions.reserve(steps.size());
 
-    // space between surfaces
-    navigation_state n_state{};
-
     // Find exact position by walking along track
-    typename stepper_t::state step_state(track);
+    prop_state propagation{typename stepper_t::state{track},
+                           navigation_state{}};
 
     // Calculate step size from module positions. The modules will only be
     // placed at the given position if the b-field allows for it. Otherwise, by
@@ -77,8 +82,8 @@ inline std::vector<module_placement> module_positions(
     scalar prev_dist = 0.;
     for (const auto &dist : steps) {
         // advance the track state to the next plane position
-        n_state._step_size = dist - prev_dist;
-        stepper.step(step_state, n_state);
+        propagation._navigation._step_size = dist - prev_dist;
+        stepper.step(propagation);
         m_positions.push_back({track.pos(), track.dir()});
         prev_dist = dist;
     }

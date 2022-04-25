@@ -17,8 +17,13 @@
 #include "detray/utils/enumerate.hpp"
 
 namespace detray {
+
+namespace {
+
 using point2 = __plugin::point2<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
+
+}  // namespace
 
 /** Run the bin association of surfaces (via their contour)
  *  - to a given grid.

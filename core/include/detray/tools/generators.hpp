@@ -11,8 +11,12 @@
 
 namespace detray {
 
+namespace {
+
 using transform3 = __plugin::transform3<detray::scalar>;
 using point2 = __plugin::point2<detray::scalar>;
+
+}  // anonymous namespace
 
 /** Generate phi values
  *

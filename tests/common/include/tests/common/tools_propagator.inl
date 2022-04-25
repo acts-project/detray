@@ -22,7 +22,8 @@
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/helix_gun.hpp"
 #include "tests/common/tools/inspectors.hpp"
-#include "tests/common/tools/read_geometry.hpp"
+
+using namespace detray;
 
 namespace {
 
@@ -32,7 +33,7 @@ constexpr scalar path_limit = 5 * unit_constants::cm;
 /// Compare helical track positions for stepper
 struct helix_inspector : actor {
 
-    // Keeps the state of a helix gun to calculate track positions
+    /// Keeps the state of a helix gun to calculate track positions
     struct helix_inspector_state {
         helix_inspector_state(helix_gun &&h) : _helix(h) {}
         helix_gun _helix;
@@ -71,14 +72,10 @@ struct helix_inspector : actor {
 
 }  // anonymous namespace
 
-// This tests the basic functionality of the propagator
+/// This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
+
     vecmem::host_memory_resource host_mr;
-
-    using namespace detray;
-    using namespace __plugin;
-
-    // auto [d, name_map] = read_from_csv(tml_files, host_mr);
     auto d = create_toy_geometry(host_mr);
 
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
@@ -86,13 +83,11 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     using stepper_t = line_stepper<track_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
-    __plugin::point3<scalar> pos{0., 0., 0.};
-    __plugin::vector3<scalar> mom{1., 1., 0.};
+    point3 pos{0., 0., 0.};
+    vector3 mom{1., 1., 0.};
     track_t traj(pos, 0, mom, -1);
 
-    stepper_t s;
-    navigator_t n(d);
-    propagator_t p(std::move(s), std::move(n));
+    propagator_t p(stepper_t{}, navigator_t{d});
 
     propagator_t::state state(traj);
 
@@ -107,9 +102,6 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     using namespace detray;
     using namespace propagation;
-    using namespace __plugin;
-    using point3 = __plugin::point3<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
 
     // geomery navigation configurations
     constexpr unsigned int theta_steps = 50;
@@ -136,9 +128,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     vector3 B = GetParam();
     b_field_t b_field(B);
 
-    stepper_t s(b_field);
-    navigator_t n(d);
-    propagator_t p(std::move(s), std::move(n));
+    // Propagator is built from the stepper and navigator
+    propagator_t p(stepper_t{b_field}, navigator_t{d});
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};

@@ -12,8 +12,8 @@
 #include <cmath>
 
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
-          template <typename, std::size_t> class array_t>
-void detray::rk_stepper<magnetic_field_t, track_t, constraint_t,
+          typename policy_t, template <typename, std::size_t> class array_t>
+void detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
                         array_t>::state::advance_track() {
 
     const auto& sd = this->_step_data;
@@ -35,8 +35,8 @@ void detray::rk_stepper<magnetic_field_t, track_t, constraint_t,
 }
 
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
-          template <typename, std::size_t> class array_t>
-void detray::rk_stepper<magnetic_field_t, track_t, constraint_t,
+          typename policy_t, template <typename, std::size_t> class array_t>
+void detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
                         array_t>::state::advance_jacobian() {
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
@@ -132,8 +132,8 @@ void detray::rk_stepper<magnetic_field_t, track_t, constraint_t,
 }
 
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
-          template <typename, std::size_t> class array_t>
-auto detray::rk_stepper<magnetic_field_t, track_t, constraint_t,
+          typename policy_t, template <typename, std::size_t> class array_t>
+auto detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
                         array_t>::state::evaluate_k(const vector3& b_field,
                                                     const int i, const scalar h,
                                                     const vector3& k_prev)
@@ -155,10 +155,13 @@ auto detray::rk_stepper<magnetic_field_t, track_t, constraint_t,
 }
 
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
-          template <typename, std::size_t> class array_t>
-template <typename navigation_state_t>
-bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, array_t>::step(
-    state& stepping, navigation_state_t& navigation) {
+          typename policy_t, template <typename, std::size_t> class array_t>
+template <typename propagation_state_t>
+bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
+                        array_t>::step(propagation_state_t& propagation) {
+    // Get stepper and navigator states
+    state& stepping = propagation._stepping;
+    auto& navigation = propagation._navigation;
 
     auto& sd = stepping._step_data;
 
@@ -240,20 +243,12 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, array_t>::step(
                                          : step::direction::e_backward;
     stepping.set_direction(step_dir);
 
-    // Decide final step size and inform navigator
-    // Not a severe change to track state expected
-    if (std::abs(stepping.step_size()) <
+    // Check constraints
+    if (std::abs(stepping.step_size()) >
         std::abs(
             stepping.constraints().template size<>(stepping.direction()))) {
-        navigation.set_high_trust();
-    }
-    // Step size hit a constraint - the track state was probably changed a
-    // lot
-    else {
         stepping.set_step_size(
             stepping.constraints().template size<>(stepping.direction()));
-        // Re-evaluate all candidates
-        navigation.set_fair_trust();
     }
 
     // Update the derivative
@@ -266,6 +261,9 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, array_t>::step(
 
     // Advance jacobian transport
     stepping.advance_jacobian();
+
+    // Call navigation update policy
+    policy_t{}(stepping.policy_state(), propagation);
 
     return true;
 }

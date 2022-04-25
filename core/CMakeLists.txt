@@ -59,6 +59,7 @@ detray_add_library( detray_core core
    "include/detray/propagator/base_stepper.hpp"
    "include/detray/propagator/constrained_step.hpp"
    "include/detray/propagator/line_stepper.hpp"
+   "include/detray/propagator/navigation_policies.hpp"
    "include/detray/propagator/navigator.hpp"
    "include/detray/propagator/propagator.hpp"
    "include/detray/propagator/rk_stepper.hpp"

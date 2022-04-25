@@ -47,6 +47,13 @@ constexpr unsigned int phi_steps = 100;
 
 constexpr scalar pos_diff_tolerance = 1e-3;
 
+// dummy propagator state
+template <typename navigation_t>
+struct prop_state {
+    stepper_t::state _stepping;
+    navigation_t _navigation;
+};
+
 namespace detray {
 
 /// test function for navigator with single state

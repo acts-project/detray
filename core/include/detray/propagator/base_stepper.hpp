@@ -19,7 +19,7 @@ namespace detray {
 ///
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
-template <typename track_t, typename constraint_t>
+template <typename track_t, typename constraint_t, typename policy_t>
 class base_stepper {
 
     public:
@@ -78,6 +78,9 @@ class base_stepper {
         // Stepping constraints
         constraint_t _constraint = {};
 
+        // Navigation policy state
+        typename policy_t::state_type _policy_state = {};
+
         /// Track path length
         scalar _path_length{0};
 
@@ -98,6 +101,12 @@ class base_stepper {
         /// @returns access to this states step constraints
         DETRAY_HOST_DEVICE
         inline const constraint_t &constraints() const { return _constraint; }
+
+        /// @returns access to this states step constraints
+        DETRAY_HOST_DEVICE
+        inline typename policy_t::state_type &policy_state() {
+            return _policy_state;
+        }
 
         /// @returns the navigation direction
         DETRAY_HOST_DEVICE

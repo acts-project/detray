@@ -29,7 +29,7 @@ TEST(navigator_cuda, navigator) {
                                                    n_edc_layers);
 
     // Create navigator
-    navigator_host_t n(det);
+    navigator_host_t nav(det);
 
     // Create the vector of initial track parameters
     vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
@@ -63,7 +63,6 @@ TEST(navigator_cuda, navigator) {
     /**
      * Host Volume Record
      */
-
     vecmem::jagged_vector<dindex> volume_records_host(theta_steps * phi_steps,
                                                       &mng_mr);
     vecmem::jagged_vector<point3> position_records_host(theta_steps * phi_steps,
@@ -72,20 +71,26 @@ TEST(navigator_cuda, navigator) {
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
         auto& traj = tracks_host[i];
-        navigator_host_t::state state(mng_mr);
         stepper_t stepper;
-        stepper_t::state stepping(traj);
+
+        prop_state<navigator_host_t::state> propagation{
+            stepper_t::state{traj}, navigator_host_t::state{mng_mr}};
+
+        navigator_host_t::state& navigation = propagation._navigation;
+        stepper_t::state& stepping = propagation._stepping;
 
         // Start propagation and record volume IDs
-        bool heartbeat = n.init(state, stepping);
+        bool heartbeat = nav.init(propagation);
         while (heartbeat) {
 
-            heartbeat &= stepper.step(stepping, state);
+            heartbeat &= stepper.step(propagation);
 
-            heartbeat &= n.update(state, stepping);
+            navigation.set_high_trust();
+
+            heartbeat &= nav.update(propagation);
 
             // Record volume
-            volume_records_host[i].push_back(state.volume());
+            volume_records_host[i].push_back(navigation.volume());
             position_records_host[i].push_back(stepping().pos());
         }
     }
