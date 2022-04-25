@@ -251,6 +251,59 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     EXPECT_EQ(g2.data()[3].size(), 100);
 }
 
+TEST(grids_cuda, grid2_buffer_attach_populator2) {
+
+    // Helper object for performing memory copies.
+    vecmem::cuda::copy copy;
+
+    // memory resource
+    vecmem::cuda::managed_memory_resource mng_mr;
+
+    axis::circular<> xaxis{2, -1., 3., mng_mr};
+    axis::regular<> yaxis{2, 0., 6., mng_mr};
+
+    grid2_buffer<host_grid2_attach> g2_buffer(xaxis, yaxis, {1, 2, 3, 4},
+                                              mng_mr);
+    copy.setup(g2_buffer._buffer);
+
+    // Check if the initialization works well
+    auto& ptr = g2_buffer._buffer.m_ptr;
+    EXPECT_EQ(ptr[0].size(), 1);
+    EXPECT_EQ(ptr[1].size(), 2);
+    EXPECT_EQ(ptr[2].size(), 3);
+    EXPECT_EQ(ptr[3].size(), 4);
+    EXPECT_EQ(ptr[0].capacity(), 1);
+    EXPECT_EQ(ptr[1].capacity(), 2);
+    EXPECT_EQ(ptr[2].capacity(), 3);
+    EXPECT_EQ(ptr[3].capacity(), 4);
+
+    // Assign values to the vector elements
+    grid_attach_assign_test(g2_buffer);
+
+    host_grid2_attach g2(xaxis, yaxis, mng_mr,
+                         test::point3<detray::scalar>{0, 0, 0});
+    copy(g2_buffer._buffer, g2.data());
+
+    // Check the outputs
+    auto bin0 = g2.bin(0);
+    EXPECT_EQ(bin0[0], test::point3<detray::scalar>({0., 1., 2.}));
+
+    auto bin1 = g2.bin(1);
+    EXPECT_EQ(bin1[0], test::point3<detray::scalar>({0., 1., 2.}));
+    EXPECT_EQ(bin1[1], test::point3<detray::scalar>({1., 2., 3.}));
+
+    auto bin2 = g2.bin(2);
+    EXPECT_EQ(bin2[0], test::point3<detray::scalar>({0., 1., 2.}));
+    EXPECT_EQ(bin2[1], test::point3<detray::scalar>({1., 2., 3.}));
+    EXPECT_EQ(bin2[2], test::point3<detray::scalar>({2., 3., 4.}));
+
+    auto bin3 = g2.bin(3);
+    EXPECT_EQ(bin3[0], test::point3<detray::scalar>({0., 1., 2.}));
+    EXPECT_EQ(bin3[1], test::point3<detray::scalar>({1., 2., 3.}));
+    EXPECT_EQ(bin3[2], test::point3<detray::scalar>({2., 3., 4.}));
+    EXPECT_EQ(bin3[3], test::point3<detray::scalar>({3., 4., 5.}));
+}
+
 /// This test demonstrates how to pass the grids in array type object.
 TEST(grids_cuda, grid2_array) {
 

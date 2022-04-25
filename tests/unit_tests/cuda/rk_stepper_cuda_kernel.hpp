@@ -29,29 +29,31 @@ using namespace detray;
 using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 
-using mag_field_type = constant_magnetic_field<>;
-using rk_stepper_type = rk_stepper<mag_field_type, free_track_parameters>;
+using mag_field_t = constant_magnetic_field<>;
+using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
+using crk_stepper_t =
+    rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
 
 // geomery navigation configurations
 constexpr unsigned int theta_steps = 100;
 constexpr unsigned int phi_steps = 100;
 constexpr unsigned int rk_steps = 100;
 
-constexpr scalar epsilon = 1e-5;
+constexpr scalar epsilon = 1e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
 
 namespace detray {
 
 // dummy navigation struct
 struct nav_state {
-    DETRAY_HOST_DEVICE scalar operator()() const {
-        return 1. * unit_constants::mm;
-    }
+    DETRAY_HOST_DEVICE scalar operator()() const { return _step_size; }
     DETRAY_HOST_DEVICE inline void set_full_trust() {}
     DETRAY_HOST_DEVICE inline void set_high_trust() {}
     DETRAY_HOST_DEVICE inline void set_fair_trust() {}
     DETRAY_HOST_DEVICE inline void set_no_trust() {}
     DETRAY_HOST_DEVICE inline bool abort() { return false; }
+
+    scalar _step_size = 1. * unit_constants::mm;
 };
 
 // test function for Runge-Kutta stepper

@@ -53,6 +53,9 @@ detray_add_library( detray_core core
    "include/detray/masks/trapezoid2.hpp"
    "include/detray/masks/unmasked.hpp"   
    # propagator include(s)
+   "include/detray/propagator/aborters.hpp"
+   "include/detray/propagator/actor_chain.hpp"
+   "include/detray/propagator/base_actor.hpp"
    "include/detray/propagator/base_stepper.hpp"
    "include/detray/propagator/constrained_step.hpp"
    "include/detray/propagator/line_stepper.hpp"
@@ -67,6 +70,7 @@ detray_add_library( detray_core core
    "include/detray/tools/grid_array_helper.hpp"
    "include/detray/tools/local_object_finder.hpp"
    # utils include(s)   
+   "include/detray/utils/algebra_helpers.hpp"
    "include/detray/utils/enumerate.hpp"
    "include/detray/utils/invalid_values.hpp" )
 target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)

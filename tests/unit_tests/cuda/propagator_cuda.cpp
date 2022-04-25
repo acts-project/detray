@@ -19,11 +19,10 @@ class CudaPropagatorWithRkStepper
 TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
     // Helper object for performing memory copies.
-    vecmem::cuda::copy copy;
+    vecmem::copy copy;
 
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
-    vecmem::cuda::device_memory_resource dev_mr;
 
     // Create the toy geometry
     detector_host_type det =
@@ -55,6 +54,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
             // intialize a track
             free_track_parameters traj(ori, 0, mom, -1);
+            traj.set_overstep_tolerance(overstep_tolerance);
 
             // Put it into vector of trajectories
             tracks_host.push_back(traj);
@@ -67,33 +67,42 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
      */
 
     // Set the magnetic field
-    vector3 B = GetParam();
+    const vector3 B = GetParam();
     field_type B_field(B);
 
     // Create RK stepper
     rk_stepper_type s(B_field);
-
     // Create navigator
     navigator_host_type n(det);
-
     // Create propagator
     propagator_host_type p(std::move(s), std::move(n));
 
     // Create vector for track recording
-    vecmem::jagged_vector<intersection_t> host_intersection_records(&mng_mr);
+    vecmem::jagged_vector<scalar> host_path_lengths(&mng_mr);
+    vecmem::jagged_vector<vector3> host_positions(&mng_mr);
+    vecmem::jagged_vector<free_matrix> host_jac_transports(&mng_mr);
 
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
-        track_inspector<vecmem::vector> ti(mng_mr);
-
         // Create the propagator state
-        propagator_host_type::state state(tracks_host[i]);
+        inspector_host_t::state_type insp_state{mng_mr};
+        pathlimit_aborter::state_type pathlimit_state{path_limit};
+
+        propagator_host_type::state state(
+            tracks_host[i], thrust::tie(insp_state, pathlimit_state));
+
+        state._stepping.template set_constraint<step::constraint::e_accuracy>(
+            constrainted_step_size);
+
+        state._stepping.set_tolerance(rk_tolerance);
 
         // Run propagation
-        p.propagate(state, ti);
+        p.propagate(state);
 
-        // push back the intersection record
-        host_intersection_records.push_back(ti._intersections);
+        // Record the step information
+        host_path_lengths.push_back(insp_state._path_lengths);
+        host_positions.push_back(insp_state._positions);
+        host_jac_transports.push_back(insp_state._jac_transports);
     }
 
     /**
@@ -108,42 +117,85 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
     // Create navigator candidates buffer
     auto candidates_buffer =
-        create_candidates_buffer(det, theta_steps * phi_steps, dev_mr);
+        create_candidates_buffer(det, theta_steps * phi_steps, mng_mr);
     copy.setup(candidates_buffer);
-
-    // Create vector for track recording
-    vecmem::jagged_vector<intersection_t> device_intersection_records(&mng_mr);
 
     // Create vector buffer for track recording
     std::vector<std::size_t> sizes(theta_steps * phi_steps, 0);
     std::vector<std::size_t> capacities;
-    for (auto& r : host_intersection_records) {
+    for (auto& r : host_positions) {
         capacities.push_back(r.size());
     }
 
-    vecmem::data::jagged_vector_buffer<intersection_t> intersections_buffer(
-        sizes, capacities, dev_mr, &mng_mr);
-    copy.setup(intersections_buffer);
+    vecmem::data::jagged_vector_buffer<scalar> path_lengths_buffer(
+        sizes, capacities, mng_mr);
+    vecmem::data::jagged_vector_buffer<vector3> positions_buffer(
+        sizes, capacities, mng_mr);
+    vecmem::data::jagged_vector_buffer<free_matrix> jac_transports_buffer(
+        sizes, capacities, mng_mr);
+
+    copy.setup(path_lengths_buffer);
+    copy.setup(positions_buffer);
+    copy.setup(jac_transports_buffer);
 
     // Run the propagator test for GPU device
-    propagator_test(det_data, tracks_data, candidates_buffer,
-                    intersections_buffer);
+    propagator_test(det_data, B, tracks_data, candidates_buffer,
+                    path_lengths_buffer, positions_buffer,
+                    jac_transports_buffer);
 
-    // copy back intersection record
-    copy(intersections_buffer, device_intersection_records);
+    vecmem::jagged_vector<scalar> device_path_lengths(&mng_mr);
+    vecmem::jagged_vector<vector3> device_positions(&mng_mr);
+    vecmem::jagged_vector<free_matrix> device_jac_transports(&mng_mr);
 
-    for (unsigned int i = 0; i < host_intersection_records.size(); i++) {
-        for (unsigned int j = 0; j < host_intersection_records[i].size(); j++) {
-            auto& host_intersection = host_intersection_records[i][j];
-            auto& device_intersection = device_intersection_records[i][j];
+    copy(path_lengths_buffer, device_path_lengths);
+    copy(positions_buffer, device_positions);
+    copy(jac_transports_buffer, device_jac_transports);
 
-            EXPECT_EQ(host_intersection.link, device_intersection.link);
-            EXPECT_NEAR(host_intersection.p3[0], device_intersection.p3[0],
-                        pos_diff_tolerance);
-            EXPECT_NEAR(host_intersection.p3[1], device_intersection.p3[1],
-                        pos_diff_tolerance);
-            EXPECT_NEAR(host_intersection.p3[2], device_intersection.p3[2],
-                        pos_diff_tolerance);
+    // Compare the positions
+    for (unsigned int i = 0; i < host_positions.size(); i++) {
+        ASSERT_TRUE(host_positions[i].size() > 0);
+
+        for (unsigned int j = 0; j < host_positions[i].size(); j++) {
+
+            auto host_pl = host_path_lengths[i][j];
+            auto device_pl = device_path_lengths[i][j];
+
+            // ASSERT_NEAR((host_pl - device_pl) / host_pl, 0, is_close);
+
+            ASSERT_EQ(host_positions[i].size(), device_positions[i].size());
+
+            ASSERT_NEAR(host_pl, device_pl, host_pl * is_close);
+
+            auto& host_pos = host_positions[i][j];
+            auto& device_pos = device_positions[i][j];
+
+            auto relative_error =
+                static_cast<point3>(1. / host_pl * (host_pos - device_pos));
+
+            ASSERT_NEAR(getter::norm(relative_error), 0, is_close);
+        }
+    }
+
+    // Compare the jacobian transports
+    for (unsigned int i = 0; i < host_jac_transports.size(); i++) {
+        for (unsigned int j = 0; j < host_jac_transports[i].size(); j++) {
+
+            auto& host_J = host_jac_transports[i][j];
+            auto& device_J = device_jac_transports[i][j];
+
+            auto pl = host_path_lengths[i][j];
+
+            for (__plugin::size_type row = 0; row < e_free_size; row++) {
+                for (__plugin::size_type col = 0; col < e_free_size; col++) {
+
+                    auto host_val = matrix_operator().element(host_J, row, col);
+
+                    auto device_val =
+                        matrix_operator().element(device_J, row, col);
+
+                    ASSERT_NEAR((host_val - device_val) / pl, 0, is_close);
+                }
+            }
         }
     }
 }

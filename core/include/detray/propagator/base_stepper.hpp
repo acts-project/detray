@@ -7,10 +7,9 @@
 
 #pragma once
 
-// detray definitions
+// detray include(s)
 #include "detray/definitions/qualifiers.hpp"
-
-// detray tools
+#include "detray/definitions/units.hpp"
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/propagator/track.hpp"
 
@@ -27,6 +26,7 @@ class base_stepper {
     // covariance types for bound state
     using covariance_type = typename bound_track_parameters::covariance_type;
     using jacobian_type = typename bound_track_parameters::jacobian_type;
+    using matrix_operator = standard_matrix_operator<scalar>;
 
     /** State struct holding the track
      *
@@ -41,6 +41,10 @@ class base_stepper {
         DETRAY_HOST_DEVICE
         state(track_t &t) : _track(t) {}
 
+        /// TODO: Use options?
+        /// hypothetical mass of particle (assume pion by default)
+        scalar _mass = 139.57018 * unit_constants::MeV;
+
         /// free track parameter
         track_t &_track;
 
@@ -48,7 +52,8 @@ class base_stepper {
         bound_matrix _jacobian;
 
         /// jacobian transport matrix
-        free_matrix _jac_transport;
+        free_matrix _jac_transport =
+            matrix_operator().template identity<e_free_size, e_free_size>();
 
         /// jacobian transformation
         bound_to_free_matrix _jac_to_global;
@@ -57,7 +62,8 @@ class base_stepper {
         bound_matrix _cov;
 
         /// The propagation derivative
-        free_vector _derivative;
+        free_vector _derivative =
+            matrix_operator().template zero<e_free_size, 1>();
 
         /// @returns track parameters - const access
         DETRAY_HOST_DEVICE
@@ -67,16 +73,16 @@ class base_stepper {
         DETRAY_HOST_DEVICE
         const track_t &operator()() const { return _track; }
 
-        step::direction _direction = step::direction::e_forward;
+        step::direction _direction{step::direction::e_forward};
 
         // Stepping constraints
         constraint_t _constraint = {};
 
-        /// Remaining path length
-        scalar _path_limit = std::numeric_limits<scalar>::max();
+        /// Track path length
+        scalar _path_length{0};
 
         /// Current step size
-        scalar _step_size = std::numeric_limits<scalar>::infinity();
+        scalar _step_size{std::numeric_limits<scalar>::infinity()};
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>
@@ -103,24 +109,6 @@ class base_stepper {
             _constraint.template release<type>();
         }
 
-        /// Set the path limit to a scalar @param pl
-        DETRAY_HOST_DEVICE
-        inline void set_path_limit(const scalar pl) { _path_limit = pl; }
-
-        /// @returns this states remaining path length.
-        DETRAY_HOST_DEVICE
-        inline scalar dist_to_path_limit() const { return _path_limit; }
-
-        /// Update and check the path limit against a new @param step size.
-        DETRAY_HOST_DEVICE
-        inline bool check_path_limit() {
-            _path_limit -= _step_size;
-            if (_path_limit <= 0.) {
-                return false;
-            }
-            return true;
-        }
-
         /// Set next step size
         DETRAY_HOST_DEVICE
         inline void set_step_size(const scalar step) { _step_size = step; }
@@ -128,6 +116,10 @@ class base_stepper {
         /// @returns the current step size of this state.
         DETRAY_HOST_DEVICE
         inline scalar step_size() const { return _step_size; }
+
+        /// @returns this states remaining path length.
+        DETRAY_HOST_DEVICE
+        inline scalar path_length() const { return _path_length; }
     };
 };
 

@@ -11,6 +11,9 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
+#include "detray/propagator/aborters.hpp"
+#include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -21,8 +24,52 @@
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
+namespace {
+
 constexpr scalar epsilon = 5e-4;
-constexpr scalar path_limit = 2 * unit_constants::m;
+constexpr scalar path_limit = 5 * unit_constants::cm;
+
+/// Compare helical track positions for stepper
+struct helix_inspector : actor {
+
+    // Keeps the state of a helix gun to calculate track positions
+    struct helix_inspector_state {
+        helix_inspector_state(helix_gun &&h) : _helix(h) {}
+        helix_gun _helix;
+    };
+
+    using size_type = __plugin::size_type;
+    using matrix_operator = standard_matrix_operator<scalar>;
+    using state_type = helix_inspector_state;
+
+    /// Check that the stepper remains on the right helical track for its pos.
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        const state_type &inspector_state,
+        const propagator_state_t &prop_state) const {
+
+        const auto &stepping = prop_state._stepping;
+        const auto pos = stepping().pos();
+        const auto true_pos = inspector_state._helix(stepping.path_length());
+
+        const point3 relative_error{1 / stepping.path_length() *
+                                    (pos - true_pos)};
+
+        ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
+
+        auto true_J = inspector_state._helix.jacobian(stepping.path_length());
+        for (size_type i = 0; i < e_free_size; i++) {
+            for (size_type j = 0; j < e_free_size; j++) {
+                ASSERT_NEAR(
+                    matrix_operator().element(stepping._jac_transport, i, j),
+                    matrix_operator().element(true_J, i, j),
+                    stepping.path_length() * epsilon * 10);
+            }
+        }
+    }
+};
+
+}  // anonymous namespace
 
 // This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
@@ -34,63 +81,24 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     // auto [d, name_map] = read_from_csv(tml_files, host_mr);
     auto d = create_toy_geometry(host_mr);
 
-    // Create the navigator
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
     using track_t = free_track_parameters;
+    using stepper_t = line_stepper<track_t>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     __plugin::point3<scalar> pos{0., 0., 0.};
     __plugin::vector3<scalar> mom{1., 1., 0.};
     track_t traj(pos, 0, mom, -1);
 
-    using stepper_t = line_stepper<track_t>;
-
     stepper_t s;
     navigator_t n(d);
-
-    using propagator_t = propagator<stepper_t, navigator_t>;
     propagator_t p(std::move(s), std::move(n));
 
-    propagation::void_inspector vi;
-
     propagator_t::state state(traj);
-    state._stepping.set_path_limit(path_limit);
 
-    EXPECT_TRUE(p.propagate(state, vi))
+    EXPECT_TRUE(p.propagate(state))
         << state._navigation.inspector().to_string() << std::endl;
 }
-
-struct helix_inspector {
-
-    helix_inspector(const helix_gun& helix) : _helix(helix) {}
-
-    template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(const navigator_state_t& /*navigation*/,
-                                       const stepper_state_t& stepping) {
-        auto pos = stepping().pos();
-        const scalar path_accumulated =
-            path_limit - stepping.dist_to_path_limit();
-        auto true_pos = _helix(path_accumulated);
-
-        __plugin::vector3<scalar> relative_error =
-            1 / path_accumulated * (pos - true_pos);
-
-        ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
-    }
-
-    helix_gun _helix;
-};
-
-struct combined_inspector {
-    helix_inspector _hi;
-    propagation::print_inspector _pi;
-
-    template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(navigator_state_t& navigation,
-                                       const stepper_state_t& stepping) {
-        _hi(navigation, stepping);
-        _pi(navigation, stepping);
-    }
-};
 
 class PropagatorWithRkStepper
     : public ::testing::TestWithParam<__plugin::vector3<scalar>> {};
@@ -98,13 +106,14 @@ class PropagatorWithRkStepper
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     using namespace detray;
+    using namespace propagation;
     using namespace __plugin;
     using point3 = __plugin::point3<scalar>;
     using vector3 = __plugin::vector3<scalar>;
 
     // geomery navigation configurations
-    constexpr unsigned int theta_steps = 100;
-    constexpr unsigned int phi_steps = 100;
+    constexpr unsigned int theta_steps = 50;
+    constexpr unsigned int phi_steps = 50;
 
     // detector configuration
     constexpr std::size_t n_brl_layers = 4;
@@ -119,7 +128,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using constraints_t = constrained_step<>;
     using stepper_t =
         rk_stepper<b_field_t, free_track_parameters, constraints_t>;
-    using propagator_t = propagator<stepper_t, navigator_t>;
+    using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector,
+                                      pathlimit_aborter>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Constant magnetic field
     vector3 B = GetParam();
@@ -149,20 +160,47 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             vector::normalize(mom);
             mom = 10. * unit_constants::GeV * mom;
             free_track_parameters traj(ori, 0, mom, -1);
+            free_track_parameters lim_traj(ori, 0, mom, -1);
             traj.set_overstep_tolerance(-10 * unit_constants::um);
+            lim_traj.set_overstep_tolerance(-10 * unit_constants::um);
 
-            helix_gun helix(traj, B);
-            combined_inspector ci{helix_inspector(helix),
-                                  propagation::print_inspector{}};
+            // Build actor states: the helix inspector can be shared
+            helix_inspector::state_type helix_insp_state{helix_gun{traj, &B}};
+            print_inspector::state_type print_insp_state{};
+            print_inspector::state_type lim_print_insp_state{};
+            pathlimit_aborter::state_type unlimted_aborter_state{};
+            pathlimit_aborter::state_type pathlimit_aborter_state{path_limit};
 
-            propagator_t::state state(traj);
-            state._stepping.set_path_limit(path_limit);
+            // Create actor states tuples
+            actor_chain_t::state actor_states = std::tie(
+                helix_insp_state, print_insp_state, unlimted_aborter_state);
+            actor_chain_t::state lim_actor_states =
+                std::tie(helix_insp_state, lim_print_insp_state,
+                         pathlimit_aborter_state);
+
+            // Init propagator states
+            propagator_t::state state(traj, actor_states);
+            propagator_t::state lim_state(lim_traj, lim_actor_states);
+
+            // Set step constraints
             state._stepping
                 .template set_constraint<step::constraint::e_accuracy>(
                     5. * unit_constants::mm);
+            lim_state._stepping
+                .template set_constraint<step::constraint::e_accuracy>(
+                    5. * unit_constants::mm);
 
-            ASSERT_TRUE(p.propagate(state, ci))
-                << ci._pi.to_string() << std::endl;
+            // Propagate the entire detector
+            ASSERT_TRUE(p.propagate(state))
+                << print_insp_state.to_string() << std::endl;
+
+            // Propagate with path limit
+            ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit,
+                        epsilon);
+            ASSERT_FALSE(p.propagate(lim_state))
+                << lim_print_insp_state.to_string() << std::endl;
+            ASSERT_TRUE(lim_state._stepping.path_length() <
+                        path_limit + epsilon);
         }
     }
 }
