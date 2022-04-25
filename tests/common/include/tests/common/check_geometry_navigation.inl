@@ -66,16 +66,15 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             const auto intersection_trace = shoot_ray(det, r);
 
             free_track_parameters track(ori, 0, dir, -1);
-            propagator_t::state prop_state(track);
+            propagator_t::state propagation(track);
 
-            prop.propagate(prop_state);
+            prop.propagate(propagation);
 
             // Retrieve navigation information
+            auto &inspector = propagation._navigation.inspector();
             auto &obj_tracer =
-                prop_state._navigation.inspector()
-                    .template get<object_tracer<status::e_on_target>>();
-            auto &debug_printer = prop_state._navigation.inspector()
-                                      .template get<print_inspector>();
+                inspector.template get<object_tracer<status::e_on_target>>();
+            auto &debug_printer = inspector.template get<print_inspector>();
 
             // Compare intersection records
             EXPECT_EQ(obj_tracer.object_trace.size(),

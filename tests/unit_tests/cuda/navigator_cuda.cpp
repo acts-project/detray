@@ -29,7 +29,7 @@ TEST(navigator_cuda, navigator) {
                                                    n_edc_layers);
 
     // Create navigator
-    navigator_host_t n(det);
+    navigator_host_t nav(det);
 
     // Create the vector of initial track parameters
     vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
@@ -63,7 +63,6 @@ TEST(navigator_cuda, navigator) {
     /**
      * Host Volume Record
      */
-
     vecmem::jagged_vector<dindex> volume_records_host(theta_steps * phi_steps,
                                                       &mng_mr);
     vecmem::jagged_vector<point3> position_records_host(theta_steps * phi_steps,
@@ -81,14 +80,14 @@ TEST(navigator_cuda, navigator) {
         stepper_t::state& stepping = propagation._stepping;
 
         // Start propagation and record volume IDs
-        bool heartbeat = n.init(navigation, stepping);
+        bool heartbeat = nav.init(propagation);
         while (heartbeat) {
 
             heartbeat &= stepper.step(propagation);
 
             navigation.set_high_trust();
 
-            heartbeat &= n.update(navigation, stepping);
+            heartbeat &= nav.update(propagation);
 
             // Record volume
             volume_records_host[i].push_back(navigation.volume());

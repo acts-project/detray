@@ -51,14 +51,16 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
 
     vecmem::host_memory_resource host_mr;
 
+    // B-fields
     vector3 B_z{0., 0., 1. * unit_constants::T};
     vector3 B_x{1. * unit_constants::T, 0., 0.};
     b_field_t b_field_z{B_z};
     b_field_t b_field_x{B_x};
 
-    rk_stepper_t rk_step_z{b_field_z};
-    rk_stepper_t rk_step_x{b_field_x};
-    ln_stepper_t ln_step{};
+    // steppers
+    rk_stepper_t rk_stepper_z{b_field_z};
+    rk_stepper_t rk_stepper_x{b_field_x};
+    ln_stepper_t ln_stepper{};
 
     //
     // telescope along z
@@ -88,81 +90,98 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     // telescope along x
     //
 
-    // Same telescope, but in x direction
+    // Same telescope, but in x direction and created from custom stepper
     point3 pos{0., 0., 0.};
     vector3 mom{1., 0., 0.};
     free_track_parameters pilot_track(pos, 0, mom, -1);
 
     const auto x_tel_det = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, pilot_track, ln_step);
+        host_mr, n_surfaces, tel_length, pilot_track, ln_stepper);
+
+    //
+    // test propagation in all telescope detector instances
+    //
 
     // Telescope navigation should be symmetric in x and z
     pos = {0., 0., 0.};
     mom = {0., 0., 1.};
-    free_track_parameters test_track1(pos, 0, mom, -1);
-    free_track_parameters test_track2(pos, 0, mom, -1);
+    free_track_parameters test_track_z1(pos, 0, mom, -1);
+    free_track_parameters test_track_z2(pos, 0, mom, -1);
     mom = {1., 0., 0.};
-    free_track_parameters test_track3(pos, 0, mom, -1);
+    free_track_parameters test_track_x(pos, 0, mom, -1);
 
-    navigator<decltype(z_tel_det1), inspector_t> nav_z1(z_tel_det1);
-    navigator<decltype(z_tel_det2), inspector_t> nav_z2(z_tel_det2);
-    navigator<decltype(x_tel_det), inspector_t> nav_x(x_tel_det);
-    using n_state_t = decltype(nav_z1)::state;
-    using s_state_t = rk_stepper_t::state;
+    // navigators
+    navigator<decltype(z_tel_det1), inspector_t> navigator_z1(z_tel_det1);
+    navigator<decltype(z_tel_det2), inspector_t> navigator_z2(z_tel_det2);
+    navigator<decltype(x_tel_det), inspector_t> navigator_x(x_tel_det);
+    using navigation_state_t = decltype(navigator_z1)::state;
+    using stepping_state_t = rk_stepper_t::state;
 
-    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_z1{
-        s_state_t(test_track1), n_state_t{}};
-    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_z2{
-        s_state_t(test_track2), n_state_t{}};
-    prop_state<rk_stepper_t::state, decltype(nav_z1)::state> p_x{
-        s_state_t(test_track3), n_state_t{}};
+    // propagation states
+    prop_state<stepping_state_t, navigation_state_t> propgation_z1{
+        stepping_state_t(test_track_z1), navigation_state_t{}};
+    prop_state<stepping_state_t, navigation_state_t> propgation_z2{
+        stepping_state_t(test_track_z2), navigation_state_t{}};
+    prop_state<stepping_state_t, navigation_state_t> propgation_x{
+        stepping_state_t(test_track_x), navigation_state_t{}};
 
-    rk_stepper_t::state &s_z1 = p_z1._stepping;
-    rk_stepper_t::state &s_z2 = p_z2._stepping;
-    rk_stepper_t::state &s_x = p_x._stepping;
+    stepping_state_t &stepping_z1 = propgation_z1._stepping;
+    stepping_state_t &stepping_z2 = propgation_z2._stepping;
+    stepping_state_t &stepping_x = propgation_x._stepping;
 
-    decltype(nav_z1)::state &n_z1 = p_z1._navigation;
-    decltype(nav_z1)::state &n_z2 = p_z2._navigation;
-    decltype(nav_z1)::state &n_x = p_x._navigation;
+    navigation_state_t &navigation_z1 = propgation_z1._navigation;
+    navigation_state_t &navigation_z2 = propgation_z2._navigation;
+    navigation_state_t &navigation_x = propgation_x._navigation;
 
-    bool heartbeat_z1 = nav_z1.init(n_z1, s_z1);
-    bool heartbeat_z2 = nav_z2.init(n_z2, s_z2);
-    bool heartbeat_x = nav_x.init(n_x, s_x);
+    // propagate all telescopes
+    bool heartbeat_z1 = navigator_z1.init(propgation_z1);
+    bool heartbeat_z2 = navigator_z2.init(propgation_z2);
+    bool heartbeat_x = navigator_x.init(propgation_x);
 
     while (heartbeat_z1 and heartbeat_z2 and heartbeat_x) {
 
+        // check that all propagation flows are still running
         EXPECT_TRUE(heartbeat_z1);
         EXPECT_TRUE(heartbeat_z2);
         EXPECT_TRUE(heartbeat_x);
 
-        heartbeat_z1 &= rk_step_x.step(p_z1);
-        heartbeat_z2 &= rk_step_x.step(p_z2);
-        heartbeat_x &= rk_step_z.step(p_x);
+        heartbeat_z1 &= rk_stepper_x.step(propgation_z1);
+        heartbeat_z2 &= rk_stepper_x.step(propgation_z2);
+        heartbeat_x &= rk_stepper_z.step(propgation_x);
 
-        n_z1.set_high_trust();
-        n_z2.set_high_trust();
-        n_x.set_high_trust();
+        navigation_z1.set_high_trust();
+        navigation_z2.set_high_trust();
+        navigation_x.set_high_trust();
 
-        heartbeat_z1 &= nav_z1.update(n_z1, s_z1);
-        heartbeat_z2 &= nav_z2.update(n_z2, s_z2);
-        heartbeat_x &= nav_x.update(n_x, s_x);
+        heartbeat_z1 &= navigator_z1.update(propgation_z1);
+        heartbeat_z2 &= navigator_z2.update(propgation_z2);
+        heartbeat_x &= navigator_x.update(propgation_x);
 
-        EXPECT_NEAR(std::fabs(s_z1._path_length - s_z2._path_length) /
-                        s_z1._path_length,
-                    0., tol);
+        // The track path lengths should match between all propagations
         EXPECT_NEAR(
-            std::fabs(s_z1._path_length - s_x._path_length) / s_x._path_length,
+            std::fabs(stepping_z1._path_length - stepping_z2._path_length) /
+                stepping_z1._path_length,
             0., tol);
-        EXPECT_NEAR(getter::norm(test_track1.pos() - test_track2.pos()) /
-                        getter::norm(test_track1.pos()),
+        EXPECT_NEAR(
+            std::fabs(stepping_z1._path_length - stepping_x._path_length) /
+                stepping_x._path_length,
+            0., tol);
+        // The track positions in z should match exactly
+        EXPECT_NEAR(getter::norm(test_track_z1.pos() - test_track_z2.pos()) /
+                        getter::norm(test_track_z1.pos()),
                     0., tol);
-        EXPECT_NEAR(getter::norm(test_track1.dir() - test_track2.dir()) /
-                        getter::norm(test_track1.dir()),
+        EXPECT_NEAR(getter::norm(test_track_z1.dir() - test_track_z2.dir()) /
+                        getter::norm(test_track_z1.dir()),
                     0., tol);
     }
-    ASSERT_TRUE(n_z1.is_complete()) << n_z1.inspector().to_string();
-    ASSERT_TRUE(n_z2.is_complete()) << n_z2.inspector().to_string();
-    ASSERT_TRUE(n_x.is_complete()) << n_x.inspector().to_string();
+
+    // check that all propagation flows exited successfully
+    ASSERT_TRUE(navigation_z1.is_complete())
+        << navigation_z1.inspector().to_string();
+    ASSERT_TRUE(navigation_z2.is_complete())
+        << navigation_z2.inspector().to_string();
+    ASSERT_TRUE(navigation_x.is_complete())
+        << navigation_x.inspector().to_string();
 
     //
     // Build a telescope along a bent track
@@ -172,23 +191,25 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     pilot_track = free_track_parameters(pos, 0, mom, -1);
     pilot_track.set_overstep_tolerance(-10 * unit_constants::um);
 
-    const auto tel_det = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, pilot_track, rk_step_z);
+    const auto tel_detector = create_telescope_detector<rectangular>(
+        host_mr, n_surfaces, tel_length, pilot_track, rk_stepper_z);
 
     // make at least sure it is navigatable
-    navigator<decltype(tel_det), inspector_t> nav_tel(tel_det);
+    navigator<decltype(tel_detector), inspector_t> tel_navigator(tel_detector);
 
-    prop_state<rk_stepper_t::state, decltype(nav_tel)::state> p_tel{
-        rk_stepper_t::state{pilot_track}, decltype(nav_tel)::state{}};
-    rk_stepper_t::state &s_tel = p_tel._stepping;
-    decltype(nav_tel)::state &n_tel = p_tel._navigation;
+    prop_state<stepping_state_t, navigation_state_t> tel_propagation{
+        stepping_state_t{pilot_track}, navigation_state_t{}};
+    navigation_state_t &tel_navigation = tel_propagation._navigation;
 
-    bool heartbeat_tel = nav_tel.init(n_tel, s_tel);
+    // run propagation
+    bool heartbeat_tel = tel_navigator.init(tel_propagation);
 
     while (heartbeat_tel) {
-        heartbeat_tel &= rk_step_z.step(p_tel);
-        n_tel.set_high_trust();
-        heartbeat_tel &= nav_tel.update(n_tel, s_tel);
+        heartbeat_tel &= rk_stepper_z.step(tel_propagation);
+        tel_navigation.set_high_trust();
+        heartbeat_tel &= tel_navigator.update(tel_propagation);
     }
-    ASSERT_TRUE(n_tel.is_complete()) << n_tel.inspector().to_string();
+    // check that propagation was successful
+    ASSERT_TRUE(tel_navigation.is_complete())
+        << tel_navigation.inspector().to_string();
 }

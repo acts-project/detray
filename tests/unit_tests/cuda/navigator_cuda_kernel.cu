@@ -30,7 +30,7 @@ __global__ void navigator_test_kernel(
         return;
     }
 
-    navigator_device_t n(det);
+    navigator_device_t nav(det);
 
     auto& traj = tracks.at(gid);
     stepper_t stepper;
@@ -45,14 +45,14 @@ __global__ void navigator_test_kernel(
     navigation.set_volume(0u);
 
     // Start propagation and record volume IDs
-    bool heartbeat = n.init(navigation, stepping);
+    bool heartbeat = nav.init(propagation);
     while (heartbeat) {
 
         heartbeat &= stepper.step(propagation);
 
         navigation.set_high_trust();
 
-        heartbeat = n.update(navigation, stepping);
+        heartbeat = nav.update(propagation);
 
         // Record volume
         volume_records[gid].push_back(navigation.volume());
