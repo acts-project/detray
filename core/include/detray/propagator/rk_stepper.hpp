@@ -70,19 +70,17 @@ class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
         DETRAY_HOST_DEVICE
         inline void advance_jacobian();
 
+        /// Calculate terms k_i in a given Runge-Kutta step
         DETRAY_HOST_DEVICE
         inline vector3 evaluate_k(const vector3& b_field, const int i,
                                   const scalar h, const vector3& k_prev);
     };
 
-    /** Take a step, using an adaptive Runge-Kutta algorithm.
-     *
-     * @param stepping The state object of a stepper
-     * @param navigation The state object of a navigator
-     * @param max_step_size Maximal distance for this step
-     *
-     * @return returning the heartbeat, indicating if the stepping is alive
-     */
+    /// Take a step, using an adaptive Runge-Kutta algorithm.
+    ///
+    /// @param propagation contains the states of the rk stepper and navigator
+    ///
+    /// @returns the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation);
 
