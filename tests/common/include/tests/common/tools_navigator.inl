@@ -46,16 +46,16 @@ inline void check_towards_surface(state_t &state, dindex vol_id,
 /// Checks for a correct 'on_surface' state
 template <typename navigator_t, typename state_t = typename navigator_t::state>
 inline void check_on_surface(state_t &state, dindex vol_id,
-                             std::size_t n_candidates, dindex /*current_id*/,
+                             std::size_t n_candidates, dindex current_id,
                              dindex next_id) {
     // The status is: on surface/towards surface if the next candidate is
     // immediately updated and set in the same update call
-    ASSERT_EQ(state.status(), navigation::status::e_towards_object);
+    ASSERT_EQ(state.status(), navigation::status::e_on_target);
     // Points towards next candidate
     ASSERT_TRUE(std::abs(state()) > state.tolerance());
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.candidates().size(), n_candidates);
-    ASSERT_EQ(state.current_object(), dindex_invalid /*current_id*/);
+    ASSERT_EQ(state.current_object(), current_id);
     // points to the next surface now
     ASSERT_EQ(state.next()->index, next_id);
     ASSERT_EQ(state.trust_level(), navigation::trust_level::e_full);
@@ -67,7 +67,7 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
     // Switched to next volume
     ASSERT_EQ(state.volume(), vol_id);
     // The status is towards first surface in new volume
-    ASSERT_EQ(state.status(), navigation::status::e_towards_object);
+    ASSERT_EQ(state.status(), navigation::status::e_on_target);
     // Kernel is newly initialized
     ASSERT_FALSE(state.is_exhausted());
     ASSERT_EQ(state.trust_level(), navigation::trust_level::e_full);
@@ -174,12 +174,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     // Distance to beampipe is now halved
     ASSERT_NEAR(navigation(), 9.5, tol);
 
-    // Let's immediately target, nothing should change, as there is full trust
-    ASSERT_TRUE(nav.update(propagation));
-    check_towards_surface<navigator_t>(navigation, 0, 2, 0);
-    ASSERT_NEAR(navigation(), 9.5, tol);
-
-    // Let's immediately target, nothing should change, as there is full trust
+    // Let's immediately update, nothing should change, as there is full trust
     ASSERT_TRUE(nav.update(propagation));
     check_towards_surface<navigator_t>(navigation, 0, 2, 0);
     ASSERT_NEAR(navigation(), 9.5, tol);
@@ -207,24 +202,24 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     std::map<dindex, std::vector<dindex>> sf_sequences;
 
     // layer 1
-    sf_sequences[7] = {491, 475, 492, 476, 595};
+    sf_sequences[7] = {594, 491, 475, 492, 476, 595};
     // gap 1
-    sf_sequences[8] = {599};
+    sf_sequences[8] = {598, 599};
     // layer 2
-    sf_sequences[9] = {845, 813, 846, 814, 1051};
+    sf_sequences[9] = {1050, 845, 813, 846, 814, 1051};
     // gap 2
-    sf_sequences[10] = {1055};
+    sf_sequences[10] = {1054, 1055};
     // layer 3
-    sf_sequences[11] = {1454, 1402, 1787};
+    sf_sequences[11] = {1786, 1454, 1402, 1787};
     // gap 3
-    sf_sequences[12] = {1791};
+    sf_sequences[12] = {1790, 1791};
     // layer 4
-    sf_sequences[last_vol_id] = {2388, 2310, 2887};
+    sf_sequences[last_vol_id] = {2886, 2388, 2310, 2887};
 
     // Every iteration steps through one barrel layer
     for (const auto &[vol_id, sf_seq] : sf_sequences) {
         // Includes the portal we are automatically on
-        std::size_t n_candidates = sf_seq.size() + 1;
+        std::size_t n_candidates = sf_seq.size();
 
         // We switched to next barrel volume
         check_volume_switch<navigator_t>(navigation, vol_id);
@@ -232,11 +227,13 @@ TEST(ALGEBRA_PLUGIN, navigator) {
         // The status is: on adjacent portal in volume, towards next candidate
         // This includes overlapping modules and the adjacent portal we are
         // already on
-        check_towards_surface<navigator_t>(navigation, vol_id, n_candidates,
-                                           sf_seq.front());
+        // check_towards_surface<navigator_t>(navigation, vol_id, n_candidates,
+        //                                   sf_seq.front());
+        check_on_surface<navigator_t>(navigation, vol_id, n_candidates,
+                                      sf_seq[0], sf_seq[1]);
 
         // Step through the module surfaces
-        for (std::size_t sf = 0; sf < sf_seq.size() - 1; ++sf) {
+        for (std::size_t sf = 1; sf < sf_seq.size() - 1; ++sf) {
             check_step(nav, stepper, propagation, vol_id, n_candidates,
                        sf_seq[sf], sf_seq[sf + 1]);
         }
@@ -259,5 +256,6 @@ TEST(ALGEBRA_PLUGIN, navigator) {
         }
     }
 
+    // std::cout << navigation.inspector().to_string() << std::endl;
     ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
 }

@@ -118,8 +118,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using navigator_t = navigator<decltype(d)>;
     using b_field_t = constant_magnetic_field<>;
     using constraints_t = constrained_step<>;
+    using policy_t = stepper_default_policy;
     using stepper_t =
-        rk_stepper<b_field_t, free_track_parameters, constraints_t>;
+        rk_stepper<b_field_t, free_track_parameters, constraints_t, policy_t>;
     using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector,
                                       pathlimit_aborter>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

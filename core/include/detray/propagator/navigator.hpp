@@ -425,7 +425,7 @@ class navigator {
         // What is the closest object we can reach?
         set_next(track, propagation);
         // Call the inspector before returning (only for debugging)
-        navigation.run_inspector("Init complete: ");
+        // navigation.run_inspector("Init complete: ");
     }
 
     /// Helper method to update the candidate cache (surface intersections)
@@ -476,16 +476,15 @@ class navigator {
                         // Set the next object we want to reach - might be end()
                         ++navigation.next();
                         if (not navigation.is_exhausted()) {
-                            navigation.run_inspector(
-                                "Update next (high trust):");
                             // Ready the next candidate in line
-                            continue;
+                            update_candidate(track, *navigation.next());
+                            navigation.run_inspector(
+                                "Update next (high trust, on target):");
                         } else {
                             // There is no next candidate left - re-evaluate
                             navigation.set_no_trust();
                             navigation.run_inspector(
                                 "Update (high trust, kernel exhausted):");
-                            return;
                         }
                     }
                     // we are not on the next object
@@ -503,7 +502,7 @@ class navigator {
             }
             // Kernel is exhausted at this point
             // Call the inspector before returning (only for debugging)
-            navigation.run_inspector("Update (high trust) no candidate found:");
+            navigation.run_inspector("Update (high trust, no cand. found):");
         }
         // Re-evaluate all currently available candidates
         // - do this when your navigation state is stale, but not invalid
@@ -524,7 +523,7 @@ class navigator {
                 navigation.set_no_trust();
             }
             // Call the inspector before returning (only for debugging)
-            navigation.run_inspector("Update (fair trust): ");
+            // navigation.run_inspector("Update (fair trust): ");
         }
         // Finally, if no candidate was found, trust could no be restored
         if (navigation.is_exhausted()) {
@@ -568,24 +567,24 @@ class navigator {
             if (navigation.is_on_object(track, *navigation.next())) {
                 // Set the next object that we want to reach (cache is sorted)
                 ++navigation.next();
-                // Set temporarily, so that the inspector can catch this state
                 navigation.set_state(navigation::status::e_on_target,
                                      navigation.current()->index,
                                      navigation::trust_level::e_full);
                 // Release actor constraints
                 propagation._stepping.release_step();
                 // Call the inspector on this portal crossing, then go to next
-                navigation.run_inspector("Skipping direct hit: ");
+                // navigation.run_inspector("Skipping direct hit: ");
                 if (navigation.is_exhausted() or
                     not is_reachable(*navigation.next(), track)) {
                     navigation.set_no_trust();
                     return;
                 }
+            } else {
+                // Now, we are on our way to the next candidate
+                navigation.set_state(navigation::status::e_towards_object,
+                                     dindex_invalid,
+                                     navigation::trust_level::e_full);
             }
-            // Now, we are on our way to the next candidate
-            navigation.set_state(navigation::status::e_towards_object,
-                                 dindex_invalid,
-                                 navigation::trust_level::e_full);
         } else {
             navigation.set_state(navigation::status::e_unknown, dindex_invalid,
                                  navigation::trust_level::e_no_trust);

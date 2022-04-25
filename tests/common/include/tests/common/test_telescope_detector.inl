@@ -145,9 +145,9 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
         EXPECT_TRUE(heartbeat_z2);
         EXPECT_TRUE(heartbeat_x);
 
-        heartbeat_z1 &= rk_stepper_x.step(propgation_z1);
-        heartbeat_z2 &= rk_stepper_x.step(propgation_z2);
-        heartbeat_x &= rk_stepper_z.step(propgation_x);
+        heartbeat_z1 &= rk_stepper_z.step(propgation_z1);
+        heartbeat_z2 &= rk_stepper_z.step(propgation_z2);
+        heartbeat_x &= rk_stepper_x.step(propgation_x);
 
         navigation_z1.set_high_trust();
         navigation_z2.set_high_trust();
