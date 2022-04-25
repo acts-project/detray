@@ -72,12 +72,19 @@ struct example_actor : detray::actor {
     }
 
     /// Observing actor implementation: Counts vector elements (division)
-    template <typename subj_state_t, typename propagator_state_t>
-    void operator()(state_type &example_state,
-                    const subj_state_t &subject_state,
+    template <typename propagator_state_t>
+    void operator()(state_type &example_state, const state_type &subject_state,
                     const propagator_state_t & /*p_state*/) const {
         example_state.buffer.push_back(subject_state.buffer.size() / 10.);
     }
+
+    /// Observing actor implementation to printer: do nothing
+    template <typename subj_state_t, typename propagator_state_t,
+              std::enable_if_t<not std::is_same_v<subj_state_t, state_type>,
+                               bool> = true>
+    void operator()(state_type & /*example_state*/,
+                    const subj_state_t & /*subject_state*/,
+                    const propagator_state_t & /*p_state*/) const {}
 };
 
 using example_actor_t = example_actor<std::vector>;
@@ -90,6 +97,24 @@ using composite2 = composite_actor<dtuple, example_actor_t, print_actor>;
 using composite3 = composite_actor<dtuple, composite2, composite1>;
 // Implements example_actor through composite2<-composite3 with composite1 obs.
 using composite4 = composite_actor<dtuple, composite3, composite1>;
+
+// Test chaining of multiple actors
+// The chain goes as follows (depth first):
+//                          example_actor1
+//                              1.|
+//                          observer_lvl1 (print)
+//                               2.|
+//                          observer_lvl2 (example_actor observing print actor)
+//                       3./    5.|     6.\\
+//            observer_lvl3 example_actor2  print
+//          (example_actor3)
+//                 4.|
+//                 print
+using observer_lvl3 = composite_actor<dtuple, example_actor_t, print_actor>;
+using observer_lvl2 = composite_actor<dtuple, example_actor_t, observer_lvl3,
+                                      example_actor_t, print_actor>;
+using observer_lvl1 = composite_actor<dtuple, print_actor, observer_lvl2>;
+using chain = composite_actor<dtuple, example_actor_t, observer_lvl1>;
 
 }  // anonymous namespace
 
@@ -118,5 +143,21 @@ TEST(ALGEBRA_PLUGIN, actor_chain) {
                     "[print actor obs 1]:[print actor obs 1]:[print actor obs "
                     "2]:[print actor obs 0.4]:[print actor obs 0.4]:[print "
                     "actor obs 0.6]:[print actor obs 0.6]:") == 0)
+        << "Printer call chain: " << printer_state.to_string() << std::endl;
+
+    // Test chaining of multiple actors
+
+    // Reset example actor state
+    example_state.buffer.clear();
+    printer_state.stream.str("");
+    printer_state.stream.clear();
+
+    // Run the chain
+    actor_chain<dtuple, chain> run_chain{};
+    run_chain(actor_states, prop_state);
+
+    ASSERT_TRUE(printer_state.to_string().compare(
+                    "[print actor obs 0]:[print actor obs 0.1]:[print actor "
+                    "obs 0.2]:") == 0)
         << "Printer call chain: " << printer_state.to_string() << std::endl;
 }
