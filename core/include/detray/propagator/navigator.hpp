@@ -31,8 +31,7 @@ enum class status {
 /// Navigation trust levels determine how the candidates chache is updated
 enum class trust_level {
     e_no_trust = 0,  ///< re-initialize the volume (i.e. run local navigation)
-    e_fair =
-        1,  ///< update the distance & order of the (preselected) candidates
+    e_fair = 1,      ///< update the distance & order of the candidates
     e_high = 3,  ///< update the distance to the next candidate (current target)
     e_full = 4   ///< don't update anything
 };
@@ -199,12 +198,6 @@ class navigator {
             return _trust_level;
         }
 
-        /// Update navigation trust level - custom
-        DETRAY_HOST_DEVICE
-        inline void set_trust_level(navigation::trust_level tr_lvl) {
-            _trust_level = tr_lvl;
-        }
-
         /// Update navigation trust level to no trust
         DETRAY_HOST_DEVICE
         inline void set_no_trust() {
@@ -214,19 +207,25 @@ class navigator {
         /// Update navigation trust level to full trust
         DETRAY_HOST_DEVICE
         inline void set_full_trust() {
-            _trust_level = navigation::trust_level::e_full;
+            _trust_level = _trust_level <= navigation::trust_level::e_full
+                               ? _trust_level
+                               : navigation::trust_level::e_full;
         }
 
         /// Update navigation trust level to high trust
         DETRAY_HOST_DEVICE
         inline void set_high_trust() {
-            _trust_level = navigation::trust_level::e_high;
+            _trust_level = _trust_level <= navigation::trust_level::e_high
+                               ? _trust_level
+                               : navigation::trust_level::e_high;
         }
 
         /// Update navigation trust level to fair trust
         DETRAY_HOST_DEVICE
         inline void set_fair_trust() {
-            _trust_level = navigation::trust_level::e_fair;
+            _trust_level = _trust_level <= navigation::trust_level::e_fair
+                               ? _trust_level
+                               : navigation::trust_level::e_fair;
         }
 
         /// @returns current volume (index) - const
@@ -303,6 +302,12 @@ class navigator {
         }
 
         private:
+        /// Update navigation trust level - custom
+        DETRAY_HOST_DEVICE
+        inline void set_trust_level(navigation::trust_level tr_lvl) {
+            _trust_level = tr_lvl;
+        }
+
         /// Our cache of candidates (intersections with any kind of surface)
         vector_type<intersection_type> _candidates = {};
 
