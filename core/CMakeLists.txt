@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021 CERN for the benefit of the ACTS project
+# (c) 2021-2022 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -18,17 +18,17 @@ detray_add_library( detray_core core
    # definitions include(s)
    "include/detray/definitions/containers.hpp"
    "include/detray/definitions/cuda_definitions.hpp"
-   "include/detray/definitions/indexing.hpp"  
+   "include/detray/definitions/indexing.hpp"
    "include/detray/definitions/qualifiers.hpp"
    "include/detray/definitions/track_parameterization.hpp"
    "include/detray/definitions/units.hpp"
-   "include/detray/definitions/detail/accessor.hpp"  
+   "include/detray/definitions/detail/accessor.hpp"
    # field include(s)
    "include/detray/field/constant_magnetic_field.hpp"
    # geometry include(s)
    "include/detray/geometry/surface.hpp"
    "include/detray/geometry/volume_connector.hpp"
-   "include/detray/geometry/volume_graph.hpp"      
+   "include/detray/geometry/volume_graph.hpp"
    "include/detray/geometry/volume.hpp"
    # grids include(s)
    "include/detray/grids/axis.hpp"
@@ -41,8 +41,8 @@ detray_add_library( detray_core core
    "include/detray/intersection/intersection_kernel.hpp"
    "include/detray/intersection/intersection.hpp"
    "include/detray/intersection/planar_intersector.hpp"
-   "include/detray/intersection/quadratic_equation.hpp"   
-   "include/detray/intersection/unbound.hpp"   
+   "include/detray/intersection/quadratic_equation.hpp"
+   "include/detray/intersection/unbound.hpp"
    # masks include(s)
    "include/detray/masks/annulus2.hpp"
    "include/detray/masks/cylinder3.hpp"
@@ -51,7 +51,7 @@ detray_add_library( detray_core core
    "include/detray/masks/ring2.hpp"
    "include/detray/masks/single3.hpp"
    "include/detray/masks/trapezoid2.hpp"
-   "include/detray/masks/unmasked.hpp"   
+   "include/detray/masks/unmasked.hpp"
    # propagator include(s)
    "include/detray/propagator/aborters.hpp"
    "include/detray/propagator/actor_chain.hpp"
@@ -63,15 +63,16 @@ detray_add_library( detray_core core
    "include/detray/propagator/navigator.hpp"
    "include/detray/propagator/propagator.hpp"
    "include/detray/propagator/rk_stepper.hpp"
-   "include/detray/propagator/track.hpp"   
+   "include/detray/propagator/track.hpp"
    # tools include(s)
    "include/detray/tools/associator.hpp"
    "include/detray/tools/bin_association.hpp"
    "include/detray/tools/generators.hpp"
    "include/detray/tools/grid_array_helper.hpp"
    "include/detray/tools/local_object_finder.hpp"
-   # utils include(s)   
+   # utils include(s)
    "include/detray/utils/algebra_helpers.hpp"
    "include/detray/utils/enumerate.hpp"
-   "include/detray/utils/invalid_values.hpp" )
+   "include/detray/utils/invalid_values.hpp"
+   "include/detray/utils/type_traits.hpp" )
 target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)

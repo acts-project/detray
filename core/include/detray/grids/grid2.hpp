@@ -416,6 +416,28 @@ struct grid2_view {
  **/
 template <typename grid2_t>
 struct const_grid2_view {
+
+    /// Declare that a default constructor can/should be generated
+    const_grid2_view() = default;
+    /// Constructor with the 3 member variables
+    DETRAY_HOST_DEVICE
+    const_grid2_view(
+        const axis_data<typename grid2_t::axis_p0_type, const scalar>
+            &axis_p0_view,
+        const axis_data<typename grid2_t::axis_p1_type, const scalar>
+            &axis_p1_view,
+        const typename grid2_t::populator_type::const_vector_view_type
+            &data_view)
+        : _axis_p0_view(axis_p0_view),
+          _axis_p1_view(axis_p1_view),
+          _data_view(data_view) {}
+    /// Construct a const data object from a non-const one
+    DETRAY_HOST_DEVICE
+    const_grid2_view(const grid2_view<grid2_t> &parent)
+        : _axis_p0_view(parent._axis_p0_view),
+          _axis_p1_view(parent._axis_p1_view),
+          _data_view(parent._data_view) {}
+
     axis_data<typename grid2_t::axis_p0_type, const scalar> _axis_p0_view;
     axis_data<typename grid2_t::axis_p1_type, const scalar> _axis_p1_view;
     typename grid2_t::populator_type::const_vector_view_type _data_view;
