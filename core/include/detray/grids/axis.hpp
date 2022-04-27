@@ -11,6 +11,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/invalid_values.hpp"
+#include "detray/utils/type_traits.hpp"
 
 // VecMem include(s).
 #include <vecmem/containers/data/vector_view.hpp>
@@ -617,6 +618,22 @@ struct axis_data<axis_t, scalar_t,
                  typename std::enable_if_t<(axis_t::axis_identifier == 0) ||
                                            (axis_t::axis_identifier == 1)>> {
 
+    /// Declare that a default constructor can/should be generated
+    axis_data() = default;
+    /// Constructor with the 3 member values
+    DETRAY_HOST_DEVICE
+    axis_data(dindex _n_bins, std::remove_cv_t<scalar_t> _min,
+              std::remove_cv_t<scalar_t> _max)
+        : n_bins(_n_bins), min(_min), max(_max) {}
+    /// Construct a const data object from a non-const one
+    template <
+        typename other_scalar_t,
+        std::enable_if_t<details::is_same_nc<scalar_t, other_scalar_t>::value,
+                         bool> = true>
+    DETRAY_HOST_DEVICE axis_data(
+        const axis_data<axis_t, other_scalar_t, void> &parent)
+        : n_bins(parent.n_bins), min(parent.min), max(parent.max) {}
+
     dindex n_bins;
     std::remove_cv_t<scalar_t> min;
     std::remove_cv_t<scalar_t> max;
@@ -625,6 +642,26 @@ struct axis_data<axis_t, scalar_t,
 template <typename axis_t, typename scalar_t>
 struct axis_data<axis_t, scalar_t,
                  typename std::enable_if_t<axis_t::axis_identifier == 2>> {
+
+    /// Declare that a default constructor can/should be generated
+    axis_data() = default;
+    /// Constructor with the 4 member values
+    DETRAY_HOST_DEVICE
+    axis_data(dindex _n_bins, std::remove_cv_t<scalar_t> _min,
+              std::remove_cv_t<scalar_t> _max,
+              const vecmem::data::vector_view<scalar_t> &_boundaries)
+        : n_bins(_n_bins), min(_min), max(_max), boundaries(_boundaries) {}
+    /// Construct a const data object from a non-const one
+    template <
+        typename other_scalar_t,
+        std::enable_if_t<details::is_same_nc<scalar_t, other_scalar_t>::value,
+                         bool> = true>
+    DETRAY_HOST_DEVICE axis_data(
+        const axis_data<axis_t, other_scalar_t, void> &parent)
+        : n_bins(parent.n_bins),
+          min(parent.min),
+          max(parent.max),
+          boundaries(parent.boundaries) {}
 
     dindex n_bins;
     std::remove_cv_t<scalar_t> min;
