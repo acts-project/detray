@@ -15,16 +15,9 @@
 
 namespace detray {
 
-// use unbounded or rectangular surfaces
-constexpr bool unbounded = true;
-constexpr bool rectangular = false;
-
 namespace {
 
 using telescope_types = detector_registry::telescope_detector;
-
-constexpr auto rectangle_id = telescope_types::mask_ids::e_rectangle2;
-constexpr auto unbounded_id = telescope_types::mask_ids::e_unbounded_plane2;
 
 struct module_placement {
     point3 _pos;
@@ -84,7 +77,8 @@ inline std::vector<module_placement> module_positions(
         // advance the track state to the next plane position
         propagation._navigation._step_size = dist - prev_dist;
         stepper.step(propagation);
-        m_positions.push_back({track.pos(), track.dir()});
+        m_positions.push_back(
+            {propagation._stepping().pos(), propagation._stepping().dir()});
         prev_dist = dist;
     }
 
@@ -136,13 +130,15 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
             mask_edge = {dindex_invalid, dindex_invalid};
         }
 
-        if constexpr (mask_id == unbounded_id) {
+        if constexpr (mask_id ==
+                      telescope_types::mask_ids::e_unbounded_plane2) {
             // No bounds for this module
-            masks.template add_mask<unbounded_id>(mask_edge);
+            masks.template add_mask<
+                telescope_types::mask_ids::e_unbounded_plane2>(mask_edge);
         } else {
             // The rectangle bounds for this module
-            masks.template add_mask<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
-                                                  mask_edge);
+            masks.template add_mask<telescope_types::mask_ids::e_rectangle2>(
+                cfg.m_half_x, cfg.m_half_y, mask_edge);
         }
         // Build the transform
         // Local z axis is the global normal vector
@@ -264,11 +260,11 @@ auto create_telescope_detector(vecmem::memory_resource &resource,
     typename detector_t::transform_filling_container transforms = {resource};
 
     if constexpr (unbounded_planes) {
-        create_telescope<unbounded_id>(ctx, track, stepper, vol, surfaces,
-                                       masks, transforms, pl_config);
+        create_telescope<telescope_types::mask_ids::e_unbounded_plane2>(
+            ctx, track, stepper, vol, surfaces, masks, transforms, pl_config);
     } else {
-        create_telescope<rectangle_id>(ctx, track, stepper, vol, surfaces,
-                                       masks, transforms, pl_config);
+        create_telescope<telescope_types::mask_ids::e_rectangle2>(
+            ctx, track, stepper, vol, surfaces, masks, transforms, pl_config);
     }
 
     det.add_objects(ctx, vol, surfaces, masks, transforms);

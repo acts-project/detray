@@ -40,7 +40,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
                                      60., 70,  80,  90., 100.};
     // Build telescope detector with unbounded planes
     const auto telescope_det =
-        create_telescope_detector<unbounded>(host_mr, positions);
+        create_telescope_detector<true>(host_mr, positions);
 
     // Inspectors are optional, of course
     using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,

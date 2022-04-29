@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 namespace detray {
 
 /// Components of a bound track parameters vector.

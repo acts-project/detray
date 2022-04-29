@@ -28,13 +28,16 @@ using namespace detray;
 namespace {
 
 // type definitions
+using size_type = __plugin::size_type;
 using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
-
+using size_type = __plugin::size_type;
 using mag_field_t = constant_magnetic_field<>;
 using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
 using crk_stepper_t =
     rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
+using transform3 = __plugin::transform3<scalar>;
+using matrix_operator = standard_matrix_operator<scalar>;
 
 // geomery navigation configurations
 constexpr unsigned int theta_steps = 100;
@@ -43,24 +46,40 @@ constexpr unsigned int rk_steps = 100;
 
 constexpr scalar epsilon = 1e-4;
 constexpr scalar path_limit = 2 * unit_constants::m;
+constexpr scalar rk_tolerance = 1e-4;
 
 // dummy navigation struct
 struct nav_state {
-    DETRAY_HOST_DEVICE scalar operator()() const { return _step_size; }
-    DETRAY_HOST_DEVICE inline void set_full_trust() {}
-    DETRAY_HOST_DEVICE inline void set_high_trust() {}
-    DETRAY_HOST_DEVICE inline void set_fair_trust() {}
-    DETRAY_HOST_DEVICE inline void set_no_trust() {}
-    DETRAY_HOST_DEVICE inline bool abort() { return false; }
+
+    DETRAY_HOST_DEVICE
+    scalar operator()() const { return _step_size; }
+
+    DETRAY_HOST_DEVICE
+    inline auto current_object() const -> dindex { return dindex_invalid; }
+
+    DETRAY_HOST_DEVICE
+    inline void set_full_trust() {}
+
+    DETRAY_HOST_DEVICE
+    inline void set_high_trust() {}
+
+    DETRAY_HOST_DEVICE
+    inline void set_fair_trust() {}
+
+    DETRAY_HOST_DEVICE
+    inline void set_no_trust() {}
+
+    DETRAY_HOST_DEVICE
+    inline bool abort() { return false; }
 
     scalar _step_size = 1. * unit_constants::mm;
 };
 
 // dummy propagator state
-template <typename stepper_t>
+template <typename stepping_t, typename navigation_t>
 struct prop_state {
-    typename stepper_t::state _stepping;
-    nav_state _navigation;
+    stepping_t _stepping;
+    navigation_t _navigation;
 };
 
 }  // anonymous namespace
@@ -71,5 +90,12 @@ namespace detray {
 void rk_stepper_test(
     vecmem::data::vector_view<free_track_parameters>& tracks_data,
     const vector3 B);
+
+// Test function for Runge-Kutta stepper bound state
+// This test investigates only one track
+void bound_state_test(
+    vecmem::data::vector_view<bound_track_parameters> out_param,
+    const bound_track_parameters in_param, const vector3 B,
+    const transform3 trf);
 
 }  // namespace detray

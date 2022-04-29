@@ -14,6 +14,7 @@
 // This tests the construction of a static transform store
 TEST(ALGEBRA_PLUGIN, static_transform_store) {
     using namespace detray;
+    using transform3 = typename static_transform_store<>::transform3;
     using point3 = __plugin::point3<detray::scalar>;
 
     static_transform_store<> static_store;

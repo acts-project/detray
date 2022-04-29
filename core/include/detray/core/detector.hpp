@@ -59,6 +59,8 @@ class detector {
     /// Forward the alignable container and context
     using transform_container =
         typename metadata::template transform_store<vector_t>;
+    using transform3 = typename transform_container::transform3;
+
     using transform_link = typename transform_container::link_type;
     using context = typename transform_container::context;
 

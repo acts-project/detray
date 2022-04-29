@@ -29,6 +29,10 @@ using mask_link_t = typename mask_defs::link_type;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
+using point2 = __plugin::point2<scalar>;
+using vector3 = __plugin::vector3<scalar>;
+using point3 = __plugin::point3<scalar>;
+
 // This tests the construction of a surface_base object
 TEST(ALGEBRA_PLUGIN, surface) {
     // Preparatioon work, create a transform
