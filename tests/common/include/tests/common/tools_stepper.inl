@@ -35,7 +35,7 @@ using crk_stepper_t =
 
 namespace {
 
-constexpr scalar epsilon = 1e-4;
+constexpr scalar epsilon = 1e-3;
 constexpr scalar path_limit = 100 * unit_constants::cm;
 
 // dummy navigation struct

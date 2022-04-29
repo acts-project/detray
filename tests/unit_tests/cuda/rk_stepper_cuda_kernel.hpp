@@ -44,8 +44,7 @@ constexpr unsigned int theta_steps = 100;
 constexpr unsigned int phi_steps = 100;
 constexpr unsigned int rk_steps = 100;
 
-constexpr scalar epsilon = 1e-4;
-constexpr scalar path_limit = 2 * unit_constants::m;
+constexpr scalar epsilon = 1e-3;
 constexpr scalar rk_tolerance = 1e-4;
 
 // dummy navigation struct
@@ -85,11 +84,6 @@ struct prop_state {
 }  // anonymous namespace
 
 namespace detray {
-
-// test function for Runge-Kutta stepper
-void rk_stepper_test(
-    vecmem::data::vector_view<free_track_parameters>& tracks_data,
-    const vector3 B);
 
 // Test function for Runge-Kutta stepper bound state
 // This test investigates only one track
