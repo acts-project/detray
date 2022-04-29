@@ -146,8 +146,8 @@ __global__ void grid_attach_read_test_kernel(
     const_grid2_view<host_grid2_attach> grid_view) {
 
     // Let's try building the grid object
-    const_device_grid2_attach g2_device(grid_view,
-                                        test::point3<detray::scalar>{0, 0, 0});
+    const const_device_grid2_attach g2_device(
+        grid_view, test::point3<detray::scalar>{0, 0, 0});
 
     auto data = g2_device.bin(threadIdx.x, threadIdx.y);
 
