@@ -46,7 +46,6 @@ template <typename metadata,
 class detector {
 
     public:
-
     using point3 = __plugin::point3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
