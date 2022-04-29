@@ -285,6 +285,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     // Note: Set theta error as ZERO, to constrain the loc1 divergence
     getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
     getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
+    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
 
     // bound track parameter
     const bound_track_parameters bound_param0(0, bound_vector, bound_cov);
