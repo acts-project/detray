@@ -59,12 +59,6 @@ struct prop_state {
     navigation_t _navigation;
 };
 
-enum mask_ids : unsigned int {
-    e_rectangle2 = 0,
-};
-
-using mask_defs = mask_registry<mask_ids, rectangle2<>>;
-
 }  // namespace
 
 // This tests the base functionality of the line stepper
