@@ -28,12 +28,15 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
 
     vecmem::host_memory_resource host_mr;
 
+    // Use unbounded surfaces
+    constexpr bool unbounded = true;
+
     // Module positions along z-axis
     std::vector<scalar> positions = {0.,  10., 20., 30., 40., 50.,
                                      60., 70,  80,  90., 100.};
     // Build telescope detector with unbounded planes
     const auto telescope_det =
-        create_telescope_detector<true>(host_mr, positions);
+        create_telescope_detector<unbounded>(host_mr, positions);
 
     // Inspectors are optional, of course
     using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
