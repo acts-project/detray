@@ -42,12 +42,16 @@ struct prop_state {
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, telescope_detector) {
+
     using namespace detray;
 
     using b_field_t = constant_magnetic_field<>;
     using ln_stepper_t = line_stepper<free_track_parameters>;
     using rk_stepper_t = rk_stepper<b_field_t, free_track_parameters>;
     using inspector_t = navigation::print_inspector;
+
+    // Use rectangular surfaces
+    constexpr bool rectangular = false;
 
     // Test tolerance
     constexpr scalar tol = 1e-4;
@@ -74,14 +78,14 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
                                      300., 350, 400,  450., 500.};
     // Build telescope detector with unbounded planes
     const auto z_tel_det1 =
-        create_telescope_detector<false>(host_mr, positions);
+        create_telescope_detector<rectangular>(host_mr, positions);
 
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
     dindex n_surfaces = 11;
     scalar tel_length = 500. * unit_constants::mm;
     const auto z_tel_det2 =
-        create_telescope_detector<false>(host_mr, n_surfaces, tel_length);
+        create_telescope_detector<rectangular>(host_mr, n_surfaces, tel_length);
 
     // Compare
     for (std::size_t i = 0; i < z_tel_det1.surfaces().size(); ++i) {
@@ -98,7 +102,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     vector3 mom{1., 0., 0.};
     free_track_parameters pilot_track(pos, 0, mom, -1);
 
-    const auto x_tel_det = create_telescope_detector<false>(
+    const auto x_tel_det = create_telescope_detector<rectangular>(
         host_mr, n_surfaces, tel_length, pilot_track, ln_stepper);
 
     //
@@ -192,7 +196,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     pilot_track = free_track_parameters(pos, 0, mom, -1);
     pilot_track.set_overstep_tolerance(-10 * unit_constants::um);
 
-    const auto tel_detector = create_telescope_detector<false>(
+    const auto tel_detector = create_telescope_detector<rectangular>(
         host_mr, n_surfaces, tel_length, pilot_track, rk_stepper_z);
 
     // make at least sure it is navigatable
