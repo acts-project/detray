@@ -12,6 +12,7 @@ detray_add_library( detray_core core
    # core include(s)
    "include/detray/core/detector.hpp"
    "include/detray/core/mask_store.hpp"
+   "include/detray/core/material_store.hpp"
    "include/detray/core/surfaces_finder.hpp"
    "include/detray/core/transform_store.hpp"
    "include/detray/core/type_registry.hpp"
@@ -52,6 +53,10 @@ detray_add_library( detray_core core
    "include/detray/masks/single3.hpp"
    "include/detray/masks/trapezoid2.hpp"
    "include/detray/masks/unmasked.hpp"
+   # masks include(s)
+   "include/detray/materials/interaction.hpp"
+   "include/detray/materials/material_slab.hpp"
+   "include/detray/materials/material.hpp"
    # propagator include(s)
    "include/detray/propagator/aborters.hpp"
    "include/detray/propagator/actor_chain.hpp"
