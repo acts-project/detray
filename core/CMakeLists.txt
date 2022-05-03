@@ -54,8 +54,8 @@ detray_add_library( detray_core core
    "include/detray/masks/trapezoid2.hpp"
    "include/detray/masks/unmasked.hpp"
    # masks include(s)
+   "include/detray/materials/element.hpp"
    "include/detray/materials/interaction.hpp"
-   "include/detray/materials/material_slab.hpp"
    "include/detray/materials/material.hpp"
    # propagator include(s)
    "include/detray/propagator/aborters.hpp"

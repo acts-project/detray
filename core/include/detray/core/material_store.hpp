@@ -12,14 +12,14 @@ namespace detray {
 /** A compile-time material list that provides the correct material description
  * to surface */
 template <template <typename...> class tuple_t = dtuple,
-          typename ID = unsigned int, typename... materials_t>
+          typename... materials_t>
 struct material_store {
 
     public:
     template <typename... Args>
     using tuple_type = tuple_t<Args...>;
 
-    using material_tuple = tuple_type<materials_t...>;
+    using material_tuple = tuple_type<materials_t>;
 
     DETRAY_HOST
 };
