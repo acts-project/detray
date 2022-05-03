@@ -31,6 +31,9 @@ template <typename stepping_t, typename navigation_t>
 struct prop_state {
     stepping_t _stepping;
     navigation_t _navigation;
+
+    template <typename track_t>
+    prop_state(const track_t &t_in) : _stepping(t_in) {}
 };
 
 }  // anonymous namespace
@@ -39,12 +42,16 @@ struct prop_state {
 
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, telescope_detector) {
+
     using namespace detray;
 
     using b_field_t = constant_magnetic_field<>;
     using ln_stepper_t = line_stepper<free_track_parameters>;
     using rk_stepper_t = rk_stepper<b_field_t, free_track_parameters>;
     using inspector_t = navigation::print_inspector;
+
+    // Use rectangular surfaces
+    constexpr bool rectangular = false;
 
     // Test tolerance
     constexpr scalar tol = 1e-4;
@@ -118,12 +125,11 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     using stepping_state_t = rk_stepper_t::state;
 
     // propagation states
-    prop_state<stepping_state_t, navigation_state_t> propgation_z1{
-        stepping_state_t(test_track_z1), navigation_state_t{}};
-    prop_state<stepping_state_t, navigation_state_t> propgation_z2{
-        stepping_state_t(test_track_z2), navigation_state_t{}};
-    prop_state<stepping_state_t, navigation_state_t> propgation_x{
-        stepping_state_t(test_track_x), navigation_state_t{}};
+    prop_state<stepping_state_t, navigation_state_t> propgation_z1(
+        test_track_z1);
+    prop_state<stepping_state_t, navigation_state_t> propgation_z2(
+        test_track_z2);
+    prop_state<stepping_state_t, navigation_state_t> propgation_x(test_track_x);
 
     stepping_state_t &stepping_z1 = propgation_z1._stepping;
     stepping_state_t &stepping_z2 = propgation_z2._stepping;
@@ -156,7 +162,6 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
         heartbeat_z1 &= navigator_z1.update(propgation_z1);
         heartbeat_z2 &= navigator_z2.update(propgation_z2);
         heartbeat_x &= navigator_x.update(propgation_x);
-
         // The track path lengths should match between all propagations
         EXPECT_NEAR(
             std::fabs(stepping_z1._path_length - stepping_z2._path_length) /
@@ -167,11 +172,11 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
                 stepping_x._path_length,
             0., tol);
         // The track positions in z should match exactly
-        EXPECT_NEAR(getter::norm(test_track_z1.pos() - test_track_z2.pos()) /
-                        getter::norm(test_track_z1.pos()),
+        EXPECT_NEAR(getter::norm(stepping_z1().pos() - stepping_z2().pos()) /
+                        getter::norm(stepping_z1().pos()),
                     0., tol);
-        EXPECT_NEAR(getter::norm(test_track_z1.dir() - test_track_z2.dir()) /
-                        getter::norm(test_track_z1.dir()),
+        EXPECT_NEAR(getter::norm(stepping_z1().dir() - stepping_z2().dir()) /
+                        getter::norm(stepping_z1().dir()),
                     0., tol);
     }
 
@@ -197,8 +202,8 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     // make at least sure it is navigatable
     navigator<decltype(tel_detector), inspector_t> tel_navigator(tel_detector);
 
-    prop_state<stepping_state_t, navigation_state_t> tel_propagation{
-        stepping_state_t{pilot_track}, navigation_state_t{}};
+    prop_state<stepping_state_t, navigation_state_t> tel_propagation(
+        pilot_track);
     navigation_state_t &tel_navigation = tel_propagation._navigation;
 
     // run propagation

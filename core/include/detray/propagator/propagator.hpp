@@ -52,9 +52,19 @@ struct propagator {
         /// @param candidates buffer for intersections in the navigator
         template <typename track_t>
         DETRAY_HOST_DEVICE state(
-            track_t &t_in, typename actor_chain_t::state actor_states = {},
+            const track_t &t_in,
+            typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(t_in),
+              _navigation(std::move(candidates)),
+              _actor_states(actor_states) {}
+
+        /// Construct the propagation state with bound parameter
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters &param, const transform3 &trf3,
+            typename actor_chain_t::state actor_states = {},
+            vector_type<line_plane_intersection> &&candidates = {})
+            : _stepping(param, trf3),
               _navigation(std::move(candidates)),
               _actor_states(actor_states) {}
 

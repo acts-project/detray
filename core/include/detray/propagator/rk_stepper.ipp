@@ -14,6 +14,20 @@
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
           typename policy_t, template <typename, std::size_t> class array_t>
 void detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
+                        array_t>::state::advance_derivative() {
+
+    // The derivative of position = direction
+    matrix_operator().set_block(this->_derivative, this->_track.dir(),
+                                e_free_pos0, 0);
+
+    // The derivative of direction = k4
+    matrix_operator().set_block(this->_derivative, this->_step_data.k4,
+                                e_free_dir0, 0);
+}
+
+template <typename magnetic_field_t, typename track_t, typename constraint_t,
+          typename policy_t, template <typename, std::size_t> class array_t>
+void detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
                         array_t>::state::advance_track() {
 
     const auto& sd = this->_step_data;
@@ -202,6 +216,7 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
 
     // Initial step size estimate
     stepping.set_step_size(navigation());
+
     scalar step_size_scaling = 1.;
     size_t n_step_trials = 0;
 
@@ -251,10 +266,8 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
             stepping.constraints().template size<>(stepping.direction()));
     }
 
-    // Update the derivative
-    matrix_operator().set_block(stepping._derivative, stepping._track.dir(), 0,
-                                0);
-    matrix_operator().set_block(stepping._derivative, sd.k4, 4, 0);
+    // Advance derivative of position and direction w.r.t path length
+    stepping.advance_derivative();
 
     // Advance track state
     stepping.advance_track();
@@ -266,4 +279,36 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
     policy_t{}(stepping.policy_state(), propagation);
 
     return true;
+}
+
+template <typename magnetic_field_t, typename track_t, typename constraint_t,
+          typename policy_t, template <typename, std::size_t> class array_t>
+template <typename propagation_state_t>
+detray::bound_track_parameters
+detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
+                   array_t>::bound_state(propagation_state_t& propagation,
+                                         const transform3& trf3) {
+
+    auto& stepping = propagation._stepping;
+    auto& navigation = propagation._navigation;
+
+    // Get the free vector
+    const auto& free_vector = stepping().vector();
+
+    // Get the bound vector
+    const auto bound_vector =
+        vector_engine().free_to_bound_vector(trf3, free_vector);
+
+    // Get the bound covariance
+    covariance_engine().bound_to_bound_covariance_update(
+        trf3, stepping._bound_covariance, free_vector, stepping._jac_to_global,
+        stepping._jac_transport, stepping._derivative);
+
+    // Reset the jacobians in RK stepper state
+    covariance_engine().reinitialize_jacobians(
+        trf3, bound_vector, stepping._jac_to_global, stepping._jac_transport,
+        stepping._derivative);
+
+    return detray::bound_track_parameters(
+        navigation.current_object(), bound_vector, stepping._bound_covariance);
 }

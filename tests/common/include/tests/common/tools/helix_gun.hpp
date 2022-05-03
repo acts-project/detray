@@ -59,7 +59,7 @@ class helix_gun {
         _R = getter::norm(pT) / getter::norm(*_mag_field);
 
         // Handle the case of pT ~ 0
-        if (getter::norm(pT) < 1e-20) {
+        if (getter::norm(pT) < 1e-6) {
             _vz_over_vt = std::numeric_limits<scalar>::infinity();
         } else {
             // Get vz over vt in new coordinate

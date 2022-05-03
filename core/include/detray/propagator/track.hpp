@@ -10,6 +10,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parameterization.hpp"
+#include "detray/propagator/detail/vector_engine.hpp"
 
 namespace detray {
 
@@ -22,12 +23,22 @@ struct bound_track_parameters {
     using vector_type = bound_vector;
     using covariance_type = bound_matrix;
     using jacobian_type = bound_matrix;
+    using vector_engine = detail::vector_engine<scalar>;
+    using matrix_operator = standard_matrix_operator<scalar>;
 
-    bound_track_parameters() = delete;
+    DETRAY_HOST_DEVICE
+    bound_track_parameters()
+        : _vector(matrix_operator().template zero<e_bound_size, 1>()),
+          _covariance(
+              matrix_operator().template zero<e_bound_size, e_bound_size>()) {}
 
+    DETRAY_HOST_DEVICE
     bound_track_parameters(const dindex& sf_idx, const vector_type& params,
                            const covariance_type& cov)
         : _surface_link(sf_idx), _vector(params), _covariance(cov) {}
+
+    DETRAY_HOST_DEVICE
+    const dindex& surface_link() const { return _surface_link; }
 
     DETRAY_HOST_DEVICE
     const vector_type& vector() const { return _vector; }
@@ -42,10 +53,7 @@ struct bound_track_parameters {
     void set_covariance(const covariance_type& c) { _covariance = c; }
 
     DETRAY_HOST_DEVICE
-    point2 local() const {
-        return point2{getter::element(_vector, e_bound_loc0, 0),
-                      getter::element(_vector, e_bound_loc1, 0)};
-    }
+    point3 local() const { return vector_engine().local(_vector); }
 
     DETRAY_HOST_DEVICE
     scalar phi() const { return getter::element(_vector, e_bound_phi, 0); }
@@ -53,40 +61,8 @@ struct bound_track_parameters {
     DETRAY_HOST_DEVICE
     scalar theta() const { return getter::element(_vector, e_bound_theta, 0); }
 
-    template <typename surface_container_t, typename transform_container_t>
-    DETRAY_HOST_DEVICE point3
-    pos(const typename transform_container_t::context& ctx,
-        const surface_container_t& surfaces,
-        const transform_container_t& trfs) const {
-
-        auto tidx = surfaces[_surface_link].transform();
-        const auto& trf = trfs.contextual_transform(ctx, tidx);
-        point3 global = trf.point_to_global(
-            point3{getter::element(_vector, e_bound_loc0, 0),
-                   getter::element(_vector, e_bound_loc1, 0), 0.});
-        return global;
-    }
-
-    template <typename detector_t>
-    DETRAY_HOST_DEVICE vector3 pos(const typename detector_t::context& ctx,
-                                   const detector_t& det) const {
-        const auto& surfaces = det.surfaces();
-        const auto& trfs = det.transforms(ctx);
-        return this->pos(ctx, surfaces, trfs);
-    }
-
     DETRAY_HOST_DEVICE
-    vector3 dir() const {
-        const auto& phi = getter::element(_vector, e_bound_phi, 0);
-        const auto& theta = getter::element(_vector, e_bound_theta, 0);
-        const auto cosTheta = std::cos(theta);
-        const auto sinTheta = std::sin(theta);
-        return {
-            std::cos(phi) * sinTheta,
-            std::sin(phi) * sinTheta,
-            cosTheta,
-        };
-    }
+    vector3 dir() const { return vector_engine().dir(_vector); }
 
     DETRAY_HOST_DEVICE
     scalar time() const { return getter::element(_vector, e_bound_time, 0); }
@@ -110,18 +86,27 @@ struct bound_track_parameters {
 };
 
 struct free_track_parameters {
+    using point2 = __plugin::vector2<scalar>;
     using point3 = __plugin::vector3<scalar>;
     using vector3 = __plugin::vector3<scalar>;
     using vector2 = __plugin::vector2<scalar>;
     using vector_type = free_vector;
     using covariance_type = free_sym_matrix;
     using jacobian_type = free_matrix;
+    using vector_engine = detail::vector_engine<scalar>;
+    using matrix_operator = standard_matrix_operator<scalar>;
 
-    free_track_parameters() = delete;
+    DETRAY_HOST_DEVICE
+    free_track_parameters()
+        : _vector(matrix_operator().template zero<e_free_size, 1>()),
+          _covariance(
+              matrix_operator().template zero<e_free_size, e_free_size>()){};
 
+    DETRAY_HOST_DEVICE
     free_track_parameters(const vector_type& params, const covariance_type& cov)
         : _vector(params), _covariance(cov) {}
 
+    DETRAY_HOST_DEVICE
     free_track_parameters(const point3& pos, const scalar& time,
                           const vector3& mom, const scalar& q) {
 
@@ -159,32 +144,16 @@ struct free_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
-    point3 pos() const {
-        return point3{getter::element(_vector, e_free_pos0, 0),
-                      getter::element(_vector, e_free_pos1, 0),
-                      getter::element(_vector, e_free_pos2, 0)};
-    }
+    point3 pos() const { return vector_engine().pos(_vector); }
 
     DETRAY_HOST_DEVICE
-    void set_pos(const vector3& pos) {
-        getter::element(_vector, e_free_pos0, 0) = pos[0];
-        getter::element(_vector, e_free_pos1, 0) = pos[1];
-        getter::element(_vector, e_free_pos2, 0) = pos[2];
-    }
+    void set_pos(const vector3& pos) { vector_engine().set_pos(_vector, pos); }
 
     DETRAY_HOST_DEVICE
-    vector3 dir() const {
-        return vector3{getter::element(_vector, e_free_dir0, 0),
-                       getter::element(_vector, e_free_dir1, 0),
-                       getter::element(_vector, e_free_dir2, 0)};
-    }
+    vector3 dir() const { return vector_engine().dir(_vector); }
 
     DETRAY_HOST_DEVICE
-    void set_dir(const vector3& dir) {
-        getter::element(_vector, e_free_dir0, 0) = dir[0];
-        getter::element(_vector, e_free_dir1, 0) = dir[1];
-        getter::element(_vector, e_free_dir2, 0) = dir[2];
-    }
+    void set_dir(const vector3& dir) { vector_engine().set_dir(_vector, dir); }
 
     DETRAY_HOST_DEVICE
     vector3 mom() const { return 1. / std::abs(this->qop()) * this->dir(); }

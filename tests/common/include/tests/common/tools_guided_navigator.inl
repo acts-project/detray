@@ -21,19 +21,15 @@
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
-/// @note __plugin has to be defined with a preprocessor command
-namespace detray {
-
-using vector3 = __plugin::vector3<detray::scalar>;
-
-}
-
 // This tests the construction and general methods of the navigator
 TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
     using namespace navigation;
 
     vecmem::host_memory_resource host_mr;
+
+    // Use unbounded surfaces
+    constexpr bool unbounded = true;
 
     // Module positions along z-axis
     std::vector<scalar> positions = {0.,  10., 20., 30., 40., 50.,

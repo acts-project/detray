@@ -6,8 +6,12 @@
  */
 
 // detray include(s)
+#include "detray/core/transform_store.hpp"
+#include "detray/core/type_registry.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
+#include "detray/geometry/surface.hpp"
+#include "detray/masks/rectangle2.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
@@ -18,16 +22,27 @@
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
-using namespace __plugin;
+using size_type = __plugin::size_type;
+using vector2 = __plugin::vector2<scalar>;
+using vector3 = __plugin::vector3<scalar>;
+using point3 = __plugin::point3<scalar>;
+using transform3 = __plugin::transform3<scalar>;
+using matrix_operator = standard_matrix_operator<scalar>;
+using mag_field_t = constant_magnetic_field<>;
+using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
+using crk_stepper_t =
+    rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
 
 namespace {
 
-constexpr scalar epsilon = 1e-4;
+constexpr scalar epsilon = 1e-3;
 constexpr scalar path_limit = 100 * unit_constants::cm;
 
 // dummy navigation struct
 struct nav_state {
     scalar operator()() const { return _step_size; }
+    inline auto current_object() const -> dindex { return dindex_invalid; }
+
     inline void set_full_trust() {}
     inline void set_high_trust() {}
     inline void set_fair_trust() {}
@@ -55,8 +70,8 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     using cline_stepper_t =
         line_stepper<free_track_parameters, constrained_step<>>;
 
-    point3<scalar> pos{0., 0., 0.};
-    vector3<scalar> mom{1., 1., 0.};
+    point3 pos{0., 0., 0.};
+    vector3 mom{1., 1., 0.};
     free_track_parameters traj(pos, 0, mom, -1);
     free_track_parameters c_traj(pos, 0, mom, -1);
 
@@ -100,16 +115,19 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     ASSERT_TRUE(cl_stepper.step(c_propagation));
     ASSERT_TRUE(cl_stepper.step(c_propagation));
 
+    traj = propagation._stepping();
     ASSERT_FLOAT_EQ(traj.pos()[0], 1. / std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[1], 1. / std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[2], 0.);
 
+    c_traj = c_propagation._stepping();
     ASSERT_FLOAT_EQ(c_traj.pos()[0], 1. / std::sqrt(2));
     ASSERT_FLOAT_EQ(c_traj.pos()[1], 1. / std::sqrt(2));
     ASSERT_FLOAT_EQ(c_traj.pos()[2], 0.);
 
     ASSERT_TRUE(l_stepper.step(propagation));
 
+    traj = propagation._stepping();
     ASSERT_FLOAT_EQ(traj.pos()[0], std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[1], std::sqrt(2));
     ASSERT_FLOAT_EQ(traj.pos()[2], 0.);
@@ -118,15 +136,6 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
 // This tests the base functionality of the Runge-Kutta stepper
 TEST(ALGEBRA_PLUGIN, rk_stepper) {
     using namespace step;
-
-    // type definitions
-    using vector3 = vector3<scalar>;
-    using point3 = point3<scalar>;
-
-    using mag_field_t = constant_magnetic_field<>;
-    using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
-    using crk_stepper_t =
-        rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
 
     // RK stepper configurations
     constexpr unsigned int theta_steps = 100;
@@ -239,56 +248,67 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 // This tests the covariance transport in rk stepper
 TEST(ALGEBRA_PLUGIN, covariance_transport) {
 
-    using vector3 = vector3<scalar>;
-    using point3 = point3<scalar>;
-    using matrix_operator = standard_matrix_operator<scalar>;
-    using mag_field_t = constant_magnetic_field<>;
-    using crk_stepper_t =
-        rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
+    // test surface
+    const vector3 u{0, 1, 0};
+    const vector3 w{1, 0, 0};
+    const vector3 t{0, 0, 0};
+    const transform3 trf(t, w, u);
 
     // Generate track starting point
-    point3 pos{0., 0., 0.};
+    vector3 local{2, 3, 0};
+    vector3 mom{0.02, 0., 0.};
     scalar time = 0.;
-    vector3 mom{0.01, 0.01, 0.01};
     scalar q = -1.;
 
-    free_track_parameters vertex(pos, time, mom, q);
+    // bound vector
+    typename bound_track_parameters::vector_type bound_vector;
+    getter::element(bound_vector, e_bound_loc0, 0) = local[0];
+    getter::element(bound_vector, e_bound_loc1, 0) = local[1];
+    getter::element(bound_vector, e_bound_phi, 0) = getter::phi(mom);
+    getter::element(bound_vector, e_bound_theta, 0) = getter::theta(mom);
+    getter::element(bound_vector, e_bound_qoverp, 0) = q / getter::norm(mom);
+    getter::element(bound_vector, e_bound_time, 0) = time;
 
-    // Fill covariance matrix
-    auto covariance0 =
-        matrix_operator().template zero<e_free_size, e_free_size>();
+    // bound covariance
+    typename bound_track_parameters::covariance_type bound_cov =
+        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.;
+    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.;
+    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.;
 
-    matrix_operator().element(covariance0, e_free_pos0, e_free_pos0) = 0.1;
-    matrix_operator().element(covariance0, e_free_pos1, e_free_pos1) = 0.1;
-    matrix_operator().element(covariance0, e_free_pos2, e_free_pos2) = 0.1;
-    matrix_operator().element(covariance0, e_free_dir0, e_free_dir0) = 0.1;
-    matrix_operator().element(covariance0, e_free_dir1, e_free_dir1) = 0.1;
-    matrix_operator().element(covariance0, e_free_dir2, e_free_dir2) = 0.;
-    matrix_operator().element(covariance0, e_free_qoverp, e_free_qoverp) = 0.;
+    // Note: Set theta error as ZERO, to constrain the loc1 divergence
+    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
+    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
+    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
 
-    vertex.set_covariance(covariance0);
-
-    // magnetic field
-    vector3 B{0, 0, 10. * unit_constants::T};
-
-    // helix gun
-    helix_gun helix(vertex, &B);
-
-    // Path length per turn
-    scalar S = 2. * getter::norm(mom) / getter::norm(B) * M_PI;
-
-    // RK stepper and its state
-    mag_field_t mag_field(B);
+    // bound track parameter
+    const bound_track_parameters bound_param0(0, bound_vector, bound_cov);
 
     prop_state<crk_stepper_t::state, nav_state> propagation{
-        crk_stepper_t::state{vertex}, nav_state{}};
+        crk_stepper_t::state(bound_param0, trf), nav_state{}};
     crk_stepper_t::state &crk_state = propagation._stepping;
     nav_state &n_state = propagation._navigation;
 
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = 1e-8;
 
+    // RK stepper and its state
+    vector3 B{0, 0, 1. * unit_constants::T};
+    mag_field_t mag_field(B);
     crk_stepper_t crk_stepper(mag_field);
+
+    ASSERT_FLOAT_EQ(crk_state().pos()[0], 0);
+    ASSERT_FLOAT_EQ(crk_state().pos()[1], local[0]);
+    ASSERT_FLOAT_EQ(crk_state().pos()[2], local[1]);
+    ASSERT_NEAR(crk_state().dir()[0], 1, epsilon);
+    ASSERT_NEAR(crk_state().dir()[1], 0, epsilon);
+    ASSERT_NEAR(crk_state().dir()[2], 0, epsilon);
+
+    // helix gun
+    helix_gun helix(crk_state(), &B);
+
+    // Path length per turn
+    scalar S = 2. * getter::norm(mom) / getter::norm(B) * M_PI;
 
     // Run stepper for one turn
     unsigned int max_steps = 1e4;
@@ -308,27 +328,47 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
         ASSERT_TRUE(i < max_steps - 1);
     }
 
-    auto jac_transport = crk_state._jac_transport;
+    /**
+     * Transport jacobian check
+     */
 
-    // Jacobian check with Helix Gun
-    auto J = helix.jacobian(crk_state.path_length());
+    auto jac_transport = crk_state._jac_transport;
+    auto true_J = helix.jacobian(crk_state.path_length());
 
     for (size_type i = 0; i < e_free_size; i++) {
         for (size_type j = 0; j < e_free_size; j++) {
             EXPECT_NEAR(matrix_operator().element(jac_transport, i, j),
-                        matrix_operator().element(J, i, j),
+                        matrix_operator().element(true_J, i, j),
                         crk_state.path_length() * epsilon);
         }
     }
 
-    // Check if covariance doesn't change after one turn
-    free_matrix covariance1 = jac_transport * crk_state().covariance() *
-                              matrix_operator().transpose(jac_transport);
+    /**
+     * Bound parameters check
+     */
 
-    for (size_type i = 0; i < e_free_size; i++) {
-        for (size_type j = 0; j < e_free_size; j++) {
-            EXPECT_NEAR(matrix_operator().element(covariance0, i, j),
-                        matrix_operator().element(covariance1, i, j),
+    // Bound state after one turn propagation
+    const auto bound_param1 = crk_stepper.bound_state(propagation, trf);
+
+    const auto bound_vec0 = bound_param0.vector();
+    const auto bound_vec1 = bound_param1.vector();
+
+    const auto bound_cov0 = bound_param0.covariance();
+    const auto bound_cov1 = bound_param1.covariance();
+
+    // Check if the bound state stays the same after one turn propagation
+
+    // vector
+    for (size_type i = 0; i < e_bound_size; i++) {
+        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0),
+                    matrix_operator().element(bound_vec1, i, 0), epsilon);
+    }
+
+    // covaraince
+    for (size_type i = 0; i < e_bound_size; i++) {
+        for (size_type j = 0; j < e_bound_size; j++) {
+            EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
+                        matrix_operator().element(bound_cov1, i, j),
                         crk_state.path_length() * epsilon);
         }
     }

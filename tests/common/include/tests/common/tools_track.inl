@@ -14,7 +14,11 @@
 #include "detray/propagator/track.hpp"
 
 using namespace detray;
-using vector2 = __plugin::vector2<detray::scalar>;
+using vector2 = __plugin::vector2<scalar>;
+using vector3 = __plugin::vector3<scalar>;
+using point3 = __plugin::point3<scalar>;
+using vector_engine = detail::vector_engine<scalar>;
+using matrix_operator = standard_matrix_operator<scalar>;
 
 enum mask_ids : unsigned int {
     e_rectangle2 = 0,
@@ -59,7 +63,8 @@ TEST(tools, bound_track_parameters) {
     getter::element(param1, e_bound_qoverp, 0) = -0.01;
     getter::element(param1, e_bound_time, 0) = 0.1;
 
-    typename bound_track_parameters::covariance_type cov1;
+    typename bound_track_parameters::covariance_type cov1 =
+        matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     bound_track_parameters trck1(sf_idx1, param1, cov1);
 
@@ -73,7 +78,8 @@ TEST(tools, bound_track_parameters) {
     getter::element(param2, e_bound_qoverp, 0) = 1.;
     getter::element(param2, e_bound_time, 0) = 0.;
 
-    typename bound_track_parameters::covariance_type cov2;
+    typename bound_track_parameters::covariance_type cov2 =
+        matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     bound_track_parameters trck2(sf_idx2, param2, cov2);
 
@@ -98,16 +104,25 @@ TEST(tools, bound_track_parameters) {
     EXPECT_FLOAT_EQ(trck2.time(), getter::element(param2, e_bound_time, 0));
 
     /// Global position and direction check
-
     // first track
-    auto global_pos1 = trck1.pos(ctx, surfaces, trfs);
+    auto tidx1 = surfaces[trck1.surface_link()].transform();
+    const auto& trf1 = trfs.contextual_transform(ctx, tidx1);
+
+    auto free_vec1 = vector_engine().bound_to_free_vector(trf1, trck1.vector());
+
+    auto global_pos1 = vector_engine().pos(free_vec1);
+
     auto u1 = vector::dot(x1, global_pos1 - t1);
     auto v1 = vector::dot(y1, global_pos1 - t1);
     auto w1 = vector::dot(z1, global_pos1 - t1);
 
-    EXPECT_FLOAT_EQ(trck1.local()[0], u1);
-    EXPECT_FLOAT_EQ(trck1.local()[1], v1);
-    EXPECT_NEAR(0, w1, 1e-6);
+    auto local_pos1 = vector_engine().local(trck1.vector());
+
+    EXPECT_FLOAT_EQ(local_pos1[0], u1);
+    EXPECT_FLOAT_EQ(local_pos1[1], v1);
+    EXPECT_NEAR(local_pos1[2], 0, 1e-6);
+    EXPECT_NEAR(w1, 0, 1e-6);
+
     EXPECT_FLOAT_EQ(trck1.dir()[0],
                     std::cos(getter::element(param1, e_bound_phi, 0)) *
                         std::sin(getter::element(param1, e_bound_theta, 0)));
@@ -118,14 +133,23 @@ TEST(tools, bound_track_parameters) {
                     std::cos(getter::element(param1, e_bound_theta, 0)));
 
     // second track
-    auto global_pos2 = trck2.pos(ctx, surfaces, trfs);
+    auto tidx2 = surfaces[trck2.surface_link()].transform();
+    const auto& trf2 = trfs.contextual_transform(ctx, tidx2);
+
+    auto free_vec2 = vector_engine().bound_to_free_vector(trf2, trck2.vector());
+
+    auto global_pos2 = vector_engine().pos(free_vec2);
+
     auto u2 = vector::dot(x2, global_pos2 - t2);
     auto v2 = vector::dot(y2, global_pos2 - t2);
     auto w2 = vector::dot(z2, global_pos2 - t2);
 
-    EXPECT_FLOAT_EQ(trck2.local()[0], u2);
-    EXPECT_FLOAT_EQ(trck2.local()[1], v2);
-    EXPECT_NEAR(0, w2, 1e-6);
+    auto local_pos2 = vector_engine().local(trck2.vector());
+
+    EXPECT_FLOAT_EQ(local_pos2[0], u2);
+    EXPECT_FLOAT_EQ(local_pos2[1], v2);
+    EXPECT_NEAR(local_pos2[2], 0, 1e-6);
+    EXPECT_NEAR(w2, 0, 1e-6);
     EXPECT_FLOAT_EQ(trck2.dir()[0],
                     std::cos(getter::element(param2, e_bound_phi, 0)) *
                         std::sin(getter::element(param2, e_bound_theta, 0)));

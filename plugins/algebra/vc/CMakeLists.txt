@@ -17,6 +17,6 @@ endif()
 detray_add_library( detray_vc_array vc_array
    "include/detray/plugins/algebra/vc_array_definitions.hpp" )
 target_link_libraries( detray_vc_array
-   INTERFACE algebra::vc_vc vecmem::core )
+   INTERFACE algebra::vc_cmath vecmem::core )
 target_compile_definitions( detray_vc_array
    INTERFACE DETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE} )

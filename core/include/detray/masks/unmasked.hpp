@@ -21,6 +21,7 @@ struct unmasked {
     using mask_tolerance = bool;
     using local_type = mask_local_t;
     using links_type = mask_links_t;
+    using point2 = __plugin::point2<scalar>;
 
     static constexpr mask_tolerance within_epsilon = true;
 

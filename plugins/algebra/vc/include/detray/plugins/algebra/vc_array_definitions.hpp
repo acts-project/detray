@@ -6,7 +6,7 @@
  */
 
 // Algebra-Plugins include
-#include "algebra/vc_vc.hpp"
+#include "algebra/vc_cmath.hpp"
 
 #define __plugin algebra::vc
 #define ALGEBRA_PLUGIN vc_array

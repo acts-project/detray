@@ -15,7 +15,7 @@
 using namespace detray;
 using namespace __plugin;
 
-constexpr const float epsilon = 1e-6;
+constexpr const float epsilon = 1e-5;
 
 // This tests the base functionality of the Helix Gun
 TEST(tools, helix_gun) {
@@ -85,5 +85,7 @@ TEST(tools, helix_gun_small_pT) {
     point3 helix_pos = helix(path_length);
     point3 true_pos = pos + path_length * vector::normalize(mom);
 
-    EXPECT_EQ(true_pos, helix_pos);
+    EXPECT_FLOAT_EQ(true_pos[0], helix_pos[0]);
+    EXPECT_FLOAT_EQ(true_pos[1], helix_pos[1]);
+    EXPECT_FLOAT_EQ(true_pos[2], helix_pos[2]);
 }

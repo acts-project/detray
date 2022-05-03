@@ -26,6 +26,9 @@ constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
 constexpr scalar isclose = 1e-5;
 
+using vector3 = __plugin::vector3<scalar>;
+using point3 = __plugin::point3<scalar>;
+
 // This defines the local frame test suite
 TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // Create a translated cylinder and test untersection
