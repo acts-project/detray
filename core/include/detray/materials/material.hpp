@@ -10,20 +10,14 @@
 namespace detray {
 
 /// Definition of material type (homogeneous, binned, etc.)
-enum material_type: int {
+enum material_type : int {
     e_homogeneous = 0,
     e_binned = 1,
-}
+};
 
 /// Generic material
-template < material_type T, int ID >
+template <material_type T, int ID>
 struct material;
-
-/// Homegenous material
-template <int ID>
-material<e_homogeneous>{
-
-};
 
 /*
 template <typename material_t>
