@@ -19,42 +19,25 @@ namespace detray {
 /** A material store that provides the correct material containers to client
  * classes. */
 template <template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          typename ID = unsigned int, typename... materials_t>
-struct material_store {
+          template <typename, std::size_t> class array_t = darray,
+          typename ID = unsigned int, typename... Ts>
+struct tuple_array_container {
 
     public:
+    template <typename T, std::size_t I>
+    using array_type = array_t<T, I>;
+
     template <typename... Args>
     using tuple_type = tuple_t<Args...>;
 
-    /**
-     * material_tuple does not follow the tuple_type.
-     * vtuple has different types based on the file location 1) std::tuple in
-     * cpp/hpp; 2) thrust::tuple in cu
-     */
-    using material_tuple = vtuple::tuple<vector_t<materials_t>...>;
+    using container_tuple = tuple_type<array_type<Ts::object_type, Ts::N>...>;
 
-    /** data type for material_store_data **/
-    using material_tuple_data =
-        tuple_type<vecmem::data::vector_view<mask_types>...>;
-
-    /** Default constructor **/
     material_store() = delete;
 
-    /**
-     * Constructor with vecmem memory resource
-     *
-     * @param resource is the vecmem memory resource
-     */
     DETRAY_HOST
     material_store(vecmem::memory_resource &resource)
         : _material_tuple(vector_t<materials_t>{&resource}...) {}
 
-    /**
-     * Constructor with mask_store_data
-     *
-     * @param store_data is the material store data
-     */
     template <typename material_store_data_t,
               std::enable_if_t<
                   !std::is_base_of_v<vecmem::memory_resource,
