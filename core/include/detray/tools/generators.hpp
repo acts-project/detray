@@ -294,7 +294,7 @@ auto unroll_masks_for_vertices(
     // Last chance - intersect the last index if possible
     return vertices_for_last_mask_group<
         mask_container_t, mask_range_t,
-        std::tuple_size_v<typename mask_container_t::mask_tuple> - 1>(
+        std::tuple_size_v<typename mask_container_t::container_type> - 1>(
         masks, range, mask_id);
 }
 

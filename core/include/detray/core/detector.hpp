@@ -66,7 +66,7 @@ class detector {
     /// Forward mask types
     using masks = typename metadata::mask_definitions;
     using mask_container =
-        typename masks::template container_type<tuple_t, vector_t>;
+        typename masks::template mask_store_type<tuple_t, vector_t>;
 
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
@@ -360,7 +360,7 @@ class detector {
                 _masks.template size<mask_container::to_id(current_type)>();
 
             // Fill the correct mask type
-            _masks.add_masks(object_masks);
+            _masks.add_vector(object_masks);
             _transforms.append(ctx, std::move(std::get<current_type>(trfs)));
 
             // Update the surfaces mask link
@@ -380,7 +380,8 @@ class detector {
 
         // Next mask type
         if constexpr (current_type <
-                      std::tuple_size_v<typename mask_container::mask_tuple> -
+                      std::tuple_size_v<
+                          typename mask_container::container_type> -
                           1) {
             return fill_containers<current_type + 1, surface_container>(
                 ctx, volume, surfaces, msks, trfs);

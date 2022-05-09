@@ -67,7 +67,7 @@ using thrust::get;
 
 template <std::size_t id, typename mask_store_t,
           std::enable_if_t<std::is_class_v<typename std::remove_reference_t<
-                               mask_store_t>::mask_tuple>,
+                               mask_store_t>::container_type>,
                            bool> = true>
 DETRAY_HOST_DEVICE constexpr auto get(mask_store_t&& mask_store) noexcept
     -> decltype(get<id>(std::forward<mask_store_t>(mask_store).get())) {

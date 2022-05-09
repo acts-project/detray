@@ -58,7 +58,7 @@ inline void add_cylinder_surface(const dindex volume_id, context_t &ctx,
 
     // add transform and masks
     transforms[cylinder_id].emplace_back(ctx, tsl);
-    masks.template add_mask<cylinder_id>(r, min_z, max_z, edge);
+    masks.template add_value<cylinder_id>(r, min_z, max_z, edge);
 
     // add surface
     mask_link_t mask_link{cylinder_id, masks.template size<cylinder_id>() - 1};
@@ -105,7 +105,7 @@ inline void add_disc_surface(const dindex volume_id, context_t &ctx,
 
     // add transform and mask
     transforms[disc_id].emplace_back(ctx, tsl);
-    masks.template add_mask<disc_id>(min_r, max_r, edge);
+    masks.template add_value<disc_id>(min_r, max_r, edge);
 
     // add surface
     mask_link_t mask_link{disc_id, masks.template size<disc_id>() - 1};
@@ -259,8 +259,8 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
         surfaces[rectangle_id].back().set_grid_status(true);
 
         // The rectangle bounds for this module
-        masks.template add_mask<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
-                                              mask_edge);
+        masks.template add_value<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
+                                               mask_edge);
 
         // Build the transform
         // The local phi
@@ -436,9 +436,9 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             // trapezoid mask
             mask_link_t mask_link{trapezoid_id,
                                   masks.template size<trapezoid_id>()};
-            masks.template add_mask<trapezoid_id>(cfg.m_half_x_min_y[ir],
-                                                  cfg.m_half_x_max_y[ir],
-                                                  cfg.m_half_y[ir], mask_edge);
+            masks.template add_value<trapezoid_id>(cfg.m_half_x_min_y[ir],
+                                                   cfg.m_half_x_max_y[ir],
+                                                   cfg.m_half_y[ir], mask_edge);
 
             // Surfaces with the linking into the local containers
             surfaces[trapezoid_id].emplace_back(
