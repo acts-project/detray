@@ -23,6 +23,8 @@ __plugin::cartesian2<detray::scalar> cartesian2;
 
 // Three-dimensional definitions
 using transform3 = __plugin::transform3<detray::scalar>;
+using vector3 = __plugin::vector3<scalar>;
+using point3 = __plugin::point3<scalar>;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();

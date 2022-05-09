@@ -10,6 +10,7 @@
 #include "detray/masks/unmasked.hpp"
 
 using namespace detray;
+using point2 = __plugin::point2<scalar>;
 
 // This tests the construction of a surface
 TEST(mask, unmasked) {

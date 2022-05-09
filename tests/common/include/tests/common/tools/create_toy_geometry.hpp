@@ -17,6 +17,10 @@ namespace detray {
 
 namespace {
 
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point2 = __plugin::point2<detray::scalar>;
+
 /** Function that adds a cylinder portal.
  *
  * @tparam cylinder_id default cylinder id

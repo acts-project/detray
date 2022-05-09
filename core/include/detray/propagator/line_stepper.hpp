@@ -34,7 +34,7 @@ class line_stepper final
 
     struct state : public base_type::state {
         DETRAY_HOST_DEVICE
-        state(track_t &t) : base_type::state(t) {}
+        state(const track_t &t) : base_type::state(t) {}
 
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE

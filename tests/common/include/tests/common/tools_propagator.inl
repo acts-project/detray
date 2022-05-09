@@ -19,11 +19,14 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
+#include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/helix_gun.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
 using namespace detray;
+using matrix_operator = standard_matrix_operator<scalar>;
+using mag_field_t = constant_magnetic_field<>;
 
 namespace {
 
@@ -100,9 +103,6 @@ class PropagatorWithRkStepper
 
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
-    using namespace detray;
-    using namespace propagation;
-
     // geomery navigation configurations
     constexpr unsigned int theta_steps = 50;
     constexpr unsigned int phi_steps = 50;
@@ -116,17 +116,17 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // Create the navigator
     using navigator_t = navigator<decltype(d)>;
-    using b_field_t = constant_magnetic_field<>;
     using constraints_t = constrained_step<>;
     using stepper_t =
-        rk_stepper<b_field_t, free_track_parameters, constraints_t>;
-    using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector,
-                                      pathlimit_aborter>;
+        rk_stepper<mag_field_t, free_track_parameters, constraints_t>;
+    using actor_chain_t =
+        actor_chain<dtuple, helix_inspector, propagation::print_inspector,
+                    pathlimit_aborter>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Constant magnetic field
     vector3 B = GetParam();
-    b_field_t b_field(B);
+    mag_field_t b_field(B);
 
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{b_field}, navigator_t{d});
@@ -157,8 +157,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
             // Build actor states: the helix inspector can be shared
             helix_inspector::state_type helix_insp_state{helix_gun{traj, &B}};
-            print_inspector::state_type print_insp_state{};
-            print_inspector::state_type lim_print_insp_state{};
+            propagation::print_inspector::state_type print_insp_state{};
+            propagation::print_inspector::state_type lim_print_insp_state{};
             pathlimit_aborter::state_type unlimted_aborter_state{};
             pathlimit_aborter::state_type pathlimit_aborter_state{path_limit};
 
