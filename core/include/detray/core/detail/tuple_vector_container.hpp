@@ -28,7 +28,7 @@ namespace detray {
  * @tparam Ts are the types of tuple elements
  */
 template <template <typename...> class tuple_t,
-          template <typename> class vector_t, typename id_t, typename... Ts>
+          template <typename...> class vector_t, typename id_t, typename... Ts>
 class tuple_vector_container
     : public tuple_container<tuple_t, id_t, vector_t<Ts>...> {
 

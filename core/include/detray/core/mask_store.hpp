@@ -23,7 +23,7 @@ namespace detray {
  * @tparam mask_types are the types of masks
  */
 template <template <typename...> class tuple_t = dtuple,
-          template <typename> class vector_t = dvector,
+          template <typename...> class vector_t = dvector,
           typename id_t = unsigned int, typename... mask_types>
 class mask_store final
     : public tuple_vector_container<tuple_t, vector_t, id_t, mask_types...> {
