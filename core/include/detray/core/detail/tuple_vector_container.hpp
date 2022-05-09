@@ -37,8 +37,6 @@ class tuple_vector_container
     using base_type = tuple_container<tuple_t, id_t, vector_t<Ts>...>;
     using base_type::base_type;
     using id_type = typename base_type::id_type;
-    using link_type = typed_index<id_type, dindex>;
-    using range_type = typed_index<id_type, dindex_range>;
 
     static constexpr std::size_t m_tuple_size = base_type::m_tuple_size;
 

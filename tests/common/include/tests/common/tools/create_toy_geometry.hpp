@@ -46,7 +46,7 @@ inline void add_cylinder_surface(const dindex volume_id, context_t &ctx,
                                  const scalar upper_z, const edge_links edge) {
     using surface_t = typename surface_container_t::value_type::value_type;
     using mask_defs = typename surface_t::mask_defs;
-    using mask_link_t = typename mask_container_t::link_type;
+    using mask_link_t = typename surface_t::mask_link;
 
     constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder3;
 
@@ -93,7 +93,7 @@ inline void add_disc_surface(const dindex volume_id, context_t &ctx,
                              const scalar z, const edge_links edge) {
     using surface_t = typename surface_container_t::value_type::value_type;
     using mask_defs = typename surface_t::mask_defs;
-    using mask_link_t = typename mask_container_t::link_type;
+    using mask_link_t = typename surface_t::mask_link;
 
     constexpr auto disc_id = mask_defs::id::e_portal_ring2;
 
@@ -206,7 +206,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     using surface_t = typename surface_container_t::value_type::value_type;
     using mask_defs = typename surface_t::mask_defs;
     using edge_t = typename surface_t::edge_type;
-    using mask_link_t = typename mask_container_t::link_type;
+    using mask_link_t = typename surface_t::mask_link;
 
     constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
     auto volume_id = vol.index();
@@ -369,7 +369,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     using surface_t = typename surface_container_t::value_type::value_type;
     using mask_defs = typename surface_t::mask_defs;
     using edge_t = typename surface_t::edge_type;
-    using mask_link_t = typename mask_container_t::link_type;
+    using mask_link_t = typename surface_t::mask_link;
 
     constexpr auto trapezoid_id = mask_defs::id::e_trapezoid2;
     auto volume_id = vol.index();

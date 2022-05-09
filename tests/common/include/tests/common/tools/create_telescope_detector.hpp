@@ -110,7 +110,7 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
                              transform_container_t &transforms, config_t &cfg) {
     using surface_t = typename surface_container_t::value_type::value_type;
     using edge_t = typename surface_t::edge_type;
-    using mask_link_t = typename mask_container_t::link_type;
+    using mask_link_t = typename surface_t::mask_link;
 
     auto volume_id = volume.index();
     edge_t mask_edge{volume_id, dindex_invalid};
