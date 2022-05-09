@@ -8,18 +8,10 @@
 
 // Detray include(s)
 #include "detray/core/detail/tuple_vector_container.hpp"
-#include "detray/definitions/detail/accessor.hpp"
-#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/enumerate.hpp"
 
 // Vecmem include(s)
-#include <vecmem/containers/device_vector.hpp>
 #include <vecmem/memory/memory_resource.hpp>
-
-// System include(s)
-#include <type_traits>
-#include <utility>
 
 namespace detray {
 

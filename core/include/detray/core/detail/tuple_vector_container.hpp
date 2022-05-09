@@ -13,12 +13,10 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // Vecmem include(s)
-#include <vecmem/containers/device_vector.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 
 // System include(s)
 #include <type_traits>
-#include <utility>
 
 namespace detray {
 
