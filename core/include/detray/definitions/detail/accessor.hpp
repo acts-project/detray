@@ -70,8 +70,8 @@ template <std::size_t id, typename mask_store_t,
                                mask_store_t>::mask_tuple>,
                            bool> = true>
 DETRAY_HOST_DEVICE constexpr auto get(mask_store_t&& mask_store) noexcept
-    -> decltype(get<id>(std::forward<mask_store_t>(mask_store).masks())) {
-    return get<id>(std::forward<mask_store_t>(mask_store).masks());
+    -> decltype(get<id>(std::forward<mask_store_t>(mask_store).get())) {
+    return get<id>(std::forward<mask_store_t>(mask_store).get());
 }
 
 /// Retrieve an element from a thrust tuple by value. No perfect forwarding for
