@@ -398,7 +398,7 @@ detector_from_csv(const std::string &detector_name,
                 // Add a new cylinder mask
                 dindex cylinder_index = c_masks.template size<cylinder_id>();
                 mask_edge = {c_volume->index(), dindex_invalid};
-                c_masks.template add_mask<cylinder_id>(
+                c_masks.template add_value<cylinder_id>(
                     io_surface.bound_param0,
                     io_surface.cz - io_surface.bound_param1,
                     io_surface.cz + io_surface.bound_param1, mask_edge);
@@ -427,8 +427,8 @@ detector_from_csv(const std::string &detector_name,
                     0.5 * (io_surface.bound_param2 - io_surface.bound_param0);
                 scalar half_y =
                     0.5 * (io_surface.bound_param3 - io_surface.bound_param1);
-                c_masks.template add_mask<rectangle_id>(half_x, half_y,
-                                                        mask_edge);
+                c_masks.template add_value<rectangle_id>(half_x, half_y,
+                                                         mask_edge);
                 // The read is valid: set the index
                 mask_index = {rectangle_id, rectangle_index};
 
@@ -449,7 +449,7 @@ detector_from_csv(const std::string &detector_name,
 
                 // Add a new trapezoid mask
                 dindex trapezoid_index = c_masks.template size<trapezoid_id>();
-                c_masks.template add_mask<trapezoid_id>(
+                c_masks.template add_value<trapezoid_id>(
                     io_surface.bound_param0, io_surface.bound_param1,
                     io_surface.bound_param2, mask_edge);
 
@@ -473,7 +473,7 @@ detector_from_csv(const std::string &detector_name,
 
                 // Add a new annulus mask
                 dindex annulus_index = c_masks.template size<annulus_id>();
-                c_masks.template add_mask<annulus_id>(
+                c_masks.template add_value<annulus_id>(
                     io_surface.bound_param0, io_surface.bound_param1,
                     io_surface.bound_param2, io_surface.bound_param3,
                     io_surface.bound_param4, io_surface.bound_param5,

@@ -260,7 +260,7 @@ void connect_cylindrical_volumes(
                 for (auto &info_ : portals_info) {
                     // Add new mask to container
                     edge_t edge{std::get<1>(info_), dindex_invalid};
-                    portal_masks.template add_mask<disc_id>(
+                    portal_masks.template add_value<disc_id>(
                         std::get<0>(info_)[0], std::get<0>(info_)[1], edge);
 
                     mask_index = {disc_id,
@@ -303,7 +303,7 @@ void connect_cylindrical_volumes(
                     edge_t edge{std::get<1>(info_), dindex_invalid};
                     const auto cylinder_range = std::get<0>(info_);
 
-                    portal_masks.template add_mask<cylinder_id>(
+                    portal_masks.template add_value<cylinder_id>(
                         volume_bounds[bound_index], cylinder_range[0],
                         cylinder_range[1], edge);
 

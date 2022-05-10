@@ -10,6 +10,9 @@ message(STATUS "Building 'detray::core' component")
 # Set up the library.
 detray_add_library( detray_core core
    # core include(s)
+   "include/detray/core/detail/tuple_array_container.hpp"
+   "include/detray/core/detail/tuple_container.hpp"
+   "include/detray/core/detail/tuple_vector_container.hpp"
    "include/detray/core/detector.hpp"
    "include/detray/core/mask_store.hpp"
    "include/detray/core/material_store.hpp"
