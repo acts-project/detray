@@ -8,46 +8,22 @@
 #pragma once
 
 // Detray include(s)
-#include "detray/definitions/indexing.hpp"
+#include "detray/core/detail/tuple_vector_container.hpp"
+#include "detray/definitions/qualifiers.hpp"
 
 // Vecmem include(s)
-#include <vecmem/containers/device_vector.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 
 namespace detray {
 
-/** A material store that provides the correct material containers to client
- * classes. */
-template <template <typename...> class tuple_t = dtuple,
-          template <typename, std::size_t> class array_t = darray,
-          typename ID = unsigned int, typename... Ts>
-struct tuple_array_container {
+// Material store type declarations
+template <template <typename...> class tuple_t,
+          template <typename...> class vector_t, typename id_t,
+          typename... material_types>
+using material_store =
+    tuple_vector_container<tuple_t, vector_t, id_t, material_types...>;
 
-    public:
-    template <typename T, std::size_t I>
-    using array_type = array_t<T, I>;
-
-    template <typename... Args>
-    using tuple_type = tuple_t<Args...>;
-
-    using container_tuple = tuple_type<array_type<Ts::object_type, Ts::N>...>;
-
-    material_store() = delete;
-
-    DETRAY_HOST
-    material_store(vecmem::memory_resource &resource)
-        : _material_tuple(vector_t<materials_t>{&resource}...) {}
-
-    template <typename material_store_data_t,
-              std::enable_if_t<
-                  !std::is_base_of_v<vecmem::memory_resource,
-                                     material_store_data_t> &&
-                      !std::is_same_v<material_store, material_store_data_t>,
-                  bool> = true>
-    DETRAY_DEVICE mask_store(material_store_data_t &store_data)
-        : _material_tuple(device(
-              store_data, std::make_index_sequence<sizeof...(materials_t)>{})) {
-    }
-};
+template <typename material_store_t>
+using material_store_data = tuple_vector_container_data<material_store_t>;
 
 }  // namespace detray

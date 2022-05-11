@@ -7,44 +7,61 @@
 
 #pragma once
 
+/// Detray include(s)
+#include "detray/definitions/units.hpp"
+
+// System include(s)
+#include <climits>
+#include <ratio>
+
 namespace detray {
 
-/// Definition of material type (homogeneous, binned, etc.)
-enum material_type : int {
-    e_homogeneous = 0,
-    e_binned = 1,
-};
-
-/// Generic material
-template <material_type T, int ID>
-struct material;
-
-/*
-template <typename material_t>
+template <typename scalar_t, typename R = std::ratio<1, 1>>
 struct material {
-    using scalar_type = typename material_t::scalar_type;
+    using ratio = R;
+    using scalar_type = scalar_t;
 
-    material(const material_t& material, scalar_type thickness)
-        : _material(material),
-          _thickness(thickness),
-          _thickness_in_X0(thickness / material.X0()),
-          _thickness_in_L0(thickness / material.L0()) {}
+    material(const scalar_type x0, const scalar_type l0, const scalar_type ar,
+             const scalar_type z, const scalar_type mass_rho)
+        : _x0(x0), _l0(l0), _ar(ar), _z(z) {
 
-    /// Access the (average) material parameters.
-    constexpr const material_t& material() const { return _material; }
-    /// Return the thickness.
-    constexpr scalar_type thickness() const { return _thickness; }
-    /// Return the radiation length fraction.
-    constexpr scalar_type thickness_in_X0() const { return _thickness_in_X0; }
-    /// Return the nuclear interaction length fraction.
-    constexpr scalar_type thickness_in_L0() const { return _thickness_in_L0; }
+        double atomic_mass = static_cast<double>(ar) * unit_constants::u;
+        _molar_rho = (mass_rho == 0)
+                         ? 0
+                         : static_cast<scalar_type>(
+                               static_cast<double>(mass_rho) /
+                               (atomic_mass * unit_constants::kAvogadro));
+    }
+
+    /// Return the radition length. Infinity in case of vacuum.
+    constexpr scalar_type X0() const { return _x0; }
+    /// Return the nuclear interaction length. Infinity in case of vacuum.
+    constexpr scalar_type L0() const { return _l0; }
+    /// Return the relative atomic mass.
+    constexpr scalar_type Ar() const { return _ar; }
+    /// Return the nuclear charge number.
+    constexpr scalar_type Z() const { return _z; }
+    /// Return the molar density.
+    constexpr scalar_type molar_density() const { return _molar_rho; }
+    /// Return the molar electron density.
+    constexpr scalar_type molar_electron_density() const {
+        return _z * _molar_rho;
+    }
 
     private:
-    material_t _material;
-    scalar_type _thickness = 0.0f;
-    scalar_type _thickness_in_X0 = 0.0f;
-    scalar_type _thickness_in_L0 = 0.0f;
+    scalar_type _x0;
+    scalar_type _l0;
+    scalar_type _ar;
+    scalar_type _z;
+    scalar_type _molar_rho;
 };
-*/
+
+#define DETRAY_DECLARE_MATERIAL(MATERIAL_NAME, X0, L0, Ar, Z, Rho) \
+    template <typename scalar_t, typename R = std::ratio<1, 1>>    \
+    struct MATERIAL_NAME final : public material<scalar_t, R> {    \
+        using base_type = material<scalar_t, R>;                   \
+        using base_type::base_type;                                \
+        MATERIAL_NAME() : base_type(X0, L0, Ar, Z, Rho) {}         \
+    };
 
 }  // namespace detray
