@@ -10,7 +10,6 @@
 /// Detray include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/materials/material.hpp"
-#include "detray/materials/material_composition.hpp"
 
 // System include(s)
 #include <climits>
@@ -18,6 +17,7 @@
 namespace detray {
 
 /**
+ * Elements Declaration
  * @note: Values taken from pdg.lbl.gov/2020/AtomicNuclearProperties/index.html
  * (Last revised 04 June 2020 )
  */
@@ -69,6 +69,7 @@ DETRAY_DECLARE_MATERIAL(gold, 3.344 * unit_constants::mm,
                         19.32 * unit_constants::g / (1 * unit_constants::cm3));
 
 /**
+ * Elements Declaration for ACTS Generic detector
  * @note: Values taken from BuildGenericDetector.hpp in ACTS
  */
 
@@ -81,5 +82,15 @@ DETRAY_DECLARE_MATERIAL(beryllium_tml, 352.8 * unit_constants::mm,
 DETRAY_DECLARE_MATERIAL(silicon_tml, 95.7 * unit_constants::mm,
                         465.2 * unit_constants::mm, 28.03, 14.,
                         2.32 * unit_constants::g / (1 * unit_constants::cm3));
+
+/**
+ * Compounds
+ */
+
+// (CH3)2CHCH3 Gas
+// @note: https://pdg.lbl.gov/2005/reviews/atomicrpp.pdf
+DETRAY_DECLARE_MATERIAL(isobutane, 169300 * unit_constants::mm,
+                        288.3 * unit_constants::mm, 58.124, 34.,
+                        2.67 * unit_constants::g / (1 * unit_constants::cm3));
 
 }  // namespace detray
