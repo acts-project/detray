@@ -198,12 +198,8 @@ TEST(grids_cuda, grid2_attach_populator) {
         }
     }
 
-    // get grid_data
-    const host_grid2_attach& const_g2 = g2;
-    auto g2_data = get_data(const_g2, mng_mr);
-
     // Read the grid
-    grid_attach_read_test(g2_data);
+    grid_attach_read_test(get_data(g2, mng_mr));
 }
 
 /// This test demonstrates how to call grid buffer without calling host grid
@@ -249,6 +245,10 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     EXPECT_EQ(g2.data()[1].size(), 100);
     EXPECT_EQ(g2.data()[2].size(), 100);
     EXPECT_EQ(g2.data()[3].size(), 100);
+
+    // Check that we can give a non-const buffer to a function expecting
+    // a const view.
+    grid_attach_read_test(g2_buffer);
 }
 
 TEST(grids_cuda, grid2_buffer_attach_populator2) {

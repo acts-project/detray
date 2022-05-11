@@ -41,6 +41,7 @@ struct single3 {
     using mask_values = array_t<scalar, 2>;
     using links_type = mask_links_t;
     using local_type = mask_local_t;
+    using point3 = __plugin::point3<scalar>;
 
     mask_values _values = {std::numeric_limits<scalar>::infinity()};
 

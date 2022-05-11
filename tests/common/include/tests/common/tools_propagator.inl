@@ -19,10 +19,14 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
+#include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/helix_gun.hpp"
 #include "tests/common/tools/inspectors.hpp"
-#include "tests/common/tools/read_geometry.hpp"
+
+using namespace detray;
+using matrix_operator = standard_matrix_operator<scalar>;
+using mag_field_t = constant_magnetic_field<>;
 
 namespace {
 
@@ -32,7 +36,7 @@ constexpr scalar path_limit = 5 * unit_constants::cm;
 /// Compare helical track positions for stepper
 struct helix_inspector : actor {
 
-    // Keeps the state of a helix gun to calculate track positions
+    /// Keeps the state of a helix gun to calculate track positions
     struct helix_inspector_state {
         helix_inspector_state(helix_gun &&h) : _helix(h) {}
         helix_gun _helix;
@@ -71,14 +75,10 @@ struct helix_inspector : actor {
 
 }  // anonymous namespace
 
-// This tests the basic functionality of the propagator
+/// This tests the basic functionality of the propagator
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
+
     vecmem::host_memory_resource host_mr;
-
-    using namespace detray;
-    using namespace __plugin;
-
-    // auto [d, name_map] = read_from_csv(tml_files, host_mr);
     auto d = create_toy_geometry(host_mr);
 
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
@@ -86,13 +86,11 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     using stepper_t = line_stepper<track_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
-    __plugin::point3<scalar> pos{0., 0., 0.};
-    __plugin::vector3<scalar> mom{1., 1., 0.};
+    point3 pos{0., 0., 0.};
+    vector3 mom{1., 1., 0.};
     track_t traj(pos, 0, mom, -1);
 
-    stepper_t s;
-    navigator_t n(d);
-    propagator_t p(std::move(s), std::move(n));
+    propagator_t p(stepper_t{}, navigator_t{d});
 
     propagator_t::state state(traj);
 
@@ -104,12 +102,6 @@ class PropagatorWithRkStepper
     : public ::testing::TestWithParam<__plugin::vector3<scalar>> {};
 
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
-
-    using namespace detray;
-    using namespace propagation;
-    using namespace __plugin;
-    using point3 = __plugin::point3<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
 
     // geomery navigation configurations
     constexpr unsigned int theta_steps = 50;
@@ -124,21 +116,20 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // Create the navigator
     using navigator_t = navigator<decltype(d)>;
-    using b_field_t = constant_magnetic_field<>;
     using constraints_t = constrained_step<>;
     using stepper_t =
-        rk_stepper<b_field_t, free_track_parameters, constraints_t>;
-    using actor_chain_t = actor_chain<dtuple, helix_inspector, print_inspector,
-                                      pathlimit_aborter>;
+        rk_stepper<mag_field_t, free_track_parameters, constraints_t>;
+    using actor_chain_t =
+        actor_chain<dtuple, helix_inspector, propagation::print_inspector,
+                    pathlimit_aborter>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Constant magnetic field
     vector3 B = GetParam();
-    b_field_t b_field(B);
+    mag_field_t b_field(B);
 
-    stepper_t s(b_field);
-    navigator_t n(d);
-    propagator_t p(std::move(s), std::move(n));
+    // Propagator is built from the stepper and navigator
+    propagator_t p(stepper_t{b_field}, navigator_t{d});
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
@@ -166,8 +157,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
             // Build actor states: the helix inspector can be shared
             helix_inspector::state_type helix_insp_state{helix_gun{traj, &B}};
-            print_inspector::state_type print_insp_state{};
-            print_inspector::state_type lim_print_insp_state{};
+            propagation::print_inspector::state_type print_insp_state{};
+            propagation::print_inspector::state_type lim_print_insp_state{};
             pathlimit_aborter::state_type unlimted_aborter_state{};
             pathlimit_aborter::state_type pathlimit_aborter_state{path_limit};
 

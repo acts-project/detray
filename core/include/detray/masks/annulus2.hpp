@@ -53,6 +53,7 @@ struct annulus2 {
     using mask_values = array_t<scalar, 7>;
     using links_type = mask_links_t;
     using local_type = mask_local_t;
+    using point2 = __plugin::point2<scalar>;
 
     mask_values _values = {0.,
                            std::numeric_limits<scalar>::infinity(),

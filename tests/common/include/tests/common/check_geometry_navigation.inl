@@ -7,11 +7,13 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
+#include <sstream>
 #include <vecmem/memory/host_memory_resource.hpp>
 
+#include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
+#include "detray/propagator/propagator.hpp"
 #include "detray/propagator/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
@@ -19,30 +21,29 @@
 
 using namespace detray;
 
-// This test runs intersection with all portals of the TrackML detector
+/// This test runs intersection with all portals of the toy detector
+// TODO: use runge-kutta stepping
 TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     using namespace navigation;
 
-    // vecmem::host_memory_resource host_mr;
-    // auto [d, name_map] = read_from_csv(tml_files, host_mr);
-
     vecmem::host_memory_resource host_mr;
-    auto d = create_toy_geometry(host_mr);
+    auto det = create_toy_geometry(host_mr);
 
     // Create the navigator
     using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
                                             print_inspector>;
-    using navigator_t = navigator<decltype(d), inspector_t>;
+    using navigator_t = navigator<decltype(det), inspector_t>;
     using stepper_t = line_stepper<free_track_parameters>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
-    navigator_t n(d);
-    stepper_t s;
+    // Propagator
+    propagator_t prop(stepper_t{}, navigator_t{det});
 
     unsigned int theta_steps = 1;
     unsigned int phi_steps = 1;
 
     const point3 ori{0., 0., 0.};
-    dindex start_index = 0;  // d.volume_by_pos(ori).index();
+    // d.volume_by_pos(ori).index();
 
     // Loops of theta values ]0,pi[
     for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
@@ -62,30 +63,22 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
             // Now follow that ray and check, if we find the same
             // volumes and distances along the way
             ray r{ori, dir};
-            const auto intersection_trace = shoot_ray(d, r);
+            const auto intersection_trace = shoot_ray(det, r);
 
             free_track_parameters track(ori, 0, dir, -1);
+            propagator_t::state propagation(track);
 
-            stepper_t::state s_state(track);
-            navigator_t::state n_state{};
+            prop.propagate(propagation);
 
-            // Always start a new ray at detector origin
-            n_state.set_volume(start_index);
-
-            bool heartbeat = n.init(n_state, s_state);
-            // Run while there is a heartbeat
-            while (heartbeat) {
-                // Take the step
-                heartbeat &= s.step(s_state, n_state);
-                // And check the status
-                heartbeat &= n.update(n_state, s_state);
-            }
-
+            // Retrieve navigation information
+            auto &inspector = propagation._navigation.inspector();
             auto &obj_tracer =
-                n_state.inspector()
-                    .template get<object_tracer<status::e_on_target>>();
-            auto &debug_printer =
-                n_state.inspector().template get<print_inspector>();
+                inspector.template get<object_tracer<status::e_on_target>>();
+            auto &debug_printer = inspector.template get<print_inspector>();
+
+            // Compare intersection records
+            EXPECT_EQ(obj_tracer.object_trace.size(),
+                      intersection_trace.size());
 
             std::stringstream debug_stream;
             for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
@@ -98,9 +91,6 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                 debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
             }
 
-            // Compare intersection records
-            EXPECT_EQ(obj_tracer.object_trace.size(),
-                      intersection_trace.size());
             // Check every single recorded intersection
             for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
                  ++intr_idx) {

@@ -30,27 +30,32 @@ __global__ void navigator_test_kernel(
         return;
     }
 
-    navigator_device_t n(det);
+    navigator_device_t nav(det);
 
     auto& traj = tracks.at(gid);
     stepper_t stepper;
-    stepper_t::state stepping(traj);
 
-    navigator_device_t::state state(candidates.at(gid));
+    prop_state<navigator_device_t::state> propagation{
+        stepper_t::state{traj}, navigator_device_t::state{candidates.at(gid)}};
+
+    navigator_device_t::state& navigation = propagation._navigation;
+    stepper_t::state& stepping = propagation._stepping;
 
     // Set initial volume
-    state.set_volume(0u);
+    navigation.set_volume(0u);
 
     // Start propagation and record volume IDs
-    bool heartbeat = n.init(state, stepping);
+    bool heartbeat = nav.init(propagation);
     while (heartbeat) {
 
-        heartbeat &= stepper.step(stepping, state);
+        heartbeat &= stepper.step(propagation);
 
-        heartbeat = n.update(state, stepping);
+        navigation.set_high_trust();
+
+        heartbeat = nav.update(propagation);
 
         // Record volume
-        volume_records[gid].push_back(state.volume());
+        volume_records[gid].push_back(navigation.volume());
         position_records[gid].push_back(stepping().pos());
     }
 }

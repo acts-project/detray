@@ -176,27 +176,28 @@ class grid2 {
      * @return the const reference to the value in this bin
      **/
     DETRAY_HOST_DEVICE
-    const auto &bin(dindex bin0, dindex bin1) const {
+    typename serialized_storage::const_reference bin(dindex bin0,
+                                                     dindex bin1) const {
         return _data_serialized[_serializer.template serialize<
             axis_p0_type, axis_p1_type>(_axis_p0, _axis_p1, bin0, bin1)];
     }
 
     DETRAY_HOST_DEVICE
-    auto bin(dindex bin0, dindex bin1) {
+    typename serialized_storage::reference bin(dindex bin0, dindex bin1) {
         return _data_serialized.at(
             _serializer.template serialize<axis_p0_type, axis_p1_type>(
                 _axis_p0, _axis_p1, bin0, bin1));
     }
 
     DETRAY_HOST_DEVICE
-    const auto &bin(dindex gbin) const {
+    typename serialized_storage::const_reference bin(dindex gbin) const {
         dindex bin0 = gbin % _axis_p0.bins();
         dindex bin1 = gbin / _axis_p0.bins();
         return bin(bin0, bin1);
     }
 
     DETRAY_HOST_DEVICE
-    auto bin(dindex gbin) {
+    typename serialized_storage::reference bin(dindex gbin) {
         dindex bin0 = gbin % _axis_p0.bins();
         dindex bin1 = gbin / _axis_p0.bins();
         return bin(bin0, bin1);
@@ -209,7 +210,7 @@ class grid2 {
      * @return the const reference to the value in this bin
      **/
     DETRAY_HOST_DEVICE
-    const auto &bin(const point2 &p2) const {
+    typename serialized_storage::const_reference bin(const point2 &p2) const {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
                                                                axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
@@ -222,7 +223,7 @@ class grid2 {
      * @return the const reference to the value in this bin
      **/
     DETRAY_HOST_DEVICE
-    auto &bin(const point2 &p2) {
+    typename serialized_storage::reference bin(const point2 &p2) {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
                                                                axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
@@ -416,6 +417,28 @@ struct grid2_view {
  **/
 template <typename grid2_t>
 struct const_grid2_view {
+
+    /// Declare that a default constructor can/should be generated
+    const_grid2_view() = default;
+    /// Constructor with the 3 member variables
+    DETRAY_HOST_DEVICE
+    const_grid2_view(
+        const axis_data<typename grid2_t::axis_p0_type, const scalar>
+            &axis_p0_view,
+        const axis_data<typename grid2_t::axis_p1_type, const scalar>
+            &axis_p1_view,
+        const typename grid2_t::populator_type::const_vector_view_type
+            &data_view)
+        : _axis_p0_view(axis_p0_view),
+          _axis_p1_view(axis_p1_view),
+          _data_view(data_view) {}
+    /// Construct a const data object from a non-const one
+    DETRAY_HOST_DEVICE
+    const_grid2_view(const grid2_view<grid2_t> &parent)
+        : _axis_p0_view(parent._axis_p0_view),
+          _axis_p1_view(parent._axis_p1_view),
+          _data_view(parent._data_view) {}
+
     axis_data<typename grid2_t::axis_p0_type, const scalar> _axis_p0_view;
     axis_data<typename grid2_t::axis_p1_type, const scalar> _axis_p1_view;
     typename grid2_t::populator_type::const_vector_view_type _data_view;
