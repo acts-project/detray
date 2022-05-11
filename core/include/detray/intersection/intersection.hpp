@@ -14,10 +14,6 @@
 
 namespace detray {
 
-using point3 = __plugin::point3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point2 = __plugin::point2<detray::scalar>;
-
 namespace intersection {
 
 /** Intersection direction with respect to the
@@ -46,6 +42,10 @@ enum class status {
  *
  **/
 struct line_plane_intersection {
+
+    using point3 = __plugin::point3<scalar>;
+    using vector3 = __plugin::vector3<scalar>;
+    using point2 = __plugin::point2<scalar>;
 
     scalar path = std::numeric_limits<scalar>::infinity();
     point3 p3 = point3{std::numeric_limits<scalar>::infinity(),

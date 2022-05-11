@@ -12,7 +12,11 @@
 
 namespace detray {
 
+namespace {
+
 using point2 = __plugin::point2<detray::scalar>;
+
+}  // anonymous namespace
 
 /** Struct that assigns the center of gravity to a rectangular bin */
 struct center_of_gravity_rectangle {

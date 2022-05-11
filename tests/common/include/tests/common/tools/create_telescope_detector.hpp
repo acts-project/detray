@@ -10,20 +10,18 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/propagator/line_stepper.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
 
 namespace detray {
 
-// use unbounded or rectangular surfaces
-constexpr bool unbounded = true;
-constexpr bool rectangular = false;
-
 namespace {
 
-using telescope_types = detector_registry::telescope_detector;
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point2 = __plugin::point2<detray::scalar>;
 
-constexpr auto rectangle_id = telescope_types::mask_ids::e_rectangle2;
-constexpr auto unbounded_id = telescope_types::mask_ids::e_unbounded_plane2;
+using telescope_types = detector_registry::telescope_detector;
 
 struct module_placement {
     point3 _pos;
@@ -60,15 +58,19 @@ inline std::vector<module_placement> module_positions(
         scalar _step_size = 0;
     };
 
+    // dummy propagator state
+    struct prop_state {
+        typename stepper_t::state _stepping;
+        navigation_state _navigation;
+    };
+
     // create and fill the positions
     std::vector<module_placement> m_positions;
     m_positions.reserve(steps.size());
 
-    // space between surfaces
-    navigation_state n_state{};
-
     // Find exact position by walking along track
-    typename stepper_t::state step_state(track);
+    prop_state propagation{typename stepper_t::state{track},
+                           navigation_state{}};
 
     // Calculate step size from module positions. The modules will only be
     // placed at the given position if the b-field allows for it. Otherwise, by
@@ -77,9 +79,10 @@ inline std::vector<module_placement> module_positions(
     scalar prev_dist = 0.;
     for (const auto &dist : steps) {
         // advance the track state to the next plane position
-        n_state._step_size = dist - prev_dist;
-        stepper.step(step_state, n_state);
-        m_positions.push_back({track.pos(), track.dir()});
+        propagation._navigation._step_size = dist - prev_dist;
+        stepper.step(propagation);
+        m_positions.push_back(
+            {propagation._stepping().pos(), propagation._stepping().dir()});
         prev_dist = dist;
     }
 
@@ -131,13 +134,15 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
             mask_edge = {dindex_invalid, dindex_invalid};
         }
 
-        if constexpr (mask_id == unbounded_id) {
+        if constexpr (mask_id ==
+                      telescope_types::mask_ids::e_unbounded_plane2) {
             // No bounds for this module
-            masks.template add_mask<unbounded_id>(mask_edge);
+            masks.template add_mask<
+                telescope_types::mask_ids::e_unbounded_plane2>(mask_edge);
         } else {
             // The rectangle bounds for this module
-            masks.template add_mask<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
-                                                  mask_edge);
+            masks.template add_mask<telescope_types::mask_ids::e_rectangle2>(
+                cfg.m_half_x, cfg.m_half_y, mask_edge);
         }
         // Build the transform
         // Local z axis is the global normal vector
@@ -259,11 +264,11 @@ auto create_telescope_detector(vecmem::memory_resource &resource,
     typename detector_t::transform_filling_container transforms = {resource};
 
     if constexpr (unbounded_planes) {
-        create_telescope<unbounded_id>(ctx, track, stepper, vol, surfaces,
-                                       masks, transforms, pl_config);
+        create_telescope<telescope_types::mask_ids::e_unbounded_plane2>(
+            ctx, track, stepper, vol, surfaces, masks, transforms, pl_config);
     } else {
-        create_telescope<rectangle_id>(ctx, track, stepper, vol, surfaces,
-                                       masks, transforms, pl_config);
+        create_telescope<telescope_types::mask_ids::e_rectangle2>(
+            ctx, track, stepper, vol, surfaces, masks, transforms, pl_config);
     }
 
     det.add_objects(ctx, vol, surfaces, masks, transforms);

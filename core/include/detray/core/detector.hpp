@@ -26,11 +26,6 @@
 
 namespace detray {
 
-// Algebra, point2 is not strongly typed
-using point3 = __plugin::point3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point2 = __plugin::point2<detray::scalar>;
-
 /** The detector definition.
  *
  * This class is a heavy templated detector definition class, that sets the
@@ -51,6 +46,10 @@ template <typename metadata,
 class detector {
 
     public:
+    using point3 = __plugin::point3<detray::scalar>;
+    using vector3 = __plugin::vector3<detray::scalar>;
+    using point2 = __plugin::point2<detray::scalar>;
+
     template <typename T>
     using vector_type = vector_t<T>;
 
@@ -59,6 +58,8 @@ class detector {
     /// Forward the alignable container and context
     using transform_container =
         typename metadata::template transform_store<vector_t>;
+    using transform3 = typename transform_container::transform3;
+
     using transform_link = typename transform_container::link_type;
     using context = typename transform_container::context;
 

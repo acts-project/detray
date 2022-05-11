@@ -14,6 +14,9 @@
 #include "tests/common/tools/detector_metadata.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point2 = __plugin::point2<detray::scalar>;
 
 // This tests the construction of a detector class
 TEST(ALGEBRA_PLUGIN, detector) {
