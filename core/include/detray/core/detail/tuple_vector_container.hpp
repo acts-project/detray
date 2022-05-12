@@ -222,8 +222,8 @@ struct tuple_vector_container_data {
         container_t &container, std::index_sequence<ints...> /*seq*/) {
 
         return detail::make_tuple<tuple_type>(
-            vecmem::data::vector_view<typename std::tuple_element_t<
-                ints, container_type>::value_type>(
+            vecmem::data::vector_view<typename detail::tuple_element<
+                ints, container_type>::type::value_type>(
                 vecmem::get_data(detail::get<ints>(container.get())))...);
     }
 

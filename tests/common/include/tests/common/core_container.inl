@@ -8,6 +8,9 @@
 // Detray include(s)
 #include "detray/core/detail/tuple_array_container.hpp"
 #include "detray/core/detail/tuple_vector_container.hpp"
+#include "detray/grids/grid2.hpp"
+#include "detray/grids/populator.hpp"
+#include "detray/grids/serializer2.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/vector.hpp>
@@ -86,19 +89,11 @@ TEST(container, tuple_vector_container) {
     EXPECT_FLOAT_EQ(container.group<2>()[3], 7.6);
 }
 
-struct int_type {
-    using object_type = vecmem::vector<int>;
-    using data_type = vecmem::data::vector_view<int>;
-    using view_type = vecmem::data::vector_view<int>;
-    static constexpr std::size_t N = 1;
-};
+using grid2r =
+    grid2<replace_populator, axis::regular, axis::regular, serializer2>;
 
-struct float_type {
-    using object_type = vecmem::vector<float>;
-    using data_type = vecmem::data::vector_view<float>;
-    using view_type = vecmem::data::vector_view<float>;
-    static constexpr std::size_t N = 2;
-};
+using grid2a =
+    grid2<attach_populator, axis::regular, axis::regular, serializer2>;
 
 TEST(container, tuple_array_container) {
 
@@ -106,11 +101,10 @@ TEST(container, tuple_array_container) {
     vecmem::host_memory_resource resource;
 
     // Create tuple array container
-    tuple_array_container<std::tuple, std::array, std::size_t, int_type,
-                          float_type>
+    tuple_array_container<std::tuple, std::array, std::size_t,
+                          std::index_sequence<1, 2>, grid2r, grid2a>
         container(resource);
 
-    // Base container function check
     EXPECT_EQ(container.size(), 2);
     EXPECT_EQ(container.empty<0>(), false);
     EXPECT_EQ(container.empty<1>(), false);
@@ -119,21 +113,38 @@ TEST(container, tuple_array_container) {
     EXPECT_EQ(container.to_id<1>(0), 2);
 
     // Populate the elements
-    auto& int_group = container.group<0>();
-    int_group = std::array<vecmem::vector<int>, 1>{
-        vecmem::vector<int>{{3, 4, 5}, &resource}};
+    auto& grid2_replace_array = container.group<0>();
+    grid2r::axis_p0_type xaxisr{1, 0., 1., resource};
+    grid2r::axis_p1_type yaxisr{1, 0., 1., resource};
+    grid2_replace_array[0] =
+        grid2r(std::move(xaxisr), std::move(yaxisr), resource);
+    grid2_replace_array[0].bin(0, 0) = 3;
 
-    auto& float_group = container.group<1>();
-    float_group = std::array<vecmem::vector<float>, 2>{
-        vecmem::vector<float>{{1.1, 4.2}, &resource},
-        vecmem::vector<float>{{5.1, 2.3, 1.7}, &resource}};
+    auto& grid2_attach_array = container.group<1>();
+    grid2a::axis_p0_type xaxisa{2, 0., 2., resource};
+    grid2a::axis_p1_type yaxisa{1, 0., 1., resource};
 
-    // int group
+    grid2_attach_array[0] =
+        grid2a(std::move(xaxisa), std::move(yaxisa), resource);
+    grid2_attach_array[0].bin(0, 0).push_back(0);
+    grid2_attach_array[0].bin(0, 0).push_back(1);
+    grid2_attach_array[0].bin(1, 0).push_back(2);
+    grid2_attach_array[0].bin(1, 0).push_back(3);
+
+    grid2_attach_array[1] =
+        grid2a(std::move(xaxisa), std::move(yaxisa), resource);
+    grid2_attach_array[1].bin(0, 0).push_back(4);
+    grid2_attach_array[1].bin(1, 0).push_back(5);
+
+    // Check the element
     EXPECT_EQ(container.size<0>(), 1);
-    EXPECT_EQ(container.group<0>()[0], vecmem::vector<int>({3, 4, 5}));
+    EXPECT_EQ(container.group<0>()[0].bin(0, 0), 3);
 
-    // float group
     EXPECT_EQ(container.size<1>(), 2);
-    EXPECT_EQ(container.group<1>()[0], vecmem::vector<float>({1.1, 4.2}));
-    EXPECT_EQ(container.group<1>()[1], vecmem::vector<float>({5.1, 2.3, 1.7}));
+    EXPECT_EQ(container.group<1>()[0].bin(0, 0),
+              vecmem::vector<dindex>({0, 1}));
+    EXPECT_EQ(container.group<1>()[0].bin(1, 0),
+              vecmem::vector<dindex>({2, 3}));
+    EXPECT_EQ(container.group<1>()[1].bin(0, 0), vecmem::vector<dindex>({4}));
+    EXPECT_EQ(container.group<1>()[1].bin(1, 0), vecmem::vector<dindex>({5}));
 }
