@@ -247,21 +247,6 @@ struct tuple_array_container_data {
         : m_data(container.initialize_data_arrays(
               resource, std::make_index_sequence<container.size()>{})) {}
 
-    /**
-     * Generate the tuple of view array
-     *
-     * @tparam ints is the list of index sequence
-     *
-     * @param seq is the index seqeunce (<0,1,...,tuple_size-1>)
-     *
-     * @return the tuple of view array
-     */
-    template <std::size_t... ints>
-    DETRAY_HOST container_view_type
-    initialize_view_arrays(std::index_sequence<ints...> /*seq*/) {
-        return container_view_type(detail::get<ints>(m_data)...);
-    }
-
     typename container_t::container_data_type m_data;
 };
 
@@ -273,8 +258,7 @@ struct tuple_array_container_data {
 template <typename container_t>
 struct tuple_array_container_view {
 
-    template <typename... Args>
-    using tuple_type = typename container_t::template tuple_type<Args...>;
+    using container_view_type = typename container_t::container_view_type;
 
     /**
      * Constructor with a tuple array data container (host-side only)
@@ -284,10 +268,27 @@ struct tuple_array_container_view {
     DETRAY_HOST
     tuple_array_container_view(
         tuple_array_container_data<container_t>& container_data)
-        : m_data(container_data.initialize_view_arrays(
+        : m_data(initialize_view_arrays(
+              container_data,
               std::make_index_sequence<container_t::m_tuple_size>{})) {}
 
-    typename container_t::container_view_type m_data;
+    /**
+     * Generate the tuple of view array
+     *
+     * @tparam ints is the list of index sequence
+     *
+     * @param seq is the index seqeunce (<0,1,...,tuple_size-1>)
+     *
+     * @return the tuple of view array
+     */
+    template <std::size_t... ints>
+    DETRAY_HOST container_view_type initialize_view_arrays(
+        tuple_array_container_data<container_t>& container_data,
+        std::index_sequence<ints...> /*seq*/) {
+        return container_view_type(detail::get<ints>(container_data.m_data)...);
+    }
+
+    container_view_type m_data;
 };
 
 /**
