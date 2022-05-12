@@ -179,22 +179,6 @@ class tuple_vector_container
             return append_container<current_id + 1>(other);
         }
     }
-
-    /**
-     * Generate the tuple of data vector
-     *
-     * @tparam ints is the list of index sequence
-     *
-     * @param seq is the index seqeunce (<0,1,...,tuple_size-1>)
-     *
-     * @return the tuple of data vector
-     */
-    template <std::size_t... ints>
-    DETRAY_HOST container_data_type
-    initialize_data_vectors(std::index_sequence<ints...> /*seq*/) {
-        return detail::make_tuple<tuple_type>(vecmem::data::vector_view<Ts>(
-            vecmem::get_data(detail::get<ints>(this->m_container)))...);
-    }
 };
 
 /**
@@ -205,6 +189,9 @@ class tuple_vector_container
 template <typename container_t>
 struct tuple_vector_container_data {
 
+    template <typename... Args>
+    using tuple_type = typename container_t::template tuple_type<Args...>;
+    using container_type = typename container_t::container_type;
     using container_data_type = typename container_t::container_data_type;
 
     /**
@@ -218,7 +205,27 @@ struct tuple_vector_container_data {
     template <std::size_t... ints>
     DETRAY_HOST tuple_vector_container_data(container_t &container,
                                             std::index_sequence<ints...> seq)
-        : m_data(container.initialize_data_vectors(seq)) {}
+        : m_data(initialize_data_vectors(container, seq)) {}
+
+    /**
+     * Generate the tuple of data vector
+     *
+     * @tparam ints is the list of index sequence
+     *
+     * @param container is the input tuple vector container
+     * @param seq is the index seqeunce (<0,1,...,tuple_size-1>)
+     *
+     * @return the tuple of data vector
+     */
+    template <std::size_t... ints>
+    DETRAY_HOST container_data_type initialize_data_vectors(
+        container_t &container, std::index_sequence<ints...> /*seq*/) {
+
+        return detail::make_tuple<tuple_type>(
+            vecmem::data::vector_view<typename detail::tuple_element<
+                ints, container_type>::type::value_type>(
+                vecmem::get_data(detail::get<ints>(container.get())))...);
+    }
 
     container_data_type m_data;
 };
