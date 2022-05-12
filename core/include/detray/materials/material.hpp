@@ -16,7 +16,7 @@
 
 namespace detray {
 
-template <typename scalar_t, typename R = std::ratio<1, 1>>
+template <typename scalar_t, typename R>
 struct material {
     using ratio = R;
     using scalar_type = scalar_t;
@@ -48,20 +48,12 @@ struct material {
         return _z * _molar_rho;
     }
 
-    private:
+    protected:
     scalar_type _x0;
     scalar_type _l0;
     scalar_type _ar;
     scalar_type _z;
     scalar_type _molar_rho;
 };
-
-#define DETRAY_DECLARE_MATERIAL(MATERIAL_NAME, X0, L0, Ar, Z, Rho) \
-    template <typename scalar_t, typename R = std::ratio<1, 1>>    \
-    struct MATERIAL_NAME final : public material<scalar_t, R> {    \
-        using base_type = material<scalar_t, R>;                   \
-        using base_type::base_type;                                \
-        MATERIAL_NAME() : base_type(X0, L0, Ar, Z, Rho) {}         \
-    };
 
 }  // namespace detray

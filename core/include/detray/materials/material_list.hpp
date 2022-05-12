@@ -9,7 +9,7 @@
 
 /// Detray include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/materials/material.hpp"
+#include "detray/materials/homogeneous_material.hpp"
 
 // System include(s)
 #include <climits>

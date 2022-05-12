@@ -9,9 +9,8 @@
 
 namespace detray {
 
-/*
 template <typename material_t>
-struct material {
+struct material_slab {
     using scalar_type = typename material_t::scalar_type;
 
     material(const material_t& material, scalar_type thickness)
@@ -35,6 +34,5 @@ struct material {
     scalar_type _thickness_in_X0 = 0.0f;
     scalar_type _thickness_in_L0 = 0.0f;
 };
-*/
 
 }  // namespace detray
