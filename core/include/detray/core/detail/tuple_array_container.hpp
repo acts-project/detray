@@ -182,7 +182,7 @@ struct tuple_array_container_data {
               std::size_t... ints>
     DETRAY_HOST array_type<data_t, N> to_data(
         array_type<object_t, N>& A, vecmem::memory_resource& resource,
-        std::index_sequence<ints...> seq) {
+        std::index_sequence<ints...> /*seq*/) {
 
         return array_type<data_t, N>{get_data(A[ints], resource)...};
     }
