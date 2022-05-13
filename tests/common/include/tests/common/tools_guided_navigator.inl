@@ -58,7 +58,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     b_field_t b_field(B);
 
     // Actors
-    pathlimit_aborter::state_type pathlimit{1. * unit_constants::m};
+    pathlimit_aborter::state pathlimit{1. * unit_constants::m};
 
     // Propagator
     propagator_t p(runge_kutta_stepper{b_field},

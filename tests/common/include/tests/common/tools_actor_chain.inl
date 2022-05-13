@@ -23,18 +23,15 @@ using namespace __plugin;
 struct print_actor : detray::actor {
 
     /// State keeps an internal string representation
-    struct print_actor_state {
+    struct state {
         std::stringstream stream{};
 
         std::string to_string() const { return stream.str(); }
     };
 
-    // Broadcast state type to actor chain
-    using state_type = print_actor_state;
-
     /// Actor implementation: append call notification to internal string
     template <typename propagator_state_t>
-    void operator()(state_type &printer_state,
+    void operator()(state &printer_state,
                     const propagator_state_t & /*p_state*/) const {
         printer_state.stream << "[print actor]:";
     }
@@ -42,8 +39,7 @@ struct print_actor : detray::actor {
     /// Observing actor implementation: append call notification to internal
     /// string
     template <typename subj_state_t, typename propagator_state_t>
-    void operator()(state_type &printer_state,
-                    const subj_state_t &subject_state,
+    void operator()(state &printer_state, const subj_state_t &subject_state,
                     const propagator_state_t & /*p_state*/) const {
         printer_state.stream << "[print actor obs "
                              << subject_state.buffer.back() << "]:";
@@ -55,34 +51,31 @@ template <template <typename...> class vector_t>
 struct example_actor : detray::actor {
 
     /// actor state
-    struct example_actor_state {
+    struct state {
 
         // Keep dynamic data per propagation stream
         vector_t<float> buffer = {};
     };
 
-    // Broadcast state type to actor chain
-    using state_type = example_actor_state;
-
     /// Actor implementation: Counts vector elements
     template <typename propagator_state_t>
-    void operator()(state_type &example_state,
+    void operator()(state &example_state,
                     const propagator_state_t & /*p_state*/) const {
         example_state.buffer.push_back(example_state.buffer.size());
     }
 
     /// Observing actor implementation: Counts vector elements (division)
     template <typename propagator_state_t>
-    void operator()(state_type &example_state, const state_type &subject_state,
+    void operator()(state &example_state, const state &subject_state,
                     const propagator_state_t & /*p_state*/) const {
         example_state.buffer.push_back(subject_state.buffer.size() / 10.);
     }
 
     /// Observing actor implementation to printer: do nothing
-    template <typename subj_state_t, typename propagator_state_t,
-              std::enable_if_t<not std::is_same_v<subj_state_t, state_type>,
-                               bool> = true>
-    void operator()(state_type & /*example_state*/,
+    template <
+        typename subj_state_t, typename propagator_state_t,
+        std::enable_if_t<not std::is_same_v<subj_state_t, state>, bool> = true>
+    void operator()(state & /*example_state*/,
                     const subj_state_t & /*subject_state*/,
                     const propagator_state_t & /*p_state*/) const {}
 };
@@ -123,8 +116,8 @@ using chain = composite_actor<dtuple, example_actor_t, observer_lvl1>;
 TEST(ALGEBRA_PLUGIN, actor_chain) {
 
     // The actor states (can be reused between actors)
-    example_actor_t::state_type example_state{};
-    print_actor::state_type printer_state{};
+    example_actor_t::state example_state{};
+    print_actor::state printer_state{};
 
     // Aggregate actor states to be able to pass them through the chain
     auto actor_states = std::tie(example_state, printer_state);
