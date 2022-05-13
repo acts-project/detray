@@ -88,6 +88,6 @@ struct material {
         using base_type = material<scalar_t, R>;                   \
         using base_type::base_type;                                \
         MATERIAL_NAME() : base_type(X0, L0, Ar, Z, Rho) {}         \
-    };
+    }
 
 }  // namespace detray
