@@ -9,16 +9,16 @@
 
 // System include(s)
 #include <ratio>
-#include <utility>
 
 namespace detray {
 
+// Helper struct to sum over variadic std::ratio
 template <typename... ratios>
 struct ratio_sum_helper;
 
 template <typename ratio>
 struct ratio_sum_helper<ratio> {
-    using first_two_sum = ratio;
+    using sum = ratio;
 };
 
 template <typename ratio1, typename ratio2, typename... ratios>
@@ -30,19 +30,25 @@ struct ratio_sum_helper<ratio1, ratio2, ratios...> {
 
     static constexpr bool is_done = (sizeof...(ratios) == 0);
 
-    using sum =
-        typename std::conditional_t<is_done, first_two_sum,
-                                    typename next_helper::first_two_sum>;
+    // recursive summation of first two std::ratio
+    using sum = typename std::conditional_t<is_done, first_two_sum,
+                                            typename next_helper::sum>;
 };
 
+// Struct to sum over variadic std::ratio
 template <typename... ratios>
 struct ratio_sum {
-
     using helper = ratio_sum_helper<ratios...>;
-
     using sum = typename helper::sum;
-
-    static constexpr bool is_sum_one = (sum::num == sum::den);
 };
+
+// Helper trait to check if the ratio is one
+template <typename R>
+struct is_ratio_one {
+    static constexpr bool value = (R::num == R::den);
+};
+
+template <class R>
+inline constexpr bool is_ratio_one_v = is_ratio_one<R>::value;
 
 }  // namespace detray

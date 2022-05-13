@@ -27,7 +27,7 @@ constexpr double MeV = 0.001;
 constexpr double GeV = 1.0;
 
 // Atomic mass unit u
-// 1u == 0.93149410242 GeV/c²
+// 1u == 0.93149410242 GeV/c
 constexpr double u = 0.93149410242;
 
 // Mass

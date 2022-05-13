@@ -8,6 +8,7 @@
 #pragma once
 
 /// Detray include(s)
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
 // System include(s)
@@ -16,44 +17,77 @@
 
 namespace detray {
 
-template <typename scalar_t, typename R>
+template <typename scalar_t, typename R = std::ratio<1, 1>>
 struct material {
     using ratio = R;
     using scalar_type = scalar_t;
 
+    material() = default;
+
     material(const scalar_type x0, const scalar_type l0, const scalar_type ar,
              const scalar_type z, const scalar_type mass_rho)
-        : _x0(x0), _l0(l0), _ar(ar), _z(z) {
+        : m_x0(x0), m_l0(l0), m_ar(ar), m_z(z), m_mass_rho(mass_rho) {
 
-        double atomic_mass = static_cast<double>(ar) * unit_constants::u;
-        _molar_rho = (mass_rho == 0)
-                         ? 0
-                         : static_cast<scalar_type>(
-                               static_cast<double>(mass_rho) /
-                               (atomic_mass * unit_constants::kAvogadro));
+        m_molar_rho = mass_to_molar_density(ar, mass_rho);
     }
 
     /// Return the radition length. Infinity in case of vacuum.
-    constexpr scalar_type X0() const { return _x0; }
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type X0() const { return m_x0; }
     /// Return the nuclear interaction length. Infinity in case of vacuum.
-    constexpr scalar_type L0() const { return _l0; }
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type L0() const { return m_l0; }
     /// Return the relative atomic mass.
-    constexpr scalar_type Ar() const { return _ar; }
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type Ar() const { return m_ar; }
     /// Return the nuclear charge number.
-    constexpr scalar_type Z() const { return _z; }
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type Z() const { return m_z; }
+    /// Return the mass density.
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type mass_density() const { return m_mass_rho; }
     /// Return the molar density.
-    constexpr scalar_type molar_density() const { return _molar_rho; }
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type molar_density() const { return m_molar_rho; }
     /// Return the molar electron density.
+    DETRAY_HOST_DEVICE
     constexpr scalar_type molar_electron_density() const {
-        return _z * _molar_rho;
+        return m_z * m_molar_rho;
+    }
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type fraction() const {
+        return ratio::num / static_cast<scalar_type>(ratio::den);
     }
 
     protected:
-    scalar_type _x0;
-    scalar_type _l0;
-    scalar_type _ar;
-    scalar_type _z;
-    scalar_type _molar_rho;
+    scalar_type mass_to_molar_density(scalar_type ar, scalar_type mass_rho) {
+        if (mass_rho == 0) {
+            return 0;
+        }
+
+        double atomic_mass = static_cast<double>(ar) * unit_constants::u;
+
+        return static_cast<scalar_type>(
+            static_cast<double>(mass_rho) /
+            (atomic_mass * unit_constants::kAvogadro));
+    }
+
+    // Material properties
+    scalar_type m_x0;
+    scalar_type m_l0;
+    scalar_type m_ar;
+    scalar_type m_z;
+    scalar_type m_mass_rho;
+    scalar_type m_molar_rho;
 };
+
+// Macro for declaring the predefined materials
+#define DETRAY_DECLARE_MATERIAL(MATERIAL_NAME, X0, L0, Ar, Z, Rho) \
+    template <typename scalar_t, typename R = std::ratio<1, 1>>    \
+    struct MATERIAL_NAME final : public material<scalar_t, R> {    \
+        using base_type = material<scalar_t, R>;                   \
+        using base_type::base_type;                                \
+        MATERIAL_NAME() : base_type(X0, L0, Ar, Z, Rho) {}         \
+    };
 
 }  // namespace detray
