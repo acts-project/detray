@@ -12,6 +12,7 @@
 
 namespace detray {
 
+// Slab structure to be mapped on the mask
 template <typename material_t>
 struct material_slab {
     using material_type = material_t;
