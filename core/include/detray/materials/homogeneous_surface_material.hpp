@@ -16,19 +16,19 @@ template <typename material_structure_t>
 struct homogeneous_surface_material {
 
     using scalar_type = typename material_structure_t::scalar_type;
-    using point2 = __plugin::point2<scalar_t>;
-    using point3 = __plugin::point3<scalar_t>;
+    using point2 = __plugin::point2<scalar_type>;
+    using point3 = __plugin::point3<scalar_type>;
 
     homogeneous_surface_material(const material_structure_t& structure)
         : m_structure(structure) {}
 
     DETRAY_HOST_DEVICE
-    const material_structure_t& material_structure(const point2& /*p*/) const {
+    const material_structure_t& get(const point2& /*p*/) const {
         return m_structure;
     }
 
     DETRAY_HOST_DEVICE
-    const material_structure_t& material_structure(const point3& /*p*/) const {
+    const material_structure_t& get(const point3& /*p*/) const {
         return m_structure;
     }
 

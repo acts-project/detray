@@ -6,6 +6,7 @@
  */
 
 /// Detray include(s)
+#include "detray/materials/homogeneous_surface_material.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/mixture.hpp"
@@ -16,8 +17,10 @@
 
 using namespace detray;
 
-// This tests the material functionalities
+using point2 = __plugin::point2<scalar>;
+using point3 = __plugin::point3<scalar>;
 
+// This tests the material functionalities
 TEST(materials, material) {
     // vacuum
     EXPECT_FLOAT_EQ(vacuum<scalar>().X0(),
@@ -77,9 +80,25 @@ TEST(materials, mixture) {
                     air<scalar>().X0() <
                 0.01);
 
+    material_slab<material<scalar>> slab1(air_mixture, 5.5);
+    material_slab<material<scalar>> slab2(air<scalar>(), 2.3);
+    material_slab<material<scalar>> slab3(oxygen_gas<scalar>(), 2);
+
+    homogeneous_surface_material surf1(slab1);
+    homogeneous_surface_material surf2(slab2);
+    homogeneous_surface_material surf3(slab3);
+
     // Vector check
-    std::vector<material<scalar>> mat_vec;
-    mat_vec.push_back(air_mixture);
-    mat_vec.push_back(air<scalar>());
-    mat_vec.push_back(oxygen_gas<scalar>());
+    std::vector<homogeneous_surface_material<material_slab<material<scalar>>>>
+        surface_vec;
+    surface_vec.push_back(surf1);
+    surface_vec.push_back(surf2);
+    surface_vec.push_back(surf3);
+
+    EXPECT_FLOAT_EQ(surface_vec[0].get(point2({0, 0})).thickness_in_X0(),
+                    slab1.thickness() / slab1.material().X0());
+    EXPECT_FLOAT_EQ(surface_vec[1].get(point2({0, 0})).thickness_in_X0(),
+                    slab2.thickness() / slab2.material().X0());
+    EXPECT_FLOAT_EQ(surface_vec[2].get(point2({0, 0})).thickness_in_X0(),
+                    slab3.thickness() / slab3.material().X0());
 }
