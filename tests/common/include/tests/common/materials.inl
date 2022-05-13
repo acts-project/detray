@@ -80,6 +80,7 @@ TEST(materials, mixture) {
                     air<scalar>().X0() <
                 0.01);
 
+    // Vector check
     material_slab<material<scalar>> slab1(air_mixture, 5.5);
     material_slab<material<scalar>> slab2(air<scalar>(), 2.3);
     material_slab<material<scalar>> slab3(oxygen_gas<scalar>(), 2);
@@ -88,7 +89,6 @@ TEST(materials, mixture) {
     homogeneous_surface_material surf2(slab2);
     homogeneous_surface_material surf3(slab3);
 
-    // Vector check
     std::vector<homogeneous_surface_material<material_slab<material<scalar>>>>
         surface_vec;
     surface_vec.push_back(surf1);
