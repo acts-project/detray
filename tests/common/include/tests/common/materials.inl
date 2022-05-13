@@ -95,10 +95,10 @@ TEST(materials, mixture) {
     surface_vec.push_back(surf2);
     surface_vec.push_back(surf3);
 
-    EXPECT_FLOAT_EQ(surface_vec[0].get(point2({0, 0})).thickness_in_X0(),
+    EXPECT_FLOAT_EQ(surface_vec[0].get(point2{0, 0}).thickness_in_X0(),
                     slab1.thickness() / slab1.material().X0());
-    EXPECT_FLOAT_EQ(surface_vec[1].get(point2({0, 0})).thickness_in_X0(),
+    EXPECT_FLOAT_EQ(surface_vec[1].get(point2{0, 0}).thickness_in_X0(),
                     slab2.thickness() / slab2.material().X0());
-    EXPECT_FLOAT_EQ(surface_vec[2].get(point2({0, 0})).thickness_in_X0(),
+    EXPECT_FLOAT_EQ(surface_vec[2].get(point2{0, 0}).thickness_in_X0(),
                     slab3.thickness() / slab3.material().X0());
 }
