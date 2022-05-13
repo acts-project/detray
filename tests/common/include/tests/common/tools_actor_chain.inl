@@ -94,9 +94,9 @@ using composite1 =
 // Implements example_actor with one print observer
 using composite2 = composite_actor<dtuple, example_actor_t, print_actor>;
 // Implements example_actor through composite2 and has composite1 as observer
-using composite3 = composite_actor<dtuple, composite2, composite1>;
+using composite3 = composite_actor<dtuple, example_actor_t, composite1>;
 // Implements example_actor through composite2<-composite3 with composite1 obs.
-using composite4 = composite_actor<dtuple, composite3, composite1>;
+using composite4 = composite_actor<dtuple, example_actor_t, composite1>;
 
 /* Test chaining of multiple actors
  * The chain goes as follows (depth first):
