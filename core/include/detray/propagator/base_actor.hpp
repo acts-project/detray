@@ -44,7 +44,6 @@ class composite_actor final : public actor_impl_t {
     /// The composite is an actor in itself. For simplicity, it cannot be
     /// derived from another composition (final).
     using actor_type = actor_impl_t;
-    using state = typename actor_type::state;
 
     /// Call to the implementation of the actor (the actor possibly being an
     /// observer itself)
@@ -63,7 +62,7 @@ class composite_actor final : public actor_impl_t {
         subj_state_t &&subject_state = {}) const {
 
         // State of the primary actor that is implement by this composite actor
-        auto &actor_state = detail::get<state &>(states);
+        auto &actor_state = detail::get<typename actor_type::state &>(states);
 
         // Do your own work ...
         // Two cases: This is a simple actor or observing actor (pass on its
