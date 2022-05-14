@@ -23,19 +23,19 @@ namespace detray {
  * June 2020)
  */
 
-// vacuum
+// Vacuum
 DETRAY_DECLARE_MATERIAL(vacuum, std::numeric_limits<scalar>::infinity(),
                         std::numeric_limits<scalar>::infinity(), 0, 0, 0);
 
-// H (1): Hydrogen Gas
+// H₂ (1): Hydrogen Gas
 DETRAY_DECLARE_MATERIAL(hydrogen_gas, 7.526E6 * unit_constants::mm,
-                        6.209E6 * unit_constants::mm, 1.008, 1,
+                        6.209E6 * unit_constants::mm, 1.008 * 2, 1 * 2,
                         8.376E-5 * unit_constants::g /
                             (1 * unit_constants::cm3));
 
-// H (1): Hydrogen liguid
+// H₂ (1): Hydrogen Liquid
 DETRAY_DECLARE_MATERIAL(hydrogen_liquid, 8904 * unit_constants::mm,
-                        7346 * unit_constants::mm, 1.008, 1,
+                        7346 * unit_constants::mm, 1.008 * 2, 1 * 2,
                         0.07080 * unit_constants::g /
                             (1 * unit_constants::cm3));
 
@@ -50,26 +50,26 @@ DETRAY_DECLARE_MATERIAL(beryllium, 352.8 * unit_constants::mm,
                         421.0 * unit_constants::mm, 9.012, 4.0,
                         1.848 * unit_constants::g / (1 * unit_constants::cm3));
 
-// C (6): Carbon_gas
+// C (6): Carbon (amorphous)
 DETRAY_DECLARE_MATERIAL(carbon_gas, 213.5 * unit_constants::mm,
                         429.0 * unit_constants::mm, 12.01, 6,
                         2.0 * unit_constants::g / (1 * unit_constants::cm3));
 
-// N (7): Nitrogen_gas
+// N₂ (7): Nitrogen Gas
 DETRAY_DECLARE_MATERIAL(nitrogen_gas, 3.260E+05 * unit_constants::mm,
-                        7.696E+05 * unit_constants::mm, 14.007, 7,
+                        7.696E+05 * unit_constants::mm, 14.007 * 2, 7 * 2,
                         1.165E-03 * unit_constants::g /
                             (1 * unit_constants::cm3));
 
-// O (8): Oxygen Gas
+// O₂ (8): Oxygen Gas
 DETRAY_DECLARE_MATERIAL(oxygen_gas, 2.571E+05 * unit_constants::mm,
-                        6.772E+05 * unit_constants::mm, 15.999, 8,
+                        6.772E+05 * unit_constants::mm, 15.999 * 2, 8 * 2,
                         1.332E-3 * unit_constants::g /
                             (1 * unit_constants::cm3));
 
-// O (8): Oxygen liquid
+// O₂ (8): Oxygen liquid
 DETRAY_DECLARE_MATERIAL(oxygen_liquid, 300.1 * unit_constants::mm,
-                        790.3 * unit_constants::mm, 15.999, 8,
+                        790.3 * unit_constants::mm, 15.999 * 2, 8 * 2,
                         1.141 * unit_constants::g / (1 * unit_constants::cm3));
 
 // Al (13)

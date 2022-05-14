@@ -76,24 +76,26 @@ TEST(materials, mixture) {
             nitrogen_gas<scalar, std::ratio<76, 100>>,
             oxygen_gas<scalar, std::ratio<23, 100>>,
             argon_gas<scalar, std::ratio<1, 100>>>
-        air_mixture;
+        air_mix;
 
-    EXPECT_TRUE(std::abs(air_mixture.X0() - air<scalar>().X0()) /
+    EXPECT_TRUE(std::abs(air_mix.X0() - air<scalar>().X0()) /
                     air<scalar>().X0() <
                 0.01);
-
-    std::cout << air_mixture.L0() << "  " << air<scalar>().L0() << std::endl;
-
-    std::cout << air_mixture.Ar() << "  " << air<scalar>().Ar() << std::endl;
-    std::cout << air_mixture.Z() << "  " << air<scalar>().Z() << std::endl;
-
-    std::cout << air_mixture.mass_density() << "  "
-              << air<scalar>().mass_density() << std::endl;
-    std::cout << air_mixture.molar_density() << "  "
-              << air<scalar>().molar_density() << std::endl;
+    EXPECT_TRUE(std::abs(air_mix.L0() - air<scalar>().L0()) /
+                    air<scalar>().L0() <
+                0.01);
+    EXPECT_TRUE(std::abs(air_mix.Ar() - air<scalar>().Ar()) /
+                    air<scalar>().Ar() <
+                0.01);
+    EXPECT_TRUE(std::abs(air_mix.Z() - air<scalar>().Z()) / air<scalar>().Z() <
+                0.01);
+    EXPECT_TRUE(
+        std::abs(air_mix.mass_density() - air<scalar>().mass_density()) /
+            air<scalar>().mass_density() <
+        0.01);
 
     // Vector check
-    material_slab<material<scalar>> slab1(air_mixture, 5.5);
+    material_slab<material<scalar>> slab1(air_mix, 5.5);
     material_slab<material<scalar>> slab2(air<scalar>(), 2.3);
     material_slab<material<scalar>> slab3(oxygen_gas<scalar>(), 2);
 
