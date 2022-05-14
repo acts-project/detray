@@ -15,6 +15,8 @@
 // GTest include(s)
 #include <gtest/gtest.h>
 
+#include <iostream>
+
 using namespace detray;
 
 using point2 = __plugin::point2<scalar>;
@@ -79,6 +81,16 @@ TEST(materials, mixture) {
     EXPECT_TRUE(std::abs(air_mixture.X0() - air<scalar>().X0()) /
                     air<scalar>().X0() <
                 0.01);
+
+    std::cout << air_mixture.L0() << "  " << air<scalar>().L0() << std::endl;
+
+    std::cout << air_mixture.Ar() << "  " << air<scalar>().Ar() << std::endl;
+    std::cout << air_mixture.Z() << "  " << air<scalar>().Z() << std::endl;
+
+    std::cout << air_mixture.mass_density() << "  "
+              << air<scalar>().mass_density() << std::endl;
+    std::cout << air_mixture.molar_density() << "  "
+              << air<scalar>().molar_density() << std::endl;
 
     // Vector check
     material_slab<material<scalar>> slab1(air_mixture, 5.5);
