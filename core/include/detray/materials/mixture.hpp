@@ -21,16 +21,15 @@ namespace detray {
 template <typename scalar_t, typename... material_types>
 struct mixture
     : public material<scalar_t, typename ratio_sum<
-                                    typename material_types::ratio...>::sum> {
+                                    typename material_types::ratio...>::ratio> {
     public:
-    using ratio_sum =
-        typename ratio_sum<typename material_types::ratio...>::sum;
+    using ratio = typename ratio_sum<typename material_types::ratio...>::ratio;
 
     using scalar_type = scalar_t;
-    using base_type = material<scalar_type, ratio_sum>;
+    using base_type = material<scalar_type, ratio>;
     using base_type::base_type;
 
-    static_assert(is_ratio_one_v<ratio_sum>,
+    static_assert(is_ratio_one_v<ratio>,
                   "Sumation of ratios should be equal to 1");
 
     // Constructor
