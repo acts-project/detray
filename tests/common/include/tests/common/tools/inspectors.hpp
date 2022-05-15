@@ -77,12 +77,12 @@ struct print_inspector {
     template <typename state_type>
     auto operator()(const state_type &state, const char *message) {
         std::string msg(message);
-        std::string tabs = "\t\t\t\t\t";
+        std::string tabs = "\t\t\t\t";
 
         debug_stream << msg << std::endl;
 
         debug_stream << "Volume" << tabs << state.volume() << std::endl;
-        debug_stream << "surface kernel size\t\t" << state.candidates().size()
+        debug_stream << "surface kernel size\t\t" << state.n_candidates()
                      << std::endl;
 
         debug_stream << "Surface candidates: " << std::endl;
@@ -94,7 +94,7 @@ struct print_inspector {
             if (state.is_exhausted()) {
                 debug_stream << "exhausted" << std::endl;
             } else {
-                debug_stream << " -> " << state.next()->index << std::endl;
+                debug_stream << " -> " << state.next_object() << std::endl;
             }
         }
 
@@ -116,9 +116,9 @@ struct print_inspector {
                 debug_stream << "status" << tabs << "on_surface" << std::endl;
                 break;
         };
-        debug_stream << "current object\t\t" << state.current_object()
+        debug_stream << "current object\t\t\t" << state.current_object()
                      << std::endl;
-        debug_stream << "distance to next\t";
+        debug_stream << "distance to next\t\t";
         if (std::abs(state()) < state.tolerance()) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {

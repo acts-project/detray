@@ -95,7 +95,7 @@ struct planar_intersector {
             constexpr local_frame local_converter{};
             is.p2 = local_converter(trf, is.p3);
             is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
-            is.direction = is.path > overstep_tolerance
+            is.direction = is.path > /*overstep_tolerance*/ 0.
                                ? intersection::direction::e_along
                                : intersection::direction::e_opposite;
             is.link = mask.volume_link();

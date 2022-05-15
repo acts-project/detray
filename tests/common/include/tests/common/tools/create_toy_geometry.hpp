@@ -432,8 +432,8 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             // trapezoid mask
             mask_link_t mask_link{trapezoid_id,
                                   masks.template size<trapezoid_id>()};
-            masks.template add_mask<trapezoid_id>(cfg.m_half_x_min_y[ir],
-                                                  cfg.m_half_x_max_y[ir],
+            masks.template add_mask<trapezoid_id>(cfg.m_half_x_max_y[ir],
+                                                  cfg.m_half_x_min_y[ir],
                                                   cfg.m_half_y[ir], mask_edge);
 
             // Surfaces with the linking into the local containers
@@ -893,14 +893,16 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         scalar inner_r = 27.;
         scalar outer_r = 180.;
         scalar edc_position = 600.;
-        scalar ring_stagger = 1.0;
+        scalar ring_stagger = 2.0;
         // Parameters for both rings of modules
         std::vector<scalar> m_phi_stagger = {4.0, 4.0};
-        std::vector<scalar> m_phi_sub_stagger = {0.5, 0.};
+        std::vector<scalar> m_phi_sub_stagger = {0.5, 0.5};
         std::vector<size_t> disc_binning = {40, 68};
         std::vector<scalar> m_half_y = {36., 36.};
-        std::vector<scalar> m_half_x_min_y = {8.4, 8.4};
-        std::vector<scalar> m_half_x_max_y = {12.4, 12.4};
+        // std::vector<scalar> m_half_x_min_y = {8.4, 8.4};
+        // std::vector<scalar> m_half_x_max_y = {12.4, 12.4};
+        std::vector<scalar> m_half_x_min_y = {1, 1};
+        std::vector<scalar> m_half_x_max_y = {1, 1};
         std::vector<scalar> m_tilt = {0., 0.};
     };
 

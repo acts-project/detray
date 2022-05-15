@@ -67,8 +67,8 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
     // Keep track of the objects that have already been seen per volume
     std::unordered_set<dindex> obj_hashes = {};
 
-    unsigned int theta_steps = 100;
-    unsigned int phi_steps = 100;
+    unsigned int theta_steps = 10;
+    unsigned int phi_steps = 10;
     const point3 ori{0., 0., 0.};
     dindex start_index = 0;
 
