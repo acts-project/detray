@@ -386,8 +386,9 @@ class navigator {
     DETRAY_HOST_DEVICE bool init(propagator_state_t &propagation) const {
         // Start healthy navigation
         propagation._navigation._heartbeat = true;
+        initialize_kernel(propagation);
         // Establish navigation status before the first step
-        return update(propagation);
+        return propagation._navigation._heartbeat;
     }
 
     /// Updates the navigator state after an external update, i.e. the
@@ -425,14 +426,18 @@ class navigator {
                 navigation.exit();
                 return navigation._heartbeat;
             }
-            // navigation.run_inspector("Volume switch: ");
+            // Only run inspection when needed
+            if constexpr (not std::is_same_v<inspector_t,
+                                             navigation::void_inspector>) {
+                navigation.run_inspector("Volume switch: ");
+            }
         }
 
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted or we switched volumes:
         // (re-)initialize volume
         if (navigation.trust_level() != navigation::trust_level::e_full) {
-            update_kernel(propagation);
+            initialize_kernel(propagation);
         }
         // Sanity check: Should never be the case after complete update call
         if (navigation.trust_level() != navigation::trust_level::e_full or
@@ -441,6 +446,53 @@ class navigator {
         }
 
         return navigation._heartbeat;
+    }
+    /// Helper method to initialize a volume by calling the volumes accelerator
+    /// structure for local navigation. (Currently brute force)
+    ///
+    /// @tparam propagator_state_t state type of the propagator
+    ///
+    /// @param propagation contains the stepper and navigator states
+    /// @param volume the current tracking volume to be initialized
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE inline void initialize_kernel(
+        propagator_state_t &propagation) const {
+
+        state &navigation = propagation._navigation;
+        const auto &track = propagation._stepping();
+        const auto &volume = _detector->volume_by_index(navigation.volume());
+
+        // Clean up state
+        navigation.clear();
+        // Get the max number of candidates & run them through the kernel
+        detail::call_reserve(navigation.candidates(), volume.n_objects());
+
+        // Loop over all indexed objects in volume, intersect and fill
+        // @todo - will come from the local object finder
+        for (const auto [obj_idx, obj] :
+             enumerate(_detector->surfaces(), volume)) {
+            auto candidate = intersect(track, obj, _detector->transform_store(),
+                                       _detector->mask_store());
+            // Accept potential next target
+            if (navigation.is_reachable(candidate, track)) {
+                candidate.index = obj_idx;
+                navigation.candidates().push_back(candidate);
+            }
+        }
+        // Sort all candidates and pick the closest one
+        detail::sequential_sort(navigation.candidates().begin(),
+                                navigation.candidates().end());
+        navigation.set_next(navigation.candidates().begin());
+        // No unreachable candidates in cache after local navigation
+        navigation.set_last(navigation.candidates().end());
+        // Determine the overall state of the navigation
+        update_navigation_state(track, propagation);
+
+        // Only run inspection when needed
+        if constexpr (not std::is_same_v<inspector_t,
+                                         navigation::void_inspector>) {
+            navigation.run_inspector("Init complete: ");
+        }
     }
 
     /// Helper method to update the candidate cache (surface intersections)
@@ -466,37 +518,7 @@ class navigator {
         // Initializes a volume by calling the volume's accelerator structure
         // for local navigation.
         if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
-            // Get current volume information
-            const volume_type &volume =
-                _detector->volume_by_index(navigation.volume());
-            // Clean up state
-            navigation.clear();
-            // Get the max number of candidates & run them through the kernel
-            detail::call_reserve(navigation.candidates(), volume.n_objects());
-
-            // Loop over all indexed objects in volume, intersect and fill
-            // @todo - will come from the local object finder
-            for (const auto [obj_idx, obj] :
-                 enumerate(_detector->surfaces(), volume)) {
-                auto candidate =
-                    intersect(track, obj, _detector->transform_store(),
-                              _detector->mask_store());
-                // Accept potential next target
-                if (navigation.is_reachable(candidate, track)) {
-                    candidate.index = obj_idx;
-                    navigation.candidates().push_back(candidate);
-                }
-            }
-            // Sort all candidates and pick the closest one
-            detail::sequential_sort(navigation.candidates().begin(),
-                                    navigation.candidates().end());
-            navigation.set_next(navigation.candidates().begin());
-            // No unreachable candidates in cache after local navigation
-            navigation.set_last(navigation.candidates().end());
-            // Determine the overall state of the navigation
-            update_navigation_state(track, propagation);
-            // Call the inspector before returning (only for debugging)
-            // navigation.run_inspector("Init complete: ");
+            initialize_kernel(propagation);
             return;
         }
 
@@ -507,16 +529,25 @@ class navigator {
             navigation.n_candidates() == 1) {
             // Update next candidate
             update_candidate(*navigation.next(), track);
+            // Update navigation flow on the new candidate information
             update_navigation_state(track, propagation);
 
+            // Make sure next candidate is up to date
+            if (not navigation.is_exhausted()) {
+                update_candidate(*navigation.next(), track);
+            }
             // If cache was not coherent, re-initialize the volume
             if (navigation.is_reachable(*navigation.next(), track)) {
                 return;
             } else {
                 navigation.set_fair_trust();
             }
-
-            // navigation.run_inspector("Update complete: high trust");
+            // Only run inspection when needed
+            if constexpr (not std::is_same_v<inspector_t,
+                                             navigation::void_inspector>) {
+                navigation.run_inspector("Update complete: high trust");
+            }
+            // Don't return, as we potentially escalate to fair trust case
         }
 
         // Re-evaluate all currently available candidates
@@ -528,7 +559,7 @@ class navigator {
                 // Disregard this candidate
                 if (not navigation.is_reachable(candidate, track)) {
                     // Forcefully set dist to numeric max for sorting
-                    mark_unreachable(candidate);
+                    candidate.path = std::numeric_limits<scalar>::max();
                 }
             }
             // Sort again
@@ -538,11 +569,14 @@ class navigator {
             navigation.set_next(navigation.candidates().begin());
             // Ignore unreachable elements
             navigation.set_last(find_invalid(navigation.candidates()));
-            // Evaluate current target
+            // Update navigation flow on the new candidate information
             update_navigation_state(track, propagation);
 
-            // if constexpr (std::is_same_v<>)
-            // navigation.run_inspector("Update complete: fair trust: ");
+            // Only run inspection when needed
+            if constexpr (not std::is_same_v<inspector_t,
+                                             navigation::void_inspector>) {
+                navigation.run_inspector("Update complete: fair trust: ");
+            }
         }
     }
 
@@ -577,22 +611,14 @@ class navigator {
             // Might lead to exhausted cache.
             ++navigation.next();
             // Initialize the new volume in the next update call
-            if (navigation.is_exhausted()) {
-                navigation.set_no_trust();
-            }
-            // Make sure next candidate is up to date
-            else {
-                update_candidate(*navigation.next(), track);
-            }
         } else {
             // Now, we are on our way to the next candidate
             navigation.set_state(navigation::status::e_towards_object,
                                  dindex_invalid,
                                  navigation::trust_level::e_full);
-            // Initialize the new volume in the next update call
-            if (navigation.is_exhausted()) {
-                navigation.set_no_trust();
-            }
+        }
+        if (navigation.is_exhausted()) {
+            navigation.set_no_trust();
         }
     }
 
@@ -610,16 +636,6 @@ class navigator {
                       _detector->transform_store(), _detector->mask_store());
 
         candidate.index = obj_idx;
-    }
-
-    /// Helper method that invalidates a candidate by setting its path length to
-    /// an unreachable value. It then gets sorted to the back of the candidates
-    /// cache.
-    ///
-    /// @param candidate the candidate to be invalidated
-    DETRAY_HOST_DEVICE
-    inline void mark_unreachable(intersection_type &candidate) const {
-        candidate.path = std::numeric_limits<scalar>::max();
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:
