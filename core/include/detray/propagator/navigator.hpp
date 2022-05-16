@@ -381,21 +381,68 @@ class navigator {
     DETRAY_HOST_DEVICE
     navigator(const detector_t &d) : _detector(&d) {}
 
-    /// Alias call to update for readbility
+    /// @returns reference to the detector
+    DETRAY_HOST_DEVICE
+    const detector_t &get_detector() const { return *_detector; }
+
+    /// Helper method to initialize a volume.
+    ///
+    /// Calls the volumes accelerator structure for local navigation, then test
+    /// the surfaces for intersection and sorts the reachable candidates to
+    /// find the clostest one.
+    ///
+    /// @tparam propagator_state_t state type of the propagator
+    ///
+    /// @param propagation contains the stepper and navigator states
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE bool init(propagator_state_t &propagation) const {
-        // Start healthy navigation
-        propagation._navigation._heartbeat = true;
-        initialize_kernel(propagation);
-        // Establish navigation status before the first step
-        return propagation._navigation._heartbeat;
+    DETRAY_HOST_DEVICE inline bool init(propagator_state_t &propagation) const {
+
+        state &navigation = propagation._navigation;
+        const auto &track = propagation._stepping();
+        const auto &volume = _detector->volume_by_index(navigation.volume());
+
+        // Clean up state
+        navigation.clear();
+        navigation._heartbeat = true;
+        // Get the max number of candidates & run them through the kernel
+        detail::call_reserve(navigation.candidates(), volume.n_objects());
+
+        // Loop over all indexed objects in volume, intersect and fill
+        // @todo - will come from the local object finder
+        for (const auto [obj_idx, obj] :
+             enumerate(_detector->surfaces(), volume)) {
+            // Ready a new candidate
+            intersection_type candidate{};
+            candidate.index = obj_idx;
+            // Check if reachable
+            if (update_candidate(candidate, track)) {
+                navigation.candidates().push_back(candidate);
+            }
+        }
+        // Sort all candidates and pick the closest one
+        detail::sequential_sort(navigation.candidates().begin(),
+                                navigation.candidates().end());
+        navigation.set_next(navigation.candidates().begin());
+        // No unreachable candidates in cache after local navigation
+        navigation.set_last(navigation.candidates().end());
+        // Determine overall state of the navigation after updating the cache
+        update_navigation_state(track, propagation);
+
+        // Run inspection when needed
+        if constexpr (std::is_same_v<inspector_t, navigation::void_inspector>) {
+            navigation.run_inspector("Init complete: ");
+        }
+
+        return navigation._heartbeat = true;
     }
 
-    /// Updates the navigator state after an external update, i.e. the
-    /// intersections in the internal cache. After the cache is updated, it
-    /// checks whether the state stepped onto a portal and a volume switch is
-    /// due. If so, or the previous update according to the given trust level
-    /// failed, it performs a complete reinitialization of the navigation.
+    /// Complete update of the nvaigation flow.
+    ///
+    /// Restores 'full trust' state to the cadidates cache and checks whether
+    /// the track stepped onto a portal and a volume switch is due. If so, or
+    /// when the previous update according to the given trust level
+    /// failed to restore trust, it performs a complete reinitialization of the
+    /// navigation.
     ///
     /// @tparam propagator_state_t state type of the propagator
     ///
@@ -408,37 +455,36 @@ class navigator {
 
         state &navigation = propagation._navigation;
 
-        // If there is no_trust (e.g. at the beginning of the navigation in
-        // a volume), the cache will be initialized. Otherwise the
-        // candidates are re-evaluated based on the current trust level
+        // Candidates are re-evaluated based on the current trust level
         update_kernel(propagation);
 
+        // Update was completely successful (most likely case)
+        if (navigation.trust_level() == navigation::trust_level::e_full) {
+            return navigation._heartbeat;
+        }
+        // Otherwise:
         // Did we run into a portal?
         if (navigation.status() == navigation::status::e_on_target and
             navigation.volume() != navigation.current()->link) {
             // Set volume index to the next volume provided by the portal
             navigation.set_volume(navigation.current()->link);
-            // Initialize the new volume in the next update call
-            navigation.set_no_trust();
 
-            // We reached the end of the detector world
+            // Navigation reached the end of the detector world
             if (navigation.volume() == dindex_invalid) {
                 navigation.exit();
                 return navigation._heartbeat;
             }
-            // Only run inspection when needed
-            if constexpr (not std::is_same_v<inspector_t,
-                                             navigation::void_inspector>) {
+            // Run inspection when needed
+            if constexpr (std::is_same_v<inspector_t,
+                                         navigation::void_inspector>) {
                 navigation.run_inspector("Volume switch: ");
             }
         }
-
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted or we switched volumes:
-        // (re-)initialize volume
-        if (navigation.trust_level() != navigation::trust_level::e_full) {
-            initialize_kernel(propagation);
-        }
+        // re-initialize volume
+        navigation._heartbeat &= init(propagation);
+
         // Sanity check: Should never be the case after complete update call
         if (navigation.trust_level() != navigation::trust_level::e_full or
             navigation.is_exhausted()) {
@@ -447,55 +493,9 @@ class navigator {
 
         return navigation._heartbeat;
     }
-    /// Helper method to initialize a volume by calling the volumes accelerator
-    /// structure for local navigation. (Currently brute force)
-    ///
-    /// @tparam propagator_state_t state type of the propagator
-    ///
-    /// @param propagation contains the stepper and navigator states
-    /// @param volume the current tracking volume to be initialized
-    template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline void initialize_kernel(
-        propagator_state_t &propagation) const {
 
-        state &navigation = propagation._navigation;
-        const auto &track = propagation._stepping();
-        const auto &volume = _detector->volume_by_index(navigation.volume());
-
-        // Clean up state
-        navigation.clear();
-        // Get the max number of candidates & run them through the kernel
-        detail::call_reserve(navigation.candidates(), volume.n_objects());
-
-        // Loop over all indexed objects in volume, intersect and fill
-        // @todo - will come from the local object finder
-        for (const auto [obj_idx, obj] :
-             enumerate(_detector->surfaces(), volume)) {
-            auto candidate = intersect(track, obj, _detector->transform_store(),
-                                       _detector->mask_store());
-            // Accept potential next target
-            if (navigation.is_reachable(candidate, track)) {
-                candidate.index = obj_idx;
-                navigation.candidates().push_back(candidate);
-            }
-        }
-        // Sort all candidates and pick the closest one
-        detail::sequential_sort(navigation.candidates().begin(),
-                                navigation.candidates().end());
-        navigation.set_next(navigation.candidates().begin());
-        // No unreachable candidates in cache after local navigation
-        navigation.set_last(navigation.candidates().end());
-        // Determine the overall state of the navigation
-        update_navigation_state(track, propagation);
-
-        // Only run inspection when needed
-        if constexpr (not std::is_same_v<inspector_t,
-                                         navigation::void_inspector>) {
-            navigation.run_inspector("Init complete: ");
-        }
-    }
-
-    /// Helper method to update the candidate cache (surface intersections)
+    private:
+    /// Helper method to update the candidates (surface intersections)
     /// based on an externally provided trust level. Will (re-)initialize the
     /// navigation if there is no trust.
     ///
@@ -514,40 +514,43 @@ class navigator {
             return;
         }
 
-        // Navigation state is broken/not initialized
-        // Initializes a volume by calling the volume's accelerator structure
-        // for local navigation.
-        if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
-            initialize_kernel(propagation);
-            return;
-        }
-
-        // Update only the current candidate, or close neighbors if we miss the
-        // current candidate - do this only when the navigation state is still
-        // largely consistent (high trust)
+        // Update only the current candidate and the corresponding next target
+        // - do this only when the navigation state is still coherent
         if (navigation.trust_level() == navigation::trust_level::e_high or
             navigation.n_candidates() == 1) {
-            // Update next candidate
-            update_candidate(*navigation.next(), track);
+
+            // Update next candidate: If not reachable, 'high trust' is broken
+            if (not update_candidate(*navigation.next(), track)) {
+                navigation.set_state(navigation::status::e_unknown,
+                                     dindex_invalid,
+                                     navigation::trust_level::e_no_trust);
+                return;
+            }
             // Update navigation flow on the new candidate information
             update_navigation_state(track, propagation);
 
-            // Make sure next candidate is up to date
-            if (not navigation.is_exhausted()) {
-                update_candidate(*navigation.next(), track);
-            }
-            // If cache was not coherent, re-initialize the volume
-            if (navigation.is_reachable(*navigation.next(), track)) {
+            // The work is done if: the track has not reached a surface yet or
+            // trust is gone (the cache is broken or portal was reached).
+            if (navigation.status() == navigation::status::e_towards_object or
+                navigation.trust_level() ==
+                    navigation::trust_level::e_no_trust) {
                 return;
-            } else {
-                navigation.set_fair_trust();
             }
+            // Track is on surface (not portal): Update next candidate
+            if (update_candidate(*navigation.next(), track)) {
+                return;
+            }
+
+            // If next candidate is not reachable, escalate the trust level
+            // This will directly trigger the fair trust case below.
+            navigation.set_fair_trust();
+
             // Only run inspection when needed
-            if constexpr (not std::is_same_v<inspector_t,
-                                             navigation::void_inspector>) {
-                navigation.run_inspector("Update complete: high trust");
+            if constexpr (std::is_same_v<inspector_t,
+                                         navigation::void_inspector>) {
+                navigation.run_inspector("Escalate trust: high trust");
             }
-            // Don't return, as we potentially escalate to fair trust case
+            // Don't 'return' in order to catch fair trust case next
         }
 
         // Re-evaluate all currently available candidates
@@ -555,9 +558,8 @@ class navigator {
         if (navigation.trust_level() == navigation::trust_level::e_fair) {
 
             for (auto &candidate : navigation.candidates()) {
-                update_candidate(candidate, track);
-                // Disregard this candidate
-                if (not navigation.is_reachable(candidate, track)) {
+                // Disregard this candidate if it is not reachable
+                if (not update_candidate(candidate, track)) {
                     // Forcefully set dist to numeric max for sorting
                     candidate.path = std::numeric_limits<scalar>::max();
                 }
@@ -573,19 +575,28 @@ class navigator {
             update_navigation_state(track, propagation);
 
             // Only run inspection when needed
-            if constexpr (not std::is_same_v<inspector_t,
-                                             navigation::void_inspector>) {
+            if constexpr (std::is_same_v<inspector_t,
+                                         navigation::void_inspector>) {
                 navigation.run_inspector("Update complete: fair trust: ");
             }
+            return;
+        }
+
+        // Actor flagged cache as broken (other cases of 'no trust' are
+        // handeled after volume switch was checked in 'update()')
+        if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
+            navigation._heartbeat &= init(propagation);
+            return;
         }
     }
 
     /// Helper method that re-establishes the navigation state after an update.
     ///
     /// It checks wether the track has reached a surface or is still moving
-    /// towards the next surface candidate. If a surface has been encountered,
-    /// it checks for a possible volume switch. Additionally, all stepper con-
-    /// straints are lifted if a surface is reached.
+    /// towards the next surface candidate. If no new next candidate can be
+    //  found, it flags 'no trust' in order to trigger a volume initialization.
+    /// Additionally, all stepper constraints are lifted if a surface is
+    /// reached.
     ///
     /// @tparam track_t the type of the track parametrisation
     /// @tparam propagator_state_t state type of the propagator
@@ -598,49 +609,59 @@ class navigator {
 
         state &navigation = propagation._navigation;
 
-        // Check wether the track is on the current candidate
+        // Check wether the track reached the current candidate. Might be a
+        // portal, in which case the navigation becomes exhausted
         if (navigation.is_on_object(*navigation.next(), track)) {
-            // Release actor constraints
-            propagation._stepping.release_step();
-            // Update state
-            navigation.set_state(navigation::status::e_on_target,
-                                 navigation.next()->index,
-                                 navigation::trust_level::e_full);
             // Set the next object that we want to reach (this function is only
             // called once the cache has been updated to a full trust state).
             // Might lead to exhausted cache.
             ++navigation.next();
-            // Initialize the new volume in the next update call
+            // Release actor constraints
+            propagation._stepping.release_step();
+            // Update state accordingly
+            navigation.set_state(navigation::status::e_on_target,
+                                 navigation.current()->index,
+                                 navigation::trust_level::e_full);
         } else {
-            // Now, we are on our way to the next candidate
+            // Otherwise the track is moving towards a surface
             navigation.set_state(navigation::status::e_towards_object,
                                  dindex_invalid,
                                  navigation::trust_level::e_full);
         }
+        // Generally happens when after an update no next candidate in the
+        // cache is reachable  anymore -> triggers init of [new] volume
         if (navigation.is_exhausted()) {
             navigation.set_no_trust();
         }
     }
 
-    /// Helper method that updates the intersection of a single candidate
+    /// Helper method that updates the intersection of a single candidate and
+    /// checks reachability
     ///
-    /// @tparam track_t type of the track (including context)
+    /// @tparam track_t type of the track parametrization
     ///
+    /// @param candidate the intersection to be updated
     /// @param track the track information
+    ///
+    /// @returns whether the track can reach this candidate.
     template <typename track_t>
-    DETRAY_HOST_DEVICE inline void update_candidate(
+    DETRAY_HOST_DEVICE inline bool update_candidate(
         intersection_type &candidate, const track_t &track) const {
+        // Remember the surface this candidate belongs to
         const dindex obj_idx = candidate.index;
         candidate =
             intersect(track, _detector->surface_by_index(obj_idx),
                       _detector->transform_store(), _detector->mask_store());
 
         candidate.index = obj_idx;
+        // Check whether this candidate is reachable by the track
+        return candidate.status == intersection::status::e_inside and
+               candidate.path >= track.overstep_tolerance();
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:
     /// Finds the first unreachable candidate (has been invalidated during
-    /// update) in a sorted cache.
+    /// update) in a sorted (!) cache.
     ///
     /// @param candidates the cache of candidates to be cleaned
     template <typename cache_t>
@@ -654,11 +675,6 @@ class navigator {
                                not_reachable);
     }
 
-    /// @returns access to detector
-    DETRAY_HOST_DEVICE
-    const detector_t &get_detector() const { return *_detector; }
-
-    private:
     /// the containers for all data
     const detector_t *const _detector;
 };
