@@ -45,71 +45,57 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     const point3 ori{0., 0., 0.};
     // d.volume_by_pos(ori).index();
 
-    // Loops of theta values ]0,pi[
-    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
-        scalar sin_theta = std::sin(theta);
-        scalar cos_theta = std::cos(theta);
+    // Iterate through uniformly distributed momentum directions
+    for (const auto test_ray :
+         uniform_track_generator<ray>(theta_steps, phi_steps, ori)) {
 
-        // Loops of phi values [-pi, pi]
-        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-            // The direction
-            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-            scalar sin_phi = std::sin(phi);
-            scalar cos_phi = std::cos(phi);
-            const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                             cos_theta};
+        // Now follow that ray and check, if we find the same
+        // volumes and distances along the way
+        const auto intersection_trace = shoot_ray(det, test_ray);
 
-            // Now follow that ray and check, if we find the same
-            // volumes and distances along the way
-            ray r{ori, dir};
-            const auto intersection_trace = shoot_ray(det, r);
+        free_track_parameters track(test_ray.pos(), 0, test_ray.dir(), -1);
+        propagator_t::state propagation(track);
 
-            free_track_parameters track(ori, 0, dir, -1);
-            propagator_t::state propagation(track);
+        prop.propagate(propagation);
 
-            prop.propagate(propagation);
+        // Retrieve navigation information
+        auto &inspector = propagation._navigation.inspector();
+        auto &obj_tracer =
+            inspector.template get<object_tracer<status::e_on_target>>();
+        auto &debug_printer = inspector.template get<print_inspector>();
 
-            // Retrieve navigation information
-            auto &inspector = propagation._navigation.inspector();
-            auto &obj_tracer =
-                inspector.template get<object_tracer<status::e_on_target>>();
-            auto &debug_printer = inspector.template get<print_inspector>();
+        // Compare intersection records
+        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size());
 
-            // Compare intersection records
-            EXPECT_EQ(obj_tracer.object_trace.size(),
-                      intersection_trace.size());
+        std::stringstream debug_stream;
+        for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
+             ++intr_idx) {
+            debug_stream << "-------Intersection trace\n"
+                         << "ray gun: "
+                         << "\tsf id: " << intersection_trace[intr_idx].first
+                         << ", "
+                         << intersection_trace[intr_idx].second.to_string();
+            debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
+        }
 
-            std::stringstream debug_stream;
-            for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
-                 ++intr_idx) {
-                debug_stream
-                    << "-------Intersection trace\n"
-                    << "ray gun: "
-                    << "\tsf id: " << intersection_trace[intr_idx].first << ", "
-                    << intersection_trace[intr_idx].second.to_string();
-                debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
-            }
-
-            // Check every single recorded intersection
-            for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
-                 ++intr_idx) {
-                if (obj_tracer[intr_idx].index !=
-                    intersection_trace[intr_idx].first) {
-                    // Intersection record at portal bound might be flipped
-                    if (obj_tracer[intr_idx].index ==
-                            intersection_trace[intr_idx + 1].first and
-                        obj_tracer[intr_idx + 1].index ==
-                            intersection_trace[intr_idx].first) {
-                        // Have already checked the next record
-                        ++intr_idx;
-                        continue;
-                    }
+        // Check every single recorded intersection
+        for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
+             ++intr_idx) {
+            if (obj_tracer[intr_idx].index !=
+                intersection_trace[intr_idx].first) {
+                // Intersection record at portal bound might be flipped
+                if (obj_tracer[intr_idx].index ==
+                        intersection_trace[intr_idx + 1].first and
+                    obj_tracer[intr_idx + 1].index ==
+                        intersection_trace[intr_idx].first) {
+                    // Have already checked the next record
+                    ++intr_idx;
+                    continue;
                 }
-                EXPECT_EQ(obj_tracer[intr_idx].index,
-                          intersection_trace[intr_idx].first)
-                    << debug_printer.to_string() << debug_stream.str();
             }
+            EXPECT_EQ(obj_tracer[intr_idx].index,
+                      intersection_trace[intr_idx].first)
+                << debug_printer.to_string() << debug_stream.str();
         }
     }
 }

@@ -23,6 +23,7 @@
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/helix_gun.hpp"
 #include "tests/common/tools/inspectors.hpp"
+#include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;
 using matrix_operator = standard_matrix_operator<scalar>;
@@ -106,6 +107,10 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     constexpr unsigned int theta_steps = 50;
     constexpr unsigned int phi_steps = 50;
 
+    // Set origin position of tracks
+    const point3 ori{0., 0., 0.};
+    constexpr scalar mom = 10. * unit_constants::GeV;
+
     // detector configuration
     constexpr std::size_t n_brl_layers = 4;
     constexpr std::size_t n_edc_layers = 7;
@@ -114,10 +119,10 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Create the navigator
+    using track_t = free_track_parameters;
     using navigator_t = navigator<decltype(d)>;
     using constraints_t = constrained_step<>;
-    using stepper_t =
-        rk_stepper<mag_field_t, free_track_parameters, constraints_t>;
+    using stepper_t = rk_stepper<mag_field_t, track_t, constraints_t>;
     using actor_chain_t =
         actor_chain<dtuple, helix_inspector, propagation::print_inspector,
                     pathlimit_aborter>;
@@ -130,68 +135,48 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{b_field}, navigator_t{d});
 
-    // Set origin position of tracks
-    const point3 ori{0., 0., 0.};
+    // Iterate through uniformly distributed momentum directions
+    for (auto traj :
+         uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
+        // Genrate track state used for propagation with pathlimit
+        free_track_parameters lim_traj(traj);
 
-    // Loops of theta values ]0,pi[
-    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
-        scalar sin_theta = std::sin(theta);
-        scalar cos_theta = std::cos(theta);
-        // Loops of phi values [-pi, pi]
-        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-            // The direction
-            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-            scalar sin_phi = std::sin(phi);
-            scalar cos_phi = std::cos(phi);
+        traj.set_overstep_tolerance(-10 * unit_constants::um);
+        lim_traj.set_overstep_tolerance(-10 * unit_constants::um);
 
-            // intialize a track
-            vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
-            vector::normalize(mom);
-            mom = 10. * unit_constants::GeV * mom;
-            free_track_parameters traj(ori, 0, mom, -1);
-            free_track_parameters lim_traj(ori, 0, mom, -1);
-            traj.set_overstep_tolerance(-10 * unit_constants::um);
-            lim_traj.set_overstep_tolerance(-10 * unit_constants::um);
+        // Build actor states: the helix inspector can be shared
+        helix_inspector::state helix_insp_state{helix_gun{traj, &B}};
+        propagation::print_inspector::state print_insp_state{};
+        propagation::print_inspector::state lim_print_insp_state{};
+        pathlimit_aborter::state unlimted_aborter_state{};
+        pathlimit_aborter::state pathlimit_aborter_state{path_limit};
 
-            // Build actor states: the helix inspector can be shared
-            helix_inspector::state helix_insp_state{helix_gun{traj, &B}};
-            propagation::print_inspector::state print_insp_state{};
-            propagation::print_inspector::state lim_print_insp_state{};
-            pathlimit_aborter::state unlimted_aborter_state{};
-            pathlimit_aborter::state pathlimit_aborter_state{path_limit};
+        // Create actor states tuples
+        actor_chain_t::state actor_states = std::tie(
+            helix_insp_state, print_insp_state, unlimted_aborter_state);
+        actor_chain_t::state lim_actor_states = std::tie(
+            helix_insp_state, lim_print_insp_state, pathlimit_aborter_state);
 
-            // Create actor states tuples
-            actor_chain_t::state actor_states = std::tie(
-                helix_insp_state, print_insp_state, unlimted_aborter_state);
-            actor_chain_t::state lim_actor_states =
-                std::tie(helix_insp_state, lim_print_insp_state,
-                         pathlimit_aborter_state);
+        // Init propagator states
+        propagator_t::state state(traj, actor_states);
+        propagator_t::state lim_state(lim_traj, lim_actor_states);
 
-            // Init propagator states
-            propagator_t::state state(traj, actor_states);
-            propagator_t::state lim_state(lim_traj, lim_actor_states);
+        // Set step constraints
+        state._stepping.template set_constraint<step::constraint::e_accuracy>(
+            5. * unit_constants::mm);
+        lim_state._stepping
+            .template set_constraint<step::constraint::e_accuracy>(
+                5. * unit_constants::mm);
 
-            // Set step constraints
-            state._stepping
-                .template set_constraint<step::constraint::e_accuracy>(
-                    5. * unit_constants::mm);
-            lim_state._stepping
-                .template set_constraint<step::constraint::e_accuracy>(
-                    5. * unit_constants::mm);
+        // Propagate the entire detector
+        ASSERT_TRUE(p.propagate(state))
+            << print_insp_state.to_string() << std::endl;
 
-            // Propagate the entire detector
-            ASSERT_TRUE(p.propagate(state))
-                << print_insp_state.to_string() << std::endl;
-
-            // Propagate with path limit
-            ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit,
-                        epsilon);
-            ASSERT_FALSE(p.propagate(lim_state))
-                << lim_print_insp_state.to_string() << std::endl;
-            ASSERT_TRUE(lim_state._stepping.path_length() <
-                        path_limit + epsilon);
-        }
+        // Propagate with path limit
+        ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, epsilon);
+        ASSERT_FALSE(p.propagate(lim_state))
+            << lim_print_insp_state.to_string() << std::endl;
+        ASSERT_TRUE(lim_state._stepping.path_length() < path_limit + epsilon);
     }
 }
 

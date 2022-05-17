@@ -11,6 +11,7 @@
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "navigator_cuda_kernel.hpp"
+#include "tests/common/tools/track_generators.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
 TEST(navigator_cuda, navigator) {
@@ -38,26 +39,12 @@ TEST(navigator_cuda, navigator) {
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
 
-    // Loops of theta values ]0,pi[
-    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
-        scalar sin_theta = std::sin(theta);
-        scalar cos_theta = std::cos(theta);
+    // Iterate through uniformly distributed momentum directions
+    for (auto traj :
+         uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
 
-        // Loops of phi values [-pi, pi]
-        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-            // The direction
-            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-            scalar sin_phi = std::sin(phi);
-            scalar cos_phi = std::cos(phi);
-            vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
-
-            // intialize a track
-            free_track_parameters ray(ori, 0, dir, -1);
-
-            tracks_host.push_back(ray);
-            tracks_device.push_back(ray);
-        }
+        tracks_host.push_back(ray);
+        tracks_device.push_back(ray);
     }
 
     /**

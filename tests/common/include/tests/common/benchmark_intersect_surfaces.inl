@@ -14,6 +14,7 @@
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/planar_intersector.hpp"
 #include "detray/masks/masks.hpp"
+#include "tests/common/tools/ray_gun.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
 
 using namespace detray;
@@ -55,34 +56,24 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
         benchmark::DoNotOptimize(sfmiss);
-        // Loops of theta values
-        for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-            scalar theta = 0.85 + itheta * 0.2 / theta_steps;
-            scalar sin_theta = std::sin(theta);
-            scalar cos_theta = std::cos(theta);
 
-            // Loops of phi values
-            for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-                scalar phi = 0.7 + iphi * 0.2 / phi_steps;
-                scalar sin_phi = std::sin(phi);
-                scalar cos_phi = std::cos(phi);
+        // Iterate through uniformly distributed momentum directions
+        for (const auto test_ray :
+             uniform_track_generator<ray>(theta_steps, phi_steps, ori, 1.)) {
 
-                vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                            cos_theta};
+            for (auto plane : planes) {
+                auto pi = rect.intersector();
+                auto is = pi.intersect(plane.transform(), test_ray.pos(),
+                                       test_ray.dir(), rect);
 
-                for (auto plane : planes) {
-                    auto pi = rect.intersector();
-                    auto is = pi.intersect(plane.transform(), ori, dir, rect);
-
-                    benchmark::DoNotOptimize(sfhit);
-                    benchmark::DoNotOptimize(sfmiss);
-                    if (is.status == intersection::status::e_inside) {
-                        ++sfhit;
-                    } else {
-                        ++sfmiss;
-                    }
-                    benchmark::ClobberMemory();
+                benchmark::DoNotOptimize(sfhit);
+                benchmark::DoNotOptimize(sfmiss);
+                if (is.status == intersection::status::e_inside) {
+                    ++sfhit;
+                } else {
+                    ++sfmiss;
                 }
+                benchmark::ClobberMemory();
             }
         }
     }

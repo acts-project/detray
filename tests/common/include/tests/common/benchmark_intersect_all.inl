@@ -18,6 +18,7 @@
 #include "detray/utils/enumerate.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
 #include "tests/common/tools/read_geometry.hpp"
+#include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;
 
@@ -60,45 +61,31 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
     for (auto _ : state) {
         point3<detray::scalar> pos{0., 0., 0.};
 
-        // Loops of theta values
-        for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-            scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
-            scalar sin_theta = std::sin(theta);
-            scalar cos_theta = std::cos(theta);
+        // Iterate through uniformly distributed momentum directions
+        for (const auto track : uniform_track_generator<free_track_parameters>(
+                 theta_steps, phi_steps, pos)) {
 
-            // Loops of phi values
-            for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-                // The direction
-                scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-                scalar sin_phi = std::sin(phi);
-                scalar cos_phi = std::cos(phi);
-                vector3<detray::scalar> dir{cos_phi * sin_theta,
-                                            sin_phi * sin_theta, cos_theta};
+            // Loop over volumes
+            for (const auto &v : d.volumes()) {
+                // Loop over all surfaces in volume
+                for (const auto sf : range(data_core.surfaces, v)) {
+                    auto sfi = intersect(track, sf, data_core.transforms,
+                                         data_core.masks);
 
-                free_track_parameters track(pos, 0, dir, -1);
-
-                // Loop over volumes
-                for (const auto &v : d.volumes()) {
-                    // Loop over all surfaces in volume
-                    for (const auto sf : range(data_core.surfaces, v)) {
-                        auto sfi = intersect(track, sf, data_core.transforms,
-                                             data_core.masks);
-
-                        benchmark::DoNotOptimize(hits);
-                        benchmark::DoNotOptimize(missed);
-                        if (sfi.status == intersection::status::e_inside) {
-                            /* state.PauseTiming();
-                            if (stream_file)
-                            {
-                                hit_out << sfi.p3[0] << "," << sfi.p3[1] << ","
-                            << sfi.p3[2]
-                            << "\n";
-                            }
-                            state.ResumeTiming();*/
-                            ++hits;
-                        } else {
-                            ++missed;
+                    benchmark::DoNotOptimize(hits);
+                    benchmark::DoNotOptimize(missed);
+                    if (sfi.status == intersection::status::e_inside) {
+                        /* state.PauseTiming();
+                        if (stream_file)
+                        {
+                            hit_out << sfi.p3[0] << "," << sfi.p3[1] << ","
+                        << sfi.p3[2]
+                        << "\n";
                         }
+                        state.ResumeTiming();*/
+                        ++hits;
+                    } else {
+                        ++missed;
                     }
                 }
             }

@@ -72,35 +72,22 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
     const point3 ori{0., 0., 0.};
     dindex start_index = 0;
 
-    // Loops of theta values ]0,pi[
-    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
-        scalar sin_theta = std::sin(theta);
-        scalar cos_theta = std::cos(theta);
+    // Iterate through uniformly distributed momentum directions
+    for (const auto test_ray :
+         uniform_track_generator<ray>(theta_steps, phi_steps, ori)) {
 
-        // Loops of phi values [-pi, pi]
-        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-            // The direction
-            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-            scalar sin_phi = std::sin(phi);
-            scalar cos_phi = std::cos(phi);
-            const point3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                             cos_theta};
+        // Record all intersections and objects along the ray
+        const auto intersection_record = shoot_ray(toy_det, test_ray);
 
-            // Record all intersections and objects along the ray
-            const auto intersection_record = shoot_ray(toy_det, ori, dir);
+        // Create a trace of the volume indices that were encountered
+        auto [portal_trace, surface_trace] =
+            trace_intersections(intersection_record, start_index);
 
-            // Create a trace of the volume indices that were encountered
-            auto [portal_trace, surface_trace] =
-                trace_intersections(intersection_record, start_index);
+        // Is this a sensible trace to be further examined?
+        ASSERT_TRUE(check_connectivity(portal_trace));
 
-            // Is this a sensible trace to be further examined?
-            ASSERT_TRUE(check_connectivity(portal_trace));
-
-            // Discover new linking information from this trace
-            build_adjacency(portal_trace, surface_trace, adj_mat_scan,
-                            obj_hashes);
-        }
+        // Discover new linking information from this trace
+        build_adjacency(portal_trace, surface_trace, adj_mat_scan, obj_hashes);
     }
 
     // print_adj(adj_scan);
