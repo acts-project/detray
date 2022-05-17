@@ -32,6 +32,7 @@ endif()
 
 # if CUDA libraries available
 if( DETRAY_BUILD_CUDA )
+    find_package(CUDAToolkit)
     ### CPU tests
     if ((TARGET vecpar::all) AND (TARGET vecpar::omp))
         foreach(algebra ${algebras})
@@ -53,7 +54,6 @@ if( DETRAY_BUILD_CUDA )
     endif()
 
     ### GPU tests can be built only by Clang compiler +nvptx support
-    find_package(CUDAToolkit)
     if ((TARGET vecpar::all) AND (TARGET vecpar::cuda))
         foreach(algebra ${algebras})
 
@@ -75,5 +75,6 @@ if( DETRAY_BUILD_CUDA )
                     $<$<COMPILE_LANGUAGE:CXX>:-x cuda --offload-arch=sm_${CMAKE_CUDA_ARCHITECTURES}>)
         endforeach()
     endif()
+
 endif() # if CUDA support enabled
 

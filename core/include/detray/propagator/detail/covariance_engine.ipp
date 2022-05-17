@@ -7,6 +7,7 @@
 
 template <typename scalar_t>
 detray::bound_matrix
+DETRAY_HOST_DEVICE
 detray::detail::covariance_engine<scalar_t>::bound_to_bound_jacobian(
     const transform3& trf3, const detray::free_vector& free_vec,
     const bound_to_free_matrix& bound_to_free_jacobian,
@@ -34,6 +35,7 @@ detray::detail::covariance_engine<scalar_t>::bound_to_bound_jacobian(
 }
 
 template <typename scalar_t>
+DETRAY_HOST_DEVICE
 void detray::detail::covariance_engine<scalar_t>::
     bound_to_bound_covariance_update(
         const transform3& trf3, bound_matrix& bound_covariance,
@@ -53,6 +55,7 @@ void detray::detail::covariance_engine<scalar_t>::
 }
 
 template <typename scalar_t>
+DETRAY_HOST_DEVICE
 void detray::detail::covariance_engine<scalar_t>::reinitialize_jacobians(
     const transform3& trf3, const bound_vector& bound_vec,
     bound_to_free_matrix& bound_to_free_jacobian,

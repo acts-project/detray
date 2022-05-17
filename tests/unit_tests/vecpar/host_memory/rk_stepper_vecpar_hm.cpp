@@ -13,85 +13,116 @@
 
 #include "vecpar/all/main.hpp"
 
-TEST(rk_stepper_algo_vecpar, rk_stepper_host_memory) {
+TEST(rk_stepper_vecpar, bound_state_host_mr) {
 
     // VecMem memory resource(s)
     vecmem::host_memory_resource host_mr;
 
-    // Create the vector of initial track parameters
-    vecmem::vector<free_track_parameters> tracks_host(&host_mr);
-    vecmem::vector<free_track_parameters> tracks_device(&host_mr);
+    // test surface
+    const vector3 u{0, 1, 0};
+    const vector3 w{1, 0, 0};
+    const vector3 t{0, 0, 0};
+    const transform3 trf(t, w, u);
 
-    // Create the vector of accumulated path lengths
-    vecmem::vector<scalar> path_lengths(&host_mr);
+    // Generate track starting point
+    vector3 local{2, 3, 0};
+    vector3 mom{0.02, 0., 0.};
+    scalar time = 0.;
+    scalar q = -1.;
 
-    // Set origin position of tracks
-    const point3 ori{0., 0., 0.};
+    // bound vector
+    typename bound_track_parameters::vector_type bound_vector;
+    getter::element(bound_vector, e_bound_loc0, 0) = local[0];
+    getter::element(bound_vector, e_bound_loc1, 0) = local[1];
+    getter::element(bound_vector, e_bound_phi, 0) = getter::phi(mom);
+    getter::element(bound_vector, e_bound_theta, 0) = getter::theta(mom);
+    getter::element(bound_vector, e_bound_qoverp, 0) = q / getter::norm(mom);
+    getter::element(bound_vector, e_bound_time, 0) = time;
 
-    // Set the magnetic field
-    const vector3 B{0, 0, 2 * unit_constants::T};
+    // bound covariance
+    typename bound_track_parameters::covariance_type bound_cov =
+        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.;
+    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.;
+    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.;
 
-    // Define RK stepper
-    rk_stepper_type rk(B);
-    nav_state n_state{};
+    // Note: Set theta error as ZERO, to constrain the loc1 divergence
+    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
+    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
 
-    // Loops of theta values ]0,pi[
-    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
-        scalar sin_theta = std::sin(theta);
-        scalar cos_theta = std::cos(theta);
+    // bound track parameter
+    const bound_track_parameters in_param(0, bound_vector, bound_cov);
+    const vector3 B{0, 0, 1. * unit_constants::T};
 
-        // Loops of phi values [-pi, pi]
-        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-            // The direction
-            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-            scalar sin_phi = std::sin(phi);
-            scalar cos_phi = std::cos(phi);
-            vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
+    /**
+     * Get CPU bound parameter after one turn
+     */
 
-            // intialize a track
-            free_track_parameters traj(ori, 0, dir, -1);
+    mag_field_t mag_field(B);
+    prop_state<crk_stepper_t::state, nav_state> propagation{
+        crk_stepper_t::state(in_param, trf), nav_state{}};
+    crk_stepper_t::state &crk_state = propagation._stepping;
+    nav_state &n_state = propagation._navigation;
 
-            tracks_host.push_back(traj);
-            tracks_device.push_back(traj);
+    // Decrease tolerance down to 1e-8
+    crk_state.set_tolerance(rk_tolerance);
+
+    // RK stepper and its state
+    crk_stepper_t crk_stepper(mag_field);
+
+    // Path length per turn
+    scalar S = 2. * std::fabs(1. / in_param.qop()) / getter::norm(B) * M_PI;
+
+    // Run stepper for half turn
+    unsigned int max_steps = 1e4;
+
+    for (unsigned int i = 0; i < max_steps; i++) {
+
+        crk_state.set_constraint(S - crk_state.path_length());
+
+        n_state._step_size = S;
+
+        crk_stepper.step(propagation);
+
+        if (std::abs(S - crk_state.path_length()) < 1e-6) {
+            break;
         }
+
+        // Make sure that we didn't reach the end of for loop
+        ASSERT_TRUE(i < max_steps - 1);
     }
 
-    for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
+    // Bound state after one turn propagation
+    const auto out_param_cpu = crk_stepper.bound_state(propagation, trf);
 
-        auto& traj = tracks_host[i];
-
-        // Forward direction
-        rk_stepper_type::state forward_state(traj);
-        for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk.step(forward_state, n_state);
-        }
-
-        // Backward direction
-        traj.flip();
-        rk_stepper_type::state backward_state(traj);
-        for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-            rk.step(backward_state, n_state);
-        }
-
-        path_lengths.push_back(2 * path_limit -
-                               forward_state.dist_to_path_limit() -
-                               backward_state.dist_to_path_limit());
-    }
+    /**
+     * Get vecpar bound parameter after one turn
+     */
+    vecmem::vector<bound_track_parameters> out_param_pp(1, &host_mr);
 
     // Run RK stepper
     rk_stepper_algorithm rk_stepper_algo;
-    vecpar::parallel_map(rk_stepper_algo, host_mr, getConfig(), tracks_device,
-                         B);
+    vecpar::parallel_map(rk_stepper_algo, host_mr, getConfig(), out_param_pp,
+                         in_param, B, trf);
 
-    for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
-        auto host_pos = tracks_host[i].pos();
-        auto device_pos = tracks_device[i].pos();
+    /**
+     * Compare CPU and vecpar CPU/GPU
+     */
+    const auto bvec_cpu = out_param_cpu.vector();
+    const auto bcov_cpu = out_param_cpu.covariance();
 
-        auto host_relative_error = 1. / path_lengths[i] * (host_pos - ori);
-        auto device_relative_error = 1. / path_lengths[i] * (device_pos - ori);
+    const auto bvec_cuda = out_param_pp[0].vector();
+    const auto bcov_cuda = out_param_pp[0].covariance();
 
-        EXPECT_NEAR(getter::norm(host_relative_error), 0, epsilon);
-        EXPECT_NEAR(getter::norm(device_relative_error), 0, epsilon);
+    for (size_type i = 0; i < e_bound_size; i++) {
+        EXPECT_NEAR(matrix_operator().element(bvec_cpu, i, 0),
+                    matrix_operator().element(bvec_cuda, i, 0), epsilon);
+    }
+
+    for (size_type i = 0; i < e_bound_size; i++) {
+        for (size_type j = 0; j < e_bound_size; j++) {
+            EXPECT_NEAR(matrix_operator().element(bcov_cpu, i, j),
+                        matrix_operator().element(bcov_cuda, i, j), epsilon);
+        }
     }
 }
