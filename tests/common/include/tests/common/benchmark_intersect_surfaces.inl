@@ -14,8 +14,9 @@
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/planar_intersector.hpp"
 #include "detray/masks/masks.hpp"
-#include "tests/common/tools/ray_gun.hpp"
+#include "tests/common/tools/particle_gun.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
+#include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;
 

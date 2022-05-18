@@ -1,28 +1,32 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
+// system include
 #include <cmath>
 #include <utility>
 
+// detray include(s)
 #include "detray/definitions/units.hpp"
+#include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
+#include "detray/propagator/track.hpp"
+#include "detray/utils/algebra_helpers.hpp"
 #include "detray/utils/enumerate.hpp"
+#include "tests/common/tools/track_generators.hpp"
 
 namespace detray {
 
-/// Track parametrization that reflects a simple straight-line track
-struct ray {
+/// @brief describes a straight-line trajectory
+class ray {
+    public:
     using point3 = __plugin::point3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
-
-    /// Generate default constructor
-    ray() = default;
 
     /// Parametrized constructor that complies with track interface
     ///
@@ -31,15 +35,11 @@ struct ray {
     ray(point3 pos, scalar /*time*/, vector3 dir, scalar /*q*/)
         : _pos(pos), _dir(dir) {}
 
-    /// Current position in the geometry during propagation
-    point3 _pos = {0., 0., 0.};
-    /// Diretion
-    vector3 _dir = {0., 0., 0.};
-    /// Overstep tolerance on a geomtry surface (not needed here)
-    scalar _overstep_tolerance = -1e-4;
-
     /// @returns position on the ray
     DETRAY_HOST_DEVICE point3 pos() const { return _pos; }
+
+    /// @param position new position on the ray
+    DETRAY_HOST_DEVICE void set_pos(point3 position) { _pos = position; }
 
     /// @returns direction of the ray
     DETRAY_HOST_DEVICE vector3 dir() const { return _dir; }
@@ -47,174 +47,279 @@ struct ray {
     /// @returns overstep tolerance to comply with track interface
     DETRAY_HOST_DEVICE
     scalar overstep_tolerance() const { return _overstep_tolerance; }
+
+    private:
+    /// origin of ray
+    point3 _pos{0., 0., 0.};
+    /// direction of ray
+    vector3 _dir{0., 0., 0.};
+
+    /// Overstep tolerance on a geomtry surface
+    scalar _overstep_tolerance = -1e-4;
 };
 
-/// @brief Genrates track states with momentum directions in a uniform angle
-/// space.
+/// @brief describes a helical trajectory in a given B-field.
 ///
-/// It generates the track instances on the fly according to given parameters
-/// and with the momentum direction determined by phi and theta angles, which
-/// are generated as the iteration proceeds. The stepsizes in the angle space
-/// spans theta ]0,pi[ x phi [-pi, pi], while the step sizes (and with them
-/// the number of generated tracks) are configurable.
-///
-/// @tparam track_t the type of track parametrization that should be used.
-template <typename track_t>
-struct uniform_track_generator {
-    using point3 = __plugin::point3<detray::scalar>;
-    using vector3 = __plugin::vector3<detray::scalar>;
+/// Helix class for the analytical solution of track propagation in
+/// homogeneous B field. This Follows the notation of Eq (4.7) in
+/// DOI:10.1007/978-3-030-65771-0
+class helix {
+    public:
+    using point3 = __plugin::point3<scalar>;
+    using vector3 = __plugin::vector3<scalar>;
+    using vector2 = __plugin::vector2<scalar>;
+    using matrix_operator = standard_matrix_operator<scalar>;
+    using size_type = __plugin::size_type;
+    template <size_type ROWS, size_type COLS>
+    using matrix_type = __plugin::matrix_type<scalar, ROWS, COLS>;
 
-    /// Start and end of angle space
-    std::size_t m_theta_steps{50};
-    std::size_t m_phi_steps{50};
-    scalar m_phi{0}, m_theta{0};
+    helix() = delete;
 
-    /// Track params
-    point3 m_origin{};
-    scalar m_mom_mag = 10. * unit_constants::GeV;
-
-    /// Iteration indices
-    std::size_t i_phi{0}, i_theta{0};
-
-    /// Default constructor
-    uniform_track_generator() = default;
-
-    /// Paramtetrized constructor for fine-grained configurations
+    /// Parametrized constructor
     ///
-    /// @param theta_steps the number of steps in the theta space
-    /// @param phi_steps the number of steps in the phi space
-    /// @param trk_origin the starting point of the track
-    /// @param trk_mom magnitude of the track momentum
-    uniform_track_generator(std::size_t theta_steps, std::size_t phi_steps,
-                            point3 trk_origin = {},
-                            scalar trk_mom = 10. * unit_constants::GeV)
-        : m_theta_steps(theta_steps),
-          m_phi_steps(phi_steps),
-          m_origin(trk_origin),
-          m_mom_mag(trk_mom),
-          i_phi(0),
-          i_theta(0) {}
+    /// @param vertex the helix origin
+    /// @param mag_fied the magnetic field
+    helix(const free_track_parameters vertex, vector3 const *const mag_field)
+        : _vertex(vertex), _mag_field(mag_field) {
 
-    /// @returns generator in starting state
-    DETRAY_HOST_DEVICE
-    auto begin() {
-        i_phi = 0;
-        i_theta = 0;
-        return *this;
-    }
+        // Normalized B field
+        _h0 = vector::normalize(*_mag_field);
 
-    /// @returns generator in end state
-    DETRAY_HOST_DEVICE
-    auto end() {
-        i_phi = m_phi_steps;
-        i_theta = m_theta_steps;
-        return *this;
-    }
+        // Normalized tangent vector
+        _t0 = vector::normalize(vertex.mom());
 
-    /// @returns whether we reached end of angle space
-    DETRAY_HOST_DEVICE
-    bool operator!=(const uniform_track_generator &rhs) const {
-        return not(rhs.m_theta_steps == m_theta_steps and
-                   rhs.m_phi_steps == m_phi_steps and rhs.i_phi == i_phi and
-                   rhs.i_theta == i_theta);
-    }
+        // Normalized _h0 X _t0
+        _n0 = vector::normalize(vector::cross(_h0, _t0));
 
-    /// Iterate through angle space according to given step sizes.
-    DETRAY_HOST_DEVICE
-    void operator++() {
-        // Check theta range according to step size
-        if (i_theta < m_theta_steps) {
-            // Calculate theta ]0,pi[
-            m_theta = 0.01 + i_theta * (M_PI - 0.01) / m_theta_steps;
-            // Check phi sub-range
-            if (i_phi < m_phi_steps) {
-                // Calculate phi [-pi, pi]
-                m_phi = -M_PI + i_phi * (2 * M_PI) / m_phi_steps;
-                ++i_phi;
-                // Don't update theta while phi sub-range is not done
-                return;
-            }
-            // Reset phi range
-            i_phi = 0;
-            ++i_theta;
+        // Magnitude of _h0 X _t0
+        _alpha = getter::norm(vector::cross(_h0, _t0));
+
+        // Dot product of _h0 X _t0
+        _delta = vector::dot(_h0, _t0);
+
+        // Path length scaler
+        _K = -1. * vertex.qop() * getter::norm(*_mag_field);
+
+        // Get longitudinal momentum parallel to B field
+        scalar pz = vector::dot(vertex.mom(), _h0);
+
+        // Get transverse momentum perpendicular to B field
+        vector3 pT = vertex.mom() - pz * _h0;
+
+        // R [mm] =  pT [GeV] / B [T] in natrual unit
+        _R = getter::norm(pT) / getter::norm(*_mag_field);
+
+        // Handle the case of pT ~ 0
+        if (getter::norm(pT) < 1e-6) {
+            _vz_over_vt = std::numeric_limits<scalar>::infinity();
         } else {
-            // This got reset to zero in last pass
-            i_phi = m_phi_steps;
+            // Get vz over vt in new coordinate
+            _vz_over_vt = pz / getter::norm(pT);
         }
     }
 
-    /// Genrate the track instance
-    DETRAY_HOST_DEVICE
-    track_t operator*() const {
-        // Momentum direction from angles
-        vector3 mom{std::cos(m_phi) * std::sin(m_theta),
-                    std::sin(m_phi) * std::sin(m_theta), std::cos(m_theta)};
-        // Magnitude of momentum
-        vector::normalize(mom);
-        mom = m_mom_mag * mom;
+    /// @returns radius of helix
+    scalar radius() const { return _R; }
 
-        return track_t{m_origin, 0, mom, -1};
+    /// @returns position after propagating the path length of s
+    point3 operator()(scalar s) const { return this->pos(s); }
+
+    /// @returns position after propagating the path length of s
+    point3 pos(scalar s) const {
+
+        // Handle the case of pT ~ 0
+        if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
+            return _vertex.pos() + s * _h0;
+        }
+
+        point3 ret = _vertex.pos();
+        ret = ret + _delta / _K * (_K * s - std::sin(_K * s)) * _h0;
+        ret = ret + std::sin(_K * s) / _K * _t0;
+        ret = ret + _alpha / _K * (1 - std::cos(_K * s)) * _n0;
+
+        return ret;
     }
+
+    /// @returns tangential vector after propagating the path length of s
+    vector3 dir(scalar s) const {
+
+        // Handle the case of pT ~ 0
+        if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
+            return _vertex.dir();
+        }
+
+        vector3 ret{0, 0, 0};
+
+        ret = ret + _delta * (1 - std::cos(_K * s)) * _h0;
+        ret = ret + std::cos(_K * s) * _t0;
+        ret = ret + _alpha * std::sin(_K * s) * _n0;
+
+        return ret;
+    }
+
+    /// @returns overstep tolerance
+    DETRAY_HOST_DEVICE
+    scalar overstep_tolerance() const { return _overstep_tolerance; }
+
+    /// @returns transport jacobian after propagating the path length of s
+    free_matrix jacobian(scalar s) const {
+
+        free_matrix ret =
+            matrix_operator().template zero<e_free_size, e_free_size>();
+
+        const matrix_type<3, 3> I33 =
+            matrix_operator().template identity<3, 3>();
+        const matrix_type<3, 3> Z33 = matrix_operator().template zero<3, 3>();
+
+        // Get drdr
+        auto drdr = I33;
+        matrix_operator().set_block(ret, drdr, 0, 0);
+
+        // Get dtdr
+        auto dtdr = Z33;
+        matrix_operator().set_block(ret, dtdr, 4, 0);
+
+        // Get drdt
+        auto drdt = Z33;
+
+        drdt = drdt + std::sin(_K * s) / _K * I33;
+
+        const auto H0 = column_wise_op<scalar>().multiply(I33, _h0);
+        drdt = drdt + (_K * s - std::sin(_K * s)) / _K *
+                          column_wise_op<scalar>().multiply(
+                              matrix_operator().transpose(H0), _h0);
+
+        drdt = drdt + (std::cos(_K * s) - 1) / _K *
+                          column_wise_op<scalar>().cross(I33, _h0);
+
+        matrix_operator().set_block(ret, drdt, 0, 4);
+
+        // Get dtdt
+        auto dtdt = Z33;
+        dtdt = dtdt + std::cos(_K * s) * I33;
+        dtdt = dtdt + (1 - std::cos(_K * s)) *
+                          column_wise_op<scalar>().multiply(
+                              matrix_operator().transpose(H0), _h0);
+        dtdt =
+            dtdt - std::sin(_K * s) * column_wise_op<scalar>().cross(I33, _h0);
+
+        matrix_operator().set_block(ret, dtdt, 4, 4);
+
+        // Get drdl
+        vector3 drdl = 1 / _vertex.qop() *
+                       (s * this->dir(s) + _vertex.pos() - this->pos(s));
+
+        matrix_operator().set_block(ret, drdl, 0, 7);
+
+        // Get dtdl
+        vector3 dtdl = _alpha * _K * s / _vertex.qop() * _n0;
+
+        matrix_operator().set_block(ret, dtdl, 4, 7);
+
+        // 3x3 and 7x7 element is 1 (Maybe?)
+        matrix_operator().element(ret, 3, 3) = 1;
+        matrix_operator().element(ret, 7, 7) = 1;
+
+        return ret;
+    }
+
+    private:
+    /// origin of particle
+    free_track_parameters _vertex;
+
+    /// B field
+    vector3 const *_mag_field;
+
+    /// Normalized b field
+    vector3 _h0;
+
+    /// Normalized tangent vector
+    vector3 _t0;
+
+    /// Normalized _h0 X _t0
+    vector3 _n0;
+
+    /// Magnitude of _h0 X _t0
+    scalar _alpha;
+
+    /// Dot product of _h0 X _t0
+    scalar _delta;
+
+    /// Path length scaler
+    scalar _K;
+
+    /// Radius [mm] of helix
+    scalar _R;
+
+    /// Velocity in new z axis divided by transverse velocity
+    scalar _vz_over_vt;
+
+    /// Overstep tolerance on a geomtry surface
+    scalar _overstep_tolerance = -1e-4;
 };
 
-/// Intersect all portals in a detector with a given ray.
+/// @brief struct that holds functionality to shoot a ray through a detector.
 ///
-/// @param detector the detector
-/// @param ray the ray to be shot through the detector
-///
-/// @return a sorted vector of volume indices with the corresponding
-///         intersections of the portals that were encountered
-template <typename detector_t>
-inline auto shoot_ray(const detector_t &detector, const ray &r) {
+/// Records intersections with every detector surface along the ray.
+struct particle_gun {
 
     using intersection_t = line_plane_intersection;
 
-    std::vector<std::pair<dindex, intersection_t>> intersection_record;
-
-    // Loop over volumes
-    for (const auto &volume : detector.volumes()) {
-        for (const auto [sf_idx, sf] : enumerate(detector.surfaces(), volume)) {
-            // Retrieve candidate from the object
-            auto sfi = intersect(r, sf, detector.transform_store(),
-                                 detector.mask_store());
-
-            // Candidate is invalid if it oversteps too far (this is neg!)
-            if (sfi.path < r.overstep_tolerance()) {
-                continue;
-            }
-            // Accept if inside
-            if (sfi.status == intersection::status::e_inside) {
-                // object the candidate belongs to
-                sfi.index = volume.index();
-                intersection_record.emplace_back(sf_idx, sfi);
-            }
-        }
+    /// Intersection implementation for straight line intersection
+    template <typename surface_t, typename transform_container,
+              typename mask_container>
+    DETRAY_HOST_DEVICE inline static auto intersect_traj(
+        const ray &r, surface_t &surface,
+        const transform_container &contextual_transforms,
+        const mask_container &masks) -> intersection_t {
+        // Use 'intersect' function from 'intersection_kernel'
+        return intersect(r, surface, contextual_transforms, masks);
     }
 
-    // Sort intersections by distance to origin of the ray
-    auto sort_path = [&](std::pair<dindex, intersection_t> a,
-                         std::pair<dindex, intersection_t> b) -> bool {
-        return (a.second < b.second);
-    };
-    std::sort(intersection_record.begin(), intersection_record.end(),
-              sort_path);
+    /// Intersect all surfaces in a detector with a given ray.
+    ///
+    /// @param detector the detector
+    /// @param traj the trajectory to be shot through the detector
+    ///
+    /// @return a sorted vector of volume indices with the corresponding
+    ///         intersections of the surfaces that were encountered
+    template <typename detector_t, typename trajectory_t>
+    DETRAY_HOST_DEVICE inline static auto shoot_particle(
+        const detector_t &detector, const trajectory_t &traj) {
 
-    return intersection_record;
-}
+        std::vector<std::pair<dindex, intersection_t>> intersection_record;
 
-/// Intersect all portals in a detector with a given ray.
-///
-/// @param detector the detector
-/// @param origin the origin of the ray in global coordinates
-/// @param direction the direction of the ray in global coordinater
-///
-/// @return a sorted vector of volume indices with the corresponding
-///         intersections of the portals that were encountered
-template <typename detector_t, typename point_t>
-inline auto shoot_ray(const detector_t &detector, const point_t &origin,
-                      const point_t &direction) {
-    ray r{origin, direction};
-    return shoot_ray(detector, r);
-}
+        // Loop over volumes
+        for (const auto &volume : detector.volumes()) {
+            for (const auto [sf_idx, sf] :
+                 enumerate(detector.surfaces(), volume)) {
+                // Retrieve candidate from the surface
+                auto sfi = intersect_traj(traj, sf, detector.transform_store(),
+                                          detector.mask_store());
+
+                // Candidate is invalid if it oversteps too far (this is neg!)
+                if (sfi.path < traj.overstep_tolerance()) {
+                    continue;
+                }
+                // Accept if inside
+                if (sfi.status == intersection::status::e_inside) {
+                    // surface the candidate belongs to
+                    sfi.index = volume.index();
+                    intersection_record.emplace_back(sf_idx, sfi);
+                }
+            }
+        }
+
+        // Sort intersections by distance to origin of the trajectory
+        auto sort_path = [&](std::pair<dindex, intersection_t> a,
+                             std::pair<dindex, intersection_t> b) -> bool {
+            return (a.second < b.second);
+        };
+        std::sort(intersection_record.begin(), intersection_record.end(),
+                  sort_path);
+
+        return intersection_record;
+    }
+};
 
 }  // namespace detray

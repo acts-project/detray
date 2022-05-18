@@ -13,6 +13,7 @@
 #include "detray/geometry/volume_graph.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/hash_tree.hpp"
+#include "tests/common/tools/particle_gun.hpp"
 #include "tests/common/tools/ray_scan_utils.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -77,7 +78,8 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
          uniform_track_generator<ray>(theta_steps, phi_steps, ori)) {
 
         // Record all intersections and objects along the ray
-        const auto intersection_record = shoot_ray(toy_det, test_ray);
+        const auto intersection_record =
+            particle_gun::shoot_particle(toy_det, test_ray);
 
         // Create a trace of the volume indices that were encountered
         auto [portal_trace, surface_trace] =

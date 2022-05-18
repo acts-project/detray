@@ -14,10 +14,10 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
-#include "detray/propagator/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
-#include "tests/common/tools/ray_gun.hpp"
+#include "tests/common/tools/particle_gun.hpp"
+#include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;
 
@@ -33,7 +33,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
                                             print_inspector>;
     using navigator_t = navigator<decltype(det), inspector_t>;
-    using stepper_t = line_stepper<free_track_parameters>;
+    using stepper_t = line_stepper<ray>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
@@ -51,10 +51,11 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
 
         // Now follow that ray and check, if we find the same
         // volumes and distances along the way
-        const auto intersection_trace = shoot_ray(det, test_ray);
+        const auto intersection_trace =
+            particle_gun::shoot_particle(det, test_ray);
 
-        free_track_parameters track(test_ray.pos(), 0, test_ray.dir(), -1);
-        propagator_t::state propagation(track);
+        // free_track_parameters track(test_ray.pos(), 0, test_ray.dir(), -1);
+        propagator_t::state propagation(test_ray);
 
         prop.propagate(propagation);
 

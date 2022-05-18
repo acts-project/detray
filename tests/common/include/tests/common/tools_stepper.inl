@@ -15,7 +15,7 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
-#include "tests/common/tools/helix_gun.hpp"
+#include "tests/common/tools/particle_gun.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
 // google-test include(s)
@@ -163,7 +163,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
         free_track_parameters c_traj(traj);
 
         // helix gun
-        helix_gun helix(traj, &B);
+        helix helix_traj(traj, &B);
 
         // RK Stepping into forward direction
         prop_state<rk_stepper_t::state, nav_state> propagation{
@@ -197,7 +197,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
                         rk_state.path_length(),
                     0, epsilon);
 
-        const auto helix_pos = helix(rk_state.path_length());
+        const auto helix_pos = helix_traj(rk_state.path_length());
         const auto forward_pos = rk_state().pos();
         const point3 forward_relative_error{(1. / rk_state.path_length()) *
                                             (forward_pos - helix_pos)};
@@ -289,8 +289,8 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     ASSERT_NEAR(crk_state().dir()[1], 0, epsilon);
     ASSERT_NEAR(crk_state().dir()[2], 0, epsilon);
 
-    // helix gun
-    helix_gun helix(crk_state(), &B);
+    // helix trajectory
+    helix helix_traj(crk_state(), &B);
 
     // Path length per turn
     scalar S = 2. * getter::norm(mom) / getter::norm(B) * M_PI;
@@ -318,7 +318,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
      */
 
     auto jac_transport = crk_state._jac_transport;
-    auto true_J = helix.jacobian(crk_state.path_length());
+    auto true_J = helix_traj.jacobian(crk_state.path_length());
 
     for (size_type i = 0; i < e_free_size; i++) {
         for (size_type j = 0; j < e_free_size; j++) {

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <utility>
 
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
 namespace detray {
@@ -42,6 +43,7 @@ struct uniform_track_generator {
     std::size_t i_phi{0}, i_theta{0};
 
     /// Default constructor
+    DETRAY_HOST_DEVICE
     uniform_track_generator() = default;
 
     /// Paramtetrized constructor for fine-grained configurations
@@ -50,11 +52,12 @@ struct uniform_track_generator {
     /// @param phi_steps the number of steps in the phi space
     /// @param trk_origin the starting point of the track
     /// @param trk_mom magnitude of the track momentum
-    uniform_track_generator(std::size_t theta_steps, std::size_t phi_steps,
+    DETRAY_HOST_DEVICE
+    uniform_track_generator(std::size_t n_theta, std::size_t n_phi,
                             point3 trk_origin = {},
                             scalar trk_mom = 10. * unit_constants::GeV)
-        : m_theta_steps(theta_steps),
-          m_phi_steps(phi_steps),
+        : m_theta_steps(n_theta),
+          m_phi_steps(n_phi),
           m_origin(trk_origin),
           m_mom_mag(trk_mom),
           i_phi(0),
