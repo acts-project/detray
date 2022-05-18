@@ -15,7 +15,6 @@ detray_add_library( detray_core core
    "include/detray/core/detail/tuple_vector_container.hpp"
    "include/detray/core/detector.hpp"
    "include/detray/core/mask_store.hpp"
-   "include/detray/core/material_store.hpp"
    "include/detray/core/surfaces_finder.hpp"
    "include/detray/core/transform_store.hpp"
    "include/detray/core/type_registry.hpp"
