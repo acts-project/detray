@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
-#include "tests/common/tools_helix_gun.inl"
+#include "tests/common/tools_particle_gun.inl"

@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/plugins/algebra/array_definitions.hpp"
-#include "tests/common/tools_helix_gun.inl"
+#include "detray/plugins/algebra/eigen_definitions.hpp"
+#include "tests/common/tools_particle_gun.inl"

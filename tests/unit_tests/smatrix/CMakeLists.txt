@@ -6,17 +6,19 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( smatrix
-   "smatrix_actor_chain.cpp" "smatrix_annulus2.cpp" "smatrix_container.cpp" "smatrix_core.cpp" 
-   "smatrix_covariance_engine.cpp" "smatrix_cylinder_intersection.cpp" 
-   "smatrix_cylinder3.cpp" "smatrix_detector.cpp" "smatrix_geometry_volume_graph.cpp" 
-   "smatrix_geometry_linking.cpp"  "smatrix_geometry_navigation.cpp" 
-   "smatrix_geometry_scan.cpp" "smatrix_guided_navigator.cpp" "smatrix_helix_gun.cpp" 
-   "smatrix_intersection_kernel.cpp" "smatrix_mask_store.cpp" "smatrix_materials.cpp" 
-   "smatrix_navigator.cpp" "smatrix_planar_intersection.cpp" "smatrix_propagator.cpp"
+   "smatrix_actor_chain.cpp" "smatrix_annulus2.cpp" "smatrix_container.cpp"
+   "smatrix_core.cpp" "smatrix_covariance_engine.cpp"
+   "smatrix_cylinder_intersection.cpp" "smatrix_cylinder3.cpp"
+   "smatrix_detector.cpp" "smatrix_geometry_volume_graph.cpp"
+   "smatrix_geometry_linking.cpp"  "smatrix_geometry_navigation.cpp"
+   "smatrix_geometry_scan.cpp" "smatrix_guided_navigator.cpp"
+   "smatrix_particle_gun.cpp" "smatrix_intersection_kernel.cpp"
+   "smatrix_mask_store.cpp" "smatrix_materials.cpp" "smatrix_navigator.cpp"
+   "smatrix_planar_intersection.cpp" "smatrix_propagator.cpp"
    "smatrix_rectangle2.cpp" "smatrix_ring2.cpp"
-   "smatrix_single3.cpp" "smatrix_stepper.cpp" "smatrix_surfaces_finder.cpp" 
-   "smatrix_telescope_detector.cpp" "smatrix_toy_geometry.cpp" 
-   "smatrix_track.cpp" "smatrix_transform_store.cpp" 
+   "smatrix_single3.cpp" "smatrix_stepper.cpp" "smatrix_surfaces_finder.cpp"
+   "smatrix_telescope_detector.cpp" "smatrix_toy_geometry.cpp"
+   "smatrix_track.cpp" "smatrix_transform_store.cpp"
    "smatrix_trapezoid2.cpp" "smatrix_unmasked.cpp" "smatrix_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::smatrix )
 

@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 #include <utility>
 
 #include "detray/definitions/qualifiers.hpp"
@@ -33,7 +34,7 @@ struct uniform_track_generator {
     /// Start and end of angle space
     std::size_t m_theta_steps{50};
     std::size_t m_phi_steps{50};
-    scalar m_phi{0}, m_theta{0};
+    scalar m_phi{-M_PI}, m_theta{0.01};
 
     /// Track params
     point3 m_origin{0., 0., 0.};
@@ -65,18 +66,19 @@ struct uniform_track_generator {
           i_phi(0),
           i_theta(0) {}
 
-    /// @returns generator in starting state
+    /// @returns generator in starting state: Default values resolve the first
+    /// phi angle iteration.
     DETRAY_HOST_DEVICE
-    auto begin() {
-        i_phi = 0;
+    auto begin() -> uniform_track_generator {
+        i_phi = 1;
         i_theta = 0;
         return *this;
     }
 
     /// @returns generator in end state
     DETRAY_HOST_DEVICE
-    auto end() {
-        i_phi = m_phi_steps;
+    auto end() -> uniform_track_generator {
+        i_phi = 1;
         i_theta = m_theta_steps;
         return *this;
     }
@@ -91,26 +93,26 @@ struct uniform_track_generator {
 
     /// Iterate through angle space according to given step sizes.
     DETRAY_HOST_DEVICE
-    void operator++() {
+    auto operator++() -> uniform_track_generator {
+        scalar pi{M_PI};
         // Check theta range according to step size
         if (i_theta < m_theta_steps) {
-            // Calculate theta ]0,pi[
-            m_theta = 0.01 + i_theta * (M_PI - 0.01) / m_theta_steps;
             // Check phi sub-range
             if (i_phi < m_phi_steps) {
-                // Calculate phi [-pi, pi]
-                m_phi = -M_PI + i_phi * (2 * M_PI) / m_phi_steps;
+                // Calculate new phi [-pi, pi]
+                m_phi = -pi + i_phi * (scalar{2} * pi) / m_phi_steps;
                 ++i_phi;
-                // Don't update theta while phi sub-range is not done
-                return;
+                return *this;
             }
             // Reset phi range
-            i_phi = 0;
+            i_phi = 1;
+            m_phi = -M_PI;
+            // Calculate new theta ]0,pi[
             ++i_theta;
-        } else {
-            // This got reset to zero in last pass
-            i_phi = m_phi_steps;
+            m_theta =
+                scalar{0.01} + i_theta * (pi - scalar{0.01}) / m_theta_steps;
         }
+        return *this;
     }
 
     /// Genrate the track instance
