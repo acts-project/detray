@@ -33,7 +33,7 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
                                             print_inspector>;
     using navigator_t = navigator<decltype(det), inspector_t>;
-    using stepper_t = line_stepper<ray>;
+    using stepper_t = line_stepper<free_track_parameters>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
@@ -49,13 +49,14 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
     for (const auto test_ray :
          uniform_track_generator<ray>(theta_steps, phi_steps, ori)) {
 
-        // Now follow that ray and check, if we find the same
-        // volumes and distances along the way
+        // Shoot ray through the detector and record all surfaces it encounters
         const auto intersection_trace =
             particle_gun::shoot_particle(det, test_ray);
 
-        // free_track_parameters track(test_ray.pos(), 0, test_ray.dir(), -1);
-        propagator_t::state propagation(test_ray);
+        // Now follow that ray with a track and check, if we find the same
+        // volumes and distances along the way
+        free_track_parameters track(test_ray.pos(), 0, test_ray.dir(), -1);
+        propagator_t::state propagation(track);
 
         prop.propagate(propagation);
 

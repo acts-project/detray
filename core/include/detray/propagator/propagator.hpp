@@ -61,7 +61,8 @@ struct propagator {
 
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state(
-            const bound_track_parameters &param, const transform3 &trf3,
+            const bound_track_parameters &param,
+            const typename stepper_t::transform3 &trf3,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(param, trf3),

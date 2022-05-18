@@ -24,6 +24,7 @@
 using namespace detray;
 using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
+using transform3 = __plugin::transform3<scalar>;
 
 // This tests the construction of a surface
 TEST(tools, intersection_kernel_single) {

@@ -15,13 +15,13 @@
 
 namespace detray {
 
-/// @brief Genrates track states with momentum directions in a uniform angle
+/// @brief Generates track states with momentum directions in a uniform angle
 /// space.
 ///
 /// It generates the track instances on the fly according to given parameters
 /// and with the momentum direction determined by phi and theta angles, which
-/// are generated as the iteration proceeds. The stepsizes in the angle space
-/// spans theta ]0,pi[ x phi [-pi, pi], while the step sizes (and with them
+/// are advanced as the iteration proceeds. The angle space spans
+/// theta ]0, pi[ x phi [-pi, pi], while the step sizes (and with them
 /// the number of generated tracks) are configurable.
 ///
 /// @tparam track_t the type of track parametrization that should be used.
@@ -36,8 +36,10 @@ struct uniform_track_generator {
     scalar m_phi{0}, m_theta{0};
 
     /// Track params
-    point3 m_origin{};
-    scalar m_mom_mag = 10. * unit_constants::GeV;
+    point3 m_origin{0., 0., 0.};
+    /// Magnitude of momentum: Default is one to keep directions normalized if
+    /// no momentum information is needed (e.g. for a ray)
+    scalar m_mom_mag = 1. * unit_constants::GeV;
 
     /// Iteration indices
     std::size_t i_phi{0}, i_theta{0};
@@ -55,7 +57,7 @@ struct uniform_track_generator {
     DETRAY_HOST_DEVICE
     uniform_track_generator(std::size_t n_theta, std::size_t n_phi,
                             point3 trk_origin = {},
-                            scalar trk_mom = 10. * unit_constants::GeV)
+                            scalar trk_mom = 1. * unit_constants::GeV)
         : m_theta_steps(n_theta),
           m_phi_steps(n_phi),
           m_origin(trk_origin),
@@ -124,5 +126,87 @@ struct uniform_track_generator {
         return track_t{m_origin, 0, mom, -1};
     }
 };
+
+/// @brief Generates track states with random momentum directions.
+///
+///
+///
+/// @tparam track_t the type of track parametrization that should be used.
+/*template <typename track_t, typename random_nr_generator_t>
+struct random_track_generator {
+    using point3 = __plugin::point3<detray::scalar>;
+    using vector3 = __plugin::vector3<detray::scalar>;
+
+    /// Start and end of angle space
+    scalar m_phi{0}, m_theta{0};
+
+    /// Track params
+    point3 m_origin{0., 0., 0.};
+    /// Magnitude of momentum: Default is one to keep directions normalized if
+    /// no momentum information is needed (e.g. for a ray)
+    scalar m_mom_mag = 1. * unit_constants::GeV;
+
+    /// Iteration indices
+    std::size_t m_n_tracks{50*50};
+    std::size_t i_track{0};
+
+    /// Default constructor
+    DETRAY_HOST_DEVICE
+    random_track_generator() = default;
+
+    /// Paramtetrized constructor for fine-grained configurations
+    ///
+    /// @param theta_steps the number of steps in the theta space
+    /// @param phi_steps the number of steps in the phi space
+    /// @param trk_origin the starting point of the track
+    /// @param trk_mom magnitude of the track momentum
+    DETRAY_HOST_DEVICE
+    random_track_generator(std::size_t n_tracks, point3 trk_origin = {},
+                           scalar trk_mom = 1. * unit_constants::GeV)
+        : m_n_tracks(n_tracks),
+          m_origin(trk_origin),
+          m_mom_mag(trk_mom),
+          i_track(0)
+          {}
+
+    /// @returns generator in starting state
+    DETRAY_HOST_DEVICE
+    auto begin() {
+        i_track = 0;
+        return *this;
+    }
+
+    /// @returns generator in end state
+    DETRAY_HOST_DEVICE
+    auto end() {
+        i_track = m_n_tracks;
+        return *this;
+    }
+
+    /// @returns whether we reached end of angle space
+    DETRAY_HOST_DEVICE
+    bool operator!=(const uniform_track_generator &rhs) const {
+        return not(rhs.m_n_tracks == m_n_tracks and rhs.i_track == i_track);
+    }
+
+    /// Iterate through angle space according to given step sizes.
+    DETRAY_HOST_DEVICE
+    void operator++() {
+        ...
+    }
+
+    /// Genrate the track instance
+    DETRAY_HOST_DEVICE
+    track_t operator*() const {
+        // Momentum direction from angles
+        vector3 mom{std::cos(m_phi) * std::sin(m_theta),
+                    std::sin(m_phi) * std::sin(m_theta), std::cos(m_theta)};
+        // Magnitude of momentum
+        vector::normalize(mom);
+        mom = m_mom_mag * mom;
+
+        return track_t{m_origin, 0, mom, -1};
+    }
+};*/
 
 }  // namespace detray
