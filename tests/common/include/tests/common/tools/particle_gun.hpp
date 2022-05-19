@@ -274,38 +274,6 @@ struct particle_gun {
 
     using intersection_t = line_plane_intersection;
 
-    /// @brief Intersection implementation for helical trajectories.
-    ///
-    /// The algorithm uses the Newton-Raphson method to find an intersection on
-    /// the unbounded surface and then applies the mask.
-    ///
-    /// @return the intersection.
-    template <typename surface_t, typename transform_container,
-              typename mask_container>
-    DETRAY_HOST_DEVICE inline static auto intersect_traj(
-        const helix &h, surface_t &surface,
-        const transform_container &contextual_transforms,
-        const mask_container &masks) -> intersection_t {
-        ray r(h.pos(1), 0, h.dir(1), -1);
-        // Use 'intersect' function from 'intersection_kernel'
-        return intersect(r, surface, contextual_transforms, masks);
-    }
-
-    /// @brief Intersection implementation for straight line intersection.
-    ///
-    /// Uses the detray intersection kernel.
-    ///
-    /// @return the intersection.
-    template <typename surface_t, typename transform_container,
-              typename mask_container>
-    DETRAY_HOST_DEVICE inline static auto intersect_traj(
-        const ray &r, surface_t &surface,
-        const transform_container &contextual_transforms,
-        const mask_container &masks) -> intersection_t {
-        // Use 'intersect' function from 'intersection_kernel'
-        return intersect(r, surface, contextual_transforms, masks);
-    }
-
     /// Intersect all surfaces in a detector with a given ray.
     ///
     /// @param detector the detector.
@@ -324,8 +292,8 @@ struct particle_gun {
             for (const auto [sf_idx, sf] :
                  enumerate(detector.surfaces(), volume)) {
                 // Retrieve candidate from the surface
-                auto sfi = intersect_traj(traj, sf, detector.transform_store(),
-                                          detector.mask_store());
+                auto sfi = intersect(traj, sf, detector.transform_store(),
+                                     detector.mask_store());
 
                 // Candidate is invalid if it oversteps too far (this is neg!)
                 if (sfi.path < traj.overstep_tolerance()) {
@@ -349,6 +317,137 @@ struct particle_gun {
                   sort_path);
 
         return intersection_record;
+    }
+
+    /// Wrap the @c intersection_kernel intersect function for rays
+    template <typename surface_t, typename transform_container,
+              typename mask_container>
+    DETRAY_HOST_DEVICE static inline auto intersect(
+        const ray &r, surface_t &surface,
+        const transform_container &contextual_transforms,
+        const mask_container &masks) {
+        return detray::intersect(r, surface, contextual_transforms, masks);
+    }
+
+    /// Start helix intersection unrolling. See documentation of the detray
+    /// intersection kernel
+    template <typename surface_t, typename transform_container,
+              typename mask_container>
+    DETRAY_HOST_DEVICE static inline auto intersect(
+        const helix &h, surface_t &surface,
+        const transform_container &contextual_transforms,
+        const mask_container &masks) {
+        // Gather all information to perform intersections
+        const auto &ctf = contextual_transforms[surface.transform()];
+        const auto volume_index = surface.volume();
+        const auto mask_id = surface.mask_type();
+        const auto &mask_range = surface.mask_range();
+
+        // No intersectors available for non-planar surfaces
+        if (surface.is_portal()) {
+            return intersection_t{};
+        }
+        // Unroll the intersection depending on the mask container size
+        using mask_defs = typename surface_t::mask_defs;
+
+        return unroll_helix_intersect(
+            h, ctf, masks, mask_range, mask_id, volume_index,
+            std::make_integer_sequence<unsigned int, mask_defs::n_types>{});
+    }
+
+    /// Helix version of the intersection unrolling. Calls the
+    /// @c helix_intersector of this class instead of the mask's native
+    /// intersector.
+    template <typename transform_t, typename mask_container_t,
+              typename mask_range_t, unsigned int first_mask_id,
+              unsigned int... remaining_mask_ids>
+    DETRAY_HOST_DEVICE static inline auto unroll_helix_intersect(
+        const helix &h, const transform_t &ctf, const mask_container_t &masks,
+        const mask_range_t &mask_range,
+        const typename mask_container_t::id_type mask_id, dindex volume_index,
+        std::integer_sequence<unsigned int, first_mask_id,
+                              remaining_mask_ids...>
+        /*available_ids*/) {
+
+        // Pick the first one for interseciton
+        if (mask_id == first_mask_id) {
+
+            auto &mask_group =
+                masks.template group<mask_container_t::to_id(first_mask_id)>();
+
+            // Check all masks of this surface for intersection with the helix
+            for (const auto &mask : range(mask_group, mask_range)) {
+                auto sfi = std::move(helix_intersect(ctf, h, mask));
+
+                if (sfi.status == intersection::status::e_inside) {
+                    sfi.index = volume_index;
+                    return sfi;
+                }
+            }
+        }
+
+        // The reduced integer sequence
+        std::integer_sequence<unsigned int, remaining_mask_ids...> remaining;
+
+        // Unroll as long as you have at least 1 entries
+        if constexpr (remaining.size() >= 1) {
+            return (unroll_helix_intersect(h, ctf, masks, mask_range, mask_id,
+                                           volume_index, remaining));
+        }
+
+        // No intersection was found
+        return intersection_t{};
+    }
+
+    /// @brief Intersection implementation for helical trajectories.
+    ///
+    /// The algorithm uses the Newton-Raphson method to find an intersection on
+    /// the unbounded surface and then applies the mask.
+    ///
+    /// @return the intersection.
+    template <typename transform_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline static auto helix_intersector(
+        const transform_t &trf, const helix &h, const mask_t &mask,
+        const typename mask_t::mask_tolerance tolerance =
+            mask_t::within_epsilon) -> intersection_t {
+
+        using local_frame = typename mask_t::local_type;
+
+        // Get the surface info
+        const auto &sm = trf.matrix();
+        auto sn = getter::vector<3>(sm, 0, 2);
+        auto st = getter::vector<3>(sm, 0, 3);
+
+        // starting point on the helix for the Newton iteration
+        scalar epsilon = 0.001;
+        scalar s{getter::norm(st)};
+
+        // Guard against inifinite loops
+        std::size_t n_tries{0};
+        std::size_t max_n_tries = 1000;
+
+        // Run the iteration on s
+        while (s > epsilon and n_tries < max_n_tries) {
+            s -= vector::dot(sn, h.pos(s) - st) / vector::dot(sn, h.dir(s));
+            ++n_tries;
+        }
+        // No intersection found within max number of trials
+        if (n_tries == max_n_tries) {
+            return intersection_t{};
+        }
+
+        // Build intersection struct from helix parameter s
+        intersection_t is;
+        is.path = getter::norm(h.pos(s));
+        is.p3 = h.pos(s);
+        constexpr local_frame local_converter{};
+        is.p2 = local_converter(trf, is.p3);
+        is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
+        is.direction = is.path > h.overstep_tolerance()
+                           ? intersection::direction::e_along
+                           : intersection::direction::e_opposite;
+        is.link = mask.volume_link();
+        return is;
     }
 };
 
