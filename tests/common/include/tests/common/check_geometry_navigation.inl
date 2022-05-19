@@ -10,10 +10,12 @@
 #include <sstream>
 #include <vecmem/memory/host_memory_resource.hpp>
 
+#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
+#include "detray/propagator/rk_stepper.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/particle_gun.hpp"
@@ -21,9 +23,9 @@
 
 using namespace detray;
 
-/// This test runs intersection with all portals of the toy detector
-// TODO: use runge-kutta stepping
-TEST(ALGEBRA_PLUGIN, geometry_discovery) {
+/// This test runs intersection with all portals of the toy detector with a ray
+/// and then compares the intersection trace with a straight line navigation.
+TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     using namespace navigation;
 
     vecmem::host_memory_resource host_mr;
@@ -99,5 +101,38 @@ TEST(ALGEBRA_PLUGIN, geometry_discovery) {
                       intersection_trace[intr_idx].first)
                 << debug_printer.to_string() << debug_stream.str();
         }
+    }
+}
+
+TEST(ALGEBRA_PLUGIN, helix_navigation) {
+    using namespace navigation;
+
+    vecmem::host_memory_resource host_mr;
+    auto det = create_toy_geometry(host_mr);
+
+    // Create the navigator
+    using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
+                                            print_inspector>;
+    using navigator_t = navigator<decltype(det), inspector_t>;
+    using mag_field_t = constant_magnetic_field<>;
+    using stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
+
+    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
+                    2. * unit_constants::T};
+    mag_field_t b_field(B);
+
+    // Propagator
+    propagator_t prop(stepper_t{b_field}, navigator_t{det});
+
+    unsigned int theta_steps = 1;
+    unsigned int phi_steps = 1;
+
+    const point3 ori{0., 0., 0.};
+
+    // Iterate through uniformly distributed momentum directions
+    for (const auto test_track : uniform_track_generator<free_track_parameters>(
+             theta_steps, phi_steps, ori)) {
+        helix h2(test_track, &B);
     }
 }

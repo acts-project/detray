@@ -63,7 +63,7 @@ class ray {
 /// Helix class for the analytical solution of track propagation in
 /// homogeneous B field. This Follows the notation of Eq (4.7) in
 /// DOI:10.1007/978-3-030-65771-0
-class helix {
+class helix : free_track_parameters {
     public:
     using point3 = __plugin::point3<scalar>;
     using vector3 = __plugin::vector3<scalar>;
@@ -77,16 +77,27 @@ class helix {
 
     /// Parametrized constructor
     ///
-    /// @param vertex the helix origin
-    /// @param mag_fied the magnetic field
+    /// @param pos the the origin of the helix
+    /// @param time the time parameter
+    /// @param dir the initial direction of momentum for the helix
+    /// @param q the charge of the particle
+    /// @param mag_field the magnetic field vector
+    helix(point3 pos, scalar time, vector3 dir, scalar q,
+          vector3 const *const mag_field)
+        : free_track_parameters(pos, time, dir, q), _mag_field(mag_field) {}
+
+    /// Parametrized constructor
+    ///
+    /// @param vertex the underlying track parametrization
+    /// @param mag_fied the magnetic field vector
     helix(const free_track_parameters vertex, vector3 const *const mag_field)
-        : _vertex(vertex), _mag_field(mag_field) {
+        : free_track_parameters(vertex), _mag_field(mag_field) {
 
         // Normalized B field
         _h0 = vector::normalize(*_mag_field);
 
         // Normalized tangent vector
-        _t0 = vector::normalize(vertex.mom());
+        _t0 = vector::normalize(free_track_parameters::mom());
 
         // Normalized _h0 X _t0
         _n0 = vector::normalize(vector::cross(_h0, _t0));
@@ -98,13 +109,13 @@ class helix {
         _delta = vector::dot(_h0, _t0);
 
         // Path length scaler
-        _K = -1. * vertex.qop() * getter::norm(*_mag_field);
+        _K = -1. * free_track_parameters::qop() * getter::norm(*_mag_field);
 
         // Get longitudinal momentum parallel to B field
-        scalar pz = vector::dot(vertex.mom(), _h0);
+        scalar pz = vector::dot(mom(), _h0);
 
         // Get transverse momentum perpendicular to B field
-        vector3 pT = vertex.mom() - pz * _h0;
+        vector3 pT = free_track_parameters::mom() - pz * _h0;
 
         // R [mm] =  pT [GeV] / B [T] in natrual unit
         _R = getter::norm(pT) / getter::norm(*_mag_field);
@@ -129,10 +140,10 @@ class helix {
 
         // Handle the case of pT ~ 0
         if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
-            return _vertex.pos() + s * _h0;
+            return free_track_parameters::pos() + s * _h0;
         }
 
-        point3 ret = _vertex.pos();
+        point3 ret = free_track_parameters::pos();
         ret = ret + _delta / _K * (_K * s - std::sin(_K * s)) * _h0;
         ret = ret + std::sin(_K * s) / _K * _t0;
         ret = ret + _alpha / _K * (1 - std::cos(_K * s)) * _n0;
@@ -145,7 +156,7 @@ class helix {
 
         // Handle the case of pT ~ 0
         if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
-            return _vertex.dir();
+            return free_track_parameters::dir();
         }
 
         vector3 ret{0, 0, 0};
@@ -206,13 +217,14 @@ class helix {
         matrix_operator().set_block(ret, dtdt, 4, 4);
 
         // Get drdl
-        vector3 drdl = 1 / _vertex.qop() *
-                       (s * this->dir(s) + _vertex.pos() - this->pos(s));
+        vector3 drdl =
+            1 / free_track_parameters::qop() *
+            (s * this->dir(s) + free_track_parameters::pos() - this->pos(s));
 
         matrix_operator().set_block(ret, drdl, 0, 7);
 
         // Get dtdl
-        vector3 dtdl = _alpha * _K * s / _vertex.qop() * _n0;
+        vector3 dtdl = _alpha * _K * s / free_track_parameters::qop() * _n0;
 
         matrix_operator().set_block(ret, dtdl, 4, 7);
 
@@ -224,9 +236,6 @@ class helix {
     }
 
     private:
-    /// origin of particle
-    free_track_parameters _vertex;
-
     /// B field
     vector3 const *_mag_field;
 
@@ -265,7 +274,28 @@ struct particle_gun {
 
     using intersection_t = line_plane_intersection;
 
-    /// Intersection implementation for straight line intersection
+    /// @brief Intersection implementation for helical trajectories.
+    ///
+    /// The algorithm uses the Newton-Raphson method to find an intersection on
+    /// the unbounded surface and then applies the mask.
+    ///
+    /// @return the intersection.
+    template <typename surface_t, typename transform_container,
+              typename mask_container>
+    DETRAY_HOST_DEVICE inline static auto intersect_traj(
+        const helix &h, surface_t &surface,
+        const transform_container &contextual_transforms,
+        const mask_container &masks) -> intersection_t {
+        ray r(h.pos(1), 0, h.dir(1), -1);
+        // Use 'intersect' function from 'intersection_kernel'
+        return intersect(r, surface, contextual_transforms, masks);
+    }
+
+    /// @brief Intersection implementation for straight line intersection.
+    ///
+    /// Uses the detray intersection kernel.
+    ///
+    /// @return the intersection.
     template <typename surface_t, typename transform_container,
               typename mask_container>
     DETRAY_HOST_DEVICE inline static auto intersect_traj(
@@ -278,11 +308,11 @@ struct particle_gun {
 
     /// Intersect all surfaces in a detector with a given ray.
     ///
-    /// @param detector the detector
-    /// @param traj the trajectory to be shot through the detector
+    /// @param detector the detector.
+    /// @param traj the trajectory to be shot through the detector.
     ///
     /// @return a sorted vector of volume indices with the corresponding
-    ///         intersections of the surfaces that were encountered
+    ///         intersections of the surfaces that were encountered.
     template <typename detector_t, typename trajectory_t>
     DETRAY_HOST_DEVICE inline static auto shoot_particle(
         const detector_t &detector, const trajectory_t &traj) {
