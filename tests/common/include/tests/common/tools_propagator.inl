@@ -22,7 +22,7 @@
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
-#include "tests/common/tools/particle_gun.hpp"
+#include "tests/common/tools/test_trajectories.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;

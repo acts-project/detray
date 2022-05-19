@@ -103,6 +103,4 @@ TEST(tools, intersection_kernel_single) {
         ASSERT_NEAR(sfi.p3[2], expected_points[it][2], 1e-7);
         ++it;
     }
-
-    return;
 }

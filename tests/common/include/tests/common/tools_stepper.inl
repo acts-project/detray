@@ -15,7 +15,7 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
-#include "tests/common/tools/particle_gun.hpp"
+#include "tests/common/tools/test_trajectories.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
 // google-test include(s)

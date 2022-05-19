@@ -9,263 +9,18 @@
 
 // system include
 #include <cmath>
+#include <iostream>
 #include <utility>
 
 // detray include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
-#include "detray/propagator/track.hpp"
-#include "detray/utils/algebra_helpers.hpp"
+#include "detray/intersection/planar_intersector.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "tests/common/tools/track_generators.hpp"
+#include "tests/common/tools/test_trajectories.hpp"
 
 namespace detray {
-
-/// @brief describes a straight-line trajectory
-class ray {
-    public:
-    using point3 = __plugin::point3<detray::scalar>;
-    using vector3 = __plugin::vector3<detray::scalar>;
-
-    /// Parametrized constructor that complies with track interface
-    ///
-    /// @param pos the track position
-    /// @param dir the track momentum direction
-    ray(point3 pos, scalar /*time*/, vector3 dir, scalar /*q*/)
-        : _pos(pos), _dir(dir) {}
-
-    /// @returns position on the ray
-    DETRAY_HOST_DEVICE point3 pos() const { return _pos; }
-
-    /// @param position new position on the ray
-    DETRAY_HOST_DEVICE void set_pos(point3 position) { _pos = position; }
-
-    /// @returns direction of the ray
-    DETRAY_HOST_DEVICE vector3 dir() const { return _dir; }
-
-    /// @returns overstep tolerance to comply with track interface
-    DETRAY_HOST_DEVICE
-    scalar overstep_tolerance() const { return _overstep_tolerance; }
-
-    private:
-    /// origin of ray
-    point3 _pos{0., 0., 0.};
-    /// direction of ray
-    vector3 _dir{0., 0., 0.};
-
-    /// Overstep tolerance on a geomtry surface
-    scalar _overstep_tolerance = -1e-4;
-};
-
-/// @brief describes a helical trajectory in a given B-field.
-///
-/// Helix class for the analytical solution of track propagation in
-/// homogeneous B field. This Follows the notation of Eq (4.7) in
-/// DOI:10.1007/978-3-030-65771-0
-class helix : free_track_parameters {
-    public:
-    using point3 = __plugin::point3<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
-    using vector2 = __plugin::vector2<scalar>;
-    using matrix_operator = standard_matrix_operator<scalar>;
-    using size_type = __plugin::size_type;
-    template <size_type ROWS, size_type COLS>
-    using matrix_type = __plugin::matrix_type<scalar, ROWS, COLS>;
-
-    helix() = delete;
-
-    /// Parametrized constructor
-    ///
-    /// @param pos the the origin of the helix
-    /// @param time the time parameter
-    /// @param dir the initial direction of momentum for the helix
-    /// @param q the charge of the particle
-    /// @param mag_field the magnetic field vector
-    helix(point3 pos, scalar time, vector3 dir, scalar q,
-          vector3 const *const mag_field)
-        : free_track_parameters(pos, time, dir, q), _mag_field(mag_field) {}
-
-    /// Parametrized constructor
-    ///
-    /// @param vertex the underlying track parametrization
-    /// @param mag_fied the magnetic field vector
-    helix(const free_track_parameters vertex, vector3 const *const mag_field)
-        : free_track_parameters(vertex), _mag_field(mag_field) {
-
-        // Normalized B field
-        _h0 = vector::normalize(*_mag_field);
-
-        // Normalized tangent vector
-        _t0 = vector::normalize(free_track_parameters::mom());
-
-        // Normalized _h0 X _t0
-        _n0 = vector::normalize(vector::cross(_h0, _t0));
-
-        // Magnitude of _h0 X _t0
-        _alpha = getter::norm(vector::cross(_h0, _t0));
-
-        // Dot product of _h0 X _t0
-        _delta = vector::dot(_h0, _t0);
-
-        // Path length scaler
-        _K = -1. * free_track_parameters::qop() * getter::norm(*_mag_field);
-
-        // Get longitudinal momentum parallel to B field
-        scalar pz = vector::dot(mom(), _h0);
-
-        // Get transverse momentum perpendicular to B field
-        vector3 pT = free_track_parameters::mom() - pz * _h0;
-
-        // R [mm] =  pT [GeV] / B [T] in natrual unit
-        _R = getter::norm(pT) / getter::norm(*_mag_field);
-
-        // Handle the case of pT ~ 0
-        if (getter::norm(pT) < 1e-6) {
-            _vz_over_vt = std::numeric_limits<scalar>::infinity();
-        } else {
-            // Get vz over vt in new coordinate
-            _vz_over_vt = pz / getter::norm(pT);
-        }
-    }
-
-    /// @returns radius of helix
-    scalar radius() const { return _R; }
-
-    /// @returns position after propagating the path length of s
-    point3 operator()(scalar s) const { return this->pos(s); }
-
-    /// @returns position after propagating the path length of s
-    point3 pos(scalar s) const {
-
-        // Handle the case of pT ~ 0
-        if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
-            return free_track_parameters::pos() + s * _h0;
-        }
-
-        point3 ret = free_track_parameters::pos();
-        ret = ret + _delta / _K * (_K * s - std::sin(_K * s)) * _h0;
-        ret = ret + std::sin(_K * s) / _K * _t0;
-        ret = ret + _alpha / _K * (1 - std::cos(_K * s)) * _n0;
-
-        return ret;
-    }
-
-    /// @returns tangential vector after propagating the path length of s
-    vector3 dir(scalar s) const {
-
-        // Handle the case of pT ~ 0
-        if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
-            return free_track_parameters::dir();
-        }
-
-        vector3 ret{0, 0, 0};
-
-        ret = ret + _delta * (1 - std::cos(_K * s)) * _h0;
-        ret = ret + std::cos(_K * s) * _t0;
-        ret = ret + _alpha * std::sin(_K * s) * _n0;
-
-        return ret;
-    }
-
-    /// @returns overstep tolerance
-    DETRAY_HOST_DEVICE
-    scalar overstep_tolerance() const { return _overstep_tolerance; }
-
-    /// @returns transport jacobian after propagating the path length of s
-    free_matrix jacobian(scalar s) const {
-
-        free_matrix ret =
-            matrix_operator().template zero<e_free_size, e_free_size>();
-
-        const matrix_type<3, 3> I33 =
-            matrix_operator().template identity<3, 3>();
-        const matrix_type<3, 3> Z33 = matrix_operator().template zero<3, 3>();
-
-        // Get drdr
-        auto drdr = I33;
-        matrix_operator().set_block(ret, drdr, 0, 0);
-
-        // Get dtdr
-        auto dtdr = Z33;
-        matrix_operator().set_block(ret, dtdr, 4, 0);
-
-        // Get drdt
-        auto drdt = Z33;
-
-        drdt = drdt + std::sin(_K * s) / _K * I33;
-
-        const auto H0 = column_wise_op<scalar>().multiply(I33, _h0);
-        drdt = drdt + (_K * s - std::sin(_K * s)) / _K *
-                          column_wise_op<scalar>().multiply(
-                              matrix_operator().transpose(H0), _h0);
-
-        drdt = drdt + (std::cos(_K * s) - 1) / _K *
-                          column_wise_op<scalar>().cross(I33, _h0);
-
-        matrix_operator().set_block(ret, drdt, 0, 4);
-
-        // Get dtdt
-        auto dtdt = Z33;
-        dtdt = dtdt + std::cos(_K * s) * I33;
-        dtdt = dtdt + (1 - std::cos(_K * s)) *
-                          column_wise_op<scalar>().multiply(
-                              matrix_operator().transpose(H0), _h0);
-        dtdt =
-            dtdt - std::sin(_K * s) * column_wise_op<scalar>().cross(I33, _h0);
-
-        matrix_operator().set_block(ret, dtdt, 4, 4);
-
-        // Get drdl
-        vector3 drdl =
-            1 / free_track_parameters::qop() *
-            (s * this->dir(s) + free_track_parameters::pos() - this->pos(s));
-
-        matrix_operator().set_block(ret, drdl, 0, 7);
-
-        // Get dtdl
-        vector3 dtdl = _alpha * _K * s / free_track_parameters::qop() * _n0;
-
-        matrix_operator().set_block(ret, dtdl, 4, 7);
-
-        // 3x3 and 7x7 element is 1 (Maybe?)
-        matrix_operator().element(ret, 3, 3) = 1;
-        matrix_operator().element(ret, 7, 7) = 1;
-
-        return ret;
-    }
-
-    private:
-    /// B field
-    vector3 const *_mag_field;
-
-    /// Normalized b field
-    vector3 _h0;
-
-    /// Normalized tangent vector
-    vector3 _t0;
-
-    /// Normalized _h0 X _t0
-    vector3 _n0;
-
-    /// Magnitude of _h0 X _t0
-    scalar _alpha;
-
-    /// Dot product of _h0 X _t0
-    scalar _delta;
-
-    /// Path length scaler
-    scalar _K;
-
-    /// Radius [mm] of helix
-    scalar _R;
-
-    /// Velocity in new z axis divided by transverse velocity
-    scalar _vz_over_vt;
-
-    /// Overstep tolerance on a geomtry surface
-    scalar _overstep_tolerance = -1e-4;
-};
 
 /// @brief struct that holds functionality to shoot a ray through a detector.
 ///
@@ -350,7 +105,7 @@ struct particle_gun {
         // Unroll the intersection depending on the mask container size
         using mask_defs = typename surface_t::mask_defs;
 
-        return unroll_helix_intersect(
+        return unroll_helix_intersect<mask_defs>(
             h, ctf, masks, mask_range, mask_id, volume_index,
             std::make_integer_sequence<unsigned int, mask_defs::n_types>{});
     }
@@ -358,9 +113,9 @@ struct particle_gun {
     /// Helix version of the intersection unrolling. Calls the
     /// @c helix_intersector of this class instead of the mask's native
     /// intersector.
-    template <typename transform_t, typename mask_container_t,
-              typename mask_range_t, unsigned int first_mask_id,
-              unsigned int... remaining_mask_ids>
+    template <typename mask_defs, typename transform_t,
+              typename mask_container_t, typename mask_range_t,
+              unsigned int first_mask_id, unsigned int... remaining_mask_ids>
     DETRAY_HOST_DEVICE static inline auto unroll_helix_intersect(
         const helix &h, const transform_t &ctf, const mask_container_t &masks,
         const mask_range_t &mask_range,
@@ -371,17 +126,26 @@ struct particle_gun {
 
         // Pick the first one for interseciton
         if (mask_id == first_mask_id) {
-
-            auto &mask_group =
-                masks.template group<mask_container_t::to_id(first_mask_id)>();
+            // Get the mask id that was found
+            constexpr auto id = mask_container_t::to_id(first_mask_id);
+            auto &mask_group = masks.template group<id>();
 
             // Check all masks of this surface for intersection with the helix
             for (const auto &mask : range(mask_group, mask_range)) {
-                auto sfi = std::move(helix_intersect(ctf, h, mask));
-
-                if (sfi.status == intersection::status::e_inside) {
-                    sfi.index = volume_index;
-                    return sfi;
+                // Make sure helix_intersector is only called for planar surface
+                if constexpr (std::is_same_v<
+                                  typename mask_defs::template get_type<
+                                      id>::type::intersector_type,
+                                  planar_intersector>) {
+                    std::cout << "Intersecting planar sf with helix"
+                              << std::endl;
+                    auto sfi = helix_intersector(ctf, h, mask);
+                    std::cout << sfi.p3[0] << ", " << sfi.p3[1] << ", "
+                              << sfi.p3[2] << std::endl;
+                    if (sfi.status == intersection::status::e_inside) {
+                        sfi.index = volume_index;
+                        return sfi;
+                    }
                 }
             }
         }
@@ -391,8 +155,8 @@ struct particle_gun {
 
         // Unroll as long as you have at least 1 entries
         if constexpr (remaining.size() >= 1) {
-            return (unroll_helix_intersect(h, ctf, masks, mask_range, mask_id,
-                                           volume_index, remaining));
+            return (unroll_helix_intersect<mask_defs>(
+                h, ctf, masks, mask_range, mask_id, volume_index, remaining));
         }
 
         // No intersection was found
@@ -405,7 +169,10 @@ struct particle_gun {
     /// the unbounded surface and then applies the mask.
     ///
     /// @return the intersection.
-    template <typename transform_t, typename mask_t>
+    template <typename transform_t, typename mask_t,
+              std::enable_if_t<std::is_same_v<typename mask_t::intersector_type,
+                                              planar_intersector>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline static auto helix_intersector(
         const transform_t &trf, const helix &h, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
@@ -419,17 +186,31 @@ struct particle_gun {
         auto st = getter::vector<3>(sm, 0, 3);
 
         // starting point on the helix for the Newton iteration
-        scalar epsilon = 0.001;
-        scalar s{getter::norm(st)};
+        scalar epsilon = 1e-7;
+        scalar s{getter::norm(sn) - 0.1};
+        scalar s_prev{s - 0.2};
+        std::cout << "Starting point: " << s << std::endl;
 
         // Guard against inifinite loops
         std::size_t n_tries{0};
         std::size_t max_n_tries = 1000;
-
-        // Run the iteration on s
-        while (s > epsilon and n_tries < max_n_tries) {
-            s -= vector::dot(sn, h.pos(s) - st) / vector::dot(sn, h.dir(s));
+        const auto dir = h.pos(9.);
+        // std::cout << "normal: " << sn[0] << ", " << sn[1] << ", " << sn[2] <<
+        // std::endl; std::cout << "dir: " << dir[0] << ", " << dir[1] << ", "
+        // << dir[2] << std::endl;
+        //  Run the iteration on s
+        while (std::abs(s - s_prev) > epsilon and n_tries < max_n_tries) {
+            scalar denom = vector::dot(sn, h.dir(s));
+            if (denom == 0.) {
+                std::cout << "denom zero!" << std::endl;
+                break;
+            }
+            s_prev = s;
+            // std::cout << "denom: " << denom << std::endl;
+            s -= vector::dot(sn, h.pos(s) - st) / denom;
             ++n_tries;
+
+            std::cout << "Step: " << n_tries << ", s: " << s << std::endl;
         }
         // No intersection found within max number of trials
         if (n_tries == max_n_tries) {
