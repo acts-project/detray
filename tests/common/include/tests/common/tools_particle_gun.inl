@@ -21,92 +21,19 @@
 #include "detray/masks/masks.hpp"
 #include "detray/propagator/track.hpp"
 #include "detray/utils/enumerate.hpp"
+#include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/particle_gun.hpp"
+#include "tests/common/tools/ray_scan_utils.hpp"
 #include "tests/common/tools/test_trajectories.hpp"
 #include "tests/common/tools/track_generators.hpp"
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
-using namespace __plugin;
 
 constexpr const float epsilon = 1e-5;
 
-// This tests the base functionality of the Helix Gun
-TEST(tools, helix_trajectory) {
-
-    using vector3 = vector3<scalar>;
-    using point3 = point3<scalar>;
-
-    point3 pos{0., 0., 0.};
-    scalar time = 0.;
-    vector3 mom{1., 0., 1.};
-    scalar q = -1.;
-
-    // vertex
-    free_track_parameters vertex(pos, time, mom, q);
-
-    // magnetic field
-    vector3 B{0, 0, 1 * unit_constants::T};
-
-    scalar p_mag = getter::norm(mom);
-    scalar B_mag = getter::norm(B);
-    scalar pz_along = vector::dot(mom, vector::normalize(B));
-    scalar pt = std::sqrt(std::pow(p_mag, 2) - std::pow(pz_along, 2));
-
-    // helix trajectory
-    helix helix_traj(vertex, &B);
-
-    // radius of helix
-    scalar R = helix_traj.radius();
-    EXPECT_FLOAT_EQ(R, pt / B_mag);
-
-    // After half turn
-    point3 half_turn = helix_traj(p_mag / B_mag * M_PI);
-
-    EXPECT_NEAR(half_turn[0], 0., R * epsilon);
-    EXPECT_NEAR(half_turn[1], 2 * R, R * epsilon);
-    EXPECT_NEAR(half_turn[2], pz_along / B_mag * M_PI, R * epsilon);
-
-    // After one full turn
-    point3 full_turn = helix_traj(2 * p_mag / B_mag * M_PI);
-
-    EXPECT_NEAR(full_turn[0], 0., R * epsilon);
-    EXPECT_NEAR(full_turn[1], 0., R * epsilon);
-    EXPECT_NEAR(full_turn[2], 2 * pz_along / B_mag * M_PI, R * epsilon);
-}
-
-TEST(tools, helix_trajectory_small_pT) {
-
-    using vector3 = vector3<scalar>;
-    using point3 = point3<scalar>;
-
-    point3 pos{0., 0., 0.};
-    scalar time = 0.;
-    vector3 mom{0., 0., 1.};
-    scalar q = -1.;
-
-    // vertex
-    free_track_parameters vertex(pos, time, mom, q);
-
-    // magnetic field
-    vector3 B{0, 0, 1 * unit_constants::T};
-
-    // helix trajectory
-    helix helix_traj(vertex, &B);
-
-    // After 10 mm
-    scalar path_length = 10;
-    point3 helix_pos = helix_traj(path_length);
-    point3 true_pos = pos + path_length * vector::normalize(mom);
-
-    EXPECT_FLOAT_EQ(true_pos[0], helix_pos[0]);
-    EXPECT_FLOAT_EQ(true_pos[1], helix_pos[1]);
-    EXPECT_FLOAT_EQ(true_pos[2], helix_pos[2]);
-}
-
 /// Re-use the intersection kernel test for particle gun
-TEST(tools, helix_gun) {
-    using vector3 = __plugin::vector3<scalar>;
-    using point3 = __plugin::point3<scalar>;
+TEST(tools, helix_intersector) {
+
     using transform3 = __plugin::transform3<scalar>;
 
     vecmem::host_memory_resource host_mr;
@@ -129,7 +56,6 @@ TEST(tools, helix_gun) {
                    edge_t>;
     using annulus_t = annulus2<planar_intersector,
                                __plugin::cartesian2<detray::scalar>, edge_t>;
-
     using mask_defs =
         mask_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
     using mask_container_t = typename mask_defs::container_type<>;
@@ -160,18 +86,12 @@ TEST(tools, helix_gun) {
     surface_t annulus_surface(2u, {e_annulus2, 0}, 0, 2, false);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
-
     point3 pos{0., 0., 0.};
     vector3 mom{0.01, 0.01, 10.};
     ray r(pos, 0, mom, -1);
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     0.001 * unit_constants::T};
-    free_track_parameters vertex(pos, 0, mom, -1);
-    helix h(vertex, &B);
-    // const auto dir = h.pos(0.);
-
-    // std::cout << "dir: " << dir[0] << ", " << dir[1] << ", " << dir[2] <<
-    // std::endl;
+    helix h({pos, 0, mom, -1}, &B);
 
     // Validation data
     point3 expected_rectangle{0.01, 0.01, 10.};
@@ -182,104 +102,65 @@ TEST(tools, helix_gun) {
         expected_rectangle, expected_trapezoid, expected_annulus};
 
     // Try the intersection - with automated dispatching via the kernel
-    unsigned int it = 0;
-    for (const auto &_surface : surfaces) {
+    for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
         auto sfi_helix =
-            particle_gun::intersect(h, _surface, transform_store, mask_store);
+            particle_gun::intersect(h, surface, transform_store, mask_store);
 
-        ASSERT_NEAR(sfi_helix.p3[0], expected_points[it][0], 1e-7);
-        ASSERT_NEAR(sfi_helix.p3[1], expected_points[it][1], 1e-7);
-        ASSERT_NEAR(sfi_helix.p3[2], expected_points[it][2], 1e-7);
-        // std::cout << sfi_helix.p3[0] << ", " << sfi_helix.p3[1] << ", " <<
-        // sfi_helix.p3[2] << std::endl;
+        ASSERT_NEAR(sfi_helix.p3[0], expected_points[sf_idx][0], 1e-7);
+        ASSERT_NEAR(sfi_helix.p3[1], expected_points[sf_idx][1], 1e-7);
+        ASSERT_NEAR(sfi_helix.p3[2], expected_points[sf_idx][2], 1e-7);
 
         auto sfi_ray =
-            particle_gun::intersect(r, _surface, transform_store, mask_store);
-        ASSERT_NEAR(sfi_ray.p3[0], expected_points[it][0], 1e-7);
-        ASSERT_NEAR(sfi_ray.p3[1], expected_points[it][1], 1e-7);
-        ASSERT_NEAR(sfi_ray.p3[2], expected_points[it][2], 1e-7);
-        ++it;
+            particle_gun::intersect(r, surface, transform_store, mask_store);
+        ASSERT_NEAR(sfi_ray.p3[0], expected_points[sf_idx][0], 1e-7);
+        ASSERT_NEAR(sfi_ray.p3[1], expected_points[sf_idx][1], 1e-7);
+        ASSERT_NEAR(sfi_ray.p3[2], expected_points[sf_idx][2], 1e-7);
     }
 }
 
-TEST(tools, uniform_track_generator) {
+/// Intersect toy geometry and compare between ray and helix without B-field
+TEST(tools, particle_gun) {
 
-    using vector3 = __plugin::vector3<scalar>;
+    // Build the geometry
+    vecmem::host_memory_resource host_mr;
+    auto toy_det = create_toy_geometry(host_mr, 4, 7);
 
-    constexpr std::size_t phi_steps = 5;
-    constexpr std::size_t theta_steps = 5;
+    unsigned int theta_steps = 50;
+    unsigned int phi_steps = 50;
+    const point3 ori{0., 0., 0.};
 
-    std::array<vector3, phi_steps * theta_steps> momenta{};
+    // Record ray tracing
+    std::vector<std::vector<std::pair<dindex, dindex>>> expected;
+    // Iterate through uniformly distributed momentum directions with ray
+    for (const auto test_ray :
+         uniform_track_generator<ray>(theta_steps, phi_steps, ori)) {
 
-    // Loops of theta values ]0,pi[
-    for (std::size_t itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.01 + itheta * (M_PI - 0.01) / theta_steps;
-
-        // Loops of phi values [-pi, pi]
-        for (std::size_t iphi = 0; iphi < phi_steps; ++iphi) {
-            // The direction
-            scalar phi = -M_PI + iphi * (2. * M_PI) / phi_steps;
-
-            // intialize a track
-            vector3 mom{std::cos(phi) * std::sin(theta),
-                        std::sin(phi) * std::sin(theta), std::cos(theta)};
-            vector::normalize(mom);
-            free_track_parameters traj({0., 0., 0.}, 0, mom, -1);
-
-            momenta[itheta * phi_steps + iphi] = traj.mom();
-        }
+        // Record all intersections and objects along the ray
+        const auto intersection_record =
+            particle_gun::shoot_particle(toy_det, test_ray);
+        auto [portal_trace, surface_trace] =
+            trace_intersections(intersection_record, 0);
+        expected.push_back(surface_trace);
     }
 
-    // Now run the track generator and compare
-    std::size_t n_tracks = 0;
-    for (const auto track : uniform_track_generator<free_track_parameters>(
-             theta_steps, phi_steps)) {
-        vector3 &expected = momenta[n_tracks];
-        vector3 result = track.mom();
-
-        EXPECT_NEAR(getter::norm(expected - result), 0, epsilon)
-            << "Track: \n"
-            << expected[0] << "\t" << result[0] << "\n"
-            << expected[1] << "\t" << result[1] << "\n"
-            << expected[2] << "\t" << result[2] << std::endl;
-
-        ++n_tracks;
-    }
-    ASSERT_EQ(momenta.size(), n_tracks);
-
-    // Genrate rays
-    n_tracks = 0;
-    for (const auto r : uniform_track_generator<ray>(theta_steps, phi_steps)) {
-        vector3 &expected = momenta[n_tracks];
-        vector3 result = r.dir();
-
-        EXPECT_NEAR(getter::norm(expected - result), 0, epsilon)
-            << "Ray: \n"
-            << expected[0] << "\t" << result[0] << "\n"
-            << expected[1] << "\t" << result[1] << "\n"
-            << expected[2] << "\t" << result[2] << std::endl;
-
-        ++n_tracks;
-    }
-    ASSERT_EQ(momenta.size(), n_tracks);
-
-    // Generate helix trajectories
+    // simulate straight line track
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
-                    2. * unit_constants::T};
-    n_tracks = 0;
+                    0.00001 * unit_constants::T};
+    // Iterate through uniformly distributed momentum directions with helix
+    std::size_t n_tracks{0};
     for (const auto track : uniform_track_generator<free_track_parameters>(
-             theta_steps, phi_steps)) {
-        helix helix_traj(track, &B);
-        vector3 &expected = momenta[n_tracks];
-        vector3 result = helix_traj.dir(0.);
+             theta_steps, phi_steps, ori)) {
+        helix test_helix(track, &B);
 
-        EXPECT_NEAR(getter::norm(expected - result), 0, epsilon)
-            << "Helix: \n"
-            << expected[0] << "\t" << result[0] << "\n"
-            << expected[1] << "\t" << result[1] << "\n"
-            << expected[2] << "\t" << result[2] << std::endl;
+        // Record all intersections and objects along the ray
+        const auto intersection_record =
+            particle_gun::shoot_particle(toy_det, test_helix);
 
+        // EXPECT_EQ(expected[n_tracks].size(), intersection_record.size());
+        for (unsigned int i = 0; i < intersection_record.size(); ++i) {
+            EXPECT_EQ(expected[n_tracks][i + 1].first,
+                      intersection_record[i].first);
+        }
         ++n_tracks;
     }
-    ASSERT_EQ(momenta.size(), n_tracks);
 }

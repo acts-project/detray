@@ -22,12 +22,13 @@
 #include "detray/utils/enumerate.hpp"
 
 using namespace detray;
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
-using transform3 = __plugin::transform3<scalar>;
 
 // This tests the construction of a surface
 TEST(tools, intersection_kernel_single) {
+
+    using vector3 = __plugin::vector3<scalar>;
+    using point3 = __plugin::point3<scalar>;
+    using transform3 = __plugin::transform3<scalar>;
 
     vecmem::host_memory_resource host_mr;
 
@@ -94,13 +95,11 @@ TEST(tools, intersection_kernel_single) {
         expected_rectangle, expected_trapezoid, expected_annulus};
 
     // Try the intersection - with automated dispatching via the kernel
-    unsigned int it = 0;
-    for (const auto &_surface : surfaces) {
-        auto sfi = intersect(track, _surface, transform_store, mask_store);
+    for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
+        auto sfi = intersect(track, surface, transform_store, mask_store);
 
-        ASSERT_NEAR(sfi.p3[0], expected_points[it][0], 1e-7);
-        ASSERT_NEAR(sfi.p3[1], expected_points[it][1], 1e-7);
-        ASSERT_NEAR(sfi.p3[2], expected_points[it][2], 1e-7);
-        ++it;
+        ASSERT_NEAR(sfi.p3[0], expected_points[sf_idx][0], 1e-7);
+        ASSERT_NEAR(sfi.p3[1], expected_points[sf_idx][1], 1e-7);
+        ASSERT_NEAR(sfi.p3[2], expected_points[sf_idx][2], 1e-7);
     }
 }
