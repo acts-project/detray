@@ -20,6 +20,7 @@ namespace detray {
 /// @param volume_grid [in] the indexed volume grid
 ///
 template <typename detector_t,
+          typename scalar_t /* detray::scalar */,
           template <typename, std::size_t> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector>
@@ -72,13 +73,13 @@ void connect_cylindrical_volumes(
         auto &volume = d.volume_by_index(ref);
 
         // Collect portals per seed
-        vector_type<tuple_type<array_type<scalar, 2>, dindex>>
+        vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
             left_portals_info;
-        vector_type<tuple_type<array_type<scalar, 2>, dindex>>
+        vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
             upper_portals_info;
-        vector_type<tuple_type<array_type<scalar, 2>, dindex>>
+        vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
             right_portals_info;
-        vector_type<tuple_type<array_type<scalar, 2>, dindex>>
+        vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
             lower_portals_info;
 
         /// Helper method for walking up along the bins
@@ -91,7 +92,7 @@ void connect_cylindrical_volumes(
         /// @return the end position of the the walk (inside position)
         auto walk_up =
             [&](array_type<dindex, 2> start_bin,
-                vector_type<tuple_type<array_type<scalar, 2>, dindex>>
+                vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
                     &portals_info,
                 int peek, bool add_seed = false) -> array_type<dindex, 2> {
             auto running_bin = start_bin;
@@ -156,7 +157,7 @@ void connect_cylindrical_volumes(
         /// @return the end position of the the walk (inside position)
         auto walk_right =
             [&](const array_type<dindex, 2> &start_bin,
-                vector_type<tuple_type<array_type<scalar, 2>, dindex>>
+                vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
                     &portals_info,
                 int peek, bool add_seed = false,
                 bool walk_only = false) -> array_type<dindex, 2> {
@@ -237,7 +238,7 @@ void connect_cylindrical_volumes(
          *
          **/
         auto add_disc_portals =
-            [&](vector_type<tuple_type<array_type<scalar, 2>, dindex>>
+            [&](vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
                     &portals_info,
                 dindex bound_index) -> void {
             using portal_t = typename detector_t::surface_type;
@@ -245,7 +246,7 @@ void connect_cylindrical_volumes(
             // Fill in the left side portals
             if (not portals_info.empty()) {
                 // The portal transfrom is given from the left
-                __plugin::vector3<detray::scalar> _translation{
+                __plugin::vector3<scalar_t> _translation{
                     0., 0., volume_bounds[bound_index]};
 
                 // Get the mask context group and fill it
@@ -282,7 +283,7 @@ void connect_cylindrical_volumes(
          * @param bound_index
          **/
         auto add_cylinder_portal =
-            [&](vector_type<tuple_type<array_type<scalar, 2>, dindex>>
+            [&](vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>
                     &portals_info,
                 dindex bound_index) -> void {
             using portal_t = typename detector_t::surface_type;

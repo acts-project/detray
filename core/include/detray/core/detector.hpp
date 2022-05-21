@@ -77,7 +77,7 @@ class detector {
         typename metadata::template object_definitions<surface_type>;
     using surface_container = vector_t<surface_type>;
     // Volume type
-    using volume_type = volume<objects, dindex_range, array_t>;
+    using volume_type = volume<objects, detray::scalar, dindex_range, array_t>;
 
     /** Temporary container structures that are used to fill the detector.
      * The respective objects are sorted by mask type, so that they can be
@@ -142,7 +142,7 @@ class detector {
      * @return non-const reference of the new volume
      */
     DETRAY_HOST
-    volume_type &new_volume(const array_t<scalar, 6> &bounds,
+    volume_type &new_volume(const array_t<detray::scalar, 6> &bounds,
                             dindex surfaces_finder_entry = dindex_invalid) {
         volume_type &cvolume = _volumes.emplace_back(bounds);
         cvolume.set_index(_volumes.size() - 1);

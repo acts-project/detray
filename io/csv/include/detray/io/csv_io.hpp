@@ -617,7 +617,7 @@ detector_from_csv(const std::string &detector_name,
     }
 
     // Connect the cylindrical volumes
-    connect_cylindrical_volumes<detector_t, array_type, tuple_type,
+    connect_cylindrical_volumes<detector_t, detray::scalar, array_type, tuple_type,
                                 vector_type>(d, v_grid);
 
     // Add the volume grid to the detector

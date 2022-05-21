@@ -22,7 +22,7 @@ TEST(ALGEBRA_PLUGIN, volume) {
     // using sf_finder_t = dindex;
     using object_defs = object_registry<surface_t>;
     // using sf_finder_defs = default_sf_finder_registry<sf_finder_t>;
-    using volume = volume<object_defs>;
+    using volume = volume<object_defs, detray::scalar>;
 
     // Check construction, setters and getters
     darray<scalar, 6> bounds = {0., 10., -5., 5., -M_PI, M_PI};
