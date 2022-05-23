@@ -5,12 +5,11 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "../algorithm/rk_stepper_vecpar.hpp"
-
 #include <gtest/gtest.h>
 
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
+#include "../algorithm/rk_stepper_vecpar.hpp"
 #include "vecpar/all/main.hpp"
 
 TEST(rk_stepper_vecpar, bound_state_mng_mr) {

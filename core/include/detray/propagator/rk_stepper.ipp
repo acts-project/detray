@@ -13,9 +13,9 @@
 
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
           typename policy_t, template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE
-void detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
-                        array_t>::state::advance_derivative() {
+DETRAY_HOST_DEVICE void
+detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
+                   array_t>::state::advance_derivative() {
 
     // The derivative of position = direction
     matrix_operator().set_block(this->_derivative, this->_track.dir(),
@@ -28,9 +28,9 @@ void detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
 
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
           typename policy_t, template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE
-void detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
-                        array_t>::state::advance_track() {
+DETRAY_HOST_DEVICE void
+detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
+                   array_t>::state::advance_track() {
 
     const auto& sd = this->_step_data;
     const auto& h = this->_step_size;
@@ -52,9 +52,9 @@ void detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
 
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
           typename policy_t, template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE
-void detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
-                        array_t>::state::advance_jacobian() {
+DETRAY_HOST_DEVICE void
+detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
+                   array_t>::state::advance_jacobian() {
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
     /// Since the terms of eq. 18 are currently 0, this matrix is not needed
@@ -150,11 +150,11 @@ void detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
 
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
           typename policy_t, template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE
-auto detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
-                        array_t>::state::evaluate_k(const vector3& b_field,
-                                                    const int i, const scalar h,
-                                                    const vector3& k_prev)
+DETRAY_HOST_DEVICE auto
+detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
+                   array_t>::state::evaluate_k(const vector3& b_field,
+                                               const int i, const scalar h,
+                                               const vector3& k_prev)
     -> vector3 {
     auto& track = this->_track;
 
@@ -175,9 +175,9 @@ auto detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
           typename policy_t, template <typename, std::size_t> class array_t>
 template <typename propagation_state_t>
-DETRAY_HOST_DEVICE
-bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
-                        array_t>::step(propagation_state_t& propagation) {
+DETRAY_HOST_DEVICE bool
+detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
+                   array_t>::step(propagation_state_t& propagation) {
     // Get stepper and navigator states
     state& stepping = propagation._stepping;
     auto& navigation = propagation._navigation;
@@ -289,8 +289,7 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename track_t, typename constraint_t,
           typename policy_t, template <typename, std::size_t> class array_t>
 template <typename propagation_state_t>
-DETRAY_HOST_DEVICE
-detray::bound_track_parameters
+DETRAY_HOST_DEVICE detray::bound_track_parameters
 detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
                    array_t>::bound_state(propagation_state_t& propagation,
                                          const transform3& trf3) {
