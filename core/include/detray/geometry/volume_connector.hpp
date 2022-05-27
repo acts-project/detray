@@ -20,12 +20,13 @@ namespace detray {
 /// @param volume_grid [in] the indexed volume grid
 ///
 template <typename detector_t,
-          typename scalar_t /* detray::scalar */,
           template <typename, std::size_t> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector>
 void connect_cylindrical_volumes(
     detector_t &d, const typename detector_t::volume_finder &volume_grid) {
+
+    using scalar_t = typename detector_t::scalar_type;
     typename detector_t::context default_context = {};
 
     // The grid is populated, now create portal surfaces
