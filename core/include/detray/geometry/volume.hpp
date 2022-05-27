@@ -19,7 +19,8 @@ namespace detray {
  *
  * @tparam array_t the type of the internal array, must have STL semantics
  */
-template <typename object_registry_t, typename scalar_t = detray::scalar, typename range_t = dindex_range,
+template <typename object_registry_t, typename scalar_t = detray::scalar,
+          typename range_t = dindex_range,
           template <typename, std::size_t> class array_t = darray>
 class volume {
 
@@ -149,11 +150,11 @@ class volume {
     private:
     /** Bounds section, default for r, z, phi */
     array_t<scalar_t, 6> _bounds = {0.,
-                                  std::numeric_limits<scalar_t>::max(),
-                                  -std::numeric_limits<scalar_t>::max(),
-                                  std::numeric_limits<scalar_t>::max(),
-                                  -M_PI,
-                                  M_PI};
+                                    std::numeric_limits<scalar_t>::max(),
+                                    -std::numeric_limits<scalar_t>::max(),
+                                    std::numeric_limits<scalar_t>::max(),
+                                    -M_PI,
+                                    M_PI};
 
     /** Volume index */
     dindex _index = dindex_invalid;
