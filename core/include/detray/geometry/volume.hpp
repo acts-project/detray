@@ -19,7 +19,7 @@ namespace detray {
  *
  * @tparam array_t the type of the internal array, must have STL semantics
  */
-template <typename object_registry_t, typename scalar_t = detray::scalar,
+template <typename object_registry_t, typename scalar_t = scalar,
           typename range_t = dindex_range,
           template <typename, std::size_t> class array_t = darray>
 class volume {
