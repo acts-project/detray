@@ -121,20 +121,16 @@ class tuple_vector_container final
      *
      * @note in general can throw an exception
      */
-    template <std::size_t current_id = 0, typename T>
+    template <typename T>
     DETRAY_HOST inline void add_vector(vector_type<T> &vec) noexcept(false) {
 
-        auto &gr = detail::get<current_id>(this->m_container);
+        static_assert((std::is_same_v<T, Ts> || ...) == true,
+                      "The type is not included in the parameter pack.");
 
-        if constexpr (std::is_same_v<decltype(vec), decltype(gr)>) {
+        auto &gr = detail::get<vector_type<T>>(this->m_container);
 
-            gr.reserve(gr.size() + vec.size());
-            gr.insert(gr.end(), vec.begin(), vec.end());
-        }
-
-        if constexpr (current_id < sizeof...(Ts) - 1) {
-            return add_vector<current_id + 1>(vec);
-        }
+        gr.reserve(gr.size() + vec.size());
+        gr.insert(gr.end(), vec.begin(), vec.end());
     }
 
     /** Add a new vector (move semantics)
@@ -146,19 +142,17 @@ class tuple_vector_container final
      *
      * @note in general can throw an exception
      */
-    template <std::size_t current_id = 0, typename T>
+    template <typename T>
     DETRAY_HOST inline void add_vector(vector_type<T> &&vec) noexcept(false) {
-        auto &gr = detail::get<current_id>(this->m_container);
 
-        if constexpr (std::is_same_v<decltype(vec), decltype(gr)>) {
-            gr.reserve(gr.size() + vec.size());
-            gr.insert(gr.end(), std::make_move_iterator(vec.begin()),
-                      std::make_move_iterator(vec.end()));
-        }
+        static_assert((std::is_same_v<T, Ts> || ...) == true,
+                      "The type is not included in the parameter pack.");
 
-        if constexpr (current_id < sizeof...(Ts) - 1) {
-            return add_vector<current_id + 1>(vec);
-        }
+        auto &gr = detail::get<vector_type<T>>(this->m_container);
+
+        gr.reserve(gr.size() + vec.size());
+        gr.insert(gr.end(), std::make_move_iterator(vec.begin()),
+                  std::make_move_iterator(vec.end()));
     }
 
     /** Append a container to the current one
