@@ -16,7 +16,7 @@ namespace detray {
 /** Tuple based container.
  *
  * @tparam tuple_t is the type of tuple
- * @tparam id_t is the type of indexing integer
+ * @tparam id_t is an enum that is compared to an indexing integer
  * @tparam Ts... is the types of tuple elements
  */
 template <template <typename...> class tuple_t, typename id_t, typename... Ts>

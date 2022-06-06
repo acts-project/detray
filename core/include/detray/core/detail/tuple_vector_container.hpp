@@ -24,12 +24,12 @@ namespace detray {
  *
  * @tparam tuple_t is the type of tuple
  * @tparam vector_t is the type of vector
- * @tparam id_t is the type of indexing integer
+ * @tparam id_t is an enum that is compared to an indexing integer
  * @tparam Ts are the types of tuple elements
  */
 template <template <typename...> class tuple_t,
           template <typename...> class vector_t, typename id_t, typename... Ts>
-class tuple_vector_container
+class tuple_vector_container final
     : public tuple_container<tuple_t, id_t, vector_t<Ts>...> {
 
     public:
@@ -121,20 +121,16 @@ class tuple_vector_container
      *
      * @note in general can throw an exception
      */
-    template <std::size_t current_id = 0, typename T>
+    template <typename T>
     DETRAY_HOST inline void add_vector(vector_type<T> &vec) noexcept(false) {
 
-        auto &gr = detail::get<current_id>(this->m_container);
+        static_assert((std::is_same_v<T, Ts> || ...) == true,
+                      "The type is not included in the parameter pack.");
 
-        if constexpr (std::is_same_v<decltype(vec), decltype(gr)>) {
+        auto &gr = detail::get<vector_type<T>>(this->m_container);
 
-            gr.reserve(gr.size() + vec.size());
-            gr.insert(gr.end(), vec.begin(), vec.end());
-        }
-
-        if constexpr (current_id < sizeof...(Ts) - 1) {
-            return add_vector<current_id + 1>(vec);
-        }
+        gr.reserve(gr.size() + vec.size());
+        gr.insert(gr.end(), vec.begin(), vec.end());
     }
 
     /** Add a new vector (move semantics)
@@ -146,19 +142,17 @@ class tuple_vector_container
      *
      * @note in general can throw an exception
      */
-    template <std::size_t current_id = 0, typename T>
+    template <typename T>
     DETRAY_HOST inline void add_vector(vector_type<T> &&vec) noexcept(false) {
-        auto &gr = detail::get<current_id>(this->m_container);
 
-        if constexpr (std::is_same_v<decltype(vec), decltype(gr)>) {
-            gr.reserve(gr.size() + vec.size());
-            gr.insert(gr.end(), std::make_move_iterator(vec.begin()),
-                      std::make_move_iterator(vec.end()));
-        }
+        static_assert((std::is_same_v<T, Ts> || ...) == true,
+                      "The type is not included in the parameter pack.");
 
-        if constexpr (current_id < sizeof...(Ts) - 1) {
-            return add_vector<current_id + 1>(vec);
-        }
+        auto &gr = detail::get<vector_type<T>>(this->m_container);
+
+        gr.reserve(gr.size() + vec.size());
+        gr.insert(gr.end(), std::make_move_iterator(vec.begin()),
+                  std::make_move_iterator(vec.end()));
     }
 
     /** Append a container to the current one
@@ -171,7 +165,8 @@ class tuple_vector_container
      * @note in general can throw an exception
      */
     template <std::size_t current_id = 0>
-    DETRAY_HOST inline void append_container(tuple_vector_container &&other) {
+    DETRAY_HOST inline void append_container(
+        tuple_vector_container &&other) noexcept(false) {
         auto &gr = detail::get<current_id>(other);
         add_vector(gr);
 
@@ -222,9 +217,7 @@ struct tuple_vector_container_data {
         container_t &container, std::index_sequence<ints...> /*seq*/) {
 
         return detail::make_tuple<tuple_type>(
-            vecmem::data::vector_view<typename detail::tuple_element<
-                ints, container_type>::type::value_type>(
-                vecmem::get_data(detail::get<ints>(container.get())))...);
+            vecmem::get_data(detail::get<ints>(container.get()))...);
     }
 
     container_data_type m_data;
