@@ -120,7 +120,7 @@ DETRAY_DECLARE_MATERIAL(silicon_tml, 95.7 * unit_constants::mm,
 // Air (dry, 1 atm)
 // @note:
 // https://pdg.lbl.gov/2020/AtomicNuclearProperties/HTML/air_dry_1_atm.html
-// @note: Ar from Wikipedia
+// @note: Ar from Wikipedia (https://en.wikipedia.org/wiki/Molar_mass)
 DETRAY_DECLARE_MATERIAL(air, 3.039E+05 * unit_constants::mm,
                         7.477E+05 * unit_constants::mm, 28.97, 14.46,
                         1.205E-03 * unit_constants::g /
@@ -128,7 +128,7 @@ DETRAY_DECLARE_MATERIAL(air, 3.039E+05 * unit_constants::mm,
 
 // (CH3)2CHCH3 Gas
 // @note: (X0, L0, mass_rho) from https://pdg.lbl.gov/2005/reviews/atomicrpp.pdf
-// @note: Ar from Wikipedia
+// @note: Ar from Wikipedia (https://en.wikipedia.org/wiki/Isobutane)
 // @note: Z was caculated by simply summing the number of atoms. Surprisingly
 // it seems the right value because Z/A is 0.58496, which is the same with <Z/A>
 // in the pdg refernce
@@ -139,7 +139,7 @@ DETRAY_DECLARE_MATERIAL(isobutane, 169300 * unit_constants::mm,
 // C3H8 Gas
 // @note: (X0, L0, mass_rho) from
 // https://pdg.lbl.gov/2020/AtomicNuclearProperties/HTML/propane.html
-// @note: Ar from Wikipedia
+// @note: Ar from Wikipedia (https://en.wikipedia.org/wiki/Propane)
 DETRAY_DECLARE_MATERIAL(propane, 2.429E+05 * unit_constants::mm,
                         4.106E+05 * unit_constants::mm, 44.097, 26,
                         1.868E-03 * unit_constants::g /
