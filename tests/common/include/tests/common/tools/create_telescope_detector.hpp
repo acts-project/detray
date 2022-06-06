@@ -110,7 +110,7 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
                              transform_container_t &transforms, config_t &cfg) {
     using surface_t = typename surface_container_t::value_type::value_type;
     using edge_t = typename surface_t::edge_type;
-    using mask_link_t = typename mask_container_t::link_type;
+    using mask_link_t = typename surface_t::mask_link;
 
     auto volume_id = volume.index();
     edge_t mask_edge{volume_id, dindex_invalid};
@@ -137,11 +137,11 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
         if constexpr (mask_id ==
                       telescope_types::mask_ids::e_unbounded_plane2) {
             // No bounds for this module
-            masks.template add_mask<
+            masks.template add_value<
                 telescope_types::mask_ids::e_unbounded_plane2>(mask_edge);
         } else {
             // The rectangle bounds for this module
-            masks.template add_mask<telescope_types::mask_ids::e_rectangle2>(
+            masks.template add_value<telescope_types::mask_ids::e_rectangle2>(
                 cfg.m_half_x, cfg.m_half_y, mask_edge);
         }
         // Build the transform
