@@ -24,12 +24,12 @@ namespace detray {
  *
  * @tparam tuple_t is the type of tuple
  * @tparam vector_t is the type of vector
- * @tparam id_t is the type of indexing integer
+ * @tparam id_t is an enum that is compared to an indexing integer
  * @tparam Ts are the types of tuple elements
  */
 template <template <typename...> class tuple_t,
           template <typename...> class vector_t, typename id_t, typename... Ts>
-class tuple_vector_container
+class tuple_vector_container final
     : public tuple_container<tuple_t, id_t, vector_t<Ts>...> {
 
     public:
@@ -171,7 +171,8 @@ class tuple_vector_container
      * @note in general can throw an exception
      */
     template <std::size_t current_id = 0>
-    DETRAY_HOST inline void append_container(tuple_vector_container &&other) {
+    DETRAY_HOST inline void append_container(
+        tuple_vector_container &&other) noexcept(false) {
         auto &gr = detail::get<current_id>(other);
         add_vector(gr);
 
@@ -222,9 +223,7 @@ struct tuple_vector_container_data {
         container_t &container, std::index_sequence<ints...> /*seq*/) {
 
         return detail::make_tuple<tuple_type>(
-            vecmem::data::vector_view<typename detail::tuple_element<
-                ints, container_type>::type::value_type>(
-                vecmem::get_data(detail::get<ints>(container.get())))...);
+            vecmem::get_data(detail::get<ints>(container.get()))...);
     }
 
     container_data_type m_data;

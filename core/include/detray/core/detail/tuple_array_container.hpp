@@ -26,12 +26,10 @@ class tuple_array_container;
 
 /**
  * Tuple based container with array elements.
- * container_data_type and container_view_type should be set in the
- * inherited classes
  *
  * @tparam tuple_t is the type of tuple
  * @tparam array_t is the type of array
- * @tparam id_t is the type of indexing integer
+ * @tparam id_t is an enum that is compared to an indexing integer
  * @tparam Ns are the sizes of tuple array
  * @tparam Ts are the types of tuple array elements
  */
@@ -40,7 +38,7 @@ template <template <typename...> class tuple_t,
           std::size_t... Ns, typename... Ts>
 class tuple_array_container<tuple_t, array_t, id_t, std::index_sequence<Ns...>,
                             Ts...>
-    : public tuple_container<tuple_t, id_t, array_t<Ts, Ns>...> {
+    final : public tuple_container<tuple_t, id_t, array_t<Ts, Ns>...> {
 
     public:
     // Convenient type declarations
