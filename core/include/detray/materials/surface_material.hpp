@@ -13,13 +13,13 @@
 namespace detray {
 
 template <typename material_structure_t>
-struct homogeneous_surface_material {
+struct surface_material {
 
     using scalar_type = typename material_structure_t::scalar_type;
     using point2 = __plugin::point2<scalar_type>;
     using point3 = __plugin::point3<scalar_type>;
 
-    homogeneous_surface_material(const material_structure_t& structure)
+    surface_material(const material_structure_t& structure)
         : m_structure(structure) {}
 
     DETRAY_HOST_DEVICE

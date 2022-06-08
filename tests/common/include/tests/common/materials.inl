@@ -6,11 +6,11 @@
  */
 
 /// Detray include(s)
-#include "detray/materials/homogeneous_surface_material.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/materials/surface_material.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -99,12 +99,11 @@ TEST(materials, mixture) {
     material_slab<material<scalar>> slab2(air<scalar>(), 2.3);
     material_slab<material<scalar>> slab3(oxygen_gas<scalar>(), 2);
 
-    homogeneous_surface_material surf1(slab1);
-    homogeneous_surface_material surf2(slab2);
-    homogeneous_surface_material surf3(slab3);
+    surface_material surf1(slab1);
+    surface_material surf2(slab2);
+    surface_material surf3(slab3);
 
-    std::vector<homogeneous_surface_material<material_slab<material<scalar>>>>
-        surface_vec;
+    std::vector<surface_material<material_slab<material<scalar>>>> surface_vec;
     surface_vec.push_back(surf1);
     surface_vec.push_back(surf2);
     surface_vec.push_back(surf3);
