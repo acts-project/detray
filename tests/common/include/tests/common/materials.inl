@@ -15,8 +15,6 @@
 // GTest include(s)
 #include <gtest/gtest.h>
 
-#include <iostream>
-
 using namespace detray;
 
 using point2 = __plugin::point2<scalar>;
