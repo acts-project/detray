@@ -513,12 +513,16 @@ struct grid2_buffer : public grid2_view<grid2_t> {
      * @param axis_p1 is the second axis
      * @param sizes is the intial size of vector
      * @param resource is the vecmem memory resource
+     * @param host_resurce is the host accessible memory resource
      *
      **/
     grid2_buffer(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
                  typename populator_type::buffer_size_type sizes,
-                 vecmem::memory_resource &resource)
-        : _axis_p0(axis_p0), _axis_p1(axis_p1), _buffer(sizes, resource) {
+                 vecmem::memory_resource &resource,
+                 vecmem::memory_resource *host_resource = nullptr)
+        : _axis_p0(axis_p0),
+          _axis_p1(axis_p1),
+          _buffer(sizes, resource, host_resource) {
         grid2_view<grid2_t>::_axis_p0_view = detray::get_data(_axis_p0);
         grid2_view<grid2_t>::_axis_p1_view = detray::get_data(_axis_p1);
         grid2_view<grid2_t>::_data_view = _buffer;
@@ -531,15 +535,17 @@ struct grid2_buffer : public grid2_view<grid2_t> {
      * @param sizes is the intial size of vector
      * @param capacities is the capacity of vector
      * @param resource is the vecmem memory resource
+     * @param host_resurce is the host accessible memory resource
      *
      **/
     grid2_buffer(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
                  typename populator_type::buffer_size_type sizes,
                  typename populator_type::buffer_size_type capacities,
-                 vecmem::memory_resource &resource)
+                 vecmem::memory_resource &resource,
+                 vecmem::memory_resource *host_resource = nullptr)
         : _axis_p0(axis_p0),
           _axis_p1(axis_p1),
-          _buffer(sizes, capacities, resource) {
+          _buffer(sizes, capacities, resource, host_resource) {
         grid2_view<grid2_t>::_axis_p0_view = detray::get_data(_axis_p0);
         grid2_view<grid2_t>::_axis_p1_view = detray::get_data(_axis_p1);
         grid2_view<grid2_t>::_data_view = _buffer;
