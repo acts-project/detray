@@ -81,7 +81,7 @@ TEST(tools, uniform_track_generator) {
     }
     ASSERT_EQ(momenta.size(), n_tracks);
 
-    // Generate helix trajectories
+    // Generate helical trajectories
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     2. * unit_constants::T};
     n_tracks = 0;

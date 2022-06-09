@@ -65,14 +65,12 @@ TEST(tools, helix_intersector) {
     using surface_container_t = dvector<surface_t>;
 
     // The transforms & their store
-    transform3 rectangle_transform(point3{0., 0., 10.});
-    transform3 trapezoid_transform(point3{0., 0., 20.});
-    transform3 annulus_transform(point3{0., -20., 30.});
     static_transform_store<>::context static_context{};
     static_transform_store transform_store;
-    transform_store.push_back(static_context, rectangle_transform);
-    transform_store.push_back(static_context, trapezoid_transform);
-    transform_store.push_back(static_context, annulus_transform);
+    // Transforms of the rectangle, trapezoid and annulus
+    transform_store.emplace_back(static_context, point3{0., 0., 10.});
+    transform_store.emplace_back(static_context, point3{0., 0., 20.});
+    transform_store.emplace_back(static_context, point3{0., -20., 30.});
     // The masks & their store
     mask_container_t mask_store(host_mr);
     mask_store.template add_value<e_rectangle2>(10., 10., 0);
@@ -96,11 +94,10 @@ TEST(tools, helix_intersector) {
     point3 expected_rectangle{0.01, 0.01, 10.};
     point3 expected_trapezoid{0.02, 0.02, 20.};
     point3 expected_annulus{0.03, 0.03, 30.};
-
     std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
 
-    // Try the intersection - with automated dispatching via the kernel
+    // Try the intersections - with automated dispatching via the kernel
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
         auto sfi_helix = particle_gun::intersect(h, surface, transform_store,
                                                  mask_store, epsilon);

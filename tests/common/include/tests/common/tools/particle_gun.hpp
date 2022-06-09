@@ -46,7 +46,7 @@ struct particle_gun {
 
         std::vector<std::pair<dindex, intersection_type>> intersection_record;
 
-        // Loop over volumes
+        // Loop over all surfaces in the detector
         for (const auto &volume : detector.volumes()) {
             for (const auto &[sf_idx, sf] :
                  enumerate(detector.surfaces(), volume)) {
@@ -79,23 +79,24 @@ struct particle_gun {
     }
 
     /// Wrap the @c intersection_kernel intersect function for rays
-    template <typename surface_t, typename transform_container,
-              typename mask_container>
+    template <typename surface_t, typename transform_container_t,
+              typename mask_container_t>
     DETRAY_HOST_DEVICE static inline auto intersect(
         const ray &r, surface_t &surface,
-        const transform_container &contextual_transforms,
-        const mask_container &masks, const scalar /*tol*/) {
+        const transform_container_t &contextual_transforms,
+        const mask_container_t &masks, const scalar /*tol*/) {
+        // Calls the detray intersection kernel directly
         return detray::intersect(r, surface, contextual_transforms, masks);
     }
 
     /// Start helix intersection unrolling. See documentation of the detray
-    /// intersection kernel
-    template <typename surface_t, typename transform_container,
-              typename mask_container>
+    /// @c intersection_kernel
+    template <typename surface_t, typename transform_container_t,
+              typename mask_container_t>
     DETRAY_HOST_DEVICE static inline auto intersect(
         const helix &h, surface_t &surface,
-        const transform_container &contextual_transforms,
-        const mask_container &masks, const scalar tol) {
+        const transform_container_t &contextual_transforms,
+        const mask_container_t &masks, const scalar tol) {
         // Gather all information to perform intersections
         const auto &ctf = contextual_transforms[surface.transform()];
         const auto volume_index = surface.volume();
@@ -111,7 +112,7 @@ struct particle_gun {
     }
 
     /// Helix version of the intersection unrolling. Calls the
-    /// @c helix_intersector of this class instead of the mask's native
+    /// @c helix_intersector of the particle gun instead of the mask's native
     /// intersector.
     template <typename mask_defs, typename transform_t,
               typename mask_container_t, typename mask_range_t,
@@ -149,8 +150,7 @@ struct particle_gun {
                                   cylinder_intersector>) {
                     sfi = helix_cylinder_intersector(ctf, h, mask, tol);
                 }
-                // Compare with the ray that keeps only intersection along its
-                // direction
+                // Only keep intersection along the direction, like the ray does
                 if (sfi.status == intersection::status::e_inside and
                     sfi.direction == intersection::direction::e_along) {
                     sfi.index = volume_index;
@@ -192,24 +192,26 @@ struct particle_gun {
 
         // Get the surface info
         const auto &sm = trf.matrix();
+        // Surface normal
         vector3 sn = getter::vector<3>(sm, 0, 2);
-        vector3 st = getter::vector<3>(sm, 0, 3);
+        // Surface translation
+        point3 st = getter::vector<3>(sm, 0, 3);
 
         // Starting point on the helix for the Newton iteration
         scalar s{getter::norm(sn) - scalar{0.1}};
         scalar s_prev{s - scalar{0.1}};
 
         // Guard against inifinite loops
-        std::size_t n_tries{0};
-        std::size_t max_n_tries{100};
+        std::size_t n_tries{0}, max_n_tries{100};
 
         // f(s) = sn * (h.pos(s) - st) == 0
         // Run the iteration on s
         while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
             // f'(s) = sn * h.dir(s)
             scalar denom{vector::dot(sn, h.dir(s))};
+            // No intersection could be found
             if (denom == 0.) {
-                break;
+                return intersection_type{};
             }
             // x_n+1 = x_n - f(s) / f'(s)
             s_prev = s;
@@ -222,15 +224,16 @@ struct particle_gun {
         }
 
         // Build intersection struct from helix parameter s
-        point3 helix_pos = h.pos(s);
         intersection_type is;
+        point3 helix_pos = h.pos(s);
         is.path = getter::norm(helix_pos);
         is.p3 = helix_pos;
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
+        // TODO: The tolerance may not work for all mask types
         is.status = mask.template is_inside<local_frame>(
             is.p2, typename mask_t::mask_tolerance{tol});
-        is.direction = vector::dot(st, h.dir(s)) > 0.
+        is.direction = vector::dot(st, h.dir(s)) > scalar{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
         is.link = mask.volume_link();
@@ -241,7 +244,8 @@ struct particle_gun {
     /// cylinder surfaces.
     ///
     /// The algorithm uses the Newton-Raphson method to find an intersection on
-    /// the unbounded surface and then applies the mask.
+    /// the unbounded surface and then applies the mask. On the @c cylinder3
+    /// mask, it switches on the check of the radial distance.
     ///
     /// @return the intersection.
     template <typename transform_t, typename mask_t,
@@ -259,7 +263,7 @@ struct particle_gun {
         // Cylinder z axis
         vector3 sz = getter::vector<3>(sm, 0, 2);
         // Cylinder centre
-        vector3 sc = getter::vector<3>(sm, 0, 3);
+        point3 sc = getter::vector<3>(sm, 0, 3);
 
         // Starting point on the helix for the Newton iteration
         // The mask is a cylinder type -> it provides a radius
@@ -268,8 +272,7 @@ struct particle_gun {
         scalar s_prev{s - scalar{0.1}};
 
         // Guard against inifinite loops
-        std::size_t n_tries{0};
-        std::size_t max_n_tries{1000};
+        std::size_t n_tries{0}, max_n_tries{1000};
 
         // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
         // Run the iteration on s
@@ -279,8 +282,9 @@ struct particle_gun {
             vector3 crp = vector::cross(h.pos(s) - sc, sz);
             scalar denom{scalar{2} *
                          vector::dot(crp, vector::cross(h.dir(s), sz))};
+            // No intersection could be found
             if (denom == 0.) {
-                break;
+                return intersection_type{};
             }
             // x_n+1 = x_n - f(s) / f'(s)
             s_prev = s;
@@ -294,8 +298,8 @@ struct particle_gun {
         }
 
         // Build intersection struct from helix parameter s
-        point3 helix_pos = h.pos(s);
         intersection_type is;
+        point3 helix_pos = h.pos(s);
         is.path = getter::norm(helix_pos);
         is.p3 = helix_pos;
         constexpr local_frame local_converter{};
@@ -304,7 +308,7 @@ struct particle_gun {
         // Explicitely check for radial match
         is.status = mask.template is_inside<local_frame, true>(
             local3, typename mask_t::mask_tolerance{tol, tol});
-        is.direction = vector::dot(is.p3, h.dir(s)) > 0.
+        is.direction = vector::dot(is.p3, h.dir(s)) > scalar{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
         is.link = mask.volume_link();

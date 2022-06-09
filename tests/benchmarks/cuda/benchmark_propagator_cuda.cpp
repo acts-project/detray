@@ -12,6 +12,7 @@
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "benchmark_propagator_cuda_kernel.hpp"
+#include "detray/definitions/units.hpp"
 #include "tests/common/tools/track_generators.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
@@ -31,10 +32,11 @@ void fill_tracks(vecmem::vector<free_track_parameters> &tracks,
                  const unsigned int theta_steps, const unsigned int phi_steps) {
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
+    const scalar mom_mag = 10. * unit_constants::GeV;
 
     // Iterate through uniformly distributed momentum directions
     for (auto traj : uniform_track_generator<free_track_parameters>(
-             theta_steps, phi_steps, ori, mom)) {
+             theta_steps, phi_steps, ori, mom_mag)) {
         tracks.push_back(traj);
     }
 }

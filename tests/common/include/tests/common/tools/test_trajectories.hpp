@@ -28,6 +28,7 @@ class ray {
     ///
     /// @param pos the track position
     /// @param dir the track momentum direction
+    DETRAY_HOST_DEVICE
     ray(point3 pos, scalar /*time*/, vector3 dir, scalar /*q*/)
         : _pos(pos), _dir(dir) {}
 
@@ -35,7 +36,7 @@ class ray {
     DETRAY_HOST_DEVICE point3 pos() const { return _pos; }
 
     /// @param position new position on the ray
-    DETRAY_HOST_DEVICE void set_pos(point3 position) { _pos = position; }
+    DETRAY_HOST_DEVICE void set_pos(point3 pos) { _pos = pos; }
 
     /// @returns direction of the ray
     DETRAY_HOST_DEVICE vector3 dir() const { return _dir; }
@@ -50,7 +51,7 @@ class ray {
     /// direction of ray
     vector3 _dir{0., 0., 0.};
 
-    /// Overstep tolerance on a geomtry surface
+    /// Overstep tolerance on a geometry surface
     scalar _overstep_tolerance = -1e-4;
 };
 
@@ -69,6 +70,7 @@ class helix : free_track_parameters {
     template <size_type ROWS, size_type COLS>
     using matrix_type = __plugin::matrix_type<scalar, ROWS, COLS>;
 
+    DETRAY_HOST_DEVICE
     helix() = delete;
 
     /// Parametrized constructor
@@ -78,6 +80,7 @@ class helix : free_track_parameters {
     /// @param dir the initial direction of momentum for the helix
     /// @param q the charge of the particle
     /// @param mag_field the magnetic field vector
+    DETRAY_HOST_DEVICE
     helix(point3 pos, scalar time, vector3 dir, scalar q,
           vector3 const *const mag_field)
         : free_track_parameters(pos, time, dir, q), _mag_field(mag_field) {}
@@ -86,6 +89,7 @@ class helix : free_track_parameters {
     ///
     /// @param vertex the underlying track parametrization
     /// @param mag_fied the magnetic field vector
+    DETRAY_HOST_DEVICE
     helix(const free_track_parameters vertex, vector3 const *const mag_field)
         : free_track_parameters(vertex), _mag_field(mag_field) {
 
@@ -125,13 +129,16 @@ class helix : free_track_parameters {
         }
     }
 
-    /// @returns radius of helix
+    /// @returns the radius of helix
+    DETRAY_HOST_DEVICE
     scalar radius() const { return _R; }
 
-    /// @returns position after propagating the path length of s
+    /// @returns the position after propagating the path length of s
+    DETRAY_HOST_DEVICE
     point3 operator()(scalar s) const { return this->pos(s); }
 
-    /// @returns position after propagating the path length of s
+    /// @returns the position after propagating the path length of s
+    DETRAY_HOST_DEVICE
     point3 pos(scalar s) const {
 
         // Handle the case of pT ~ 0
@@ -147,7 +154,8 @@ class helix : free_track_parameters {
         return ret;
     }
 
-    /// @returns tangential vector after propagating the path length of s
+    /// @returns the tangential vector after propagating the path length of s
+    DETRAY_HOST_DEVICE
     vector3 dir(scalar s) const {
 
         // Handle the case of pT ~ 0
@@ -164,11 +172,12 @@ class helix : free_track_parameters {
         return ret;
     }
 
-    /// @returns overstep tolerance
+    /// @returns the overstep tolerance
     DETRAY_HOST_DEVICE
     scalar overstep_tolerance() const { return _overstep_tolerance; }
 
-    /// @returns transport jacobian after propagating the path length of s
+    /// @returns the transport jacobian after propagating the path length of s
+    DETRAY_HOST_DEVICE
     free_matrix jacobian(scalar s) const {
 
         free_matrix ret =

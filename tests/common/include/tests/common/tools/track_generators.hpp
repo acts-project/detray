@@ -40,7 +40,7 @@ class uniform_track_generator {
     /// @param theta_steps the number of steps in the theta space
     /// @param phi_steps the number of steps in the phi space
     /// @param trk_origin the starting point of the track
-    /// @param trk_mom magnitude of the track momentum
+    /// @param trk_mom magnitude of the track momentum (in GeV)
     DETRAY_HOST_DEVICE
     uniform_track_generator(std::size_t n_theta, std::size_t n_phi,
                             point3 trk_origin = {},
@@ -55,8 +55,8 @@ class uniform_track_generator {
           i_phi(0),
           i_theta(0) {}
 
-    /// @returns generator in starting state: Default values resolve the first
-    /// phi angle iteration.
+    /// @returns the generator in starting state: Default values reflect the
+    /// first phi angle iteration.
     DETRAY_HOST_DEVICE
     auto begin() -> uniform_track_generator {
         i_phi = 1;
@@ -64,7 +64,7 @@ class uniform_track_generator {
         return *this;
     }
 
-    /// @returns generator in end state
+    /// @returns the generator in end state
     DETRAY_HOST_DEVICE
     auto end() -> uniform_track_generator {
         i_phi = 1;
@@ -81,6 +81,8 @@ class uniform_track_generator {
     }
 
     /// Iterate through angle space according to given step sizes.
+    ///
+    /// @returns the generator at its next position.
     DETRAY_HOST_DEVICE
     auto operator++() -> uniform_track_generator {
         scalar pi{M_PI};
@@ -104,7 +106,7 @@ class uniform_track_generator {
         return *this;
     }
 
-    /// @return track instance from generated momentum direction
+    /// @returns a track instance from generated momentum direction
     DETRAY_HOST_DEVICE
     track_t operator*() const {
         // Momentum direction from angles
@@ -118,17 +120,20 @@ class uniform_track_generator {
     }
 
     protected:
-    /// Start and end of angle space
+    /// Start and end values of angle space
     std::size_t m_theta_steps{50};
     std::size_t m_phi_steps{50};
+
     /// Phi and theta angles of momentum direction
     scalar m_phi{-M_PI}, m_theta{0.01};
 
     /// Track origin
     point3 m_origin{0., 0., 0.};
+
     /// Magnitude of momentum: Default is one to keep directions normalized if
     /// no momentum information is needed (e.g. for a ray)
     scalar m_mom_mag = 1. * unit_constants::GeV;
+
     /// Time parameter and charge of the track
     scalar m_time{0}, m_charge{0};
 
