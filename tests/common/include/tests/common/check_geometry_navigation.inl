@@ -83,22 +83,18 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
         }
 
         // Check every single recorded intersection
-        for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
-             ++intr_idx) {
-            if (obj_tracer[intr_idx].index !=
-                intersection_trace[intr_idx].first) {
+        for (std::size_t i = 0; i < intersection_trace.size(); ++i) {
+            if (obj_tracer[i].index != intersection_trace[i].first) {
                 // Intersection record at portal bound might be flipped
-                if (obj_tracer[intr_idx].index ==
-                        intersection_trace[intr_idx + 1].first and
-                    obj_tracer[intr_idx + 1].index ==
-                        intersection_trace[intr_idx].first) {
+                // (the portals overlap completely)
+                if (obj_tracer[i].index == intersection_trace[i + 1].first and
+                    obj_tracer[i + 1].index == intersection_trace[i].first) {
                     // Have already checked the next record
-                    ++intr_idx;
+                    ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[intr_idx].index,
-                      intersection_trace[intr_idx].first)
+            EXPECT_EQ(obj_tracer[i].index, intersection_trace[i].first)
                 << debug_printer.to_string() << debug_stream.str();
         }
     }

@@ -28,7 +28,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
-constexpr const float epsilon = 1e-5;
+constexpr const float epsilon = 1e-3;
 
 /// Re-use the intersection kernel test for particle gun
 TEST(tools, helix_intersector) {
@@ -102,22 +102,23 @@ TEST(tools, helix_intersector) {
 
     // Try the intersection - with automated dispatching via the kernel
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        auto sfi_helix =
-            particle_gun::intersect(h, surface, transform_store, mask_store);
+        auto sfi_helix = particle_gun::intersect(h, surface, transform_store,
+                                                 mask_store, epsilon);
 
         ASSERT_NEAR(sfi_helix.p3[0], expected_points[sf_idx][0], 1e-7);
         ASSERT_NEAR(sfi_helix.p3[1], expected_points[sf_idx][1], 1e-7);
         ASSERT_NEAR(sfi_helix.p3[2], expected_points[sf_idx][2], 1e-7);
 
-        auto sfi_ray =
-            particle_gun::intersect(r, surface, transform_store, mask_store);
+        auto sfi_ray = particle_gun::intersect(r, surface, transform_store,
+                                               mask_store, epsilon);
         ASSERT_NEAR(sfi_ray.p3[0], expected_points[sf_idx][0], 1e-7);
         ASSERT_NEAR(sfi_ray.p3[1], expected_points[sf_idx][1], 1e-7);
         ASSERT_NEAR(sfi_ray.p3[2], expected_points[sf_idx][2], 1e-7);
     }
 }
 
-/// Intersect toy geometry and compare between ray and helix without B-field
+/// Brute force test: Intersect toy geometry and compare between ray and helix
+/// without B-field
 TEST(tools, particle_gun) {
 
     // Build the geometry
@@ -131,16 +132,13 @@ TEST(tools, particle_gun) {
     // Record ray tracing
     std::vector<std::vector<std::pair<dindex, particle_gun::intersection_type>>>
         expected;
-    // std::cout << "Ray gun:" << std::endl;
     //  Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray :
          uniform_track_generator<ray>(theta_steps, phi_steps, ori)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
-            particle_gun::shoot_particle(toy_det, test_ray);
-        // std::cout << "New track: " << intersection_record.size() <<
-        // std::endl;
+            particle_gun::shoot_particle(toy_det, test_ray, epsilon);
 
         expected.push_back(intersection_record);
     }
@@ -150,22 +148,35 @@ TEST(tools, particle_gun) {
                     0.00001 * unit_constants::T};
     // Iterate through uniformly distributed momentum directions with helix
     std::size_t n_tracks{0};
-    // std::cout << "Helix gun:" << std::endl;
     for (const auto track : uniform_track_generator<free_track_parameters>(
              theta_steps, phi_steps, ori)) {
         helix test_helix(track, &B);
 
         // Record all intersections and objects along the ray
-        const auto intersection_record =
-            particle_gun::shoot_particle(toy_det, test_helix);
-        // std::cout << "New track: " << intersection_record.size() <<
-        // std::endl;
+        const auto intersection_trace =
+            particle_gun::shoot_particle(toy_det, test_helix, epsilon);
 
-        EXPECT_EQ(expected[n_tracks].size(), intersection_record.size());
-        for (unsigned int i = 0; i < intersection_record.size(); ++i) {
-            EXPECT_EQ(expected[n_tracks][i].first,
-                      intersection_record[i].first);
+        // Should have encountered the same number of tracks (vulnerable to
+        // floating point errors)
+        EXPECT_EQ(expected[n_tracks].size(), intersection_trace.size());
+
+        // Check every single recorded intersection
+        for (std::size_t i = 0; i < intersection_trace.size(); ++i) {
+            if (expected[n_tracks][i].first != intersection_trace[i].first) {
+                // Intersection record at portal bound might be flipped
+                // (the portals overlap completely)
+                if (expected[n_tracks][i].first ==
+                        intersection_trace[i + 1].first and
+                    expected[n_tracks][i + 1].first ==
+                        intersection_trace[i].first) {
+                    // Have already checked the next record
+                    ++i;
+                    continue;
+                }
+            }
+            EXPECT_EQ(expected[n_tracks][i].first, intersection_trace[i].first);
         }
+
         ++n_tracks;
     }
 }

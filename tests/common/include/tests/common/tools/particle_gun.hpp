@@ -9,7 +9,6 @@
 
 // system include
 #include <cmath>
-#include <iostream>
 #include <utility>
 
 // detray include(s)
@@ -34,12 +33,14 @@ struct particle_gun {
     ///
     /// @param detector the detector.
     /// @param traj the trajectory to be shot through the detector.
+    /// @param tol numerical precision
     ///
     /// @return a sorted vector of volume indices with the corresponding
     ///         intersections of the surfaces that were encountered.
     template <typename detector_t, typename trajectory_t>
     DETRAY_HOST_DEVICE inline static auto shoot_particle(
-        const detector_t &detector, const trajectory_t &traj) {
+        const detector_t &detector, const trajectory_t &traj,
+        const scalar tol = 1e-5) {
 
         std::vector<std::pair<dindex, intersection_type>> intersection_record;
 
@@ -49,7 +50,7 @@ struct particle_gun {
                  enumerate(detector.surfaces(), volume)) {
                 // Retrieve candidate from the surface
                 auto sfi = intersect(traj, sf, detector.transform_store(),
-                                     detector.mask_store());
+                                     detector.mask_store(), tol);
 
                 // Candidate is invalid if it oversteps too far (this is neg!)
                 if (sfi.path < traj.overstep_tolerance()) {
@@ -57,12 +58,6 @@ struct particle_gun {
                 }
                 // Accept if inside
                 if (sfi.status == intersection::status::e_inside) {
-                    if (sf.is_portal()) {
-                        // std::cout << "Found portal: " << sf_idx << std::endl;
-                    } else {
-                        // std::cout << "Found surface: " << sf_idx <<
-                        // std::endl;
-                    }
                     // surface the candidate belongs to
                     sfi.index = volume.index();
                     intersection_record.emplace_back(sf_idx, sfi);
@@ -87,7 +82,7 @@ struct particle_gun {
     DETRAY_HOST_DEVICE static inline auto intersect(
         const ray &r, surface_t &surface,
         const transform_container &contextual_transforms,
-        const mask_container &masks) {
+        const mask_container &masks, const scalar /*tol*/) {
         return detray::intersect(r, surface, contextual_transforms, masks);
     }
 
@@ -98,7 +93,7 @@ struct particle_gun {
     DETRAY_HOST_DEVICE static inline auto intersect(
         const helix &h, surface_t &surface,
         const transform_container &contextual_transforms,
-        const mask_container &masks) {
+        const mask_container &masks, const scalar tol) {
         // Gather all information to perform intersections
         const auto &ctf = contextual_transforms[surface.transform()];
         const auto volume_index = surface.volume();
@@ -109,7 +104,7 @@ struct particle_gun {
         using mask_defs = typename surface_t::mask_defs;
 
         return unroll_helix_intersect<mask_defs>(
-            h, ctf, masks, mask_range, mask_id, volume_index,
+            h, ctf, masks, mask_range, mask_id, volume_index, tol,
             std::make_integer_sequence<unsigned int, mask_defs::n_types>{});
     }
 
@@ -123,6 +118,7 @@ struct particle_gun {
         const helix &h, const transform_t &ctf, const mask_container_t &masks,
         const mask_range_t &mask_range,
         const typename mask_container_t::id_type mask_id, dindex volume_index,
+        const scalar tol,
         std::integer_sequence<unsigned int, first_mask_id,
                               remaining_mask_ids...>
         /*available_ids*/) {
@@ -143,13 +139,13 @@ struct particle_gun {
                                   typename mask_defs::template get_type<
                                       id>::type::intersector_type,
                                   planar_intersector>) {
-                    sfi = helix_plane_intersector(ctf, h, mask);
+                    sfi = helix_plane_intersector(ctf, h, mask, tol);
                 }
                 if constexpr (std::is_same_v<
                                   typename mask_defs::template get_type<
                                       id>::type::intersector_type,
                                   cylinder_intersector>) {
-                    sfi = helix_cylinder_intersector(ctf, h, mask);
+                    sfi = helix_cylinder_intersector(ctf, h, mask, tol);
                 }
                 // Compare with the ray that keeps only intersection along its
                 // direction
@@ -166,8 +162,9 @@ struct particle_gun {
 
         // Unroll as long as you have at least 1 entries
         if constexpr (remaining.size() >= 1) {
-            return (unroll_helix_intersect<mask_defs>(
-                h, ctf, masks, mask_range, mask_id, volume_index, remaining));
+            return (unroll_helix_intersect<mask_defs>(h, ctf, masks, mask_range,
+                                                      mask_id, volume_index,
+                                                      tol, remaining));
         }
 
         // No intersection was found
@@ -187,8 +184,7 @@ struct particle_gun {
                                bool> = true>
     DETRAY_HOST_DEVICE inline static auto helix_plane_intersector(
         const transform_t &trf, const helix &h, const mask_t &mask,
-        const typename mask_t::mask_tolerance tolerance =
-            mask_t::within_epsilon) -> intersection_type {
+        const scalar tol) -> intersection_type {
 
         using local_frame = typename mask_t::local_type;
 
@@ -198,7 +194,6 @@ struct particle_gun {
         auto st = getter::vector<3>(sm, 0, 3);
 
         // Starting point on the helix for the Newton iteration
-        scalar epsilon{1e-4};
         scalar s{getter::norm(sn) - scalar{0.1}};
         scalar s_prev{s - scalar{0.1}};
 
@@ -208,7 +203,7 @@ struct particle_gun {
 
         // f(s) = sn * (h.pos(s) - st) == 0
         // Run the iteration on s
-        while (std::abs(s - s_prev) > epsilon and n_tries < max_n_tries) {
+        while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
             // f'(s) = sn * h.dir(s)
             scalar denom{vector::dot(sn, h.dir(s))};
             if (denom == 0.) {
@@ -230,8 +225,8 @@ struct particle_gun {
         is.p3 = h.pos(s);
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
-        is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
-        // std::cout << "DIRECTION: " << vector::dot(st, h.pos(s)) << std::endl;
+        is.status = mask.template is_inside<local_frame>(
+            is.p2, typename mask_t::mask_tolerance{tol});
         is.direction = vector::dot(st, h.dir(s)) > 0.
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
@@ -252,8 +247,7 @@ struct particle_gun {
                                bool> = true>
     DETRAY_HOST_DEVICE inline static auto helix_cylinder_intersector(
         const transform_t &trf, const helix &h, const mask_t &mask,
-        const typename mask_t::mask_tolerance tolerance =
-            mask_t::within_epsilon) -> intersection_type {
+        const scalar tol) -> intersection_type {
 
         // using point3 = __plugin::point3<scalar>;
         using vector3 = __plugin::vector3<scalar>;
@@ -263,26 +257,14 @@ struct particle_gun {
         const auto &sm = trf.matrix();
         // Cylinder z axis
         vector3 sz = getter::vector<3>(sm, 0, 2);
-        // std::cout << "Cylinder axis: " << sz[0] << ", " << sz[1] << ", " <<
-        // sz[2] <<  std::endl;
-
         // Cylinder centre
         auto sc = getter::vector<3>(sm, 0, 3);
-        // std::cout << "Cylinder center: " << sc[0] << ", " << sc[1] << ", " <<
-        // sc[2] <<  std::endl;
 
         // Starting point on the helix for the Newton iteration
-        scalar epsilon{1e-4};
         // The mask is a cylinder type -> it provides a radius
         scalar r{mask[0]};
-        scalar s{r * getter::perp(h.dir(epsilon))};
-        // scalar s{r - scalar{0.1}};
+        scalar s{r * getter::perp(h.dir(tol))};
         scalar s_prev{s - scalar{0.1}};
-        // std::cout << "Start s: " << s << std::endl;
-        // std::cout << "Helix start pos: " << h.pos(s)[0] << ", " <<
-        // h.pos(s)[1] << ", " << h.pos(s)[2] <<  std::endl; std::cout << "Helix
-        // start dir: " << h.dir(s)[0] << ", " << h.dir(s)[1] << ", " <<
-        // h.dir(s)[2] <<  std::endl;
 
         // Guard against inifinite loops
         std::size_t n_tries{0};
@@ -290,18 +272,11 @@ struct particle_gun {
 
         // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
         // Run the iteration on s
-        while (std::abs(s - s_prev) > epsilon and n_tries < max_n_tries) {
+        while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
             // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
-            /*std::cout << "pos x ez: " << vector::cross(h.pos(s) - sc, sz) <<
-            std::endl;
-            std::cout << "dir x ez: " << vector::cross(h.dir(s), sz) <<
-            std::endl;*/
-            // scalar denom{scalar{2.} * vector::dot(sr, h.dir(s)) *
-            // vector::dot(sr, h.pos(s) - sc)};
             scalar denom{scalar{2} *
                          vector::dot(vector::cross(h.pos(s) - sc, sz),
                                      vector::cross(h.dir(s), sz))};
-            // std::cout << "denom: " << denom << std::endl;
             if (denom == 0.) {
                 break;
             }
@@ -309,9 +284,7 @@ struct particle_gun {
             s_prev = s;
             vector3 crp = vector::cross(h.pos(s) - sc, sz);
             s -= (vector::dot(crp, crp) - r * r) / denom;
-            // std::cout << "New s: " << s << std::endl;
-            // std::cout << "New pos: " << h.pos(s)[0] << ", " << h.pos(s)[1] <<
-            // ", " << h.pos(s)[2] <<  std::endl;
+
             ++n_tries;
         }
         // No intersection found within max number of trials
@@ -325,25 +298,10 @@ struct particle_gun {
         is.p3 = h.pos(s);
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
-        // std::cout << "local2: " << is.p2[0] << ", " << is.p2[1] << ", " <<
-        // is.p2[2] << std::endl;
         auto local3 = trf.point_to_local(is.p3);
-        // std::cout << "local3: " << local3[0] << ", " << local3[1] << ", " <<
-        // local3[2] << std::endl;
-        is.status = mask.template is_inside<local_frame>(local3, tolerance);
         // Explicitely check for radial match
-        scalar is_r = getter::perp(is.p3);
-        // std::cout << "r: " << is_r << ", " << mask[0] << std::endl;
-        if (std::abs(is_r - mask[0]) >= epsilon) {
-            // std::cout << "missed portal: " << is_r << ", " << mask[0] <<
-            // std::endl;
-            is.status = intersection::status::e_missed;
-        }
-        // std::cout << std::boolalpha << (is.status ==
-        // intersection::status::e_inside) << std::endl; std::cout << "Helix
-        // final pos: " << is.p3[0] << ", " << is.p3[1] << ", " << is.p3[2] <<
-        // std::endl; std::cout << "Helix final dir: " << h.dir(s)[0] << ", " <<
-        // h.dir(s)[1] << ", " << h.dir(s)[2] << std::endl;
+        is.status = mask.template is_inside<local_frame, true>(
+            local3, typename mask_t::mask_tolerance{tol, tol});
         is.direction = vector::dot(is.p3, h.dir(s)) > 0.
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
