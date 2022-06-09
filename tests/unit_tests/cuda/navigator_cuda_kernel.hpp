@@ -47,6 +47,7 @@ constexpr unsigned int theta_steps = 100;
 constexpr unsigned int phi_steps = 100;
 
 constexpr scalar pos_diff_tolerance = 1e-3;
+constexpr scalar overstep_tolerance = -1e-4;
 
 // dummy propagator state
 template <typename navigation_t>

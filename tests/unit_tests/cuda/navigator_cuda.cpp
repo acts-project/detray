@@ -10,7 +10,6 @@
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
-#include "detray/definitions/units.hpp"
 #include "navigator_cuda_kernel.hpp"
 #include "tests/common/tools/track_generators.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
@@ -44,9 +43,10 @@ TEST(navigator_cuda, navigator) {
     // Iterate through uniformly distributed momentum directions
     for (auto traj : uniform_track_generator<free_track_parameters>(
              theta_steps, phi_steps, ori, mom_mag)) {
+        traj.set_overstep_tolerance(overstep_tolerance);
 
-        tracks_host.push_back(ray);
-        tracks_device.push_back(ray);
+        tracks_host.push_back(traj);
+        tracks_device.push_back(traj);
     }
 
     /**
