@@ -33,7 +33,7 @@ using trapezoid = trapezoid2<planar_intersector,
                              __plugin::cartesian2<detray::scalar>, edge_type>;
 using annulus = annulus2<planar_intersector,
                          __plugin::cartesian2<detray::scalar>, edge_type>;
-using cylinder = cylinder3<false, cylinder_intersector,
+using cylinder = cylinder3<cylinder_intersector,
                            __plugin::cylindrical2<detray::scalar>, edge_type>;
 using disc =
     ring2<planar_intersector, __plugin::cartesian2<detray::scalar>, edge_type>;

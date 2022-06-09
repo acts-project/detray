@@ -8,6 +8,7 @@
 
 #include <climits>
 #include <cmath>
+#include <iostream>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -33,10 +34,9 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <bool kRadialCheck = true,
-          typename intersector_t = detray::cylinder_intersector,
+template <typename intersector_t = detray::cylinder_intersector,
           typename local_t = __plugin::cylindrical2<detray::scalar>,
-          typename links_t = dindex,
+          typename links_t = dindex, bool kRadialCheck = true,
           template <typename, std::size_t> class array_t = darray>
 class cylinder3 final
     : public mask_base<intersector_t, local_t, links_t, array_t, 3> {
@@ -73,7 +73,7 @@ class cylinder3 final
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    cylinder3<kRadialCheck, intersector_t, local_type, links_type, array_t>
+    cylinder3<intersector_t, local_type, links_type, kRadialCheck, array_t>
         &operator=(const mask_values &rhs) {
         this->_values = rhs;
         return (*this);
@@ -90,10 +90,10 @@ class cylinder3 final
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_t>
+    template <typename inside_local_t, bool is_rad_check = kRadialCheck>
     DETRAY_HOST_DEVICE intersection::status is_inside(
         const point3 &p, const mask_tolerance t = within_epsilon) const {
-        if constexpr (kRadialCheck) {
+        if constexpr (is_rad_check) {
             scalar r = getter::perp(p);
             if (std::abs(r - this->_values[0]) >=
                 t[0] + 5 * std::numeric_limits<scalar>::epsilon()) {

@@ -33,9 +33,8 @@ enum mask_ids : unsigned int {
 };
 
 using mask_defs =
-    mask_registry<mask_ids, rectangle2<>,
-                  cylinder3<false, cylinder_intersector>,
-                  cylinder3<false, concentric_cylinder_intersector<>>>;
+    mask_registry<mask_ids, rectangle2<>, cylinder3<cylinder_intersector>,
+                  cylinder3<concentric_cylinder_intersector<>>>;
 using plane_surface = surface<mask_defs, transform3>;
 
 unsigned int theta_steps = 1000;

@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cmath>
-#include <iostream>
 #include <utility>
 
 #include "detray/definitions/qualifiers.hpp"

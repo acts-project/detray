@@ -20,12 +20,11 @@
 #include "detray/intersection/planar_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/propagator/track.hpp"
-#include "detray/utils/enumerate.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/particle_gun.hpp"
-#include "tests/common/tools/ray_scan_utils.hpp"
 #include "tests/common/tools/test_trajectories.hpp"
 #include "tests/common/tools/track_generators.hpp"
+
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
@@ -123,31 +122,35 @@ TEST(tools, particle_gun) {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto toy_det = create_toy_geometry(host_mr, 4, 7);
+    auto toy_det = create_toy_geometry(host_mr);
 
     unsigned int theta_steps = 50;
     unsigned int phi_steps = 50;
     const point3 ori{0., 0., 0.};
 
     // Record ray tracing
-    std::vector<std::vector<std::pair<dindex, dindex>>> expected;
-    // Iterate through uniformly distributed momentum directions with ray
+    std::vector<std::vector<std::pair<dindex, particle_gun::intersection_type>>>
+        expected;
+    // std::cout << "Ray gun:" << std::endl;
+    //  Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray :
          uniform_track_generator<ray>(theta_steps, phi_steps, ori)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
             particle_gun::shoot_particle(toy_det, test_ray);
-        auto [portal_trace, surface_trace] =
-            trace_intersections(intersection_record, 0);
-        expected.push_back(surface_trace);
+        // std::cout << "New track: " << intersection_record.size() <<
+        // std::endl;
+
+        expected.push_back(intersection_record);
     }
 
-    // simulate straight line track
+    // Simulate straight line track
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     0.00001 * unit_constants::T};
     // Iterate through uniformly distributed momentum directions with helix
     std::size_t n_tracks{0};
+    // std::cout << "Helix gun:" << std::endl;
     for (const auto track : uniform_track_generator<free_track_parameters>(
              theta_steps, phi_steps, ori)) {
         helix test_helix(track, &B);
@@ -155,10 +158,12 @@ TEST(tools, particle_gun) {
         // Record all intersections and objects along the ray
         const auto intersection_record =
             particle_gun::shoot_particle(toy_det, test_helix);
+        // std::cout << "New track: " << intersection_record.size() <<
+        // std::endl;
 
-        // EXPECT_EQ(expected[n_tracks].size(), intersection_record.size());
+        EXPECT_EQ(expected[n_tracks].size(), intersection_record.size());
         for (unsigned int i = 0; i < intersection_record.size(); ++i) {
-            EXPECT_EQ(expected[n_tracks][i + 1].first,
+            EXPECT_EQ(expected[n_tracks][i].first,
                       intersection_record[i].first);
         }
         ++n_tracks;

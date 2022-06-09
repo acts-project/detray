@@ -21,7 +21,6 @@ constexpr const float epsilon = 1e-5;
 TEST(tools, uniform_track_generator) {
 
     using vector3 = __plugin::vector3<scalar>;
-    using point3 = __plugin::point3<scalar>;
 
     constexpr std::size_t phi_steps = 5;
     constexpr std::size_t theta_steps = 5;
