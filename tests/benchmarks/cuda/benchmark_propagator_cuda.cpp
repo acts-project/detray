@@ -12,7 +12,6 @@
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "benchmark_propagator_cuda_kernel.hpp"
-#include "detray/definitions/units.hpp"
 #include "tests/common/tools/track_generators.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 

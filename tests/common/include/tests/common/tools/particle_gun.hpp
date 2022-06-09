@@ -211,7 +211,7 @@ struct particle_gun {
             // f'(s) = sn * h.dir(s)
             scalar denom{vector::dot(sn, h.dir(s))};
             // No intersection can be found if dividing by zero
-            if (denom < std::numeric_limits<scalar>::epsilon()) {
+            if (denom == 0.) {
                 return intersection_type{};
             }
             // x_n+1 = x_n - f(s) / f'(s)
@@ -284,7 +284,7 @@ struct particle_gun {
             scalar denom{scalar{2} *
                          vector::dot(crp, vector::cross(h.dir(s), sz))};
             // No intersection can be found if dividing by zero
-            if (denom < std::numeric_limits<scalar>::epsilon()) {
+            if (denom == 0.) {
                 return intersection_type{};
             }
             // x_n+1 = x_n - f(s) / f'(s)

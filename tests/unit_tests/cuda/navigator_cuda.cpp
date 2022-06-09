@@ -10,6 +10,7 @@
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
+#include "detray/definitions/units.hpp"
 #include "navigator_cuda_kernel.hpp"
 #include "tests/common/tools/track_generators.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
@@ -38,10 +39,11 @@ TEST(navigator_cuda, navigator) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
+    const scalar mom_mag = 10. * unit_constants::GeV;
 
     // Iterate through uniformly distributed momentum directions
     for (auto traj : uniform_track_generator<free_track_parameters>(
-             theta_steps, phi_steps, ori, mom)) {
+             theta_steps, phi_steps, ori, mom_mag)) {
 
         tracks_host.push_back(ray);
         tracks_device.push_back(ray);
