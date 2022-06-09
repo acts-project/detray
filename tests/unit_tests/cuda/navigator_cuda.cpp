@@ -40,8 +40,8 @@ TEST(navigator_cuda, navigator) {
     const point3 ori{0., 0., 0.};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto traj :
-         uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
+    for (auto traj : uniform_track_generator<free_track_parameters>(
+             theta_steps, phi_steps, ori, mom)) {
 
         tracks_host.push_back(ray);
         tracks_device.push_back(ray);

@@ -8,6 +8,7 @@
 #pragma once
 
 // system include
+#include <climits>
 #include <cmath>
 #include <utility>
 
@@ -60,7 +61,7 @@ struct particle_gun {
                 }
                 // Accept if inside
                 if (sfi.status == intersection::status::e_inside) {
-                    // surface the candidate belongs to
+                    // Volume the candidate belongs to
                     sfi.index = volume.index();
                     intersection_record.emplace_back(sf_idx, sfi);
                 }
@@ -209,8 +210,8 @@ struct particle_gun {
         while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
             // f'(s) = sn * h.dir(s)
             scalar denom{vector::dot(sn, h.dir(s))};
-            // No intersection could be found
-            if (denom == 0.) {
+            // No intersection can be found if dividing by zero
+            if (denom < std::numeric_limits<scalar>::epsilon()) {
                 return intersection_type{};
             }
             // x_n+1 = x_n - f(s) / f'(s)
@@ -282,8 +283,8 @@ struct particle_gun {
             vector3 crp = vector::cross(h.pos(s) - sc, sz);
             scalar denom{scalar{2} *
                          vector::dot(crp, vector::cross(h.dir(s), sz))};
-            // No intersection could be found
-            if (denom == 0.) {
+            // No intersection can be found if dividing by zero
+            if (denom < std::numeric_limits<scalar>::epsilon()) {
                 return intersection_type{};
             }
             // x_n+1 = x_n - f(s) / f'(s)
@@ -305,7 +306,7 @@ struct particle_gun {
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
         auto local3 = trf.point_to_local(is.p3);
-        // Explicitely check for radial match
+        // Explicitly check for radial match
         is.status = mask.template is_inside<local_frame, true>(
             local3, typename mask_t::mask_tolerance{tol, tol});
         is.direction = vector::dot(is.p3, h.dir(s)) > scalar{0.}
