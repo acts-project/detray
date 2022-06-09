@@ -11,10 +11,10 @@
 #include <sstream>
 #include <string>
 
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/planar_intersector.hpp"
+#include "detray/masks/mask_base.hpp"
 
 namespace detray {
 /** This is a 2-dimensional mask for the annulus geometry that is
@@ -43,27 +43,21 @@ namespace detray {
  * mask type once for all.
  *
  **/
+
 template <typename intersector_t = planar_intersector,
-          typename mask_local_t = __plugin::polar2<detray::scalar>,
-          typename mask_links_t = dindex,
+          typename local_t = __plugin::polar2<detray::scalar>,
+          typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
-struct annulus2 {
-    // Export types
-    using mask_tolerance = array_t<scalar, 2>;
-    using mask_values = array_t<scalar, 7>;
-    using links_type = mask_links_t;
-    using local_type = mask_local_t;
+class annulus2 final
+    : public mask_base<intersector_t, local_t, links_t, array_t> {
+    public:
+    using base_type = mask_base<intersector_t, local_t, links_t, array_t>;
+    using mask_tolerance = typename base_type::template array_type<scalar, 2>;
+    using mask_values = typename base_type::template array_type<scalar, 7>;
+    using links_type = typename base_type::links_type;
+    using local_type = typename base_type::local_type;
+    using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
-
-    mask_values _values = {0.,
-                           std::numeric_limits<scalar>::infinity(),
-                           -std::numeric_limits<scalar>::infinity(),
-                           std::numeric_limits<scalar>::infinity(),
-                           0.,
-                           0.,
-                           0.};
-
-    links_type _links;
 
     static constexpr mask_tolerance within_epsilon = {
         std::numeric_limits<scalar>::epsilon(),
@@ -85,8 +79,10 @@ struct annulus2 {
     DETRAY_HOST_DEVICE
     annulus2(scalar r_low, scalar r_high, scalar phi_low, scalar phi_high,
              scalar shift_x, scalar shift_y, scalar avg_phi, links_type links)
-        : _values{r_low, r_high, phi_low, phi_high, shift_x, shift_y, avg_phi},
-          _links(links) {}
+        : _values{r_low, r_high, phi_low, phi_high, shift_x, shift_y, avg_phi} {
+
+        this->_links = links;
+    }
 
     /** Assignment operator from an array, convenience function
      *
@@ -181,7 +177,7 @@ struct annulus2 {
      **/
     DETRAY_HOST_DEVICE
     bool operator==(const annulus2 &rhs) {
-        return (_values == rhs._values && _links == rhs._links);
+        return (_values == rhs._values && this->_links == rhs._links);
     }
 
     /** Access operator - non-const
@@ -200,43 +196,11 @@ struct annulus2 {
         return _values[value_index];
     }
 
-    /** Return an associated intersector type */
-    DETRAY_HOST_DEVICE
-    intersector_t intersector() const { return intersector_t{}; };
-
-    /** Return the values */
+    /// Return the values
     DETRAY_HOST_DEVICE
     const mask_values &values() const { return _values; }
 
-    /** Return the local frame type */
-    DETRAY_HOST_DEVICE
-    constexpr local_type local() const { return local_type{}; }
-
-    /** @return the links - const reference */
-    DETRAY_HOST_DEVICE
-    const links_type &links() const { return _links; }
-
-    /** @return the links - non-const access */
-    DETRAY_HOST_DEVICE
-    links_type &links() { return _links; }
-
-    /** @return the volume link - const reference */
-    DETRAY_HOST_DEVICE
-    dindex volume_link() const { return detail::get<0>(_links); }
-
-    /** @return the volume link - non-const access */
-    DETRAY_HOST_DEVICE
-    dindex volume_link() { return detail::get<0>(_links); }
-
-    /** @return the surface finder link - const reference */
-    DETRAY_HOST_DEVICE
-    dindex finder_link() const { return detail::get<1>(_links); }
-
-    /** @return the surface finder link - non-const access */
-    DETRAY_HOST_DEVICE
-    dindex finder_link() { return detail::get<1>(_links); }
-
-    /** Transform to a string for output debugging */
+    /// Transform to a string for output debugging
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
@@ -246,6 +210,15 @@ struct annulus2 {
         }
         return ss.str();
     }
+
+    private:
+    mask_values _values = {0.,
+                           std::numeric_limits<scalar>::infinity(),
+                           -std::numeric_limits<scalar>::infinity(),
+                           std::numeric_limits<scalar>::infinity(),
+                           0.,
+                           0.,
+                           0.};
 };
 
 }  // namespace detray

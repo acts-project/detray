@@ -15,6 +15,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/planar_intersector.hpp"
+#include "detray/masks/mask_base.hpp"
 
 namespace detray {
 
@@ -34,20 +35,20 @@ namespace detray {
  *
  **/
 template <typename intersector_t = planar_intersector,
-          typename mask_local_t = __plugin::cartesian2<detray::scalar>,
-          typename mask_links_t = dindex,
+          typename local_t = __plugin::cartesian2<detray::scalar>,
+          typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
-struct rectangle2 {
-    using mask_tolerance = array_t<scalar, 2>;
-    using mask_values = array_t<scalar, 2>;
-    using links_type = mask_links_t;
-    using local_type = mask_local_t;
+class rectangle2 final
+    : public mask_base<intersector_t, local_t, links_t, array_t> {
+
+    public:
+    using base_type = mask_base<intersector_t, local_t, links_t, array_t>;
+    using mask_tolerance = typename base_type::template array_type<scalar, 2>;
+    using mask_values = typename base_type::template array_type<scalar, 2>;
+    using links_type = typename base_type::links_type;
+    using local_type = typename base_type::local_type;
+    using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
-
-    mask_values _values = {std::numeric_limits<scalar>::infinity(),
-                           std::numeric_limits<scalar>::infinity()};
-
-    links_type _links;
 
     static constexpr mask_tolerance within_epsilon = {
         std::numeric_limits<scalar>::epsilon(),
@@ -63,7 +64,9 @@ struct rectangle2 {
      */
     DETRAY_HOST_DEVICE
     rectangle2(scalar half_length_0, scalar half_length_1, links_type links)
-        : _values{half_length_0, half_length_1}, _links(links) {}
+        : _values{half_length_0, half_length_1} {
+        this->_links = links;
+    }
 
     /** Assignment operator from an array, convenience function
      *
@@ -111,7 +114,7 @@ struct rectangle2 {
      **/
     DETRAY_HOST_DEVICE
     bool operator==(const rectangle2 &rhs) {
-        return (_values == rhs._values && _links == rhs._links);
+        return (_values == rhs._values && this->_links == rhs._links);
     }
 
     /** Access operator - non-const
@@ -134,38 +137,6 @@ struct rectangle2 {
     DETRAY_HOST_DEVICE
     const mask_values &values() const { return _values; }
 
-    /** @return an associated intersector type */
-    DETRAY_HOST_DEVICE
-    intersector_t intersector() const { return intersector_t{}; };
-
-    /** @return the local frame type */
-    DETRAY_HOST_DEVICE
-    constexpr local_type local() const { return local_type{}; }
-
-    /** @return the links - const reference */
-    DETRAY_HOST_DEVICE
-    const links_type &links() const { return _links; }
-
-    /** @return the links - non-const access */
-    DETRAY_HOST_DEVICE
-    links_type &links() { return _links; }
-
-    /** @return the volume link - const reference */
-    DETRAY_HOST_DEVICE
-    dindex volume_link() const { return detail::get<0>(_links); }
-
-    /** @return the volume link - non-const access */
-    DETRAY_HOST_DEVICE
-    dindex volume_link() { return detail::get<0>(_links); }
-
-    /** @return the surface finder link - const reference */
-    DETRAY_HOST_DEVICE
-    dindex finder_link() const { return detail::get<1>(_links); }
-
-    /** @return the surface finder link - non-const access */
-    DETRAY_HOST_DEVICE
-    dindex finder_link() { return detail::get<1>(_links); }
-
     /** Transform to a string for output debugging */
     DETRAY_HOST
     std::string to_string() const {
@@ -176,6 +147,10 @@ struct rectangle2 {
         }
         return ss.str();
     }
+
+    private:
+    mask_values _values = {std::numeric_limits<scalar>::infinity(),
+                           std::numeric_limits<scalar>::infinity()};
 };
 
 }  // namespace detray
