@@ -27,6 +27,8 @@ namespace detray {
 /// Records intersections with every detector surface along the ray.
 struct particle_gun {
 
+    using point3 = __plugin::point3<scalar>;
+    using vector3 = __plugin::vector3<scalar>;
     using intersection_type = line_plane_intersection;
 
     /// Intersect all surfaces in a detector with a given ray.
@@ -190,8 +192,8 @@ struct particle_gun {
 
         // Get the surface info
         const auto &sm = trf.matrix();
-        auto sn = getter::vector<3>(sm, 0, 2);
-        auto st = getter::vector<3>(sm, 0, 3);
+        vector3 sn = getter::vector<3>(sm, 0, 2);
+        vector3 st = getter::vector<3>(sm, 0, 3);
 
         // Starting point on the helix for the Newton iteration
         scalar s{getter::norm(sn) - scalar{0.1}};
@@ -220,9 +222,10 @@ struct particle_gun {
         }
 
         // Build intersection struct from helix parameter s
+        point3 helix_pos = h.pos(s);
         intersection_type is;
-        is.path = getter::norm(h.pos(s));
-        is.p3 = h.pos(s);
+        is.path = getter::norm(helix_pos);
+        is.p3 = helix_pos;
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
         is.status = mask.template is_inside<local_frame>(
@@ -249,8 +252,6 @@ struct particle_gun {
         const transform_t &trf, const helix &h, const mask_t &mask,
         const scalar tol) -> intersection_type {
 
-        // using point3 = __plugin::point3<scalar>;
-        using vector3 = __plugin::vector3<scalar>;
         using local_frame = typename mask_t::local_type;
 
         // Get the surface info
@@ -258,7 +259,7 @@ struct particle_gun {
         // Cylinder z axis
         vector3 sz = getter::vector<3>(sm, 0, 2);
         // Cylinder centre
-        auto sc = getter::vector<3>(sm, 0, 3);
+        vector3 sc = getter::vector<3>(sm, 0, 3);
 
         // Starting point on the helix for the Newton iteration
         // The mask is a cylinder type -> it provides a radius
@@ -273,16 +274,16 @@ struct particle_gun {
         // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
         // Run the iteration on s
         while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
+
             // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
+            vector3 crp = vector::cross(h.pos(s) - sc, sz);
             scalar denom{scalar{2} *
-                         vector::dot(vector::cross(h.pos(s) - sc, sz),
-                                     vector::cross(h.dir(s), sz))};
+                         vector::dot(crp, vector::cross(h.dir(s), sz))};
             if (denom == 0.) {
                 break;
             }
             // x_n+1 = x_n - f(s) / f'(s)
             s_prev = s;
-            vector3 crp = vector::cross(h.pos(s) - sc, sz);
             s -= (vector::dot(crp, crp) - r * r) / denom;
 
             ++n_tries;
@@ -293,9 +294,10 @@ struct particle_gun {
         }
 
         // Build intersection struct from helix parameter s
+        point3 helix_pos = h.pos(s);
         intersection_type is;
-        is.path = getter::norm(h.pos(s));
-        is.p3 = h.pos(s);
+        is.path = getter::norm(helix_pos);
+        is.p3 = helix_pos;
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
         auto local3 = trf.point_to_local(is.p3);
