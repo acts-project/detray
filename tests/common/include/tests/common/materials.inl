@@ -10,7 +10,6 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/materials/surface_material.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -97,22 +96,16 @@ TEST(materials, mixture) {
     material_slab<material<scalar>> slab2(air<scalar>(), 2.3);
     material_slab<material<scalar>> slab3(oxygen_gas<scalar>(), 2);
 
-    surface_material surf1(slab1);
-    surface_material surf2(slab2);
-    surface_material surf3(slab3);
+    std::vector<material_slab<material<scalar>>> slab_vec;
 
-    std::vector<surface_material<material_slab<material<scalar>>>> surface_vec;
-    surface_vec.push_back(surf1);
-    surface_vec.push_back(surf2);
-    surface_vec.push_back(surf3);
+    slab_vec.push_back(slab1);
+    slab_vec.push_back(slab2);
+    slab_vec.push_back(slab3);
 
-    point2 p;
-    p[0] = 0;
-    p[1] = 0;
-    EXPECT_FLOAT_EQ(surface_vec[0].get(p).thickness_in_X0(),
+    EXPECT_FLOAT_EQ(slab_vec[0].thickness_in_X0(),
                     slab1.thickness() / slab1.material().X0());
-    EXPECT_FLOAT_EQ(surface_vec[1].get(p).thickness_in_X0(),
+    EXPECT_FLOAT_EQ(slab_vec[1].thickness_in_X0(),
                     slab2.thickness() / slab2.material().X0());
-    EXPECT_FLOAT_EQ(surface_vec[2].get(p).thickness_in_X0(),
+    EXPECT_FLOAT_EQ(slab_vec[2].thickness_in_X0(),
                     slab3.thickness() / slab3.material().X0());
 }
