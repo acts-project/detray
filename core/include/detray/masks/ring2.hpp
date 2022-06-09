@@ -11,7 +11,6 @@
 #include <sstream>
 #include <string>
 
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/planar_intersector.hpp"

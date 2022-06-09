@@ -7,6 +7,10 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/qualifiers.hpp"
+
 namespace detray {
 
 template <typename intersector_t, typename local_t, typename links_t,
