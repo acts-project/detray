@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/smatrix_definitions.hpp"
-#include "tests/common/tools_helix_trajectory.inl"
+#include "tests/common/tools_track_generators.inl"
