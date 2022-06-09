@@ -33,8 +33,6 @@ constexpr const float epsilon = 1e-3;
 /// Re-use the intersection kernel test for particle gun
 TEST(tools, helix_intersector) {
 
-    using transform3 = __plugin::transform3<scalar>;
-
     vecmem::host_memory_resource host_mr;
 
     enum mask_ids : unsigned int {
