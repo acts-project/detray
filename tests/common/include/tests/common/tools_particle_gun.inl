@@ -57,7 +57,7 @@ TEST(tools, helix_intersector) {
                                __plugin::cartesian2<detray::scalar>, edge_t>;
     using mask_defs =
         mask_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
-    using mask_container_t = typename mask_defs::container_type<>;
+    using mask_container_t = typename mask_defs::template mask_store_type<>;
 
     /// The Surface definition:
     /// <transform_link, volume_link, source_link, link_type_in_mask>
@@ -75,10 +75,10 @@ TEST(tools, helix_intersector) {
     transform_store.push_back(static_context, annulus_transform);
     // The masks & their store
     mask_container_t mask_store(host_mr);
-    mask_store.template add_mask<e_rectangle2>(10., 10., 0);
-    mask_store.template add_mask<e_trapezoid2>(10., 20., 30., 0);
-    mask_store.template add_mask<e_annulus2>(15., 55., 0.75, 1.95, 2., -2., 0.,
-                                             0);
+    mask_store.template add_value<e_rectangle2>(10., 10., 0);
+    mask_store.template add_value<e_trapezoid2>(10., 20., 30., 0);
+    mask_store.template add_value<e_annulus2>(15., 55., 0.75, 1.95, 2., -2., 0.,
+                                              0);
     // The surfaces and their store
     surface_t rectangle_surface(0u, {e_rectangle2, 0}, 0, 0, false);
     surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, 0, 1, false);
