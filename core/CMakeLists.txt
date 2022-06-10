@@ -56,6 +56,12 @@ detray_add_library( detray_core core
    "include/detray/masks/single3.hpp"
    "include/detray/masks/trapezoid2.hpp"
    "include/detray/masks/unmasked.hpp"
+   # materials include(s)
+   "include/detray/materials/mixture.hpp" 
+   "include/detray/materials/material.hpp"
+   "include/detray/materials/material_rod.hpp"   
+   "include/detray/materials/material_slab.hpp"   
+   "include/detray/materials/predefined_materials.hpp"
    # propagator include(s)
    "include/detray/propagator/aborters.hpp"
    "include/detray/propagator/actor_chain.hpp"
@@ -81,5 +87,6 @@ detray_add_library( detray_core core
    "include/detray/utils/algebra_helpers.hpp"
    "include/detray/utils/enumerate.hpp"
    "include/detray/utils/invalid_values.hpp"
+   "include/detray/utils/ratio.hpp"
    "include/detray/utils/type_traits.hpp" )
 target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)
