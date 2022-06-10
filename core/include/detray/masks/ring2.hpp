@@ -36,11 +36,13 @@ template <typename intersector_t = planar_intersector,
           typename local_t = __plugin::cartesian2<detray::scalar>,
           typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
-class ring2 final : public mask_base<intersector_t, local_t, links_t, array_t> {
+class ring2 final
+    : public mask_base<intersector_t, local_t, links_t, array_t, 2> {
     public:
-    using base_type = mask_base<intersector_t, local_t, links_t, array_t>;
+    using base_type = mask_base<intersector_t, local_t, links_t, array_t, 2>;
+    using base_type::base_type;
     using mask_tolerance = scalar;
-    using mask_values = typename base_type::template array_type<scalar, 2>;
+    using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
@@ -59,18 +61,16 @@ class ring2 final : public mask_base<intersector_t, local_t, links_t, array_t> {
      */
     DETRAY_HOST_DEVICE
     ring2(scalar r_low, scalar r_high, links_type links)
-        : _values{r_low, r_high} {
-        this->_links = links;
-    }
+        : base_type({r_low, r_high}, links) {}
 
     /** Assignment operator from an array, convenience function
      *
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    ring2<intersector_t, local_type, links_type> &operator=(
-        const array_t<scalar, 2> &rhs) {
-        _values = rhs;
+    ring2<intersector_t, local_type, links_type, array_t> &operator=(
+        const mask_values &rhs) {
+        this->_values = rhs;
         return (*this);
     }
 
@@ -89,69 +89,26 @@ class ring2 final : public mask_base<intersector_t, local_t, links_t, array_t> {
         if constexpr (std::is_same_v<inside_local_t,
                                      __plugin::cartesian2<detray::scalar>>) {
             scalar r = getter::perp(p);
-            return (r + t >= _values[0] and r <= _values[1] + t)
+            return (r + t >= this->_values[0] and r <= this->_values[1] + t)
                        ? intersection::status::e_inside
                        : intersection::status::e_outside;
         }
 
-        return (p[0] + t >= _values[0] and p[0] <= _values[1] + t)
+        return (p[0] + t >= this->_values[0] and p[0] <= this->_values[1] + t)
                    ? intersection::status::e_inside
                    : intersection::status::e_outside;
     }
-
-    /** Equality operator from an array, convenience function
-     *
-     * @param rhs is the rectangle to be compared with
-     *
-     * checks identity within epsilon and @return s a boolean*
-     **/
-    DETRAY_HOST_DEVICE
-    bool operator==(const array_t<scalar, 2> &rhs) { return (_values == rhs); }
-
-    /** Equality operator
-     *
-     * @param rhs is the rectangle to be compared with
-     *
-     * checks identity within epsilon and @return s a boolean*
-     **/
-    DETRAY_HOST_DEVICE
-    bool operator==(const ring2 &rhs) {
-        return (_values == rhs._values && this->_links == rhs._links);
-    }
-
-    /** Access operator - non-const
-     * @return the reference to the member variable
-     */
-    DETRAY_HOST_DEVICE
-    scalar &operator[](unsigned int value_index) {
-        return _values[value_index];
-    }
-
-    /** Access operator - non-const
-     * @return a copy of the member variable
-     */
-    DETRAY_HOST_DEVICE
-    scalar operator[](unsigned int value_index) const {
-        return _values[value_index];
-    }
-
-    /** Return the values */
-    DETRAY_HOST_DEVICE
-    const mask_values &values() const { return _values; }
 
     /** Transform to a string for output debugging */
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
-        ss << "ring2";
-        for (const auto &v : _values) {
+        ss << "rectangle2";
+        for (const auto &v : this->_values) {
             ss << ", " << v;
         }
         return ss.str();
     }
-
-    private:
-    mask_values _values = {0., std::numeric_limits<scalar>::infinity()};
 };
 
 }  // namespace detray

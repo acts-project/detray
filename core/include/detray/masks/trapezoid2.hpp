@@ -39,11 +39,12 @@ template <typename intersector_t = planar_intersector,
           typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 class trapezoid2 final
-    : public mask_base<intersector_t, local_t, links_t, array_t> {
+    : public mask_base<intersector_t, local_t, links_t, array_t, 4> {
     public:
-    using base_type = mask_base<intersector_t, local_t, links_t, array_t>;
+    using base_type = mask_base<intersector_t, local_t, links_t, array_t, 4>;
+    using base_type::base_type;
     using mask_tolerance = typename base_type::template array_type<scalar, 2>;
-    using mask_values = typename base_type::template array_type<scalar, 4>;
+    using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
@@ -65,19 +66,18 @@ class trapezoid2 final
     DETRAY_HOST_DEVICE
     trapezoid2(scalar half_length_0, scalar half_length_1, scalar half_length_2,
                links_type links)
-        : _values{half_length_0, half_length_1, half_length_2,
-                  static_cast<scalar>(1. / (2. * half_length_2))} {
-        this->_links = links;
-    }
+        : base_type({half_length_0, half_length_1, half_length_2,
+                     static_cast<scalar>(1. / (2. * half_length_2))},
+                    links) {}
 
     /** Assignment operator from an array, convenience function
      *
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    trapezoid2<intersector_t, local_type, links_type> &operator=(
+    trapezoid2<intersector_t, local_type, links_type, array_t> &operator=(
         const array_t<scalar, 3> &rhs) {
-        _values = rhs;
+        this->_values = rhs;
         return (*this);
     }
 
@@ -93,70 +93,25 @@ class trapezoid2 final
     template <typename inside_local_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
         const point2 &p, const mask_tolerance t = within_epsilon) const {
-        scalar rel_y = (_values[2] + p[1]) * _values[3];
+        scalar rel_y = (this->_values[2] + p[1]) * this->_values[3];
         return (std::abs(p[0]) <=
-                    _values[0] + rel_y * (_values[1] - _values[0]) + t[0] and
-                std::abs(p[1]) <= _values[2] + t[1])
+                    this->_values[0] +
+                        rel_y * (this->_values[1] - this->_values[0]) + t[0] and
+                std::abs(p[1]) <= this->_values[2] + t[1])
                    ? intersection::status::e_inside
                    : intersection::status::e_outside;
     }
-
-    /** Equality operator from an array, convenience function
-     *
-     * @param rhs is the rectangle to be compared with
-     *
-     * checks identity within epsilon and @return s a boolean*
-     **/
-    DETRAY_HOST_DEVICE
-    bool operator==(const array_t<scalar, 3> &rhs) { return (_values == rhs); }
-
-    /** Equality operator
-     *
-     * @param rhs is the rectangle to be compared with
-     *
-     * checks identity within epsilon and @return s a boolean*
-     **/
-    DETRAY_HOST_DEVICE
-    bool operator==(const trapezoid2 &rhs) {
-        return (_values == rhs._values && this->_links == rhs._links);
-    }
-
-    /** Access operator - non-const
-     * @return the reference to the member variable
-     */
-    DETRAY_HOST_DEVICE
-    scalar &operator[](unsigned int value_index) {
-        return _values[value_index];
-    }
-
-    /** Access operator - non-const
-     * @return a copy of the member variable
-     */
-    DETRAY_HOST_DEVICE
-    scalar operator[](unsigned int value_index) const {
-        return _values[value_index];
-    }
-
-    /** Return the values */
-    DETRAY_HOST_DEVICE
-    const mask_values &values() const { return _values; }
 
     /** Transform to a string for output debugging */
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
         ss << "trapezoid2";
-        for (const auto &v : _values) {
+        for (const auto &v : this->_values) {
             ss << ", " << v;
         }
         return ss.str();
     }
-
-    private:
-    mask_values _values = {std::numeric_limits<scalar>::infinity(),
-                           std::numeric_limits<scalar>::infinity(),
-                           std::numeric_limits<scalar>::infinity(),
-                           std::numeric_limits<scalar>::infinity()};
 };
 
 }  // namespace detray

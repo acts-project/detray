@@ -19,10 +19,12 @@ template <typename intersector_t = planar_intersector,
           typename local_t = unbound, typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 class unmasked final
-    : public mask_base<intersector_t, local_t, links_t, array_t> {
+    : public mask_base<intersector_t, local_t, links_t, array_t, 1> {
     public:
-    using base_type = mask_base<intersector_t, local_t, links_t, array_t>;
+    using base_type = mask_base<intersector_t, local_t, links_t, array_t, 1>;
+    using base_type::base_type;
     using mask_tolerance = bool;
+    using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
@@ -35,7 +37,7 @@ class unmasked final
 
     /** Construction from voume link */
     DETRAY_HOST_DEVICE
-    unmasked(links_type links) { this->_links = links; }
+    unmasked(links_type links) : base_type({0}, links) {}
 
     /** Mask operation
      *

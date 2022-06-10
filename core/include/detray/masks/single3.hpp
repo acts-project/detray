@@ -35,11 +35,12 @@ template <unsigned int kCheckIndex, typename intersector_t = planar_intersector,
           typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 class single3 final
-    : public mask_base<intersector_t, local_t, links_t, array_t> {
+    : public mask_base<intersector_t, local_t, links_t, array_t, 2> {
     public:
-    using base_type = mask_base<intersector_t, local_t, links_t, array_t>;
+    using base_type = mask_base<intersector_t, local_t, links_t, array_t, 2>;
+    using base_type::base_type;
     using mask_tolerance = scalar;
-    using mask_values = typename base_type::template array_type<scalar, 2>;
+    using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
@@ -53,18 +54,16 @@ class single3 final
 
     /** Construction from boundary values **/
     DETRAY_HOST_DEVICE
-    single3(scalar x, scalar y, links_type links) : _values{x, y} {
-        this->_links = links;
-    }
+    single3(scalar x, scalar y, links_type links) : base_type({x, y}, links) {}
 
     /** Assignment operator from an array, convenience function
      *
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    single3<kCheckIndex, intersector_t, local_type, links_type> &operator=(
-        const array_t<scalar, 2> &rhs) {
-        _values = rhs;
+    single3<kCheckIndex, intersector_t, local_type, links_type, array_t>
+        &operator=(const mask_values &rhs) {
+        this->_values = rhs;
         return (*this);
     }
 
@@ -80,64 +79,22 @@ class single3 final
     template <typename inside_local_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
         const point3 &p, const mask_tolerance t = within_epsilon) const {
-        return (_values[0] - t <= p[kCheckIndex] and
-                p[kCheckIndex] <= _values[1] + t)
+        return (this->_values[0] - t <= p[kCheckIndex] and
+                p[kCheckIndex] <= this->_values[1] + t)
                    ? intersection::status::e_inside
                    : intersection::status::e_outside;
     }
-
-    /** Equality operator from an array, convenience function
-     *
-     * @param rhs is the rectangle to be compared with
-     *
-     **/
-    DETRAY_HOST_DEVICE
-    bool operator==(const array_t<scalar, 2> &rhs) { return (_values == rhs); }
-
-    /** Equality operator
-     *
-     * @param rhs is the rectangle to be compared with
-     *
-     **/
-    DETRAY_HOST_DEVICE
-    bool operator==(const single3 &rhs) {
-        return (_values == rhs._values && this->_links == rhs._links);
-    }
-
-    /** Access operator - non-const
-     * @return the reference to the member variable
-     */
-    DETRAY_HOST_DEVICE
-    scalar &operator[](unsigned int value_index) {
-        return _values[value_index];
-    }
-
-    /** Access operator - non-const
-     * @return a copy of the member variable
-     */
-    DETRAY_HOST_DEVICE
-    scalar operator[](unsigned int value_index) const {
-        return _values[value_index];
-    }
-
-    /** Return the values */
-    DETRAY_HOST_DEVICE
-    const mask_values &values() const { return _values; }
 
     /** Transform to a string for output debugging */
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
         ss << "single3";
-        for (const auto &v : _values) {
+        for (const auto &v : this->_values) {
             ss << ", " << v;
         }
         return ss.str();
     }
-
-    private:
-    mask_values _values = {std::numeric_limits<scalar>::infinity(),
-                           std::numeric_limits<scalar>::infinity()};
 };
 
 }  // namespace detray
