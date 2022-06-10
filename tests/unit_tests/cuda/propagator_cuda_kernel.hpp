@@ -68,17 +68,16 @@ namespace detray {
 template <template <typename...> class vector_t>
 struct track_inspector : actor {
 
-    struct track_inspector_state {
+    struct state {
 
-        track_inspector_state(vecmem::memory_resource &resource)
+        state(vecmem::memory_resource &resource)
             : _path_lengths(&resource),
               _positions(&resource),
               _jac_transports(&resource) {}
 
         DETRAY_HOST_DEVICE
-        track_inspector_state(vector_t<scalar> path_lengths,
-                              vector_t<vector3> positions,
-                              vector_t<free_matrix> jac_transports)
+        state(vector_t<scalar> path_lengths, vector_t<vector3> positions,
+              vector_t<free_matrix> jac_transports)
             : _path_lengths(path_lengths),
               _positions(positions),
               _jac_transports(jac_transports) {}
@@ -88,12 +87,9 @@ struct track_inspector : actor {
         vector_t<free_matrix> _jac_transports;
     };
 
-    using state_type = track_inspector_state;
-
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        state_type &inspector_state,
-        const propagator_state_t &prop_state) const {
+        state &inspector_state, const propagator_state_t &prop_state) const {
 
         const auto &stepping = prop_state._stepping;
 

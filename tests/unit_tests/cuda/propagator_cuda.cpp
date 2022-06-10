@@ -85,8 +85,8 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
         // Create the propagator state
-        inspector_host_t::state_type insp_state{mng_mr};
-        pathlimit_aborter::state_type pathlimit_state{path_limit};
+        inspector_host_t::state insp_state{mng_mr};
+        pathlimit_aborter::state pathlimit_state{path_limit};
 
         propagator_host_type::state state(
             tracks_host[i], thrust::tie(insp_state, pathlimit_state));

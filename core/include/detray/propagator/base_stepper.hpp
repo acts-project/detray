@@ -93,7 +93,7 @@ class base_stepper {
         constraint_t _constraint = {};
 
         // Navigation policy state
-        typename policy_t::state_type _policy_state = {};
+        typename policy_t::state _policy_state = {};
 
         /// Track path length
         scalar _path_length = 0;
@@ -122,7 +122,7 @@ class base_stepper {
 
         /// @returns access to this states step constraints
         DETRAY_HOST_DEVICE
-        inline typename policy_t::state_type &policy_state() {
+        inline typename policy_t::state &policy_state() {
             return _policy_state;
         }
 
