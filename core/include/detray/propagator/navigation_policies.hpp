@@ -20,7 +20,7 @@ namespace detray {
 /// initialize the current volume
 struct always_init : actor {
 
-    struct state_type {};
+    struct state {};
 
     /// Sets the navigation trust level to 'no trust'
     ///
@@ -28,8 +28,7 @@ struct always_init : actor {
     /// @param propagation state of the propagation
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void operator()(
-        const state_type & /*pol_state*/,
-        propagator_state_t &propagation) const {
+        const state & /*pol_state*/, propagator_state_t &propagation) const {
         propagation._navigation.set_no_trust();
     }
 };
@@ -38,7 +37,7 @@ struct always_init : actor {
 /// maps to the 'high trust' level in the navigator
 struct guided_navigation : actor {
 
-    struct state_type {};
+    struct state {};
 
     /// Sets the navigation trust level to 'no trust'
     ///
@@ -46,8 +45,7 @@ struct guided_navigation : actor {
     /// @param propagation state of the propagation
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void operator()(
-        const state_type & /*pol_state*/,
-        propagator_state_t &propagation) const {
+        const state & /*pol_state*/, propagator_state_t &propagation) const {
         propagation._navigation.set_high_trust();
     }
 };
@@ -58,7 +56,7 @@ struct guided_navigation : actor {
 /// constraint was triggered.
 struct stepper_default_policy : actor {
 
-    struct state_type {};
+    struct state {};
 
     /// Sets the navigation trust level depending on the step size limit
     ///
@@ -66,7 +64,7 @@ struct stepper_default_policy : actor {
     /// @param propagation state of the propagation
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void operator()(
-        state_type & /*pol_state*/, propagator_state_t &propagation) const {
+        state & /*pol_state*/, propagator_state_t &propagation) const {
 
         const auto &stepping = propagation._stepping;
         auto &navigation = propagation._navigation;

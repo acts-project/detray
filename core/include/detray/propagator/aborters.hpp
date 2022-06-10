@@ -20,7 +20,7 @@ namespace detray {
 struct pathlimit_aborter : actor {
 
     /// Pathlimit for a single propagation workflow
-    struct aborter_state {
+    struct state {
         /// Absolute path limit
         scalar _path_limit = std::numeric_limits<scalar>::max();
 
@@ -33,15 +33,12 @@ struct pathlimit_aborter : actor {
         inline scalar path_limit() const { return _path_limit; }
     };
 
-    /// Broadcast state type to actor chain
-    using state_type = aborter_state;
-
     /// Enforces the path limit on a stepper state
     ///
     /// @param abrt_state contains the path limit
     /// @param prop_state state of the propagation
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state_type &abrt_state,
+    DETRAY_HOST_DEVICE void operator()(state &abrt_state,
                                        propagator_state_t &prop_state) const {
         auto &step_state = prop_state._stepping;
         auto &nav_state = prop_state._navigation;

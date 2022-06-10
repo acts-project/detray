@@ -29,7 +29,7 @@ class actor_chain {
     /// Types of the actors that are registered in the chain
     using actor_list_type = tuple_t<actors_t...>;
     // Type of states tuple that is used in the propagator
-    using state = tuple_t<typename actors_t::state_type &...>;
+    using state = tuple_t<typename actors_t::state &...>;
 
     /// Call all actors in the chain.
     ///
@@ -57,7 +57,7 @@ class actor_chain {
                                        actor_states_t &states,
                                        propagator_state_t &p_state) const {
         if constexpr (not typename actor_t::is_comp_actor()) {
-            actr(detail::get<typename actor_t::state_type &>(states), p_state);
+            actr(detail::get<typename actor_t::state &>(states), p_state);
         } else {
             actr(states, p_state);
         }
