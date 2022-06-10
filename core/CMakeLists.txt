@@ -50,6 +50,7 @@ detray_add_library( detray_core core
    "include/detray/masks/annulus2.hpp"
    "include/detray/masks/cylinder3.hpp"
    "include/detray/masks/masks.hpp"
+   "include/detray/masks/masks_base.hpp"
    "include/detray/masks/rectangle2.hpp"
    "include/detray/masks/ring2.hpp"
    "include/detray/masks/single3.hpp"
