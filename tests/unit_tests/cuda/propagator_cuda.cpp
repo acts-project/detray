@@ -11,7 +11,6 @@
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "propagator_cuda_kernel.hpp"
-#include "tests/common/tools/track_generators.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
 class CudaPropagatorWithRkStepper

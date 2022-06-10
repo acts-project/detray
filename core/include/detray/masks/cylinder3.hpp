@@ -34,7 +34,7 @@ namespace detray {
  **/
 template <typename intersector_t = detray::cylinder_intersector,
           typename local_t = __plugin::cylindrical2<detray::scalar>,
-          typename links_t = dindex, bool kRadialCheck = true,
+          typename links_t = dindex, bool kRadialCheck = false,
           template <typename, std::size_t> class array_t = darray>
 class cylinder3 final
     : public mask_base<intersector_t, local_t, links_t, array_t, 3> {

@@ -21,6 +21,7 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
+#include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;
 
