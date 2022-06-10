@@ -103,7 +103,7 @@ class ring2 final
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream ss;
-        ss << "rectangle2";
+        ss << "ring2";
         for (const auto &v : this->_values) {
             ss << ", " << v;
         }
