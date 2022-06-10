@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cmath>
-#include <utility>
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
@@ -32,7 +31,6 @@ class uniform_track_generator {
     using vector3 = __plugin::vector3<detray::scalar>;
 
     /// Default constructor
-    DETRAY_HOST_DEVICE
     uniform_track_generator() = default;
 
     /// Paramtetrized constructor for fine-grained configurations
@@ -46,14 +44,14 @@ class uniform_track_generator {
                             point3 trk_origin = {},
                             scalar trk_mom = 1. * unit_constants::GeV,
                             scalar time = 0., scalar charge = -1.)
-        : m_theta_steps(n_theta),
-          m_phi_steps(n_phi),
-          m_origin(trk_origin),
-          m_mom_mag(trk_mom),
+        : m_theta_steps{n_theta},
+          m_phi_steps{n_phi},
+          m_origin{trk_origin},
+          m_mom_mag{trk_mom},
           m_time{time},
           m_charge{charge},
-          i_phi(0),
-          i_theta(0) {}
+          i_phi{0},
+          i_theta{0} {}
 
     /// @returns the generator in starting state: Default values reflect the
     /// first phi angle iteration.
@@ -132,7 +130,7 @@ class uniform_track_generator {
 
     /// Magnitude of momentum: Default is one to keep directions normalized if
     /// no momentum information is needed (e.g. for a ray)
-    scalar m_mom_mag = 1. * unit_constants::GeV;
+    scalar m_mom_mag{1. * unit_constants::GeV};
 
     /// Time parameter and charge of the track
     scalar m_time{0}, m_charge{0};
