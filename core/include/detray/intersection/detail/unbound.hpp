@@ -37,6 +37,6 @@ struct unbound {
     }
 };
 
-} // namespace detail
+}  // namespace detail
 
-} // namespace detray
+}  // namespace detray

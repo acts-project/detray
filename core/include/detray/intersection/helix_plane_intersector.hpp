@@ -7,7 +7,6 @@
 #pragma once
 
 #include <type_traits>
-#include <utility>
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -30,7 +29,8 @@ struct helix_plane_intersector {
     using point2 = __plugin::point2<detray::scalar>;
     using cylindrical2 = __plugin::cylindrical2<detray::scalar>;
 
-    const vector3 dummyBfield{0., 0., 2.};
+    /// TODO: Placeholder
+    const vector3 default_b_field{0., 0., 2.};
 
     /// Intersection method for planar surfaces
     ///
@@ -56,9 +56,10 @@ struct helix_plane_intersector {
         const transform_t &trf, const free_track_parameters &track,
         const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
-            mask_t::within_epsilon) -> intersection_type const {
-        return intersect(trf, detail::helix(track, &dummyBfield), mask,
-                         tolerance);
+            mask_t::within_epsilon,
+        vector3 const *const b_field = nullptr) -> intersection_type const {
+
+        return intersect(trf, detail::helix(track, b_field), mask, tolerance);
     }
 
     /// Intersection method for cylindrical surfaces using Newton-Raphson method
@@ -85,9 +86,9 @@ struct helix_plane_intersector {
         using local_frame = typename mask_t::local_type;
 
         // Guard against inifinite loops
-        const std::size_t max_n_tries{100};
+        constexpr std::size_t max_n_tries{100};
         // Tolerance for convergence
-        const scalar tol{1e-3};
+        constexpr scalar tol{1e-3};
 
         // Get the surface info
         const auto &sm = trf.matrix();
@@ -122,10 +123,10 @@ struct helix_plane_intersector {
 
         // Build intersection struct from helix parameter s
         intersection_type is;
-        point3 helix_pos = h.pos(s);
+        const point3 helix_pos = h.pos(s);
 
         is.path = getter::norm(helix_pos);
-        is.p3 = std::move(helix_pos);
+        is.p3 = helix_pos;
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
 

@@ -60,6 +60,7 @@ struct ray_concentric_cylinder_intersector {
         const transform_t &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance &tolerance =
             mask_t::within_epsilon) const {
+
         return intersect(trf, track.pos(), track.dir(), mask, tolerance,
                          track.overstep_tolerance());
     }
@@ -91,30 +92,30 @@ struct ray_concentric_cylinder_intersector {
         const mask_t &mask, const dindex /*volume_index*/ = dindex_invalid,
         const typename mask_t::mask_tolerance & /*tolerance*/ =
             mask_t::within_epsilon,
-        scalar overstep_tolerance = 0.) const {
+        const scalar overstep_tolerance = 0.) const {
 
         using local_frame = typename mask_t::local_type;
 
-        scalar r = mask[0];
+        const scalar r{mask[0]};
 
         // Two points on the line, thes are in the cylinder frame
-        const auto &l0 = ro;
-        const auto l1 = point3(ro + rd);
+        const point3 &l0 = ro;
+        const auto l1 = ro + rd;
 
         // swap coorinates x/y for numerical stability
-        bool swap_x_y = std::abs(rd[0]) < 1e-3;
+        const bool swap_x_y = std::abs(rd[0]) < scalar{1e-3};
 
-        unsigned int _x = swap_x_y ? 1 : 0;
-        unsigned int _y = swap_x_y ? 0 : 1;
-        scalar k = (l0[_y] - l1[_y]) / (l0[_x] - l1[_x]);
-        scalar d = l1[_y] - k * l1[_x];
+        std::size_t _x = swap_x_y ? 1 : 0;
+        std::size_t _y = swap_x_y ? 0 : 1;
+        const scalar k{(l0[_y] - l1[_y]) / (l0[_x] - l1[_x])};
+        const scalar d{l1[_y] - k * l1[_x]};
 
         quadratic_equation<scalar> qe = {(1 + k * k), 2 * k * d, d * d - r * r};
         auto qe_solution = qe();
 
         if (std::get<0>(qe_solution) > overstep_tolerance) {
             array_t<point3, 2> candidates;
-            auto u01 = std::get<1>(qe_solution);
+            const auto u01 = std::get<1>(qe_solution);
             array_t<scalar, 2> t01 = {0., 0.};
 
             candidates[0][_x] = u01[0];
@@ -128,12 +129,13 @@ struct ray_concentric_cylinder_intersector {
             candidates[1][2] = ro[2] + t01[1] * rd[2];
 
             // Chose the index, take the smaller positive one
-            int cindex = (t01[0] < t01[1] and t01[0] > overstep_tolerance)
-                             ? 0
-                             : (t01[0] < overstep_tolerance and
-                                        t01[1] > overstep_tolerance
-                                    ? 1
-                                    : 0);
+            const std::size_t cindex =
+                (t01[0] < t01[1] and t01[0] > overstep_tolerance)
+                    ? 0
+                    : (t01[0] < overstep_tolerance and
+                               t01[1] > overstep_tolerance
+                           ? 1
+                           : 0);
             if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance) {
                 intersection_type is;
                 is.p3 = candidates[cindex];
@@ -141,7 +143,7 @@ struct ray_concentric_cylinder_intersector {
 
                 is.p2 = point2{r * getter::phi(is.p3), is.p3[2]};
                 is.status = mask.template is_inside<local_frame>(is.p3);
-                scalar rdir = getter::perp(is.p3 + 0.1 * rd);
+                const scalar rdir{getter::perp(is.p3 + scalar{0.1} * rd)};
                 is.direction = rdir > r ? intersection::direction::e_along
                                         : intersection::direction::e_opposite;
                 is.link = mask.volume_link();

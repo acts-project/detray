@@ -274,6 +274,6 @@ class helix : public free_track_parameters {
     scalar _overstep_tolerance = -1e-4;
 };
 
-} // namespace detail
+}  // namespace detail
 
-} // namespace detray
+}  // namespace detray

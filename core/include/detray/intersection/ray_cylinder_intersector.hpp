@@ -28,7 +28,6 @@ struct ray_cylinder_intersector {
 
     using point3 = __plugin::point3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
-    using point2 = __plugin::point2<detray::scalar>;
     using cylindrical2 = __plugin::cylindrical2<detray::scalar>;
 
     /// Intersection method for cylindrical surfaces
@@ -56,6 +55,7 @@ struct ray_cylinder_intersector {
         const transform_t &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon) const {
+
         return intersect(trf, track.pos(), track.dir(), mask, tolerance,
                          track.overstep_tolerance());
     }
@@ -88,37 +88,37 @@ struct ray_cylinder_intersector {
         const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon,
-        scalar overstep_tolerance = 0.) const {
+        const scalar overstep_tolerance = 0.) const {
 
         using local_frame = typename mask_t::local_type;
 
-        scalar r = mask[0];
+        const scalar r{mask[0]};
         const auto &m = trf.matrix();
-        auto sz = getter::vector<3>(m, 0, 2);
-        auto sc = getter::vector<3>(m, 0, 3);
+        const vector3 sz = getter::vector<3>(m, 0, 2);
+        const vector3 sc = getter::vector<3>(m, 0, 3);
 
-        vector3 pc_cross_sz = vector::cross(ro - sc, sz);
-        vector3 rd_cross_sz = vector::cross(rd, sz);
-        scalar a = vector::dot(rd_cross_sz, rd_cross_sz);
-        scalar b = 2. * vector::dot(rd_cross_sz, pc_cross_sz);
-        scalar c = vector::dot(pc_cross_sz, pc_cross_sz) - (r * r);
+        const vector3 pc_cross_sz = vector::cross(ro - sc, sz);
+        const vector3 rd_cross_sz = vector::cross(rd, sz);
+        const scalar a = vector::dot(rd_cross_sz, rd_cross_sz);
+        const scalar b = scalar{2.} * vector::dot(rd_cross_sz, pc_cross_sz);
+        const scalar c = vector::dot(pc_cross_sz, pc_cross_sz) - (r * r);
 
         quadratic_equation<scalar> qe = {a, b, c};
         auto qe_solution = qe();
 
-        if (std::get<0>(qe_solution) > 0) {
-            auto t01 = std::get<1>(qe_solution);
-            scalar t = (t01[0] > overstep_tolerance) ? t01[0] : t01[1];
+        if (std::get<0>(qe_solution) > scalar{0.}) {
+            const auto t01 = std::get<1>(qe_solution);
+            const scalar t{(t01[0] > overstep_tolerance) ? t01[0] : t01[1]};
             if (t > overstep_tolerance) {
                 intersection_type is;
                 is.path = t;
                 is.p3 = ro + is.path * rd;
                 constexpr local_frame local_converter{};
                 is.p2 = local_converter(trf, is.p3);
-                auto local3 = trf.point_to_local(is.p3);
+                const auto local3 = trf.point_to_local(is.p3);
                 is.status =
                     mask.template is_inside<local_frame>(local3, tolerance);
-                scalar rdr = getter::perp(local3 + 0.1 * rd);
+                const scalar rdr = getter::perp(local3 + scalar{0.1} * rd);
                 is.direction = rdr > r ? intersection::direction::e_along
                                        : intersection::direction::e_opposite;
                 is.link = mask.volume_link();

@@ -8,7 +8,6 @@
 
 #include <cmath>
 #include <type_traits>
-#include <utility>
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -37,8 +36,6 @@ struct helix_cylinder_intersector {
     using vector3 = __plugin::vector3<detray::scalar>;
     using cylindrical2 = __plugin::cylindrical2<detray::scalar>;
 
-    const vector3 dummyBfield{0., 0., 2.};
-
     /// Intersection method for a track with a cylindrical surfaces.
     ///
     /// It biulds a helix trajectory from the track parameters and then dele-
@@ -66,9 +63,10 @@ struct helix_cylinder_intersector {
         const transform_t &trf, const free_track_parameters &track,
         const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
-            mask_t::within_epsilon) -> intersection_type const {
-        return intersect(trf, detail::helix(track, &dummyBfield), mask,
-                         tolerance);
+            mask_t::within_epsilon,
+        vector3 const *const b_field = nullptr) -> intersection_type const {
+
+        return intersect(trf, detail::helix(track, b_field), mask, tolerance);
     }
 
     /// Intersection of a helical trajectory with a cylindrical surface.
@@ -99,9 +97,9 @@ struct helix_cylinder_intersector {
         using local_frame = typename mask_t::local_type;
 
         // Guard against inifinite loops
-        const std::size_t max_n_tries{100};
+        constexpr std::size_t max_n_tries{100};
         // Tolerance for convergence
-        const scalar tol{1e-3};
+        constexpr scalar tol{1e-3};
 
         // Get the surface placement
         const auto &sm = trf.matrix();
@@ -112,7 +110,7 @@ struct helix_cylinder_intersector {
 
         // Starting point on the helix for the Newton iteration
         // The mask is a cylinder -> it provides its radius as the first value
-        scalar r{mask[0]};
+        const scalar r{mask[0]};
         // Helix path length parameter
         scalar s{r * getter::perp(h.dir(tol))};
         // Path length in the previous iteration step
@@ -144,10 +142,10 @@ struct helix_cylinder_intersector {
 
         // Build intersection struct from helix parameter s
         intersection_type is;
-        point3 helix_pos = h.pos(s);
+        const point3 helix_pos = h.pos(s);
 
         is.path = getter::norm(helix_pos);
-        is.p3 = std::move(helix_pos);
+        is.p3 = helix_pos;
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
 

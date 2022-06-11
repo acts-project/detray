@@ -47,6 +47,7 @@ struct ray_plane_intersector {
         const transform_t &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon) const {
+
         return intersect(trf, track.pos(), track.dir(), mask, tolerance,
                          track.overstep_tolerance());
     }
@@ -75,18 +76,18 @@ struct ray_plane_intersector {
         const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon,
-        scalar overstep_tolerance = 0.) const {
+        const scalar overstep_tolerance = 0.) const {
 
         using local_frame = typename mask_t::local_type;
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
-        auto sn = getter::vector<3>(sm, 0, 2);
-        auto st = getter::vector<3>(sm, 0, 3);
+        const vector3 sn = getter::vector<3>(sm, 0, 2);
+        const vector3 st = getter::vector<3>(sm, 0, 3);
 
         // Intersection code
-        scalar denom = vector::dot(rd, sn);
-        if (denom != 0.0) {
+        const scalar denom = vector::dot(rd, sn);
+        if (denom != scalar{0.}) {
             intersection_type is;
             is.path = vector::dot(sn, st - ro) / denom;
             is.p3 = ro + is.path * rd;
