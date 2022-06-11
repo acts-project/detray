@@ -56,7 +56,7 @@ class uniform_track_generator {
     /// @returns the generator in starting state: Default values reflect the
     /// first phi angle iteration.
     DETRAY_HOST_DEVICE
-    auto begin() -> uniform_track_generator {
+    inline auto begin() -> uniform_track_generator {
         i_phi = 1;
         i_theta = 0;
         return *this;
@@ -64,7 +64,7 @@ class uniform_track_generator {
 
     /// @returns the generator in end state
     DETRAY_HOST_DEVICE
-    auto end() -> uniform_track_generator {
+    inline auto end() -> uniform_track_generator {
         i_phi = 1;
         i_theta = m_theta_steps;
         return *this;
@@ -72,7 +72,7 @@ class uniform_track_generator {
 
     /// @returns whether we reached end of angle space
     DETRAY_HOST_DEVICE
-    bool operator!=(const uniform_track_generator &rhs) const {
+    inline bool operator!=(const uniform_track_generator &rhs) const {
         return not(rhs.m_theta_steps == m_theta_steps and
                    rhs.m_phi_steps == m_phi_steps and rhs.i_phi == i_phi and
                    rhs.i_theta == i_theta);
@@ -82,7 +82,7 @@ class uniform_track_generator {
     ///
     /// @returns the generator at its next position.
     DETRAY_HOST_DEVICE
-    auto operator++() -> uniform_track_generator {
+    inline auto operator++() -> uniform_track_generator {
         scalar pi{M_PI};
         // Check theta range according to step size
         if (i_theta < m_theta_steps) {
@@ -106,7 +106,7 @@ class uniform_track_generator {
 
     /// @returns a track instance from generated momentum direction
     DETRAY_HOST_DEVICE
-    track_t operator*() const {
+    inline track_t operator*() const {
         // Momentum direction from angles
         vector3 mom{std::cos(m_phi) * std::sin(m_theta),
                     std::sin(m_phi) * std::sin(m_theta), std::cos(m_theta)};
