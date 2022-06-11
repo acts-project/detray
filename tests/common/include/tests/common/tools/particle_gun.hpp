@@ -8,12 +8,9 @@
 #pragma once
 
 // system include
-#include <climits>
 #include <cmath>
-#include <utility>
 
 // detray include(s)
-#include "detray/definitions/units.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
@@ -194,9 +191,9 @@ struct particle_gun {
         // Get the surface info
         const auto &sm = trf.matrix();
         // Surface normal
-        vector3 sn = getter::vector<3>(sm, 0, 2);
+        const vector3 sn = getter::vector<3>(sm, 0, 2);
         // Surface translation
-        point3 st = getter::vector<3>(sm, 0, 3);
+        const point3 st = getter::vector<3>(sm, 0, 3);
 
         // Starting point on the helix for the Newton iteration
         scalar s{getter::norm(sn) - scalar{0.1}};
@@ -209,7 +206,7 @@ struct particle_gun {
         // Run the iteration on s
         while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
             // f'(s) = sn * h.dir(s)
-            scalar denom{vector::dot(sn, h.dir(s))};
+            const scalar denom{vector::dot(sn, h.dir(s))};
             // No intersection can be found if dividing by zero
             if (denom == 0.) {
                 return intersection_type{};
@@ -228,7 +225,7 @@ struct particle_gun {
         intersection_type is;
         point3 helix_pos = h.pos(s);
         is.path = getter::norm(helix_pos);
-        is.p3 = helix_pos;
+        is.p3 = std::move(helix_pos);
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
         // TODO: The tolerance may not work for all mask types
@@ -262,9 +259,9 @@ struct particle_gun {
         // Get the surface info
         const auto &sm = trf.matrix();
         // Cylinder z axis
-        vector3 sz = getter::vector<3>(sm, 0, 2);
+        const vector3 sz = getter::vector<3>(sm, 0, 2);
         // Cylinder centre
-        point3 sc = getter::vector<3>(sm, 0, 3);
+        const point3 sc = getter::vector<3>(sm, 0, 3);
 
         // Starting point on the helix for the Newton iteration
         // The mask is a cylinder type -> it provides a radius
@@ -280,9 +277,9 @@ struct particle_gun {
         while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
 
             // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
-            vector3 crp = vector::cross(h.pos(s) - sc, sz);
-            scalar denom{scalar{2} *
-                         vector::dot(crp, vector::cross(h.dir(s), sz))};
+            const vector3 crp = vector::cross(h.pos(s) - sc, sz);
+            const scalar denom{scalar{2} *
+                               vector::dot(crp, vector::cross(h.dir(s), sz))};
             // No intersection can be found if dividing by zero
             if (denom == 0.) {
                 return intersection_type{};
@@ -302,7 +299,7 @@ struct particle_gun {
         intersection_type is;
         point3 helix_pos = h.pos(s);
         is.path = getter::norm(helix_pos);
-        is.p3 = helix_pos;
+        is.p3 = std::move(helix_pos);
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
         auto local3 = trf.point_to_local(is.p3);

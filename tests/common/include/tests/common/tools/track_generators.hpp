@@ -83,13 +83,13 @@ class uniform_track_generator {
     /// @returns the generator at its next position.
     DETRAY_HOST_DEVICE
     inline auto operator++() -> uniform_track_generator {
-        scalar pi{M_PI};
+        constexpr scalar pi{M_PI};
         // Check theta range according to step size
         if (i_theta < m_theta_steps) {
             // Check phi sub-range
             if (i_phi < m_phi_steps) {
                 // Calculate new phi [-pi, pi]
-                m_phi = -pi + i_phi * (scalar{2} * pi) / m_phi_steps;
+                m_phi = -pi + i_phi * (scalar{2.} * pi) / m_phi_steps;
                 ++i_phi;
                 return *this;
             }
