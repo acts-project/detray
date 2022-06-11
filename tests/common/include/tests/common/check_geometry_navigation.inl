@@ -11,6 +11,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/field/constant_magnetic_field.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
@@ -49,7 +50,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
     // Iterate through uniformly distributed momentum directions
     for (const auto test_ray :
-         uniform_track_generator<ray>(theta_steps, phi_steps, ori)) {
+         uniform_track_generator<detail::ray>(theta_steps, phi_steps, ori)) {
 
         // Shoot ray through the detector and record all surfaces it encounters
         const auto intersection_trace =
@@ -129,6 +130,6 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     // Iterate through uniformly distributed momentum directions
     for (const auto test_track : uniform_track_generator<free_track_parameters>(
              theta_steps, phi_steps, ori)) {
-        helix h2(test_track, &B);
+        detail::helix h2(test_track, &B);
     }
 }

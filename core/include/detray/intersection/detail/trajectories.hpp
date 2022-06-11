@@ -8,8 +8,8 @@
 #pragma once
 
 // system include
+#include <climits>
 #include <cmath>
-#include <utility>
 
 // detray include(s)
 #include "detray/definitions/units.hpp"
@@ -17,6 +17,8 @@
 #include "detray/utils/algebra_helpers.hpp"
 
 namespace detray {
+
+namespace detail {
 
 /// @brief describes a straight-line trajectory
 class ray {
@@ -60,7 +62,7 @@ class ray {
 /// Helix class for the analytical solution of track propagation in
 /// homogeneous B field. This Follows the notation of Eq (4.7) in
 /// DOI:10.1007/978-3-030-65771-0
-class helix : free_track_parameters {
+class helix : public free_track_parameters {
     public:
     using point3 = __plugin::point3<scalar>;
     using vector3 = __plugin::vector3<scalar>;
@@ -272,4 +274,6 @@ class helix : free_track_parameters {
     scalar _overstep_tolerance = -1e-4;
 };
 
-}  // namespace detray
+} // namespace detail
+
+} // namespace detray

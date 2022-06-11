@@ -11,11 +11,11 @@
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/masks/rectangle2.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
-#include "tests/common/tools/test_trajectories.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
 // google-test include(s)
@@ -163,7 +163,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
         free_track_parameters c_traj(traj);
 
         // helix gun
-        helix helix_traj(traj, &B);
+        detail::helix helix_traj(traj, &B);
 
         // RK Stepping into forward direction
         prop_state<rk_stepper_t::state, nav_state> propagation{
@@ -290,7 +290,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     ASSERT_NEAR(crk_state().dir()[2], 0, epsilon);
 
     // helix trajectory
-    helix helix_traj(crk_state(), &B);
+    detail::helix helix_traj(crk_state(), &B);
 
     // Path length per turn
     scalar S = 2. * getter::norm(mom) / getter::norm(B) * M_PI;

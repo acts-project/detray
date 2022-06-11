@@ -15,6 +15,8 @@
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
+#include "detray/intersection/ray_cylinder_intersector.hpp"
+#include "detray/intersection/ray_plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
 
 namespace detray {
@@ -27,18 +29,18 @@ struct volume_stats {
 using edge_type = std::array<dindex, 2>;
 
 /// mask types
-using rectangle = rectangle2<planar_intersector,
+using rectangle = rectangle2<ray_plane_intersector,
                              __plugin::cartesian2<detray::scalar>, edge_type>;
-using trapezoid = trapezoid2<planar_intersector,
+using trapezoid = trapezoid2<ray_plane_intersector,
                              __plugin::cartesian2<detray::scalar>, edge_type>;
-using annulus = annulus2<planar_intersector,
+using annulus = annulus2<ray_plane_intersector,
                          __plugin::cartesian2<detray::scalar>, edge_type>;
-using cylinder = cylinder3<cylinder_intersector,
+using cylinder = cylinder3<ray_cylinder_intersector,
                            __plugin::cylindrical2<detray::scalar>, edge_type>;
-using disc =
-    ring2<planar_intersector, __plugin::cartesian2<detray::scalar>, edge_type>;
+using disc = ring2<ray_plane_intersector, __plugin::cartesian2<detray::scalar>,
+                   edge_type>;
 using unbounded_plane =
-    unmasked<planar_intersector, __plugin::cartesian2<detray::scalar>,
+    unmasked<ray_plane_intersector, __plugin::cartesian2<detray::scalar>,
              edge_type>;
 
 /// Defines all available types

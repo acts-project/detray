@@ -12,8 +12,8 @@
 #include <string>
 
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/intersection/ray_cylinder_intersector.hpp"
 #include "detray/masks/mask_base.hpp"
 
 namespace detray {
@@ -32,7 +32,7 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <typename intersector_t = detray::cylinder_intersector,
+template <typename intersector_t = ray_cylinder_intersector,
           typename local_t = __plugin::cylindrical2<detray::scalar>,
           typename links_t = dindex, bool kRadialCheck = false,
           template <typename, std::size_t> class array_t = darray>

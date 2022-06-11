@@ -11,6 +11,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/aborters.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_actor.hpp"
@@ -22,7 +23,6 @@
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
-#include "tests/common/tools/test_trajectories.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;
@@ -39,8 +39,8 @@ struct helix_inspector : actor {
 
     /// Keeps the state of a helix gun to calculate track positions
     struct state {
-        state(helix &&h) : _helix(h) {}
-        helix _helix;
+        state(detail::helix &&h) : _helix(h) {}
+        detail::helix _helix;
     };
 
     using size_type = __plugin::size_type;
@@ -145,7 +145,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         lim_traj.set_overstep_tolerance(-10 * unit_constants::um);
 
         // Build actor states: the helix inspector can be shared
-        helix_inspector::state helix_insp_state{helix{traj, &B}};
+        helix_inspector::state helix_insp_state{detail::helix{traj, &B}};
         propagation::print_inspector::state print_insp_state{};
         propagation::print_inspector::state lim_print_insp_state{};
         pathlimit_aborter::state unlimted_aborter_state{};

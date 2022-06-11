@@ -8,15 +8,15 @@
 
 #include <string>
 
+#include "detray/intersection/detail/unbound.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/intersection/planar_intersector.hpp"
-#include "detray/intersection/unbound.hpp"
+#include "detray/intersection/ray_plane_intersector.hpp"
 #include "detray/masks/mask_base.hpp"
 
 namespace detray {
 
-template <typename intersector_t = planar_intersector,
-          typename local_t = unbound, typename links_t = dindex,
+template <typename intersector_t = ray_plane_intersector,
+          typename local_t = detail::unbound, typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 class unmasked final
     : public mask_base<intersector_t, local_t, links_t, array_t, 1> {

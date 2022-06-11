@@ -11,6 +11,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/geometry/volume_graph.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 #include "tests/common/tools/particle_gun.hpp"
@@ -76,7 +77,7 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
 
     // Iterate through uniformly distributed momentum directions
     for (const auto test_ray :
-         uniform_track_generator<ray>(theta_steps, phi_steps, ori)) {
+         uniform_track_generator<detail::ray>(theta_steps, phi_steps, ori)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =

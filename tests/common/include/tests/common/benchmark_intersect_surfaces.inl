@@ -10,11 +10,10 @@
 #include <fstream>
 
 #include "detray/core/type_registry.hpp"
-#include "detray/intersection/concentric_cylinder_intersector.hpp"
-#include "detray/intersection/cylinder_intersector.hpp"
-#include "detray/intersection/planar_intersector.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
+#include "detray/intersection/ray_concentric_cylinder_intersector.hpp"
+#include "detray/intersection/ray_cylinder_intersector.hpp"
 #include "detray/masks/masks.hpp"
-#include "tests/common/tools/particle_gun.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
@@ -33,8 +32,8 @@ enum mask_ids : unsigned int {
 };
 
 using mask_defs =
-    mask_registry<mask_ids, rectangle2<>, cylinder3<cylinder_intersector>,
-                  cylinder3<concentric_cylinder_intersector<>>>;
+    mask_registry<mask_ids, rectangle2<>, cylinder3<ray_cylinder_intersector>,
+                  cylinder3<ray_concentric_cylinder_intersector<>>>;
 using plane_surface = surface<mask_defs, transform3>;
 
 unsigned int theta_steps = 1000;
@@ -58,8 +57,8 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
         benchmark::DoNotOptimize(sfmiss);
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto test_ray :
-             uniform_track_generator<ray>(theta_steps, phi_steps, ori, 1.)) {
+        for (const auto test_ray : uniform_track_generator<detail::ray>(
+                 theta_steps, phi_steps, ori, 1.)) {
 
             for (auto plane : planes) {
                 auto pi = rect.intersector();

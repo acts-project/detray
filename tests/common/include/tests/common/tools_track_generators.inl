@@ -8,9 +8,9 @@
 #include <gtest/gtest.h>
 
 #include "detray/definitions/units.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/track.hpp"
 #include "detray/utils/enumerate.hpp"
-#include "tests/common/tools/test_trajectories.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -66,7 +66,8 @@ TEST(tools, uniform_track_generator) {
 
     // Genrate rays
     n_tracks = 0;
-    for (const auto r : uniform_track_generator<ray>(theta_steps, phi_steps)) {
+    for (const auto r :
+         uniform_track_generator<detail::ray>(theta_steps, phi_steps)) {
         vector3 &expected = momenta[n_tracks];
         vector3 result = r.dir();
 
@@ -87,7 +88,7 @@ TEST(tools, uniform_track_generator) {
     n_tracks = 0;
     for (const auto track : uniform_track_generator<free_track_parameters>(
              theta_steps, phi_steps)) {
-        helix helix_traj(track, &B);
+        detail::helix helix_traj(track, &B);
         vector3 &expected = momenta[n_tracks];
         vector3 result = helix_traj.dir(0.);
 

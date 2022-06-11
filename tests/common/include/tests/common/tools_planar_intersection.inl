@@ -11,7 +11,7 @@
 #include <cmath>
 
 #include "detray/intersection/intersection.hpp"
-#include "detray/intersection/planar_intersector.hpp"
+#include "detray/intersection/ray_plane_intersector.hpp"
 #include "detray/masks/rectangle2.hpp"
 #include "detray/masks/unmasked.hpp"
 
@@ -35,7 +35,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
     // Create a shifted plane
     transform3 shifted(vector3{3., 2., 10.});
     unmasked<> unmasked_unbound{};
-    planar_intersector pi;
+    ray_plane_intersector pi;
 
     auto hit_unbound = pi.intersect(shifted, point3{2., 1., 0.},
                                     vector3{0., 0., 1.}, unmasked_unbound);
@@ -49,7 +49,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane) {
                 hit_unbound.p2[1] == not_defined);
 
     // The same test but bound to local frame
-    unmasked<planar_intersector, __plugin::cartesian2<detray::scalar> >
+    unmasked<ray_plane_intersector, __plugin::cartesian2<detray::scalar> >
         unmasked_bound{};
     auto hit_bound = pi.intersect(shifted, point3{2., 1., 0.},
                                   vector3{0., 0., 1.}, unmasked_bound);

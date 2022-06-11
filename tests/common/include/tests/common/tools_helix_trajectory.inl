@@ -8,8 +8,8 @@
 #include <gtest/gtest.h>
 
 #include "detray/definitions/units.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/track.hpp"
-#include "tests/common/tools/test_trajectories.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -39,7 +39,7 @@ TEST(tools, helix_trajectory) {
     scalar pt = std::sqrt(std::pow(p_mag, 2) - std::pow(pz_along, 2));
 
     // helix trajectory
-    helix helix_traj(vertex, &B);
+    detail::helix helix_traj(vertex, &B);
 
     // radius of helix
     scalar R = helix_traj.radius();
@@ -77,7 +77,7 @@ TEST(tools, helix_trajectory_small_pT) {
     vector3 B{0, 0, 1 * unit_constants::T};
 
     // helix trajectory
-    helix helix_traj(vertex, &B);
+    detail::helix helix_traj(vertex, &B);
 
     // After 10 mm
     scalar path_length = 10;

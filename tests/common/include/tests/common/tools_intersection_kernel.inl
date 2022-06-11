@@ -13,10 +13,10 @@
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/intersection/concentric_cylinder_intersector.hpp"
-#include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
-#include "detray/intersection/planar_intersector.hpp"
+#include "detray/intersection/ray_concentric_cylinder_intersector.hpp"
+#include "detray/intersection/ray_cylinder_intersector.hpp"
+#include "detray/intersection/ray_plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/propagator/track.hpp"
 #include "detray/utils/enumerate.hpp"
@@ -43,12 +43,12 @@ TEST(tools, intersection_kernel_single) {
     using source_link_t = dindex;
     /// - masks, with mask identifiers 0,1,2
     using rectangle_t =
-        rectangle2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+        rectangle2<ray_plane_intersector, __plugin::cartesian2<detray::scalar>,
                    edge_t>;
     using trapezoid_t =
-        trapezoid2<planar_intersector, __plugin::cartesian2<detray::scalar>,
+        trapezoid2<ray_plane_intersector, __plugin::cartesian2<detray::scalar>,
                    edge_t>;
-    using annulus_t = annulus2<planar_intersector,
+    using annulus_t = annulus2<ray_plane_intersector,
                                __plugin::cartesian2<detray::scalar>, edge_t>;
 
     using mask_defs =

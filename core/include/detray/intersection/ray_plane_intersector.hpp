@@ -10,70 +10,68 @@
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/propagator/track.hpp"
 
 namespace detray {
 
-/** This is an intersector struct for planar surface
- */
-struct planar_intersector {
+/// @brief Intersection implementation for ray trajectories with planar
+/// surfaces.
+struct ray_plane_intersector {
 
     using intersection_type = line_plane_intersection;
 
-    using transform3 = __plugin::transform3<detray::scalar>;
     using point3 = __plugin::point3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
-    /** Intersection method for planar surfaces
-     *
-     * @tparam track_t The type of the track (which carries the context
-     *         object)
-     * @tparam mask_t The mask type applied to the local frame
-     * @tparam local_frame The local frame type to be intersected
-     *
-     * Contextual part:
-     * @param trf the surface to be intersected
-     * @param track the track information
-     *
-     * Non-contextual part:
-     * @param mask the local mask
-     * @param tolerance is the mask specific tolerance
-     *
-     * @return the intersection with optional parameters
-     **/
-    template <typename track_t, typename mask_t,
+    /// Intersection method for planar surfaces
+    ///
+    /// @tparam transform_t The type of placement matrix of the cylinder surface
+    /// @tparam track_t The type of the track (which carries the context
+    ///         object)
+    /// @tparam mask_t The mask type applied to the local frame
+    /// @tparam local_frame The local frame type to be intersected
+    ///
+    /// Contextual part:
+    /// @param trf the surface to be intersected
+    /// @param track the track information
+    ///
+    /// Non-contextual part:
+    /// @param mask the local mask
+    /// @param tolerance is the mask specific tolerance
+    ///
+    /// @return the intersection with optional parameters
+    template <typename transform_t, typename track_t, typename mask_t,
               std::enable_if_t<std::is_class_v<typename mask_t::local_type>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline intersection_type intersect(
-        const transform3 &trf, const track_t &track, const mask_t &mask,
+        const transform_t &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon) const {
         return intersect(trf, track.pos(), track.dir(), mask, tolerance,
                          track.overstep_tolerance());
     }
 
-    /** Intersection method for planar surfaces
-     *
-     * @tparam mask_t The mask type applied to the local frame
-     * @tparam local_frame The local frame type to be intersected
-     *
-     * Contextual part:
-     * @param trf the transform of the surface to be intersected
-     * @param ro the origin of the ray
-     * @param rd the direction of the ray
-     *
-     * Non-contextual part:
-     * @param mask the local mask
-     * @param tolerance is the mask specific tolerance
-     *
-     * @return the intersection with optional parameters
-     **/
-    template <typename mask_t,
+    /// Intersection method for planar surfaces
+    ///
+    /// @tparam transform_t The type of placement matrix of the cylinder surface
+    /// @tparam mask_t The mask type applied to the local frame
+    /// @tparam local_frame The local frame type to be intersected
+    ///
+    /// Contextual part:
+    /// @param trf the transform of the surface to be intersected
+    /// @param ro the origin of the ray
+    /// @param rd the direction of the ray
+    ///
+    /// Non-contextual part:
+    /// @param mask the local mask
+    /// @param tolerance is the mask specific tolerance
+    ///
+    /// @return the intersection with optional parameters
+    template <typename transform_t, typename mask_t,
               std::enable_if_t<std::is_class_v<typename mask_t::local_type>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline intersection_type intersect(
-        const transform3 &trf, const point3 &ro, const vector3 &rd,
+        const transform_t &trf, const point3 &ro, const vector3 &rd,
         const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon,

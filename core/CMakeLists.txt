@@ -39,13 +39,15 @@ detray_add_library( detray_core core
    "include/detray/grids/populator.hpp"
    "include/detray/grids/serializer2.hpp"
    # intersection include(s)
-   "include/detray/intersection/concentric_cylinder_intersector.hpp"
-   "include/detray/intersection/cylinder_intersector.hpp"
+   "include/detray/intersection/detail/trajectories.hpp"
+   "include/detray/intersection/detail/unbound.hpp"
+   "include/detray/intersection/helix_cylinder_intersection.hpp"
+   "include/detray/intersection/helix_plane_intersection.hpp"
    "include/detray/intersection/intersection_kernel.hpp"
    "include/detray/intersection/intersection.hpp"
-   "include/detray/intersection/planar_intersector.hpp"
-   "include/detray/intersection/quadratic_equation.hpp"
-   "include/detray/intersection/unbound.hpp"
+   "include/detray/intersection/ray_concentric_cylinder_intersector.hpp"
+   "include/detray/intersection/ray_cylinder_intersector.hpp"
+   "include/detray/intersection/ray_plane_intersector.hpp"
    # masks include(s)
    "include/detray/masks/annulus2.hpp"
    "include/detray/masks/cylinder3.hpp"
@@ -87,6 +89,7 @@ detray_add_library( detray_core core
    "include/detray/utils/algebra_helpers.hpp"
    "include/detray/utils/enumerate.hpp"
    "include/detray/utils/invalid_values.hpp"
+   "include/detray/utils/quadratic_equation.hpp"
    "include/detray/utils/ratio.hpp"
    "include/detray/utils/type_traits.hpp" )
 target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)
