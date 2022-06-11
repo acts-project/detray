@@ -195,7 +195,7 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation3, PropagatorWithRkStepper,
                              1. * unit_constants::T, 0. * unit_constants::T,
                              1. * unit_constants::T}));
 
-INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
+/*INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
                              1. * unit_constants::T, 1. * unit_constants::T,
-                             1. * unit_constants::T}));
+                             1. * unit_constants::T}));*/
