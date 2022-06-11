@@ -37,19 +37,18 @@ constexpr scalar path_limit = 5 * unit_constants::cm;
 struct helix_inspector : actor {
 
     /// Keeps the state of a helix gun to calculate track positions
-    struct helix_inspector_state {
-        helix_inspector_state(helix_gun &&h) : _helix(h) {}
+    struct state {
+        state(helix_gun &&h) : _helix(h) {}
         helix_gun _helix;
     };
 
     using size_type = __plugin::size_type;
     using matrix_operator = standard_matrix_operator<scalar>;
-    using state_type = helix_inspector_state;
 
     /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        const state_type &inspector_state,
+        const state &inspector_state,
         const propagator_state_t &prop_state) const {
 
         const auto &stepping = prop_state._stepping;
@@ -156,11 +155,11 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             lim_traj.set_overstep_tolerance(-10 * unit_constants::um);
 
             // Build actor states: the helix inspector can be shared
-            helix_inspector::state_type helix_insp_state{helix_gun{traj, &B}};
-            propagation::print_inspector::state_type print_insp_state{};
-            propagation::print_inspector::state_type lim_print_insp_state{};
-            pathlimit_aborter::state_type unlimted_aborter_state{};
-            pathlimit_aborter::state_type pathlimit_aborter_state{path_limit};
+            helix_inspector::state helix_insp_state{helix_gun{traj, &B}};
+            propagation::print_inspector::state print_insp_state{};
+            propagation::print_inspector::state lim_print_insp_state{};
+            pathlimit_aborter::state unlimted_aborter_state{};
+            pathlimit_aborter::state pathlimit_aborter_state{path_limit};
 
             // Create actor states tuples
             actor_chain_t::state actor_states = std::tie(
