@@ -52,8 +52,7 @@ struct particle_gun {
     ///         intersections of the surfaces that were encountered.
     template <typename detector_t, typename trajectory_t>
     DETRAY_HOST_DEVICE inline static auto shoot_particle(
-        const detector_t &detector, const trajectory_t &traj,
-        const scalar epsilon = 1e-5) {
+        const detector_t &detector, const trajectory_t &traj) {
 
         std::vector<std::pair<dindex, intersection_type>> intersection_record;
 
@@ -64,12 +63,12 @@ struct particle_gun {
 
                 // Retrieve candidate from the surface
                 intersection_type sfi;
-                const scalar tol{epsilon};
                 if constexpr (std::is_same_v<trajectory_t, detail::helix>) {
                     // Call helix specific version instead of the intersection
                     // kernel
+                    constexpr scalar epsilon{1e-3};
                     sfi = helix::intersect(traj, sf, detector.transform_store(),
-                                           detector.mask_store(), tol);
+                                           detector.mask_store(), epsilon);
                 } else {
                     // Call detray intersection kernel
                     sfi =

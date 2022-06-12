@@ -19,7 +19,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
-constexpr const float epsilon = 1e-3;
+constexpr const scalar epsilon = 1e-3;
 
 /// Brute force test: Intersect toy geometry and compare between ray and helix
 /// without B-field
@@ -42,7 +42,7 @@ TEST(tools, particle_gun) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
-            particle_gun::shoot_particle(toy_det, test_ray, epsilon);
+            particle_gun::shoot_particle(toy_det, test_ray);
 
         expected.push_back(intersection_record);
     }
@@ -58,7 +58,7 @@ TEST(tools, particle_gun) {
 
         // Record all intersections and objects along the ray
         const auto intersection_trace =
-            particle_gun::shoot_particle(toy_det, test_helix, epsilon);
+            particle_gun::shoot_particle(toy_det, test_helix);
 
         // Should have encountered the same number of tracks (vulnerable to
         // floating point errors)
