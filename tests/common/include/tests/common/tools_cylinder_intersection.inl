@@ -40,9 +40,13 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
         cylinder_unbound{4., -10., 10., 0u};
     ray_cylinder_intersector ci;
 
+    // Test ray
+    const point3 ori = {3., 2., 5.};
+    const point3 dir = {1., 0., 0.};
+    const detail::ray ray(ori, 0., dir, 0.);
+
     // Unbound local frame test
-    const auto hit_unbound = ci.intersect(
-        shifted, point3{3., 2., 5.}, vector3{1., 0., 0.}, cylinder_unbound);
+    const auto hit_unbound = ci.intersect(shifted, ray, cylinder_unbound);
     ASSERT_TRUE(hit_unbound.status == intersection::status::e_inside);
     ASSERT_NEAR(hit_unbound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_unbound.p3[1], 2., epsilon);
@@ -54,8 +58,7 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     cylinder3<ray_cylinder_intersector, __plugin::cylindrical2<detray::scalar>,
               unsigned int>
         cylinder_bound{4., -10., 10., 0u};
-    const auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.},
-                                        vector3{1., 0., 0.}, cylinder_bound);
+    const auto hit_bound = ci.intersect(shifted, ray, cylinder_bound);
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_bound.p3[1], 2., epsilon);
@@ -77,12 +80,14 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     ray_cylinder_intersector ci;
     ray_concentric_cylinder_intersector cci;
 
+    // Test ray
     const point3 ori = {1., 0.5, 1.};
     const point3 dir = vector::normalize(vector3{1., 1., 1.});
+    const detail::ray ray(ori, 0., dir, 0.);
 
     // The same but bound
-    const auto hit_cylinrical = ci.intersect(identity, ori, dir, cylinder);
-    const auto hit_cocylindrical = cci.intersect(identity, ori, dir, cylinder);
+    const auto hit_cylinrical = ci.intersect(identity, ray, cylinder);
+    const auto hit_cocylindrical = cci.intersect(identity, ray, cylinder);
 
     ASSERT_TRUE(hit_cylinrical.status == intersection::status::e_inside);
     ASSERT_TRUE(hit_cocylindrical.status == intersection::status::e_inside);

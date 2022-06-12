@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 
 namespace detray {
@@ -39,15 +40,17 @@ struct ray_plane_intersector {
     /// @param tolerance is the mask specific tolerance
     ///
     /// @return the intersection with optional parameters
-    template <typename transform_t, typename track_t, typename mask_t,
-              std::enable_if_t<std::is_class_v<typename mask_t::local_type>,
-                               bool> = true>
+    template <
+        typename transform_t, typename track_t, typename mask_t,
+        std::enable_if_t<std::is_class_v<typename mask_t::local_type>, bool> =
+            true,
+        std::enable_if_t<not std::is_same_v<track_t, detail::ray>, bool> = true>
     DETRAY_HOST_DEVICE inline intersection_type intersect(
         const transform_t &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon) const {
 
-        return intersect(trf, track.pos(), track.dir(), mask, tolerance,
+        return intersect(trf, detail::ray(track), mask, tolerance,
                          track.overstep_tolerance());
     }
 
@@ -71,8 +74,7 @@ struct ray_plane_intersector {
               std::enable_if_t<std::is_class_v<typename mask_t::local_type>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline intersection_type intersect(
-        const transform_t &trf, const point3 &ro, const vector3 &rd,
-        const mask_t &mask,
+        const transform_t &trf, const detail::ray ray, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon,
         const scalar overstep_tolerance = 0.) const {
@@ -85,6 +87,8 @@ struct ray_plane_intersector {
         const vector3 st = getter::vector<3>(sm, 0, 3);
 
         // Intersection code
+        const point3 &ro = ray.pos();
+        const vector3 &rd = ray.dir();
         const scalar denom = vector::dot(rd, sn);
         if (denom != scalar{0.}) {
             intersection_type is;

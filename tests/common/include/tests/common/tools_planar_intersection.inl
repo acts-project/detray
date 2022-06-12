@@ -39,8 +39,12 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
     unmasked<> unmasked_unbound{};
     ray_plane_intersector pi;
 
-    const auto hit_unbound = pi.intersect(
-        shifted, point3{2., 1., 0.}, vector3{0., 0., 1.}, unmasked_unbound);
+    // Test ray
+    const point3 pos{2., 1., 0.};
+    const vector3 mom{0., 0., 1.};
+    const detail::ray r(pos, 0., mom, 0.);
+
+    const auto hit_unbound = pi.intersect(shifted, r, unmasked_unbound);
     ASSERT_TRUE(hit_unbound.status == intersection::status::e_inside);
     ASSERT_TRUE(hit_unbound.direction == intersection::direction::e_along);
     // Global intersection information
@@ -53,8 +57,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
     // The same test but bound to local frame
     unmasked<ray_plane_intersector, __plugin::cartesian2<detray::scalar> >
         unmasked_bound{};
-    const auto hit_bound = pi.intersect(shifted, point3{2., 1., 0.},
-                                        vector3{0., 0., 1.}, unmasked_bound);
+    const auto hit_bound = pi.intersect(shifted, r, unmasked_bound);
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound.p3[0], 2., epsilon);
@@ -66,8 +69,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
 
     // The same test but bound to local frame & masked - inside
     rectangle2<> rect_for_inside{3., 3., 0u};
-    const auto hit_bound_inside = pi.intersect(
-        shifted, point3{2., 1., 0.}, vector3{0., 0., 1.}, rect_for_inside);
+    const auto hit_bound_inside = pi.intersect(shifted, r, rect_for_inside);
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound_inside.p3[0], 2., epsilon);
@@ -79,8 +81,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
 
     // The same test but bound to local frame & masked - outside
     rectangle2<> rect_for_outside{0.5, 3.5, 0u};
-    const auto hit_bound_outside = pi.intersect(
-        shifted, point3{2., 1., 0.}, vector3{0., 0., 1.}, rect_for_outside);
+    const auto hit_bound_outside = pi.intersect(shifted, r, rect_for_outside);
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound_outside.p3[0], 2., epsilon);

@@ -28,10 +28,18 @@ class ray {
 
     /// Parametrized constructor that complies with track interface
     ///
+    /// @param track the track state that should be approximated
+    template <typename track_t>
+    DETRAY_HOST_DEVICE ray(const track_t &track)
+        : _pos(track.pos()), _dir(track.dir()) {}
+
+    /// Parametrized constructor that complies with track interface
+    ///
     /// @param pos the track position
     /// @param dir the track momentum direction
     DETRAY_HOST_DEVICE
-    ray(point3 pos, scalar /*time*/, vector3 dir, scalar /*q*/)
+    ray(const point3 pos, const scalar /*time*/, const vector3 dir,
+        const scalar /*q*/)
         : _pos(pos), _dir(vector::normalize(dir)) {}
 
     /// @returns position on the ray (compatible with tracks/intersectors)

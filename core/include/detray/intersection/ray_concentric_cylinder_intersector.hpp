@@ -11,6 +11,7 @@
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/utils/quadratic_equation.hpp"
 
@@ -55,13 +56,14 @@ struct ray_concentric_cylinder_intersector {
         std::enable_if_t<
             std::is_same_v<typename mask_t::local_type, cylindrical2> or
                 std::is_same_v<typename mask_t::local_type, detail::unbound>,
-            bool> = true>
+            bool> = true,
+        std::enable_if_t<not std::is_same_v<track_t, detail::ray>, bool> = true>
     DETRAY_HOST_DEVICE inline intersection_type intersect(
         const transform_t &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance &tolerance =
             mask_t::within_epsilon) const {
 
-        return intersect(trf, track.pos(), track.dir(), mask, tolerance,
+        return intersect(trf, detail::ray(track), mask, tolerance,
                          track.overstep_tolerance());
     }
 
@@ -88,8 +90,8 @@ struct ray_concentric_cylinder_intersector {
                 std::is_same_v<typename mask_t::local_type, detail::unbound>,
             bool> = true>
     DETRAY_HOST_DEVICE inline intersection_type intersect(
-        const transform_t & /*trf*/, const point3 &ro, const vector3 &rd,
-        const mask_t &mask, const dindex /*volume_index*/ = dindex_invalid,
+        const transform_t & /*trf*/, const detail::ray &ray, const mask_t &mask,
+        const dindex /*volume_index*/ = dindex_invalid,
         const typename mask_t::mask_tolerance & /*tolerance*/ =
             mask_t::within_epsilon,
         const scalar overstep_tolerance = 0.) const {
@@ -99,6 +101,8 @@ struct ray_concentric_cylinder_intersector {
         const scalar r{mask[0]};
 
         // Two points on the line, thes are in the cylinder frame
+        const point3 &ro = ray.pos();
+        const vector3 &rd = ray.dir();
         const point3 &l0 = ro;
         const point3 l1 = ro + rd;
 

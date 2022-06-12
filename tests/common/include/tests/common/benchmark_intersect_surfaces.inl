@@ -57,13 +57,12 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
         benchmark::DoNotOptimize(sfmiss);
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto test_ray : uniform_track_generator<detail::ray>(
+        for (const auto ray : uniform_track_generator<detail::ray>(
                  theta_steps, phi_steps, ori, 1.)) {
 
-            for (auto plane : planes) {
+            for (const auto &plane : planes) {
                 auto pi = rect.intersector();
-                auto is = pi.intersect(plane.transform(), test_ray.pos(),
-                                       test_ray.dir(), rect);
+                auto is = pi.intersect(plane.transform(), ray, rect);
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
@@ -103,7 +102,7 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
     typename mask_defs::link_type mask_link{e_cylinder3, 0};
     plane_surface plain(transform3(), mask_link, 0, false, false);
 
-    point3 ori = {0., 0., 0.};
+    const point3 ori = {0., 0., 0.};
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
@@ -121,13 +120,14 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
                 scalar sin_phi = std::sin(phi);
                 scalar cos_phi = std::cos(phi);
 
-                vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                            cos_theta};
+                const vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
+                                  cos_theta};
 
-                for (auto cylinder : cylinders) {
+                const detail::ray ray(ori, 0., dir, 0.);
+
+                for (const auto &cylinder : cylinders) {
                     auto ci = cylinder.intersector();
-                    auto is =
-                        ci.intersect(plain.transform(), ori, dir, cylinder);
+                    auto is = ci.intersect(plain.transform(), ray, cylinder);
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);
@@ -167,7 +167,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     typename mask_defs::link_type mask_link{e_conc_cylinder3, 0};
     plane_surface plain(transform3(), mask_link, 0, false, false);
 
-    point3 ori = {0., 0., 0.};
+    const point3 ori = {0., 0., 0.};
 
     for (auto _ : state) {
         // Loops of theta values
@@ -182,13 +182,14 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
                 scalar sin_phi = std::sin(phi);
                 scalar cos_phi = std::cos(phi);
 
-                vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                            cos_theta};
+                const vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
+                                  cos_theta};
 
-                for (auto cylinder : cylinders) {
+                const detail::ray ray(ori, 0., dir, 0.);
+
+                for (const auto &cylinder : cylinders) {
                     auto cci = cylinder.intersector();
-                    auto is =
-                        cci.intersect(plain.transform(), ori, dir, cylinder);
+                    auto is = cci.intersect(plain.transform(), ray, cylinder);
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);
