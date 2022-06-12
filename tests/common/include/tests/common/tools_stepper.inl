@@ -11,11 +11,12 @@
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/masks/rectangle2.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/propagator/track.hpp"
-#include "tests/common/tools/helix_gun.hpp"
+#include "tests/common/tools/track_generators.hpp"
 
 // google-test include(s)
 #include <gtest/gtest.h>
@@ -155,93 +156,77 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     const point3 ori{0., 0., 0.};
     scalar p_mag = 10;
 
-    // Loops of theta values ]0,pi[
-    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.1 + itheta * (M_PI - 0.1) / theta_steps;
-        scalar sin_theta = std::sin(theta);
-        scalar cos_theta = std::cos(theta);
+    // Iterate through uniformly distributed momentum directions
+    for (auto traj : uniform_track_generator<free_track_parameters>(
+             theta_steps, phi_steps, ori, p_mag)) {
+        // Generate track state used for propagation with constrained step size
+        free_track_parameters c_traj(traj);
 
-        // Loops of phi values [-pi, pi]
-        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-            // The direction
-            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-            scalar sin_phi = std::sin(phi);
-            scalar cos_phi = std::cos(phi);
-            const vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                              cos_theta};
+        // helix gun
+        detail::helix helix_traj(traj, &B);
 
-            vector3 mom = p_mag * dir;
-            free_track_parameters traj(ori, 0, mom, -1);
-            free_track_parameters c_traj(traj);
+        // RK Stepping into forward direction
+        prop_state<rk_stepper_t::state, nav_state> propagation{
+            rk_stepper_t::state{traj}, nav_state{}};
+        prop_state<crk_stepper_t::state, nav_state> c_propagation{
+            crk_stepper_t::state{c_traj}, nav_state{}};
 
-            // helix gun
-            helix_gun helix(traj, &B);
+        rk_stepper_t::state &rk_state = propagation._stepping;
+        crk_stepper_t::state &crk_state = c_propagation._stepping;
 
-            // RK Stepping into forward direction
-            prop_state<rk_stepper_t::state, nav_state> propagation{
-                rk_stepper_t::state{traj}, nav_state{}};
-            prop_state<crk_stepper_t::state, nav_state> c_propagation{
-                crk_stepper_t::state{c_traj}, nav_state{}};
+        // Retrieve one of the navigation states
+        nav_state &n_state = propagation._navigation;
+        nav_state &cn_state = c_propagation._navigation;
 
-            rk_stepper_t::state &rk_state = propagation._stepping;
-            crk_stepper_t::state &crk_state = c_propagation._stepping;
+        crk_state.template set_constraint<constraint::e_user>(
+            0.5 * unit_constants::mm);
+        n_state._step_size = 1. * unit_constants::mm;
+        cn_state._step_size = 1. * unit_constants::mm;
+        ASSERT_NEAR(crk_state.constraints().template size<>(),
+                    0.5 * unit_constants::mm, epsilon);
 
-            // Retrieve one of the navigation states
-            nav_state &n_state = propagation._navigation;
-            nav_state &cn_state = c_propagation._navigation;
-
-            crk_state.template set_constraint<constraint::e_user>(
-                0.5 * unit_constants::mm);
-            n_state._step_size = 1. * unit_constants::mm;
-            cn_state._step_size = 1. * unit_constants::mm;
-            ASSERT_NEAR(crk_state.constraints().template size<>(),
-                        0.5 * unit_constants::mm, epsilon);
-
-            for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(propagation);
-                crk_stepper.step(c_propagation);
-                crk_stepper.step(c_propagation);
-            }
-
-            // get relative error by dividing error with path length
-            ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(),
-                        epsilon);
-            ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
-                            rk_state.path_length(),
-                        0, epsilon);
-
-            const auto helix_pos = helix(rk_state.path_length());
-            const auto forward_pos = rk_state().pos();
-            const point3 forward_relative_error{(1. / rk_state.path_length()) *
-                                                (forward_pos - helix_pos)};
-
-            // Make sure that relative error is smaller than epsion
-            EXPECT_NEAR(getter::norm(forward_relative_error), 0, epsilon);
-
-            // Roll the same track back to the origin
-            // Use the same path length, since there is no overstepping
-            const scalar path_length = rk_state.path_length();
-            n_state._step_size *= -1. * unit_constants::mm;
-            cn_state._step_size *= -1. * unit_constants::mm;
-            for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
-                rk_stepper.step(propagation);
-                crk_stepper.step(c_propagation);
-                crk_stepper.step(c_propagation);
-            }
-
-            ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(),
-                        epsilon);
-            ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
-                            (2 * path_length),
-                        0, epsilon);
-
-            const auto backward_pos = rk_state().pos();
-            const point3 backward_relative_error{1. / (2. * path_length) *
-                                                 (backward_pos - ori)};
-
-            // Make sure that relative error is smaller than epsion
-            EXPECT_NEAR(getter::norm(backward_relative_error), 0, epsilon);
+        for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
+            rk_stepper.step(propagation);
+            crk_stepper.step(c_propagation);
+            crk_stepper.step(c_propagation);
         }
+
+        // get relative error by dividing error with path length
+        ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(), epsilon);
+        ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
+                        rk_state.path_length(),
+                    0, epsilon);
+
+        const auto helix_pos = helix_traj(rk_state.path_length());
+        const auto forward_pos = rk_state().pos();
+        const point3 forward_relative_error{(1. / rk_state.path_length()) *
+                                            (forward_pos - helix_pos)};
+
+        // Make sure that relative error is smaller than epsion
+        EXPECT_NEAR(getter::norm(forward_relative_error), 0, epsilon);
+
+        // Roll the same track back to the origin
+        // Use the same path length, since there is no overstepping
+        const scalar path_length = rk_state.path_length();
+        n_state._step_size *= -1. * unit_constants::mm;
+        cn_state._step_size *= -1. * unit_constants::mm;
+        for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
+            rk_stepper.step(propagation);
+            crk_stepper.step(c_propagation);
+            crk_stepper.step(c_propagation);
+        }
+
+        ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(), epsilon);
+        ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
+                        (2 * path_length),
+                    0, epsilon);
+
+        const auto backward_pos = rk_state().pos();
+        const point3 backward_relative_error{1. / (2. * path_length) *
+                                             (backward_pos - ori)};
+
+        // Make sure that relative error is smaller than epsion
+        EXPECT_NEAR(getter::norm(backward_relative_error), 0, epsilon);
     }
 }
 
@@ -304,8 +289,8 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     ASSERT_NEAR(crk_state().dir()[1], 0, epsilon);
     ASSERT_NEAR(crk_state().dir()[2], 0, epsilon);
 
-    // helix gun
-    helix_gun helix(crk_state(), &B);
+    // helix trajectory
+    detail::helix helix_traj(crk_state(), &B);
 
     // Path length per turn
     scalar S = 2. * getter::norm(mom) / getter::norm(B) * M_PI;
@@ -333,7 +318,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
      */
 
     auto jac_transport = crk_state._jac_transport;
-    auto true_J = helix.jacobian(crk_state.path_length());
+    auto true_J = helix_traj.jacobian(crk_state.path_length());
 
     for (size_type i = 0; i < e_free_size; i++) {
         for (size_type j = 0; j < e_free_size; j++) {

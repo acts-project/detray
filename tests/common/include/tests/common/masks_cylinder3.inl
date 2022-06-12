@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include "detray/intersection/ray_cylinder_intersector.hpp"
 #include "detray/masks/cylinder3.hpp"
 
 using namespace detray;
@@ -26,7 +27,9 @@ TEST(mask, cylinder3) {
                      static_cast<scalar>(r / std::sqrt(2.)), 4.5};
     point3 p3_off = {1., 1., -9.};
 
-    cylinder3<> c{r, -hz, hz, 0u};
+    // Test radius to be on surface, too
+    cylinder3<ray_cylinder_intersector, local_type, dindex, true> c{r, -hz, hz,
+                                                                    0u};
 
     ASSERT_EQ(c[0], r);
     ASSERT_EQ(c[1], -hz);
