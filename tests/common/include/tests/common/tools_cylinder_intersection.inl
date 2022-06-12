@@ -10,8 +10,11 @@
 #include <climits>
 #include <cmath>
 
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/detail/unbound.hpp"
+#include "detray/intersection/helix_cylinder_intersector.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/intersection/intersection_kernel.hpp"
 #include "detray/intersection/ray_concentric_cylinder_intersector.hpp"
 #include "detray/intersection/ray_cylinder_intersector.hpp"
 #include "detray/masks/cylinder3.hpp"
@@ -32,14 +35,14 @@ using point3 = __plugin::point3<scalar>;
 // This defines the local frame test suite
 TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // Create a translated cylinder and test untersection
-    transform3 shifted(vector3{3., 2., 10.});
+    const transform3 shifted(vector3{3., 2., 10.});
     cylinder3<ray_cylinder_intersector, detail::unbound, unsigned int>
         cylinder_unbound{4., -10., 10., 0u};
     ray_cylinder_intersector ci;
 
     // Unbound local frame test
-    auto hit_unbound = ci.intersect(shifted, point3{3., 2., 5.},
-                                    vector3{1., 0., 0.}, cylinder_unbound);
+    const auto hit_unbound = ci.intersect(
+        shifted, point3{3., 2., 5.}, vector3{1., 0., 0.}, cylinder_unbound);
     ASSERT_TRUE(hit_unbound.status == intersection::status::e_inside);
     ASSERT_NEAR(hit_unbound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_unbound.p3[1], 2., epsilon);
@@ -51,8 +54,8 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     cylinder3<ray_cylinder_intersector, __plugin::cylindrical2<detray::scalar>,
               unsigned int>
         cylinder_bound{4., -10., 10., 0u};
-    auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.},
-                                  vector3{1., 0., 0.}, cylinder_bound);
+    const auto hit_bound = ci.intersect(shifted, point3{3., 2., 5.},
+                                        vector3{1., 0., 0.}, cylinder_bound);
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_bound.p3[1], 2., epsilon);
@@ -67,19 +70,19 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
 TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
 
     // Create a concentric cylinder and test intersection
-    scalar r = 4.;
-    scalar hz = 10.;
-    transform3 identity(vector3{0., 0., 0.});
+    const scalar r = 4.;
+    const scalar hz = 10.;
+    const transform3 identity(vector3{0., 0., 0.});
     cylinder3<> cylinder{r, -hz, hz, 0u};
     ray_cylinder_intersector ci;
     ray_concentric_cylinder_intersector cci;
 
-    point3 ori = {1., 0.5, 1.};
-    point3 dir = vector::normalize(vector3{1., 1., 1.});
+    const point3 ori = {1., 0.5, 1.};
+    const point3 dir = vector::normalize(vector3{1., 1., 1.});
 
     // The same but bound
-    auto hit_cylinrical = ci.intersect(identity, ori, dir, cylinder);
-    auto hit_cocylindrical = cci.intersect(identity, ori, dir, cylinder);
+    const auto hit_cylinrical = ci.intersect(identity, ori, dir, cylinder);
+    const auto hit_cocylindrical = cci.intersect(identity, ori, dir, cylinder);
 
     ASSERT_TRUE(hit_cylinrical.status == intersection::status::e_inside);
     ASSERT_TRUE(hit_cocylindrical.status == intersection::status::e_inside);
@@ -99,4 +102,43 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
                 hit_cocylindrical.p2[1] != not_defined);
     ASSERT_NEAR(hit_cylinrical.p2[0], hit_cocylindrical.p2[0], isclose);
     ASSERT_NEAR(hit_cylinrical.p2[1], hit_cocylindrical.p2[1], isclose);
+}
+
+// This defines the local frame test suite
+TEST(ALGEBRA_PLUGIN, helix_cylinder_intersector) {
+    // Create a translated cylinder and test untersection
+    const transform3 shifted(vector3{3., 2., 10.});
+    cylinder3<helix_cylinder_intersector, detail::unbound, unsigned int>
+        cylinder_unbound{4., -10., 10., 0u};
+    helix_cylinder_intersector ci;
+
+    // Test helix
+    const point3 pos{3., 2., 5.};
+    const vector3 mom{1., 0., 0.};
+    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
+                    epsilon * unit_constants::T};
+    const detail::helix h({pos, 0, mom, -1}, &B);
+
+    // Unbound local frame test
+    const auto hit_unbound = ci.intersect(shifted, h, cylinder_unbound);
+    ASSERT_TRUE(hit_unbound.status == intersection::status::e_inside);
+    ASSERT_NEAR(hit_unbound.p3[0], 7., epsilon);
+    ASSERT_NEAR(hit_unbound.p3[1], 2., epsilon);
+    ASSERT_NEAR(hit_unbound.p3[2], 5., epsilon);
+    ASSERT_TRUE(hit_unbound.p2[0] == not_defined &&
+                hit_unbound.p2[1] == not_defined);
+
+    // The same but bound
+    cylinder3<helix_cylinder_intersector,
+              __plugin::cylindrical2<detray::scalar>, unsigned int>
+        cylinder_bound{4., -10., 10., 0u};
+    const auto hit_bound = ci.intersect(shifted, h, cylinder_bound);
+    ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
+    ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
+    ASSERT_NEAR(hit_bound.p3[1], 2., epsilon);
+    ASSERT_NEAR(hit_bound.p3[2], 5., epsilon);
+    ASSERT_TRUE(hit_bound.p2[0] != not_defined &&
+                hit_bound.p2[1] != not_defined);
+    ASSERT_NEAR(hit_bound.p2[0], 0., isclose);
+    ASSERT_NEAR(hit_bound.p2[1], -5., isclose);
 }
