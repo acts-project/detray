@@ -100,7 +100,7 @@ struct ray_concentric_cylinder_intersector {
 
         // Two points on the line, thes are in the cylinder frame
         const point3 &l0 = ro;
-        const auto l1 = ro + rd;
+        const point3 l1 = ro + rd;
 
         // swap coorinates x/y for numerical stability
         const bool swap_x_y = std::abs(rd[0]) < scalar{1e-3};
