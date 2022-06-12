@@ -32,16 +32,27 @@ class ray {
     /// @param dir the track momentum direction
     DETRAY_HOST_DEVICE
     ray(point3 pos, scalar /*time*/, vector3 dir, scalar /*q*/)
-        : _pos(pos), _dir(dir) {}
+        : _pos(pos), _dir(vector::normalize(dir)) {}
 
-    /// @returns position on the ray
+    /// @returns position on the ray (compatible with tracks/intersectors)
     DETRAY_HOST_DEVICE point3 pos() const { return _pos; }
+
+    /// @returns position on the ray paramterized by path length
+    DETRAY_HOST_DEVICE point3 pos(const scalar s) const {
+        // Direction is always normalized in the constructor
+        return _pos + s * _dir;
+    }
 
     /// @param position new position on the ray
     DETRAY_HOST_DEVICE void set_pos(point3 pos) { _pos = pos; }
 
-    /// @returns direction of the ray
+    /// @returns direction of the ray (compatible with tracks/intersectors)
     DETRAY_HOST_DEVICE vector3 dir() const { return _dir; }
+
+    /// @returns direction of the ray paramterized by path length
+    DETRAY_HOST_DEVICE vector3 dir(const scalar /*s*/) const {
+        return this->dir();
+    }
 
     /// @returns overstep tolerance to comply with track interface
     DETRAY_HOST_DEVICE
@@ -51,10 +62,10 @@ class ray {
     /// origin of ray
     point3 _pos{0., 0., 0.};
     /// direction of ray
-    vector3 _dir{0., 0., 0.};
+    vector3 _dir{0., 0., 1.};
 
     /// Overstep tolerance on a geometry surface
-    scalar _overstep_tolerance = -1e-4;
+    scalar _overstep_tolerance{-1e-4};
 };
 
 /// @brief describes a helical trajectory in a given B-field.
@@ -137,11 +148,11 @@ class helix : public free_track_parameters {
 
     /// @returns the position after propagating the path length of s
     DETRAY_HOST_DEVICE
-    point3 operator()(scalar s) const { return this->pos(s); }
+    point3 operator()(const scalar s) const { return this->pos(s); }
 
     /// @returns the position after propagating the path length of s
     DETRAY_HOST_DEVICE
-    point3 pos(scalar s) const {
+    point3 pos(const scalar s) const {
 
         // Handle the case of pT ~ 0
         if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
@@ -158,7 +169,7 @@ class helix : public free_track_parameters {
 
     /// @returns the tangential vector after propagating the path length of s
     DETRAY_HOST_DEVICE
-    vector3 dir(scalar s) const {
+    vector3 dir(const scalar s) const {
 
         // Handle the case of pT ~ 0
         if (_vz_over_vt == std::numeric_limits<scalar>::infinity()) {
@@ -180,7 +191,7 @@ class helix : public free_track_parameters {
 
     /// @returns the transport jacobian after propagating the path length of s
     DETRAY_HOST_DEVICE
-    free_matrix jacobian(scalar s) const {
+    free_matrix jacobian(const scalar s) const {
 
         free_matrix ret =
             matrix_operator().template zero<e_free_size, e_free_size>();
