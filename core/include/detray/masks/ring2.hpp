@@ -52,7 +52,7 @@ class ring2 final
         std::numeric_limits<scalar>::epsilon();
 
     /* Default constructor */
-    ring2() = default;
+    ring2() { this->_values = {0., std::numeric_limits<scalar>::infinity()}; }
 
     /** Construction from boundary values
      *

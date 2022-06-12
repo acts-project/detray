@@ -55,7 +55,12 @@ class trapezoid2 final
         std::numeric_limits<scalar>::epsilon()};
 
     /* Default constructor */
-    trapezoid2() = default;
+    trapezoid2() {
+        this->_values = {std::numeric_limits<scalar>::infinity(),
+                         std::numeric_limits<scalar>::infinity(),
+                         std::numeric_limits<scalar>::infinity(),
+                         std::numeric_limits<scalar>::infinity()};
+    }
 
     /** Construction from boundary values
      *
