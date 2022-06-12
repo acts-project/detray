@@ -93,8 +93,12 @@ struct propagator {
         // initialize the navigation
         propagation._heartbeat = _navigator.init(propagation);
 
+        // Run all registered actors/aborter after init
+        run_actors(propagation._actor_states, propagation);
+
         // Run while there is a heartbeat
         while (propagation._heartbeat) {
+
             // std::cout << propagation._navigation() << std::endl;
 
             /*if (propagation._navigation() == -0) {
@@ -107,7 +111,7 @@ struct propagator {
             // And check the status
             propagation._heartbeat &= _navigator.update(propagation);
 
-            // Run all registered actors
+            // Run all registered actors/aborter after update
             run_actors(propagation._actor_states, propagation);
         }
 

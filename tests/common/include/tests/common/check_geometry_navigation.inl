@@ -57,7 +57,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
         // Shoot ray through the detector and record all surfaces it encounters
         const auto intersection_trace =
-            particle_gun::shoot_particle(det, ray); // :)
+            particle_gun::shoot_particle(det, ray);  // :)
 
         // Now follow that ray with a track and check, if we find the same
         // volumes and distances along the way
@@ -69,11 +69,11 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
         auto &obj_tracer = inspector.template get<object_tracer_t>();
         auto &debug_printer = inspector.template get<print_inspector>();
 
-        ASSERT_TRUE(prop.propagate(propagation))
-            << debug_printer.to_string();
+        ASSERT_TRUE(prop.propagate(propagation)) << debug_printer.to_string();
 
         // Compare intersection records
-        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size());
+        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size())
+            << debug_printer.to_string();
 
         std::stringstream debug_stream;
         for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
@@ -87,7 +87,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
         }
 
         // Check every single recorded intersection
-        for (std::size_t i = 0; i < intersection_trace.size(); ++i) {
+        for (std::size_t i = 0; i < obj_tracer.object_trace.size(); ++i) {
             if (obj_tracer[i].index != intersection_trace[i].first) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)

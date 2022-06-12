@@ -56,7 +56,9 @@ struct guided_navigation : actor {
 /// constraint was triggered.
 struct stepper_default_policy : actor {
 
-    struct state {};
+    struct state {
+        const scalar tol{std::numeric_limits<scalar>::epsilon()};
+    };
 
     /// Sets the navigation trust level depending on the step size limit
     ///
@@ -64,7 +66,7 @@ struct stepper_default_policy : actor {
     /// @param propagation state of the propagation
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void operator()(
-        state & /*pol_state*/, propagator_state_t &propagation) const {
+        state &pol_state, propagator_state_t &propagation) const {
 
         const auto &stepping = propagation._stepping;
         auto &navigation = propagation._navigation;
@@ -72,7 +74,8 @@ struct stepper_default_policy : actor {
         // Not a severe change to track state expected
         if (std::abs(stepping.step_size()) <
             std::abs(
-                stepping.constraints().template size<>(stepping.direction()))) {
+                stepping.constraints().template size<>(stepping.direction())) -
+                pol_state.tol) {
             // Re-evaluate only next candidate
             navigation.set_high_trust();
         }

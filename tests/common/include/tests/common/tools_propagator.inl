@@ -29,7 +29,7 @@ using namespace detray;
 
 namespace {
 
-constexpr scalar epsilon{5e-4};
+constexpr scalar epsilon{1e-3};
 constexpr scalar path_limit{5 * unit_constants::cm};
 
 /// Compare helical track positions for stepper
@@ -54,7 +54,10 @@ struct helix_inspector : actor {
         const auto pos = stepping().pos();
         const auto true_pos = inspector_state._helix(stepping.path_length());
 
-        const point3 relative_error{1 / stepping.path_length() *
+        if (stepping.path_length() < epsilon) {
+            return;
+        }
+        const point3 relative_error{scalar{1.} / stepping.path_length() *
                                     (pos - true_pos)};
 
         ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
@@ -103,8 +106,8 @@ class PropagatorWithRkStepper
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // geomery navigation configurations
-    constexpr unsigned int theta_steps = 50;
-    constexpr unsigned int phi_steps = 50;
+    constexpr unsigned int theta_steps{50};
+    constexpr unsigned int phi_steps{50};
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
@@ -165,22 +168,26 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         propagator_t::state lim_state(lim_traj, lim_actor_states);
 
         // Set step constraints
-        state._stepping
-            .template set_constraint<step::constraint::e_accuracy>(step_constr);
+        state._stepping.template set_constraint<step::constraint::e_accuracy>(
+            step_constr);
         lim_state._stepping
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state))
-            << state._navigation.inspector().to_string()
-            << print_insp_state.to_string() << std::endl;
+            //<< print_insp_state.to_string()
+            << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, epsilon);
         ASSERT_FALSE(p.propagate(lim_state))
-            << lim_state._navigation.inspector().to_string()
-            << lim_print_insp_state.to_string() << std::endl;
-        ASSERT_TRUE(lim_state._stepping.path_length() < path_limit + epsilon);
+            //<< lim_print_insp_state.to_string()
+            << lim_state._navigation.inspector().to_string() << std::endl;
+        ASSERT_TRUE(lim_state._stepping.path_length() <
+                    std::abs(path_limit) + epsilon)
+            << "path length: " << lim_state._stepping.path_length()
+            << ", path limit: " << path_limit << std::endl
+            << state._navigation.inspector().to_string();
     }
 }
 
@@ -190,7 +197,7 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation1, PropagatorWithRkStepper,
                              __plugin::vector3<scalar>{0. * unit_constants::T,
                                                        0. * unit_constants::T,
                                                        2. * unit_constants::T},
-                             -5. * unit_constants::um,
+                             -7. * unit_constants::um,
                              std::numeric_limits<scalar>::max())));
 
 // Add some restrictions for more frequent navigation updates in the cases of
@@ -200,7 +207,7 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
                              __plugin::vector3<scalar>{0. * unit_constants::T,
                                                        1. * unit_constants::T,
                                                        1. * unit_constants::T},
-                             -7. * unit_constants::um,
+                             -10. * unit_constants::um,
                              5. * unit_constants::mm)));
 
 INSTANTIATE_TEST_SUITE_P(PropagatorValidation3, PropagatorWithRkStepper,
@@ -208,13 +215,13 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation3, PropagatorWithRkStepper,
                              __plugin::vector3<scalar>{1. * unit_constants::T,
                                                        0. * unit_constants::T,
                                                        1. * unit_constants::T},
-                             -7. * unit_constants::um,
+                             -10. * unit_constants::um,
                              5. * unit_constants::mm)));
 
-/*INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
                              __plugin::vector3<scalar>{1. * unit_constants::T,
                                                        1. * unit_constants::T,
                                                        1. * unit_constants::T},
-                             -7. * unit_constants::um,
-                             5. * unit_constants::mm)));*/
+                             -10. * unit_constants::um,
+                             5. * unit_constants::mm)));

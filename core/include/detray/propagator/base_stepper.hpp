@@ -96,10 +96,10 @@ class base_stepper {
         typename policy_t::state _policy_state = {};
 
         /// Track path length
-        scalar _path_length = 0;
+        scalar _path_length{0.};
 
         /// Current step size
-        scalar _step_size{std::numeric_limits<scalar>::infinity()};
+        scalar _step_size{0.};
 
         /// TODO: Use options?
         /// hypothetical mass of particle (assume pion by default)

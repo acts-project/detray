@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <iostream>
+
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
@@ -462,8 +464,7 @@ class navigator {
         if (navigation.trust_level() == navigation::trust_level::e_full) {
             return navigation._heartbeat;
         }
-        // Otherwise:
-        // Did we run into a portal?
+        // Otherwise: did we run into a portal?
         if (navigation.status() == navigation::status::e_on_portal) {
             // Set volume index to the next volume provided by the portal
             navigation.set_volume(navigation.current()->link);
@@ -527,6 +528,12 @@ class navigator {
             }
             // Update navigation flow on the new candidate information
             update_navigation_state(track, propagation);
+
+            // Only run inspection when needed
+            if constexpr (not std::is_same_v<inspector_t,
+                                             navigation::void_inspector>) {
+                navigation.run_inspector("Update complete: high trust: ");
+            }
 
             // The work is done if: the track has not reached a surface yet or
             // trust is gone (the cache is broken or portal was reached).
