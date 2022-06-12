@@ -10,11 +10,12 @@
 #include <fstream>
 
 #include "detray/core/type_registry.hpp"
-#include "detray/intersection/concentric_cylinder_intersector.hpp"
-#include "detray/intersection/cylinder_intersector.hpp"
-#include "detray/intersection/planar_intersector.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
+#include "detray/intersection/ray_concentric_cylinder_intersector.hpp"
+#include "detray/intersection/ray_cylinder_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
+#include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;
 
@@ -31,9 +32,8 @@ enum mask_ids : unsigned int {
 };
 
 using mask_defs =
-    mask_registry<mask_ids, rectangle2<>,
-                  cylinder3<false, cylinder_intersector>,
-                  cylinder3<false, concentric_cylinder_intersector<>>>;
+    mask_registry<mask_ids, rectangle2<>, cylinder3<ray_cylinder_intersector>,
+                  cylinder3<ray_concentric_cylinder_intersector<>>>;
 using plane_surface = surface<mask_defs, transform3>;
 
 unsigned int theta_steps = 1000;
@@ -55,34 +55,23 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
         benchmark::DoNotOptimize(sfmiss);
-        // Loops of theta values
-        for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-            scalar theta = 0.85 + itheta * 0.2 / theta_steps;
-            scalar sin_theta = std::sin(theta);
-            scalar cos_theta = std::cos(theta);
 
-            // Loops of phi values
-            for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-                scalar phi = 0.7 + iphi * 0.2 / phi_steps;
-                scalar sin_phi = std::sin(phi);
-                scalar cos_phi = std::cos(phi);
+        // Iterate through uniformly distributed momentum directions
+        for (const auto ray : uniform_track_generator<detail::ray>(
+                 theta_steps, phi_steps, ori, 1.)) {
 
-                vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                            cos_theta};
+            for (const auto &plane : planes) {
+                auto pi = rect.intersector();
+                auto is = pi.intersect(plane.transform(), ray, rect);
 
-                for (auto plane : planes) {
-                    auto pi = rect.intersector();
-                    auto is = pi.intersect(plane.transform(), ori, dir, rect);
-
-                    benchmark::DoNotOptimize(sfhit);
-                    benchmark::DoNotOptimize(sfmiss);
-                    if (is.status == intersection::status::e_inside) {
-                        ++sfhit;
-                    } else {
-                        ++sfmiss;
-                    }
-                    benchmark::ClobberMemory();
+                benchmark::DoNotOptimize(sfhit);
+                benchmark::DoNotOptimize(sfmiss);
+                if (is.status == intersection::status::e_inside) {
+                    ++sfhit;
+                } else {
+                    ++sfmiss;
                 }
+                benchmark::ClobberMemory();
             }
         }
     }
@@ -113,7 +102,7 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
     typename mask_defs::link_type mask_link{e_cylinder3, 0};
     plane_surface plain(transform3(), mask_link, 0, false, false);
 
-    point3 ori = {0., 0., 0.};
+    const point3 ori = {0., 0., 0.};
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
@@ -131,13 +120,14 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
                 scalar sin_phi = std::sin(phi);
                 scalar cos_phi = std::cos(phi);
 
-                vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                            cos_theta};
+                const vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
+                                  cos_theta};
 
-                for (auto cylinder : cylinders) {
+                const detail::ray ray(ori, 0., dir, 0.);
+
+                for (const auto &cylinder : cylinders) {
                     auto ci = cylinder.intersector();
-                    auto is =
-                        ci.intersect(plain.transform(), ori, dir, cylinder);
+                    auto is = ci.intersect(plain.transform(), ray, cylinder);
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);
@@ -177,7 +167,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     typename mask_defs::link_type mask_link{e_conc_cylinder3, 0};
     plane_surface plain(transform3(), mask_link, 0, false, false);
 
-    point3 ori = {0., 0., 0.};
+    const point3 ori = {0., 0., 0.};
 
     for (auto _ : state) {
         // Loops of theta values
@@ -192,13 +182,14 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
                 scalar sin_phi = std::sin(phi);
                 scalar cos_phi = std::cos(phi);
 
-                vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                            cos_theta};
+                const vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
+                                  cos_theta};
 
-                for (auto cylinder : cylinders) {
+                const detail::ray ray(ori, 0., dir, 0.);
+
+                for (const auto &cylinder : cylinders) {
                     auto cci = cylinder.intersector();
-                    auto is =
-                        cci.intersect(plain.transform(), ori, dir, cylinder);
+                    auto is = cci.intersect(plain.transform(), ray, cylinder);
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);

@@ -7,8 +7,8 @@
 #pragma once
 
 #include <algorithm>
+#include <climits>
 #include <cmath>
-#include <tuple>
 
 #include "detray/definitions/qualifiers.hpp"
 

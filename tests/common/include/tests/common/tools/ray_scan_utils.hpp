@@ -17,8 +17,6 @@
 #include <utility>
 #include <vector>
 
-#include "tests/common/tools/ray_gun.hpp"
-
 namespace detray {
 
 /** Check if a set of volume indices from portal intersections from a path

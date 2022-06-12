@@ -17,9 +17,11 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
+#include "detray/definitions/units.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
+#include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;
 
@@ -46,6 +48,7 @@ constexpr unsigned int theta_steps = 100;
 constexpr unsigned int phi_steps = 100;
 
 constexpr scalar pos_diff_tolerance = 1e-3;
+constexpr scalar overstep_tolerance = -1e-4;
 
 // dummy propagator state
 template <typename navigation_t>

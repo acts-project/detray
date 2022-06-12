@@ -135,8 +135,8 @@ dvector<point3> vertices(
  */
 template <bool kRadialCheck, typename intersector_t, typename local_t,
           typename links_t>
-dvector<point3> vertices(const cylinder3<kRadialCheck, intersector_t, local_t,
-                                         links_t> & /*annulus_mask*/,
+dvector<point3> vertices(const cylinder3<intersector_t, local_t, links_t,
+                                         kRadialCheck> & /*cylinder_mask*/,
                          unsigned int /*lseg*/) {
 
     return {};

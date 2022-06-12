@@ -7,20 +7,15 @@
 
 #pragma once
 
-#include <tuple>
 #include <utility>
 
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/propagator/track.hpp"
 #include "detray/utils/enumerate.hpp"
 
 namespace detray {
-
-/// Transform definition
-using transform3 = __plugin::transform3<detray::scalar>;
 
 /** Variadic unrolled intersection - any integer sequence
  *
@@ -39,10 +34,11 @@ using transform3 = __plugin::transform3<detray::scalar>;
  *
  * @return an intersection struct (invalid if no intersection was found)
  */
-template <typename track_t, typename mask_container_t, typename mask_range_t,
-          unsigned int first_mask_id, unsigned int... remaining_mask_ids>
+template <typename track_t, typename transform_t, typename mask_container_t,
+          typename mask_range_t, unsigned int first_mask_id,
+          unsigned int... remaining_mask_ids>
 DETRAY_HOST_DEVICE inline auto unroll_intersect(
-    const track_t &track, const transform3 &ctf, const mask_container_t &masks,
+    const track_t &track, const transform_t &ctf, const mask_container_t &masks,
     const mask_range_t &mask_range,
     const typename mask_container_t::id_type mask_id, dindex volume_index,
     std::integer_sequence<unsigned int, first_mask_id, remaining_mask_ids...>

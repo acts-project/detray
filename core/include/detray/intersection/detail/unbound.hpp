@@ -10,6 +10,8 @@
 
 namespace detray {
 
+namespace detail {
+
 /** A representation that is not bound to a local frame */
 struct unbound {
     using transform3 = __plugin::transform3<detray::scalar>;
@@ -34,4 +36,7 @@ struct unbound {
                 std::numeric_limits<scalar>::infinity()};
     }
 };
+
+}  // namespace detail
+
 }  // namespace detray
