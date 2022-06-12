@@ -8,7 +8,7 @@
 #pragma once
 
 #include <climits>
-#include <iostream>
+//#include <iostream>
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/track.hpp"
@@ -93,7 +93,7 @@ struct propagator {
         // initialize the navigation
         propagation._heartbeat = _navigator.init(propagation);
 
-        // Run all registered actors/aborter after init
+        // Run all registered actors/aborters after init
         run_actors(propagation._actor_states, propagation);
 
         // Run while there is a heartbeat
@@ -111,7 +111,7 @@ struct propagator {
             // And check the status
             propagation._heartbeat &= _navigator.update(propagation);
 
-            // Run all registered actors/aborter after update
+            // Run all registered actors/aborters after update
             run_actors(propagation._actor_states, propagation);
         }
 

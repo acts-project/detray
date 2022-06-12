@@ -76,24 +76,23 @@ struct helix_inspector : actor {
 
 }  // anonymous namespace
 
-/// This tests the basic functionality of the propagator
+/// Test basic functionality of the propagator using a straight line stepper
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
 
     vecmem::host_memory_resource host_mr;
     auto d = create_toy_geometry(host_mr);
 
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
-    using track_t = free_track_parameters;
-    using stepper_t = line_stepper<track_t>;
+    using stepper_t = line_stepper<free_track_parameters>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     point3 pos{0., 0., 0.};
     vector3 mom{1., 1., 0.};
-    track_t trck(pos, 0, mom, -1);
+    free_track_parameters track(pos, 0, mom, -1);
 
     propagator_t p(stepper_t{}, navigator_t{d});
 
-    propagator_t::state state(trck);
+    propagator_t::state state(track);
 
     EXPECT_TRUE(p.propagate(state))
         << state._navigation.inspector().to_string() << std::endl;
@@ -103,6 +102,7 @@ class PropagatorWithRkStepper
     : public ::testing::TestWithParam<
           std::tuple<__plugin::vector3<scalar>, scalar, scalar>> {};
 
+/// Test propagation in a magnetic field using a Runge-Kutta stepper
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // geomery navigation configurations
@@ -142,16 +142,16 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     propagator_t p(stepper_t{b_field}, navigator_t{d});
 
     // Iterate through uniformly distributed momentum directions
-    for (auto traj :
+    for (auto track :
          uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
-        // Genrate track state used for propagation with pathlimit
-        free_track_parameters lim_traj(traj);
+        // Genrate second track state used for propagation with pathlimit
+        track_t lim_track(track);
 
-        traj.set_overstep_tolerance(overstep_tol);
-        lim_traj.set_overstep_tolerance(overstep_tol);
+        track.set_overstep_tolerance(overstep_tol);
+        lim_track.set_overstep_tolerance(overstep_tol);
 
         // Build actor states: the helix inspector can be shared
-        helix_inspector::state helix_insp_state{detail::helix{traj, &B}};
+        helix_inspector::state helix_insp_state{detail::helix{track, &B}};
         propagation::print_inspector::state print_insp_state{};
         propagation::print_inspector::state lim_print_insp_state{};
         pathlimit_aborter::state unlimted_aborter_state{};
@@ -164,8 +164,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             helix_insp_state, lim_print_insp_state, pathlimit_aborter_state);
 
         // Init propagator states
-        propagator_t::state state(traj, actor_states);
-        propagator_t::state lim_state(lim_traj, lim_actor_states);
+        propagator_t::state state(track, actor_states);
+        propagator_t::state lim_state(lim_track, lim_actor_states);
 
         // Set step constraints
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
