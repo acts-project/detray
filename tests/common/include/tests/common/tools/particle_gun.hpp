@@ -64,11 +64,12 @@ struct particle_gun {
 
                 // Retrieve candidate from the surface
                 intersection_type sfi;
+                const scalar tol{epsilon};
                 if constexpr (std::is_same_v<trajectory_t, detail::helix>) {
                     // Call helix specific version instead of the intersection
                     // kernel
                     sfi = helix::intersect(traj, sf, detector.transform_store(),
-                                           detector.mask_store(), epsilon);
+                                           detector.mask_store(), tol);
                 } else {
                     // Call detray intersection kernel
                     sfi =
