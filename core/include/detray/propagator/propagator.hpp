@@ -10,6 +10,7 @@
 #include <climits>
 
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/propagator/track.hpp"
 
 namespace detray {
 
