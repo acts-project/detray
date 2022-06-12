@@ -17,6 +17,7 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
+#include "detray/propagator/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/particle_gun.hpp"
@@ -33,41 +34,43 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     auto det = create_toy_geometry(host_mr);
 
     // Create the navigator
-    using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
-                                            print_inspector>;
+    using object_tracer_t =
+        object_tracer<dvector, status::e_on_module, status::e_on_portal>;
+    using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using navigator_t = navigator<decltype(det), inspector_t>;
-    using stepper_t = line_stepper<free_track_parameters>;
+    using stepper_t =
+        line_stepper<free_track_parameters, unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
     propagator_t prop(stepper_t{}, navigator_t{det});
 
-    unsigned int theta_steps = 1;
-    unsigned int phi_steps = 1;
+    constexpr std::size_t theta_steps{50};
+    constexpr std::size_t phi_steps{50};
 
     const point3 ori{0., 0., 0.};
     // d.volume_by_pos(ori).index();
 
     // Iterate through uniformly distributed momentum directions
-    for (const auto test_ray :
+    for (const auto ray :
          uniform_track_generator<detail::ray>(theta_steps, phi_steps, ori)) {
 
         // Shoot ray through the detector and record all surfaces it encounters
         const auto intersection_trace =
-            particle_gun::shoot_particle(det, test_ray);
+            particle_gun::shoot_particle(det, ray); // :)
 
         // Now follow that ray with a track and check, if we find the same
         // volumes and distances along the way
-        free_track_parameters track(test_ray.pos(), 0, test_ray.dir(), -1);
+        free_track_parameters track(ray.pos(), 0, ray.dir(), -1);
         propagator_t::state propagation(track);
-
-        prop.propagate(propagation);
 
         // Retrieve navigation information
         auto &inspector = propagation._navigation.inspector();
-        auto &obj_tracer =
-            inspector.template get<object_tracer<status::e_on_target>>();
+        auto &obj_tracer = inspector.template get<object_tracer_t>();
         auto &debug_printer = inspector.template get<print_inspector>();
+
+        ASSERT_TRUE(prop.propagate(propagation))
+            << debug_printer.to_string();
 
         // Compare intersection records
         EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size());
@@ -105,11 +108,12 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     using namespace navigation;
 
     vecmem::host_memory_resource host_mr;
-    auto det = create_toy_geometry(host_mr);
+    const auto det = create_toy_geometry(host_mr);
 
     // Create the navigator
-    using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
-                                            print_inspector>;
+    using object_tracer_t =
+        object_tracer<dvector, status::e_on_module, status::e_on_portal>;
+    using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using navigator_t = navigator<decltype(det), inspector_t>;
     using mag_field_t = constant_magnetic_field<>;
     using stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
@@ -122,14 +126,14 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     // Propagator
     propagator_t prop(stepper_t{b_field}, navigator_t{det});
 
-    unsigned int theta_steps = 1;
-    unsigned int phi_steps = 1;
+    constexpr std::size_t theta_steps{1};
+    constexpr std::size_t phi_steps{1};
 
     const point3 ori{0., 0., 0.};
 
     // Iterate through uniformly distributed momentum directions
-    for (const auto test_track : uniform_track_generator<free_track_parameters>(
+    for (const auto trk : uniform_track_generator<free_track_parameters>(
              theta_steps, phi_steps, ori)) {
-        detail::helix h2(test_track, &B);
+        detail::helix h(trk, &B);
     }
 }

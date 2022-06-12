@@ -8,6 +8,7 @@
 #pragma once
 
 #include <climits>
+#include <iostream>
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/track.hpp"
@@ -94,7 +95,12 @@ struct propagator {
 
         // Run while there is a heartbeat
         while (propagation._heartbeat) {
+            // std::cout << propagation._navigation() << std::endl;
 
+            /*if (propagation._navigation() == -0) {
+                std::cout << propagation._navigation.inspector().to_string() <<
+            std::endl; return false;
+            }*/
             // Take the step
             propagation._heartbeat &= _stepper.step(propagation);
 
