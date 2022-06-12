@@ -10,6 +10,7 @@
 #include <sstream>
 #include <vecmem/memory/host_memory_resource.hpp>
 
+#include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -25,18 +26,26 @@
 
 using namespace detray;
 
+namespace {
+using namespace navigation;
+
+using object_tracer_t =
+    object_tracer<dvector, status::e_on_module, status::e_on_portal>;
+using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
+
+}  // anonymous namespace
+
 /// This test runs intersection with all portals of the toy detector with a ray
 /// and then compares the intersection trace with a straight line navigation.
 TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
-    using namespace navigation;
 
+    // Detector configuration
+    constexpr std::size_t n_brl_layers{4};
+    constexpr std::size_t n_edc_layers{7};
     vecmem::host_memory_resource host_mr;
-    auto det = create_toy_geometry(host_mr);
+    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
-    // Create the navigator
-    using object_tracer_t =
-        object_tracer<dvector, status::e_on_module, status::e_on_portal>;
-    using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
+    // Straight line navigation
     using navigator_t = navigator<decltype(det), inspector_t>;
     using stepper_t =
         line_stepper<free_track_parameters, unconstrained_step, always_init>;
@@ -49,7 +58,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     constexpr std::size_t phi_steps{50};
 
     const point3 ori{0., 0., 0.};
-    // d.volume_by_pos(ori).index();
+    // det.volume_by_pos(ori).index();
 
     // Iterate through uniformly distributed momentum directions
     for (const auto ray :
@@ -80,7 +89,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
              ++intr_idx) {
             debug_stream << "-------Intersection trace\n"
                          << "ray gun: "
-                         << "\tsf id: " << intersection_trace[intr_idx].first
+                         << "\tvol id: " << intersection_trace[intr_idx].first
                          << ", "
                          << intersection_trace[intr_idx].second.to_string();
             debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
@@ -88,52 +97,112 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0; i < obj_tracer.object_trace.size(); ++i) {
-            if (obj_tracer[i].index != intersection_trace[i].first) {
+            if (obj_tracer[i].index != intersection_trace[i].second.index) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
-                if (obj_tracer[i].index == intersection_trace[i + 1].first and
-                    obj_tracer[i + 1].index == intersection_trace[i].first) {
+                if (obj_tracer[i].index ==
+                        intersection_trace[i + 1].second.index and
+                    obj_tracer[i + 1].index ==
+                        intersection_trace[i].second.index) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].index, intersection_trace[i].first)
+            EXPECT_EQ(obj_tracer[i].index, intersection_trace[i].second.index)
                 << debug_printer.to_string() << debug_stream.str();
         }
     }
 }
 
+/// Check the Runge-Kutta based navigation against a helix trajectory as ground
+/// truth
 TEST(ALGEBRA_PLUGIN, helix_navigation) {
     using namespace navigation;
 
+    // Detector configuration
+    constexpr std::size_t n_brl_layers{4};
+    constexpr std::size_t n_edc_layers{7};
     vecmem::host_memory_resource host_mr;
-    const auto det = create_toy_geometry(host_mr);
+    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
-    // Create the navigator
-    using object_tracer_t =
-        object_tracer<dvector, status::e_on_module, status::e_on_portal>;
-    using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
+    // Runge-Kutta based navigation
     using navigator_t = navigator<decltype(det), inspector_t>;
-    using mag_field_t = constant_magnetic_field<>;
-    using stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
+    using b_field_t = constant_magnetic_field<>;
+    using stepper_t = rk_stepper<b_field_t, free_track_parameters,
+                                 unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
+    // Propagator
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     2. * unit_constants::T};
-    mag_field_t b_field(B);
-
-    // Propagator
+    b_field_t b_field(B);
     propagator_t prop(stepper_t{b_field}, navigator_t{det});
 
-    constexpr std::size_t theta_steps{1};
-    constexpr std::size_t phi_steps{1};
+    constexpr std::size_t theta_steps{10};
+    constexpr std::size_t phi_steps{10};
 
+    // det.volume_by_pos(ori).index();
     const point3 ori{0., 0., 0.};
+    const scalar mom_mag{10. * unit_constants::GeV};
+
+    // Overstepping
+    constexpr scalar overstep_tol{-7. * unit_constants::um};
 
     // Iterate through uniformly distributed momentum directions
-    for (const auto trk : uniform_track_generator<free_track_parameters>(
-             theta_steps, phi_steps, ori)) {
-        detail::helix h(trk, &B);
+    for (auto track : uniform_track_generator<free_track_parameters>(
+             theta_steps, phi_steps, ori, mom_mag)) {
+        // Prepare for overstepping in the presence of b fields
+        track.set_overstep_tolerance(overstep_tol);
+
+        // Get ground truth helix from track
+        detail::helix helix(track, &B);
+
+        // Shoot ray through the detector and record all surfaces it encounters
+        const auto intersection_trace =
+            particle_gun::shoot_particle(det, helix);
+
+        // Now follow that helix with the same track and check, if we find
+        // the same volumes and distances along the way
+        propagator_t::state propagation(track);
+
+        // Retrieve navigation information
+        auto &inspector = propagation._navigation.inspector();
+        auto &obj_tracer = inspector.template get<object_tracer_t>();
+        auto &debug_printer = inspector.template get<print_inspector>();
+
+        ASSERT_TRUE(prop.propagate(propagation)) << debug_printer.to_string();
+
+        std::stringstream debug_stream;
+        for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
+             ++intr_idx) {
+            debug_stream << "-------Intersection trace\n"
+                         << "helix gun: "
+                         << "\tvol id: " << intersection_trace[intr_idx].first
+                         << ", "
+                         << intersection_trace[intr_idx].second.to_string();
+            debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
+        }
+
+        // Compare intersection records
+        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size())
+            << debug_printer.to_string() << debug_stream.str();
+
+        // Check every single recorded intersection
+        for (std::size_t i = 0; i < obj_tracer.object_trace.size(); ++i) {
+            if (obj_tracer[i].index != intersection_trace[i].second.index) {
+                // Intersection record at portal bound might be flipped
+                // (the portals overlap completely)
+                if (obj_tracer[i].index ==
+                        intersection_trace[i + 1].second.index and
+                    obj_tracer[i + 1].index ==
+                        intersection_trace[i].second.index) {
+                    // Have already checked the next record
+                    ++i;
+                    continue;
+                }
+            }
+            EXPECT_EQ(obj_tracer[i].index, intersection_trace[i].second.index);
+        }
     }
 }

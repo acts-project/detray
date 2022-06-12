@@ -202,7 +202,7 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation1, PropagatorWithRkStepper,
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
-INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
+/*INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
                              __plugin::vector3<scalar>{0. * unit_constants::T,
                                                        1. * unit_constants::T,
@@ -224,4 +224,4 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
                                                        1. * unit_constants::T,
                                                        1. * unit_constants::T},
                              -10. * unit_constants::um,
-                             5. * unit_constants::mm)));
+                             5. * unit_constants::mm)));*/
