@@ -17,9 +17,8 @@
 namespace detray {
 
 /** This is an intersector struct for line surface
- * The intersectino point is obtained by calculating a transform3 object of
- * virtual plane Virtual plane has a normal vector same with the direction of
- * the track
+ * The intersectino point is obtained by calculating the point of closest
+ * approach between line and track direction
  */
 struct ray_line_intersector {
 
@@ -69,10 +68,16 @@ struct ray_line_intersector {
 
         using local_frame = typename mask_t::local_type;
 
-        // Get the intersection point from two lines (wire and track direction)
+        // line direction
         const auto _z = getter::vector<3>(trf.matrix(), 0, 2);
+
+        // line center
         const auto _t = trf.translation();
+
+        // track direction
         const auto _d = ray.dir();
+
+        // track position
         const auto _p = ray.pos();
 
         const scalar zd = vector::dot(_z, _d);
@@ -96,9 +101,10 @@ struct ray_line_intersector {
         // n is the corresponding wire position
         const vector3 n = _t + _z * B;
 
+        // Vector of closest approach
         const vector3 u = m - n;
 
-        // distance of the closest approach
+        // Signed distance of the closest approach
         // left: positive
         // right: negative
         int sign = vector::dot(vector::cross(u, _z), _d) > 0 ? 1 : -1;
@@ -107,11 +113,17 @@ struct ray_line_intersector {
         intersection_type is;
         is.path = A;
         is.p3 = m;
+
+        // local line intersection is defined with signed distance of closest
+        // approach and its longitudinal position along the line direction
         is.p2 = {L, B};
 
+        // Circular scope
         if (mask_t::square_scope == false) {
             is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
-        } else if (mask_t::square_scope == true) {
+        }
+        // Square scope where we need to create mask object with a new scope
+        else if (mask_t::square_scope == true) {
 
             constexpr __plugin::polar2<scalar> local_converter{};
             const scalar phi = local_converter(trf, is.p3)[1];

@@ -17,8 +17,7 @@
 
 namespace detray {
 
-/** This is a simple mask for a line which is defined with a line length and its
- * radial scope
+/** This is a simple mask for a line defined with a line length and its scope
  *
  **/
 template <typename intersector_t = ray_line_intersector,
@@ -48,8 +47,8 @@ class line final
 
     /** Construction from boundary values
      *
-     * @param half_length is the half length of line
      * @param scope is the radial scope length of line detector
+     * @param half_length is the half length of line
      */
     DETRAY_HOST_DEVICE
     line(scalar scope, scalar half_length, links_type links)
@@ -70,7 +69,8 @@ class line final
      *
      * @tparam inside_local_t is the local type for inside checking
      *
-     * @param p the point to be checked
+     * @param p the point to be checked. p[0] is a signed distance of closest
+     *approach and p[1] is the longitudinal position from line center
      * @param t is the tolerance in r
      *
      * @return an intersection status e_inside / e_outside
