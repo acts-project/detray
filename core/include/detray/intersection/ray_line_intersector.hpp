@@ -27,6 +27,20 @@ struct ray_line_intersector {
     using transform3 = __plugin::transform3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
 
+    template <
+        typename transform_t, typename track_t, typename mask_t,
+        std::enable_if_t<std::is_class_v<typename mask_t::local_type>, bool> =
+            true,
+        std::enable_if_t<not std::is_same_v<track_t, detail::ray>, bool> = true>
+    DETRAY_HOST_DEVICE inline intersection_type intersect(
+        const transform_t &trf, const track_t &track, const mask_t &mask,
+        const typename mask_t::mask_tolerance tolerance =
+            mask_t::within_epsilon) const {
+
+        return intersect(trf, detail::ray(track), mask, tolerance,
+                         track.overstep_tolerance());
+    }
+
     /** Intersection method for line surfaces
      *
      * @tparam track_t The type of the track (which carries the context
@@ -44,11 +58,11 @@ struct ray_line_intersector {
      *
      * @return the intersection with optional parameters
      **/
-    template <typename track_t, typename mask_t,
+    template <typename transform_t, typename mask_t,
               std::enable_if_t<std::is_class_v<typename mask_t::local_type>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline intersection_type intersect(
-        const transform3 &trf, const track_t &track, const mask_t &mask,
+        const transform_t &trf, const detail::ray ray, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
             mask_t::within_epsilon,
         const scalar overstep_tolerance = 0.) const {
@@ -58,8 +72,8 @@ struct ray_line_intersector {
         // Get the intersection point from two lines (wire and track direction)
         const auto _z = getter::vector<3>(trf.matrix(), 0, 2);
         const auto _t = trf.translation();
-        const auto _d = track.dir();
-        const auto _p = track.pos();
+        const auto _d = ray.dir();
+        const auto _p = ray.pos();
 
         const scalar zd = vector::dot(_z, _d);
         // Case for wire is parallel to track
@@ -94,7 +108,23 @@ struct ray_line_intersector {
         is.path = A;
         is.p3 = m;
         is.p2 = {L, B};
-        is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
+        if (mask_t::square_scope == false) {
+            is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
+        } else {
+
+            constexpr __plugin::polar2<scalar> local_converter{};
+            const scalar phi = local_converter(trf, is.p3)[0];
+            mask_t new_mask(mask);
+
+            if (std::abs(phi) <= M_PI / 4 || std::abs(phi) >= 3 * M_PI / 4) {
+                new_mask[0] = std::abs(mask[0] / std::cos(phi));
+            } else {
+                new_mask[0] = std::abs(mask[0] / std::sin(phi));
+            }
+
+            is.status =
+                new_mask.template is_inside<local_frame>(is.p2, tolerance);
+        }
         is.direction = is.path > overstep_tolerance
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;

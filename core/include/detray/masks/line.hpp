@@ -24,7 +24,8 @@ namespace detray {
 template <typename intersector_t = ray_line_intersector,
           typename local_t = __plugin::cartesian2<detray::scalar>,
           typename links_t = dindex,
-          template <typename, std::size_t> class array_t = darray>
+          template <typename, std::size_t> class array_t = darray,
+          bool kSquareScope = false>
 class line final
     : public mask_base<intersector_t, local_t, links_t, array_t, 2> {
     public:
@@ -36,6 +37,8 @@ class line final
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
+
+    static constexpr bool square_scope = kSquareScope;
 
     static constexpr mask_tolerance within_epsilon = {
         std::numeric_limits<scalar>::epsilon(),
@@ -58,8 +61,8 @@ class line final
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    line<intersector_t, local_type, links_type, array_t> &operator=(
-        const array_t<scalar, 2> &rhs) {
+    line<intersector_t, local_type, links_type, array_t, kSquareScope>
+        &operator=(const array_t<scalar, 2> &rhs) {
         this->_values = rhs;
         return (*this);
     }
