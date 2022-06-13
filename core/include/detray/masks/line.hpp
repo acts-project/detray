@@ -17,6 +17,10 @@
 
 namespace detray {
 
+/** This is a simple mask for a line which is defined with a line length and its
+ * radial scope
+ *
+ **/
 template <typename intersector_t = ray_line_intersector,
           typename local_t = __plugin::cartesian2<detray::scalar>,
           typename links_t = dindex,
@@ -45,7 +49,7 @@ class line final
     /** Construction from boundary values
      *
      * @param half_length is the half length of line
-     * @param scope is the detector scope length of line detector
+     * @param scope is the radial scope length of line detector
      */
     DETRAY_HOST_DEVICE
     line(scalar half_length, scalar scope, links_type links)
