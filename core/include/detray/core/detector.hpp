@@ -26,11 +26,6 @@
 
 namespace detray {
 
-// Algebra, point2 is not strongly typed
-using point3 = __plugin::point3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point2 = __plugin::point2<detray::scalar>;
-
 /** The detector definition.
  *
  * This class is a heavy templated detector definition class, that sets the
@@ -51,6 +46,12 @@ template <typename metadata,
 class detector {
 
     public:
+    using scalar_type = scalar;
+
+    using point3 = __plugin::point3<scalar_type>;
+    using vector3 = __plugin::vector3<scalar_type>;
+    using point2 = __plugin::point2<scalar_type>;
+
     template <typename T>
     using vector_type = vector_t<T>;
 
@@ -59,13 +60,15 @@ class detector {
     /// Forward the alignable container and context
     using transform_container =
         typename metadata::template transform_store<vector_t>;
+    using transform3 = typename transform_container::transform3;
+
     using transform_link = typename transform_container::link_type;
     using context = typename transform_container::context;
 
     /// Forward mask types
     using masks = typename metadata::mask_definitions;
     using mask_container =
-        typename masks::template container_type<tuple_t, vector_t>;
+        typename masks::template mask_store_type<tuple_t, vector_t>;
 
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
@@ -76,7 +79,7 @@ class detector {
         typename metadata::template object_definitions<surface_type>;
     using surface_container = vector_t<surface_type>;
     // Volume type
-    using volume_type = volume<objects, dindex_range, array_t>;
+    using volume_type = volume<objects, scalar_type, dindex_range, array_t>;
 
     /** Temporary container structures that are used to fill the detector.
      * The respective objects are sorted by mask type, so that they can be
@@ -141,7 +144,7 @@ class detector {
      * @return non-const reference of the new volume
      */
     DETRAY_HOST
-    volume_type &new_volume(const array_t<scalar, 6> &bounds,
+    volume_type &new_volume(const array_t<scalar_type, 6> &bounds,
                             dindex surfaces_finder_entry = dindex_invalid) {
         volume_type &cvolume = _volumes.emplace_back(bounds);
         cvolume.set_index(_volumes.size() - 1);
@@ -359,7 +362,7 @@ class detector {
                 _masks.template size<mask_container::to_id(current_type)>();
 
             // Fill the correct mask type
-            _masks.add_masks(object_masks);
+            _masks.add_vector(object_masks);
             _transforms.append(ctx, std::move(std::get<current_type>(trfs)));
 
             // Update the surfaces mask link
@@ -379,7 +382,8 @@ class detector {
 
         // Next mask type
         if constexpr (current_type <
-                      std::tuple_size_v<typename mask_container::mask_tuple> -
+                      std::tuple_size_v<
+                          typename mask_container::container_type> -
                           1) {
             return fill_containers<current_type + 1, surface_container>(
                 ctx, volume, surfaces, msks, trfs);

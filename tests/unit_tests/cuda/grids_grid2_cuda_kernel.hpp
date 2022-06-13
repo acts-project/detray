@@ -82,6 +82,9 @@ void grid_attach_read_test(const_grid2_view<host_grid2_attach> grid_view);
 // fill test function for grid buffer with attach populator
 void grid_attach_fill_test(grid2_view<host_grid2_attach> grid_view);
 
+// assign test function for grid buffer with attach populator
+void grid_attach_assign_test(grid2_view<host_grid2_attach> grid_view);
+
 // read test function for grid array
 template <template <typename, size_t> class array_type>
 void grid_array_test(

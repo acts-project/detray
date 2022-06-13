@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <array>
+#include <climits>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -35,6 +36,27 @@ namespace vtuple = std;
 
 namespace detail {
 
+namespace {
+struct empty_type {};
+
+/// Unroll a parameter pack without using a tuple.
+///
+/// Returns the position of the type counted from the back!
+template <typename query_t, typename first_t = empty_type,
+          typename... remaining_types>
+DETRAY_HOST_DEVICE constexpr std::size_t unroll_values() {
+    if constexpr (not std::is_same_v<first_t, empty_type> and
+                  not std::is_same_v<query_t, first_t>) {
+        return unroll_values<query_t, remaining_types...>();
+    }
+    if constexpr (std::is_same_v<query_t, first_t>) {
+        return sizeof...(remaining_types) + 1;
+    }
+    return std::numeric_limits<std::size_t>::max();
+}
+
+}  // anonymous namespace
+
 /** get function accessor
  *
  *  usage example:
@@ -45,14 +67,54 @@ using thrust::get;
 
 template <std::size_t id, typename mask_store_t,
           std::enable_if_t<std::is_class_v<typename std::remove_reference_t<
-                               mask_store_t>::mask_tuple>,
+                               mask_store_t>::container_type>,
                            bool> = true>
-constexpr auto get(mask_store_t&& mask_store) noexcept
-    -> decltype(get<id>(std::forward<mask_store_t>(mask_store).masks())) {
-    return get<id>(std::forward<mask_store_t>(mask_store).masks());
+DETRAY_HOST_DEVICE constexpr auto get(mask_store_t&& mask_store) noexcept
+    -> decltype(get<id>(std::forward<mask_store_t>(mask_store).get())) {
+    return get<id>(std::forward<mask_store_t>(mask_store).get());
 }
 
-/** tuple size accessor
+/// Retrieve an element from a thrust tuple by value. No perfect forwarding for
+/// composite types like tuple_t<value_types...>
+template <typename query_t, template <typename...> class tuple_t,
+          class... value_types,
+          std::enable_if_t<std::is_same_v<tuple_t<value_types...>,
+                                          thrust::tuple<value_types...>>,
+                           bool> = true>
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    const tuple_t<value_types...>& tuple) noexcept {
+    return thrust::get<sizeof...(value_types) -
+                       unroll_values<query_t, value_types...>()>(
+        std::forward<const tuple_t<value_types...>>(tuple));
+}
+
+/**
+ *  tuple_element accessor
+ *
+ *  usage example:
+ *  detail::tuple_element< int, tuple_t >::type
+ */
+template <int N, class T, typename Enable = void>
+struct tuple_element;
+
+// std::tuple
+template <int N, template <typename...> class tuple_t, class... value_types>
+struct tuple_element<N, tuple_t<value_types...>,
+                     typename std::enable_if_t<
+                         std::is_same_v<tuple_t<value_types...>,
+                                        std::tuple<value_types...>> == true>>
+    : std::tuple_element<N, tuple_t<value_types...>> {};
+
+// thrust::tuple
+template <int N, template <typename...> class tuple_t, class... value_types>
+struct tuple_element<N, tuple_t<value_types...>,
+                     typename std::enable_if_t<
+                         std::is_same_v<tuple_t<value_types...>,
+                                        thrust::tuple<value_types...>> == true>>
+    : thrust::tuple_element<N, tuple_t<value_types...>> {};
+
+/**
+ *  tuple size accessor
  *
  *  usage example:
  *  detail::tuple_size< tuple_t >::value
@@ -76,7 +138,8 @@ struct tuple_size<tuple_t<value_types...>,
                                      thrust::tuple<value_types...>> == true>>
     : thrust::tuple_size<tuple_t<value_types...>> {};
 
-/** make tuple accessor
+/**
+ *  make_tuple accessor
  *  users have to specifiy tuple_t for detail::make_tuple
  *
  *  usage example

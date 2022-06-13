@@ -19,7 +19,8 @@ namespace detray {
  *
  * @tparam array_t the type of the internal array, must have STL semantics
  */
-template <typename object_registry_t, typename range_t = dindex_range,
+template <typename object_registry_t, typename scalar_t = scalar,
+          typename range_t = dindex_range,
           template <typename, std::size_t> class array_t = darray>
 class volume {
 
@@ -29,7 +30,7 @@ class volume {
     // In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
     // used for sfinae
-    using volume_def = volume<object_registry_t, range_t, array_t>;
+    using volume_def = volume<object_registry_t, scalar_t, range_t, array_t>;
 
     enum grid_type : unsigned int {
         e_no_grid = 0,
@@ -43,11 +44,11 @@ class volume {
     /** Contructor with bounds
      * @param bounds of the volume
      */
-    volume(const array_t<scalar, 6> &bounds) : _bounds(bounds) {}
+    volume(const array_t<scalar_t, 6> &bounds) : _bounds(bounds) {}
 
     /** @return the bounds - const access */
     DETRAY_HOST_DEVICE
-    inline const array_t<scalar, 6> &bounds() const { return _bounds; }
+    inline const array_t<scalar_t, 6> &bounds() const { return _bounds; }
 
     /** @return the name (add an offset for the detector name)*/
     DETRAY_HOST_DEVICE
@@ -148,12 +149,12 @@ class volume {
 
     private:
     /** Bounds section, default for r, z, phi */
-    array_t<scalar, 6> _bounds = {0.,
-                                  std::numeric_limits<scalar>::max(),
-                                  -std::numeric_limits<scalar>::max(),
-                                  std::numeric_limits<scalar>::max(),
-                                  -M_PI,
-                                  M_PI};
+    array_t<scalar_t, 6> _bounds = {0.,
+                                    std::numeric_limits<scalar_t>::max(),
+                                    -std::numeric_limits<scalar_t>::max(),
+                                    std::numeric_limits<scalar_t>::max(),
+                                    -M_PI,
+                                    M_PI};
 
     /** Volume index */
     dindex _index = dindex_invalid;

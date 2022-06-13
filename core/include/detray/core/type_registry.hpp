@@ -180,10 +180,10 @@ class mask_registry
     // Cuda cannot handle ID non-types here, so leave it for now
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
-    using container_type =
+    using mask_store_type =
         mask_store<tuple_t, vector_t, ID, registered_types...>;
-    using link_type = typename container_type<>::link_type;
-    using range_type = typename container_type<>::range_type;
+    using link_type = typed_index<ID, dindex>;
+    using range_type = typed_index<ID, dindex_range>;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;

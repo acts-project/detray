@@ -29,7 +29,7 @@ TEST(navigator_cuda, navigator) {
                                                    n_edc_layers);
 
     // Create navigator
-    navigator_host_t n(det);
+    navigator_host_t nav(det);
 
     // Create the vector of initial track parameters
     vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
@@ -37,33 +37,20 @@ TEST(navigator_cuda, navigator) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
+    const scalar mom_mag = 10. * unit_constants::GeV;
 
-    // Loops of theta values ]0,pi[
-    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
-        scalar sin_theta = std::sin(theta);
-        scalar cos_theta = std::cos(theta);
+    // Iterate through uniformly distributed momentum directions
+    for (auto traj : uniform_track_generator<free_track_parameters>(
+             theta_steps, phi_steps, ori, mom_mag)) {
+        traj.set_overstep_tolerance(overstep_tolerance);
 
-        // Loops of phi values [-pi, pi]
-        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-            // The direction
-            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-            scalar sin_phi = std::sin(phi);
-            scalar cos_phi = std::cos(phi);
-            vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
-
-            // intialize a track
-            free_track_parameters ray(ori, 0, dir, -1);
-
-            tracks_host.push_back(ray);
-            tracks_device.push_back(ray);
-        }
+        tracks_host.push_back(traj);
+        tracks_device.push_back(traj);
     }
 
     /**
      * Host Volume Record
      */
-
     vecmem::jagged_vector<dindex> volume_records_host(theta_steps * phi_steps,
                                                       &mng_mr);
     vecmem::jagged_vector<point3> position_records_host(theta_steps * phi_steps,
@@ -72,20 +59,26 @@ TEST(navigator_cuda, navigator) {
     for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
 
         auto& traj = tracks_host[i];
-        navigator_host_t::state state(mng_mr);
         stepper_t stepper;
-        stepper_t::state stepping(traj);
+
+        prop_state<navigator_host_t::state> propagation{
+            stepper_t::state{traj}, navigator_host_t::state{mng_mr}};
+
+        navigator_host_t::state& navigation = propagation._navigation;
+        stepper_t::state& stepping = propagation._stepping;
 
         // Start propagation and record volume IDs
-        bool heartbeat = n.init(state, stepping);
+        bool heartbeat = nav.init(propagation);
         while (heartbeat) {
 
-            heartbeat &= stepper.step(stepping, state);
+            heartbeat &= stepper.step(propagation);
 
-            heartbeat &= n.update(state, stepping);
+            navigation.set_high_trust();
+
+            heartbeat &= nav.update(propagation);
 
             // Record volume
-            volume_records_host[i].push_back(state.volume());
+            volume_records_host[i].push_back(navigation.volume());
             position_records_host[i].push_back(stepping().pos());
         }
     }

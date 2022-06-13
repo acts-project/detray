@@ -22,9 +22,9 @@ namespace vector = algebra::vector;
 namespace matrix = algebra::matrix;
 
 // Define matrix operator
-template <typename T>
-using matrix_operator =
-    matrix::actor<std::size_t, T, matrix::determinant::preset0<std::size_t, T>,
-                  matrix::inverse::preset0<std::size_t, T>>;
+template <typename scalar_t>
+using standard_matrix_operator =
+    matrix::actor<scalar_t, matrix::determinant::preset0<scalar_t>,
+                  matrix::inverse::preset0<scalar_t>>;
 
 }  // namespace detray

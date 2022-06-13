@@ -11,8 +11,14 @@
 
 namespace detray {
 
+namespace {
+
 using transform3 = __plugin::transform3<detray::scalar>;
 using point2 = __plugin::point2<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+
+}  // anonymous namespace
 
 /** Generate phi values
  *
@@ -129,8 +135,8 @@ dvector<point3> vertices(
  */
 template <bool kRadialCheck, typename intersector_t, typename local_t,
           typename links_t>
-dvector<point3> vertices(const cylinder3<kRadialCheck, intersector_t, local_t,
-                                         links_t> & /*annulus_mask*/,
+dvector<point3> vertices(const cylinder3<intersector_t, local_t, links_t,
+                                         kRadialCheck> & /*cylinder_mask*/,
                          unsigned int /*lseg*/) {
 
     return {};
@@ -288,7 +294,7 @@ auto unroll_masks_for_vertices(
     // Last chance - intersect the last index if possible
     return vertices_for_last_mask_group<
         mask_container_t, mask_range_t,
-        std::tuple_size_v<typename mask_container_t::mask_tuple> - 1>(
+        std::tuple_size_v<typename mask_container_t::container_type> - 1>(
         masks, range, mask_id);
 }
 

@@ -14,14 +14,13 @@
 
 namespace detray {
 
-using transform3 = __plugin::transform3<detray::scalar>;
-
 /** A static inplementation of an alignable transform store */
 template <template <typename...> class vector_t = dvector,
           typename context_t = dindex>
 class static_transform_store {
     public:
     using link_type = dindex;
+    using transform3 = __plugin::transform3<detray::scalar>;
     using storage = vector_t<transform3>;
     using context = context_t;
 
@@ -219,7 +218,7 @@ struct static_transform_store_data {
     static_transform_store_data(transform_store_t &store)
         : _data(vecmem::get_data(store.data())) {}
 
-    vecmem::data::vector_view<transform3> _data;
+    vecmem::data::vector_view<typename transform_store_t::transform3> _data;
 };
 
 /** Get transform_store_data

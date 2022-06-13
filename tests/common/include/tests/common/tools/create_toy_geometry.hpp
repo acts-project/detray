@@ -17,6 +17,10 @@ namespace detray {
 
 namespace {
 
+using point3 = __plugin::point3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point2 = __plugin::point2<detray::scalar>;
+
 /** Function that adds a cylinder portal.
  *
  * @tparam cylinder_id default cylinder id
@@ -42,7 +46,7 @@ inline void add_cylinder_surface(const dindex volume_id, context_t &ctx,
                                  const scalar upper_z, const edge_links edge) {
     using surface_t = typename surface_container_t::value_type::value_type;
     using mask_defs = typename surface_t::mask_defs;
-    using mask_link_t = typename mask_container_t::link_type;
+    using mask_link_t = typename surface_t::mask_link;
 
     constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder3;
 
@@ -54,7 +58,7 @@ inline void add_cylinder_surface(const dindex volume_id, context_t &ctx,
 
     // add transform and masks
     transforms[cylinder_id].emplace_back(ctx, tsl);
-    masks.template add_mask<cylinder_id>(r, min_z, max_z, edge);
+    masks.template add_value<cylinder_id>(r, min_z, max_z, edge);
 
     // add surface
     mask_link_t mask_link{cylinder_id, masks.template size<cylinder_id>() - 1};
@@ -89,7 +93,7 @@ inline void add_disc_surface(const dindex volume_id, context_t &ctx,
                              const scalar z, const edge_links edge) {
     using surface_t = typename surface_container_t::value_type::value_type;
     using mask_defs = typename surface_t::mask_defs;
-    using mask_link_t = typename mask_container_t::link_type;
+    using mask_link_t = typename surface_t::mask_link;
 
     constexpr auto disc_id = mask_defs::id::e_portal_ring2;
 
@@ -101,7 +105,7 @@ inline void add_disc_surface(const dindex volume_id, context_t &ctx,
 
     // add transform and mask
     transforms[disc_id].emplace_back(ctx, tsl);
-    masks.template add_mask<disc_id>(min_r, max_r, edge);
+    masks.template add_value<disc_id>(min_r, max_r, edge);
 
     // add surface
     mask_link_t mask_link{disc_id, masks.template size<disc_id>() - 1};
@@ -202,7 +206,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     using surface_t = typename surface_container_t::value_type::value_type;
     using mask_defs = typename surface_t::mask_defs;
     using edge_t = typename surface_t::edge_type;
-    using mask_link_t = typename mask_container_t::link_type;
+    using mask_link_t = typename surface_t::mask_link;
 
     constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
     auto volume_id = vol.index();
@@ -255,8 +259,8 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
         surfaces[rectangle_id].back().set_grid_status(true);
 
         // The rectangle bounds for this module
-        masks.template add_mask<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
-                                              mask_edge);
+        masks.template add_value<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
+                                               mask_edge);
 
         // Build the transform
         // The local phi
@@ -365,7 +369,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     using surface_t = typename surface_container_t::value_type::value_type;
     using mask_defs = typename surface_t::mask_defs;
     using edge_t = typename surface_t::edge_type;
-    using mask_link_t = typename mask_container_t::link_type;
+    using mask_link_t = typename surface_t::mask_link;
 
     constexpr auto trapezoid_id = mask_defs::id::e_trapezoid2;
     auto volume_id = vol.index();
@@ -432,9 +436,9 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             // trapezoid mask
             mask_link_t mask_link{trapezoid_id,
                                   masks.template size<trapezoid_id>()};
-            masks.template add_mask<trapezoid_id>(cfg.m_half_x_min_y[ir],
-                                                  cfg.m_half_x_max_y[ir],
-                                                  cfg.m_half_y[ir], mask_edge);
+            masks.template add_value<trapezoid_id>(cfg.m_half_x_min_y[ir],
+                                                   cfg.m_half_x_max_y[ir],
+                                                   cfg.m_half_y[ir], mask_edge);
 
             // Surfaces with the linking into the local containers
             surfaces[trapezoid_id].emplace_back(

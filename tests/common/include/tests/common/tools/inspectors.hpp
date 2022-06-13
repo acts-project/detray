@@ -7,12 +7,14 @@
 #pragma once
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
 #include "detray/definitions/detail/accessor.hpp"
+#include "detray/propagator/base_actor.hpp"
 
 namespace detray {
 
@@ -146,53 +148,59 @@ struct print_inspector {
 
 namespace propagation {
 
-struct print_inspector {
+struct print_inspector : actor {
 
-    std::stringstream stream{};
+    struct state {
+        std::stringstream stream{};
 
-    template <typename navigator_state_t, typename stepper_state_t>
-    DETRAY_HOST_DEVICE void operator()(const navigator_state_t &navigation,
-                                       const stepper_state_t &stepping) {
+        std::string to_string() const { return stream.str(); }
+    };
 
-        stream << std::left << std::setw(30);
+    template <typename propagation_state_t>
+    DETRAY_HOST_DEVICE void operator()(
+        state &printer, const propagation_state_t &prop_state) const {
+        const auto &navigation = prop_state._navigation;
+        const auto &stepping = prop_state._stepping;
+
+        printer.stream << std::left << std::setw(30);
         switch (navigation.status()) {
             case navigation::status::e_abort:
-                stream << "status: abort";
+                printer.stream << "status: abort";
                 break;
             case navigation::status::e_exit:
-                stream << "status: exit";
+                printer.stream << "status: exit";
                 break;
             case navigation::status::e_unknown:
-                stream << "status: unknowm";
+                printer.stream << "status: unknowm";
                 break;
             case navigation::status::e_towards_object:
-                stream << "status: towards_surface";
+                printer.stream << "status: towards_surface";
                 break;
             case navigation::status::e_on_target:
-                stream << "status: on_surface";
+                printer.stream << "status: on_surface";
                 break;
         };
 
         if (navigation.volume() == dindex_invalid) {
-            stream << "volume: " << std::setw(10) << "invalid";
+            printer.stream << "volume: " << std::setw(10) << "invalid";
         } else {
-            stream << "volume: " << std::setw(10) << navigation.volume();
+            printer.stream << "volume: " << std::setw(10)
+                           << navigation.volume();
         }
 
         if (navigation.current_object() == dindex_invalid) {
-            stream << "surface: " << std::setw(14) << "invalid";
+            printer.stream << "surface: " << std::setw(14) << "invalid";
         } else {
-            stream << "surface: " << std::setw(14)
-                   << navigation.current_object();
+            printer.stream << "surface: " << std::setw(14)
+                           << navigation.current_object();
         }
 
-        stream << "step_size: " << std::setw(10) << stepping._step_size;
+        printer.stream << "step_size: " << std::setw(10) << stepping._step_size;
     }
-
-    std::string to_string() { return stream.str(); }
 };
 
 }  // namespace propagation
 
-namespace stepper {}  // namespace stepper
+namespace step {}  // namespace step
+
 }  // namespace detray

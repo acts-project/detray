@@ -10,6 +10,7 @@
 #include "detray/masks/ring2.hpp"
 
 using namespace detray;
+using point2 = __plugin::point2<scalar>;
 
 // This tests the basic function of a rectangle
 TEST(mask, ring2) {

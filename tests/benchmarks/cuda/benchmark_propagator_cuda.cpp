@@ -12,6 +12,7 @@
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "benchmark_propagator_cuda_kernel.hpp"
+#include "tests/common/tools/track_generators.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
 using namespace detray;
@@ -30,27 +31,12 @@ void fill_tracks(vecmem::vector<free_track_parameters> &tracks,
                  const unsigned int theta_steps, const unsigned int phi_steps) {
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
+    const scalar mom_mag = 10. * unit_constants::GeV;
 
-    // Loops of theta values ]0,pi[
-    for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.001 + itheta * (M_PI - 0.001) / theta_steps;
-        scalar sin_theta = std::sin(theta);
-        scalar cos_theta = std::cos(theta);
-
-        // Loops of phi values [-pi, pi]
-        for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-            // The direction
-            scalar phi = -M_PI + iphi * (2 * M_PI) / phi_steps;
-            scalar sin_phi = std::sin(phi);
-            scalar cos_phi = std::cos(phi);
-            vector3 mom{cos_phi * sin_theta, sin_phi * sin_theta, cos_theta};
-            mom = 10. * mom;
-
-            // intialize a track
-            free_track_parameters traj(ori, 0, mom, -1);
-
-            tracks.push_back(traj);
-        }
+    // Iterate through uniformly distributed momentum directions
+    for (auto traj : uniform_track_generator<free_track_parameters>(
+             theta_steps, phi_steps, ori, mom_mag)) {
+        tracks.push_back(traj);
     }
 }
 
@@ -77,6 +63,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     for (auto _ : state) {
 
+        // TODO: use fixture to build tracks
         state.PauseTiming();
 
         // Get tracks
@@ -87,13 +74,11 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
         for (auto &track : tracks) {
 
-            propagation::void_inspector vi;
-
             // Create the propagator state
             propagator_host_type::state p_state(track);
 
             // Run propagation
-            p.propagate(p_state, vi);
+            p.propagate(p_state);
         }
     }
 }

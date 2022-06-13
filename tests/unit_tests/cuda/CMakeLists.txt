@@ -4,6 +4,9 @@
 #
 # Mozilla Public License Version 2.0
 
+# C++17 support for CUDA requires CMake 3.18.
+cmake_minimum_required( VERSION 3.18 )
+
 # Enable CUDA as a language.
 enable_language( CUDA )
 
@@ -12,6 +15,7 @@ include( detray-compiler-options-cuda )
 
 # "Core" tests.
 detray_add_test( core_cuda
+   "container_cuda.cpp" "container_cuda_kernel.hpp" "container_cuda_kernel.cu"
    "grids_grid2_cuda.cpp" "grids_grid2_cuda_kernel.hpp"
    "grids_grid2_cuda_kernel.cu" "utils_enumerate_cuda.cpp"
    "utils_enumerate_cuda_kernel.hpp" "utils_enumerate_cuda_kernel.cu"
@@ -32,8 +36,6 @@ foreach(algebra ${algebras})
       "transform_store_cuda_kernel.cu"
       "mask_store_cuda.cpp" "mask_store_cuda_kernel.hpp"
       "mask_store_cuda_kernel.cu"
-      "tuple_test_cuda.cpp" "tuple_test_cuda_kernel.hpp"
-      "tuple_test_cuda_kernel.cu"
       "surfaces_finder_cuda.cpp" "surfaces_finder_cuda_kernel.hpp"
       "surfaces_finder_cuda_kernel.cu"
       "detector_cuda.cpp" "detector_cuda_kernel.hpp"

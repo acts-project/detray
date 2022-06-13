@@ -17,8 +17,13 @@
 #include "detray/utils/enumerate.hpp"
 
 namespace detray {
+
+namespace {
+
 using point2 = __plugin::point2<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
+
+}  // namespace
 
 /** Run the bin association of surfaces (via their contour)
  *  - to a given grid.
@@ -91,7 +96,7 @@ static inline void bin_association(const context_t & /*context*/,
                         std::make_integer_sequence<
                             dindex, std::tuple_size_v<
                                         typename detector_t::mask_container::
-                                            mask_tuple>>{});
+                                            container_type>>{});
 
                     // Usually one mask per surface, but design allows - a
                     // single association  is sufficient though
@@ -165,7 +170,7 @@ static inline void bin_association(const context_t & /*context*/,
                         std::make_integer_sequence<
                             dindex, std::tuple_size_v<
                                         typename detector_t::mask_container::
-                                            mask_tuple>>{});
+                                            container_type>>{});
 
                     for (auto &vertices : vertices_per_masks) {
 
