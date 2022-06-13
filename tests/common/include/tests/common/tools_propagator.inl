@@ -104,11 +104,8 @@ class PropagatorWithRkStepper
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // geomery navigation configurations
-    // TODO: uncomment these lines after CI workflow is reduced
-    // constexpr unsigned int theta_steps = 50;
-    // constexpr unsigned int phi_steps = 50;
-    constexpr unsigned int theta_steps = 20;
-    constexpr unsigned int phi_steps = 20;
+    constexpr unsigned int theta_steps = 50;
+    constexpr unsigned int phi_steps = 50;
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
