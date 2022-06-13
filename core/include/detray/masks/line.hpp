@@ -30,18 +30,19 @@ class line final
     public:
     using base_type = mask_base<intersector_t, local_t, links_t, array_t, 2>;
     using base_type::base_type;
-    using mask_tolerance = scalar;
+    using mask_tolerance = array_t<scalar, 2>;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
 
-    static constexpr mask_tolerance within_epsilon =
-        std::numeric_limits<scalar>::epsilon();
+    static constexpr mask_tolerance within_epsilon = {
+        std::numeric_limits<scalar>::epsilon(),
+        std::numeric_limits<scalar>::epsilon()};
 
     /* Default constructor */
-    line() : base_type({std::numeric_limits<scalar>::infinity(), 0}, {}) {}
+    line() : base_type({0, std::numeric_limits<scalar>::infinity()}, {}) {}
 
     /** Construction from boundary values
      *
@@ -49,8 +50,8 @@ class line final
      * @param scope is the radial scope length of line detector
      */
     DETRAY_HOST_DEVICE
-    line(scalar half_length, scalar scope, links_type links)
-        : base_type({half_length, scope}, links) {}
+    line(scalar scope, scalar half_length, links_type links)
+        : base_type({scope, half_length}, links) {}
 
     /** Assignment operator from an array, convenience function
      *
@@ -76,23 +77,11 @@ class line final
     DETRAY_HOST_DEVICE intersection::status is_inside(
         const point2 &p, const mask_tolerance t = within_epsilon) const {
 
-        if constexpr (std::is_same_v<inside_local_t,
-                                     __plugin::cartesian2<detray::scalar>>) {
-            scalar r = getter::perp(p);
-
-            // if the point is whithin the scope, return e_inside
-            return (r <= this->_values[1] + t)
-                       ? intersection::status::e_inside
-                       : intersection::status::e_outside;
-        }
-
-        else if constexpr (std::is_same_v<inside_local_t,
-                                          __plugin::polar2<detray::scalar>>) {
-            // if the point is whithin the scope, return e_inside
-            return (p[0] <= this->_values[1] + t)
-                       ? intersection::status::e_inside
-                       : intersection::status::e_outside;
-        }
+        // if the point is whithin the scope, return e_inside
+        return (std::abs(p[0]) <= this->_values[0] + t[0] &&
+                std::abs(p[1]) <= this->_values[1] + t[1])
+                   ? intersection::status::e_inside
+                   : intersection::status::e_outside;
     }
 };
 

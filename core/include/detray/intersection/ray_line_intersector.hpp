@@ -27,35 +27,6 @@ struct ray_line_intersector {
     using transform3 = __plugin::transform3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
 
-    /** Function to obtain the virtual plane whose normal vector is same with
-     * direction of the track
-     *
-     * @param trf the surface to be intersected
-     * @param track the track information
-     *
-     * @return the transform3 of the virtual plane
-     */
-    template <typename track_t>
-    transform3 line_to_planar_transform3(const transform3 &trf,
-                                         const track_t &track) const {
-
-        // z direction of virtual plane parallel to the track direction
-        const vector3 new_z = track.dir();
-
-        // y direction of virtual plane identical to line direction
-        const vector3 new_y = getter::vector<3>(trf.matrix(), 0, 2);
-
-        // x direction of virtual plane
-        const vector3 new_x = vector::cross(new_y, new_z);
-
-        scalar y_dist =
-            std::abs(vector::dot(trf.translation() - track.pos(), new_y));
-
-        const vector3 new_t = trf.translation() - y_dist * new_y;
-
-        return transform3{new_t, new_x, new_y, new_z};
-    }
-
     /** Intersection method for line surfaces
      *
      * @tparam track_t The type of the track (which carries the context
@@ -79,14 +50,56 @@ struct ray_line_intersector {
     DETRAY_HOST_DEVICE inline intersection_type intersect(
         const transform3 &trf, const track_t &track, const mask_t &mask,
         const typename mask_t::mask_tolerance tolerance =
-            mask_t::within_epsilon) const {
+            mask_t::within_epsilon,
+        const scalar overstep_tolerance = 0.) const {
 
-        // Convert line transform3 to planar transform3
-        const transform3 planar_trf = line_to_planar_transform3(trf, track);
+        using local_frame = typename mask_t::local_type;
 
-        // return planar intersector result
-        return ray_plane_intersector().intersect(planar_trf, track, mask,
-                                                 tolerance);
+        // Get the intersection point from two lines (wire and track direction)
+        const auto _z = getter::vector<3>(trf.matrix(), 0, 2);
+        const auto _t = trf.translation();
+        const auto _d = track.dir();
+        const auto _p = track.pos();
+
+        const scalar zd = vector::dot(_z, _d);
+        // Case for wire is parallel to track
+        if (1 - std::abs(zd) < 1e-5) {
+            return intersection_type{};
+        }
+
+        const scalar td = vector::dot(_t, _d);
+        const scalar tz = vector::dot(_t, _z);
+        const scalar pz = vector::dot(_p, _z);
+        const scalar pd = vector::dot(_p, _d);
+
+        scalar A = td + zd * pz - zd * tz - pd;
+        A *= 1. / 1 - (zd * zd);
+        const scalar B = pz + zd * A - tz;
+
+        // m is the intersection point on track
+        const vector3 m = _p + _d * A;
+
+        // n is the corresponding wire position
+        const vector3 n = _t + _z * B;
+
+        const vector3 u = m - n;
+
+        // distance of the closest approach
+        // left: positive
+        // right: negative
+        int sign = vector::dot(vector::cross(u, _z), _d) > 0 ? 1 : -1;
+        const scalar L = sign * getter::norm(u);
+
+        intersection_type is;
+        is.path = A;
+        is.p3 = m;
+        is.p2 = {L, B};
+        is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
+        is.direction = is.path > overstep_tolerance
+                           ? intersection::direction::e_along
+                           : intersection::direction::e_opposite;
+        is.link = mask.volume_link();
+        return is;
     }
 };
 
