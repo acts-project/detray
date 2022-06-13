@@ -53,7 +53,11 @@ class cylinder3 final
         std::numeric_limits<scalar>::epsilon()};
 
     /* Default constructor */
-    cylinder3() = default;
+    cylinder3()
+        : base_type({std::numeric_limits<scalar>::infinity(),
+                     -std::numeric_limits<scalar>::infinity(),
+                     std::numeric_limits<scalar>::infinity()},
+                    {}) {}
 
     /** Construction from boundary values
      *

@@ -51,7 +51,7 @@ class single3 final
         std::numeric_limits<scalar>::epsilon();
 
     /* Default constructor */
-    single3() = default;
+    single3() : base_type({std::numeric_limits<scalar>::infinity()}, {}) {}
 
     /** Construction from boundary values **/
     DETRAY_HOST_DEVICE

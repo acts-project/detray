@@ -65,7 +65,11 @@ class annulus2 final
         std::numeric_limits<scalar>::epsilon()};
 
     /* Default constructor */
-    annulus2() = default;
+    annulus2()
+        : base_type({0., std::numeric_limits<scalar>::infinity(),
+                     -std::numeric_limits<scalar>::infinity(),
+                     std::numeric_limits<scalar>::infinity(), 0., 0., 0.},
+                    {}) {}
 
     /** Construction from boundary values
      *
@@ -77,9 +81,9 @@ class annulus2 final
      * @param shift_y origin shift loc1
      * @param avg_phi average phi value
      */
-    DETRAY_HOST_DEVICE
-    annulus2(scalar r_low, scalar r_high, scalar phi_low, scalar phi_high,
-             scalar shift_x, scalar shift_y, scalar avg_phi, links_type links)
+    DETRAY_HOST_DEVICE annulus2(scalar r_low, scalar r_high, scalar phi_low,
+                                scalar phi_high, scalar shift_x, scalar shift_y,
+                                scalar avg_phi, links_type links)
         : base_type(
               {r_low, r_high, phi_low, phi_high, shift_x, shift_y, avg_phi},
               links) {}
