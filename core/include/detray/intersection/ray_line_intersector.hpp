@@ -56,7 +56,7 @@ struct ray_line_intersector {
         return transform3{new_t, new_x, new_y, new_z};
     }
 
-    /** Intersection method for planar surfaces
+    /** Intersection method for line surfaces
      *
      * @tparam track_t The type of the track (which carries the context
      *         object)
