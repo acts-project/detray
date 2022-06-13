@@ -9,6 +9,7 @@
 
 #include "detray/masks/annulus2.hpp"
 #include "detray/masks/cylinder3.hpp"
+#include "detray/masks/line.hpp"
 #include "detray/masks/rectangle2.hpp"
 #include "detray/masks/ring2.hpp"
 #include "detray/masks/single3.hpp"
