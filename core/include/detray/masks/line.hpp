@@ -41,10 +41,7 @@ class line final
         std::numeric_limits<scalar>::epsilon();
 
     /* Default constructor */
-    line() {
-        this->_values[0] = std::numeric_limits<scalar>::infinity();
-        this->_values[1] = 0.;
-    }
+    line() : base_type({std::numeric_limits<scalar>::infinity(), 0}, {}) {}
 
     /** Construction from boundary values
      *
