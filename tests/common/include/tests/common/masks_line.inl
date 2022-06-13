@@ -11,10 +11,10 @@
 
 using namespace detray;
 using point2 = __plugin::point2<scalar>;
+using cartesian = __plugin::cartesian2<detray::scalar>;
 
 // This tests the basic function of a line
-TEST(mask, line) {
-    using cartesian = __plugin::cartesian2<detray::scalar>;
+TEST(mask, line_circular_scope) {
 
     point2 ln_in{0.1, 0.5};
     point2 ln_edge{1., 50.};

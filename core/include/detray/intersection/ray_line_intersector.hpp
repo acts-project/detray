@@ -108,12 +108,13 @@ struct ray_line_intersector {
         is.path = A;
         is.p3 = m;
         is.p2 = {L, B};
+
         if (mask_t::square_scope == false) {
             is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
-        } else {
+        } else if (mask_t::square_scope == true) {
 
             constexpr __plugin::polar2<scalar> local_converter{};
-            const scalar phi = local_converter(trf, is.p3)[0];
+            const scalar phi = local_converter(trf, is.p3)[1];
             mask_t new_mask(mask);
 
             if (std::abs(phi) <= M_PI / 4 || std::abs(phi) >= 3 * M_PI / 4) {
@@ -125,6 +126,7 @@ struct ray_line_intersector {
             is.status =
                 new_mask.template is_inside<local_frame>(is.p2, tolerance);
         }
+
         is.direction = is.path > overstep_tolerance
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;

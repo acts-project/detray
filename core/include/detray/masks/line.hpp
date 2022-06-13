@@ -23,9 +23,8 @@ namespace detray {
  **/
 template <typename intersector_t = ray_line_intersector,
           typename local_t = __plugin::cartesian2<detray::scalar>,
-          typename links_t = dindex,
-          template <typename, std::size_t> class array_t = darray,
-          bool kSquareScope = false>
+          typename links_t = dindex, bool kSquareScope = false,
+          template <typename, std::size_t> class array_t = darray>
 class line final
     : public mask_base<intersector_t, local_t, links_t, array_t, 2> {
     public:
@@ -61,7 +60,7 @@ class line final
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    line<intersector_t, local_type, links_type, array_t, kSquareScope>
+    line<intersector_t, local_type, links_type, kSquareScope, array_t>
         &operator=(const array_t<scalar, 2> &rhs) {
         this->_values = rhs;
         return (*this);
