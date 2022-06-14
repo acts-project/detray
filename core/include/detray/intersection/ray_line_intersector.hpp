@@ -126,7 +126,8 @@ struct ray_line_intersector {
             is.status =
                 mask.template is_inside<local_frame>({L, B, 0}, tolerance);
         }
-        // Square scope where we need to create mask object with a new scope
+        // Square scope where we need to calculate the phi value on the
+        // transeverse coordinate
         else if (mask_t::square_scope == true) {
 
             constexpr __plugin::polar2<scalar> local_converter{};
