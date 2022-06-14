@@ -231,11 +231,30 @@ class navigator {
                                : navigation::trust_level::e_fair;
         }
 
+        /// Helper method to check the track has reached a module surface
+        DETRAY_HOST_DEVICE
+        inline auto is_on_module() const -> bool {
+            return _status == navigation::status::e_on_module;
+        }
+
+        /// Helper method to check the track has reached a portal surface
+        DETRAY_HOST_DEVICE
+        inline auto is_on_portal() const -> bool {
+            return _status == navigation::status::e_on_portal;
+        }
+
         /// Helper method to check if a kernel is exhausted - const
         DETRAY_HOST_DEVICE
         inline auto is_exhausted() const -> bool {
             return std::distance(static_cast<const_candidate_itr_t>(_next),
                                  _last) <= 0;
+        }
+
+        /// @returns flag that indicates whether navigation was successful
+        DETRAY_HOST_DEVICE
+        inline auto is_complete() const -> bool {
+            // Normal exit for this navigation?
+            return _status == navigation::status::e_on_target and !_heartbeat;
         }
 
         /// Navigation state that cannot be recovered from. Leave the other
@@ -264,13 +283,6 @@ class navigator {
             run_inspector("Exited: ");
             this->clear();
             return _heartbeat;
-        }
-
-        /// @returns flag that indicates whether navigation was successful
-        DETRAY_HOST_DEVICE
-        inline auto is_complete() const -> bool {
-            // Normal exit for this navigation?
-            return _status == navigation::status::e_on_target and !_heartbeat;
         }
 
         private:
