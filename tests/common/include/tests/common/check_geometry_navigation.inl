@@ -144,14 +144,14 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
     // det.volume_by_pos(ori).index();
     const point3 ori{0., 0., 0.};
-    const scalar mom_mag{10. * unit_constants::GeV};
+    const scalar p_mag{10. * unit_constants::GeV};
 
     // Overstepping
     constexpr scalar overstep_tol{-7. * unit_constants::um};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : uniform_track_generator<free_track_parameters>(
-             theta_steps, phi_steps, ori, mom_mag)) {
+             theta_steps, phi_steps, ori, p_mag)) {
         // Prepare for overstepping in the presence of b fields
         track.set_overstep_tolerance(overstep_tol);
 

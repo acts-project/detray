@@ -39,9 +39,9 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
         create_telescope_detector<unbounded>(host_mr, positions);
 
     // Inspectors are optional, of course
-    using object_tracer =
+    using object_tracer_t =
         object_tracer<dvector, status::e_on_portal, status::e_on_module>;
-    using inspector_t = aggregate_inspector<object_tracer, print_inspector>;
+    using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using b_field_t = constant_magnetic_field<>;
     using runge_kutta_stepper =
         rk_stepper<b_field_t, free_track_parameters, unconstrained_step,
@@ -71,7 +71,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
 
     auto &nav_state = guided_state._navigation;
     auto &debug_printer = nav_state.inspector().template get<print_inspector>();
-    auto &obj_tracer = nav_state.inspector().template get<object_tracer>();
+    auto &obj_tracer = nav_state.inspector().template get<object_tracer_t>();
 
     // Check that navigator exited
     ASSERT_TRUE(nav_state.is_complete()) << debug_printer.to_string();

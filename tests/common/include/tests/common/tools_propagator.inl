@@ -54,6 +54,7 @@ struct helix_inspector : actor {
         const auto pos = stepping().pos();
         const auto true_pos = inspector_state._helix(stepping.path_length());
 
+        // Nothing has happened yet (first call of actor chain)
         if (stepping.path_length() < epsilon) {
             return;
         }
@@ -80,14 +81,14 @@ struct helix_inspector : actor {
 TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
 
     vecmem::host_memory_resource host_mr;
-    auto d = create_toy_geometry(host_mr);
+    const auto d = create_toy_geometry(host_mr);
 
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
     using stepper_t = line_stepper<free_track_parameters>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
-    point3 pos{0., 0., 0.};
-    vector3 mom{1., 1., 0.};
+    const point3 pos{0., 0., 0.};
+    const vector3 mom{1., 1., 0.};
     free_track_parameters track(pos, 0, mom, -1);
 
     propagator_t p(stepper_t{}, navigator_t{d});
@@ -117,10 +118,11 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     constexpr std::size_t n_brl_layers{4};
     constexpr std::size_t n_edc_layers{7};
     vecmem::host_memory_resource host_mr;
-    auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    const auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Create the navigator
-    using navigator_t = navigator<decltype(d), navigation::print_inspector>;
+    // using navigator_t = navigator<decltype(d), navigation::print_inspector>;
+    using navigator_t = navigator<decltype(d)>;
     using b_field_t = constant_magnetic_field<>;
     using track_t = free_track_parameters;
     using constraints_t = constrained_step<>;
@@ -175,19 +177,20 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state))
-            //<< print_insp_state.to_string()
-            << state._navigation.inspector().to_string() << std::endl;
+            << print_insp_state.to_string() << std::endl;
+        //<< state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, epsilon);
         ASSERT_FALSE(p.propagate(lim_state))
-            //<< lim_print_insp_state.to_string()
-            << lim_state._navigation.inspector().to_string() << std::endl;
+            << lim_print_insp_state.to_string() << std::endl;
+        //<< lim_state._navigation.inspector().to_string() << std::endl;
+
         ASSERT_TRUE(lim_state._stepping.path_length() <
                     std::abs(path_limit) + epsilon)
             << "path length: " << lim_state._stepping.path_length()
-            << ", path limit: " << path_limit << std::endl
-            << state._navigation.inspector().to_string();
+            << ", path limit: " << path_limit << std::endl;
+        //<< state._navigation.inspector().to_string() << std::endl;
     }
 }
 
@@ -202,7 +205,7 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation1, PropagatorWithRkStepper,
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
-/*INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
                              __plugin::vector3<scalar>{0. * unit_constants::T,
                                                        1. * unit_constants::T,
@@ -224,4 +227,4 @@ INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
                                                        1. * unit_constants::T,
                                                        1. * unit_constants::T},
                              -10. * unit_constants::um,
-                             5. * unit_constants::mm)));*/
+                             5. * unit_constants::mm)));

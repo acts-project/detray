@@ -26,12 +26,14 @@ constexpr std::size_t root_hash = 3244;
 // This test runs intersection with all portals of the TrackML detector
 TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
 
-    // Build the geometry (modeled as a unified index geometry)
+    // Detector configuration
+    constexpr std::size_t n_brl_layers{4};
+    constexpr std::size_t n_edc_layers{3};
     vecmem::host_memory_resource host_mr;
-    auto toy_det = create_toy_geometry(host_mr, 4, 3);
+    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Build the graph
-    volume_graph graph(toy_det);
+    volume_graph graph(det);
     const auto &adj_mat = graph.adjacency_matrix();
 
     std::cout << graph.to_string() << std::endl;

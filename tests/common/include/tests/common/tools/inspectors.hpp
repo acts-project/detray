@@ -66,7 +66,7 @@ struct object_tracer {
         }
     }
 
-    /// @returns a specific candidate from trace
+    /// @returns a specific candidate from the trace
     auto operator[](std::size_t i) { return object_trace[i]; }
 
     /// Compares a navigation status with the tracers references
@@ -75,14 +75,14 @@ struct object_tracer {
     }
 };
 
-/** A navigation inspector that prints information about the current navigation
- * state. Meant for debugging.
- */
+/// A navigation inspector that prints information about the current navigation
+/// state. Meant for debugging.
 struct print_inspector {
 
-    // Debug output if an error in the trace is discovered
+    /// Gathers navigation information accross navigator update calls
     std::stringstream debug_stream{};
 
+    /// Inspector interface. Gathers detailed information during navigation
     template <typename state_type>
     auto operator()(const state_type &state, const char *message) {
         std::string msg(message);
@@ -153,6 +153,7 @@ struct print_inspector {
         debug_stream << std::endl;
     }
 
+    /// @returns a string representation of the gathered information
     std::string to_string() { return debug_stream.str(); }
 };
 
@@ -160,6 +161,7 @@ struct print_inspector {
 
 namespace propagation {
 
+/// Print inspector that runs as actor in the propagation
 struct print_inspector : actor {
 
     struct state {

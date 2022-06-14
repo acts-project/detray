@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <iostream>
-
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
@@ -148,7 +146,7 @@ class navigator {
 
         /// @returns current/previous object that was reached
         DETRAY_HOST_DEVICE
-        inline auto current() const -> const const_candidate_itr_t {
+        inline auto current() const -> const_candidate_itr_t {
             return _next - 1;
         }
 
@@ -388,9 +386,9 @@ class navigator {
 
     /// Helper method to initialize a volume.
     ///
-    /// Calls the volumes accelerator structure for local navigation, then test
-    /// the surfaces for intersection and sorts the reachable candidates to
-    /// find the clostest one.
+    /// Calls the volumes accelerator structure for local navigation, then tests
+    /// the surfaces for intersection and sorts the reachable candidates to find
+    /// the clostest one (next candidate).
     ///
     /// @tparam propagator_state_t state type of the propagator
     ///
@@ -435,7 +433,7 @@ class navigator {
             navigation.run_inspector("Init complete: ");
         }
 
-        return navigation._heartbeat = true;
+        return navigation._heartbeat;
     }
 
     /// Complete update of the nvaigation flow.
@@ -526,39 +524,34 @@ class navigator {
                                      navigation::trust_level::e_no_trust);
                 return;
             }
+
             // Update navigation flow on the new candidate information
             update_navigation_state(track, propagation);
 
-            // Only run inspection when needed
+            // Run high trust inspection
             if constexpr (not std::is_same_v<inspector_t,
                                              navigation::void_inspector>) {
                 navigation.run_inspector("Update complete: high trust: ");
             }
 
             // The work is done if: the track has not reached a surface yet or
-            // trust is gone (the cache is broken or portal was reached).
+            // trust is gone (portal was reached or the cache is broken).
             if (navigation.status() == navigation::status::e_towards_object or
                 navigation.trust_level() ==
                     navigation::trust_level::e_no_trust) {
                 return;
             }
-            // Track is on module (not portal, because then the trust level
-            // would have been reset in 'update_navigation_state'):
-            // Update next candidate
+
+            // Else: Track is on module.
+            // Ready the next candidate after the current module
             if (update_candidate(*navigation.next(), track)) {
                 return;
             }
 
-            // If next candidate is not reachable, escalate the trust level
-            // This will directly trigger the fair trust case below.
+            // If next candidate is not reachable, don't 'return', but
+            // escalate the trust level.
+            // This will run into the fair trust case below.
             navigation.set_fair_trust();
-
-            // Only run inspection when needed
-            if constexpr (not std::is_same_v<inspector_t,
-                                             navigation::void_inspector>) {
-                navigation.run_inspector("Escalate trust: high trust");
-            }
-            // Don't 'return' in order to catch fair trust case next
         }
 
         // Re-evaluate all currently available candidates
@@ -577,12 +570,12 @@ class navigator {
                                     navigation.candidates().end());
             // Take the nearest candidate first
             navigation.set_next(navigation.candidates().begin());
-            // Ignore unreachable elements
+            // Ignore unreachable elements (needed to determine exhaustion)
             navigation.set_last(find_invalid(navigation.candidates()));
             // Update navigation flow on the new candidate information
             update_navigation_state(track, propagation);
 
-            // Only run inspection when needed
+            // Run fair trust inspection
             if constexpr (not std::is_same_v<inspector_t,
                                              navigation::void_inspector>) {
                 navigation.run_inspector("Update complete: fair trust: ");
@@ -618,7 +611,8 @@ class navigator {
         state &navigation = propagation._navigation;
 
         // Check wether the track reached the current candidate. Might be a
-        // portal, in which case the navigation becomes exhausted
+        // portal, in which case the navigation becomes exhausted (the
+        // exit-portal is the last reachable surface in every volume)
         if (navigation.is_on_object(*navigation.next(), track)) {
             // Set the next object that we want to reach (this function is only
             // called once the cache has been updated to a full trust state).
