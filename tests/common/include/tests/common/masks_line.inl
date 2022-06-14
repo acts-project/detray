@@ -21,6 +21,7 @@ TEST(mask, line_radial_scope) {
     point3 ln_out1{1.2, 0., 0};
     point3 ln_out2{0.1, -51., 0};
 
+    // 50 mm wire with 1 mm radial cell size
     line<> ln{1., 50., 0u};
 
     ASSERT_FLOAT_EQ(ln[0], 1.);
@@ -29,6 +30,29 @@ TEST(mask, line_radial_scope) {
     ASSERT_TRUE(ln.is_inside<cartesian>(ln_in) ==
                 intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside<cartesian>(ln_edge) ==
+                intersection::status::e_inside);
+    ASSERT_TRUE(ln.is_inside<cartesian>(ln_out1) ==
+                intersection::status::e_outside);
+    ASSERT_TRUE(ln.is_inside<cartesian>(ln_out2) ==
+                intersection::status::e_outside);
+}
+
+TEST(mask, line_square_scope) {
+
+    point3 ln_in1{1., 0., 0};
+    point3 ln_in2{sqrt(2) - 1e-5, 0., M_PI / 4};
+    point3 ln_out1{1.1, 0., 0};
+    point3 ln_out2{sqrt(2) + 1e-5, 0., M_PI / 4};
+
+    // 50 mm wire with 1 mm square cell size
+    line<ray_line_intersector, cartesian, dindex, true> ln{1., 50., 0u};
+
+    ASSERT_FLOAT_EQ(ln[0], 1.);
+    ASSERT_FLOAT_EQ(ln[1], 50.);
+
+    ASSERT_TRUE(ln.is_inside<cartesian>(ln_in1) ==
+                intersection::status::e_inside);
+    ASSERT_TRUE(ln.is_inside<cartesian>(ln_in2) ==
                 intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside<cartesian>(ln_out1) ==
                 intersection::status::e_outside);
