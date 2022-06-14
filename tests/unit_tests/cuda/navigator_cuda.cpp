@@ -37,15 +37,15 @@ TEST(navigator_cuda, navigator) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
-    const scalar mom_mag = 10. * unit_constants::GeV;
+    const scalar p_mag{10. * unit_constants::GeV};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto traj : uniform_track_generator<free_track_parameters>(
-             theta_steps, phi_steps, ori, mom_mag)) {
+    for (auto track : uniform_track_generator<free_track_parameters>(
+             theta_steps, phi_steps, ori, p_mag)) {
         traj.set_overstep_tolerance(overstep_tolerance);
 
-        tracks_host.push_back(traj);
-        tracks_device.push_back(traj);
+        tracks_host.push_back(track);
+        tracks_device.push_back(track);
     }
 
     /**
