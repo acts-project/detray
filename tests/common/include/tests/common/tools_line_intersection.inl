@@ -99,7 +99,8 @@ TEST(tools, line_intersector_square_scope) {
     // Test intersect
     std::vector<ray_line_intersector::intersection_type> is;
     for (const auto& trk : trks) {
-        is.push_back(ray_line_intersector().intersect(tf, trk, ln));
+        is.push_back(
+            ray_line_intersector().intersect(tf, trk, ln, {1e-5, 1e-5}));
     }
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
