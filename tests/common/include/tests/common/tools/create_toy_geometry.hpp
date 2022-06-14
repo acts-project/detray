@@ -874,8 +874,8 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         // return the first z position of module
         std::tuple<scalar, scalar, scalar> get_z_axis_info() {
             auto n_z_bins = m_binning.second;
-            scalar z_start{-0.5 * (n_z_bins - 1) *
-                           (2 * m_half_y - m_long_overlap)};
+            scalar z_start{scalar{-0.5} * (n_z_bins - 1) *
+                           (scalar{2} * m_half_y - m_long_overlap)};
             scalar z_end{std::abs(z_start)};
             scalar z_step{(z_end - z_start) / (n_z_bins - 1)};
 
