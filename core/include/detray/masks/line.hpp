@@ -105,6 +105,17 @@ class line final
                    ? intersection::status::e_inside
                    : intersection::status::e_outside;
     }
+
+    /** Transform to a string for output debugging */
+    DETRAY_HOST
+    std::string to_string() const {
+        std::stringstream ss;
+        ss << "line";
+        for (const auto &v : this->_values) {
+            ss << ", " << v;
+        }
+        return ss.str();
+    }
 };
 
 }  // namespace detray
