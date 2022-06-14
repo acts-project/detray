@@ -45,7 +45,7 @@ TEST(tools, line_intersector) {
     trks[0] = free_track_parameters({1, -1, 0}, 0, {0, 1, 0}, -1);
     trks[1] = free_track_parameters({-1, -1, 0}, 0, {0, 1, 0}, -1);
 
-    // Infinite wire with 10 mm radial scope
+    // Infinite wire with 10 mm radial cell size
     line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
@@ -92,7 +92,7 @@ TEST(tools, line_intersector_square_scope) {
     trks.push_back({{0, -1.9, 0}, 0, {1, 1, 0}, -1});
     trks.push_back({{0, -2.1, 0}, 0, {1, 1, 0}, -1});
 
-    // Infinite wire with 1 mm square scope
+    // Infinite wire with 1 mm square cell size
     line<ray_line_intersector, cartesian, dindex, true> ln{
         1., std::numeric_limits<scalar>::infinity(), 0u};
 
@@ -151,7 +151,7 @@ TEST(tools, line_intersector_stereo_wire) {
     vector3 dir{0, 1, 0};
     free_track_parameters trk(pos, 0, dir, -1);
 
-    // Infinite wire with 10 mm radial scope length
+    // Infinite wire with 10 mm radial cell size
     line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect

@@ -120,23 +120,17 @@ struct ray_line_intersector {
 
         // Circular scope
         if (mask_t::square_scope == false) {
-            is.status = mask.template is_inside<local_frame>(is.p2, tolerance);
+            is.status =
+                mask.template is_inside<local_frame>({L, B, 0}, tolerance);
         }
         // Square scope where we need to create mask object with a new scope
         else if (mask_t::square_scope == true) {
 
             constexpr __plugin::polar2<scalar> local_converter{};
             const scalar phi = local_converter(trf, is.p3)[1];
-            mask_t new_mask(mask);
-
-            if (std::abs(phi) <= M_PI / 4 || std::abs(phi) >= 3 * M_PI / 4) {
-                new_mask[0] = std::abs(mask[0] / std::cos(phi));
-            } else {
-                new_mask[0] = std::abs(mask[0] / std::sin(phi));
-            }
 
             is.status =
-                new_mask.template is_inside<local_frame>(is.p2, tolerance);
+                mask.template is_inside<local_frame>({L, B, phi}, tolerance);
         }
 
         is.direction = is.path > overstep_tolerance

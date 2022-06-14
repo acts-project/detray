@@ -10,16 +10,16 @@
 #include "detray/masks/line.hpp"
 
 using namespace detray;
-using point2 = __plugin::point2<scalar>;
+using point3 = __plugin::point3<scalar>;
 using cartesian = __plugin::cartesian2<detray::scalar>;
 
 // This tests the basic function of a line
-TEST(mask, line_circular_scope) {
+TEST(mask, line_radial_scope) {
 
-    point2 ln_in{0.1, 0.5};
-    point2 ln_edge{1., 50.};
-    point2 ln_out1{1.2, 0.};
-    point2 ln_out2{0.1, -51.};
+    point3 ln_in{0.1, 0.5, 0};
+    point3 ln_edge{1., 50., 0};
+    point3 ln_out1{1.2, 0., 0};
+    point3 ln_out2{0.1, -51., 0};
 
     line<> ln{1., 50., 0u};
 
