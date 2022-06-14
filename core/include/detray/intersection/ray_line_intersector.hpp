@@ -104,17 +104,20 @@ struct ray_line_intersector {
         // Vector of closest approach
         const vector3 u = m - n;
 
-        // Signed distance of the closest approach
+        // (Deprecated) Signed distance of the closest approach
         // left: positive
         // right: negative
-        int sign = vector::dot(vector::cross(u, _z), _d) > 0 ? 1 : -1;
-        const scalar L = sign * getter::norm(u);
+        // int sign = vector::dot(vector::cross(u, _z), _d) > 0 ? 1 : -1;
+        // const scalar L = sign * getter::norm(u);
+
+        // Unsigned distance of the closest approach
+        const scalar L = getter::norm(u);
 
         intersection_type is;
         is.path = A;
         is.p3 = m;
 
-        // local line intersection is defined with signed distance of closest
+        // local line intersection is defined with the distance of closest
         // approach and its longitudinal position along the line direction
         is.p2 = {L, B};
 

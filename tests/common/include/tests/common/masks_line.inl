@@ -40,7 +40,7 @@ TEST(mask, line_radial_scope) {
 TEST(mask, line_square_scope) {
 
     point3 ln_in{1., 0., 0};
-    point3 ln_edge{scalar(sqrt(2)), 0., scalar(M_PI / 4)};
+    point3 ln_edge{sqrt(2), 0., scalar(M_PI / 4)};
     point3 ln_out{1.1, 0., 0};
 
     // 50 mm wire with 1 mm square cell size

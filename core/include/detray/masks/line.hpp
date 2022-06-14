@@ -72,7 +72,7 @@ class line final
      *
      * @tparam inside_local_t is the local type for inside checking
      *
-     * @param p the point to be checked. p[0] is a signed distance of closest
+     * @param p the point to be checked. p[0] is a distance of closest
      *approach, p[1] is the longitudinal position from line center, and p[2] is
      *the phi value on the plane transverse to the line
      * @param t is the tolerance in r
