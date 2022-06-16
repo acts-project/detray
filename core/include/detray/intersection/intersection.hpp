@@ -7,6 +7,7 @@
 #pragma once
 
 #include <climits>
+#include <cmath>
 #include <sstream>
 
 #include "detray/definitions/indexing.hpp"
@@ -67,21 +68,22 @@ struct line_plane_intersection {
      **/
     DETRAY_HOST_DEVICE
     bool operator<(const line_plane_intersection &rhs) const {
-        return (path < rhs.path);
+        return (std::abs(path) < std::abs(rhs.path));
     }
 
     /** @param rhs is the left hand side intersection for comparison
      **/
     DETRAY_HOST_DEVICE
     bool operator>(const line_plane_intersection &rhs) const {
-        return (path > rhs.path);
+        return (std::abs(path) > std::abs(rhs.path));
     }
 
     /** @param rhs is the left hand side intersection for comparison
      **/
     DETRAY_HOST_DEVICE
     bool operator==(const line_plane_intersection &rhs) const {
-        return (path == rhs.path);
+        return std::abs(path - rhs.path) <
+               std::numeric_limits<scalar>::epsilon();
     }
 
     /** Transform to a string for output debugging */
@@ -90,7 +92,8 @@ struct line_plane_intersection {
         std::stringstream out_stream;
         scalar r = std::sqrt(p3[0] * p3[0] + p3[1] * p3[1]);
         out_stream << "dist:" << path << " [r:" << r << ", z:" << p3[2]
-                   << "], (index:" << index << ", links to:" << link << ")";
+                   << "], (sf index:" << index << ", links to vol:" << link
+                   << ")";
         switch (status) {
             case intersection::status::e_outside:
                 out_stream << ", status: outside";

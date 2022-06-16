@@ -31,7 +31,9 @@ class ray {
     /// @param track the track state that should be approximated
     template <typename track_t>
     DETRAY_HOST_DEVICE ray(const track_t &track)
-        : _pos(track.pos()), _dir(track.dir()) {}
+        : _pos{track.pos()},
+          _dir{track.dir()},
+          _overstep_tolerance{track.overstep_tolerance()} {}
 
     /// Parametrized constructor that complies with track interface
     ///
@@ -40,7 +42,7 @@ class ray {
     DETRAY_HOST_DEVICE
     ray(const point3 pos, const scalar /*time*/, const vector3 dir,
         const scalar /*q*/)
-        : _pos(pos), _dir(vector::normalize(dir)) {}
+        : _pos{pos}, _dir{vector::normalize(dir)} {}
 
     /// @returns position on the ray (compatible with tracks/intersectors)
     DETRAY_HOST_DEVICE point3 pos() const { return _pos; }
@@ -111,8 +113,8 @@ class helix : public free_track_parameters {
     /// @param vertex the underlying track parametrization
     /// @param mag_fied the magnetic field vector
     DETRAY_HOST_DEVICE
-    helix(const free_track_parameters vertex, vector3 const *const mag_field)
-        : free_track_parameters(vertex), _mag_field(mag_field) {
+    helix(const free_track_parameters track, vector3 const *const mag_field)
+        : free_track_parameters(track), _mag_field(mag_field) {
 
         // Normalized B field
         _h0 = vector::normalize(*_mag_field);
@@ -192,10 +194,6 @@ class helix : public free_track_parameters {
 
         return ret;
     }
-
-    /// @returns the overstep tolerance
-    DETRAY_HOST_DEVICE
-    scalar overstep_tolerance() const { return _overstep_tolerance; }
 
     /// @returns the transport jacobian after propagating the path length of s
     DETRAY_HOST_DEVICE
@@ -288,9 +286,6 @@ class helix : public free_track_parameters {
 
     /// Velocity in new z axis divided by transverse velocity
     scalar _vz_over_vt;
-
-    /// Overstep tolerance on a geomtry surface
-    scalar _overstep_tolerance = -1e-4;
 };
 
 }  // namespace detail

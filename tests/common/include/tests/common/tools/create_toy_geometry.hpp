@@ -849,13 +849,13 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
     using detector_t = detector<detector_registry::toy_detector, array_t,
                                 tuple_t, vector_t, jagged_vector_t>;
 
-    /** Leaving world */
-    const dindex leaving_world = dindex_invalid;
+    /// Leaving world
+    constexpr dindex leaving_world{dindex_invalid};
 
     //
     // barrel
     //
-    const scalar brl_half_z = 500.;
+    constexpr scalar brl_half_z{500.};
     const std::vector<scalar> brl_positions = {19., 32., 72., 116., 172.};
     const std::vector<std::pair<scalar, scalar>> brl_lay_sizes = {
         {0., 27.}, {27., 38.}, {64., 80.}, {108., 124.}, {164., 180.}};
@@ -863,21 +863,21 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         {0., 0.}, {16, 14}, {32, 14}, {52, 14}, {78, 14}};
     // module parameters
     struct brl_m_config {
-        scalar m_half_x = 8.4;
-        scalar m_half_y = 36.;
-        scalar m_tilt_phi = 0.14;  // 0.145;
-        scalar layer_r = 32.;
-        scalar m_radial_stagger = 0.5;  // 2.;
-        scalar m_long_overlap = 2.;     // 5.;
+        scalar m_half_x{8.4};
+        scalar m_half_y{36.};
+        scalar m_tilt_phi{0.14};  // 0.145;
+        scalar layer_r{32.};
+        scalar m_radial_stagger{0.5};  // 2.;
+        scalar m_long_overlap{2.};     // 5.;
         std::pair<int, int> m_binning = {16, 14};
 
         // return the first z position of module
         std::tuple<scalar, scalar, scalar> get_z_axis_info() {
             auto n_z_bins = m_binning.second;
-            scalar z_start =
-                -0.5 * (n_z_bins - 1) * (2 * m_half_y - m_long_overlap);
-            scalar z_end = std::abs(z_start);
-            scalar z_step = (z_end - z_start) / (n_z_bins - 1);
+            scalar z_start{scalar{-0.5} * (n_z_bins - 1) *
+                           (scalar{2} * m_half_y - m_long_overlap)};
+            scalar z_end{std::abs(z_start)};
+            scalar z_step{(z_end - z_start) / (n_z_bins - 1)};
 
             return {z_start, z_end, z_step};
         }
@@ -893,16 +893,18 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         {1095., 1105.}, {1295., 1305.}, {1495., 1505.}};
     // module params
     struct edc_m_config {
-        int side = 1;
-        scalar inner_r = 27.;
-        scalar outer_r = 180.;
-        scalar edc_position = 600.;
-        scalar ring_stagger = 1.0;
+        int side{1};
+        scalar inner_r{27.};
+        scalar outer_r{180.};
+        scalar edc_position{600.};
+        scalar ring_stagger{1.0};
         // Parameters for both rings of modules
         std::vector<scalar> m_phi_stagger = {4.0, 4.0};
-        std::vector<scalar> m_phi_sub_stagger = {0.5, 0.};
-        std::vector<size_t> disc_binning = {40, 68};
+        std::vector<scalar> m_phi_sub_stagger = {0.5, 0.5};
+        std::vector<std::size_t> disc_binning = {40, 68};
         std::vector<scalar> m_half_y = {36., 36.};
+        // std::vector<scalar> m_half_x_min_y = {8.4, 8.4};
+        // std::vector<scalar> m_half_x_max_y = {10.1, 10.1};
         std::vector<scalar> m_half_x_min_y = {8.4, 8.4};
         std::vector<scalar> m_half_x_max_y = {12.4, 12.4};
         std::vector<scalar> m_tilt = {0., 0.};

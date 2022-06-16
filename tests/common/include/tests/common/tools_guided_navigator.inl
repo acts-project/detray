@@ -32,15 +32,16 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     constexpr bool unbounded = true;
 
     // Module positions along z-axis
-    std::vector<scalar> positions = {0.,  10., 20., 30., 40., 50.,
-                                     60., 70,  80,  90., 100.};
+    const std::vector<scalar> positions = {0.,  10., 20., 30., 40., 50.,
+                                           60., 70,  80,  90., 100.};
     // Build telescope detector with unbounded planes
     const auto telescope_det =
         create_telescope_detector<unbounded>(host_mr, positions);
 
     // Inspectors are optional, of course
-    using inspector_t = aggregate_inspector<object_tracer<status::e_on_target>,
-                                            print_inspector>;
+    using object_tracer_t =
+        object_tracer<dvector, status::e_on_portal, status::e_on_module>;
+    using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using b_field_t = constant_magnetic_field<>;
     using runge_kutta_stepper =
         rk_stepper<b_field_t, free_track_parameters, unconstrained_step,
@@ -51,14 +52,14 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
         propagator<runge_kutta_stepper, guided_navigator, actor_chain_t>;
 
     // track must point into the direction of the telescope
-    point3 pos{0., 0., 0.};
-    vector3 mom{0., 0., 1.};
+    const point3 pos{0., 0., 0.};
+    const vector3 mom{0., 0., 1.};
     free_track_parameters track(pos, 0, mom, -1);
-    vector3 B{0, 0, 1 * unit_constants::T};
-    b_field_t b_field(B);
+    const vector3 B{0, 0, 1 * unit_constants::T};
+    const b_field_t b_field(B);
 
     // Actors
-    pathlimit_aborter::state pathlimit{1. * unit_constants::m};
+    pathlimit_aborter::state pathlimit{200. * unit_constants::cm};
 
     // Propagator
     propagator_t p(runge_kutta_stepper{b_field},
@@ -70,18 +71,17 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
 
     auto &nav_state = guided_state._navigation;
     auto &debug_printer = nav_state.inspector().template get<print_inspector>();
-    auto &obj_tracer = nav_state.inspector()
-                           .template get<object_tracer<status::e_on_target>>();
+    auto &obj_tracer = nav_state.inspector().template get<object_tracer_t>();
 
     // Check that navigator exited
     ASSERT_TRUE(nav_state.is_complete()) << debug_printer.to_string();
 
     // sequence of surface ids we expect to see
-    std::vector<dindex> sf_sequence = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    const std::vector<dindex> sf_sequence = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     // Check the surfaces that have been visited by the navigation
     EXPECT_EQ(obj_tracer.object_trace.size(), sf_sequence.size());
     for (size_t i = 0; i < sf_sequence.size(); ++i) {
-        auto &candidate = obj_tracer.object_trace[i];
+        const auto &candidate = obj_tracer.object_trace[i];
         EXPECT_TRUE(candidate.index == sf_sequence[i]);
     }
 }

@@ -51,18 +51,18 @@ using rk_stepper_type =
 using matrix_operator = standard_matrix_operator<scalar>;
 
 // detector configuration
-constexpr std::size_t n_brl_layers = 4;
-constexpr std::size_t n_edc_layers = 3;
+constexpr std::size_t n_brl_layers{4};
+constexpr std::size_t n_edc_layers{3};
 
 // geomery navigation configurations
-constexpr unsigned int theta_steps = 10;
-constexpr unsigned int phi_steps = 10;
+constexpr unsigned int theta_steps{10};
+constexpr unsigned int phi_steps{10};
 
-constexpr scalar rk_tolerance = 1e-4;
-constexpr scalar overstep_tolerance = -1e-4;
-constexpr scalar constrainted_step_size = 1. * unit_constants::mm;
-constexpr scalar is_close = 1e-4;
-constexpr scalar path_limit = 2 * unit_constants::m;
+constexpr scalar rk_tolerance{1e-4};
+constexpr scalar overstep_tolerance{-7 * unit_constants::um};
+constexpr scalar constrainted_step_size{1. * unit_constants::mm};
+constexpr scalar is_close{1e-4};
+constexpr scalar path_limit{2 * unit_constants::m};
 
 namespace detray {
 
@@ -93,6 +93,11 @@ struct track_inspector : actor {
         state &inspector_state, const propagator_state_t &prop_state) const {
 
         const auto &stepping = prop_state._stepping;
+
+        // Nothing happened yet: First call of actor chain
+        if (stepping.path_length() < is_close) {
+            return;
+        }
 
         // Record only on the object
         inspector_state._path_lengths.push_back(stepping.path_length());

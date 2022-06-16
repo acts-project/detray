@@ -7,9 +7,8 @@
 
 #pragma once
 
-#include <climits>
-
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/intersection.hpp"
 #include "detray/propagator/track.hpp"
 
 namespace detray {
@@ -89,8 +88,11 @@ struct propagator {
     template <typename state_t>
     DETRAY_HOST_DEVICE bool propagate(state_t &propagation) {
 
-        // initialize the navigation
+        // Initialize the navigation
         propagation._heartbeat = _navigator.init(propagation);
+
+        // Run all registered actors/aborters after init
+        run_actors(propagation._actor_states, propagation);
 
         // Run while there is a heartbeat
         while (propagation._heartbeat) {
@@ -101,7 +103,7 @@ struct propagator {
             // And check the status
             propagation._heartbeat &= _navigator.update(propagation);
 
-            // Run all registered actors
+            // Run all registered actors/aborters after update
             run_actors(propagation._actor_states, propagation);
         }
 

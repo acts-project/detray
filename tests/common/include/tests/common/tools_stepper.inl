@@ -73,16 +73,16 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
 
     point3 pos{0., 0., 0.};
     vector3 mom{1., 1., 0.};
-    free_track_parameters traj(pos, 0, mom, -1);
-    free_track_parameters c_traj(pos, 0, mom, -1);
+    free_track_parameters track(pos, 0, mom, -1);
+    free_track_parameters c_track(pos, 0, mom, -1);
 
     line_stepper_t l_stepper;
     cline_stepper_t cl_stepper;
 
     prop_state<line_stepper_t::state, nav_state> propagation{
-        line_stepper_t::state{traj}, nav_state{}};
+        line_stepper_t::state{track}, nav_state{}};
     prop_state<cline_stepper_t::state, nav_state> c_propagation{
-        cline_stepper_t::state{c_traj}, nav_state{}};
+        cline_stepper_t::state{c_track}, nav_state{}};
 
     cline_stepper_t::state &cl_state = c_propagation._stepping;
 
@@ -116,22 +116,22 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     ASSERT_TRUE(cl_stepper.step(c_propagation));
     ASSERT_TRUE(cl_stepper.step(c_propagation));
 
-    traj = propagation._stepping();
-    ASSERT_FLOAT_EQ(traj.pos()[0], 1. / std::sqrt(2));
-    ASSERT_FLOAT_EQ(traj.pos()[1], 1. / std::sqrt(2));
-    ASSERT_FLOAT_EQ(traj.pos()[2], 0.);
+    track = propagation._stepping();
+    ASSERT_FLOAT_EQ(track.pos()[0], 1. / std::sqrt(2));
+    ASSERT_FLOAT_EQ(track.pos()[1], 1. / std::sqrt(2));
+    ASSERT_FLOAT_EQ(track.pos()[2], 0.);
 
-    c_traj = c_propagation._stepping();
-    ASSERT_FLOAT_EQ(c_traj.pos()[0], 1. / std::sqrt(2));
-    ASSERT_FLOAT_EQ(c_traj.pos()[1], 1. / std::sqrt(2));
-    ASSERT_FLOAT_EQ(c_traj.pos()[2], 0.);
+    c_track = c_propagation._stepping();
+    ASSERT_FLOAT_EQ(c_track.pos()[0], 1. / std::sqrt(2));
+    ASSERT_FLOAT_EQ(c_track.pos()[1], 1. / std::sqrt(2));
+    ASSERT_FLOAT_EQ(c_track.pos()[2], 0.);
 
     ASSERT_TRUE(l_stepper.step(propagation));
 
-    traj = propagation._stepping();
-    ASSERT_FLOAT_EQ(traj.pos()[0], std::sqrt(2));
-    ASSERT_FLOAT_EQ(traj.pos()[1], std::sqrt(2));
-    ASSERT_FLOAT_EQ(traj.pos()[2], 0.);
+    track = propagation._stepping();
+    ASSERT_FLOAT_EQ(track.pos()[0], std::sqrt(2));
+    ASSERT_FLOAT_EQ(track.pos()[1], std::sqrt(2));
+    ASSERT_FLOAT_EQ(track.pos()[2], 0.);
 }
 
 // This tests the base functionality of the Runge-Kutta stepper
@@ -154,22 +154,22 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
-    scalar p_mag = 10;
+    const scalar p_mag = 10;
 
     // Iterate through uniformly distributed momentum directions
-    for (auto traj : uniform_track_generator<free_track_parameters>(
+    for (auto track : uniform_track_generator<free_track_parameters>(
              theta_steps, phi_steps, ori, p_mag)) {
         // Generate track state used for propagation with constrained step size
-        free_track_parameters c_traj(traj);
+        free_track_parameters c_track(track);
 
         // helix gun
-        detail::helix helix_traj(traj, &B);
+        detail::helix helix(track, &B);
 
         // RK Stepping into forward direction
         prop_state<rk_stepper_t::state, nav_state> propagation{
-            rk_stepper_t::state{traj}, nav_state{}};
+            rk_stepper_t::state{track}, nav_state{}};
         prop_state<crk_stepper_t::state, nav_state> c_propagation{
-            crk_stepper_t::state{c_traj}, nav_state{}};
+            crk_stepper_t::state{c_track}, nav_state{}};
 
         rk_stepper_t::state &rk_state = propagation._stepping;
         crk_stepper_t::state &crk_state = c_propagation._stepping;
@@ -197,7 +197,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
                         rk_state.path_length(),
                     0, epsilon);
 
-        const auto helix_pos = helix_traj(rk_state.path_length());
+        const auto helix_pos = helix(rk_state.path_length());
         const auto forward_pos = rk_state().pos();
         const point3 forward_relative_error{(1. / rk_state.path_length()) *
                                             (forward_pos - helix_pos)};
@@ -290,7 +290,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     ASSERT_NEAR(crk_state().dir()[2], 0, epsilon);
 
     // helix trajectory
-    detail::helix helix_traj(crk_state(), &B);
+    detail::helix helix(crk_state(), &B);
 
     // Path length per turn
     scalar S = 2. * getter::norm(mom) / getter::norm(B) * M_PI;
@@ -318,7 +318,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
      */
 
     auto jac_transport = crk_state._jac_transport;
-    auto true_J = helix_traj.jacobian(crk_state.path_length());
+    auto true_J = helix.jacobian(crk_state.path_length());
 
     for (size_type i = 0; i < e_free_size; i++) {
         for (size_type j = 0; j < e_free_size; j++) {

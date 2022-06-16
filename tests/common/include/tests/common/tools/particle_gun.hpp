@@ -66,7 +66,7 @@ struct particle_gun {
                 if constexpr (std::is_same_v<trajectory_t, detail::helix>) {
                     // Call helix specific version instead of the intersection
                     // kernel
-                    constexpr scalar epsilon{1e-3};
+                    constexpr scalar epsilon{1e-4};
                     sfi = helix::intersect(traj, sf, detector.transform_store(),
                                            detector.mask_store(), epsilon);
                 } else {
@@ -83,8 +83,8 @@ struct particle_gun {
                 // Accept if inside
                 if (sfi.status == intersection::status::e_inside) {
                     // Volume the candidate belongs to
-                    sfi.index = volume.index();
-                    intersection_record.emplace_back(sf_idx, sfi);
+                    sfi.index = sf_idx;
+                    intersection_record.emplace_back(volume.index(), sfi);
                 }
             }
         }

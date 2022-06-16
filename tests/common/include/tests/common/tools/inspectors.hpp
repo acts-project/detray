@@ -18,25 +18,27 @@
 
 namespace detray {
 
-/** An inspector that aggregates a number of different inspectors.*/
+/// An inspector that aggregates a number of different inspectors.
 template <typename... Inspectors>
 struct aggregate_inspector {
 
     using inspector_tuple_t = std::tuple<Inspectors...>;
     inspector_tuple_t _inspectors{};
 
+    /// Inspector interface
     template <unsigned int current_id = 0, typename state_type>
     auto operator()(state_type &state, const char *message) {
         // Call inspector
         std::get<current_id>(_inspectors)(state, message);
 
-        // Next mask type
+        // Next inspector
         if constexpr (current_id <
                       std::tuple_size<inspector_tuple_t>::value - 1) {
             return operator()<current_id + 1>(state, message);
         }
     }
 
+    /// @returns a specific inspector
     template <typename inspector_t>
     decltype(auto) get() {
         return std::get<inspector_t>(_inspectors);
@@ -45,44 +47,51 @@ struct aggregate_inspector {
 
 namespace navigation {
 
-/** A navigation inspector that relays information about the encountered
- *  objects the way we need them to compare with the ray
- */
-template <status navigation_status = status::e_unknown,
-          template <typename...> class vector_t = dvector>
+/// A navigation inspector that relays information about the encountered
+/// objects whenever the navigator reaches one or more status flags
+template <template <typename...> class vector_t = dvector,
+          status... navigation_status>
 struct object_tracer {
 
     // record all object id the navigator encounters
     vector_t<line_plane_intersection> object_trace = {};
 
+    /// Inspector interface
     template <typename state_type>
     auto operator()(state_type &state, const char * /*message*/) {
+
         // Record the candidate of an encountered object
-        if (state.status() == navigation_status) {
+        if ((is_status(state.status(), navigation_status) or ...)) {
             object_trace.push_back(std::move(*(state.current())));
         }
     }
 
+    /// @returns a specific candidate from the trace
     auto operator[](std::size_t i) { return object_trace[i]; }
+
+    /// Compares a navigation status with the tracers references
+    bool is_status(const status &nav_stat, const status &ref_stat) {
+        return (nav_stat == ref_stat);
+    }
 };
 
-/** A navigation inspector that prints information about the current navigation
- * state. Meant for debugging.
- */
+/// A navigation inspector that prints information about the current navigation
+/// state. Meant for debugging.
 struct print_inspector {
 
-    // Debug output if an error in the trace is discovered
+    /// Gathers navigation information accross navigator update calls
     std::stringstream debug_stream{};
 
+    /// Inspector interface. Gathers detailed information during navigation
     template <typename state_type>
     auto operator()(const state_type &state, const char *message) {
         std::string msg(message);
-        std::string tabs = "\t\t\t\t\t";
+        std::string tabs = "\t\t\t\t";
 
         debug_stream << msg << std::endl;
 
         debug_stream << "Volume" << tabs << state.volume() << std::endl;
-        debug_stream << "surface kernel size\t\t" << state.candidates().size()
+        debug_stream << "surface kernel size\t\t" << state.n_candidates()
                      << std::endl;
 
         debug_stream << "Surface candidates: " << std::endl;
@@ -94,7 +103,7 @@ struct print_inspector {
             if (state.is_exhausted()) {
                 debug_stream << "exhausted" << std::endl;
             } else {
-                debug_stream << " -> " << state.next()->index << std::endl;
+                debug_stream << " -> " << state.next_object() << std::endl;
             }
         }
 
@@ -102,8 +111,8 @@ struct print_inspector {
             case status::e_abort:
                 debug_stream << "status" << tabs << "abort" << std::endl;
                 break;
-            case status::e_exit:
-                debug_stream << "status" << tabs << "exit" << std::endl;
+            case status::e_on_target:
+                debug_stream << "status" << tabs << "e_on_target" << std::endl;
                 break;
             case status::e_unknown:
                 debug_stream << "status" << tabs << "unknowm" << std::endl;
@@ -112,13 +121,16 @@ struct print_inspector {
                 debug_stream << "status" << tabs << "towards_surface"
                              << std::endl;
                 break;
-            case status::e_on_target:
-                debug_stream << "status" << tabs << "on_surface" << std::endl;
+            case status::e_on_module:
+                debug_stream << "status" << tabs << "on_module" << std::endl;
+                break;
+            case status::e_on_portal:
+                debug_stream << "status" << tabs << "on_portal" << std::endl;
                 break;
         };
-        debug_stream << "current object\t\t" << state.current_object()
+        debug_stream << "current object\t\t\t" << state.current_object()
                      << std::endl;
-        debug_stream << "distance to next\t";
+        debug_stream << "distance to next\t\t";
         if (std::abs(state()) < state.tolerance()) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {
@@ -141,6 +153,7 @@ struct print_inspector {
         debug_stream << std::endl;
     }
 
+    /// @returns a string representation of the gathered information
     std::string to_string() { return debug_stream.str(); }
 };
 
@@ -148,6 +161,7 @@ struct print_inspector {
 
 namespace propagation {
 
+/// Print inspector that runs as actor in the propagation
 struct print_inspector : actor {
 
     struct state {
@@ -167,8 +181,8 @@ struct print_inspector : actor {
             case navigation::status::e_abort:
                 printer.stream << "status: abort";
                 break;
-            case navigation::status::e_exit:
-                printer.stream << "status: exit";
+            case navigation::status::e_on_target:
+                printer.stream << "status: e_on_target";
                 break;
             case navigation::status::e_unknown:
                 printer.stream << "status: unknowm";
@@ -176,8 +190,11 @@ struct print_inspector : actor {
             case navigation::status::e_towards_object:
                 printer.stream << "status: towards_surface";
                 break;
-            case navigation::status::e_on_target:
-                printer.stream << "status: on_surface";
+            case navigation::status::e_on_module:
+                printer.stream << "status: on_module";
+                break;
+            case navigation::status::e_on_portal:
+                printer.stream << "status: on_portal";
                 break;
         };
 
