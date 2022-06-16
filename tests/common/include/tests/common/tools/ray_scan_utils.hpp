@@ -19,17 +19,16 @@
 
 namespace detray {
 
-/** Check if a set of volume indices from portal intersections from a path
- *  (works even if the pairs are not sorted).
- *
- * @tparam the record entry, which must contain the portal and mother volume
- *         index
- *
- * @param trace the recorded portal crossings between volumes
- * @param start_volume where the ray started
- *
- * @return true if the volumes indices form a connected chain.
- */
+/// Check if a set of volume indices from portal intersections from a path
+/// (works even if the pairs are not sorted).
+///
+/// @tparam the record entry, which must contain the portal and mother volume
+///         index
+///
+/// @param trace the recorded portal crossings between volumes
+/// @param start_volume where the ray started
+///
+/// @return true if the volumes indices form a connected chain.
 template <bool check_sorted_trace = true,
           typename entry_type = std::pair<dindex, dindex>>
 inline bool check_connectivity(
@@ -128,21 +127,20 @@ inline bool check_connectivity(
     return true;
 }
 
-/** Check if a recording of portal/surface intersections are form a coherent
- *  trace through a geometry. The linking information the intersection holds
- *  is only used to sort surfaces from portals.
- *
- * @tparam record_container contains object indices and intersections
- *
- * @param volume_record the recorded portal crossings between volumes
- * @param start_volume where the ray started
- *
- * @note the input record needs to be sorted according to the distance from the
- *       ray origin
- *
- * @return a set of volume connections that were found by portal intersection
- *         of a ray.
- */
+/// Check if a recording of portal/module intersections form a coherent
+/// trace through a geometry. The linking information the intersection holds
+/// is only used to sort modules from portals.
+///
+/// @tparam record_container contains volume indices and intersections
+///
+/// @param volume_record the recorded portal crossings between volumes
+/// @param start_volume where the ray started
+///
+/// @note the input record needs to be sorted according to the distance from the
+///       ray origin
+///
+/// @return a set of volume connections that were found by portal intersection
+///         of a ray.
 template <typename record_container =
               dvector<std::pair<dindex, line_plane_intersection>>>
 inline auto trace_intersections(const record_container &intersection_records,
@@ -152,7 +150,7 @@ inline auto trace_intersections(const record_container &intersection_records,
     // Indices of volumes that are linked by portals
     std::vector<std::pair<trace_entry, trace_entry>> portal_trace = {};
     // Indices of volumes per module surface
-    std::vector<trace_entry> surface_trace = {};
+    std::vector<trace_entry> module_trace = {};
     // Debug output if an error in the trace is discovered
     std::stringstream record_stream;
 
@@ -161,9 +159,9 @@ inline auto trace_intersections(const record_container &intersection_records,
         const typename record_container::value_type &entry;
 
         // getter
-        inline auto &object_id() const { return entry.first; }
+        inline auto &object_id() const { return entry.second.index; }
         inline auto &inters() const { return entry.second; }
-        inline auto &volume_id() const { return entry.second.index; }
+        inline auto &volume_id() const { return entry.first; }
         inline auto &volume_link() const { return entry.second.link; }
         inline auto &dist() const { return entry.second.path; }
         inline auto r() const {
@@ -174,7 +172,7 @@ inline auto trace_intersections(const record_container &intersection_records,
 
         // A portal links to another volume than it belongs to
         inline bool is_portal() const {
-            return entry.second.index != entry.second.link;
+            return entry.first != entry.second.link;
         }
 
         inline bool is_portal(const std::pair<dindex, line_plane_intersection>
@@ -190,11 +188,11 @@ inline auto trace_intersections(const record_container &intersection_records,
         const record current_rec = record{intersection_records.at(rec)};
         const record next_rec = record{intersection_records.at(rec + 1)};
 
-        // Add an entry to the surface trace and continue in more fine-grained
+        // Add an entry to the module trace and continue in more fine-grained
         // steps
         if (not current_rec.is_portal()) {
-            surface_trace.emplace_back(current_rec.object_id(),
-                                       current_rec.volume_id());
+            module_trace.emplace_back(current_rec.object_id(),
+                                      current_rec.volume_id());
             rec++;
             continue;
         }
@@ -212,7 +210,7 @@ inline auto trace_intersections(const record_container &intersection_records,
         // Is this indeed a portal crossing, i.e. changing volumes)
         const bool is_self_link =
             current_rec.volume_id() == next_rec.volume_id();
-        // Is the record doublet we picked made up of a portal and a surface?
+        // Is the record doublet we picked made up of a portal and a module?
         const bool is_mixed =
             (current_rec.is_portal() and not next_rec.is_portal()) or
             (next_rec.is_portal() and not current_rec.is_portal());
@@ -267,7 +265,7 @@ inline auto trace_intersections(const record_container &intersection_records,
                       << ")," << std::endl;
             std::cerr << ">>>>>>>>>>>>>>>\n" << std::endl;
 
-            return std::make_pair(portal_trace, surface_trace);
+            return std::make_pair(portal_trace, module_trace);
         }
 
         // Advance to inspect next pair
@@ -284,41 +282,40 @@ inline auto trace_intersections(const record_container &intersection_records,
         portal_trace.emplace_back(lower, upper);
     }
 
-    return std::make_pair(portal_trace, surface_trace);
+    return std::make_pair(portal_trace, module_trace);
 }
 
-/** Build an adjacency list from intersection traces.
- *
- * @tparam portal_trace_type container of portal link pairs
- * @tparam surface_trace_type container of surface links
- *
- * @param portal_trace the portal indices and their volume links (in adjacent
- *                     portal pairs)
- * @param surface_trace the surface indices and their volume links
- * @param obj_hashes record which surfaces/portals were already added
- *
- * @return an adjacency list from the traced ray scan of a given geometry.
- */
+/// Build an adjacency list from intersection traces.
+///
+/// @tparam portal_trace_type container of portal link pairs
+/// @tparam module_trace_type container of module surface links
+///
+/// @param portal_trace the portal indices and their volume links (in adjacent
+///                     portal pairs)
+/// @param module_trace the module indices and their volume links
+/// @param obj_hashes record which modules/portals were already added
+///
+/// @return an adjacency list from the traced ray scan of a given geometry.
 template <
-    typename portal_trace_type, typename surface_trace_type,
+    typename portal_trace_type, typename module_trace_type,
     typename entry_type = std::pair<dindex, dindex>,
     std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
                                     std::pair<entry_type, entry_type>>,
                      bool> = true,
     std::enable_if_t<
-        std::is_same_v<typename surface_trace_type::value_type, entry_type>,
+        std::is_same_v<typename module_trace_type::value_type, entry_type>,
         bool> = true>
 inline auto build_adjacency(
     const portal_trace_type &portal_trace,
-    const surface_trace_type &surface_trace,
+    const module_trace_type &module_trace,
     std::map<dindex, std::map<dindex, dindex>> &adj_list,
     std::unordered_set<dindex> &obj_hashes) {
 
-    // Every surface that was recorded adds a link to the mother volume
-    for (const auto &record : surface_trace) {
+    // Every module that was recorded adds a link to the mother volume
+    for (const auto &record : module_trace) {
         const auto sf_index = std::get<0>(record);
         const auto vol_index = std::get<1>(record);
-        // Check whether we have seen this surface in this volume before
+        // Check whether we have seen this module in this volume before
         if (obj_hashes.find(sf_index) == obj_hashes.end()) {
             adj_list[vol_index][vol_index]++;
             obj_hashes.insert(sf_index);
@@ -348,39 +345,38 @@ inline auto build_adjacency(
     return adj_list;
 }
 
-/** Build an adjacency list from intersection traces.
- *
- * @tparam portal_trace_type container of portal link pairs
- * @tparam surface_trace_type container of surface links
- *
- * @param portal_trace the portal indices and their volume links (in adjacent
- *                     portal pairs)
- * @param surface_trace the surface indices and their volume links
- * @param obj_hashes record which surfaces/portals were already added
- *
- * @return an adjacency list from the traced ray scan of a given geometry.
- */
+/// Build an adjacency list from intersection traces.
+///
+/// @tparam portal_trace_type container of portal link pairs
+/// @tparam module_trace_type container of module links
+///
+/// @param portal_trace the portal indices and their volume links (in adjacent
+///                     portal pairs)
+/// @param module_trace the module indices and their volume links
+/// @param obj_hashes record which modules/portals were already added
+///
+/// @return an adjacency list from the traced ray scan of a given geometry.
 template <
-    typename portal_trace_type, typename surface_trace_type,
+    typename portal_trace_type, typename module_trace_type,
     typename entry_type = std::pair<dindex, dindex>,
     std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
                                     std::pair<entry_type, entry_type>>,
                      bool> = true,
     std::enable_if_t<
-        std::is_same_v<typename surface_trace_type::value_type, entry_type>,
+        std::is_same_v<typename module_trace_type::value_type, entry_type>,
         bool> = true>
 inline auto build_adjacency(const portal_trace_type &portal_trace,
-                            const surface_trace_type &surface_trace,
+                            const module_trace_type &module_trace,
                             dvector<dindex> &adj_matrix,
                             std::unordered_set<dindex> &obj_hashes) {
 
     const dindex dim = static_cast<dindex>(std::sqrt(adj_matrix.size()));
 
-    // Every surface that was recorded adds a link to the mother volume
-    for (const auto &record : surface_trace) {
+    // Every module that was recorded adds a link to the mother volume
+    for (const auto &record : module_trace) {
         const auto sf_index = std::get<0>(record);
         const auto vol_index = std::get<1>(record);
-        // Check whether we have seen this surface in this volume before
+        // Check whether we have seen this module in this volume before
         if (obj_hashes.find(sf_index) == obj_hashes.end()) {
             adj_matrix[dim * vol_index + vol_index]++;
             obj_hashes.insert(sf_index);

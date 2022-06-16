@@ -52,7 +52,7 @@ struct pathlimit_aborter : actor {
         abrt_state._path_limit -= std::abs(prop_state._stepping.step_size());
         if (abrt_state.path_limit() <= 0) {
             // printf("Abort: Stepper above maximal path length!\n");
-            //  Stop navigation
+            // Stop navigation
             prop_state._heartbeat &= nav_state.abort();
         }
 
