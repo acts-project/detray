@@ -108,11 +108,11 @@ struct ray_line_intersector {
         is.path = A;
         is.p3 = m;
 
-        constexpr __plugin::cartesian2<scalar> local_converter{};
-        is.p2 = local_converter(trf, is.p3);
+        auto loc = trf.point_to_local(is.p3);
+        is.p2[0] = getter::perp(loc);
+        is.p2[1] = B;
 
-        is.status = mask.template is_inside<local_frame>(
-            {is.p2[0], is.p2[1], B}, tolerance);
+        is.status = mask.template is_inside<local_frame>(loc, tolerance);
 
         is.direction = is.path > overstep_tolerance
                            ? intersection::direction::e_along

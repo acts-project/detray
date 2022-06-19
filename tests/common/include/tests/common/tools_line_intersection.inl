@@ -61,7 +61,7 @@ TEST(tools, line_intersector) {
     EXPECT_EQ(is[1].status, intersection::status::e_inside);
     EXPECT_EQ(is[1].path, 1);
     EXPECT_EQ(is[1].p3, point3({-1, 0, 0}));
-    EXPECT_EQ(is[1].p2, point2({-1, 0}));
+    EXPECT_EQ(is[1].p2, point2({1, 0}));
 }
 
 TEST(tools, line_intersector_square_scope) {
@@ -108,8 +108,8 @@ TEST(tools, line_intersector_square_scope) {
     EXPECT_NEAR(is[0].p3[0], 1, tolerance);
     EXPECT_NEAR(is[0].p3[1], 1, tolerance);
     EXPECT_NEAR(is[0].p3[2], 0, tolerance);
-    EXPECT_NEAR(is[0].p2[0], 1, tolerance);
-    EXPECT_NEAR(is[0].p2[1], 1, tolerance);
+    EXPECT_NEAR(is[0].p2[0], sqrt(2), tolerance);
+    EXPECT_NEAR(is[0].p2[1], 0, tolerance);
 
     EXPECT_EQ(is[1].status, intersection::status::e_inside);
     EXPECT_EQ(is[2].status, intersection::status::e_outside);
@@ -153,5 +153,5 @@ TEST(tools, line_intersector_stereo_wire) {
     EXPECT_NEAR(is.p3[1], 1., tolerance);
     EXPECT_NEAR(is.p3[2], 0., tolerance);
     EXPECT_NEAR(is.p2[0], 1. / sqrt(2), tolerance);
-    EXPECT_NEAR(is.p2[1], 0, tolerance);
+    EXPECT_NEAR(is.p2[1], -1. / sqrt(2), tolerance);
 }
