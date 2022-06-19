@@ -99,48 +99,26 @@ struct ray_line_intersector {
         const vector3 m = _p + _d * A;
 
         // n is the corresponding wire position
-        const vector3 n = _t + _z * B;
+        // const vector3 n = _t + _z * B;
 
         // Vector of closest approach
-        const vector3 u = m - n;
-
-        // (Deprecated) Signed distance of the closest approach
-        // left: positive
-        // right: negative
-        // int sign = vector::dot(vector::cross(u, _z), _d) > 0 ? 1 : -1;
-        // const scalar L = sign * getter::norm(u);
-
-        // Unsigned distance of the closest approach
-        const scalar L = getter::norm(u);
+        // const vector3 u = m - n;
 
         intersection_type is;
         is.path = A;
         is.p3 = m;
 
-        // local line intersection is defined with the distance of closest
-        // approach and its longitudinal position along the line direction
-        is.p2 = {L, B};
+        constexpr __plugin::cartesian2<scalar> local_converter{};
+        is.p2 = local_converter(trf, is.p3);
 
-        // Circular scope
-        if (mask_t::square_scope == false) {
-            is.status =
-                mask.template is_inside<local_frame>({L, B, 0}, tolerance);
-        }
-        // Square scope where we need to calculate the phi value on the
-        // transeverse coordinate
-        else if (mask_t::square_scope == true) {
-
-            constexpr __plugin::polar2<scalar> local_converter{};
-            const scalar phi = local_converter(trf, is.p3)[1];
-
-            is.status =
-                mask.template is_inside<local_frame>({L, B, phi}, tolerance);
-        }
+        is.status = mask.template is_inside<local_frame>(
+            {is.p2[0], is.p2[1], B}, tolerance);
 
         is.direction = is.path > overstep_tolerance
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
         is.link = mask.volume_link();
+
         return is;
     }
 };

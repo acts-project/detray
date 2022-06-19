@@ -72,9 +72,7 @@ class line final
      *
      * @tparam inside_local_t is the local type for inside checking
      *
-     * @param p the point to be checked. p[0] is a distance of closest
-     *approach, p[1] is the longitudinal position from line center, and p[2] is
-     *the phi value on the plane transverse to the line
+     * @param p is the intersection point in local cartesian coordinate
      * @param t is the tolerance in r
      *
      * @return an intersection status e_inside / e_outside
@@ -83,27 +81,19 @@ class line final
     DETRAY_HOST_DEVICE intersection::status is_inside(
         const point3 &p, const mask_tolerance t = within_epsilon) const {
 
-        scalar scope;
-
-        // If square scope is used, calculate the scope value based on phi value
         if constexpr (square_scope) {
+            return std::abs(p[0]) <= this->_values[0] + t[0] &&
+                           std::abs(p[1]) <= this->_values[0] + t[0] &&
+                           std::abs(p[2]) <= this->_values[1] + t[1]
+                       ? intersection::status::e_inside
+                       : intersection::status::e_outside;
 
-            if (std::abs(p[2]) <= M_PI / 4 || std::abs(p[2]) >= 3 * M_PI / 4) {
-                scope = std::abs(this->_values[0] / std::cos(p[2]));
-            } else {
-                scope = std::abs(this->_values[0] / std::sin(p[2]));
-            }
+        } else {
+            return (getter::perp(p) <= this->_values[0] + t[0] &&
+                    std::abs(p[2]) <= this->_values[1] + t[1])
+                       ? intersection::status::e_inside
+                       : intersection::status::e_outside;
         }
-        // Otherwise, scope is the same with the cell size
-        else {
-            scope = this->_values[0];
-        }
-
-        // if the point is whithin the scope, return e_inside
-        return (std::abs(p[0]) <= scope + t[0] &&
-                std::abs(p[1]) <= this->_values[1] + t[1])
-                   ? intersection::status::e_inside
-                   : intersection::status::e_outside;
     }
 
     /** Transform to a string for output debugging */

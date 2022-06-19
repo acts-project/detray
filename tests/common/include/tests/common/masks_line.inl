@@ -16,10 +16,10 @@ using cartesian = __plugin::cartesian2<detray::scalar>;
 // This tests the basic function of a line
 TEST(mask, line_radial_scope) {
 
-    point3 ln_in{0.1, 0.5, 0};
-    point3 ln_edge{1., 50., 0};
-    point3 ln_out1{1.2, 0., 0};
-    point3 ln_out2{0.1, -51., 0};
+    point3 ln_in{0.1, 0.2, 0.5};
+    point3 ln_edge{1., 0., 50.};
+    point3 ln_out1{1.2, 0.3, 0};
+    point3 ln_out2{0.1, 0., -51.};
 
     // 50 mm wire with 1 mm radial cell size
     line<> ln{1., 50., 0u};
@@ -40,7 +40,7 @@ TEST(mask, line_radial_scope) {
 TEST(mask, line_square_scope) {
 
     point3 ln_in{1., 0., 0};
-    point3 ln_edge{scalar(sqrt(2)), 0., scalar(M_PI / 4)};
+    point3 ln_edge{1., 1., 0.};
     point3 ln_out{1.1, 0., 0};
 
     // 50 mm wire with 1 mm square cell size
