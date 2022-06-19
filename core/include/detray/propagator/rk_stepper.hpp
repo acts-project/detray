@@ -68,7 +68,7 @@ class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
             array_t<scalar, 4> k_qop;
         } _step_data;
 
-        // Set the local error tolerenace
+        /// Set the local error tolerenace
         DETRAY_HOST_DEVICE
         inline void set_tolerance(scalar tol) { _tolerance = tol; };
 
@@ -80,27 +80,30 @@ class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
         DETRAY_HOST_DEVICE
         inline void advance_track();
 
-        // Update the jacobian transport from free propagation
+        /// Update the jacobian transport from free propagation
         DETRAY_HOST_DEVICE
         inline void advance_jacobian();
 
-        // evaulate k_n for runge kutta stepping
+        /// evaulate k_n for runge kutta stepping
         DETRAY_HOST_DEVICE
         inline vector3 evaluate_k(const vector3& b_field, const int i,
                                   const scalar h, const vector3& k_prev);
     };
 
-    /** Take a step, using an adaptive Runge-Kutta algorithm.
-     *
-     * @return returning the heartbeat, indicating if the stepping is alive
-     */
+    /// Take a step, using an adaptive Runge-Kutta algorithm.
+    ///
+    /// @param propagation contains the states of the rk stepper and navigator
+    ///
+    /// @returns the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation);
 
-    /** Get the bound state at the surface
-     *
-     * @return returning the bound track parameter
-     */
+    /// Get the bound state at the surface
+    ///
+    /// @param propagation contains the states of the rk stepper and navigator
+    /// @param trf placement of the surface
+    ///
+    /// @return returning the bound track parameter
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bound_track_parameters
     bound_state(propagation_state_t& propagation, const transform3& trf);
