@@ -81,6 +81,10 @@ class line final
     DETRAY_HOST_DEVICE intersection::status is_inside(
         const point3 &p, const mask_tolerance t = within_epsilon) const {
 
+        // For square cross section, we check if (1) the x and y of transverse
+        // position is less than the half cell size and (2) the distance to the
+        // point of closest approach on line from the line center is less than
+        // the half line length
         if constexpr (square_scope) {
             return std::abs(p[0]) <= this->_values[0] + t[0] &&
                            std::abs(p[1]) <= this->_values[0] + t[0] &&
@@ -88,7 +92,12 @@ class line final
                        ? intersection::status::e_inside
                        : intersection::status::e_outside;
 
-        } else {
+        }
+        // For circular cross section, we check if (1) the radial distance is
+        // within the scope and (2) the distance to the point of closest
+        // approach on line from the line center is less than the half line
+        // length
+        else {
             return (getter::perp(p) <= this->_values[0] + t[0] &&
                     std::abs(p[2]) <= this->_values[1] + t[1])
                        ? intersection::status::e_inside
