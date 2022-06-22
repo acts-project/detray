@@ -10,8 +10,8 @@
 #include <type_traits>
 
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/intersection/ray_plane_intersector.hpp"
 #include "detray/propagator/track.hpp"
 
 namespace detray {
@@ -91,23 +91,20 @@ struct ray_line_intersector {
         const scalar pz = vector::dot(_p, _z);
         const scalar pd = vector::dot(_p, _d);
 
-        scalar A = td + zd * pz - zd * tz - pd;
-        A *= 1. / 1 - (zd * zd);
+        const scalar denom = 1 - (zd * zd);
+        const scalar A = 1. / denom * (td + zd * pz - zd * tz - pd);
+
+        // Longitudinal position along the wire direction
         const scalar B = pz + zd * A - tz;
 
         // m is the intersection point on track
         const vector3 m = _p + _d * A;
 
-        // n is the corresponding wire position
-        // const vector3 n = _t + _z * B;
-
-        // Vector of closest approach
-        // const vector3 u = m - n;
-
         intersection_type is;
         is.path = A;
         is.p3 = m;
 
+        // global to local transform in cartesian coordinate
         auto loc = trf.point_to_local(is.p3);
         is.p2[0] = getter::perp(loc);
         is.p2[1] = B;

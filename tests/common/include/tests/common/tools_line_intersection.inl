@@ -33,20 +33,20 @@ constexpr scalar tolerance = 1e-5;
 TEST(tools, line_intersector) {
 
     // tf3 with Identity rotation and no translation
-    vector3 x{1, 0, 0};
-    vector3 y{0, 1, 0};
-    vector3 z{0, 0, 1};
-    vector3 t{0, 0, 0};
+    const vector3 x{1, 0, 0};
+    const vector3 y{0, 1, 0};
+    const vector3 z{0, 0, 1};
+    const vector3 t{0, 0, 0};
 
     const transform3 tf{t, x, y, z};
 
-    /// Create a track
+    // Create a track
     std::vector<free_track_parameters> trks(2);
-    trks[0] = free_track_parameters({1, -1, 0}, 0, {0, 1, 0}, -1);
-    trks[1] = free_track_parameters({-1, -1, 0}, 0, {0, 1, 0}, -1);
+    trks.emplace_back(point3{1, -1, 0}, 0, vector3{0, 1, 0}, -1);
+    trks.emplace_back(point3{-1, -1, 0}, 0, vector3{0, 1, 0}, -1);
 
     // Infinite wire with 10 mm radial cell size
-    line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
+    const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
     std::vector<ray_line_intersector::intersection_type> is(2);
@@ -67,33 +67,34 @@ TEST(tools, line_intersector) {
 TEST(tools, line_intersector_square_scope) {
 
     // tf3 with Identity rotation and no translation
-    vector3 x{1, 0, 0};
-    vector3 y{0, 1, 0};
-    vector3 z{0, 0, 1};
-    vector3 t{0, 0, 0};
+    const vector3 x{1, 0, 0};
+    const vector3 y{0, 1, 0};
+    const vector3 z{0, 0, 1};
+    const vector3 t{0, 0, 0};
 
     const transform3 tf{t, x, y, z};
 
     /// Create a track
     std::vector<free_track_parameters> trks;
-    trks.push_back({{2, 0, 0}, 0, {-1, 1, 0}, -1});
-    trks.push_back({{1.9, 0, 0}, 0, {-1, 1, 0}, -1});
-    trks.push_back({{2.1, 0, 0}, 0, {-1, 1, 0}, -1});
+    trks.emplace_back(point3{2, 0, 0}, 0, vector3{-1, 1, 0}, -1);
+    trks.emplace_back(point3{1.9, 0, 0}, 0, vector3{-1, 1, 0}, -1);
+    trks.emplace_back(point3{2.1, 0, 0}, 0, vector3{-1, 1, 0}, -1);
 
-    trks.push_back({{-2, 0, 0}, 0, {1, 1, 0}, -1});
-    trks.push_back({{-1.9, 0, 0}, 0, {1, 1, 0}, -1});
-    trks.push_back({{-2.1, 0, 0}, 0, {1, 1, 0}, -1});
+    trks.emplace_back(point3{-2, 0, 0}, 0, vector3{1, 1, 0}, -1);
+    trks.emplace_back(point3{-1.9, 0, 0}, 0, vector3{1, 1, 0}, -1);
+    trks.emplace_back(point3{-2.1, 0, 0}, 0, vector3{1, 1, 0}, -1);
 
-    trks.push_back({{0, -2, 0}, 0, {-1, 1, 0}, -1});
-    trks.push_back({{0, -1.9, 0}, 0, {-1, 1, 0}, -1});
-    trks.push_back({{0, -2.1, 0}, 0, {-1, 1, 0}, -1});
+    trks.emplace_back(point3{0, -2, 0}, 0, vector3{-1, 1, 0}, -1);
+    trks.emplace_back(point3{0, -1.9, 0}, 0, vector3{-1, 1, 0}, -1);
+    trks.emplace_back(point3{0, -2.1, 0}, 0, vector3{-1, 1, 0}, -1);
 
-    trks.push_back({{0, -2, 0}, 0, {1, 1, 0}, -1});
-    trks.push_back({{0, -1.9, 0}, 0, {1, 1, 0}, -1});
-    trks.push_back({{0, -2.1, 0}, 0, {1, 1, 0}, -1});
+    trks.emplace_back(point3{0, -2, 0}, 0, vector3{1, 1, 0}, -1);
+    trks.emplace_back(point3{0, -1.9, 0}, 0, vector3{1, 1, 0}, -1);
+    trks.emplace_back(point3{0, -2.1, 0}, 0, vector3{1, 1, 0}, -1);
 
-    // Infinite wire with 1 mm square cell size
-    line<ray_line_intersector, cartesian, dindex, true> ln{
+    // Infinite wire with 1 mm
+    // square cell size
+    const line<ray_line_intersector, cartesian, dindex, true> ln{
         1., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
@@ -104,11 +105,11 @@ TEST(tools, line_intersector_square_scope) {
     }
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
-    EXPECT_NEAR(is[0].path, sqrt(2), tolerance);
+    EXPECT_NEAR(is[0].path, std::sqrt(2), tolerance);
     EXPECT_NEAR(is[0].p3[0], 1, tolerance);
     EXPECT_NEAR(is[0].p3[1], 1, tolerance);
     EXPECT_NEAR(is[0].p3[2], 0, tolerance);
-    EXPECT_NEAR(is[0].p2[0], sqrt(2), tolerance);
+    EXPECT_NEAR(is[0].p2[0], std::sqrt(2), tolerance);
     EXPECT_NEAR(is[0].p2[1], 0, tolerance);
 
     EXPECT_EQ(is[1].status, intersection::status::e_inside);
@@ -127,24 +128,24 @@ TEST(tools, line_intersector_square_scope) {
     EXPECT_EQ(is[11].status, intersection::status::e_outside);
 }
 
-TEST(tools, line_intersector_stereo_wire) {
-
+TEST(tools, line_intersector_incliened_wire) {
     // tf3 with skewed axis
-    vector3 x{1, 0, -1};
-    vector3 z{1, 0, 1};
-    vector3 t{1, 1, 1};
+    const vector3 x{1, 0, -1};
+    const vector3 z{1, 0, 1};
+    const vector3 t{1, 1, 1};
     const transform3 tf{t, vector::normalize(z), vector::normalize(x)};
 
     // Create a track
-    point3 pos{1, -1, 0};
-    vector3 dir{0, 1, 0};
-    free_track_parameters trk(pos, 0, dir, -1);
+    const point3 pos{1, -1, 0};
+    const vector3 dir{0, 1, 0};
+    const free_track_parameters trk(pos, 0, dir, -1);
 
-    // Infinite wire with 10 mm radial cell size
-    line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
+    // Infinite wire with 10 mm
+    // radial cell size
+    const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
-    ray_line_intersector::intersection_type is =
+    const ray_line_intersector::intersection_type is =
         ray_line_intersector().intersect(tf, trk, ln);
 
     EXPECT_EQ(is.status, intersection::status::e_inside);
@@ -152,6 +153,6 @@ TEST(tools, line_intersector_stereo_wire) {
     EXPECT_NEAR(is.p3[0], 1., tolerance);
     EXPECT_NEAR(is.p3[1], 1., tolerance);
     EXPECT_NEAR(is.p3[2], 0., tolerance);
-    EXPECT_NEAR(is.p2[0], 1. / sqrt(2), tolerance);
-    EXPECT_NEAR(is.p2[1], -1. / sqrt(2), tolerance);
+    EXPECT_NEAR(is.p2[0], 1. / std::sqrt(2), tolerance);
+    EXPECT_NEAR(is.p2[1], -1. / std::sqrt(2), tolerance);
 }
