@@ -19,22 +19,22 @@ build_cuda:
         -DBUILD_TESTING=ON 
         -DDETRAY_BUILD_TESTING=ON
         -DDETRAY_BUILD_CUDA=ON
-        -DDETRAY_BUILD_VC_PLUGIN=OFF
-        -DDETRAY_BUILD_SMATRIX_PLUGIN=OFF
+        -DDETRAY_VC_PLUGIN=OFF
+        -DDETRAY_SMATRIX_PLUGIN=OFF
         -DDETRAY_BUILD_EIGEN_PLUGIN=OFF
       - cmake --build build
 
 
-# test_cuda:
-  # stage: test
-  # tags: [docker-gpu-nvidia]
-  # image: ghcr.io/acts-project/ubuntu2004_cuda:v13
-  # needs: 
-    # - build_cuda
-  # script:
-    # - cd build
-    # - nvidia-smi
-    # - ctest --output-on-failure -R ".*cuda.*"
+test_cuda:
+  stage: test
+  tags: [docker-gpu-nvidia]
+  image: ghcr.io/acts-project/ubuntu2004_cuda:v13
+  needs: 
+    - build_cuda
+  script:
+    - cd build
+    - nvidia-smi
+    - ctest --output-on-failure -R ".*cuda.*"
 
 
 # build_cuda_sycl:
