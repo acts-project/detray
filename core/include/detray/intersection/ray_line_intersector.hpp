@@ -94,13 +94,14 @@ struct ray_line_intersector {
 
         const scalar denom = 1 - (zd * zd);
 
-        // longitudianl position of intersection along the track direction
+        // path length to the point of closest approach on the track
         const scalar A = 1. / denom * (td + zd * pz - zd * tz - pd);
 
-        // longitudianl position of intersection along the wire direction
+        // distance to the point of closest approarch on the line from line
+        // center
         const scalar B = pz + zd * A - tz;
 
-        // m is the intersection point on track
+        // point of closest approach on the track
         const vector3 m = _p + _d * A;
 
         intersection_type is;
