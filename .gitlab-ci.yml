@@ -35,7 +35,7 @@ test_cuda:
     - cd build
     - nvidia-smi
     - ctest --output-on-failure -R ".*cuda.*"
-    - find bin -type -f -name "*benchmark*cuda*" -exec {}
+    - find bin -type f -name "*benchmark*cuda*" -exec {}
 
 
 # build_cuda_sycl:
