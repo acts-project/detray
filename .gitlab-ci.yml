@@ -21,7 +21,7 @@ build_cuda:
         -DDETRAY_BUILD_CUDA=ON
         -DDETRAY_VC_PLUGIN=OFF
         -DDETRAY_SMATRIX_PLUGIN=OFF
-        -DDETRAY_BUILD_EIGEN_PLUGIN=OFF
+        -DDETRAY_EIGEN_PLUGIN=ON
       - cmake --build build
 
 
@@ -35,6 +35,7 @@ test_cuda:
     - cd build
     - nvidia-smi
     - ctest --output-on-failure -R ".*cuda.*"
+    - find bin -type -f -name "*benchmark*cuda*" -exec {}
 
 
 # build_cuda_sycl:
