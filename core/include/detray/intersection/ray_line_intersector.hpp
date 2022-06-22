@@ -70,16 +70,16 @@ struct ray_line_intersector {
         using local_frame = typename mask_t::local_type;
 
         // line direction
-        const vector3 _z = getter::vector<3>(trf.matrix(), 0, 2);
+        const auto _z = getter::vector<3>(trf.matrix(), 0, 2);
 
         // line center
-        const point3 _t = trf.translation();
+        const auto _t = trf.translation();
 
         // track direction
-        const vector3 _d = ray.dir();
+        const auto _d = ray.dir();
 
         // track position
-        const point3 _p = ray.pos();
+        const auto _p = ray.pos();
 
         const scalar zd = vector::dot(_z, _d);
         // Case for wire is parallel to track

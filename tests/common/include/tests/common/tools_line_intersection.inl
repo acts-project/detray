@@ -29,8 +29,8 @@ using point3 = __plugin::point3<scalar>;
 using point2 = __plugin::point2<scalar>;
 constexpr scalar tolerance = 1e-5;
 
-// This defines the local frame test suite
-TEST(tools, line_intersector) {
+// Test simplest case
+TEST(tools, line_intersector_case1) {
 
     // tf3 with Identity rotation and no translation
     const vector3 x{1, 0, 0};
@@ -41,17 +41,19 @@ TEST(tools, line_intersector) {
     const transform3 tf{t, x, y, z};
 
     // Create a track
-    std::vector<free_track_parameters> trks(2);
+    std::vector<free_track_parameters> trks;
     trks.emplace_back(point3{1, -1, 0}, 0, vector3{0, 1, 0}, -1);
     trks.emplace_back(point3{-1, -1, 0}, 0, vector3{0, 1, 0}, -1);
+    trks.emplace_back(point3{1, 0, 1}, 0, vector3{0, 1, -1}, -1);
 
     // Infinite wire with 10 mm radial cell size
     const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
-    std::vector<ray_line_intersector::intersection_type> is(2);
+    std::vector<ray_line_intersector::intersection_type> is(3);
     is[0] = ray_line_intersector().intersect(tf, trks[0], ln);
     is[1] = ray_line_intersector().intersect(tf, trks[1], ln);
+    is[2] = ray_line_intersector().intersect(tf, trks[2], ln);
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
     EXPECT_EQ(is[0].path, 1);
@@ -62,6 +64,41 @@ TEST(tools, line_intersector) {
     EXPECT_EQ(is[1].path, 1);
     EXPECT_EQ(is[1].p3, point3({-1, 0, 0}));
     EXPECT_EQ(is[1].p2, point2({1, 0}));
+
+    EXPECT_EQ(is[2].status, intersection::status::e_inside);
+    EXPECT_EQ(is[2].path, 0);
+    EXPECT_EQ(is[2].p3, point3({1., 0., 1.}));
+    EXPECT_EQ(is[2].p2, point2({1, 1}));
+}
+
+// Test inclined wire
+TEST(tools, line_intersector_case2) {
+    // tf3 with skewed axis
+    const vector3 x{1, 0, -1};
+    const vector3 z{1, 0, 1};
+    const vector3 t{1, 1, 1};
+    const transform3 tf{t, vector::normalize(z), vector::normalize(x)};
+
+    // Create a track
+    const point3 pos{1, -1, 0};
+    const vector3 dir{0, 1, 0};
+    const free_track_parameters trk(pos, 0, dir, -1);
+
+    // Infinite wire with 10 mm
+    // radial cell size
+    const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
+
+    // Test intersect
+    const ray_line_intersector::intersection_type is =
+        ray_line_intersector().intersect(tf, trk, ln);
+
+    EXPECT_EQ(is.status, intersection::status::e_inside);
+    EXPECT_FLOAT_EQ(is.path, 2.);
+    EXPECT_NEAR(is.p3[0], 1., tolerance);
+    EXPECT_NEAR(is.p3[1], 1., tolerance);
+    EXPECT_NEAR(is.p3[2], 0., tolerance);
+    EXPECT_NEAR(is.p2[0], 1. / std::sqrt(2), tolerance);
+    EXPECT_NEAR(is.p2[1], -1. / std::sqrt(2), tolerance);
 }
 
 TEST(tools, line_intersector_square_scope) {
@@ -126,33 +163,4 @@ TEST(tools, line_intersector_square_scope) {
     EXPECT_EQ(is[9].status, intersection::status::e_inside);
     EXPECT_EQ(is[10].status, intersection::status::e_inside);
     EXPECT_EQ(is[11].status, intersection::status::e_outside);
-}
-
-TEST(tools, line_intersector_incliened_wire) {
-    // tf3 with skewed axis
-    const vector3 x{1, 0, -1};
-    const vector3 z{1, 0, 1};
-    const vector3 t{1, 1, 1};
-    const transform3 tf{t, vector::normalize(z), vector::normalize(x)};
-
-    // Create a track
-    const point3 pos{1, -1, 0};
-    const vector3 dir{0, 1, 0};
-    const free_track_parameters trk(pos, 0, dir, -1);
-
-    // Infinite wire with 10 mm
-    // radial cell size
-    const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
-
-    // Test intersect
-    const ray_line_intersector::intersection_type is =
-        ray_line_intersector().intersect(tf, trk, ln);
-
-    EXPECT_EQ(is.status, intersection::status::e_inside);
-    EXPECT_FLOAT_EQ(is.path, 2.);
-    EXPECT_NEAR(is.p3[0], 1., tolerance);
-    EXPECT_NEAR(is.p3[1], 1., tolerance);
-    EXPECT_NEAR(is.p3[2], 0., tolerance);
-    EXPECT_NEAR(is.p2[0], 1. / std::sqrt(2), tolerance);
-    EXPECT_NEAR(is.p2[1], -1. / std::sqrt(2), tolerance);
 }
