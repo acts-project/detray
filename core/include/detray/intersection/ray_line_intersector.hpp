@@ -81,25 +81,31 @@ struct ray_line_intersector {
         // track position
         const point3 _p = ray.pos();
 
+        // Projection of line to track direction
         const scalar zd = vector::dot(_z, _d);
+
         // Case for wire is parallel to track
         if (1 - std::abs(zd) < 1e-5) {
             return intersection_type{};
         }
 
-        const scalar td = vector::dot(_t, _d);
-        const scalar tz = vector::dot(_t, _z);
-        const scalar pz = vector::dot(_p, _z);
-        const scalar pd = vector::dot(_p, _d);
-
         const scalar denom = 1 - (zd * zd);
 
-        // path length to the point of closest approach on the track
-        const scalar A = 1. / denom * (td + zd * pz - zd * tz - pd);
+        // vector from track position to line center
+        const vector3 t2l = _t - _p;
 
-        // distance to the point of closest approarch on the line from line
-        // center
-        const scalar B = pz + zd * A - tz;
+        // t2l projection on line direction
+        const scalar t2l_on_line = vector::dot(t2l, _z);
+
+        // t2l projection on track direction
+        const scalar t2l_on_track = vector::dot(t2l, _d);
+
+        // path length to the point of closest approach on the track
+        const scalar A = 1. / denom * (t2l_on_track - t2l_on_line * zd);
+
+        // distance to the point of closest approarch on the
+        // line from line center
+        const scalar B = zd * A - t2l_on_line;
 
         // point of closest approach on the track
         const vector3 m = _p + _d * A;
