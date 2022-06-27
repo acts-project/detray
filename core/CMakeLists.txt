@@ -47,10 +47,12 @@ detray_add_library( detray_core core
    "include/detray/intersection/intersection.hpp"
    "include/detray/intersection/ray_concentric_cylinder_intersector.hpp"
    "include/detray/intersection/ray_cylinder_intersector.hpp"
+   "include/detray/intersection/ray_line_intersector.hpp"
    "include/detray/intersection/ray_plane_intersector.hpp"
    # masks include(s)
    "include/detray/masks/annulus2.hpp"
    "include/detray/masks/cylinder3.hpp"
+   "include/detray/masks/line.hpp"
    "include/detray/masks/masks.hpp"
    "include/detray/masks/masks_base.hpp"
    "include/detray/masks/rectangle2.hpp"
