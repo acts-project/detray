@@ -13,7 +13,7 @@ message( STATUS "Fetching covfie as part of the Detray project" )
 
 # Declare where to get covfie from.
 set( DETRAY_COVFIE_SOURCE
-   "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.1.0.tar.gz;URL_MD5;e5eafed7746a86bb353b6c4ee60fa373"
+   "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.2.0.tar.gz;URL_MD5;7cf83f2a4d5dcc3dad8fb952cef36fd4"
    CACHE STRING "Source for covfie, when built as part of this project" )
 mark_as_advanced( DETRAY_COVFIE_SOURCE )
 FetchContent_Declare( covfie ${DETRAY_COVFIE_SOURCE} )
