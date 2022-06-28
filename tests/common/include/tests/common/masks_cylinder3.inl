@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "detray/intersection/ray_cylinder_intersector.hpp"
+#include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/masks/cylinder3.hpp"
 
 using namespace detray;
@@ -28,8 +28,7 @@ TEST(mask, cylinder3) {
     point3 p3_off = {1., 1., -9.};
 
     // Test radius to be on surface, too
-    cylinder3<ray_cylinder_intersector, local_type, dindex, true> c{r, -hz, hz,
-                                                                    0u};
+    cylinder3<cylinder_intersector, local_type, dindex, true> c{r, -hz, hz, 0u};
 
     ASSERT_EQ(c[0], r);
     ASSERT_EQ(c[1], -hz);
@@ -44,6 +43,6 @@ TEST(mask, cylinder3) {
     ASSERT_TRUE(c.is_inside<local_type>(p3_off) ==
                 intersection::status::e_missed);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(c.is_inside<local_type>(p3_out, {0., 0.6}) ==
+    ASSERT_TRUE(c.is_inside<local_type>(p3_out, 0.6) ==
                 intersection::status::e_inside);
 }

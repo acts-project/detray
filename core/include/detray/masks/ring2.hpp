@@ -4,17 +4,20 @@
  *
  * Mozilla Public License Version 2.0
  */
+
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/intersection.hpp"
+#include "detray/intersection/plane_intersector.hpp"
+#include "detray/masks/mask_base.hpp"
+
+// System include(s)
 #include <climits>
 #include <cmath>
 #include <sstream>
 #include <string>
-
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/intersection.hpp"
-#include "detray/intersection/ray_plane_intersector.hpp"
-#include "detray/masks/mask_base.hpp"
 
 namespace detray {
 /** This is a simple 2-dimensional mask for a closed ring
@@ -32,24 +35,20 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <typename intersector_t = ray_plane_intersector,
-          typename local_t = __plugin::cartesian2<detray::scalar>,
+template <typename local_t = __plugin::cartesian2<detray::scalar>,
           typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 class ring2 final
-    : public mask_base<intersector_t, local_t, links_t, array_t, 2> {
+    : public mask_base<plane_intersector, local_t, links_t, array_t, 2> {
     public:
-    using base_type = mask_base<intersector_t, local_t, links_t, array_t, 2>;
+    using base_type =
+        mask_base<plane_intersector, local_t, links_t, array_t, 2>;
     using base_type::base_type;
-    using mask_tolerance = scalar;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
-
-    static constexpr mask_tolerance within_epsilon =
-        std::numeric_limits<scalar>::epsilon();
 
     /* Default constructor */
     ring2() : base_type({0., std::numeric_limits<scalar>::infinity()}, {}) {}
@@ -68,8 +67,7 @@ class ring2 final
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    ring2<intersector_t, local_type, links_type, array_t> &operator=(
-        const mask_values &rhs) {
+    ring2<local_type, links_type, array_t> &operator=(const mask_values &rhs) {
         this->_values = rhs;
         return (*this);
     }
@@ -85,7 +83,8 @@ class ring2 final
      **/
     template <typename inside_local_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point2 &p, const mask_tolerance t = within_epsilon) const {
+        const point2 &p,
+        const scalar t = std::numeric_limits<scalar>::epsilon()) const {
         if constexpr (std::is_same_v<inside_local_t,
                                      __plugin::cartesian2<detray::scalar>>) {
             scalar r = getter::perp(p);

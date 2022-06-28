@@ -5,14 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <benchmark/benchmark.h>
-
-#include <fstream>
-#include <iostream>
-#include <map>
-#include <string>
-#include <vecmem/memory/host_memory_resource.hpp>
-
+// Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/propagator/track.hpp"
@@ -20,6 +13,18 @@
 #include "tests/common/tools/detector_metadata.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/track_generators.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// Google Benchmark include(s)
+#include <benchmark/benchmark.h>
+
+// System include(s)
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <string>
 
 using namespace detray;
 
@@ -70,8 +75,11 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
             for (const auto &v : d.volumes()) {
                 // Loop over all surfaces in volume
                 for (const auto sf : range(data_core.surfaces, v)) {
-                    auto sfi = intersect(track, sf, data_core.transforms,
-                                         data_core.masks);
+
+                    auto sfi =
+                        data_core.masks.template execute<intersection_update>(
+                            sf.mask_type(), detail::ray(track), sf,
+                            data_core.transforms);
 
                     benchmark::DoNotOptimize(hits);
                     benchmark::DoNotOptimize(missed);

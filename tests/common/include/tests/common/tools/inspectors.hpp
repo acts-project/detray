@@ -4,17 +4,21 @@
  *
  * Mozilla Public License Version 2.0
  */
+
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/accessor.hpp"
+#include "detray/propagator/base_actor.hpp"
+
+// System include(s)
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <tuple>
 #include <type_traits>
 #include <utility>
-
-#include "detray/definitions/detail/accessor.hpp"
-#include "detray/propagator/base_actor.hpp"
 
 namespace detray {
 
