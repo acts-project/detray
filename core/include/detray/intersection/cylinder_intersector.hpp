@@ -36,7 +36,7 @@ struct cylinder_intersector {
      * @param ray is the input ray trajectory
      * @param mask is the input mask
      * @param trf is the transform
-     * @param edge_tolerance is the tolerance for mask edges
+     * @param mask_tolerance is the tolerance for mask edges
      * @param overstep_tolerance is the tolerance for track overstepping
      *
      * @return the intersection
@@ -44,7 +44,7 @@ struct cylinder_intersector {
     template <typename mask_t, typename transform_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const detail::ray &ray, const mask_t &mask, const transform_t &trf,
-        const scalar edge_tolerance = 0,
+        const scalar mask_tolerance = 0,
         const scalar overstep_tolerance = 0.) const {
 
         output_type ret;
@@ -80,7 +80,7 @@ struct cylinder_intersector {
                 is.p2 = local_converter(trf, is.p3);
                 const auto local3 = trf.point_to_local(is.p3);
                 is.status = mask.template is_inside<local_frame>(
-                    local3, edge_tolerance);
+                    local3, mask_tolerance);
                 const scalar rdr = getter::perp(local3 + scalar{0.1} * rd);
                 is.direction = rdr > r ? intersection::direction::e_along
                                        : intersection::direction::e_opposite;

@@ -33,7 +33,7 @@ struct intersection_initialize {
      * @param traj is the input trajectory
      * @param surface is the input surface
      * @param contextual_transforms is the input transform container
-     * @param edge_tolerance is the tolerance for mask size
+     * @param mask_tolerance is the tolerance for mask size
      *
      * @return the number of valid intersections
      */
@@ -43,7 +43,7 @@ struct intersection_initialize {
         const mask_group_t &mask_group, is_container_t &is_container,
         const traj_t &traj, const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar edge_tolerance = 0.) const {
+        const scalar mask_tolerance = 0.) const {
 
         int count = 0;
 
@@ -54,7 +54,7 @@ struct intersection_initialize {
         for (const auto &mask : range(mask_group, mask_range)) {
 
             auto sfi = std::move(mask.intersector()(
-                traj, mask, ctf, edge_tolerance, traj.overstep_tolerance()));
+                traj, mask, ctf, mask_tolerance, traj.overstep_tolerance()));
 
             for (auto &is : sfi) {
                 if (is.status == intersection::status::e_inside &&
@@ -93,7 +93,7 @@ struct intersection_update {
      * @param traj is the input trajectory
      * @param surface is the input surface
      * @param contextual_transforms is the input transform container
-     * @param edge_tolerance is the tolerance for mask size
+     * @param mask_tolerance is the tolerance for mask size
      *
      * @return the intersection
      */
@@ -103,7 +103,7 @@ struct intersection_update {
         const mask_group_t &mask_group, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar edge_tolerance = 0.) const {
+        const scalar mask_tolerance = 0.) const {
 
         const auto &mask_range = surface.mask_range();
         const auto &ctf = contextual_transforms[surface.transform()];
@@ -112,7 +112,7 @@ struct intersection_update {
         for (const auto &mask : range(mask_group, mask_range)) {
 
             auto sfi = std::move(mask.intersector()(
-                traj, mask, ctf, edge_tolerance, traj.overstep_tolerance()));
+                traj, mask, ctf, mask_tolerance, traj.overstep_tolerance()));
 
             if (sfi[0].status == intersection::status::e_inside &&
                 sfi[0].path >= traj.overstep_tolerance()) {

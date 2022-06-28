@@ -35,7 +35,7 @@ struct plane_intersector {
      * @param ray is the input ray trajectory
      * @param mask is the input mask
      * @param trf is the transform
-     * @param edge_tolerance is the tolerance for mask edges
+     * @param mask_tolerance is the tolerance for mask edges
      * @param overstep_tolerance is the tolerance for track overstepping
      *
      * @return the intersection
@@ -43,7 +43,7 @@ struct plane_intersector {
     template <typename mask_t, typename transform_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const detail::ray &ray, const mask_t &mask, const transform_t &trf,
-        const scalar edge_tolerance = 0,
+        const scalar mask_tolerance = 0,
         const scalar overstep_tolerance = 0.) const {
 
         output_type ret;
@@ -66,7 +66,7 @@ struct plane_intersector {
             constexpr local_frame local_converter{};
             is.p2 = local_converter(trf, is.p3);
             is.status =
-                mask.template is_inside<local_frame>(is.p2, edge_tolerance);
+                mask.template is_inside<local_frame>(is.p2, mask_tolerance);
             is.direction = is.path > overstep_tolerance
                                ? intersection::direction::e_along
                                : intersection::direction::e_opposite;

@@ -40,14 +40,14 @@ struct helix_cylinder_intersector {
     /// @param h is the input helix trajectory
     /// @param mask is the input mask
     /// @param trf is the transform
-    /// @param edge_tolerance is the tolerance for mask edges
+    /// @param mask_tolerance is the tolerance for mask edges
     /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersection
     template <typename mask_t, typename transform_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const detail::helix &h, const mask_t &mask, const transform_t &trf,
-        const scalar edge_tolerance = 0) const {
+        const scalar mask_tolerance = 0) const {
 
         output_type ret;
 
@@ -109,7 +109,7 @@ struct helix_cylinder_intersector {
         auto local3 = trf.point_to_local(is.p3);
         // Explicitly check for radial match
         is.status =
-            mask.template is_inside<local_frame, true>(local3, edge_tolerance);
+            mask.template is_inside<local_frame, true>(local3, mask_tolerance);
         is.direction = vector::dot(is.p3, h.dir(s)) > scalar{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;

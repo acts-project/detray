@@ -39,14 +39,14 @@ struct helix_plane_intersector {
     /// @param h is the input helix trajectory
     /// @param mask is the input mask
     /// @param trf is the transform
-    /// @param edge_tolerance is the tolerance for mask edges
+    /// @param mask_tolerance is the tolerance for mask edges
     /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersection
     template <typename mask_t, typename transform_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const detail::helix &h, const mask_t &mask, const transform_t &trf,
-        const scalar edge_tolerance = 0) const {
+        const scalar mask_tolerance = 0) const {
 
         using local_frame = typename mask_t::local_type;
 
@@ -97,7 +97,7 @@ struct helix_plane_intersector {
         constexpr local_frame local_converter{};
         is.p2 = local_converter(trf, is.p3);
 
-        is.status = mask.template is_inside<local_frame>(is.p2, edge_tolerance);
+        is.status = mask.template is_inside<local_frame>(is.p2, mask_tolerance);
         is.direction = vector::dot(st, h.dir(s)) > scalar{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;

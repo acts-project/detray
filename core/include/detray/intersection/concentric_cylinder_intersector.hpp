@@ -39,7 +39,7 @@ struct concentric_cylinder_intersector {
      * @param ray is the input ray trajectory
      * @param mask is the input mask
      * @param trf is the transform
-     * @param edge_tolerance is the tolerance for mask edges
+     * @param mask_tolerance is the tolerance for mask edges
      * @param overstep_tolerance is the tolerance for track overstepping
      *
      * @return the intersection
@@ -47,7 +47,7 @@ struct concentric_cylinder_intersector {
     template <typename mask_t, typename transform_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const detail::ray &ray, const mask_t &mask, const transform_t & /*trf*/,
-        const scalar /*edge_tolerance*/ = 0,
+        const scalar /*mask_tolerance*/ = 0,
         const scalar overstep_tolerance = 0.) const {
 
         output_type ret;

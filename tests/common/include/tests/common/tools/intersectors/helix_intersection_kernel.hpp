@@ -32,7 +32,7 @@ struct helix_intersection_update {
     /// @param traj is the input trajectory
     /// @param surface is the input surface
     /// @param contextual_transforms is the input transform container
-    /// @param edge_tolerance is the tolerance for mask size
+    /// @param mask_tolerance is the tolerance for mask size
     ///
     /// @return the intersection
     ///
@@ -42,7 +42,7 @@ struct helix_intersection_update {
         const mask_group_t &mask_group, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar edge_tolerance = 0.) const {
+        const scalar mask_tolerance = 0.) const {
 
         const auto &mask_range = surface.mask_range();
         const auto &ctf = contextual_transforms[surface.transform()];
@@ -55,7 +55,7 @@ struct helix_intersection_update {
                                          plane_intersector>) {
 
                 auto sfi = std::move(
-                    helix_plane_intersector()(traj, mask, ctf, edge_tolerance));
+                    helix_plane_intersector()(traj, mask, ctf, mask_tolerance));
 
                 if (sfi[0].status == intersection::status::e_inside and
                     sfi[0].path >= traj.overstep_tolerance()) {
@@ -69,7 +69,7 @@ struct helix_intersection_update {
                                      cylinder_intersector>) {
 
                 auto sfi = std::move(helix_cylinder_intersector()(
-                    traj, mask, ctf, edge_tolerance));
+                    traj, mask, ctf, mask_tolerance));
 
                 if (sfi[0].status == intersection::status::e_inside and
                     sfi[0].path >= traj.overstep_tolerance()) {
