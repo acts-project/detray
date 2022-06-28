@@ -11,7 +11,6 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/utils/quadratic_equation.hpp"
 
 // System include(s)
 #include <cmath>
