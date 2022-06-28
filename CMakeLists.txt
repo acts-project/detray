@@ -152,6 +152,8 @@ if( DETRAY_SETUP_BENCHMARK )
    endif()
 endif()
 
+add_subdirectory( extern/covfie )
+
 # Set up all of the libraries of the project.
 add_subdirectory( core )
 add_subdirectory( plugins )
