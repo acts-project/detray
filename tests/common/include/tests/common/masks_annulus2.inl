@@ -59,9 +59,9 @@ TEST(mask, annulus2) {
     ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out4 + offset) ==
                 intersection::status::e_outside);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out1 + offset, {1.3, 0.}) ==
+    ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out1 + offset, 1.3) ==
                 intersection::status::e_inside);
-    ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out4 + offset, {0., 0.07}) ==
+    ASSERT_TRUE(ann2.is_inside<cartesian>(p2_out4 + offset, 0.07) ==
                 intersection::status::e_inside);
 
     ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_in)) ==
@@ -75,8 +75,8 @@ TEST(mask, annulus2) {
     ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out4)) ==
                 intersection::status::e_outside);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out1), {1.3, 0.}) ==
+    ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out1), 1.3) ==
                 intersection::status::e_inside);
-    ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out4), {0., 0.07}) ==
+    ASSERT_TRUE(ann2.is_inside<polar>(toStripFrame(p2_out4), 0.07) ==
                 intersection::status::e_inside);
 }

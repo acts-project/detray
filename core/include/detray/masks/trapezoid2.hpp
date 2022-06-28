@@ -4,17 +4,20 @@
  *
  * Mozilla Public License Version 2.0
  */
+
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/intersection.hpp"
+#include "detray/intersection/plane_intersector.hpp"
+#include "detray/masks/mask_base.hpp"
+
+// System include(s)
 #include <climits>
 #include <cmath>
 #include <sstream>
 #include <string>
-
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/intersection.hpp"
-#include "detray/intersection/ray_plane_intersector.hpp"
-#include "detray/masks/mask_base.hpp"
 
 namespace detray {
 /** This is a simple 2-dimensional mask for a regular trapezoid
@@ -34,25 +37,20 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <typename intersector_t = ray_plane_intersector,
-          typename local_t = __plugin::cartesian2<detray::scalar>,
+template <typename local_t = __plugin::cartesian2<detray::scalar>,
           typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 class trapezoid2 final
-    : public mask_base<intersector_t, local_t, links_t, array_t, 4> {
+    : public mask_base<plane_intersector, local_t, links_t, array_t, 4> {
     public:
-    using base_type = mask_base<intersector_t, local_t, links_t, array_t, 4>;
+    using base_type =
+        mask_base<plane_intersector, local_t, links_t, array_t, 4>;
     using base_type::base_type;
-    using mask_tolerance = typename base_type::template array_type<scalar, 2>;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
-
-    static constexpr mask_tolerance within_epsilon = {
-        std::numeric_limits<scalar>::epsilon(),
-        std::numeric_limits<scalar>::epsilon()};
 
     /* Default constructor */
     trapezoid2()
@@ -80,7 +78,7 @@ class trapezoid2 final
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    trapezoid2<intersector_t, local_type, links_type, array_t> &operator=(
+    trapezoid2<local_type, links_type, array_t> &operator=(
         const array_t<scalar, 3> &rhs) {
         this->_values = rhs;
         return (*this);
@@ -97,12 +95,13 @@ class trapezoid2 final
      **/
     template <typename inside_local_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point2 &p, const mask_tolerance t = within_epsilon) const {
+        const point2 &p,
+        const scalar t = std::numeric_limits<scalar>::epsilon()) const {
         scalar rel_y = (this->_values[2] + p[1]) * this->_values[3];
         return (std::abs(p[0]) <=
                     this->_values[0] +
-                        rel_y * (this->_values[1] - this->_values[0]) + t[0] and
-                std::abs(p[1]) <= this->_values[2] + t[1])
+                        rel_y * (this->_values[1] - this->_values[0]) + t and
+                std::abs(p[1]) <= this->_values[2] + t)
                    ? intersection::status::e_inside
                    : intersection::status::e_outside;
     }

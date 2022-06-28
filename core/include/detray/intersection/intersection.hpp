@@ -60,8 +60,10 @@ struct line_plane_intersection {
     intersection::direction direction = intersection::direction::e_undefined;
 
     // Primitive this intersection belongs to
+    // TODO: rename the variable properly
     dindex index = dindex_invalid;
     // Navigation information
+    // TODO: rename the variable properly
     dindex link = dindex_invalid;
 
     /** @param rhs is the right hand side intersection for comparison

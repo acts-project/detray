@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
@@ -420,16 +421,24 @@ class navigator {
 
         // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
+        const auto &tf_store = _detector->transform_store();
+        const auto &mask_store = _detector->mask_store();
+
         for (const auto [obj_idx, obj] :
              enumerate(_detector->surfaces(), volume)) {
-            // Ready a new candidate
-            intersection_type candidate{};
-            candidate.index = obj_idx;
-            // Check if reachable
-            if (update_candidate(candidate, track)) {
-                navigation.candidates().push_back(candidate);
+
+            std::size_t count =
+                mask_store.template execute<intersection_initialize>(
+                    obj.mask_type(), navigation.candidates(),
+                    detail::ray(track), obj, tf_store);
+
+            // TODO: Do NOT use index but use other member variable
+            for (std::size_t i = navigation.candidates().size() - count;
+                 i < navigation.candidates().size(); i++) {
+                navigation.candidates()[i].index = obj_idx;
             }
         }
+
         // Sort all candidates and pick the closest one
         detail::sequential_sort(navigation.candidates().begin(),
                                 navigation.candidates().end());
@@ -665,9 +674,12 @@ class navigator {
         intersection_type &candidate, const track_t &track) const {
         // Remember the surface this candidate belongs to
         const dindex obj_idx = candidate.index;
-        candidate =
-            intersect(track, _detector->surface_by_index(obj_idx),
-                      _detector->transform_store(), _detector->mask_store());
+
+        const auto &mask_store = _detector->mask_store();
+        const auto &sf = _detector->surface_by_index(obj_idx);
+        candidate = mask_store.template execute<intersection_update>(
+            sf.mask_type(), detail::ray(track), sf,
+            _detector->transform_store());
 
         candidate.index = obj_idx;
         // Check whether this candidate is reachable by the track

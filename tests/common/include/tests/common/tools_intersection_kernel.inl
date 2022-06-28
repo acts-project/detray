@@ -5,21 +5,24 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <vecmem/memory/host_memory_resource.hpp>
-
+// Project include(s)
 #include "detray/core/mask_store.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/helix_plane_intersector.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
-#include "detray/intersection/ray_plane_intersector.hpp"
+#include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/propagator/track.hpp"
 #include "detray/utils/enumerate.hpp"
+#include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// Google Test include(s)
+#include <gtest/gtest.h>
 
 using namespace detray;
 
@@ -44,13 +47,10 @@ TEST(tools, intersection_kernel_ray) {
     using source_link_t = dindex;
     /// - masks, with mask identifiers 0,1,2
     using rectangle_t =
-        rectangle2<ray_plane_intersector, __plugin::cartesian2<detray::scalar>,
-                   edge_t>;
+        rectangle2<__plugin::cartesian2<detray::scalar>, edge_t>;
     using trapezoid_t =
-        trapezoid2<ray_plane_intersector, __plugin::cartesian2<detray::scalar>,
-                   edge_t>;
-    using annulus_t = annulus2<ray_plane_intersector,
-                               __plugin::cartesian2<detray::scalar>, edge_t>;
+        trapezoid2<__plugin::cartesian2<detray::scalar>, edge_t>;
+    using annulus_t = annulus2<__plugin::cartesian2<detray::scalar>, edge_t>;
 
     using mask_defs =
         mask_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
@@ -93,13 +93,36 @@ TEST(tools, intersection_kernel_ray) {
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
 
-    // Try the intersection - with automated dispatching via the kernel
+    // Initialize kernel
+    std::vector<line_plane_intersection> sfi_init;
+
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        const auto sfi = intersect(track, surface, transform_store, mask_store);
+        mask_store.execute<intersection_initialize>(
+            surface.mask_type(), sfi_init, detail::ray(track), surface,
+            transform_store);
+    }
+
+    // Update kernel
+    std::vector<line_plane_intersection> sfi_update;
+
+    for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
+        const auto sfi = mask_store.execute<intersection_update>(
+            surface.mask_type(), detail::ray(track), surface, transform_store);
+
+        sfi_update.push_back(sfi);
 
         ASSERT_NEAR(sfi.p3[0], expected_points[sf_idx][0], 1e-7);
         ASSERT_NEAR(sfi.p3[1], expected_points[sf_idx][1], 1e-7);
         ASSERT_NEAR(sfi.p3[2], expected_points[sf_idx][2], 1e-7);
+    }
+
+    // Compare
+    ASSERT_EQ(sfi_init.size(), 3);
+    ASSERT_EQ(sfi_update.size(), 3);
+    for (int i = 0; i < 3; i++) {
+        ASSERT_EQ(sfi_init[i].p3, sfi_update[i].p3);
+        ASSERT_EQ(sfi_init[i].p2, sfi_update[i].p2);
+        ASSERT_EQ(sfi_init[i].path, sfi_update[i].path);
     }
 }
 
@@ -122,13 +145,10 @@ TEST(tools, intersection_kernel_helix) {
     using source_link_t = dindex;
     /// - masks, with mask identifiers 0,1,2
     using rectangle_t =
-        rectangle2<helix_plane_intersector,
-                   __plugin::cartesian2<detray::scalar>, edge_t>;
+        rectangle2<__plugin::cartesian2<detray::scalar>, edge_t>;
     using trapezoid_t =
-        trapezoid2<helix_plane_intersector,
-                   __plugin::cartesian2<detray::scalar>, edge_t>;
-    using annulus_t = annulus2<helix_plane_intersector,
-                               __plugin::cartesian2<detray::scalar>, edge_t>;
+        trapezoid2<__plugin::cartesian2<detray::scalar>, edge_t>;
+    using annulus_t = annulus2<__plugin::cartesian2<detray::scalar>, edge_t>;
     using mask_defs =
         mask_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
     using mask_container_t = typename mask_defs::template mask_store_type<>;
@@ -172,8 +192,8 @@ TEST(tools, intersection_kernel_helix) {
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        const auto sfi_helix =
-            intersect(h, surface, transform_store, mask_store);
+        const auto sfi_helix = mask_store.execute<helix_intersection_update>(
+            surface.mask_type(), h, surface, transform_store);
 
         ASSERT_NEAR(sfi_helix.p3[0], expected_points[sf_idx][0], 1e-7);
         ASSERT_NEAR(sfi_helix.p3[1], expected_points[sf_idx][1], 1e-7);

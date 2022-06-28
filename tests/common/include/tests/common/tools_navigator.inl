@@ -5,16 +5,19 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <map>
-
+// Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/track.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
+
+// GoogleTest include(s)
+#include <gtest/gtest.h>
+
+// System include(s)
+#include <map>
 
 namespace detray {
 

@@ -4,17 +4,20 @@
  *
  * Mozilla Public License Version 2.0
  */
+
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/intersection.hpp"
+#include "detray/intersection/plane_intersector.hpp"
+#include "detray/masks/mask_base.hpp"
+
+// System include(s)
 #include <climits>
 #include <cmath>
 #include <sstream>
 #include <string>
-
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/intersection.hpp"
-#include "detray/intersection/ray_plane_intersector.hpp"
-#include "detray/masks/mask_base.hpp"
 
 namespace detray {
 /** This is a 2-dimensional mask for the annulus geometry that is
@@ -44,25 +47,20 @@ namespace detray {
  *
  **/
 
-template <typename intersector_t = ray_plane_intersector,
-          typename local_t = __plugin::polar2<detray::scalar>,
+template <typename local_t = __plugin::polar2<detray::scalar>,
           typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 class annulus2 final
-    : public mask_base<intersector_t, local_t, links_t, array_t, 7> {
+    : public mask_base<plane_intersector, local_t, links_t, array_t, 7> {
     public:
-    using base_type = mask_base<intersector_t, local_t, links_t, array_t, 7>;
+    using base_type =
+        mask_base<plane_intersector, local_t, links_t, array_t, 7>;
     using base_type::base_type;
-    using mask_tolerance = typename base_type::template array_type<scalar, 2>;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
-
-    static constexpr mask_tolerance within_epsilon = {
-        std::numeric_limits<scalar>::epsilon(),
-        std::numeric_limits<scalar>::epsilon()};
 
     /* Default constructor */
     annulus2()
@@ -93,7 +91,7 @@ class annulus2 final
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    annulus2<intersector_t, local_type, links_type, array_t> &operator=(
+    annulus2<local_type, links_type, array_t> &operator=(
         const mask_values &rhs) {
         this->_values = rhs;
         return (*this);
@@ -111,7 +109,8 @@ class annulus2 final
      **/
     template <typename inside_local_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point2 &p, const mask_tolerance t = within_epsilon) const {
+        const point2 &p,
+        const scalar t = std::numeric_limits<scalar>::epsilon()) const {
         // The two quantities to check: r^2 in module system, phi in strips
         // system
 
@@ -124,16 +123,16 @@ class annulus2 final
             scalar r_mod2 = x_mod * x_mod + y_mod * y_mod;
 
             // apply tolerances
-            scalar minR_tol = this->_values[0] - t[0];
-            scalar maxR_tol = this->_values[1] + t[0];
+            scalar minR_tol = this->_values[0] - t;
+            scalar maxR_tol = this->_values[1] + t;
 
             if (r_mod2 < minR_tol * minR_tol or r_mod2 > maxR_tol * maxR_tol)
                 return intersection::status::e_outside;
 
             scalar phi_strp = getter::phi(p) - this->_values[6];
             // Check phi boundaries, which are well def. in local frame
-            return (phi_strp >= this->_values[2] - t[1] and
-                    phi_strp <= this->_values[3] + t[1])
+            return (phi_strp >= this->_values[2] - t and
+                    phi_strp <= this->_values[3] + t)
                        ? intersection::status::e_inside
                        : intersection::status::e_outside;
         }
@@ -143,8 +142,8 @@ class annulus2 final
             scalar phi_strp = p[1] - this->_values[6];
 
             // Check phi boundaries, which are well def. in local frame
-            if (phi_strp < this->_values[2] - t[1] ||
-                phi_strp > this->_values[3] + t[1])
+            if (phi_strp < this->_values[2] - t ||
+                phi_strp > this->_values[3] + t)
                 return intersection::status::e_outside;
 
             // Now go to module frame to check r boundaries. Use the origin
@@ -157,8 +156,8 @@ class annulus2 final
                             2 * shift_r * p[0] * std::cos(phi_strp - shift_phi);
 
             // Apply tolerances
-            scalar minR_tol = this->_values[0] - t[0];
-            scalar maxR_tol = this->_values[1] + t[0];
+            scalar minR_tol = this->_values[0] - t;
+            scalar maxR_tol = this->_values[1] + t;
 
             return (r_mod2 >= minR_tol * minR_tol and
                     r_mod2 <= maxR_tol * maxR_tol)
