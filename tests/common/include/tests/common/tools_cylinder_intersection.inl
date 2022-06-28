@@ -16,6 +16,7 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/masks/cylinder3.hpp"
+#include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -99,7 +100,7 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
 TEST(ALGEBRA_PLUGIN, helix_cylinder_intersector) {
     // Create a translated cylinder and test untersection
     const transform3 shifted(vector3{3., 2., 10.});
-    cylinder_intersector ci;
+    helix_cylinder_intersector ci;
 
     // Test helix
     const point3 pos{3., 2., 5.};

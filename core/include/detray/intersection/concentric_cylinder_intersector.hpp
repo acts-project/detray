@@ -46,12 +46,9 @@ struct concentric_cylinder_intersector {
      */
     template <typename mask_t, typename transform_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const detail::ray &ray, const mask_t &mask, const transform_t &trf,
-        const scalar edge_tolerance = 0,
+        const detail::ray &ray, const mask_t &mask, const transform_t & /*trf*/,
+        const scalar /*edge_tolerance*/ = 0,
         const scalar overstep_tolerance = 0.) const {
-
-        (void)trf;
-        (void)edge_tolerance;
 
         output_type ret;
 

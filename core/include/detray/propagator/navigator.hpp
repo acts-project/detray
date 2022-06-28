@@ -433,11 +433,9 @@ class navigator {
                     detail::ray(track), obj, tf_store);
 
             // TODO: Do NOT use index but use other member variable
-            if (count > 0) {
-                for (std::size_t i = navigation.candidates().size() - count;
-                     i < navigation.candidates().size(); i++) {
-                    navigation.candidates()[i].index = obj_idx;
-                }
+            for (std::size_t i = navigation.candidates().size() - count;
+                 i < navigation.candidates().size(); i++) {
+                navigation.candidates()[i].index = obj_idx;
             }
         }
 

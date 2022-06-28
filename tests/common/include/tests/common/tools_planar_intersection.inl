@@ -15,6 +15,7 @@
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/rectangle2.hpp"
 #include "detray/masks/unmasked.hpp"
+#include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -83,7 +84,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
 TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
     // Create a shifted plane
     const transform3 shifted(vector3{3., 2., 10.});
-    plane_intersector pi;
+    helix_plane_intersector pi;
 
     // Test helix
     const point3 pos{2., 1., 0.};

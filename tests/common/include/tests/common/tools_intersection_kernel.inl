@@ -16,6 +16,7 @@
 #include "detray/masks/masks.hpp"
 #include "detray/propagator/track.hpp"
 #include "detray/utils/enumerate.hpp"
+#include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -191,7 +192,7 @@ TEST(tools, intersection_kernel_helix) {
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        const auto sfi_helix = mask_store.execute<intersection_update>(
+        const auto sfi_helix = mask_store.execute<helix_intersection_update>(
             surface.mask_type(), h, surface, transform_store);
 
         ASSERT_NEAR(sfi_helix.p3[0], expected_points[sf_idx][0], 1e-7);

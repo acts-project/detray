@@ -12,13 +12,11 @@
 #include <type_traits>
 
 // detray include(s)
-#include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
-#include "detray/intersection/plane_intersector.hpp"
 #include "detray/utils/enumerate.hpp"
-
+#include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
 namespace detray {
 
 /// @brief struct that holds functionality to shoot a parametrzed particle
@@ -56,8 +54,9 @@ struct particle_gun {
                 // NOTE: Change to interection_initialize
                 intersection_type sfi;
                 if constexpr (std::is_same_v<trajectory_t, detail::helix>) {
-                    sfi = mask_store.template execute<intersection_update>(
-                        sf.mask_type(), traj, sf, tf_store, 1e-4);
+                    sfi =
+                        mask_store.template execute<helix_intersection_update>(
+                            sf.mask_type(), traj, sf, tf_store, 1e-4);
                 } else {
                     sfi = mask_store.template execute<intersection_update>(
                         sf.mask_type(), traj, sf, tf_store);
