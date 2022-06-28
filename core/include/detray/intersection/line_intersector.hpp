@@ -63,12 +63,12 @@ struct line_intersector {
         // Projection of line to track direction
         const scalar zd = vector::dot(_z, _d);
 
+        const scalar denom = detray::scalar{1.} - (zd * zd);
+
         // Case for wire is parallel to track
-        if (1 - zd * zd < 1e-5) {
+        if (denom < detray::scalar{1e-5}) {
             return ret;
         }
-
-        const scalar denom = 1 - (zd * zd);
 
         // vector from track position to line center
         const vector3 t2l = _t - _p;
@@ -80,7 +80,8 @@ struct line_intersector {
         const scalar t2l_on_track = vector::dot(t2l, _d);
 
         // path length to the point of closest approach on the track
-        const scalar A = 1. / denom * (t2l_on_track - t2l_on_line * zd);
+        const scalar A =
+            detray::scalar{1.} / denom * (t2l_on_track - t2l_on_line * zd);
 
         // distance to the point of closest approarch on the
         // line from line center
