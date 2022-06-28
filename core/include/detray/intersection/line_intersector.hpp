@@ -64,7 +64,7 @@ struct line_intersector {
         const scalar zd = vector::dot(_z, _d);
 
         // Case for wire is parallel to track
-        if (1 - static_cast<detray::scalar>(std::abs(zd)) < 1e-5) {
+        if (1 - zd * zd < 1e-5) {
             return ret;
         }
 
