@@ -114,7 +114,8 @@ struct intersection_update {
             auto sfi = std::move(mask.intersector()(
                 traj, mask, ctf, edge_tolerance, traj.overstep_tolerance()));
 
-            if (sfi[0].status == intersection::status::e_inside) {
+            if (sfi[0].status == intersection::status::e_inside &&
+                sfi[0].path >= traj.overstep_tolerance()) {
                 sfi[0].index = surface.volume();
                 return sfi[0];
             }

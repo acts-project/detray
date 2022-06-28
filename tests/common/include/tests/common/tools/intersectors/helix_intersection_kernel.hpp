@@ -58,7 +58,7 @@ struct helix_intersection_update {
                     helix_plane_intersector()(traj, mask, ctf, edge_tolerance));
 
                 if (sfi[0].status == intersection::status::e_inside and
-                    sfi[0].direction == intersection::direction::e_along) {
+                    sfi[0].path >= traj.overstep_tolerance()) {
                     sfi[0].index = surface.volume();
                     return sfi[0];
                 }
@@ -72,7 +72,7 @@ struct helix_intersection_update {
                     traj, mask, ctf, edge_tolerance));
 
                 if (sfi[0].status == intersection::status::e_inside and
-                    sfi[0].direction == intersection::direction::e_along) {
+                    sfi[0].path >= traj.overstep_tolerance()) {
                     sfi[0].index = surface.volume();
                     return sfi[0];
                 }
