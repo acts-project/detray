@@ -58,7 +58,7 @@ struct intersection_initialize {
 
             for (auto &is : sfi) {
                 if (is.status == intersection::status::e_inside &&
-                    is.direction == intersection::direction::e_along) {
+                    is.path >= traj.overstep_tolerance()) {
                     is.index = surface.volume();
                     is_container.push_back(is);
                     count++;
