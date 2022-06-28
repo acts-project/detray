@@ -98,7 +98,7 @@ struct line_intersector {
         is.p2[0] = getter::perp(loc);
         is.p2[1] = B;
 
-        is.status = mask.template is_inside(loc, edge_tolerance);
+        is.status = mask.is_inside(loc, edge_tolerance);
 
         is.direction = is.path > overstep_tolerance
                            ? intersection::direction::e_along
