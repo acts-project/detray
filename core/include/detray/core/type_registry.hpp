@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "detray/core/mask_store.hpp"
+#include "detray/core/material_store.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
@@ -182,6 +183,42 @@ class mask_registry
               template <typename...> class vector_t = dvector>
     using mask_store_type =
         mask_store<tuple_t, vector_t, ID, registered_types...>;
+    using link_type = typed_index<ID, dindex>;
+    using range_type = typed_index<ID, dindex_range>;
+
+    template <typename T>
+    using get_index = typename type_registry::template get_index<T>;
+
+    template <ID type_id, template <typename...> class tuple_t = dtuple>
+    using get_type =
+        typename type_registry::template get_type<type_id, tuple_t>;
+};
+
+/** Registry object for material */
+template <class ID, typename... registered_types>
+class material_registry
+    : public registry_base<
+          ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
+          registered_types...> {
+    public:
+    using type_registry = registry_base<
+        ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
+        registered_types...>;
+
+    enum : std::size_t {
+        n_types = type_registry::n_types,
+        e_any = type_registry::e_any,
+        e_unknown = type_registry::e_unknown,
+    };
+
+    // Make the type IDs accessible
+    using id = ID;
+
+    // Cuda cannot handle ID non-types here, so leave it for now
+    template <template <typename...> class tuple_t = dtuple,
+              template <typename...> class vector_t = dvector>
+    using material_store_type =
+        material_store<tuple_t, vector_t, ID, registered_types...>;
     using link_type = typed_index<ID, dindex>;
     using range_type = typed_index<ID, dindex_range>;
 

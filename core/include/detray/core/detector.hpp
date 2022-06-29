@@ -12,6 +12,7 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 #include "detray/core/mask_store.hpp"
+#include "detray/core/material_store.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/definitions/detail/accessor.hpp"
@@ -70,6 +71,11 @@ class detector {
     using mask_container =
         typename masks::template mask_store_type<tuple_t, vector_t>;
 
+    /// Forward material types
+    using materials = typename metadata::material_definitions;
+    using material_container =
+        typename materials::template material_store_type<tuple_t, vector_t>;
+
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
     using surface_type =
@@ -115,6 +121,7 @@ class detector {
           _surfaces(&resource),
           _transforms(resource),
           _masks(resource),
+          _materials(resource),
           _volume_finder(
               std::move(typename volume_finder::axis_p0_type{resource}),
               std::move(typename volume_finder::axis_p1_type{resource}),
@@ -132,6 +139,7 @@ class detector {
           _surfaces(det_data._surfaces_data),
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
+          _materials(det_data._materials_data),
           _volume_finder(det_data._volume_finder_view),
           _surfaces_finder(det_data._surfaces_finder_view) {}
 
@@ -206,6 +214,14 @@ class detector {
     /** @return all surface/portal masks in the geometry - non-const access */
     DETRAY_HOST_DEVICE
     inline auto &mask_store() { return _masks; }
+
+    /** @return all materials in the geometry - const access */
+    DETRAY_HOST_DEVICE
+    inline auto &material_store() const { return _materials; }
+
+    /** @return all surface/portal masks in the geometry - non-const access */
+    DETRAY_HOST_DEVICE
+    inline auto &material_store() { return _materials; }
 
     /** Add pre-built mask store
      *
@@ -484,6 +500,9 @@ class detector {
     /** Surface and portal masks of the detector in contiguous memory */
     mask_container _masks;
 
+    /** Materials in contiguous memory */
+    material_container _materials;
+
     volume_finder _volume_finder;
 
     /* TODO: surfaces_finder needs to be refactored */
@@ -505,6 +524,7 @@ struct detector_data {
     using volume_t = typename detector_type::volume_type;
     using surface_t = typename detector_type::surface_type;
     using mask_container_t = typename detector_type::mask_container;
+    using material_container_t = typename detector_type::material_container;
     using transform_container_t = typename detector_type::transform_container;
     using volume_finder_t = typename detector_type::volume_finder;
     using surfaces_finder_t = typename detector_type::surfaces_finder_type;
@@ -513,6 +533,7 @@ struct detector_data {
         : _volumes_data(vecmem::get_data(det.volumes())),
           _surfaces_data(vecmem::get_data(det.surfaces())),
           _masks_data(get_data(det.mask_store())),
+          _materials_data(get_data(det.material_store())),
           _transforms_data(get_data(det.transform_store())),
           _volume_finder_data(
               get_data(det.volume_search_grid(), *det.resource())),
@@ -523,6 +544,7 @@ struct detector_data {
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
     mask_store_data<mask_container_t> _masks_data;
+    material_store_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_data<volume_finder_t> _volume_finder_data;
     surfaces_finder_data<surfaces_finder_t> _surfaces_finder_data;
@@ -537,6 +559,7 @@ struct detector_view {
     using volume_t = typename detector_type::volume_type;
     using surface_t = typename detector_type::surface_type;
     using mask_container_t = typename detector_type::mask_container;
+    using material_container_t = typename detector_type::material_container;
     using transform_container_t = typename detector_type::transform_container;
     using volume_finder_t = typename detector_type::volume_finder;
     using surfaces_finder_t = typename detector_type::surfaces_finder_type;
@@ -545,6 +568,7 @@ struct detector_view {
         : _volumes_data(det_data._volumes_data),
           _surfaces_data(det_data._surfaces_data),
           _masks_data(det_data._masks_data),
+          _materials_data(det_data._materials_data),
           _transforms_data(det_data._transforms_data),
           _volume_finder_view(det_data._volume_finder_data),
           _surfaces_finder_view(det_data._surfaces_finder_data) {}
@@ -553,6 +577,7 @@ struct detector_view {
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
     mask_store_data<mask_container_t> _masks_data;
+    material_store_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_view<volume_finder_t> _volume_finder_view;
     surfaces_finder_view<surfaces_finder_t> _surfaces_finder_view;

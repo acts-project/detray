@@ -14,7 +14,6 @@
 // System include(s)
 #include <climits>
 
-
 namespace detray {
 
 // Slab structure to be mapped on the mask
