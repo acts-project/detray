@@ -73,12 +73,12 @@ struct material {
     }
 
     // Material properties
-    scalar_type m_x0;
-    scalar_type m_l0;
-    scalar_type m_ar;
-    scalar_type m_z;
-    scalar_type m_mass_rho;
-    scalar_type m_molar_rho;
+    scalar_type m_x0 = std::numeric_limits<scalar>::infinity();
+    scalar_type m_l0 = std::numeric_limits<scalar>::infinity();
+    scalar_type m_ar = 0;
+    scalar_type m_z = 0;
+    scalar_type m_mass_rho = 0;
+    scalar_type m_molar_rho = 0;
 };
 
 // Macro for declaring the predefined materials
