@@ -353,22 +353,25 @@ class detector {
         transform_container &trfs_per_vol) noexcept(false) {
 
         // Append transforms
+        const auto trf_offset = _transforms.size(ctx);
         _transforms.append(ctx, std::move(trfs_per_vol));
 
-        // Append surfaces
-        const auto offset = _surfaces.size();
-        _surfaces.reserve(offset + surfaces_per_vol.size());
-        _surfaces.insert(_surfaces.end(), surfaces_per_vol.begin(),
-                         surfaces_per_vol.end());
-        // Update the surface range per volume
-        vol.update_range({offset, _surfaces.size()});
-
-        // Update mask and material index of surfaces
+        // Update mask, material and transform index of surfaces
         for (auto &sf : surfaces_per_vol) {
             _masks.template execute<mask_index_update>(sf.mask_type(), sf);
             _materials.template execute<material_index_update>(
                 sf.material_type(), sf);
+            sf.update_transform(trf_offset);
         }
+
+        // Append surfaces
+        const auto sf_offset = _surfaces.size();
+        _surfaces.reserve(sf_offset + surfaces_per_vol.size());
+        _surfaces.insert(_surfaces.end(), surfaces_per_vol.begin(),
+                         surfaces_per_vol.end());
+
+        // Update the surface range per volume
+        vol.update_range({sf_offset, _surfaces.size()});
 
         // Append mask and material container
         _masks.append_container(masks_per_vol);
