@@ -4,17 +4,20 @@
  *
  * Mozilla Public License Version 2.0
  */
+
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/cylinder_intersector.hpp"
+#include "detray/intersection/intersection.hpp"
+#include "detray/masks/mask_base.hpp"
+
+// System include(s)
 #include <climits>
 #include <cmath>
 #include <sstream>
 #include <string>
-
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/intersection.hpp"
-#include "detray/intersection/ray_cylinder_intersector.hpp"
-#include "detray/masks/mask_base.hpp"
 
 namespace detray {
 /** This is a simple mask for a full cylinder
@@ -32,7 +35,7 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <typename intersector_t = ray_cylinder_intersector,
+template <typename intersector_t = cylinder_intersector,
           typename local_t = __plugin::cylindrical2<detray::scalar>,
           typename links_t = dindex, bool kRadialCheck = false,
           template <typename, std::size_t> class array_t = darray>
@@ -41,16 +44,11 @@ class cylinder3 final
     public:
     using base_type = mask_base<intersector_t, local_t, links_t, array_t, 3>;
     using base_type::base_type;
-    using mask_tolerance = typename base_type::template array_type<scalar, 2>;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point3 = __plugin::point3<scalar>;
-
-    static constexpr mask_tolerance within_epsilon = {
-        std::numeric_limits<scalar>::epsilon(),
-        std::numeric_limits<scalar>::epsilon()};
 
     /* Default constructor */
     cylinder3()
@@ -75,7 +73,7 @@ class cylinder3 final
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    cylinder3<intersector_t, local_type, links_type, kRadialCheck, array_t>
+    cylinder3<intersector_type, local_type, links_type, kRadialCheck, array_t>
         &operator=(const mask_values &rhs) {
         this->_values = rhs;
         return (*this);
@@ -94,16 +92,16 @@ class cylinder3 final
      **/
     template <typename inside_local_t, bool is_rad_check = kRadialCheck>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point3 &p, const mask_tolerance t = within_epsilon) const {
+        const point3 &p,
+        const scalar t = std::numeric_limits<scalar>::epsilon()) const {
         if constexpr (is_rad_check) {
             scalar r = getter::perp(p);
             if (std::abs(r - this->_values[0]) >=
-                t[0] + 5 * std::numeric_limits<scalar>::epsilon()) {
+                t + 5 * std::numeric_limits<scalar>::epsilon()) {
                 return intersection::status::e_missed;
             }
         }
-        return (this->_values[1] - t[1] <= p[2] and
-                p[2] <= this->_values[2] + t[1])
+        return (this->_values[1] - t <= p[2] and p[2] <= this->_values[2] + t)
                    ? intersection::status::e_inside
                    : intersection::status::e_outside;
     }

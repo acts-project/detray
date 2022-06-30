@@ -4,23 +4,19 @@
  *
  * Mozilla Public License Version 2.0
  */
+
 #pragma once
 
-#include <cmath>
-#include <type_traits>
-
+// Project include(s)
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/propagator/track.hpp"
+
+// System include(s)
+#include <cmath>
+#include <type_traits>
 
 namespace detray {
-
-namespace detail {
-
-struct unbound;
-
-}
 
 /// @brief Intersection implementation for cylinder surfaces using helical
 /// trajectories.
@@ -31,68 +27,28 @@ struct unbound;
 struct helix_cylinder_intersector {
 
     using intersection_type = line_plane_intersection;
-
+    using output_type = std::array<intersection_type, 2>;
     using point3 = __plugin::point3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
-    using cylindrical2 = __plugin::cylindrical2<detray::scalar>;
 
-    /// Intersection method for a track with a cylindrical surfaces.
+    /// Operator function to find intersections between helix and cylinder mask
     ///
-    /// It biulds a helix trajectory from the track parameters and then dele-
-    /// gates to a dedicated helix-cylinder intersection implementation.
+    /// @tparam mask_t is the input mask type
+    /// @tparam transform_t is the input transform type
     ///
-    /// @tparam transform_t The type of placement matrix of the cylinder surface
-    /// @tparam mask_t The mask type applied to the local frame
+    /// @param h is the input helix trajectory
+    /// @param mask is the input mask
+    /// @param trf is the transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tolerance is the tolerance for track overstepping
     ///
-    /// Contextual part:
-    /// @param trf the transform of the surface to be intersected
-    /// @param track the track information used in the propagation
-    ///
-    /// Non-contextual part:
-    /// @param mask the local cylindrical mask
-    /// @param tolerance is the mask specific tolerance
-    ///
-    /// @return the intersection with optional parameters
-    template <
-        typename transform_t, typename mask_t,
-        std::enable_if_t<
-            std::is_same_v<typename mask_t::local_type, cylindrical2> or
-                std::is_same_v<typename mask_t::local_type, detail::unbound>,
-            bool> = true>
-    DETRAY_HOST_DEVICE inline auto intersect(
-        const transform_t &trf, const free_track_parameters &track,
-        const mask_t &mask,
-        const typename mask_t::mask_tolerance tolerance =
-            mask_t::within_epsilon,
-        vector3 const *const b_field = nullptr) -> intersection_type const {
+    /// @return the intersection
+    template <typename mask_t, typename transform_t>
+    DETRAY_HOST_DEVICE inline output_type operator()(
+        const detail::helix &h, const mask_t &mask, const transform_t &trf,
+        const scalar mask_tolerance = 0) const {
 
-        return intersect(trf, detail::helix(track, b_field), mask, tolerance);
-    }
-
-    /// Intersection of a helical trajectory with a cylindrical surface.
-    ///
-    /// @tparam transform_t The type of placement matrix of the cylinder surface
-    /// @tparam mask_t The mask type applied to the local frame
-    ///
-    /// Contextual part:
-    /// @param trf the transform of the surface to be intersected
-    /// @param h   the helical trajectory, parametrized by its path length
-    ///
-    /// Non-contextual part:
-    /// @param mask the local cylindrical mask
-    /// @param tolerance is the mask specific tolerance
-    ///
-    /// @return the intersection with optional parameters
-    template <
-        typename transform_t, typename mask_t,
-        std::enable_if_t<
-            std::is_same_v<typename mask_t::local_type, cylindrical2> or
-                std::is_same_v<typename mask_t::local_type, detail::unbound>,
-            bool> = true>
-    DETRAY_HOST_DEVICE inline static auto intersect(
-        const transform_t &trf, const detail::helix &h, const mask_t &mask,
-        const typename mask_t::mask_tolerance tolerance =
-            mask_t::within_epsilon) -> intersection_type const {
+        output_type ret;
 
         using local_frame = typename mask_t::local_type;
 
@@ -127,7 +83,7 @@ struct helix_cylinder_intersector {
                                vector::dot(crp, vector::cross(h.dir(s), sz))};
             // No intersection can be found if dividing by zero
             if (denom == scalar{0.}) {
-                return intersection_type{};
+                return ret;
             }
             // x_n+1 = x_n - f(s) / f'(s)
             s_prev = s;
@@ -137,11 +93,11 @@ struct helix_cylinder_intersector {
         }
         // No intersection found within max number of trials
         if (n_tries == max_n_tries) {
-            return intersection_type{};
+            return ret;
         }
 
         // Build intersection struct from helix parameter s
-        intersection_type is;
+        intersection_type &is = ret[0];
         const point3 helix_pos = h.pos(s);
 
         is.path = getter::norm(helix_pos);
@@ -152,13 +108,13 @@ struct helix_cylinder_intersector {
         auto local3 = trf.point_to_local(is.p3);
         // Explicitly check for radial match
         is.status =
-            mask.template is_inside<local_frame, true>(local3, tolerance);
+            mask.template is_inside<local_frame, true>(local3, mask_tolerance);
         is.direction = vector::dot(is.p3, h.dir(s)) > scalar{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
         is.link = mask.volume_link();
 
-        return is;
+        return ret;
     }
 };
 

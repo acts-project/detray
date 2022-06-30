@@ -1,21 +1,24 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-#include <benchmark/benchmark.h>
-
-#include <fstream>
-
+// Project include(s)
 #include "detray/core/type_registry.hpp"
+#include "detray/intersection/concentric_cylinder_intersector.hpp"
+#include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/ray_concentric_cylinder_intersector.hpp"
-#include "detray/intersection/ray_cylinder_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
 #include "tests/common/tools/track_generators.hpp"
+
+// Google Benchmark include(s)
+#include <benchmark/benchmark.h>
+
+// System include(s)
+#include <fstream>
 
 using namespace detray;
 
@@ -31,9 +34,8 @@ enum mask_ids : unsigned int {
     e_conc_cylinder3 = 2,
 };
 
-using mask_defs =
-    mask_registry<mask_ids, rectangle2<>, cylinder3<ray_cylinder_intersector>,
-                  cylinder3<ray_concentric_cylinder_intersector<>>>;
+using mask_defs = mask_registry<mask_ids, rectangle2<>, cylinder3<>,
+                                cylinder3<concentric_cylinder_intersector>>;
 using plane_surface = surface<mask_defs, transform3>;
 
 unsigned int theta_steps = 1000;
@@ -62,7 +64,7 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
             for (const auto &plane : planes) {
                 auto pi = rect.intersector();
-                auto is = pi.intersect(plane.transform(), ray, rect);
+                auto is = pi(ray, rect, plane.transform())[0];
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
@@ -127,7 +129,7 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
                 for (const auto &cylinder : cylinders) {
                     auto ci = cylinder.intersector();
-                    auto is = ci.intersect(plain.transform(), ray, cylinder);
+                    auto is = ci(ray, cylinder, plain.transform())[0];
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);
@@ -189,7 +191,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
                 for (const auto &cylinder : cylinders) {
                     auto cci = cylinder.intersector();
-                    auto is = cci.intersect(plain.transform(), ray, cylinder);
+                    auto is = cci(ray, cylinder, plain.transform())[0];
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);

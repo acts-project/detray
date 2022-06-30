@@ -233,7 +233,7 @@ static void BM_CYLINDER3_MASK(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
-                    if (c.is_inside<local_type>(point3{x, y, z}, {0.1, 0.}) ==
+                    if (c.is_inside<local_type>(point3{x, y, z}, 0.1) ==
                         intersection::status::e_inside) {
                         ++inside;
                     } else {

@@ -7,30 +7,30 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/intersection.hpp"
+#include "detray/intersection/line_intersector.hpp"
+#include "detray/masks/mask_base.hpp"
+
+// System include(s)
 #include <climits>
 #include <cmath>
 #include <type_traits>
-
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/intersection.hpp"
-#include "detray/intersection/ray_line_intersector.hpp"
-#include "detray/masks/mask_base.hpp"
 
 namespace detray {
 
 /** This is a simple mask for a line defined with a line length and its scope
  *
  **/
-template <typename intersector_t = ray_line_intersector,
-          typename local_t = __plugin::cartesian2<detray::scalar>,
+template <typename local_t = __plugin::cartesian2<detray::scalar>,
           typename links_t = dindex, bool kSquareScope = false,
           template <typename, std::size_t> class array_t = darray>
 class line final
-    : public mask_base<intersector_t, local_t, links_t, array_t, 2> {
+    : public mask_base<line_intersector, local_t, links_t, array_t, 2> {
     public:
-    using base_type = mask_base<intersector_t, local_t, links_t, array_t, 2>;
+    using base_type = mask_base<line_intersector, local_t, links_t, array_t, 2>;
     using base_type::base_type;
-    using mask_tolerance = array_t<scalar, 2>;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
@@ -39,10 +39,6 @@ class line final
     using point2 = __plugin::point2<scalar>;
 
     static constexpr bool square_scope = kSquareScope;
-
-    static constexpr mask_tolerance within_epsilon = {
-        std::numeric_limits<scalar>::epsilon(),
-        std::numeric_limits<scalar>::epsilon()};
 
     /* Default constructor */
     line() : base_type({0, std::numeric_limits<scalar>::infinity()}, {}) {}
@@ -62,8 +58,8 @@ class line final
      * @param rhs is the right hand side object
      **/
     DETRAY_HOST_DEVICE
-    line<intersector_t, local_type, links_type, kSquareScope, array_t>
-        &operator=(const array_t<scalar, 2> &rhs) {
+    line<local_type, links_type, kSquareScope, array_t> &operator=(
+        const array_t<scalar, 2> &rhs) {
         this->_values = rhs;
         return (*this);
     }
@@ -77,29 +73,29 @@ class line final
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point3 &p, const mask_tolerance t = within_epsilon) const {
+        const point3 &p,
+        const scalar t = std::numeric_limits<scalar>::epsilon()) const {
 
         // For square cross section, we check if (1) the x and y of transverse
         // position is less than the half cell size and (2) the distance to the
         // point of closest approach on line from the line center is less than
         // the half line length
         if constexpr (square_scope) {
-            return std::abs(p[0]) <= this->_values[0] + t[0] &&
-                           std::abs(p[1]) <= this->_values[0] + t[0] &&
-                           std::abs(p[2]) <= this->_values[1] + t[1]
+            return std::abs(p[0]) <= this->_values[0] + t &&
+                           std::abs(p[1]) <= this->_values[0] + t &&
+                           std::abs(p[2]) <= this->_values[1] + t
                        ? intersection::status::e_inside
                        : intersection::status::e_outside;
 
-        }
-        // For circular cross section, we check if (1) the radial distance is
-        // within the scope and (2) the distance to the point of closest
-        // approach on line from the line center is less than the half line
-        // length
-        else {
-            return (getter::perp(p) <= this->_values[0] + t[0] &&
-                    std::abs(p[2]) <= this->_values[1] + t[1])
+            // For circular cross section, we check if (1) the radial distance
+            // is within the scope and (2) the distance to the point of closest
+            // approach on line from the line center is less than the half line
+            // length
+        } else {
+            return (getter::perp(p) <= this->_values[0] + t &&
+                    std::abs(p[2]) <= this->_values[1] + t)
+
                        ? intersection::status::e_inside
                        : intersection::status::e_outside;
         }

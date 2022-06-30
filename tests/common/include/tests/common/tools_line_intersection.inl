@@ -6,8 +6,9 @@
  */
 
 // Project include(s)
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/intersection/ray_line_intersector.hpp"
+#include "detray/intersection/line_intersector.hpp"
 #include "detray/masks/line.hpp"
 #include "detray/propagator/track.hpp"
 
@@ -50,10 +51,10 @@ TEST(tools, line_intersector_case1) {
     const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
-    std::vector<ray_line_intersector::intersection_type> is(3);
-    is[0] = ray_line_intersector().intersect(tf, trks[0], ln);
-    is[1] = ray_line_intersector().intersect(tf, trks[1], ln);
-    is[2] = ray_line_intersector().intersect(tf, trks[2], ln);
+    std::vector<line_intersector::intersection_type> is(3);
+    is[0] = line_intersector()(detail::ray(trks[0]), ln, tf)[0];
+    is[1] = line_intersector()(detail::ray(trks[1]), ln, tf)[0];
+    is[2] = line_intersector()(detail::ray(trks[2]), ln, tf)[0];
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
     EXPECT_EQ(is[0].path, 1);
@@ -64,7 +65,6 @@ TEST(tools, line_intersector_case1) {
     EXPECT_EQ(is[1].path, 1);
     EXPECT_EQ(is[1].p3, point3({-1, 0, 0}));
     EXPECT_EQ(is[1].p2, point2({1, 0}));
-
     EXPECT_EQ(is[2].status, intersection::status::e_inside);
     EXPECT_NEAR(is[2].path, std::sqrt(2), tolerance);
     EXPECT_NEAR(is[2].p3[0], 1., tolerance);
@@ -92,8 +92,8 @@ TEST(tools, line_intersector_case2) {
     const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
-    const ray_line_intersector::intersection_type is =
-        ray_line_intersector().intersect(tf, trk, ln);
+    const line_intersector::intersection_type is =
+        line_intersector()(detail::ray(trk), ln, tf)[0];
 
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_FLOAT_EQ(is.path, 2.);
@@ -132,16 +132,14 @@ TEST(tools, line_intersector_square_scope) {
     trks.emplace_back(point3{0, -1.9, 0}, 0, vector3{1, 1, 0}, -1);
     trks.emplace_back(point3{0, -2.1, 0}, 0, vector3{1, 1, 0}, -1);
 
-    // Infinite wire with 1 mm
-    // square cell size
-    const line<ray_line_intersector, cartesian, dindex, true> ln{
+    // Infinite wire with 1 mm square cell size
+    line<cartesian, dindex, true> ln{
         1., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
-    std::vector<ray_line_intersector::intersection_type> is;
+    std::vector<line_plane_intersection> is;
     for (const auto& trk : trks) {
-        is.push_back(
-            ray_line_intersector().intersect(tf, trk, ln, {1e-5, 1e-5}));
+        is.push_back(line_intersector()(detail::ray(trk), ln, tf, 1e-5)[0]);
     }
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);

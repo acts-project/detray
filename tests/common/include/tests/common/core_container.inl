@@ -26,6 +26,15 @@
 
 using namespace detray;
 
+struct test_func {
+    using output_type = std::size_t;
+
+    template <typename container_t>
+    output_type operator()(const container_t& gr) {
+        return gr.size();
+    }
+};
+
 TEST(container, tuple_vector_container) {
 
     // Vecmem memory resource
@@ -57,7 +66,7 @@ TEST(container, tuple_vector_container) {
     vecmem::vector<int> int_vec{3, 4, 5};
     container.add_vector(int_vec);
 
-    vecmem::vector<float> float_vec{12.1, 5.6};
+    vecmem::vector<float> float_vec{12.1};
     container.add_vector(float_vec);
 
     container.add_vector(vecmem::vector<double>{10.5, 7.6});
@@ -75,11 +84,10 @@ TEST(container, tuple_vector_container) {
     EXPECT_EQ(container.group<0>()[4], 5);
 
     // float group
-    EXPECT_EQ(container.size<1>(), 4);
+    EXPECT_EQ(container.size<1>(), 3);
     EXPECT_FLOAT_EQ(container.group<1>()[0], 3.1);
     EXPECT_FLOAT_EQ(container.group<1>()[1], 4.5);
     EXPECT_FLOAT_EQ(container.group<1>()[2], 12.1);
-    EXPECT_FLOAT_EQ(container.group<1>()[3], 5.6);
 
     // double group
     EXPECT_EQ(container.size<2>(), 4);
@@ -87,6 +95,11 @@ TEST(container, tuple_vector_container) {
     EXPECT_FLOAT_EQ(container.group<2>()[1], 6.);
     EXPECT_FLOAT_EQ(container.group<2>()[2], 10.5);
     EXPECT_FLOAT_EQ(container.group<2>()[3], 7.6);
+
+    // unrolling test
+    EXPECT_EQ(container.execute<test_func>(0), 5);
+    EXPECT_EQ(container.execute<test_func>(1), 3);
+    EXPECT_EQ(container.execute<test_func>(2), 4);
 }
 
 using grid2r =

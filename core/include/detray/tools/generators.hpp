@@ -47,10 +47,9 @@ static inline dvector<scalar> phi_values(scalar start_phi, scalar end_phi,
  *
  * @return a generated list of vertices
  */
-template <typename intersector_t, typename local_t, typename links_t>
-dvector<point3> vertices(
-    const annulus2<intersector_t, local_t, links_t> &annulus_mask,
-    unsigned int lseg) {
+template <typename local_t, typename links_t>
+dvector<point3> vertices(const annulus2<local_t, links_t> &annulus_mask,
+                         unsigned int lseg) {
 
     const auto &m_values = annulus_mask.values();
 
@@ -151,10 +150,9 @@ dvector<point3> vertices(const cylinder3<intersector_t, local_t, links_t,
  *
  * @return a generated list of vertices
  */
-template <typename intersector_t, typename local_t, typename links_t>
-dvector<point3> vertices(
-    const rectangle2<intersector_t, local_t, links_t> &rectangle_mask,
-    unsigned int /*ignored*/) {
+template <typename local_t, typename links_t>
+dvector<point3> vertices(const rectangle2<local_t, links_t> &rectangle_mask,
+                         unsigned int /*ignored*/) {
     const auto &m_values = rectangle_mask.values();
     // left hand lower corner
     point3 lh_lc = {-m_values[0], -m_values[1], 0.};
@@ -177,10 +175,9 @@ dvector<point3> vertices(
  *
  * @return a generated list of vertices
  */
-template <typename intersector_t, typename local_t, typename links_t>
-dvector<point3> vertices(
-    const ring2<intersector_t, local_t, links_t> & /*ring_mask*/,
-    unsigned int /*lseg*/) {
+template <typename local_t, typename links_t>
+dvector<point3> vertices(const ring2<local_t, links_t> & /*ring_mask*/,
+                         unsigned int /*lseg*/) {
     return {};
 }
 
@@ -193,10 +190,9 @@ dvector<point3> vertices(
  *
  * @return a generated list of vertices
  */
-template <typename intersector_t, typename local_t, typename links_t>
-dvector<point3> vertices(
-    const trapezoid2<intersector_t, local_t, links_t> &trapezoid_mask,
-    unsigned int /* ignored */) {
+template <typename local_t, typename links_t>
+dvector<point3> vertices(const trapezoid2<local_t, links_t> &trapezoid_mask,
+                         unsigned int /* ignored */) {
 
     const auto &m_values = trapezoid_mask.values();
     // left hand lower corner

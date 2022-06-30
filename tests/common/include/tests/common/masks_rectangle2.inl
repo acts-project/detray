@@ -38,6 +38,6 @@ TEST(mask, rectangle2) {
     ASSERT_TRUE(r2.is_inside<local_type>(p2_out) ==
                 intersection::status::e_outside);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(r2.is_inside<local_type>(p2_out, {1., 0.5}) ==
+    ASSERT_TRUE(r2.is_inside<local_type>(p2_out, 1.) ==
                 intersection::status::e_inside);
 }
