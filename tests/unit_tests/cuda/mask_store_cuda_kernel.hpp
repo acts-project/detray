@@ -15,14 +15,17 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
-#include <thrust/tuple.h>
+// Project include(s)
+#include "detray/core/detector.hpp"
+#include "detray/masks/masks.hpp"
+#include "vecmem/utils/cuda/copy.hpp"
 
+// Vecmem include(s)
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
 
-#include "detray/core/mask_store.hpp"
-#include "detray/masks/masks.hpp"
-#include "vecmem/utils/cuda/copy.hpp"
+// Thrust include(s)
+#include <thrust/tuple.h>
 
 #pragma once
 
@@ -54,9 +57,9 @@ enum mask_ids : unsigned int {
 
 /// test function for mask store
 void mask_test(
-    mask_store_data<mask_store<thrust::tuple, dvector, mask_ids, rectangle,
-                               trapezoid, ring, cylinder, single, annulus> >&
-        store_data,
+    tuple_vector_container_data<tuple_vector_container<
+        thrust::tuple, dvector, mask_ids, rectangle, trapezoid, ring, cylinder,
+        single, annulus> >& store_data,
     vecmem::data::vector_view<point2>& input_point2_data,
     vecmem::data::vector_view<point3>& input_point3_data,
     vecmem::data::jagged_vector_view<intersection::status>& output_data);

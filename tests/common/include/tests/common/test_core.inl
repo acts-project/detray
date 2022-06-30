@@ -5,15 +5,19 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <climits>
-#include <cmath>
-
+// Project include(s)
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/masks/unmasked.hpp"
+#include "detray/materials/material_slab.hpp"
+
+// Google test include(s)
+#include <gtest/gtest.h>
+
+// System include(s)
+#include <climits>
+#include <cmath>
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -21,11 +25,22 @@ using namespace detray;
 
 using transform3 = __plugin::transform3<detray::scalar>;
 
+/// Define mask types
 enum mask_ids : unsigned int {
     e_unmasked = 0,
 };
-using mask_defs = mask_registry<mask_ids, unmasked<>>;
-using mask_link_t = typename mask_defs::link_type;
+
+using mask_defs = tuple_vector_registry<mask_ids, unmasked<>>;
+using mask_link_type = typename mask_defs::link_type;
+
+/// Define material types
+enum material_ids : unsigned int {
+    e_slab = 0,
+};
+
+using material_defs =
+    tuple_vector_registry<material_ids, material_slab<scalar>>;
+using material_link_type = typename material_defs::link_type;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
@@ -41,9 +56,11 @@ TEST(ALGEBRA_PLUGIN, surface) {
     point3 t{2., 3., 4.};
     transform3 trf(t, z, x);
 
-    mask_link_t mask_id{mask_defs::id::e_unmasked, 0};
-    surface<mask_defs, transform3> s(std::move(trf), std::move(mask_id), -1,
-                                     false, false);
+    mask_link_type mask_id{mask_defs::id::e_unmasked, 0};
+    material_link_type material_id{material_defs::id::e_slab, 0};
+    surface<mask_defs, material_defs, transform3> s(
+        std::move(trf), std::move(mask_id), std::move(material_id), -1, false,
+        false);
 }
 
 // This tests the construction of a intresection

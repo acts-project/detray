@@ -21,8 +21,9 @@ namespace detray {
  * @tparam volume_link_t the typ eof the volume link representation
  * @tparam source_link_t the type of the source link representation
  */
-template <typename mask_regsitry_t, typename transform_link_t = dindex,
-          typename volume_link_t = dindex, typename source_link_t = bool>
+template <typename mask_regsitry_t, typename material_registry_t,
+          typename transform_link_t = dindex, typename volume_link_t = dindex,
+          typename source_link_t = bool>
 class surface {
 
     public:
@@ -33,6 +34,8 @@ class surface {
     // At least one mask type is present in any geometry
     using edge_type = typename mask_defs::template get_type<mask_defs::to_id(
         0)>::type::links_type;
+    using material_defs = material_registry_t;
+    using material_link = typename material_defs::link_type;
     using volume_link = volume_link_t;
     using source_link = source_link_t;
 
@@ -45,10 +48,11 @@ class surface {
      * @param is_pt remember whether this is a portal or not
      *
      **/
-    surface(transform_link &&trf, mask_link &&mask, volume_link &&vol,
-            source_link &&src, bool is_pt)
+    surface(transform_link &&trf, mask_link &&mask, material_link &&material,
+            volume_link &&vol, source_link &&src, bool is_pt)
         : _trf(std::move(trf)),
           _mask(std::move(mask)),
+          _material(std::move(material)),
           _vol(std::move(vol)),
           _src(std::move(src)),
           _is_portal(std::move(is_pt)) {}
@@ -63,8 +67,14 @@ class surface {
      *
      **/
     surface(const transform_link &trf, const mask_link &mask,
-            const volume_link vol, const source_link &src, bool is_pt)
-        : _trf(trf), _mask(mask), _vol(vol), _src(src), _is_portal(is_pt) {}
+            const material_link &material, const volume_link vol,
+            const source_link &src, bool is_pt)
+        : _trf(trf),
+          _mask(mask),
+          _material(material),
+          _vol(vol),
+          _src(src),
+          _is_portal(is_pt) {}
 
     // Portal vs module decision must be made explicitly
     surface() = default;
@@ -96,10 +106,9 @@ class surface {
     DETRAY_HOST_DEVICE
     const transform_link &transform() const { return _trf; }
 
-    /** Update the mask link
-     *
-     * @param offset update the position when move into new collection
-     */
+    /// Update the mask link
+    ///
+    /// @param offset update the position when move into new collection
     DETRAY_HOST
     void update_mask(dindex offset) { _mask += offset; }
 
@@ -127,6 +136,36 @@ class surface {
     DETRAY_HOST_DEVICE
     const auto &mask_range() const { return detail::get<1>(_mask); }
 
+    /// Update the mask link
+    ///
+    /// @param offset update the position when move into new collection
+    DETRAY_HOST
+    void update_material(dindex offset) { _material += offset; }
+
+    /// Access to the material
+    DETRAY_HOST_DEVICE
+    const material_link &material() { return _material; }
+
+    /// @return the material link
+    DETRAY_HOST_DEVICE
+    const material_link &material() const { return _material; }
+
+    /// Access to the material id
+    DETRAY_HOST_DEVICE
+    auto material_type() { return detail::get<0>(_material); }
+
+    /// @return the material link
+    DETRAY_HOST_DEVICE
+    auto material_type() const { return detail::get<0>(_material); }
+
+    /// Access to the material
+    DETRAY_HOST_DEVICE
+    const auto &material_range() { return detail::get<1>(_material); }
+
+    /// @return the material link
+    DETRAY_HOST_DEVICE
+    const auto &material_range() const { return detail::get<1>(_material); }
+
     /** Access to the volume */
     DETRAY_HOST_DEVICE
     volume_link volume() { return _vol; }
@@ -152,6 +191,7 @@ class surface {
     private:
     transform_link_t _trf;
     mask_link _mask;
+    material_link _material;
     volume_link_t _vol;
     source_link_t _src;
     bool _is_portal;

@@ -5,13 +5,18 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
+// Project include(s)
+#include "detray/core/detector.hpp"
+#include "detray/core/detector_kernel.hpp"
+#include "detray/core/transform_store.hpp"
+#include "detray/materials/predefined_materials.hpp"
+#include "tests/common/tools/detector_metadata.hpp"
 
+// Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "detray/core/detector.hpp"
-#include "detray/core/transform_store.hpp"
-#include "tests/common/tools/detector_metadata.hpp"
+// GTest include(s)
+#include <gtest/gtest.h>
 
 /// @note __plugin has to be defined with a preprocessor command
 using point3 = __plugin::point3<detray::scalar>;
@@ -20,38 +25,83 @@ using point2 = __plugin::point2<detray::scalar>;
 
 // This tests the construction of a detector class
 TEST(ALGEBRA_PLUGIN, detector) {
+    /*
+        using namespace detray;
+
+        using detector_t = detector<detector_registry::default_detector>;
+        using mask_ids = typename detector_t::masks::id;
+
+        vecmem::host_memory_resource host_mr;
+
+        detector_t::context ctx0{};
+        detector_t::transform_filling_container trfs;
+        detector_t::mask_container masks(host_mr);
+        detector_t::surface_filling_container surfaces = {};
+        typename detector_t::surface_type::edge_type mask_edge{0, 0};
+
+        /// Surface 0
+        point3 t0{0., 0., 0.};
+        trfs[mask_ids::e_rectangle2].emplace_back(ctx0, t0);
+        masks.template add_value<mask_ids::e_rectangle2>(-3., 3., mask_edge);
+
+        /// Surface 1
+        point3 t1{1., 0., 0.};
+        trfs[mask_ids::e_annulus2].emplace_back(ctx0, t1);
+        masks.template
+       add_value<mask_ids::e_annulus2>(1., 2., 3., 4., 5., 6., 7., mask_edge);
+
+        /// Surface 2
+        point3 t2{2., 0., 0.};
+        trfs[mask_ids::e_trapezoid2].emplace_back(ctx0, t2);
+        masks.template add_value<mask_ids::e_trapezoid2>(1., 2., 3., mask_edge);
+
+        detector_t d(host_mr);
+
+        auto &v = d.new_volume({0., 10., -5., 5., -M_PI, M_PI});
+        d.add_objects(ctx0, v, surfaces, masks, trfs);
+    */
+}
+
+TEST(detector, detector_kernel) {
 
     using namespace detray;
 
-    using detector_t = detector<detector_registry::default_detector>;
-    using mask_ids = typename detector_t::masks::id;
-
     vecmem::host_memory_resource host_mr;
 
+    using detector_t = detector<detector_registry::default_detector>;
+    using mask_ids = typename detector_t::masks::id;
+    using material_ids = typename detector_t::materials::id;
+
     detector_t::context ctx0{};
-    detector_t::transform_filling_container trfs;
+
+    detector_t::transform_container trfs;
+    detector_t::surface_container surfaces = {};
     detector_t::mask_container masks(host_mr);
-    detector_t::surface_filling_container surfaces = {};
+    detector_t::material_container materials(host_mr);
+
     typename detector_t::surface_type::edge_type mask_edge{0, 0};
 
     /// Surface 0
     point3 t0{0., 0., 0.};
-    trfs[mask_ids::e_rectangle2].emplace_back(ctx0, t0);
+    trfs.emplace_back(ctx0, t0);
     masks.template add_value<mask_ids::e_rectangle2>(-3., 3., mask_edge);
+    materials.template add_value<material_ids::e_slab>(gold<scalar>(), 3.);
 
     /// Surface 1
     point3 t1{1., 0., 0.};
-    trfs[mask_ids::e_annulus2].emplace_back(ctx0, t1);
+    trfs.emplace_back(ctx0, t1);
     masks.template add_value<mask_ids::e_annulus2>(1., 2., 3., 4., 5., 6., 7.,
                                                    mask_edge);
+    materials.template add_value<material_ids::e_slab>(tungsten<scalar>(), 12.);
 
     /// Surface 2
     point3 t2{2., 0., 0.};
-    trfs[mask_ids::e_trapezoid2].emplace_back(ctx0, t2);
+    trfs.emplace_back(ctx0, t2);
     masks.template add_value<mask_ids::e_trapezoid2>(1., 2., 3., mask_edge);
+    materials.template add_value<material_ids::e_rod>(aluminium<scalar>(), 4.);
 
     detector_t d(host_mr);
 
     auto &v = d.new_volume({0., 10., -5., 5., -M_PI, M_PI});
-    d.add_objects(ctx0, v, surfaces, masks, trfs);
+    d.add_objects_per_volume(ctx0, v, surfaces, trfs, masks, materials);
 }

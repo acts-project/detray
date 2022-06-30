@@ -4,15 +4,12 @@
  *
  * Mozilla Public License Version 2.0
  */
+
 #pragma once
 
-#include <map>
-#include <sstream>
-#include <string>
-#include <vecmem/memory/memory_resource.hpp>
-
-#include "detray/core/mask_store.hpp"
-#include "detray/core/material_store.hpp"
+// Project include(s)
+#include "detray/core/detail/tuple_vector_container.hpp"
+#include "detray/core/detector_kernel.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/definitions/detail/accessor.hpp"
@@ -24,6 +21,14 @@
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/intersection/intersection.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/memory_resource.hpp>
+
+// System include(s)
+#include <map>
+#include <sstream>
+#include <string>
 
 namespace detray {
 
@@ -69,17 +74,17 @@ class detector {
     /// Forward mask types
     using masks = typename metadata::mask_definitions;
     using mask_container =
-        typename masks::template mask_store_type<tuple_t, vector_t>;
+        typename masks::template store_type<tuple_t, vector_t>;
 
     /// Forward material types
     using materials = typename metadata::material_definitions;
     using material_container =
-        typename materials::template material_store_type<tuple_t, vector_t>;
+        typename materials::template store_type<tuple_t, vector_t>;
 
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
     using surface_type =
-        surface<masks, transform_link, volume_link, source_link>;
+        surface<masks, materials, transform_link, volume_link, source_link>;
 
     using objects =
         typename metadata::template object_definitions<surface_type>;
@@ -341,6 +346,39 @@ class detector {
         vol.set_surfaces_finder(n_grids);
     }
 
+    DETRAY_HOST inline void add_objects_per_volume(
+        const context ctx, volume_type &vol,
+        surface_container &surfaces_per_vol, transform_container &trfs_per_vol,
+        mask_container &masks_per_vol,
+        material_container &materials_per_vol) noexcept(false) {
+
+        // Append transforms
+        _transforms.append(ctx, std::move(trfs_per_vol));
+
+        // Append surfaces
+        const auto offset = _surfaces.size();
+        _surfaces.reserve(offset + surfaces_per_vol.size());
+        _surfaces.insert(_surfaces.end(), surfaces_per_vol.begin(),
+                         surfaces_per_vol.end());
+        // Update the surface range per volume
+        vol.update_range({offset, _surfaces.size()});
+
+        // Update mask and material index of surfaces
+        for (auto &sf : surfaces_per_vol) {
+            _masks.template execute<mask_index_update>(sf.mask_type(), sf);
+            _materials.template execute<material_index_update>(
+                sf.material_type(), sf);
+        }
+
+        // Append mask and material container
+        _masks.append_container(masks_per_vol);
+        _materials.append_container(materials_per_vol);
+
+        // Update max objects per volume
+        _n_max_objects_per_volume =
+            std::max(_n_max_objects_per_volume, vol.n_objects());
+    }
+
     /** Unrolls the data containers according to the mask type and fill the
      *  global containers. It registers the indexing in the geometry.
      *
@@ -543,8 +581,8 @@ struct detector_data {
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
-    mask_store_data<mask_container_t> _masks_data;
-    material_store_data<material_container_t> _materials_data;
+    tuple_vector_container_data<mask_container_t> _masks_data;
+    tuple_vector_container_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_data<volume_finder_t> _volume_finder_data;
     surfaces_finder_data<surfaces_finder_t> _surfaces_finder_data;
@@ -576,8 +614,8 @@ struct detector_view {
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
-    mask_store_data<mask_container_t> _masks_data;
-    material_store_data<material_container_t> _materials_data;
+    tuple_vector_container_data<mask_container_t> _masks_data;
+    tuple_vector_container_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_view<volume_finder_t> _volume_finder_view;
     surfaces_finder_view<surfaces_finder_t> _surfaces_finder_view;

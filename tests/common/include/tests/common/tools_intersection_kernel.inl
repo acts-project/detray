@@ -6,7 +6,6 @@
  */
 
 // Project include(s)
-#include "detray/core/mask_store.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
@@ -14,6 +13,8 @@
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/materials/material_slab.hpp"
+#include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/track.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
@@ -27,6 +28,9 @@
 using namespace detray;
 
 constexpr const float epsilon = 1e-3;
+
+// TODO: How about merging ray and helix tests into one to remove the code
+// repetition?
 
 // This tests the construction of a surface
 TEST(tools, intersection_kernel_ray) {
@@ -42,6 +46,10 @@ TEST(tools, intersection_kernel_ray) {
         e_annulus2 = 2,
     };
 
+    enum material_ids : unsigned int {
+        e_slab = 0,
+    };
+
     /// Surface components:
     using edge_t = dindex;
     using source_link_t = dindex;
@@ -53,12 +61,18 @@ TEST(tools, intersection_kernel_ray) {
     using annulus_t = annulus2<__plugin::cartesian2<detray::scalar>, edge_t>;
 
     using mask_defs =
-        mask_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
-    using mask_container_t = typename mask_defs::mask_store_type<>;
+        tuple_vector_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
+    using mask_container_t = typename mask_defs::store_type<>;
+
+    // Materials with a slab
+    using material_defs =
+        tuple_vector_registry<material_ids, material_slab<scalar>>;
+    using material_container_t = typename material_defs::store_type<>;
 
     /// The Surface definition:
     /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t = surface<mask_defs, dindex, dindex, source_link_t>;
+    using surface_t =
+        surface<mask_defs, material_defs, dindex, dindex, source_link_t>;
     using surface_container_t = dvector<surface_t>;
 
     // The transforms & their store
@@ -74,10 +88,22 @@ TEST(tools, intersection_kernel_ray) {
     mask_store.template add_value<e_trapezoid2>(10., 20., 30., 0);
     mask_store.template add_value<e_annulus2>(15., 55., 0.75, 1.95, 2., -2., 0.,
                                               0);
+    // Materials and their store
+    material_container_t material_store(host_mr);
+    material_store.template add_value<e_slab>(silicon<scalar>(),
+                                              1. * unit_constants::mm);
+    material_store.template add_value<e_slab>(silicon<scalar>(),
+                                              2. * unit_constants::mm);
+    material_store.template add_value<e_slab>(silicon<scalar>(),
+                                              3. * unit_constants::mm);
+
     // The surfaces and their store
-    const surface_t rectangle_surface(0u, {e_rectangle2, 0}, 0, 0, false);
-    const surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, 0, 1, false);
-    const surface_t annulus_surface(2u, {e_annulus2, 0}, 0, 2, false);
+    const surface_t rectangle_surface(0u, {e_rectangle2, 0}, {e_slab, 0}, 0, 0,
+                                      false);
+    const surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, {e_slab, 1}, 0, 1,
+                                      false);
+    const surface_t annulus_surface(2u, {e_annulus2, 0}, {e_slab, 2}, 0, 2,
+                                    false);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
 
@@ -128,7 +154,6 @@ TEST(tools, intersection_kernel_ray) {
 
 /// Re-use the intersection kernel test for particle gun
 TEST(tools, intersection_kernel_helix) {
-
     using vector3 = __plugin::vector3<scalar>;
     using point3 = __plugin::point3<scalar>;
 
@@ -138,6 +163,10 @@ TEST(tools, intersection_kernel_helix) {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
         e_annulus2 = 2,
+    };
+
+    enum material_ids : unsigned int {
+        e_slab = 0,
     };
 
     /// Surface components:
@@ -150,12 +179,18 @@ TEST(tools, intersection_kernel_helix) {
         trapezoid2<__plugin::cartesian2<detray::scalar>, edge_t>;
     using annulus_t = annulus2<__plugin::cartesian2<detray::scalar>, edge_t>;
     using mask_defs =
-        mask_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
-    using mask_container_t = typename mask_defs::template mask_store_type<>;
+        tuple_vector_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
+    using mask_container_t = typename mask_defs::template store_type<>;
+
+    // Materials with a slab
+    using material_defs =
+        tuple_vector_registry<material_ids, material_slab<scalar>>;
+    using material_container_t = typename material_defs::store_type<>;
 
     /// The Surface definition:
     /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t = surface<mask_defs, dindex, dindex, source_link_t>;
+    using surface_t =
+        surface<mask_defs, material_defs, dindex, dindex, source_link_t>;
     using surface_container_t = dvector<surface_t>;
 
     // The transforms & their store
@@ -171,10 +206,22 @@ TEST(tools, intersection_kernel_helix) {
     mask_store.template add_value<e_trapezoid2>(10., 20., 30., 0);
     mask_store.template add_value<e_annulus2>(15., 55., 0.75, 1.95, 2., -2., 0.,
                                               0);
+    // Materials and their store
+    material_container_t material_store(host_mr);
+    material_store.template add_value<e_slab>(silicon<scalar>(),
+                                              1. * unit_constants::mm);
+    material_store.template add_value<e_slab>(silicon<scalar>(),
+                                              2. * unit_constants::mm);
+    material_store.template add_value<e_slab>(silicon<scalar>(),
+                                              3. * unit_constants::mm);
+
     // The surfaces and their store
-    const surface_t rectangle_surface(0u, {e_rectangle2, 0}, 0, 0, false);
-    const surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, 0, 1, false);
-    const surface_t annulus_surface(2u, {e_annulus2, 0}, 0, 2, false);
+    const surface_t rectangle_surface(0u, {e_rectangle2, 0}, {e_slab, 0}, 0, 0,
+                                      false);
+    const surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, {e_slab, 1}, 0, 1,
+                                      false);
+    const surface_t annulus_surface(2u, {e_annulus2, 0}, {e_slab, 2}, 0, 2,
+                                    false);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
     const point3 pos{0., 0., 0.};

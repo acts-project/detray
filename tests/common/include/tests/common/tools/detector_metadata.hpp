@@ -75,7 +75,8 @@ struct full_metadata {
 
     // How to store and link masks
     using mask_definitions =
-        mask_registry<mask_ids, rectangle, trapezoid, annulus, cylinder, disc>;
+        tuple_vector_registry<mask_ids, rectangle, trapezoid, annulus, cylinder,
+                              disc>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -85,7 +86,7 @@ struct full_metadata {
     };
 
     // How to store and link materials
-    using material_definitions = material_registry<material_ids, slab, rod>;
+    using material_definitions = tuple_vector_registry<material_ids, slab, rod>;
 
     // Accelerator types
     template <template <typename, std::size_t> class array_t = darray,
@@ -133,7 +134,7 @@ struct toy_metadata {
 
     // How to store and link masks
     using mask_definitions =
-        mask_registry<mask_ids, rectangle, trapezoid, cylinder, disc>;
+        tuple_vector_registry<mask_ids, rectangle, trapezoid, cylinder, disc>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -142,7 +143,7 @@ struct toy_metadata {
     };
 
     // How to store and link materials
-    using material_definitions = material_registry<material_ids, slab>;
+    using material_definitions = tuple_vector_registry<material_ids, slab>;
 
     // Accelerator types
     template <template <typename, std::size_t> class array_t = darray,
@@ -187,7 +188,7 @@ struct telescope_metadata {
 
     // How to store and link masks
     using mask_definitions =
-        mask_registry<mask_ids, rectangle, unbounded_plane>;
+        tuple_vector_registry<mask_ids, rectangle, unbounded_plane>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -196,7 +197,7 @@ struct telescope_metadata {
     };
 
     // How to store and link materials
-    using material_definitions = material_registry<material_ids, slab>;
+    using material_definitions = tuple_vector_registry<material_ids, slab>;
 
     // Accelerator types (are not used)
     template <template <typename, std::size_t> class array_t = darray,

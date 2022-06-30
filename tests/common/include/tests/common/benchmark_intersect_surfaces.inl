@@ -11,6 +11,7 @@
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/materials/material_slab.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
@@ -34,9 +35,18 @@ enum mask_ids : unsigned int {
     e_conc_cylinder3 = 2,
 };
 
-using mask_defs = mask_registry<mask_ids, rectangle2<>, cylinder3<>,
-                                cylinder3<concentric_cylinder_intersector>>;
-using plane_surface = surface<mask_defs, transform3>;
+enum material_ids : unsigned int {
+    e_slab = 0,
+};
+
+using mask_defs =
+    tuple_vector_registry<mask_ids, rectangle2<>, cylinder3<>,
+                          cylinder3<concentric_cylinder_intersector>>;
+
+using material_defs =
+    tuple_vector_registry<material_ids, material_slab<scalar>>;
+
+using plane_surface = surface<mask_defs, material_defs, transform3>;
 
 unsigned int theta_steps = 1000;
 unsigned int phi_steps = 1000;
@@ -102,7 +112,9 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
     }
 
     typename mask_defs::link_type mask_link{e_cylinder3, 0};
-    plane_surface plain(transform3(), mask_link, 0, false, false);
+    typename material_defs::link_type material_link{e_slab, 0};
+    plane_surface plain(transform3(), mask_link, material_link, 0, false,
+                        false);
 
     const point3 ori = {0., 0., 0.};
 
@@ -167,7 +179,9 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     }
 
     typename mask_defs::link_type mask_link{e_conc_cylinder3, 0};
-    plane_surface plain(transform3(), mask_link, 0, false, false);
+    typename material_defs::link_type material_link{e_slab, 0};
+    plane_surface plain(transform3(), mask_link, material_link, 0, false,
+                        false);
 
     const point3 ori = {0., 0., 0.};
 

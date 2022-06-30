@@ -252,6 +252,7 @@ void connect_cylindrical_volumes(
 
                 // Get the mask context group and fill it
                 constexpr auto disc_id = detector_t::masks::id::e_portal_ring2;
+                constexpr auto slab_id = detector_t::materials::id::e_slab;
                 auto &disc_portal_transforms =
                     std::get<disc_id>(portal_transforms);
                 auto &disc_portals = std::get<disc_id>(portals);
@@ -268,10 +269,15 @@ void connect_cylindrical_volumes(
                     mask_index = {disc_id,
                                   portal_masks.template size<disc_id>()};
 
+                    // Dummy material
+                    typename portal_t::material_link material_index = {slab_id,
+                                                                       0};
+
                     // Save the data
                     disc_portals.emplace_back(
                         disc_portal_transforms.size(default_context),
-                        mask_index, volume.index(), pt_source, is_portal);
+                        mask_index, material_index, volume.index(), pt_source,
+                        is_portal);
                 }
                 disc_portal_transforms.emplace_back(default_context,
                                                     _translation);
@@ -300,6 +306,8 @@ void connect_cylindrical_volumes(
 
                 typename portal_t::mask_link mask_index = {
                     cylinder_id, portal_masks.template size<cylinder_id>()};
+                constexpr auto slab_id = detector_t::materials::id::e_slab;
+
                 for (auto &info_ : portals_info) {
                     // Add new mask to container
                     edge_t edge{std::get<1>(info_), dindex_invalid};
@@ -312,10 +320,15 @@ void connect_cylindrical_volumes(
                     mask_index = {cylinder_id,
                                   portal_masks.template size<cylinder_id>()};
 
+                    // Dummy material
+                    typename portal_t::material_link material_index = {slab_id,
+                                                                       0};
+
                     // Create the portal
                     cylinder_portals.emplace_back(
                         cylinder_portal_transforms.size(default_context),
-                        mask_index, volume.index(), pt_source, is_portal);
+                        mask_index, material_index, volume.index(), pt_source,
+                        is_portal);
                 }
                 // This will be concentric targetted at nominal center
                 cylinder_portal_transforms.emplace_back(default_context);

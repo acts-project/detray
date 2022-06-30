@@ -5,13 +5,16 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/masks/rectangle2.hpp"
+#include "detray/materials/material_slab.hpp"
 #include "detray/propagator/track.hpp"
+
+// Google Test include(s)
+#include <gtest/gtest.h>
 
 using namespace detray;
 using vector2 = __plugin::vector2<scalar>;
@@ -24,16 +27,22 @@ enum mask_ids : unsigned int {
     e_rectangle2 = 0,
 };
 
-using mask_defs = mask_registry<mask_ids, rectangle2<>>;
+enum material_ids : unsigned int {
+    e_slab = 0,
+};
+
+using mask_defs = tuple_vector_registry<mask_ids, rectangle2<>>;
+using material_defs =
+    tuple_vector_registry<material_ids, material_slab<scalar>>;
 
 TEST(tools, bound_track_parameters) {
 
     // surface container
-    std::vector<surface<mask_defs>> surfaces;
-    surfaces.emplace_back(0, mask_defs::link_type{e_rectangle2, 0}, 0, 0,
-                          false);
-    surfaces.emplace_back(1, mask_defs::link_type{e_rectangle2, 0}, 0, 0,
-                          false);
+    std::vector<surface<mask_defs, material_defs>> surfaces;
+    surfaces.emplace_back(0, mask_defs::link_type{e_rectangle2, 0},
+                          material_defs::link_type{e_slab, 0}, 0, 0, false);
+    surfaces.emplace_back(1, mask_defs::link_type{e_rectangle2, 0},
+                          material_defs::link_type{e_slab, 0}, 0, 0, false);
 
     // transform container
     static_transform_store trfs;
