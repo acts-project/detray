@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "*.sycl": "cpp",
-        "type_traits": "cpp"
-    }
-}
