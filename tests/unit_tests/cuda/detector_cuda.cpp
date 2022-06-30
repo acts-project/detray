@@ -5,16 +5,20 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <climits>
-#include <iostream>
-#include <vecmem/memory/cuda/device_memory_resource.hpp>
-#include <vecmem/memory/cuda/managed_memory_resource.hpp>
-
+// Project include(s)
 #include "detector_cuda_kernel.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/cuda/device_memory_resource.hpp>
+#include <vecmem/memory/cuda/managed_memory_resource.hpp>
+
+// Google Test include(s)
+#include <gtest/gtest.h>
+
+// System include(s)
+#include <climits>
 
 using namespace detray;
 
@@ -99,7 +103,7 @@ TEST(detector_cuda, detector) {
 TEST(detector_cuda, enumerate) {
 
     // Helper object for performing memory copies.
-    vecmem::cuda::copy copy;
+    vecmem::copy copy;
 
     // memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
@@ -118,8 +122,7 @@ TEST(detector_cuda, enumerate) {
 
     for (unsigned int i = 0; i < volumes.size(); i++) {
         for (const auto [obj_idx, obj] :
-             enumerate(detector.surfaces(), volumes[i])) {
-
+             enumerate(detector.surfaces(), detector.volume_by_index(i))) {
             surfaces_host[i].push_back(obj);
         }
     }
@@ -132,7 +135,7 @@ TEST(detector_cuda, enumerate) {
     std::vector<std::size_t> sizes(surfaces_host.size(), 0);
 
     vecmem::data::jagged_vector_buffer<surface_t> surfaces_buffer(
-        sizes, capacities, dev_mr, &mng_mr);
+        sizes, capacities, mng_mr);
 
     // copy setup for surfaces buffer
     copy.setup(surfaces_buffer);
