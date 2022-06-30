@@ -115,7 +115,7 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
                              mask_container_t &masks,
                              material_container_t &materials,
                              transform_container_t &transforms, config_t &cfg) {
-    using surface_type = typename surface_container_t::value_type::value_type;
+    using surface_type = typename surface_container_t::value_type;
     using edge_t = typename surface_type::edge_type;
     using mask_link_type = typename surface_type::mask_link;
     using material_defs = typename surface_type::material_defs;
@@ -136,10 +136,10 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
         mask_link_type mask_link{mask_id, masks.template size<mask_id>()};
         material_link_type material_link{slab_id,
                                          materials.template size<slab_id>()};
-        const auto trf_index = transforms[mask_id].size(ctx);
-        surfaces[mask_id].emplace_back(trf_index, mask_link, material_link,
-                                       volume_id, dindex_invalid, false);
-        surfaces[mask_id].back().set_grid_status(false);
+        const auto trf_index = transforms.size(ctx);
+        surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
+                              dindex_invalid, false);
+        surfaces.back().set_grid_status(false);
 
         // The last surface acts as portal that leaves the telescope
         if (m_placement == m_placements.back()) {
@@ -180,8 +180,7 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
         vector3 m_local_x = algebra::vector::normalize(e_i - proj);
 
         // Create the global-to-local transform of the module
-        transforms[mask_id].emplace_back(ctx, m_placement._pos, m_local_z,
-                                         m_local_x);
+        transforms.emplace_back(ctx, m_placement._pos, m_local_z, m_local_x);
     }
 }
 
@@ -278,10 +277,10 @@ auto create_telescope_detector(
     typename detector_t::volume_type &vol = det.volume_by_index(0);
 
     // Add module surfaces to volume
-    typename detector_t::surface_filling_container surfaces = {};
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks = {resource};
     typename detector_t::material_container materials = {resource};
-    typename detector_t::transform_filling_container transforms = {resource};
+    typename detector_t::transform_container transforms = {resource};
 
     if constexpr (unbounded_planes) {
         create_telescope<telescope_types::mask_ids::e_unbounded_plane2>(
@@ -293,7 +292,8 @@ auto create_telescope_detector(
             pl_config);
     }
 
-    det.add_objects(ctx, vol, surfaces, masks, transforms);
+    det.add_objects_per_volume(ctx, vol, surfaces, masks, materials,
+                               transforms);
 
     return det;
 }

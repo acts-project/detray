@@ -103,5 +103,5 @@ TEST(detector, detector_kernel) {
     detector_t d(host_mr);
 
     auto &v = d.new_volume({0., 10., -5., 5., -M_PI, M_PI});
-    d.add_objects_per_volume(ctx0, v, surfaces, trfs, masks, materials);
+    d.add_objects_per_volume(ctx0, v, surfaces, masks, materials, trfs);
 }

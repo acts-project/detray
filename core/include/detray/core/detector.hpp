@@ -348,9 +348,9 @@ class detector {
 
     DETRAY_HOST inline void add_objects_per_volume(
         const context ctx, volume_type &vol,
-        surface_container &surfaces_per_vol, transform_container &trfs_per_vol,
-        mask_container &masks_per_vol,
-        material_container &materials_per_vol) noexcept(false) {
+        surface_container &surfaces_per_vol, mask_container &masks_per_vol,
+        material_container &materials_per_vol,
+        transform_container &trfs_per_vol) noexcept(false) {
 
         // Append transforms
         _transforms.append(ctx, std::move(trfs_per_vol));
