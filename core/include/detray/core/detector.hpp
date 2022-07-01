@@ -92,16 +92,6 @@ class detector {
     // Volume type
     using volume_type = volume<objects, scalar_type, dindex_range, array_t>;
 
-    /** Temporary container structures that are used to fill the detector.
-     * The respective objects are sorted by mask type, so that they can be
-     * unrolled and filled in lockstep with the masks
-     */
-    // TODO: Move to volume builder in the future
-    using surface_filling_container =
-        array_t<vector_t<surface_type>, masks::n_types>;
-    using transform_filling_container =
-        array_t<transform_container, masks::n_types>;
-
     /// Accelerator structures
 
     /// Volume finder definition
@@ -292,25 +282,6 @@ class detector {
         return data_core{_volumes, _transforms, _masks, _surfaces};
     }
 
-    /** Add a new full set of detector components (e.g. transforms or volumes)
-     *  according to given context.
-     *
-     * @tparam detector_components types of detector components
-     * @tparam object_type check whether we deal with e.g. surfaces or portals
-     *
-     * @param ctx The context of the call
-     * @param components The components to be added
-     *
-     * @note can throw an exception if input data is inconsistent
-     */
-    template <typename... detector_components>
-    DETRAY_HOST inline void add_objects(
-        const context ctx,
-        detector_components &&... components) noexcept(false) {
-        // Fill according to type, starting at type '0' (see 'masks')
-        fill_containers(ctx, std::forward<detector_components>(components)...);
-    }
-
     template <typename grid_type>
     DETRAY_HOST inline void add_surfaces_grid(const context ctx,
                                               volume_type &vol,
@@ -380,78 +351,6 @@ class detector {
         // Update max objects per volume
         _n_max_objects_per_volume =
             std::max(_n_max_objects_per_volume, vol.n_objects());
-    }
-
-    /** Unrolls the data containers according to the mask type and fill the
-     *  global containers. It registers the indexing in the geometry.
-     *
-     * @tparam current_type the current mask context to be processed
-     * @tparam surface_container surfaces/portals for which the links are
-     * updated
-     * @tparam mask_container surface/portal masks, sorted by type
-     * @tparam object_type check whether we deal with surfaces or portals
-     *
-     * @param volume The volume we add the transforms to
-     * @param objects The geometry objects in the volume
-     * @param trfs The transforms
-     * @param ctx The context of the call
-     *
-     * @note can throw an exception if input data is inconsistent
-     */
-    template <unsigned int current_type = 0, typename surface_container>
-    DETRAY_HOST inline void fill_containers(
-        const context ctx, volume_type &volume, surface_container &surfaces,
-        mask_container &msks,
-        transform_filling_container &trfs) noexcept(false) {
-
-        // Get the surfaces/portals for a mask type
-        auto &typed_surfaces = surfaces[current_type];
-        // Get the corresponding transforms
-        const auto &object_transforms = trfs[current_type];
-        // and the corresponding masks
-        auto &object_masks =
-            msks.template group<mask_container::to_id(current_type)>();
-
-        if (not object_transforms.empty(ctx) and not typed_surfaces.empty()) {
-            // Current offsets into detectors containers
-            const auto trsf_offset = _transforms.size(ctx);
-            const auto mask_offset =
-                _masks.template size<mask_container::to_id(current_type)>();
-
-            // Fill the correct mask type
-            _masks.add_vector(object_masks);
-            _transforms.append(ctx, std::move(std::get<current_type>(trfs)));
-
-            // Update the surfaces mask link
-            for (auto &obj : typed_surfaces) {
-                obj.update_mask(mask_offset);
-                obj.update_transform(trsf_offset);
-            }
-
-            // Now put the updated objects into the geometry
-            const auto offset = _surfaces.size();
-            _surfaces.reserve(_surfaces.size() + typed_surfaces.size());
-            _surfaces.insert(_surfaces.end(), typed_surfaces.begin(),
-                             typed_surfaces.end());
-
-            volume.update_range({offset, _surfaces.size()});
-        }
-
-        // Next mask type
-        if constexpr (current_type <
-                      std::tuple_size_v<
-                          typename mask_container::container_type> -
-                          1) {
-            return fill_containers<current_type + 1, surface_container>(
-                ctx, volume, surfaces, msks, trfs);
-        }
-        // update n_max_objects_per_volume
-        else {
-            _n_max_objects_per_volume =
-                std::max(_n_max_objects_per_volume, volume.n_objects());
-        }
-
-        // If no mask type fits, don't fill the data.
     }
 
     /** Add the volume grid - move semantics
