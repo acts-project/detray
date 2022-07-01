@@ -214,7 +214,7 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto &material_store() const { return _materials; }
 
-    /** @return all surface/portal masks in the geometry - non-const access */
+    /** @return all materials in the geometry - non-const access */
     DETRAY_HOST_DEVICE
     inline auto &material_store() { return _materials; }
 
