@@ -7,9 +7,12 @@
 
 #pragma once
 
-#include <vecmem/memory/host_memory_resource.hpp>
-
+// Project include(s)
 #include "detray/definitions/detail/accessor.hpp"
+#include "detray/materials/predefined_materials.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
 
 namespace detray {
 /// Connector method for cylindrical volumes without phi separation
@@ -222,10 +225,12 @@ void connect_cylindrical_volumes(
         // Walk up from the bottom right corner
         walk_up(bottom_right, right_portals_info, false, 1);
 
-        typename detector_t::surface_filling_container portals = {};
+        typename detector_t::surface_container portals = {};
         vecmem::host_memory_resource local_mask_resource;
         typename detector_t::mask_container portal_masks(local_mask_resource);
-        typename detector_t::transform_filling_container portal_transforms;
+        typename detector_t::material_container portal_materials(
+            local_mask_resource);
+        typename detector_t::transform_container portal_transforms;
 
         // The bounds can be used for the mask and transform information
         const auto &volume_bounds = volume.bounds();
@@ -253,12 +258,11 @@ void connect_cylindrical_volumes(
                 // Get the mask context group and fill it
                 constexpr auto disc_id = detector_t::masks::id::e_portal_ring2;
                 constexpr auto slab_id = detector_t::materials::id::e_slab;
-                auto &disc_portal_transforms =
-                    std::get<disc_id>(portal_transforms);
-                auto &disc_portals = std::get<disc_id>(portals);
-
                 typename portal_t::mask_link mask_index = {
                     disc_id, portal_masks.template size<disc_id>()};
+                typename portal_t::material_link material_index = {
+                    slab_id, portal_materials.template size<slab_id>()};
+
                 // Create a stub mask for every unique index
                 for (auto &info_ : portals_info) {
                     // Add new mask to container
@@ -270,17 +274,17 @@ void connect_cylindrical_volumes(
                                   portal_masks.template size<disc_id>()};
 
                     // Dummy material
-                    typename portal_t::material_link material_index = {slab_id,
-                                                                       0};
+                    portal_materials.template add_value<slab_id>(
+                        vacuum<scalar>(), 0.);
+                    material_index = {
+                        slab_id, portal_materials.template size<slab_id>()};
 
                     // Save the data
-                    disc_portals.emplace_back(
-                        disc_portal_transforms.size(default_context),
-                        mask_index, material_index, volume.index(), pt_source,
-                        is_portal);
+                    portals.emplace_back(
+                        portal_transforms.size(default_context), mask_index,
+                        material_index, volume.index(), pt_source, is_portal);
                 }
-                disc_portal_transforms.emplace_back(default_context,
-                                                    _translation);
+                portal_transforms.emplace_back(default_context, _translation);
             }
         };
 
@@ -300,10 +304,6 @@ void connect_cylindrical_volumes(
                 // Get the mask context group and fill it
                 constexpr auto cylinder_id =
                     detector_t::masks::id::e_portal_cylinder3;
-                auto &cylinder_portal_transforms =
-                    std::get<cylinder_id>(portal_transforms);
-                auto &cylinder_portals = std::get<cylinder_id>(portals);
-
                 typename portal_t::mask_link mask_index = {
                     cylinder_id, portal_masks.template size<cylinder_id>()};
                 constexpr auto slab_id = detector_t::materials::id::e_slab;
@@ -325,13 +325,12 @@ void connect_cylindrical_volumes(
                                                                        0};
 
                     // Create the portal
-                    cylinder_portals.emplace_back(
-                        cylinder_portal_transforms.size(default_context),
-                        mask_index, material_index, volume.index(), pt_source,
-                        is_portal);
+                    portals.emplace_back(
+                        portal_transforms.size(default_context), mask_index,
+                        material_index, volume.index(), pt_source, is_portal);
                 }
                 // This will be concentric targetted at nominal center
-                cylinder_portal_transforms.emplace_back(default_context);
+                portal_transforms.emplace_back(default_context);
             }
         };
 
@@ -342,8 +341,8 @@ void connect_cylindrical_volumes(
         add_cylinder_portal(lower_portals_info, 0);
 
         // Add portals to detector
-        d.add_objects(default_context, volume, portals, portal_masks,
-                      portal_transforms);
+        d.add_objects_per_volume(default_context, volume, portals, portal_masks,
+                                 portal_materials, portal_transforms);
     }
 }
 }  // namespace detray
