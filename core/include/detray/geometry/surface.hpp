@@ -16,8 +16,9 @@ namespace detray {
 
 /** Templated surface class for detector surfaces and portals
  *
+ * @tparam mask_registry_t the type of the mask link representation
+ * @tparam material_registry_t the type of the material link representation
  * @tparam transform_link_t the type of the transform link representation
- * @tparam mask_link_t the type of the mask link representation
  * @tparam volume_link_t the typ eof the volume link representation
  * @tparam source_link_t the type of the source link representation
  */
@@ -136,7 +137,7 @@ class surface {
     DETRAY_HOST_DEVICE
     const auto &mask_range() const { return detail::get<1>(_mask); }
 
-    /// Update the mask link
+    /// Update the material link
     ///
     /// @param offset update the position when move into new collection
     DETRAY_HOST

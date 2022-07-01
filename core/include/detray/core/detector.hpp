@@ -317,6 +317,17 @@ class detector {
         vol.set_surfaces_finder(n_grids);
     }
 
+    /// Add a new full set of detector components (e.g. transforms or volumes)
+    ///  according to given context.
+    ///
+    /// @param ctx is the context of the call
+    /// @param vol is the target volume
+    /// @param surfaces_per_vol is the surface vector per volume
+    /// @param masks_per_vol is the mask container per volume
+    /// @param materials_per_vol is the material container per volume
+    /// @param trfs_per_vol is the transform vector per volume
+    ///
+    /// @note can throw an exception if input data is inconsistent
     DETRAY_HOST inline void add_objects_per_volume(
         const context ctx, volume_type &vol,
         surface_container &surfaces_per_vol, mask_container &masks_per_vol,
