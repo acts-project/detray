@@ -30,6 +30,15 @@ struct material_slab {
           m_thickness_in_X0(thickness / material.X0()),
           m_thickness_in_L0(thickness / material.L0()) {}
 
+    /// Equality operator
+    ///
+    /// @param rhs is the right hand side to be compared to
+    DETRAY_HOST_DEVICE
+    bool operator==(const material_slab<scalar_t>& rhs) const {
+        return (m_material == rhs.get_material() &&
+                m_thickness == rhs.thickness());
+    }
+
     /// Access the (average) material parameters.
     DETRAY_HOST_DEVICE
     constexpr const material_type& get_material() const { return m_material; }

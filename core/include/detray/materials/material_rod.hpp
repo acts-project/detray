@@ -25,6 +25,15 @@ struct material_rod {
                  scalar_type inner_r = 0)
         : m_material(material), m_outer_r(outer_r), m_inner_r(inner_r) {}
 
+    /// Equality operator
+    ///
+    /// @param rhs is the right hand side to be compared to
+    DETRAY_HOST_DEVICE
+    bool operator==(const material_rod<scalar_t>& rhs) const {
+        return (m_material == rhs.get_material() &&
+                m_outer_r == rhs.outer_r() && m_inner_r == rhs.inner_r());
+    }
+
     /// Access the (average) material parameters.
     DETRAY_HOST_DEVICE
     constexpr const material_type& get_material() const { return m_material; }

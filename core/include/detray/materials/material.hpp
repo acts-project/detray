@@ -31,6 +31,16 @@ struct material {
         m_molar_rho = mass_to_molar_density(ar, mass_rho);
     }
 
+    /** Equality operator
+     *
+     * @param rhs is the right hand side to be compared to
+     */
+    DETRAY_HOST_DEVICE
+    bool operator==(const material<scalar_t> &rhs) const {
+        return (m_x0 == rhs.X0() && m_l0 == rhs.L0() && m_ar == rhs.Ar() &&
+                m_z == rhs.Z());
+    }
+
     /// Return the radition length. Infinity in case of vacuum.
     DETRAY_HOST_DEVICE
     constexpr scalar_type X0() const { return m_x0; }
