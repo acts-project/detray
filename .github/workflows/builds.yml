@@ -24,6 +24,7 @@ jobs:
 
     # The system to run on.
     runs-on: ${{ matrix.PLATFORM.OS }}
+    name: "${{ matrix.name }} (${{ matrix.PLATFORM.OS }})"
 
     # The build/test steps to execute.
     steps:
@@ -57,7 +58,7 @@ jobs:
     # The system to run on.
     runs-on: ubuntu-latest
     container: ${{ matrix.PLATFORM.CONTAINER }}
-    name: ${{ matrix.name }}
+    name: "${{ matrix.name }} (${{ matrix.PLATFORM.NAME }})"
 
     # Use BASH as the shell from the image.
     defaults:
@@ -110,7 +111,7 @@ jobs:
     # The system to run on.
     runs-on: ubuntu-latest
     container: ${{ matrix.PLATFORM.CONTAINER }}
-    name: ${{ matrix.name }}
+    name: "${{ matrix.name }} (${{ matrix.PLATFORM.NAME }})"
 
     # Use BASH as the shell from the image.
     defaults:
