@@ -51,12 +51,13 @@ jobs:
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "HOST"
-            CONTAINER: "ubuntu2004"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2004:v26"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
 
     # The system to run on.
     runs-on: ubuntu-latest
-    container: ghcr.io/acts-project/${{ matrix.PLATFORM.CONTAINER }}:v26
+    container: ${{ matrix.PLATFORM.CONTAINER }}
+    name: ${{ matrix.name }}
 
     # Use BASH as the shell from the image.
     defaults:
@@ -100,15 +101,16 @@ jobs:
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "CUDA"
-            CONTAINER: "ubuntu2004_cuda"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2004_cuda:v26"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
           - NAME: "SYCL"
-            CONTAINER: "ubuntu2004_oneapi"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2004_oneapi:v26"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
 
     # The system to run on.
     runs-on: ubuntu-latest
-    container: ghcr.io/acts-project/${{ matrix.PLATFORM.CONTAINER }}:v26
+    container: ${{ matrix.PLATFORM.CONTAINER }}
+    name: ${{ matrix.name }}
 
     # Use BASH as the shell from the image.
     defaults:
