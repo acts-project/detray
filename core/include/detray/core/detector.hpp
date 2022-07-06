@@ -204,7 +204,7 @@ class detector {
 
     /** @return all surface/portal masks in the geometry - const access */
     DETRAY_HOST_DEVICE
-    inline auto &mask_store() const { return _masks; }
+    inline const auto &mask_store() const { return _masks; }
 
     /** @return all surface/portal masks in the geometry - non-const access */
     DETRAY_HOST_DEVICE
@@ -212,7 +212,7 @@ class detector {
 
     /** @return all materials in the geometry - const access */
     DETRAY_HOST_DEVICE
-    inline auto &material_store() const { return _materials; }
+    inline const auto &material_store() const { return _materials; }
 
     /** @return all materials in the geometry - non-const access */
     DETRAY_HOST_DEVICE
