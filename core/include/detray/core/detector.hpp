@@ -4,14 +4,12 @@
  *
  * Mozilla Public License Version 2.0
  */
+
 #pragma once
 
-#include <map>
-#include <sstream>
-#include <string>
-#include <vecmem/memory/memory_resource.hpp>
-
-#include "detray/core/mask_store.hpp"
+// Project include(s)
+#include "detray/core/detail/tuple_vector_container.hpp"
+#include "detray/core/detector_kernel.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/definitions/detail/accessor.hpp"
@@ -23,6 +21,14 @@
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/intersection/intersection.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/memory_resource.hpp>
+
+// System include(s)
+#include <map>
+#include <sstream>
+#include <string>
 
 namespace detray {
 
@@ -68,28 +74,23 @@ class detector {
     /// Forward mask types
     using masks = typename metadata::mask_definitions;
     using mask_container =
-        typename masks::template mask_store_type<tuple_t, vector_t>;
+        typename masks::template store_type<tuple_t, vector_t>;
+
+    /// Forward material types
+    using materials = typename metadata::material_definitions;
+    using material_container =
+        typename materials::template store_type<tuple_t, vector_t>;
 
     /// volume index: volume the surface belongs to
     using volume_link = dindex;
     using surface_type =
-        surface<masks, transform_link, volume_link, source_link>;
+        surface<masks, materials, transform_link, volume_link, source_link>;
 
     using objects =
         typename metadata::template object_definitions<surface_type>;
     using surface_container = vector_t<surface_type>;
     // Volume type
     using volume_type = volume<objects, scalar_type, dindex_range, array_t>;
-
-    /** Temporary container structures that are used to fill the detector.
-     * The respective objects are sorted by mask type, so that they can be
-     * unrolled and filled in lockstep with the masks
-     */
-    // TODO: Move to volume builder in the future
-    using surface_filling_container =
-        array_t<vector_t<surface_type>, masks::n_types>;
-    using transform_filling_container =
-        array_t<transform_container, masks::n_types>;
 
     /// Accelerator structures
 
@@ -115,6 +116,7 @@ class detector {
           _surfaces(&resource),
           _transforms(resource),
           _masks(resource),
+          _materials(resource),
           _volume_finder(
               std::move(typename volume_finder::axis_p0_type{resource}),
               std::move(typename volume_finder::axis_p1_type{resource}),
@@ -132,6 +134,7 @@ class detector {
           _surfaces(det_data._surfaces_data),
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
+          _materials(det_data._materials_data),
           _volume_finder(det_data._volume_finder_view),
           _surfaces_finder(det_data._surfaces_finder_view) {}
 
@@ -201,11 +204,19 @@ class detector {
 
     /** @return all surface/portal masks in the geometry - const access */
     DETRAY_HOST_DEVICE
-    inline auto &mask_store() const { return _masks; }
+    inline const auto &mask_store() const { return _masks; }
 
     /** @return all surface/portal masks in the geometry - non-const access */
     DETRAY_HOST_DEVICE
     inline auto &mask_store() { return _masks; }
+
+    /** @return all materials in the geometry - const access */
+    DETRAY_HOST_DEVICE
+    inline const auto &material_store() const { return _materials; }
+
+    /** @return all materials in the geometry - non-const access */
+    DETRAY_HOST_DEVICE
+    inline auto &material_store() { return _materials; }
 
     /** Add pre-built mask store
      *
@@ -271,25 +282,6 @@ class detector {
         return data_core{_volumes, _transforms, _masks, _surfaces};
     }
 
-    /** Add a new full set of detector components (e.g. transforms or volumes)
-     *  according to given context.
-     *
-     * @tparam detector_components types of detector components
-     * @tparam object_type check whether we deal with e.g. surfaces or portals
-     *
-     * @param ctx The context of the call
-     * @param components The components to be added
-     *
-     * @note can throw an exception if input data is inconsistent
-     */
-    template <typename... detector_components>
-    DETRAY_HOST inline void add_objects(
-        const context ctx,
-        detector_components &&... components) noexcept(false) {
-        // Fill according to type, starting at type '0' (see 'masks')
-        fill_containers(ctx, std::forward<detector_components>(components)...);
-    }
-
     template <typename grid_type>
     DETRAY_HOST inline void add_surfaces_grid(const context ctx,
                                               volume_type &vol,
@@ -325,76 +317,51 @@ class detector {
         vol.set_surfaces_finder(n_grids);
     }
 
-    /** Unrolls the data containers according to the mask type and fill the
-     *  global containers. It registers the indexing in the geometry.
-     *
-     * @tparam current_type the current mask context to be processed
-     * @tparam surface_container surfaces/portals for which the links are
-     * updated
-     * @tparam mask_container surface/portal masks, sorted by type
-     * @tparam object_type check whether we deal with surfaces or portals
-     *
-     * @param volume The volume we add the transforms to
-     * @param objects The geometry objects in the volume
-     * @param trfs The transforms
-     * @param ctx The context of the call
-     *
-     * @note can throw an exception if input data is inconsistent
-     */
-    template <unsigned int current_type = 0, typename surface_container>
-    DETRAY_HOST inline void fill_containers(
-        const context ctx, volume_type &volume, surface_container &surfaces,
-        mask_container &msks,
-        transform_filling_container &trfs) noexcept(false) {
+    /// Add a new full set of detector components (e.g. transforms or volumes)
+    ///  according to given context.
+    ///
+    /// @param ctx is the context of the call
+    /// @param vol is the target volume
+    /// @param surfaces_per_vol is the surface vector per volume
+    /// @param masks_per_vol is the mask container per volume
+    /// @param materials_per_vol is the material container per volume
+    /// @param trfs_per_vol is the transform vector per volume
+    ///
+    /// @note can throw an exception if input data is inconsistent
+    DETRAY_HOST inline void add_objects_per_volume(
+        const context ctx, volume_type &vol,
+        surface_container &surfaces_per_vol, mask_container &masks_per_vol,
+        material_container &materials_per_vol,
+        transform_container &trfs_per_vol) noexcept(false) {
 
-        // Get the surfaces/portals for a mask type
-        auto &typed_surfaces = surfaces[current_type];
-        // Get the corresponding transforms
-        const auto &object_transforms = trfs[current_type];
-        // and the corresponding masks
-        auto &object_masks =
-            msks.template group<mask_container::to_id(current_type)>();
+        // Append transforms
+        const auto trf_offset = _transforms.size(ctx);
+        _transforms.append(ctx, std::move(trfs_per_vol));
 
-        if (not object_transforms.empty(ctx) and not typed_surfaces.empty()) {
-            // Current offsets into detectors containers
-            const auto trsf_offset = _transforms.size(ctx);
-            const auto mask_offset =
-                _masks.template size<mask_container::to_id(current_type)>();
-
-            // Fill the correct mask type
-            _masks.add_vector(object_masks);
-            _transforms.append(ctx, std::move(std::get<current_type>(trfs)));
-
-            // Update the surfaces mask link
-            for (auto &obj : typed_surfaces) {
-                obj.update_mask(mask_offset);
-                obj.update_transform(trsf_offset);
-            }
-
-            // Now put the updated objects into the geometry
-            const auto offset = _surfaces.size();
-            _surfaces.reserve(_surfaces.size() + typed_surfaces.size());
-            _surfaces.insert(_surfaces.end(), typed_surfaces.begin(),
-                             typed_surfaces.end());
-
-            volume.update_range({offset, _surfaces.size()});
+        // Update mask, material and transform index of surfaces
+        for (auto &sf : surfaces_per_vol) {
+            _masks.template execute<mask_index_update>(sf.mask_type(), sf);
+            _materials.template execute<material_index_update>(
+                sf.material_type(), sf);
+            sf.update_transform(trf_offset);
         }
 
-        // Next mask type
-        if constexpr (current_type <
-                      std::tuple_size_v<
-                          typename mask_container::container_type> -
-                          1) {
-            return fill_containers<current_type + 1, surface_container>(
-                ctx, volume, surfaces, msks, trfs);
-        }
-        // update n_max_objects_per_volume
-        else {
-            _n_max_objects_per_volume =
-                std::max(_n_max_objects_per_volume, volume.n_objects());
-        }
+        // Append surfaces
+        const auto sf_offset = _surfaces.size();
+        _surfaces.reserve(sf_offset + surfaces_per_vol.size());
+        _surfaces.insert(_surfaces.end(), surfaces_per_vol.begin(),
+                         surfaces_per_vol.end());
 
-        // If no mask type fits, don't fill the data.
+        // Update the surface range per volume
+        vol.update_range({sf_offset, _surfaces.size()});
+
+        // Append mask and material container
+        _masks.append_container(masks_per_vol);
+        _materials.append_container(materials_per_vol);
+
+        // Update max objects per volume
+        _n_max_objects_per_volume =
+            std::max(_n_max_objects_per_volume, vol.n_objects());
     }
 
     /** Add the volume grid - move semantics
@@ -484,6 +451,9 @@ class detector {
     /** Surface and portal masks of the detector in contiguous memory */
     mask_container _masks;
 
+    /** Materials in contiguous memory */
+    material_container _materials;
+
     volume_finder _volume_finder;
 
     /* TODO: surfaces_finder needs to be refactored */
@@ -505,6 +475,7 @@ struct detector_data {
     using volume_t = typename detector_type::volume_type;
     using surface_t = typename detector_type::surface_type;
     using mask_container_t = typename detector_type::mask_container;
+    using material_container_t = typename detector_type::material_container;
     using transform_container_t = typename detector_type::transform_container;
     using volume_finder_t = typename detector_type::volume_finder;
     using surfaces_finder_t = typename detector_type::surfaces_finder_type;
@@ -513,6 +484,7 @@ struct detector_data {
         : _volumes_data(vecmem::get_data(det.volumes())),
           _surfaces_data(vecmem::get_data(det.surfaces())),
           _masks_data(get_data(det.mask_store())),
+          _materials_data(get_data(det.material_store())),
           _transforms_data(get_data(det.transform_store())),
           _volume_finder_data(
               get_data(det.volume_search_grid(), *det.resource())),
@@ -522,7 +494,8 @@ struct detector_data {
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
-    mask_store_data<mask_container_t> _masks_data;
+    tuple_vector_container_data<mask_container_t> _masks_data;
+    tuple_vector_container_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_data<volume_finder_t> _volume_finder_data;
     surfaces_finder_data<surfaces_finder_t> _surfaces_finder_data;
@@ -537,6 +510,7 @@ struct detector_view {
     using volume_t = typename detector_type::volume_type;
     using surface_t = typename detector_type::surface_type;
     using mask_container_t = typename detector_type::mask_container;
+    using material_container_t = typename detector_type::material_container;
     using transform_container_t = typename detector_type::transform_container;
     using volume_finder_t = typename detector_type::volume_finder;
     using surfaces_finder_t = typename detector_type::surfaces_finder_type;
@@ -545,6 +519,7 @@ struct detector_view {
         : _volumes_data(det_data._volumes_data),
           _surfaces_data(det_data._surfaces_data),
           _masks_data(det_data._masks_data),
+          _materials_data(det_data._materials_data),
           _transforms_data(det_data._transforms_data),
           _volume_finder_view(det_data._volume_finder_data),
           _surfaces_finder_view(det_data._surfaces_finder_data) {}
@@ -552,7 +527,8 @@ struct detector_view {
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
-    mask_store_data<mask_container_t> _masks_data;
+    tuple_vector_container_data<mask_container_t> _masks_data;
+    tuple_vector_container_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_view<volume_finder_t> _volume_finder_view;
     surfaces_finder_view<surfaces_finder_t> _surfaces_finder_view;

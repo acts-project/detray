@@ -7,12 +7,14 @@
 
 #pragma once
 
-#include <type_traits>
-#include <utility>
-
-#include "detray/core/mask_store.hpp"
+// Project include(s)
+#include "detray/core/detail/tuple_vector_container.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+
+// System include(s)
+#include <type_traits>
+#include <utility>
 
 namespace detray {
 
@@ -157,9 +159,9 @@ class object_registry
         typename type_registry::template get_type<type_id, tuple_t>;
 };
 
-/** Registry object for masks */
+/// Tuple vector container registry
 template <class ID, typename... registered_types>
-class mask_registry
+class tuple_vector_registry
     : public registry_base<
           ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
           registered_types...> {
@@ -180,8 +182,8 @@ class mask_registry
     // Cuda cannot handle ID non-types here, so leave it for now
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
-    using mask_store_type =
-        mask_store<tuple_t, vector_t, ID, registered_types...>;
+    using store_type =
+        tuple_vector_container<tuple_t, vector_t, ID, registered_types...>;
     using link_type = typed_index<ID, dindex>;
     using range_type = typed_index<ID, dindex_range>;
 

@@ -7,24 +7,36 @@
 
 #pragma once
 
-// Detray include(s)
+// Project include(s)
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/materials/material.hpp"
 
 namespace detray {
 
 // Rod structure to be mapped on the mask
-template <typename material_t>
+template <typename scalar_t>
 struct material_rod {
-    using material_type = material_t;
-    using scalar_type = typename material_t::scalar_type;
+    using scalar_type = scalar_t;
+    using material_type = material<scalar_t>;
 
-    material_rod(const material_t& material, scalar_type outer_r,
+    material_rod() = default;
+
+    material_rod(const material_type& material, scalar_type outer_r,
                  scalar_type inner_r = 0)
         : m_material(material), m_outer_r(outer_r), m_inner_r(inner_r) {}
 
+    /// Equality operator
+    ///
+    /// @param rhs is the right hand side to be compared to
+    DETRAY_HOST_DEVICE
+    bool operator==(const material_rod<scalar_t>& rhs) const {
+        return (m_material == rhs.get_material() &&
+                m_outer_r == rhs.outer_r() && m_inner_r == rhs.inner_r());
+    }
+
     /// Access the (average) material parameters.
     DETRAY_HOST_DEVICE
-    constexpr const material_t& material() const { return m_material; }
+    constexpr const material_type& get_material() const { return m_material; }
     /// Return the outer radius
     DETRAY_HOST_DEVICE
     constexpr scalar_type outer_r() const { return m_outer_r; }
@@ -33,9 +45,9 @@ struct material_rod {
     constexpr scalar_type inner_r() const { return m_inner_r; }
 
     private:
-    material_t m_material;
-    scalar_type m_outer_r;
-    scalar_type m_inner_r;
+    material_type m_material = {};
+    scalar_type m_outer_r = std::numeric_limits<scalar>::epsilon();
+    scalar_type m_inner_r = std::numeric_limits<scalar>::epsilon();
 };
 
 }  // namespace detray

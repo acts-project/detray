@@ -19,6 +19,8 @@
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/materials/material_rod.hpp"
+#include "detray/materials/material_slab.hpp"
 
 namespace detray {
 
@@ -38,6 +40,9 @@ using cylinder = cylinder3<cylinder_intersector,
 using disc = ring2<__plugin::cartesian2<detray::scalar>, edge_type>;
 using unbounded_plane =
     unmasked<__plugin::cartesian2<detray::scalar>, edge_type>;
+
+using slab = material_slab<detray::scalar>;
+using rod = material_rod<detray::scalar>;
 
 /// Defines all available types
 template <typename dynamic_data, std::size_t NGRIDS = 1>
@@ -70,7 +75,18 @@ struct full_metadata {
 
     // How to store and link masks
     using mask_definitions =
-        mask_registry<mask_ids, rectangle, trapezoid, annulus, cylinder, disc>;
+        tuple_vector_registry<mask_ids, rectangle, trapezoid, annulus, cylinder,
+                              disc>;
+
+    /// Give your material types a name (needs to be consecutive to be matched
+    /// to a type!)
+    enum material_ids : unsigned int {
+        e_slab = 0,
+        e_rod = 1,
+    };
+
+    // How to store and link materials
+    using material_definitions = tuple_vector_registry<material_ids, slab, rod>;
 
     // Accelerator types
     template <template <typename, std::size_t> class array_t = darray,
@@ -118,7 +134,16 @@ struct toy_metadata {
 
     // How to store and link masks
     using mask_definitions =
-        mask_registry<mask_ids, rectangle, trapezoid, cylinder, disc>;
+        tuple_vector_registry<mask_ids, rectangle, trapezoid, cylinder, disc>;
+
+    /// Give your material types a name (needs to be consecutive to be matched
+    /// to a type!)
+    enum material_ids : unsigned int {
+        e_slab = 0,
+    };
+
+    // How to store and link materials
+    using material_definitions = tuple_vector_registry<material_ids, slab>;
 
     // Accelerator types
     template <template <typename, std::size_t> class array_t = darray,
@@ -163,7 +188,16 @@ struct telescope_metadata {
 
     // How to store and link masks
     using mask_definitions =
-        mask_registry<mask_ids, rectangle, unbounded_plane>;
+        tuple_vector_registry<mask_ids, rectangle, unbounded_plane>;
+
+    /// Give your material types a name (needs to be consecutive to be matched
+    /// to a type!)
+    enum material_ids : unsigned int {
+        e_slab = 0,
+    };
+
+    // How to store and link materials
+    using material_definitions = tuple_vector_registry<material_ids, slab>;
 
     // Accelerator types (are not used)
     template <template <typename, std::size_t> class array_t = darray,

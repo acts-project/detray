@@ -7,11 +7,7 @@
 
 #pragma once
 
-#include <climits>
-#include <map>
-#include <vecmem/memory/host_memory_resource.hpp>
-#include <vector>
-
+// Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/geometry/volume_connector.hpp"
 #include "detray/grids/axis.hpp"
@@ -20,6 +16,14 @@
 #include "detray/grids/serializer2.hpp"
 #include "detray/io/csv_io_types.hpp"
 #include "detray/tools/bin_association.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// System include(s)
+#include <climits>
+#include <map>
+#include <vector>
 
 namespace detray {
 
@@ -88,9 +92,10 @@ detector_from_csv(const std::string &detector_name,
 
     // Flushable containers
     typename detector_t::volume_type *c_volume = nullptr;
-    typename detector_t::surface_filling_container c_surfaces;
+    typename detector_t::surface_container c_surfaces;
     typename detector_t::mask_container c_masks(resource);
-    typename detector_t::transform_filling_container c_transforms;
+    typename detector_t::material_container c_materials(resource);
+    typename detector_t::transform_container c_transforms;
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
 
@@ -304,6 +309,11 @@ detector_from_csv(const std::string &detector_name,
     constexpr auto trapezoid_id = mask_defs::id::e_trapezoid2;
     constexpr auto annulus_id = mask_defs::id::e_annulus2;
 
+    // Material IDs
+    using material_defs = typename detector_t::materials;
+    typename material_defs::link_type material_index{};
+    constexpr auto slab_id = material_defs::id::e_slab;
+
     // (C) Read the surfaces and fill it
     while (s_reader.read(io_surface)) {
         volume_layer_index c_index = {io_surface.volume_id,
@@ -313,13 +323,15 @@ detector_from_csv(const std::string &detector_name,
             // Flush the former information / c_volume still points to the prior
             // volume
             if (c_volume != nullptr) {
-                d.add_objects(surface_default_context, *c_volume, c_surfaces,
-                              c_masks, c_transforms);
 
-                c_surfaces = typename detector_t::surface_filling_container();
+                d.add_objects_per_volume(surface_default_context, *c_volume,
+                                         c_surfaces, c_masks, c_materials,
+                                         c_transforms);
+
+                c_surfaces = typename detector_t::surface_container();
                 c_masks = typename detector_t::mask_container(resource);
-                c_transforms =
-                    typename detector_t::transform_filling_container();
+                c_materials = typename detector_t::material_container(resource);
+                c_transforms = typename detector_t::transform_container();
             }
 
             // Find and fill the bounds
@@ -405,16 +417,16 @@ detector_from_csv(const std::string &detector_name,
                 // The read is valid: set the index
                 mask_index = {cylinder_id, cylinder_index};
 
+                // Dummy material
+                material_index = {slab_id, 0};
+
                 // Build the cylinder transform
-                auto &cylinder_transforms = std::get<cylinder_id>(c_transforms);
-                cylinder_transforms.emplace_back(surface_default_context, t, z,
-                                                 x);
+                c_transforms.emplace_back(surface_default_context, t, z, x);
 
                 // Save the corresponding surface
-                auto &cylinder_surfaces = c_surfaces[cylinder_id];
-                cylinder_surfaces.emplace_back(
-                    cylinder_transforms.size(surface_default_context) - 1,
-                    mask_index, c_volume->index(), io_surface.geometry_id,
+                c_surfaces.emplace_back(
+                    c_transforms.size(surface_default_context) - 1, mask_index,
+                    material_index, c_volume->index(), io_surface.geometry_id,
                     is_portal);
             } else if (bounds_type == 3) {
                 // Disc bounds
@@ -432,17 +444,16 @@ detector_from_csv(const std::string &detector_name,
                 // The read is valid: set the index
                 mask_index = {rectangle_id, rectangle_index};
 
+                // Dummy material
+                material_index = {slab_id, 0};
+
                 // Build the rectangle transform
-                auto &rectangle_transforms =
-                    std::get<rectangle_id>(c_transforms);
-                rectangle_transforms.emplace_back(surface_default_context, t, z,
-                                                  x);
+                c_transforms.emplace_back(surface_default_context, t, z, x);
 
                 // Save the corresponding surface
-                auto &rectangle_surfaces = c_surfaces[rectangle_id];
-                rectangle_surfaces.emplace_back(
-                    rectangle_transforms.size(surface_default_context) - 1,
-                    mask_index, c_volume->index(), io_surface.geometry_id,
+                c_surfaces.emplace_back(
+                    c_transforms.size(surface_default_context) - 1, mask_index,
+                    material_index, c_volume->index(), io_surface.geometry_id,
                     is_portal);
             } else if (bounds_type == 7) {
                 // Trapezoid bounds
@@ -456,17 +467,16 @@ detector_from_csv(const std::string &detector_name,
                 // The read is valid: set the index
                 mask_index = {trapezoid_id, trapezoid_index};
 
+                // Dummy material
+                material_index = {slab_id, 0};
+
                 // Build the trapezoid transform
-                auto &trapezoid_transforms =
-                    std::get<trapezoid_id>(c_transforms);
-                trapezoid_transforms.emplace_back(surface_default_context, t, z,
-                                                  x);
+                c_transforms.emplace_back(surface_default_context, t, z, x);
 
                 // Save the corresponding surface
-                auto &trapezoid_surfaces = c_surfaces[trapezoid_id];
-                trapezoid_surfaces.emplace_back(
-                    trapezoid_transforms.size(surface_default_context) - 1,
-                    mask_index, c_volume->index(), io_surface.geometry_id,
+                c_surfaces.emplace_back(
+                    c_transforms.size(surface_default_context) - 1, mask_index,
+                    material_index, c_volume->index(), io_surface.geometry_id,
                     is_portal);
             } else if (bounds_type == 11) {
                 // Annulus bounds
@@ -482,16 +492,16 @@ detector_from_csv(const std::string &detector_name,
                 // The read is valid: set the index
                 mask_index = {annulus_id, annulus_index};
 
+                // Dummy material
+                material_index = {slab_id, 0};
+
                 // Build the annulus transform
-                auto &annulus_transforms = std::get<annulus_id>(c_transforms);
-                annulus_transforms.emplace_back(surface_default_context, t, z,
-                                                x);
+                c_transforms.emplace_back(surface_default_context, t, z, x);
 
                 // Save the corresponding surface
-                auto &annulus_surfaces = c_surfaces[annulus_id];
-                annulus_surfaces.emplace_back(
-                    annulus_transforms.size(surface_default_context) - 1,
-                    mask_index, c_volume->index(), io_surface.geometry_id,
+                c_surfaces.emplace_back(
+                    c_transforms.size(surface_default_context) - 1, mask_index,
+                    material_index, c_volume->index(), io_surface.geometry_id,
                     is_portal);
             }
         }  // end of exclusion for navigation layers
