@@ -50,6 +50,7 @@ class rectangle2 final
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
+    using point3 = __plugin::point3<scalar>;
 
     /* Default constructor */
     rectangle2()
@@ -79,16 +80,14 @@ class rectangle2 final
 
     /** Mask operation
      *
-     * @tparam inside_local_t is the local type for inside checking
-     *
      * @param p the point to be checked
      * @param t is the tolerance tuple in (l0, l1)
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_t>
+    template <typename cartesian_point_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point2 &p,
+        const cartesian_point_t &p,
         const scalar t = std::numeric_limits<scalar>::epsilon()) const {
         return (std::abs(p[0]) <= this->_values[0] + t and
                 std::abs(p[1]) <= this->_values[1] + t)

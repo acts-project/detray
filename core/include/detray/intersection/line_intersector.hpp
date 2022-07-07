@@ -94,12 +94,12 @@ struct line_intersector {
         is.path = A;
         is.p3 = m;
 
-        // global to local transform in cartesian coordinate
-        auto loc = trf.point_to_local(is.p3);
+        // Global to local transform in cartesian coordinate
+        const auto loc = trf.point_to_local(is.p3);
+        is.status = mask.is_inside(loc, mask_tolerance);
+
         is.p2[0] = getter::perp(loc);
         is.p2[1] = B;
-
-        is.status = mask.is_inside(loc, mask_tolerance);
 
         is.direction = is.path > overstep_tolerance
                            ? intersection::direction::e_along

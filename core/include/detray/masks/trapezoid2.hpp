@@ -51,6 +51,7 @@ class trapezoid2 final
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
+    using point3 = __plugin::point3<scalar>;
 
     /* Default constructor */
     trapezoid2()
@@ -86,16 +87,14 @@ class trapezoid2 final
 
     /** Mask operation
      *
-     * @tparam inside_local_t is the type of the local frame (ignored here)
-     *
      * @param p the point to be checked
      * @param t us the tolerance tuple (l0,l1)
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_t>
+    template <typename cartesian_point_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point2 &p,
+        const cartesian_point_t &p,
         const scalar t = std::numeric_limits<scalar>::epsilon()) const {
         scalar rel_y = (this->_values[2] + p[1]) * this->_values[3];
         return (std::abs(p[0]) <=

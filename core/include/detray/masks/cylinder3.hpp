@@ -81,20 +81,16 @@ class cylinder3 final
 
     /** Mask operation
      *
-     * @tparam inside_local_type::point3 is the deduced type of the point to be
-     *checked w.r.t. to the mask bounds, it's assumed to be within the cylinder
-     *3D frame
-     *
      * @param p the point to be checked
      * @param t is the tolerance tuple in (radius, z)
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_t, bool is_rad_check = kRadialCheck>
+    template <typename cartesian_point_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point3 &p,
+        const cartesian_point_t &p,
         const scalar t = std::numeric_limits<scalar>::epsilon()) const {
-        if constexpr (is_rad_check) {
+        if constexpr (kRadialCheck) {
             scalar r = getter::perp(p);
             if (std::abs(r - this->_values[0]) >=
                 t + 5 * std::numeric_limits<scalar>::epsilon()) {

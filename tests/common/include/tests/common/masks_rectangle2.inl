@@ -16,7 +16,6 @@ using namespace __plugin;
 
 // This tests the basic function of a rectangle
 TEST(mask, rectangle2) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
     point2 p2_in = {0.5, -9.};
@@ -31,13 +30,9 @@ TEST(mask, rectangle2) {
     ASSERT_EQ(r2[0], hx);
     ASSERT_EQ(r2[1], hy);
 
-    ASSERT_TRUE(r2.is_inside<local_type>(p2_in) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(r2.is_inside<local_type>(p2_edge) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(r2.is_inside<local_type>(p2_out) ==
-                intersection::status::e_outside);
+    ASSERT_TRUE(r2.is_inside(p2_in) == intersection::status::e_inside);
+    ASSERT_TRUE(r2.is_inside(p2_edge) == intersection::status::e_inside);
+    ASSERT_TRUE(r2.is_inside(p2_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(r2.is_inside<local_type>(p2_out, 1.) ==
-                intersection::status::e_inside);
+    ASSERT_TRUE(r2.is_inside(p2_out, 1.) == intersection::status::e_inside);
 }

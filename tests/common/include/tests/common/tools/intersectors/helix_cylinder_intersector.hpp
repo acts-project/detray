@@ -50,8 +50,6 @@ struct helix_cylinder_intersector {
 
         output_type ret;
 
-        using local_frame = typename mask_t::local_type;
-
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{100};
         // Tolerance for convergence
@@ -102,13 +100,14 @@ struct helix_cylinder_intersector {
 
         is.path = getter::norm(helix_pos);
         is.p3 = helix_pos;
-        constexpr local_frame local_converter{};
-        is.p2 = local_converter(trf, is.p3);
 
-        auto local3 = trf.point_to_local(is.p3);
-        // Explicitly check for radial match
-        is.status =
-            mask.template is_inside<local_frame, true>(local3, mask_tolerance);
+        // Global to local transform in cartesian coordinate
+        const auto loc = trf.point_to_local(is.p3);
+        is.status = mask.is_inside(loc, mask_tolerance);
+
+        // Get intersection in local coordinate
+        is.p2 = typename mask_t::local_type()(loc);
+
         is.direction = vector::dot(is.p3, h.dir(s)) > scalar{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;

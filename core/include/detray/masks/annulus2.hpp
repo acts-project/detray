@@ -61,6 +61,7 @@ class annulus2 final
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
+    using point3 = __plugin::point3<scalar>;
 
     /* Default constructor */
     annulus2()
@@ -99,71 +100,37 @@ class annulus2 final
 
     /** Mask operation
      *
-     * @tparam inside_local_t is the local type for checking, needs to be
-     * specificed
-     *
      * @param p the point to be checked in local polar coord
      * @param t is the tolerance in (r, phi)
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_t>
+    template <typename cartesian_point_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point2 &p,
+        const cartesian_point_t &p,
         const scalar t = std::numeric_limits<scalar>::epsilon()) const {
         // The two quantities to check: r^2 in module system, phi in strips
         // system
 
-        // In cartesian coordinates go to modules system by shifting origin
-        if constexpr (std::is_same_v<inside_local_t,
-                                     __plugin::cartesian2<detray::scalar>>) {
-            // Calculate radial coordinate in module system:
-            scalar x_mod = p[0] - this->_values[4];
-            scalar y_mod = p[1] - this->_values[5];
-            scalar r_mod2 = x_mod * x_mod + y_mod * y_mod;
+        // Calculate radial coordinate in module system:
+        scalar x_mod = p[0] - this->_values[4];
+        scalar y_mod = p[1] - this->_values[5];
+        scalar r_mod2 = x_mod * x_mod + y_mod * y_mod;
 
-            // apply tolerances
-            scalar minR_tol = this->_values[0] - t;
-            scalar maxR_tol = this->_values[1] + t;
+        // apply tolerances
+        scalar minR_tol = this->_values[0] - t;
+        scalar maxR_tol = this->_values[1] + t;
 
-            if (r_mod2 < minR_tol * minR_tol or r_mod2 > maxR_tol * maxR_tol)
-                return intersection::status::e_outside;
+        if (r_mod2 < minR_tol * minR_tol or r_mod2 > maxR_tol * maxR_tol)
+            return intersection::status::e_outside;
 
-            scalar phi_strp = getter::phi(p) - this->_values[6];
-            // Check phi boundaries, which are well def. in local frame
-            return (phi_strp >= this->_values[2] - t and
-                    phi_strp <= this->_values[3] + t)
-                       ? intersection::status::e_inside
-                       : intersection::status::e_outside;
-        }
-        // polar strip coordinates given
-        else {
-            // For a point p in local polar coordinates, rotate by avr phi
-            scalar phi_strp = p[1] - this->_values[6];
+        scalar phi_strp = getter::phi(p) - this->_values[6];
 
-            // Check phi boundaries, which are well def. in local frame
-            if (phi_strp < this->_values[2] - t ||
-                phi_strp > this->_values[3] + t)
-                return intersection::status::e_outside;
-
-            // Now go to module frame to check r boundaries. Use the origin
-            // shift in polar coordinates for that
-            point2 shift_xy = {-1 * this->_values[4], -1 * this->_values[5]};
-            scalar shift_r = getter::perp(shift_xy);
-            scalar shift_phi = getter::phi(shift_xy);
-
-            scalar r_mod2 = shift_r * shift_r + p[0] * p[0] +
-                            2 * shift_r * p[0] * std::cos(phi_strp - shift_phi);
-
-            // Apply tolerances
-            scalar minR_tol = this->_values[0] - t;
-            scalar maxR_tol = this->_values[1] + t;
-
-            return (r_mod2 >= minR_tol * minR_tol and
-                    r_mod2 <= maxR_tol * maxR_tol)
-                       ? intersection::status::e_inside
-                       : intersection::status::e_outside;
-        }
+        // Check phi boundaries, which are well def. in local frame
+        return (phi_strp >= this->_values[2] - t and
+                phi_strp <= this->_values[3] + t)
+                   ? intersection::status::e_inside
+                   : intersection::status::e_outside;
     }
 
     /// Transform to a string for output debugging

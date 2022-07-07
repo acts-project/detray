@@ -14,16 +14,8 @@ using point2 = __plugin::point2<scalar>;
 
 // This tests the construction of a surface
 TEST(mask, unmasked) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
     point2 p2 = {0.5, -9.};
 
     unmasked u;
-    ASSERT_TRUE(u.is_inside<local_type>(p2, 0) ==
-                intersection::status::e_inside);
-    /*
-    ASSERT_TRUE(u.is_inside<local_type>() ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(u.is_inside<local_type>(p2, false) ==
-                intersection::status::e_outside);
-    */
+    ASSERT_TRUE(u.is_inside(p2, 0) == intersection::status::e_inside);
 }

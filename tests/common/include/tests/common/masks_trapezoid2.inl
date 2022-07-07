@@ -14,7 +14,6 @@ using namespace __plugin;
 
 // This tests the basic function of a trapezoid
 TEST(mask, trapezoid2) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
     point2 p2_in = {1., -0.5};
@@ -33,13 +32,9 @@ TEST(mask, trapezoid2) {
     ASSERT_EQ(t2[2], hy);
     ASSERT_EQ(t2[3], divisor);
 
-    ASSERT_TRUE(t2.is_inside<local_type>(p2_in) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(t2.is_inside<local_type>(p2_edge) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(t2.is_inside<local_type>(p2_out) ==
-                intersection::status::e_outside);
+    ASSERT_TRUE(t2.is_inside(p2_in) == intersection::status::e_inside);
+    ASSERT_TRUE(t2.is_inside(p2_edge) == intersection::status::e_inside);
+    ASSERT_TRUE(t2.is_inside(p2_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(t2.is_inside<local_type>(p2_out, 1.) ==
-                intersection::status::e_inside);
+    ASSERT_TRUE(t2.is_inside(p2_out, 1.) == intersection::status::e_inside);
 }

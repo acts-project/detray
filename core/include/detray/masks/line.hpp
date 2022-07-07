@@ -66,15 +66,14 @@ class line final
 
     /** Mask operation
      *
-     * @tparam inside_local_t is the local type for inside checking
-     *
      * @param p is the intersection point in local cartesian coordinate
      * @param t is the tolerance in r
      *
      * @return an intersection status e_inside / e_outside
      **/
+    template <typename cartesian_point_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point3 &p,
+        const cartesian_point_t &p,
         const scalar t = std::numeric_limits<scalar>::epsilon()) const {
 
         // For square cross section, we check if (1) the x and y of transverse
@@ -88,14 +87,14 @@ class line final
                        ? intersection::status::e_inside
                        : intersection::status::e_outside;
 
-            // For circular cross section, we check if (1) the radial distance
-            // is within the scope and (2) the distance to the point of closest
-            // approach on line from the line center is less than the half line
-            // length
-        } else {
+        }
+        // For circular cross section, we check if (1) the radial distance
+        // is within the scope and (2) the distance to the point of closest
+        // approach on line from the line center is less than the half line
+        // length
+        else {
             return (getter::perp(p) <= this->_values[0] + t &&
                     std::abs(p[2]) <= this->_values[1] + t)
-
                        ? intersection::status::e_inside
                        : intersection::status::e_outside;
         }

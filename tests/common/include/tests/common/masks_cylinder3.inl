@@ -34,15 +34,10 @@ TEST(mask, cylinder3) {
     ASSERT_EQ(c[1], -hz);
     ASSERT_EQ(c[2], hz);
 
-    ASSERT_TRUE(c.is_inside<local_type>(p3_in) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside<local_type>(p3_edge) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside<local_type>(p3_out) ==
-                intersection::status::e_outside);
-    ASSERT_TRUE(c.is_inside<local_type>(p3_off) ==
-                intersection::status::e_missed);
+    ASSERT_TRUE(c.is_inside(p3_in) == intersection::status::e_inside);
+    ASSERT_TRUE(c.is_inside(p3_edge) == intersection::status::e_inside);
+    ASSERT_TRUE(c.is_inside(p3_out) == intersection::status::e_outside);
+    ASSERT_TRUE(c.is_inside(p3_off) == intersection::status::e_missed);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(c.is_inside<local_type>(p3_out, 0.6) ==
-                intersection::status::e_inside);
+    ASSERT_TRUE(c.is_inside(p3_out, 0.6) == intersection::status::e_inside);
 }

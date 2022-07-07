@@ -46,13 +46,11 @@ struct concentric_cylinder_intersector {
      */
     template <typename mask_t, typename transform_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const detail::ray &ray, const mask_t &mask, const transform_t & /*trf*/,
-        const scalar /*mask_tolerance*/ = 0,
+        const detail::ray &ray, const mask_t &mask, const transform_t &trf,
+        const scalar mask_tolerance = 0,
         const scalar overstep_tolerance = 0.) const {
 
         output_type ret;
-
-        using local_frame = typename mask_t::local_type;
 
         const scalar r{mask[0]};
 
@@ -101,8 +99,13 @@ struct concentric_cylinder_intersector {
                 is.p3 = candidates[cindex];
                 is.path = t01[cindex];
 
-                is.p2 = point2{r * getter::phi(is.p3), is.p3[2]};
-                is.status = mask.template is_inside<local_frame>(is.p3);
+                // Global to local transform in cartesian coordinate
+                const auto loc = trf.point_to_local(is.p3);
+                is.status = mask.is_inside(loc, mask_tolerance);
+
+                // Get intersection in local coordinate
+                is.p2 = typename mask_t::local_type()(loc);
+
                 const scalar rdir{getter::perp(is.p3 + scalar{0.1} * rd)};
                 is.direction = rdir > r ? intersection::direction::e_along
                                         : intersection::direction::e_opposite;

@@ -49,6 +49,7 @@ class ring2 final
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point2 = __plugin::point2<scalar>;
+    using point3 = __plugin::point3<scalar>;
 
     /* Default constructor */
     ring2() : base_type({0., std::numeric_limits<scalar>::infinity()}, {}) {}
@@ -74,26 +75,17 @@ class ring2 final
 
     /** Mask operation
      *
-     * @tparam inside_local_t is the local type for inside checking
-     *
      * @param p the point to be checked
      * @param t is the tolerance in r
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_t>
+    template <typename cartesian_point_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point2 &p,
+        const cartesian_point_t &p,
         const scalar t = std::numeric_limits<scalar>::epsilon()) const {
-        if constexpr (std::is_same_v<inside_local_t,
-                                     __plugin::cartesian2<detray::scalar>>) {
-            scalar r = getter::perp(p);
-            return (r + t >= this->_values[0] and r <= this->_values[1] + t)
-                       ? intersection::status::e_inside
-                       : intersection::status::e_outside;
-        }
-
-        return (p[0] + t >= this->_values[0] and p[0] <= this->_values[1] + t)
+        const scalar r = getter::perp(p);
+        return (r + t >= this->_values[0] and r <= this->_values[1] + t)
                    ? intersection::status::e_inside
                    : intersection::status::e_outside;
     }

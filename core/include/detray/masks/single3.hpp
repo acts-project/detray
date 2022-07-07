@@ -69,16 +69,14 @@ class single3 final
 
     /** Mask operation
      *
-     * @tparam inside_local_type is the global type for checking (ignored)
-     *
      * @param p the point to be checked
      * @param t is the tolerance of the single parameter
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename inside_local_t>
+    template <typename cartesian_point_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point3 &p,
+        const cartesian_point_t &p,
         const scalar t = std::numeric_limits<scalar>::epsilon()) const {
         return (this->_values[0] - t <= p[kCheckIndex] and
                 p[kCheckIndex] <= this->_values[1] + t)

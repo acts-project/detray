@@ -49,8 +49,6 @@ struct cylinder_intersector {
 
         output_type ret;
 
-        using local_frame = typename mask_t::local_type;
-
         const scalar r{mask[0]};
         const auto &m = trf.matrix();
         const vector3 sz = getter::vector<3>(m, 0, 2);
@@ -76,12 +74,15 @@ struct cylinder_intersector {
                 intersection_type &is = ret[0];
                 is.path = t;
                 is.p3 = ro + is.path * rd;
-                constexpr local_frame local_converter{};
-                is.p2 = local_converter(trf, is.p3);
-                const auto local3 = trf.point_to_local(is.p3);
-                is.status = mask.template is_inside<local_frame>(
-                    local3, mask_tolerance);
-                const scalar rdr = getter::perp(local3 + scalar{0.1} * rd);
+
+                // Global to local transform in cartesian coordinate
+                const auto loc = trf.point_to_local(is.p3);
+                is.status = mask.is_inside(loc, mask_tolerance);
+
+                // Get intersection in local coordinate
+                is.p2 = typename mask_t::local_type()(loc);
+
+                const scalar rdr = getter::perp(loc + scalar{0.1} * rd);
                 is.direction = rdr > r ? intersection::direction::e_along
                                        : intersection::direction::e_opposite;
                 is.link = mask.volume_link();

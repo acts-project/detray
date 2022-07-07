@@ -30,7 +30,7 @@ class unmasked final
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
-    using point2 = __plugin::point2<scalar>;
+    using point3 = __plugin::point3<scalar>;
 
     /* Default constructor */
     unmasked() = default;
@@ -48,9 +48,9 @@ class unmasked final
      *
      * @return true
      **/
-    template <typename inside_local_t>
+    template <typename cartesian_point_t>
     DETRAY_HOST_DEVICE inline intersection::status is_inside(
-        const point2& /*ignored*/, const scalar /*ignored*/) const {
+        const cartesian_point_t& /*ignored*/, const scalar /*ignored*/) const {
         return intersection::status::e_inside;
     }
 

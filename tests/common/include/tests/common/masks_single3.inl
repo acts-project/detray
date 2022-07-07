@@ -16,7 +16,6 @@ using namespace __plugin;
 
 // This tests the basic function of a rectangle
 TEST(mask, single3_0) {
-    using local_type = __plugin::transform3<detray::scalar>;
     using point3 = __plugin::point3<detray::scalar>;
 
     point3 p3_in = {0.5, -9., 0.};
@@ -29,20 +28,15 @@ TEST(mask, single3_0) {
     ASSERT_EQ(m1_0[0], -h0);
     ASSERT_EQ(m1_0[1], h0);
 
-    ASSERT_TRUE(m1_0.is_inside<local_type>(p3_in) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(m1_0.is_inside<local_type>(p3_edge) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(m1_0.is_inside<local_type>(p3_out) ==
-                intersection::status::e_outside);
+    ASSERT_TRUE(m1_0.is_inside(p3_in) == intersection::status::e_inside);
+    ASSERT_TRUE(m1_0.is_inside(p3_edge) == intersection::status::e_inside);
+    ASSERT_TRUE(m1_0.is_inside(p3_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t0 not t1
-    ASSERT_TRUE(m1_0.is_inside<local_type>(p3_out, 0.6) ==
-                intersection::status::e_inside);
+    ASSERT_TRUE(m1_0.is_inside(p3_out, 0.6) == intersection::status::e_inside);
 }
 
 // This tests the basic function of a rectangle
 TEST(mask, single3_1) {
-    using local_type = __plugin::transform3<detray::scalar>;
     using point3 = __plugin::point3<detray::scalar>;
 
     point3 p3_in = {0.5, -9., 0.};
@@ -55,20 +49,15 @@ TEST(mask, single3_1) {
     ASSERT_EQ(m1_1[0], -h1);
     ASSERT_EQ(m1_1[1], h1);
 
-    ASSERT_TRUE(m1_1.is_inside<local_type>(p3_in) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(m1_1.is_inside<local_type>(p3_edge) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(m1_1.is_inside<local_type>(p3_out) ==
-                intersection::status::e_outside);
+    ASSERT_TRUE(m1_1.is_inside(p3_in) == intersection::status::e_inside);
+    ASSERT_TRUE(m1_1.is_inside(p3_edge) == intersection::status::e_inside);
+    ASSERT_TRUE(m1_1.is_inside(p3_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
-    ASSERT_TRUE(m1_1.is_inside<local_type>(p3_out, 0.6) ==
-                intersection::status::e_inside);
+    ASSERT_TRUE(m1_1.is_inside(p3_out, 0.6) == intersection::status::e_inside);
 }
 
 // This tests the basic function of a rectangle
 TEST(mask, single3_2) {
-    using local_type = __plugin::transform3<detray::scalar>;
     using point3 = __plugin::point3<detray::scalar>;
 
     point3 p3_in = {0.5, -9., 0.};
@@ -81,13 +70,9 @@ TEST(mask, single3_2) {
     ASSERT_EQ(m1_2[0], -h2);
     ASSERT_EQ(m1_2[1], h2);
 
-    ASSERT_TRUE(m1_2.is_inside<local_type>(p3_in) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(m1_2.is_inside<local_type>(p3_edge) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(m1_2.is_inside<local_type>(p3_out) ==
-                intersection::status::e_outside);
+    ASSERT_TRUE(m1_2.is_inside(p3_in) == intersection::status::e_inside);
+    ASSERT_TRUE(m1_2.is_inside(p3_edge) == intersection::status::e_inside);
+    ASSERT_TRUE(m1_2.is_inside(p3_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
-    ASSERT_TRUE(m1_2.is_inside<local_type>(p3_out, 6.1) ==
-                intersection::status::e_inside);
+    ASSERT_TRUE(m1_2.is_inside(p3_out, 6.1) == intersection::status::e_inside);
 }

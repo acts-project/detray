@@ -39,7 +39,6 @@ namespace {
 
 // This test runs a rectangle2 maks test operation
 static void BM_RECTANGLE2_MASK(benchmark::State &state) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
     rectangle2<> r{3, 4, 0u};
@@ -61,7 +60,7 @@ static void BM_RECTANGLE2_MASK(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(inside);
                 benchmark::DoNotOptimize(outside);
-                if (r.is_inside<local_type>(point2{x, y}) ==
+                if (r.is_inside(point2{x, y}) ==
                     intersection::status::e_inside) {
                     ++inside;
                 } else {
@@ -82,7 +81,6 @@ static void BM_RECTANGLE2_MASK(benchmark::State &state) {
 
 // This test runs intersection a trapezoid2 mask operation
 static void BM_TRAPEZOID2_MASK(benchmark::State &state) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
     trapezoid2<> t{2, 3, 4, 0u};
@@ -104,7 +102,7 @@ static void BM_TRAPEZOID2_MASK(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(inside);
                 benchmark::DoNotOptimize(outside);
-                if (t.is_inside<local_type>(point2{x, y}) ==
+                if (t.is_inside(point2{x, y}) ==
                     intersection::status::e_inside) {
                     ++inside;
                 } else {
@@ -125,7 +123,6 @@ static void BM_TRAPEZOID2_MASK(benchmark::State &state) {
 
 // This test runs a ring2 mask operation
 static void BM_RING2_MASK(benchmark::State &state) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
     ring2<> r{0., 5., 0u};
@@ -147,7 +144,7 @@ static void BM_RING2_MASK(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(inside);
                 benchmark::DoNotOptimize(outside);
-                if (r.is_inside<local_type>(point2{x, y}) ==
+                if (r.is_inside(point2{x, y}) ==
                     intersection::status::e_inside) {
                     ++inside;
                 } else {
@@ -167,7 +164,6 @@ static void BM_RING2_MASK(benchmark::State &state) {
 
 // This test runs mask oeration on a disc2
 static void BM_DISC2_MASK(benchmark::State &state) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
     ring2<> r{2., 5., 0u};
@@ -189,7 +185,7 @@ static void BM_DISC2_MASK(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(inside);
                 benchmark::DoNotOptimize(outside);
-                if (r.is_inside<local_type>(point2{x, y}) ==
+                if (r.is_inside(point2{x, y}) ==
                     intersection::status::e_inside) {
                     ++inside;
                 } else {
@@ -209,7 +205,6 @@ static void BM_DISC2_MASK(benchmark::State &state) {
 
 // This test runs masking operations on a cylinder3 mask
 static void BM_CYLINDER3_MASK(benchmark::State &state) {
-    using local_type = __plugin::transform3<detray::scalar>;
     using point3 = __plugin::point3<detray::scalar>;
 
     cylinder3<> c{3., 5., 0., 0u};
@@ -233,7 +228,7 @@ static void BM_CYLINDER3_MASK(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
-                    if (c.is_inside<local_type>(point3{x, y, z}, 0.1) ==
+                    if (c.is_inside(point3{x, y, z}, 0.1) ==
                         intersection::status::e_inside) {
                         ++inside;
                     } else {
@@ -254,7 +249,6 @@ static void BM_CYLINDER3_MASK(benchmark::State &state) {
 
 // This test runs a annulus mask operation
 static void BM_ANNULUS_MASK(benchmark::State &state) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
     using point2 = __plugin::point2<detray::scalar>;
 
     annulus2<> ann{2.5, 5., -0.64299, 4.13173, 1., 0.5, 0., 0u};
@@ -274,7 +268,7 @@ static void BM_ANNULUS_MASK(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(inside);
                 benchmark::DoNotOptimize(outside);
-                if (ann.is_inside<local_type>(point2{x, y}) ==
+                if (ann.is_inside(point2{x, y}) ==
                     intersection::status::e_inside) {
                     ++inside;
                 } else {
