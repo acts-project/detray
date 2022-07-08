@@ -103,7 +103,7 @@ struct helix_cylinder_intersector {
 
         // Global to local transform in cartesian coordinate
         const auto loc = trf.point_to_local(is.p3);
-        is.status = mask.is_inside(loc, mask_tolerance);
+        is.status = mask.template is_inside<true>(loc, mask_tolerance);
 
         // Get intersection in local coordinate
         is.p2 = typename mask_t::local_type()(loc);

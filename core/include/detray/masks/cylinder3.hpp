@@ -86,11 +86,11 @@ class cylinder3 final
      *
      * @return an intersection status e_inside / e_outside
      **/
-    template <typename cartesian_point_t>
+    template <bool is_rad_check = kRadialCheck, typename cartesian_point_t>
     DETRAY_HOST_DEVICE intersection::status is_inside(
         const cartesian_point_t &p,
         const scalar t = std::numeric_limits<scalar>::epsilon()) const {
-        if constexpr (kRadialCheck) {
+        if constexpr (is_rad_check) {
             scalar r = getter::perp(p);
             if (std::abs(r - this->_values[0]) >=
                 t + 5 * std::numeric_limits<scalar>::epsilon()) {
