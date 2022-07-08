@@ -83,10 +83,6 @@ struct line_intersector {
         const scalar A =
             detray::scalar{1.} / denom * (t2l_on_track - t2l_on_line * zd);
 
-        // distance to the point of closest approarch on the
-        // line from line center
-        const scalar B = zd * A - t2l_on_line;
-
         // point of closest approach on the track
         const vector3 m = _p + _d * A;
 
@@ -98,8 +94,8 @@ struct line_intersector {
         const auto loc = trf.point_to_local(is.p3);
         is.status = mask.is_inside(loc, mask_tolerance);
 
-        is.p2[0] = getter::perp(loc);
-        is.p2[1] = B;
+        // Get intersection in local coordinate
+        is.p2 = typename mask_t::local_type()(loc);
 
         is.direction = is.path > overstep_tolerance
                            ? intersection::direction::e_along

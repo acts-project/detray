@@ -23,7 +23,7 @@
 using namespace detray;
 
 // Three-dimensional definitions
-using cartesian = __plugin::cartesian2<detray::scalar>;
+using polar = __plugin::polar2<detray::scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
@@ -64,14 +64,15 @@ TEST(tools, line_intersector_case1) {
     EXPECT_EQ(is[1].status, intersection::status::e_inside);
     EXPECT_EQ(is[1].path, 1);
     EXPECT_EQ(is[1].p3, point3({-1, 0, 0}));
-    EXPECT_EQ(is[1].p2, point2({1, 0}));
+    EXPECT_NEAR(is[1].p2[0], 1., tolerance);
+    EXPECT_NEAR(is[1].p2[1], M_PI, tolerance);
     EXPECT_EQ(is[2].status, intersection::status::e_inside);
     EXPECT_NEAR(is[2].path, std::sqrt(2), tolerance);
     EXPECT_NEAR(is[2].p3[0], 1., tolerance);
     EXPECT_NEAR(is[2].p3[1], 0., tolerance);
     EXPECT_NEAR(is[2].p3[2], 1., tolerance);
     EXPECT_NEAR(is[2].p2[0], 1., tolerance);
-    EXPECT_NEAR(is[2].p2[1], 1., tolerance);
+    EXPECT_NEAR(is[2].p2[1], 0, tolerance);
 }
 
 // Test inclined wire
@@ -101,7 +102,7 @@ TEST(tools, line_intersector_case2) {
     EXPECT_NEAR(is.p3[1], 1., tolerance);
     EXPECT_NEAR(is.p3[2], 0., tolerance);
     EXPECT_NEAR(is.p2[0], 1. / std::sqrt(2), tolerance);
-    EXPECT_NEAR(is.p2[1], -1. / std::sqrt(2), tolerance);
+    EXPECT_NEAR(is.p2[1], 0., tolerance);
 }
 
 TEST(tools, line_intersector_square_scope) {
@@ -133,8 +134,8 @@ TEST(tools, line_intersector_square_scope) {
     trks.emplace_back(point3{0, -2.1, 0}, 0, vector3{1, 1, 0}, -1);
 
     // Infinite wire with 1 mm square cell size
-    line<cartesian, dindex, true> ln{
-        1., std::numeric_limits<scalar>::infinity(), 0u};
+    line<polar, dindex, true> ln{1., std::numeric_limits<scalar>::infinity(),
+                                 0u};
 
     // Test intersect
     std::vector<line_plane_intersection> is;
@@ -148,7 +149,7 @@ TEST(tools, line_intersector_square_scope) {
     EXPECT_NEAR(is[0].p3[1], 1, tolerance);
     EXPECT_NEAR(is[0].p3[2], 0, tolerance);
     EXPECT_NEAR(is[0].p2[0], std::sqrt(2), tolerance);
-    EXPECT_NEAR(is[0].p2[1], 0, tolerance);
+    EXPECT_NEAR(is[0].p2[1], M_PI / 4., tolerance);
 
     EXPECT_EQ(is[1].status, intersection::status::e_inside);
     EXPECT_EQ(is[2].status, intersection::status::e_outside);

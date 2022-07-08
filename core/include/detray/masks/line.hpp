@@ -23,7 +23,7 @@ namespace detray {
 /** This is a simple mask for a line defined with a line length and its scope
  *
  **/
-template <typename local_t = __plugin::cartesian2<detray::scalar>,
+template <typename local_t = __plugin::polar2<detray::scalar>,
           typename links_t = dindex, bool kSquareScope = false,
           template <typename, std::size_t> class array_t = darray>
 class line final
