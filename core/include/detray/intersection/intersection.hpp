@@ -66,6 +66,9 @@ struct line_plane_intersection {
     // TODO: rename the variable properly
     dindex link = dindex_invalid;
 
+    // cosine of incidence angle
+    scalar cos_incidence_angle = 1.;
+
     /** @param rhs is the right hand side intersection for comparison
      **/
     DETRAY_HOST_DEVICE

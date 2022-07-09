@@ -109,3 +109,9 @@ TEST(materials, mixture) {
     EXPECT_FLOAT_EQ(slab_vec[2].thickness_in_X0(),
                     slab3.thickness() / slab3.get_material().X0());
 }
+
+// This tests the material slab functionalities
+TEST(materials, material_slab) {}
+
+// This tests the material slab functionalities
+TEST(materials, material_rod) {}
