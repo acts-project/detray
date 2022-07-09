@@ -58,6 +58,8 @@ detray_add_library( detray_core core
    "include/detray/masks/trapezoid2.hpp"
    "include/detray/masks/unmasked.hpp"
    # materials include(s)
+   "include/detray/detail/relativistic_quantities.hpp" 
+   "include/detray/materials/interactor.hpp" 
    "include/detray/materials/mixture.hpp" 
    "include/detray/materials/material.hpp"
    "include/detray/materials/material_rod.hpp"   
@@ -75,6 +77,7 @@ detray_add_library( detray_core core
    "include/detray/propagator/line_stepper.hpp"
    "include/detray/propagator/navigation_policies.hpp"
    "include/detray/propagator/navigator.hpp"
+   "include/detray/propagator/pointwise_material_interaction.hpp"
    "include/detray/propagator/propagator.hpp"
    "include/detray/propagator/rk_stepper.hpp"
    "include/detray/propagator/track.hpp"

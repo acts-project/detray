@@ -64,6 +64,14 @@ struct material {
     constexpr scalar_type molar_electron_density() const {
         return m_z * m_molar_rho;
     }
+    /// Return the mean excitation energy
+    DETRAY_HOST_DEVICE
+    scalar_type mean_excitation_energy() {
+        // use approximative computation as defined in ATL-SOFT-PUB-2008-003
+        return scalar_type(16 * unit_constants::eV) *
+               std::pow(m_z, scalar_type(0.9));
+    }
+
     DETRAY_HOST_DEVICE
     constexpr scalar_type fraction() const {
         return ratio::num / static_cast<scalar_type>(ratio::den);
