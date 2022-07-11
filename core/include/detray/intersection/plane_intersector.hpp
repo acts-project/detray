@@ -73,8 +73,8 @@ struct plane_intersector {
             is.link = mask.volume_link();
 
             // Get incidecne angle
-            is.cos_incidence_angle =
-                vector::dot(rd, sn) / (getter::norm(rd) * getter::norm(sn));
+            const vector3 &normal = sn;
+            is.cos_incidence_angle = vector::dot(rd, normal);
         }
         return ret;
     }

@@ -17,7 +17,7 @@
 
 namespace detray {
 
-// Slab structure to be mapped on the mask
+// Slab structure to be mapped on the mask (plane, cylinder)
 template <typename scalar_t>
 struct material_slab {
     using scalar_type = scalar_t;
@@ -33,18 +33,6 @@ struct material_slab {
           m_thickness(thickness),
           m_thickness_in_X0(thickness / material.X0()),
           m_thickness_in_L0(thickness / material.L0()) {}
-
-    /// Constructor
-    /// @param material is the elemental or mixture material
-    /// @param thickness is the thickness of the slab
-    /// @param interaction_point is the interaction point of the line
-    material_slab(const material_type& material, scalar_type thickness,
-                  scalar_type interaction_point)
-        : m_material(material),
-          m_thickness(thickness),
-          m_thickness_in_X0(thickness / material.X0()),
-          m_thickness_in_L0(thickness / material.L0()),
-          m_interaction_point(interaction_point) {}
 
     /// Equality operator
     ///
@@ -67,33 +55,20 @@ struct material_slab {
     /// Return the nuclear interaction length fraction.
     DETRAY_HOST_DEVICE
     constexpr scalar_type thickness_in_L0() const { return m_thickness_in_L0; }
-    /// Return the pre interaction length
+    /// Return the interaction length
     DETRAY_HOST_DEVICE
-    constexpr scalar_type pre_interaction_length(
-        const line_plane_intersection& is) const {
-        if (is.direction == intersection::direction::e_along) {
-            return (m_thickness / scalar_type(2) + m_interaction_point) /
-                   is.cos_incidence_angle;
-        } else if (is.direction == intersection::direction::e_opposite) {
-            return (m_thickness / scalar_type(2) - m_interaction_point) /
-                   is.cos_incidence_angle;
-        } else {
-            return 0;
-        }
+    scalar_type interaction_length(const line_plane_intersection& is) const {
+        return m_thickness / is.cos_incidence_angle;
     }
-    /// Return the post interaction length
-    DETRAY_HOST_DEVICE
-    constexpr scalar_type post_interaction_length(
+    /// Return the interaction length in X0
+    scalar_type interaction_length_in_X0(
         const line_plane_intersection& is) const {
-        if (is.direction == intersection::direction::e_along) {
-            return (m_thickness / scalar_type(2) - m_interaction_point) /
-                   is.cos_incidence_angle;
-        } else if (is.direction == intersection::direction::e_opposite) {
-            return (m_thickness / scalar_type(2) + m_interaction_point) /
-                   is.cos_incidence_angle;
-        } else {
-            return 0;
-        }
+        return m_thickness_in_X0 / is.cos_incidence_angle;
+    }
+    /// Return the interaction length in L0
+    scalar_type interaction_length_in_L0(
+        const line_plane_intersection& is) const {
+        return m_thickness_in_L0 / is.cos_incidence_angle;
     }
 
     private:
@@ -101,7 +76,6 @@ struct material_slab {
     scalar_type m_thickness = std::numeric_limits<scalar>::epsilon();
     scalar_type m_thickness_in_X0 = std::numeric_limits<scalar>::epsilon();
     scalar_type m_thickness_in_L0 = std::numeric_limits<scalar>::epsilon();
-    scalar_type m_interaction_point = std::numeric_limits<scalar>::epsilon();
 };
 
 }  // namespace detray

@@ -87,10 +87,9 @@ struct cylinder_intersector {
                 is.link = mask.volume_link();
 
                 // Get incidecne angle
-                scalar sin_incidence_angle =
-                    vector::dot(rd, sz) / (getter::norm(rd) * getter::norm(sz));
-                is.cos_incidence_angle =
-                    std::sqrt(1 - sin_incidence_angle * sin_incidence_angle);
+                const scalar phi = algebra::getter::phi(local3);
+                const vector3 normal = {std::cos(phi), std::sin(phi), 0};
+                is.cos_incidence_angle = vector::dot(rd, normal);
             }
         }
 

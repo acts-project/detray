@@ -14,7 +14,7 @@
 
 namespace detray {
 
-// Rod structure to be mapped on the mask
+// Rod structure to be mapped on the line mask
 template <typename scalar_t>
 struct material_rod {
     using scalar_type = scalar_t;
@@ -23,7 +23,10 @@ struct material_rod {
     material_rod() = default;
 
     material_rod(const material_type& material, scalar_type radius)
-        : m_material(material), m_radius(radius) {}
+        : m_material(material),
+          m_radius(radius),
+          m_radius_in_X0(radius / material.X0()),
+          m_radius_in_L0(radius / material.L0()) {}
 
     /// Equality operator
     ///
@@ -36,25 +39,37 @@ struct material_rod {
     /// Access the (average) material parameters.
     DETRAY_HOST_DEVICE
     constexpr const material_type& get_material() const { return m_material; }
+
     /// Return the radius
     DETRAY_HOST_DEVICE
     constexpr scalar_type radius() const { return m_radius; }
-    /// Return the pre interaction length
+
+    /// Return the interaction length
     DETRAY_HOST_DEVICE
-    constexpr scalar_type pre_interaction_length(
-        const line_plane_intersection& is) const {
-        return m_radius * is.cos_incidence_angle;
+    scalar_type interaction_length(const line_plane_intersection& is) const {
+        // Assume that is.p2[0] is radial distance of line intersector
+        if (is.p2[0] > m_radius) {
+            return 0;
+        }
+        return scalar_type(2.) *
+               std::sqrt(m_radius * m_radius - is.p2[0] * is.p2[0]);
     }
-    /// Return the post interaction length
-    DETRAY_HOST_DEVICE
-    constexpr scalar_type post_interaction_length(
+    /// Return the interaction length in X0
+    scalar_type interaction_length_in_X0(
         const line_plane_intersection& is) const {
-        return m_radius * is.cos_incidence_angle;
+        return this->interaction_length(is) / m_material.X0();
+    }
+    /// Return the interaction length in L0
+    scalar_type interaction_length_in_L0(
+        const line_plane_intersection& is) const {
+        return this->interaction_length(is) / m_material.L0();
     }
 
     private:
     material_type m_material = {};
     scalar_type m_radius = std::numeric_limits<scalar>::epsilon();
+    scalar_type m_radius_in_X0 = std::numeric_limits<scalar>::epsilon();
+    scalar_type m_radius_in_L0 = std::numeric_limits<scalar>::epsilon();
 };
 
 }  // namespace detray

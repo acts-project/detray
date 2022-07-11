@@ -6,7 +6,9 @@
  */
 
 /// Detray include(s)
+#include "detray/definitions/units.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -111,7 +113,31 @@ TEST(materials, mixture) {
 }
 
 // This tests the material slab functionalities
-TEST(materials, material_slab) {}
+TEST(materials, material_slab) {
+
+    material_slab<scalar> slab(oxygen_gas<scalar>(), 2 * unit_constants::mm);
+
+    line_plane_intersection is;
+    is.cos_incidence_angle = scalar(0.3);
+
+    EXPECT_FLOAT_EQ(slab.interaction_length(is), 2 * unit_constants::mm / 0.3);
+    EXPECT_FLOAT_EQ(slab.interaction_length_in_X0(is),
+                    slab.interaction_length(is) / slab.get_material().X0());
+    EXPECT_FLOAT_EQ(slab.interaction_length_in_L0(is),
+                    slab.interaction_length(is) / slab.get_material().L0());
+}
 
 // This tests the material rod functionalities
-TEST(materials, material_rod) {}
+TEST(materials, material_rod) {
+
+    material_rod<scalar> rod(oxygen_gas<scalar>(), 2 * unit_constants::mm);
+
+    line_plane_intersection is;
+    is.p2[0] = 1. * unit_constants::mm;
+
+    EXPECT_FLOAT_EQ(rod.interaction_length(is), 2 * std::sqrt(3));
+    EXPECT_FLOAT_EQ(rod.interaction_length_in_X0(is),
+                    rod.interaction_length(is) / rod.get_material().X0());
+    EXPECT_FLOAT_EQ(rod.interaction_length_in_L0(is),
+                    rod.interaction_length(is) / rod.get_material().L0());
+}
