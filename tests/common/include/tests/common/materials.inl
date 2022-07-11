@@ -113,5 +113,5 @@ TEST(materials, mixture) {
 // This tests the material slab functionalities
 TEST(materials, material_slab) {}
 
-// This tests the material slab functionalities
+// This tests the material rod functionalities
 TEST(materials, material_rod) {}
