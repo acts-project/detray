@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/intersection.hpp"
 #include "detray/materials/material.hpp"
 
 // System include(s)
@@ -16,7 +17,7 @@
 
 namespace detray {
 
-// Slab structure to be mapped on the mask
+// Slab structure to be mapped on the mask (plane, cylinder)
 template <typename scalar_t>
 struct material_slab {
     using scalar_type = scalar_t;
@@ -25,10 +26,10 @@ struct material_slab {
 
     material_slab() = default;
 
-    /// Constructor for material slab
+    /// Constructor
     /// @param material is the elemental or mixture material
-    /// @param thickness is the thickness of slab
-    material_slab(const material_type& material, const scalar_type thickness)
+    /// @param thickness is the thickness of the slab
+    material_slab(const material_type& material, scalar_type thickness)
         : m_material(material),
           m_thickness(thickness),
           m_thickness_in_X0(thickness / material.X0()),
@@ -68,6 +69,21 @@ struct material_slab {
     /// Return the nuclear interaction length fraction.
     DETRAY_HOST_DEVICE
     constexpr scalar_type thickness_in_L0() const { return m_thickness_in_L0; }
+    /// Return the interaction length
+    DETRAY_HOST_DEVICE
+    scalar_type interaction_length(const line_plane_intersection& is) const {
+        return m_thickness / is.cos_incidence_angle;
+    }
+    /// Return the interaction length in X0
+    scalar_type interaction_length_in_X0(
+        const line_plane_intersection& is) const {
+        return m_thickness_in_X0 / is.cos_incidence_angle;
+    }
+    /// Return the interaction length in L0
+    scalar_type interaction_length_in_L0(
+        const line_plane_intersection& is) const {
+        return m_thickness_in_L0 / is.cos_incidence_angle;
+    }
 
     private:
     material_type m_material = {};
