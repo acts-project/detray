@@ -60,8 +60,7 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
 
 // This defines the local frame test suite
 TEST(ALGEBRA_PLUGIN, cylinder_incidence_angle) {
-    // Create a translated cylinder and test untersection
-    const transform3 shifted(vector3{0., 0., 0.});
+    const transform3 tf(vector3{0., 0., 0.});
     cylinder_intersector ci;
 
     // Test ray
@@ -73,7 +72,7 @@ TEST(ALGEBRA_PLUGIN, cylinder_incidence_angle) {
     cylinder3<cylinder_intersector, __plugin::cylindrical2<detray::scalar>,
               unsigned int>
         cylinder_bound{4., -10., 10., 0u};
-    const auto hit_bound = ci(ray, cylinder_bound, shifted)[0];
+    const auto hit_bound = ci(ray, cylinder_bound, tf)[0];
     ASSERT_NEAR(hit_bound.cos_incidence_angle, std::sqrt(15) / 4., isclose);
 }
 
