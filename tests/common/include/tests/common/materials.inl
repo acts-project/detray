@@ -115,12 +115,14 @@ TEST(materials, mixture) {
 // This tests the material slab functionalities
 TEST(materials, material_slab) {
 
-    material_slab<scalar> slab1(oxygen_gas<scalar>(), 2 * unit_constants::mm);
+    material_slab<scalar> slab1(oxygen_gas<scalar>(),
+                                scalar(2) * scalar(unit_constants::mm));
 
     line_plane_intersection is;
     is.cos_incidence_angle = scalar(0.3);
 
-    EXPECT_FLOAT_EQ(slab1.interaction_length(is), 2 * unit_constants::mm / 0.3);
+    EXPECT_FLOAT_EQ(slab1.interaction_length(is),
+                    scalar(2) * scalar(unit_constants::mm) / scalar(0.3));
     EXPECT_FLOAT_EQ(slab1.interaction_length_in_X0(is),
                     slab1.interaction_length(is) / slab1.get_material().X0());
     EXPECT_FLOAT_EQ(slab1.interaction_length_in_L0(is),
@@ -137,17 +139,18 @@ TEST(materials, material_slab) {
 // This tests the material rod functionalities
 TEST(materials, material_rod) {
 
-    material_rod<scalar> rod1(oxygen_gas<scalar>(), 2 * unit_constants::mm);
+    material_rod<scalar> rod1(oxygen_gas<scalar>(),
+                              scalar(2) * scalar(unit_constants::mm));
 
     line_plane_intersection is;
     is.p2[0] = 1. * unit_constants::mm;
 
-    EXPECT_FLOAT_EQ(rod1.interaction_length(is), 2 * std::sqrt(3));
+    EXPECT_FLOAT_EQ(rod1.interaction_length(is),
+                    scalar(2.) * scalar(std::sqrt(3)));
     EXPECT_FLOAT_EQ(rod1.interaction_length_in_X0(is),
                     rod1.interaction_length(is) / rod1.get_material().X0());
     EXPECT_FLOAT_EQ(rod1.interaction_length_in_L0(is),
                     rod1.interaction_length(is) / rod1.get_material().L0());
-    EXPECT_EQ(rod1, true);
 
     material_rod<scalar> rod2(oxygen_gas<scalar>(), 0.);
     EXPECT_EQ(rod2, false);
