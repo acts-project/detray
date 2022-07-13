@@ -44,9 +44,9 @@ struct material_rod {
     DETRAY_HOST_DEVICE
     constexpr scalar_type radius() const { return m_radius; }
 
-    /// Return the interaction length
+    /// Return the path segment
     DETRAY_HOST_DEVICE
-    scalar_type interaction_length(const line_plane_intersection& is) const {
+    scalar_type path_segment(const line_plane_intersection& is) const {
         // Assume that is.p2[0] is radial distance of line intersector
         if (is.p2[0] > m_radius) {
             return 0;
@@ -54,15 +54,13 @@ struct material_rod {
         return scalar_type(2.) *
                std::sqrt(m_radius * m_radius - is.p2[0] * is.p2[0]);
     }
-    /// Return the interaction length in X0
-    scalar_type interaction_length_in_X0(
-        const line_plane_intersection& is) const {
-        return this->interaction_length(is) / m_material.X0();
+    /// Return the path segment in X0
+    scalar_type path_segment_in_X0(const line_plane_intersection& is) const {
+        return this->path_segment(is) / m_material.X0();
     }
-    /// Return the interaction length in L0
-    scalar_type interaction_length_in_L0(
-        const line_plane_intersection& is) const {
-        return this->interaction_length(is) / m_material.L0();
+    /// Return the path segment in L0
+    scalar_type path_segment_in_L0(const line_plane_intersection& is) const {
+        return this->path_segment(is) / m_material.L0();
     }
 
     private:

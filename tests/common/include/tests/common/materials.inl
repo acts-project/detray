@@ -121,12 +121,12 @@ TEST(materials, material_slab) {
     line_plane_intersection is;
     is.cos_incidence_angle = scalar(0.3);
 
-    EXPECT_FLOAT_EQ(slab.interaction_length(is),
+    EXPECT_FLOAT_EQ(slab.path_segment(is),
                     scalar(2) * scalar(unit_constants::mm) / scalar(0.3));
-    EXPECT_FLOAT_EQ(slab.interaction_length_in_X0(is),
-                    slab.interaction_length(is) / slab.get_material().X0());
-    EXPECT_FLOAT_EQ(slab.interaction_length_in_L0(is),
-                    slab.interaction_length(is) / slab.get_material().L0());
+    EXPECT_FLOAT_EQ(slab.path_segment_in_X0(is),
+                    slab.path_segment(is) / slab.get_material().X0());
+    EXPECT_FLOAT_EQ(slab.path_segment_in_L0(is),
+                    slab.path_segment(is) / slab.get_material().L0());
 }
 
 // This tests the material rod functionalities
@@ -138,10 +138,9 @@ TEST(materials, material_rod) {
     line_plane_intersection is;
     is.p2[0] = 1. * unit_constants::mm;
 
-    EXPECT_FLOAT_EQ(rod.interaction_length(is),
-                    scalar(2.) * scalar(std::sqrt(3)));
-    EXPECT_FLOAT_EQ(rod.interaction_length_in_X0(is),
-                    rod.interaction_length(is) / rod.get_material().X0());
-    EXPECT_FLOAT_EQ(rod.interaction_length_in_L0(is),
-                    rod.interaction_length(is) / rod.get_material().L0());
+    EXPECT_FLOAT_EQ(rod.path_segment(is), scalar(2.) * scalar(std::sqrt(3)));
+    EXPECT_FLOAT_EQ(rod.path_segment_in_X0(is),
+                    rod.path_segment(is) / rod.get_material().X0());
+    EXPECT_FLOAT_EQ(rod.path_segment_in_L0(is),
+                    rod.path_segment(is) / rod.get_material().L0());
 }
