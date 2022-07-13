@@ -20,12 +20,11 @@ struct relativistic_quantities {
 
     // values from RPP2018 table 33.1
     // electron mass
-    constexpr scalar_type Me = 0.5109989461 * unit_constants::MeV;
+    const scalar_type Me = 0.5109989461 * unit_constants::MeV;
     // Bethe formular prefactor. 1/mol unit is just a factor 1 here.
-    constexpr scalar_type K =
-        0.307075 * unit_constants::MeV * unit_constants::cm2;
+    const scalar_type K = 0.307075 * unit_constants::MeV * unit_constants::cm2;
     // Energy scale for plasma energy.
-    constexpr scalar_type PlasmaEnergyScale = 28.816 * unit_constants::eV;
+    const scalar_type PlasmaEnergyScale = 28.816 * unit_constants::eV;
 
     scalar_type m_q2OverBeta2 = 0.0;
     scalar_type m_beta2 = 0.0;
@@ -74,7 +73,7 @@ struct relativistic_quantities {
         const scalar_type mass) const {
         const auto mfrac = Me / mass;
         const auto nominator = 2 * Me * m_betaGamma * m_betaGamma;
-        const auto denonimator = 1.0f + 2 * m_gamma * mfrac + mfrac * mfrac;
+        const auto denonimator = 1.0 + 2 * m_gamma * mfrac + mfrac * mfrac;
         return nominator / denonimator;
     }
 
@@ -101,7 +100,7 @@ struct relativistic_quantities {
     DETRAY_HOST_DEVICE inline scalar_type compute_epsilon(
         const scalar_type molarElectronDensity,
         const scalar_type thickness) const {
-        return 0.5f * K * molarElectronDensity * thickness * m_q2OverBeta2;
+        return 0.5 * K * molarElectronDensity * thickness * m_q2OverBeta2;
     }
 
     /// Compute epsilon logarithmic derivative w/ respect to q/p.

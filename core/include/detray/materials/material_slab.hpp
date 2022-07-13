@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/predefined_materials.hpp"
 
 // System include(s)
 #include <climits>
@@ -35,19 +36,6 @@ struct material_slab {
           m_thickness_in_X0(thickness / material.X0()),
           m_thickness_in_L0(thickness / material.L0()) {}
 
-    /// Constructor for material slab
-    /// @param material is the elemental or mixture material
-    /// @param thickness is the thickness of slab
-    /// @param interaction_point is the interaction point where the measurement
-    /// happens
-    material_slab(const material_type& material, const scalar_type thickness,
-                  const scalar_type interaction_point)
-        : m_material(material),
-          m_thickness(thickness),
-          m_thickness_in_X0(thickness / material.X0()),
-          m_thickness_in_L0(thickness / material.L0()),
-          m_interaction_point(interaction_point) {}
-
     /// Equality operator
     ///
     /// @param rhs is the right hand side to be compared to
@@ -55,6 +43,15 @@ struct material_slab {
         const material_slab<scalar_t>& rhs) const {
         return (m_material == rhs.get_material() &&
                 m_thickness == rhs.thickness());
+    }
+
+    /// Boolean operator
+    DETRAY_HOST_DEVICE constexpr operator bool() const {
+        if (m_thickness <= std::numeric_limits<scalar>::epsilon() ||
+            m_material == vacuum<scalar_type>()) {
+            return false;
+        }
+        return true;
     }
 
     /// Access the (average) material parameters.
@@ -90,10 +87,6 @@ struct material_slab {
     scalar_type m_thickness = std::numeric_limits<scalar>::epsilon();
     scalar_type m_thickness_in_X0 = std::numeric_limits<scalar>::epsilon();
     scalar_type m_thickness_in_L0 = std::numeric_limits<scalar>::epsilon();
-
-    // interaction point is the point where the measurement happens in the slab
-    // 0 (epsilon) means the middle of the slab
-    scalar_type m_interaction_point = std::numeric_limits<scalar>::epsilon();
 };
 
 }  // namespace detray

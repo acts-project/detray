@@ -22,6 +22,7 @@ detray_add_library( detray_core core
    "include/detray/definitions/containers.hpp"
    "include/detray/definitions/cuda_definitions.hpp"
    "include/detray/definitions/indexing.hpp"
+   "include/detray/definitions/pdg_particle.hpp"
    "include/detray/definitions/qualifiers.hpp"
    "include/detray/definitions/track_parameterization.hpp"
    "include/detray/definitions/units.hpp"

@@ -66,7 +66,7 @@ struct material {
     }
     /// Return the mean excitation energy
     DETRAY_HOST_DEVICE
-    scalar_type mean_excitation_energy() {
+    scalar_type mean_excitation_energy() const {
         // use approximative computation as defined in ATL-SOFT-PUB-2008-003
         return scalar_type(16 * unit_constants::eV) *
                std::pow(m_z, scalar_type(0.9));

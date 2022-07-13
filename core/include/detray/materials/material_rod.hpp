@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/predefined_materials.hpp"
 
 namespace detray {
 
@@ -34,6 +35,15 @@ struct material_rod {
     DETRAY_HOST_DEVICE
     bool operator==(const material_rod<scalar_t>& rhs) const {
         return (m_material == rhs.get_material() && m_radius == rhs.radius());
+    }
+
+    /// Boolean operator
+    DETRAY_HOST_DEVICE constexpr operator bool() const {
+        if (m_radius <= std::numeric_limits<scalar>::epsilon() ||
+            m_material == vacuum<scalar_type>()) {
+            return false;
+        }
+        return true;
     }
 
     /// Access the (average) material parameters.
