@@ -66,19 +66,17 @@ struct material_slab {
     /// Return the nuclear interaction length fraction.
     DETRAY_HOST_DEVICE
     constexpr scalar_type thickness_in_L0() const { return m_thickness_in_L0; }
-    /// Return the interaction length
+    /// Return the path segment
     DETRAY_HOST_DEVICE
-    scalar_type interaction_length(const line_plane_intersection& is) const {
+    scalar_type path_segment(const line_plane_intersection& is) const {
         return m_thickness / is.cos_incidence_angle;
     }
-    /// Return the interaction length in X0
-    scalar_type interaction_length_in_X0(
-        const line_plane_intersection& is) const {
+    /// Return the path segment in X0
+    scalar_type path_segment_in_X0(const line_plane_intersection& is) const {
         return m_thickness_in_X0 / is.cos_incidence_angle;
     }
-    /// Return the interaction length in L0
-    scalar_type interaction_length_in_L0(
-        const line_plane_intersection& is) const {
+    /// Return the path segment in L0
+    scalar_type path_segment_in_L0(const line_plane_intersection& is) const {
         return m_thickness_in_L0 / is.cos_incidence_angle;
     }
 

@@ -37,9 +37,9 @@ struct interactor {
 
         const auto I = mat.get_material().mean_excitation_energy();
         const auto Ne = mat.get_material().molar_electron_density();
-        const auto interaction_length = mat.interaction_length(is);
+        const auto path_segment = mat.path_segment(is);
         const relativistic_quantities rq(m, qOverP, q);
-        const auto eps = rq.compute_epsilon(Ne, interaction_length);
+        const auto eps = rq.compute_epsilon(Ne, path_segment);
         const auto dhalf = rq.compute_delta_half(I, Ne);
         const auto u = rq.compute_mass_term(rq.Me);
         const auto wmax = rq.compute_WMax(m);
@@ -66,9 +66,9 @@ struct interactor {
 
         const auto I = mat.get_material().mean_excitation_energy();
         const auto Ne = mat.get_material().molar_electron_density();
-        const auto interaction_length = mat.interaction_length(is);
+        const auto path_segment = mat.path_segment(is);
         const relativistic_quantities rq(m, qOverP, q);
-        const auto eps = rq.compute_epsilon(Ne, interaction_length);
+        const auto eps = rq.compute_epsilon(Ne, path_segment);
         const auto dhalf = rq.compute_delta_half(I, Ne);
         const auto t = rq.compute_mass_term(m);
         // uses RPP2018 eq. 33.11
@@ -89,10 +89,10 @@ struct interactor {
         }
 
         const auto Ne = mat.get_material().molar_electron_density();
-        const auto interaction_length = mat.interaction_length(is);
+        const auto path_segment = mat.path_segment(is);
         const relativistic_quantities rq(m, qOverP, q);
         // the Landau-Vavilov fwhm is 4*eps (see RPP2018 fig. 33.7)
-        const auto fwhm = 4 * rq.compute_epsilon(Ne, interaction_length);
+        const auto fwhm = 4 * rq.compute_epsilon(Ne, path_segment);
         const auto sigmaE = convert_landau_fwhm_to_gaussian_sigma(fwhm);
         //  var(q/p) = (d(q/p)/dE)² * var(E)
         // d(q/p)/dE = d/dE (q/sqrt(E²-m²))
@@ -117,7 +117,7 @@ struct interactor {
         }
 
         // relative radiation length
-        const scalar_type xOverX0 = mat.interaction_length_in_X0();
+        const scalar_type xOverX0 = mat.path_segment_in_X0();
         // 1/p = q/(pq) = (q/p)/q
         const scalar_type momentumInv = std::abs(qOverP / q);
         // q²/beta²; a smart compiler should be able to remove the unused

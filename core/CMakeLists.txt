@@ -59,6 +59,7 @@ detray_add_library( detray_core core
    "include/detray/masks/trapezoid2.hpp"
    "include/detray/masks/unmasked.hpp"
    # materials include(s)
+   "include/detray/detail/density_effect_data.hpp" 
    "include/detray/detail/relativistic_quantities.hpp" 
    "include/detray/materials/interactor.hpp" 
    "include/detray/materials/mixture.hpp" 

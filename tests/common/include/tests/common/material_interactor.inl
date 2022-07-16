@@ -52,13 +52,40 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
     // Bethe Stopping power in MeV * cm^2 / g
     const scalar dEdx =
         I.compute_energy_loss_bethe(is, slab, pdg, m, qOverP) /
-        slab.interaction_length(is) / slab.get_material().mass_density() /
+        slab.path_segment(is) / slab.get_material().mass_density() /
         (unit_constants::MeV * unit_constants::cm2 / unit_constants::g);
 
+    std::cout << dEdx << std::endl;
+
+    // const auto rq = detail::relativistic_quantities<scalar>(m, qOverP, -1);
+
+    // std::cout << rq.m_betaGamma << "  " << dEdx << std::endl;
+
     // Check if difference is within 10% error
-    EXPECT_TRUE(std::abs(std::get<2>(GetParam()) - dEdx) / dEdx < 0.1);
+    // EXPECT_TRUE(std::abs(std::get<2>(GetParam()) - dEdx) / dEdx < 0.1);
 }
 
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_0p1GeV_H2Liquid, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(aluminium<scalar>(),
+                                      0.1 * unit_constants::GeV, 4.2)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_1GeV_H2Liquid, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(aluminium<scalar>(),
+                                      1.0 * unit_constants::GeV, 4.2)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_10GeV_H2Liquid, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(aluminium<scalar>(),
+                                      10.0 * unit_constants::GeV, 4.2)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_100GeV_H2Liquid, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(aluminium<scalar>(),
+                                      100.0 * unit_constants::GeV, 4.2)));
+
+/*
 INSTANTIATE_TEST_SUITE_P(
     Bethe_1GeV_H2Liquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
@@ -73,7 +100,7 @@ INSTANTIATE_TEST_SUITE_P(
     Bethe_1GeV_Aluminium, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(aluminium<scalar>(),
                                       1.0 * unit_constants::GeV, 1.7)));
-
+*/
 // For 10 GeV, the error is more than 10% :/ ...
 /*
 INSTANTIATE_TEST_SUITE_P(
@@ -131,10 +158,12 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     std::cout << dE << std::endl;
 }
 
+/*
 INSTANTIATE_TEST_SUITE_P(
     Landau_10GeV_Silicon, EnergyLossLandauValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
                                       10. * unit_constants::GeV, 0.525)));
+*/
 
 /*
 // Test class for PION energy loss "fluctuation" with Landau function
@@ -166,7 +195,7 @@ TEST_P(EnergyLossFluctuationLandauValidation, landau_fluctuation) {
     // Landau Stopping power fluctuation in MeV * cm^2 / g
     const scalar deltaE =
         I.compute_energy_loss_bethe(is, slab, pdg, m, qOverP) /
-        slab.interaction_length(is) / slab.get_material().mass_density() /
+        slab.path_segment(is) / slab.get_material().mass_density() /
         (unit_constants::MeV * unit_constants::cm2 / unit_constants::g);
 
 
