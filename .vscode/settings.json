@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.sycl": "cpp",
-        "limits": "cpp"
+        "limits": "cpp",
+        "tuple": "cpp"
     }
 }

@@ -75,12 +75,23 @@ struct material {
     constexpr scalar_type molar_electron_density() const {
         return m_z * m_molar_rho;
     }
+    /// Return the density effect data
+    DETRAY_HOST_DEVICE
+    constexpr detail::density_effect_data<scalar_type> density_effect_data()
+        const {
+        return m_density;
+    }
+
     /// Return the (Approximated) mean excitation energy
     DETRAY_HOST_DEVICE
     scalar_type mean_excitation_energy() const {
         // use approximative computation as defined in ATL-SOFT-PUB-2008-003
-        return scalar_type(16 * unit_constants::eV) *
-               std::pow(m_z, scalar_type(0.9));
+        if (m_density == detail::null_density) {
+            return scalar_type(16 * unit_constants::eV) *
+                   std::pow(m_z, scalar_type(0.9));
+        } else {
+            return m_density.get_mean_excitation_energy();
+        }
     }
 
     DETRAY_HOST_DEVICE

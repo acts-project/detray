@@ -40,7 +40,8 @@ struct interactor {
         const auto path_segment = mat.path_segment(is);
         const relativistic_quantities rq(m, qOverP, q);
         const auto eps = rq.compute_epsilon(Ne, path_segment);
-        const auto dhalf = rq.compute_delta_half(I, Ne);
+        const auto dhalf = rq.compute_delta_half(mat.get_material());
+        // const auto dhalf = rq.compute_delta_half(I, Ne);
         const auto u = rq.compute_mass_term(rq.Me);
         const auto wmax = rq.compute_WMax(m);
         // uses RPP2018 eq. 33.5 scaled from mass stopping power to linear
@@ -61,7 +62,7 @@ struct interactor {
 
         // return early in case of vacuum or zero thickness
         if (not mat) {
-            return 0.0f;
+            return scalar_type(0.);
         }
 
         const auto I = mat.get_material().mean_excitation_energy();
@@ -69,11 +70,14 @@ struct interactor {
         const auto path_segment = mat.path_segment(is);
         const relativistic_quantities rq(m, qOverP, q);
         const auto eps = rq.compute_epsilon(Ne, path_segment);
-        const auto dhalf = rq.compute_delta_half(I, Ne);
-        const auto t = rq.compute_mass_term(m);
+        const auto dhalf = rq.compute_delta_half(mat.get_material());
+        // const auto dhalf = rq.compute_delta_half(I, Ne);
+        // const auto t = rq.compute_mass_term(m);
+        const auto t = rq.compute_mass_term(rq.Me);
         // uses RPP2018 eq. 33.11
-        const auto running =
-            std::log(t / I) + std::log(eps / I) + 0.2f - rq.m_beta2 - 2 * dhalf;
+        const auto running = std::log(t / I) + std::log(eps / I) +
+                             scalar_type(0.2) - rq.m_beta2 -
+                             scalar_type(2.) * dhalf;
         return eps * running;
     }
 

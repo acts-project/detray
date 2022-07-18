@@ -10,6 +10,7 @@
 /// Detray include(s)
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/materials/material.hpp"
 
 namespace detray::detail {
 
@@ -111,22 +112,52 @@ struct relativistic_quantities {
     }
 
     /// Compute the density correction factor delta/2.
-    ///
-    /// Uses RPP2018 eq. 33.6 which is only valid for high energies.
-    ///
-    /// @todo Should we use RPP2018 eq. 33.7 instead w/ tabulated constants?
     DETRAY_HOST_DEVICE inline scalar_type compute_delta_half(
-        const scalar_type meanExitationPotential,
-        const scalar_type molarElectronDensity) const {
-        // only relevant for very high ernergies; use arbitrary cutoff
-        if (m_betaGamma < 10.0f) {
-            return 0.0f;
+        const material<scalar_type>& mat) const {
+
+        const auto& density = mat.density_effect_data();
+
+        // When the denstiy effect data is not provided (RPP2018 eq. 33.6 only
+        // valid for high energies)
+        if (density == null_density) {
+            const scalar_type mean_exitation_energy =
+                mat.mean_excitation_energy();
+            const scalar_type molar_electron_density =
+                mat.molar_electron_density();
+
+            // only relevant for very high ernergies; use arbitrary cutoff
+            if (m_betaGamma < scalar_type(10.0)) {
+                return scalar_type(0.);
+            }
+            // pre-factor according to RPP2019 table 33.1
+            const scalar_type plasmaEnergy =
+                PlasmaEnergyScale * std::sqrt(molar_electron_density);
+            return std::log(m_betaGamma) +
+                   std::log(plasmaEnergy / mean_exitation_energy) - 0.5f;
         }
-        // pre-factor according to RPP2019 table 33.1
-        const auto plasmaEnergy =
-            PlasmaEnergyScale * std::sqrt(molarElectronDensity);
-        return std::log(m_betaGamma) +
-               std::log(plasmaEnergy / meanExitationPotential) - 0.5f;
+        // When the denstiy effect data is provided (RPP2018 eq. 33.7)
+        else {
+            const scalar_type cden = density.get_C_density();
+            const scalar_type mden = density.get_M_density();
+            const scalar_type aden = density.get_A_density();
+            const scalar_type x0den = density.get_X0_density();
+            const scalar_type x1den = density.get_X1_density();
+
+            const scalar_type x = std::log10(m_betaGamma);
+
+            scalar_type delta;
+
+            if (x < x0den) {
+                delta = 0.0;
+
+            } else {
+                delta = scalar_type(2.) * std::log(10.) * x - cden;
+                if (x < x1den)
+                    delta += aden * std::pow((x1den - x), mden);
+            }
+
+            return delta / scalar_type(2.);
+        }
     }
 
     /// Compute derivative w/ respect to q/p for the density correction.
