@@ -121,7 +121,7 @@ struct interactor {
         }
 
         // relative radiation length
-        const scalar_type xOverX0 = mat.path_segment_in_X0();
+        const scalar_type xOverX0 = mat.path_segment_in_X0(is);
         // 1/p = q/(pq) = (q/p)/q
         const scalar_type momentumInv = std::abs(qOverP / q);
         // q²/beta²; a smart compiler should be able to remove the unused
