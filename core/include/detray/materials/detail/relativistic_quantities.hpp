@@ -147,6 +147,8 @@ struct relativistic_quantities {
 
             scalar_type delta;
 
+            // From Geant4
+            // processes/electromagnetic/lowenergy/src/G4hBetheBlochModel.cc
             if (x < x0den) {
                 delta = 0.0;
 

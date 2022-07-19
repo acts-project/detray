@@ -15,6 +15,7 @@
 
 namespace detray::detail {
 
+// Ported from Geant4 and simplified
 template <typename scalar_t>
 struct density_effect_data {
 

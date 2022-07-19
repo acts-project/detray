@@ -101,9 +101,9 @@ struct interactor {
         //  var(q/p) = (d(q/p)/dE)² * var(E)
         // d(q/p)/dE = d/dE (q/sqrt(E²-m²))
         //           = q * -(1/2) * 1/p³ * 2E
+        //  var(q/p) = (q/p)^4 * (q/beta)² * (1/q)^4 * var(E)
         //           = -q/p² E/p = -(q/p)² * 1/(q*beta) = -(q/p)² * (q/beta) /
         //           q²
-        //  var(q/p) = (q/p)^4 * (q/beta)² * (1/q)^4 * var(E)
         //           = (1/p)^4 * (q/beta)² * var(E)
         // do not need to care about the sign since it is only used squared
         const auto pInv = qOverP / q;
