@@ -60,11 +60,14 @@ TEST(tools, line_intersector_case1) {
     EXPECT_EQ(is[0].path, 1);
     EXPECT_EQ(is[0].p3, point3({1, 0, 0}));
     EXPECT_EQ(is[0].p2, point2({1, 0}));
+    EXPECT_NEAR(is[0].cos_incidence_angle, 0, tolerance);
 
     EXPECT_EQ(is[1].status, intersection::status::e_inside);
     EXPECT_EQ(is[1].path, 1);
     EXPECT_EQ(is[1].p3, point3({-1, 0, 0}));
     EXPECT_EQ(is[1].p2, point2({1, 0}));
+    EXPECT_NEAR(is[1].cos_incidence_angle, 0, tolerance);
+
     EXPECT_EQ(is[2].status, intersection::status::e_inside);
     EXPECT_NEAR(is[2].path, std::sqrt(2), tolerance);
     EXPECT_NEAR(is[2].p3[0], 1., tolerance);
@@ -72,6 +75,7 @@ TEST(tools, line_intersector_case1) {
     EXPECT_NEAR(is[2].p3[2], 1., tolerance);
     EXPECT_NEAR(is[2].p2[0], 1., tolerance);
     EXPECT_NEAR(is[2].p2[1], 1., tolerance);
+    EXPECT_NEAR(is[2].cos_incidence_angle, 1. / sqrt(2), tolerance);
 }
 
 // Test inclined wire
