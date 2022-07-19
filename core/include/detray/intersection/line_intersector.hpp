@@ -106,6 +106,9 @@ struct line_intersector {
                            : intersection::direction::e_opposite;
         is.link = mask.volume_link();
 
+        // Get incidence angle
+        is.cos_incidence_angle = std::abs(vector::dot(_d, _z));
+
         return ret;
     }
 };

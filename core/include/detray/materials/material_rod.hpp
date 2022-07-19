@@ -61,8 +61,13 @@ struct material_rod {
         if (is.p2[0] > m_radius) {
             return 0;
         }
+
+        auto const sin_incidence_angle =
+            std::sqrt(scalar_type(1.) - std::pow(is.cos_incidence_angle, 2));
+
         return scalar_type(2.) *
-               std::sqrt(m_radius * m_radius - is.p2[0] * is.p2[0]);
+               std::sqrt(m_radius * m_radius - is.p2[0] * is.p2[0]) /
+               sin_incidence_angle;
     }
     /// Return the path segment in X0
     scalar_type path_segment_in_X0(const line_plane_intersection& is) const {
