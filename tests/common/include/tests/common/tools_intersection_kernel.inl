@@ -71,8 +71,7 @@ TEST(tools, intersection_kernel_ray) {
 
     /// The Surface definition:
     /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t =
-        surface<mask_defs, material_defs, dindex, dindex, source_link_t>;
+    using surface_t = surface<mask_defs, material_defs, dindex, source_link_t>;
     using surface_container_t = dvector<surface_t>;
 
     // The transforms & their store
@@ -189,8 +188,7 @@ TEST(tools, intersection_kernel_helix) {
 
     /// The Surface definition:
     /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t =
-        surface<mask_defs, material_defs, dindex, dindex, source_link_t>;
+    using surface_t = surface<mask_defs, material_defs, dindex, source_link_t>;
     using surface_container_t = dvector<surface_t>;
 
     // The transforms & their store

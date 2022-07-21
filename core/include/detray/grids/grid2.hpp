@@ -60,7 +60,7 @@ class grid2 {
     static constexpr array_t<dindex, 2> hermit1 = {0u, 0u};
     static constexpr neighborhood<dindex> hermit2 = {hermit1, hermit1};
 
-    grid2() = delete;
+    grid2() = default;
 
     DETRAY_HOST
     grid2(vecmem::memory_resource &mr,

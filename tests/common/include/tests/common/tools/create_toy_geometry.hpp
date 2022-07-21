@@ -61,8 +61,8 @@ inline void add_cylinder_surface(
     constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder3;
     constexpr auto slab_id = material_defs::id::e_slab;
 
-    const scalar min_z = std::min(lower_z, upper_z);
-    const scalar max_z = std::max(lower_z, upper_z);
+    const scalar min_z{std::min(lower_z, upper_z)};
+    const scalar max_z{std::max(lower_z, upper_z)};
 
     // translation
     point3 tsl{0., 0., 0};
@@ -116,8 +116,8 @@ inline void add_disc_surface(
     constexpr auto disc_id = mask_defs::id::e_portal_ring2;
     constexpr auto slab_id = material_defs::id::e_slab;
 
-    const scalar min_r = std::min(inner_r, outer_r);
-    const scalar max_r = std::max(inner_r, outer_r);
+    const scalar min_r{std::min(inner_r, outer_r)};
+    const scalar max_r{std::max(inner_r, outer_r)};
 
     // translation
     point3 tsl{0., 0., z};
@@ -178,8 +178,7 @@ void create_cyl_volume(
 
     auto &cyl_volume =
         det.new_volume({inner_r, outer_r, lower_z, upper_z, -M_PI, M_PI});
-    typename detector_t::surfaces_finder_type::surfaces_regular_circular_grid
-        cyl_surfaces_grid(resource);
+    cyl_volume.set_sf_finder({detector_t::sf_finders::id::e_default, 0});
 
     // Add module surfaces to volume
     typename detector_t::surface_container surfaces(&resource);
@@ -189,8 +188,6 @@ void create_cyl_volume(
 
     // fill the surfaces
     module_factory(ctx, cyl_volume, surfaces, masks, materials, transforms);
-    // create the surface grid
-    module_factory(cyl_surfaces_grid, *det.resource());
 
     // negative and positive, inner and outer portal surface
     add_cylinder_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
@@ -208,10 +205,6 @@ void create_cyl_volume(
 
     det.add_objects_per_volume(ctx, cyl_volume, surfaces, masks, materials,
                                transforms);
-    if (cyl_volume.get_grid_type() !=
-        detector_t::volume_type::grid_type::e_no_grid) {
-        det.add_surfaces_grid(ctx, cyl_volume, cyl_surfaces_grid);
-    }
 }
 
 /** Helper function that creates a layer of rectangular barrel modules.
@@ -248,8 +241,6 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     auto volume_id = vol.index();
     edge_t mask_edge{volume_id, dindex_invalid};
 
-    vol.set_grid_type(volume_type::grid_type::e_z_phi_grid);
-
     // Create the module centers
 
     // surface grid bins
@@ -260,25 +251,24 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     m_centers.reserve(n_phi_bins * n_z_bins);
 
     // prep work
-    // scalar pi{static_cast<scalar>(M_PI)};
-    scalar phi_step = 2 * M_PI / (n_phi_bins);
-    scalar min_phi = -M_PI + 0.5 * phi_step;
+    scalar pi{static_cast<scalar>(M_PI)};
+    scalar phi_step{scalar{2} * pi / (n_phi_bins)};
+    scalar min_phi{-pi + scalar{0.5} * phi_step};
 
-    auto z_axis_info = cfg.get_z_axis_info();
-    auto &z_start = std::get<0>(z_axis_info);
-    // auto &z_end = std::get<1>(z_axis_info);
-    auto &z_step = std::get<2>(z_axis_info);
+    scalar z_start{scalar{-0.5} * (n_z_bins - 1) *
+                   (scalar{2} * cfg.m_half_y - cfg.m_long_overlap)};
+    scalar z_step{(std::abs(z_start) - z_start) / (n_z_bins - 1)};
 
     // loop over the z bins
     for (size_t z_bin = 0; z_bin < size_t(n_z_bins); ++z_bin) {
         // prepare z and r
-        scalar m_z = z_start + z_bin * z_step;
-        scalar m_r = (z_bin % 2) != 0u
-                         ? cfg.layer_r - 0.5 * cfg.m_radial_stagger
-                         : cfg.layer_r + 0.5 * cfg.m_radial_stagger;
+        scalar m_z{z_start + z_bin * z_step};
+        scalar m_r{(z_bin % 2) != 0u
+                       ? cfg.layer_r - scalar{0.5} * cfg.m_radial_stagger
+                       : cfg.layer_r + scalar{0.5} * cfg.m_radial_stagger};
         for (size_t phiBin = 0; phiBin < size_t(n_phi_bins); ++phiBin) {
             // calculate the current phi value
-            scalar m_phi = min_phi + phiBin * phi_step;
+            scalar m_phi{min_phi + phiBin * phi_step};
             m_centers.push_back(
                 point3{m_r * std::cos(m_phi), m_r * std::sin(m_phi), m_z});
         }
@@ -304,7 +294,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
 
         // Build the transform
         // The local phi
-        scalar m_phi = algebra::getter::phi(m_center);
+        scalar m_phi{algebra::getter::phi(m_center)};
         // Local z axis is the normal vector
         vector3 m_local_z{std::cos(m_phi + cfg.m_tilt_phi),
                           std::sin(m_phi + cfg.m_tilt_phi), 0.};
@@ -323,23 +313,61 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
  * @param resource vecmem memory resource
  * @param cfg config struct for module creation
  */
-template <typename surfaces_grid_t, typename config_t>
-inline void create_barrel_grid(surfaces_grid_t &surfaces_grid,
-                               vecmem::memory_resource &resource,
-                               config_t cfg) {
-    auto z_axis_info = cfg.get_z_axis_info();
-    auto &z_start = std::get<0>(z_axis_info);
-    auto &z_end = std::get<1>(z_axis_info);
-    auto &z_step = std::get<2>(z_axis_info);
+template <typename detector_t, typename config_t>
+inline void add_z_phi_grid(const typename detector_t::context &ctx,
+                           typename detector_t::volume_type &vol,
+                           detector_t &det, vecmem::memory_resource &resource,
+                           const config_t &cfg) {
+    // Get correct grid type
+    constexpr auto grid_id = detector_t::sf_finders::id::e_z_phi_grid;
+    using surface_grid_t =
+        typename detector_t::sf_finders::template get_type<grid_id>::type;
+
+    // return the first z position of module
+    std::size_t n_z_bins = cfg.m_binning.second;
+    scalar z_start{scalar{-0.5} * (n_z_bins - 1) *
+                   (scalar{2} * cfg.m_half_y - cfg.m_long_overlap)};
+    scalar z_end{std::abs(z_start)};
+    scalar z_half_step{scalar{0.5} * (z_end - z_start) / (n_z_bins - 1)};
 
     // add surface grid
-    typename surfaces_grid_t::axis_p0_type z_axis(
-        cfg.m_binning.second, z_start - z_step * 0.5, z_end + z_step * 0.5,
-        resource);
-    typename surfaces_grid_t::axis_p1_type phi_axis(cfg.m_binning.first, -M_PI,
-                                                    M_PI, resource);
+    typename surface_grid_t::axis_p0_type z_axis(
+        n_z_bins, z_start - z_half_step, z_end + z_half_step, resource);
+    typename surface_grid_t::axis_p1_type phi_axis(cfg.m_binning.first, -M_PI,
+                                                   M_PI, resource);
 
-    surfaces_grid = surfaces_grid_t(z_axis, phi_axis, resource);
+    // Add new grid to the detector
+    surface_grid_t z_phi_grid(z_axis, phi_axis, resource);
+    det.add_sf_finder(ctx, vol, z_phi_grid);
+}
+
+/** Helper function that creates a surface grid of trapezoidal endcap modules.
+ *
+ * @param vol the detector volume that should be equipped with a grid
+ * @param surfaces_grid the grid to be created with proper axes
+ * @param resource vecmem memory resource
+ * @param cfg config struct for module creation
+ */
+template <typename detector_t, typename config_t>
+inline void add_r_phi_grid(const typename detector_t::context &ctx,
+                           typename detector_t::volume_type &vol,
+                           detector_t &det, vecmem::memory_resource &resource,
+                           const config_t &cfg) {
+    // Get correct grid type
+    constexpr auto grid_id = detector_t::sf_finders::id::e_r_phi_grid;
+    using surface_grid_t =
+        typename detector_t::sf_finders::template get_type<grid_id>::type;
+
+    // add surface grid
+    // TODO: What is the proper value of n_phi_bins?
+    typename surface_grid_t::axis_p0_type r_axis(
+        cfg.disc_binning.size(), cfg.inner_r, cfg.outer_r, resource);
+    typename surface_grid_t::axis_p1_type phi_axis(cfg.disc_binning.front(),
+                                                   -M_PI, M_PI, resource);
+
+    // Add new grid to the detector
+    surface_grid_t z_phi_grid(r_axis, phi_axis, resource);
+    det.add_sf_finder(ctx, vol, z_phi_grid);
 }
 
 /** Helper method for positioning of modules in an endcap ring
@@ -359,9 +387,9 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
     r_positions.reserve(n_phi_bins);
 
     // prep work
-    // scalar pi{static_cast<scalar>(M_PI)};
-    scalar phi_step = scalar{2} * M_PI / (n_phi_bins);
-    scalar min_phi = -M_PI + 0.5 * phi_step;
+    scalar pi{static_cast<scalar>(M_PI)};
+    scalar phi_step{scalar{2} * pi / (n_phi_bins)};
+    scalar min_phi{-pi + scalar{0.5} * phi_step};
 
     for (size_t iphi = 0; iphi < size_t(n_phi_bins); ++iphi) {
         // if we have a phi sub stagger presents
@@ -378,9 +406,10 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
             }
         }
         // the module phi
-        scalar phi = min_phi + iphi * phi_step;
+        scalar phi{min_phi + iphi * phi_step};
         // main z position depending on phi bin
-        scalar rz = iphi % 2 ? z - 0.5 * phi_stagger : z + 0.5 * phi_stagger;
+        scalar rz{iphi % 2 ? z - scalar{0.5} * phi_stagger
+                           : z + scalar{0.5} * phi_stagger};
         r_positions.push_back(
             vector3{radius * std::cos(phi), radius * std::sin(phi), rz + rzs});
     }
@@ -420,14 +449,12 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     auto volume_id = vol.index();
     edge_t mask_edge{volume_id, dindex_invalid};
 
-    vol.set_grid_type(volume_type::grid_type::e_r_phi_grid);
-
     // calculate the radii of the rings
     std::vector<scalar> radii;
     // calculate the radial borders
     // std::vector<scalar> radial_boarders;
     // the radial span of the disc
-    scalar delta_r = cfg.outer_r - cfg.inner_r;
+    scalar delta_r{cfg.outer_r - cfg.inner_r};
 
     // Only one ring
     if (cfg.disc_binning.size() == 1) {
@@ -435,16 +462,16 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
         // radial_boarders = {inner_r, outer_r};
     } else {
         // sum up the total length of the modules along r
-        scalar tot_length = 0;
+        scalar tot_length{0};
         for (auto &m_hlength : cfg.m_half_y) {
             tot_length += 2 * m_hlength + 0.5;
         }
         // now calculate the overlap (equal pay)
-        scalar r_overlap = (tot_length - delta_r) / (cfg.m_half_y.size() - 1);
+        scalar r_overlap{(tot_length - delta_r) / (cfg.m_half_y.size() - 1)};
         // and now fill the radii and gaps
-        scalar prev_r = cfg.inner_r;
-        scalar prev_hl = 0.;
-        scalar prev_ol = 0.;
+        scalar prev_r{cfg.inner_r};
+        scalar prev_hl{0};
+        scalar prev_ol{0};
         // remember the radial boarders
         // radial_boarders.push_back(inner_r);
         for (auto &m_hlength : cfg.m_half_y) {
@@ -463,14 +490,14 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     for (size_t ir = 0; ir < radii.size(); ++ir) {
         // generate the z value
         // convention inner ring is closer to origin : makes sense
-        scalar rz =
+        scalar rz{
             radii.size() == 1
                 ? cfg.edc_position
                 : (ir % 2 ? cfg.edc_position + scalar{0.5} * cfg.ring_stagger
-                          : cfg.edc_position - scalar{0.5} * cfg.ring_stagger);
+                          : cfg.edc_position - scalar{0.5} * cfg.ring_stagger)};
         // fill the ring module positions
-        scalar ps_stagger =
-            cfg.m_phi_sub_stagger.size() ? cfg.m_phi_sub_stagger[ir] : 0.;
+        scalar ps_stagger{
+            cfg.m_phi_sub_stagger.size() ? cfg.m_phi_sub_stagger[ir] : 0.};
 
         std::vector<point3> r_postitions =
             module_positions_ring(rz, radii[ir], cfg.m_phi_stagger[ir],
@@ -497,7 +524,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             surfaces.back().set_grid_status(true);
 
             // the module transform from the position
-            scalar m_phi = algebra::getter::phi(m_position);
+            scalar m_phi{algebra::getter::phi(m_position)};
             // the center position of the modules
             point3 m_center{static_cast<scalar>(cfg.side) * m_position};
             // the rotation matrix of the module
@@ -510,26 +537,6 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             transforms.emplace_back(ctx, m_center, m_local_z, m_local_x);
         }
     }
-}
-
-/** Helper function that creates a surface grid of trapezoidal endcap modules.
- *
- * @param surfaces_grid the grid to be created with proper axes
- * @param resource vecmem memory resource
- * @param cfg config struct for module creation
- */
-template <typename surfaces_grid_t, typename config_t>
-inline void create_endcap_grid(surfaces_grid_t &surfaces_grid,
-                               vecmem::memory_resource &resource,
-                               config_t cfg) {
-    // add surface grid
-    // TODO: WHat is the proper value of n_phi_bins?
-    typename surfaces_grid_t::axis_p0_type r_axis(
-        cfg.disc_binning.size(), cfg.inner_r, cfg.outer_r, resource);
-    typename surfaces_grid_t::axis_p1_type phi_axis(cfg.disc_binning.front(),
-                                                    -M_PI, M_PI, resource);
-
-    surfaces_grid = surfaces_grid_t(r_axis, phi_axis, resource);
 }
 
 /** Helper method for creating a beampipe with enclosing volume.
@@ -568,6 +575,7 @@ inline void add_beampipe(
         det.new_volume({beampipe_vol_size.first, beampipe_vol_size.second,
                         min_z, max_z, -M_PI, M_PI});
     const auto beampipe_idx = beampipe.index();
+    beampipe.set_sf_finder(detector_t::sf_finders::id::e_default, 0);
 
     // This is the beampipe surface
     typename detector_t::surface_type::edge_type edge = {beampipe_idx,
@@ -664,7 +672,8 @@ inline void add_endcap_barrel_connection(
 
     auto &connector_gap =
         det.new_volume({edc_inner_r, edc_outer_r, min_z, max_z, -M_PI, M_PI});
-    dindex connector_gap_idx = det.volumes().back().index();
+    connector_gap.set_sf_finder(detector_t::sf_finders::id::e_default, 0);
+    dindex connector_gap_idx{det.volumes().back().index()};
     dindex leaving_world = dindex_invalid, inv_sf_finder = dindex_invalid;
 
     typename detector_t::surface_type::edge_type edge = {beampipe_idx,
@@ -799,6 +808,7 @@ void add_endcap_detector(
                               cfg.side * (vol_size_itr + cfg.side * i)->first,
                               cfg.side * (vol_size_itr + cfg.side * i)->second,
                               edges_vec[i], m_factory);
+            add_r_phi_grid(ctx, det.volumes().back(), det, resource, cfg);
         }
     }
 }
@@ -882,6 +892,7 @@ void add_barrel_detector(
             create_cyl_volume(det, resource, ctx, vol_sizes[i].first,
                               vol_sizes[i].second, -brl_half_z, brl_half_z,
                               edges_vec[i], m_factory);
+            add_z_phi_grid(ctx, det.volumes().back(), det, resource, cfg);
         }
     }
 }
@@ -934,16 +945,8 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         material<scalar> mat = silicon_tml<scalar>();
         scalar thickness = 0.15 * unit_constants::mm;
 
-        // return the first z position of module
-        std::tuple<scalar, scalar, scalar> get_z_axis_info() {
-            auto n_z_bins = m_binning.second;
-            scalar z_start{scalar{-0.5} * (n_z_bins - 1) *
-                           (scalar{2} * m_half_y - m_long_overlap)};
-            scalar z_end{std::abs(z_start)};
-            scalar z_step{(z_end - z_start) / (n_z_bins - 1)};
-
-            return {z_start, z_end, z_step};
-        }
+        typename detector_t::sf_finders::id grid_id{
+            detector_t::sf_finders::id::e_z_phi_grid};
     };
 
     //
@@ -973,6 +976,9 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         std::vector<scalar> m_tilt = {0., 0.};
         material<scalar> mat = silicon_tml<scalar>();
         scalar thickness = 0.15 * unit_constants::mm;
+
+        typename detector_t::sf_finders::id grid_id{
+            detector_t::sf_finders::id::e_r_phi_grid};
     };
 
     // Don't create modules in gap volume
@@ -1002,11 +1008,6 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
             create_barrel_modules(ctx, volume, surfaces, masks, materials,
                                   transforms, cfg);
         }
-        void operator()(typename detector_t::surfaces_finder_type::
-                            surfaces_regular_circular_grid &surfaces_grid,
-                        vecmem::memory_resource &resource) {
-            create_barrel_grid(surfaces_grid, resource, cfg);
-        }
     };
 
     // Fills volume with endcap rings
@@ -1021,11 +1022,6 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
                         typename detector_t::transform_container &transforms) {
             create_endcap_modules(ctx, volume, surfaces, masks, materials,
                                   transforms, cfg);
-        }
-        void operator()(typename detector_t::surfaces_finder_type::
-                            surfaces_regular_circular_grid &surfaces_grid,
-                        vecmem::memory_resource &resource) {
-            create_endcap_grid(surfaces_grid, resource, cfg);
         }
     };
 

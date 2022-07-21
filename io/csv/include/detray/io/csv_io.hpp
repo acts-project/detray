@@ -229,7 +229,8 @@ detector_from_csv(const std::string &detector_name,
     };
 
     // Create the surface finders & reserve
-    std::map<volume_layer_index, dindex> surface_finder_entries;
+    std::map<volume_layer_index, std::pair<dindex, dindex>>
+        surface_finder_entries;
 
     using surfaces_finder = typename detector_t::surfaces_finder_type;
     using surfaces_regular_circular_grid =
@@ -245,7 +246,7 @@ detector_from_csv(const std::string &detector_name,
     using surfaces_r_phi_grid = surfaces_regular_circular_grid;
     using surfaces_z_phi_grid = surfaces_regular_circular_grid;
 
-    surfaces_finder &detector_surfaces_finders = d.get_surfaces_finder();
+    surfaces_finder &detector_surfaces_finders = d.sf_finder();
 
     // (B) Pre-read the grids & create local object finders
     int sg_counts = 0;
@@ -257,7 +258,8 @@ detector_from_csv(const std::string &detector_name,
         volume_layer_index c_index = {io_surface_grid.volume_id,
                                       io_surface_grid.layer_id};
 
-        surface_finder_entries[c_index] = detector_surfaces_finders.size();
+        surface_finder_entries[c_index] = std::make_pair<dindex, dindex>(
+            io_surface_grid.type_loc0, detector_surfaces_finders.size());
 
         bool is_disk = (io_surface_grid.type_loc0 == 3);
 
@@ -348,10 +350,15 @@ detector_from_csv(const std::string &detector_name,
                 synchronize_bounds(unsynchronized_volume_bounds, is_gap);
 
             // Check if this volume has a surface finder entry associated
-            dindex surfaces_finder_entry = dindex_invalid;
+            using sf_finder_defs = typename detector_t::sf_finders;
+            typename sf_finder_defs::link_type surfaces_finder_entry = {
+                sf_finder_defs::id::e_default, dindex_invalid};
             auto surface_finder_itr = surface_finder_entries.find(c_index);
             if (surface_finder_itr != surface_finder_entries.end()) {
-                surfaces_finder_entry = surface_finder_itr->second;
+                surfaces_finder_entry = {
+                    sf_finder_defs::to_id(
+                        std::get<0>(surface_finder_itr->second)),
+                    std::get<1>(surface_finder_itr->second)};
             }
 
             std::string volume_name = detector_name;
@@ -577,7 +584,7 @@ detector_from_csv(const std::string &detector_name,
             }
         }
 
-        dindex sfi = v.surfaces_finder_entry();
+        dindex sfi = v.sf_finder_index();
         if (sfi != dindex_invalid and write_grid_entries) {
             auto &grid = is_cylinder ? detector_surfaces_finders[sfi + 2]
                                      : detector_surfaces_finders[sfi];
@@ -611,7 +618,7 @@ detector_from_csv(const std::string &detector_name,
             const auto &v =
                 d.volume_by_index(surface_grid_entry.detray_volume_id);
             const auto &v_bounds = v.bounds();
-            dindex sfi = v.surfaces_finder_entry();
+            dindex sfi = v.sf_finder_index();
             if (sfi != dindex_invalid) {
                 bool is_cylinder = std::abs(v_bounds[1] - v_bounds[0]) <
                                    std::abs(v_bounds[3] - v_bounds[2]);

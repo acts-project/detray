@@ -44,16 +44,35 @@ using unbounded_plane =
 using slab = material_slab<detray::scalar>;
 using rod = material_rod<detray::scalar>;
 
+template <template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector,
+          template <typename, std::size_t> class array_t = darray,
+          template <typename...> class tuple_t = dtuple>
+using regular_circular_grid =
+    grid2<attach_populator, axis::regular, axis::circular, serializer2,
+          vector_t, jagged_vector_t, array_t, tuple_t, dindex, false>;
+
+template <template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector,
+          template <typename, std::size_t> class array_t = darray,
+          template <typename...> class tuple_t = dtuple>
+using regular_circular_grid2 =
+    grid2<replace_populator, axis::regular, axis::circular, serializer2,
+          vector_t, jagged_vector_t, array_t, tuple_t, dindex, false>;
+
+template <template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector,
+          template <typename, std::size_t> class array_t = darray,
+          template <typename...> class tuple_t = dtuple>
+using regular_regular_grid =
+    grid2<attach_populator, axis::regular, axis::regular, serializer2, vector_t,
+          jagged_vector_t, array_t, tuple_t, dindex, false>;
+
 /// Defines all available types
 template <typename dynamic_data, std::size_t NGRIDS = 1>
 struct full_metadata {
 
-    // How many grids have to be built
-    enum grids : std::size_t {
-        n_grids = NGRIDS,
-    };
-
-    // How to store and link transforms
+    /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store = static_transform_store<vector_t>;
 
@@ -62,7 +81,7 @@ struct full_metadata {
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
-    enum mask_ids : unsigned int {
+    enum mask_ids : std::size_t {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
         e_annulus2 = 2,
@@ -73,14 +92,14 @@ struct full_metadata {
         e_single3 = 5,
     };
 
-    // How to store and link masks
+    /// How to store and link masks
     using mask_definitions =
         tuple_vector_registry<mask_ids, rectangle, trapezoid, annulus, cylinder,
                               disc>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
-    enum material_ids : unsigned int {
+    enum material_ids : std::size_t {
         e_slab = 0,
         e_rod = 1,
     };
@@ -88,7 +107,22 @@ struct full_metadata {
     // How to store and link materials
     using material_definitions = tuple_vector_registry<material_ids, slab, rod>;
 
-    // Accelerator types
+    /// How many grids have to be built
+    enum grids : std::size_t {
+        n_no_grids = NGRIDS,
+        n_z_phi_grids = NGRIDS,
+        n_r_phi_grids = NGRIDS
+    };
+
+    /// Surface finders
+    enum sf_finder_ids : std::size_t {
+        e_brute_force = 0,  // test all surfaces in a volume (brute force)
+        e_z_phi_grid = 1,   // barrel
+        e_r_phi_grid = 2,   // endcap
+        e_default = e_brute_force,
+    };
+
+    /// Surface finder types
     template <template <typename, std::size_t> class array_t = darray,
               template <typename...> class vector_t = dvector,
               template <typename...> class tuple_t = dtuple,
@@ -102,7 +136,19 @@ struct full_metadata {
               template <typename...> class tuple_t = dtuple,
               template <typename...> class jagged_vector_t = djagged_vector>
     using surface_finder =
-        surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>;
+        surfaces_finder<n_z_phi_grids + n_r_phi_grids, array_t, tuple_t,
+                        vector_t, jagged_vector_t>;
+
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using sf_finder_definitions = tuple_array_registry<
+        sf_finder_ids,
+        std::index_sequence<n_no_grids, n_z_phi_grids, n_r_phi_grids>,
+        regular_regular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
+        regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
+        regular_circular_grid2<vector_t, jagged_vector_t, array_t, tuple_t>>;
 
     dynamic_data _data;
 };
@@ -110,12 +156,7 @@ struct full_metadata {
 /// Defines the data types needed for the toy detector
 struct toy_metadata {
 
-    // How many grids have to be built
-    enum grids : std::size_t {
-        n_grids = 20,
-    };
-
-    // How to store and link transforms
+    /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store = static_transform_store<vector_t>;
 
@@ -124,7 +165,7 @@ struct toy_metadata {
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
-    enum mask_ids : unsigned int {
+    enum mask_ids : std::size_t {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
         e_cylinder3 = 2,         // Put the beampipe into the same container as
@@ -132,20 +173,35 @@ struct toy_metadata {
         e_portal_ring2 = 3,
     };
 
-    // How to store and link masks
+    /// How to store and link masks
     using mask_definitions =
         tuple_vector_registry<mask_ids, rectangle, trapezoid, cylinder, disc>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
-    enum material_ids : unsigned int {
+    enum material_ids : std::size_t {
         e_slab = 0,
     };
 
-    // How to store and link materials
+    /// How to store and link materials
     using material_definitions = tuple_vector_registry<material_ids, slab>;
 
-    // Accelerator types
+    /// How many grids have to be built
+    enum grids : std::size_t {
+        n_no_grids = 17,
+        n_barrel_grids = 4,
+        n_endcap_grids = 14,
+    };
+
+    /// Surface finders
+    enum sf_finder_ids : std::size_t {
+        e_brute_force = 0,  // test all surfaces in a volume (brute force)
+        e_z_phi_grid = 1,   // barrel
+        e_r_phi_grid = 2,   // endcap
+        e_default = e_brute_force,
+    };
+
+    ///  Surface finder types
     template <template <typename, std::size_t> class array_t = darray,
               template <typename...> class vector_t = dvector,
               template <typename...> class tuple_t = dtuple,
@@ -159,7 +215,19 @@ struct toy_metadata {
               template <typename...> class tuple_t = dtuple,
               template <typename...> class jagged_vector_t = djagged_vector>
     using surface_finder =
-        surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>;
+        surfaces_finder<n_barrel_grids + n_endcap_grids, array_t, tuple_t,
+                        vector_t, jagged_vector_t>;
+
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using sf_finder_definitions = tuple_array_registry<
+        sf_finder_ids,
+        std::index_sequence<n_no_grids, n_barrel_grids, n_endcap_grids>,
+        regular_regular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
+        regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
+        regular_circular_grid2<vector_t, jagged_vector_t, array_t, tuple_t>>;
 
     volume_stats _data;
 };
@@ -167,12 +235,7 @@ struct toy_metadata {
 /// Defines a detector with only rectangle/unbounded surfaces
 struct telescope_metadata {
 
-    // How many grids have to be built
-    enum grids : std::size_t {
-        n_grids = 0,
-    };
-
-    // How to store and link transforms
+    /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store = static_transform_store<vector_t>;
 
@@ -181,25 +244,36 @@ struct telescope_metadata {
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
-    enum mask_ids : unsigned int {
+    enum mask_ids : std::size_t {
         e_rectangle2 = 0,
         e_unbounded_plane2 = 1,
     };
 
-    // How to store and link masks
+    /// How to store and link masks
     using mask_definitions =
         tuple_vector_registry<mask_ids, rectangle, unbounded_plane>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
-    enum material_ids : unsigned int {
+    enum material_ids : std::size_t {
         e_slab = 0,
     };
 
-    // How to store and link materials
+    /// How to store and link materials
     using material_definitions = tuple_vector_registry<material_ids, slab>;
 
-    // Accelerator types (are not used)
+    /// How many grids have to be built
+    enum grids : std::size_t {
+        n_grids = 0,
+    };
+
+    /// Surface finders
+    enum sf_finder_ids : std::size_t {
+        e_brute_force = 0,  // test all surfaces in a volume (brute force)
+        e_default = e_brute_force,
+    };
+
+    ///  Surface finder types (are not used in telescope detector)
     template <template <typename, std::size_t> class array_t = darray,
               template <typename...> class vector_t = dvector,
               template <typename...> class tuple_t = dtuple,
@@ -214,6 +288,14 @@ struct telescope_metadata {
               template <typename...> class jagged_vector_t = djagged_vector>
     using surface_finder =
         surfaces_finder<n_grids, array_t, tuple_t, vector_t, jagged_vector_t>;
+
+    template <template <typename, std::size_t> class array_t = darray,
+              template <typename...> class vector_t = dvector,
+              template <typename...> class tuple_t = dtuple,
+              template <typename...> class jagged_vector_t = djagged_vector>
+    using sf_finder_definitions = tuple_array_registry<
+        sf_finder_ids, std::index_sequence<n_grids>,
+        regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>>;
 };
 
 struct detector_registry {

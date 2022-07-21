@@ -70,7 +70,7 @@ __global__ void detector_test_kernel(
     }
 
     // print output test for surface finder
-    auto& sf_finder_device = det_device.get_surfaces_finder();
+    auto& sf_finder_device = det_device.sf_finders_store();
     for (unsigned int i_s = 0; i_s < sf_finder_device.effective_size(); i_s++) {
         auto& grid = sf_finder_device[i_s];
         for (unsigned int i = 0; i < grid.axis_p0().bins(); i++) {

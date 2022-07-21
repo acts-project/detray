@@ -12,91 +12,127 @@
 
 namespace detray {
 
-/** Volume class that acts as a logical container in the geometry for geometry
- *  objects, such as module surfaces or portals. The information is kept as
- *  index ranges into larger containers that are owned by the detector
- *  implementation.
- *
- * @tparam array_t the type of the internal array, must have STL semantics
- */
-template <typename object_registry_t, typename scalar_t = scalar,
-          typename range_t = dindex_range,
+/// The detray detector volume.
+///
+/// Volume class that acts as a logical container in the geometry for geometry
+/// objects, such as module surfaces or portals. The information is kept as
+/// index ranges into larger containers that are owned by the detector
+/// implementation. For every object type a different range can be set.
+///
+/// @tparam object_registry_t the type of objects contained in the volume
+/// @tparam sf_finder_link_t the type of link to the volumes surfaces finder
+///         (geometry surface finder structure). The surface finder types
+///         cannot be given directly, since the containers differ between host
+///         and device. The surface finders reside in an 'unrollable
+///         container' and are called per volume in the navigator during local
+///         navigation.
+/// @tparam array_t the type of the internal array, must have STL semantics
+template <typename object_registry_t, typename scalar_t,
+          typename sf_finder_link_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 class volume {
 
     public:
-    // The type of objects a volume can contain
+    /// The types of surfaces a volume can contain (modules, portals)
     using objects = object_registry_t;
-    // In case the geometry needs to be printed
+    /// ID type of a surface
+    using obj_link_type = typename objects::link_type;
+    /// How to address objects in a container. Can be a range or might become
+    /// an index if surfaces are addressed as batches
+    using obj_range_type = typename objects::range_type;
+    /// Type and index of the surface finder strucure used by this volume
+    using sf_finder_link_type = sf_finder_link_t;
+
+    /// In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
-    // used for sfinae
-    using volume_def = volume<object_registry_t, scalar_t, range_t, array_t>;
+    /// Voume tag, used for sfinae
+    using volume_def = volume<objects, scalar_t, sf_finder_link_type, array_t>;
 
-    enum grid_type : unsigned int {
-        e_no_grid = 0,
-        e_z_phi_grid = 1,  // barrel
-        e_r_phi_grid = 2,  // endcap
-    };
-
-    /** Default constructor**/
+    /// Default constructor
     volume() = default;
 
-    /** Contructor with bounds
-     * @param bounds of the volume
-     */
-    volume(const array_t<scalar_t, 6> &bounds) : _bounds(bounds) {}
+    /// Constructor from boundary values.
+    ///
+    /// @param bounds values of volume boundaries. They depend on the volume
+    ///               shape, which is defined by its portals and are chosen in
+    ///               the detector builder
+    volume(const array_t<scalar, 6> &bounds) : _bounds(bounds) {}
 
-    /** @return the bounds - const access */
+    /// @return the bounds - const access
     DETRAY_HOST_DEVICE
-    inline const array_t<scalar_t, 6> &bounds() const { return _bounds; }
+    auto bounds() const -> const array_t<scalar, 6> & { return _bounds; }
 
-    /** @return the name (add an offset for the detector name)*/
+    /// @return the name (add an offset for the detector name)
     DETRAY_HOST_DEVICE
-    inline const std::string &name(const name_map &names) const {
+    auto name(const name_map &names) const -> const std::string & {
         return names.at(_index + 1);
     }
 
-    /** @return the index */
+    /// @return the index of the volume in the detector container
     DETRAY_HOST_DEVICE
-    inline dindex index() const { return _index; }
+    auto index() const -> dindex { return _index; }
 
-    /** @param index the index */
+    /// @param index the index of the volume in the detector container
     DETRAY_HOST
-    inline void set_index(const dindex index) { _index = index; }
+    auto set_index(const dindex index) -> void { _index = index; }
 
-    /** @return the entry into the local surface finders */
+    /// set surface finder during detector building
+    /*DETRAY_HOST
+    auto set_sf_finder(sf_finder_link_type &&link) -> void {
+        _sf_finder = link;
+    }*/
+
+    /// set surface finder during detector building
+    DETRAY_HOST
+    auto set_sf_finder(const sf_finder_link_type &link) -> void {
+        _sf_finder = link;
+    }
+
+    /// set surface finder during detector building
+    DETRAY_HOST
+    auto set_sf_finder(const typename sf_finder_link_t::id_type id,
+                       const typename sf_finder_link_t::index_type index)
+        -> void {
+        _sf_finder = {id, index};
+    }
+
+    /// @return the surface finder link associated with the volume
     DETRAY_HOST_DEVICE
-    inline dindex surfaces_finder_entry() const {
-        return _surfaces_finder_entry;
+    auto sf_finder_link() const -> const sf_finder_link_type & {
+        return _sf_finder;
     }
 
-    /** @param entry the entry into the local surface finders */
-    DETRAY_HOST
-    inline void set_surfaces_finder(const dindex entry) {
-        _surfaces_finder_entry = entry;
+    /// @return the type of surface finder associated with the volume
+    DETRAY_HOST_DEVICE
+    auto sf_finder_type() const -> typename sf_finder_link_t::id_type {
+        return detail::get<0>(_sf_finder);
     }
 
-    /** @return if the volume is empty or not */
-    DETRAY_HOST_DEVICE inline bool empty() const {
-        return n_objects<objects::e_surface>() == 0;
+    /// @return the index of the surface finder associated with volume
+    DETRAY_HOST_DEVICE
+    auto sf_finder_index() const -> typename sf_finder_link_t::index_type {
+        return detail::get<1>(_sf_finder);
     }
 
-    /** @return the number of surfaces in the volume */
+    /// @return if the volume is empty or not
+    DETRAY_HOST_DEVICE
+    auto empty() const -> bool { return n_objects<objects::e_surface>() == 0; }
+
+    /// @return the number of surfaces in the volume
     template <typename objects::id range_id = objects::e_surface>
-    DETRAY_HOST_DEVICE inline auto n_objects() const {
+    DETRAY_HOST_DEVICE auto n_objects() const -> dindex {
         return n_in_range(range<range_id>());
     }
 
-    /** Set or update the index into a geometry container identified by the
-     *  range_id.
-     *
-     * @param other Surface index range
-     */
+    /// Set or update the index into a geometry container identified by the
+    /// range_id.
+    ///
+    /// @param other Surface index range
     template <typename objects::id range_id = objects::e_surface>
-    DETRAY_HOST inline void update_range(const range_t &other) {
+    DETRAY_HOST auto update_range(const obj_range_type &other) -> void {
         auto &rg = detail::get<range_id>(_ranges);
         // Range not set yet - initialize
-        constexpr range_t empty{};
+        constexpr obj_range_type empty{};
         if (rg == empty) {
             rg = other;
         } else {
@@ -106,68 +142,57 @@ class volume {
         }
     }
 
-    /** @return range of surfaces by surface type - const access */
+    /// @return range of surfaces by surface type - const access.
     template <typename object_t>
-    DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
+    DETRAY_HOST_DEVICE constexpr auto range() const -> const obj_range_type & {
         constexpr auto index = objects::template get_index<object_t>::value;
         return detail::get<index>(_ranges);
     }
 
-    /** @return range of surfaces- const access */
+    /// @return range of surfaces- const access.
     template <typename objects::id range_id = objects::e_surface>
     DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
         return detail::get<range_id>(_ranges);
     }
 
-    /** @return _ranges */
+    /// @return all ranges in the volume.
     DETRAY_HOST_DEVICE inline constexpr const auto &ranges() const {
         return _ranges;
     }
 
-    /** @return the number of elements in a given range */
+    /// @return the number of elements in a given range
     template <typename range_type>
-    DETRAY_HOST_DEVICE inline dindex n_in_range(range_type &&rg) const {
+    DETRAY_HOST_DEVICE inline auto n_in_range(range_type &&rg) const -> dindex {
         return detail::get<1>(rg) - detail::get<0>(rg);
     }
 
-    /** set grid type associated with volume */
-    void set_grid_type(grid_type val) { _grid_type = val; }
-
-    /** get grid type associated with volume */
-    auto get_grid_type() const { return _grid_type; }
-
-    /** Equality operator
-     *
-     * @param rhs is the right hand side to be compared to
-     */
+    /// Equality operator
+    ///
+    /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    bool operator==(const volume &rhs) const {
+    auto operator==(const volume &rhs) const -> bool {
         return (_bounds == rhs._bounds && _index == rhs._index &&
-                _ranges == rhs._ranges &&
-                _surfaces_finder_entry == rhs._surfaces_finder_entry);
+                _ranges == rhs._ranges && _sf_finder == rhs._sf_finder);
     }
 
     private:
-    /** Bounds section, default for r, z, phi */
-    array_t<scalar_t, 6> _bounds = {0.,
-                                    std::numeric_limits<scalar_t>::max(),
-                                    -std::numeric_limits<scalar_t>::max(),
-                                    std::numeric_limits<scalar_t>::max(),
-                                    -M_PI,
-                                    M_PI};
+    /// Bounds section, default for r, z, phi
+    array_t<scalar, 6> _bounds = {0.,
+                                  std::numeric_limits<scalar>::max(),
+                                  -std::numeric_limits<scalar>::max(),
+                                  std::numeric_limits<scalar>::max(),
+                                  -M_PI,
+                                  M_PI};
 
-    /** Volume index */
+    /// Volume index in the detector's volume container
     dindex _index = dindex_invalid;
 
-    /** Ranges in geometry containers for different objects types that belong
-     * to this volume */
-    array_t<range_t, objects::n_types> _ranges = {};
+    /// Indices in geometry containers for different objects types are
+    /// contained in this volume
+    array_t<obj_range_type, objects::n_types> _ranges = {};
 
-    /** Index into the surface finder container */
-    dindex _surfaces_finder_entry = dindex_invalid;
-
-    /** grid type associated with volume **/
-    grid_type _grid_type = e_no_grid;
+    /// Links to a specific sf_finder structure for this volume
+    sf_finder_link_type _sf_finder = {};
 };
 
 }  // namespace detray
