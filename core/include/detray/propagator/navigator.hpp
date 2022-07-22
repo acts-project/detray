@@ -14,6 +14,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
+#include "detray/surface_finders/neighborhood_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
 
 namespace detray {
@@ -424,8 +425,7 @@ class navigator {
         const auto &tf_store = _detector->transform_store();
         const auto &mask_store = _detector->mask_store();
 
-        for (const auto [obj_idx, obj] :
-             enumerate(_detector->surfaces(), volume)) {
+        for (const auto [obj_idx, obj] : find_surfaces(volume, track)) {
 
             std::size_t count =
                 mask_store.template call<intersection_initialize>(
@@ -684,6 +684,28 @@ class navigator {
         // Check whether this candidate is reachable by the track
         return candidate.status == intersection::status::e_inside and
                candidate.path >= track.overstep_tolerance();
+    }
+
+    /// Helper method that performs the neighborhood lookup
+    ///
+    /// @tparam track_t type of the track parametrization
+    ///
+    /// @param track the track information
+    ///
+    /// @returns an iterable over the detector surface container
+    template <typename track_t>
+    DETRAY_HOST_DEVICE inline auto find_surfaces(const volume_type &volume,
+                                                 const track_t &track) const {
+        // Gain access to all surface finders in the detector
+        const auto &sf_finders = _detector->sf_finder_store();
+
+        // Return an index range for now
+        dindex_range neighborhood =
+            sf_finders.template call<neighborhood_getter>(
+                volume.sf_finder_link(), *_detector, volume, track);
+
+        // Enumerate the surfaces that are close to the track position
+        return enumerate(_detector->surfaces(), neighborhood);
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:

@@ -12,15 +12,13 @@
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/grids/axis.hpp"
-#include "detray/grids/grid2.hpp"
-#include "detray/grids/populator.hpp"
-#include "detray/grids/serializer2.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
+#include "detray/surface_finders/brute_force_finder.hpp"
+#include "detray/surface_finders/grid2_finder.hpp"
 
 namespace detray {
 
@@ -43,30 +41,6 @@ using unbounded_plane =
 
 using slab = material_slab<detray::scalar>;
 using rod = material_rod<detray::scalar>;
-
-template <template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple>
-using regular_circular_grid =
-    grid2<attach_populator, axis::regular, axis::circular, serializer2,
-          vector_t, jagged_vector_t, array_t, tuple_t, dindex, false>;
-
-template <template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple>
-using regular_circular_grid2 =
-    grid2<replace_populator, axis::regular, axis::circular, serializer2,
-          vector_t, jagged_vector_t, array_t, tuple_t, dindex, false>;
-
-template <template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple>
-using regular_regular_grid =
-    grid2<attach_populator, axis::regular, axis::regular, serializer2, vector_t,
-          jagged_vector_t, array_t, tuple_t, dindex, false>;
 
 /// Defines all available types
 template <typename dynamic_data, std::size_t kBrlGrids = 1,
@@ -147,7 +121,7 @@ struct full_metadata {
     using sf_finder_definitions = tuple_array_registry<
         sf_finder_ids,
         std::index_sequence<n_other, n_z_phi_grids, n_r_phi_grids>,
-        regular_regular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
+        brute_force_finder,
         regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
         regular_circular_grid2<vector_t, jagged_vector_t, array_t, tuple_t>>;
 
@@ -226,7 +200,7 @@ struct toy_metadata {
     using sf_finder_definitions = tuple_array_registry<
         sf_finder_ids,
         std::index_sequence<n_other, n_barrel_grids, n_endcap_grids>,
-        regular_regular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
+        brute_force_finder,
         regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
         regular_circular_grid2<vector_t, jagged_vector_t, array_t, tuple_t>>;
 
@@ -294,9 +268,9 @@ struct telescope_metadata {
               template <typename...> class vector_t = dvector,
               template <typename...> class tuple_t = dtuple,
               template <typename...> class jagged_vector_t = djagged_vector>
-    using sf_finder_definitions = tuple_array_registry<
-        sf_finder_ids, std::index_sequence<n_other>,
-        regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>>;
+    using sf_finder_definitions =
+        tuple_array_registry<sf_finder_ids, std::index_sequence<n_other>,
+                             brute_force_finder>;
 };
 
 struct detector_registry {

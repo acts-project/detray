@@ -15,11 +15,15 @@
 
 namespace detray {
 
-/// Templated surface class for detector surfaces and portals
+/// Templated surface class for detector surfaces and portals.
 ///
-/// @tparam transform_link_t the type of the transform link representation
-/// @tparam mask_link_t the type of the mask link representation (might be a
-///         single mask, a range of masks or a multiindex in the future)
+/// @note might be holding multiple surfaces in the future
+///
+/// @tparam mask_regsitry_t the type collection of masks that can be linked
+///                         to the surface
+/// @tparam material_registry_t the type collection of material that can be
+///                             linked to the surface
+/// @tparam transform_link_t how to reference the surfaces transforms
 /// @tparam source_link_t the type of the source link representation
 template <typename mask_regsitry_t, typename material_registry_t,
           typename transform_link_t = dindex, typename source_link_t = bool>
@@ -29,6 +33,7 @@ class surface {
     // Broadcast the type of links
     using transform_link = transform_link_t;
     using mask_defs = mask_regsitry_t;
+    /// might be a single mask, a range of masks or a multiindex in the future
     using mask_link = typename mask_defs::link_type;
     /// Link type of the mask to a volume. At least one mask type is present in
     /// any geometry
@@ -95,8 +100,8 @@ class surface {
     auto update_transform(dindex offset) -> void { _trf += offset; }
 
     /// Access to the transform index
-    // DETRAY_HOST_DEVICE
-    // auto transform() -> const transform_link & { return _trf; }
+    DETRAY_HOST_DEVICE
+    auto transform() -> const transform_link & { return _trf; }
 
     /// @return the transform index
     DETRAY_HOST_DEVICE
@@ -109,17 +114,18 @@ class surface {
     auto update_mask(dindex offset) -> void { _mask += offset; }
 
     /// Access to the mask
-    /*
     DETRAY_HOST_DEVICE
-    auto mask() -> const mask_link & { return _mask; }*/
+    auto mask() -> const mask_link & { return _mask; }
 
     /// @return the mask link
     DETRAY_HOST_DEVICE
     auto mask() const -> const mask_link & { return _mask; }
 
     /// Access to the mask id
-    // DETRAY_HOST_DEVICE
-    // auto mask_type() -> mask_id { return detail::get<0>(_mask); }
+    DETRAY_HOST_DEVICE
+    auto mask_type() -> typename mask_link::id_type {
+        return detail::get<0>(_mask);
+    }
 
     /// @return the mask link
     auto mask_type() const -> typename mask_link::id_type {
@@ -127,8 +133,10 @@ class surface {
     }
 
     /// Access to the mask
-    // DETRAY_HOST_DEVICE
-    // const auto &mask_range() { return detail::get<1>(_mask); }
+    DETRAY_HOST_DEVICE
+    auto mask_range() -> typename mask_link::index_type & {
+        return detail::get<1>(_mask);
+    }
 
     /// @return the mask link
     DETRAY_HOST_DEVICE
@@ -143,16 +151,18 @@ class surface {
     auto update_material(dindex offset) -> void { _material += offset; }
 
     /// Access to the material
-    // DETRAY_HOST_DEVICE
-    // auto material() -> const material_link & { return _material; }
+    DETRAY_HOST_DEVICE
+    auto material() -> const material_link & { return _material; }
 
     /// @return the material link
     DETRAY_HOST_DEVICE
     auto material() const -> const material_link & { return _material; }
 
     /// Access to the material id
-    // DETRAY_HOST_DEVICE
-    // auto material_type() { return detail::get<0>(_material); }
+    DETRAY_HOST_DEVICE
+    auto material_type() -> typename material_link::id_type & {
+        return detail::get<0>(_material);
+    }
 
     /// @return the material link
     DETRAY_HOST_DEVICE
@@ -161,8 +171,10 @@ class surface {
     }
 
     /// Access to the material
-    // DETRAY_HOST_DEVICE
-    // const auto &material_range() { return detail::get<1>(_material); }
+    DETRAY_HOST_DEVICE
+    auto material_range() -> typename material_link::index_type & {
+        return detail::get<1>(_material);
+    }
 
     /// @return the material link
     DETRAY_HOST_DEVICE
@@ -171,8 +183,8 @@ class surface {
     }
 
     /// Access to the volume
-    // DETRAY_HOST_DEVICE
-    // auto volume() -> dindex { return _volume; }
+    DETRAY_HOST_DEVICE
+    auto volume() -> dindex { return _volume; }
 
     /// @return the volume index
     DETRAY_HOST_DEVICE

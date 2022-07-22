@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,9 +17,11 @@ namespace detray {
 /// Volume class that acts as a logical container in the geometry for geometry
 /// objects, such as module surfaces or portals. The information is kept as
 /// index ranges into larger containers that are owned by the detector
-/// implementation. For every object type a different range can be set.
+/// implementation. For every object type a different range can be set (e.g
+/// for sensitive surfaces or portals).
 ///
 /// @tparam object_registry_t the type of objects contained in the volume
+/// @tparam scalar_t type of scalar used in the volume
 /// @tparam sf_finder_link_t the type of link to the volumes surfaces finder
 ///         (geometry surface finder structure). The surface finder types
 ///         cannot be given directly, since the containers differ between host
@@ -75,12 +77,6 @@ class volume {
     /// @param index the index of the volume in the detector container
     DETRAY_HOST
     auto set_index(const dindex index) -> void { _index = index; }
-
-    /// set surface finder during detector building
-    /*DETRAY_HOST
-    auto set_sf_finder(sf_finder_link_type &&link) -> void {
-        _sf_finder = link;
-    }*/
 
     /// set surface finder during detector building
     DETRAY_HOST
@@ -144,19 +140,23 @@ class volume {
 
     /// @return range of surfaces by surface type - const access.
     template <typename object_t>
-    DETRAY_HOST_DEVICE constexpr auto range() const -> const obj_range_type & {
+    DETRAY_HOST_DEVICE inline constexpr auto range() const
+        -> const obj_range_type & {
         constexpr auto index = objects::template get_index<object_t>::value;
         return detail::get<index>(_ranges);
     }
 
     /// @return range of surfaces- const access.
     template <typename objects::id range_id = objects::e_surface>
-    DETRAY_HOST_DEVICE inline constexpr const auto &range() const {
+    DETRAY_HOST_DEVICE inline constexpr auto range() const
+        -> const obj_range_type & {
         return detail::get<range_id>(_ranges);
     }
 
     /// @return all ranges in the volume.
-    DETRAY_HOST_DEVICE inline constexpr const auto &ranges() const {
+    DETRAY_HOST_DEVICE
+    inline constexpr auto ranges() const
+        -> const array_t<obj_range_type, objects::n_types> & {
         return _ranges;
     }
 

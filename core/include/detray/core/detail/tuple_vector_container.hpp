@@ -158,20 +158,20 @@ class tuple_vector_container final
 
     /** Append a container to the current one
      *
-     * @tparam current_id is the index to start unrolling
+     * @tparam current_idx is the index to start unrolling
      *
      * @param other The other container
      *
      * @note in general can throw an exception
      */
-    template <std::size_t current_id = 0>
+    template <std::size_t current_idx = 0>
     DETRAY_HOST inline void append_container(
         tuple_vector_container &other) noexcept(false) {
-        auto &gr = detail::get<current_id>(other);
+        auto &gr = detail::get<current_idx>(other);
         add_vector(gr);
 
-        if constexpr (current_id < sizeof...(Ts) - 1) {
-            append_container<current_id + 1>(other);
+        if constexpr (current_idx < sizeof...(Ts) - 1) {
+            append_container<current_idx + 1>(other);
         }
     }
 };

@@ -229,6 +229,15 @@ class grid2 {
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
     }
 
+    /// Stub function until the zone call is working correctly
+    template <typename detector_t, typename track_t>
+    DETRAY_HOST_DEVICE dindex_range
+    search(const detector_t & /*det*/,
+           const typename detector_t::volume_type &volume,
+           const track_t & /*track*/) const {
+        return volume.range();
+    }
+
     /** Return a zone around a single bin, either with binned or scalar
      *neighborhood
      *

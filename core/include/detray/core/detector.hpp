@@ -26,7 +26,6 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // System include(s)
-#include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
@@ -209,8 +208,8 @@ class detector {
     }
 
     /// @return all surfaces - non-const access
-    /*DETRAY_HOST_DEVICE
-    inline auto &surfaces() { return _surfaces; }*/
+    DETRAY_HOST_DEVICE
+    inline auto surfaces() -> surface_container & { return _surfaces; }
 
     /// @return a surface by index - const access
     DETRAY_HOST_DEVICE
@@ -219,16 +218,18 @@ class detector {
     }
 
     /// @return a surface by index - non-const access
-    /*DETRAY_HOST_DEVICE
-    inline auto &surface_by_index(dindex sfidx) { return _surfaces[sfidx]; }*/
+    DETRAY_HOST_DEVICE
+    inline auto surface_by_index(dindex sfidx) -> surface_type & {
+        return _surfaces[sfidx];
+    }
 
     /// @return all surface/portal masks in the geometry - const access
     DETRAY_HOST_DEVICE
     inline auto mask_store() const -> const mask_container & { return _masks; }
 
     /// @return all surface/portal masks in the geometry - non-const access
-    /*DETRAY_HOST_DEVICE
-    inline auto &mask_store() { return _masks; }*/
+    DETRAY_HOST_DEVICE
+    inline auto mask_store() -> mask_container & { return _masks; }
 
     /// @return all materials in the geometry - const access
     DETRAY_HOST_DEVICE
@@ -237,8 +238,8 @@ class detector {
     }
 
     /// @return all materials in the geometry - non-const access
-    /*DETRAY_HOST_DEVICE
-    inline auto &material_store() { return _materials; }*/
+    DETRAY_HOST_DEVICE
+    inline auto material_store() -> material_container & { return _materials; }
 
     /// Add pre-built mask store
     ///
@@ -271,16 +272,17 @@ class detector {
         return _transforms;
     }
 
-    /*DETRAY_HOST_DEVICE
-    inline auto &transform_store(const context & /*ctx*/ //= {}) {
-    //    return _transforms;
-    //}*/
+    DETRAY_HOST_DEVICE
+    inline auto transform_store(const context & /*ctx*/ = {})
+        -> transform_container & {
+        return _transforms;
+    }
 
     /// Add pre-built transform store
     ///
     /// @param transf the constianer for surface transforms
     DETRAY_HOST
-    inline void add_transform_store(transform_container &&transf) {
+    inline auto add_transform_store(transform_container &&transf) -> void {
         _transforms = std::move(transf);
     }
 
@@ -302,14 +304,14 @@ class detector {
 
     // TODO: Provide grid builder structure separate from the detector
     template <typename sf_finder_t>
-    DETRAY_HOST void add_sf_finder(const context ctx, volume_type &vol,
-                                   sf_finder_t &surface_finder) {
+    DETRAY_HOST auto add_sf_finder(const context ctx, volume_type &vol,
+                                   sf_finder_t &surface_finder) -> void {
         // Get id for the surface finder
         constexpr typename sf_finders::id sf_finder_id =
             sf_finders::template get_id<sf_finder_t>();
 
         // iterate over surfaces to fill the grid
-        for (const auto [surf_idx, surf] : enumerate(_surfaces, vol)) {
+        for (const auto &[surf_idx, surf] : enumerate(_surfaces, vol)) {
             if (surf.get_grid_status() == true) {
                 dindex sidx = surf_idx;
 
@@ -357,11 +359,12 @@ class detector {
     ///
     /// @note can throw an exception if input data is inconsistent
     // TODO: Provide volume builder structure separate from the detector
-    DETRAY_HOST void add_objects_per_volume(
+    DETRAY_HOST
+    auto add_objects_per_volume(
         const context ctx, volume_type &vol,
         surface_container &surfaces_per_vol, mask_container &masks_per_vol,
         material_container &materials_per_vol,
-        transform_container &trfs_per_vol) noexcept(false) {
+        transform_container &trfs_per_vol) noexcept(false) -> void {
 
         // Append transforms
         const auto trf_offset = _transforms.size(ctx);
@@ -396,19 +399,21 @@ class detector {
     ///
     /// @param v_grid the volume grid to be added
     DETRAY_HOST
-    inline void add_volume_finder(volume_finder &&v_grid) {
+    inline auto add_volume_finder(volume_finder &&v_grid) -> void {
         _volume_finder = std::move(v_grid);
     }
 
     /// @return the volume grid - const access
     DETRAY_HOST_DEVICE
-    inline const volume_finder &volume_search_grid() const {
+    inline auto volume_search_grid() const -> const volume_finder & {
         return _volume_finder;
     }
 
     /// @returns const access to the detector's volume search structure
-    /*DETRAY_HOST_DEVICE
-    inline volume_finder &volume_search_grid() { return _volume_finder; }*/
+    DETRAY_HOST_DEVICE
+    inline auto volume_search_grid() -> volume_finder & {
+        return _volume_finder;
+    }
 
     /// @returns access to the surface finder container - non-const access
     // TODO: remove once possible
@@ -433,14 +438,14 @@ class detector {
     /// @returns the maximum number of surfaces (sensitive + portal) in all
     /// volumes.
     DETRAY_HOST_DEVICE
-    inline dindex get_n_max_objects_per_volume() const {
+    inline auto get_n_max_objects_per_volume() const -> dindex {
         return _n_max_objects_per_volume;
     }
 
     /// @param names maps a volume to its string representation.
     /// @returns a string representation of the detector.
     DETRAY_HOST
-    const std::string to_string(const name_map &names) const {
+    auto to_string(const name_map &names) const -> std::string {
         std::stringstream ss;
 
         ss << "[>] Detector '" << names.at(0) << "' has " << _volumes.size()
