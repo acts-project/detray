@@ -122,16 +122,16 @@ TEST(tools, intersection_kernel_ray) {
     std::vector<line_plane_intersection> sfi_init;
 
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        mask_store.execute<intersection_initialize>(
-            surface.mask_type(), sfi_init, detail::ray(track), surface,
-            transform_store);
+        mask_store.call<intersection_initialize>(surface.mask_type(), sfi_init,
+                                                 detail::ray(track), surface,
+                                                 transform_store);
     }
 
     // Update kernel
     std::vector<line_plane_intersection> sfi_update;
 
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        const auto sfi = mask_store.execute<intersection_update>(
+        const auto sfi = mask_store.call<intersection_update>(
             surface.mask_type(), detail::ray(track), surface, transform_store);
 
         sfi_update.push_back(sfi);
@@ -237,7 +237,7 @@ TEST(tools, intersection_kernel_helix) {
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        const auto sfi_helix = mask_store.execute<helix_intersection_update>(
+        const auto sfi_helix = mask_store.call<helix_intersection_update>(
             surface.mask_type(), h, surface, transform_store);
 
         ASSERT_NEAR(sfi_helix.p3[0], expected_points[sf_idx][0], 1e-7);

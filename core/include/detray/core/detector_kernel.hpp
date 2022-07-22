@@ -16,8 +16,9 @@ namespace detray {
 struct mask_index_update {
     using output_type = bool;
 
-    template <typename group_t, typename surface_t>
+    template <typename group_t, typename index_t, typename surface_t>
     DETRAY_HOST inline output_type operator()(const group_t& group,
+                                              const index_t& /*index*/,
                                               surface_t& sf) const {
         sf.update_mask(group.size());
         return true;
@@ -28,8 +29,9 @@ struct mask_index_update {
 struct material_index_update {
     using output_type = bool;
 
-    template <typename group_t, typename surface_t>
+    template <typename group_t, typename index_t, typename surface_t>
     DETRAY_HOST inline output_type operator()(const group_t& group,
+                                              const index_t& /*index*/,
                                               surface_t& sf) const {
         sf.update_material(group.size());
         return true;

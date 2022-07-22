@@ -88,15 +88,8 @@ static inline void bin_association(const context_t & /*context*/,
                     // Unroll the mask container and generate vertices
                     const auto &transform = dc.transforms[sf.transform()];
 
-                    const auto &mask_context = sf.mask_type();
-                    const auto &mask_range = sf.mask_range();
-
-                    auto vertices_per_masks = unroll_masks_for_vertices(
-                        surface_masks, mask_range, mask_context,
-                        std::make_integer_sequence<
-                            dindex, std::tuple_size_v<
-                                        typename detector_t::mask_container::
-                                            container_type>>{});
+                    auto vertices_per_masks =
+                        surface_masks.template call<vertexer>(sf.mask());
 
                     // Usually one mask per surface, but design allows - a
                     // single association  is sufficient though
@@ -162,15 +155,8 @@ static inline void bin_association(const context_t & /*context*/,
                     // Unroll the mask container and generate vertices
                     const auto &transform = dc.transforms[sf.transform()];
 
-                    const auto &mask_context = sf.mask_type();
-                    const auto &mask_range = sf.mask_range();
-
-                    auto vertices_per_masks = unroll_masks_for_vertices(
-                        surface_masks, mask_range, mask_context,
-                        std::make_integer_sequence<
-                            dindex, std::tuple_size_v<
-                                        typename detector_t::mask_container::
-                                            container_type>>{});
+                    auto vertices_per_masks =
+                        surface_masks.template call<vertexer>(sf.mask());
 
                     for (auto &vertices : vertices_per_masks) {
 

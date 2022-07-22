@@ -13,25 +13,17 @@
 
 using namespace detray;
 
-template <std::size_t current_id = 0, std::size_t n_types = 4,
-          typename container_t, typename link_t>
-inline auto get_edge(const container_t& collection, const link_t& links) {
+/// Functor that returns the volume/sf_finder links of a particluar mask
+/// instance in the mask container of a detector
+struct edge_getter {
+    using output_type = darray<dindex, 2>;
 
-    if (current_id == detail::get<0>(links)) {
-        auto& group = detail::get<current_id>(collection);
-        return group[detail::get<1>(links)].links();
+    template <typename mask_group_t, typename mask_range_t>
+    inline output_type operator()(mask_group_t& mask_group,
+                                  mask_range_t& mask_range) {
+        return mask_group[mask_range].links();
     }
-
-    // Next type
-    if constexpr (current_id < n_types - 1) {
-        return get_edge<current_id + 1>(collection, links);
-    }
-    // Group no 0 will always exist
-    using group_t =
-        std::remove_reference_t<decltype(detail::get<0>(collection))>;
-    using edge_t = typename group_t::value_type::links_type;
-    return edge_t{};
-}
+};
 
 // This test check the building of the tml based toy geometry
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
@@ -78,18 +70,16 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 20);
     EXPECT_EQ(surfaces.size(), 3244);
+    EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_brute_force>(), 1);
     EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_z_phi_grid>(),
-              detector_registry::toy_detector::n_barrel_grids);
-    EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_r_phi_grid>(),
-              detector_registry::toy_detector::n_endcap_grids);
+              n_brl_layers);
+    EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_r_phi_grid>(), 14);
     EXPECT_EQ(transforms.size(ctx), 3244);
     EXPECT_EQ(masks.template size<mask_ids::e_rectangle2>(), 2492);
     EXPECT_EQ(masks.template size<mask_ids::e_trapezoid2>(), 648);
     EXPECT_EQ(masks.template size<mask_ids::e_portal_cylinder3>(), 52);
     EXPECT_EQ(masks.template size<mask_ids::e_portal_ring2>(), 52);
     EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3244);
-
-    std::cout << "Passed container check" << std::endl;
 
     /** Test the links of portals (into the next volume or invalid if we leave
      * the detector).
@@ -104,16 +94,16 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     auto test_portal_links = [&](const dindex vol_index,
                                  decltype(surfaces.begin())&& sf_itr,
                                  const darray<dindex, 2>& range,
-                                 dindex trf_index, mask_link_t&& mask_index,
+                                 dindex trf_index, mask_link_t&& mask_link,
                                  material_link_t&& material_index,
                                  const material_slab<scalar>& mat,
                                  const dvector<darray<dindex, 2>>&& edges) {
         for (dindex pti = range[0]; pti < range[1]; ++pti) {
             EXPECT_EQ(sf_itr->volume(), vol_index);
             EXPECT_EQ(sf_itr->transform(), trf_index);
-            EXPECT_EQ(sf_itr->mask(), mask_index);
-            EXPECT_EQ(get_edge(masks, sf_itr->mask()), edges[pti - range[0]]);
-
+            EXPECT_EQ(sf_itr->mask(), mask_link);
+            const auto edge = masks.template call<edge_getter>(sf_itr->mask());
+            EXPECT_EQ(edge, edges[pti - range[0]]);
             EXPECT_EQ(
                 materials
                     .group<material_ids::e_slab>()[sf_itr->material_range()],
@@ -121,7 +111,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
             ++sf_itr;
             ++trf_index;
-            ++mask_index;
+            ++mask_link;
             ++material_index;
         }
     };
@@ -147,7 +137,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             EXPECT_EQ(sf_itr->transform(), trf_index);
             EXPECT_EQ(sf_itr->mask(), mask_index);
             EXPECT_EQ(sf_itr->material(), material_index);
-            EXPECT_EQ(get_edge(masks, sf_itr->mask()), edges[0]);
+            const auto edge = masks.template call<edge_getter>(sf_itr->mask());
+            EXPECT_EQ(edge, edges[0]);
             EXPECT_EQ(
                 materials
                     .group<material_ids::e_slab>()[sf_itr->material_range()],
@@ -185,7 +176,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
      * @param sf_container surface container of detector
      * @param range index range of the modules in the surface container
      */
-    auto test_surfaces_grid =
+    /*auto test_surfaces_grid =
         [](decltype(volumes.begin())& vol_itr,
            const typename detector_t::sf_finder_container& sf_finders,
            const typename detector_t::surface_container& sf_container,
@@ -213,7 +204,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                 EXPECT_TRUE(std::find(indices.begin(), indices.end(), pti) !=
                             indices.end());
             }
-        };
+        };*/
 
     //
     // beampipe

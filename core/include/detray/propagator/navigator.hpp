@@ -428,9 +428,9 @@ class navigator {
              enumerate(_detector->surfaces(), volume)) {
 
             std::size_t count =
-                mask_store.template execute<intersection_initialize>(
-                    obj.mask_type(), navigation.candidates(),
-                    detail::ray(track), obj, tf_store);
+                mask_store.template call<intersection_initialize>(
+                    obj.mask(), navigation.candidates(), detail::ray(track),
+                    obj, tf_store);
 
             // TODO: Do NOT use index but use other member variable
             for (std::size_t i = navigation.candidates().size() - count;
@@ -677,9 +677,8 @@ class navigator {
 
         const auto &mask_store = _detector->mask_store();
         const auto &sf = _detector->surface_by_index(obj_idx);
-        candidate = mask_store.template execute<intersection_update>(
-            sf.mask_type(), detail::ray(track), sf,
-            _detector->transform_store());
+        candidate = mask_store.template call<intersection_update>(
+            sf.mask(), detail::ray(track), sf, _detector->transform_store());
 
         candidate.index = obj_idx;
         // Check whether this candidate is reachable by the track

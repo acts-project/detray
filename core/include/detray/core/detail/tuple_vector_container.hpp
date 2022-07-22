@@ -37,6 +37,7 @@ class tuple_vector_container final
     using base_type = tuple_container<tuple_t, id_t, vector_t<Ts>...>;
     using base_type::base_type;
     using id_type = typename base_type::id_type;
+    using base_type::to_index;
 
     static constexpr std::size_t m_tuple_size = base_type::m_tuple_size;
 
@@ -105,9 +106,9 @@ class tuple_vector_container final
      * @note in general can throw an exception
      */
     template <id_t ID, typename... Args>
-    DETRAY_HOST auto &add_value(Args &&... args) noexcept(false) {
+    DETRAY_HOST auto &add_value(Args &&...args) noexcept(false) {
 
-        auto &gr = detail::get<ID>(this->m_container);
+        auto &gr = detail::get<to_index(ID)>(this->m_container);
 
         return gr.emplace_back(std::forward<Args>(args)...);
     }
@@ -157,8 +158,7 @@ class tuple_vector_container final
 
     /** Append a container to the current one
      *
-     * @tparam current_id is the index to start unrolling (if th index is known,
-     *         unrolling can be started there)
+     * @tparam current_id is the index to start unrolling
      *
      * @param other The other container
      *

@@ -17,10 +17,9 @@ TEST(ALGEBRA_PLUGIN, volume) {
     using namespace detray;
     using namespace __plugin;
 
-    // dummy types
-    /// Surface finders
+    // dummy types for testing
     enum sf_finder_ids : unsigned int {
-        e_default = 0,  // test all surfaces in a volume (brute force)
+        e_default = 0,
     };
 
     using surface_t = dindex;

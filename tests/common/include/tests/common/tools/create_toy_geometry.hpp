@@ -366,8 +366,8 @@ inline void add_r_phi_grid(const typename detector_t::context &ctx,
                                                    -M_PI, M_PI, resource);
 
     // Add new grid to the detector
-    surface_grid_t z_phi_grid(r_axis, phi_axis, resource);
-    det.add_sf_finder(ctx, vol, z_phi_grid);
+    surface_grid_t r_phi_grid(r_axis, phi_axis, resource);
+    det.add_sf_finder(ctx, vol, r_phi_grid);
 }
 
 /** Helper method for positioning of modules in an endcap ring
@@ -497,7 +497,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
                           : cfg.edc_position - scalar{0.5} * cfg.ring_stagger)};
         // fill the ring module positions
         scalar ps_stagger{
-            cfg.m_phi_sub_stagger.size() ? cfg.m_phi_sub_stagger[ir] : 0.};
+            cfg.m_phi_sub_stagger.size() ? cfg.m_phi_sub_stagger[ir] : 0};
 
         std::vector<point3> r_postitions =
             module_positions_ring(rz, radii[ir], cfg.m_phi_stagger[ir],
@@ -944,9 +944,6 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         std::pair<int, int> m_binning = {16, 14};
         material<scalar> mat = silicon_tml<scalar>();
         scalar thickness = 0.15 * unit_constants::mm;
-
-        typename detector_t::sf_finders::id grid_id{
-            detector_t::sf_finders::id::e_z_phi_grid};
     };
 
     //
@@ -976,9 +973,6 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
         std::vector<scalar> m_tilt = {0., 0.};
         material<scalar> mat = silicon_tml<scalar>();
         scalar thickness = 0.15 * unit_constants::mm;
-
-        typename detector_t::sf_finders::id grid_id{
-            detector_t::sf_finders::id::e_r_phi_grid};
     };
 
     // Don't create modules in gap volume

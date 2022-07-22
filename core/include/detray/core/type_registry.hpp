@@ -59,7 +59,7 @@ class registry_base<ID, true, registered_types...> {
 
     /// Get the index for a type. Use template deduction.
     template <typename object_t>
-    DETRAY_HOST_DEVICE static constexpr ID get_id(object_t & /*obj*/) {
+    DETRAY_HOST_DEVICE static constexpr ID get_id(object_t& /*obj*/) {
         return get_id<object_t>();
     }
 
@@ -103,6 +103,29 @@ class registry_base<ID, true, registered_types...> {
         }
         // This produces a compiler error when used in type unrolling code
         return static_cast<ID>(sizeof...(registered_types));
+    }
+
+    /// Convert index to ID and do some (limited) checking.
+    ///
+    /// @tparam ref_idx matches to index arg to perform static checks
+    /// @param index argument to be converted to valid id type
+    ///
+    /// @return the matching ID type.
+    template <std::size_t ref_idx = 0>
+    DETRAY_HOST_DEVICE static constexpr ID to_index(const ID id) {
+        if (to_id(ref_idx) == id) {
+            // Produce a more helpful error than the usual tuple index error
+            static_assert(
+                is_valid(ref_idx),
+                "Index out of range: Please make sure that indices and type "
+                "enums match the number of types in container.");
+            return ref_idx;
+        }
+        if constexpr (ref_idx < sizeof...(registered_types) - 1) {
+            return to_index<ref_idx + 1>(id);
+        }
+        // This produces a compiler error when used in type unrolling code
+        return sizeof...(registered_types);
     }
 
     /// Return a type for an index. If the index cannot be mapped, there will be
@@ -168,13 +191,10 @@ class object_registry
 /// Tuple vector container registry
 template <class ID, typename... registered_types>
 class tuple_vector_registry
-    : public registry_base<
-          ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
-          registered_types...> {
+    : public registry_base<ID, std::is_enum_v<ID>, registered_types...> {
     public:
-    using type_registry = registry_base<
-        ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
-        registered_types...>;
+    using type_registry =
+        registry_base<ID, std::is_enum_v<ID>, registered_types...>;
 
     enum : std::size_t {
         n_types = type_registry::n_types,
@@ -210,13 +230,10 @@ class tuple_array_registry;
 template <class ID, std::size_t... sizes, typename... registered_types>
 class tuple_array_registry<ID, std::index_sequence<sizes...>,
                            registered_types...>
-    : public registry_base<
-          ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
-          registered_types...> {
+    : public registry_base<ID, std::is_enum_v<ID>, registered_types...> {
     public:
-    using type_registry = registry_base<
-        ID, std::is_enum_v<ID> and std::is_convertible_v<ID, unsigned int>,
-        registered_types...>;
+    using type_registry =
+        registry_base<ID, std::is_enum_v<ID>, registered_types...>;
 
     enum : std::size_t {
         n_types = type_registry::n_types,

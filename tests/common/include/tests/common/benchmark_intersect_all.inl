@@ -77,8 +77,8 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                 for (const auto sf : range(data_core.surfaces, v)) {
 
                     auto sfi =
-                        data_core.masks.template execute<intersection_update>(
-                            sf.mask_type(), detail::ray(track), sf,
+                        data_core.masks.template call<intersection_update>(
+                            sf.mask(), detail::ray(track), sf,
                             data_core.transforms);
 
                     benchmark::DoNotOptimize(hits);

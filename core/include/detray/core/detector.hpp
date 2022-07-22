@@ -163,7 +163,7 @@ class detector {
     volume_type &new_volume(
         const array_t<scalar, 6> &bounds,
         typename volume_type::sf_finder_link_type sf_finder_link = {
-            sf_finders::id::e_brute_force, dindex_invalid}) {
+            sf_finders::id::e_default, dindex_invalid}) {
         volume_type &cvolume = _volumes.emplace_back(bounds);
         cvolume.set_index(_volumes.size() - 1);
         cvolume.set_sf_finder(sf_finder_link);
@@ -304,7 +304,7 @@ class detector {
     template <typename sf_finder_t>
     DETRAY_HOST void add_sf_finder(const context ctx, volume_type &vol,
                                    sf_finder_t &surface_finder) {
-        // Get id for the surface finder link in the volume
+        // Get id for the surface finder
         constexpr typename sf_finders::id sf_finder_id =
             sf_finders::template get_id<sf_finder_t>();
 
@@ -318,16 +318,12 @@ class detector {
                 auto tsl = trf.translation();
 
                 if constexpr (sf_finder_id == sf_finders::id::e_z_phi_grid) {
-                    std::cout << "Fill z_phi grid for vol " << vol.index()
-                              << std::endl;
 
                     point2 location{tsl[2], algebra::getter::phi(tsl)};
                     surface_finder.populate(location, std::move(sidx));
 
                 } else if constexpr (sf_finder_id ==
                                      sf_finders::id::e_r_phi_grid) {
-                    std::cout << "Fill r_phi grid for vol " << vol.index()
-                              << std::endl;
 
                     point2 location{algebra::getter::perp(tsl),
                                     algebra::getter::phi(tsl)};
@@ -336,9 +332,9 @@ class detector {
             }
         }
 
-        // add surfaces grid into surfaces finder container
+        // Add surfaces grid to surfaces finder container
         auto &sf_finder_group = _sf_finders.template group<sf_finder_id>();
-        // Find index of this surface finder
+        // Find correct index for this surface finder
         std::size_t sf_finder_idx = 0;
         for (unsigned int i_s = 0; i_s < sf_finder_group.size(); i_s++) {
             if (!sf_finder_group[i_s].data().empty()) {
@@ -373,9 +369,8 @@ class detector {
 
         // Update mask, material and transform index of surfaces
         for (auto &sf : surfaces_per_vol) {
-            _masks.template execute<mask_index_update>(sf.mask_type(), sf);
-            _materials.template execute<material_index_update>(
-                sf.material_type(), sf);
+            _masks.template call<mask_index_update>(sf.mask(), sf);
+            _materials.template call<material_index_update>(sf.material(), sf);
             sf.update_transform(trf_offset);
         }
 
