@@ -53,7 +53,7 @@ class mask_base {
 
     DETRAY_HOST_DEVICE
     mask_base(const mask_values& val, const links_type& links)
-        : _values(val), _links(links) {}
+        : _values(val), _volume_link(links) {}
 
     /// Equality operator from an array, convenience function
     ///
@@ -70,7 +70,7 @@ class mask_base {
     /// @returns true if equal
     DETRAY_HOST_DEVICE
     bool operator==(const mask_base& rhs) {
-        return (_values == rhs._values && _links == rhs._links);
+        return (_values == rhs._values && _volume_link == rhs._volume_link);
     }
 
     /// Access operator - non-const
@@ -97,29 +97,17 @@ class mask_base {
     DETRAY_HOST_DEVICE
     constexpr local_type local() const { return local_type{}; }
 
-    /// @return the links - const reference
-    DETRAY_HOST_DEVICE
-    const links_type& links() const { return _links; }
-
     /// @return the volume link - const reference
     DETRAY_HOST_DEVICE
-    auto volume_link() const { return detail::get<0>(_links); }
+    auto volume_link() const { return _volume_link; }
 
     /// @return the volume link - non-const access
     DETRAY_HOST_DEVICE
-    auto volume_link() { return detail::get<0>(_links); }
-
-    /// @return the surface finder link - const reference
-    DETRAY_HOST_DEVICE
-    auto finder_link() const { return detail::get<1>(_links); }
-
-    /// @return the surface finder link - non-const access
-    DETRAY_HOST_DEVICE
-    auto finder_link() { return detail::get<1>(_links); }
+    auto volume_link() { return _volume_link; }
 
     protected:
     mask_values _values;
-    links_type _links;
+    links_type _volume_link;
 };
 
 }  // namespace detray

@@ -26,18 +26,22 @@ struct volume_stats {
     std::size_t n_max_objects_per_volume = 0;
 };
 
-/// edge links: next volume, next (local) object finder
-using edge_type = std::array<dindex, 2>;
+/// volume links: next volume during navigation
+using volume_link_type = dindex;
 
 /// mask types
-using rectangle = rectangle2<__plugin::cartesian2<detray::scalar>, edge_type>;
-using trapezoid = trapezoid2<__plugin::cartesian2<detray::scalar>, edge_type>;
-using annulus = annulus2<__plugin::cartesian2<detray::scalar>, edge_type>;
-using cylinder = cylinder3<cylinder_intersector,
-                           __plugin::cylindrical2<detray::scalar>, edge_type>;
-using disc = ring2<__plugin::cartesian2<detray::scalar>, edge_type>;
+using rectangle =
+    rectangle2<__plugin::cartesian2<detray::scalar>, volume_link_type>;
+using trapezoid =
+    trapezoid2<__plugin::cartesian2<detray::scalar>, volume_link_type>;
+using annulus =
+    annulus2<__plugin::cartesian2<detray::scalar>, volume_link_type>;
+using cylinder =
+    cylinder3<cylinder_intersector, __plugin::cylindrical2<detray::scalar>,
+              volume_link_type>;
+using disc = ring2<__plugin::cartesian2<detray::scalar>, volume_link_type>;
 using unbounded_plane =
-    unmasked<__plugin::cartesian2<detray::scalar>, edge_type>;
+    unmasked<__plugin::cartesian2<detray::scalar>, volume_link_type>;
 
 using slab = material_slab<detray::scalar>;
 using rod = material_rod<detray::scalar>;

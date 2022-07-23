@@ -158,7 +158,7 @@ class volume_graph {
     /// half edges in the @c _edges collection (detector masks).
     struct edge_collection {
         /// The link to the next volume
-        using mask_edge_t = typename detector_t::surface_type::edge_type;
+        using mask_edge_t = typename detector_t::surface_type::volume_link_type;
         /// The link to the surfaces mask
         using mask_link_t = typename detector_t::surface_type::mask_link;
 

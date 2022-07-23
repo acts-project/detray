@@ -41,17 +41,17 @@ using point2 = __plugin::point2<detray::scalar>;
  * @param r raius of the cylinder
  * @param lower_z lower extend in z
  * @param upper_z upper extend in z
- * @param edge link to next volume and surfaces finder
+ * @param volume_link link to next volume for the masks
  */
 template <typename context_t, typename surface_container_t,
           typename mask_container_t, typename material_container_t,
-          typename transform_container_t, typename edge_links>
+          typename transform_container_t, typename volume_links>
 inline void add_cylinder_surface(
     const dindex volume_id, context_t &ctx, surface_container_t &surfaces,
     mask_container_t &masks, material_container_t &materials,
     transform_container_t &transforms, const scalar r, const scalar lower_z,
-    const scalar upper_z, const edge_links edge, const material<scalar> &mat,
-    const scalar thickness) {
+    const scalar upper_z, const volume_links volume_link,
+    const material<scalar> &mat, const scalar thickness) {
     using surface_type = typename surface_container_t::value_type;
     using mask_defs = typename surface_type::mask_defs;
     using mask_link_type = typename surface_type::mask_link;
@@ -69,7 +69,7 @@ inline void add_cylinder_surface(
 
     // add transform and masks
     transforms.emplace_back(ctx, tsl);
-    masks.template add_value<cylinder_id>(r, min_z, max_z, edge);
+    masks.template add_value<cylinder_id>(r, min_z, max_z, volume_link);
 
     // Add material slab
     materials.template add_value<slab_id>(mat, thickness);
@@ -79,7 +79,7 @@ inline void add_cylinder_surface(
                              masks.template size<cylinder_id>() - 1};
     material_link_type material_link{slab_id,
                                      materials.template size<slab_id>() - 1};
-    const bool is_portal = std::get<0>(edge) != volume_id;
+    const bool is_portal = (volume_link != volume_id);
     surfaces.emplace_back(transforms.size(ctx) - 1, mask_link, material_link,
                           volume_id, dindex_invalid, is_portal);
 }
@@ -96,16 +96,16 @@ inline void add_cylinder_surface(
  * @param min_r lower radius of the disc
  * @param max_r upper radius of the disc
  * @param z z position of the disc
- * @param edge link to next volume and surfaces finder
+ * @param volume_link link to next volume for the masks
  */
 template <typename context_t, typename surface_container_t,
           typename mask_container_t, typename material_container_t,
-          typename transform_container_t, typename edge_links>
+          typename transform_container_t, typename volume_links>
 inline void add_disc_surface(
     const dindex volume_id, context_t &ctx, surface_container_t &surfaces,
     mask_container_t &masks, material_container_t &materials,
     transform_container_t &transforms, const scalar inner_r,
-    const scalar outer_r, const scalar z, const edge_links edge,
+    const scalar outer_r, const scalar z, const volume_links volume_link,
     const material<scalar> &mat, const scalar thickness) {
     using surface_type = typename surface_container_t::value_type;
     using mask_defs = typename surface_type::mask_defs;
@@ -124,7 +124,7 @@ inline void add_disc_surface(
 
     // add transform and mask
     transforms.emplace_back(ctx, tsl);
-    masks.template add_value<disc_id>(min_r, max_r, edge);
+    masks.template add_value<disc_id>(min_r, max_r, volume_link);
 
     // Add material slab
     materials.template add_value<slab_id>(mat, thickness);
@@ -133,7 +133,7 @@ inline void add_disc_surface(
     mask_link_type mask_link{disc_id, masks.template size<disc_id>() - 1};
     material_link_type material_link{slab_id,
                                      materials.template size<slab_id>() - 1};
-    const bool is_portal = std::get<0>(edge) != volume_id;
+    const bool is_portal = (volume_link != volume_id);
     surfaces.emplace_back(transforms.size(ctx) - 1, mask_link, material_link,
                           volume_id, dindex_invalid, is_portal);
 }
@@ -151,7 +151,7 @@ inline void add_disc_surface(
  * @param lay_outer_r outer radius of volume
  * @param lay_neg_r lower extend of volume
  * @param lay_pos_r upper extend of volume
- * @param edges volume and surfaces finder links for the portals of the volume
+ * @param volume_links volume links for the portals of the volume
  * @param module_factory functor that adds module surfaces to volume
  */
 
@@ -168,7 +168,8 @@ void create_cyl_volume(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::context &ctx, const scalar lay_inner_r,
     const scalar lay_outer_r, const scalar lay_neg_z, const scalar lay_pos_z,
-    const std::vector<typename detector_t::surface_type::edge_type> &edges,
+    const std::vector<typename detector_t::surface_type::volume_link_type>
+        &volume_links,
     factory_t &module_factory) {
     // volume bounds
     const scalar inner_r = std::min(lay_inner_r, lay_outer_r);
@@ -191,16 +192,16 @@ void create_cyl_volume(
 
     // negative and positive, inner and outer portal surface
     add_cylinder_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
-                         transforms, inner_r, lower_z, upper_z, edges[0],
+                         transforms, inner_r, lower_z, upper_z, volume_links[0],
                          vacuum<scalar>(), 0. * unit_constants::mm);
     add_cylinder_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
-                         transforms, outer_r, lower_z, upper_z, edges[1],
+                         transforms, outer_r, lower_z, upper_z, volume_links[1],
                          vacuum<scalar>(), 0. * unit_constants::mm);
     add_disc_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
-                     transforms, inner_r, outer_r, lower_z, edges[2],
+                     transforms, inner_r, outer_r, lower_z, volume_links[2],
                      vacuum<scalar>(), 0. * unit_constants::mm);
     add_disc_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
-                     transforms, inner_r, outer_r, upper_z, edges[3],
+                     transforms, inner_r, outer_r, upper_z, volume_links[3],
                      vacuum<scalar>(), 0. * unit_constants::mm);
 
     det.add_objects_per_volume(ctx, cyl_volume, surfaces, masks, materials,
@@ -229,7 +230,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                   transform_container_t &transforms,
                                   config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
-    using edge_t = typename surface_type::edge_type;
+    using volume_link_t = typename surface_type::volume_link_type;
     using mask_defs = typename surface_type::mask_defs;
     using mask_link_type = typename surface_type::mask_link;
     using material_defs = typename surface_type::material_defs;
@@ -239,7 +240,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     constexpr auto slab_id = material_defs::id::e_slab;
 
     auto volume_id = vol.index();
-    edge_t mask_edge{volume_id, dindex_invalid};
+    volume_link_t mask_volume_link{volume_id};
 
     // Create the module centers
 
@@ -289,7 +290,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
 
         // The rectangle bounds for this module
         masks.template add_value<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
-                                               mask_edge);
+                                               mask_volume_link);
         materials.template add_value<slab_id>(cfg.mat, cfg.thickness);
 
         // Build the transform
@@ -437,7 +438,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
                            material_container_t &materials,
                            transform_container_t &transforms, config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
-    using edge_t = typename surface_type::edge_type;
+    using volume_link_t = typename surface_type::volume_link_type;
     using mask_defs = typename surface_type::mask_defs;
     using mask_link_type = typename surface_type::mask_link;
     using material_defs = typename surface_type::material_defs;
@@ -447,7 +448,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     constexpr auto slab_id = material_defs::id::e_slab;
 
     auto volume_id = vol.index();
-    edge_t mask_edge{volume_id, dindex_invalid};
+    volume_link_t mask_volume_link{volume_id};
 
     // calculate the radii of the rings
     std::vector<scalar> radii;
@@ -511,9 +512,9 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             material_link_type material_link{
                 slab_id, materials.template size<slab_id>()};
 
-            masks.template add_value<trapezoid_id>(cfg.m_half_x_min_y[ir],
-                                                   cfg.m_half_x_max_y[ir],
-                                                   cfg.m_half_y[ir], mask_edge);
+            masks.template add_value<trapezoid_id>(
+                cfg.m_half_x_min_y[ir], cfg.m_half_x_max_y[ir],
+                cfg.m_half_y[ir], mask_volume_link);
 
             materials.template add_value<slab_id>(cfg.mat, cfg.thickness);
 
@@ -559,7 +560,6 @@ inline void add_beampipe(
     const std::pair<scalar, scalar> &beampipe_vol_size, const scalar beampipe_r,
     const scalar brl_half_z, const scalar edc_inner_r) {
 
-    const dindex inv_sf_finder = dindex_invalid;
     const dindex leaving_world = dindex_invalid;
 
     scalar max_z =
@@ -578,10 +578,10 @@ inline void add_beampipe(
     beampipe.set_sf_finder(detector_t::sf_finders::id::e_default, 0);
 
     // This is the beampipe surface
-    typename detector_t::surface_type::edge_type edge = {beampipe_idx,
-                                                         inv_sf_finder};
+    typename detector_t::surface_type::volume_link_type volume_link{
+        beampipe_idx};
     add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
-                         transforms, beampipe_r, min_z, max_z, edge,
+                         transforms, beampipe_r, min_z, max_z, volume_link,
                          beryllium_tml<scalar>(), 0.8 * unit_constants::mm);
 
     // Get vol sizes in z, including for gap volumes
@@ -595,42 +595,40 @@ inline void add_beampipe(
     vol_sizes.pop_back();
 
     // negative endcap portals
-    unsigned int volume_link = beampipe_idx;
+    dindex link = beampipe_idx;
     for (int i = vol_sizes.size() - 1; i >= 0; --i) {
-        edge = {++volume_link, inv_sf_finder};
+        volume_link = ++link;
         add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
                              transforms, edc_inner_r, -vol_sizes[i].second,
-                             -vol_sizes[i].first, edge, vacuum<scalar>(),
+                             -vol_sizes[i].first, volume_link, vacuum<scalar>(),
                              0. * unit_constants::mm);
     }
+
     // barrel portals
-    if (n_brl_layers <= 0) {
-        edge = {leaving_world, inv_sf_finder};
-    } else {
-        edge = {volume_link + 1, inv_sf_finder};
-    }
+    volume_link = n_brl_layers <= 0 ? leaving_world : link + 1;
     add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
-                         transforms, edc_inner_r, -brl_half_z, brl_half_z, edge,
-                         vacuum<scalar>(), 0. * unit_constants::mm);
+                         transforms, edc_inner_r, -brl_half_z, brl_half_z,
+                         volume_link, vacuum<scalar>(),
+                         0. * unit_constants::mm);
 
     // positive endcap portals
-    volume_link += 7;
+    link += 7;
     for (std::size_t i = 0; i < vol_sizes.size(); ++i) {
-        edge = {++volume_link, inv_sf_finder};
+        volume_link = ++link;
         add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
                              transforms, edc_inner_r, vol_sizes[i].second,
-                             vol_sizes[i].first, edge, vacuum<scalar>(),
+                             vol_sizes[i].first, volume_link, vacuum<scalar>(),
                              0. * unit_constants::mm);
     }
 
     // disc portals
-    edge = {leaving_world, inv_sf_finder};
+    volume_link = leaving_world;
     add_disc_surface(beampipe_idx, ctx, surfaces, masks, materials, transforms,
                      beampipe_vol_size.first, beampipe_vol_size.second, min_z,
-                     edge, vacuum<scalar>(), 0. * unit_constants::mm);
+                     volume_link, vacuum<scalar>(), 0. * unit_constants::mm);
     add_disc_surface(beampipe_idx, ctx, surfaces, masks, materials, transforms,
                      beampipe_vol_size.first, beampipe_vol_size.second, max_z,
-                     edge, vacuum<scalar>(), 0. * unit_constants::mm);
+                     volume_link, vacuum<scalar>(), 0. * unit_constants::mm);
 
     det.add_objects_per_volume(ctx, beampipe, surfaces, masks, materials,
                                transforms);
@@ -674,21 +672,21 @@ inline void add_endcap_barrel_connection(
         det.new_volume({edc_inner_r, edc_outer_r, min_z, max_z, -M_PI, M_PI});
     connector_gap.set_sf_finder(detector_t::sf_finders::id::e_default, 0);
     dindex connector_gap_idx{det.volumes().back().index()};
-    dindex leaving_world = dindex_invalid, inv_sf_finder = dindex_invalid;
+    dindex leaving_world = dindex_invalid;
 
-    typename detector_t::surface_type::edge_type edge = {beampipe_idx,
-                                                         inv_sf_finder};
+    typename detector_t::surface_type::volume_link_type volume_link = {
+        beampipe_idx};
     add_cylinder_surface(connector_gap_idx, ctx, surfaces, masks, materials,
-                         transforms, edc_inner_r, min_z, max_z, edge,
+                         transforms, edc_inner_r, min_z, max_z, volume_link,
                          vacuum<scalar>(), 0. * unit_constants::mm);
-    edge = {leaving_world, inv_sf_finder};
+    volume_link = leaving_world;
     add_cylinder_surface(connector_gap_idx, ctx, surfaces, masks, materials,
-                         transforms, edc_outer_r, min_z, max_z, edge,
+                         transforms, edc_outer_r, min_z, max_z, volume_link,
                          vacuum<scalar>(), 0. * unit_constants::mm);
-    edge = {edc_vol_idx, inv_sf_finder};
+    volume_link = edc_vol_idx;
     add_disc_surface(connector_gap_idx, ctx, surfaces, masks, materials,
-                     transforms, edc_inner_r, edc_outer_r, edc_disc_z, edge,
-                     vacuum<scalar>(), 0. * unit_constants::mm);
+                     transforms, edc_inner_r, edc_outer_r, edc_disc_z,
+                     volume_link, vacuum<scalar>(), 0. * unit_constants::mm);
 
     // Get vol sizes in z also for gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes;
@@ -698,12 +696,12 @@ inline void add_endcap_barrel_connection(
                                brl_lay_sizes[i + 1].first);
     }
 
-    edge = {brl_vol_idx, inv_sf_finder};
+    volume_link = brl_vol_idx;
     for (std::size_t i = 0; i < 2 * n_brl_layers - 1; ++i) {
-        edge = {brl_vol_idx++, inv_sf_finder};
+        volume_link = brl_vol_idx++;
         add_disc_surface(connector_gap_idx, ctx, surfaces, masks, materials,
                          transforms, vol_sizes[i].first, vol_sizes[i].second,
-                         brl_disc_z, edge, vacuum<scalar>(),
+                         brl_disc_z, volume_link, vacuum<scalar>(),
                          0. * unit_constants::mm);
     }
 
@@ -731,47 +729,38 @@ void add_endcap_detector(
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions, config_t cfg) {
 
-    // Generate consecutive linking between volumes (all edges for every vol.)
-    using edge_t = typename detector_t::surface_type::edge_type;
-    std::vector<std::vector<edge_t>> edges_vec;
-    dindex leaving_world = dindex_invalid, inv_sf_finder = dindex_invalid;
+    // Generate consecutive linking between volumes (all volume_links for every
+    // vol.)
+    using volume_link_t = typename detector_t::surface_type::volume_link_type;
+    std::vector<std::vector<volume_link_t>> volume_links_vec;
+    dindex leaving_world = dindex_invalid;
     dindex first_vol_idx = det.volumes().back().index() + 1;
     dindex last_vol_idx = first_vol_idx + 2 * n_layers - 2;
     dindex prev_vol_idx = first_vol_idx - 1;
     dindex next_vol_idx = first_vol_idx + 1;
 
     for (int i = 0; i < 2 * static_cast<int>(n_layers) - 3; ++i) {
-        edges_vec.push_back({{beampipe_idx, inv_sf_finder},
-                             {leaving_world, inv_sf_finder},
-                             {++prev_vol_idx, inv_sf_finder},
-                             {++next_vol_idx, inv_sf_finder}});
+        volume_links_vec.push_back(
+            {beampipe_idx, leaving_world, ++prev_vol_idx, ++next_vol_idx});
     }
     // Edge of the world is flipped
     if (cfg.side < 0) {
-        edges_vec.insert(edges_vec.begin(),
-                         {{beampipe_idx, inv_sf_finder},
-                          {leaving_world, inv_sf_finder},
-                          {leaving_world, inv_sf_finder},
-                          {first_vol_idx + 1, inv_sf_finder}});
+        volume_links_vec.insert(
+            volume_links_vec.begin(),
+            {beampipe_idx, leaving_world, leaving_world, first_vol_idx + 1});
 
-        edges_vec.push_back({{beampipe_idx, inv_sf_finder},
-                             {leaving_world, inv_sf_finder},
-                             {last_vol_idx - 1, inv_sf_finder},
-                             {last_vol_idx + 1, inv_sf_finder}});
+        volume_links_vec.push_back(
+            {beampipe_idx, leaving_world, last_vol_idx - 1, last_vol_idx + 1});
     } else {
         // For n_layers=1 no extra gap layer is needed
         if (n_layers > 1) {
-            edges_vec.insert(edges_vec.begin(),
-                             {{beampipe_idx, inv_sf_finder},
-                              {leaving_world, inv_sf_finder},
-                              {first_vol_idx - 1, inv_sf_finder},
-                              {first_vol_idx + 1, inv_sf_finder}});
+            volume_links_vec.insert(volume_links_vec.begin(),
+                                    {beampipe_idx, leaving_world,
+                                     first_vol_idx - 1, first_vol_idx + 1});
         }
 
-        edges_vec.push_back({{beampipe_idx, inv_sf_finder},
-                             {leaving_world, inv_sf_finder},
-                             {last_vol_idx - 1, inv_sf_finder},
-                             {leaving_world, inv_sf_finder}});
+        volume_links_vec.push_back(
+            {beampipe_idx, leaving_world, last_vol_idx - 1, leaving_world});
     }
 
     // Get vol sizes in z, including gap volumes
@@ -800,14 +789,14 @@ void add_endcap_detector(
             create_cyl_volume(det, resource, ctx, cfg.inner_r, cfg.outer_r,
                               cfg.side * (vol_size_itr + cfg.side * i)->first,
                               cfg.side * (vol_size_itr + cfg.side * i)->second,
-                              edges_vec[i], empty_factory);
+                              volume_links_vec[i], empty_factory);
 
         } else {
             m_factory.cfg.edc_position = *(pos_itr + cfg.side * i / 2);
             create_cyl_volume(det, resource, ctx, cfg.inner_r, cfg.outer_r,
                               cfg.side * (vol_size_itr + cfg.side * i)->first,
                               cfg.side * (vol_size_itr + cfg.side * i)->second,
-                              edges_vec[i], m_factory);
+                              volume_links_vec[i], m_factory);
             add_r_phi_grid(ctx, det.volumes().back(), det, resource, cfg);
         }
     }
@@ -836,7 +825,7 @@ void add_barrel_detector(
     const std::vector<std::pair<int, int>> &m_binning, config_t cfg) {
 
     // Generate consecutive linking between volumes
-    dindex leaving_world = dindex_invalid, inv_sf_finder = dindex_invalid;
+    dindex leaving_world = dindex_invalid;
     dindex first_vol_idx = det.volumes().back().index();
     dindex last_vol_idx = first_vol_idx + 2 * n_layers;
     dindex prev_vol_idx = first_vol_idx;
@@ -849,23 +838,17 @@ void add_barrel_detector(
     }
 
     // First barrel layer is connected to the beampipe
-    using edge_t = typename detector_t::surface_type::edge_type;
-    std::vector<std::vector<edge_t>> edges_vec{{{beampipe_idx, inv_sf_finder},
-                                                {next_vol_idx, inv_sf_finder},
-                                                {first_vol_idx, inv_sf_finder},
-                                                {last_vol_idx, inv_sf_finder}}};
+    using volume_link_t = typename detector_t::surface_type::volume_link_type;
+    std::vector<std::vector<volume_link_t>> volume_links_vec{
+        {beampipe_idx, next_vol_idx, first_vol_idx, last_vol_idx}};
 
     for (std::size_t i = 1; i < 2 * n_layers - 2; ++i) {
-        edges_vec.push_back({{++prev_vol_idx, inv_sf_finder},
-                             {++next_vol_idx, inv_sf_finder},
-                             {first_vol_idx, inv_sf_finder},
-                             {last_vol_idx, inv_sf_finder}});
+        volume_links_vec.push_back(
+            {++prev_vol_idx, ++next_vol_idx, first_vol_idx, last_vol_idx});
     }
     // Last barrel layer leaves detector world
-    edges_vec.push_back({{++prev_vol_idx, inv_sf_finder},
-                         {leaving_world, inv_sf_finder},
-                         {first_vol_idx, inv_sf_finder},
-                         {last_vol_idx, inv_sf_finder}});
+    volume_links_vec.push_back(
+        {++prev_vol_idx, leaving_world, first_vol_idx, last_vol_idx});
 
     // Get vol sizes in z, including gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes{
@@ -885,13 +868,13 @@ void add_barrel_detector(
         if (is_gap) {
             create_cyl_volume(det, resource, ctx, vol_sizes[i].first,
                               vol_sizes[i].second, -brl_half_z, brl_half_z,
-                              edges_vec[i], empty_factory);
+                              volume_links_vec[i], empty_factory);
         } else {
             m_factory.cfg.m_binning = m_binning[j];
             m_factory.cfg.layer_r = lay_positions[j];
             create_cyl_volume(det, resource, ctx, vol_sizes[i].first,
                               vol_sizes[i].second, -brl_half_z, brl_half_z,
-                              edges_vec[i], m_factory);
+                              volume_links_vec[i], m_factory);
             add_z_phi_grid(ctx, det.volumes().back(), det, resource, cfg);
         }
     }

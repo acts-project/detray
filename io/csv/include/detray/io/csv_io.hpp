@@ -304,7 +304,7 @@ detector_from_csv(const std::string &detector_name,
     }
 
     using mask_defs = typename detector_t::masks;
-    typename detector_t::surface_type::edge_type mask_edge{};
+    typename detector_t::surface_type::volume_link_type mask_volume_link{};
     typename mask_defs::link_type mask_index{};
     constexpr auto cylinder_id = mask_defs::id::e_cylinder3;
     constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
@@ -416,11 +416,11 @@ detector_from_csv(const std::string &detector_name,
 
                 // Add a new cylinder mask
                 dindex cylinder_index = c_masks.template size<cylinder_id>();
-                mask_edge = {c_volume->index(), dindex_invalid};
+                mask_volume_link = c_volume->index();
                 c_masks.template add_value<cylinder_id>(
                     io_surface.bound_param0,
                     io_surface.cz - io_surface.bound_param1,
-                    io_surface.cz + io_surface.bound_param1, mask_edge);
+                    io_surface.cz + io_surface.bound_param1, mask_volume_link);
                 // The read is valid: set the index
                 mask_index = {cylinder_id, cylinder_index};
 
@@ -447,7 +447,7 @@ detector_from_csv(const std::string &detector_name,
                 scalar half_y =
                     0.5 * (io_surface.bound_param3 - io_surface.bound_param1);
                 c_masks.template add_value<rectangle_id>(half_x, half_y,
-                                                         mask_edge);
+                                                         mask_volume_link);
                 // The read is valid: set the index
                 mask_index = {rectangle_id, rectangle_index};
 
@@ -469,7 +469,7 @@ detector_from_csv(const std::string &detector_name,
                 dindex trapezoid_index = c_masks.template size<trapezoid_id>();
                 c_masks.template add_value<trapezoid_id>(
                     io_surface.bound_param0, io_surface.bound_param1,
-                    io_surface.bound_param2, mask_edge);
+                    io_surface.bound_param2, mask_volume_link);
 
                 // The read is valid: set the index
                 mask_index = {trapezoid_id, trapezoid_index};
@@ -494,7 +494,7 @@ detector_from_csv(const std::string &detector_name,
                     io_surface.bound_param0, io_surface.bound_param1,
                     io_surface.bound_param2, io_surface.bound_param3,
                     io_surface.bound_param4, io_surface.bound_param5,
-                    io_surface.bound_param6, mask_edge);
+                    io_surface.bound_param6, mask_volume_link);
 
                 // The read is valid: set the index
                 mask_index = {annulus_id, annulus_index};
