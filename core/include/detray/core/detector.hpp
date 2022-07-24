@@ -112,12 +112,6 @@ class detector {
         typename metadata::template volume_finder<array_t, vector_t, tuple_t,
                                                   jagged_vector_t>;
 
-    /// Surface finder definition: Make neighboring surfaces available from
-    /// track position.
-    using surfaces_finder_type =
-        typename metadata::template surface_finder<array_t, vector_t, tuple_t,
-                                                   jagged_vector_t>;
-
     detector() = delete;
 
     /// Allowed costructor
@@ -134,7 +128,6 @@ class detector {
               std::move(typename volume_finder::axis_p0_type{resource}),
               std::move(typename volume_finder::axis_p1_type{resource}),
               resource),
-          _surfaces_finder(resource),
           _resource(&resource) {}
 
     /// Constructor with detector_data
@@ -148,8 +141,7 @@ class detector {
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
           _materials(det_data._materials_data),
-          _volume_finder(det_data._volume_finder_view),
-          _surfaces_finder(det_data._surfaces_finder_view) {}
+          _volume_finder(det_data._volume_finder_view) {}
 
     /// Add a new volume and retrieve a reference to it
     ///
@@ -313,9 +305,9 @@ class detector {
                                    sf_finder_t &surface_finder) -> void {
 
         // iterate over surfaces to fill the grid
-        for (const auto &[surf_idx, surf] : enumerate(_surfaces, vol)) {
-            if (surf.get_grid_status() == true) {
-                dindex sidx = surf_idx;
+        for (const auto [surf_idx, surf] : enumerate(_surfaces, vol)) {
+            if (not surf.is_portal()) {
+                dindex sfi = surf_idx;
 
                 const transform3 &trf =
                     _transforms.contextual_transform(ctx, surf.transform());
@@ -324,14 +316,14 @@ class detector {
                 if constexpr (sf_finder_id == sf_finders::id::e_z_phi_grid) {
 
                     point2 location{tsl[2], algebra::getter::phi(tsl)};
-                    surface_finder.populate(location, std::move(sidx));
+                    surface_finder.populate(location, std::move(sfi));
 
                 } else if constexpr (sf_finder_id ==
                                      sf_finders::id::e_r_phi_grid) {
 
                     point2 location{algebra::getter::perp(tsl),
                                     algebra::getter::phi(tsl)};
-                    surface_finder.populate(location, std::move(sidx));
+                    surface_finder.populate(location, std::move(sfi));
                 }
             }
         }
@@ -345,7 +337,7 @@ class detector {
                 sf_finder_idx++;
             }
         }
-        sf_finder_group.at(sf_finder_idx) = surface_finder;
+        sf_finder_group.at(sf_finder_idx) = std::move(surface_finder);
         vol.set_sf_finder(sf_finder_id, sf_finder_idx);
     }
 
@@ -420,13 +412,6 @@ class detector {
     /// @returns access to the surface finder container - non-const access
     // TODO: remove once possible
     DETRAY_HOST_DEVICE
-    inline auto sf_finder() -> surfaces_finder_type & {
-        return _surfaces_finder;
-    }
-
-    /// @returns access to the surface finder container - non-const access
-    // TODO: remove once possible
-    DETRAY_HOST_DEVICE
     inline auto sf_finder_store() -> sf_finder_container & {
         return _sf_finders;
     }
@@ -452,8 +437,7 @@ class detector {
 
         ss << "[>] Detector '" << names.at(0) << "' has " << _volumes.size()
            << " volumes." << std::endl;
-        ss << "    contains  " << _surfaces_finder.size()
-           << " local surface finders." << std::endl;
+        ss << " local surface finders." << std::endl;
 
         for (const auto &[i, v] : enumerate(_volumes)) {
             ss << "[>>] Volume at index " << i << ": " << std::endl;
@@ -466,6 +450,9 @@ class detector {
             ss << "                 "
                << v.template n_objects<objects::e_portal>() << " portals "
                << std::endl;
+
+            ss << "                 " << _sf_finders.size(v.sf_finder_type())
+               << " surface finders " << std::endl;
 
             if (v.sf_finder_index() != dindex_invalid) {
                 ss << "  sf finder id " << v.sf_finder_type()
@@ -514,10 +501,6 @@ class detector {
     /// Search structure for volumes
     volume_finder _volume_finder;
 
-    /// Container for all surface search structures per volume, e.g. grids
-    // TODO: surfaces_finder needs to be refactored
-    surfaces_finder_type _surfaces_finder;
-
     /// The memory resource represents how and where (host, device, managed)
     /// the memory for the detector containers is allocated
     vecmem::memory_resource *_resource = nullptr;
@@ -548,9 +531,7 @@ struct detector_data {
           _materials_data(get_data(det.material_store())),
           _transforms_data(get_data(det.transform_store())),
           _volume_finder_data(
-              get_data(det.volume_search_grid(), *det.resource())),
-          _surfaces_finder_data(
-              get_data(det.get_surfaces_finder(), *det.resource())) {}
+              get_data(det.volume_search_grid(), *det.resource())) {}
 
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
@@ -559,7 +540,6 @@ struct detector_data {
     tuple_vector_container_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_data<volume_finder_t> _volume_finder_data;
-    surfaces_finder_data<surfaces_finder_t> _surfaces_finder_data;
 };
 
 /// @brief A static inplementation of detector view for device
@@ -573,7 +553,6 @@ struct detector_view {
     using material_container_t = typename detector_type::material_container;
     using transform_container_t = typename detector_type::transform_container;
     using volume_finder_t = typename detector_type::volume_finder;
-    using surfaces_finder_t = typename detector_type::surfaces_finder_type;
 
     detector_view(detector_data<detector_type> &det_data)
         : _volumes_data(det_data._volumes_data),
@@ -581,8 +560,7 @@ struct detector_view {
           _masks_data(det_data._masks_data),
           _materials_data(det_data._materials_data),
           _transforms_data(det_data._transforms_data),
-          _volume_finder_view(det_data._volume_finder_data),
-          _surfaces_finder_view(det_data._surfaces_finder_data) {}
+          _volume_finder_view(det_data._volume_finder_data) {}
 
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
@@ -591,7 +569,6 @@ struct detector_view {
     tuple_vector_container_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_view<volume_finder_t> _volume_finder_view;
-    surfaces_finder_view<surfaces_finder_t> _surfaces_finder_view;
 };
 
 /// stand alone function for that @returns the detector data for transfer to

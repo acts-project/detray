@@ -967,9 +967,6 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
             typename detector_t::mask_container & /*masks*/,
             typename detector_t::material_container & /*materials*/,
             typename detector_t::transform_container & /*transforms*/) {}
-        void operator()(typename detector_t::surfaces_finder_type::
-                            surfaces_regular_circular_grid & /*surfaces_grid*/,
-                        vecmem::memory_resource & /*resource*/) {}
     };
 
     // Fills volume with barrel layer
