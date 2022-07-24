@@ -58,11 +58,11 @@ class volume {
     /// @param bounds values of volume boundaries. They depend on the volume
     ///               shape, which is defined by its portals and are chosen in
     ///               the detector builder
-    volume(const array_t<scalar, 6> &bounds) : _bounds(bounds) {}
+    volume(const array_t<scalar_t, 6> &bounds) : _bounds(bounds) {}
 
     /// @return the bounds - const access
     DETRAY_HOST_DEVICE
-    auto bounds() const -> const array_t<scalar, 6> & { return _bounds; }
+    auto bounds() const -> const array_t<scalar_t, 6> & { return _bounds; }
 
     /// @return the name (add an offset for the detector name)
     DETRAY_HOST_DEVICE
@@ -177,12 +177,12 @@ class volume {
 
     private:
     /// Bounds section, default for r, z, phi
-    array_t<scalar, 6> _bounds = {0.,
-                                  std::numeric_limits<scalar>::max(),
-                                  -std::numeric_limits<scalar>::max(),
-                                  std::numeric_limits<scalar>::max(),
-                                  -M_PI,
-                                  M_PI};
+    array_t<scalar_t, 6> _bounds = {0.,
+                                    std::numeric_limits<scalar_t>::max(),
+                                    -std::numeric_limits<scalar_t>::max(),
+                                    std::numeric_limits<scalar_t>::max(),
+                                    -M_PI,
+                                    M_PI};
 
     /// Volume index in the detector's volume container
     dindex _index = dindex_invalid;

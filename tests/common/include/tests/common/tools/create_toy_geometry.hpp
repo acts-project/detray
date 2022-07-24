@@ -339,7 +339,7 @@ inline void add_z_phi_grid(const typename detector_t::context &ctx,
 
     // Add new grid to the detector
     surface_grid_t z_phi_grid(z_axis, phi_axis, resource);
-    det.add_sf_finder(ctx, vol, z_phi_grid);
+    det.template add_sf_finder<surface_grid_t, grid_id>(ctx, vol, z_phi_grid);
 }
 
 /** Helper function that creates a surface grid of trapezoidal endcap modules.
@@ -368,7 +368,7 @@ inline void add_r_phi_grid(const typename detector_t::context &ctx,
 
     // Add new grid to the detector
     surface_grid_t r_phi_grid(r_axis, phi_axis, resource);
-    det.add_sf_finder(ctx, vol, r_phi_grid);
+    det.template add_sf_finder<surface_grid_t, grid_id>(ctx, vol, r_phi_grid);
 }
 
 /** Helper method for positioning of modules in an endcap ring

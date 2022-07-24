@@ -302,13 +302,15 @@ class detector {
         return data_core{_volumes, _transforms, _masks, _surfaces};
     }
 
+    /// New surface finder id can be been given explicitly. That is helpful, if
+    /// multiple sf finders have the same type in the tuple container. Otherwise
+    /// it is determined automatically.
     // TODO: Provide grid builder structure separate from the detector
-    template <typename sf_finder_t>
+    template <typename sf_finder_t,
+              typename sf_finders::id sf_finder_id =
+                  sf_finders::template get_id<sf_finder_t>()>
     DETRAY_HOST auto add_sf_finder(const context ctx, volume_type &vol,
                                    sf_finder_t &surface_finder) -> void {
-        // Get id for the surface finder
-        constexpr typename sf_finders::id sf_finder_id =
-            sf_finders::template get_id<sf_finder_t>();
 
         // iterate over surfaces to fill the grid
         for (const auto &[surf_idx, surf] : enumerate(_surfaces, vol)) {

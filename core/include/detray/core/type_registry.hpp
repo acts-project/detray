@@ -15,7 +15,6 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
-#include <iostream>
 #include <type_traits>
 #include <utility>
 
@@ -26,6 +25,7 @@ namespace detray {
 ///
 /// @tparam IDs enum that references the types (not used in base class)
 /// @tparam registered_types the types that can be mapped to indices
+// TODO: Merge with tuple_container
 template <class ID, bool /*put checks on IDs type*/,
           typename... registered_types>
 class registry_base;

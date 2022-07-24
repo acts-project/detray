@@ -127,7 +127,7 @@ struct full_metadata {
         std::index_sequence<n_other, n_z_phi_grids, n_r_phi_grids>,
         brute_force_finder,
         regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
-        regular_circular_grid2<vector_t, jagged_vector_t, array_t, tuple_t>>;
+        regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>>;
 
     dynamic_data _data;
 };
@@ -206,7 +206,7 @@ struct toy_metadata {
         std::index_sequence<n_other, n_barrel_grids, n_endcap_grids>,
         brute_force_finder,
         regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
-        regular_circular_grid2<vector_t, jagged_vector_t, array_t, tuple_t>>;
+        regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>>;
 
     volume_stats _data;
 };

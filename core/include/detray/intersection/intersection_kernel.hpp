@@ -91,6 +91,8 @@ struct intersection_update {
      * @tparam transform_container_t is the input transform store type
      *
      * @param mask_group is the input mask group
+     * @param mask_range is the range of masks in the group that belong to the
+     *                   surface
      * @param traj is the input trajectory
      * @param surface is the input surface
      * @param contextual_transforms is the input transform container
@@ -101,14 +103,14 @@ struct intersection_update {
     template <typename mask_group_t, typename mask_range_t, typename traj_t,
               typename surface_t, typename transform_container_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const mask_group_t &mask_group, mask_range_t &mask_range,
+        const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, const surface_t &surface,
         const transform_container_t &contextual_transforms,
         const scalar mask_tolerance = 0.) const {
 
         const auto &ctf = contextual_transforms[surface.transform()];
 
-        // Run over the masks belonged to the surface
+        // Run over the masks belonging to the surface
         for (const auto &mask : range(mask_group, mask_range)) {
 
             auto sfi = std::move(mask.intersector()(
