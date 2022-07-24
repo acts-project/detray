@@ -12,7 +12,7 @@ detray_add_test( eigen
    "eigen_geometry_volume_graph.cpp" "eigen_geometry_linking.cpp"
    "eigen_geometry_navigation.cpp" "eigen_geometry_scan.cpp"
    "eigen_guided_navigator.cpp" "eigen_helix_trajectory.cpp"
-   "eigen_intersection_kernel.cpp" "eigen_mask_store.cpp" "eigen_material_interactor.cpp" "eigen_materials.cpp"
+   "eigen_intersection_kernel.cpp" "eigen_mask_store.cpp" "eigen_material_interaction.cpp" "eigen_materials.cpp"
    "eigen_navigator.cpp" "eigen_particle_gun.cpp"
    "eigen_planar_intersection.cpp" "eigen_line_intersection.cpp" "eigen_line.cpp" "eigen_propagator.cpp"
    "eigen_rectangle2.cpp" "eigen_ring2.cpp" "eigen_single3.cpp"

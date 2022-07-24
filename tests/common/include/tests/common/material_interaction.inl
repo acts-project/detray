@@ -8,7 +8,7 @@
 /// Detray include(s)
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/materials/interactor.hpp"
+#include "detray/materials/interaction.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -32,7 +32,7 @@ class EnergyLossBetheValidation
 TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
 
     // Interaction object
-    interactor<scalar> I;
+    interaction<scalar> I;
 
     // intersection with a zero incidence angle
     line_plane_intersection is;
@@ -148,7 +148,7 @@ class EnergyLossLandauValidation
 TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
 
     // Interaction object
-    interactor<scalar> I;
+    interaction<scalar> I;
 
     // intersection with a zero incidence angle
     line_plane_intersection is;

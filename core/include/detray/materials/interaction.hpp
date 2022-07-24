@@ -17,7 +17,7 @@
 namespace detray {
 
 template <typename scalar_t>
-struct interactor {
+struct interaction {
 
     using scalar_type = scalar_t;
     using matrix_operator = standard_matrix_operator<scalar_type>;

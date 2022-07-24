@@ -13,7 +13,7 @@ detray_add_test( array
    "array_geometry_navigation.cpp" "array_geometry_scan.cpp"
    "array_guided_navigator.cpp" "array_helix_trajectory.cpp"
    "array_intersection_kernel.cpp" "array_particle_gun.cpp"
-   "array_mask_store.cpp" "array_material_interactor.cpp" "array_materials.cpp" "array_navigator.cpp"
+   "array_mask_store.cpp" "array_material_interaction.cpp" "array_materials.cpp" "array_navigator.cpp"
    "array_planar_intersection.cpp" "array_line_intersection.cpp" "array_line.cpp" "array_propagator.cpp"
    "array_rectangle2.cpp" "array_ring2.cpp" "array_single3.cpp"
    "array_stepper.cpp" "array_surfaces_finder.cpp"

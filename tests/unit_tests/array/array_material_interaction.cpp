@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/plugins/algebra/vc_array_definitions.hpp"
-#include "tests/common/material_interactor.inl"
+#include "detray/plugins/algebra/array_definitions.hpp"
+#include "tests/common/material_interaction.inl"

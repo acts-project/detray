@@ -9,16 +9,16 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
-#include "detray/materials/interactor.hpp"
+#include "detray/materials/interaction.hpp"
 
 namespace detray {
 
-template <typename interactor_t>
-struct pointwise_interactor_kernel {
+template <typename interaction_t>
+struct pointwise_interaction_kernel {
 
-    using scalar_type = typename interactor_t::scalar_type;
+    using scalar_type = typename interaction_t::scalar_type;
     using vector3 = __plugin::vector3<scalar_type>;
-    using interactor_type = interactor_t;
+    using interaction_type = interaction_t;
     using output_type = void;
 
     bool performorm_covariance_transport = true;
@@ -48,7 +48,7 @@ struct pointwise_interactor_kernel {
     scalar_type variance_qOverP = 0.;
 
     template <typename propagator_state_t>
-    pointwise_interactor_kernel(const propagator_state_t &prop_state) {
+    pointwise_interaction_kernel(const propagator_state_t &prop_state) {
         const auto &stepping = prop_state._stepping;
         const auto &trk = stepping();
 
@@ -69,7 +69,7 @@ struct pointwise_interactor_kernel {
         const auto &mat = material_group.at(material_index);
 
         if (do_energy_loss) {
-            e_loss = interactor_type().compute_energy_loss_bethe(
+            e_loss = interaction_type().compute_energy_loss_bethe(
                 is, mat, pdg, mass, qOverP, q);
         }
 
