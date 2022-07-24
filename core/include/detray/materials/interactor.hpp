@@ -41,7 +41,6 @@ struct interactor {
         const relativistic_quantities rq(m, qOverP, q);
         const auto eps = rq.compute_epsilon(Ne, path_segment);
         const auto dhalf = rq.compute_delta_half(mat.get_material());
-        // const auto dhalf = rq.compute_delta_half(I, Ne);
         const auto u = rq.compute_mass_term(rq.Me);
         const auto wmax = rq.compute_WMax(m);
         // uses RPP2018 eq. 33.5 scaled from mass stopping power to linear
@@ -71,8 +70,6 @@ struct interactor {
         const relativistic_quantities rq(m, qOverP, q);
         const auto eps = rq.compute_epsilon(Ne, path_segment);
         const auto dhalf = rq.compute_delta_half(mat.get_material());
-        // const auto dhalf = rq.compute_delta_half(I, Ne);
-        // const auto t = rq.compute_mass_term(m);
         const auto t = rq.compute_mass_term(rq.Me);
         // uses RPP2018 eq. 33.11
         const auto running = std::log(t / I) + std::log(eps / I) +
@@ -82,21 +79,38 @@ struct interactor {
     }
 
     template <typename material_t>
-    DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma_QOverP(
+    DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_fwhm(
         const line_plane_intersection& is, const material_t& mat,
-        const int /* unused */, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
+        const scalar_type q = unit_constants::e) {
+        const auto Ne = mat.get_material().molar_electron_density();
+        const auto path_segment = mat.path_segment(is);
+        const relativistic_quantities rq(m, qOverP, q);
+
+        // the Landau-Vavilov fwhm is 4*eps (see RPP2018 fig. 33.7)
+        return scalar_type(4.) * rq.compute_epsilon(Ne, path_segment);
+    }
+
+    template <typename material_t>
+    DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma_QOverP(
+        const line_plane_intersection& is, const material_t& mat, const int pdg,
+        const scalar_type m, const scalar_type qOverP,
+        const scalar_type q = unit_constants::e) const {
 
         // return early in case of vacuum or zero thickness
         if (not mat) {
             return scalar_type(0.);
         }
-
+        /*
         const auto Ne = mat.get_material().molar_electron_density();
         const auto path_segment = mat.path_segment(is);
         const relativistic_quantities rq(m, qOverP, q);
         // the Landau-Vavilov fwhm is 4*eps (see RPP2018 fig. 33.7)
         const auto fwhm = 4 * rq.compute_epsilon(Ne, path_segment);
+        */
+        const relativistic_quantities rq(m, qOverP, q);
+        const auto fwhm =
+            compute_energy_loss_landau_fwhm(is, mat, pdg, m, qOverP, q);
         const auto sigmaE = convert_landau_fwhm_to_gaussian_sigma(fwhm);
         //  var(q/p) = (d(q/p)/dE)² * var(E)
         // d(q/p)/dE = d/dE (q/sqrt(E²-m²))
@@ -132,6 +146,8 @@ struct interactor {
         // if electron or positron
         if ((pdg == pdg_particle::eElectron) or
             (pdg == pdg_particle::ePositron)) {
+            //@todo (Beomki): Not sure if we need this function. At least we
+            // need to find the reference for this equation
             return theta0RossiGreisen(xOverX0, momentumInv, q2OverBeta2);
         } else {
             return theta0Highland(xOverX0, momentumInv, q2OverBeta2);
@@ -168,6 +184,7 @@ struct interactor {
     ///     fwhm = 2 * sqrt(2 * log(2)) * sigma
     /// -> sigma = fwhm / (2 * sqrt(2 * log(2)))
     ///
+    /// @todo: Add a unit test for this function
     DETRAY_HOST_DEVICE scalar_type
     convert_landau_fwhm_to_gaussian_sigma(const scalar_type fwhm) const {
         return fwhm / (2 * std::sqrt(2 * std::log(2.0)));

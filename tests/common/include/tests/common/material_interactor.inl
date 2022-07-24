@@ -140,10 +140,10 @@ INSTANTIATE_TEST_SUITE_P(
                                       100.1 * unit_constants::GeV, 2.451)));
 
 // Test class for MUON energy loss with Landau function
-// Input tuple: < material / energy / expected output from Fig 33.7 in RPP2018 >
+// Input tuple: < material / energy / expected energy loss  / expected fwhm  >
 class EnergyLossLandauValidation
     : public ::testing::TestWithParam<
-          std::tuple<material<scalar>, scalar, scalar>> {};
+          std::tuple<material<scalar>, scalar, scalar, scalar>> {};
 
 TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
 
@@ -172,9 +172,18 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
 
     // Check if difference is within 5% error
     EXPECT_TRUE(std::abs(std::get<2>(GetParam()) - dE) / dE < 0.05);
+
+    // Landau Energy loss Fluctuation
+    const scalar fwhm =
+        I.compute_energy_loss_landau_fwhm(is, slab, pdg, m, qOverP) /
+        (unit_constants::MeV);
+
+    // Check if difference is within 10% error
+    EXPECT_TRUE(std::abs(std::get<3>(GetParam()) - fwhm) / fwhm < 0.1);
 }
 
+// Expected output from Fig 33.7 in RPP2018
 INSTANTIATE_TEST_SUITE_P(
     Landau_10GeV_Silicon, EnergyLossLandauValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
-                                      10. * unit_constants::GeV, 0.525)));
+                                      10. * unit_constants::GeV, 0.525, 0.13)));

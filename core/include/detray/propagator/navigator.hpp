@@ -20,6 +20,11 @@ namespace detray {
 
 namespace navigation {
 
+/// @enum NavigationDirection
+/// The navigation direction is always with
+/// respect to a given momentum or direction
+enum class direction : int { backward = -1, forward = 1 };
+
 /// Navigation status flags
 enum class status {
     e_abort = -3,          ///< error ocurred, propagation will be aborted
