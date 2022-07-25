@@ -54,6 +54,8 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
     // Local intersection information
     ASSERT_NEAR(hit_bound.p2[0], -1., epsilon);
     ASSERT_NEAR(hit_bound.p2[1], -1., epsilon);
+    // Incidence angle
+    ASSERT_NEAR(hit_bound.cos_incidence_angle, 1., epsilon);
 
     // The same test but bound to local frame & masked - inside
     rectangle2<> rect_for_inside{3., 3., 0u};
@@ -81,6 +83,29 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
 }
 
 // This defines the local frame test suite
+TEST(ALGEBRA_PLUGIN, plane_incidence_angle) {
+    // tf3 with rotated axis
+    const vector3 x{1, 0, -1};
+    const vector3 z{1, 0, 1};
+    const vector3 t{0, 0, 0};
+
+    const transform3 rotated{t, vector::normalize(z), vector::normalize(x)};
+    plane_intersector pi;
+
+    // Test ray
+    const point3 pos{-1., 0., 0.};
+    const vector3 mom{1., 0., 0.};
+    const detail::ray r(pos, 0., mom, 0.);
+
+    // The same test but bound to local frame & masked - inside
+    rectangle2<> rect{3., 3., 0u};
+
+    const line_plane_intersection is = pi(r, rect, rotated)[0];
+
+    ASSERT_NEAR(is.cos_incidence_angle, std::cos(M_PI / 4), epsilon);
+}
+
+// This defines the local frame test suite
 TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
     // Create a shifted plane
     const transform3 shifted(vector3{3., 2., 10.});
@@ -104,6 +129,8 @@ TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
     // Local intersection information
     ASSERT_NEAR(hit_bound.p2[0], -1., epsilon);
     ASSERT_NEAR(hit_bound.p2[1], -1., epsilon);
+    // Incidence angle
+    ASSERT_NEAR(hit_bound.cos_incidence_angle, 1., epsilon);
 
     // The same test but bound to local frame & masked - inside
     rectangle2<> rect_for_inside{3., 3., 0u};
