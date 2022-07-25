@@ -160,18 +160,18 @@ class tuple_vector_container final
      * @tparam current_id is the index to start unrolling (if th index is known,
      *         unrolling can be started there)
      *
-     * @param other The other container, move semantics
+     * @param other The other container
      *
      * @note in general can throw an exception
      */
     template <std::size_t current_id = 0>
     DETRAY_HOST inline void append_container(
-        tuple_vector_container &&other) noexcept(false) {
+        tuple_vector_container &other) noexcept(false) {
         auto &gr = detail::get<current_id>(other);
         add_vector(gr);
 
         if constexpr (current_id < sizeof...(Ts) - 1) {
-            return append_container<current_id + 1>(other);
+            append_container<current_id + 1>(other);
         }
     }
 };

@@ -5,13 +5,15 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <vecmem/memory/host_memory_resource.hpp>
-
-#include "detray/core/mask_store.hpp"
+// Project include(s)
 #include "detray/core/type_registry.hpp"
 #include "detray/masks/masks.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// Google Test include(s)
+#include <gtest/gtest.h>
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -40,10 +42,10 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     using single = single3<0>;
 
     // Types must be sorted according to their id (here: masks/mask_identifier)
-    using mask_defs = mask_registry<mask_ids, rectangle, trapezoid, annulus,
-                                    cylinder, ring, single>;
+    using mask_defs = tuple_vector_registry<mask_ids, rectangle, trapezoid,
+                                            annulus, cylinder, ring, single>;
     using id = typename mask_defs::id;
-    using mask_container_t = typename mask_defs::mask_store_type<>;
+    using mask_container_t = typename mask_defs::store_type<>;
     mask_container_t store(host_mr);
 
     ASSERT_TRUE(store.empty<id::e_annulus2>());

@@ -127,7 +127,7 @@ __global__ void enumerate_test_kernel(
     vecmem::device_vector<surface_t> surfaces = all_surfaces.at(gid);
 
     // Get volume
-    auto& vol = detector.volume_by_index(threadIdx.x);
+    auto& vol = detector.volume_by_index(gid);
 
     // Push_back surfaces to the surface vector
     for (const auto [obj_idx, obj] : enumerate(detector.surfaces(), vol)) {

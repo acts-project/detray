@@ -92,20 +92,20 @@ TEST(materials, mixture) {
         0.01);
 
     // Vector check
-    material_slab<material<scalar>> slab1(air_mix, 5.5);
-    material_slab<material<scalar>> slab2(air<scalar>(), 2.3);
-    material_slab<material<scalar>> slab3(oxygen_gas<scalar>(), 2);
+    material_slab<scalar> slab1(air_mix, 5.5);
+    material_slab<scalar> slab2(air<scalar>(), 2.3);
+    material_slab<scalar> slab3(oxygen_gas<scalar>(), 2);
 
-    std::vector<material_slab<material<scalar>>> slab_vec;
+    std::vector<material_slab<scalar>> slab_vec;
 
     slab_vec.push_back(slab1);
     slab_vec.push_back(slab2);
     slab_vec.push_back(slab3);
 
     EXPECT_FLOAT_EQ(slab_vec[0].thickness_in_X0(),
-                    slab1.thickness() / slab1.material().X0());
+                    slab1.thickness() / slab1.get_material().X0());
     EXPECT_FLOAT_EQ(slab_vec[1].thickness_in_X0(),
-                    slab2.thickness() / slab2.material().X0());
+                    slab2.thickness() / slab2.get_material().X0());
     EXPECT_FLOAT_EQ(slab_vec[2].thickness_in_X0(),
-                    slab3.thickness() / slab3.material().X0());
+                    slab3.thickness() / slab3.get_material().X0());
 }

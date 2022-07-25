@@ -7,26 +7,41 @@
 
 #pragma once
 
-// Detray include(s)
+// Project include(s)
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/materials/material.hpp"
+
+// System include(s)
+#include <climits>
 
 namespace detray {
 
 // Slab structure to be mapped on the mask
-template <typename material_t>
+template <typename scalar_t>
 struct material_slab {
-    using material_type = material_t;
-    using scalar_type = typename material_t::scalar_type;
+    using scalar_type = scalar_t;
+    using material_type = material<scalar_t>;
 
-    material_slab(const material_t& material, scalar_type thickness)
+    material_slab() = default;
+
+    material_slab(const material_type& material, scalar_type thickness)
         : m_material(material),
           m_thickness(thickness),
           m_thickness_in_X0(thickness / material.X0()),
           m_thickness_in_L0(thickness / material.L0()) {}
 
+    /// Equality operator
+    ///
+    /// @param rhs is the right hand side to be compared to
+    DETRAY_HOST_DEVICE
+    bool operator==(const material_slab<scalar_t>& rhs) const {
+        return (m_material == rhs.get_material() &&
+                m_thickness == rhs.thickness());
+    }
+
     /// Access the (average) material parameters.
     DETRAY_HOST_DEVICE
-    constexpr const material_t& material() const { return m_material; }
+    constexpr const material_type& get_material() const { return m_material; }
     /// Return the thickness.
     DETRAY_HOST_DEVICE
     constexpr scalar_type thickness() const { return m_thickness; }
@@ -38,10 +53,10 @@ struct material_slab {
     constexpr scalar_type thickness_in_L0() const { return m_thickness_in_L0; }
 
     private:
-    material_t m_material;
-    scalar_type m_thickness;
-    scalar_type m_thickness_in_X0;
-    scalar_type m_thickness_in_L0;
+    material_type m_material = {};
+    scalar_type m_thickness = std::numeric_limits<scalar>::epsilon();
+    scalar_type m_thickness_in_X0 = std::numeric_limits<scalar>::epsilon();
+    scalar_type m_thickness_in_L0 = std::numeric_limits<scalar>::epsilon();
 };
 
 }  // namespace detray
