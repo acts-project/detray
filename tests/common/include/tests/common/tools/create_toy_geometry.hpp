@@ -286,7 +286,6 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
         const auto trf_index = transforms.size(ctx);
         surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
                               dindex_invalid, false);
-        surfaces.back().set_grid_status(true);
 
         // The rectangle bounds for this module
         masks.template add_value<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
@@ -522,7 +521,6 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             surfaces.emplace_back(transforms.size(ctx), mask_link,
                                   material_link, volume_id, dindex_invalid,
                                   false);
-            surfaces.back().set_grid_status(true);
 
             // the module transform from the position
             scalar m_phi{algebra::getter::phi(m_position)};

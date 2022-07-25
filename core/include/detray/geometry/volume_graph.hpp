@@ -257,41 +257,6 @@ class volume_graph {
                 return _itr != rhs._itr and &_edges != &rhs._edges;
             }
 
-            /// @brief Builds the collection of graph edges for a given node.
-            ///
-            /// From the volume index, a mask link owned by one of the volumes
-            /// surfaces and the detector mask container, a vector of graph
-            /// edges is built. The mask container needs to be unrolled to find
-            /// the correct instance and therefore link to the next volume.
-            ///
-            /// @param volume_id the index of the volume/node
-            /// @param mask_link a mask link of a surface belonging to that vol.
-            /// @param masks the mask store of the detector
-            /*template <std::size_t current_idx = 0>
-            inline void build_edges_vector(const dindex volume_id,
-                                           const mask_link_t &mask_link,
-                                           const mask_container_t &masks) {
-
-                constexpr auto current_id =
-            mask_container_t::to_id(current_idx); if (detail::get<0>(mask_link)
-            == current_id) {
-                    // Get the mask group
-                    const auto &mask_group =
-                        masks.template group<current_id>();
-                    const auto mask_range = detail::get<1>(mask_link);
-                    for (const auto &mask : range(mask_group, mask_range)) {
-                        _edges.emplace_back(volume_id, mask.volume_link());
-                    }
-                }
-
-                // Next mask type
-                using mask_defs = typename detector_t::surface_type::mask_defs;
-                if constexpr (current_id < mask_defs::n_types - 1) {
-                    return build_edges_vector<current_id + 1>(volume_id,
-                                                              mask_link, masks);
-                }
-            }*/
-
             /// Iterator over the edges vector
             edge_iter _itr;
             /// Vector of graph edges, constructed on the fly in the iterator

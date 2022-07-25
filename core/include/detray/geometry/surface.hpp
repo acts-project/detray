@@ -56,10 +56,10 @@ class surface {
             dindex volume, source_link &&src, bool is_portal)
         : _trf(std::move(trf)),
           _mask(std::move(mask)),
-          _material(material),
-          _volume(std::move(volume)),
+          _material(std::move(material)),
+          _volume(volume),
           _src(std::move(src)),
-          _is_portal(std::move(is_portal)) {}
+          _is_portal(is_portal) {}
 
     /// Constructor with full arguments - copy semantics
     ///
@@ -195,24 +195,17 @@ class surface {
     DETRAY_HOST_DEVICE
     auto source() const -> const source_link & { return _src; }
 
-    /// @return if the surface belongs to grid
-    auto get_grid_status() const -> bool { return _in_grid; }
-
-    /// set if the surface belongs to grid
-    auto set_grid_status(bool status) -> void { _in_grid = status; }
-
     /// Is this instance a portal in the sense of the unified_index_geometry?
     DETRAY_HOST_DEVICE
     auto is_portal() const -> bool { return _is_portal; }
 
     private:
-    transform_link_t _trf;
-    mask_link _mask;
-    material_link _material;
-    dindex _volume;
-    source_link_t _src;
-    bool _is_portal;
-    bool _in_grid = false;
+    transform_link_t _trf{};
+    mask_link _mask{};
+    material_link _material{};
+    dindex _volume{dindex_invalid};
+    source_link_t _src{};
+    bool _is_portal = false;
 };
 
 }  // namespace detray

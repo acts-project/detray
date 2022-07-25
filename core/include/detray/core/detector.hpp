@@ -55,7 +55,7 @@ class detector {
     using vector3 = __plugin::vector3<scalar_type>;
     using point2 = __plugin::point2<scalar_type>;
 
-    // Raw container types
+    /// Raw container types
     template <typename T>
     using vector_type = vector_t<T>;
 
@@ -142,8 +142,7 @@ class detector {
     /// Add a new volume and retrieve a reference to it
     ///
     /// @param bounds of the volume, they are expected to be already attaching
-    /// @param surfaces_finder_entry of the volume, where to entry the surface
-    /// finder
+    /// @param sf_finder_link of the volume, where to entry the surface finder
     ///
     /// @return non-const reference to the new volume
     DETRAY_HOST
@@ -219,6 +218,14 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto mask_store() -> mask_container & { return _masks; }
 
+    /// Add pre-built mask store
+    ///
+    /// @param masks the conatiner for surface masks
+    DETRAY_HOST
+    inline void add_mask_store(mask_container &&msks) {
+        _masks = std::move(msks);
+    }
+
     /// @return all materials in the geometry - const access
     DETRAY_HOST_DEVICE
     inline auto material_store() const -> const material_container & {
@@ -229,25 +236,17 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto material_store() -> material_container & { return _materials; }
 
-    /// Add pre-built mask store
-    ///
-    /// @param masks the conatiner for surface masks
-    DETRAY_HOST
-    inline void add_mask_store(mask_container &&msks) {
-        _masks = std::move(msks);
-    }
-
     /// Get all transform in an index range from the detector
     ///
     /// @param range The range of surfaces in the transform store
     /// @param ctx The context of the call
     ///
     /// @return ranged iterator to the surface transforms
-    DETRAY_HOST_DEVICE
+    /*DETRAY_HOST_DEVICE
     inline auto transform_store(const dindex_range &range,
                                 const context &ctx = {}) const {
         return _transforms.range(range, ctx);
-    }
+    }*/
 
     /// Get all transform in an index range from the detector - const
     ///
@@ -290,9 +289,15 @@ class detector {
         return data_core{_volumes, _transforms, _masks, _surfaces};
     }
 
+    /// Add a grid surface finder
+    ///
     /// New surface finder id can be been given explicitly. That is helpful, if
     /// multiple sf finders have the same type in the tuple container. Otherwise
     /// it is determined automatically.
+    ///
+    /// @param ctx the geometry context
+    /// @param vol the volume the surface finder should be added to
+    /// @param surface_finder the grid that should be added
     // TODO: Provide grid builder structure separate from the detector
     template <typename sf_finder_t,
               typename sf_finders::id sf_finder_id =
@@ -300,10 +305,12 @@ class detector {
     DETRAY_HOST auto add_sf_finder(const context ctx, volume_type &vol,
                                    sf_finder_t &surface_finder) -> void {
 
+        // Fill the volumes surfaces into the grid
         bin_association(ctx, *this, vol, surface_finder, {0.1, 0.1}, false);
 
         // Add surfaces grid to surfaces finder container
         auto &sf_finder_group = _sf_finders.template group<sf_finder_id>();
+
         // Find correct index for this surface finder
         std::size_t sf_finder_idx = 0;
         for (unsigned int i_s = 0; i_s < sf_finder_group.size(); i_s++) {

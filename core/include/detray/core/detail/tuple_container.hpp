@@ -86,15 +86,6 @@ class tuple_container {
     }
 
     /**
-     * Get the size of tuple element.
-     *
-     * @return the size of tuple element
-     */
-    DETRAY_HOST_DEVICE size_t size(id_t ID) const {
-        return detail::get<to_index(ID)>(m_container).size();
-    }
-
-    /**
      * Return if the tuple element is empty.
      *
      * @tparam ID is the index of tuple element

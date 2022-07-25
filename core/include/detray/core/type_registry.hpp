@@ -57,7 +57,7 @@ class registry_base<ID, true, registered_types...> {
                           registered_types...>();
     }
 
-    /// Get the index for a type. Use template deduction.
+    /// Get the index for a type. Use template parameter deduction.
     template <typename object_t>
     DETRAY_HOST_DEVICE static constexpr ID get_id(object_t& /*obj*/) {
         return get_id<object_t>();
@@ -112,7 +112,7 @@ class registry_base<ID, true, registered_types...> {
     ///
     /// @return the matching ID type.
     template <std::size_t ref_idx = 0>
-    DETRAY_HOST_DEVICE static constexpr ID to_index(const ID id) {
+    DETRAY_HOST_DEVICE static constexpr std::size_t to_index(const ID id) {
         if (to_id(ref_idx) == id) {
             // Produce a more helpful error than the usual tuple index error
             static_assert(
@@ -132,8 +132,8 @@ class registry_base<ID, true, registered_types...> {
     /// a compiler error.
     template <ID type_id, template <typename...> class tuple_t = dtuple>
     struct get_type {
-        using type = std::remove_reference_t<
-            decltype(detail::get<static_cast<std::size_t>(type_id)>(
+        using type =
+            std::remove_reference_t<decltype(detail::get<to_index(type_id)>(
                 tuple_t<registered_types...>{}))>;
     };
 

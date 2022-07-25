@@ -141,7 +141,6 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
         const auto trf_index = transforms.size(ctx);
         surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
                               dindex_invalid, false);
-        surfaces.back().set_grid_status(false);
 
         // The last surface acts as portal that leaves the telescope
         if (m_placement == m_placements.back()) {

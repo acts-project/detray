@@ -40,8 +40,8 @@ static inline dvector<scalar> phi_values(scalar start_phi, scalar end_phi,
  */
 template <typename point2_t, typename point3_t, typename local_t,
           typename links_t>
-auto vertices(const annulus2<local_t, links_t> &annulus_mask,
-              unsigned int lseg) {
+dvector<point3_t> vertices(const annulus2<local_t, links_t> &annulus_mask,
+                           unsigned int lseg) {
 
     const auto &m_values = annulus_mask.values();
 
@@ -126,10 +126,10 @@ auto vertices(const annulus2<local_t, links_t> &annulus_mask,
  */
 template <typename point2_t, typename point3_t, bool kRadialCheck,
           typename intersector_t, typename local_t, typename links_t>
-auto vertices(const cylinder3<intersector_t, local_t, links_t, kRadialCheck>
-                  & /*cylinder_mask*/,
-              unsigned int /*lseg*/) {
-    return dvector<point3_t>{};
+dvector<point3_t> vertices(const cylinder3<intersector_t, local_t, links_t,
+                                           kRadialCheck> & /*cylinder_mask*/,
+                           unsigned int /*lseg*/) {
+    return {};
 }
 
 /** Generate vertices, specialized for masks: rectangle2
@@ -143,8 +143,8 @@ auto vertices(const cylinder3<intersector_t, local_t, links_t, kRadialCheck>
  */
 template <typename point2_t, typename point3_t, typename local_t,
           typename links_t>
-auto vertices(const rectangle2<local_t, links_t> &rectangle_mask,
-              unsigned int /*ignored*/) {
+dvector<point3_t> vertices(const rectangle2<local_t, links_t> &rectangle_mask,
+                           unsigned int /*ignored*/) {
 
     const auto &m_values = rectangle_mask.values();
     // left hand lower corner
@@ -155,7 +155,7 @@ auto vertices(const rectangle2<local_t, links_t> &rectangle_mask,
     point3_t rh_uc = {m_values[0], m_values[1], 0.};
     // left hand upper corner
     point3_t lh_uc = {-m_values[0], m_values[1], 0.};
-    return dvector<point3_t>{lh_lc, rh_lc, rh_uc, lh_uc};
+    return {lh_lc, rh_lc, rh_uc, lh_uc};
     // Return the confining vertices
 }
 
@@ -170,9 +170,9 @@ auto vertices(const rectangle2<local_t, links_t> &rectangle_mask,
  */
 template <typename point2_t, typename point3_t, typename local_t,
           typename links_t>
-auto vertices(const ring2<local_t, links_t> & /*ring_mask*/,
-              unsigned int /*lseg*/) {
-    return dvector<point3_t>{};
+dvector<point3_t> vertices(const ring2<local_t, links_t> & /*ring_mask*/,
+                           unsigned int /*lseg*/) {
+    return {};
 }
 
 /** Generate vertices, specialized for masks: trapezoid2
@@ -186,8 +186,8 @@ auto vertices(const ring2<local_t, links_t> & /*ring_mask*/,
  */
 template <typename point2_t, typename point3_t, typename local_t,
           typename links_t>
-auto vertices(const trapezoid2<local_t, links_t> &trapezoid_mask,
-              unsigned int /* ignored */) {
+dvector<point3_t> vertices(const trapezoid2<local_t, links_t> &trapezoid_mask,
+                           unsigned int /* ignored */) {
     const auto &m_values = trapezoid_mask.values();
     // left hand lower corner
     point3_t lh_lc = {-m_values[0], -m_values[2], 0.};
@@ -198,7 +198,7 @@ auto vertices(const trapezoid2<local_t, links_t> &trapezoid_mask,
     // left hand upper corner
     point3_t lh_uc = {-m_values[1], m_values[2], 0.};
     // Return the confining vertices
-    return dvector<point3_t>{lh_lc, rh_lc, rh_uc, lh_uc};
+    return {lh_lc, rh_lc, rh_uc, lh_uc};
 }
 
 /// Functor to produce vertices on a mask collection in a mask tuple container.

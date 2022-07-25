@@ -81,6 +81,12 @@ static inline void bin_association(const context_t & /*context*/,
 
                 // Run through the surfaces and associate them by contour
                 for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
+
+                    // Add only sensitive surfaces to the grid
+                    if (sf.is_portal()) {
+                        continue;
+                    }
+
                     // Unroll the mask container and generate vertices
                     const auto &transform = dc.transforms[sf.transform()];
 
@@ -149,6 +155,11 @@ static inline void bin_association(const context_t & /*context*/,
 
                 // Loop over the surfaces within a volume
                 for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
+
+                    // Add only sensitive surfaces to the grid
+                    if (sf.is_portal()) {
+                        continue;
+                    }
 
                     // Unroll the mask container and generate vertices
                     const auto &transform = dc.transforms[sf.transform()];
