@@ -16,11 +16,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/geometry/volume.hpp"
-#include "detray/grids/axis.hpp"
-#include "detray/grids/grid2.hpp"
-#include "detray/grids/populator.hpp"
-#include "detray/grids/serializer2.hpp"
-#include "detray/intersection/intersection.hpp"
+#include "detray/tools/bin_association.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -304,29 +300,7 @@ class detector {
     DETRAY_HOST auto add_sf_finder(const context ctx, volume_type &vol,
                                    sf_finder_t &surface_finder) -> void {
 
-        // iterate over surfaces to fill the grid
-        for (const auto [surf_idx, surf] : enumerate(_surfaces, vol)) {
-            if (not surf.is_portal()) {
-                dindex sfi = surf_idx;
-
-                const transform3 &trf =
-                    _transforms.contextual_transform(ctx, surf.transform());
-                auto tsl = trf.translation();
-
-                if constexpr (sf_finder_id == sf_finders::id::e_z_phi_grid) {
-
-                    point2 location{tsl[2], algebra::getter::phi(tsl)};
-                    surface_finder.populate(location, std::move(sfi));
-
-                } else if constexpr (sf_finder_id ==
-                                     sf_finders::id::e_r_phi_grid) {
-
-                    point2 location{algebra::getter::perp(tsl),
-                                    algebra::getter::phi(tsl)};
-                    surface_finder.populate(location, std::move(sfi));
-                }
-            }
-        }
+        bin_association(ctx, *this, vol, surface_finder, {0.1, 0.1}, false);
 
         // Add surfaces grid to surfaces finder container
         auto &sf_finder_group = _sf_finders.template group<sf_finder_id>();
