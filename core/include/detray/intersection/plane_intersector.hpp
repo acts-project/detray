@@ -71,6 +71,9 @@ struct plane_intersector {
                                ? intersection::direction::e_along
                                : intersection::direction::e_opposite;
             is.link = mask.volume_link();
+
+            // Get incidene angle
+            is.cos_incidence_angle = std::abs(denom);
         }
         return ret;
     }

@@ -5,8 +5,12 @@
  * Mozilla Public License Version 2.0
  */
 
-/// Detray include(s)
+/// Project include(s)
+#include "detray/definitions/units.hpp"
+#include "detray/intersection/line_intersector.hpp"
+#include "detray/masks/line.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -18,6 +22,8 @@ using namespace detray;
 
 using point2 = __plugin::point2<scalar>;
 using point3 = __plugin::point3<scalar>;
+using transform3 = __plugin::transform3<detray::scalar>;
+using vector3 = __plugin::vector3<scalar>;
 
 // This tests the material functionalities
 TEST(materials, material) {
@@ -108,4 +114,54 @@ TEST(materials, mixture) {
                     slab2.thickness() / slab2.get_material().X0());
     EXPECT_FLOAT_EQ(slab_vec[2].thickness_in_X0(),
                     slab3.thickness() / slab3.get_material().X0());
+}
+
+// This tests the material slab functionalities
+TEST(materials, material_slab) {
+
+    material_slab<scalar> slab(oxygen_gas<scalar>(),
+                               scalar(2) * scalar(unit_constants::mm));
+
+    line_plane_intersection is;
+    is.cos_incidence_angle = scalar(0.3);
+
+    EXPECT_FLOAT_EQ(slab.path_segment(is),
+                    scalar(2) * scalar(unit_constants::mm) / scalar(0.3));
+    EXPECT_FLOAT_EQ(slab.path_segment_in_X0(is),
+                    slab.path_segment(is) / slab.get_material().X0());
+    EXPECT_FLOAT_EQ(slab.path_segment_in_L0(is),
+                    slab.path_segment(is) / slab.get_material().L0());
+}
+
+// This tests the material rod functionalities
+TEST(materials, material_rod) {
+
+    // Rod with 1 mm radius
+    material_rod<scalar> rod(oxygen_gas<scalar>(),
+                             scalar(1.) * scalar(unit_constants::mm));
+
+    // tf3 with Identity rotation and no translation
+    const vector3 x{1, 0, 0};
+    const vector3 z{0, 0, 1};
+    const vector3 t{0, 0, 0};
+    const transform3 tf{t, vector::normalize(z), vector::normalize(x)};
+
+    // Create a track
+    const point3 pos{-1. / 6., -10., 0};
+    const vector3 dir{0, 1., 3.};
+    const free_track_parameters trk(pos, 0, dir, -1);
+
+    // Infinite wire with 1 mm radial cell size
+    const line<> ln{1. * unit_constants::mm,
+                    std::numeric_limits<scalar>::infinity(), 0u};
+
+    line_plane_intersection is =
+        line_intersector()(detail::ray(trk), ln, tf)[0];
+
+    EXPECT_NEAR(rod.path_segment(is),
+                scalar(2.) * std::sqrt(1. - 1. / 36) * std::sqrt(10), 1e-5);
+    EXPECT_FLOAT_EQ(rod.path_segment_in_X0(is),
+                    rod.path_segment(is) / rod.get_material().X0());
+    EXPECT_FLOAT_EQ(rod.path_segment_in_L0(is),
+                    rod.path_segment(is) / rod.get_material().L0());
 }
