@@ -41,7 +41,7 @@ struct surface_grid_tester {
                                   const dindex grid_index,
                                   const dindex volume_index,
                                   const surface_container_t& surfaces,
-                                  const darray<dindex, 2>& range) {
+                                  const darray<dindex, 2>& /*range*/) {
 
         const auto& sf_grid = grid_group.at(grid_index);
 
@@ -118,9 +118,6 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                                               0.8 * unit_constants::mm);
     auto pixel_mat =
         material_slab<scalar>(silicon_tml<scalar>(), 0.15 * unit_constants::mm);
-
-    /** source link */
-    const dindex inv_sf_finder = dindex_invalid;
 
     /** Link to outer world (leaving detector) */
     const dindex leaving_world = dindex_invalid;

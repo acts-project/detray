@@ -180,7 +180,7 @@ class tuple_container {
     /// @return the functor output
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE typename functor_t::output_type call(
-        const id_t id, Args &&...As) const {
+        const id_t id, Args &&... As) const {
 
         // An invalid range will be interpreted by the detray range iterator to
         // mean the entire range. Otherwise use overload function below to
@@ -203,7 +203,7 @@ class tuple_container {
     /// @return the functor output
     template <typename functor_t, typename link_t, typename... Args>
     DETRAY_HOST_DEVICE typename functor_t::output_type call(
-        const link_t link, Args &&...As) const {
+        const link_t link, Args &&... As) const {
 
         return unroll<functor_t>(detail::get<0>(link), detail::get<1>(link),
                                  std::make_index_sequence<sizeof...(Ts)>{},
@@ -228,7 +228,7 @@ class tuple_container {
     DETRAY_HOST_DEVICE typename functor_t::output_type unroll(
         const id_t id, const index_t index,
         std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
-        Args &&...As) const {
+        Args &&... As) const {
 
         // Check if the first tuple index is matched to the target ID
         if (id == to_id(first_idx)) {

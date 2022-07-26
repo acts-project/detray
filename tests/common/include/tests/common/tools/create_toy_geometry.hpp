@@ -179,7 +179,7 @@ void create_cyl_volume(
 
     auto &cyl_volume =
         det.new_volume({inner_r, outer_r, lower_z, upper_z, -M_PI, M_PI});
-    cyl_volume.set_sf_finder({detector_t::sf_finders::id::e_default, 0});
+    cyl_volume.set_sf_finder(detector_t::sf_finders::id::e_default, 0);
 
     // Add module surfaces to volume
     typename detector_t::surface_container surfaces(&resource);

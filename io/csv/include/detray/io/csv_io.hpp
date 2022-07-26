@@ -11,10 +11,9 @@
 #include "detray/core/detector.hpp"
 #include "detray/geometry/volume_connector.hpp"
 #include "detray/grids/axis.hpp"
-#include "detray/grids/grid2.hpp"
-#include "detray/grids/populator.hpp"
-#include "detray/grids/serializer2.hpp"
 #include "detray/io/csv_io_types.hpp"
+#include "detray/surface_finders/brute_force_finder.hpp"
+#include "detray/surface_finders/grid2_finder.hpp"
 #include "detray/tools/bin_association.hpp"
 
 // Vecmem include(s)
@@ -26,6 +25,58 @@
 #include <vector>
 
 namespace detray {
+
+namespace {
+
+/// Functor that writes grid entries from the surface finder
+/// container to file
+struct grid_writer {
+    using output_type = bool;
+
+    template <
+        typename grid_group_t, typename grid_index_t, typename grid_entry_t,
+        typename writer_t,
+        std::enable_if_t<not std::is_same_v<typename grid_group_t::value_type,
+                                            brute_force_finder>,
+                         bool> = true>
+    inline output_type operator()(const grid_group_t &grid_group,
+                                  const grid_index_t &grid_idx,
+                                  grid_entry_t &csv_ge,
+                                  writer_t &sge_writer) const {
+
+        const auto &grid = grid_group.at(grid_idx);
+
+        size_t nbins0 = grid.axis_p0().bins();
+        size_t nbins1 = grid.axis_p1().bins();
+        for (size_t b0 = 0; b0 < nbins0; ++b0) {
+            for (size_t b1 = 0; b1 < nbins1; ++b1) {
+                csv_ge.detray_bin0 = b0;
+                csv_ge.detray_bin1 = b1;
+                for (auto e : grid.bin(b0, b1)) {
+                    csv_ge.detray_entry = e;
+                    sge_writer.append(csv_ge);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// Call for the brute force type (do nothing)
+    template <typename grid_group_t, typename grid_index_t,
+              typename grid_entry_t, typename writer_t,
+              std::enable_if_t<std::is_same_v<typename grid_group_t::value_type,
+                                              brute_force_finder>,
+                               bool> = true>
+    inline output_type operator()(const grid_group_t & /*grid_group*/,
+                                  const grid_index_t & /*grid_idx*/,
+                                  const grid_entry_t & /*csv_ge*/,
+                                  writer_t & /*sge_writer*/) {
+        return true;
+    }
+};
+
+}  // anonymous namespace
 
 /// Function to read the detector from the CSV file
 ///
@@ -59,7 +110,7 @@ detector_from_csv(const std::string &detector_name,
                   const std::string &surface_file_name,
                   const std::string &layer_volume_file_name,
                   const std::string &grid_file_name,
-                  const std::string & /*grid_entries_file_name*/,
+                  const std::string &grid_entries_file_name,
                   std::map<dindex, std::string> &name_map,
                   vecmem::memory_resource &resource,
                   scalar /*r_sync_tolerance*/ = 0.,
@@ -429,132 +480,6 @@ detector_from_csv(const std::string &detector_name,
         }  // end of exclusion for navigation layers
     }
 
-    /** Helper method to sort and remove duplicates
-     *
-     * @param att attribute vector for sorting and duplicate removal
-     *
-     * @return the key values
-     */
-    auto sort_and_remove_duplicates =
-        [](std::map<scalar, std::vector<dindex>> &att) -> dvector<scalar> {
-        dvector<scalar> keys;
-        keys.reserve(att.size());
-        for (auto [key, value] : att) {
-            keys.push_back(key);
-            std::sort(value.begin(), value.end());
-            value.erase(std::unique(value.begin(), value.end()), value.end());
-        }
-        return keys;
-    };
-
-    // Drawing the lines for the grid search
-    auto rs = sort_and_remove_duplicates(r_min_attachments);
-    rs.push_back(r_max);
-    auto zs = sort_and_remove_duplicates(z_min_attachments);
-    zs.push_back(z_max);
-
-    // Create axes and volume grid
-    axis::irregular<darray, dvector> raxis{{rs}, resource};
-    axis::irregular<darray, dvector> zaxis{{zs}, resource};
-
-    typename detector_t::volume_finder v_grid(std::move(raxis),
-                                              std::move(zaxis), resource);
-
-    // A step into the volume (stepsilon), can be read in from the smallest
-    // difference
-    scalar stepsilon = 1.;
-
-    // Run the bin association and write out
-    /*surface_grid_entries_writer sge_writer("grid-entries.csv");
-    bool write_grid_entries =
-        (grid_entries_file_name.find("write") != std::string::npos);
-    bool read_grid_entries =
-        not grid_entries_file_name.empty() and not write_grid_entries and
-        not(grid_entries_file_name.find("none") != std::string::npos);*/
-
-    // Loop over the volumes
-    // - fill the volume grid
-    // - run the bin association
-    for (auto [iv, v] : enumerate(d.volumes())) {
-        // Get the volume bounds for filling
-        const auto &v_bounds = v.bounds();
-
-        dindex irl = v_grid.axis_p0().bin(v_bounds[0] + stepsilon);
-        dindex irh = v_grid.axis_p0().bin(v_bounds[1] - stepsilon);
-        dindex izl = v_grid.axis_p1().bin(v_bounds[2] + stepsilon);
-        dindex izh = v_grid.axis_p1().bin(v_bounds[3] - stepsilon);
-        dindex volume_index = v.index();
-
-        /*auto r_low = v_grid.axis_p0().borders(irl)[0];
-        auto r_high = v_grid.axis_p0().borders(irh)[1];
-        auto z_low = v_grid.axis_p1().borders(izl)[0];
-        auto z_high = v_grid.axis_p1().borders(izh)[1];*/
-
-        for (dindex ir = irl; ir <= irh; ++ir) {
-            for (dindex iz = izl; iz <= izh; ++iz) {
-                v_grid.populate(ir, iz, std::move(volume_index));
-            }
-        }
-
-        /*bool is_cylinder = std::abs(v_bounds[1] - v_bounds[0]) <
-                           std::abs(v_bounds[3] - v_bounds[2]);
-
-        dindex sfi = v.sf_finder_index();
-        if (sfi != dindex_invalid and write_grid_entries) {
-            auto &grid = is_cylinder ? detector_surfaces_finders[sfi + 2]
-                                     : detector_surfaces_finders[sfi];
-            bin_association(surface_default_context, d, v, grid, {0.1, 0.1},
-                            false);
-
-            csv_surface_grid_entry csv_ge;
-            csv_ge.detray_volume_id = static_cast<int>(iv);
-            size_t nbins0 = grid.axis_p0().bins();
-            size_t nbins1 = grid.axis_p1().bins();
-            for (size_t b0 = 0; b0 < nbins0; ++b0) {
-                for (size_t b1 = 0; b1 < nbins1; ++b1) {
-                    csv_ge.detray_bin0 = b0;
-                    csv_ge.detray_bin1 = b1;
-                    for (auto e : grid.bin(b0, b1)) {
-                        csv_ge.detray_entry = e;
-                        sge_writer.append(csv_ge);
-                    }
-                }
-            }
-        }*/
-    }
-
-    // Fast option, read the grid entries back in
-    /*if (read_grid_entries) {
-
-        surface_grid_entries_reader sge_reader(grid_entries_file_name);
-        csv_surface_grid_entry surface_grid_entry;
-        while (sge_reader.read(surface_grid_entry)) {
-            // Get the volume bounds for filling
-            const auto &v =
-                d.volume_by_index(surface_grid_entry.detray_volume_id);
-            const auto &v_bounds = v.bounds();
-            dindex sfi = v.sf_finder_index();
-            if (sfi != dindex_invalid) {
-                bool is_cylinder = std::abs(v_bounds[1] - v_bounds[0]) <
-                                   std::abs(v_bounds[3] - v_bounds[2]);
-                auto &grid = is_cylinder ? detector_surfaces_finders[sfi + 2]
-                                         : detector_surfaces_finders[sfi];
-                // Fill the entry
-                grid.populate(
-                    static_cast<dindex>(surface_grid_entry.detray_bin0),
-                    static_cast<dindex>(surface_grid_entry.detray_bin1),
-                    static_cast<dindex>(surface_grid_entry.detray_entry));
-            }
-        }
-    }*/
-
-    // Connect the cylindrical volumes
-    connect_cylindrical_volumes<detector_t, array_type, tuple_type,
-                                vector_type>(d, v_grid);
-
-    // Add the volume grid to the detector
-    d.add_volume_finder(std::move(v_grid));
-
     // Create the surface finders & reserve
     // std::map<volume_layer_index, std::pair<dindex, dindex>>
     //    surface_finder_entries;
@@ -574,7 +499,14 @@ detector_from_csv(const std::string &detector_name,
     // const auto &detector_surface_finders = d.sf_finder_store();
 
     // (B) Pre-read the grids & create local object finders
-    // int sg_counts = 0;
+    int sg_counts = 0;
+
+    surface_grid_entries_writer sge_writer("grid-entries.csv");
+    bool write_grid_entries =
+        (grid_entries_file_name.find("write") != std::string::npos);
+    bool read_grid_entries =
+        not grid_entries_file_name.empty() and not write_grid_entries and
+        not(grid_entries_file_name.find("none") != std::string::npos);
 
     while (sg_reader.read(io_surface_grid)) {
 
@@ -622,18 +554,52 @@ detector_from_csv(const std::string &detector_name,
                 static_cast<int>(
                     detector_surface_finders.template size<r_phi_grid_id>()));
             surfaces_r_phi_grid r_phi_grid(r_axis, phi_axis, resource);
-            d.template add_sf_finder<surfaces_r_phi_grid, r_phi_grid_id>(
-                surface_default_context, vol, r_phi_grid);
+            d.template add_grid<surfaces_r_phi_grid, r_phi_grid_id>(vol,
+                                                                    r_phi_grid);
+
+            // Fast option, read the grid entries back in
+            if (read_grid_entries) {
+                surface_grid_entries_reader sge_reader(grid_entries_file_name);
+                csv_surface_grid_entry surface_grid_entry;
+                while (sge_reader.read(surface_grid_entry)) {
+                    // Get the volume bounds for filling
+                    assert(vol.index() == surface_grid_entry.detray_volume_id);
+                    r_phi_grid.populate(
+                        static_cast<dindex>(surface_grid_entry.detray_bin0),
+                        static_cast<dindex>(surface_grid_entry.detray_bin1),
+                        static_cast<dindex>(surface_grid_entry.detray_entry));
+                }
+            } else {
+                // Auto-fill the grids using the bin association
+                d.fill_grid(surface_default_context, vol, r_phi_grid);
+            }
         } else {
             assert(
                 sg_counts <
                 static_cast<int>(
                     detector_surface_finders.template size<z_phi_grid_id>()));
             surfaces_z_phi_grid z_phi_grid(z_axis, phi_axis, resource);
-            d.template add_sf_finder<surfaces_z_phi_grid, z_phi_grid_id>(
-                surface_default_context, vol, z_phi_grid);
-        }
+            d.template add_grid<surfaces_z_phi_grid, z_phi_grid_id>(vol,
+                                                                    z_phi_grid);
 
+            // Fast option, read the grid entries back in
+            if (read_grid_entries) {
+                surface_grid_entries_reader sge_reader(grid_entries_file_name);
+                csv_surface_grid_entry surface_grid_entry;
+                while (sge_reader.read(surface_grid_entry)) {
+                    // Get the volume bounds for filling
+                    assert(vol.index() == surface_grid_entry.detray_volume_id);
+                    z_phi_grid.populate(
+                        static_cast<dindex>(surface_grid_entry.detray_bin0),
+                        static_cast<dindex>(surface_grid_entry.detray_bin1),
+                        static_cast<dindex>(surface_grid_entry.detray_entry));
+                }
+            } else {
+                // Auto-fill the grids using the bin association
+                d.fill_grid(surface_default_context, vol, z_phi_grid);
+            }
+        }
+        ++sg_counts;
         // negative / positive / inner / outer
         /*surfaces_r_phi_grid rphi_grid_n(r_axis, phi_axis, resource);
         surfaces_r_phi_grid rphi_grid_p(r_axis, phi_axis, resource);
@@ -645,6 +611,100 @@ detector_from_csv(const std::string &detector_name,
         detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_i);
         detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_o);*/
     }
+
+    /** Helper method to sort and remove duplicates
+     *
+     * @param att attribute vector for sorting and duplicate removal
+     *
+     * @return the key values
+     */
+    auto sort_and_remove_duplicates =
+        [](std::map<scalar, std::vector<dindex>> &att) -> dvector<scalar> {
+        dvector<scalar> keys;
+        keys.reserve(att.size());
+        for (auto [key, value] : att) {
+            keys.push_back(key);
+            std::sort(value.begin(), value.end());
+            value.erase(std::unique(value.begin(), value.end()), value.end());
+        }
+        return keys;
+    };
+
+    // Drawing the lines for the grid search
+    auto rs = sort_and_remove_duplicates(r_min_attachments);
+    rs.push_back(r_max);
+    auto zs = sort_and_remove_duplicates(z_min_attachments);
+    zs.push_back(z_max);
+
+    // Create axes and volume grid
+    axis::irregular<darray, dvector> raxis{{rs}, resource};
+    axis::irregular<darray, dvector> zaxis{{zs}, resource};
+
+    typename detector_t::volume_finder v_grid(std::move(raxis),
+                                              std::move(zaxis), resource);
+
+    // A step into the volume (stepsilon), can be read in from the smallest
+    // difference
+    scalar stepsilon = 1.;
+
+    // Loop over the volumes
+    // - fill the volume grid
+    // - run the bin association
+    for (auto [iv, v] : enumerate(d.volumes())) {
+        // Get the volume bounds for filling
+        const auto &v_bounds = v.bounds();
+
+        dindex irl = v_grid.axis_p0().bin(v_bounds[0] + stepsilon);
+        dindex irh = v_grid.axis_p0().bin(v_bounds[1] - stepsilon);
+        dindex izl = v_grid.axis_p1().bin(v_bounds[2] + stepsilon);
+        dindex izh = v_grid.axis_p1().bin(v_bounds[3] - stepsilon);
+        dindex volume_index = v.index();
+
+        /*auto r_low = v_grid.axis_p0().borders(irl)[0];
+        auto r_high = v_grid.axis_p0().borders(irh)[1];
+        auto z_low = v_grid.axis_p1().borders(izl)[0];
+        auto z_high = v_grid.axis_p1().borders(izh)[1];*/
+
+        for (dindex ir = irl; ir <= irh; ++ir) {
+            for (dindex iz = izl; iz <= izh; ++iz) {
+                v_grid.populate(ir, iz, std::move(volume_index));
+            }
+        }
+
+        dindex sfi = v.sf_finder_index();
+        if (sfi != dindex_invalid and write_grid_entries) {
+
+            // bin_association(surface_default_context, d, v, grid, {0.1, 0.1},
+            //                 false);
+
+            csv_surface_grid_entry csv_ge;
+            csv_ge.detray_volume_id = static_cast<int>(iv);
+            d.sf_finder_store().template call<grid_writer>(v.sf_finder_link(),
+                                                           csv_ge, sge_writer);
+            /*const auto &grid = d.sf_finder_store().template
+            group<>().at(v.sf_finder_index());
+
+            size_t nbins0 = grid.axis_p0().bins();
+            size_t nbins1 = grid.axis_p1().bins();
+            for (size_t b0 = 0; b0 < nbins0; ++b0) {
+                for (size_t b1 = 0; b1 < nbins1; ++b1) {
+                    csv_ge.detray_bin0 = b0;
+                    csv_ge.detray_bin1 = b1;
+                    for (auto e : grid.bin(b0, b1)) {
+                        csv_ge.detray_entry = e;
+                        sge_writer.append(csv_ge);
+                    }
+                }
+            }*/
+        }
+    }
+
+    // Connect the cylindrical volumes via portals
+    connect_cylindrical_volumes<detector_t, array_type, tuple_type,
+                                vector_type>(d, v_grid);
+
+    // Add the volume grid to the detector
+    d.add_volume_finder(std::move(v_grid));
 
     return d;
 }
