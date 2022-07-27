@@ -235,12 +235,13 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
      */
     auto test_surfaces_grid =
         [](decltype(volumes.begin())& vol_itr,
-           const typename detector_t::sf_finder_container& sf_finders,
-           const typename detector_t::surface_container& surfaces,
+           const typename detector_t::sf_finder_container& sf_finder_cont,
+           const typename detector_t::surface_container& surface_cont,
            darray<dindex, 2>& range) {
             // Call test functor
-            sf_finders.template call<surface_grid_tester>(
-                vol_itr->sf_finder_link(), vol_itr->index(), surfaces, range);
+            sf_finder_cont.template call<surface_grid_tester>(
+                vol_itr->sf_finder_link(), vol_itr->index(), surface_cont,
+                range);
         };
 
     //

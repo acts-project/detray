@@ -496,7 +496,7 @@ detector_from_csv(const std::string &detector_name,
     using surfaces_z_axis = typename surfaces_r_phi_grid::axis_p0_type;
     using surfaces_phi_axis = typename surfaces_r_phi_grid::axis_p1_type;
 
-    // const auto &detector_surface_finders = d.sf_finder_store();
+    const auto &detector_surface_finders = d.sf_finder_store();
 
     // (B) Pre-read the grids & create local object finders
     int sg_counts = 0;
@@ -510,11 +510,11 @@ detector_from_csv(const std::string &detector_name,
 
     while (sg_reader.read(io_surface_grid)) {
 
-        volume_layer_index c_index = {io_surface_grid.volume_id,
+        /*volume_layer_index c_index = {io_surface_grid.volume_id,
                                       io_surface_grid.layer_id};
 
-        // surface_finder_entries[c_index] = std::make_pair<dindex, dindex>(
-        //     io_surface_grid.type_loc0, detector_surfaces_finders.size());
+        surface_finder_entries[c_index] = std::make_pair<dindex, dindex>(
+             io_surface_grid.type_loc0, detector_surfaces_finders.size());*/
 
         bool is_disk = (io_surface_grid.type_loc0 == 3);
 
@@ -563,7 +563,9 @@ detector_from_csv(const std::string &detector_name,
                 csv_surface_grid_entry surface_grid_entry;
                 while (sge_reader.read(surface_grid_entry)) {
                     // Get the volume bounds for filling
-                    assert(vol.index() == surface_grid_entry.detray_volume_id);
+                    assert(vol.index() ==
+                           static_cast<dindex>(
+                               surface_grid_entry.detray_volume_id));
                     r_phi_grid.populate(
                         static_cast<dindex>(surface_grid_entry.detray_bin0),
                         static_cast<dindex>(surface_grid_entry.detray_bin1),
@@ -588,7 +590,9 @@ detector_from_csv(const std::string &detector_name,
                 csv_surface_grid_entry surface_grid_entry;
                 while (sge_reader.read(surface_grid_entry)) {
                     // Get the volume bounds for filling
-                    assert(vol.index() == surface_grid_entry.detray_volume_id);
+                    assert(vol.index() ==
+                           static_cast<dindex>(
+                               surface_grid_entry.detray_volume_id));
                     z_phi_grid.populate(
                         static_cast<dindex>(surface_grid_entry.detray_bin0),
                         static_cast<dindex>(surface_grid_entry.detray_bin1),
@@ -681,21 +685,6 @@ detector_from_csv(const std::string &detector_name,
             csv_ge.detray_volume_id = static_cast<int>(iv);
             d.sf_finder_store().template call<grid_writer>(v.sf_finder_link(),
                                                            csv_ge, sge_writer);
-            /*const auto &grid = d.sf_finder_store().template
-            group<>().at(v.sf_finder_index());
-
-            size_t nbins0 = grid.axis_p0().bins();
-            size_t nbins1 = grid.axis_p1().bins();
-            for (size_t b0 = 0; b0 < nbins0; ++b0) {
-                for (size_t b1 = 0; b1 < nbins1; ++b1) {
-                    csv_ge.detray_bin0 = b0;
-                    csv_ge.detray_bin1 = b1;
-                    for (auto e : grid.bin(b0, b1)) {
-                        csv_ge.detray_entry = e;
-                        sge_writer.append(csv_ge);
-                    }
-                }
-            }*/
         }
     }
 
