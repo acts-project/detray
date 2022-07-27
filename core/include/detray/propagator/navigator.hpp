@@ -424,9 +424,13 @@ class navigator {
         // @todo - will come from the local object finder
         const auto &tf_store = _detector->transform_store();
         const auto &mask_store = _detector->mask_store();
+        // std::cout << "From navigator init" << std::endl;
+        for (const auto &[obj_idx, obj] : find_surfaces(volume, track)) {
 
-        for (const auto [obj_idx, obj] : find_surfaces(volume, track)) {
+            // std::cout << obj_idx << ", mask link: " << obj.mask_range() <<
+            // std::endl;
 
+            // std::cout << "vol: " << obj.volume() << std::endl;
             std::size_t count =
                 mask_store.template call<intersection_initialize>(
                     obj.mask(), navigation.candidates(), detail::ray(track),
@@ -434,7 +438,7 @@ class navigator {
 
             // TODO: Do NOT use index but use other member variable
             for (std::size_t i = navigation.candidates().size() - count;
-                 i < navigation.candidates().size(); i++) {
+                 i < navigation.candidates().size(); ++i) {
                 navigation.candidates()[i].index = obj_idx;
             }
         }
@@ -700,9 +704,8 @@ class navigator {
         const auto &sf_finders = _detector->sf_finder_store();
 
         // Return an index range for now
-        dindex_range neighborhood =
-            sf_finders.template call<neighborhood_getter>(
-                volume.sf_finder_link(), *_detector, volume, track);
+        const auto neighborhood = sf_finders.template call<neighborhood_getter>(
+            volume.sf_finder_link(), *_detector, volume, track);
 
         // Enumerate the surfaces that are close to the track position
         return enumerate(_detector->surfaces(), neighborhood);

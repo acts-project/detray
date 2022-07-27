@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
+/*#include <gtest/gtest.h>
 
 #include <climits>
 
@@ -52,4 +52,4 @@ TEST(grids, serialize_deserialize) {
     expected_array = {5u, 2u};
     test_array = ser2.deserialize(r6, c12, 17u);
     EXPECT_EQ(test_array, expected_array);
-}
+}*/

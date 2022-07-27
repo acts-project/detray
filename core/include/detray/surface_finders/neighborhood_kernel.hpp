@@ -15,7 +15,7 @@ namespace detray {
 /// A functor to find surfaces in the neighborhood of a track position
 struct neighborhood_getter {
 
-    using output_type = dindex_range;
+    using output_type = dvector<dindex>;
 
     /// Call operator that forwards the neighborhood search call in a volume
     /// to a surface finder data structure
@@ -30,7 +30,13 @@ struct neighborhood_getter {
         // Get surface finder for volume and perform the surface neighborhood
         // lookup
         const auto &sf_finder = group[index];
-        return sf_finder.search(detector, volume, track);
+        const auto n = sf_finder.search(detector, volume, track);
+        // std::cout << "From kernel" << std::endl;
+        // for (const dindex i : n)
+        //     std::cout << i << std::endl;
+
+        // std::cout << "size:" << n.size() << std::endl;
+        return n;
     }
 };
 

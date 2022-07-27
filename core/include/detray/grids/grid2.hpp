@@ -8,11 +8,13 @@
 #pragma once
 
 // Detray include(s).
+#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // VecMem include(s).
+#include <iostream>
 #include <vecmem/memory/memory_resource.hpp>
 
 namespace detray {
@@ -231,11 +233,65 @@ class grid2 {
 
     /// Stub function until the zone call is working correctly
     template <typename detector_t, typename track_t>
-    DETRAY_HOST_DEVICE dindex_range
-    search(const detector_t & /*det*/,
-           const typename detector_t::volume_type &volume,
-           const track_t & /*track*/) const {
-        return volume.range();
+    DETRAY_HOST_DEVICE dindex_sequence search(
+        const detector_t &det, const typename detector_t::volume_type &volume,
+        const track_t &track) const {
+
+        // Return a vector of all surface indices in the volume range
+        dindex_sequence sf_indices{};
+        detail::call_reserve(sf_indices, volume.n_objects());
+
+        // std::cout << "Full range:" << std::endl;
+        // std::cout << "vol: " << volume.index() << std::endl;
+        for (dindex sf_idx = detail::get<0>(volume.range());
+             sf_idx < detail::get<1>(volume.range()); sf_idx++) {
+            // std::cout << sf_idx << std::endl;
+            if (det.surface_by_index(sf_idx).is_portal()) {
+                sf_indices.push_back(sf_idx);
+                // std::cout << "Adding portal:" << sf_idx << std::endl;
+            }
+        }
+        // std::cout << "size: " << volume.n_objects() << std::endl;
+
+        using point2_t = typename detector_t::point2;
+        using point3_t = typename detector_t::point3;
+        using transform3_t = typename detector_t::transform3;
+
+        // only look at concentric grids right now
+        const transform3_t grid_trf(track.pos());
+        const point3_t &glob_pos = track.pos();
+        point2_t loc_pos{};
+
+        if (volume.sf_finder_type() ==
+            detector_t::sf_finders::id::e_z_phi_grid) {
+            constexpr __plugin::cylindrical2<detray::scalar> local_frame{};
+            loc_pos = local_frame(grid_trf, glob_pos);
+
+        } else if (volume.sf_finder_type() ==
+                   detector_t::sf_finders::id::e_r_phi_grid) {
+            constexpr __plugin::polar2<detray::scalar> local_frame{};
+            loc_pos = local_frame(grid_trf, glob_pos);
+        }
+
+        const vector_t<typename populator_type::bare_value> neighbors =
+            zone(loc_pos, hermit2, true);
+
+        if constexpr (not std::is_same_v<typename populator_type::bare_value,
+                                         dindex>) {
+            for (const auto &bin_content : neighbors) {
+                for (const dindex sf_idx : bin_content) {
+                    sf_indices.push_back(sf_idx);
+                }
+            }
+        } else {
+            sf_indices.insert(std::end(sf_indices), std::begin(neighbors),
+                              std::end(neighbors));
+        }
+        std::sort(sf_indices.begin(), sf_indices.end());
+        sf_indices.erase(std::unique(sf_indices.begin(), sf_indices.end()),
+                         sf_indices.end());
+
+        return sf_indices;
     }
 
     /** Return a zone around a single bin, either with binned or scalar

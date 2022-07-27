@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <benchmark/benchmark.h>
+/*#include <benchmark/benchmark.h>
 
 #include <vecmem/memory/host_memory_resource.hpp>
 // detray test
@@ -114,4 +114,4 @@ BENCHMARK(BM_IRREGULAR_GRID_ZONE);
 
 }  // namespace
 
-BENCHMARK_MAIN();
+BENCHMARK_MAIN();*/

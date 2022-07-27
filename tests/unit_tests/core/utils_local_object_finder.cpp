@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
+/*#include <gtest/gtest.h>
 
 #include <functional>
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -57,3 +57,4 @@ TEST(utils, local_object_finder) {
     EXPECT_EQ(local_finders[0](p2), expected);
     EXPECT_EQ(local_finders[1](p2), expected);
 }
+*/

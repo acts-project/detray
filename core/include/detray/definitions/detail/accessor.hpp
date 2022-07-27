@@ -88,6 +88,10 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
         std::forward<const tuple_t<value_types...>>(tuple));
 }
 
+/// Tie types together, e.g for structured binding
+// using std::tie;
+// using thrust::tie;
+
 /**
  *  tuple_element accessor
  *

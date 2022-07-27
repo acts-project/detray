@@ -41,7 +41,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
     // Detector configuration
     constexpr std::size_t n_brl_layers{4};
-    constexpr std::size_t n_edc_layers{7};
+    constexpr std::size_t n_edc_layers{3};
     vecmem::host_memory_resource host_mr;
     auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
@@ -54,8 +54,8 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     // Propagator
     propagator_t prop(stepper_t{}, navigator_t{det});
 
-    constexpr std::size_t theta_steps{50};
-    constexpr std::size_t phi_steps{50};
+    constexpr std::size_t theta_steps{2};
+    constexpr std::size_t phi_steps{2};
 
     const point3 ori{0., 0., 0.};
     // det.volume_by_pos(ori).index();
@@ -80,9 +80,10 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
         ASSERT_TRUE(prop.propagate(propagation)) << debug_printer.to_string();
 
-        // Compare intersection records
+        // std::cout << debug_printer.to_string() << std::endl;
+        //  Compare intersection records
         EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size())
-            << debug_printer.to_string();
+        /*<< debug_printer.to_string()*/;
 
         std::stringstream debug_stream;
         for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
@@ -110,7 +111,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
                 }
             }
             EXPECT_EQ(obj_tracer[i].index, intersection_trace[i].second.index)
-                << debug_printer.to_string() << debug_stream.str();
+                /*<< debug_printer.to_string()*/ << debug_stream.str();
         }
     }
 }
@@ -122,7 +123,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
     // Detector configuration
     constexpr std::size_t n_brl_layers{4};
-    constexpr std::size_t n_edc_layers{7};
+    constexpr std::size_t n_edc_layers{3};
     vecmem::host_memory_resource host_mr;
     auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 

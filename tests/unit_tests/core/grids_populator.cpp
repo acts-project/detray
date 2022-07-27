@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
+/*#include <gtest/gtest.h>
 
 #include <climits>
 
@@ -75,4 +75,4 @@ TEST(grids, attach_populator) {
     sort_attacher(stored, 11);
     test = {2u, 3u, 11u, 42u};
     EXPECT_EQ(stored, test);
-}
+}*/

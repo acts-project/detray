@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/core/type_registry.hpp"
+/*#include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/masks/unmasked.hpp"
@@ -83,4 +83,4 @@ TEST(ALGEBRA_PLUGIN, intersection) {
     ASSERT_NEAR(intersections[0].path, 1.7, epsilon);
     ASSERT_NEAR(intersections[1].path, 2, epsilon);
     ASSERT_TRUE(std::isinf(intersections[2].path));
-}
+}*/
