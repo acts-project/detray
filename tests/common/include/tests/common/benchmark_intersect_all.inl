@@ -10,8 +10,9 @@
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/propagator/track.hpp"
 #include "detray/utils/enumerate.hpp"
+#include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
-#include "tests/common/tools/read_geometry.hpp"
+//#include "tests/common/tools/read_geometry.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
 // Vecmem include(s)
@@ -38,9 +39,13 @@ unsigned int theta_steps = 100;
 unsigned int phi_steps = 100;
 bool stream_file = false;
 
+// Detector configuration
+constexpr std::size_t n_brl_layers{4};
+constexpr std::size_t n_edc_layers{7};
 vecmem::host_memory_resource host_mr;
-auto [d, name_map] =
-    read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
+auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+// auto [d, name_map] =
+//     read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
 
 using detector_t = decltype(d);
 constexpr auto k_surfaces = detector_t::objects::e_surface;
