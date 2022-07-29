@@ -68,7 +68,8 @@ struct pointwise_material_interactor : actor {
         DETRAY_HOST_DEVICE inline output_type operator()(
             const material_group_t &material_group, std::size_t material_index,
             const line_plane_intersection &is, propagator_state_t &prop_state,
-            bool do_multiple_scattering, bool do_energy_loss) {
+            bool do_covariance_transport, bool do_multiple_scattering,
+            bool do_energy_loss) {
 
             const auto &mat = material_group.at(material_index);
 
@@ -77,7 +78,7 @@ struct pointwise_material_interactor : actor {
                     is, mat, pdg, mass, qOverP, q);
             }
 
-            if (performance_covariance_transport) {
+            if (do_covariance_transport) {
                 covariance_contributions(is, mat, do_multiple_scattering,
                                          do_energy_loss);
             }
@@ -107,11 +108,33 @@ struct pointwise_material_interactor : actor {
     }
 
     struct state {
+        bool do_covariance_transport = true;
+        bool do_energy_loss = true;
+        bool do_multiple_scattering = true;
     };
 
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state &interactor_state,
-                                       propagator_state_t &prop_state) const {}
+                                       propagator_state_t &prop_state) const {
+
+        auto &stepping = prop_state._stepping;
+        auto &navigation = prop_state._navigation;
+
+        auto &track = stepping();
+        const auto &is = *navigation.next();
+
+        // Do material interaction when the track is on surface
+        if (nav_state.is_on_object(is, track)) {
+            const auto &det = navigation.detector();
+            const auto &sf = det.surface_by_index(is.link);
+            const auto &mat_store = det.material_store();
+
+            mat_store.execute<kernel>(sf.material(), is, prop_state,
+                                      interactor_state.do_covariance_transport,
+                                      interactor_state.do_multiple_scattering,
+                                      interactor_state.do_energy_loss);
+        }
+    }
 };
 
 }  // namespace detray
