@@ -62,7 +62,6 @@ detray_add_library( detray_core core
    "include/detray/detail/density_effect_data.hpp" 
    "include/detray/detail/relativistic_quantities.hpp" 
    "include/detray/materials/interaction.hpp" 
-   "include/detray/materials/interaction_kernel.hpp" 
    "include/detray/materials/mixture.hpp" 
    "include/detray/materials/material.hpp"
    "include/detray/materials/material_rod.hpp"   
