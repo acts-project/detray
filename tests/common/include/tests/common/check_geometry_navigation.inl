@@ -52,7 +52,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
-    propagator_t prop(stepper_t{}, navigator_t{det});
+    propagator_t prop(stepper_t{}, navigator_t{});
 
     constexpr std::size_t theta_steps{50};
     constexpr std::size_t phi_steps{50};
@@ -137,7 +137,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     2. * unit_constants::T};
     b_field_t b_field(B);
-    propagator_t prop(stepper_t{b_field}, navigator_t{det});
+    propagator_t prop(stepper_t{b_field}, navigator_t{});
 
     constexpr std::size_t theta_steps{10};
     constexpr std::size_t phi_steps{10};

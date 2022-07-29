@@ -30,7 +30,7 @@ __global__ void navigator_test_kernel(
         return;
     }
 
-    navigator_device_t nav(det);
+    navigator_device_t nav;
 
     auto& traj = tracks.at(gid);
     stepper_t stepper;

@@ -121,9 +121,9 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     free_track_parameters test_track_x(pos, 0, mom, -1);
 
     // navigators
-    navigator<decltype(z_tel_det1), inspector_t> navigator_z1(z_tel_det1);
-    navigator<decltype(z_tel_det2), inspector_t> navigator_z2(z_tel_det2);
-    navigator<decltype(x_tel_det), inspector_t> navigator_x(x_tel_det);
+    navigator<decltype(z_tel_det1), inspector_t> navigator_z1;
+    navigator<decltype(z_tel_det2), inspector_t> navigator_z2;
+    navigator<decltype(x_tel_det), inspector_t> navigator_x;
     using navigation_state_t = decltype(navigator_z1)::state;
     using stepping_state_t = rk_stepper_t::state;
 
@@ -204,7 +204,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
         host_mr, n_surfaces, tel_length, pilot_track, rk_stepper_z);
 
     // make at least sure it is navigatable
-    navigator<decltype(tel_detector), inspector_t> tel_navigator(tel_detector);
+    navigator<decltype(tel_detector), inspector_t> tel_navigator;
 
     prop_state<stepping_state_t, navigation_state_t> tel_propagation(
         pilot_track, tel_detector);

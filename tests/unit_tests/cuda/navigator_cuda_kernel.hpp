@@ -55,6 +55,13 @@ template <typename navigation_t>
 struct prop_state {
     stepper_t::state _stepping;
     navigation_t _navigation;
+
+    /*
+    /// Construct the propagation state with stepper and navigator state
+    DETRAY_HOST_DEVICE prop_state(stepper_t::state stepping,
+                                  navigation_t navigation)
+        : _stepping(stepping), _navigation(navigation) {}
+    */
 };
 
 namespace detray {

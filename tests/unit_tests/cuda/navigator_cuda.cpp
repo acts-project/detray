@@ -29,7 +29,7 @@ TEST(navigator_cuda, navigator) {
                                                    n_edc_layers);
 
     // Create navigator
-    navigator_host_t nav(det);
+    navigator_host_t nav;
 
     // Create the vector of initial track parameters
     vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
@@ -62,7 +62,7 @@ TEST(navigator_cuda, navigator) {
         stepper_t stepper;
 
         prop_state<navigator_host_t::state> propagation{
-            stepper_t::state{track}, navigator_host_t::state{mng_mr}};
+            stepper_t::state{track}, navigator_host_t::state(det, mng_mr)};
 
         navigator_host_t::state& navigation = propagation._navigation;
         stepper_t::state& stepping = propagation._stepping;

@@ -91,7 +91,7 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     const vector3 mom{1., 1., 0.};
     free_track_parameters track(pos, 0, mom, -1);
 
-    propagator_t p(stepper_t{}, navigator_t{d});
+    propagator_t p(stepper_t{}, navigator_t{});
 
     propagator_t::state state(track, d);
 
@@ -141,7 +141,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     const b_field_t b_field(B);
 
     // Propagator is built from the stepper and navigator
-    propagator_t p(stepper_t{b_field}, navigator_t{d});
+    propagator_t p(stepper_t{b_field}, navigator_t{});
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :

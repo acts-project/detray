@@ -129,7 +129,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     free_track_parameters traj(pos, 0, mom, -1);
 
     stepper_t stepper;
-    navigator_t nav(toy_det);
+    navigator_t nav;
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
         stepper_t::state{traj}, navigator_t::state(toy_det, host_mr)};

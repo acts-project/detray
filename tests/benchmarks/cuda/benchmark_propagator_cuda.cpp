@@ -56,7 +56,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
     rk_stepper_type s(B_field);
 
     // Create navigator
-    navigator_host_type n(det);
+    navigator_host_type n;
 
     // Create propagator
     propagator_host_type p(std::move(s), std::move(n));
