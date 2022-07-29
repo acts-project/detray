@@ -108,22 +108,29 @@ class navigator {
     class state {
         friend class navigator;
 
+        public:
         using candidate_itr_t =
             typename vector_type<intersection_type>::iterator;
         using const_candidate_itr_t =
             typename vector_type<intersection_type>::const_iterator;
+        using detector_type = navigator::detector_type;
 
-        public:
         /// Default constructor
         state() = default;
 
         /// Constructor with memory resource
         DETRAY_HOST
-        state(vecmem::memory_resource &resource) : _candidates(&resource) {}
+        state(const detector_type &det) : _detector(&det) {}
+
+        /// Constructor with memory resource
+        DETRAY_HOST
+        state(const detector_type &det, vecmem::memory_resource &resource)
+            : _detector(&det), _candidates(&resource) {}
 
         /// Constructor from candidates vector_view
-        DETRAY_HOST_DEVICE state(vector_type<intersection_type> candidates)
-            : _candidates(candidates) {}
+        DETRAY_HOST_DEVICE state(const detector_type &det,
+                                 vector_type<intersection_type> candidates)
+            : _detector(&det), _candidates(candidates) {}
 
         /// Scalar representation of the navigation state,
         /// @returns distance to next
@@ -361,6 +368,9 @@ class navigator {
 
         /// Heartbeat of this navigation flow signals navigation is alive
         bool _heartbeat = false;
+
+        /// Detector pointer
+        const detector_type *const _detector;
 
         /// Our cache of candidates (intersections with any kind of surface)
         vector_type<intersection_type> _candidates = {};

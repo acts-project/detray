@@ -36,7 +36,8 @@ __global__ void navigator_test_kernel(
     stepper_t stepper;
 
     prop_state<navigator_device_t::state> propagation{
-        stepper_t::state{traj}, navigator_device_t::state{candidates.at(gid)}};
+        stepper_t::state{traj},
+        navigator_device_t::state(det, candidates.at(gid))};
 
     navigator_device_t::state& navigation = propagation._navigation;
     stepper_t::state& stepping = propagation._stepping;

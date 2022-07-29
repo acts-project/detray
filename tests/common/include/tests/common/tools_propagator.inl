@@ -93,7 +93,7 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
 
     propagator_t p(stepper_t{}, navigator_t{d});
 
-    propagator_t::state state(track);
+    propagator_t::state state(track, d);
 
     EXPECT_TRUE(p.propagate(state))
         << state._navigation.inspector().to_string() << std::endl;
@@ -166,8 +166,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             helix_insp_state, lim_print_insp_state, pathlimit_aborter_state);
 
         // Init propagator states
-        propagator_t::state state(track, actor_states);
-        propagator_t::state lim_state(lim_track, lim_actor_states);
+        propagator_t::state state(track, d, actor_states);
+        propagator_t::state lim_state(lim_track, d, lim_actor_states);
 
         // Set step constraints
         state._stepping.template set_constraint<step::constraint::e_accuracy>(

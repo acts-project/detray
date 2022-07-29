@@ -132,7 +132,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     navigator_t nav(toy_det);
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
-        stepper_t::state{traj}, navigator_t::state{}};
+        stepper_t::state{traj}, navigator_t::state(toy_det, host_mr)};
     navigator_t::state &navigation = propagation._navigation;
     stepper_t::state &stepping = propagation._stepping;
 

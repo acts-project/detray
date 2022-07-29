@@ -40,7 +40,7 @@ __global__ void propagator_benchmark_kernel(
 
     // Create the propagator state
     propagator_device_type::state p_state(
-        tracks.at(gid), actor_chain<>::state{}, candidates.at(gid));
+        tracks.at(gid), det, actor_chain<>::state{}, candidates.at(gid));
 
     // Run propagation
     p.propagate(p_state);

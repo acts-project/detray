@@ -71,7 +71,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
         // Now follow that ray with a track and check, if we find the same
         // volumes and distances along the way
         free_track_parameters track(ray.pos(), 0, ray.dir(), -1);
-        propagator_t::state propagation(track);
+        propagator_t::state propagation(track, det);
 
         // Retrieve navigation information
         auto &inspector = propagation._navigation.inspector();
@@ -164,7 +164,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
         // Now follow that helix with the same track and check, if we find
         // the same volumes and distances along the way
-        propagator_t::state propagation(track);
+        propagator_t::state propagation(track, det);
 
         // Retrieve navigation information
         auto &inspector = propagation._navigation.inspector();

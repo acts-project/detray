@@ -50,7 +50,7 @@ __global__ void propagator_test_kernel(
     pathlimit_aborter::state aborter_state{path_limit};
 
     // Create the propagator state
-    propagator_device_type::state state(tracks[gid],
+    propagator_device_type::state state(tracks[gid], det,
                                         thrust::tie(insp_state, aborter_state),
                                         candidates.at(gid));
 

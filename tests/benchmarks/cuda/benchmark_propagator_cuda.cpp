@@ -75,7 +75,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
         for (auto &track : tracks) {
 
             // Create the propagator state
-            propagator_host_type::state p_state(track);
+            propagator_host_type::state p_state(track, det);
 
             // Run propagation
             p.propagate(p_state);
