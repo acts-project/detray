@@ -82,7 +82,7 @@ struct interaction {
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_fwhm(
         const line_plane_intersection& is, const material_t& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q = unit_constants::e) {
+        const scalar_type q = unit_constants::e) const {
         const auto Ne = mat.get_material().molar_electron_density();
         const auto path_segment = mat.path_segment(is);
         const relativistic_quantities rq(m, qOverP, q);

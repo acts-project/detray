@@ -23,7 +23,7 @@ namespace navigation {
 /// @enum NavigationDirection
 /// The navigation direction is always with
 /// respect to a given momentum or direction
-enum class direction : int { backward = -1, forward = 1 };
+enum class direction : int { e_backward = -1, e_forward = 1 };
 
 /// Navigation status flags
 enum class status {
@@ -204,6 +204,18 @@ class navigator {
         /// @returns current navigation status - const
         DETRAY_HOST_DEVICE
         inline auto status() const -> navigation::status { return _status; }
+
+        /// @returns current navigation direction - const
+        DETRAY_HOST_DEVICE
+        inline auto direction() const -> navigation::direction {
+            return _direction;
+        }
+
+        /// Set direction
+        DETRAY_HOST_DEVICE
+        inline void set_direction(const navigation::direction dir) {
+            _direction = dir;
+        }
 
         /// @returns tolerance to determine if we are on object - const
         DETRAY_HOST_DEVICE
@@ -394,6 +406,9 @@ class navigator {
 
         /// The navigation status
         navigation::status _status = navigation::status::e_unknown;
+
+        /// The navigation direction
+        navigation::direction _direction = navigation::direction::e_forward;
 
         /// The on object tolerance - permille
         scalar _on_object_tolerance = 1e-3;

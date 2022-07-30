@@ -227,6 +227,19 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
         // Make sure that relative error is smaller than epsion
         EXPECT_NEAR(getter::norm(backward_relative_error), 0, epsilon);
+
+        // Test update function
+        point3 new_pos{1., 2., 3.};
+        vector3 new_dir{0., 0., 1.};
+        scalar new_time = 10.;
+        scalar new_p = 10.;
+
+        crk_state.update(new_pos, new_dir, new_p, new_time);
+
+        EXPECT_EQ(crk_state._track.pos(), vector3({1., 2., 3.}));
+        EXPECT_EQ(crk_state._track.dir(), vector3({0., 0., 1.}));
+        EXPECT_FLOAT_EQ(crk_state._track.qop(), -0.1);
+        EXPECT_FLOAT_EQ(crk_state._track.time(), 10.);
     }
 }
 

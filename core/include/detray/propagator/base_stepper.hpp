@@ -31,6 +31,9 @@ class base_stepper {
     using covariance_engine = detail::covariance_engine<scalar>;
     using vector_engine = covariance_engine::vector_engine;
     using transform3 = typename covariance_engine::transform3;
+    using point3 = __plugin::point3<scalar>;
+    using vector2 = __plugin::vector2<scalar>;
+    using vector3 = __plugin::vector3<scalar>;
 
     /** State struct holding the track
      *
@@ -58,6 +61,17 @@ class base_stepper {
             covariance_engine().reinitialize_jacobians(
                 trf3, bound_params.vector(), _jac_to_global, _jac_transport,
                 _derivative);
+        }
+
+        DETRAY_HOST_DEVICE
+        inline void update(const vector3 pos, const vector3 dir,
+                           const scalar up, const scalar time) {
+            _track.set_pos(pos);
+            _track.set_dir(dir);
+            _track.set_time(time);
+            const auto q = _track.charge();
+            const auto new_qop = q != 0. ? q / up : 1. / up;
+            _track.set_qop(new_qop);
         }
 
         /// free track parameter

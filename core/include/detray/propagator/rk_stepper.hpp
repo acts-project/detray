@@ -31,9 +31,9 @@ class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
     public:
     using base_type = base_stepper<track_t, constraint_t, policy_t>;
     using policy_type = policy_t;
-    using point3 = __plugin::point3<scalar>;
-    using vector2 = __plugin::vector2<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
+    using point3 = typename base_type::point3;
+    using vector2 = typename base_type::vector2;
+    using vector3 = typename base_type::vector3;
     using context_type = typename magnetic_field_t::context_type;
     using matrix_operator = typename base_type::matrix_operator;
     using covariance_engine = typename base_type::covariance_engine;

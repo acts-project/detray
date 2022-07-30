@@ -162,6 +162,11 @@ struct free_track_parameters {
     scalar time() const { return getter::element(_vector, e_free_time, 0); }
 
     DETRAY_HOST_DEVICE
+    void set_time(const scalar time) {
+        getter::element(_vector, e_free_time, 0) = time;
+    }
+
+    DETRAY_HOST_DEVICE
     scalar charge() const {
         if (getter::element(_vector, e_free_qoverp, 0) < 0) {
             return -1.;
@@ -172,6 +177,11 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar qop() const { return getter::element(_vector, e_free_qoverp, 0); }
+
+    DETRAY_HOST_DEVICE
+    void set_qop(const scalar qop) {
+        getter::element(_vector, e_free_qoverp, 0) = qop;
+    }
 
     DETRAY_HOST_DEVICE
     scalar pT() const {
