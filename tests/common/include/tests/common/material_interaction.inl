@@ -251,8 +251,8 @@ TEST(material_interaction, telescope_geometry) {
     const scalar mass = interactor_state.mass;
 
     // new momentum
-    const scalar newP =
-        state._stepping._track.charge() / state._stepping._track.qop();
+    const scalar newP = state._stepping._bound_params.charge() /
+                        state._stepping._bound_params.qop();
 
     // new energy
     const scalar newE = std::sqrt(newP * newP + mass * mass);

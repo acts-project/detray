@@ -17,11 +17,11 @@ template <typename interaction_t>
 struct pointwise_material_interactor : actor {
 
     using interaction_type = interaction_t;
+    using matrix_operator = standard_matrix_operator<scalar>;
 
     struct state {
         using scalar_type = typename interaction_type::scalar_type;
         using vector3 = __plugin::vector3<scalar>;
-        using matrix_operator = standard_matrix_operator<scalar>;
 
         template <typename propagator_state_t>
         DETRAY_HOST_DEVICE void set_state(propagator_state_t prop_state) {
@@ -142,7 +142,7 @@ struct pointwise_material_interactor : actor {
                 const auto &mom = interactor_state.momentum;
                 const auto &e_loss = interactor_state.e_loss;
 
-                // update state
+                // Get new Energy
                 const auto nextE =
                     std::sqrt(mass * mass + mom * mom) -
                     std::copysign(e_loss,
@@ -152,40 +152,16 @@ struct pointwise_material_interactor : actor {
                 const auto nextP =
                     (mass < nextE) ? std::sqrt(nextE * nextE - mass * mass) : 0;
 
-                // Update free track parameter (qop)
-                // Note: Effect on position is neglected
-                stepping.update_free_vector(interactor_state.pos,
-                                            interactor_state.dir, nextP,
-                                            interactor_state.time);
+                const auto new_qop = interactor_state.q != 0.
+                                         ? interactor_state.q / nextP
+                                         : 1. / nextP;
 
-                // Update bound covariance
+                // Update momentum
+                stepping().set_qop(new_qop);  // Skip free track params update?
 
-                // auto& free_cov = stepping().covariance();
-
-                /*
-                // in forward(backward) propagation, energy
-                // decreases(increases) and variances increase(decrease)
-                const auto nextE =
-                    std::sqrt(mass * mass + momentum * momentum) -
-                    std::copysign(
-                        Eloss,
-                        static_cast<
-                            std::underlying_type_t<NavigationDirection>>(nav));
-                // put particle at rest if energy loss is too large
-                nextP =
-                    (mass < nextE) ? std::sqrt(nextE * nextE - mass * mass) : 0;
-                // update track parameters and covariance
-                stepper.update(state.stepping, pos, dir, nextP, time);
-                state.stepping.cov(eBoundPhi, eBoundPhi) =
-                    updateVariance(state.stepping.cov(eBoundPhi, eBoundPhi),
-                                   variancePhi, updateMode);
-                state.stepping.cov(eBoundTheta, eBoundTheta) =
-                    updateVariance(state.stepping.cov(eBoundTheta, eBoundTheta),
-                                   varianceTheta, updateMode);
-                state.stepping.cov(eBoundQOverP, eBoundQOverP) = updateVariance(
-                    state.stepping.cov(eBoundQOverP, eBoundQOverP),
-                    varianceQoverP, updateMode);
-                */
+                auto &bvec = stepping._bound_params.vector();
+                // auto& bcov = stepping._bound_params.covariance();
+                matrix_operator().element(bvec, e_bound_qoverp, 0) = new_qop;
             }
         }
     }

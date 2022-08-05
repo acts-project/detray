@@ -506,7 +506,7 @@ class navigator {
 
         // Update bound track parameters
         if (navigation.is_on_module()) {
-            auto& stepping = propagation._stepping;
+            auto &stepping = propagation._stepping;
 
             typename detector_type::context ctx{};
 

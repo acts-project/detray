@@ -44,10 +44,16 @@ struct bound_track_parameters {
     const vector_type& vector() const { return _vector; }
 
     DETRAY_HOST_DEVICE
+    vector_type& vector() { return _vector; }
+
+    DETRAY_HOST_DEVICE
     void set_vector(const vector_type& v) { _vector = v; }
 
     DETRAY_HOST_DEVICE
     const covariance_type& covariance() const { return _covariance; }
+
+    DETRAY_HOST_DEVICE
+    covariance_type& covariance() { return _covariance; }
 
     DETRAY_HOST_DEVICE
     void set_covariance(const covariance_type& c) { _covariance = c; }
@@ -78,6 +84,11 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar qop() const { return getter::element(_vector, e_bound_qoverp, 0); }
+
+    DETRAY_HOST_DEVICE
+    void set_qop(const scalar qop) {
+        getter::element(_vector, e_bound_qoverp, 0) = qop;
+    }
 
     private:
     dindex _surface_link;
