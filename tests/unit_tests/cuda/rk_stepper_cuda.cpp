@@ -92,7 +92,8 @@ TEST(rk_stepper_cuda, bound_state) {
     }
 
     // Bound state after one turn propagation
-    const auto out_param_cpu = crk_stepper.bound_state(propagation, trf);
+    crk_state.update_bound_parameters(trf);
+    const auto out_param_cpu = crk_state._bound_params;
 
     /**
      * Get CUDA bound parameter after one turn

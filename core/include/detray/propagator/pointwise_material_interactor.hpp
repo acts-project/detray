@@ -8,8 +8,6 @@
 #pragma once
 
 // Project include(s).
-#include <iostream>
-
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 
@@ -23,6 +21,7 @@ struct pointwise_material_interactor : actor {
     struct state {
         using scalar_type = typename interaction_type::scalar_type;
         using vector3 = __plugin::vector3<scalar>;
+        using matrix_operator = standard_matrix_operator<scalar>;
 
         template <typename propagator_state_t>
         DETRAY_HOST_DEVICE void set_state(propagator_state_t prop_state) {
@@ -128,6 +127,7 @@ struct pointwise_material_interactor : actor {
 
         // Do material interaction when the track is on surface
         if (navigation.is_on_module()) {
+
             const auto &is = *navigation.current();
             const auto &det = navigation.detector();
             const auto &surface = det->surface_by_index(is.link);
@@ -152,11 +152,15 @@ struct pointwise_material_interactor : actor {
                 const auto nextP =
                     (mass < nextE) ? std::sqrt(nextE * nextE - mass * mass) : 0;
 
-                // update track parameters and covariance
-                stepping.update(interactor_state.pos, interactor_state.dir,
-                                nextP, interactor_state.time);
+                // Update free track parameter (qop)
+                // Note: Effect on position is neglected
+                stepping.update_free_vector(interactor_state.pos,
+                                            interactor_state.dir, nextP,
+                                            interactor_state.time);
 
-                std::cout << nextP << std::endl;
+                // Update bound covariance
+
+                // auto& free_cov = stepping().covariance();
 
                 /*
                 // in forward(backward) propagation, energy

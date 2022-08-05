@@ -234,7 +234,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
         scalar new_time = 10.;
         scalar new_p = 10.;
 
-        crk_state.update(new_pos, new_dir, new_p, new_time);
+        crk_state.update_free_vector(new_pos, new_dir, new_p, new_time);
 
         EXPECT_EQ(crk_state._track.pos(), vector3({1., 2., 3.}));
         EXPECT_EQ(crk_state._track.dir(), vector3({0., 0., 1.}));
@@ -346,7 +346,8 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
      */
 
     // Bound state after one turn propagation
-    const auto bound_param1 = crk_stepper.bound_state(propagation, trf);
+    crk_state.update_bound_parameters(trf);
+    const auto bound_param1 = crk_state._bound_params;
 
     const auto bound_vec0 = bound_param0.vector();
     const auto bound_vec1 = bound_param1.vector();

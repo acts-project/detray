@@ -504,6 +504,24 @@ class navigator {
         // Candidates are re-evaluated based on the current trust level
         update_kernel(propagation);
 
+        // Update bound track parameters
+        if (navigation.is_on_module()) {
+            auto& stepping = propagation._stepping;
+
+            typename detector_type::context ctx{};
+
+            // Get surface
+            const auto &det = navigation.detector();
+            const auto &sf_idx = navigation.current_object();
+            const auto &sf = det->surface_by_index(sf_idx);
+            // Get transform
+            const auto &trf_store = det->transform_store(ctx);
+            const auto &trf3 =
+                trf_store.contextual_transform(ctx, sf.transform());
+
+            stepping.update_bound_parameters(trf3);
+        }
+
         // Update was completely successful (most likely case)
         if (navigation.trust_level() == navigation::trust_level::e_full) {
             return navigation._heartbeat;
@@ -656,6 +674,7 @@ class navigator {
         track_t &track, propagator_state_t &propagation) const {
 
         state &navigation = propagation._navigation;
+        auto &stepping = propagation._stepping;
 
         // Check wether the track reached the current candidate. Might be a
         // portal, in which case the navigation becomes exhausted (the
@@ -666,13 +685,14 @@ class navigator {
             // Might lead to exhausted cache.
             ++navigation.next();
             // Release actor constraints
-            propagation._stepping.release_step();
+            stepping.release_step();
             // Update state accordingly
             navigation.set_state(
                 navigation.volume() != navigation.current()->link
                     ? navigation::status::e_on_portal
                     : navigation::status::e_on_module,
                 navigation.current()->index, navigation::trust_level::e_full);
+
         } else {
             // Otherwise the track is moving towards a surface
             navigation.set_state(navigation::status::e_towards_object,

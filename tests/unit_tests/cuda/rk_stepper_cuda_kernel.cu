@@ -50,7 +50,8 @@ __global__ void bound_state_test_kernel(
     }
 
     // Bound state after one turn propagation
-    out_param_cuda[0] = crk_stepper.bound_state(propagation, trf);
+    crk_state.update_bound_parameters(trf);
+    out_param_cuda[0] = crk_state._bound_params;
 }
 
 void bound_state_test(

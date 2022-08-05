@@ -35,42 +35,59 @@ constexpr scalar path_limit{5 * unit_constants::cm};
 /// Compare helical track positions for stepper
 struct helix_inspector : actor {
 
-    /// Keeps the state of a helix gun to calculate track positions
-    struct state {
-        state(detail::helix &&h) : _helix(h) {}
-        detail::helix _helix;
-    };
-
     using size_type = __plugin::size_type;
     using matrix_operator = standard_matrix_operator<scalar>;
+    using vector3 = __plugin::vector3<scalar>;
+
+    /// Keeps the state of a helix gun to calculate track positions
+    struct state {
+        state(const free_track_parameters &param, const vector3 &B)
+            : _prev_param(param), _B(B) {}
+        free_track_parameters _prev_param;
+        scalar _prev_path = 0;
+        vector3 _B;
+    };
 
     /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        const state &inspector_state,
-        const propagator_state_t &prop_state) const {
+        state &inspector_state, const propagator_state_t &prop_state) const {
 
+        const auto &navigation = prop_state._navigation;
         const auto &stepping = prop_state._stepping;
-        const auto pos = stepping().pos();
-        const auto true_pos = inspector_state._helix(stepping.path_length());
+        if (navigation.is_on_module()) {
 
-        // Nothing has happened yet (first call of actor chain)
-        if (stepping.path_length() < epsilon) {
-            return;
-        }
-        const point3 relative_error{scalar{1.} / stepping.path_length() *
-                                    (pos - true_pos)};
+            const scalar path =
+                stepping.path_length() - inspector_state._prev_path;
 
-        ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
-
-        auto true_J = inspector_state._helix.jacobian(stepping.path_length());
-        for (size_type i = 0; i < e_free_size; i++) {
-            for (size_type j = 0; j < e_free_size; j++) {
-                ASSERT_NEAR(
-                    matrix_operator().element(stepping._jac_transport, i, j),
-                    matrix_operator().element(true_J, i, j),
-                    stepping.path_length() * epsilon * 10);
+            if (stepping.path_length() < epsilon || std::abs(path) < epsilon) {
+                inspector_state._prev_param = stepping();
+                inspector_state._prev_path = stepping.path_length();
+                return;
             }
+
+            detail::helix hlx(inspector_state._prev_param, &inspector_state._B);
+
+            const auto pos = stepping().pos();
+            const auto true_pos = hlx(path);
+
+            const point3 relative_error{scalar{1.} / path * (pos - true_pos)};
+
+            ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
+
+            auto true_J = hlx.jacobian(path);
+
+            for (size_type i = 0; i < e_free_size; i++) {
+                for (size_type j = 0; j < e_free_size; j++) {
+                    EXPECT_NEAR(matrix_operator().element(
+                                    stepping._prev_jac_transport, i, j),
+                                matrix_operator().element(true_J, i, j),
+                                std::abs(path) * epsilon * 10);
+                }
+            }
+
+            inspector_state._prev_param = stepping();
+            inspector_state._prev_path = stepping.path_length();
         }
     }
 };
@@ -153,7 +170,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         lim_track.set_overstep_tolerance(overstep_tol);
 
         // Build actor states: the helix inspector can be shared
-        helix_inspector::state helix_insp_state{detail::helix{track, &B}};
+        helix_inspector::state helix_insp_state{track, B};
+        helix_inspector::state lim_helix_insp_state{lim_track, B};
         propagation::print_inspector::state print_insp_state{};
         propagation::print_inspector::state lim_print_insp_state{};
         pathlimit_aborter::state unlimted_aborter_state{};
@@ -162,8 +180,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         // Create actor states tuples
         actor_chain_t::state actor_states = std::tie(
             helix_insp_state, print_insp_state, unlimted_aborter_state);
-        actor_chain_t::state lim_actor_states = std::tie(
-            helix_insp_state, lim_print_insp_state, pathlimit_aborter_state);
+        actor_chain_t::state lim_actor_states =
+            std::tie(lim_helix_insp_state, lim_print_insp_state,
+                     pathlimit_aborter_state);
 
         // Init propagator states
         propagator_t::state state(track, d, actor_states);

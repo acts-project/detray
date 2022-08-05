@@ -49,13 +49,11 @@ class base_stepper {
         /// Sets track parameters from bound track parameter.
         DETRAY_HOST_DEVICE
         state(const bound_track_parameters &bound_params,
-              const transform3 &trf3) {
+              const transform3 &trf3)
+            : _bound_params(bound_params) {
             // Set the free vector
             _track.set_vector(vector_engine().bound_to_free_vector(
                 trf3, bound_params.vector()));
-
-            // Set the bound covariance
-            _bound_covariance = bound_params.covariance();
 
             // Reset the jacobians
             covariance_engine().reinitialize_jacobians(
@@ -63,9 +61,11 @@ class base_stepper {
                 _derivative);
         }
 
-        DETRAY_HOST_DEVICE
-        inline void update(const vector3 pos, const vector3 dir,
-                           const scalar up, const scalar time) {
+        /// Update free track parameters
+        DETRAY_HOST_DEVICE inline void update_free_vector(const vector3 pos,
+                                                          const vector3 dir,
+                                                          const scalar up,
+                                                          const scalar time) {
             _track.set_pos(pos);
             _track.set_dir(dir);
             _track.set_time(time);
@@ -74,8 +74,45 @@ class base_stepper {
             _track.set_qop(new_qop);
         }
 
+        /** Get the bound state at the surface
+         *
+         * @return returning the bound track parameter
+         */
+        DETRAY_HOST_DEVICE void update_bound_parameters(
+            const transform3 &trf3) {
+
+            // Get the free vector
+            const auto &fvector = _track.vector();
+
+            // Get the bound vector
+            const auto bvector =
+                vector_engine().free_to_bound_vector(trf3, fvector);
+            _bound_params.set_vector(bvector);
+
+            // Get the bound covariance
+            const auto bcov = covariance_engine().bound_to_bound_covariance(
+                trf3, _bound_params.covariance(), fvector, _jac_to_global,
+                _jac_transport, _derivative);
+            _bound_params.set_covariance(bcov);
+
+            _prev_jac_transport = _jac_transport;
+
+            // Reset the jacobians in RK stepper state
+            covariance_engine().reinitialize_jacobians(
+                trf3, bvector, _jac_to_global, _jac_transport, _derivative);
+        }
+
         /// free track parameter
+        /// @todo: remove template parameter of track_t but use
+        /// free_track_parameter directly
         track_t _track;
+
+        /// bound track parameter
+        bound_track_parameters _bound_params;
+
+        /// previous jacobian transport matrix (for debugging)
+        free_matrix _prev_jac_transport =
+            matrix_operator().template identity<e_free_size, e_free_size>();
 
         /// jacobian transport matrix
         free_matrix _jac_transport =

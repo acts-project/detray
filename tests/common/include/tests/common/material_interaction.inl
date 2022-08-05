@@ -28,8 +28,6 @@
 // GTest include(s)
 #include <gtest/gtest.h>
 
-#include <iostream>
-
 using namespace detray;
 
 using point2 = __plugin::point2<scalar>;
@@ -286,4 +284,6 @@ TEST(material_interaction, telescope_geometry) {
     // Check if the new energy after propagation is enough close to the expected
     // value
     EXPECT_NEAR(newE, iniE - dE, 1e-5);
+
+    // @todo: Validate the backward direction case as well?
 }

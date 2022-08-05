@@ -34,13 +34,13 @@ detray::detail::covariance_engine<scalar_t>::bound_to_bound_jacobian(
 }
 
 template <typename scalar_t>
-void detray::detail::covariance_engine<scalar_t>::
-    bound_to_bound_covariance_update(
-        const transform3& trf3, bound_matrix& bound_covariance,
-        const free_vector& free_vec,
-        const bound_to_free_matrix& bound_to_free_jacobian,
-        const free_matrix& free_transport_jacobian,
-        const free_vector& free_to_path_derivative) const {
+detray::bound_matrix
+detray::detail::covariance_engine<scalar_t>::bound_to_bound_covariance(
+    const transform3& trf3, const bound_matrix& bound_covariance,
+    const free_vector& free_vec,
+    const bound_to_free_matrix& bound_to_free_jacobian,
+    const free_matrix& free_transport_jacobian,
+    const free_vector& free_to_path_derivative) const {
 
     // Get the full jacobian
     bound_matrix full_jacobian = this->bound_to_bound_jacobian(
@@ -48,8 +48,8 @@ void detray::detail::covariance_engine<scalar_t>::
         free_to_path_derivative);
 
     // Update the bound covariance
-    bound_covariance = full_jacobian * bound_covariance *
-                       matrix_operator().transpose(full_jacobian);
+    return full_jacobian * bound_covariance *
+           matrix_operator().transpose(full_jacobian);
 }
 
 template <typename scalar_t>

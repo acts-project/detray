@@ -280,35 +280,3 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
 
     return true;
 }
-
-template <typename magnetic_field_t, typename track_t, typename constraint_t,
-          typename policy_t, template <typename, std::size_t> class array_t>
-template <typename propagation_state_t>
-detray::bound_track_parameters
-detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
-                   array_t>::bound_state(propagation_state_t& propagation,
-                                         const transform3& trf3) {
-
-    auto& stepping = propagation._stepping;
-    auto& navigation = propagation._navigation;
-
-    // Get the free vector
-    const auto& free_vector = stepping().vector();
-
-    // Get the bound vector
-    const auto bound_vector =
-        vector_engine().free_to_bound_vector(trf3, free_vector);
-
-    // Get the bound covariance
-    covariance_engine().bound_to_bound_covariance_update(
-        trf3, stepping._bound_covariance, free_vector, stepping._jac_to_global,
-        stepping._jac_transport, stepping._derivative);
-
-    // Reset the jacobians in RK stepper state
-    covariance_engine().reinitialize_jacobians(
-        trf3, bound_vector, stepping._jac_to_global, stepping._jac_transport,
-        stepping._derivative);
-
-    return detray::bound_track_parameters(
-        navigation.current_object(), bound_vector, stepping._bound_covariance);
-}

@@ -55,8 +55,8 @@ struct covariance_engine {
      * @param free_to_path_derivative is the derivative of free parameter w.r.t
      * path at the destination surface
      */
-    DETRAY_HOST_DEVICE inline void bound_to_bound_covariance_update(
-        const transform3& trf3, bound_matrix& bound_covariance,
+    DETRAY_HOST_DEVICE inline bound_matrix bound_to_bound_covariance(
+        const transform3& trf3, const bound_matrix& bound_covariance,
         const free_vector& free_vec,
         const bound_to_free_matrix& bound_to_free_jacobian,
         const free_matrix& free_transport_jacobian,

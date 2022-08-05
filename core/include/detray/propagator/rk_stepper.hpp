@@ -97,14 +97,6 @@ class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation);
 
-    /** Get the bound state at the surface
-     *
-     * @return returning the bound track parameter
-     */
-    template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bound_track_parameters
-    bound_state(propagation_state_t& propagation, const transform3& trf);
-
     private:
     const magnetic_field_t _magnetic_field;
 };
