@@ -82,6 +82,7 @@ detray_add_library( detray_core core
    "include/detray/propagator/pointwise_material_interactor.hpp"
    "include/detray/propagator/propagator.hpp"
    "include/detray/propagator/rk_stepper.hpp"
+   "include/detray/propagator/surface_actor.hpp"   
    "include/detray/propagator/track.hpp"
    # tools include(s)
    "include/detray/tools/associator.hpp"
