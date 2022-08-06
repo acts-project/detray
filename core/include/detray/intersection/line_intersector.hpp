@@ -96,7 +96,14 @@ struct line_intersector {
 
         // global to local transform in cartesian coordinate
         auto loc = trf.point_to_local(is.p3);
-        is.p2[0] = getter::perp(loc);
+
+        // assign the sign depending on the position w.r.t line surface
+        // Right: -1
+        // Left: 1
+        const auto r = vector::cross(_z, _d);
+        const scalar sign = vector::dot(r, t2l) > 0. ? -1. : 1.;
+
+        is.p2[0] = sign * getter::perp(loc);
         is.p2[1] = B;
 
         is.status = mask.is_inside(loc, mask_tolerance);
