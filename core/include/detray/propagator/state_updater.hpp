@@ -44,6 +44,7 @@ struct bound_state_updater : actor {
             // Get free vector
             const auto &fvector = stepping().vector();
 
+            /*
             printf("after free to bound: \n");
 
             printf("trf3 \n");
@@ -78,11 +79,13 @@ struct bound_state_updater : actor {
                    matrix_operator().element(fvector, 5, 0),
                    matrix_operator().element(fvector, 6, 0),
                    matrix_operator().element(fvector, 7, 0));
+            */
 
             // Update bound vector
             const auto bvector =
                 vector_engine().free_to_bound_vector(trf3, fvector);
 
+            /*
             printf("%f %f %f %f %f %f \n",
                    matrix_operator().element(bvector, 0, 0),
                    matrix_operator().element(bvector, 1, 0),
@@ -90,6 +93,7 @@ struct bound_state_updater : actor {
                    matrix_operator().element(bvector, 3, 0),
                    matrix_operator().element(bvector, 4, 0),
                    matrix_operator().element(bvector, 5, 0));
+            */
 
             stepping._bound_params.set_vector(bvector);
 
@@ -147,6 +151,7 @@ struct free_state_updater : actor {
 
             stepping().set_vector(fvector);
 
+            /*
             printf("after bound to free: \n");
 
             printf("%f %f %f %f %f %f %f %f \n",
@@ -166,6 +171,7 @@ struct free_state_updater : actor {
                    matrix_operator().element(bvector, 3, 0),
                    matrix_operator().element(bvector, 4, 0),
                    matrix_operator().element(bvector, 5, 0));
+            */
 
             // Update free cov
             const auto &bcov = stepping._bound_params.covariance();
