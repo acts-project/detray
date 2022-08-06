@@ -167,6 +167,21 @@ TEST(tools, bound_track_parameters) {
                         std::sin(getter::element(param2, e_bound_theta, 0)));
     EXPECT_FLOAT_EQ(trck2.dir()[2],
                     std::cos(getter::element(param2, e_bound_theta, 0)));
+
+    // Check if we get same bound vector after local->global->local transform
+    auto bound_vec = vector_engine().free_to_bound_vector(trf2, free_vec2);
+    EXPECT_FLOAT_EQ(matrix_operator().element(bound_vec, 0, 0),
+                    matrix_operator().element(trck2.vector(), 0, 0));
+    EXPECT_FLOAT_EQ(matrix_operator().element(bound_vec, 1, 0),
+                    matrix_operator().element(trck2.vector(), 1, 0));
+    EXPECT_FLOAT_EQ(matrix_operator().element(bound_vec, 2, 0),
+                    matrix_operator().element(trck2.vector(), 2, 0));
+    EXPECT_FLOAT_EQ(matrix_operator().element(bound_vec, 3, 0),
+                    matrix_operator().element(trck2.vector(), 3, 0));
+    EXPECT_FLOAT_EQ(matrix_operator().element(bound_vec, 4, 0),
+                    matrix_operator().element(trck2.vector(), 4, 0));
+    EXPECT_FLOAT_EQ(matrix_operator().element(bound_vec, 5, 0),
+                    matrix_operator().element(trck2.vector(), 5, 0));
 }
 
 TEST(tools, free_track_parameters) {

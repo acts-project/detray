@@ -16,7 +16,7 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/propagator/surface_actor.hpp"
+#include "detray/propagator/state_updater.hpp"
 #include "detray/propagator/track.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
@@ -77,7 +77,7 @@ struct helix_inspector : actor {
 
             const point3 relative_error{scalar{1.} / path * (pos - true_pos)};
 
-            ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
+            EXPECT_NEAR(getter::norm(relative_error), 0, epsilon);
 
             auto true_J = hlx.jacobian(path);
 
@@ -150,7 +150,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using policy_t = stepper_default_policy;
     using stepper_t = rk_stepper<b_field_t, track_t, constraints_t, policy_t>;
     using actor_chain_t =
-        actor_chain<dtuple, helix_inspector, propagation::print_inspector,
+        actor_chain<dtuple, bound_state_updater, free_state_updater,
+                    helix_inspector, propagation::print_inspector,
                     pathlimit_aborter>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
@@ -167,6 +168,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
+        printf("Start new track \n");
+
         // Genrate second track state used for propagation with pathlimit
         track_t lim_track(track);
 
@@ -176,6 +179,10 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         // Build actor states: the helix inspector can be shared
         helix_inspector::state helix_insp_state{track, B};
         helix_inspector::state lim_helix_insp_state{lim_track, B};
+
+        bound_state_updater::state bs{};
+        free_state_updater::state fs{};
+
         propagation::print_inspector::state print_insp_state{};
         propagation::print_inspector::state lim_print_insp_state{};
         pathlimit_aborter::state unlimted_aborter_state{};
@@ -183,9 +190,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
         // Create actor states tuples
         actor_chain_t::state actor_states = std::tie(
-            helix_insp_state, print_insp_state, unlimted_aborter_state);
+            bs, fs, helix_insp_state, print_insp_state, unlimted_aborter_state);
         actor_chain_t::state lim_actor_states =
-            std::tie(lim_helix_insp_state, lim_print_insp_state,
+            std::tie(bs, fs, lim_helix_insp_state, lim_print_insp_state,
                      pathlimit_aborter_state);
 
         // Init propagator states

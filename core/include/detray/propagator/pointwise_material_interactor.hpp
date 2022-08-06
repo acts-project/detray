@@ -157,11 +157,11 @@ struct pointwise_material_interactor : actor {
                                          : 1. / nextP;
 
                 // Update momentum
-                stepping().set_qop(new_qop);  // Skip free track params update?
+                // stepping().set_qop(new_qop); // Skip free track update?
 
                 auto &bvec = stepping._bound_params.vector();
-                // auto& bcov = stepping._bound_params.covariance();
                 matrix_operator().element(bvec, e_bound_qoverp, 0) = new_qop;
+                // auto& bcov = stepping._bound_params.covariance();
             }
         }
     }

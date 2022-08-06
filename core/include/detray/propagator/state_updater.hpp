@@ -23,7 +23,7 @@ struct bound_state_updater : actor {
     struct state {};
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state &t_state,
+    DETRAY_HOST_DEVICE void operator()(state & /*t_state*/,
                                        propagator_state_t &propagation) const {
 
         auto &navigation = propagation._navigation;
@@ -44,9 +44,52 @@ struct bound_state_updater : actor {
             // Get free vector
             const auto &fvector = stepping().vector();
 
+            printf("after free to bound: \n");
+
+            printf("trf3 \n");
+            printf("%d \n", sf_idx);
+            printf("%f %f %f %f \n",
+                   matrix_operator().element(trf3.matrix(), 0, 0),
+                   matrix_operator().element(trf3.matrix(), 1, 0),
+                   matrix_operator().element(trf3.matrix(), 2, 0),
+                   matrix_operator().element(trf3.matrix(), 3, 0));
+            printf("%f %f %f %f \n",
+                   matrix_operator().element(trf3.matrix(), 0, 1),
+                   matrix_operator().element(trf3.matrix(), 1, 1),
+                   matrix_operator().element(trf3.matrix(), 2, 1),
+                   matrix_operator().element(trf3.matrix(), 3, 1));
+            printf("%f %f %f %f \n",
+                   matrix_operator().element(trf3.matrix(), 0, 2),
+                   matrix_operator().element(trf3.matrix(), 1, 2),
+                   matrix_operator().element(trf3.matrix(), 2, 2),
+                   matrix_operator().element(trf3.matrix(), 3, 2));
+            printf("%f %f %f %f \n",
+                   matrix_operator().element(trf3.matrix(), 0, 3),
+                   matrix_operator().element(trf3.matrix(), 1, 3),
+                   matrix_operator().element(trf3.matrix(), 2, 3),
+                   matrix_operator().element(trf3.matrix(), 3, 3));
+
+            printf("%f %f %f %f %f %f %f %f \n",
+                   matrix_operator().element(fvector, 0, 0),
+                   matrix_operator().element(fvector, 1, 0),
+                   matrix_operator().element(fvector, 2, 0),
+                   matrix_operator().element(fvector, 3, 0),
+                   matrix_operator().element(fvector, 4, 0),
+                   matrix_operator().element(fvector, 5, 0),
+                   matrix_operator().element(fvector, 6, 0),
+                   matrix_operator().element(fvector, 7, 0));
+
             // Update bound vector
             const auto bvector =
                 vector_engine().free_to_bound_vector(trf3, fvector);
+
+            printf("%f %f %f %f %f %f \n",
+                   matrix_operator().element(bvector, 0, 0),
+                   matrix_operator().element(bvector, 1, 0),
+                   matrix_operator().element(bvector, 2, 0),
+                   matrix_operator().element(bvector, 3, 0),
+                   matrix_operator().element(bvector, 4, 0),
+                   matrix_operator().element(bvector, 5, 0));
 
             stepping._bound_params.set_vector(bvector);
 
@@ -79,7 +122,7 @@ struct free_state_updater : actor {
     struct state {};
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state &t_state,
+    DETRAY_HOST_DEVICE void operator()(state & /*t_state*/,
                                        propagator_state_t &propagation) const {
 
         auto &navigation = propagation._navigation;
@@ -104,21 +147,38 @@ struct free_state_updater : actor {
 
             stepping().set_vector(fvector);
 
+            printf("after bound to free: \n");
+
+            printf("%f %f %f %f %f %f %f %f \n",
+                   matrix_operator().element(fvector, 0, 0),
+                   matrix_operator().element(fvector, 1, 0),
+                   matrix_operator().element(fvector, 2, 0),
+                   matrix_operator().element(fvector, 3, 0),
+                   matrix_operator().element(fvector, 4, 0),
+                   matrix_operator().element(fvector, 5, 0),
+                   matrix_operator().element(fvector, 6, 0),
+                   matrix_operator().element(fvector, 7, 0));
+
+            printf("%f %f %f %f %f %f \n",
+                   matrix_operator().element(bvector, 0, 0),
+                   matrix_operator().element(bvector, 1, 0),
+                   matrix_operator().element(bvector, 2, 0),
+                   matrix_operator().element(bvector, 3, 0),
+                   matrix_operator().element(bvector, 4, 0),
+                   matrix_operator().element(bvector, 5, 0));
+
             // Update free cov
             const auto &bcov = stepping._bound_params.covariance();
             const auto bound_to_free_jacobian =
-                jacobian_engine().bound_to_free_coordinate(trf3, fvector);
+                jacobian_engine().bound_to_free_coordinate(trf3, bvector);
 
-            const auto fcov = bound_to_free_jacobian * bcov *
-                              bound_to_free_jacobian.transpose();
+            const auto fcov =
+                bound_to_free_jacobian * bcov *
+                matrix_operator().transpose(bound_to_free_jacobian);
 
             stepping().set_covariance(fcov);
         }
     }
 };
-
-template <typename composite_actor_type>
-using surface_actor = actor_chain<dtuple, bound_state_updater,
-                                  composite_actor_type, free_state_updater>;
 
 }  // namespace detray
