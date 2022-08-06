@@ -61,47 +61,6 @@ class base_stepper {
                 _derivative);
         }
 
-        /// Update free track parameters
-        DETRAY_HOST_DEVICE inline void update_free_vector(const vector3 pos,
-                                                          const vector3 dir,
-                                                          const scalar up,
-                                                          const scalar time) {
-            _track.set_pos(pos);
-            _track.set_dir(dir);
-            _track.set_time(time);
-            const auto q = _track.charge();
-            const auto new_qop = q != 0. ? q / up : 1. / up;
-            _track.set_qop(new_qop);
-        }
-
-        /** Get the bound state at the surface
-         *
-         * @return returning the bound track parameter
-         */
-        DETRAY_HOST_DEVICE void update_bound_parameters(
-            const transform3 &trf3) {
-
-            // Get the free vector
-            const auto &fvector = _track.vector();
-
-            // Get the bound vector
-            const auto bvector =
-                vector_engine().free_to_bound_vector(trf3, fvector);
-            _bound_params.set_vector(bvector);
-
-            // Get the bound covariance
-            const auto bcov = covariance_engine().bound_to_bound_covariance(
-                trf3, _bound_params.covariance(), fvector, _jac_to_global,
-                _jac_transport, _derivative);
-            _bound_params.set_covariance(bcov);
-
-            _prev_jac_transport = _jac_transport;
-
-            // Reset the jacobians in RK stepper state
-            covariance_engine().reinitialize_jacobians(
-                trf3, bvector, _jac_to_global, _jac_transport, _derivative);
-        }
-
         /// free track parameter
         /// @todo: remove template parameter of track_t but use
         /// free_track_parameter directly

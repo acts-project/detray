@@ -24,7 +24,7 @@ struct bound_state_updater : actor {
 
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state &t_state,
-                                       propagator_state_t &proppagation) const {
+                                       propagator_state_t &propagation) const {
 
         auto &navigation = propagation._navigation;
 
@@ -52,7 +52,7 @@ struct bound_state_updater : actor {
 
             // Update bound covariance
             const auto bcov = covariance_engine().bound_to_bound_covariance(
-                trf3, bound_params.covariance(), fvector,
+                trf3, stepping._bound_params.covariance(), fvector,
                 stepping._jac_to_global, stepping._jac_transport,
                 stepping._derivative);
 
@@ -106,7 +106,7 @@ struct free_state_updater : actor {
 
             // Update free cov
             const auto &bcov = stepping._bound_params.covariance();
-            bound_to_free_jacobian =
+            const auto bound_to_free_jacobian =
                 jacobian_engine().bound_to_free_coordinate(trf3, fvector);
 
             const auto fcov = bound_to_free_jacobian * bcov *

@@ -33,6 +33,8 @@ using mag_field_t = constant_magnetic_field<>;
 using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
 using crk_stepper_t =
     rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
+using covariance_engine = detail::covariance_engine<scalar>;
+using vector_engine = covariance_engine::vector_engine;
 
 namespace {
 
@@ -227,19 +229,6 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
         // Make sure that relative error is smaller than epsion
         EXPECT_NEAR(getter::norm(backward_relative_error), 0, epsilon);
-
-        // Test update function
-        point3 new_pos{1., 2., 3.};
-        vector3 new_dir{0., 0., 1.};
-        scalar new_time = 10.;
-        scalar new_p = 10.;
-
-        crk_state.update_free_vector(new_pos, new_dir, new_p, new_time);
-
-        EXPECT_EQ(crk_state._track.pos(), vector3({1., 2., 3.}));
-        EXPECT_EQ(crk_state._track.dir(), vector3({0., 0., 1.}));
-        EXPECT_FLOAT_EQ(crk_state._track.qop(), -0.1);
-        EXPECT_FLOAT_EQ(crk_state._track.time(), 10.);
     }
 }
 
@@ -346,7 +335,21 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
      */
 
     // Bound state after one turn propagation
-    crk_state.update_bound_parameters(trf);
+
+    // Get the free vector
+    const auto &fvector = crk_state().vector();
+
+    // Get the bound vector
+    const auto bvector = vector_engine().free_to_bound_vector(trf, fvector);
+    crk_state._bound_params.set_vector(bvector);
+
+    // Get the bound covariance
+    const auto bcov = covariance_engine().bound_to_bound_covariance(
+        trf, crk_state._bound_params.covariance(), fvector,
+        crk_state._jac_to_global, crk_state._jac_transport,
+        crk_state._derivative);
+    crk_state._bound_params.set_covariance(bcov);
+
     const auto bound_param1 = crk_state._bound_params;
 
     const auto bound_vec0 = bound_param0.vector();

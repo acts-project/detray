@@ -5,10 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <vecmem/memory/host_memory_resource.hpp>
-
+// Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -19,11 +16,18 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
+#include "detray/propagator/surface_actor.hpp"
 #include "detray/propagator/track.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/track_generators.hpp"
+
+// Vecmem include(s).
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// GTest include(s).
+#include <gtest/gtest.h>
 
 using namespace detray;
 
