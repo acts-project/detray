@@ -48,7 +48,6 @@ option( DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" ON )
 option( DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF )
 option( DETRAY_VC_PLUGIN "Build Vc based math plugin" ON )
 option( DETRAY_IO_CSV "Build CSV IO module" ON )
-option( DETRAY_DISPLAY "Build matplot++ based display module" OFF )
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
 option( DETRAY_BUILD_TESTING "Build the (unit) tests of Detray"
@@ -105,20 +104,6 @@ if( DETRAY_SETUP_DFELIBS )
    endif()
 endif()
 
-# Set up Matplot++.
-option( DETRAY_SETUP_MATPLOTPP
-   "Set up the Matplot++ target(s) explicitly" FALSE )
-option( DETRAY_USE_SYSTEM_MATPLOTPP
-   "Pick up an existing installation of Matplot++ from the build environment"
-   FALSE )
-if( DETRAY_SETUP_MATPLOTPP )
-   if( DETRAY_USE_SYSTEM_MATPLOTPP )
-      find_package( Matplot++ REQUIRED )
-   else()
-      add_subdirectory( extern/matplotplusplus )
-   endif()
-endif()
-
 # Set up Thrust.
 option( DETRAY_SETUP_THRUST
    "Set up the Thrust target(s) explicitly" TRUE )
@@ -171,12 +156,6 @@ endif()
 add_subdirectory( core )
 add_subdirectory( plugins )
 add_subdirectory( io )
-if( DETRAY_DISPLAY )
-   add_subdirectory( display )
-endif()
-
-# Set up the project's applications.
-add_subdirectory( apps )
 
 # Set up the test(s).
 include( CTest )
