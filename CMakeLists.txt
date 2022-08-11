@@ -48,6 +48,7 @@ option( DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" ON )
 option( DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF )
 option( DETRAY_VC_PLUGIN "Build Vc based math plugin" ON )
 option( DETRAY_IO_CSV "Build CSV IO module" ON )
+option( DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
 option( DETRAY_BUILD_TESTING "Build the (unit) tests of Detray"
@@ -89,6 +90,21 @@ if( DETRAY_SETUP_ALGEBRA_PLUGINS )
       add_subdirectory( extern/algebra-plugins )
    endif()
 endif()
+
+# Set up ACTSVG for diaplaying
+option( DETRAY_SETUP_ACTSVG
+   "Set up the actsvg target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_ACTSVG
+   "Pick up an existing installation of dfelibs from the build environment"
+   FALSE )
+if( DETRAY_SETUP_ACTSVG )
+   if( DETRAY_USE_SYSTEM_ACTSVG )
+      find_package( actsvg::core actsvg::meta REQUIRED )
+   else()
+      add_subdirectory( extern/actsvg )
+   endif()
+endif()
+
 
 # Set up dfelibs.
 option( DETRAY_SETUP_DFELIBS
