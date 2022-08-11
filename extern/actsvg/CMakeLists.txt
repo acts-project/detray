@@ -11,7 +11,7 @@ include( FetchContent )
 # Tell the user what's happening.
 message( STATUS "Building actsvg as part of the Detray project" )
 
-# Declare where to get VecMem from.
+# Declare where to get Actsvg from.
 set( DETRAY_ACTSVG_GIT_REPOSITORY "https://github.com/acts-project/actsvg.git"
    CACHE STRING "Git repository to take actsvg from" )
 set( DETRAY_ACTSVG_GIT_TAG "v0.4.19" CACHE STRING "Version of actsvg to build" )

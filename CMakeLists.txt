@@ -91,7 +91,7 @@ if( DETRAY_SETUP_ALGEBRA_PLUGINS )
    endif()
 endif()
 
-# Set up ACTSVG for diaplaying
+# Set up ACTSVG for displaying
 option( DETRAY_SETUP_ACTSVG
    "Set up the actsvg target(s) explicitly" TRUE )
 option( DETRAY_USE_SYSTEM_ACTSVG
