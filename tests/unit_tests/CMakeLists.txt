@@ -21,3 +21,5 @@ endif()
 if( DETRAY_BUILD_CUDA )
    add_subdirectory( cuda )
 endif()
+
+add_subdirectory( covfie )
