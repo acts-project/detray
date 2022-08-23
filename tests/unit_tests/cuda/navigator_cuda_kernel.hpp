@@ -25,6 +25,7 @@
 
 using namespace detray;
 
+using transform3 = __plugin::transform3<scalar>;
 using intersection_t = line_plane_intersection;
 
 // some useful type declarations
@@ -36,7 +37,7 @@ using detector_device_t =
              vecmem::device_vector, vecmem::jagged_device_vector>;
 using navigator_host_t = navigator<detector_host_t>;
 using navigator_device_t = navigator<detector_device_t>;
-using stepper_t = line_stepper<free_track_parameters>;
+using stepper_t = line_stepper<transform3>;
 using nav_context = detector_host_t::context;
 
 // detector configuration
@@ -62,7 +63,7 @@ namespace detray {
 /// test function for navigator with single state
 void navigator_test(
     detector_view<detector_host_t> det_data,
-    vecmem::data::vector_view<free_track_parameters>& tracks_data,
+    vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data);

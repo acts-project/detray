@@ -18,7 +18,7 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/particle_gun.hpp"
@@ -35,6 +35,10 @@ using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
 
 }  // anonymous namespace
 
+using transform3_type = __plugin::transform3<scalar>;
+using ray_type = detail::ray<transform3_type>;
+using free_track_parameters_type = free_track_parameters<transform3_type>;
+
 /// This test runs intersection with all portals of the toy detector with a ray
 /// and then compares the intersection trace with a straight line navigation.
 TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
@@ -48,7 +52,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     // Straight line navigation
     using navigator_t = navigator<decltype(det), inspector_t>;
     using stepper_t =
-        line_stepper<free_track_parameters, unconstrained_step, always_init>;
+        line_stepper<transform3_type, unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
@@ -62,7 +66,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
     // Iterate through uniformly distributed momentum directions
     for (const auto ray :
-         uniform_track_generator<detail::ray>(theta_steps, phi_steps, ori)) {
+         uniform_track_generator<ray_type>(theta_steps, phi_steps, ori)) {
 
         // Shoot ray through the detector and record all surfaces it encounters
         const auto intersection_trace =
@@ -70,7 +74,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
         // Now follow that ray with a track and check, if we find the same
         // volumes and distances along the way
-        free_track_parameters track(ray.pos(), 0, ray.dir(), -1);
+        free_track_parameters_type track(ray.pos(), 0, ray.dir(), -1);
         propagator_t::state propagation(track);
 
         // Retrieve navigation information
@@ -129,8 +133,8 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     // Runge-Kutta based navigation
     using navigator_t = navigator<decltype(det), inspector_t>;
     using b_field_t = constant_magnetic_field<>;
-    using stepper_t = rk_stepper<b_field_t, free_track_parameters,
-                                 unconstrained_step, always_init>;
+    using stepper_t =
+        rk_stepper<b_field_t, transform3_type, unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
@@ -150,7 +154,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     constexpr scalar overstep_tol{-7. * unit_constants::um};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : uniform_track_generator<free_track_parameters>(
+    for (auto track : uniform_track_generator<free_track_parameters_type>(
              theta_steps, phi_steps, ori, p_mag)) {
         // Prepare for overstepping in the presence of b fields
         track.set_overstep_tolerance(overstep_tol);

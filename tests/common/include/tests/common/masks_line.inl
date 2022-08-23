@@ -10,8 +10,8 @@
 #include "detray/masks/line.hpp"
 
 using namespace detray;
+using transform3 = __plugin::transform3<scalar>;
 using point3 = __plugin::point3<scalar>;
-using cartesian = __plugin::cartesian2<detray::scalar>;
 
 // This tests the basic function of a line
 TEST(mask, line_radial_scope) {
@@ -40,7 +40,8 @@ TEST(mask, line_square_scope) {
     const point3 ln_out{1.1, 0., 0};
 
     // 50 mm wire with 1 mm square cell size
-    const line<cartesian, dindex, true> ln{1., 50., 0u};
+    const line<transform3, line_intersector, cartesian2, dindex, true> ln{
+        1., 50., 0u};
 
     ASSERT_FLOAT_EQ(ln[0], 1.);
     ASSERT_FLOAT_EQ(ln[1], 50.);

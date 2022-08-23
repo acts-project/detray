@@ -10,7 +10,7 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/line_intersector.hpp"
 #include "detray/masks/line.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -23,11 +23,12 @@
 using namespace detray;
 
 // Three-dimensional definitions
-using cartesian = __plugin::cartesian2<detray::scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
+using cartesian = cartesian2<transform3>;
 using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 using point2 = __plugin::point2<scalar>;
+using line_intersector_type = line_intersector<transform3>;
 constexpr scalar tolerance = 1e-5;
 
 // Test simplest case
@@ -42,7 +43,7 @@ TEST(tools, line_intersector_case1) {
     const transform3 tf{t, x, y, z};
 
     // Create a track
-    std::vector<free_track_parameters> trks;
+    std::vector<free_track_parameters<transform3>> trks;
     trks.emplace_back(point3{1, -1, 0}, 0, vector3{0, 1, 0}, -1);
     trks.emplace_back(point3{-1, -1, 0}, 0, vector3{0, 1, 0}, -1);
     trks.emplace_back(point3{1, -1, 2}, 0, vector3{0, 1, -1}, -1);
@@ -51,10 +52,10 @@ TEST(tools, line_intersector_case1) {
     const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
-    std::vector<line_intersector::intersection_type> is(3);
-    is[0] = line_intersector()(detail::ray(trks[0]), ln, tf)[0];
-    is[1] = line_intersector()(detail::ray(trks[1]), ln, tf)[0];
-    is[2] = line_intersector()(detail::ray(trks[2]), ln, tf)[0];
+    std::vector<line_intersector_type::intersection_type> is(3);
+    is[0] = line_intersector_type()(detail::ray(trks[0]), ln, tf)[0];
+    is[1] = line_intersector_type()(detail::ray(trks[1]), ln, tf)[0];
+    is[2] = line_intersector_type()(detail::ray(trks[2]), ln, tf)[0];
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
     EXPECT_EQ(is[0].path, 1);
@@ -89,15 +90,15 @@ TEST(tools, line_intersector_case2) {
     // Create a track
     const point3 pos{1, -1, 0};
     const vector3 dir{0, 1, 0};
-    const free_track_parameters trk(pos, 0, dir, -1);
+    const free_track_parameters<transform3> trk(pos, 0, dir, -1);
 
     // Infinite wire with 10 mm
     // radial cell size
     const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
-    const line_intersector::intersection_type is =
-        line_intersector()(detail::ray(trk), ln, tf)[0];
+    const line_intersector_type::intersection_type is =
+        line_intersector_type()(detail::ray<transform3>(trk), ln, tf)[0];
 
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_FLOAT_EQ(is.path, 2.);
@@ -119,7 +120,7 @@ TEST(tools, line_intersector_square_scope) {
     const transform3 tf{t, x, y, z};
 
     /// Create a track
-    std::vector<free_track_parameters> trks;
+    std::vector<free_track_parameters<transform3>> trks;
     trks.emplace_back(point3{2, 0, 0}, 0, vector3{-1, 1, 0}, -1);
     trks.emplace_back(point3{1.9, 0, 0}, 0, vector3{-1, 1, 0}, -1);
     trks.emplace_back(point3{2.1, 0, 0}, 0, vector3{-1, 1, 0}, -1);
@@ -137,13 +138,14 @@ TEST(tools, line_intersector_square_scope) {
     trks.emplace_back(point3{0, -2.1, 0}, 0, vector3{1, 1, 0}, -1);
 
     // Infinite wire with 1 mm square cell size
-    line<cartesian, dindex, true> ln{
+    line<transform3, line_intersector, cartesian2, dindex, true> ln{
         1., std::numeric_limits<scalar>::infinity(), 0u};
 
     // Test intersect
     std::vector<line_plane_intersection> is;
     for (const auto& trk : trks) {
-        is.push_back(line_intersector()(detail::ray(trk), ln, tf, 1e-5)[0]);
+        is.push_back(line_intersector_type()(detail::ray<transform3>(trk), ln,
+                                             tf, 1e-5)[0]);
     }
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);

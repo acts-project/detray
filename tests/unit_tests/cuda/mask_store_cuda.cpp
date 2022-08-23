@@ -15,8 +15,6 @@
 
 TEST(mask_store_cuda, mask_store) {
 
-    using cartesian2 = __plugin::cartesian2<detray::scalar>;
-
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
@@ -74,15 +72,15 @@ TEST(mask_store_cuda, mask_store) {
     /** get host results from is_inside function **/
     for (int i = 0; i < n_points; i++) {
         output_host[0].push_back(
-            rectangle_mask.is_inside<cartesian2>(input_point2[i]));
+            rectangle_mask.is_inside<cartesian2<transform3>>(input_point2[i]));
         output_host[1].push_back(
-            trapezoid_mask.is_inside<cartesian2>(input_point2[i]));
+            trapezoid_mask.is_inside<cartesian2<transform3>>(input_point2[i]));
         output_host[2].push_back(
-            ring_mask.is_inside<cartesian2>(input_point2[i]));
+            ring_mask.is_inside<cartesian2<transform3>>(input_point2[i]));
         output_host[3].push_back(
-            cylinder_mask.is_inside<cartesian2>(input_point3[i]));
+            cylinder_mask.is_inside<cartesian2<transform3>>(input_point3[i]));
         output_host[4].push_back(
-            annulus_mask.is_inside<cartesian2>(input_point2[i]));
+            annulus_mask.is_inside<cartesian2<transform3>>(input_point2[i]));
     }
 
     /** Helper object for performing memory copies. **/

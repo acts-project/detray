@@ -39,9 +39,11 @@ enum material_ids : unsigned int {
     e_slab = 0,
 };
 
-using mask_defs =
-    tuple_vector_registry<mask_ids, rectangle2<>, cylinder3<>,
-                          cylinder3<concentric_cylinder_intersector>>;
+using cylinder3_t = cylinder3<>;
+
+using mask_defs = tuple_vector_registry<
+    mask_ids, rectangle2<>, cylinder3<>,
+    cylinder3<transform3, concentric_cylinder_intersector>>;
 
 using material_defs =
     tuple_vector_registry<material_ids, material_slab<scalar>>;
@@ -69,7 +71,7 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
         benchmark::DoNotOptimize(sfmiss);
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto ray : uniform_track_generator<detail::ray>(
+        for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
                  theta_steps, phi_steps, ori, 1.)) {
 
             for (const auto &plane : planes) {
@@ -137,7 +139,7 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
                 const vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                                   cos_theta};
 
-                const detail::ray ray(ori, 0., dir, 0.);
+                const detail::ray<transform3> ray(ori, 0., dir, 0.);
 
                 for (const auto &cylinder : cylinders) {
                     auto ci = cylinder.intersector();
@@ -201,7 +203,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
                 const vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
                                   cos_theta};
 
-                const detail::ray ray(ori, 0., dir, 0.);
+                const detail::ray<transform3> ray(ori, 0., dir, 0.);
 
                 for (const auto &cylinder : cylinders) {
                     auto cci = cylinder.intersector();

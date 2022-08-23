@@ -19,13 +19,14 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 namespace {
 
@@ -37,11 +38,10 @@ struct helix_inspector : actor {
 
     /// Keeps the state of a helix gun to calculate track positions
     struct state {
-        state(detail::helix &&h) : _helix(h) {}
-        detail::helix _helix;
+        state(detail::helix<transform3> &&h) : _helix(h) {}
+        detail::helix<transform3> _helix;
     };
 
-    using size_type = __plugin::size_type;
     using matrix_operator = standard_matrix_operator<scalar>;
 
     /// Check that the stepper remains on the right helical track for its pos.
@@ -64,8 +64,8 @@ struct helix_inspector : actor {
         ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
 
         auto true_J = inspector_state._helix.jacobian(stepping.path_length());
-        for (size_type i = 0; i < e_free_size; i++) {
-            for (size_type j = 0; j < e_free_size; j++) {
+        for (std::size_t i = 0; i < e_free_size; i++) {
+            for (std::size_t j = 0; j < e_free_size; j++) {
                 ASSERT_NEAR(
                     matrix_operator().element(stepping._jac_transport, i, j),
                     matrix_operator().element(true_J, i, j),
@@ -84,12 +84,12 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     const auto d = create_toy_geometry(host_mr);
 
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
-    using stepper_t = line_stepper<free_track_parameters>;
+    using stepper_t = line_stepper<transform3>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     const point3 pos{0., 0., 0.};
     const vector3 mom{1., 1., 0.};
-    free_track_parameters track(pos, 0, mom, -1);
+    free_track_parameters<transform3> track(pos, 0, mom, -1);
 
     propagator_t p(stepper_t{}, navigator_t{d});
 
@@ -124,10 +124,11 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     // using navigator_t = navigator<decltype(d), navigation::print_inspector>;
     using navigator_t = navigator<decltype(d)>;
     using b_field_t = constant_magnetic_field<>;
-    using track_t = free_track_parameters;
+    using track_t = free_track_parameters<transform3>;
     using constraints_t = constrained_step<>;
     using policy_t = stepper_default_policy;
-    using stepper_t = rk_stepper<b_field_t, track_t, constraints_t, policy_t>;
+    using stepper_t =
+        rk_stepper<b_field_t, transform3, constraints_t, policy_t>;
     using actor_chain_t =
         actor_chain<dtuple, helix_inspector, propagation::print_inspector,
                     pathlimit_aborter>;

@@ -7,13 +7,14 @@
 
 #pragma once
 
-// detray include(s)
+// Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/detail/covariance_engine.hpp"
 #include "detray/propagator/navigation_policies.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
+#include "detray/utils/column_wise_operator.hpp"
 
 namespace detray {
 
@@ -22,34 +23,40 @@ namespace detray {
 /// @tparam magnetic_field_t the type of magnetic field
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
-template <typename magnetic_field_t, typename track_t,
+template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t = unconstrained_step,
           typename policy_t = stepper_default_policy,
           template <typename, std::size_t> class array_t = darray>
-class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
+class rk_stepper final
+    : public base_stepper<transform3_t, constraint_t, policy_t> {
 
     public:
-    using base_type = base_stepper<track_t, constraint_t, policy_t>;
+    using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
+    using transform3_type = transform3_t;
     using policy_type = policy_t;
-    using point3 = __plugin::point3<scalar>;
-    using vector2 = __plugin::vector2<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
+    using point3 = typename transform3_type::point3;
+    using vector2 = typename transform3_type::point2;
+    using vector3 = typename transform3_type::vector3;
     using context_type = typename magnetic_field_t::context_type;
     using matrix_operator = typename base_type::matrix_operator;
     using covariance_engine = typename base_type::covariance_engine;
-    using vector_engine = typename covariance_engine::vector_engine;
-    using transform3 = typename covariance_engine::transform3;
+    using column_wise_op = column_wise_operator<matrix_operator>;
+
+    using free_track_parameters_type =
+        typename base_type::free_track_parameters_type;
+    using bound_track_parameters_type =
+        typename base_type::bound_track_parameters_type;
 
     DETRAY_HOST_DEVICE
     rk_stepper(const magnetic_field_t mag_field) : _magnetic_field(mag_field) {}
 
     struct state : public base_type::state {
         DETRAY_HOST_DEVICE
-        state(const track_t& t) : base_type::state(t) {}
+        state(const free_track_parameters_type& t) : base_type::state(t) {}
 
         DETRAY_HOST_DEVICE
-        state(const bound_track_parameters& bound_params,
-              const transform3& trf3)
+        state(const bound_track_parameters_type& bound_params,
+              const transform3_type& trf3)
             : base_type::state(bound_params, trf3) {}
 
         /// error tolerance
@@ -102,8 +109,8 @@ class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
      * @return returning the bound track parameter
      */
     template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bound_track_parameters
-    bound_state(propagation_state_t& propagation, const transform3& trf);
+    DETRAY_HOST_DEVICE bound_track_parameters_type bound_state(
+        propagation_state_t& /*propagation*/, const transform3_type& /*trf*/);
 
     private:
     const magnetic_field_t _magnetic_field;

@@ -5,19 +5,24 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <vecmem/memory/host_memory_resource.hpp>
-
+// Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/particle_gun.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
+// VecMem include(s).
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// GTest include(s).
+#include <gtest/gtest.h>
+
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
+
+using transform3_type = __plugin::transform3<scalar>;
 
 constexpr const scalar epsilon = 1e-3;
 
@@ -38,7 +43,8 @@ TEST(tools, particle_gun) {
         expected;
     //  Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray :
-         uniform_track_generator<detail::ray>(theta_steps, phi_steps, ori)) {
+         uniform_track_generator<detail::ray<transform3_type>>(
+             theta_steps, phi_steps, ori)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
@@ -52,7 +58,8 @@ TEST(tools, particle_gun) {
                     epsilon * unit_constants::T};
     // Iterate through uniformly distributed momentum directions with helix
     std::size_t n_tracks{0};
-    for (const auto track : uniform_track_generator<free_track_parameters>(
+    for (const auto track :
+         uniform_track_generator<free_track_parameters<transform3_type>>(
              theta_steps, phi_steps, ori)) {
         const detail::helix test_helix(track, &B);
 

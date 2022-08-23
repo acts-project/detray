@@ -13,12 +13,13 @@
 
 namespace detray {
 
-template <typename intersector_t, typename local_t, typename links_t,
+template <typename transform3_t, template <class> typename intersector_t,
+          template <class> typename local_t, typename links_t,
           template <typename, std::size_t> class array_t, std::size_t kDIM>
 class mask_base {
     public:
-    using intersector_type = intersector_t;
-    using local_type = local_t;
+    using intersector_type = intersector_t<transform3_t>;
+    using local_type = local_t<transform3_t>;
     using links_type = links_t;
 
     template <typename T, std::size_t I>
@@ -31,6 +32,12 @@ class mask_base {
     DETRAY_HOST_DEVICE
     mask_base(const mask_values& val, const links_type& links)
         : _values(val), _links(links) {}
+
+    DETRAY_HOST_DEVICE
+    mask_base& operator=(const mask_values& rhs) {
+        this->_values = rhs;
+        return (*this);
+    }
 
     /** Equality operator from an array, convenience function
      *
