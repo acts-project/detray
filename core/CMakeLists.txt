@@ -93,7 +93,6 @@ detray_add_library( detray_core core
    "include/detray/tools/local_object_finder.hpp"
    # tracks include(s)
    "include/detray/tracks/detail/track_helper.hpp"
-   "include/detray/tracks/detail/trigonometrics.hpp"
    "include/detray/tracks/bound_track_parameters.hpp"
    "include/detray/tracks/free_track_parameters.hpp"
    "include/detray/tracks/tracks.hpp"

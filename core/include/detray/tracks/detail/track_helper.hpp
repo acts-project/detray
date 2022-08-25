@@ -10,7 +10,6 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
-#include "detray/tracks/detail/trigonometrics.hpp"
 
 // System include(s).
 #include <cmath>
@@ -38,8 +37,6 @@ struct track_helper {
     using point3 = vector3;
     /// Point in 2D space
     using point2 = array_type<2>;
-    /// Trigonometrics
-    using trigonometrics = detail::trigonometrics<scalar_type>;
 
     /// Track vector types
     using bound_vector = matrix_type<e_bound_size, 1>;
@@ -87,29 +84,6 @@ struct track_helper {
         const auto sinTheta = std::sin(theta);
 
         return {std::cos(phi) * sinTheta, std::sin(phi) * sinTheta, cosTheta};
-    }
-
-    DETRAY_HOST_DEVICE
-    inline trigonometrics get_trigonometrics(
-        const bound_vector& bound_vec) const {
-        const scalar_type theta =
-            matrix_actor().element(bound_vec, e_bound_theta, 0);
-        const scalar_type phi =
-            matrix_actor().element(bound_vec, e_bound_phi, 0);
-
-        return {std::cos(theta), std::sin(theta), std::cos(phi), std::sin(phi)};
-    }
-
-    DETRAY_HOST_DEVICE
-    inline trigonometrics get_trigonometrics(
-        const free_vector& free_vec) const {
-
-        const vector3 dir = this->dir(free_vec);
-
-        const scalar_type theta = getter::theta(dir);
-        const scalar_type phi = getter::phi(dir);
-
-        return {std::cos(theta), std::sin(theta), std::cos(phi), std::sin(phi)};
     }
 };
 

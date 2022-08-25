@@ -22,28 +22,30 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     /// @name Type definitions for the struct
     /// @{
 
-    /// Base type
+    // Base type
     using base_type = coordinate_base<polar2, transform3_t>;
-    /// Sclar type
+    // Sclar type
     using scalar_type = typename base_type::scalar_type;
-    /// Point in 2D space
+    // Point in 2D space
     using point2 = typename base_type::point2;
-    /// Point in 3D space
+    // Point in 3D space
     using point3 = typename base_type::point3;
-    /// Vector in 3D space
+    // Vector in 3D space
     using vector3 = typename base_type::vector3;
-    /// Matrix actor
+    // Matrix actor
     using matrix_actor = typename base_type::matrix_actor;
-    /// Matrix size type
+    // Matrix size type
     using size_type = typename base_type::size_type;
-    /// 2D matrix type
+    // 2D matrix type
     template <size_type ROWS, size_type COLS>
     using matrix_type = typename base_type::template matrix_type<ROWS, COLS>;
-    // Trigonometrics
-    using trigonometrics = typename base_type::trigonometrics;
+    // Rotation Matrix
+    using rotation_matrix = typename base_type::rotation_matrix;
     // Vector types
     using bound_vector = typename base_type::bound_vector;
     using free_vector = typename base_type::free_vector;
+    // Track Helper
+    using track_helper = typename base_type::track_helper;
 
     /** This method transform from a point from 2D cartesian frame to a 2D
      * polar point */
@@ -80,18 +82,82 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         return trf.point_to_global(point3{x, y, 0.});
     }
 
-    DETRAY_HOST_DEVICE
-    inline matrix_type<3, 2> bound_to_free_rotation(
-        const transform3_t & /*trf3*/, const trigonometrics & /*t*/) {
-
-        /*
-        matrix_type<3, 2> bound_to_free_rotation =
-            matrix_actor().template zero<3, 2>();
-        */
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline rotation_matrix reference_frame(
+        const transform3_t &trf3, const mask_t & /*mask*/,
+        const point3 & /*pos*/, const vector3 & /*dir*/) const {
+        return trf3.rotation();
     }
 
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline matrix_type<3, 2> bound_to_free_rotation(
+        const transform3_t &trf3, const mask_t &mask, const point3 &pos,
+        const vector3 &dir) const {
+
+        matrix_type<3, 2> bound_to_free_rotation =
+            matrix_actor().template zero<3, 2>();
+
+        const point2 local2 = this->operator()(pos);
+        const scalar_type lrad = local2[0];
+        const scalar_type lphi = local2[1];
+
+        const scalar_type lcos_phi = std::cos(lphi);
+        const scalar_type lsin_phi = std::sin(lphi);
+
+        // reference matrix
+        const auto frame = reference_frame(trf3, pos, dir);
+
+        // dxdL = dx/d(u,v,w)
+        const auto dxdL = matrix_actor().template block<3, 1>(frame, 0, 0);
+        // dydL = dy/d(u,v,w)
+        const auto dydL = matrix_actor().template block<3, 1>(frame, 0, 1);
+
+        const auto col0 = dxdL * lcos_phi + dydL * lsin_phi;
+        const auto col1 = (dydL * lcos_phi - dxdL * lsin_phi) * lrad;
+
+        matrix_actor().set_block<3, 1>(bound_to_free_rotation, col0,
+                                       e_free_pos0, e_bound_loc0);
+        matrix_actor().set_block<3, 1>(bound_to_free_rotation, col1,
+                                       e_free_pos0, e_bound_loc1);
+
+        return bound_to_free_rotation;
+    }
+
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline matrix_type<2, 3> free_to_bound_rotation(
-        const transform3_t & /*trf3*/, const trigonometrics & /*t*/) {}
+        const transform3_t &trf3, const mask_t &mask, const point3 &pos,
+        const vector3 &dir) const {
+
+        matrix_type<2, 3> free_to_bound_rotation =
+            matrix_actor().template zero<2, 3>();
+
+        const auto local = this->global_to_local(trf3, pos, dir);
+
+        const scalar_type lrad = local[0];
+        const scalar_type lphi = local[1];
+
+        const scalar_type lcos_phi = std::cos(lphi);
+        const scalar_type lsin_phi = std::sin(lphi);
+
+        // reference matrix
+        const auto frame = reference_frame(trf3, pos, dir);
+        const auto frameT = matrix_actor().transpose(frame);
+
+        // dudG = du/d(x,y,z)
+        const auto dudG = matrix_actor().template block<3, 1>(frameT, 0, 0);
+        // dvdG = dv/d(x,y,z)
+        const auto dvdG = matrix_actor().template block<3, 1>(frameT, 0, 1);
+
+        const auto row0 = dudG * lcos_phi + dvdG * lsin_phi;
+        const auto row1 = (dvdG * lcos_phi - dudG * lsin_phi) * 1. / lrad;
+
+        matrix_actor().set_block<1, 3>(free_to_bound_rotation, row0,
+                                       e_bound_loc0, e_free_pos0);
+        matrix_actor().set_block<1, 3>(free_to_bound_rotation, row1,
+                                       e_bound_loc1, e_free_pos0);
+
+        return free_to_bound_rotation;
+    }
 };
 
 }  // namespace detray
