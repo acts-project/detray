@@ -26,10 +26,11 @@ detray::detail::jacobian_engine<transform3_t>::bound_to_free_coordinate(
     const scalar_type sin_phi = std::sin(phi);
 
     // Set d(x,y,z)/d(loc0,loc1)
-    const matrix_type<3, 2> bound_to_free_rotation =
+    const matrix_type<3, 2> bound_pos_to_free_pos_derivative =
         matrix_operator().template block<3, 2>(trf3.matrix(), 0, 0);
 
-    matrix_operator().template set_block(jac_to_global, bound_to_free_rotation,
+    matrix_operator().template set_block(jac_to_global,
+                                         bound_pos_to_free_pos_derivative,
                                          e_free_pos0, e_bound_loc0);
 
     matrix_operator().element(jac_to_global, e_free_time, e_bound_time) = 1;
@@ -71,10 +72,11 @@ detray::detail::jacobian_engine<transform3_t>::free_to_bound_coordinate(
     const scalar_type sin_phi = std::sin(phi);
 
     // Set d(loc0,loc1)/d(x,y,z)
-    const matrix_type<2, 3> free_to_bound_rotation =
+    const matrix_type<2, 3> free_pos_to_bound_pos_derivative =
         matrix_operator().template block<2, 3>(trf3.matrix_inverse(), 0, 0);
 
-    matrix_operator().template set_block(jac_to_local, free_to_bound_rotation,
+    matrix_operator().template set_block(jac_to_local,
+                                         free_pos_to_bound_pos_derivative,
                                          e_bound_loc0, e_free_pos0);
 
     // Set d(Free time)/d(Bound time)

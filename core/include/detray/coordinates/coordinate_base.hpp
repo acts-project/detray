@@ -128,11 +128,12 @@ struct coordinate_base {
         const vector3 dir = track_helper().dir(bound_vec);
 
         // Get d(x,y,z)/d(loc0, loc1)
-        const matrix_type<3, 2> bound_to_free_rotation =
-            Derived<transform3_t>().bound_to_free_rotation(trf3, mask, pos,
-                                                           dir);
+        const matrix_type<3, 2> bound_pos_to_free_pos_derivative =
+            Derived<transform3_t>().bound_pos_to_free_pos_derivative(trf3, mask,
+                                                                     pos, dir);
 
-        matrix_actor().template set_block(jac_to_global, bound_to_free_rotation,
+        matrix_actor().template set_block(jac_to_global,
+                                          bound_pos_to_free_pos_derivative,
                                           e_free_pos0, e_bound_loc0);
 
         // Set d(bound time)/d(free time)
@@ -183,10 +184,11 @@ struct coordinate_base {
         const scalar_type sin_phi = std::sin(phi);
 
         // Get d(loc0, loc1)/d(x,y,z)
-        const matrix_type<2, 3> free_to_bound_rotation =
-            Derived<transform3_t>().free_to_bound_rotation(trf3, mask, pos,
-                                                           dir);
-        matrix_actor().template set_block(jac_to_local, free_to_bound_rotation,
+        const matrix_type<2, 3> free_pos_to_bound_pos_derivative =
+            Derived<transform3_t>().free_pos_to_bound_pos_derivative(trf3, mask,
+                                                                     pos, dir);
+        matrix_actor().template set_block(jac_to_local,
+                                          free_pos_to_bound_pos_derivative,
                                           e_bound_loc0, e_free_pos0);
 
         // Set d(free time)/d(bound time)

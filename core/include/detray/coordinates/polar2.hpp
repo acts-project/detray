@@ -90,11 +90,12 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     }
 
     template <typename mask_t>
-    DETRAY_HOST_DEVICE inline matrix_type<3, 2> bound_to_free_rotation(
-        const transform3_t &trf3, const mask_t &mask, const point3 &pos,
-        const vector3 &dir) const {
+    DETRAY_HOST_DEVICE inline matrix_type<3, 2>
+    bound_pos_to_free_pos_derivative(const transform3_t &trf3,
+                                     const mask_t &mask, const point3 &pos,
+                                     const vector3 &dir) const {
 
-        matrix_type<3, 2> bound_to_free_rotation =
+        matrix_type<3, 2> bound_pos_to_free_pos_derivative =
             matrix_actor().template zero<3, 2>();
 
         const point2 local2 = this->operator()(pos);
@@ -115,20 +116,21 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const auto col0 = dxdL * lcos_phi + dydL * lsin_phi;
         const auto col1 = (dydL * lcos_phi - dxdL * lsin_phi) * lrad;
 
-        matrix_actor().set_block<3, 1>(bound_to_free_rotation, col0,
+        matrix_actor().set_block<3, 1>(bound_pos_to_free_pos_derivative, col0,
                                        e_free_pos0, e_bound_loc0);
-        matrix_actor().set_block<3, 1>(bound_to_free_rotation, col1,
+        matrix_actor().set_block<3, 1>(bound_pos_to_free_pos_derivative, col1,
                                        e_free_pos0, e_bound_loc1);
 
-        return bound_to_free_rotation;
+        return bound_pos_to_free_pos_derivative;
     }
 
     template <typename mask_t>
-    DETRAY_HOST_DEVICE inline matrix_type<2, 3> free_to_bound_rotation(
-        const transform3_t &trf3, const mask_t &mask, const point3 &pos,
-        const vector3 &dir) const {
+    DETRAY_HOST_DEVICE inline matrix_type<2, 3>
+    free_pos_to_bound_pos_derivative(const transform3_t &trf3,
+                                     const mask_t &mask, const point3 &pos,
+                                     const vector3 &dir) const {
 
-        matrix_type<2, 3> free_to_bound_rotation =
+        matrix_type<2, 3> free_pos_to_bound_pos_derivative =
             matrix_actor().template zero<2, 3>();
 
         const auto local = this->global_to_local(trf3, pos, dir);
@@ -151,12 +153,12 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const auto row0 = dudG * lcos_phi + dvdG * lsin_phi;
         const auto row1 = (dvdG * lcos_phi - dudG * lsin_phi) * 1. / lrad;
 
-        matrix_actor().set_block<1, 3>(free_to_bound_rotation, row0,
+        matrix_actor().set_block<1, 3>(free_pos_to_bound_pos_derivative, row0,
                                        e_bound_loc0, e_free_pos0);
-        matrix_actor().set_block<1, 3>(free_to_bound_rotation, row1,
+        matrix_actor().set_block<1, 3>(free_pos_to_bound_pos_derivative, row1,
                                        e_bound_loc1, e_free_pos0);
 
-        return free_to_bound_rotation;
+        return free_pos_to_bound_pos_derivative;
     }
 };
 

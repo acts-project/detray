@@ -88,9 +88,10 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     }
 
     template <typename mask_t>
-    DETRAY_HOST_DEVICE inline matrix_type<3, 2> bound_to_free_rotation(
-        const transform3_t &trf3, const mask_t &mask, const point3 &pos,
-        const vector3 &dir) const {
+    DETRAY_HOST_DEVICE inline matrix_type<3, 2>
+    bound_pos_to_free_pos_derivative(const transform3_t &trf3,
+                                     const mask_t &mask, const point3 &pos,
+                                     const vector3 &dir) const {
 
         const auto frame = reference_frame(trf3, mask, pos, dir);
 
@@ -99,9 +100,10 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     }
 
     template <typename mask_t>
-    DETRAY_HOST_DEVICE inline matrix_type<2, 3> free_to_bound_rotation(
-        const transform3_t &trf3, const mask_t &mask, const point3 &pos,
-        const vector3 &dir) const {
+    DETRAY_HOST_DEVICE inline matrix_type<2, 3>
+    free_pos_to_bound_pos_derivative(const transform3_t &trf3,
+                                     const mask_t &mask, const point3 &pos,
+                                     const vector3 &dir) const {
 
         const auto frame = reference_frame(trf3, mask, pos, dir);
         const auto frameT = matrix_actor().transpose(frame);
