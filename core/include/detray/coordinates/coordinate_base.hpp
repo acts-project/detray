@@ -127,14 +127,9 @@ struct coordinate_base {
         const vector3 pos = track_helper().pos(bound_vec);
         const vector3 dir = track_helper().dir(bound_vec);
 
-        // Get d(x,y,z)/d(loc0, loc1)
-        const matrix_type<3, 2> bound_pos_to_free_pos_derivative =
-            Derived<transform3_t>().bound_pos_to_free_pos_derivative(trf3, mask,
-                                                                     pos, dir);
-
-        matrix_actor().template set_block(jac_to_global,
-                                          bound_pos_to_free_pos_derivative,
-                                          e_free_pos0, e_bound_loc0);
+        // Set d(x,y,z)/d(loc0, loc1)
+        Derived<transform3_t>().set_bound_pos_to_free_pos_derivative(
+            jac_to_global, trf3, mask, pos, dir);
 
         // Set d(bound time)/d(free time)
         matrix_actor().element(jac_to_global, e_free_time, e_bound_time) = 1;
@@ -153,11 +148,9 @@ struct coordinate_base {
         matrix_actor().element(jac_to_global, e_free_qoverp, e_bound_qoverp) =
             1;
 
-        // Get d(x,y,z)/d(phi, theta)
-        /*
-        const matrix_type<3, 2> bound_angle_to_free_pos_jacobian =
-            Derived<transform3_t>().bound_angle_to_free_pos_jacobian();
-        */
+        // Set d(x,y,z)/d(phi, theta)
+        Derived<transform3_t>().set_bound_angle_to_free_pos_derivative(
+            jac_to_global, trf3, mask, pos, dir);
 
         return jac_to_global;
     }
@@ -183,13 +176,9 @@ struct coordinate_base {
         const scalar_type cos_phi = std::cos(phi);
         const scalar_type sin_phi = std::sin(phi);
 
-        // Get d(loc0, loc1)/d(x,y,z)
-        const matrix_type<2, 3> free_pos_to_bound_pos_derivative =
-            Derived<transform3_t>().free_pos_to_bound_pos_derivative(trf3, mask,
-                                                                     pos, dir);
-        matrix_actor().template set_block(jac_to_local,
-                                          free_pos_to_bound_pos_derivative,
-                                          e_bound_loc0, e_free_pos0);
+        // Set d(loc0, loc1)/d(x,y,z)
+        Derived<transform3_t>().set_free_pos_to_bound_pos_derivative(
+            jac_to_local, trf3, mask, pos, dir);
 
         // Set d(free time)/d(bound time)
         matrix_actor().element(jac_to_local, e_bound_time, e_free_time) = 1;

@@ -46,6 +46,9 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     using free_vector = typename base_type::free_vector;
     // Track Helper
     using track_helper = typename base_type::track_helper;
+    // Matrix types
+    using free_to_bound_matrix = typename base_type::free_to_bound_matrix;
+    using bound_to_free_matrix = typename base_type::bound_to_free_matrix;
 
     /** This method transform from a point from 2D cartesian frame to a 2D
      * polar point */
@@ -90,10 +93,9 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     }
 
     template <typename mask_t>
-    DETRAY_HOST_DEVICE inline matrix_type<3, 2>
-    bound_pos_to_free_pos_derivative(const transform3_t &trf3,
-                                     const mask_t &mask, const point3 &pos,
-                                     const vector3 &dir) const {
+    DETRAY_HOST_DEVICE inline void set_bound_pos_to_free_pos_derivative(
+        bound_to_free_matrix &free_to_bound_jacobian, const transform3_t &trf3,
+        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
         matrix_type<3, 2> bound_pos_to_free_pos_derivative =
             matrix_actor().template zero<3, 2>();
@@ -108,9 +110,9 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         // reference matrix
         const auto frame = reference_frame(trf3, pos, dir);
 
-        // dxdL = dx/d(u,v,w)
+        // dxdu = d(x,y,z)/du
         const auto dxdL = matrix_actor().template block<3, 1>(frame, 0, 0);
-        // dydL = dy/d(u,v,w)
+        // dxdv = d(x,y,z)/dv
         const auto dydL = matrix_actor().template block<3, 1>(frame, 0, 1);
 
         const auto col0 = dxdL * lcos_phi + dydL * lsin_phi;
@@ -121,14 +123,15 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         matrix_actor().set_block<3, 1>(bound_pos_to_free_pos_derivative, col1,
                                        e_free_pos0, e_bound_loc1);
 
-        return bound_pos_to_free_pos_derivative;
+        matrix_actor().template set_block(free_to_bound_jacobian,
+                                          bound_pos_to_free_pos_derivative,
+                                          e_free_pos0, e_bound_loc0);
     }
 
     template <typename mask_t>
-    DETRAY_HOST_DEVICE inline matrix_type<2, 3>
-    free_pos_to_bound_pos_derivative(const transform3_t &trf3,
-                                     const mask_t &mask, const point3 &pos,
-                                     const vector3 &dir) const {
+    DETRAY_HOST_DEVICE inline void set_free_pos_to_bound_pos_derivative(
+        free_to_bound_matrix &bound_to_free_jacobian, const transform3_t &trf3,
+        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
         matrix_type<2, 3> free_pos_to_bound_pos_derivative =
             matrix_actor().template zero<2, 3>();
@@ -146,9 +149,9 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const auto frameT = matrix_actor().transpose(frame);
 
         // dudG = du/d(x,y,z)
-        const auto dudG = matrix_actor().template block<3, 1>(frameT, 0, 0);
+        const auto dudG = matrix_actor().template block<1, 3>(frameT, 0, 0);
         // dvdG = dv/d(x,y,z)
-        const auto dvdG = matrix_actor().template block<3, 1>(frameT, 0, 1);
+        const auto dvdG = matrix_actor().template block<1, 3>(frameT, 0, 1);
 
         const auto row0 = dudG * lcos_phi + dvdG * lsin_phi;
         const auto row1 = (dvdG * lcos_phi - dudG * lsin_phi) * 1. / lrad;
@@ -158,7 +161,16 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         matrix_actor().set_block<1, 3>(free_pos_to_bound_pos_derivative, row1,
                                        e_bound_loc1, e_free_pos0);
 
-        return free_pos_to_bound_pos_derivative;
+        matrix_actor().template set_block(bound_to_free_jacobian,
+                                          free_pos_to_bound_pos_derivative,
+                                          e_bound_loc0, e_free_pos0);
+    }
+
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline void set_bound_angle_to_free_pos_derivative(
+        bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
+        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
+        // Do nothing
     }
 };
 
