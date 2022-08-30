@@ -57,7 +57,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     field_type B_field(B);
 
     // Create RK stepper
-    rk_stepper_type s(B_field);
+    rk_stepper_type s;
     // Create navigator
     navigator_host_type n;
     // Create propagator
@@ -75,7 +75,8 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         pathlimit_aborter::state pathlimit_state{path_limit};
 
         propagator_host_type::state state(
-            tracks_host[i], det, thrust::tie(insp_state, pathlimit_state));
+            tracks_host[i], B_field, det,
+            thrust::tie(insp_state, pathlimit_state));
 
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
             constrainted_step_size);

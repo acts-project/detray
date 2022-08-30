@@ -39,6 +39,8 @@ class base_stepper {
      */
     struct state {
 
+        state(){};
+
         /// Sets track parameters.
         DETRAY_HOST_DEVICE
         state(const track_t &t) : _track(t) {}

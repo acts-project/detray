@@ -59,7 +59,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
     navigator_host_type n;
 
     // Create propagator
-    propagator_host_type p(std::move(s), B_field, std::move(n));
+    propagator_host_type p(std::move(s), std::move(n));
 
     for (auto _ : state) {
 
@@ -75,7 +75,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
         for (auto &track : tracks) {
 
             // Create the propagator state
-            propagator_host_type::state p_state(track, det);
+            propagator_host_type::state p_state(track, B_field, det);
 
             // Run propagation
             p.propagate(p_state);

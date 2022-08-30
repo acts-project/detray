@@ -36,7 +36,7 @@ __global__ void propagator_test_kernel(
     field_type B_field(B);
 
     // Create RK stepper
-    rk_stepper_type s(B_field);
+    rk_stepper_type s;
 
     // Create navigator
     navigator_device_type n;
@@ -50,7 +50,7 @@ __global__ void propagator_test_kernel(
     pathlimit_aborter::state aborter_state{path_limit};
 
     // Create the propagator state
-    propagator_device_type::state state(tracks[gid], det,
+    propagator_device_type::state state(tracks[gid], B_field, det,
                                         thrust::tie(insp_state, aborter_state),
                                         candidates.at(gid));
 

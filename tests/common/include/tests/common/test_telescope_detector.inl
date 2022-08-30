@@ -105,9 +105,10 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     point3 pos{0., 0., 0.};
     vector3 mom{1., 0., 0.};
     free_track_parameters pilot_track(pos, 0, mom, -1);
+    typename ln_stepper_t::state ln_stepping(pilot_track);
 
     const auto x_tel_det = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, pilot_track, ln_stepper);
+        host_mr, n_surfaces, tel_length, ln_stepper, ln_stepping);
 
     //
     // test propagation in all telescope detector instances
@@ -201,8 +202,11 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     pilot_track = free_track_parameters(pos, 0, mom, -1);
     pilot_track.set_overstep_tolerance(-10 * unit_constants::um);
 
+    typename rk_stepper_t::state rk_stepping_z(pilot_track, b_field_z);
+    typename rk_stepper_t::state rk_stepping_x(pilot_track, b_field_x);
+
     const auto tel_detector = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, pilot_track, rk_stepper_z);
+        host_mr, n_surfaces, tel_length, rk_stepper_z, rk_stepping_z);
 
     // make at least sure it is navigatable
     navigator<decltype(tel_detector), inspector_t> tel_navigator;
