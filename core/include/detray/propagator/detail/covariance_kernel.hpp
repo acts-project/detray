@@ -20,6 +20,12 @@ struct bound_to_bound_covariance_update {
     /// @name Type definitions for the struct
     /// @{
 
+    // Transformation matching this struct
+    using transform3_type = transform3_t;
+    // scalar_type
+    using scalar_type = typename transform3_type::scalar_type;
+    // size type
+    using size_type = typename transform3_type::size_type;
     // Matrix actor
     using matrix_actor = typename transform3_t::matrix_actor;
     // 2D matrix type
@@ -64,17 +70,17 @@ struct bound_to_bound_covariance_update {
 
         // Transform
         const auto& trf3 = tf_store[sf.transform()];
-        auto local_coordinate = mask.local_type();
 
         // Mask
         const auto& mask = mask_group[is->mask_index];
+        auto local_coordinate = mask.local_type();
 
         // Free vector
-        const auto& free_vector = stepping().vector();
+        const auto& free_vec = stepping().vector();
 
         // Convert free to bound vector
-        const auto bound_vector =
-            local_coordinate.free_to_bound_vector(trf3, free_vector);
+        const auto bound_vec =
+            local_coordinate.free_to_bound_vector(trf3, free_vec);
 
         // Free to bound jacobian at the destination surface
         const free_to_bound_matrix free_to_bound_jacobian =

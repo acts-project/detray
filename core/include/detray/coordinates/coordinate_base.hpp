@@ -241,6 +241,7 @@ struct coordinate_base {
         const stepper_state_t& stepping, const transform3_t& trf3,
         const mask_t& mask) {
 
+        /*
         using field = typename stepper_state_t::magnetic_field;
         using helix = detail::helix<transform3_t>;
 
@@ -249,7 +250,7 @@ struct coordinate_base {
 
         sd.b_first =
             _magnetic_field.get_field(stepping().pos(), context_type{});
-
+        */
         /*
         // Direction at the surface
         const vector3& t = stepping._step_data.k4;
@@ -258,7 +259,7 @@ struct coordinate_base {
         field B(stepping._step_data.b_last);
         */
         // Use Helix
-        detail::helix<transform3_t> helix hlx(trf3, &B);
+        // detail::helix<transform3_t> helix hlx(trf3, &B);
 
         /*
         // Direction at the surface
@@ -283,7 +284,7 @@ struct coordinate_base {
 
         // dt/dL0
 
-        return path_correction;
+        // return path_correction;
     }
 };
 

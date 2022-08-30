@@ -50,9 +50,10 @@ struct module_placement {
 /// @param n_surfaces the number of plane surfaces
 ///
 /// @return a vector of the module positions along the trajectory
-template <typename track_t, typename stepper_t>
+template <typename stepper_t>
 inline std::vector<module_placement> module_positions(
-    track_t &track, stepper_t &stepper, std::vector<scalar> &steps) {
+    stepper_t stepper, typename stepper_t::state &stepping,
+    std::vector<scalar> &steps) {
     // dummy navigation struct
     struct navigation_state {
         scalar operator()() const { return _step_size; }
@@ -76,8 +77,7 @@ inline std::vector<module_placement> module_positions(
     m_positions.reserve(steps.size());
 
     // Find exact position by walking along track
-    prop_state propagation{typename stepper_t::state{track},
-                           navigation_state{}};
+    prop_state propagation{stepping, navigation_state{}};
 
     // Calculate step size from module positions. The modules will only be
     // placed at the given position if the b-field allows for it. Otherwise, by
@@ -108,11 +108,12 @@ inline std::vector<module_placement> module_positions(
 /// @param transforms container to add new transform to
 /// @param cfg config struct for module creation
 template <telescope_types::mask_ids mask_id, typename context_t,
-          typename track_t, typename stepper_t, typename volume_type,
+          typename stepper_t, typename volume_type,
           typename surface_container_t, typename mask_container_t,
           typename material_container_t, typename transform_container_t,
           typename config_t>
-inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
+inline void create_telescope(context_t &ctx, stepper_t &stepper,
+                             typename stepper_t::state &stepping,
                              volume_type &volume, surface_container_t &surfaces,
                              mask_container_t &masks,
                              material_container_t &materials,
@@ -129,7 +130,7 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
 
     // Create the module centers
     const std::vector<module_placement> m_placements =
-        module_positions(track, stepper, cfg.pos);
+        module_positions(stepper, stepping, cfg.pos);
 
     // Create geometry data
     for (const auto &m_placement : m_placements) {
@@ -198,16 +199,13 @@ template <bool unbounded_planes = true,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector>
-auto create_telescope_detector(
-    vecmem::memory_resource &resource, dindex n_surfaces = 10,
-    scalar tel_length = 500. * unit_constants::mm,
-    typename stepper_t::free_track_parameters_type track = {{0., 0., 0.},
-                                                            0.,
-                                                            {0., 0., 1.},
-                                                            -1.},
-    stepper_t stepper = {}, scalar half_x = 20. * unit_constants::mm,
-    scalar half_y = 20. * unit_constants::mm) {
-
+auto create_telescope_detector(vecmem::memory_resource &resource,
+                               dindex n_surfaces = 10,
+                               scalar tel_length = 500. * unit_constants::mm,
+                               stepper_t stepper = {},
+                               typename stepper_t::state stepping = {},
+                               scalar half_x = 20. * unit_constants::mm,
+                               scalar half_y = 20. * unit_constants::mm) {
     // Generate equidistant positions
     std::vector<scalar> positions = {};
     scalar pos = 0.;
@@ -219,7 +217,7 @@ auto create_telescope_detector(
 
     // Build the geometry
     return create_telescope_detector<unbounded_planes>(
-        resource, positions, track, stepper, half_x, half_y);
+        resource, positions, stepper, stepping, half_x, half_y);
 }
 
 /// Builds a detray geometry that contains only one volume with plane surfaces,
@@ -251,11 +249,8 @@ template <bool unbounded_planes = true,
           template <typename...> class jagged_vector_t = djagged_vector>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, std::vector<scalar> pos = {},
-    typename stepper_t::free_track_parameters_type track = {{0, 0, 0},
-                                                            0,
-                                                            {0, 0, 1},
-                                                            -1},
-    stepper_t stepper = {}, scalar half_x = 20. * unit_constants::mm,
+    stepper_t stepper = {}, typename stepper_t::state stepping = {},
+    scalar half_x = 20. * unit_constants::mm,
     scalar half_y = 20. * unit_constants::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
     const scalar thickness = 80 * unit_constants::um) {
@@ -291,11 +286,11 @@ auto create_telescope_detector(
 
     if constexpr (unbounded_planes) {
         create_telescope<telescope_types::mask_ids::e_unbounded_plane2>(
-            ctx, track, stepper, vol, surfaces, masks, materials, transforms,
+            ctx, stepper, stepping, vol, surfaces, masks, materials, transforms,
             pl_config);
     } else {
         create_telescope<telescope_types::mask_ids::e_rectangle2>(
-            ctx, track, stepper, vol, surfaces, masks, materials, transforms,
+            ctx, stepper, stepping, vol, surfaces, masks, materials, transforms,
             pl_config);
     }
 

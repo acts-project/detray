@@ -22,7 +22,7 @@ __global__ void bound_state_test_kernel(
 
     mag_field_t mag_field(B);
     prop_state<crk_stepper_t::state, nav_state> propagation{
-        crk_stepper_t::state(in_param, trf), nav_state{}};
+        crk_stepper_t::state(in_param, trf, mag_field), nav_state{}};
     crk_stepper_t::state &crk_state = propagation._stepping;
     nav_state &n_state = propagation._navigation;
 
@@ -30,7 +30,7 @@ __global__ void bound_state_test_kernel(
     crk_state.set_tolerance(rk_tolerance);
 
     // RK stepper and its state
-    crk_stepper_t crk_stepper(mag_field);
+    crk_stepper_t crk_stepper;
 
     // Path length per turn
     scalar S = 2. * std::fabs(1. / in_param.qop()) / getter::norm(B) * M_PI;

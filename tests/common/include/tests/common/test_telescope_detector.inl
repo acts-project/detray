@@ -30,13 +30,15 @@ using transform3 = __plugin::transform3<detray::scalar>;
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
 struct prop_state {
+
     stepping_t _stepping;
     navigation_t _navigation;
+    using field_type = typename stepping_t::field_type;
 
     template <typename track_t>
-    prop_state(const track_t &t_in,
+    prop_state(const track_t &t_in, const field_type &field,
                const typename navigation_t::detector_type &det)
-        : _stepping(t_in), _navigation(det) {}
+        : _stepping(t_in, field), _navigation(det) {}
 };
 
 }  // anonymous namespace
@@ -68,9 +70,11 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     b_field_t b_field_x{B_x};
 
     // steppers
-    rk_stepper_t rk_stepper_z{b_field_z};
-    rk_stepper_t rk_stepper_x{b_field_x};
-    ln_stepper_t ln_stepper{};
+    rk_stepper_t rk_stepper_z;
+    rk_stepper_t rk_stepper_x;
+    ln_stepper_t ln_stepper;
+    typename ln_stepper_t::free_track_parameters_type default_trk{
+        {0, 0, 0}, 0, {0, 0, 1}, -1};
 
     //
     // telescope along z
@@ -80,15 +84,17 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
                                      300., 350, 400,  450., 500.};
     // Build telescope detector with unbounded planes
-    const auto z_tel_det1 =
-        create_telescope_detector<rectangular>(host_mr, positions);
+    const auto z_tel_det1 = create_telescope_detector<rectangular>(
+        host_mr, positions, ln_stepper_t(),
+        typename ln_stepper_t::state{default_trk});
 
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
     dindex n_surfaces = 11;
     scalar tel_length = 500. * unit_constants::mm;
-    const auto z_tel_det2 =
-        create_telescope_detector<rectangular>(host_mr, n_surfaces, tel_length);
+    const auto z_tel_det2 = create_telescope_detector<rectangular>(
+        host_mr, n_surfaces, tel_length, ln_stepper_t(),
+        typename ln_stepper_t::state{default_trk});
 
     // Compare
     for (std::size_t i = 0; i < z_tel_det1.surfaces().size(); ++i) {
@@ -104,9 +110,10 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     point3 pos{0., 0., 0.};
     vector3 mom{1., 0., 0.};
     free_track_parameters<transform3> pilot_track(pos, 0, mom, -1);
+    typename ln_stepper_t::state ln_stepping(pilot_track);
 
     const auto x_tel_det = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, pilot_track, ln_stepper);
+        host_mr, n_surfaces, tel_length, ln_stepper, ln_stepping);
 
     //
     // test propagation in all telescope detector instances
@@ -129,11 +136,11 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
 
     // propagation states
     prop_state<stepping_state_t, navigation_state_t> propgation_z1(
-        test_track_z1, z_tel_det1);
+        test_track_z1, b_field_z, z_tel_det1);
     prop_state<stepping_state_t, navigation_state_t> propgation_z2(
-        test_track_z2, z_tel_det2);
-    prop_state<stepping_state_t, navigation_state_t> propgation_x(test_track_x,
-                                                                  x_tel_det);
+        test_track_z2, b_field_z, z_tel_det2);
+    prop_state<stepping_state_t, navigation_state_t> propgation_x(
+        test_track_x, b_field_x, x_tel_det);
 
     stepping_state_t &stepping_z1 = propgation_z1._stepping;
     stepping_state_t &stepping_z2 = propgation_z2._stepping;
@@ -200,14 +207,17 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     pilot_track = free_track_parameters<transform3>(pos, 0, mom, -1);
     pilot_track.set_overstep_tolerance(-10 * unit_constants::um);
 
+    typename rk_stepper_t::state rk_stepping_z(pilot_track, b_field_z);
+    typename rk_stepper_t::state rk_stepping_x(pilot_track, b_field_x);
+
     const auto tel_detector = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, pilot_track, rk_stepper_z);
+        host_mr, n_surfaces, tel_length, rk_stepper_z, rk_stepping_z);
 
     // make at least sure it is navigatable
     navigator<decltype(tel_detector), inspector_t> tel_navigator;
 
     prop_state<stepping_state_t, navigation_state_t> tel_propagation(
-        pilot_track, tel_detector);
+        pilot_track, b_field_z, tel_detector);
     navigation_state_t &tel_navigation = tel_propagation._navigation;
 
     // run propagation

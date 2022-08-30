@@ -38,7 +38,6 @@ class rk_stepper final
     using point3 = typename transform3_type::point3;
     using vector2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
-    using magnetic_field = magnetic_field_t;
     using context_type = typename magnetic_field_t::context_type;
     using matrix_operator = typename base_type::matrix_operator;
     using covariance_engine = typename base_type::covariance_engine;
@@ -50,16 +49,25 @@ class rk_stepper final
         typename base_type::bound_track_parameters_type;
 
     DETRAY_HOST_DEVICE
-    rk_stepper(const magnetic_field_t mag_field) : _magnetic_field(mag_field) {}
+    rk_stepper() {}
 
     struct state : public base_type::state {
+
+        using field_type = magnetic_field_t;
+
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type& t) : base_type::state(t) {}
 
         DETRAY_HOST_DEVICE
+        state(const free_track_parameters_type& t,
+              const magnetic_field_t mag_field)
+            : base_type::state(t), _magnetic_field(mag_field) {}
+
+        DETRAY_HOST_DEVICE
         state(const bound_track_parameters_type& bound_params,
-              const transform3_type& trf3)
-            : base_type::state(bound_params, trf3) {}
+              const transform3_type& trf3, const field_type mag_field)
+            : base_type::state(bound_params, trf3),
+              _magnetic_field(mag_field) {}
 
         /// error tolerance
         scalar _tolerance = 1e-4;
@@ -76,6 +84,8 @@ class rk_stepper final
             vector3 k1, k2, k3, k4;
             array_t<scalar, 4> k_qop;
         } _step_data;
+
+        const magnetic_field_t _magnetic_field;
 
         // Set the local error tolerenace
         DETRAY_HOST_DEVICE
@@ -113,9 +123,6 @@ class rk_stepper final
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bound_track_parameters_type bound_state(
         propagation_state_t& /*propagation*/, const transform3_type& /*trf*/);
-
-    private:
-    const magnetic_field_t _magnetic_field;
 };
 
 }  // namespace detray

@@ -12,6 +12,9 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/tracks/tracks.hpp"
 
+// System include(s)
+#include <type_traits>
+
 namespace detray {
 
 /// Templated propagator class, using a stepper and a navigator object in
@@ -52,7 +55,9 @@ struct propagator {
     /// also keeps references to the actor states.
     struct state {
 
-        using context_type = typename navigator_t::detector_type::context;
+        using detector_type = typename navigator_t::detector_type;
+        using context_type = typename detector_type::context;
+        using field_type = typename stepper_t::state::field_type;
 
         /// Construct the propagation state.
         ///
@@ -60,19 +65,29 @@ struct propagator {
         /// @param actor_states tuple that contains references to actor states
         /// @param candidates buffer for intersections in the navigator
         DETRAY_HOST_DEVICE state(
-            const free_track_parameters_type &t_in,
-            const typename navigator_t::detector_type &det,
+            const free_track_parameters_type &t_in, const detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(t_in),
               _navigation(det, std::move(candidates)),
               _actor_states(actor_states) {}
 
+        template <
+            typename track_t,
+            std::enable_if_t<!std::is_same_v<field_type, void>, bool> = true>
+        DETRAY_HOST_DEVICE state(
+            const track_t &t_in, const field_type &magnetic_field,
+            const detector_type &det,
+            typename actor_chain_t::state actor_states = {},
+            vector_type<line_plane_intersection> &&candidates = {})
+            : _stepping(t_in, magnetic_field),
+              _navigation(det, std::move(candidates)),
+              _actor_states(actor_states) {}
+
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &param,
-            const transform3_type &trf3,
-            const typename navigator_t::detector_type &det,
+            const transform3_type &trf3, const detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(param, trf3),
