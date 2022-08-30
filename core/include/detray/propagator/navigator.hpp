@@ -103,11 +103,12 @@ class navigator {
     class state {
         friend class navigator;
 
-        public:
         using candidate_itr_t =
             typename vector_type<intersection_type>::iterator;
         using const_candidate_itr_t =
             typename vector_type<intersection_type>::const_iterator;
+
+        public:
         using detector_type = navigator::detector_type;
 
         /// Default constructor
