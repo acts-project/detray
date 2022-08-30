@@ -33,6 +33,9 @@ class line_stepper final
     using policy_type = policy_t;
 
     struct state : public base_type::state {
+
+        using field_type = int;
+
         DETRAY_HOST_DEVICE
         state(const track_t &t) : base_type::state(t) {}
 

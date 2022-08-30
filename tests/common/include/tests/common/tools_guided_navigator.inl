@@ -62,8 +62,9 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     pathlimit_aborter::state pathlimit{200. * unit_constants::cm};
 
     // Propagator
-    propagator_t p(runge_kutta_stepper{b_field}, guided_navigator{});
-    propagator_t::state guided_state(track, telescope_det, std::tie(pathlimit));
+    propagator_t p(runge_kutta_stepper{}, guided_navigator{});
+    propagator_t::state guided_state(track, b_field, telescope_det,
+                                     std::tie(pathlimit));
 
     // Propagate
     p.propagate(guided_state);

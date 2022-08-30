@@ -41,16 +41,21 @@ class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
     using transform3 = typename covariance_engine::transform3;
 
     DETRAY_HOST_DEVICE
-    rk_stepper(const magnetic_field_t mag_field) : _magnetic_field(mag_field) {}
+    rk_stepper() {}
 
     struct state : public base_type::state {
+
+        using field_type = magnetic_field_t;
+
         DETRAY_HOST_DEVICE
-        state(const track_t& t) : base_type::state(t) {}
+        state(const track_t& t, const magnetic_field_t mag_field)
+            : base_type::state(t), _magnetic_field(mag_field) {}
 
         DETRAY_HOST_DEVICE
         state(const bound_track_parameters& bound_params,
-              const transform3& trf3)
-            : base_type::state(bound_params, trf3) {}
+              const transform3& trf3, const field_type mag_field)
+            : base_type::state(bound_params, trf3),
+              _magnetic_field(mag_field) {}
 
         /// error tolerance
         scalar _tolerance = 1e-4;
@@ -67,6 +72,8 @@ class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
             vector3 k1, k2, k3, k4;
             array_t<scalar, 4> k_qop;
         } _step_data;
+
+        const magnetic_field_t _magnetic_field;
 
         // Set the local error tolerenace
         DETRAY_HOST_DEVICE
@@ -104,9 +111,6 @@ class rk_stepper final : public base_stepper<track_t, constraint_t, policy_t> {
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bound_track_parameters
     bound_state(propagation_state_t& propagation, const transform3& trf);
-
-    private:
-    const magnetic_field_t _magnetic_field;
 };
 
 }  // namespace detray

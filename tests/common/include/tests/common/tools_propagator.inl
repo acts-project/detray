@@ -141,7 +141,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     const b_field_t b_field(B);
 
     // Propagator is built from the stepper and navigator
-    propagator_t p(stepper_t{b_field}, navigator_t{});
+    propagator_t p(stepper_t{}, navigator_t{});
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
@@ -166,8 +166,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             helix_insp_state, lim_print_insp_state, pathlimit_aborter_state);
 
         // Init propagator states
-        propagator_t::state state(track, d, actor_states);
-        propagator_t::state lim_state(lim_track, d, lim_actor_states);
+        propagator_t::state state(track, b_field, d, actor_states);
+        propagator_t::state lim_state(lim_track, b_field, d, lim_actor_states);
 
         // Set step constraints
         state._stepping.template set_constraint<step::constraint::e_accuracy>(

@@ -175,6 +175,7 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
                         array_t>::step(propagation_state_t& propagation) {
     // Get stepper and navigator states
     state& stepping = propagation._stepping;
+    auto& magnetic_field = stepping._magnetic_field;
     auto& navigation = propagation._navigation;
 
     auto& sd = stepping._step_data;
@@ -182,7 +183,7 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
     scalar error_estimate = 0;
 
     // First Runge-Kutta point
-    sd.b_first = _magnetic_field.get_field(stepping().pos(), context_type{});
+    sd.b_first = magnetic_field.get_field(stepping().pos(), context_type{});
     sd.k1 = stepping.evaluate_k(sd.b_first, 0, 0, vector3{0, 0, 0});
 
     const auto try_rk4 = [&](const scalar& h) -> bool {
@@ -194,7 +195,7 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
 
         // Second Runge-Kutta point
         const vector3 pos1 = pos + half_h * dir + h2 * 0.125 * sd.k1;
-        sd.b_middle = _magnetic_field.get_field(pos1, context_type{});
+        sd.b_middle = magnetic_field.get_field(pos1, context_type{});
         sd.k2 = stepping.evaluate_k(sd.b_middle, 1, half_h, sd.k1);
 
         // Third Runge-Kutta point
@@ -202,7 +203,7 @@ bool detray::rk_stepper<magnetic_field_t, track_t, constraint_t, policy_t,
 
         // Last Runge-Kutta point
         const vector3 pos2 = pos + h * dir + h2 * 0.5 * sd.k3;
-        sd.b_last = _magnetic_field.get_field(pos2, context_type{});
+        sd.b_last = magnetic_field.get_field(pos2, context_type{});
         sd.k4 = stepping.evaluate_k(sd.b_last, 3, h, sd.k3);
 
         // Compute and check the local integration error estimate

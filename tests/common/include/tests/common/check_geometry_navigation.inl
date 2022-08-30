@@ -137,7 +137,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     2. * unit_constants::T};
     b_field_t b_field(B);
-    propagator_t prop(stepper_t{b_field}, navigator_t{});
+    propagator_t prop(stepper_t{}, navigator_t{});
 
     constexpr std::size_t theta_steps{10};
     constexpr std::size_t phi_steps{10};
@@ -164,7 +164,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
         // Now follow that helix with the same track and check, if we find
         // the same volumes and distances along the way
-        propagator_t::state propagation(track, det);
+        propagator_t::state propagation(track, b_field, det);
 
         // Retrieve navigation information
         auto &inspector = propagation._navigation.inspector();
