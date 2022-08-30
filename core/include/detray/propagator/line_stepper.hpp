@@ -31,6 +31,7 @@ class line_stepper final
     public:
     using base_type = base_stepper<track_t, constraint_t, policy_t>;
     using policy_type = policy_t;
+    using track_type = track_t;
 
     struct state : public base_type::state {
 

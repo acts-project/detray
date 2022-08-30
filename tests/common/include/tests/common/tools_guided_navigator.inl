@@ -31,12 +31,15 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     // Use unbounded surfaces
     constexpr bool unbounded = true;
 
+    using ln_stepper_t = line_stepper<free_track_parameters>;
+    typename ln_stepper_t::track_type default_trk{{0, 0, 0}, 0, {0, 0, 1}, -1};
+
     // Module positions along z-axis
     const std::vector<scalar> positions = {0.,  10., 20., 30., 40., 50.,
                                            60., 70,  80,  90., 100.};
     // Build telescope detector with unbounded planes
-    const auto telescope_det =
-        create_telescope_detector<unbounded>(host_mr, positions);
+    const auto telescope_det = create_telescope_detector<unbounded>(
+        host_mr, positions, ln_stepper_t(), default_trk);
 
     // Inspectors are optional, of course
     using object_tracer_t =

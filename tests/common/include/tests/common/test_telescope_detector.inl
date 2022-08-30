@@ -72,6 +72,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     rk_stepper_t rk_stepper_z;
     rk_stepper_t rk_stepper_x;
     ln_stepper_t ln_stepper;
+    typename ln_stepper_t::track_type default_trk{{0, 0, 0}, 0, {0, 0, 1}, -1};
 
     //
     // telescope along z
@@ -81,15 +82,17 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
                                      300., 350, 400,  450., 500.};
     // Build telescope detector with unbounded planes
-    const auto z_tel_det1 =
-        create_telescope_detector<rectangular>(host_mr, positions);
+    const auto z_tel_det1 = create_telescope_detector<rectangular>(
+        host_mr, positions, ln_stepper_t(),
+        typename ln_stepper_t::state{default_trk});
 
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
     dindex n_surfaces = 11;
     scalar tel_length = 500. * unit_constants::mm;
-    const auto z_tel_det2 =
-        create_telescope_detector<rectangular>(host_mr, n_surfaces, tel_length);
+    const auto z_tel_det2 = create_telescope_detector<rectangular>(
+        host_mr, n_surfaces, tel_length, ln_stepper_t(),
+        typename ln_stepper_t::state{default_trk});
 
     // Compare
     for (std::size_t i = 0; i < z_tel_det1.surfaces().size(); ++i) {
