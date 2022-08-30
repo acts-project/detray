@@ -129,7 +129,7 @@ class navigator {
         /// Scalar representation of the navigation state,
         /// @returns distance to next
         DETRAY_HOST_DEVICE
-        const auto detector() const { return _detector; }
+        auto detector() const { return _detector; }
 
         /// Scalar representation of the navigation state,
         /// @returns distance to next
