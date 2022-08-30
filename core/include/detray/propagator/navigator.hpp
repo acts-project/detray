@@ -586,7 +586,7 @@ class navigator {
 
             for (auto &candidate : navigation.candidates()) {
                 // Disregard this candidate if it is not reachable
-                if (not update_candidate(*navigation.next(), track, det)) {
+                if (not update_candidate(candidate, track, det)) {
                     // Forcefully set dist to numeric max for sorting
                     candidate.path = std::numeric_limits<scalar>::max();
                 }
