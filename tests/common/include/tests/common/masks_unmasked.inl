@@ -11,10 +11,11 @@
 
 using namespace detray;
 using point2 = __plugin::point2<scalar>;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 // This tests the construction of a surface
 TEST(mask, unmasked) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
+    using local_type = cartesian2<transform3>;
     point2 p2 = {0.5, -9.};
 
     unmasked u;

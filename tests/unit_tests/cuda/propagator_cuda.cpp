@@ -31,15 +31,16 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
                                                    n_edc_layers);
 
     // Create the vector of initial track parameters
-    vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
-    vecmem::vector<free_track_parameters> tracks_device(&mng_mr);
+    vecmem::vector<free_track_parameters<transform3>> tracks_host(&mng_mr);
+    vecmem::vector<free_track_parameters<transform3>> tracks_device(&mng_mr);
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
     const scalar p_mag{10. * unit_constants::GeV};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : uniform_track_generator<free_track_parameters>(
+    for (auto track :
+         uniform_track_generator<free_track_parameters<transform3>>(
              theta_steps, phi_steps, ori, p_mag)) {
         track.set_overstep_tolerance(overstep_tolerance);
 
@@ -171,8 +172,8 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
             auto pl = host_path_lengths[i][j];
 
-            for (__plugin::size_type row = 0; row < e_free_size; row++) {
-                for (__plugin::size_type col = 0; col < e_free_size; col++) {
+            for (std::size_t row = 0; row < e_free_size; row++) {
+                for (std::size_t col = 0; col < e_free_size; col++) {
 
                     auto host_val = matrix_operator().element(host_J, row, col);
 

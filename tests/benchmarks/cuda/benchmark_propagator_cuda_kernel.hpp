@@ -24,11 +24,12 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 
 using namespace detray;
 
+using transform3 = __plugin::transform3<scalar>;
 using intersection_t = line_plane_intersection;
 
 using detector_host_type =
@@ -42,7 +43,7 @@ using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 
 using field_type = constant_magnetic_field<>;
-using rk_stepper_type = rk_stepper<field_type, free_track_parameters>;
+using rk_stepper_type = rk_stepper<field_type, transform3>;
 using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain<>>;
 using propagator_device_type =
@@ -53,7 +54,7 @@ namespace detray {
 /// test function for propagator with single state
 void propagator_benchmark(
     detector_view<detector_host_type> det_data,
-    vecmem::data::vector_view<free_track_parameters>& tracks_data,
+    vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data);
 
 }  // namespace detray

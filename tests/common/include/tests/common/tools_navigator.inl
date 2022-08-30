@@ -9,7 +9,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
@@ -108,6 +108,7 @@ inline void check_step(navigator_t &nav, stepper_t &stepper,
 TEST(ALGEBRA_PLUGIN, navigator) {
     using namespace detray;
     using namespace detray::navigation;
+    using transform3 = __plugin::transform3<scalar>;
 
     vecmem::host_memory_resource host_mr;
 
@@ -121,12 +122,12 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;
     using constraint_t = constrained_step<>;
-    using stepper_t = line_stepper<free_track_parameters, constraint_t>;
+    using stepper_t = line_stepper<transform3, constraint_t>;
 
     // test track
     point3 pos{0., 0., 0.};
     vector3 mom{1., 1., 0.};
-    free_track_parameters traj(pos, 0, mom, -1);
+    free_track_parameters<transform3> traj(pos, 0, mom, -1);
 
     stepper_t stepper;
     navigator_t nav;

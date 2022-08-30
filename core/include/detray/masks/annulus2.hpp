@@ -7,13 +7,14 @@
 
 #pragma once
 
-// Project include(s)
+// Project include(s).
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/mask_base.hpp"
 
-// System include(s)
+// System include(s).
 #include <climits>
 #include <cmath>
 #include <sstream>
@@ -47,20 +48,21 @@ namespace detray {
  *
  **/
 
-template <typename local_t = __plugin::polar2<detray::scalar>,
-          typename links_t = dindex,
+template <typename transform3_t = __plugin::transform3<scalar>,
+          template <class> typename intersector_t = plane_intersector,
+          template <class> typename local_t = polar2, typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
-class annulus2 final
-    : public mask_base<plane_intersector, local_t, links_t, array_t, 7> {
+class annulus2 final : public mask_base<transform3_t, intersector_t, local_t,
+                                        links_t, array_t, 7> {
     public:
     using base_type =
-        mask_base<plane_intersector, local_t, links_t, array_t, 7>;
+        mask_base<transform3_t, intersector_t, local_t, links_t, array_t, 7>;
     using base_type::base_type;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
-    using point2 = __plugin::point2<scalar>;
+    using point2 = typename transform3_t::point2;
 
     /* Default constructor */
     annulus2()
@@ -86,17 +88,6 @@ class annulus2 final
               {r_low, r_high, phi_low, phi_high, shift_x, shift_y, avg_phi},
               links) {}
 
-    /** Assignment operator from an array, convenience function
-     *
-     * @param rhs is the right hand side object
-     **/
-    DETRAY_HOST_DEVICE
-    annulus2<local_type, links_type, array_t> &operator=(
-        const mask_values &rhs) {
-        this->_values = rhs;
-        return (*this);
-    }
-
     /** Mask operation
      *
      * @tparam inside_local_t is the local type for checking, needs to be
@@ -116,7 +107,7 @@ class annulus2 final
 
         // In cartesian coordinates go to modules system by shifting origin
         if constexpr (std::is_same_v<inside_local_t,
-                                     __plugin::cartesian2<detray::scalar>>) {
+                                     cartesian2<transform3_t>>) {
             // Calculate radial coordinate in module system:
             scalar x_mod = p[0] - this->_values[4];
             scalar y_mod = p[1] - this->_values[5];

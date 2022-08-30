@@ -6,7 +6,7 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( smatrix
-   "smatrix_actor_chain.cpp" "smatrix_annulus2.cpp" "smatrix_container.cpp"
+   "smatrix_actor_chain.cpp" "smatrix_annulus2.cpp" "smatrix_container.cpp" "smatrix_coordinates.cpp"
    "smatrix_core.cpp" "smatrix_covariance_engine.cpp"
    "smatrix_cylinder_intersection.cpp" "smatrix_cylinder3.cpp"
    "smatrix_detector.cpp" "smatrix_geometry_volume_graph.cpp"

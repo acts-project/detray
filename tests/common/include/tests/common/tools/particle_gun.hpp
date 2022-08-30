@@ -41,6 +41,9 @@ struct particle_gun {
 
         std::vector<std::pair<dindex, intersection_type>> intersection_record;
 
+        using helix_type =
+            detail::helix<typename trajectory_t::transform3_type>;
+
         // Loop over all surfaces in the detector
 
         const auto &mask_store = detector.mask_store();
@@ -53,7 +56,7 @@ struct particle_gun {
                 // Retrieve candidate from the surface
                 // NOTE: Change to interection_initialize
                 intersection_type sfi;
-                if constexpr (std::is_same_v<trajectory_t, detail::helix>) {
+                if constexpr (std::is_same_v<trajectory_t, helix_type>) {
                     sfi =
                         mask_store.template execute<helix_intersection_update>(
                             sf.mask_type(), traj, sf, tf_store, 1e-4);

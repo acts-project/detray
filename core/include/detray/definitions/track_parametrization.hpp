@@ -11,7 +11,7 @@ namespace detray {
 
 /// Components of a bound track parameters vector.
 ///
-enum bound_indices : __plugin::size_type {
+enum bound_indices : std::size_t {
     // Local position on the reference surface.
     // This is intentionally named different from the position components in
     // the other data vectors, to clarify that this is defined on a surface
@@ -39,7 +39,7 @@ enum bound_indices : __plugin::size_type {
 /// This must be a regular `enum` and not a scoped `enum class` to allow
 /// implicit conversion to an integer. The enum value are thus visible directly
 /// in `namespace Acts` and are prefixed to avoid naming collisions.
-enum free_indices : __plugin::size_type {
+enum free_indices : std::size_t {
     // Spatial position
     // The spatial position components must be stored as one continous block.
     e_free_pos0 = 0u,
@@ -58,25 +58,5 @@ enum free_indices : __plugin::size_type {
     // Last uninitialized value contains the total number of components
     e_free_size,
 };
-
-// Shorthand vector/matrix types related to bound track parameters.
-using bound_vector = __plugin::matrix_type<scalar, e_bound_size, 1>;
-using bound_matrix = __plugin::matrix_type<scalar, e_bound_size, e_bound_size>;
-using bound_sym_matrix =
-    __plugin::matrix_type<scalar, e_bound_size, e_bound_size>;
-
-// Mapping from bound track parameters.
-using bound_to_free_matrix =
-    __plugin::matrix_type<scalar, e_free_size, e_bound_size>;
-
-// Shorthand vector/matrix types related to free track parameters.
-using free_vector = __plugin::matrix_type<scalar, e_free_size, 1>;
-using free_matrix = __plugin::matrix_type<scalar, e_free_size, e_free_size>;
-using free_sym_matrix = __plugin::matrix_type<scalar, e_free_size, e_free_size>;
-
-// Mapping from free track parameters.
-using free_to_bound_matrix =
-    __plugin::matrix_type<scalar, e_bound_size, e_free_size>;
-using free_to_path_matrix = __plugin::matrix_type<scalar, 1, e_free_size>;
 
 }  // namespace detray

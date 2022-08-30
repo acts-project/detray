@@ -12,12 +12,12 @@
 #include "detray/masks/rectangle2.hpp"
 
 using namespace detray;
-using namespace __plugin;
+using point2 = __plugin::point2<detray::scalar>;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 // This tests the basic function of a rectangle
 TEST(mask, rectangle2) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
-    using point2 = __plugin::point2<detray::scalar>;
+    using local_type = cartesian2<transform3>;
 
     point2 p2_in = {0.5, -9.};
     point2 p2_edge = {1., 9.3};

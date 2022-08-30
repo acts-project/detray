@@ -20,12 +20,17 @@ namespace detray {
 
 /** A functor to find intersections between trajectory and planar mask
  */
+template <typename transform3_t>
 struct plane_intersector {
 
+    /// Transformation matching this struct
+    using scalar_type = typename transform3_t::scalar_type;
+    using point3 = typename transform3_t::point3;
+    using vector3 = typename transform3_t::vector3;
+    using matrix_actor = typename transform3_t::matrix_actor;
+    using ray_type = detail::ray<transform3_t>;
     using intersection_type = line_plane_intersection;
     using output_type = std::array<intersection_type, 1>;
-    using point3 = __plugin::point3<detray::scalar>;
-    using vector3 = __plugin::vector3<detray::scalar>;
 
     /** Operator function to find intersections between ray and planar mask
      *
@@ -40,11 +45,11 @@ struct plane_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t, typename transform_t>
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const detail::ray &ray, const mask_t &mask, const transform_t &trf,
-        const scalar mask_tolerance = 0,
-        const scalar overstep_tolerance = 0.) const {
+        const ray_type &ray, const mask_t &mask, const transform3_t &trf,
+        const scalar_type mask_tolerance = 0,
+        const scalar_type overstep_tolerance = 0.) const {
 
         output_type ret;
 
@@ -58,13 +63,13 @@ struct plane_intersector {
         // Intersection code
         const point3 &ro = ray.pos();
         const vector3 &rd = ray.dir();
-        const scalar denom = vector::dot(rd, sn);
-        if (denom != scalar{0.}) {
+        const scalar_type denom = vector::dot(rd, sn);
+        if (denom != scalar_type{0.}) {
             intersection_type &is = ret[0];
             is.path = vector::dot(sn, st - ro) / denom;
             is.p3 = ro + is.path * rd;
             constexpr local_frame local_converter{};
-            is.p2 = local_converter(trf, is.p3);
+            is.p2 = local_converter.global_to_local(trf, is.p3, ray.dir());
             is.status =
                 mask.template is_inside<local_frame>(is.p2, mask_tolerance);
             is.direction = is.path > overstep_tolerance

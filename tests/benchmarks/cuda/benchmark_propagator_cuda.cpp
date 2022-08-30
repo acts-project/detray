@@ -27,14 +27,14 @@ vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 constexpr std::size_t n_brl_layers = 4;
 constexpr std::size_t n_edc_layers = 7;
 
-void fill_tracks(vecmem::vector<free_track_parameters> &tracks,
+void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
                  const unsigned int theta_steps, const unsigned int phi_steps) {
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
     const scalar mom_mag = 10. * unit_constants::GeV;
 
     // Iterate through uniformly distributed momentum directions
-    for (auto traj : uniform_track_generator<free_track_parameters>(
+    for (auto traj : uniform_track_generator<free_track_parameters<transform3>>(
              theta_steps, phi_steps, ori, mom_mag)) {
         tracks.push_back(traj);
     }
@@ -67,7 +67,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
         state.PauseTiming();
 
         // Get tracks
-        vecmem::vector<free_track_parameters> tracks(&host_mr);
+        vecmem::vector<free_track_parameters<transform3>> tracks(&host_mr);
         fill_tracks(tracks, state.range(0), state.range(0));
 
         state.ResumeTiming();
@@ -102,7 +102,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         state.PauseTiming();
 
         // Get tracks
-        vecmem::vector<free_track_parameters> tracks(&bp_mng_mr);
+        vecmem::vector<free_track_parameters<transform3>> tracks(&bp_mng_mr);
         fill_tracks(tracks, state.range(0), state.range(0));
 
         state.ResumeTiming();

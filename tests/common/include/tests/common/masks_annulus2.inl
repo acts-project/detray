@@ -14,9 +14,9 @@ using namespace __plugin;
 
 // This tests the basic function of a rectangle
 TEST(mask, annulus2) {
-    using polar = __plugin::polar2<detray::scalar>;
-    using cartesian = __plugin::cartesian2<detray::scalar>;
-    using point2 = __plugin::point2<detray::scalar>;
+    using polar = polar2<transform3<scalar>>;
+    using cartesian = cartesian2<transform3<scalar>>;
+    using point2 = __plugin::point2<scalar>;
 
     scalar minR = 7.2;
     scalar maxR = 12.0;

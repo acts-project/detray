@@ -12,13 +12,14 @@ namespace detray {
 
 __global__ void propagator_benchmark_kernel(
     detector_view<detector_host_type> det_data,
-    vecmem::data::vector_view<free_track_parameters> tracks_data,
+    vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> candidates_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     detector_device_type det(det_data);
-    vecmem::device_vector<free_track_parameters> tracks(tracks_data);
+    vecmem::device_vector<free_track_parameters<transform3>> tracks(
+        tracks_data);
     vecmem::jagged_device_vector<intersection_t> candidates(candidates_data);
 
     if (gid >= tracks.size()) {
@@ -48,7 +49,7 @@ __global__ void propagator_benchmark_kernel(
 
 void propagator_benchmark(
     detector_view<detector_host_type> det_data,
-    vecmem::data::vector_view<free_track_parameters>& tracks_data,
+    vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;

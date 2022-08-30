@@ -15,7 +15,7 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
@@ -25,6 +25,7 @@ namespace detray {
 namespace {
 
 using vector3 = __plugin::vector3<detray::scalar>;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
@@ -48,8 +49,8 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     using namespace detray;
 
     using b_field_t = constant_magnetic_field<>;
-    using ln_stepper_t = line_stepper<free_track_parameters>;
-    using rk_stepper_t = rk_stepper<b_field_t, free_track_parameters>;
+    using ln_stepper_t = line_stepper<transform3>;
+    using rk_stepper_t = rk_stepper<b_field_t, transform3>;
     using inspector_t = navigation::print_inspector;
 
     // Use rectangular surfaces
@@ -102,7 +103,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     // Same telescope, but in x direction and created from custom stepper
     point3 pos{0., 0., 0.};
     vector3 mom{1., 0., 0.};
-    free_track_parameters pilot_track(pos, 0, mom, -1);
+    free_track_parameters<transform3> pilot_track(pos, 0, mom, -1);
 
     const auto x_tel_det = create_telescope_detector<rectangular>(
         host_mr, n_surfaces, tel_length, pilot_track, ln_stepper);
@@ -114,10 +115,10 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     // Telescope navigation should be symmetric in x and z
     pos = {0., 0., 0.};
     mom = {0., 0., 1.};
-    free_track_parameters test_track_z1(pos, 0, mom, -1);
-    free_track_parameters test_track_z2(pos, 0, mom, -1);
+    free_track_parameters<transform3> test_track_z1(pos, 0, mom, -1);
+    free_track_parameters<transform3> test_track_z2(pos, 0, mom, -1);
     mom = {1., 0., 0.};
-    free_track_parameters test_track_x(pos, 0, mom, -1);
+    free_track_parameters<transform3> test_track_x(pos, 0, mom, -1);
 
     // navigators
     navigator<decltype(z_tel_det1), inspector_t> navigator_z1;
@@ -196,7 +197,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     //
     pos = {0., 0., 0.};
     mom = {0., 1., 0.};
-    pilot_track = free_track_parameters(pos, 0, mom, -1);
+    pilot_track = free_track_parameters<transform3>(pos, 0, mom, -1);
     pilot_track.set_overstep_tolerance(-10 * unit_constants::um);
 
     const auto tel_detector = create_telescope_detector<rectangular>(

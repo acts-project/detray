@@ -5,23 +5,25 @@
  * Mozilla Public License Version 2.0
  */
 
-template <typename scalar_t>
-detray::bound_to_free_matrix
-detray::detail::jacobian_engine<scalar_t>::bound_to_free_coordinate(
-    const transform3& trf3, const detray::bound_vector& bound_vec) const {
+template <typename transform3_t>
+typename detray::detail::template jacobian_engine<
+    transform3_t>::bound_to_free_matrix
+detray::detail::jacobian_engine<transform3_t>::bound_to_free_coordinate(
+    const transform3_type& trf3, const bound_vector& bound_vec) const {
 
     // Declare jacobian for bound to free coordinate transform
     bound_to_free_matrix jac_to_global =
         matrix_operator().template zero<e_free_size, e_bound_size>();
 
     // Get trigonometric values
-    const scalar_t theta =
+    const scalar_type theta =
         matrix_operator().element(bound_vec, e_bound_theta, 0);
-    const scalar_t phi = matrix_operator().element(bound_vec, e_bound_phi, 0);
-    const scalar_t cos_theta = std::cos(theta);
-    const scalar_t sin_theta = std::sin(theta);
-    const scalar_t cos_phi = std::cos(phi);
-    const scalar_t sin_phi = std::sin(phi);
+    const scalar_type phi =
+        matrix_operator().element(bound_vec, e_bound_phi, 0);
+    const scalar_type cos_theta = std::cos(theta);
+    const scalar_type sin_theta = std::sin(theta);
+    const scalar_type cos_phi = std::cos(phi);
+    const scalar_type sin_phi = std::sin(phi);
 
     // Set d(x,y,z)/d(loc0,loc1)
     const matrix_type<3, 2> bound_to_free_rotation =
@@ -46,26 +48,27 @@ detray::detail::jacobian_engine<scalar_t>::bound_to_free_coordinate(
     return jac_to_global;
 }
 
-template <typename scalar_t>
-detray::free_to_bound_matrix
-detray::detail::jacobian_engine<scalar_t>::free_to_bound_coordinate(
-    const transform3& trf3, const detray::free_vector& free_vec) const {
+template <typename transform3_t>
+typename detray::detail::template jacobian_engine<
+    transform3_t>::free_to_bound_matrix
+detray::detail::jacobian_engine<transform3_t>::free_to_bound_coordinate(
+    const transform3_type& trf3, const free_vector& free_vec) const {
 
     // Declare jacobian for free to bound coordinate transform
     free_to_bound_matrix jac_to_local =
         matrix_operator().template zero<e_bound_size, e_free_size>();
 
     // Free direction
-    const vector3 dir = vector_engine().dir(free_vec);
+    const vector3 dir = track_helper().dir(free_vec);
 
     // Get trigonometric values
-    const scalar_t theta = getter::theta(dir);
-    const scalar_t phi = getter::phi(dir);
-    const scalar_t cos_theta = std::cos(theta);
-    const scalar_t sin_theta = std::sin(theta);
-    const scalar_t inv_sin_theta = 1. / sin_theta;
-    const scalar_t cos_phi = std::cos(phi);
-    const scalar_t sin_phi = std::sin(phi);
+    const scalar_type theta = getter::theta(dir);
+    const scalar_type phi = getter::phi(dir);
+    const scalar_type cos_theta = std::cos(theta);
+    const scalar_type sin_theta = std::sin(theta);
+    const scalar_type inv_sin_theta = 1. / sin_theta;
+    const scalar_type cos_phi = std::cos(phi);
+    const scalar_type sin_phi = std::sin(phi);
 
     // Set d(loc0,loc1)/d(x,y,z)
     const matrix_type<2, 3> free_to_bound_rotation =
@@ -95,24 +98,25 @@ detray::detail::jacobian_engine<scalar_t>::free_to_bound_coordinate(
     return jac_to_local;
 }
 
-template <typename scalar_t>
-detray::free_to_path_matrix
-detray::detail::jacobian_engine<scalar_t>::free_to_path_correction(
-    const transform3& trf3, const free_vector& free_vec) const {
+template <typename transform3_t>
+typename detray::detail::template jacobian_engine<
+    transform3_t>::free_to_path_matrix
+detray::detail::jacobian_engine<transform3_t>::free_to_path_correction(
+    const transform3_type& trf3, const free_vector& free_vec) const {
 
     // Declare free to path correction
     free_to_path_matrix free_to_path =
         matrix_operator().template zero<1, e_free_size>();
 
     // Free direction
-    const vector3 dir = vector_engine().dir(free_vec);
+    const vector3 dir = track_helper().dir(free_vec);
 
     // The measurement frame z axis
     const matrix_type<3, 1> ref_z_axis =
         matrix_operator().template block<3, 1>(trf3.matrix(), 0, 2);
 
     // cosine angle between momentum direction and the measurement frame z axis
-    const scalar_t dz = vector::dot(ref_z_axis, dir);
+    const scalar_type dz = vector::dot(ref_z_axis, dir);
 
     // Correction term
     const matrix_type<1, 3> correction_term =

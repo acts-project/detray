@@ -9,6 +9,15 @@ message(STATUS "Building 'detray::core' component")
 
 # Set up the library.
 detray_add_library( detray_core core
+   # coordinate include(s)
+   "include/detray/coordinates/cartesian2.hpp"
+   "include/detray/coordinates/cartesian3.hpp"
+   "include/detray/coordinates/coordinate_base.hpp"
+   "include/detray/coordinates/coordinates.hpp"
+   "include/detray/coordinates/cylindrical2.hpp"
+   "include/detray/coordinates/cylindrical3.hpp"
+   "include/detray/coordinates/line2.hpp"
+   "include/detray/coordinates/polar2.hpp"
    # core include(s)
    "include/detray/core/detail/tuple_array_container.hpp"
    "include/detray/core/detail/tuple_container.hpp"
@@ -23,9 +32,9 @@ detray_add_library( detray_core core
    "include/detray/definitions/cuda_definitions.hpp"
    "include/detray/definitions/indexing.hpp"
    "include/detray/definitions/qualifiers.hpp"
-   "include/detray/definitions/track_parameterization.hpp"
    "include/detray/definitions/units.hpp"
    "include/detray/definitions/detail/accessor.hpp"
+   "include/detray/definitions/track_parametrization.hpp"
    # field include(s)
    "include/detray/field/constant_magnetic_field.hpp"
    # geometry include(s)
@@ -71,21 +80,25 @@ detray_add_library( detray_core core
    "include/detray/propagator/constrained_step.hpp"
    "include/detray/propagator/detail/covariance_engine.hpp"
    "include/detray/propagator/detail/jacobian_engine.hpp"
-   "include/detray/propagator/detail/vector_engine.hpp"
    "include/detray/propagator/line_stepper.hpp"
    "include/detray/propagator/navigation_policies.hpp"
    "include/detray/propagator/navigator.hpp"
    "include/detray/propagator/propagator.hpp"
    "include/detray/propagator/rk_stepper.hpp"
-   "include/detray/propagator/track.hpp"
    # tools include(s)
    "include/detray/tools/associator.hpp"
    "include/detray/tools/bin_association.hpp"
    "include/detray/tools/generators.hpp"
    "include/detray/tools/grid_array_helper.hpp"
    "include/detray/tools/local_object_finder.hpp"
+   # tracks include(s)
+   "include/detray/tracks/detail/track_helper.hpp"
+   "include/detray/tracks/detail/trigonometrics.hpp"
+   "include/detray/tracks/bound_track_parameters.hpp"
+   "include/detray/tracks/free_track_parameters.hpp"
+   "include/detray/tracks/tracks.hpp"
    # utils include(s)
-   "include/detray/utils/algebra_helpers.hpp"
+   "include/detray/utils/column_wise_operator.hpp"
    "include/detray/utils/enumerate.hpp"
    "include/detray/utils/invalid_values.hpp"
    "include/detray/utils/quadratic_equation.hpp"

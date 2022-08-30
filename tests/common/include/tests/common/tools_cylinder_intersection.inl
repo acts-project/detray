@@ -18,33 +18,33 @@
 #include "detray/masks/cylinder3.hpp"
 #include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
 
-/// @note __plugin has to be defined with a preprocessor command
-using namespace detray;
-
 // Three-dimensional definitions
-using transform3 = __plugin::transform3<detray::scalar>;
+using namespace detray;
+using transform3_type = __plugin::transform3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
+using scalar_type = typename transform3_type::scalar_type;
+using ray_type = detray::detail::ray<transform3_type>;
+using helix_type = detray::detail::helix<transform3_type>;
 
-constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
-constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
-constexpr scalar isclose = 1e-5;
-
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
+constexpr scalar_type epsilon = std::numeric_limits<scalar_type>::epsilon();
+constexpr scalar_type not_defined =
+    std::numeric_limits<scalar_type>::infinity();
+constexpr scalar_type isclose = 1e-5;
 
 // This defines the local frame test suite
 TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // Create a translated cylinder and test untersection
-    const transform3 shifted(vector3{3., 2., 10.});
-    cylinder_intersector ci;
+    const transform3_type shifted(vector3{3., 2., 10.});
+    cylinder_intersector<transform3_type> ci;
 
     // Test ray
     const point3 ori = {3., 2., 5.};
     const point3 dir = {1., 0., 0.};
-    const detail::ray ray(ori, 0., dir, 0.);
+    const ray_type ray(ori, 0., dir, 0.);
 
     // Check intersection
-    cylinder3<cylinder_intersector, __plugin::cylindrical2<detray::scalar>,
-              unsigned int>
+    cylinder3<transform3_type, cylinder_intersector, cylindrical2, unsigned int>
         cylinder_bound{4., -10., 10., 0u};
     const auto hit_bound = ci(ray, cylinder_bound, shifted)[0];
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
@@ -60,17 +60,16 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
 
 // This defines the local frame test suite
 TEST(ALGEBRA_PLUGIN, cylinder_incidence_angle) {
-    const transform3 tf(vector3{0., 0., 0.});
-    cylinder_intersector ci;
+    const transform3_type tf(vector3{0., 0., 0.});
+    cylinder_intersector<transform3_type> ci;
 
     // Test ray
     const point3 ori = {0., 1., 0.};
     const point3 dir = {1., 0., 0.};
-    const detail::ray ray(ori, 0., dir, 0.);
+    const ray_type ray(ori, 0., dir, 0.);
 
     // Check intersection
-    cylinder3<cylinder_intersector, __plugin::cylindrical2<detray::scalar>,
-              unsigned int>
+    cylinder3<transform3_type, cylinder_intersector, cylindrical2, unsigned int>
         cylinder_bound{4., -10., 10., 0u};
     const auto hit_bound = ci(ray, cylinder_bound, tf)[0];
     ASSERT_NEAR(hit_bound.cos_incidence_angle, std::sqrt(15) / 4., isclose);
@@ -81,15 +80,16 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     // Test ray
     const point3 ori = {1., 0.5, 1.};
     const point3 dir = vector::normalize(vector3{1., 1., 1.});
-    const detail::ray ray(ori, 0., dir, 0.);
+    const ray_type ray(ori, 0., dir, 0.);
 
     // Create a concentric cylinder and test intersection
     const scalar r = 4.;
     const scalar hz = 10.;
-    const transform3 identity(vector3{0., 0., 0.});
-    cylinder3<> cylinder{r, -hz, hz, 0u};
-    cylinder_intersector ci;
-    concentric_cylinder_intersector cci;
+    const transform3_type identity(vector3{0., 0., 0.});
+    cylinder3<transform3_type, cylinder_intersector, cylindrical2, unsigned int>
+        cylinder{r, -hz, hz, 0u};
+    cylinder_intersector<transform3_type> ci;
+    concentric_cylinder_intersector<transform3_type> cci;
 
     // Check intersection
     const auto hit_cylinrical = ci(ray, cylinder, identity)[0];
@@ -118,19 +118,18 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
 // This defines the local frame test suite
 TEST(ALGEBRA_PLUGIN, helix_cylinder_intersector) {
     // Create a translated cylinder and test untersection
-    const transform3 shifted(vector3{3., 2., 10.});
-    helix_cylinder_intersector ci;
+    const transform3_type shifted(vector3{3., 2., 10.});
+    helix_cylinder_intersector<transform3_type> ci;
 
     // Test helix
     const point3 pos{3., 2., 5.};
     const vector3 mom{1., 0., 0.};
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     epsilon * unit_constants::T};
-    const detail::helix h({pos, 0, mom, -1}, &B);
+    const helix_type h({pos, 0, mom, -1}, &B);
 
     // Check intersection
-    cylinder3<cylinder_intersector, __plugin::cylindrical2<detray::scalar>,
-              unsigned int>
+    cylinder3<transform3_type, cylinder_intersector, cylindrical2, unsigned int>
         cylinder_bound{4., -10., 10., 0u};
     const auto hit_bound = ci(h, cylinder_bound, shifted)[0];
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);

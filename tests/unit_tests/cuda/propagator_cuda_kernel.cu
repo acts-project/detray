@@ -12,7 +12,7 @@ namespace detray {
 
 __global__ void propagator_test_kernel(
     detector_view<detector_host_type> det_data, const vector3 B,
-    vecmem::data::vector_view<free_track_parameters> tracks_data,
+    vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     vecmem::data::jagged_vector_view<scalar> path_lengths_data,
     vecmem::data::jagged_vector_view<vector3> positions_data,
@@ -21,7 +21,8 @@ __global__ void propagator_test_kernel(
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     detector_device_type det(det_data);
-    vecmem::device_vector<free_track_parameters> tracks(tracks_data);
+    vecmem::device_vector<free_track_parameters<transform3>> tracks(
+        tracks_data);
     vecmem::jagged_device_vector<intersection_t> candidates(candidates_data);
     vecmem::jagged_device_vector<scalar> path_lengths(path_lengths_data);
     vecmem::jagged_device_vector<vector3> positions(positions_data);
@@ -65,7 +66,7 @@ __global__ void propagator_test_kernel(
 
 void propagator_test(
     detector_view<detector_host_type> det_data, const vector3 B,
-    vecmem::data::vector_view<free_track_parameters>& tracks_data,
+    vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
     vecmem::data::jagged_vector_view<vector3>& positions_data,

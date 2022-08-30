@@ -20,21 +20,21 @@
 namespace detray {
 
 /// Straight line stepper implementation
-///
-/// @tparam track_t the type of track that is being advanced by the stepper
-/// @tparam constraint_ the type of constraints on the stepper
-template <typename track_t, typename constraint_t = unconstrained_step,
+template <typename transform3_t, typename constraint_t = unconstrained_step,
           typename policy_t = stepper_default_policy>
 class line_stepper final
-    : public base_stepper<track_t, constraint_t, policy_t> {
+    : public base_stepper<transform3_t, constraint_t, policy_t> {
 
     public:
-    using base_type = base_stepper<track_t, constraint_t, policy_t>;
+    using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
     using policy_type = policy_t;
+    using free_track_parameters_type =
+        typename base_type::free_track_parameters_type;
+    using transform3_type = transform3_t;
 
     struct state : public base_type::state {
         DETRAY_HOST_DEVICE
-        state(const track_t &t) : base_type::state(t) {}
+        state(const free_track_parameters_type &t) : base_type::state(t) {}
 
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE

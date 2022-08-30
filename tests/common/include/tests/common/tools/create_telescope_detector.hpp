@@ -193,8 +193,7 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
 /// @param n_surfaces the number of surfaces that are placed in the geometry
 /// @param tel_length the total length of the steps by the stepper
 template <bool unbounded_planes = true,
-          typename track_t = free_track_parameters,
-          typename stepper_t = line_stepper<track_t>,
+          typename stepper_t = line_stepper<__plugin::transform3<scalar>>,
           template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
@@ -202,9 +201,13 @@ template <bool unbounded_planes = true,
 auto create_telescope_detector(
     vecmem::memory_resource &resource, dindex n_surfaces = 10,
     scalar tel_length = 500. * unit_constants::mm,
-    track_t track = {{0., 0., 0.}, 0., {0., 0., 1.}, -1.},
+    typename stepper_t::free_track_parameters_type track = {{0., 0., 0.},
+                                                            0.,
+                                                            {0., 0., 1.},
+                                                            -1.},
     stepper_t stepper = {}, scalar half_x = 20. * unit_constants::mm,
     scalar half_y = 20. * unit_constants::mm) {
+
     // Generate equidistant positions
     std::vector<scalar> positions = {};
     scalar pos = 0.;
@@ -241,16 +244,18 @@ auto create_telescope_detector(
 ///
 /// @returns a complete detector object
 template <bool unbounded_planes = true,
-          typename track_t = free_track_parameters,
-          typename stepper_t = line_stepper<track_t>,
+          typename stepper_t = line_stepper<__plugin::transform3<scalar>>,
           template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, std::vector<scalar> pos = {},
-    track_t track = {{0, 0, 0}, 0, {0, 0, 1}, -1}, stepper_t stepper = {},
-    scalar half_x = 20. * unit_constants::mm,
+    typename stepper_t::free_track_parameters_type track = {{0, 0, 0},
+                                                            0,
+                                                            {0, 0, 1},
+                                                            -1},
+    stepper_t stepper = {}, scalar half_x = 20. * unit_constants::mm,
     scalar half_y = 20. * unit_constants::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
     const scalar thickness = 80 * unit_constants::um) {

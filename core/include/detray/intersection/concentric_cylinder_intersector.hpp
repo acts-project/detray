@@ -22,13 +22,18 @@ namespace detray {
 /** A functor to find intersections between trajectory and concentric cylinder
  * mask
  */
+template <typename transform3_t>
 struct concentric_cylinder_intersector {
 
+    /// Transformation matching this struct
+    using scalar_type = typename transform3_t::scalar_type;
+    using point3 = typename transform3_t::point3;
+    using point2 = typename transform3_t::point2;
+    using vector3 = typename transform3_t::vector3;
+    using matrix_actor = typename transform3_t::matrix_actor;
+    using ray_type = detail::ray<transform3_t>;
     using intersection_type = line_plane_intersection;
     using output_type = std::array<intersection_type, 1>;
-    using point3 = __plugin::point3<detray::scalar>;
-    using vector3 = __plugin::vector3<detray::scalar>;
-    using point2 = __plugin::point2<detray::scalar>;
 
     /** Operator function to find intersections between ray and concentric
      * cylinder mask
@@ -44,17 +49,17 @@ struct concentric_cylinder_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t, typename transform_t>
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const detail::ray &ray, const mask_t &mask, const transform_t & /*trf*/,
-        const scalar /*mask_tolerance*/ = 0,
-        const scalar overstep_tolerance = 0.) const {
+        const ray_type &ray, const mask_t &mask, const transform3_t & /*trf*/,
+        const scalar_type /*mask_tolerance*/ = 0,
+        const scalar_type overstep_tolerance = 0.) const {
 
         output_type ret;
 
         using local_frame = typename mask_t::local_type;
 
-        const scalar r{mask[0]};
+        const scalar_type r{mask[0]};
 
         // Two points on the line, thes are in the cylinder frame
         const point3 &ro = ray.pos();
@@ -63,20 +68,21 @@ struct concentric_cylinder_intersector {
         const point3 l1 = ro + rd;
 
         // swap coorinates x/y for numerical stability
-        const bool swap_x_y = std::abs(rd[0]) < scalar{1e-3};
+        const bool swap_x_y = std::abs(rd[0]) < scalar_type{1e-3};
 
         std::size_t _x = swap_x_y ? 1 : 0;
         std::size_t _y = swap_x_y ? 0 : 1;
-        const scalar k{(l0[_y] - l1[_y]) / (l0[_x] - l1[_x])};
-        const scalar d{l1[_y] - k * l1[_x]};
+        const scalar_type k{(l0[_y] - l1[_y]) / (l0[_x] - l1[_x])};
+        const scalar_type d{l1[_y] - k * l1[_x]};
 
-        quadratic_equation<scalar> qe = {(1 + k * k), 2 * k * d, d * d - r * r};
+        quadratic_equation<scalar_type> qe = {(1 + k * k), 2 * k * d,
+                                              d * d - r * r};
         auto qe_solution = qe();
 
         if (std::get<0>(qe_solution) > overstep_tolerance) {
             std::array<point3, 2> candidates;
             const auto u01 = std::get<1>(qe_solution);
-            std::array<scalar, 2> t01 = {0., 0.};
+            std::array<scalar_type, 2> t01 = {0., 0.};
 
             candidates[0][_x] = u01[0];
             candidates[0][_y] = k * u01[0] + d;
@@ -103,7 +109,8 @@ struct concentric_cylinder_intersector {
 
                 is.p2 = point2{r * getter::phi(is.p3), is.p3[2]};
                 is.status = mask.template is_inside<local_frame>(is.p3);
-                const scalar rdir{getter::perp(is.p3 + scalar{0.1} * rd)};
+                const scalar_type rdir{
+                    getter::perp(is.p3 + scalar_type{0.1} * rd)};
                 is.direction = rdir > r ? intersection::direction::e_along
                                         : intersection::direction::e_opposite;
                 is.link = mask.volume_link();

@@ -30,7 +30,7 @@ TEST(rk_stepper_cuda, bound_state) {
     scalar q = -1.;
 
     // bound vector
-    typename bound_track_parameters::vector_type bound_vector;
+    typename bound_track_parameters<transform3>::vector_type bound_vector;
     getter::element(bound_vector, e_bound_loc0, 0) = local[0];
     getter::element(bound_vector, e_bound_loc1, 0) = local[1];
     getter::element(bound_vector, e_bound_phi, 0) = getter::phi(mom);
@@ -39,7 +39,7 @@ TEST(rk_stepper_cuda, bound_state) {
     getter::element(bound_vector, e_bound_time, 0) = time;
 
     // bound covariance
-    typename bound_track_parameters::covariance_type bound_cov =
+    typename bound_track_parameters<transform3>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
     getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.;
     getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.;
@@ -50,7 +50,8 @@ TEST(rk_stepper_cuda, bound_state) {
     getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
 
     // bound track parameter
-    const bound_track_parameters in_param(0, bound_vector, bound_cov);
+    const bound_track_parameters<transform3> in_param(0, bound_vector,
+                                                      bound_cov);
     const vector3 B{0, 0, 1. * unit_constants::T};
 
     /**
@@ -97,7 +98,8 @@ TEST(rk_stepper_cuda, bound_state) {
     /**
      * Get CUDA bound parameter after one turn
      */
-    vecmem::vector<bound_track_parameters> out_param_cuda(1, &mng_mr);
+    vecmem::vector<bound_track_parameters<transform3>> out_param_cuda(1,
+                                                                      &mng_mr);
 
     bound_state_test(vecmem::get_data(out_param_cuda), in_param, B, trf);
 
@@ -110,13 +112,13 @@ TEST(rk_stepper_cuda, bound_state) {
     const auto bvec_cuda = out_param_cuda[0].vector();
     const auto bcov_cuda = out_param_cuda[0].covariance();
 
-    for (size_type i = 0; i < e_bound_size; i++) {
+    for (std::size_t i = 0; i < e_bound_size; i++) {
         EXPECT_NEAR(matrix_operator().element(bvec_cpu, i, 0),
                     matrix_operator().element(bvec_cuda, i, 0), epsilon);
     }
 
-    for (size_type i = 0; i < e_bound_size; i++) {
-        for (size_type j = 0; j < e_bound_size; j++) {
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bcov_cpu, i, j),
                         matrix_operator().element(bcov_cuda, i, j), epsilon);
         }
