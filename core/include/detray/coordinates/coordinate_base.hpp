@@ -239,12 +239,26 @@ struct coordinate_base {
     template <typename mask_t, typename stepper_state_t>
     DETRAY_HOST_DEVICE inline free_matrix path_correction(
         const stepper_state_t& stepping, const transform3_t& trf3,
-        const mask_t& mask, const free_vector& free_vec) {
+        const mask_t& mask) {
+
+        using field = typename stepper_state_t::magnetic_field;
+        using helix = detail::helix<transform3_t>;
 
         free_matrix path_correction =
             matrix_actor().template zero<e_free_size, e_free_size>();
 
+        sd.b_first =
+            _magnetic_field.get_field(stepping().pos(), context_type{});
+
+        /*
+        // Direction at the surface
+        const vector3& t = stepping._step_data.k4;
+
+        // B field at the surface
+        field B(stepping._step_data.b_last);
+        */
         // Use Helix
+        detail::helix<transform3_t> helix hlx(trf3, &B);
 
         /*
         // Direction at the surface
