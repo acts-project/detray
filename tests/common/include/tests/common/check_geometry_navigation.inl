@@ -52,7 +52,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
-    propagator_t prop(stepper_t{}, navigator_t{det});
+    propagator_t prop(stepper_t{}, navigator_t{});
 
     constexpr std::size_t theta_steps{50};
     constexpr std::size_t phi_steps{50};
@@ -71,7 +71,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
         // Now follow that ray with a track and check, if we find the same
         // volumes and distances along the way
         free_track_parameters track(ray.pos(), 0, ray.dir(), -1);
-        propagator_t::state propagation(track);
+        propagator_t::state propagation(track, det);
 
         // Retrieve navigation information
         auto &inspector = propagation._navigation.inspector();
@@ -137,7 +137,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     2. * unit_constants::T};
     b_field_t b_field(B);
-    propagator_t prop(stepper_t{b_field}, navigator_t{det});
+    propagator_t prop(stepper_t{b_field}, navigator_t{});
 
     constexpr std::size_t theta_steps{10};
     constexpr std::size_t phi_steps{10};
@@ -164,7 +164,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
         // Now follow that helix with the same track and check, if we find
         // the same volumes and distances along the way
-        propagator_t::state propagation(track);
+        propagator_t::state propagation(track, det);
 
         // Retrieve navigation information
         auto &inspector = propagation._navigation.inspector();

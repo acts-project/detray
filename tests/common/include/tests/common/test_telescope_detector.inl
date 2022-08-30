@@ -33,7 +33,9 @@ struct prop_state {
     navigation_t _navigation;
 
     template <typename track_t>
-    prop_state(const track_t &t_in) : _stepping(t_in) {}
+    prop_state(const track_t &t_in,
+               const typename navigation_t::detector_type &det)
+        : _stepping(t_in), _navigation(det) {}
 };
 
 }  // anonymous namespace
@@ -118,18 +120,19 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     free_track_parameters test_track_x(pos, 0, mom, -1);
 
     // navigators
-    navigator<decltype(z_tel_det1), inspector_t> navigator_z1(z_tel_det1);
-    navigator<decltype(z_tel_det2), inspector_t> navigator_z2(z_tel_det2);
-    navigator<decltype(x_tel_det), inspector_t> navigator_x(x_tel_det);
+    navigator<decltype(z_tel_det1), inspector_t> navigator_z1;
+    navigator<decltype(z_tel_det2), inspector_t> navigator_z2;
+    navigator<decltype(x_tel_det), inspector_t> navigator_x;
     using navigation_state_t = decltype(navigator_z1)::state;
     using stepping_state_t = rk_stepper_t::state;
 
     // propagation states
     prop_state<stepping_state_t, navigation_state_t> propgation_z1(
-        test_track_z1);
+        test_track_z1, z_tel_det1);
     prop_state<stepping_state_t, navigation_state_t> propgation_z2(
-        test_track_z2);
-    prop_state<stepping_state_t, navigation_state_t> propgation_x(test_track_x);
+        test_track_z2, z_tel_det2);
+    prop_state<stepping_state_t, navigation_state_t> propgation_x(test_track_x,
+                                                                  x_tel_det);
 
     stepping_state_t &stepping_z1 = propgation_z1._stepping;
     stepping_state_t &stepping_z2 = propgation_z2._stepping;
@@ -200,10 +203,10 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
         host_mr, n_surfaces, tel_length, pilot_track, rk_stepper_z);
 
     // make at least sure it is navigatable
-    navigator<decltype(tel_detector), inspector_t> tel_navigator(tel_detector);
+    navigator<decltype(tel_detector), inspector_t> tel_navigator;
 
     prop_state<stepping_state_t, navigation_state_t> tel_propagation(
-        pilot_track);
+        pilot_track, tel_detector);
     navigation_state_t &tel_navigation = tel_propagation._navigation;
 
     // run propagation
