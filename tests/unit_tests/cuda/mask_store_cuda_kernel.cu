@@ -21,8 +21,6 @@ __global__ void mask_test_kernel(
     vecmem::data::vector_view<point3> input_point3_data,
     vecmem::data::jagged_vector_view<intersection::status> output_data) {
 
-    using cartesian2 = __plugin::cartesian2<detray::scalar>;
-
     /** get mask store **/
     tuple_vector_container<thrust::tuple, vecmem::device_vector, mask_ids,
                            rectangle, trapezoid, ring, cylinder, single,
@@ -45,15 +43,15 @@ __global__ void mask_test_kernel(
     for (int i = 0; i < n_points; i++) {
 
         output_device[0].push_back(
-            rectangle_mask.is_inside<cartesian2>(input_point2[i]));
+            rectangle_mask.is_inside<cartesian2<transform3>>(input_point2[i]));
         output_device[1].push_back(
-            trapezoid_mask.is_inside<cartesian2>(input_point2[i]));
+            trapezoid_mask.is_inside<cartesian2<transform3>>(input_point2[i]));
         output_device[2].push_back(
-            ring_mask.is_inside<cartesian2>(input_point2[i]));
+            ring_mask.is_inside<cartesian2<transform3>>(input_point2[i]));
         output_device[3].push_back(
-            cylinder_mask.is_inside<cartesian2>(input_point3[i]));
+            cylinder_mask.is_inside<cartesian2<transform3>>(input_point3[i]));
         output_device[4].push_back(
-            annulus_mask.is_inside<cartesian2>(input_point2[i]));
+            annulus_mask.is_inside<cartesian2<transform3>>(input_point2[i]));
     }
 }
 

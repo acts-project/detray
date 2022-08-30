@@ -10,12 +10,12 @@
 #include "detray/masks/trapezoid2.hpp"
 
 using namespace detray;
-using namespace __plugin;
+using point2 = __plugin::point2<detray::scalar>;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 // This tests the basic function of a trapezoid
 TEST(mask, trapezoid2) {
-    using local_type = __plugin::cartesian2<detray::scalar>;
-    using point2 = __plugin::point2<detray::scalar>;
+    using local_type = cartesian2<transform3>;
 
     point2 p2_in = {1., -0.5};
     point2 p2_edge = {2.5, 1.};

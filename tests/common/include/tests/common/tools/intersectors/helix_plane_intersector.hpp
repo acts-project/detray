@@ -24,12 +24,16 @@ namespace detray {
 ///
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
+template <typename transform3_t>
 struct helix_plane_intersector {
 
+    using scalar_type = typename transform3_t::scalar_type;
+    using matrix_operator = typename transform3_t::matrix_actor;
+    using point3 = typename transform3_t::point3;
+    using vector3 = typename transform3_t::vector3;
+    using helix_type = detail::helix<transform3_t>;
     using intersection_type = line_plane_intersection;
     using output_type = std::array<intersection_type, 2>;
-    using point3 = __plugin::point3<detray::scalar>;
-    using vector3 = __plugin::vector3<detray::scalar>;
 
     /// Operator function to find intersections between helix and planar mask
     ///
@@ -43,9 +47,9 @@ struct helix_plane_intersector {
     /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersection
-    template <typename mask_t, typename transform_t>
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const detail::helix &h, const mask_t &mask, const transform_t &trf,
+        const helix_type &h, const mask_t &mask, const transform3_t &trf,
         const scalar mask_tolerance = 0) const {
 
         using local_frame = typename mask_t::local_type;
@@ -95,7 +99,7 @@ struct helix_plane_intersector {
         is.path = getter::norm(helix_pos);
         is.p3 = helix_pos;
         constexpr local_frame local_converter{};
-        is.p2 = local_converter(trf, is.p3);
+        is.p2 = local_converter.global_to_local(trf, is.p3, h.dir(s));
 
         is.status = mask.template is_inside<local_frame>(is.p2, mask_tolerance);
         is.direction = vector::dot(st, h.dir(s)) > scalar{0.}

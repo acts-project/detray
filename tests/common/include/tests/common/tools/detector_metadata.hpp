@@ -32,14 +32,20 @@ struct volume_stats {
 using edge_type = std::array<dindex, 2>;
 
 /// mask types
-using rectangle = rectangle2<__plugin::cartesian2<detray::scalar>, edge_type>;
-using trapezoid = trapezoid2<__plugin::cartesian2<detray::scalar>, edge_type>;
-using annulus = annulus2<__plugin::cartesian2<detray::scalar>, edge_type>;
-using cylinder = cylinder3<cylinder_intersector,
-                           __plugin::cylindrical2<detray::scalar>, edge_type>;
-using disc = ring2<__plugin::cartesian2<detray::scalar>, edge_type>;
-using unbounded_plane =
-    unmasked<__plugin::cartesian2<detray::scalar>, edge_type>;
+using rectangle = rectangle2<__plugin::transform3<detray::scalar>,
+                             plane_intersector, cartesian2, edge_type>;
+using trapezoid = trapezoid2<__plugin::transform3<detray::scalar>,
+                             plane_intersector, cartesian2, edge_type>;
+// @TODO: Use Polar2?
+using annulus = annulus2<__plugin::transform3<detray::scalar>,
+                         plane_intersector, cartesian2, edge_type>;
+using cylinder = cylinder3<__plugin::transform3<detray::scalar>,
+                           cylinder_intersector, cylindrical2, edge_type>;
+// @TODO: Use Polar2?
+using disc = ring2<__plugin::transform3<detray::scalar>, plane_intersector,
+                   cartesian2, edge_type>;
+using unbounded_plane = unmasked<__plugin::transform3<detray::scalar>,
+                                 plane_intersector, cartesian2, edge_type>;
 
 using slab = material_slab<detray::scalar>;
 using rod = material_rod<detray::scalar>;

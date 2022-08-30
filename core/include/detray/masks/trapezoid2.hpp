@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/plane_intersector.hpp"
@@ -37,20 +38,22 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <typename local_t = __plugin::cartesian2<detray::scalar>,
+template <typename transform3_t = __plugin::transform3<scalar>,
+          template <class> typename intersector_t = plane_intersector,
+          template <class> typename local_t = cartesian2,
           typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
-class trapezoid2 final
-    : public mask_base<plane_intersector, local_t, links_t, array_t, 4> {
+class trapezoid2 final : public mask_base<transform3_t, intersector_t, local_t,
+                                          links_t, array_t, 4> {
     public:
     using base_type =
-        mask_base<plane_intersector, local_t, links_t, array_t, 4>;
+        mask_base<transform3_t, intersector_t, local_t, links_t, array_t, 4>;
     using base_type::base_type;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
-    using point2 = __plugin::point2<scalar>;
+    using point2 = typename transform3_t::point2;
 
     /* Default constructor */
     trapezoid2()
@@ -72,17 +75,6 @@ class trapezoid2 final
         : base_type({half_length_0, half_length_1, half_length_2,
                      static_cast<scalar>(1. / (2. * half_length_2))},
                     links) {}
-
-    /** Assignment operator from an array, convenience function
-     *
-     * @param rhs is the right hand side object
-     **/
-    DETRAY_HOST_DEVICE
-    trapezoid2<local_type, links_type, array_t> &operator=(
-        const array_t<scalar, 3> &rhs) {
-        this->_values = rhs;
-        return (*this);
-    }
 
     /** Mask operation
      *

@@ -15,7 +15,7 @@
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
 
@@ -26,6 +26,35 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
+using vector3 = __plugin::vector3<scalar>;
+using point3 = __plugin::point3<scalar>;
+using transform3_type = __plugin::transform3<scalar>;
+
+enum mask_ids : unsigned int {
+    e_rectangle2 = 0,
+    e_trapezoid2 = 1,
+    e_annulus2 = 2,
+};
+
+enum material_ids : unsigned int {
+    e_slab = 0,
+};
+
+/// Surface components:
+using edge_t = dindex;
+using source_link_t = dindex;
+
+/// - masks, with mask identifiers 0,1,2
+using rectangle_t =
+    rectangle2<transform3_type, plane_intersector, cartesian2, edge_t>;
+using trapezoid_t =
+    trapezoid2<transform3_type, plane_intersector, cartesian2, edge_t>;
+using annulus_t =
+    annulus2<transform3_type, plane_intersector, cartesian2, edge_t>;
+
+using mask_defs =
+    tuple_vector_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
+using mask_container_t = typename mask_defs::template store_type<>;
 
 constexpr const float epsilon = 1e-3;
 
@@ -34,35 +63,7 @@ constexpr const float epsilon = 1e-3;
 
 // This tests the construction of a surface
 TEST(tools, intersection_kernel_ray) {
-
-    using vector3 = __plugin::vector3<scalar>;
-    using point3 = __plugin::point3<scalar>;
-
     vecmem::host_memory_resource host_mr;
-
-    enum mask_ids : unsigned int {
-        e_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_annulus2 = 2,
-    };
-
-    enum material_ids : unsigned int {
-        e_slab = 0,
-    };
-
-    /// Surface components:
-    using edge_t = dindex;
-    using source_link_t = dindex;
-    /// - masks, with mask identifiers 0,1,2
-    using rectangle_t =
-        rectangle2<__plugin::cartesian2<detray::scalar>, edge_t>;
-    using trapezoid_t =
-        trapezoid2<__plugin::cartesian2<detray::scalar>, edge_t>;
-    using annulus_t = annulus2<__plugin::cartesian2<detray::scalar>, edge_t>;
-
-    using mask_defs =
-        tuple_vector_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
-    using mask_container_t = typename mask_defs::store_type<>;
 
     // Materials with a slab
     using material_defs =
@@ -109,7 +110,7 @@ TEST(tools, intersection_kernel_ray) {
 
     const point3 pos{0., 0., 0.};
     const vector3 mom{0.01, 0.01, 10.};
-    const free_track_parameters track(pos, 0, mom, -1);
+    const free_track_parameters<transform3_type> track(pos, 0, mom, -1);
 
     // Validation data
     const point3 expected_rectangle{0.01, 0.01, 10.};
@@ -154,33 +155,8 @@ TEST(tools, intersection_kernel_ray) {
 
 /// Re-use the intersection kernel test for particle gun
 TEST(tools, intersection_kernel_helix) {
-    using vector3 = __plugin::vector3<scalar>;
-    using point3 = __plugin::point3<scalar>;
 
     vecmem::host_memory_resource host_mr;
-
-    enum mask_ids : unsigned int {
-        e_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_annulus2 = 2,
-    };
-
-    enum material_ids : unsigned int {
-        e_slab = 0,
-    };
-
-    /// Surface components:
-    using edge_t = dindex;
-    using source_link_t = dindex;
-    /// - masks, with mask identifiers 0,1,2
-    using rectangle_t =
-        rectangle2<__plugin::cartesian2<detray::scalar>, edge_t>;
-    using trapezoid_t =
-        trapezoid2<__plugin::cartesian2<detray::scalar>, edge_t>;
-    using annulus_t = annulus2<__plugin::cartesian2<detray::scalar>, edge_t>;
-    using mask_defs =
-        tuple_vector_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
-    using mask_container_t = typename mask_defs::template store_type<>;
 
     // Materials with a slab
     using material_defs =
@@ -228,7 +204,7 @@ TEST(tools, intersection_kernel_helix) {
     const vector3 mom{0.01, 0.01, 10.};
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     epsilon * unit_constants::T};
-    const detail::helix h({pos, 0, mom, -1}, &B);
+    const detail::helix<transform3_type> h({pos, 0, mom, -1}, &B);
 
     // Validation data
     const point3 expected_rectangle{0.01, 0.01, 10.};

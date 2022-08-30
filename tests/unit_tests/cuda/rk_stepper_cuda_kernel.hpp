@@ -21,22 +21,19 @@
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 
 using namespace detray;
 
 namespace {
 
 // type definitions
-using size_type = __plugin::size_type;
 using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
-using size_type = __plugin::size_type;
-using mag_field_t = constant_magnetic_field<>;
-using rk_stepper_t = rk_stepper<mag_field_t, free_track_parameters>;
-using crk_stepper_t =
-    rk_stepper<mag_field_t, free_track_parameters, constrained_step<>>;
 using transform3 = __plugin::transform3<scalar>;
+using mag_field_t = constant_magnetic_field<>;
+using rk_stepper_t = rk_stepper<mag_field_t, transform3>;
+using crk_stepper_t = rk_stepper<mag_field_t, transform3, constrained_step<>>;
 using matrix_operator = standard_matrix_operator<scalar>;
 
 // geomery navigation configurations
@@ -88,8 +85,8 @@ namespace detray {
 // Test function for Runge-Kutta stepper bound state
 // This test investigates only one track
 void bound_state_test(
-    vecmem::data::vector_view<bound_track_parameters> out_param,
-    const bound_track_parameters in_param, const vector3 B,
+    vecmem::data::vector_view<bound_track_parameters<transform3>> out_param,
+    const bound_track_parameters<transform3> in_param, const vector3 B,
     const transform3 trf);
 
 }  // namespace detray

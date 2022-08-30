@@ -11,24 +11,28 @@
 #include "detray/masks/cylinder3.hpp"
 
 using namespace detray;
-using namespace __plugin;
+using transform3_type = __plugin::transform3<detray::scalar>;
+using vector3 = __plugin::vector3<detray::scalar>;
+using point3 = __plugin::point3<detray::scalar>;
+using scalar_type = typename transform3_type::scalar_type;
+using local_type = cartesian2<transform3_type>;
 
 // This tests the basic function of a rectangle
 TEST(mask, cylinder3) {
-    using local_type = __plugin::transform3<detray::scalar>;
-    using point3 = __plugin::point3<detray::scalar>;
 
-    scalar r = 3.;
-    scalar hz = 4.;
+    scalar_type r = 3.;
+    scalar_type hz = 4.;
 
     point3 p3_in = {r, 0., -1.};
     point3 p3_edge = {0., r, hz};
-    point3 p3_out = {static_cast<scalar>(r / std::sqrt(2.)),
-                     static_cast<scalar>(r / std::sqrt(2.)), 4.5};
+    point3 p3_out = {static_cast<scalar_type>(r / std::sqrt(2.)),
+                     static_cast<scalar_type>(r / std::sqrt(2.)), 4.5};
     point3 p3_off = {1., 1., -9.};
 
     // Test radius to be on surface, too
-    cylinder3<cylinder_intersector, local_type, dindex, true> c{r, -hz, hz, 0u};
+    cylinder3<transform3_type, cylinder_intersector, cylindrical2, unsigned int,
+              true>
+        c{r, -hz, hz, 0u};
 
     ASSERT_EQ(c[0], r);
     ASSERT_EQ(c[1], -hz);

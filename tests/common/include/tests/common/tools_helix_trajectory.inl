@@ -9,7 +9,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -21,6 +21,7 @@ TEST(tools, helix_trajectory) {
 
     using vector3 = __plugin::vector3<scalar>;
     using point3 = __plugin::point3<scalar>;
+    using transform3_type = __plugin::transform3<scalar>;
 
     point3 pos{0., 0., 0.};
     scalar time = 0.;
@@ -28,7 +29,7 @@ TEST(tools, helix_trajectory) {
     scalar q = -1.;
 
     // vertex
-    free_track_parameters vertex(pos, time, mom, q);
+    free_track_parameters<transform3_type> vertex(pos, time, mom, q);
 
     // magnetic field
     vector3 B{0, 0, 1 * unit_constants::T};
@@ -64,6 +65,7 @@ TEST(tools, helix_trajectory_small_pT) {
 
     using vector3 = __plugin::vector3<scalar>;
     using point3 = __plugin::point3<scalar>;
+    using transform3_type = __plugin::transform3<scalar>;
 
     point3 pos{0., 0., 0.};
     scalar time = 0.;
@@ -71,7 +73,7 @@ TEST(tools, helix_trajectory_small_pT) {
     scalar q = -1.;
 
     // vertex
-    free_track_parameters vertex(pos, time, mom, q);
+    free_track_parameters<transform3_type> vertex(pos, time, mom, q);
 
     // magnetic field
     vector3 B{0, 0, 1 * unit_constants::T};

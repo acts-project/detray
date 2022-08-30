@@ -194,7 +194,7 @@ inline void create_telescope(context_t &ctx, stepper_t &stepper,
 /// @param n_surfaces the number of surfaces that are placed in the geometry
 /// @param tel_length the total length of the steps by the stepper
 template <bool unbounded_planes = true,
-          typename stepper_t = line_stepper<free_track_parameters>,
+          typename stepper_t = line_stepper<__plugin::transform3<scalar>>,
           template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
@@ -242,7 +242,7 @@ auto create_telescope_detector(vecmem::memory_resource &resource,
 ///
 /// @returns a complete detector object
 template <bool unbounded_planes = true,
-          typename stepper_t = line_stepper<free_track_parameters>,
+          typename stepper_t = line_stepper<__plugin::transform3<scalar>>,
           template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,

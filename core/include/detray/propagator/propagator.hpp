@@ -7,9 +7,10 @@
 
 #pragma once
 
+// Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -23,6 +24,12 @@ namespace detray {
 /// @tparam navigator_t for the navigation
 template <typename stepper_t, typename navigator_t, typename actor_chain_t>
 struct propagator {
+
+    using transform3_type = typename stepper_t::transform3_type;
+    using free_track_parameters_type =
+        typename stepper_t::free_track_parameters_type;
+    using bound_track_parameters_type =
+        typename stepper_t::bound_track_parameters_type;
 
     stepper_t _stepper;
     navigator_t _navigator;
@@ -57,9 +64,8 @@ struct propagator {
         /// @param t_in the track state to be propagated
         /// @param actor_states tuple that contains references to actor states
         /// @param candidates buffer for intersections in the navigator
-        template <typename track_t>
         DETRAY_HOST_DEVICE state(
-            const track_t &t_in, const detector_type &det,
+            const free_track_parameters_type &t_in, const detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(t_in),
@@ -80,8 +86,8 @@ struct propagator {
 
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state(
-            const bound_track_parameters &param,
-            const typename stepper_t::transform3 &trf3,
+            const bound_track_parameters_type &param,
+            const typename stepper_t::transform3_type &trf3,
             const detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})

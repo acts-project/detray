@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/plane_intersector.hpp"
@@ -35,20 +36,22 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <typename local_t = __plugin::cartesian2<detray::scalar>,
+template <typename transform3_t = __plugin::transform3<scalar>,
+          template <class> typename intersector_t = plane_intersector,
+          template <class> typename local_t = cartesian2,
           typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
-class ring2 final
-    : public mask_base<plane_intersector, local_t, links_t, array_t, 2> {
+class ring2 final : public mask_base<transform3_t, intersector_t, local_t,
+                                     links_t, array_t, 2> {
     public:
     using base_type =
-        mask_base<plane_intersector, local_t, links_t, array_t, 2>;
+        mask_base<transform3_t, intersector_t, local_t, links_t, array_t, 2>;
     using base_type::base_type;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
-    using point2 = __plugin::point2<scalar>;
+    using point2 = typename transform3_t::point2;
 
     /* Default constructor */
     ring2() : base_type({0., std::numeric_limits<scalar>::infinity()}, {}) {}
@@ -61,16 +64,6 @@ class ring2 final
     DETRAY_HOST_DEVICE
     ring2(scalar r_low, scalar r_high, links_type links)
         : base_type({r_low, r_high}, links) {}
-
-    /** Assignment operator from an array, convenience function
-     *
-     * @param rhs is the right hand side object
-     **/
-    DETRAY_HOST_DEVICE
-    ring2<local_type, links_type, array_t> &operator=(const mask_values &rhs) {
-        this->_values = rhs;
-        return (*this);
-    }
 
     /** Mask operation
      *
@@ -86,7 +79,7 @@ class ring2 final
         const point2 &p,
         const scalar t = std::numeric_limits<scalar>::epsilon()) const {
         if constexpr (std::is_same_v<inside_local_t,
-                                     __plugin::cartesian2<detray::scalar>>) {
+                                     cartesian2<transform3_t>>) {
             scalar r = getter::perp(p);
             return (r + t >= this->_values[0] and r <= this->_values[1] + t)
                        ? intersection::status::e_inside

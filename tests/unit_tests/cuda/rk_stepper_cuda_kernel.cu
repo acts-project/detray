@@ -13,11 +13,12 @@
 namespace detray {
 
 __global__ void bound_state_test_kernel(
-    vecmem::data::vector_view<bound_track_parameters> out_param,
-    const bound_track_parameters in_param, const vector3 B,
+    vecmem::data::vector_view<bound_track_parameters<transform3>> out_param,
+    const bound_track_parameters<transform3> in_param, const vector3 B,
     const transform3 trf) {
 
-    vecmem::device_vector<bound_track_parameters> out_param_cuda(out_param);
+    vecmem::device_vector<bound_track_parameters<transform3>> out_param_cuda(
+        out_param);
 
     mag_field_t mag_field(B);
     prop_state<crk_stepper_t::state, nav_state> propagation{
@@ -54,8 +55,8 @@ __global__ void bound_state_test_kernel(
 }
 
 void bound_state_test(
-    vecmem::data::vector_view<bound_track_parameters> out_param,
-    const bound_track_parameters in_param, const vector3 B,
+    vecmem::data::vector_view<bound_track_parameters<transform3>> out_param,
+    const bound_track_parameters<transform3> in_param, const vector3 B,
     const transform3 trf) {
 
     constexpr int thread_dim = 1;

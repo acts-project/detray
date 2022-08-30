@@ -24,12 +24,17 @@ namespace detray {
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask. On the @c cylinder3
 /// mask, it switches on the check of the radial distance.
+template <typename transform3_t>
 struct helix_cylinder_intersector {
+
+    using scalar_type = typename transform3_t::scalar_type;
+    using matrix_operator = typename transform3_t::matrix_actor;
+    using point3 = typename transform3_t::point3;
+    using vector3 = typename transform3_t::vector3;
+    using helix_type = detail::helix<transform3_t>;
 
     using intersection_type = line_plane_intersection;
     using output_type = std::array<intersection_type, 2>;
-    using point3 = __plugin::point3<detray::scalar>;
-    using vector3 = __plugin::vector3<detray::scalar>;
 
     /// Operator function to find intersections between helix and cylinder mask
     ///
@@ -43,10 +48,10 @@ struct helix_cylinder_intersector {
     /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersection
-    template <typename mask_t, typename transform_t>
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const detail::helix &h, const mask_t &mask, const transform_t &trf,
-        const scalar mask_tolerance = 0) const {
+        const helix_type &h, const mask_t &mask, const transform3_t &trf,
+        const scalar_type mask_tolerance = 0) const {
 
         output_type ret;
 
@@ -55,7 +60,7 @@ struct helix_cylinder_intersector {
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{100};
         // Tolerance for convergence
-        constexpr scalar tol{1e-3};
+        constexpr scalar_type tol{1e-3};
 
         // Get the surface placement
         const auto &sm = trf.matrix();
@@ -66,11 +71,11 @@ struct helix_cylinder_intersector {
 
         // Starting point on the helix for the Newton iteration
         // The mask is a cylinder -> it provides its radius as the first value
-        const scalar r{mask[0]};
+        const scalar_type r{mask[0]};
         // Helix path length parameter
-        scalar s{r * getter::perp(h.dir(tol))};
+        scalar_type s{r * getter::perp(h.dir(tol))};
         // Path length in the previous iteration step
-        scalar s_prev{s - scalar{0.1}};
+        scalar_type s_prev{s - scalar{0.1}};
 
         // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
         // Run the iteration on s
@@ -79,10 +84,11 @@ struct helix_cylinder_intersector {
 
             // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
             const vector3 crp = vector::cross(h.pos(s) - sc, sz);
-            const scalar denom{scalar{2.} *
-                               vector::dot(crp, vector::cross(h.dir(s), sz))};
+            const scalar_type denom{
+                scalar_type{2.} *
+                vector::dot(crp, vector::cross(h.dir(s), sz))};
             // No intersection can be found if dividing by zero
-            if (denom == scalar{0.}) {
+            if (denom == scalar_type{0.}) {
                 return ret;
             }
             // x_n+1 = x_n - f(s) / f'(s)
@@ -103,13 +109,13 @@ struct helix_cylinder_intersector {
         is.path = getter::norm(helix_pos);
         is.p3 = helix_pos;
         constexpr local_frame local_converter{};
-        is.p2 = local_converter(trf, is.p3);
+        is.p2 = local_converter.global_to_local(trf, is.p3, h.dir(s));
 
         auto local3 = trf.point_to_local(is.p3);
         // Explicitly check for radial match
         is.status =
             mask.template is_inside<local_frame, true>(local3, mask_tolerance);
-        is.direction = vector::dot(is.p3, h.dir(s)) > scalar{0.}
+        is.direction = vector::dot(is.p3, h.dir(s)) > scalar_type{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
         is.link = mask.volume_link();

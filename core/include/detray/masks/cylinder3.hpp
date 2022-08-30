@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/intersection.hpp"
@@ -35,20 +36,22 @@ namespace detray {
  * mask type once for all.
  *
  **/
-template <typename intersector_t = cylinder_intersector,
-          typename local_t = __plugin::cylindrical2<detray::scalar>,
+template <typename transform3_t = __plugin::transform3<scalar>,
+          template <class> typename intersector_t = cylinder_intersector,
+          template <class> typename local_t = cylindrical2,
           typename links_t = dindex, bool kRadialCheck = false,
           template <typename, std::size_t> class array_t = darray>
-class cylinder3 final
-    : public mask_base<intersector_t, local_t, links_t, array_t, 3> {
+class cylinder3 final : public mask_base<transform3_t, intersector_t, local_t,
+                                         links_t, array_t, 3> {
     public:
-    using base_type = mask_base<intersector_t, local_t, links_t, array_t, 3>;
+    using base_type =
+        mask_base<transform3_t, intersector_t, local_t, links_t, array_t, 3>;
     using base_type::base_type;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
-    using point3 = __plugin::point3<scalar>;
+    using point3 = typename transform3_t::point3;
 
     /* Default constructor */
     cylinder3()
@@ -67,17 +70,6 @@ class cylinder3 final
     cylinder3(scalar r, scalar half_length_1, scalar half_length_2,
               links_type links)
         : base_type({r, half_length_1, half_length_2}, links) {}
-
-    /** Assignment operator from an array, convenience function
-     *
-     * @param rhs is the right hand side object
-     **/
-    DETRAY_HOST_DEVICE
-    cylinder3<intersector_type, local_type, links_type, kRadialCheck, array_t>
-        &operator=(const mask_values &rhs) {
-        this->_values = rhs;
-        return (*this);
-    }
 
     /** Mask operation
      *

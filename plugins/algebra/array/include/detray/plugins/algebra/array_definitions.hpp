@@ -21,7 +21,7 @@ namespace getter = algebra::getter;
 namespace vector = algebra::vector;
 namespace matrix = algebra::matrix;
 
-// Define matrix operator
+// Define matrix/vector operator
 template <typename scalar_t>
 using standard_matrix_operator =
     matrix::actor<scalar_t, matrix::determinant::preset0<scalar_t>,

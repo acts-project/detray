@@ -44,6 +44,16 @@ struct helix_intersection_update {
         const transform_container_t &contextual_transforms,
         const scalar mask_tolerance = 0.) const {
 
+        using transform3_type = typename traj_t::transform3_type;
+        using helix_plane_intersector_type =
+            helix_plane_intersector<transform3_type>;
+
+        using helix_cylinder_intersector_type =
+            helix_cylinder_intersector<transform3_type>;
+
+        using plane_intersector_type = plane_intersector<transform3_type>;
+        using cylinder_intersector_type = cylinder_intersector<transform3_type>;
+
         const auto &mask_range = surface.mask_range();
         const auto &ctf = contextual_transforms[surface.transform()];
 
@@ -52,10 +62,10 @@ struct helix_intersection_update {
 
             if constexpr (std::is_same_v<typename mask_group_t::value_type::
                                              intersector_type,
-                                         plane_intersector>) {
+                                         plane_intersector_type>) {
 
-                auto sfi = std::move(
-                    helix_plane_intersector()(traj, mask, ctf, mask_tolerance));
+                auto sfi = std::move(helix_plane_intersector_type()(
+                    traj, mask, ctf, mask_tolerance));
 
                 if (sfi[0].status == intersection::status::e_inside and
                     sfi[0].path >= traj.overstep_tolerance()) {
@@ -66,9 +76,9 @@ struct helix_intersection_update {
             } else if constexpr (std::is_same_v<
                                      typename mask_group_t::value_type::
                                          intersector_type,
-                                     cylinder_intersector>) {
+                                     cylinder_intersector_type>) {
 
-                auto sfi = std::move(helix_cylinder_intersector()(
+                auto sfi = std::move(helix_cylinder_intersector_type()(
                     traj, mask, ctf, mask_tolerance));
 
                 if (sfi[0].status == intersection::status::e_inside and

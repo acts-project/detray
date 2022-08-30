@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
 #include "tests/common/tools/read_geometry.hpp"
@@ -51,6 +51,7 @@ detray_context default_context;
 const auto data_core = d.data(default_context);
 
 namespace __plugin {
+
 // This test runs intersection with all surfaces of the TrackML detector
 static void BM_INTERSECT_ALL(benchmark::State &state) {
 
@@ -68,7 +69,8 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
         point3<detray::scalar> pos{0., 0., 0.};
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto track : uniform_track_generator<free_track_parameters>(
+        for (const auto track :
+             uniform_track_generator<free_track_parameters<transform3<scalar>>>(
                  theta_steps, phi_steps, pos)) {
 
             // Loop over volumes

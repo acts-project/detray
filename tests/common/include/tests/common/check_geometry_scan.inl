@@ -24,6 +24,9 @@ using namespace detray;
 constexpr std::size_t root_hash =
     687;  // TODO: Find hash function wihtout coll.!
 
+using transform3_type = __plugin::transform3<scalar>;
+using ray_type = detail::ray<transform3_type>;
+
 /** Print and adjacency list */
 void print_adj(const dvector<dindex> &adjacency_matrix) {
 
@@ -77,7 +80,7 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
 
     // Iterate through uniformly distributed momentum directions
     for (const auto test_ray :
-         uniform_track_generator<detail::ray>(theta_steps, phi_steps, ori)) {
+         uniform_track_generator<ray_type>(theta_steps, phi_steps, ori)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
