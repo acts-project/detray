@@ -40,7 +40,7 @@ __global__ void propagator_test_kernel(
     rk_stepper_type s(B_field);
 
     // Create navigator
-    navigator_device_type n(det);
+    navigator_device_type n;
 
     // Create propagator
     propagator_device_type p(std::move(s), std::move(n));
@@ -51,7 +51,7 @@ __global__ void propagator_test_kernel(
     pathlimit_aborter::state aborter_state{path_limit};
 
     // Create the propagator state
-    propagator_device_type::state state(tracks[gid],
+    propagator_device_type::state state(tracks[gid], det,
                                         thrust::tie(insp_state, aborter_state),
                                         candidates.at(gid));
 

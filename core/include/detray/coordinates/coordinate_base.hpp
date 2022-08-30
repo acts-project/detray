@@ -201,6 +201,7 @@ struct coordinate_base {
         return jac_to_local;
     }
 
+    /*
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline free_to_path_matrix free_to_path_correction(
         const transform3_t& trf3, const mask_t& mask,
@@ -232,6 +233,43 @@ struct coordinate_base {
                                                 0, e_free_pos0);
 
         return free_to_path;
+    }
+    */
+
+    template <typename mask_t, typename stepper_state_t>
+    DETRAY_HOST_DEVICE inline free_matrix path_correction(
+        const stepper_state_t& stepping, const transform3_t& trf3,
+        const mask_t& mask, const free_vector& free_vec) {
+
+        free_matrix path_correction =
+            matrix_actor().template zero<e_free_size, e_free_size>();
+
+        // Use Helix
+
+        /*
+        // Direction at the surface
+        const vector3& t = stepping._step_data.k4;
+
+        // B field at the surface
+        const vector3& h = stepping._step_data.b_last;
+
+        // Normalized vector of h X t
+        const vector3& n = vector::normalize(vector::cross(h,t));
+        */
+
+        // dr/dr0
+
+        // dr/dt0
+
+        // dr/dL0 (L = qoverp)
+
+        // dt/dr0
+
+        // dt/dt0
+
+        // dt/dL0
+
+        return path_correction;
     }
 };
 

@@ -109,16 +109,27 @@ class navigator {
             typename vector_type<intersection_type>::const_iterator;
 
         public:
+        using detector_type = navigator::detector_type;
+
         /// Default constructor
         state() = default;
 
+        state(const detector_type &det) : _detector(&det) {}
+
         /// Constructor with memory resource
         DETRAY_HOST
-        state(vecmem::memory_resource &resource) : _candidates(&resource) {}
+        state(const detector_type &det, vecmem::memory_resource &resource)
+            : _detector(&det), _candidates(&resource) {}
 
         /// Constructor from candidates vector_view
-        DETRAY_HOST_DEVICE state(vector_type<intersection_type> candidates)
-            : _candidates(candidates) {}
+        DETRAY_HOST_DEVICE state(const detector_type &det,
+                                 vector_type<intersection_type> candidates)
+            : _detector(&det), _candidates(candidates) {}
+
+        /// Scalar representation of the navigation state,
+        /// @returns distance to next
+        DETRAY_HOST_DEVICE
+        const auto detector() const { return _detector; }
 
         /// Scalar representation of the navigation state,
         /// @returns distance to next
@@ -357,6 +368,9 @@ class navigator {
         /// Heartbeat of this navigation flow signals navigation is alive
         bool _heartbeat = false;
 
+        /// Detector pointer
+        const detector_type *const _detector;
+
         /// Our cache of candidates (intersections with any kind of surface)
         vector_type<intersection_type> _candidates = {};
 
@@ -387,16 +401,6 @@ class navigator {
         dindex _volume_index = 0;
     };
 
-    /// Constructor from detector object, which is not owned by the navigator
-    /// and needs to be guaranteed to have a lifetime beyond that of the
-    /// navigator
-    DETRAY_HOST_DEVICE
-    navigator(const detector_t &d) : _detector(&d) {}
-
-    /// @returns reference to the detector
-    DETRAY_HOST_DEVICE
-    const detector_t &get_detector() const { return *_detector; }
-
     /// Helper method to initialize a volume.
     ///
     /// Calls the volumes accelerator structure for local navigation, then tests
@@ -410,8 +414,9 @@ class navigator {
     DETRAY_HOST_DEVICE inline bool init(propagator_state_t &propagation) const {
 
         state &navigation = propagation._navigation;
+        const auto &det = navigation.detector();
         const auto &track = propagation._stepping();
-        const auto &volume = _detector->volume_by_index(navigation.volume());
+        const auto &volume = det->volume_by_index(navigation.volume());
 
         // Clean up state
         navigation.clear();
@@ -421,11 +426,10 @@ class navigator {
 
         // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
-        const auto &tf_store = _detector->transform_store();
-        const auto &mask_store = _detector->mask_store();
+        const auto &tf_store = det->transform_store();
+        const auto &mask_store = det->mask_store();
 
-        for (const auto [obj_idx, obj] :
-             enumerate(_detector->surfaces(), volume)) {
+        for (const auto [obj_idx, obj] : enumerate(det->surfaces(), volume)) {
 
             std::size_t count =
                 mask_store.template execute<intersection_initialize>(
@@ -526,6 +530,7 @@ class navigator {
         propagator_state_t &propagation) const {
 
         state &navigation = propagation._navigation;
+        const auto &det = navigation.detector();
         const auto &track = propagation._stepping();
 
         // Current candidates are up to date, nothing left to do
@@ -539,7 +544,7 @@ class navigator {
             navigation.n_candidates() == 1) {
 
             // Update next candidate: If not reachable, 'high trust' is broken
-            if (not update_candidate(*navigation.next(), track)) {
+            if (not update_candidate(*navigation.next(), track, det)) {
                 navigation.set_state(navigation::status::e_unknown,
                                      dindex_invalid,
                                      navigation::trust_level::e_no_trust);
@@ -565,7 +570,7 @@ class navigator {
 
             // Else: Track is on module.
             // Ready the next candidate after the current module
-            if (update_candidate(*navigation.next(), track)) {
+            if (update_candidate(*navigation.next(), track, det)) {
                 return;
             }
 
@@ -581,7 +586,7 @@ class navigator {
 
             for (auto &candidate : navigation.candidates()) {
                 // Disregard this candidate if it is not reachable
-                if (not update_candidate(candidate, track)) {
+                if (not update_candidate(candidate, track, det)) {
                     // Forcefully set dist to numeric max for sorting
                     candidate.path = std::numeric_limits<scalar>::max();
                 }
@@ -671,15 +676,15 @@ class navigator {
     /// @returns whether the track can reach this candidate.
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_candidate(
-        intersection_type &candidate, const track_t &track) const {
+        intersection_type &candidate, const track_t &track,
+        const detector_type *det) const {
         // Remember the surface this candidate belongs to
         const dindex obj_idx = candidate.index;
 
-        const auto &mask_store = _detector->mask_store();
-        const auto &sf = _detector->surface_by_index(obj_idx);
+        const auto &mask_store = det->mask_store();
+        const auto &sf = det->surface_by_index(obj_idx);
         candidate = mask_store.template execute<intersection_update>(
-            sf.mask_type(), detail::ray(track), sf,
-            _detector->transform_store());
+            sf.mask_type(), detail::ray(track), sf, det->transform_store());
 
         candidate.index = obj_idx;
         // Check whether this candidate is reachable by the track
@@ -702,9 +707,6 @@ class navigator {
         return detail::find_if(candidates.begin(), candidates.end(),
                                not_reachable);
     }
-
-    /// the containers for all data
-    const detector_t *const _detector;
 };
 
 /// @return the vecmem jagged vector buffer for surface candidates

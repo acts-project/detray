@@ -47,22 +47,49 @@ struct bound_to_bound_covariance_update {
     DETRAY_HOST_DEVICE inline output_type operator()(
         const mask_group_t& mask_group, propagator_state_t& propagation) const {
 
-        /*
+        // Stepper and Navigator states
         auto& navigation = propagation._navigation;
         auto& stepping = propagation._stepping;
 
+        // Retrieve surfaces and transform store
+        const auto& det = navigation.detector();
+        const auto& surface_container = det->surfaces();
+        const auto& tf_store = det->transform_store();
+
+        // Intersection
         const auto& is = navigation.current();
 
-        // mask and transform index
-        const auto& mask_index = is->mask_index;
-        const auto& surface_index = is->index;
+        // Surface
+        const auto& sf = surface_container[is->index];
 
-        const auto& mask_range = surface.mask_range();
-        const auto& ctf = contextual_transforms[surface.transform()];
+        // Transform
+        const auto& trf3 = tf_store[sf.transform()];
+        auto local_coordinate = mask.local_type();
 
-        // Get the free vector
+        // Mask
+        const auto& mask = mask_group[is->mask_index];
+
+        // Free vector
         const auto& free_vector = stepping().vector();
 
+        // Convert free to bound vector
+        const auto bound_vector =
+            local_coordinate.free_to_bound_vector(trf3, free_vector);
+
+        // Free to bound jacobian at the destination surface
+        const free_to_bound_matrix free_to_bound_jacobian =
+            local_coordinate.free_to_bound_jacobian(trf3, mask, free_vec);
+
+        // Transport jacobian in free coordinate
+        free_matrix& free_transport_jacobian = stepping._jac_transport;
+
+        // Path correction factor
+
+        // Bound to free jacobian at the departure surface
+        const bound_to_free_matrix& bound_to_free_jacobian =
+            stepping._jac_to_global;
+
+        /*
         // Run over the masks belonged to the surface
         for (const auto& mask : range(mask_group, mask_range)) {
 
@@ -70,9 +97,8 @@ struct bound_to_bound_covariance_update {
 
             local_coordinate.
         }
-
-        return true;
         */
+        return true;
     }
 
     /** Function to get the full jacobian for surface-to-surface propagation
@@ -87,6 +113,7 @@ struct bound_to_bound_covariance_update {
      * path
      * @returns bound to bound jacobian
      */
+    /*
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline bound_matrix bound_to_bound_jacobian(
         const transform3_t& trf3, const mask_t& mask,
@@ -103,6 +130,7 @@ struct bound_to_bound_covariance_update {
         return free_to_bound_jacobian * free_transport_jacobian *
                bound_to_free_jacobian;
     }
+    */
 };
 
 }  // namespace detail
