@@ -59,6 +59,9 @@ struct line_plane_intersection {
     intersection::status status = intersection::status::e_missed;
     intersection::direction direction = intersection::direction::e_undefined;
 
+    // Mask index
+    dindex mask_index = dindex_invalid;
+
     // Primitive this intersection belongs to
     // TODO: rename the variable properly
     dindex index = dindex_invalid;
