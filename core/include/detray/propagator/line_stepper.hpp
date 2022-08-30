@@ -37,8 +37,6 @@ class line_stepper final
 
         using field_type = int;
 
-        state(){};
-
         DETRAY_HOST_DEVICE
         state(const track_t &t) : base_type::state(t) {}
 
