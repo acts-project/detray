@@ -56,9 +56,6 @@ class rk_stepper final
         using field_type = magnetic_field_t;
 
         DETRAY_HOST_DEVICE
-        state(const free_track_parameters_type& t) : base_type::state(t) {}
-
-        DETRAY_HOST_DEVICE
         state(const free_track_parameters_type& t,
               const magnetic_field_t mag_field)
             : base_type::state(t), _magnetic_field(mag_field) {}

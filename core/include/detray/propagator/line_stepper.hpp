@@ -30,6 +30,7 @@ class line_stepper final
     using policy_type = policy_t;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
+    using transform3_type = transform3_t;
 
     struct state : public base_type::state {
 
