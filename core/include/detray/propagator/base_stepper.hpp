@@ -117,6 +117,10 @@ class base_stepper {
         /// Track path length
         scalar _path_length{0.};
 
+        /// Track path length from the last surface. It will be reset to 0 when
+        /// the track reaches a new surface
+        scalar _s{0.};
+
         /// Current step size
         scalar _step_size{0.};
 

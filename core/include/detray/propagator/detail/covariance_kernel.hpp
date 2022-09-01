@@ -7,8 +7,10 @@
 
 #pragma once
 
-// Detray include(s)
+// Project include(s)
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/track_parametrization.hpp"
+#include "detray/tracks/detail/track_helper.hpp"
 
 namespace detray {
 
@@ -90,53 +92,21 @@ struct bound_to_bound_covariance_update {
         free_matrix& free_transport_jacobian = stepping._jac_transport;
 
         // Path correction factor
+        free_matrix path_correction =
+            local_coordinate.path_correction(stepping, trf3, mask);
 
         // Bound to free jacobian at the departure surface
         const bound_to_free_matrix& bound_to_free_jacobian =
             stepping._jac_to_global;
 
-        /*
-        // Run over the masks belonged to the surface
-        for (const auto& mask : range(mask_group, mask_range)) {
+        // Calculate surface-to-surface covariance transport
+        stepping._bound_covariance =
+            free_to_bound_jacobian *
+            (path_correction + free_transport_jacobian) *
+            bound_to_free_jacobian;
 
-            auto local_coordinate = mask.local_type();
-
-            local_coordinate.
-        }
-        */
         return true;
     }
-
-    /** Function to get the full jacobian for surface-to-surface propagation
-     *
-     * @param trf3 is the transform matrix of the destination surface
-     * @param mask is the mask of the destination surface
-     * @param free_vec is the input free vector at the destination surface
-     * @param bound_to_free_jacobian is the coordinate transform jacobian
-     * at departure surface.
-     * @param free_transport_jacobian is the transport jacobian
-     * @param free_to_path_derivative is the derivative of free parameter w.r.t
-     * path
-     * @returns bound to bound jacobian
-     */
-    /*
-    template <typename mask_t>
-    DETRAY_HOST_DEVICE inline bound_matrix bound_to_bound_jacobian(
-        const transform3_t& trf3, const mask_t& mask,
-        const free_vector& free_vec,
-        const bound_to_free_matrix& bound_to_free_jacobian,
-        const free_matrix& free_transport_jacobian,
-        const free_matrix& path_correction) {
-
-        using local_type = typename mask_t::local_type;
-
-        const auto free_to_bound_matrix free_to_bound_jacobian =
-            local_type().free_to_bound_jacobian(trf3, mask, free_vec);
-
-        return free_to_bound_jacobian * free_transport_jacobian *
-               bound_to_free_jacobian;
-    }
-    */
 };
 
 }  // namespace detail

@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-// detray include(s)
+// Project include(s)
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
 #include "detray/definitions/units.hpp"
@@ -16,7 +16,11 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/track_generators.hpp"
+
+// Vecmem include(s).
+#include <vecmem/memory/host_memory_resource.hpp>
 
 // google-test include(s)
 #include <gtest/gtest.h>
@@ -230,6 +234,77 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
 // This tests the covariance transport in rk stepper
 TEST(ALGEBRA_PLUGIN, covariance_transport) {
+
+    vecmem::host_memory_resource host_mr;
+
+    using ln_stepper_t = line_stepper<transform3>;
+
+    // Use rectangular surfaces
+    constexpr bool rectangular = false;
+
+    // Create telescope detector with a single plane
+    typename ln_stepper_t::free_track_parameters_type default_trk{
+        {0, 0, 0}, 0, {1, 0, 0}, -1};
+    std::vector<scalar> positions = {0.};
+
+    const auto det = create_telescope_detector<rectangular>(
+        host_mr, positions, ln_stepper_t(),
+        typename ln_stepper_t::state{default_trk});
+
+    // Generate track starting point
+    vector2 local{2, 3};
+    vector3 mom{0.02, 0., 0.};
+    scalar time = 0.;
+    scalar q = -1.;
+
+    // bound vector
+    typename bound_track_parameters<transform3>::vector_type bound_vector;
+    getter::element(bound_vector, e_bound_loc0, 0) = local[0];
+    getter::element(bound_vector, e_bound_loc1, 0) = local[1];
+    getter::element(bound_vector, e_bound_phi, 0) = getter::phi(mom);
+    getter::element(bound_vector, e_bound_theta, 0) = getter::theta(mom);
+    getter::element(bound_vector, e_bound_qoverp, 0) = q / getter::norm(mom);
+    getter::element(bound_vector, e_bound_time, 0) = time;
+
+    // bound covariance
+    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.;
+    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.;
+    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.;
+
+    // Note: Set theta error as ZERO, to constrain the loc1 divergence
+    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
+    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
+    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
+
+    // B field
+    vector3 B{0, 0, 1. * unit_constants::T};
+    mag_field_t mag_field(B);
+
+    /*
+    // bound track parameter
+    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
+                                                          bound_cov);
+
+    prop_state<crk_stepper_t::state, nav_state> propagation{
+        crk_stepper_t::state(bound_param0, trf, mag_field), nav_state{det}};
+    crk_stepper_t::state &crk_state = propagation._stepping;
+    nav_state &n_state = propagation._navigation;
+
+    // Decrease tolerance down to 1e-8
+    crk_state._tolerance = 1e-8;
+
+    // RK stepper and its state
+    crk_stepper_t crk_stepper;
+
+    ASSERT_FLOAT_EQ(crk_state().pos()[0], 0);
+    ASSERT_FLOAT_EQ(crk_state().pos()[1], local[0]);
+    ASSERT_FLOAT_EQ(crk_state().pos()[2], local[1]);
+    ASSERT_NEAR(crk_state().dir()[0], 1, epsilon);
+    ASSERT_NEAR(crk_state().dir()[1], 0, epsilon);
+    ASSERT_NEAR(crk_state().dir()[2], 0, epsilon);
+    */
 
     /*
 

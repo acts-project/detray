@@ -19,8 +19,8 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
-#include "detray/propagator/aborters.hpp"
 #include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"

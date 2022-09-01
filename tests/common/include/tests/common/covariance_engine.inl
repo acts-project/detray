@@ -7,7 +7,7 @@
 
 // detray include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/propagator/detail/covariance_engine.hpp"
+#include "detray/propagator/detail/covariance_kernel.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // google-test include(s)

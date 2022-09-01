@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
 
 namespace detray {
@@ -201,90 +202,114 @@ struct coordinate_base {
         return jac_to_local;
     }
 
-    /*
-    template <typename mask_t>
-    DETRAY_HOST_DEVICE inline free_to_path_matrix free_to_path_correction(
-        const transform3_t& trf3, const mask_t& mask,
-        const free_vector& free_vec) const {
-
-        // Declare free to path correction
-        free_to_path_matrix free_to_path =
-            matrix_actor().template zero<1, e_free_size>();
-
-        // Global position and direction
-        const vector3 pos = track_helper().pos(free_vec);
-        const vector3 dir = track_helper().dir(free_vec);
-
-        // The measurement frame z axis
-        const auto frame =
-            Derived<transform3_t>().reference_frame(trf3, mask, pos, dir);
-        const matrix_type<3, 1> ref_z_axis =
-            matrix_actor()().template block<3, 1>(frame, 0, 2);
-
-        // cosine angle between momentum direction and the measurement frame z
-        // axis
-        const scalar_type dz = vector::dot(ref_z_axis, dir);
-
-        // Correction term
-        const matrix_type<1, 3> correction_term =
-            -1. / dz * matrix_actor().transpose(ref_z_axis);
-
-        matrix_actor().template set_block<1, 3>(free_to_path, correction_term,
-                                                0, e_free_pos0);
-
-        return free_to_path;
-    }
-    */
-
     template <typename mask_t, typename stepper_state_t>
     DETRAY_HOST_DEVICE inline free_matrix path_correction(
         const stepper_state_t& stepping, const transform3_t& trf3,
         const mask_t& mask) {
 
-        /*
-        using field = typename stepper_state_t::magnetic_field;
-        using helix = detail::helix<transform3_t>;
-
         free_matrix path_correction =
             matrix_actor().template zero<e_free_size, e_free_size>();
 
-        sd.b_first =
-            _magnetic_field.get_field(stepping().pos(), context_type{});
-        */
-        /*
-        // Direction at the surface
-        const vector3& t = stepping._step_data.k4;
+        using helix = detail::helix<transform3_t>;
 
-        // B field at the surface
-        field B(stepping._step_data.b_last);
-        */
-        // Use Helix
-        // detail::helix<transform3_t> helix hlx(trf3, &B);
+        // Path length
+        const auto s = stepping._s;
 
-        /*
-        // Direction at the surface
-        const vector3& t = stepping._step_data.k4;
+        // helix
+        helix hlx(stepping(), stepping._step_data.b_last);
 
-        // B field at the surface
-        const vector3& h = stepping._step_data.b_last;
+        // B field at the destination surface
+        const matrix_type<1, 3> h;
+        matrix_actor().set_block(h, hlx._h0, 0, 0);
+
+        // dir
+        const matrix_type<1, 3> t;
+        matrix_actor().set_block(t, hlx._t0, 0, 0);
 
         // Normalized vector of h X t
-        const vector3& n = vector::normalize(vector::cross(h,t));
-        */
+        const matrix_type<1, 3> n;
+        matrix_actor().set_block(n, hlx._n0, 0, 0);
+
+        // Surface normal vector (w)
+        const matrix_type<1, 3> w;
+        const auto normal =
+            Derived<transform3_t>().normal(trf3, mask, hlx.pos(), hlx._t0);
+        matrix_actor().set_block(w, normal, 0, 0);
+
+        // w cross h
+        const matrix_type<1, 3> wh;
+        matrix_actor().set_block(w, vector::cross(w, h), 0, 0);
+
+        // Alpha
+        const scalar_type A = hlx._alpha;
+
+        // K
+        const scalar_type K = hlx._K;
+
+        // Ks = K*s
+        const scalar_type Ks = K * s;
+
+        // w dot t
+        const scalar_type wt = vector::dot(normal, hlx._t0);
+
+        // r correction term
+        const matrix_type<1, 3> r_term = -1. / wt * w;
+
+        // t correction term
+        matrix_type<1, 3> t_term = matrix_actor().template zero<1, 3>();
+        t_term = t_term + (Ks - std::sin(Ks)) / K * vector::dot(h, w) * h;
+        t_term = t_term + std::sin(Ks) / K * w;
+        t_term = t_term + (1 - std::cos(Ks)) / K * wh;
+        t_term = -1. / wt * t_term;
+
+        // qoverp correction term
+        const scalar_type L_term =
+            -1. / wt * A * Ks / hlx.qop() * vector::dot(w, n);
+
+        // transpose of t
+        const matrix_type<3, 1> t_T = matrix_actor().transpose(t);
 
         // dr/dr0
+        const matrix_type<3, 3> drdr0 = t_T * r_term;
 
         // dr/dt0
+        const matrix_type<3, 3> drdt0 = t_T * t_term;
 
         // dr/dL0 (L = qoverp)
+        const matrix_type<3, 1> drdL0 = t_T * L_term;
+
+        // transpose of n
+        const matrix_type<3, 1> n_T = matrix_actor().transpose(n);
 
         // dt/dr0
+        const scalar_type AK = A * K;
+        const matrix_type<3, 3> dtdr0 = AK * n_T * r_term;
 
         // dt/dt0
+        const matrix_type<3, 3> dtdt0 = AK * n_T * t_term;
 
         // dt/dL0
+        const matrix_type<3, 1> dtdL0 = AK * n_T * L_term;
 
-        // return path_correction;
+        matrix_actor().template set_block<3, 3>(path_correction, drdr0,
+                                                e_free_pos0, e_free_pos0);
+
+        matrix_actor().template set_block<3, 3>(path_correction, drdt0,
+                                                e_free_pos0, e_free_dir0);
+
+        matrix_actor().template set_block<3, 1>(path_correction, drdL0,
+                                                e_free_pos0, e_free_qoverp);
+
+        matrix_actor().template set_block<3, 3>(path_correction, dtdr0,
+                                                e_free_dir0, e_free_pos0);
+
+        matrix_actor().template set_block<3, 3>(path_correction, dtdt0,
+                                                e_free_dir0, e_free_dir0);
+
+        matrix_actor().template set_block<3, 1>(path_correction, dtdL0,
+                                                e_free_dir0, e_free_qoverp);
+
+        return path_correction;
     }
 };
 

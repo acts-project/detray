@@ -84,6 +84,14 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     }
 
     template <typename mask_t>
+    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
+                                             const mask_t & /*mask*/,
+                                             const point3 & /*pos*/,
+                                             const vector3 & /*dir*/) {
+        return matrix_actor().block<3, 1>(trf3, 0, 2);
+    }
+
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline rotation_matrix reference_frame(
         const transform3_t &trf3, const mask_t &mask, const point3 & /*pos*/,
         const vector3 & /*dir*/) const {
