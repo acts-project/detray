@@ -22,6 +22,14 @@ struct resetter : actor {
 
     struct kernel {
 
+        /// @name Type definitions for the struct
+        /// @{
+
+        // Matrix actor
+        using matrix_actor = typename transform3_t::matrix_actor;
+
+        /// @}
+
         using output_type = bool;
 
         template <typename mask_group_t, typename surface_t,
@@ -33,6 +41,10 @@ struct resetter : actor {
             // Stepper and Navigator states
             auto& navigation = propagation._navigation;
             auto& stepping = propagation._stepping;
+
+            // Retrieve surfaces and transform store
+            const auto& det = navigation.detector();
+            const auto& transform_store = det->transform_store();
 
             // Intersection
             const auto& is = navigation.current();
@@ -47,17 +59,14 @@ struct resetter : actor {
             // Reset the path length
             stepping._s = 0;
 
-            /*
             // Reset jacobian coordinate transformation at the current surface
             stepping._jac_to_global = local_coordinate.bound_to_free_jacobian(
-                trf3, mask, stepping._bound_vec);
+                trf3, mask, stepping._bound_params.vector());
 
             // Reset jacobian transport to identity matrix
-            matrix_operator().set_identity(free_transport_jacobian);
+            matrix_actor().set_identity(stepping._jac_transport);
 
-            // Reset derivative of position and direction to zero matrix
-            matrix_operator().set_zero(free_to_path_derivative);
-            */
+            return true;
         }
     };
 
@@ -72,6 +81,9 @@ struct resetter : actor {
             const auto& det = navigation.detector();
             const auto& surface_container = det->surfaces();
             const auto& mask_store = det->mask_store();
+
+            // Intersection
+            const auto& is = navigation.current();
 
             // Surface
             const auto& surface = surface_container[is->index];

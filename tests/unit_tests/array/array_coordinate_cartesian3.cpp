@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/plugins/algebra/eigen_definitions.hpp"
-#include "tests/common/coordinates.inl"
+#include "detray/plugins/algebra/array_definitions.hpp"
+#include "tests/common/coordinate_cartesian3.inl"

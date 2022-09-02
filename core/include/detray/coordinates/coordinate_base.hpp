@@ -125,8 +125,10 @@ struct coordinate_base {
         const scalar_type sin_phi = std::sin(phi);
 
         // Global position and direction
-        const vector3 pos = track_helper().pos(bound_vec);
-        const vector3 dir = track_helper().dir(bound_vec);
+        const auto free_vec = bound_to_free_vector(trf3, mask, bound_vec);
+
+        const vector3 pos = track_helper().pos(free_vec);
+        const vector3 dir = track_helper().dir(free_vec);
 
         // Set d(x,y,z)/d(loc0, loc1)
         Derived<transform3_t>().set_bound_pos_to_free_pos_derivative(

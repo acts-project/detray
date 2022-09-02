@@ -59,25 +59,8 @@ class base_stepper {
 
         /// Sets track parameters from bound track parameter.
         DETRAY_HOST_DEVICE
-        state(const bound_track_parameters_type & /*bound_params*/,
-              const transform3_type & /*trf3*/) {
-
-            // @TODO: Rewrite with kernel
-
-            /*
-            // Set the free vector
-            _track.set_vector(vector_engine().bound_to_free_vector(
-                trf3, bound_params.vector()));
-
-            // Set the bound covariance
-            _bound_covariance = bound_params.covariance();
-
-            // Reset the jacobians
-            covariance_engine().reinitialize_jacobians(
-                trf3, bound_params.vector(), _jac_to_global, _jac_transport,
-                _derivative);
-            */
-        }
+        state(const bound_track_parameters_type &bound_params)
+            : _bound_params(bound_params) {}
 
         /// free track parameter
         free_track_parameters_type _track;
@@ -86,17 +69,12 @@ class base_stepper {
         free_matrix _jac_transport =
             matrix_operator().template identity<e_free_size, e_free_size>();
 
-        /// The free parameter derivative defined at destination surface
-        free_vector _derivative =
-            matrix_operator().template zero<e_free_size, 1>();
-
         /// bound-to-free jacobian from departure surface
         bound_to_free_matrix _jac_to_global =
             matrix_operator().template zero<e_free_size, e_bound_size>();
 
         /// bound covariance
-        bound_matrix _bound_covariance =
-            matrix_operator().template zero<e_bound_size, e_bound_size>();
+        bound_track_parameters_type _bound_params;
 
         /// @returns track parameters - const access
         DETRAY_HOST_DEVICE

@@ -85,12 +85,14 @@ struct propagator {
               _actor_states(actor_states) {}
 
         /// Construct the propagation state with bound parameter
+        template <
+            std::enable_if_t<!std::is_same_v<field_type, void>, bool> = true>
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &param,
-            const transform3_type &trf3, const detector_type &det,
+            const field_type &magnetic_field, const detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
-            : _stepping(param, trf3),
+            : _stepping(param, magnetic_field),
               _navigation(det, std::move(candidates)),
               _actor_states(actor_states) {}
 

@@ -87,14 +87,19 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
                                              const mask_t & /*mask*/,
                                              const point3 & /*pos*/,
-                                             const vector3 & /*dir*/) {
-        return matrix_actor().block<3, 1>(trf3, 0, 2);
+                                             const vector3 & /*dir*/) const {
+        vector3 ret;
+        const auto n = matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
+        ret[0] = matrix_actor().element(n, 0, 0);
+        ret[1] = matrix_actor().element(n, 1, 0);
+        ret[2] = matrix_actor().element(n, 2, 0);
+        return ret;
     }
 
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline rotation_matrix reference_frame(
-        const transform3_t &trf3, const mask_t &mask, const point3 & /*pos*/,
-        const vector3 & /*dir*/) const {
+        const transform3_t &trf3, const mask_t & /*mask*/,
+        const point3 & /*pos*/, const vector3 & /*dir*/) const {
         return trf3.rotation();
     }
 
@@ -133,8 +138,9 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
 
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline void set_bound_angle_to_free_pos_derivative(
-        bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
-        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
+        bound_to_free_matrix & /*bound_to_free_jacobian*/,
+        const transform3_t & /*trf3*/, const mask_t & /*mask*/,
+        const point3 & /*pos*/, const vector3 & /*dir*/) const {
         // Do nothing
     }
 

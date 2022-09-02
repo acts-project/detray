@@ -15,21 +15,6 @@ template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t,
           template <typename, std::size_t> class array_t>
 void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                        array_t>::state::advance_derivative() {
-
-    // The derivative of position = direction
-    matrix_operator().set_block(this->_derivative, this->_track.dir(),
-                                e_free_pos0, 0);
-
-    // The derivative of direction = k4
-    matrix_operator().set_block(this->_derivative, this->_step_data.k4,
-                                e_free_dir0, 0);
-}
-
-template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
-          template <typename, std::size_t> class array_t>
-void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         array_t>::state::advance_track() {
 
     const auto& sd = this->_step_data;
@@ -272,9 +257,6 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         stepping.set_step_size(
             stepping.constraints().template size<>(stepping.direction()));
     }
-
-    // Advance derivative of position and direction w.r.t path length
-    stepping.advance_derivative();
 
     // Advance track state
     stepping.advance_track();

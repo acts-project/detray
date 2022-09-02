@@ -83,8 +83,8 @@ struct bound_to_bound_updater : actor {
             const auto& free_vec = stepping().vector();
 
             // Convert free to bound vector
-            const auto bound_vec =
-                local_coordinate.free_to_bound_vector(trf3, free_vec);
+            stepping._bound_params.set_vector(
+                local_coordinate.free_to_bound_vector(trf3, free_vec));
 
             // Free to bound jacobian at the destination surface
             const free_to_bound_matrix free_to_bound_jacobian =
@@ -102,10 +102,10 @@ struct bound_to_bound_updater : actor {
                 stepping._jac_to_global;
 
             // Calculate surface-to-surface covariance transport
-            stepping._bound_covariance =
+            stepping._bound_params.set_covaraince(
                 free_to_bound_jacobian *
                 (path_correction + free_transport_jacobian) *
-                bound_to_free_jacobian;
+                bound_to_free_jacobian);
 
             return true;
         }
@@ -122,6 +122,9 @@ struct bound_to_bound_updater : actor {
             const auto& det = navigation.detector();
             const auto& surface_container = det->surfaces();
             const auto& mask_store = det->mask_store();
+
+            // Intersection
+            const auto& is = navigation.current();
 
             // Surface
             const auto& surface = surface_container[is->index];

@@ -22,7 +22,7 @@ __global__ void bound_state_test_kernel(
 
     mag_field_t mag_field(B);
     prop_state<crk_stepper_t::state, nav_state> propagation{
-        crk_stepper_t::state(in_param, trf, mag_field), nav_state{}};
+        crk_stepper_t::state(in_param, mag_field), nav_state{}};
     crk_stepper_t::state &crk_state = propagation._stepping;
     nav_state &n_state = propagation._navigation;
 

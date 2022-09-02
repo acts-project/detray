@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/plugins/algebra/vc_array_definitions.hpp"
-#include "tests/common/coordinates.inl"
+#include "detray/plugins/algebra/smatrix_definitions.hpp"
+#include "tests/common/coordinate_line2.inl"

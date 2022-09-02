@@ -89,8 +89,13 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
                                              const mask_t & /*mask*/,
                                              const point3 & /*pos*/,
-                                             const vector3 & /*dir*/) {
-        return matrix_actor().block<3, 1>(trf3, 0, 2);
+                                             const vector3 & /*dir*/) const {
+        vector3 ret;
+        const auto n = matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
+        ret[0] = matrix_actor().element(n, 0, 0);
+        ret[1] = matrix_actor().element(n, 1, 0);
+        ret[2] = matrix_actor().element(n, 2, 0);
+        return ret;
     }
 
     template <typename mask_t>
@@ -108,7 +113,8 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         matrix_type<3, 2> bound_pos_to_free_pos_derivative =
             matrix_actor().template zero<3, 2>();
 
-        const point2 local2 = this->operator()(pos);
+        const point2 local2 = this->global_to_local(trf3, pos, dir);
+        // this->operator()(pos);
         const scalar_type lrad = local2[0];
         const scalar_type lphi = local2[1];
 
@@ -116,7 +122,7 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const scalar_type lsin_phi = std::sin(lphi);
 
         // reference matrix
-        const auto frame = reference_frame(trf3, pos, dir);
+        const auto frame = reference_frame(trf3, mask, pos, dir);
 
         // dxdu = d(x,y,z)/du
         const auto dxdL = matrix_actor().template block<3, 1>(frame, 0, 0);
@@ -126,10 +132,10 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const auto col0 = dxdL * lcos_phi + dydL * lsin_phi;
         const auto col1 = (dydL * lcos_phi - dxdL * lsin_phi) * lrad;
 
-        matrix_actor().set_block<3, 1>(bound_pos_to_free_pos_derivative, col0,
-                                       e_free_pos0, e_bound_loc0);
-        matrix_actor().set_block<3, 1>(bound_pos_to_free_pos_derivative, col1,
-                                       e_free_pos0, e_bound_loc1);
+        matrix_actor().template set_block<3, 1>(
+            bound_pos_to_free_pos_derivative, col0, e_free_pos0, e_bound_loc0);
+        matrix_actor().template set_block<3, 1>(
+            bound_pos_to_free_pos_derivative, col1, e_free_pos0, e_bound_loc1);
 
         matrix_actor().template set_block(free_to_bound_jacobian,
                                           bound_pos_to_free_pos_derivative,
@@ -153,21 +159,21 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const scalar_type lsin_phi = std::sin(lphi);
 
         // reference matrix
-        const auto frame = reference_frame(trf3, pos, dir);
+        const auto frame = reference_frame(trf3, mask, pos, dir);
         const auto frameT = matrix_actor().transpose(frame);
 
         // dudG = du/d(x,y,z)
         const auto dudG = matrix_actor().template block<1, 3>(frameT, 0, 0);
         // dvdG = dv/d(x,y,z)
-        const auto dvdG = matrix_actor().template block<1, 3>(frameT, 0, 1);
+        const auto dvdG = matrix_actor().template block<1, 3>(frameT, 1, 0);
 
         const auto row0 = dudG * lcos_phi + dvdG * lsin_phi;
-        const auto row1 = (dvdG * lcos_phi - dudG * lsin_phi) * 1. / lrad;
+        const auto row1 = 1. / lrad * (lcos_phi * dvdG - lsin_phi * dudG);
 
-        matrix_actor().set_block<1, 3>(free_pos_to_bound_pos_derivative, row0,
-                                       e_bound_loc0, e_free_pos0);
-        matrix_actor().set_block<1, 3>(free_pos_to_bound_pos_derivative, row1,
-                                       e_bound_loc1, e_free_pos0);
+        matrix_actor().template set_block<1, 3>(
+            free_pos_to_bound_pos_derivative, row0, e_bound_loc0, e_free_pos0);
+        matrix_actor().template set_block<1, 3>(
+            free_pos_to_bound_pos_derivative, row1, e_bound_loc1, e_free_pos0);
 
         matrix_actor().template set_block(bound_to_free_jacobian,
                                           free_pos_to_bound_pos_derivative,
@@ -176,8 +182,9 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
 
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline void set_bound_angle_to_free_pos_derivative(
-        bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
-        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
+        bound_to_free_matrix & /*bound_to_free_jacobian*/,
+        const transform3_t & /*trf3*/, const mask_t & /*mask*/,
+        const point3 & /*pos*/, const vector3 & /*dir*/) const {
         // Do nothing
     }
 };

@@ -108,7 +108,8 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         rotation_matrix rot = matrix_actor().template zero<3, 3>();
 
         // y axis of the new frame is the z axis of cylindrical coordinate
-        const auto new_yaxis = matrix_actor().template block<3, 1>(trf3, 0, 2);
+        const auto new_yaxis =
+            matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
 
         // z axis of the new frame is the vector normal to the cylinder surface
         const vector3 new_zaxis = normal(trf3, mask, pos, dir);
@@ -116,9 +117,13 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         // x axis
         const vector3 new_xaxis = vector::cross(new_yaxis, new_zaxis);
 
-        matrix_actor().set_block<3, 1>(rot, new_xaxis, 0, 0);
-        matrix_actor().set_block<3, 1>(rot, new_yaxis, 0, 1);
-        matrix_actor().set_block<3, 1>(rot, new_zaxis, 0, 2);
+        matrix_actor().element(rot, 0, 0) = new_xaxis[0];
+        matrix_actor().element(rot, 1, 0) = new_xaxis[1];
+        matrix_actor().element(rot, 2, 0) = new_xaxis[2];
+        matrix_actor().template set_block<3, 1>(rot, new_yaxis, 0, 1);
+        matrix_actor().element(rot, 0, 2) = new_zaxis[0];
+        matrix_actor().element(rot, 1, 2) = new_zaxis[1];
+        matrix_actor().element(rot, 2, 2) = new_zaxis[2];
 
         return rot;
     }
@@ -158,8 +163,9 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
 
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline void set_bound_angle_to_free_pos_derivative(
-        bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
-        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
+        bound_to_free_matrix & /*bound_to_free_jacobian*/,
+        const transform3_t & /*trf3*/, const mask_t & /*mask*/,
+        const point3 & /*pos*/, const vector3 & /*dir*/) const {
         // Do nothing
     }
 
