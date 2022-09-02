@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/detail/covariance_engine.hpp"
 #include "detray/propagator/detail/covariance_kernel.hpp"
@@ -60,10 +61,22 @@ class rk_stepper final
               const magnetic_field_t mag_field)
             : base_type::state(t), _magnetic_field(mag_field) {}
 
-        DETRAY_HOST_DEVICE
-        state(const bound_track_parameters_type& bound_params,
-              const field_type mag_field)
-            : base_type::state(bound_params), _magnetic_field(mag_field) {}
+        template <typename detector_t>
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters_type& bound_params,
+            const field_type mag_field, const detector_t& det)
+            : base_type::state(bound_params), _magnetic_field(mag_field) {
+
+            const auto& surface_container = det.surfaces();
+            const auto& trf_store = det.transform_store();
+            const auto& mask_store = det.mask_store();
+            const auto& surface =
+                surface_container[bound_params.surface_link()];
+
+            mask_store
+                .template execute<typename resetter<transform3_t>::kernel>(
+                    surface.mask_type(), trf_store, surface, *this);
+        }
 
         /// error tolerance
         scalar _tolerance = 1e-4;

@@ -104,14 +104,37 @@ TEST(covariance_transport, cartesian) {
     // RK stepper and its state
     crk_stepper_t crk_stepper;
 
-    /*
     ASSERT_FLOAT_EQ(crk_state().pos()[0], 0);
     ASSERT_FLOAT_EQ(crk_state().pos()[1], local[0]);
     ASSERT_FLOAT_EQ(crk_state().pos()[2], local[1]);
     ASSERT_NEAR(crk_state().dir()[0], 1, epsilon);
     ASSERT_NEAR(crk_state().dir()[1], 0, epsilon);
     ASSERT_NEAR(crk_state().dir()[2], 0, epsilon);
-    */
+
+    // helix trajectory
+    detail::helix helix(crk_state(), &B);
+
+    // Path length per turn
+    scalar S = 2. * getter::norm(mom) / getter::norm(B) * M_PI;
+
+    // Run stepper for one turn
+    unsigned int max_steps = 1e4;
+    for (unsigned int i = 0; i < max_steps; i++) {
+
+        crk_state.set_constraint(S - crk_state.path_length());
+
+        // n_state._step_size = S;
+
+        crk_stepper.step(propagation);
+
+        if (std::abs(S - crk_state._s) < 1e-6) {
+            break;
+        }
+
+        // Make sure that we didn't reach the end of for loop
+        ASSERT_TRUE(i < max_steps - 1);
+    }
+
     /*
 
     // test surface
