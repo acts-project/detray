@@ -9,6 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/bound_to_bound_updater.hpp"
 #include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -24,6 +25,9 @@
 // google-test include(s)
 #include <gtest/gtest.h>
 
+// System include(s)
+#include <climits>
+
 using namespace detray;
 using vector2 = __plugin::vector2<scalar>;
 using vector3 = __plugin::vector3<scalar>;
@@ -33,7 +37,6 @@ using matrix_operator = standard_matrix_operator<scalar>;
 using mag_field_t = constant_magnetic_field<>;
 
 constexpr scalar epsilon = 1e-3;
-constexpr scalar path_limit = 100 * unit_constants::cm;
 
 // This tests the covariance transport in rk stepper
 TEST(covariance_transport, cartesian) {
@@ -48,7 +51,8 @@ TEST(covariance_transport, cartesian) {
     // Create telescope detector with a single plane
     typename ln_stepper_t::free_track_parameters_type default_trk{
         {0, 0, 0}, 0, {1, 0, 0}, -1};
-    std::vector<scalar> positions = {0.};
+    std::vector<scalar> positions = {0.,
+                                     std::numeric_limits<scalar>::infinity()};
 
     const auto det = create_telescope_detector<rectangular>(
         host_mr, positions, ln_stepper_t(),
@@ -57,7 +61,9 @@ TEST(covariance_transport, cartesian) {
     using navigator_t = navigator<decltype(det)>;
     using crk_stepper_t =
         rk_stepper<mag_field_t, transform3, constrained_step<>>;
-    using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain<>>;
+    using actor_chain_t =
+        actor_chain<dtuple, looper, bound_to_bound_updater<transform3>>;
+    using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
     // Generate track starting point
     vector2 local{2, 3};
@@ -90,19 +96,29 @@ TEST(covariance_transport, cartesian) {
     vector3 B{0, 0, 1. * unit_constants::T};
     mag_field_t mag_field(B);
 
+    // Path length per turn
+    scalar S = 2. * getter::norm(mom) / getter::norm(B) * M_PI;
+
+    // Actors
+    looper::state loop{S, 0};
+    bound_to_bound_updater<transform3>::state bound_updater{};
+    actor_chain_t::state actor_states = std::tie(loop, bound_updater);
+
     // bound track parameter
     const bound_track_parameters<transform3> bound_param0(0, bound_vector,
                                                           bound_cov);
 
-    typename propagator_t::state propagation{bound_param0, mag_field, det};
+    propagator_t p{{}, {}};
+    propagator_t::state propagation(bound_param0, mag_field, det, actor_states);
+
     crk_stepper_t::state &crk_state = propagation._stepping;
-    navigator_t::state &n_state = propagation._navigation;
+    // navigator_t::state &n_state = propagation._navigation;
 
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = 1e-8;
 
     // RK stepper and its state
-    crk_stepper_t crk_stepper;
+    // crk_stepper_t crk_stepper;
 
     ASSERT_FLOAT_EQ(crk_state().pos()[0], 0);
     ASSERT_FLOAT_EQ(crk_state().pos()[1], local[0]);
@@ -111,28 +127,67 @@ TEST(covariance_transport, cartesian) {
     ASSERT_NEAR(crk_state().dir()[1], 0, epsilon);
     ASSERT_NEAR(crk_state().dir()[2], 0, epsilon);
 
+    // Run propagator
+    p.propagate(propagation);
+
     // helix trajectory
     detail::helix helix(crk_state(), &B);
 
-    // Path length per turn
-    scalar S = 2. * getter::norm(mom) / getter::norm(B) * M_PI;
+    // Transport jacobian check
+    auto true_J = helix.jacobian(crk_state.path_length());
 
-    // Run stepper for one turn
-    unsigned int max_steps = 1e4;
-    for (unsigned int i = 0; i < max_steps; i++) {
-
-        crk_state.set_constraint(S - crk_state.path_length());
-
-        // n_state._step_size = S;
-
-        crk_stepper.step(propagation);
-
-        if (std::abs(S - crk_state._s) < 1e-6) {
-            break;
+    for (std::size_t i = 0; i < e_free_size; i++) {
+        for (std::size_t j = 0; j < e_free_size; j++) {
+            EXPECT_NEAR(
+                matrix_operator().element(crk_state._jac_transport, i, j),
+                matrix_operator().element(true_J, i, j),
+                crk_state.path_length() * epsilon);
         }
+    }
 
-        // Make sure that we didn't reach the end of for loop
-        ASSERT_TRUE(i < max_steps - 1);
+    // Bound parameters check
+
+    // Bound state after one turn propagation
+    const auto bound_param1 = crk_state._bound_params;
+
+    const auto bound_vec0 = bound_param0.vector();
+    const auto bound_vec1 = bound_param1.vector();
+
+    const auto bound_cov0 = bound_param0.covariance();
+    const auto bound_cov1 = bound_param1.covariance();
+
+    // Check if the bound state stays the same after one turn propagation
+
+    // vector
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0),
+                    matrix_operator().element(bound_vec1, i, 0), epsilon);
+    }
+
+    // covaraince
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
+                        matrix_operator().element(bound_cov1, i, j),
+                        crk_state.path_length() * epsilon);
+        }
+    }
+
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            printf("%f ", matrix_operator().element(bound_cov0, i, j));
+        }
+        printf("\n");
+    }
+
+    printf("\n");
+    printf("\n");
+
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            printf("%f ", matrix_operator().element(bound_cov1, i, j));
+        }
+        printf("\n");
     }
 
     /*

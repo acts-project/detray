@@ -77,7 +77,7 @@ struct bound_to_bound_updater : actor {
 
             // Mask
             const auto& mask = mask_group[is->mask_index];
-            auto local_coordinate = mask.local_type();
+            auto local_coordinate = mask.local();
 
             // Free vector
             const auto& free_vec = stepping().vector();
@@ -97,22 +97,39 @@ struct bound_to_bound_updater : actor {
             free_matrix path_correction =
                 local_coordinate.path_correction(stepping, trf3, mask);
 
+            for (std::size_t i = 0; i < e_free_size; i++) {
+                for (std::size_t j = 0; j < e_free_size; j++) {
+                    printf("%f ",
+                           matrix_actor().element(path_correction, i, j));
+                }
+                printf("\n");
+            }
+
+            printf("\n");
+
             // Bound to free jacobian at the departure surface
             const bound_to_free_matrix& bound_to_free_jacobian =
                 stepping._jac_to_global;
 
-            // Calculate surface-to-surface covariance transport
-            stepping._bound_params.set_covaraince(
+            const bound_matrix full_jacobian =
                 free_to_bound_jacobian *
                 (path_correction + free_transport_jacobian) *
-                bound_to_free_jacobian);
+                bound_to_free_jacobian;
+
+            const bound_matrix new_cov =
+                full_jacobian * stepping._bound_params.covariance() *
+                matrix_actor().transpose(full_jacobian);
+
+            // Calculate surface-to-surface covariance transport
+            stepping._bound_params.set_covariance(new_cov);
 
             return true;
         }
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(propagator_state_t& propagation) const {
+    DETRAY_HOST_DEVICE void operator()(state& /*actor_state*/,
+                                       propagator_state_t& propagation) const {
 
         auto& navigation = propagation._navigation;
 
@@ -129,8 +146,8 @@ struct bound_to_bound_updater : actor {
             // Surface
             const auto& surface = surface_container[is->index];
 
-            auto succeed = mask_store.template execute<kernel>(
-                surface.mask_type(), surface, propagation);
+            mask_store.template execute<kernel>(surface.mask_type(), surface,
+                                                propagation);
         }
     }
 };

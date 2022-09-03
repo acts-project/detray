@@ -164,6 +164,7 @@ template <typename magnetic_field_t, typename transform3_t,
 template <typename propagation_state_t>
 bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         array_t>::step(propagation_state_t& propagation) {
+
     // Get stepper and navigator states
     state& stepping = propagation._stepping;
     auto& magnetic_field = stepping._magnetic_field;

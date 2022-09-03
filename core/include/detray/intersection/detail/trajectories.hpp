@@ -106,6 +106,8 @@ class helix : public free_track_parameters<transform3_t> {
     // Column wise operator
     using column_wise_op = column_wise_operator<matrix_actor>;
 
+    using free_track_parameters_type::pos;
+
     DETRAY_HOST_DEVICE
     helix() = delete;
 
@@ -279,7 +281,6 @@ class helix : public free_track_parameters<transform3_t> {
         return ret;
     }
 
-    private:
     /// B field
     vector3 const *_mag_field;
 

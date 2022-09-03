@@ -218,29 +218,29 @@ struct coordinate_base {
         const auto s = stepping._s;
 
         // helix
-        helix hlx(stepping(), stepping._step_data.b_last);
+        helix hlx(stepping(), &stepping._step_data.b_last);
 
         // B field at the destination surface
-        const matrix_type<1, 3> h;
+        matrix_type<1, 3> h;
         matrix_actor().set_block(h, hlx._h0, 0, 0);
 
         // dir
-        const matrix_type<1, 3> t;
+        matrix_type<1, 3> t;
         matrix_actor().set_block(t, hlx._t0, 0, 0);
 
         // Normalized vector of h X t
-        const matrix_type<1, 3> n;
+        matrix_type<1, 3> n;
         matrix_actor().set_block(n, hlx._n0, 0, 0);
 
         // Surface normal vector (w)
-        const matrix_type<1, 3> w;
+        matrix_type<1, 3> w;
         const auto normal =
             Derived<transform3_t>().normal(trf3, mask, hlx.pos(), hlx._t0);
         matrix_actor().set_block(w, normal, 0, 0);
 
         // w cross h
-        const matrix_type<1, 3> wh;
-        matrix_actor().set_block(w, vector::cross(w, h), 0, 0);
+        matrix_type<1, 3> wh;
+        matrix_actor().set_block(wh, vector::cross(normal, hlx._h0), 0, 0);
 
         // Alpha
         const scalar_type A = hlx._alpha;
@@ -259,14 +259,19 @@ struct coordinate_base {
 
         // t correction term
         matrix_type<1, 3> t_term = matrix_actor().template zero<1, 3>();
-        t_term = t_term + (Ks - std::sin(Ks)) / K * vector::dot(h, w) * h;
+        t_term =
+            t_term + (Ks - std::sin(Ks)) / K * vector::dot(hlx._h0, normal) * h;
         t_term = t_term + std::sin(Ks) / K * w;
         t_term = t_term + (1 - std::cos(Ks)) / K * wh;
         t_term = -1. / wt * t_term;
 
+        printf("%f %f %f, \n", matrix_actor().element(t_term, 0, 0),
+               matrix_actor().element(t_term, 0, 1),
+               matrix_actor().element(t_term, 0, 2));
+
         // qoverp correction term
         const scalar_type L_term =
-            -1. / wt * A * Ks / hlx.qop() * vector::dot(w, n);
+            -1. / wt * A * Ks / hlx.qop() * vector::dot(normal, hlx._n0);
 
         // transpose of t
         const matrix_type<3, 1> t_T = matrix_actor().transpose(t);
@@ -292,6 +297,14 @@ struct coordinate_base {
 
         // dt/dL0
         const matrix_type<3, 1> dtdL0 = AK * n_T * L_term;
+
+        for (std::size_t i = 0; i < 3; i++) {
+            for (std::size_t j = 0; j < 3; j++) {
+                printf("%f ", matrix_actor().element(drdt0, i, j));
+            }
+            printf("\n");
+        }
+        printf("\n");
 
         matrix_actor().template set_block<3, 3>(path_correction, drdr0,
                                                 e_free_pos0, e_free_pos0);

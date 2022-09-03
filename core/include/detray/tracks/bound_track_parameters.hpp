@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
@@ -43,7 +44,8 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     bound_track_parameters()
-        : m_vector(matrix_actor().template zero<e_bound_size, 1>()),
+        : m_surface_link(dindex_invalid),
+          m_vector(matrix_actor().template zero<e_bound_size, 1>()),
           m_covariance(
               matrix_actor().template zero<e_bound_size, e_bound_size>()) {}
 
