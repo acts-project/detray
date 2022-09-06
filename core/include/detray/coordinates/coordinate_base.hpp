@@ -257,12 +257,45 @@ struct coordinate_base {
         // r correction term
         const matrix_type<1, 3> r_term = -1. / wt * w;
 
+        printf("step size %f \n", s);
+
+        printf("K %f \n", K);
+
+        printf("Ks %f \n", Ks);
+        printf("w %f %f %f \n", matrix_actor().element(w, 0, 0),
+               matrix_actor().element(w, 0, 1),
+               matrix_actor().element(w, 0, 2));
+
+        printf("wt %f \n", wt);
+
+        printf("wh %f %f %f \n", matrix_actor().element(wh, 0, 0),
+               matrix_actor().element(wh, 0, 1),
+               matrix_actor().element(wh, 0, 2));
+
+        auto a = std::sin(Ks);
+        printf("sinKs: %f %f %f \n", a);
+
         // t correction term
         matrix_type<1, 3> t_term = matrix_actor().template zero<1, 3>();
         t_term =
             t_term + (Ks - std::sin(Ks)) / K * vector::dot(hlx._h0, normal) * h;
+
+        printf("%f %f %f, \n", matrix_actor().element(t_term, 0, 0),
+               matrix_actor().element(t_term, 0, 1),
+               matrix_actor().element(t_term, 0, 2));
+
         t_term = t_term + std::sin(Ks) / K * w;
+
+        printf("%f %f %f, \n", matrix_actor().element(t_term, 0, 0),
+               matrix_actor().element(t_term, 0, 1),
+               matrix_actor().element(t_term, 0, 2));
+
         t_term = t_term + (1 - std::cos(Ks)) / K * wh;
+
+        printf("%f %f %f, \n", matrix_actor().element(t_term, 0, 0),
+               matrix_actor().element(t_term, 0, 1),
+               matrix_actor().element(t_term, 0, 2));
+
         t_term = -1. / wt * t_term;
 
         printf("%f %f %f, \n", matrix_actor().element(t_term, 0, 0),

@@ -116,6 +116,29 @@ struct bound_to_bound_updater : actor {
                 (path_correction + free_transport_jacobian) *
                 bound_to_free_jacobian;
 
+            const bound_matrix full_jacobian_no_correction =
+                free_to_bound_jacobian *
+                (free_transport_jacobian)*bound_to_free_jacobian;
+
+            printf("w/ correction \n");
+            for (std::size_t i = 0; i < e_bound_size; i++) {
+                for (std::size_t j = 0; j < e_bound_size; j++) {
+                    printf("%f ", matrix_actor().element(full_jacobian, i, j));
+                }
+                printf("\n");
+            }
+            printf("\n");
+
+            printf("w/o correction \n");
+            for (std::size_t i = 0; i < e_bound_size; i++) {
+                for (std::size_t j = 0; j < e_bound_size; j++) {
+                    printf("%f ", matrix_actor().element(
+                                      full_jacobian_no_correction, i, j));
+                }
+                printf("\n");
+            }
+            printf("\n");
+
             const bound_matrix new_cov =
                 full_jacobian * stepping._bound_params.covariance() *
                 matrix_actor().transpose(full_jacobian);
