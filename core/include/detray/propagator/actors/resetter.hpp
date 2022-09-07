@@ -61,49 +61,11 @@ struct resetter : actor {
 
             return true;
         }
-
-        /*
-        template <typename mask_group_t, typename surface_t,
-                  typename propagator_state_t>
-        DETRAY_HOST_DEVICE inline output_type operator()(
-            const mask_group_t& mask_group, const surface_t& surface,
-            propagator_state_t& propagation) const {
-
-            // Stepper and Navigator states
-            auto& navigation = propagation._navigation;
-            auto& stepping = propagation._stepping;
-
-            // Retrieve surfaces and transform store
-            const auto& det = navigation.detector();
-            const auto& transform_store = det->transform_store();
-
-            // Intersection
-            const auto& is = navigation.current();
-
-            // Transform
-            const auto& trf3 = transform_store[surface.transform()];
-
-            // Mask
-            const auto& mask = mask_group[is->mask_index];
-            auto local_coordinate = mask.local_type();
-
-            // Reset the path length
-            stepping._s = 0;
-
-            // Reset jacobian coordinate transformation at the current surface
-            stepping._jac_to_global = local_coordinate.bound_to_free_jacobian(
-                trf3, mask, stepping._bound_params.vector());
-
-            // Reset jacobian transport to identity matrix
-            matrix_actor().set_identity(stepping._jac_transport);
-
-            return true;
-        }
-        */
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(propagator_state_t& propagation) const {
+    DETRAY_HOST_DEVICE void operator()(state& /*actor_state*/,
+                                       propagator_state_t& propagation) const {
 
         auto& navigation = propagation._navigation;
         auto& stepping = propagation._stepping;
@@ -122,8 +84,8 @@ struct resetter : actor {
             // Surface
             const auto& surface = surface_container[is->index];
 
-            auto succeed = mask_store.template execute<kernel>(
-                surface.mask_type(), trf_store, surface, stepping);
+            mask_store.template execute<kernel>(surface.mask_type(), trf_store,
+                                                surface, stepping);
         }
     }
 };

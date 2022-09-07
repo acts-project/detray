@@ -97,47 +97,30 @@ struct bound_to_bound_updater : actor {
             free_matrix path_correction =
                 local_coordinate.path_correction(stepping, trf3, mask);
 
-            for (std::size_t i = 0; i < e_free_size; i++) {
-                for (std::size_t j = 0; j < e_free_size; j++) {
-                    printf("%f ",
-                           matrix_actor().element(path_correction, i, j));
-                }
-                printf("\n");
-            }
-
-            printf("\n");
-
             // Bound to free jacobian at the departure surface
             const bound_to_free_matrix& bound_to_free_jacobian =
                 stepping._jac_to_global;
 
+            /*
             const bound_matrix full_jacobian =
                 free_to_bound_jacobian *
                 (path_correction + free_transport_jacobian) *
                 bound_to_free_jacobian;
-
-            const bound_matrix full_jacobian_no_correction =
+            */
+            // Acts version
+            /*
+            const bound_matrix full_jacobian =
                 free_to_bound_jacobian *
-                (free_transport_jacobian)*bound_to_free_jacobian;
+                (matrix_actor().template identity<e_free_size, e_free_size>() +
+                 path_correction) *
+                free_transport_jacobian * bound_to_free_jacobian;
+            */
 
-            printf("w/ correction \n");
-            for (std::size_t i = 0; i < e_bound_size; i++) {
-                for (std::size_t j = 0; j < e_bound_size; j++) {
-                    printf("%f ", matrix_actor().element(full_jacobian, i, j));
-                }
-                printf("\n");
-            }
-            printf("\n");
+            // No path correction
 
-            printf("w/o correction \n");
-            for (std::size_t i = 0; i < e_bound_size; i++) {
-                for (std::size_t j = 0; j < e_bound_size; j++) {
-                    printf("%f ", matrix_actor().element(
-                                      full_jacobian_no_correction, i, j));
-                }
-                printf("\n");
-            }
-            printf("\n");
+            const bound_matrix full_jacobian = free_to_bound_jacobian *
+                                               free_transport_jacobian *
+                                               bound_to_free_jacobian;
 
             const bound_matrix new_cov =
                 full_jacobian * stepping._bound_params.covariance() *

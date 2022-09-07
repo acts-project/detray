@@ -62,11 +62,12 @@ struct pathlimit_aborter : actor {
     }
 };
 
-struct looper : actor {
+struct ignorer : actor {
 
     struct state {
-        scalar loop_length = 0;
-        dindex target_surface_index = dindex_invalid;
+
+        scalar _path_limit;
+        dindex _target_surface_index = dindex_invalid;
     };
 
     /// Enforces the path limit on a stepper state
@@ -82,11 +83,11 @@ struct looper : actor {
         auto &stepping = prop_state._stepping;
         navigation.set_full_trust();
 
-        scalar residual = actor_state.loop_length - stepping.path_length();
+        scalar residual = actor_state._path_limit - stepping.path_length();
         stepping.set_constraint(residual);
 
         typename propagator_state_t::navigator_state_type::intersection_t is;
-        is.index = actor_state.target_surface_index;
+        is.index = actor_state._target_surface_index;
         is.path = residual;
         auto &candidates = navigation.candidates();
         candidates.clear();
