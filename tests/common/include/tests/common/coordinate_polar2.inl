@@ -94,6 +94,7 @@ TEST(coordinate, polar2) {
 
     for (std::size_t i = 0; i < 6; i++) {
         for (std::size_t j = 0; j < 6; j++) {
+
             if (i == j) {
                 EXPECT_NEAR(m.element(J, i, j), 1., isclose);
             } else {

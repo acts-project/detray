@@ -125,12 +125,15 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const auto frame = reference_frame(trf3, mask, pos, dir);
 
         // dxdu = d(x,y,z)/du
-        const auto dxdL = matrix_actor().template block<3, 1>(frame, 0, 0);
+        const matrix_type<3, 1> dxdL =
+            matrix_actor().template block<3, 1>(frame, 0, 0);
         // dxdv = d(x,y,z)/dv
-        const auto dydL = matrix_actor().template block<3, 1>(frame, 0, 1);
+        const matrix_type<3, 1> dydL =
+            matrix_actor().template block<3, 1>(frame, 0, 1);
 
-        const auto col0 = dxdL * lcos_phi + dydL * lsin_phi;
-        const auto col1 = (dydL * lcos_phi - dxdL * lsin_phi) * lrad;
+        const matrix_type<3, 1> col0 = dxdL * lcos_phi + dydL * lsin_phi;
+        const matrix_type<3, 1> col1 =
+            (dydL * lcos_phi - dxdL * lsin_phi) * lrad;
 
         matrix_actor().template set_block<3, 1>(
             bound_pos_to_free_pos_derivative, col0, e_free_pos0, e_bound_loc0);
@@ -163,12 +166,15 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const auto frameT = matrix_actor().transpose(frame);
 
         // dudG = du/d(x,y,z)
-        const auto dudG = matrix_actor().template block<1, 3>(frameT, 0, 0);
+        const matrix_type<1, 3> dudG =
+            matrix_actor().template block<1, 3>(frameT, 0, 0);
         // dvdG = dv/d(x,y,z)
-        const auto dvdG = matrix_actor().template block<1, 3>(frameT, 1, 0);
+        const matrix_type<1, 3> dvdG =
+            matrix_actor().template block<1, 3>(frameT, 1, 0);
 
-        const auto row0 = dudG * lcos_phi + dvdG * lsin_phi;
-        const auto row1 = 1. / lrad * (lcos_phi * dvdG - lsin_phi * dudG);
+        const matrix_type<1, 3> row0 = dudG * lcos_phi + dvdG * lsin_phi;
+        const matrix_type<1, 3> row1 =
+            1. / lrad * (lcos_phi * dvdG - lsin_phi * dudG);
 
         matrix_actor().template set_block<1, 3>(
             free_pos_to_bound_pos_derivative, row0, e_bound_loc0, e_free_pos0);

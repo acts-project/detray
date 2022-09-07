@@ -139,8 +139,8 @@ TEST(covariance_transport, cartesian) {
 
     // RK stepper and its state
     EXPECT_FLOAT_EQ(crk_state().pos()[0], 0);
-    EXPECT_FLOAT_EQ(crk_state().pos()[1], local[0]);  // y
-    EXPECT_FLOAT_EQ(crk_state().pos()[2], local[1]);  // z
+    EXPECT_NEAR(crk_state().pos()[1], local[0], epsilon);  // y
+    EXPECT_NEAR(crk_state().pos()[2], local[1], epsilon);  // z
     EXPECT_NEAR(crk_state().dir()[0], dir[0], epsilon);
     EXPECT_NEAR(crk_state().dir()[1], dir[1], epsilon);
     EXPECT_NEAR(crk_state().dir()[2], dir[2], epsilon);
