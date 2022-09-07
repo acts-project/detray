@@ -89,7 +89,8 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
                                              const point3 & /*pos*/,
                                              const vector3 & /*dir*/) const {
         vector3 ret;
-        const auto n = matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
+        const matrix_type<3, 1> n =
+            matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
         ret[0] = matrix_actor().element(n, 0, 0);
         ret[1] = matrix_actor().element(n, 1, 0);
         ret[2] = matrix_actor().element(n, 2, 0);
@@ -108,10 +109,10 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
         bound_to_free_matrix &free_to_bound_jacobian, const transform3_t &trf3,
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
-        const auto frame = reference_frame(trf3, mask, pos, dir);
+        const rotation_matrix frame = reference_frame(trf3, mask, pos, dir);
 
         // Get d(x,y,z)/d(loc0, loc1)
-        const auto bound_pos_to_free_pos_derivative =
+        const matrix_type<3, 2> bound_pos_to_free_pos_derivative =
             matrix_actor().template block<3, 2>(frame, 0, 0);
 
         matrix_actor().template set_block(free_to_bound_jacobian,
@@ -124,11 +125,11 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
         free_to_bound_matrix &bound_to_free_jacobian, const transform3_t &trf3,
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
-        const auto frame = reference_frame(trf3, mask, pos, dir);
-        const auto frameT = matrix_actor().transpose(frame);
+        const rotation_matrix frame = reference_frame(trf3, mask, pos, dir);
+        const rotation_matrix frameT = matrix_actor().transpose(frame);
 
         // Get d(loc0, loc1)/d(x,y,z)
-        const auto free_pos_to_bound_pos_derivative =
+        const matrix_type<2, 3> free_pos_to_bound_pos_derivative =
             matrix_actor().template block<2, 3>(frameT, 0, 0);
 
         matrix_actor().template set_block(bound_to_free_jacobian,

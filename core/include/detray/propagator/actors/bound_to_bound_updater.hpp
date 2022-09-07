@@ -101,19 +101,21 @@ struct bound_to_bound_updater : actor {
             const bound_to_free_matrix& bound_to_free_jacobian =
                 stepping._jac_to_global;
 
+            // Acts version
+            const free_matrix correction_term =
+                matrix_actor().template identity<e_free_size, e_free_size>() +
+                path_correction;
+
+            const bound_matrix full_jacobian =
+                free_to_bound_jacobian * correction_term *
+                free_transport_jacobian * bound_to_free_jacobian;
+
             /*
             const bound_matrix full_jacobian =
                 free_to_bound_jacobian *
                 (path_correction + free_transport_jacobian) *
                 bound_to_free_jacobian;
             */
-
-            // Acts version
-            const bound_matrix full_jacobian =
-                free_to_bound_jacobian *
-                (matrix_actor().template identity<e_free_size, e_free_size>() +
-                 path_correction) *
-                free_transport_jacobian * bound_to_free_jacobian;
 
             // No path correction
             /*
