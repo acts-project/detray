@@ -80,8 +80,6 @@ detray_add_library( detray_core core
    "include/detray/propagator/base_actor.hpp"
    "include/detray/propagator/base_stepper.hpp"
    "include/detray/propagator/constrained_step.hpp"
-   "include/detray/propagator/detail/covariance_engine.hpp"
-   "include/detray/propagator/detail/jacobian_engine.hpp"
    "include/detray/propagator/line_stepper.hpp"
    "include/detray/propagator/navigation_policies.hpp"
    "include/detray/propagator/navigator.hpp"

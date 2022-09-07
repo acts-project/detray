@@ -107,20 +107,20 @@ struct bound_to_bound_updater : actor {
                 (path_correction + free_transport_jacobian) *
                 bound_to_free_jacobian;
             */
+
             // Acts version
-            /*
             const bound_matrix full_jacobian =
                 free_to_bound_jacobian *
                 (matrix_actor().template identity<e_free_size, e_free_size>() +
                  path_correction) *
                 free_transport_jacobian * bound_to_free_jacobian;
-            */
 
             // No path correction
-
+            /*
             const bound_matrix full_jacobian = free_to_bound_jacobian *
                                                free_transport_jacobian *
                                                bound_to_free_jacobian;
+            */
 
             const bound_matrix new_cov =
                 full_jacobian * stepping._bound_params.covariance() *

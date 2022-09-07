@@ -11,7 +11,6 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/constrained_step.hpp"
-#include "detray/propagator/detail/covariance_engine.hpp"
 #include "detray/tracks/tracks.hpp"
 
 namespace detray {
@@ -25,7 +24,6 @@ class base_stepper {
     using free_track_parameters_type = free_track_parameters<transform3_t>;
     using bound_track_parameters_type = bound_track_parameters<transform3_t>;
     using matrix_operator = typename transform3_t::matrix_actor;
-    using covariance_engine = detail::covariance_engine<transform3_t>;
     using track_helper = detail::track_helper<matrix_operator>;
 
     using size_type = typename transform3_type::size_type;

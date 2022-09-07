@@ -12,8 +12,6 @@
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/base_stepper.hpp"
-#include "detray/propagator/detail/covariance_engine.hpp"
-#include "detray/propagator/detail/covariance_kernel.hpp"
 #include "detray/propagator/navigation_policies.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/column_wise_operator.hpp"
@@ -41,7 +39,6 @@ class rk_stepper final
     using vector3 = typename transform3_type::vector3;
     using context_type = typename magnetic_field_t::context_type;
     using matrix_operator = typename base_type::matrix_operator;
-    using covariance_engine = typename base_type::covariance_engine;
     using column_wise_op = column_wise_operator<matrix_operator>;
 
     using free_track_parameters_type =
