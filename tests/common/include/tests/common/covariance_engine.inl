@@ -9,9 +9,9 @@
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/bound_to_bound_updater.hpp"
 #include "detray/propagator/actors/resetter.hpp"
+#include "detray/propagator/actors/surface_targeter.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -63,8 +63,8 @@ TEST(covariance_transport, cartesian) {
     using crk_stepper_t =
         rk_stepper<mag_field_t, transform3, constrained_step<>>;
     using actor_chain_t =
-        actor_chain<dtuple, ignorer, bound_to_bound_updater<transform3>,
-                    resetter<transform3>>;
+        actor_chain<dtuple, surface_targeter,
+                    bound_to_bound_updater<transform3>, resetter<transform3>>;
     using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
     // Generate track starting point
@@ -111,11 +111,11 @@ TEST(covariance_transport, cartesian) {
     scalar S = 2. * getter::perp(mom) / getter::norm(B) * M_PI;
 
     // Actors
-    ignorer::state loop{S, 0};
+    surface_targeter::state targeter{S, 0};
     bound_to_bound_updater<transform3>::state bound_updater{};
     resetter<transform3>::state rst{};
 
-    actor_chain_t::state actor_states = std::tie(loop, bound_updater, rst);
+    actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
 
     propagator_t p({}, {});
     propagator_t::state propagation(bound_param0, mag_field, det, actor_states);
@@ -146,7 +146,7 @@ TEST(covariance_transport, cartesian) {
     EXPECT_NEAR(crk_state().dir()[0], dir[0], epsilon);
     EXPECT_NEAR(crk_state().dir()[1], dir[1], epsilon);
     EXPECT_NEAR(crk_state().dir()[2], dir[2], epsilon);
-    EXPECT_NEAR(crk_state.path_length(), loop._path_limit, epsilon);
+    EXPECT_NEAR(crk_state.path_length(), targeter._path, epsilon);
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
