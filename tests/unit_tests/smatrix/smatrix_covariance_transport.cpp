@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/plugins/algebra/eigen_definitions.hpp"
-#include "tests/common/covariance_engine.inl"
+#include "detray/plugins/algebra/smatrix_definitions.hpp"
+#include "tests/common/covariance_transport.inl"

@@ -31,8 +31,6 @@
 
 using namespace detray;
 using vector2 = __plugin::vector2<scalar>;
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
 using transform3 = __plugin::transform3<scalar>;
 using matrix_operator = standard_matrix_operator<scalar>;
 using mag_field_t = constant_magnetic_field<>;

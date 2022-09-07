@@ -9,7 +9,7 @@ detray_add_test( array
    "array_actor_chain.cpp" "array_annulus2.cpp" "array_container.cpp"
    "array_coordinate_cartesian2.cpp" "array_coordinate_cartesian3.cpp"  "array_coordinate_cylindrical2.cpp" 
    "array_coordinate_cylindrical3.cpp" "array_coordinate_line2.cpp" "array_coordinate_polar2.cpp"
-   "array_core.cpp" "array_covariance_engine.cpp"
+   "array_core.cpp" "array_covariance_transport.cpp"
    "array_cylinder_intersection.cpp" "array_cylinder3.cpp" "array_detector.cpp"
    "array_geometry_volume_graph.cpp" "array_geometry_linking.cpp"
    "array_geometry_navigation.cpp" "array_geometry_scan.cpp"

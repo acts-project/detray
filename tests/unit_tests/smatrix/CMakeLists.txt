@@ -9,7 +9,7 @@ detray_add_test( smatrix
    "smatrix_actor_chain.cpp" "smatrix_annulus2.cpp" "smatrix_container.cpp"
    "smatrix_coordinate_cartesian2.cpp" "smatrix_coordinate_cartesian3.cpp" "smatrix_coordinate_cylindrical2.cpp" 
    "smatrix_coordinate_cylindrical3.cpp" "smatrix_coordinate_line2.cpp" "smatrix_coordinate_polar2.cpp"
-   "smatrix_core.cpp" "smatrix_covariance_engine.cpp"
+   "smatrix_core.cpp" "smatrix_covariance_transport.cpp"
    "smatrix_cylinder_intersection.cpp" "smatrix_cylinder3.cpp"
    "smatrix_detector.cpp" "smatrix_geometry_volume_graph.cpp"
    "smatrix_geometry_linking.cpp"  "smatrix_geometry_navigation.cpp"

@@ -121,14 +121,6 @@ class rk_stepper final
      */
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation);
-
-    /** Get the bound state at the surface
-     *
-     * @return returning the bound track parameter
-     */
-    template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bound_track_parameters_type bound_state(
-        propagation_state_t& /*propagation*/, const transform3_type& /*trf*/);
 };
 
 }  // namespace detray
