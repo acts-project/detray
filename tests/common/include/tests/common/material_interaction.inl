@@ -15,6 +15,7 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
+#include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/pointwise_material_interactor.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -225,8 +226,9 @@ TEST(material_interaction, telescope_geometry) {
     using policy_t = stepper_default_policy;
     using stepper_t = line_stepper<transform3, constraints_t, policy_t>;
     using interactor_t = pointwise_material_interactor<interaction<scalar>>;
-    using actor_chain_t = actor_chain<dtuple, propagation::print_inspector,
-                                      pathlimit_aborter, interactor_t>;
+    using actor_chain_t =
+        actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
+                    interactor_t, resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -240,10 +242,11 @@ TEST(material_interaction, telescope_geometry) {
     propagation::print_inspector::state print_insp_state{};
     pathlimit_aborter::state aborter_state{};
     interactor_t::state interactor_state{};
+    resetter<transform3>::state resetter_state{};
 
     // Create actor states tuples
-    actor_chain_t::state actor_states =
-        std::tie(print_insp_state, aborter_state, interactor_state);
+    actor_chain_t::state actor_states = std::tie(
+        print_insp_state, aborter_state, interactor_state, resetter_state);
 
     propagator_t::state state(track, det, actor_states);
 
