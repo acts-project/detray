@@ -26,7 +26,6 @@ class ray {
     public:
     using transform3_type = transform3_t;
     using scalar_type = typename transform3_type::scalar_type;
-    using matrix_actor = typename transform3_type::matrix_actor;
     using vector3 = typename transform3_type::vector3;
     using point3 = typename transform3_type::point3;
 
