@@ -6,7 +6,7 @@
 
 # Set up the project.
 cmake_minimum_required( VERSION 3.11 )
-project( detray VERSION 0.10 LANGUAGES CXX )
+project( detray VERSION 0.11 LANGUAGES CXX )
 
 # Set up the used C++ standard(s).
 set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (host) C++ standard to use" )
@@ -48,7 +48,7 @@ option( DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" ON )
 option( DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF )
 option( DETRAY_VC_PLUGIN "Build Vc based math plugin" ON )
 option( DETRAY_IO_CSV "Build CSV IO module" ON )
-option( DETRAY_DISPLAY "Build matplot++ based display module" OFF )
+option( DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
 option( DETRAY_BUILD_TESTING "Build the (unit) tests of Detray"
@@ -91,6 +91,21 @@ if( DETRAY_SETUP_ALGEBRA_PLUGINS )
    endif()
 endif()
 
+# Set up ACTSVG for displaying
+option( DETRAY_SETUP_ACTSVG
+   "Set up the actsvg target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_ACTSVG
+   "Pick up an existing installation of dfelibs from the build environment"
+   FALSE )
+if( DETRAY_SETUP_ACTSVG )
+   if( DETRAY_USE_SYSTEM_ACTSVG )
+      find_package( actsvg::core actsvg::meta REQUIRED )
+   else()
+      add_subdirectory( extern/actsvg )
+   endif()
+endif()
+
+
 # Set up dfelibs.
 option( DETRAY_SETUP_DFELIBS
    "Set up the dfelibs target(s) explicitly" TRUE )
@@ -102,20 +117,6 @@ if( DETRAY_SETUP_DFELIBS )
       find_package( dfelibs REQUIRED )
    else()
       add_subdirectory( extern/dfelibs )
-   endif()
-endif()
-
-# Set up Matplot++.
-option( DETRAY_SETUP_MATPLOTPP
-   "Set up the Matplot++ target(s) explicitly" FALSE )
-option( DETRAY_USE_SYSTEM_MATPLOTPP
-   "Pick up an existing installation of Matplot++ from the build environment"
-   FALSE )
-if( DETRAY_SETUP_MATPLOTPP )
-   if( DETRAY_USE_SYSTEM_MATPLOTPP )
-      find_package( Matplot++ REQUIRED )
-   else()
-      add_subdirectory( extern/matplotplusplus )
    endif()
 endif()
 
@@ -167,16 +168,12 @@ if( DETRAY_SETUP_BENCHMARK )
    endif()
 endif()
 
+add_subdirectory( extern/covfie )
+
 # Set up all of the libraries of the project.
 add_subdirectory( core )
 add_subdirectory( plugins )
 add_subdirectory( io )
-if( DETRAY_DISPLAY )
-   add_subdirectory( display )
-endif()
-
-# Set up the project's applications.
-add_subdirectory( apps )
 
 # Set up the test(s).
 include( CTest )

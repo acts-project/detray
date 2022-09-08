@@ -18,6 +18,8 @@ else
     WORKSPACE=${GITHUB_WORKSPACE}
 fi
 
+git config --global --add safe.directory $(pwd)
+
 # Generate a CSV file in data directory
 export LASTCOMMIT=$(git log -n1 | head -n1 | cut -b 8-14)
 export DETRAY_TEST_DATA_DIR=${WORKSPACE}/data/

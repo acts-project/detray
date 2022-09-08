@@ -62,8 +62,8 @@ struct material_rod {
             return 0;
         }
 
-        auto const sin_incidence_angle =
-            std::sqrt(scalar_type(1.) - std::pow(is.cos_incidence_angle, 2));
+        const scalar_type sin_incidence_angle = std::sqrt(
+            scalar_type(1.) - is.cos_incidence_angle * is.cos_incidence_angle);
 
         return scalar_type(2.) *
                std::sqrt(m_radius * m_radius - is.p2[0] * is.p2[0]) /
