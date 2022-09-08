@@ -270,8 +270,6 @@ TEST(material_interaction, telescope_geometry) {
     // Initial energy
     const scalar iniE = std::sqrt(iniP * iniP + mass * mass);
 
-    printf("%f \n", iniE);
-
     // Interaction object
     interaction<scalar> I;
 
