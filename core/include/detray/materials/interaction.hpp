@@ -20,7 +20,6 @@ template <typename scalar_t>
 struct interaction {
 
     using scalar_type = scalar_t;
-    using matrix_operator = standard_matrix_operator<scalar_type>;
     using relativistic_quantities =
         detail::relativistic_quantities<scalar_type>;
 

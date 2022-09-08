@@ -15,7 +15,7 @@ detray_add_test( smatrix
    "smatrix_geometry_linking.cpp"  "smatrix_geometry_navigation.cpp"
    "smatrix_geometry_scan.cpp" "smatrix_guided_navigator.cpp"
    "smatrix_helix_trajectory.cpp" "smatrix_intersection_kernel.cpp"
-   "smatrix_mask_store.cpp" "smatrix_materials.cpp" "smatrix_navigator.cpp"
+   "smatrix_mask_store.cpp" "smatrix_material_interaction.cpp" "smatrix_materials.cpp" "smatrix_navigator.cpp"
    "smatrix_particle_gun.cpp" "smatrix_line_intersection.cpp" "smatrix_line.cpp" "smatrix_planar_intersection.cpp"
    "smatrix_propagator.cpp" "smatrix_rectangle2.cpp" "smatrix_ring2.cpp"
    "smatrix_single3.cpp" "smatrix_stepper.cpp" "smatrix_surfaces_finder.cpp"
