@@ -33,7 +33,7 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     /// Vector in 3D space
     using vector3 = typename base_type::vector3;
     /// Matrix actor
-    using matrix_actor = typename base_type::matrix_actor;
+    using matrix_operator = typename base_type::matrix_operator;
     /// Matrix size type
     using size_type = typename base_type::size_type;
     /// 2D matrix type
@@ -86,7 +86,7 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
 
         /*
         matrix_type<3, 2> bound_to_free_rotation =
-            matrix_actor().template zero<3, 2>();
+            matrix_operator().template zero<3, 2>();
         */
     }
 

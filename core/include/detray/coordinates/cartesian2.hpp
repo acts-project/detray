@@ -32,7 +32,7 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     /// Vector in 3D space
     using vector3 = typename base_type::vector3;
     /// Matrix actor
-    using matrix_actor = typename base_type::matrix_actor;
+    using matrix_operator = typename base_type::matrix_operator;
     /// Matrix size type
     using size_type = typename base_type::size_type;
     /// 2D matrix type
@@ -50,10 +50,7 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     /** This method transform from a point from 2D cartesian frame to a 2D
      * cartesian point */
     DETRAY_HOST_DEVICE
-    inline point2 operator()(const point2 &local2) const {
-
-        return {local2[0], local2[1]};
-    }
+    inline point2 operator()(const point2 &local2) const { return local2; }
 
     /** This method transform from a point from 3D cartesian frame to a 2D
      * cartesian point */
@@ -86,7 +83,7 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
         const transform3_t &trf3, const trigonometrics & /*t*/) {
 
         // Get d(x,y,z)/d(loc0, loc1)
-        return matrix_actor().template block<3, 2>(trf3.matrix(), 0, 0);
+        return matrix_operator().template block<3, 2>(trf3.matrix(), 0, 0);
     }
 
     DETRAY_HOST_DEVICE
@@ -94,10 +91,10 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
         const transform3_t &trf3, const trigonometrics & /*t*/) {
 
         // Get transpose of transform3 matrix
-        const auto trf3T = matrix_actor().transpose(trf3);
+        const auto trf3T = matrix_operator().transpose(trf3);
 
         // Get d(loc0, loc1)/d(x,y,z)
-        return matrix_actor().template block<2, 3>(trf3T.matrix(), 0, 0);
+        return matrix_operator().template block<2, 3>(trf3T.matrix(), 0, 0);
     }
 
 };  // struct cartesian2
