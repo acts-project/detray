@@ -83,10 +83,10 @@ struct track_helper {
     inline vector3 dir(const bound_vector& bound_vec) const {
         const auto& phi = matrix_actor().element(bound_vec, e_bound_phi, 0);
         const auto& theta = matrix_actor().element(bound_vec, e_bound_theta, 0);
-        const auto cosTheta = std::cos(theta);
         const auto sinTheta = std::sin(theta);
 
-        return {std::cos(phi) * sinTheta, std::sin(phi) * sinTheta, cosTheta};
+        return {std::cos(phi) * sinTheta, std::sin(phi) * sinTheta,
+                std::cos(theta)};
     }
 
     DETRAY_HOST_DEVICE
