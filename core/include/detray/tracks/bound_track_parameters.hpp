@@ -107,6 +107,11 @@ struct bound_track_parameters {
         return matrix_actor().element(m_vector, e_bound_qoverp, 0);
     }
 
+    DETRAY_HOST_DEVICE
+    void set_qop(const scalar qop) {
+        matrix_actor().element(m_vector, e_bound_qoverp, 0) = qop;
+    }
+
     private:
     std::size_t m_surface_link;
     vector_type m_vector;
