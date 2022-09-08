@@ -19,11 +19,13 @@ constexpr double m = 1000.0;
 
 // Volume, native unit mm3
 constexpr double mm3 = mm * mm * mm;
+constexpr double cm2 = cm * cm;
 constexpr double cm3 = cm * cm * cm;
 
 // Energy, native unit GeV
-constexpr double keV = 0.000001;
-constexpr double MeV = 0.001;
+constexpr double eV = 1e-9;
+constexpr double keV = 1e-6;
+constexpr double MeV = 1e-3;
 constexpr double GeV = 1.0;
 
 // Atomic mass unit u
@@ -45,6 +47,9 @@ constexpr double kAvogadro = 6.02214076e23 / unit_constants::mol;
 
 // Magnetic field, native unit GeV/(e*mm)
 constexpr double T = 0.000299792458;  // equivalent to c in appropriate SI units
+
+// Charge, native unit e (elementary charge)
+constexpr double e = 1.0;
 
 }  // namespace unit_constants
 
