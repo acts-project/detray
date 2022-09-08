@@ -33,6 +33,7 @@ using namespace detray;
 using point2 = __plugin::point2<scalar>;
 using point3 = __plugin::point3<scalar>;
 using vector3 = __plugin::vector3<scalar>;
+using transform3 = __plugin::transform3<scalar>;
 
 // Test class for MUON energy loss with Bethe function
 // Input tuple: < material / energy / expected output from
@@ -204,97 +205,95 @@ INSTANTIATE_TEST_SUITE_P(
 // Material interaction test with telescope Geometry
 TEST(material_interaction, telescope_geometry) {
 
-    /*
-        vecmem::host_memory_resource host_mr;
+    vecmem::host_memory_resource host_mr;
 
-        ln_stepper_t ln_stepper;
-        typename ln_stepper_t::free_track_parameters_type default_trk{
-            {0, 0, 0}, 0, {0, 0, 1}, -1};
+    using ln_stepper_t = line_stepper<transform3>;
 
-        // Build from given module positions
-        std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
-                                         300., 350, 400,  450., 500.};
+    typename ln_stepper_t::free_track_parameters_type default_trk{
+        {0, 0, 0}, 0, {0, 0, 1}, -1};
 
-        const auto det = create_telescope_detector(host_mr, positions);
-    */
+    // Build from given module positions
+    std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
+                                     300., 350, 400,  450., 500.};
 
-    /*
-        using navigator_t = navigator<decltype(det)>;
-        using track_t = free_track_parameters;
-        using constraints_t = constrained_step<>;
-        using policy_t = stepper_default_policy;
-        using stepper_t = line_stepper<track_t, constraints_t, policy_t>;
-        using interactor_t = pointwise_material_interactor<interaction<scalar>>;
-        using actor_chain_t = actor_chain<dtuple, propagation::print_inspector,
-                                          pathlimit_aborter, interactor_t>;
-        using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
+    const auto det =
+        create_telescope_detector(host_mr, positions, ln_stepper_t(),
+                                  typename ln_stepper_t::state{default_trk});
 
-        // Propagator is built from the stepper and navigator
-        propagator_t p(stepper_t{}, navigator_t{});
+    using navigator_t = navigator<decltype(det)>;
+    using constraints_t = constrained_step<>;
+    using policy_t = stepper_default_policy;
+    using stepper_t = line_stepper<transform3, constraints_t, policy_t>;
+    using interactor_t = pointwise_material_interactor<interaction<scalar>>;
+    using actor_chain_t = actor_chain<dtuple, propagation::print_inspector,
+                                      pathlimit_aborter, interactor_t>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
-        const scalar q = -1.;
-        const point3 pos = {0., 0., 0.};
-        const vector3 mom = {0., 0., 1.};
-        free_track_parameters track(pos, 0, mom, q);
+    // Propagator is built from the stepper and navigator
+    propagator_t p({}, {});
 
-        propagation::print_inspector::state print_insp_state{};
-        pathlimit_aborter::state aborter_state{};
-        interactor_t::state interactor_state{};
+    const scalar q = -1.;
+    const point3 pos = {0., 0., 0.};
+    const vector3 mom = {0., 0., 1.};
+    free_track_parameters<transform3> track(pos, 0, mom, q);
 
-        // Create actor states tuples
-        actor_chain_t::state actor_states =
-            std::tie(print_insp_state, aborter_state, interactor_state);
+    propagation::print_inspector::state print_insp_state{};
+    pathlimit_aborter::state aborter_state{};
+    interactor_t::state interactor_state{};
 
-        propagator_t::state state(track, det, actor_states);
+    // Create actor states tuples
+    actor_chain_t::state actor_states =
+        std::tie(print_insp_state, aborter_state, interactor_state);
 
-        // Propagate the entire detector
-        ASSERT_TRUE(p.propagate(state))
-            << print_insp_state.to_string() << std::endl;
+    propagator_t::state state(track, det, actor_states);
 
-        // muon
-        const int pdg = interactor_state.pdg;
+    // Propagate the entire detector
+    ASSERT_TRUE(p.propagate(state))
+        << print_insp_state.to_string() << std::endl;
 
-        // mass
-        const scalar mass = interactor_state.mass;
+    // muon
+    const int pdg = interactor_state.pdg;
 
-        // new momentum
-        const scalar newP = state._stepping._bound_params.charge() /
-                            state._stepping._bound_params.qop();
+    // mass
+    const scalar mass = interactor_state.mass;
 
-        // new energy
-        const scalar newE = std::sqrt(newP * newP + mass * mass);
+    // new momentum
+    const scalar newP = state._stepping._bound_params.charge() /
+                        state._stepping._bound_params.qop();
 
-        // Initial momentum
-        const scalar iniP = getter::norm(mom);
+    // new energy
+    const scalar newE = std::sqrt(newP * newP + mass * mass);
 
-        // Initial energy
-        const scalar iniE = std::sqrt(iniP * iniP + mass * mass);
+    // Initial momentum
+    const scalar iniP = getter::norm(mom);
 
-        // Interaction object
-        interaction<scalar> I;
+    // Initial energy
+    const scalar iniE = std::sqrt(iniP * iniP + mass * mass);
 
-        // intersection with a zero incidence angle
-        line_plane_intersection is;
+    printf("%f \n", iniE);
 
-        // Same material used for default telescope detector
-        material_slab<scalar> slab(silicon_tml<scalar>(), 80 *
-       unit_constants::um);
+    // Interaction object
+    interaction<scalar> I;
 
-        // Expected Bethe Stopping power for telescope geometry is estimated
-        // as (number of planes * energy loss per plane assuming 1 GeV muon).
-        // It is not perfectly precise as the track loses its energy during
-        // propagation. However, since the energy loss << the track momentum,
-       the
-        // assumption is not very bad
-        const scalar dE =
-            I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP) *
-            (positions.size() - 1);
+    // intersection with a zero incidence angle
+    line_plane_intersection is;
 
-        // Check if the new energy after propagation is enough close to the
-       expected
-        // value
-        EXPECT_NEAR(newE, iniE - dE, 1e-5);
+    // Same material used for default telescope detector
+    material_slab<scalar> slab(silicon_tml<scalar>(), 80 * unit_constants::um);
 
-        // @todo: Validate the backward direction case as well?
-    */
+    // Expected Bethe Stopping power for telescope geometry is estimated
+    // as (number of planes * energy loss per plane assuming 1 GeV muon).
+    // It is not perfectly precise as the track loses its energy during
+    // propagation. However, since the energy loss << the track momentum,
+    // the assumption is not very bad
+    const scalar dE =
+        I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP) *
+        (positions.size() -
+         1);  // -1 is required because the last surface is a portal
+
+    // Check if the new energy after propagation is enough close to the
+    // expected value
+    EXPECT_NEAR(newE, iniE - dE, 1e-5);
+
+    // @todo: Validate the backward direction case as well?
 }
