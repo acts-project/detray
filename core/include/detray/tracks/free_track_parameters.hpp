@@ -128,6 +128,9 @@ struct free_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
+    scalar_type p() const { return charge() / qop(); }
+
+    DETRAY_HOST_DEVICE
     scalar_type pT() const {
         auto dir = this->dir();
         return std::abs(1. / this->qop() * getter::perp(dir));
