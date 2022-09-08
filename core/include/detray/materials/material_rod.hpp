@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/predefined_materials.hpp"
 
 namespace detray {
 
@@ -36,6 +37,15 @@ struct material_rod {
         return (m_material == rhs.get_material() && m_radius == rhs.radius());
     }
 
+    /// Boolean operator
+    DETRAY_HOST_DEVICE constexpr operator bool() const {
+        if (m_radius <= std::numeric_limits<scalar>::epsilon() ||
+            m_material == vacuum<scalar_type>()) {
+            return false;
+        }
+        return true;
+    }
+
     /// Access the (average) material parameters.
     DETRAY_HOST_DEVICE
     constexpr const material_type& get_material() const { return m_material; }
@@ -52,8 +62,8 @@ struct material_rod {
             return 0;
         }
 
-        const scalar_type sin_incidence_angle = std::sqrt(
-            scalar_type(1.) - is.cos_incidence_angle * is.cos_incidence_angle);
+        auto const sin_incidence_angle =
+            std::sqrt(scalar_type(1.) - std::pow(is.cos_incidence_angle, 2));
 
         return scalar_type(2.) *
                std::sqrt(m_radius * m_radius - is.p2[0] * is.p2[0]) /

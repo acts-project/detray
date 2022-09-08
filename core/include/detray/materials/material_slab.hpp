@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/predefined_materials.hpp"
 
 // System include(s)
 #include <climits>
@@ -22,6 +23,7 @@ template <typename scalar_t>
 struct material_slab {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;
+    using transform3 = __plugin::transform3<scalar_t>;
 
     material_slab() = default;
 
@@ -37,10 +39,19 @@ struct material_slab {
     /// Equality operator
     ///
     /// @param rhs is the right hand side to be compared to
-    DETRAY_HOST_DEVICE
-    bool operator==(const material_slab<scalar_t>& rhs) const {
+    DETRAY_HOST_DEVICE bool operator==(
+        const material_slab<scalar_t>& rhs) const {
         return (m_material == rhs.get_material() &&
                 m_thickness == rhs.thickness());
+    }
+
+    /// Boolean operator
+    DETRAY_HOST_DEVICE constexpr operator bool() const {
+        if (m_thickness <= std::numeric_limits<scalar>::epsilon() ||
+            m_material == vacuum<scalar_type>()) {
+            return false;
+        }
+        return true;
     }
 
     /// Access the (average) material parameters.

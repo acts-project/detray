@@ -82,6 +82,8 @@ struct mixture
         // Compute molar density
         this->m_molar_rho =
             this->mass_to_molar_density(this->m_ar, this->m_mass_rho);
+
+        // @todo: Compute density effect data for Mixture
     }
 };
 

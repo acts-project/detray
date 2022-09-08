@@ -68,10 +68,13 @@ detray_add_library( detray_core core
    "include/detray/masks/trapezoid2.hpp"
    "include/detray/masks/unmasked.hpp"
    # materials include(s)
-   "include/detray/materials/mixture.hpp" 
+   "include/detray/materials/detail/density_effect_data.hpp"
+   "include/detray/materials/detail/relativistic_quantities.hpp"
+   "include/detray/materials/interaction.hpp"
    "include/detray/materials/material.hpp"
    "include/detray/materials/material_rod.hpp"   
    "include/detray/materials/material_slab.hpp"   
+   "include/detray/materials/mixture.hpp" 
    "include/detray/materials/predefined_materials.hpp"
    # propagator include(s)
    "include/detray/propagator/actors/aborters.hpp"
