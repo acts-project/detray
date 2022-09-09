@@ -15,9 +15,9 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
+#include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/navigator.hpp"
-#include "detray/propagator/pointwise_material_interactor.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
@@ -35,6 +35,7 @@ using point2 = __plugin::point2<scalar>;
 using point3 = __plugin::point3<scalar>;
 using vector3 = __plugin::vector3<scalar>;
 using transform3 = __plugin::transform3<scalar>;
+using matrix_operator = typename transform3::matrix_actor;
 
 // Test class for MUON energy loss with Bethe function
 // Input tuple: < material / energy / expected output from
@@ -217,15 +218,17 @@ TEST(material_interaction, telescope_geometry) {
     std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
                                      300., 350, 400,  450., 500.};
 
-    const auto det =
-        create_telescope_detector(host_mr, positions, ln_stepper_t(),
-                                  typename ln_stepper_t::state{default_trk});
+    const auto det = create_telescope_detector(
+        host_mr, positions, ln_stepper_t(),
+        typename ln_stepper_t::state{default_trk}, 20. * unit_constants::mm,
+        20. * unit_constants::mm, silicon_tml<scalar>(),
+        0.17 * unit_constants::cm);
 
     using navigator_t = navigator<decltype(det)>;
     using constraints_t = constrained_step<>;
     using policy_t = stepper_default_policy;
     using stepper_t = line_stepper<transform3, constraints_t, policy_t>;
-    using interactor_t = pointwise_material_interactor<interaction<scalar>>;
+    using interactor_t = pointwise_material_interactor<matrix_operator>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
                     interactor_t, resetter<transform3>>;
@@ -236,8 +239,23 @@ TEST(material_interaction, telescope_geometry) {
 
     const scalar q = -1.;
     const point3 pos = {0., 0., 0.};
-    const vector3 mom = {0., 0., 1.};
+    const vector3 mom = {0., 0., 10.};
     free_track_parameters<transform3> track(pos, 0, mom, q);
+
+    typename bound_track_parameters<transform3>::vector_type bound_vector;
+    getter::element(bound_vector, e_bound_loc0, 0) = 0.;
+    getter::element(bound_vector, e_bound_loc1, 0) = 0.;
+    getter::element(bound_vector, e_bound_phi, 0) = 0.;
+    getter::element(bound_vector, e_bound_theta, 0) = 0.;
+    getter::element(bound_vector, e_bound_qoverp, 0) =
+        -1 / (10 * unit_constants::GeV);
+    getter::element(bound_vector, e_bound_time, 0) = 0.;
+    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+        matrix_operator().template identity<e_bound_size, e_bound_size>();
+
+    // bound track parameter
+    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
+                                                          bound_cov);
 
     propagation::print_inspector::state print_insp_state{};
     pathlimit_aborter::state aborter_state{};
@@ -280,17 +298,19 @@ TEST(material_interaction, telescope_geometry) {
     line_plane_intersection is;
 
     // Same material used for default telescope detector
-    material_slab<scalar> slab(silicon_tml<scalar>(), 80 * unit_constants::um);
+    material_slab<scalar> slab(silicon_tml<scalar>(),
+                               0.17 * unit_constants::cm);
 
     // Expected Bethe Stopping power for telescope geometry is estimated
     // as (number of planes * energy loss per plane assuming 1 GeV muon).
     // It is not perfectly precise as the track loses its energy during
     // propagation. However, since the energy loss << the track momentum,
     // the assumption is not very bad
+
+    // -1 is required because the last surface is a portal
     const scalar dE =
         I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP) *
-        (positions.size() -
-         1);  // -1 is required because the last surface is a portal
+        (positions.size() - 1);
 
     // Check if the new energy after propagation is enough close to the
     // expected value

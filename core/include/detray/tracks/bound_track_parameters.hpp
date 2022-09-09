@@ -67,6 +67,9 @@ struct bound_track_parameters {
     void set_vector(const vector_type& v) { m_vector = v; }
 
     DETRAY_HOST_DEVICE
+    covariance_type& covariance() { return m_covariance; }
+
+    DETRAY_HOST_DEVICE
     const covariance_type& covariance() const { return m_covariance; }
 
     DETRAY_HOST_DEVICE
