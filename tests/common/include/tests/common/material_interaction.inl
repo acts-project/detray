@@ -67,7 +67,7 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
 
     // Bethe Stopping power in MeV * cm^2 / g
     const scalar dEdx =
-        I.compute_energy_loss_bethe(is, slab, pdg, m, qOverP) /
+        I.compute_energy_loss_bethe(is, slab, pdg, m, qOverP, -1.) /
         slab.path_segment(is) / slab.get_material().mass_density() /
         (unit_constants::MeV * unit_constants::cm2 / unit_constants::g);
 
@@ -183,15 +183,16 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     const scalar qOverP = -1. / std::get<1>(GetParam());
 
     // Landau Energy loss in MeV
-    const scalar dE = I.compute_energy_loss_landau(is, slab, pdg, m, qOverP) /
-                      (unit_constants::MeV);
+    const scalar dE =
+        I.compute_energy_loss_landau(is, slab, pdg, m, qOverP, -1) /
+        (unit_constants::MeV);
 
     // Check if difference is within 5% error
     EXPECT_TRUE(std::abs(std::get<2>(GetParam()) - dE) / dE < 0.05);
 
     // Landau Energy loss Fluctuation
     const scalar fwhm =
-        I.compute_energy_loss_landau_fwhm(is, slab, pdg, m, qOverP) /
+        I.compute_energy_loss_landau_fwhm(is, slab, pdg, m, qOverP, -1) /
         (unit_constants::MeV);
 
     // Check if difference is within 10% error
@@ -218,11 +219,13 @@ TEST(material_interaction, telescope_geometry) {
     std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
                                      300., 350, 400,  450., 500.};
 
+    const auto mat = silicon_tml<scalar>();
+    const scalar thickness = 0.17 * unit_constants::cm;
+
     const auto det = create_telescope_detector(
         host_mr, positions, ln_stepper_t(),
         typename ln_stepper_t::state{default_trk}, 20. * unit_constants::mm,
-        20. * unit_constants::mm, silicon_tml<scalar>(),
-        0.17 * unit_constants::cm);
+        20. * unit_constants::mm, mat, thickness);
 
     using navigator_t = navigator<decltype(det)>;
     using constraints_t = constrained_step<>;
@@ -238,24 +241,21 @@ TEST(material_interaction, telescope_geometry) {
     propagator_t p({}, {});
 
     const scalar q = -1.;
-    const point3 pos = {0., 0., 0.};
-    const vector3 mom = {0., 0., 10.};
-    free_track_parameters<transform3> track(pos, 0, mom, q);
+    const scalar iniP = 10 * unit_constants::GeV;
 
     typename bound_track_parameters<transform3>::vector_type bound_vector;
     getter::element(bound_vector, e_bound_loc0, 0) = 0.;
     getter::element(bound_vector, e_bound_loc1, 0) = 0.;
     getter::element(bound_vector, e_bound_phi, 0) = 0.;
     getter::element(bound_vector, e_bound_theta, 0) = 0.;
-    getter::element(bound_vector, e_bound_qoverp, 0) =
-        -1 / (10 * unit_constants::GeV);
+    getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
     getter::element(bound_vector, e_bound_time, 0) = 0.;
     typename bound_track_parameters<transform3>::covariance_type bound_cov =
-        matrix_operator().template identity<e_bound_size, e_bound_size>();
+        matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
-                                                          bound_cov);
+    const bound_track_parameters<transform3> bound_param(0, bound_vector,
+                                                         bound_cov);
 
     propagation::print_inspector::state print_insp_state{};
     pathlimit_aborter::state aborter_state{};
@@ -266,7 +266,7 @@ TEST(material_interaction, telescope_geometry) {
     actor_chain_t::state actor_states = std::tie(
         print_insp_state, aborter_state, interactor_state, resetter_state);
 
-    propagator_t::state state(track, det, actor_states);
+    propagator_t::state state(bound_param, det, actor_states);
 
     // Propagate the entire detector
     ASSERT_TRUE(p.propagate(state))
@@ -285,11 +285,13 @@ TEST(material_interaction, telescope_geometry) {
     // new energy
     const scalar newE = std::sqrt(newP * newP + mass * mass);
 
-    // Initial momentum
-    const scalar iniP = getter::norm(mom);
-
     // Initial energy
     const scalar iniE = std::sqrt(iniP * iniP + mass * mass);
+
+    // New qop variance
+    const scalar new_var_qop =
+        matrix_operator().element(state._stepping._bound_params.covariance(),
+                                  e_bound_qoverp, e_bound_qoverp);
 
     // Interaction object
     interaction<scalar> I;
@@ -298,8 +300,7 @@ TEST(material_interaction, telescope_geometry) {
     line_plane_intersection is;
 
     // Same material used for default telescope detector
-    material_slab<scalar> slab(silicon_tml<scalar>(),
-                               0.17 * unit_constants::cm);
+    material_slab<scalar> slab(mat, thickness);
 
     // Expected Bethe Stopping power for telescope geometry is estimated
     // as (number of planes * energy loss per plane assuming 1 GeV muon).
@@ -309,12 +310,19 @@ TEST(material_interaction, telescope_geometry) {
 
     // -1 is required because the last surface is a portal
     const scalar dE =
-        I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP) *
+        I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP, q) *
         (positions.size() - 1);
 
     // Check if the new energy after propagation is enough close to the
     // expected value
     EXPECT_NEAR(newE, iniE - dE, 1e-5);
+
+    const scalar sigma_qop = I.compute_energy_loss_landau_sigma_QOverP(
+        is, slab, pdg, mass, q / iniP, q);
+
+    const scalar dvar_qop = sigma_qop * sigma_qop * (positions.size() - 1);
+
+    EXPECT_NEAR(new_var_qop, dvar_qop, 1e-10);
 
     // @todo: Validate the backward direction case as well?
 }

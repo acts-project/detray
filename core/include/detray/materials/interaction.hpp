@@ -27,7 +27,7 @@ struct interaction {
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(
         const line_plane_intersection& is, const material_t& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q = unit_constants::e) const {
+        const scalar_type q) const {
 
         // return early in case of vacuum or zero thickness
         if (not mat) {
@@ -56,7 +56,7 @@ struct interaction {
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau(
         const line_plane_intersection& is, const material_t& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q = unit_constants::e) const {
+        const scalar_type q) const {
 
         // return early in case of vacuum or zero thickness
         if (not mat) {
@@ -81,7 +81,7 @@ struct interaction {
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_fwhm(
         const line_plane_intersection& is, const material_t& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q = unit_constants::e) const {
+        const scalar_type q) const {
         const auto Ne = mat.get_material().molar_electron_density();
         const auto path_segment = mat.path_segment(is);
         const relativistic_quantities rq(m, qOverP, q);
@@ -94,7 +94,7 @@ struct interaction {
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma_QOverP(
         const line_plane_intersection& is, const material_t& mat, const int pdg,
         const scalar_type m, const scalar_type qOverP,
-        const scalar_type q = unit_constants::e) const {
+        const scalar_type q) const {
 
         // return early in case of vacuum or zero thickness
         if (not mat) {
@@ -120,6 +120,7 @@ struct interaction {
         //           = (1/p)^4 * (q/beta)² * var(E)
         // do not need to care about the sign since it is only used squared
         const auto pInv = qOverP / q;
+
         return std::sqrt(rq.m_q2OverBeta2) * pInv * pInv * sigmaE;
     }
 
@@ -127,7 +128,7 @@ struct interaction {
     DETRAY_HOST_DEVICE scalar_type compute_multiple_scattering_theta0(
         const line_plane_intersection& is, const material_t& mat, const int pdg,
         const scalar_type m, const scalar_type qOverP,
-        const scalar_type q = unit_constants::e) const {
+        const scalar_type q) const {
         // return early in case of vacuum or zero thickness
         if (not mat) {
             return scalar_type(0.);
