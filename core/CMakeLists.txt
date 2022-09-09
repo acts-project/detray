@@ -113,6 +113,11 @@ detray_add_library( detray_core core
    "include/detray/tracks/tracks.hpp"
    # utils include(s)
    "include/detray/utils/column_wise_operator.hpp"
+   "include/detray/utils/ranges/detail/iterable.hpp"
+   "include/detray/utils/ranges/detail/iterator_traits.hpp"
+   "include/detray/utils/ranges/ranges.hpp"
+   "include/detray/utils/ranges/subrange.hpp"
+   "include/detray/utils/algebra_helpers.hpp"
    "include/detray/utils/enumerate.hpp"
    "include/detray/utils/invalid_values.hpp"
    "include/detray/utils/quadratic_equation.hpp"
