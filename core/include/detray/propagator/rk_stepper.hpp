@@ -10,7 +10,6 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/navigation_policies.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -51,7 +50,7 @@ class rk_stepper final
 
     struct state : public base_type::state {
 
-        using field_type = magnetic_field_t;
+        static constexpr const stepping::id id = stepping::id::e_rk;
 
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type& t,
@@ -61,19 +60,9 @@ class rk_stepper final
         template <typename detector_t>
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type& bound_params,
-            const field_type mag_field, const detector_t& det)
-            : base_type::state(bound_params), _magnetic_field(mag_field) {
-
-            const auto& surface_container = det.surfaces();
-            const auto& trf_store = det.transform_store();
-            const auto& mask_store = det.mask_store();
-            const auto& surface =
-                surface_container[bound_params.surface_link()];
-
-            mask_store
-                .template execute<typename resetter<transform3_t>::kernel>(
-                    surface.mask_type(), trf_store, surface, *this);
-        }
+            const magnetic_field_t mag_field, const detector_t& det)
+            : base_type::template state(bound_params, det),
+              _magnetic_field(mag_field) {}
 
         /// error tolerance
         scalar _tolerance = 1e-4;

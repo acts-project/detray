@@ -30,14 +30,22 @@ class line_stepper final
     using policy_type = policy_t;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
+    using bound_track_parameters_type =
+        typename base_type::bound_track_parameters_type;
     using transform3_type = transform3_t;
 
     struct state : public base_type::state {
 
-        using field_type = int;
+        static constexpr const stepping::id id = stepping::id::e_linear;
 
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type &t) : base_type::state(t) {}
+
+        template <typename detector_t>
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters_type &bound_params,
+            const detector_t &det)
+            : base_type::template state(bound_params, det) {}
 
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE

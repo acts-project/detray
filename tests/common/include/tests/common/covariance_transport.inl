@@ -38,7 +38,7 @@ using mag_field_t = constant_magnetic_field<>;
 constexpr scalar epsilon = 1e-3;
 
 // This tests the covariance transport in rk stepper
-TEST(covariance_transport, cartesian) {
+TEST(covariance_transport, rk_stepper_cartesian) {
 
     vecmem::host_memory_resource host_mr;
 
@@ -68,10 +68,8 @@ TEST(covariance_transport, cartesian) {
     // Generate track starting point
     vector2 local{2, 3};
     vector3 mom{0.001, 0., 0.};
-    // vector3 mom{0.02, 0.02, 0.};
     vector3 dir = vector::normalize(mom);
 
-    // vector3 mom{0.01, 0.01, 0.01};
     scalar time = 0.;
     scalar q = -1.;
 
@@ -90,10 +88,8 @@ TEST(covariance_transport, cartesian) {
     getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.;
     getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.;
     getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.;
-
     // Note: Set theta error as ZERO, to constrain the loc1 divergence
     getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
-    // getter::element(bound_cov, e_bound_theta, e_bound_theta) = 1.;
     getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
     getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
 
@@ -171,4 +167,77 @@ TEST(covariance_transport, cartesian) {
                         crk_state.path_length() * epsilon);
         }
     }
+
+    // covaraince
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            printf("%f ", matrix_operator().element(bound_cov0, i, j));
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+    // covaraince
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            printf("%f ", matrix_operator().element(bound_cov1, i, j));
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+TEST(covariance_transport, linear_stepper_cartesian) {
+
+    vecmem::host_memory_resource host_mr;
+
+    using ln_stepper_t = line_stepper<transform3>;
+
+    // Use rectangular surfaces
+    constexpr bool rectangular = false;
+
+    // Create telescope detector with a single plane
+    typename ln_stepper_t::free_track_parameters_type default_trk{
+        {0, 0, 0}, 0, {0, 0, 1}, -1};
+    std::vector<scalar> positions = {0., 10., 20., 30., 40., 50., 60.};
+
+    const auto det = create_telescope_detector<rectangular>(
+        host_mr, positions, ln_stepper_t(),
+        typename ln_stepper_t::state{default_trk});
+
+    using navigator_t = navigator<decltype(det)>;
+    using cline_stepper_t = line_stepper<transform3, constrained_step<>>;
+    using actor_chain_t =
+        actor_chain<dtuple, bound_to_bound_updater<transform3>,
+                    resetter<transform3>>;
+    using propagator_t =
+        propagator<cline_stepper_t, navigator_t, actor_chain_t>;
+
+    // Bound vector
+    typename bound_track_parameters<transform3>::vector_type bound_vector;
+    getter::element(bound_vector, e_bound_loc0, 0) = 0.;
+    getter::element(bound_vector, e_bound_loc1, 0) = 0.;
+    getter::element(bound_vector, e_bound_phi, 0) = 0.;
+    getter::element(bound_vector, e_bound_theta, 0) = 0.;
+    getter::element(bound_vector, e_bound_qoverp, 0) = -1. / 10.;
+    getter::element(bound_vector, e_bound_time, 0) = 0.;
+
+    // Bound covariance
+    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+        matrix_operator().template identity<e_bound_size, e_bound_size>();
+
+    // Bound track parameter
+    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
+                                                          bound_cov);
+
+    // Actors
+    bound_to_bound_updater<transform3>::state bound_updater{};
+    resetter<transform3>::state rst{};
+    actor_chain_t::state actor_states = std::tie(bound_updater, rst);
+
+    propagator_t p({}, {});
+    // propagator_t::state propagation(bound_param0, det, actor_states);
+
+    // Run propagator
+    // p.propagate(propagation);
 }
