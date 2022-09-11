@@ -17,10 +17,19 @@
 using namespace detray;
 
 // This tests the convenience range_enumeration function: single
-/*TEST(utils, views_iota_single) {
+TEST(utils, views_iota_single) {
 
     dindex check = 0;
     dindex single = 7;
+
+    // general tests
+    auto seq = detray::ranges::iota_view(single);
+    ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
+    ASSERT_EQ(seq[1], single + 1);
+    ASSERT_EQ(seq.size(), 1UL);
+    ASSERT_EQ(seq.front(), 7UL);
+    ASSERT_EQ(seq.back(), 7UL);
+
     for (auto i : detray::ranges::iota_view(single)) {
         check += i;
     }
@@ -28,16 +37,25 @@ using namespace detray;
 }
 
 // This tests the convenience range_enumeration function: range
-TEST(utils, views_iota) {
+TEST(utils, views_iota_interval) {
 
     darray<dindex, 2> range = {2, 7};
-    std::vector<dindex> reference = {2, 3, 4, 5, 6, 7};
+
+    // general tests
+    auto seq = detray::ranges::iota_view(range);
+    ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
+    ASSERT_EQ(seq[1], 3UL);
+    ASSERT_EQ(seq.size(), 5UL);
+    ASSERT_EQ(seq.front(), 2UL);
+    ASSERT_EQ(seq.back(), 6UL);
+
+    std::vector<dindex> reference = {2, 3, 4, 5, 6};
     std::vector<dindex> check = {};
     for (auto i : detray::ranges::iota_view(range)) {
         check.push_back(i);
     }
     ASSERT_EQ(check, reference);
-}*/
+}
 
 // This tests the convenience enumeration function
 /*TEST(utils, enumerate) {
@@ -65,7 +83,7 @@ TEST(utils, ranges_subrange) {
     // general tests
     auto sr = detray::ranges::subrange_view(seq, interval);
 
-    ASSERT_TRUE(detray::ranges::range<decltype(sr_c)>::value);
+    ASSERT_TRUE(detray::ranges::range<decltype(sr)>::value);
     ASSERT_EQ(sr[1], seq[begin + 1]);
     ASSERT_EQ(sr.size(), 3UL);
     ASSERT_EQ(sr.front(), 1UL);

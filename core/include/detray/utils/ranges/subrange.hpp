@@ -16,8 +16,8 @@ namespace detray {
 
 namespace ranges {
 
-/// @brief Struct that implements a subrange by providing start and end
-/// iterators on another range.
+/// @brief Implements a subrange by providing start and end iterators on
+/// another range.
 ///
 /// @see https://en.cppreference.com/w/cpp/ranges/subrange
 ///
@@ -48,7 +48,7 @@ struct subrange_view : public ranges::view_interface<subrange_view<range_t>> {
     DETRAY_HOST_DEVICE constexpr subrange_view(deduced_range_t &&range,
                                                range_size_t pos)
         : m_start{detray::ranges::begin(range) + pos},
-          m_end{std::next(m_start)} {}
+          m_end{detray::ranges::next(m_start)} {}
 
     /// Construct from a range and start/end positions
     ///
@@ -87,31 +87,17 @@ struct subrange_view : public ranges::view_interface<subrange_view<range_t>> {
         typename detray::ranges::iterator_t<deduced_range_t> &&end)
         : m_start{start}, m_end{end} {}
 
-    /// @return start position of range on container.
+    /// @return start position of range.
     DETRAY_HOST_DEVICE
-    inline constexpr auto begin() -> iterator_t & { return m_start; }
+    constexpr auto begin() -> iterator_t { return m_start; }
 
-    /// @return start position of range on container - const
+    /// @return start position of the range - const
     DETRAY_HOST_DEVICE
-    inline constexpr auto begin() const -> const_iterator_t & {
-        return m_start;
-    }
+    constexpr auto begin() const -> const_iterator_t { return m_start; }
 
-    /// @return end position of range on container.
+    /// @return sentinel of the range.
     DETRAY_HOST_DEVICE
-    inline constexpr auto end() -> iterator_t & { return m_end; }
-
-    /// @return end position of range on container.
-    DETRAY_HOST_DEVICE
-    inline constexpr auto end() const -> const_iterator_t & { return m_end; }
-
-    /// @return start position of range on container.
-    DETRAY_HOST_DEVICE
-    inline constexpr auto cbegin() -> const_iterator_t & { return m_start; }
-
-    /// @return end position of range on container.
-    DETRAY_HOST_DEVICE
-    inline constexpr auto cend() -> const_iterator_t & { return m_end; }
+    constexpr auto end() const -> iterator_t { return m_end; }
 
     /// Start and end position of the subrange
     iterator_t m_start, m_end;

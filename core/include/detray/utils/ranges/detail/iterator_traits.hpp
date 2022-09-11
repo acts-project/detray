@@ -11,19 +11,18 @@
 #include <type_traits>
 
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/ranges/detail/iota_iterator.hpp"
 
-namespace detray::ranges::detail {
-
-using std::iterator_traits;
+namespace std {
 
 /// Specializations of the std::iterator_traits struct for detray types
-/*template<>
-struct iterator_traits<transform_store_t<container_t, context_t>> {
-    typename difference_type = std::size_t;
-    typename value_type = __plugin::transform3<detray::scalar>;;
-    typename pointer = __plugin::transform3<detray::scalar> *;
-    typename reference = __plugin::transform3<detray::scalar> &;
-    typename iterator_category = ;
-};*/
+template <typename T>
+struct iterator_traits<detray::ranges::detail::iota_iterator<T>> {
+    using difference_type = T;
+    using value_type = T;
+    using pointer = T *;
+    using reference = T &;
+    using iterator_category = std::forward_iterator_tag;
+};
 
-}  // namespace detray::ranges::detail
+}  // namespace std
