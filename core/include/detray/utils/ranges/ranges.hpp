@@ -100,6 +100,11 @@ template <class T>
 using range_rvalue_reference_t = std::decay_t<range_value_t<T>>&&;
 /// @}
 
+// Placeholder definitions
+using std::distance;
+using std::next;
+using std::prev;
+
 // https://en.cppreference.com/w/cpp/ranges/view
 
 /// Tags a type as a view
@@ -108,9 +113,6 @@ struct base_view {};
 /// Defines a detray 'view'
 template <typename view_impl_t>
 struct view_interface : public base_view {
-
-    // static_assert(range<view_impl_t>::value, "Only ranges can satisfy the
-    // 'view' interface");
 
     constexpr view_interface() = default;
 
@@ -124,33 +126,32 @@ struct view_interface : public base_view {
 
     DETRAY_HOST_DEVICE
     constexpr auto size() const noexcept {
-        return std::distance(m_impl_ptr->begin(), m_impl_ptr->end());
+        return detray::ranges::distance(m_impl_ptr->begin(), m_impl_ptr->end());
     }
 
     DETRAY_HOST_DEVICE
     constexpr auto front() noexcept { return *(m_impl_ptr->begin()); }
 
     DETRAY_HOST_DEVICE
-    constexpr auto back() noexcept { return *(std::prev(m_impl_ptr->end())); }
-
-    /// @return element at position i, relative to iterator range.
-    DETRAY_HOST_DEVICE
-    constexpr inline auto& operator[](const dindex i) {
-        return *(m_impl_ptr->begin() + i);
+    constexpr auto back() noexcept {
+        return *(detray::ranges::prev(m_impl_ptr->end()));
     }
 
     /// @return element at position i, relative to iterator range - const
     DETRAY_HOST_DEVICE
-    constexpr inline const auto& operator[](const dindex i) const {
+    constexpr auto operator[](const dindex i) const {
         return *(m_impl_ptr->begin() + i);
     }
 
     view_impl_t* const m_impl_ptr{static_cast<view_impl_t* const>(this)};
 };
 
-template <template <typename> class T, typename iterable_t>
+template <typename T>
 inline constexpr bool enable_view =
-    std::is_base_of_v<base_view, T<iterable_t>> or
-    std::is_base_of_v<view_interface<T<iterable_t>>, T<iterable_t>>;
+    std::is_base_of_v<base_view, T> or std::is_base_of_v<view_interface<T>, T>;
+
+template <class T>
+inline constexpr bool is_view = detray::ranges::range<T>::value and
+    std::is_object_v<T>&& std::is_move_constructible_v<T>and enable_view<T>;
 
 }  // namespace detray::ranges
