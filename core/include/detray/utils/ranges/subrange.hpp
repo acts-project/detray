@@ -14,140 +14,137 @@
 
 namespace detray {
 
-namespace views {
+namespace ranges {
 
 /// @brief Struct that implements a subrange by providing start and end
-/// iterators on a range.
+/// iterators on another range.
 ///
 /// @see https://en.cppreference.com/w/cpp/ranges/subrange
 ///
-/// @tparam range_t the iterable which to constrain to a subrange
+/// @tparam range_t the iterable which to constrain to a subrange.
 template <typename range_t>
-struct subrange : public view_interface<subrange<range_t>> {
+struct subrange_view : public ranges::view_interface<subrange_view<range_t>> {
 
-    /// non-owning range
-    using range_type = ranges::range<range_t>;
+    using iterator_t = typename detray::ranges::iterator_t<range_t>;
+    using const_iterator_t = typename detray::ranges::const_iterator_t<range_t>;
+    using range_size_t = typename detray::ranges::range_size_t<range_t>;
 
-    /// Compliance with std::ranges typedefs
-    using iterator_t = typename range_type::iterator_t;
-    using const_iterator_t = typename range_type::const_iterator_t;
-    using range_size_t = typename range_type::range_size_t;
-    using range_difference_t = typename range_type::range_difference_t;
-    using range_reference_t = typename range_type::range_reference_t;
-    using range_const_reference_t =
-        typename range_type::range_const_reference_t;
-    using range_rvalue_reference_t =
-        typename range_type::range_rvalue_reference_t;
-
-    /// Delete default constructor
-    subrange() = delete;
+    /// Default constructor
+    constexpr subrange_view() = default;
 
     /// Construct from a range: The subrange spans the entire range
     ///
     /// @param range container to iterate over
     template <typename deduced_range_t>
-    DETRAY_HOST_DEVICE subrange(deduced_range_t &range)
-        : m_start{ranges::begin(range)}, m_end{ranges::end(range)} {}
+    DETRAY_HOST_DEVICE constexpr explicit subrange_view(deduced_range_t &&range)
+        : m_start{detray::ranges::begin(range)},
+          m_end{detray::ranges::end(range)} {}
+
+    /// Construct from a range and a single position.
+    ///
+    /// @param range container to iterate over
+    /// @param pos start and end position for iteration
+    template <typename deduced_range_t>
+    DETRAY_HOST_DEVICE constexpr subrange_view(deduced_range_t &&range,
+                                               range_size_t pos)
+        : m_start{detray::ranges::begin(range) + pos},
+          m_end{std::next(m_start)} {}
 
     /// Construct from a range and start/end positions
     ///
     /// @param range container to iterate over
     /// @param pos start and end position for iteration
     template <typename deduced_range_t, typename index_range_t>
-    DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_range_t &&pos)
-        : m_start{ranges::begin(range) + detail::get<0>(pos)},
-          m_end{ranges::begin(range) + detail::get<1>(pos)} {}
+    DETRAY_HOST_DEVICE constexpr subrange_view(deduced_range_t &&range,
+                                               index_range_t &&pos)
+        : m_start{detray::ranges::begin(range) + detray::detail::get<0>(pos)},
+          m_end{detray::ranges::begin(range) + detray::detail::get<1>(pos)} {}
+
+    /// Construct from a range and start/end positions
+    ///
+    /// @param range container to iterate over
+    /// @param pos start and end position for iteration
+    template <typename deduced_range_t, typename volume_t,
+              std::enable_if_t<std::is_same_v<volume_t::volume_def, volume_t>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE subrange_view(deduced_range_t &&range, volume_t &&vol) {
+        dindex_range r = vol.template range<
+            typename detray::ranges::range_value_t<deduced_range_t>>();
+
+        auto start = detray::ranges::begin(range);
+
+        m_start = start + detray::detail::get<0>(r);
+        m_end = start + detray::detail::get<1>(r);
+    }
 
     /// Construct from an iterator pair
     ///
     /// @param start container to iterate over
     /// @param end start and end position for iteration
-    /*template<typename deduced_range_t>
-    DETRAY_HOST_DEVICE
-    subrange(ranges::detail::iterator_traits<deduced_range_t>::iterator_t
-    &&start, ranges::detail::iterator_traits<deduced_range_t>::iterator_t &&end)
-        : m_start{start},
-          m_end{end} {}*/
+    template <typename deduced_range_t>
+    DETRAY_HOST_DEVICE subrange_view(
+        typename detray::ranges::iterator_t<deduced_range_t> &&start,
+        typename detray::ranges::iterator_t<deduced_range_t> &&end)
+        : m_start{start}, m_end{end} {}
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr inline auto begin() -> iterator_t & { return m_start; }
+    inline constexpr auto begin() -> iterator_t & { return m_start; }
+
+    /// @return start position of range on container - const
+    DETRAY_HOST_DEVICE
+    inline constexpr auto begin() const -> const_iterator_t & {
+        return m_start;
+    }
 
     /// @return end position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr inline auto end() -> iterator_t & { return m_end; }
+    inline constexpr auto end() -> iterator_t & { return m_end; }
 
-    /// Does this describe the same range?
+    /// @return end position of range on container.
     DETRAY_HOST_DEVICE
-    auto operator!=(const subrange<range_t> &rhs) -> bool {
-        return m_start != rhs.m_start or m_end != rhs.m_end;
-    }
+    inline constexpr auto end() const -> const_iterator_t & { return m_end; }
 
-    /// Does this describe the same range?
+    /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    auto operator++() -> void { ++m_start; }
+    inline constexpr auto cbegin() -> const_iterator_t & { return m_start; }
+
+    /// @return end position of range on container.
+    DETRAY_HOST_DEVICE
+    inline constexpr auto cend() -> const_iterator_t & { return m_end; }
 
     /// Start and end position of the subrange
     iterator_t m_start, m_end;
 };
 
+// deduction guides
+
 template <typename deduced_range_t>
-DETRAY_HOST_DEVICE subrange(deduced_range_t &&range)->subrange<deduced_range_t>;
+DETRAY_HOST_DEVICE subrange_view(deduced_range_t &&range)
+    ->subrange_view<deduced_range_t>;
+
+template <typename deduced_range_t>
+DETRAY_HOST_DEVICE subrange_view(
+    deduced_range_t &&range,
+    typename detray::ranges::range_size_t<deduced_range_t> pos)
+    ->subrange_view<deduced_range_t>;
 
 template <typename deduced_range_t, typename index_range_t>
-DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_range_t &&pos)
-    ->subrange<deduced_range_t>;
+DETRAY_HOST_DEVICE subrange_view(deduced_range_t &&range, index_range_t &&pos)
+    ->subrange_view<deduced_range_t>;
 
-/*template<typename deduced_range_t>
-DETRAY_HOST_DEVICE
-subrange(ranges::detail::iterator_traits<deduced_range_t>::iterator_t &&start,
-         ranges::detail::iterator_traits<deduced_range_t>::iterator_t &&end)
-    -> subrange<deduced_range_t>;*/
+template <typename deduced_range_t, typename volume_t,
+          std::enable_if_t<std::is_same_v<volume_t::volume_def, volume_t>,
+                           bool> = true>
+DETRAY_HOST_DEVICE subrange_view(deduced_range_t &&range, volume_t &&vol)
+    ->subrange_view<deduced_range_t>;
 
-/*template<typename deduced_range_t>
-DETRAY_HOST_DEVICE
-subrange(deduced_range_t &&range) -> subrange<deduced_range_t>;
+template <typename deduced_range_t>
+DETRAY_HOST_DEVICE subrange_view(
+    typename detray::ranges::iterator_t<deduced_range_t> &&start,
+    typename detray::ranges::iterator_t<deduced_range_t> &&end)
+    ->subrange_view<deduced_range_t>;
 
-} // namespace detray::views
-
-/// Get the subrange on an iterable - convenience function
-///
-/// @tparam iterable_t the type of iterable. Must fulfill
-///                    @c detray::ranges::iterable
-///
-/// @param iterable reference to an iterable range
-/// @param range the subrange
-///
-/// @returns a subrange on the iterable
-template <typename iterable_t>
-DETRAY_HOST_DEVICE inline constexpr auto range(const iterable_t &iterable,
-                                               const dindex_range &range) {
-
-    return detray::views::subrange(iterable, range);
-}
-
-/// Overload of the @c range function, that extracts the range from a
-/// @param volume.
-///
-/// @returns an subrange on the @param iterable, according to the volume's range
-template <typename iterable_t,
-          typename = typename std::remove_reference_t<iterable_t>::value_type,
-          typename volume_t,
-          typename = typename std::remove_reference_t<volume_t>::volume_def>
-DETRAY_HOST_DEVICE inline constexpr auto range(const iterable_t &iterable,
-                                               volume_t &&volume) {
-    return detray::views::subrange(
-        iterable, volume.template range<typename iterable_t::value_type>());
-}
-
-/// Overload of the @c range function for a single index
-template <typename iterable_t>
-DETRAY_HOST_DEVICE inline constexpr auto range(const iterable_t &iterable,
-                                               const dindex &i) {
-
-    return detray::views::subrange(iterable, dindex_range{i, i + 1});
-}*/
-
-}  // namespace views
+}  // namespace ranges
 
 }  // namespace detray

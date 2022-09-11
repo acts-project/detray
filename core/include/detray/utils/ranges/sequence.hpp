@@ -16,102 +16,76 @@
 
 namespace detray {
 
-/** Helper method to (fake a) run over a single entry
+/** @brief Struct that increments a given iterator in lockstep with the
+ *        iteration index for convenience.
+ *
+ * @tparam container_t the container on which to perform the iteration
+ * @tparam volume_t the type of volume from which to get the range in the
+ *         container
+ */
+template <typename container_t,
+          typename container_type_iter =
+              decltype(std::begin(std::declval<container_t>())),
+          typename = decltype(std::end(std::declval<container_t>()))>
+struct enumerator {
+    /** Start position of iterator */
+    size_t i;
+    /** Iterator on container */
+    container_type_iter iter;
+
+    /** Build from start index and corresponding iterator - rvalue */
+    DETRAY_HOST_DEVICE
+    enumerator(size_t start, const container_type_iter &&iterator)
+        : i(start), iter(iterator) {}
+
+    /** Build from start index and corresponding iterator - lvalue */
+    DETRAY_HOST_DEVICE
+    enumerator(size_t start, const container_type_iter &iterator)
+        : i(start), iter(iterator) {}
+
+    /** Determine end of iteration */
+    DETRAY_HOST_DEVICE
+    bool operator!=(const enumerator &rhs) const { return iter != rhs.iter; }
+
+    /** Increase index and iterator at once */
+    DETRAY_HOST_DEVICE
+    void operator++() {
+        ++i;
+        ++iter;
+    }
+
+    /** Tie them together for returning */
+    DETRAY_HOST_DEVICE
+    auto operator*() const { return std::tie(i, *iter); }
+};
+
+/** Helper utility to allow indexed enumeration with structured binding
  *
  * Usage:
- * for (auto i : sequence(j)) {}
  *
- * with j an unsinged dindex type
+ * for (auto [ i, value ] = enumerate(container) ) { ... };
  *
- * @note sequence(2) will produce {2}
- *
- **/
-DETRAY_HOST_DEVICE
-constexpr auto sequence(dindex iterable) {
+ * with 'container' any stl-like container
+ */
+template <typename container_t,
+          typename container_type_iter =
+              decltype(std::begin(std::declval<container_t>())),
+          typename = decltype(std::end(std::declval<container_t>()))>
+DETRAY_HOST_DEVICE constexpr auto enumerate(container_t &&iterable) {
 
-    struct iterator {
-        /** Start and end of sequence */
-        dindex i;
-        size_t end;
-
-        /** Determine whether we reach end of sequence */
-        DETRAY_HOST_DEVICE
-        bool operator!=(const iterator &rhs) const { return i != rhs.end; }
-
-        /** Increase index and iterator at once */
-        DETRAY_HOST_DEVICE
-        void operator++() { ++i; }
-
-        /** Tie them together for returning */
-        DETRAY_HOST_DEVICE
-        auto operator*() const { return i; }
-    };
-
-    /** Wrap up for iteration */
     struct iterable_wrapper {
-        dindex iterable;
-
+        container_t iterable;
         DETRAY_HOST_DEVICE
-        auto begin() { return iterator{iterable, iterable + 1}; }
-        DETRAY_HOST_DEVICE
-        auto end() { return iterator{iterable + 1, iterable + 1}; }
-    };
-
-    return iterable_wrapper{std::forward<dindex>(iterable)};
-}
-
-/** Helper method to run over a range
- *
- * Usage:
- * for (auto i : sequence(r)) {}
- *
- * with r an index range (integral) that can be accessed with std::get
- *
- * @note sequence({2,4}) will produce { 2, 3, 4 }
- *
- **/
-template <
-    typename range_t,
-    typename = std::enable_if_t<std::is_integral_v<std::remove_reference_t<
-        decltype(std::get<0>(std::declval<range_t>()))>>>,
-    typename = std::enable_if_t<std::is_integral_v<std::remove_reference_t<
-        decltype(std::get<1>(std::declval<range_t>()))>>>>
-DETRAY_HOST_DEVICE constexpr auto sequence(range_t range) {
-
-    struct iterator {
-        /** Start and end of sequence */
-        size_t i;
-        size_t end;
-
-        /** Determine whether we reach end of sequence */
-        DETRAY_HOST_DEVICE
-        bool operator!=(const iterator &rhs) const { return i != rhs.end; }
-
-        /** Increase index and iterator at once */
-        DETRAY_HOST_DEVICE
-        void operator++() { ++i; }
-
-        /** Tie them together for returning */
-        DETRAY_HOST_DEVICE
-        auto operator*() const { return i; }
-    };
-
-    /** Wrap up for iteration */
-    struct iterable_wrapper {
-        range_t _iterable;
-
-        DETRAY_HOST_DEVICE
-        auto begin() {
-            return iterator{std::get<0>(_iterable), std::get<1>(_iterable)};
+        decltype(auto) begin() {
+            return enumerator<container_t>(0, std::begin(iterable));
         }
         DETRAY_HOST_DEVICE
-        auto end() {
-            return iterator{std::get<1>(_iterable) + 1,
-                            std::get<1>(_iterable) + 1};
+        decltype(auto) end() {
+            return enumerator<container_t>(0, std::end(iterable));
         }
     };
 
-    return iterable_wrapper{std::forward<range_t>(range)};
+    return iterable_wrapper{std::forward<container_t>(iterable)};
 }
 
 }  // namespace detray

@@ -16,8 +16,8 @@ namespace detray::ranges::detail {
 
 /// @brief Detail interface of an iterable type.
 ///
-/// Provides @c begin() and @c end() functions to different container
-/// implementations. These can be used to define a range.
+/// Provides @c begin() and @c end() functions of different container
+/// implementations. These can be used as a range.
 ///
 /// Base case: The type is not iterable
 template <typename, typename = void>
@@ -27,147 +27,93 @@ struct iterable : public std::false_type {};
 ///
 /// The type is iterable by simply calling its begin and end member functions.
 // TODO: Use concepts in the future. Right now, the existance of 'begin()' is
-// used to infer on the compliance with the
+// used to infer on the existence of 'end()' etc.
 template <typename T>
 struct iterable<
-    T, std::enable_if_t<
-           std::is_class_v<decltype(std::begin(std::declval<T>()))>, void>>
-    : public std::true_type {
-    using iterator_type = decltype(std::begin(std::declval<T>()));
-    using reverse_iterator_type = decltype(std::rbegin(std::declval<T>()));
-    using const_iterator_type = decltype(std::cbegin(std::declval<T>()));
-    using const_reverse_iterator_type =
-        decltype(std::crbegin(std::declval<T>()));
+    T,
+    std::enable_if_t<
+        std::is_class_v<std::decay_t<decltype(std::begin(std::declval<T&>()))>>,
+        void>> : public std::true_type {
+
+    using iterator_type =
+        std::decay_t<decltype(std::begin(std::declval<T&>()))>;
+    using const_iterator_type =
+        std::decay_t<decltype(std::cbegin(std::declval<T&>()))>;
 
     // non-const
 
     /// @returns start position, which is at the wrapped value.
     DETRAY_HOST_DEVICE
-    static inline auto begin(T& iterable) -> iterator_type {
-        return iterable.begin();
+    static inline constexpr auto begin(T& iterable) noexcept -> iterator_type {
+        return std::begin(iterable);
     }
 
-    /// @returns end position, which is the position behind the wrapped value.
+    /// @returns sentinel, which is the position behind the wrapped value.
     DETRAY_HOST_DEVICE
-    static inline auto end(T& iterable) -> iterator_type {
-        return iterable.end();
-    }
-
-    /// @returns start position, which is at the wrapped value.
-    DETRAY_HOST_DEVICE
-    static inline auto rbegin(T& iterable) -> reverse_iterator_type {
-        return iterable.rbegin();
-    }
-
-    /// @returns end position, which is the position behind the wrapped value.
-    DETRAY_HOST_DEVICE
-    static inline auto rend(T& iterable) -> reverse_iterator_type {
-        return iterable.rend();
+    static inline constexpr auto end(T& iterable) noexcept -> iterator_type {
+        return std::end(iterable);
     }
 
     // const
 
     /// @returns start position, which is at the wrapped value.
     DETRAY_HOST_DEVICE
-    static inline auto cbegin(const T& iterable) -> const_iterator_type {
-        return iterable.cbegin();
+    static inline constexpr auto begin(const T& iterable) noexcept
+        -> const_iterator_type {
+        return std::cbegin(iterable);
     }
 
-    /// @returns end position, which is the position behind the wrapped value.
+    /// @returns sentinel, which is the position behind the wrapped value.
     DETRAY_HOST_DEVICE
-    static inline auto cend(const T& iterable) -> const_iterator_type {
-        return iterable.cend();
-    }
-
-    /// @returns start position, which is at the wrapped value.
-    DETRAY_HOST_DEVICE
-    static inline auto crbegin(const T& iterable)
-        -> const_reverse_iterator_type {
-        return iterable.crbegin();
-    }
-
-    /// @returns end position, which is the position behind the wrapped value.
-    DETRAY_HOST_DEVICE
-    static inline auto crend(const T& iterable) -> const_reverse_iterator_type {
-        return iterable.crend();
+    static inline constexpr auto end(const T& iterable) noexcept
+        -> const_iterator_type {
+        return std::cend(iterable);
     }
 };
 
-/// @brief Iterable specialization.
+/// @brief Iterable specialization for single object outside of a container.
 ///
-/// The type is iterable by simply calling its begin and end member functions.
+/// Provides a @c begin() and @c end() implementation that can be used with
+/// iterator aware code.
 // TODO: Use concepts in the future. Right now, the existance of 'begin()' is
 // used to infer on the compliance with the rest of the iterator interface
-/*template<typename T>
-struct iterable<T, std::enable_if_t<std::is_pointer_v<T>, bool>>
+template <typename T>
+struct iterable<T, std::enable_if_t<not std::is_class_v<T::value_type>, bool>>
     : public std::true_type {
-    using iterator_type = T;
-    using reverse_iterator_type = T;
-    using const_iterator_type = const T;
-    using const_reverse_iterator_type = const T;
+
+    using iterator_type = T*;
+    using const_iterator_type = const T*;
 
     // non-const
 
     /// @returns start position, which is at the wrapped value.
     DETRAY_HOST_DEVICE
-    static inline auto begin(T & iterable) -> iterator_type {
-        return iterable;
+    static inline constexpr auto begin(T& iterable) noexcept -> iterator_type {
+        return &iterable;
     }
 
-    /// @returns end position, which is the position behind the wrapped value.
+    /// @returns sentinel, which is the position behind the wrapped value.
+    /// @note protected against being modified.
     DETRAY_HOST_DEVICE
-    static inline auto end(T & iterable, const std::ptrdiff_t n) ->
-iterator_type { return iterable + n;
-    }
-
-    /// @returns start position, which is at the wrapped value.
-    DETRAY_HOST_DEVICE
-    static inline auto rbegin(T & iterable, const std::ptrdiff_t n)
-        -> reverse_iterator_type {
-        return iterable + n;
-    }
-
-    /// @returns end position, which is the position behind the wrapped value.
-    DETRAY_HOST_DEVICE
-    static inline auto rend(T & iterable)
-        -> reverse_iterator_type {
-        return iterable;
+    static inline constexpr auto end(T& iterable) noexcept -> iterator_type {
+        return &iterable + std::ptrdiff_t{1};
     }
 
     // const
 
     /// @returns start position, which is at the wrapped value.
     DETRAY_HOST_DEVICE
-    static inline auto cbegin(const T & iterable) -> const_iterator_type {
-        return iterable;
+    static inline constexpr auto begin(const T& iterable) noexcept
+        -> const_iterator_type {
+        return &iterable;
     }
 
-    /// @returns end position, which is the position behind the wrapped value.
+    /// @returns sentinel, which is the position behind the wrapped value.
     DETRAY_HOST_DEVICE
-    static inline auto cend(const T & iterable, const std::ptrdiff_t n) ->
-const_iterator_type { return iterable + n;
+    static inline constexpr auto end(const T& iterable) noexcept
+        -> const_iterator_type {
+        return &iterable + std::ptrdiff_t{1};
     }
-
-    /// @returns start position, which is at the wrapped value.
-    DETRAY_HOST_DEVICE
-    static inline auto crbegin(const T & iterable)
-        -> const_reverse_iterator_type {
-        return iterable;
-    }
-
-    /// @returns end position, which is the position behind the wrapped value.
-    DETRAY_HOST_DEVICE
-    static inline auto crend(const T & iterable, const std::ptrdiff_t n)
-        -> const_reverse_iterator_type {
-        return iterable + n;
-    }
-};*/
-
-/// @brief Iterable specialization.
-///
-/// Specialization for detray specific cases, e.g. the tuple container's groups
-/*template<typename T, typename itr_t = ...>
-struct iterable : public std::true_type { };
-*/
+};
 
 }  // namespace detray::ranges::detail
