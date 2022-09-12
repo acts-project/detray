@@ -45,23 +45,6 @@ class line_stepper final
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type& bound_params,
             const detector_t& det)
-            : base_type::state(bound_params) {
-
-            const auto& surface_container = det.surfaces();
-            const auto& trf_store = det.transform_store();
-            const auto& mask_store = det.mask_store();
-            const auto& surface =
-                surface_container[bound_params.surface_link()];
-
-            mask_store
-                .template execute<typename resetter<transform3_t>::kernel>(
-                    surface.mask_type(), trf_store, surface, *this);
-        }
-
-        template <typename detector_t>
-        DETRAY_HOST_DEVICE state(
-            const bound_track_parameters_type& bound_params,
-            const detector_t& det)
             : base_type::template state(bound_params, det) {}
 
         /// Update the track state in a straight line.
