@@ -140,6 +140,7 @@ struct bound_to_bound_updater : actor {
                                        propagator_state_t& propagation) const {
 
         auto& navigation = propagation._navigation;
+        auto& stepping = propagation._stepping;
 
         // Do covariance transport when the track is on surface
         if (navigation.is_on_module()) {
@@ -153,6 +154,9 @@ struct bound_to_bound_updater : actor {
 
             // Surface
             const auto& surface = surface_container[is->index];
+
+            // Set surface link
+            stepping._bound_params.set_surface_link(is->index);
 
             mask_store.template execute<kernel>(surface.mask_type(), surface,
                                                 propagation);

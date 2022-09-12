@@ -13,6 +13,9 @@
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
 
+// System include(s).
+#include <climits>
+
 namespace detray {
 
 /** Coordinate base struct
@@ -188,6 +191,7 @@ struct coordinate_base {
         matrix_actor().element(jac_to_local, e_bound_time, e_free_time) = 1;
 
         // Set d(phi, theta)/d(n_x, n_y, n_z)
+        // @note This codes have a serious bug when theta is equal to zero...
         matrix_actor().element(jac_to_local, e_bound_phi, e_free_dir0) =
             -1. * sin_phi / sin_theta;
         matrix_actor().element(jac_to_local, e_bound_phi, e_free_dir1) =

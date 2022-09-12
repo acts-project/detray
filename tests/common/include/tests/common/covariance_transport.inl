@@ -114,7 +114,7 @@ TEST(covariance_transport, rk_stepper_cartesian) {
     propagator_t p({}, {});
     propagator_t::state propagation(bound_param0, mag_field, det, actor_states);
 
-    crk_stepper_t::state &crk_state = propagation._stepping;
+    crk_stepper_t::state& crk_state = propagation._stepping;
 
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = 1e-8;
@@ -169,6 +169,7 @@ TEST(covariance_transport, rk_stepper_cartesian) {
     }
 
     // covaraince
+    /*
     for (std::size_t i = 0; i < e_bound_size; i++) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
             printf("%f ", matrix_operator().element(bound_cov0, i, j));
@@ -185,6 +186,7 @@ TEST(covariance_transport, rk_stepper_cartesian) {
         printf("\n");
     }
     printf("\n");
+    */
 }
 
 TEST(covariance_transport, linear_stepper_cartesian) {
@@ -194,14 +196,14 @@ TEST(covariance_transport, linear_stepper_cartesian) {
     using ln_stepper_t = line_stepper<transform3>;
 
     // Use rectangular surfaces
-    constexpr bool rectangular = false;
+    constexpr bool unbounded = true;
 
     // Create telescope detector with a single plane
     typename ln_stepper_t::free_track_parameters_type default_trk{
-        {0, 0, 0}, 0, {0, 0, 1}, -1};
+        {0, 0, 0}, 0, {1, 0, 0}, -1};
     std::vector<scalar> positions = {0., 10., 20., 30., 40., 50., 60.};
 
-    const auto det = create_telescope_detector<rectangular>(
+    const auto det = create_telescope_detector<unbounded>(
         host_mr, positions, ln_stepper_t(),
         typename ln_stepper_t::state{default_trk});
 
@@ -218,13 +220,17 @@ TEST(covariance_transport, linear_stepper_cartesian) {
     getter::element(bound_vector, e_bound_loc0, 0) = 0.;
     getter::element(bound_vector, e_bound_loc1, 0) = 0.;
     getter::element(bound_vector, e_bound_phi, 0) = 0.;
-    getter::element(bound_vector, e_bound_theta, 0) = 0.;
+    getter::element(bound_vector, e_bound_theta, 0) = M_PI / 4.;
     getter::element(bound_vector, e_bound_qoverp, 0) = -1. / 10.;
     getter::element(bound_vector, e_bound_time, 0) = 0.;
 
     // Bound covariance
     typename bound_track_parameters<transform3>::covariance_type bound_cov =
         matrix_operator().template identity<e_bound_size, e_bound_size>();
+
+    // Note: Set angle error as ZERO, to constrain the loc0 and loc1 divergence
+    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 0.;
+    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
 
     // Bound track parameter
     const bound_track_parameters<transform3> bound_param0(0, bound_vector,
@@ -236,8 +242,29 @@ TEST(covariance_transport, linear_stepper_cartesian) {
     actor_chain_t::state actor_states = std::tie(bound_updater, rst);
 
     propagator_t p({}, {});
-    // propagator_t::state propagation(bound_param0, det, actor_states);
+    propagator_t::state propagation(bound_param0, det, actor_states);
 
     // Run propagator
-    // p.propagate(propagation);
+    p.propagate(propagation);
+
+    // Bound state after one turn propagation
+    const auto& bound_param1 = propagation._stepping._bound_params;
+
+    // const auto bound_vec0 = bound_param0.vector();
+    // const auto bound_vec1 = bound_param1.vector();
+
+    const auto bound_cov0 = bound_param0.covariance();
+    const auto bound_cov1 = bound_param1.covariance();
+
+    // Check if the track reaches the final surface
+    EXPECT_EQ(bound_param0.surface_link(), 0);
+    EXPECT_EQ(bound_param1.surface_link(), 5);
+
+    // Check covaraince
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
+                        matrix_operator().element(bound_cov1, i, j), epsilon);
+        }
+    }
 }
