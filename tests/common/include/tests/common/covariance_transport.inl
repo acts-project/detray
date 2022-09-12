@@ -167,26 +167,6 @@ TEST(covariance_transport, rk_stepper_cartesian) {
                         crk_state.path_length() * epsilon);
         }
     }
-
-    // covaraince
-    /*
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < e_bound_size; j++) {
-            printf("%f ", matrix_operator().element(bound_cov0, i, j));
-        }
-        printf("\n");
-    }
-    printf("\n");
-
-    // covaraince
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < e_bound_size; j++) {
-            printf("%f ", matrix_operator().element(bound_cov1, i, j));
-        }
-        printf("\n");
-    }
-    printf("\n");
-    */
 }
 
 TEST(covariance_transport, linear_stepper_cartesian) {
