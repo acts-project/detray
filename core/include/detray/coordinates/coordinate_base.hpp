@@ -219,9 +219,6 @@ struct coordinate_base {
 
         using helix = detail::helix<transform3_t>;
 
-        // Path length
-        const auto s = stepping._s;
-
         // Position and direction
         const auto pos = stepping().pos();
         const auto dir = stepping().dir();
@@ -252,6 +249,9 @@ struct coordinate_base {
                                                 e_free_pos0, e_free_pos0);
 
         if constexpr (stepper_state_t::id == stepping::id::e_rk) {
+
+            // Path length
+            const auto s = stepping._s;
 
             // helix
             helix hlx(stepping(), &stepping._step_data.b_last);
