@@ -10,10 +10,20 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/tracks/tracks.hpp"
 
 namespace detray {
+
+namespace stepping {
+
+enum class id {
+    e_linear = 0,
+    e_rk = 1,
+};
+
+}  // namespace stepping
 
 /// Base stepper implementation
 template <typename transform3_t, typename constraint_t, typename policy_t>
@@ -56,9 +66,22 @@ class base_stepper {
         state(const free_track_parameters_type &t) : _track(t) {}
 
         /// Sets track parameters from bound track parameter.
-        DETRAY_HOST_DEVICE
-        state(const bound_track_parameters_type &bound_params)
-            : _bound_params(bound_params) {}
+        template <typename detector_t>
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters_type &bound_params,
+            const detector_t &det)
+            : _bound_params(bound_params) {
+
+            const auto &surface_container = det.surfaces();
+            const auto &trf_store = det.transform_store();
+            const auto &mask_store = det.mask_store();
+            const auto &surface =
+                surface_container[bound_params.surface_link()];
+
+            mask_store
+                .template execute<typename resetter<transform3_t>::kernel>(
+                    surface.mask_type(), trf_store, surface, *this);
+        }
 
         /// free track parameter
         free_track_parameters_type _track;

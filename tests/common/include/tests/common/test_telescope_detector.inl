@@ -33,10 +33,9 @@ struct prop_state {
 
     stepping_t _stepping;
     navigation_t _navigation;
-    using field_type = typename stepping_t::field_type;
 
-    template <typename track_t>
-    prop_state(const track_t &t_in, const field_type &field,
+    template <typename track_t, typename field_t>
+    prop_state(const track_t &t_in, const field_t &field,
                const typename navigation_t::detector_type &det)
         : _stepping(t_in, field), _navigation(det) {}
 };

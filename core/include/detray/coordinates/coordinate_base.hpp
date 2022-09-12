@@ -10,7 +10,11 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/propagator/base_stepper.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
+
+// System include(s).
+#include <climits>
 
 namespace detray {
 
@@ -187,6 +191,7 @@ struct coordinate_base {
         matrix_actor().element(jac_to_local, e_bound_time, e_free_time) = 1;
 
         // Set d(phi, theta)/d(n_x, n_y, n_z)
+        // @note This codes have a serious bug when theta is equal to zero...
         matrix_actor().element(jac_to_local, e_bound_phi, e_free_dir0) =
             -1. * sin_phi / sin_theta;
         matrix_actor().element(jac_to_local, e_bound_phi, e_free_dir1) =
@@ -217,103 +222,110 @@ struct coordinate_base {
         // Path length
         const auto s = stepping._s;
 
-        // helix
-        helix hlx(stepping(), &stepping._step_data.b_last);
-
-        // B field at the destination surface
-        matrix_type<1, 3> h;
-        matrix_actor().set_block(h, hlx._h0, 0, 0);
+        // Position and direction
+        const auto pos = stepping().pos();
+        const auto dir = stepping().dir();
 
         // dir
         matrix_type<1, 3> t;
-        matrix_actor().set_block(t, hlx._t0, 0, 0);
-
-        // Normalized vector of h X t
-        matrix_type<1, 3> n;
-        matrix_actor().set_block(n, hlx._n0, 0, 0);
+        matrix_actor().set_block(t, dir, 0, 0);
 
         // Surface normal vector (w)
         matrix_type<1, 3> w;
         const auto normal =
-            Derived<transform3_t>().normal(trf3, mask, hlx.pos(), hlx._t0);
+            Derived<transform3_t>().normal(trf3, mask, pos, dir);
         matrix_actor().set_block(w, normal, 0, 0);
 
-        // w cross h
-        matrix_type<1, 3> wh;
-        matrix_actor().set_block(wh, vector::cross(normal, hlx._h0), 0, 0);
-
-        // Alpha
-        const scalar_type A = hlx._alpha;
-
-        // K
-        const scalar_type K = hlx._K;
-
-        // Ks = K*s
-        const scalar_type Ks = K * s;
-
         // w dot t
-        const scalar_type wt = vector::dot(normal, hlx._t0);
-
-        // r correction term
-        const matrix_type<1, 3> r_term = -1. / wt * w;
-
-        // t correction term
-        matrix_type<1, 3> t_term = matrix_actor().template zero<1, 3>();
-        t_term =
-            t_term + (Ks - std::sin(Ks)) / K * vector::dot(hlx._h0, normal) * h;
-
-        t_term = t_term + std::sin(Ks) / K * w;
-
-        t_term = t_term + (1 - std::cos(Ks)) / K * wh;
-
-        t_term = -1. / wt * t_term;
-
-        // qoverp correction term
-        const scalar_type L_term =
-            -1. / wt * A * Ks / hlx.qop() * vector::dot(normal, hlx._n0);
+        const scalar_type wt = vector::dot(normal, dir);
 
         // transpose of t
         const matrix_type<3, 1> t_T = matrix_actor().transpose(t);
 
+        // r correction term
+        const matrix_type<1, 3> r_term = -1. / wt * w;
+
         // dr/dr0
         const matrix_type<3, 3> drdr0 = t_T * r_term;
-
-        // dr/dt0
-        const matrix_type<3, 3> drdt0 = t_T * t_term;
-
-        // dr/dL0 (L = qoverp)
-        const matrix_type<3, 1> drdL0 = t_T * L_term;
-
-        // transpose of n
-        const matrix_type<3, 1> n_T = matrix_actor().transpose(n);
-
-        // dt/dr0
-        const scalar_type AK = A * K;
-        const matrix_type<3, 3> dtdr0 = AK * n_T * r_term;
-
-        // dt/dt0
-        const matrix_type<3, 3> dtdt0 = AK * n_T * t_term;
-
-        // dt/dL0
-        const matrix_type<3, 1> dtdL0 = AK * n_T * L_term;
 
         matrix_actor().template set_block<3, 3>(path_correction, drdr0,
                                                 e_free_pos0, e_free_pos0);
 
-        matrix_actor().template set_block<3, 3>(path_correction, drdt0,
-                                                e_free_pos0, e_free_dir0);
+        if constexpr (stepper_state_t::id == stepping::id::e_rk) {
 
-        matrix_actor().template set_block<3, 1>(path_correction, drdL0,
-                                                e_free_pos0, e_free_qoverp);
+            // helix
+            helix hlx(stepping(), &stepping._step_data.b_last);
 
-        matrix_actor().template set_block<3, 3>(path_correction, dtdr0,
-                                                e_free_dir0, e_free_pos0);
+            // B field at the destination surface
+            matrix_type<1, 3> h;
+            matrix_actor().set_block(h, hlx._h0, 0, 0);
 
-        matrix_actor().template set_block<3, 3>(path_correction, dtdt0,
-                                                e_free_dir0, e_free_dir0);
+            // Normalized vector of h X t
+            matrix_type<1, 3> n;
+            matrix_actor().set_block(n, hlx._n0, 0, 0);
 
-        matrix_actor().template set_block<3, 1>(path_correction, dtdL0,
-                                                e_free_dir0, e_free_qoverp);
+            // w cross h
+            matrix_type<1, 3> wh;
+            matrix_actor().set_block(wh, vector::cross(normal, hlx._h0), 0, 0);
+
+            // Alpha
+            const scalar_type A = hlx._alpha;
+
+            // K
+            const scalar_type K = hlx._K;
+
+            // Ks = K*s
+            const scalar_type Ks = K * s;
+
+            // t correction term
+            matrix_type<1, 3> t_term = matrix_actor().template zero<1, 3>();
+            t_term = t_term +
+                     (Ks - std::sin(Ks)) / K * vector::dot(hlx._h0, normal) * h;
+
+            t_term = t_term + std::sin(Ks) / K * w;
+
+            t_term = t_term + (1 - std::cos(Ks)) / K * wh;
+
+            t_term = -1. / wt * t_term;
+
+            // qoverp correction term
+            const scalar_type L_term =
+                -1. / wt * A * Ks / hlx.qop() * vector::dot(normal, hlx._n0);
+
+            // dr/dt0
+            const matrix_type<3, 3> drdt0 = t_T * t_term;
+
+            // dr/dL0 (L = qoverp)
+            const matrix_type<3, 1> drdL0 = t_T * L_term;
+
+            // transpose of n
+            const matrix_type<3, 1> n_T = matrix_actor().transpose(n);
+
+            // dt/dr0
+            const scalar_type AK = A * K;
+            const matrix_type<3, 3> dtdr0 = AK * n_T * r_term;
+
+            // dt/dt0
+            const matrix_type<3, 3> dtdt0 = AK * n_T * t_term;
+
+            // dt/dL0
+            const matrix_type<3, 1> dtdL0 = AK * n_T * L_term;
+
+            matrix_actor().template set_block<3, 3>(path_correction, drdt0,
+                                                    e_free_pos0, e_free_dir0);
+
+            matrix_actor().template set_block<3, 1>(path_correction, drdL0,
+                                                    e_free_pos0, e_free_qoverp);
+
+            matrix_actor().template set_block<3, 3>(path_correction, dtdr0,
+                                                    e_free_dir0, e_free_pos0);
+
+            matrix_actor().template set_block<3, 3>(path_correction, dtdt0,
+                                                    e_free_dir0, e_free_dir0);
+
+            matrix_actor().template set_block<3, 1>(path_correction, dtdL0,
+                                                    e_free_dir0, e_free_qoverp);
+        }
 
         return path_correction;
     }
