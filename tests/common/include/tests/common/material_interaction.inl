@@ -15,6 +15,7 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
+#include "detray/propagator/actors/bound_to_bound_updater.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/navigator.hpp"
@@ -213,7 +214,7 @@ TEST(material_interaction, telescope_geometry) {
     using ln_stepper_t = line_stepper<transform3>;
 
     typename ln_stepper_t::free_track_parameters_type default_trk{
-        {0, 0, 0}, 0, {0, 0, 1}, -1};
+        {0, 0, 0}, 0, {1, 0, 0}, -1};
 
     // Build from given module positions
     std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
@@ -234,7 +235,8 @@ TEST(material_interaction, telescope_geometry) {
     using interactor_t = pointwise_material_interactor<matrix_operator>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
-                    interactor_t, resetter<transform3>>;
+                    bound_to_bound_updater<transform3>, interactor_t,
+                    resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -247,7 +249,7 @@ TEST(material_interaction, telescope_geometry) {
     getter::element(bound_vector, e_bound_loc0, 0) = 0.;
     getter::element(bound_vector, e_bound_loc1, 0) = 0.;
     getter::element(bound_vector, e_bound_phi, 0) = 0.;
-    getter::element(bound_vector, e_bound_theta, 0) = 0.;
+    getter::element(bound_vector, e_bound_theta, 0) = M_PI / 2.;
     getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
     getter::element(bound_vector, e_bound_time, 0) = 0.;
     typename bound_track_parameters<transform3>::covariance_type bound_cov =
@@ -259,12 +261,14 @@ TEST(material_interaction, telescope_geometry) {
 
     propagation::print_inspector::state print_insp_state{};
     pathlimit_aborter::state aborter_state{};
+    bound_to_bound_updater<transform3>::state bound_updater{};
     interactor_t::state interactor_state{};
     resetter<transform3>::state resetter_state{};
 
     // Create actor states tuples
-    actor_chain_t::state actor_states = std::tie(
-        print_insp_state, aborter_state, interactor_state, resetter_state);
+    actor_chain_t::state actor_states =
+        std::tie(print_insp_state, aborter_state, bound_updater,
+                 interactor_state, resetter_state);
 
     propagator_t::state state(bound_param, det, actor_states);
 
