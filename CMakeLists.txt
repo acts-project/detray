@@ -168,7 +168,19 @@ if( DETRAY_SETUP_BENCHMARK )
    endif()
 endif()
 
-add_subdirectory( extern/covfie )
+# Set up covfie.
+option( DETRAY_SETUP_COVFIE
+   "Set up the covfie target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_COVFIE
+   "Pick up an existing installation of covfie from the build environment"
+   FALSE )
+if( DETRAY_SETUP_COVFIE )
+   if( DETRAY_USE_SYSTEM_COVFIE )
+      find_package( covfie REQUIRED )
+   else()
+      add_subdirectory( extern/covfie )
+   endif()
+endif()
 
 # Set up all of the libraries of the project.
 add_subdirectory( core )

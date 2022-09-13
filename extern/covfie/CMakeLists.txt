@@ -13,20 +13,21 @@ message( STATUS "Fetching covfie as part of the Detray project" )
 
 # Declare where to get covfie from.
 set( DETRAY_COVFIE_SOURCE
-   "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.2.0.tar.gz;URL_MD5;7cf83f2a4d5dcc3dad8fb952cef36fd4"
+   "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.3.0.tar.gz;URL_MD5;1b0052deb194978e34b583ba5084cb1f"
    CACHE STRING "Source for covfie, when built as part of this project" )
 mark_as_advanced( DETRAY_COVFIE_SOURCE )
 FetchContent_Declare( covfie ${DETRAY_COVFIE_SOURCE} )
 
 # Options used for covfie.
-set( COVFIE_BUILD_EXAMPLES Off CACHE BOOL "Build covfie examples")
-set( COVFIE_BUILD_TESTS Off CACHE BOOL "Build covfie tests")
-set( COVFIE_BUILD_BENCHMARKS Off CACHE BOOL "Build covfie benchmarks")
+set( COVFIE_BUILD_EXAMPLES OFF CACHE BOOL "Build covfie examples")
+set( COVFIE_BUILD_TESTS OFF CACHE BOOL "Build covfie tests")
+set( COVFIE_BUILD_BENCHMARKS OFF CACHE BOOL "Build covfie benchmarks")
 
-set( COVFIE_PLATFORM_CPU On CACHE BOOL "Enable covfie CPU platform")
-set( COVFIE_PLATFORM_CUDA On CACHE BOOL "Enable covfie CUDA platform")
+set( COVFIE_PLATFORM_CPU ON CACHE BOOL "Enable covfie CPU platform")
+set( COVFIE_PLATFORM_CUDA ON CACHE BOOL "Enable covfie CUDA platform")
 
-set( COVFIE_REQUIRE_CXX20 Off CACHE BOOL "Enable covfie C++20 requirement")
+set( COVFIE_REQUIRE_CXX20 OFF CACHE BOOL "Enable covfie C++20 requirement")
+set( COVFIE_QUIET ON CACHE BOOL "Quiet covfie feature warnings")
 
 # Get it into the current directory.
 FetchContent_MakeAvailable( covfie )
