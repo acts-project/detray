@@ -144,7 +144,6 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
         const point3 & /*pos*/, const vector3 & /*dir*/) const {
         // Do nothing
     }
-
 };  // struct cartesian2
 
 }  // namespace detray
