@@ -261,15 +261,26 @@ struct coordinate_base {
 
             // B field at the destination surface
             matrix_type<1, 3> h;
-            matrix_actor().set_block(h, hlx._h0, 0, 0);
+            matrix_actor().element(h, 0, 0) = hlx._h0[0];
+            matrix_actor().element(h, 0, 1) = hlx._h0[1];
+            matrix_actor().element(h, 0, 2) = hlx._h0[2];
+            // matrix_actor().set_block(h, hlx._h0, 0, 0);
 
             // Normalized vector of h X t
             matrix_type<1, 3> n;
-            matrix_actor().set_block(n, hlx._n0, 0, 0);
+            matrix_actor().element(n, 0, 0) = hlx._n0[0];
+            matrix_actor().element(n, 0, 1) = hlx._n0[1];
+            matrix_actor().element(n, 0, 2) = hlx._n0[2];
+            // matrix_actor().set_block(n, hlx._n0, 0, 0);
 
             // w cross h
             matrix_type<1, 3> wh;
-            matrix_actor().set_block(wh, vector::cross(normal, hlx._h0), 0, 0);
+            const auto _wh = vector::cross(normal, hlx._h0);
+            matrix_actor().element(wh, 0, 0) = _wh[0];
+            matrix_actor().element(wh, 0, 1) = _wh[1];
+            matrix_actor().element(wh, 0, 2) = _wh[2];
+            // matrix_actor().set_block(wh, vector::cross(normal, hlx._h0), 0,
+            // 0);
 
             // Alpha
             const scalar_type A = hlx._alpha;
