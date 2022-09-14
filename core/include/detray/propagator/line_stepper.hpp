@@ -46,7 +46,7 @@ class line_stepper final
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &bound_params,
             const detector_t &det)
-            : base_type::template state(bound_params, det) {}
+            : base_type::state(bound_params, det) {}
 
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE

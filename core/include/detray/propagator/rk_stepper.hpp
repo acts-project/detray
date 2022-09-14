@@ -61,8 +61,7 @@ class rk_stepper final
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type& bound_params,
             const magnetic_field_t mag_field, const detector_t& det)
-            : base_type::template state(bound_params, det),
-              _magnetic_field(mag_field) {}
+            : base_type::state(bound_params, det), _magnetic_field(mag_field) {}
 
         /// error tolerance
         scalar _tolerance = 1e-4;
