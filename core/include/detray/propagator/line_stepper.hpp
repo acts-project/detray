@@ -33,6 +33,12 @@ class line_stepper final
         typename base_type::bound_track_parameters_type;
     using transform3_type = transform3_t;
     using matrix_operator = typename base_type::matrix_operator;
+    // Matrix size type
+    using size_type = typename matrix_operator::size_ty;
+    // 2D matrix type
+    template <size_type ROWS, size_type COLS>
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
 
     struct state : public base_type::state {
 
@@ -60,19 +66,61 @@ class line_stepper final
         inline void advance_jacobian() {
 
             // The step transport matrix in global coordinates
-            auto D =
+            matrix_type<e_free_size, e_free_size> D =
                 matrix_operator().template identity<e_free_size, e_free_size>();
 
             // d(x,y,z)/d(n_x,n_y,n_z)
-            auto dxdn =
+            matrix_type<3, 3> dxdn =
                 this->_step_size * matrix_operator().template identity<3, 3>();
             matrix_operator().template set_block<3, 3>(D, dxdn, e_free_pos0,
                                                        e_free_dir0);
 
+            /*
+            printf("%f %f %f \n", matrix_operator().element(dxdn, 0, 0),
+                   matrix_operator().element(dxdn, 1, 0),
+                   matrix_operator().element(dxdn, 2, 0));
+            printf("%f %f %f \n", matrix_operator().element(dxdn, 0, 1),
+                   matrix_operator().element(dxdn, 1, 1),
+                   matrix_operator().element(dxdn, 2, 1));
+            printf("%f %f %f \n", matrix_operator().element(dxdn, 0, 2),
+                   matrix_operator().element(dxdn, 1, 2),
+                   matrix_operator().element(dxdn, 2, 2));
+            */
+            /*
+            printf("%f %f %f \n", matrix_operator().element(D, e_free_pos0,
+            e_free_dir0), matrix_operator().element(dxdn, e_free_pos1,
+            e_free_dir0), matrix_operator().element(dxdn, e_free_pos2,
+            e_free_dir0)); printf("%f %f %f \n", matrix_operator().element(D,
+            e_free_pos0, e_free_dir1), matrix_operator().element(dxdn,
+            e_free_pos1, e_free_dir1), matrix_operator().element(dxdn,
+            e_free_pos2, e_free_dir1)); printf("%f %f %f \n",
+            matrix_operator().element(D, e_free_pos0, e_free_dir2),
+                   matrix_operator().element(dxdn, e_free_pos1, e_free_dir2),
+                   matrix_operator().element(dxdn, e_free_pos2, e_free_dir2));
+            */
             /// NOTE: Let's skip the element for d(time)/d(qoverp) for the
             /// moment..
 
             this->_jac_transport = D * this->_jac_transport;
+
+            /*
+            printf("%f %f %f \n",
+            matrix_operator().element(this->_jac_transport, e_free_pos0,
+            e_free_dir0), matrix_operator().element(this->_jac_transport,
+            e_free_pos1, e_free_dir0),
+                   matrix_operator().element(this->_jac_transport, e_free_pos2,
+            e_free_dir0)); printf("%f %f %f \n",
+            matrix_operator().element(this->_jac_transport, e_free_pos0,
+            e_free_dir1), matrix_operator().element(this->_jac_transport,
+            e_free_pos1, e_free_dir1),
+                   matrix_operator().element(this->_jac_transport, e_free_pos2,
+            e_free_dir1)); printf("%f %f %f \n",
+            matrix_operator().element(this->_jac_transport, e_free_pos0,
+            e_free_dir2), matrix_operator().element(this->_jac_transport,
+            e_free_pos1, e_free_dir2),
+                   matrix_operator().element(this->_jac_transport, e_free_pos2,
+            e_free_dir2));
+            */
         }
     };
 
