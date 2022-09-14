@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include "detray/coordinates/cartesian2.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/masks/cylinder3.hpp"
 

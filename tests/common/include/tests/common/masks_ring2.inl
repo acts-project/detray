@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include "detray/coordinates/polar2.hpp"
 #include "detray/masks/ring2.hpp"
 
 using namespace detray;
