@@ -76,52 +76,10 @@ class line_stepper final
             matrix_operator().template set_block<3, 3>(D, dxdn, e_free_pos0,
                                                        e_free_dir0);
 
-            /*
-            printf("%f %f %f \n", matrix_operator().element(dxdn, 0, 0),
-                   matrix_operator().element(dxdn, 1, 0),
-                   matrix_operator().element(dxdn, 2, 0));
-            printf("%f %f %f \n", matrix_operator().element(dxdn, 0, 1),
-                   matrix_operator().element(dxdn, 1, 1),
-                   matrix_operator().element(dxdn, 2, 1));
-            printf("%f %f %f \n", matrix_operator().element(dxdn, 0, 2),
-                   matrix_operator().element(dxdn, 1, 2),
-                   matrix_operator().element(dxdn, 2, 2));
-            */
-            /*
-            printf("%f %f %f \n", matrix_operator().element(D, e_free_pos0,
-            e_free_dir0), matrix_operator().element(dxdn, e_free_pos1,
-            e_free_dir0), matrix_operator().element(dxdn, e_free_pos2,
-            e_free_dir0)); printf("%f %f %f \n", matrix_operator().element(D,
-            e_free_pos0, e_free_dir1), matrix_operator().element(dxdn,
-            e_free_pos1, e_free_dir1), matrix_operator().element(dxdn,
-            e_free_pos2, e_free_dir1)); printf("%f %f %f \n",
-            matrix_operator().element(D, e_free_pos0, e_free_dir2),
-                   matrix_operator().element(dxdn, e_free_pos1, e_free_dir2),
-                   matrix_operator().element(dxdn, e_free_pos2, e_free_dir2));
-            */
             /// NOTE: Let's skip the element for d(time)/d(qoverp) for the
             /// moment..
 
             this->_jac_transport = D * this->_jac_transport;
-
-            /*
-            printf("%f %f %f \n",
-            matrix_operator().element(this->_jac_transport, e_free_pos0,
-            e_free_dir0), matrix_operator().element(this->_jac_transport,
-            e_free_pos1, e_free_dir0),
-                   matrix_operator().element(this->_jac_transport, e_free_pos2,
-            e_free_dir0)); printf("%f %f %f \n",
-            matrix_operator().element(this->_jac_transport, e_free_pos0,
-            e_free_dir1), matrix_operator().element(this->_jac_transport,
-            e_free_pos1, e_free_dir1),
-                   matrix_operator().element(this->_jac_transport, e_free_pos2,
-            e_free_dir1)); printf("%f %f %f \n",
-            matrix_operator().element(this->_jac_transport, e_free_pos0,
-            e_free_dir2), matrix_operator().element(this->_jac_transport,
-            e_free_pos1, e_free_dir2),
-                   matrix_operator().element(this->_jac_transport, e_free_pos2,
-            e_free_dir2));
-            */
         }
     };
 
