@@ -8,7 +8,8 @@
 #pragma once
 
 // Project include(s).
-#include "detray/coordinates/coordinates.hpp"
+#include "detray/coordinates/cartesian2.hpp"
+#include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/plane_intersector.hpp"

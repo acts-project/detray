@@ -111,17 +111,34 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         rotation_matrix rot = matrix_actor().template zero<3, 3>();
 
         // y axis of the new frame is the z axis of line coordinate
-        const auto new_yaxis = matrix_actor().template block<3, 1>(trf3, 0, 2);
+        const auto new_yaxis =
+            matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
 
         // x axis of the new frame is (yaxis x track direction)
-        const auto new_xaxis = vector::cross(new_yaxis, dir);
+        auto new_xaxis = vector::cross(new_yaxis, dir);
+        new_xaxis = vector::normalize(new_xaxis);
 
         // z axis
         const auto new_zaxis = vector::cross(new_xaxis, new_yaxis);
 
-        matrix_actor().set_block<3, 1>(rot, new_xaxis, 0, 0);
-        matrix_actor().set_block<3, 1>(rot, new_yaxis, 0, 1);
-        matrix_actor().set_block<3, 1>(rot, new_zaxis, 0, 2);
+        printf("new xaxis: %f %f %f \n", new_xaxis[0], new_xaxis[1],
+               new_xaxis[2]);
+
+        printf("new yaxis: %f %f %f \n",
+               matrix_actor().element(new_yaxis, 0, 0),
+               matrix_actor().element(new_yaxis, 1, 0),
+               matrix_actor().element(new_yaxis, 2, 0));
+
+        printf("new zaxis: %f %f %f \n", new_zaxis[0], new_zaxis[1],
+               new_zaxis[2]);
+
+        matrix_actor().element(rot, 0, 0) = new_xaxis[0];
+        matrix_actor().element(rot, 1, 0) = new_xaxis[1];
+        matrix_actor().element(rot, 2, 0) = new_xaxis[2];
+        matrix_actor().template set_block<3, 1>(rot, new_yaxis, 0, 1);
+        matrix_actor().element(rot, 0, 2) = new_zaxis[0];
+        matrix_actor().element(rot, 1, 2) = new_zaxis[1];
+        matrix_actor().element(rot, 2, 2) = new_zaxis[2];
 
         return rot;
     }
@@ -171,13 +188,19 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         const auto frame = reference_frame(trf3, mask, pos, dir);
 
         // new x_axis
-        const auto new_xaxis = matrix_actor().template block<3, 1>(frame, 0, 0);
+        // const auto new_xaxis = matrix_actor().template block<3, 1>(frame, 0,
+        // 0);
+        const auto new_xaxis = getter::vector<3>(frame, 0, 0);
 
         // new y_axis
-        const auto new_yaxis = matrix_actor().template block<3, 1>(frame, 0, 1);
+        // const auto new_yaxis = matrix_actor().template block<3, 1>(frame, 0,
+        // 1);
+        const auto new_yaxis = getter::vector<3>(frame, 0, 1);
 
         // new z_axis
-        const auto new_zaxis = matrix_actor().template block<3, 1>(frame, 0, 2);
+        // const auto new_zaxis = matrix_actor().template block<3, 1>(frame, 0,
+        // 2);
+        const auto new_zaxis = getter::vector<3>(frame, 0, 2);
 
         // the projection of direction onto ref frame normal
         scalar_type ipdn = 1. / vector::dot(dir, new_zaxis);
@@ -196,24 +219,126 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         // build the cross product of d(D)/d(eBoundPhi) components with y axis
         auto y_cross_dNdTheta = vector::cross(new_yaxis, dNdTheta);
 
+        const scalar_type C = ipdn * local2[0];
         // and correct for the x axis components
-        auto phi_to_free_pos_derivative =
+        vector3 phi_to_free_pos_derivative =
             y_cross_dNdPhi - new_xaxis * vector::dot(new_xaxis, y_cross_dNdPhi);
-        phi_to_free_pos_derivative *= ipdn * local2[0];
 
-        auto theta_to_free_pos_derivative =
+        phi_to_free_pos_derivative = C * phi_to_free_pos_derivative;
+
+        vector3 theta_to_free_pos_derivative =
             y_cross_dNdTheta -
             new_xaxis * vector::dot(new_xaxis, y_cross_dNdTheta);
-        theta_to_free_pos_derivative *= ipdn * local2[0];
+
+        printf("y_cross_dNdTheta: %f %f %f \n", y_cross_dNdTheta[0],
+               y_cross_dNdTheta[1], y_cross_dNdTheta[2]);
+
+        theta_to_free_pos_derivative = C * theta_to_free_pos_derivative;
 
         // Set the jacobian components
-        matrix_actor().set_block<3, 1>(bound_to_free_jacobian,
-                                       phi_to_free_pos_derivative, e_free_pos0,
-                                       e_bound_phi);
+        matrix_actor().element(bound_to_free_jacobian, e_free_pos0,
+                               e_bound_phi) = phi_to_free_pos_derivative[0];
+        matrix_actor().element(bound_to_free_jacobian, e_free_pos1,
+                               e_bound_phi) = phi_to_free_pos_derivative[1];
+        matrix_actor().element(bound_to_free_jacobian, e_free_pos2,
+                               e_bound_phi) = phi_to_free_pos_derivative[2];
+        matrix_actor().element(bound_to_free_jacobian, e_free_pos0,
+                               e_bound_theta) = theta_to_free_pos_derivative[0];
+        matrix_actor().element(bound_to_free_jacobian, e_free_pos1,
+                               e_bound_theta) = theta_to_free_pos_derivative[1];
+        matrix_actor().element(bound_to_free_jacobian, e_free_pos2,
+                               e_bound_theta) = theta_to_free_pos_derivative[2];
+    }
 
-        matrix_actor().set_block<3, 1>(bound_to_free_jacobian,
-                                       theta_to_free_pos_derivative,
-                                       e_free_pos0, e_bound_theta);
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline void set_free_dir_to_bound_pos_derivative(
+        free_to_bound_matrix &free_to_bound_jacobian, const transform3_t &trf3,
+        const mask_t & /*mask*/, const point3 &pos, const vector3 &dir) const {
+
+        // Position in matrix
+        matrix_type<3, 1> P;
+        matrix_actor().element(P, 0, 0) = pos[0];
+        matrix_actor().element(P, 1, 0) = pos[1];
+        matrix_actor().element(P, 2, 0) = pos[2];
+
+        // Direction in matrix
+        matrix_type<3, 1> d;
+        matrix_actor().element(d, 0, 0) = dir[0];
+        matrix_actor().element(d, 1, 0) = dir[1];
+        matrix_actor().element(d, 2, 0) = dir[2];
+
+        printf("dir %f %f %f \n", dir[0], dir[1], dir[2]);
+
+        // line direction
+        const matrix_type<3, 1> w =
+            matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
+
+        // line center
+        const matrix_type<3, 1> T =
+            matrix_actor().template block<3, 1>(trf3.matrix(), 0, 3);
+
+        // Projection of line to track direction
+        const scalar wd = vector::dot(w, d);
+
+        const scalar_type denom = scalar_type{1.} - (wd * wd);
+
+        // vector from track position to line center
+        const matrix_type<3, 1> trk_to_line = T - P;
+
+        printf("T %f %f %f \n", matrix_actor().element(T, 0, 0),
+               matrix_actor().element(T, 1, 0),
+               matrix_actor().element(T, 2, 0));
+
+        printf("P %f %f %f \n", matrix_actor().element(P, 0, 0),
+               matrix_actor().element(P, 1, 0),
+               matrix_actor().element(P, 2, 0));
+
+        printf("w %f %f %f \n", matrix_actor().element(w, 0, 0),
+               matrix_actor().element(w, 1, 0),
+               matrix_actor().element(w, 2, 0));
+
+        printf("wd %f \n", wd);
+
+        printf("trk_to_line %f %f %f \n",
+               matrix_actor().element(trk_to_line, 0, 0),
+               matrix_actor().element(trk_to_line, 1, 0),
+               matrix_actor().element(trk_to_line, 2, 0));
+
+        // track to line projection on line direction
+        const scalar_type trk_to_line_proj_on_line =
+            vector::dot(trk_to_line, w);
+
+        // track to line projection on track direction
+        const scalar_type trk_to_line_proj_on_dir = vector::dot(trk_to_line, d);
+
+        // dA/d(n_x,n_y,n_z)
+
+        // d(n_x,n_y,n_z)/d(n_x,n_y,n_z)
+        matrix_type<3, 3> dndn = matrix_actor().template identity<3, 3>();
+        matrix_actor().element(dndn, 0, 1) = -dir[1] / dir[0];
+        matrix_actor().element(dndn, 0, 2) = -dir[2] / dir[0];
+        matrix_actor().element(dndn, 1, 0) = -dir[0] / dir[1];
+        matrix_actor().element(dndn, 1, 2) = -dir[2] / dir[1];
+        matrix_actor().element(dndn, 2, 0) = -dir[0] / dir[2];
+        matrix_actor().element(dndn, 2, 1) = -dir[1] / dir[2];
+
+        matrix_type<3, 3> dndn_T = matrix_actor().transpose(dndn);
+
+        matrix_type<3, 1> Q =
+            1. / denom * (trk_to_line - trk_to_line_proj_on_line * w);
+
+        // dA/d(n_x,n_y,n_z)
+        const matrix_type<3, 1> dBdn = wd * dndn_T * Q;
+
+        matrix_actor().element(free_to_bound_jacobian, e_bound_loc1,
+                               e_free_dir0) =
+            matrix_actor().element(dBdn, 0, 0);
+        matrix_actor().element(free_to_bound_jacobian, e_bound_loc1,
+                               e_free_dir1) =
+            matrix_actor().element(dBdn, 1, 0);
+        matrix_actor().element(free_to_bound_jacobian, e_bound_loc1,
+                               e_free_dir2) =
+            matrix_actor().element(dBdn, 2, 0);
     }
 };
 

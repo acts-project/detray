@@ -193,6 +193,12 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const point3 & /*pos*/, const vector3 & /*dir*/) const {
         // Do nothing
     }
+
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline void set_free_dir_to_bound_pos_derivative(
+        free_to_bound_matrix & /*free_to_bound_jacobian*/,
+        const transform3_t & /*trf3*/, const mask_t & /*mask*/,
+        const point3 & /*pos*/, const vector3 & /*dir*/) const {}
 };
 
 }  // namespace detray

@@ -206,6 +206,10 @@ struct coordinate_base {
         // Set d(Free Qop)/d(Bound Qop)
         matrix_actor().element(jac_to_local, e_bound_qoverp, e_free_qoverp) = 1;
 
+        // Set d(loc0, loc1)/d(n_x, n_y, n_z)
+        Derived<transform3_t>().set_free_dir_to_bound_pos_derivative(
+            jac_to_local, trf3, mask, pos, dir);
+
         return jac_to_local;
     }
 
