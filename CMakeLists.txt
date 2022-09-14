@@ -105,7 +105,6 @@ if( DETRAY_SETUP_ACTSVG )
    endif()
 endif()
 
-
 # Set up dfelibs.
 option( DETRAY_SETUP_DFELIBS
    "Set up the dfelibs target(s) explicitly" TRUE )
@@ -132,13 +131,13 @@ if( DETRAY_SETUP_THRUST )
    else()
       add_subdirectory( extern/thrust )
    endif()
-   # Set up an IMPORTED library on top of the Thrust library/libraries. One that
-   # the Detray code could depend on publicly.
-   set( DETRAY_THRUST_OPTIONS "" CACHE STRING
-      "Extra options for configuring how Thrust should be used" )
-   mark_as_advanced( DETRAY_THRUST_OPTIONS )
-   thrust_create_target( detray::Thrust ${DETRAY_THRUST_OPTIONS} )
 endif()
+# Set up an IMPORTED library on top of the Thrust library/libraries. One that
+# the Detray code could depend on publicly.
+set( DETRAY_THRUST_OPTIONS "" CACHE STRING
+   "Extra options for configuring how Thrust should be used" )
+mark_as_advanced( DETRAY_THRUST_OPTIONS )
+thrust_create_target( detray::Thrust ${DETRAY_THRUST_OPTIONS} )
 
 # Set up GoogleTest.
 option( DETRAY_SETUP_GOOGLETEST
