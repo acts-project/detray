@@ -217,21 +217,23 @@ struct coordinate_base {
         free_matrix path_correction =
             matrix_actor().template zero<e_free_size, e_free_size>();
 
-        using helix = detail::helix<transform3_t>;
-
         // Position and direction
         const auto pos = stepping().pos();
         const auto dir = stepping().dir();
 
         // dir
         matrix_type<1, 3> t;
-        matrix_actor().set_block(t, dir, 0, 0);
+        matrix_actor().element(t, 0, 0) = dir[0];
+        matrix_actor().element(t, 0, 1) = dir[1];
+        matrix_actor().element(t, 0, 2) = dir[2];
 
         // Surface normal vector (w)
         matrix_type<1, 3> w;
         const auto normal =
             Derived<transform3_t>().normal(trf3, mask, pos, dir);
-        matrix_actor().set_block(w, normal, 0, 0);
+        matrix_actor().element(w, 0, 0) = normal[0];
+        matrix_actor().element(w, 0, 1) = normal[1];
+        matrix_actor().element(w, 0, 2) = normal[2];
 
         // w dot t
         const scalar_type wt = vector::dot(normal, dir);
@@ -249,6 +251,7 @@ struct coordinate_base {
                                                 e_free_pos0, e_free_pos0);
 
         if constexpr (stepper_state_t::id == stepping::id::e_rk) {
+            using helix = detail::helix<transform3_t>;
 
             // Path length
             const auto s = stepping._s;

@@ -247,4 +247,13 @@ TEST(covariance_transport, linear_stepper_cartesian) {
                         matrix_operator().element(bound_cov1, i, j), epsilon);
         }
     }
+
+    // Check covaraince
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+
+            EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
+                        matrix_operator().element(bound_cov1, i, j), epsilon);
+        }
+    }
 }
