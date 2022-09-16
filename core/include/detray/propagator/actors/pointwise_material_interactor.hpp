@@ -12,7 +12,13 @@
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 
+// System include(s).
+#include <random>
+
 namespace detray {
+
+// Temporary definition for debugging purpose
+enum class interactor_mode : int { e_tracking = 0, e_simulation = 1 };
 
 template <typename matrix_operator>
 struct pointwise_material_interactor : actor {
@@ -43,6 +49,8 @@ struct pointwise_material_interactor : actor {
         bool do_covariance_transport = true;
         bool do_energy_loss = true;
         bool do_multiple_scattering = true;
+
+        interactor_mode mode = interactor_mode::e_tracking;
 
         DETRAY_HOST_DEVICE
         void reset() {
@@ -250,6 +258,11 @@ struct pointwise_material_interactor : actor {
 
         matrix_operator().template set_block<2, 2>(covariance, new_cov_bound,
                                                    e_bound_phi, e_bound_phi);
+
+        // Update scattering angle value for simulation
+        if (s.mode == interactor_mode::e_simulation) {
+            std::normal_distribution<> theta_dist{0, s.scattering_angle};
+        }
     }
 };
 

@@ -13,7 +13,7 @@
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/navigation_policies.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/column_wise_operator.hpp"
+#include "detray/utils/matrix_helper.hpp"
 
 namespace detray {
 
@@ -38,7 +38,7 @@ class rk_stepper final
     using vector3 = typename transform3_type::vector3;
     using context_type = typename magnetic_field_t::context_type;
     using matrix_operator = typename base_type::matrix_operator;
-    using column_wise_op = column_wise_operator<matrix_operator>;
+    using mat_helper = matrix_helper<matrix_operator>;
 
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;

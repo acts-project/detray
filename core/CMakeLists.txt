@@ -103,9 +103,10 @@ detray_add_library( detray_core core
    "include/detray/tracks/free_track_parameters.hpp"
    "include/detray/tracks/tracks.hpp"
    # utils include(s)
-   "include/detray/utils/column_wise_operator.hpp"
+   "include/detray/utils/axis_rotation.hpp"
    "include/detray/utils/enumerate.hpp"
    "include/detray/utils/invalid_values.hpp"
+   "include/detray/utils/matrix_helper.hpp"
    "include/detray/utils/quadratic_equation.hpp"
    "include/detray/utils/ratio.hpp"
    "include/detray/utils/type_traits.hpp" )

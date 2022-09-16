@@ -207,7 +207,7 @@ INSTANTIATE_TEST_SUITE_P(
                                       10. * unit_constants::GeV, 0.525, 0.13)));
 
 // Material interaction test with telescope Geometry
-TEST(material_interaction, telescope_geometry) {
+TEST(material_interaction, telescope_geometry_energy_loss) {
 
     vecmem::host_memory_resource host_mr;
 
@@ -329,4 +329,10 @@ TEST(material_interaction, telescope_geometry) {
     EXPECT_NEAR(new_var_qop, dvar_qop, 1e-10);
 
     // @todo: Validate the backward direction case as well?
+}
+
+// Material interaction test with telescope Geometry
+TEST(material_interaction, telescope_geometry_scattering_angle) {
+    // interactor_mode mode = interactor_mode::e_simulation;
+    // bool cov_trans
 }
