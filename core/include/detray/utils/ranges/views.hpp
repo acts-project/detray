@@ -6,12 +6,13 @@
  */
 #pragma once
 
+#include "detray/utils/ranges/enumerate.hpp"
 #include "detray/utils/ranges/iota.hpp"
 
 namespace detray::views {
 
 /// Shorthand to test a type for being iterable.
-template<class T> 
+template <class T>
 using iota = detray::ranges::iota_view<T>;
 
-}  // namespace detray::ranges
+}  // namespace detray::views

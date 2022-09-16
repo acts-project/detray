@@ -6,7 +6,6 @@
  */
 #pragma once
 
-#include <iterator>
 #include <type_traits>
 
 #include "detray/definitions/detail/accessor.hpp"
@@ -64,12 +63,14 @@ struct iota_view : public detray::ranges::view_interface<
     constexpr auto begin() const -> iterator_type { return m_start; }
 
     /// @return sentinel of a sequence.
-    DETRAY_HOST_DEVICE constexpr auto end() const -> sentinel_type {
-        return m_end;
-    }
+    DETRAY_HOST_DEVICE
+    constexpr auto end() const -> sentinel_type { return m_end; }
+
+    /// @note Cannot peak at the end of input-iterator based range
+    constexpr typename std::iterator_traits<iterator_type>::value_type
+    back() noexcept = delete;
 
     /// Start and end position of the subrange
-    // TODO: std::conditional for array size
     iterator_type m_start;
     sentinel_type m_end;
 };

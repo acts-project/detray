@@ -16,7 +16,7 @@
 
 using namespace detray;
 
-// This tests the convenience range_enumeration function: single
+// This tests the generation of a single element sequence
 TEST(utils, views_iota_single) {
 
     dindex check = 0;
@@ -28,7 +28,6 @@ TEST(utils, views_iota_single) {
     ASSERT_EQ(seq[1], single + 1);
     ASSERT_EQ(seq.size(), 1UL);
     ASSERT_EQ(seq.front(), 7UL);
-    ASSERT_EQ(seq.back(), 7UL);
 
     for (auto i : detray::ranges::iota_view(single)) {
         check += i;
@@ -36,29 +35,28 @@ TEST(utils, views_iota_single) {
     ASSERT_EQ(check, single);
 }
 
-// This tests the convenience range_enumeration function: range
+// This tests the generation of a sequence in an interval
 TEST(utils, views_iota_interval) {
 
-    darray<dindex, 2> range = {2, 7};
+    darray<dindex, 2> interval = {2, 7};
 
     // general tests
-    auto seq = detray::ranges::iota_view(range);
+    auto seq = detray::ranges::iota_view(interval);
     ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
     ASSERT_EQ(seq[1], 3UL);
     ASSERT_EQ(seq.size(), 5UL);
     ASSERT_EQ(seq.front(), 2UL);
-    ASSERT_EQ(seq.back(), 6UL);
 
     std::vector<dindex> reference = {2, 3, 4, 5, 6};
     std::vector<dindex> check = {};
-    for (auto i : detray::ranges::iota_view(range)) {
+    for (auto i : detray::ranges::iota_view(interval)) {
         check.push_back(i);
     }
     ASSERT_EQ(check, reference);
 }
 
 // This tests the convenience enumeration function
-/*TEST(utils, enumerate) {
+TEST(utils, ranges_enumerate) {
 
     struct uint_holder {
         unsigned int ui = 0;
@@ -66,10 +64,18 @@ TEST(utils, views_iota_interval) {
 
     dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}};
 
-    for (auto [i, v] : enumerate(seq)) {
+    // general tests
+    auto enumerator = detray::ranges::enumerate_view(seq);
+    ASSERT_TRUE(detray::ranges::range<decltype(enumerator)>::value);
+    ASSERT_EQ(enumerator.size(), 6UL);
+    const auto [i_front, v_front] = enumerator.front();
+    ASSERT_EQ(i_front, 0u);
+    ASSERT_EQ(v_front.ui, 0u);
+
+    for (auto [i, v] : detray::ranges::enumerate_view(seq)) {
         ASSERT_EQ(i, v.ui);
     }
-}*/
+}
 
 // Test the subrange implementation
 TEST(utils, ranges_subrange) {
