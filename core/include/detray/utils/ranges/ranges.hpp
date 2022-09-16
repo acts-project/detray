@@ -9,6 +9,7 @@
 #include <cassert>
 #include <type_traits>
 
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/detail/iterable.hpp"
 #include "detray/utils/ranges/detail/iterator_traits.hpp"
