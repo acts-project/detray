@@ -11,8 +11,7 @@
 #include "tests/common/test_defs.hpp"
 
 // detray core
-#include "detray/utils/ranges/subrange.hpp"
-#include "detray/utils/ranges/views.hpp"
+#include "detray/utils/ranges.hpp"
 
 using namespace detray;
 
@@ -23,13 +22,13 @@ TEST(utils, views_iota_single) {
     dindex single = 7;
 
     // general tests
-    auto seq = detray::ranges::iota_view(single);
+    auto seq = detray::views::iota(single);
     ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
     ASSERT_EQ(seq[1], single + 1);
     ASSERT_EQ(seq.size(), 1UL);
     ASSERT_EQ(seq.front(), 7UL);
 
-    for (auto i : detray::ranges::iota_view(single)) {
+    for (auto i : detray::views::iota(single)) {
         check += i;
     }
     ASSERT_EQ(check, single);
@@ -41,7 +40,7 @@ TEST(utils, views_iota_interval) {
     darray<dindex, 2> interval = {2, 7};
 
     // general tests
-    auto seq = detray::ranges::iota_view(interval);
+    auto seq = detray::views::iota(interval);
     ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
     ASSERT_EQ(seq[1], 3UL);
     ASSERT_EQ(seq.size(), 5UL);
@@ -49,7 +48,7 @@ TEST(utils, views_iota_interval) {
 
     std::vector<dindex> reference = {2, 3, 4, 5, 6};
     std::vector<dindex> check = {};
-    for (auto i : detray::ranges::iota_view(interval)) {
+    for (auto i : detray::views::iota(interval)) {
         check.push_back(i);
     }
     ASSERT_EQ(check, reference);
@@ -65,14 +64,14 @@ TEST(utils, ranges_enumerate) {
     dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}};
 
     // general tests
-    auto enumerator = detray::ranges::enumerate_view(seq);
+    auto enumerator = detray::views::enumerate(seq);
     ASSERT_TRUE(detray::ranges::range<decltype(enumerator)>::value);
     ASSERT_EQ(enumerator.size(), 6UL);
     const auto [i_front, v_front] = enumerator.front();
     ASSERT_EQ(i_front, 0u);
     ASSERT_EQ(v_front.ui, 0u);
 
-    for (auto [i, v] : detray::ranges::enumerate_view(seq)) {
+    for (auto [i, v] : detray::views::enumerate(seq)) {
         ASSERT_EQ(i, v.ui);
     }
 }
@@ -87,7 +86,7 @@ TEST(utils, ranges_subrange) {
     dvector<int> seq = {0, 1, 2, 3, 4, 5};
 
     // general tests
-    auto sr = detray::ranges::subrange_view(seq, interval);
+    auto sr = detray::views::subrange(seq, interval);
 
     ASSERT_TRUE(detray::ranges::range<decltype(sr)>::value);
     ASSERT_EQ(sr[1], seq[begin + 1]);
@@ -97,7 +96,7 @@ TEST(utils, ranges_subrange) {
 
     // non-const iteration
     std::size_t i = 1;
-    for (const auto &v : detray::ranges::subrange_view(seq, interval)) {
+    for (const auto &v : detray::views::subrange(seq, interval)) {
         ASSERT_NE(v, 4);
         ASSERT_EQ(v, seq[i++]);
     }
@@ -105,7 +104,7 @@ TEST(utils, ranges_subrange) {
     // const iteration
     const dvector<int> seq_c(seq);
     i = 1;
-    for (const auto &v : detray::ranges::subrange_view(seq_c, interval)) {
+    for (const auto &v : detray::views::subrange(seq_c, interval)) {
         ASSERT_EQ(v, seq[i++]);
     }
 }
@@ -123,8 +122,8 @@ TEST(utils, ranges_enumerated_subrange) {
     std::size_t end = 4;
     std::array<std::size_t, 2> interval{begin, end};
 
-    for (const auto [i, v] : detray::ranges::enumerate_view(
-             detray::ranges::subrange_view(seq, interval))) {
+    for (const auto [i, v] :
+         detray::views::enumerate(detray::views::subrange(seq, interval))) {
         ASSERT_EQ(i, v.ui - 1);
     }
 }

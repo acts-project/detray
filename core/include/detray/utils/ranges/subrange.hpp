@@ -12,9 +12,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
-namespace detray {
-
-namespace ranges {
+namespace detray::ranges {
 
 /// @brief Implements a subrange by providing start and end iterators on
 /// another range.
@@ -81,10 +79,9 @@ struct subrange_view : public ranges::view_interface<subrange_view<range_t>> {
     ///
     /// @param start container to iterate over
     /// @param end start and end position for iteration
-    template <typename deduced_range_t>
-    DETRAY_HOST_DEVICE subrange_view(
-        typename detray::ranges::iterator_t<deduced_range_t> &&start,
-        typename detray::ranges::iterator_t<deduced_range_t> &&end)
+    DETRAY_HOST_DEVICE constexpr subrange_view(
+        typename detray::ranges::iterator_t<range_t> &&start,
+        typename detray::ranges::iterator_t<range_t> &&end)
         : m_start{start}, m_end{end} {}
 
     /// @return start position of range.
@@ -103,34 +100,78 @@ struct subrange_view : public ranges::view_interface<subrange_view<range_t>> {
     iterator_t m_start, m_end;
 };
 
+namespace views {
+
+/// @brief interface type to construct a @c subrange_view with CTAD
+template <typename range_t>
+struct subrange : public ranges::subrange_view<range_t> {
+
+    using base_type = ranges::subrange_view<range_t>;
+    using iterator_t = typename base_type::iterator_t;
+    using const_iterator_t = typename base_type::const_iterator_t;
+    using range_size_t = typename base_type::range_size_t;
+
+    constexpr subrange() = default;
+
+    template <typename deduced_range_t>
+    DETRAY_HOST_DEVICE constexpr explicit subrange(deduced_range_t &&range)
+        : base_type(std::forward<deduced_range_t>(range)) {}
+
+    template <typename deduced_range_t>
+    DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
+                                          range_size_t pos)
+        : base_type(std::forward<deduced_range_t>(range), pos) {}
+
+    template <typename deduced_range_t, typename index_range_t>
+    DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
+                                          index_range_t &&pos)
+        : base_type(std::forward<deduced_range_t>(range),
+                    std::forward<index_range_t>(pos)) {}
+
+    template <typename deduced_range_t, typename volume_t,
+              std::enable_if_t<std::is_same_v<volume_t::volume_def, volume_t>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
+                                          volume_t &&vol)
+        : base_type(std::forward<deduced_range_t>(range),
+                    std::forward<volume_t>(vol)) {}
+
+    DETRAY_HOST_DEVICE constexpr subrange(
+        typename detray::ranges::iterator_t<range_t> &&start,
+        typename detray::ranges::iterator_t<range_t> &&end)
+        : base_type(
+              std::forward<typename detray::ranges::iterator_t<range_t>>(start),
+              std::forward<typename detray::ranges::iterator_t<range_t>>(end)) {
+    }
+};
+
 // deduction guides
 
 template <typename deduced_range_t>
-DETRAY_HOST_DEVICE subrange_view(deduced_range_t &&range)
-    ->subrange_view<deduced_range_t>;
+DETRAY_HOST_DEVICE subrange(deduced_range_t &&range)->subrange<deduced_range_t>;
 
 template <typename deduced_range_t>
-DETRAY_HOST_DEVICE subrange_view(
+DETRAY_HOST_DEVICE subrange(
     deduced_range_t &&range,
     typename detray::ranges::range_size_t<deduced_range_t> pos)
-    ->subrange_view<deduced_range_t>;
+    ->subrange<deduced_range_t>;
 
 template <typename deduced_range_t, typename index_range_t>
-DETRAY_HOST_DEVICE subrange_view(deduced_range_t &&range, index_range_t &&pos)
-    ->subrange_view<deduced_range_t>;
+DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_range_t &&pos)
+    ->subrange<deduced_range_t>;
 
 template <typename deduced_range_t, typename volume_t,
           std::enable_if_t<std::is_same_v<volume_t::volume_def, volume_t>,
                            bool> = true>
-DETRAY_HOST_DEVICE subrange_view(deduced_range_t &&range, volume_t &&vol)
-    ->subrange_view<deduced_range_t>;
+DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, volume_t &&vol)
+    ->subrange<deduced_range_t>;
 
 template <typename deduced_range_t>
-DETRAY_HOST_DEVICE subrange_view(
+DETRAY_HOST_DEVICE subrange(
     typename detray::ranges::iterator_t<deduced_range_t> &&start,
     typename detray::ranges::iterator_t<deduced_range_t> &&end)
-    ->subrange_view<deduced_range_t>;
+    ->subrange<deduced_range_t>;
 
-}  // namespace ranges
+}  // namespace views
 
-}  // namespace detray
+}  // namespace detray::ranges
