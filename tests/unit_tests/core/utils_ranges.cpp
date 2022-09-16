@@ -109,3 +109,22 @@ TEST(utils, ranges_subrange) {
         ASSERT_EQ(v, seq[i++]);
     }
 }
+
+// Integration test for enumeration of a subrange
+TEST(utils, ranges_enumerated_subrange) {
+
+    struct uint_holder {
+        unsigned int ui = 0;
+    };
+
+    dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}};
+
+    std::size_t begin = 1;
+    std::size_t end = 4;
+    std::array<std::size_t, 2> interval{begin, end};
+
+    for (const auto [i, v] : detray::ranges::enumerate_view(
+             detray::ranges::subrange_view(seq, interval))) {
+        ASSERT_EQ(i, v.ui - 1);
+    }
+}
