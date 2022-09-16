@@ -8,7 +8,7 @@
 
 #include "detray/utils/ranges/enumerate.hpp"
 #include "detray/utils/ranges/iota.hpp"
-#include "detray/utils/ranges/ranges.hpp"
+#include "detray/utils/ranges/single.hpp"
 #include "detray/utils/ranges/subrange.hpp"
 
 namespace detray::views {

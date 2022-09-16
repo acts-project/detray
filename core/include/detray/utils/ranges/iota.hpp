@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/detail/iota_iterator.hpp"
+#include "detray/utils/ranges/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
 
 namespace detray::ranges {
@@ -106,6 +107,7 @@ struct iota : public detray::ranges::iota_view<incrementable_t> {
     DETRAY_HOST_DEVICE constexpr explicit iota(deduced_incr_t &&start)
         : base_type(std::forward<deduced_incr_t>(start)) {}
 };
+
 // deduction guides
 
 template <typename deduced_interval_t,
@@ -124,6 +126,7 @@ template <typename deduced_incr_t,
                            bool> = true>
 DETRAY_HOST_DEVICE iota(deduced_incr_t &&start)
     ->iota<std::remove_reference_t<deduced_incr_t>>;
+
 }  // namespace views
 
 }  // namespace detray::ranges

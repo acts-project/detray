@@ -11,6 +11,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/detail/enumerate_iterator.hpp"
+#include "detray/utils/ranges/ranges.hpp"
 
 namespace detray::ranges {
 
