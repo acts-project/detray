@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/matrix_helper.hpp"
@@ -35,8 +37,8 @@ struct axis_rotation {
             (1 - cos_theta) * axis_outer;
     }
 
-    template <typename vector_t>
-    DETRAY_HOST_DEVICE vector_t operator()(const vector_t& v) {
+    template <typename vector3_t>
+    DETRAY_HOST_DEVICE vector3_t operator()(const vector3_t& v) {
         return R * v;
     }
 

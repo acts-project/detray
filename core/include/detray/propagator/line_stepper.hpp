@@ -26,12 +26,12 @@ class line_stepper final
 
     public:
     using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
+    using transform3_type = transform3_t;
     using policy_type = policy_t;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
-    using transform3_type = transform3_t;
     using matrix_operator = typename base_type::matrix_operator;
     // Matrix size type
     using size_type = typename matrix_operator::size_ty;

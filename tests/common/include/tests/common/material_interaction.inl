@@ -18,6 +18,7 @@
 #include "detray/propagator/actors/bound_to_bound_updater.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/actors/resetter.hpp"
+#include "detray/propagator/actors/scattering_simulator.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -232,7 +233,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     using constraints_t = constrained_step<>;
     using policy_t = stepper_default_policy;
     using stepper_t = line_stepper<transform3, constraints_t, policy_t>;
-    using interactor_t = pointwise_material_interactor<matrix_operator>;
+    using interactor_t = pointwise_material_interactor<transform3>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
                     bound_to_bound_updater<transform3>, interactor_t,
@@ -331,8 +332,119 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     // @todo: Validate the backward direction case as well?
 }
 
+scalar get_variance(const std::vector<scalar>& v) {
+    scalar sum = std::accumulate(v.begin(), v.end(), 0.0);
+    scalar mean = sum / v.size();
+    std::vector<double> diff(v.size());
+    std::transform(v.begin(), v.end(), diff.begin(),
+                   [mean](double x) { return x - mean; });
+    scalar sq_sum =
+        std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+    scalar variance = sq_sum / v.size();
+    return variance;
+};
+
 // Material interaction test with telescope Geometry
 TEST(material_interaction, telescope_geometry_scattering_angle) {
-    // interactor_mode mode = interactor_mode::e_simulation;
-    // bool cov_trans
+    vecmem::host_memory_resource host_mr;
+
+    using ln_stepper_t = line_stepper<transform3>;
+
+    typename ln_stepper_t::free_track_parameters_type default_trk{
+        {0, 0, 0}, 0, {1, 0, 0}, -1};
+
+    // Build from given module positions
+    std::vector<scalar> positions = {0., 1000. * unit_constants::cm};
+
+    const auto mat = silicon_tml<scalar>();
+    const scalar thickness = 500 * unit_constants::cm;
+    // Use rectangular surfaces
+    constexpr bool unbounded = true;
+
+    const auto det = create_telescope_detector<unbounded>(
+        host_mr, positions, ln_stepper_t(),
+        typename ln_stepper_t::state{default_trk}, 2000. * unit_constants::mm,
+        2000. * unit_constants::mm, mat, thickness);
+
+    using navigator_t = navigator<decltype(det)>;
+    using constraints_t = constrained_step<>;
+    using policy_t = stepper_default_policy;
+    using stepper_t = line_stepper<transform3, constraints_t, policy_t>;
+    using interactor_t = pointwise_material_interactor<transform3>;
+    using simulator_t = scattering_simulator<interactor_t>;
+    using actor_chain_t =
+        actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
+                    bound_to_bound_updater<transform3>, interactor_t,
+                    simulator_t, resetter<transform3>>;
+    using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
+
+    // Propagator is built from the stepper and navigator
+    propagator_t p({}, {});
+
+    const scalar q = -1.;
+    const scalar iniP = 10 * unit_constants::GeV;
+
+    typename bound_track_parameters<transform3>::vector_type bound_vector;
+    getter::element(bound_vector, e_bound_loc0, 0) = 0.;
+    getter::element(bound_vector, e_bound_loc1, 0) = 0.;
+    getter::element(bound_vector, e_bound_phi, 0) = 0;
+    getter::element(bound_vector, e_bound_theta, 0) = M_PI_2;
+    getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
+    getter::element(bound_vector, e_bound_time, 0) = 0.;
+    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+        matrix_operator().template zero<e_bound_size, e_bound_size>();
+
+    // bound track parameter
+    const bound_track_parameters<transform3> bound_param(0, bound_vector,
+                                                         bound_cov);
+
+    int n_samples = 100000;
+    std::vector<scalar> phi_vec;
+    std::vector<scalar> theta_vec;
+
+    scalar ref_phi_var;
+    scalar ref_theta_var;
+
+    for (int i = 0; i < n_samples; i++) {
+
+        propagation::print_inspector::state print_insp_state{};
+        pathlimit_aborter::state aborter_state{};
+        bound_to_bound_updater<transform3>::state bound_updater{};
+        interactor_t::state interactor_state{};
+        interactor_state.do_energy_loss = false;
+        simulator_t::state simulator_state(interactor_state);
+        resetter<transform3>::state resetter_state{};
+
+        // Create actor states tuples
+        actor_chain_t::state actor_states =
+            std::tie(print_insp_state, aborter_state, bound_updater,
+                     interactor_state, simulator_state, resetter_state);
+
+        propagator_t::state state(bound_param, det, actor_states);
+
+        state._stepping().set_overstep_tolerance(-1000. * unit_constants::um);
+
+        // Propagate the entire detector
+        ASSERT_TRUE(p.propagate(state))
+            << print_insp_state.to_string() << std::endl;
+
+        const auto& final_params = state._stepping._bound_params;
+
+        if (i == 0) {
+            const auto& covariance = final_params.covariance();
+            ref_phi_var =
+                matrix_operator().element(covariance, e_bound_phi, e_bound_phi);
+            ref_theta_var = matrix_operator().element(covariance, e_bound_theta,
+                                                      e_bound_theta);
+        }
+
+        phi_vec.push_back(final_params.phi());
+        theta_vec.push_back(final_params.theta());
+    }
+
+    scalar phi_var = get_variance(phi_vec);
+    scalar theta_var = get_variance(theta_vec);
+
+    EXPECT_NEAR((phi_var - ref_phi_var) / ref_phi_var, 0, 0.01);
+    EXPECT_NEAR((theta_var - ref_theta_var) / ref_theta_var, 0, 0.01);
 }

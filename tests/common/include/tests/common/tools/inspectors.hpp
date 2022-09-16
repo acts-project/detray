@@ -216,7 +216,8 @@ struct print_inspector : actor {
                            << navigation.current_object();
         }
 
-        printer.stream << "step_size: " << std::setw(10) << stepping._step_size;
+        printer.stream << "step_size: " << std::setw(10) << stepping._step_size
+                       << std::endl;
     }
 };
 

@@ -11,25 +11,21 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
-
-// System include(s).
-#include <random>
+#include "detray/utils/axis_rotation.hpp"
 
 namespace detray {
 
-// Temporary definition for debugging purpose
-enum class interactor_mode : int { e_tracking = 0, e_simulation = 1 };
-
-template <typename matrix_operator>
+template <typename transform3_t>
 struct pointwise_material_interactor : actor {
-
+    using transform3_type = transform3_t;
+    using matrix_operator = typename transform3_t::matrix_actor;
     using scalar_type = typename matrix_operator::scalar_type;
     using size_type = typename matrix_operator::size_ty;
-    // 2D matrix type
     template <size_type ROWS, size_type COLS>
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;
     using interaction_type = interaction<scalar_type>;
+    using vector3 = typename transform3_t::vector3;
 
     struct state {
         using vector3 = __plugin::vector3<scalar>;
@@ -49,8 +45,6 @@ struct pointwise_material_interactor : actor {
         bool do_covariance_transport = true;
         bool do_energy_loss = true;
         bool do_multiple_scattering = true;
-
-        interactor_mode mode = interactor_mode::e_tracking;
 
         DETRAY_HOST_DEVICE
         void reset() {
@@ -87,23 +81,20 @@ struct pointwise_material_interactor : actor {
                         is, mat, s.pdg, s.mass, qop, charge);
                 }
 
+                // @todo: include the radiative loss (Bremsstrahlung)
+                if (s.do_energy_loss && s.do_covariance_transport) {
+                    s.sigma_qop = interaction_type()
+                                      .compute_energy_loss_landau_sigma_QOverP(
+                                          is, mat, s.pdg, s.mass, qop, charge);
+                }
+
                 // Covariance update
-                if (s.do_covariance_transport) {
-                    if (s.do_multiple_scattering) {
-                        // @todo: use momentum before or after energy loss in
-                        // backward mode?
-                        s.scattering_angle =
-                            interaction_type()
-                                .compute_multiple_scattering_theta0(
-                                    is, mat, s.pdg, s.mass, qop, charge);
-                    }
-                    // @todo: include the radiative loss (Bremsstrahlung)
-                    if (s.do_energy_loss) {
-                        s.sigma_qop =
-                            interaction_type()
-                                .compute_energy_loss_landau_sigma_QOverP(
-                                    is, mat, s.pdg, s.mass, qop, charge);
-                    }
+                if (s.do_multiple_scattering) {
+                    // @todo: use momentum before or after energy loss in
+                    // backward mode?
+                    s.scattering_angle =
+                        interaction_type().compute_multiple_scattering_theta0(
+                            is, mat, s.pdg, s.mass, qop, charge);
                 }
             }
             return true;
@@ -146,122 +137,59 @@ struct pointwise_material_interactor : actor {
     DETRAY_HOST_DEVICE inline void update_qop(stepper_state_t &stepping,
                                               const state &s, int sign) const {
 
-        const auto &m = s.mass;
-        const scalar_type p = stepping().p();
-
-        // Get new Energy
-        const auto nextE =
-            std::sqrt(m * m + p * p) - std::copysign(s.e_loss, sign);
-
-        // put particle at rest if energy loss is too large
-        const auto nextP = (m < nextE) ? std::sqrt(nextE * nextE - m * m) : 0;
-
-        const auto new_qop = stepping().charge() != 0.
-                                 ? stepping().charge() / nextP
-                                 : 1. / nextP;
-
         // Update bound qop value
-        stepping._bound_params.set_qop(new_qop);
+        if (s.do_energy_loss) {
+            const auto &m = s.mass;
+            const scalar_type p = stepping().p();
 
-        // Update bound qop varaince
-        auto &covariance = stepping._bound_params.covariance();
+            // Get new Energy
+            const auto nextE =
+                std::sqrt(m * m + p * p) - std::copysign(s.e_loss, sign);
 
-        const scalar_type variance_qop = s.sigma_qop * s.sigma_qop;
+            // put particle at rest if energy loss is too large
+            const auto nextP =
+                (m < nextE) ? std::sqrt(nextE * nextE - m * m) : 0;
 
-        matrix_operator().element(covariance, e_bound_qoverp, e_bound_qoverp) +=
-            std::copysign(variance_qop, sign);
+            const auto new_qop = stepping().charge() != 0.
+                                     ? stepping().charge() / nextP
+                                     : 1. / nextP;
+
+            stepping._bound_params.set_qop(new_qop);
+
+            // Update bound qop varaince
+            if (s.do_covariance_transport) {
+                auto &covariance = stepping._bound_params.covariance();
+
+                const scalar_type variance_qop = s.sigma_qop * s.sigma_qop;
+
+                matrix_operator().element(covariance, e_bound_qoverp,
+                                          e_bound_qoverp) +=
+                    std::copysign(variance_qop, sign);
+            }
+        }
     }
 
     template <typename stepper_state_t>
     DETRAY_HOST_DEVICE inline void update_angle(stepper_state_t &stepping,
                                                 const state &s,
                                                 int sign) const {
-        auto &covariance = stepping._bound_params.covariance();
+        if (s.do_covariance_transport) {
 
-        // variance of scattering angle
-        const scalar_type var_scattering_angle =
-            s.scattering_angle * s.scattering_angle;
+            auto &covariance = stepping._bound_params.covariance();
 
-        matrix_type<2, 2> jac;
-        matrix_type<2, 2> jac_inv;
-        matrix_type<2, 2> update_matrix;
+            // variance of scattering angle
+            const scalar_type var_scattering_angle =
+                s.scattering_angle * s.scattering_angle;
 
-        const scalar_type phi = stepping._bound_params.phi();
-        const scalar_type theta = stepping._bound_params.theta();
+            const auto dir = stepping._bound_params.dir();
 
-        const scalar_type sin_phi = std::sin(phi);
-        const scalar_type cos_phi = std::cos(phi);
-        const scalar_type sin_theta = std::sin(theta);
-        const scalar_type cos_theta = std::cos(theta);
+            matrix_operator().element(covariance, e_bound_phi, e_bound_phi) +=
+                sign * var_scattering_angle /
+                (dir[0] * dir[0] + dir[1] * dir[1]);
 
-        const auto d = stepping._bound_params.dir();
-
-        // Based on Section 4.5.1.2 of DOI:10.1007/978-3-030-65771-0
-        // @note: (Beomki) Haven't understood why two cases are handled
-        // separately based on the value of phi
-        if (sin_phi < 1e-5) {
-
-            matrix_operator().element(jac, 0, 0) = sin_theta * cos_phi;
-            matrix_operator().element(jac, 0, 1) = 0;
-            matrix_operator().element(jac, 1, 0) = 0;
-            matrix_operator().element(jac, 1, 1) = -sin_theta;
-
-            matrix_operator().element(jac_inv, 0, 0) =
-                1. / matrix_operator().element(jac, 0, 0);
-            matrix_operator().element(jac_inv, 0, 1) = 0;
-            matrix_operator().element(jac_inv, 1, 0) = 0;
-            matrix_operator().element(jac_inv, 1, 1) =
-                1. / matrix_operator().element(jac, 1, 1);
-
-            matrix_operator().element(update_matrix, 0, 0) = 1 - d[1] * d[1];
-            matrix_operator().element(update_matrix, 0, 1) = -d[1] * d[2];
-            matrix_operator().element(update_matrix, 1, 0) = -d[1] * d[2];
-            matrix_operator().element(update_matrix, 1, 1) = 1 - d[2] * d[2];
-
-        } else {
-
-            matrix_operator().element(jac, 0, 0) = -sin_theta * sin_phi;
-            matrix_operator().element(jac, 0, 1) = cos_theta * cos_phi;
-            matrix_operator().element(jac, 1, 0) = 0;
-            matrix_operator().element(jac, 1, 1) = -sin_theta;
-
-            matrix_operator().element(jac_inv, 0, 0) =
-                1. / matrix_operator().element(jac, 0, 0);
-            matrix_operator().element(jac_inv, 0, 1) =
-                -cos_theta * cos_phi / (sin_theta * sin_theta * sin_phi);
-            matrix_operator().element(jac_inv, 1, 0) = 0;
-            matrix_operator().element(jac_inv, 1, 1) =
-                1. / matrix_operator().element(jac, 1, 1);
-
-            matrix_operator().element(update_matrix, 0, 0) = 1 - d[0] * d[0];
-            matrix_operator().element(update_matrix, 0, 1) = -d[0] * d[2];
-            matrix_operator().element(update_matrix, 1, 0) = -d[0] * d[2];
-            matrix_operator().element(update_matrix, 1, 1) = 1 - d[2] * d[2];
-        }
-
-        // Phi theta covariance matrix
-        const matrix_type<2, 2> cov_bound =
-            matrix_operator().template block<2, 2>(covariance, e_bound_phi,
-                                                   e_bound_phi);
-
-        // Transformation into free coordinate
-        const matrix_type<2, 2> cov_free =
-            jac * cov_bound * matrix_operator().transpose(jac);
-
-        // Update with scattering angle
-        const matrix_type<2, 2> new_cov_free =
-            cov_free + sign * var_scattering_angle * update_matrix;
-
-        // Transformation into bound coordinate
-        const matrix_type<2, 2> new_cov_bound =
-            jac_inv * new_cov_free * matrix_operator().transpose(jac_inv);
-
-        matrix_operator().template set_block<2, 2>(covariance, new_cov_bound,
-                                                   e_bound_phi, e_bound_phi);
-
-        // Update scattering angle value for simulation
-        if (s.mode == interactor_mode::e_simulation) {
-            std::normal_distribution<> theta_dist{0, s.scattering_angle};
+            matrix_operator().element(covariance, e_bound_theta,
+                                      e_bound_theta) +=
+                sign * var_scattering_angle;
         }
     }
 };

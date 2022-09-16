@@ -81,6 +81,7 @@ detray_add_library( detray_core core
    "include/detray/propagator/actors/bound_to_bound_updater.hpp"
    "include/detray/propagator/actors/pointwise_material_interactor.hpp"
    "include/detray/propagator/actors/resetter.hpp"
+   "include/detray/propagator/actors/scattering_simulator.hpp"
    "include/detray/propagator/actors/surface_targeter.hpp"
    "include/detray/propagator/actor_chain.hpp"
    "include/detray/propagator/base_actor.hpp"
