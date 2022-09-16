@@ -55,7 +55,6 @@ struct pointwise_material_interactor : actor {
     };
 
     struct kernel {
-        friend class pointwise_material_interactor;
 
         using output_type = bool;
         using scalar_type = typename interaction_type::scalar_type;
