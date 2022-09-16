@@ -134,7 +134,7 @@ struct view_interface : public base_view {
 
     DETRAY_HOST_DEVICE
     constexpr auto back() noexcept {
-        return *(detray::ranges::prev(m_impl_ptr->end()));
+        return *(m_impl_ptr->begin() + (size() - 1));
     }
 
     /// @return element at position i, relative to iterator range - const
