@@ -16,6 +16,24 @@
 using namespace detray;
 
 // This tests the generation of a single element sequence
+TEST(utils, views_single) {
+
+    dindex value{251UL};
+
+    // general tests
+    auto sngl = detray::views::single(value);
+    ASSERT_TRUE(detray::ranges::range<decltype(sngl)>::value);
+    ASSERT_EQ(sngl[0], value);
+    ASSERT_EQ(sngl.size(), 1UL);
+    ASSERT_EQ(sngl.front(), 251UL);
+    ASSERT_EQ(sngl.back(), 251UL);
+
+    for (auto i : detray::views::single(value)) {
+        ASSERT_EQ(251, i);
+    }
+}
+
+// This tests the generation of a single element sequence
 TEST(utils, views_iota_single) {
 
     dindex check = 0;
