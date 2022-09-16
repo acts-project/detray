@@ -342,7 +342,7 @@ scalar get_variance(const std::vector<scalar>& v) {
         std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
     scalar variance = sq_sum / v.size();
     return variance;
-};
+}
 
 // Material interaction test with telescope Geometry
 TEST(material_interaction, telescope_geometry_scattering_angle) {
