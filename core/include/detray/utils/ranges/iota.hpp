@@ -117,7 +117,7 @@ DETRAY_HOST_DEVICE iota(deduced_interval_t &&interval)
     ->iota<std::remove_reference_t<
         decltype(std::get<0>(std::declval<deduced_interval_t>()))>>;
 
-template <typename deduced_incr_t>
+template <typename deduced_incr_t = dindex>
 DETRAY_HOST_DEVICE iota(deduced_incr_t &&start, deduced_incr_t &&end)
     ->iota<std::remove_reference_t<deduced_incr_t>>;
 

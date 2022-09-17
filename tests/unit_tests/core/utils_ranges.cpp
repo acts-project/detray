@@ -15,8 +15,8 @@
 
 using namespace detray;
 
-// This tests the generation of a single element sequence
-TEST(utils, views_single) {
+// Unittest for the generation of a single element sequence
+TEST(utils, ranges_single) {
 
     dindex value{251UL};
 
@@ -33,8 +33,8 @@ TEST(utils, views_single) {
     }
 }
 
-// This tests the generation of a single element sequence
-TEST(utils, views_iota_single) {
+// Unittest for the generation of a single element sequence
+TEST(utils, ranges_iota_single) {
 
     dindex check = 0;
     dindex single = 7;
@@ -52,8 +52,8 @@ TEST(utils, views_iota_single) {
     ASSERT_EQ(check, single);
 }
 
-// This tests the generation of a sequence in an interval
-TEST(utils, views_iota_interval) {
+// Unittest for the generation of a sequence in an interval
+TEST(utils, ranges_iota_interval) {
 
     darray<dindex, 2> interval = {2, 7};
 
@@ -72,7 +72,7 @@ TEST(utils, views_iota_interval) {
     ASSERT_EQ(check, reference);
 }
 
-// This tests the convenience enumeration function
+// Unittest for the convenience enumeration of a range
 TEST(utils, ranges_enumerate) {
 
     struct uint_holder {
@@ -94,7 +94,31 @@ TEST(utils, ranges_enumerate) {
     }
 }
 
-// Test the subrange implementation
+// Unittest for the chaining of multiple ranges
+TEST(utils, ranges_chain) {
+
+    darray<dindex, 2> interval_1 = {2, 7};
+    darray<dindex, 2> interval_2 = {7, 10};
+
+    dvector<dindex> seq = {2, 3, 4, 5, 6, 7, 8, 9};
+
+    // general tests
+    auto chained = detray::views::chain(detray::views::iota(interval_1),
+                                        detray::views::iota(interval_2));
+    ASSERT_TRUE(detray::ranges::range<decltype(chained)>::value);
+    ASSERT_EQ(chained[1], 3UL);
+    ASSERT_EQ(chained[7], 9UL);
+    ASSERT_EQ(chained.size(), 8UL);
+    ASSERT_EQ(chained.front(), 2UL);
+    ASSERT_EQ(chained.back(), 9UL);
+
+    std::size_t i{0};
+    for (const auto j : chained) {
+        ASSERT_EQ(j, seq[i++]);
+    }
+}
+
+// Unittest for the subrange implementation
 TEST(utils, ranges_subrange) {
 
     std::size_t begin = 1;
