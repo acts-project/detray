@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-// Project include(s)
+// Project include(s).
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
@@ -25,10 +25,10 @@
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
-// VecMem include(s)
+// VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
 
-// GTest include(s)
+// GTest include(s).
 #include <gtest/gtest.h>
 
 using namespace detray;
@@ -355,7 +355,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
 
     const auto mat = silicon_tml<scalar>();
     const scalar thickness = 500 * unit_constants::cm;
-    // Use rectangular surfaces
+    // Use unbounded surfaces
     constexpr bool unbounded = true;
 
     const auto det = create_telescope_detector<unbounded>(
@@ -399,8 +399,8 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     std::vector<scalar> phi_vec;
     std::vector<scalar> theta_vec;
 
-    scalar ref_phi_var;
-    scalar ref_theta_var;
+    scalar ref_phi_var(0);
+    scalar ref_theta_var(0);
 
     for (int i = 0; i < n_samples; i++) {
 
@@ -444,4 +444,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
 
     EXPECT_NEAR((phi_var - ref_phi_var) / ref_phi_var, 0, 0.01);
     EXPECT_NEAR((theta_var - ref_theta_var) / ref_theta_var, 0, 0.01);
+
+    // To make sure that the varainces are zero
+    EXPECT_TRUE(ref_phi_var > 1e-4 && ref_theta_var > 1e-4);
 }

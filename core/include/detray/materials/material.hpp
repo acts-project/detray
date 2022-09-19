@@ -26,8 +26,10 @@ struct material {
     using ratio = R;
     using scalar_type = scalar_t;
 
+    DETRAY_HOST_DEVICE
     material() = default;
 
+    DETRAY_HOST_DEVICE
     material(const scalar_type x0, const scalar_type l0, const scalar_type ar,
              const scalar_type z, const scalar_type mass_rho,
              const material_state state,
@@ -100,6 +102,7 @@ struct material {
     }
 
     protected:
+    DETRAY_HOST_DEVICE
     scalar_type mass_to_molar_density(scalar_type ar, scalar_type mass_rho) {
         if (mass_rho == 0) {
             return 0;

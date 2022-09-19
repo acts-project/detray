@@ -40,6 +40,8 @@ foreach(algebra ${algebras})
       "surfaces_finder_cuda_kernel.cu"
       "detector_cuda.cpp" "detector_cuda_kernel.hpp"
       "detector_cuda_kernel.cu"
+      "material_interaction_cuda.cpp" "material_interaction_cuda_kernel.hpp"
+      "material_interaction_cuda_kernel.cu"      
       "navigator_cuda.cpp" "navigator_cuda_kernel.hpp"
       "navigator_cuda_kernel.cu"
       "rk_stepper_cuda.cpp" "rk_stepper_cuda_kernel.hpp"

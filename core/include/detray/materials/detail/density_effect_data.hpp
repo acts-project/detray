@@ -21,8 +21,10 @@ struct density_effect_data {
 
     using scalar_type = scalar_t;
 
+    DETRAY_HOST_DEVICE
     density_effect_data() = default;
 
+    DETRAY_HOST_DEVICE
     constexpr density_effect_data(const scalar_type a, const scalar_type m,
                                   const scalar_type X0, const scalar_type X1,
                                   const scalar_type I, const scalar_type nC,

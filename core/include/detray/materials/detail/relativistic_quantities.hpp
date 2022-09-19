@@ -32,6 +32,7 @@ struct relativistic_quantities {
     scalar_type m_betaGamma = 0.0;
     scalar_type m_gamma = 0.0;
 
+    DETRAY_HOST_DEVICE
     relativistic_quantities(const scalar_type mass, const scalar_type qOverP,
                             const scalar_type q) {
         // beta²/q² = (p/E)²/q² = p²/(q²m² + q²p²) = 1/(q² + (m²(q/p)²)
