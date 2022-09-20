@@ -71,7 +71,8 @@ struct propagator {
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(t_in),
               _navigation(det, std::move(candidates)),
-              _actor_states(actor_states) {}
+              _actor_states(actor_states),
+              m_param_type(parameter_type::e_free) {}
 
         template <typename field_t>
         DETRAY_HOST_DEVICE state(
@@ -81,7 +82,8 @@ struct propagator {
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(t_in, magnetic_field),
               _navigation(det, std::move(candidates)),
-              _actor_states(actor_states) {}
+              _actor_states(actor_states),
+              m_param_type(parameter_type::e_free) {}
 
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state(
@@ -90,7 +92,8 @@ struct propagator {
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(param, det),
               _navigation(det, std::move(candidates)),
-              _actor_states(actor_states) {}
+              _actor_states(actor_states),
+              m_param_type(parameter_type::e_bound) {}
 
         /// Construct the propagation state with bound parameter
         template <typename field_t>
@@ -101,7 +104,14 @@ struct propagator {
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(param, magnetic_field, det),
               _navigation(det, std::move(candidates)),
-              _actor_states(actor_states) {}
+              _actor_states(actor_states),
+              m_param_type(parameter_type::e_bound) {}
+
+        DETRAY_HOST_DEVICE
+        parameter_type param_type() const { return m_param_type; }
+
+        DETRAY_HOST_DEVICE
+        void set_param_type(const parameter_type t) { m_param_type = t; }
 
         // Is the propagation still alive?
         bool _heartbeat = false;
@@ -109,6 +119,7 @@ struct propagator {
         typename stepper_t::state _stepping;
         typename navigator_t::state _navigation;
         typename actor_chain_t::state _actor_states;
+        parameter_type m_param_type = parameter_type::e_free;
     };
 
     /// Propagate method: Coordinates the calls of the stepper, navigator and

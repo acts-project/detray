@@ -97,36 +97,36 @@ struct parameter_transporter : actor {
             free_matrix path_correction =
                 local_coordinate.path_correction(stepping, trf3, mask);
 
-            // Bound to free jacobian at the departure surface
-            const bound_to_free_matrix& bound_to_free_jacobian =
-                stepping._jac_to_global;
-
-            // Acts version
             const free_matrix correction_term =
                 matrix_actor().template identity<e_free_size, e_free_size>() +
                 path_correction;
 
-            const bound_matrix full_jacobian =
-                free_to_bound_jacobian * correction_term *
-                free_transport_jacobian * bound_to_free_jacobian;
+            bound_matrix new_cov =
+                matrix_actor().template zero<e_bound_size, e_bound_size>();
 
-            /*
-            const bound_matrix full_jacobian =
-                free_to_bound_jacobian *
-                (path_correction + free_transport_jacobian) *
-                bound_to_free_jacobian;
-            */
+            if (propagation.param_type() == parameter_type::e_free) {
 
-            // No path correction
-            /*
-            const bound_matrix full_jacobian = free_to_bound_jacobian *
-                                               free_transport_jacobian *
-                                               bound_to_free_jacobian;
-            */
+                const matrix_type<e_bound_size, e_free_size> full_jacobian =
+                    free_to_bound_jacobian * correction_term *
+                    free_transport_jacobian;
 
-            const bound_matrix new_cov =
-                full_jacobian * stepping._bound_params.covariance() *
-                matrix_actor().transpose(full_jacobian);
+                new_cov = full_jacobian * stepping().covariance() *
+                          matrix_actor().transpose(full_jacobian);
+
+                propagation.set_param_type(parameter_type::e_bound);
+
+            } else if (propagation.param_type() == parameter_type::e_bound) {
+                // Bound to free jacobian at the departure surface
+                const bound_to_free_matrix& bound_to_free_jacobian =
+                    stepping._jac_to_global;
+
+                const matrix_type<e_bound_size, e_bound_size> full_jacobian =
+                    free_to_bound_jacobian * correction_term *
+                    free_transport_jacobian * bound_to_free_jacobian;
+
+                new_cov = full_jacobian * stepping._bound_params.covariance() *
+                          matrix_actor().transpose(full_jacobian);
+            }
 
             // Calculate surface-to-surface covariance transport
             stepping._bound_params.set_covariance(new_cov);
