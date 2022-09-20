@@ -16,6 +16,12 @@ struct iota_iterator {
 
     /// @returns true if we reach end of sequence
     DETRAY_HOST_DEVICE
+    constexpr auto operator==(const iota_iterator<value_t> &rhs) const -> bool {
+        return (i == rhs.i);
+    }
+
+    /// @returns true if we reach end of sequence
+    DETRAY_HOST_DEVICE
     constexpr auto operator!=(const iota_iterator<value_t> &rhs) const -> bool {
         return (i != rhs.i);
     }
@@ -30,6 +36,10 @@ struct iota_iterator {
     /// @returns the current value in the sequence
     DETRAY_HOST_DEVICE
     constexpr auto operator*() const -> const value_t & { return i; }
+
+    /// @returns the current value in the sequence
+    DETRAY_HOST_DEVICE
+    constexpr auto operator*() -> value_t & { return i; }
 
     /// Advance the sequence by @param j positions
     DETRAY_HOST_DEVICE

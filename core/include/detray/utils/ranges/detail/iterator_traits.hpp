@@ -50,8 +50,8 @@ struct iterator_traits<detray::ranges::detail::single_iterator<T>> {
 
 /// Specializations of std::iterator_traits struct for the sequential iteration
 /// of multiple ranges
-template <std::size_t I, typename T>
-struct iterator_traits<detray::ranges::detail::chain_iterator<I, T>> {
+template <typename T>
+struct iterator_traits<detray::ranges::detail::chain_iterator<T>> {
     private:
     using iterator_t = decltype(detray::detail::get<0>(std::declval<T>()));
 
