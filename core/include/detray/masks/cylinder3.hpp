@@ -52,6 +52,7 @@ class cylinder3 final : public mask_base<transform3_t, intersector_t, local_t,
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
     using point3 = typename transform3_t::point3;
+    using scalar_type = typename transform3_t::scalar_type;
 
     /* Default constructor */
     cylinder3()
@@ -70,6 +71,10 @@ class cylinder3 final : public mask_base<transform3_t, intersector_t, local_t,
     cylinder3(scalar r, scalar half_length_1, scalar half_length_2,
               links_type links)
         : base_type({r, half_length_1, half_length_2}, links) {}
+
+    /// Get radius
+    DETRAY_HOST_DEVICE
+    scalar_type radius() const { return this->operator[](0); }
 
     /** Mask operation
      *

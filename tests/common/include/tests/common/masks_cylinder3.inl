@@ -50,4 +50,5 @@ TEST(mask, cylinder3) {
     // Move outside point inside using a tolerance
     ASSERT_TRUE(c.is_inside<local_type>(p3_out, 0.6) ==
                 intersection::status::e_inside);
+    EXPECT_FLOAT_EQ(c.radius(), r);
 }
