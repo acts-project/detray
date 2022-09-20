@@ -40,39 +40,91 @@ constexpr scalar path_limit{5 * unit_constants::cm};
 struct helix_inspector : actor {
 
     /// Keeps the state of a helix gun to calculate track positions
-    struct state {
-        state(detail::helix<transform3> &&h) : _helix(h) {}
-        detail::helix<transform3> _helix;
-    };
+    struct state {};
 
     using matrix_operator = standard_matrix_operator<scalar>;
+    using size_type = typename matrix_operator::size_ty;
+    using scalar_type = typename matrix_operator::scalar_type;
+    template <size_type ROWS, size_type COLS>
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
+    using free_vector = matrix_type<e_free_size, 1>;
+
+    // Kernel to get a free position at the last surface
+    struct kernel {
+        using output_type = free_vector;
+
+        template <typename mask_group_t, typename transform_store_t,
+                  typename surface_t, typename stepper_state_t>
+        DETRAY_HOST_DEVICE inline output_type operator()(
+            const mask_group_t& mask_group, const transform_store_t& trf_store,
+            const surface_t& surface, const stepper_state_t& stepping) {
+
+            const auto& trf3 = trf_store[surface.transform()];
+
+            const auto& mask = mask_group[surface.mask_range()];
+
+            auto local_coordinate = mask.local();
+
+            return local_coordinate.bound_to_free_vector(
+                trf3, mask, stepping._bound_params.vector());
+        }
+    };
 
     /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        const state &inspector_state,
-        const propagator_state_t &prop_state) const {
+        const state& /*inspector_state*/,
+        const propagator_state_t& prop_state) const {
 
-        const auto &stepping = prop_state._stepping;
-        const auto pos = stepping().pos();
-        const auto true_pos = inspector_state._helix(stepping.path_length());
-
-        // Nothing has happened yet (first call of actor chain)
-        if (stepping.path_length() < epsilon) {
+        if (prop_state.param_type() == parameter_type::e_free) {
             return;
         }
-        const point3 relative_error{scalar{1.} / stepping.path_length() *
-                                    (pos - true_pos)};
+
+        const auto& navigation = prop_state._navigation;
+        const auto& stepping = prop_state._stepping;
+
+        // Nothing has happened yet (first call of actor chain)
+        if (stepping.path_length() < epsilon || stepping._s < epsilon) {
+            return;
+        }
+
+        const auto& det = navigation.detector();
+        const auto& surface_container = det->surfaces();
+        const auto& trf_store = det->transform_store();
+        const auto& mask_store = det->mask_store();
+
+        // Surface
+        const auto& surface =
+            surface_container[stepping._bound_params.surface_link()];
+
+        const auto free_vec = mask_store.template execute<kernel>(
+            surface.mask_type(), trf_store, surface, stepping);
+
+        const auto last_pos =
+            detail::track_helper<matrix_operator>().pos(free_vec);
+
+        free_track_parameters<transform3> free_params;
+        free_params.set_vector(free_vec);
+
+        const auto b = stepping._magnetic_field.get_field(last_pos, {});
+        detail::helix<transform3> hlx(free_params, &b);
+
+        const auto true_pos = hlx(stepping._s);
+
+        const point3 relative_error{scalar{1.} / stepping._s *
+                                    (stepping().pos() - true_pos)};
 
         ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
 
-        auto true_J = inspector_state._helix.jacobian(stepping._s);
+        auto true_J = hlx.jacobian(stepping._s);
+
         for (std::size_t i = 0; i < e_free_size; i++) {
             for (std::size_t j = 0; j < e_free_size; j++) {
                 ASSERT_NEAR(
                     matrix_operator().element(stepping._jac_transport, i, j),
                     matrix_operator().element(true_J, i, j),
-                    stepping.path_length() * epsilon * 10);
+                    stepping._s * epsilon * 10);
             }
         }
     }
@@ -159,7 +211,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         lim_track.set_overstep_tolerance(overstep_tol);
 
         // Build actor states: the helix inspector can be shared
-        helix_inspector::state helix_insp_state{detail::helix{track, &B}};
+        helix_inspector::state helix_insp_state{};
         propagation::print_inspector::state print_insp_state{};
         propagation::print_inspector::state lim_print_insp_state{};
         pathlimit_aborter::state unlimted_aborter_state{};
