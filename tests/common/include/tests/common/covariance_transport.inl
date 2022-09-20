@@ -9,7 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/actors/bound_to_bound_updater.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/actors/surface_targeter.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -61,8 +61,8 @@ TEST(covariance_transport, rk_stepper_cartesian) {
     using crk_stepper_t =
         rk_stepper<mag_field_t, transform3, constrained_step<>>;
     using actor_chain_t =
-        actor_chain<dtuple, surface_targeter,
-                    bound_to_bound_updater<transform3>, resetter<transform3>>;
+        actor_chain<dtuple, surface_targeter, parameter_transporter<transform3>,
+                    resetter<transform3>>;
     using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
     // Generate track starting point
@@ -106,7 +106,7 @@ TEST(covariance_transport, rk_stepper_cartesian) {
 
     // Actors
     surface_targeter::state targeter{S, 0};
-    bound_to_bound_updater<transform3>::state bound_updater{};
+    parameter_transporter<transform3>::state bound_updater{};
     resetter<transform3>::state rst{};
 
     actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
@@ -189,9 +189,8 @@ TEST(covariance_transport, linear_stepper_cartesian) {
 
     using navigator_t = navigator<decltype(det)>;
     using cline_stepper_t = line_stepper<transform3, constrained_step<>>;
-    using actor_chain_t =
-        actor_chain<dtuple, bound_to_bound_updater<transform3>,
-                    resetter<transform3>>;
+    using actor_chain_t = actor_chain<dtuple, parameter_transporter<transform3>,
+                                      resetter<transform3>>;
     using propagator_t =
         propagator<cline_stepper_t, navigator_t, actor_chain_t>;
 
@@ -217,7 +216,7 @@ TEST(covariance_transport, linear_stepper_cartesian) {
                                                           bound_cov);
 
     // Actors
-    bound_to_bound_updater<transform3>::state bound_updater{};
+    parameter_transporter<transform3>::state bound_updater{};
     resetter<transform3>::state rst{};
     actor_chain_t::state actor_states = std::tie(bound_updater, rst);
 

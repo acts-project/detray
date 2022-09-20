@@ -40,7 +40,7 @@ __global__ void telescope_propagation_test_kernel(
 
     // Actor states
     pathlimit_aborter::state aborter_state{};
-    bound_to_bound_updater<transform3>::state bound_updater{};
+    parameter_transporter<transform3>::state bound_updater{};
     pointwise_material_interactor<transform3>::state interactor_state{};
     resetter<transform3>::state resetter_state{};
 

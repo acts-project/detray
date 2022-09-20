@@ -15,7 +15,7 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
-#include "detray/propagator/actors/bound_to_bound_updater.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/actors/scattering_simulator.hpp"
@@ -233,7 +233,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     using interactor_t = pointwise_material_interactor<transform3>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
-                    bound_to_bound_updater<transform3>, interactor_t,
+                    parameter_transporter<transform3>, interactor_t,
                     resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
@@ -259,7 +259,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
 
     propagation::print_inspector::state print_insp_state{};
     pathlimit_aborter::state aborter_state{};
-    bound_to_bound_updater<transform3>::state bound_updater{};
+    parameter_transporter<transform3>::state bound_updater{};
     interactor_t::state interactor_state{};
     resetter<transform3>::state resetter_state{};
 
@@ -371,7 +371,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     using simulator_t = scattering_simulator<interactor_t>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
-                    bound_to_bound_updater<transform3>, interactor_t,
+                    parameter_transporter<transform3>, interactor_t,
                     simulator_t, resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
@@ -406,7 +406,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
 
         propagation::print_inspector::state print_insp_state{};
         pathlimit_aborter::state aborter_state{};
-        bound_to_bound_updater<transform3>::state bound_updater{};
+        parameter_transporter<transform3>::state bound_updater{};
         interactor_t::state interactor_state{};
         interactor_state.do_energy_loss = false;
         simulator_t::state simulator_state(interactor_state);
