@@ -79,7 +79,10 @@ detray_add_library( detray_core core
    # propagator include(s)
    "include/detray/propagator/actors/aborters.hpp"
    "include/detray/propagator/actors/parameter_transporter.hpp"
+<<<<<<< HEAD
    "include/detray/propagator/actors/pointwise_material_interactor.hpp"
+=======
+>>>>>>> add-jacobian-transformation
    "include/detray/propagator/actors/resetter.hpp"
    "include/detray/propagator/actors/scattering_simulator.hpp"
    "include/detray/propagator/actors/surface_targeter.hpp"
