@@ -120,7 +120,7 @@ struct relativistic_quantities {
 
         // When the denstiy effect data is not provided (RPP2018 eq. 33.6 only
         // valid for high energies)
-        if (density == null_density) {
+        if (density == density_effect_data<scalar_type>(0, 0, 0, 0, 0, 0, 0)) {
             const scalar_type mean_exitation_energy =
                 mat.mean_excitation_energy();
             const scalar_type molar_electron_density =

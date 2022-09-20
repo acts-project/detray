@@ -64,14 +64,17 @@ using propagator_host_type =
 using propagator_device_type =
     propagator<rk_stepper_type, navigator_device_type, actor_chain_t>;
 
-const int n_tracks = 100;
-const scalar overstep_tolerance = -1000. * unit_constants::um;
-const vector3 B{0 * unit_constants::T, 0 * unit_constants::T,
-                2 * unit_constants::T};
+const int n_tracks = 1;
+const scalar overstep_tolerance = -100. * unit_constants::um;
+constexpr scalar isclose{1e-4};
 
-void material_interaction_test(
+namespace detray {
+
+void telescope_propagation_test(
     detector_view<detector_host_type> det_data, const vector3 B,
     vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
     vecmem::data::vector_view<bound_track_parameters<transform3>>
         initial_states,
     vecmem::data::vector_view<bound_track_parameters<transform3>> final_states);
+
+}  // namespace detray

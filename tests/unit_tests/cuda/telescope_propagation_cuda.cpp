@@ -6,7 +6,7 @@
  */
 
 // Project include(s).
-#include "material_interaction_cuda_kernel.hpp"
+#include "telescope_propagation_cuda_kernel.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
@@ -15,7 +15,7 @@
 // GTest include(s).
 #include <gtest/gtest.h>
 
-TEST(material_interaction, telescope_geometry) {
+TEST(propagation, telescope_geometry) {
 
     // Helper object for performing memory copies.
     vecmem::copy copy;
@@ -33,40 +33,41 @@ TEST(material_interaction, telescope_geometry) {
                                      60., 70,  80,  90., 100.};
 
     // Use unbounded surfaces
-    constexpr bool unbounded = true;
+    constexpr bool rectangle = false;
 
     // Create the telescope geometry
     detector_host_type det =
-        create_telescope_detector<unbounded, ln_stepper_t, darray,
+        create_telescope_detector<rectangle, ln_stepper_t, darray,
                                   thrust::tuple, vecmem::vector,
                                   vecmem::jagged_vector>(
             mng_mr, positions, ln_stepper_t(),
-            typename ln_stepper_t::state{default_trk}, 20. * unit_constants::mm,
-            20. * unit_constants::mm, silicon_tml<scalar>(),
-            0.17 * unit_constants::cm);
+            typename ln_stepper_t::state{default_trk},
+            10000. * unit_constants::mm, 10000. * unit_constants::mm,
+            silicon_tml<scalar>(), 0.17 * unit_constants::cm);
 
     const scalar q = -1.;
     const scalar iniP = 10 * unit_constants::GeV;
-    typename bound_track_parameters<transform3>::vector_type bound_vector;
-    getter::element(bound_vector, e_bound_loc0, 0) = 0.;
-    getter::element(bound_vector, e_bound_loc1, 0) = 0.;
-    getter::element(bound_vector, e_bound_phi, 0) = 0;
+    typename bound_track_parameters<transform3>::vector_type bound_vector =
+        matrix_operator().template zero<e_bound_size, 1>();
     getter::element(bound_vector, e_bound_theta, 0) = M_PI_4;
     getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
-    getter::element(bound_vector, e_bound_time, 0) = 0.;
     typename bound_track_parameters<transform3>::covariance_type bound_cov =
         matrix_operator().template identity<e_bound_size, e_bound_size>();
 
     // Field
+    vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
+              2. * unit_constants::T};
     field_type B_field(B);
 
-    std::vector<bound_track_parameters<transform3>> host_initial_states;
-    std::vector<bound_track_parameters<transform3>> host_final_states;
+    std::vector<bound_track_parameters<transform3>> host_initial_states(
+        n_tracks);
+    std::vector<bound_track_parameters<transform3>> host_final_states(n_tracks);
     vecmem::vector<bound_track_parameters<transform3>> device_initial_states(
-        &mng_mr);
+        n_tracks, &mng_mr);
     vecmem::vector<bound_track_parameters<transform3>> device_final_states(
-        &mng_mr);
+        n_tracks, &mng_mr);
 
+    // Generate bound track parameters
     for (int i = 0; i < n_tracks; i++) {
         // Propagator is built from the stepper and navigator
         propagator_host_type p({}, {});
@@ -79,10 +80,11 @@ TEST(material_interaction, telescope_geometry) {
         const bound_track_parameters<transform3> bound_params(0, bound_vector,
                                                               bound_cov);
 
-        host_initial_states.push_back(bound_params);
-        device_initial_states.push_back(bound_params);
+        host_initial_states[i] = bound_params;
+        device_initial_states[i] = bound_params;
     }
 
+    // Do the propagation
     for (int i = 0; i < n_tracks; i++) {
 
         // Propagator is built from the stepper and navigator
@@ -106,7 +108,7 @@ TEST(material_interaction, telescope_geometry) {
         // Propagate the entire detector
         p.propagate(state);
 
-        host_final_states.push_back(state._stepping._bound_params);
+        host_final_states[i] = state._stepping._bound_params;
     }
 
     // Get detector data
@@ -116,7 +118,32 @@ TEST(material_interaction, telescope_geometry) {
     auto candidates_buffer = create_candidates_buffer(det, n_tracks, mng_mr);
     copy.setup(candidates_buffer);
 
-    material_interaction_test(det_data, B, candidates_buffer,
-                              vecmem::get_data(device_initial_states),
-                              vecmem::get_data(device_final_states));
+    telescope_propagation_test(det_data, B, candidates_buffer,
+                               vecmem::get_data(device_initial_states),
+                               vecmem::get_data(device_final_states));
+
+    // Check if CPU and CUDA have the same final parameters
+    for (int i = 0; i < n_tracks; i++) {
+
+        const auto& host_vec = host_final_states[i].vector();
+        const auto& device_vec = device_final_states[i].vector();
+        const auto& host_cov = host_final_states[i].covariance();
+        const auto& device_cov = device_final_states[i].covariance();
+
+        ASSERT_EQ(host_final_states[i].surface_link(), 9);
+        ASSERT_EQ(device_final_states[i].surface_link(), 9);
+
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            ASSERT_NEAR(matrix_operator().element(host_vec, j, 0),
+                        matrix_operator().element(device_vec, j, 0), isclose);
+        }
+
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            for (std::size_t k = 0; k < e_bound_size; k++) {
+                ASSERT_NEAR(matrix_operator().element(host_cov, j, k),
+                            matrix_operator().element(device_cov, j, k),
+                            isclose);
+            }
+        }
+    }
 }

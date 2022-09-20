@@ -26,21 +26,22 @@ struct material {
     using ratio = R;
     using scalar_type = scalar_t;
 
-    DETRAY_HOST_DEVICE
     material() = default;
 
     DETRAY_HOST_DEVICE
     material(const scalar_type x0, const scalar_type l0, const scalar_type ar,
              const scalar_type z, const scalar_type mass_rho,
-             const material_state state,
-             const detail::density_effect_data<scalar_type> density)
+             const material_state state, const scalar_type d_a,
+             const scalar_type d_m, const scalar_type d_X0,
+             const scalar_type d_X1, const scalar_type d_I,
+             const scalar_type d_nC, const scalar_type d_delta0)
         : m_x0(x0),
           m_l0(l0),
           m_ar(ar),
           m_z(z),
           m_mass_rho(mass_rho),
           m_state(state),
-          m_density(density) {
+          m_density(d_a, d_m, d_X0, d_X1, d_I, d_nC, d_delta0) {
 
         m_molar_rho = mass_to_molar_density(ar, mass_rho);
     }
@@ -88,7 +89,8 @@ struct material {
     DETRAY_HOST_DEVICE
     scalar_type mean_excitation_energy() const {
         // use approximative computation as defined in ATL-SOFT-PUB-2008-003
-        if (m_density == detail::null_density) {
+        if (m_density ==
+            detail::density_effect_data<scalar_type>(0, 0, 0, 0, 0, 0, 0)) {
             return scalar_type(16 * unit_constants::eV) *
                    std::pow(m_z, scalar_type(0.9));
         } else {
@@ -116,8 +118,8 @@ struct material {
     }
 
     // Material properties
-    scalar_type m_x0 = std::numeric_limits<scalar>::infinity();
-    scalar_type m_l0 = std::numeric_limits<scalar>::infinity();
+    scalar_type m_x0 = std::numeric_limits<scalar_type>::infinity();
+    scalar_type m_l0 = std::numeric_limits<scalar_type>::infinity();
     scalar_type m_ar = 0;
     scalar_type m_z = 0;
     scalar_type m_mass_rho = 0;
@@ -127,13 +129,16 @@ struct material {
 };
 
 // Macro for declaring the predefined materials (with Density effect data)
-#define DETRAY_DECLARE_MATERIAL(MATERIAL_NAME, X0, L0, Ar, Z, Rho, State,  \
-                                Density)                                   \
-    template <typename scalar_t, typename R = std::ratio<1, 1>>            \
-    struct MATERIAL_NAME final : public material<scalar_t, R> {            \
-        using base_type = material<scalar_t, R>;                           \
-        using base_type::base_type;                                        \
-        MATERIAL_NAME() : base_type(X0, L0, Ar, Z, Rho, State, Density) {} \
+#define DETRAY_DECLARE_MATERIAL(MATERIAL_NAME, X0, L0, Ar, Z, Rho, State,    \
+                                Density0, Density1, Density2, Density3,      \
+                                Density4, Density5, Density6)                \
+    template <typename scalar_t, typename R = std::ratio<1, 1>>              \
+    struct MATERIAL_NAME final : public material<scalar_t, R> {              \
+        using base_type = material<scalar_t, R>;                             \
+        using base_type::base_type;                                          \
+        MATERIAL_NAME()                                                      \
+            : base_type(X0, L0, Ar, Z, Rho, State, Density0, Density1,       \
+                        Density2, Density3, Density4, Density5, Density6) {} \
     }
 
 }  // namespace detray

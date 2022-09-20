@@ -60,6 +60,7 @@ class line_stepper final
             track.set_pos(track.pos() + track.dir() * this->_step_size);
 
             this->_path_length += this->_step_size;
+            this->_s += this->_step_size;
         }
 
         DETRAY_HOST_DEVICE

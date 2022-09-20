@@ -256,8 +256,10 @@ struct coordinate_base {
             // Path length
             const auto s = stepping._s;
 
+            auto b = stepping._magnetic_field.get_field(pos, {});
+
             // helix
-            helix hlx(stepping(), &stepping._step_data.b_last);
+            helix hlx(stepping(), &b);
 
             // B field at the destination surface
             matrix_type<1, 3> h;

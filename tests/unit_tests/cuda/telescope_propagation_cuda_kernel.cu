@@ -5,14 +5,15 @@
  * Mozilla Public License Version 2.0
  */
 
+// Project include(s).
 #include "detray/definitions/cuda_definitions.hpp"
-#include "material_interaction_cuda_kernel.hpp"
+#include "telescope_propagation_cuda_kernel.hpp"
 
 namespace detray {
 
-__global__ void material_interaction_test_kernel(
+__global__ void telescope_propagation_test_kernel(
     detector_view<detector_host_type> det_data, const vector3 B,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
+    vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     vecmem::data::vector_view<bound_track_parameters<transform3>>
         initial_states,
     vecmem::data::vector_view<bound_track_parameters<transform3>>
@@ -58,7 +59,7 @@ __global__ void material_interaction_test_kernel(
     device_final_states[gid] = state._stepping._bound_params;
 }
 
-void material_interaction_test(
+void telescope_propagation_test(
     detector_view<detector_host_type> det_data, const vector3 B,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::vector_view<bound_track_parameters<transform3>>
@@ -70,7 +71,7 @@ void material_interaction_test(
     constexpr int block_dim = n_tracks / thread_dim + 1;
 
     // run the test kernel
-    material_interaction_test_kernel<<<block_dim, thread_dim>>>(
+    telescope_propagation_test_kernel<<<block_dim, thread_dim>>>(
         det_data, B, candidates_data, initial_states, final_states);
 
     // cuda error check
