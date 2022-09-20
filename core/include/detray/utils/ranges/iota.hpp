@@ -45,7 +45,7 @@ struct iota_view
     template <typename deduced_incr_t>
     DETRAY_HOST_DEVICE constexpr iota_view(deduced_incr_t &&start,
                                            deduced_incr_t &&end)
-        : m_start{start}, m_end{end} {}
+        : m_start{start}, m_end{end - 1} {}
 
     /// Construct from a range: The subrange spans the entire range
     ///
@@ -59,19 +59,19 @@ struct iota_view
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> iterator_t { return m_start; }
+    constexpr auto begin() const -> iterator_t { return {m_start}; }
 
     /// @return sentinel of a sequence.
     DETRAY_HOST_DEVICE
-    constexpr auto end() const -> iterator_t { return m_end; }
+    constexpr auto end() const -> iterator_t { return {m_end}; }
 
     /// @note Cannot peak at the end of input-iterator based range
     constexpr typename std::iterator_traits<iterator_t>::value_type
     back() noexcept = delete;
 
     /// Start and end values of the sequence
-    iterator_t m_start;
-    iterator_t m_end;
+    incrementable_t m_start;
+    incrementable_t m_end;
 };
 
 namespace views {

@@ -18,6 +18,7 @@ namespace detray::detail {
 /// This comes into play multiple times to enable certain constructors
 /// conditionally through SFINAE.
 ///
+/// @{
 template <typename CTYPE, typename NCTYPE>
 struct is_same_nc {
     static constexpr bool value = false;
@@ -27,9 +28,39 @@ template <typename TYPE>
 struct is_same_nc<const TYPE, TYPE> {
     static constexpr bool value = true;
 };
+/// @}
+
+/// Extract the value type of a container.
+///
+/// @note Only gets the first value type for tuple-like containers
+/// @{
+/*template <typename container_t, typename = void>
+struct get_value_type {
+    using type = void;
+};
+
+template <typename container_t>
+struct get_value_type<container_t, typename container_t::value_type> {
+    using type = typename container_t::value_type;
+};
+
+template <typename container_t>
+struct get_value_type<container_t,
+    std::enable_if_t<
+        std::is_class_v<std::remove_reference_t<
+                decltype(detray::detail::get<0>(std::declval<container_t>()))>>,
+        void>> {
+    using type = std::decay_t<decltype(detray::detail::get<0>(
+        std::declval<container_t>()))>;
+};
+
+template <typename T>
+using get_value_type_t = typename get_value_type<T>::type;*/
+/// @}
 
 /// Helper trait that checks if a type models an interval of some value that can
 /// be obtained with 'get'.
+/// @{
 template <typename TYPE, typename = void, typename = void>
 struct is_interval : public std::false_type {};
 
@@ -49,5 +80,6 @@ struct is_interval<
 
 template <typename TYPE>
 inline constexpr bool is_interval_v = is_interval<TYPE>::value;
+/// @}
 
 }  // namespace detray::detail
