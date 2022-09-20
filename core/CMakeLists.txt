@@ -74,7 +74,7 @@ detray_add_library( detray_core core
    "include/detray/materials/predefined_materials.hpp"
    # propagator include(s)
    "include/detray/propagator/actors/aborters.hpp"
-   "include/detray/propagator/actors/bound_to_bound_updater.hpp"
+   "include/detray/propagator/actors/parameter_transporter.hpp"
    "include/detray/propagator/actors/resetter.hpp"
    "include/detray/propagator/actors/surface_targeter.hpp"
    "include/detray/propagator/actor_chain.hpp"

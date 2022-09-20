@@ -16,7 +16,7 @@
 namespace detray {
 
 template <typename transform3_t>
-struct bound_to_bound_updater : actor {
+struct parameter_transporter : actor {
 
     struct state {};
 
