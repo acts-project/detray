@@ -38,28 +38,33 @@ struct scattering_simulator : actor {
     DETRAY_HOST_DEVICE inline void operator()(
         state& simulator_state, propagator_state_t& prop_state) const {
 
-        auto& stepping = prop_state._stepping;
-        auto& interactor_state = simulator_state.interactor_state;
-        auto& generator = simulator_state.generator;
+        auto& navigation = prop_state._navigation;
 
-        const auto r_theta = std::normal_distribution<scalar_type>(
-            0, M_SQRT2 * interactor_state.scattering_angle)(generator);
-        const auto r_phi =
-            std::uniform_real_distribution<double>(-M_PI, M_PI)(generator);
+        if (navigation.is_on_module()) {
 
-        const auto dir = stepping._bound_params.dir();
+            auto& stepping = prop_state._stepping;
+            auto& interactor_state = simulator_state.interactor_state;
+            auto& generator = simulator_state.generator;
 
-        // xaxis of curvilinear plane
-        const vector3 u{-dir[1], dir[0], 0};
-        vector3 new_dir = axis_rotation<transform3_type>(u, r_theta)(dir);
-        new_dir = axis_rotation<transform3_type>(dir, r_phi)(new_dir);
+            const auto r_theta = std::normal_distribution<scalar_type>(
+                0, M_SQRT2 * interactor_state.scattering_angle)(generator);
+            const auto r_phi =
+                std::uniform_real_distribution<double>(-M_PI, M_PI)(generator);
 
-        auto& vector = stepping._bound_params.vector();
+            const auto dir = stepping._bound_params.dir();
 
-        matrix_operator().element(vector, e_bound_theta, 0) =
-            getter::theta(new_dir);
-        matrix_operator().element(vector, e_bound_phi, 0) =
-            getter::phi(new_dir);
+            // xaxis of curvilinear plane
+            const vector3 u{-dir[1], dir[0], 0};
+            vector3 new_dir = axis_rotation<transform3_type>(u, r_theta)(dir);
+            new_dir = axis_rotation<transform3_type>(dir, r_phi)(new_dir);
+
+            auto& vector = stepping._bound_params.vector();
+
+            matrix_operator().element(vector, e_bound_theta, 0) =
+                getter::theta(new_dir);
+            matrix_operator().element(vector, e_bound_phi, 0) =
+                getter::phi(new_dir);
+        }
     }
 };
 

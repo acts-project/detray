@@ -442,8 +442,8 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     scalar phi_var = get_variance(phi_vec);
     scalar theta_var = get_variance(theta_vec);
 
-    EXPECT_NEAR((phi_var - ref_phi_var) / ref_phi_var, 0, 0.01);
-    EXPECT_NEAR((theta_var - ref_theta_var) / ref_theta_var, 0, 0.01);
+    EXPECT_NEAR((phi_var - ref_phi_var) / ref_phi_var, 0, 0.05);
+    EXPECT_NEAR((theta_var - ref_theta_var) / ref_theta_var, 0, 0.05);
 
     // To make sure that the varainces are zero
     EXPECT_TRUE(ref_phi_var > 1e-4 && ref_theta_var > 1e-4);
