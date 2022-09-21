@@ -21,6 +21,9 @@
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/pointwise_material_interactor.hpp"
+#include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -110,9 +113,15 @@ struct track_inspector : actor {
 using inspector_host_t = track_inspector<vecmem::vector>;
 using inspector_device_t = track_inspector<vecmem::device_vector>;
 using actor_chain_host_t =
-    actor_chain<thrust::tuple, inspector_host_t, pathlimit_aborter>;
+    actor_chain<thrust::tuple, inspector_host_t, pathlimit_aborter,
+                parameter_transporter<transform3>,
+                pointwise_material_interactor<transform3>,
+                resetter<transform3>>;
 using actor_chain_device_t =
-    actor_chain<thrust::tuple, inspector_device_t, pathlimit_aborter>;
+    actor_chain<thrust::tuple, inspector_device_t, pathlimit_aborter,
+                parameter_transporter<transform3>,
+                pointwise_material_interactor<transform3>,
+                resetter<transform3>>;
 using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain_host_t>;
 using propagator_device_type =

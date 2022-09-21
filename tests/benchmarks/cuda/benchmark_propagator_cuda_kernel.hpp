@@ -20,6 +20,10 @@
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/actors/aborters.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/actors/pointwise_material_interactor.hpp"
+#include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -44,10 +48,16 @@ using navigator_device_type = navigator<detector_device_type>;
 
 using field_type = constant_magnetic_field<>;
 using rk_stepper_type = rk_stepper<field_type, transform3>;
+
+using actor_chain_t =
+    actor_chain<thrust::tuple, parameter_transporter<transform3>,
+                pointwise_material_interactor<transform3>,
+                resetter<transform3>>;
+
 using propagator_host_type =
-    propagator<rk_stepper_type, navigator_host_type, actor_chain<>>;
+    propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
 using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type, actor_chain<>>;
+    propagator<rk_stepper_type, navigator_device_type, actor_chain_t>;
 
 namespace detray {
 

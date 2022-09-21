@@ -93,10 +93,9 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         const scalar_type r = mask.radius();
         const scalar_type phi = local2[0] / r;
 
-        // normal vector in local coordinate
         const vector3 local_normal{std::cos(phi), std::sin(phi), 0};
 
-        // normal vector in global coordinate
+        // normal vector in local coordinate
         return trf3.rotation() * local_normal;
     }
 
