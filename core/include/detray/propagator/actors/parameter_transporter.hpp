@@ -146,14 +146,13 @@ struct parameter_transporter : actor {
         if (navigation.is_on_module()) {
 
             const auto& det = navigation.detector();
-            const auto& surface_container = det->surfaces();
             const auto& mask_store = det->mask_store();
 
             // Intersection
             const auto& is = navigation.current();
 
             // Surface
-            const auto& surface = surface_container[is->index];
+            const auto& surface = det->surface_by_index(is->index);
 
             // Set surface link
             stepping._bound_params.set_surface_link(is->index);

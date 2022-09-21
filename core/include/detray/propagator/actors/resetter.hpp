@@ -74,7 +74,6 @@ struct resetter : actor {
         if (navigation.is_on_module()) {
 
             const auto& det = navigation.detector();
-            const auto& surface_container = det->surfaces();
             const auto& trf_store = det->transform_store();
             const auto& mask_store = det->mask_store();
 
@@ -82,7 +81,7 @@ struct resetter : actor {
             const auto& is = navigation.current();
 
             // Surface
-            const auto& surface = surface_container[is->index];
+            const auto& surface = det->surface_by_index(is->index);
 
             mask_store.template execute<kernel>(surface.mask_type(), trf_store,
                                                 surface, stepping);
