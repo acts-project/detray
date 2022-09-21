@@ -29,8 +29,7 @@ TEST(propagation, telescope_geometry) {
         {0, 0, 0}, 0, {0, 0, 1}, -1};
 
     // Build from given module positions
-    std::vector<scalar> positions = {0.,  10., 20., 30., 40., 50.,
-                                     60., 70,  80,  90., 100.};
+    std::vector<scalar> positions = {0., 10., 20., 30., 40., 50.};
 
     // Use unbounded surfaces
     constexpr bool rectangle = false;
@@ -130,8 +129,8 @@ TEST(propagation, telescope_geometry) {
         const auto& host_cov = host_final_states[i].covariance();
         const auto& device_cov = device_final_states[i].covariance();
 
-        ASSERT_EQ(host_final_states[i].surface_link(), 9);
-        ASSERT_EQ(device_final_states[i].surface_link(), 9);
+        ASSERT_EQ(host_final_states[i].surface_link(), 4);
+        ASSERT_EQ(device_final_states[i].surface_link(), 4);
 
         for (std::size_t j = 0; j < e_bound_size; j++) {
             ASSERT_NEAR(matrix_operator().element(host_vec, j, 0),
@@ -141,8 +140,7 @@ TEST(propagation, telescope_geometry) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
             for (std::size_t k = 0; k < e_bound_size; k++) {
                 ASSERT_NEAR(matrix_operator().element(host_cov, j, k),
-                            matrix_operator().element(device_cov, j, k),
-                            isclose);
+                            matrix_operator().element(device_cov, j, k), 1e-1);
             }
         }
     }
