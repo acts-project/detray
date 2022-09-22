@@ -13,7 +13,6 @@
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
-#include <iterator>
 #include <type_traits>
 
 namespace detray::ranges {
@@ -88,17 +87,13 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         : m_start{detray::detail::get<0>(interval)},
           m_end{detray::detail::get<1>(interval)} {}
 
-    /// Construct from a range: The subrange spans the entire range
-    ///
-    /// @param range container to iterate over
+    /// Construct from a @param start start and @param end value.
     template <typename deduced_incr_t>
     DETRAY_HOST_DEVICE constexpr iota_view(deduced_incr_t &&start,
                                            deduced_incr_t &&end)
         : m_start{start}, m_end{end - 1} {}
 
-    /// Construct from a range: The subrange spans the entire range
-    ///
-    /// @param range container to iterate over
+    /// Construct from just a @param start value to represent a single value seq
     template <
         typename deduced_incr_t,
         std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
@@ -126,8 +121,6 @@ struct iota : public detray::ranges::iota_view<incr_t> {
 
     using base_type = detray::ranges::iota_view<incr_t>;
 
-    /// Default constructor (only works if @c imrementable_t is default
-    /// constructible)
     iota() = default;
 
     template <

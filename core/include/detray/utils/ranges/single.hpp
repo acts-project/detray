@@ -10,9 +10,6 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
-// System include(s)
-#include <iterator>
-
 namespace detray::ranges {
 
 /// @brief Struct that implements a view on a single element.
@@ -46,16 +43,16 @@ class single_view
             return *m_value != *rhs.m_value;
         }
 
-        /// Does nothing
+        /// Advance pointer
         DETRAY_HOST_DEVICE
-        constexpr auto operator++() -> iterator {
+        constexpr auto operator++() -> iterator & {
             ++m_value;
             return *this;
         }
 
         /// Does nothing
         DETRAY_HOST_DEVICE
-        constexpr auto operator--() -> iterator {
+        constexpr auto operator--() -> iterator & {
             --m_value;
             return *this;
         }
@@ -74,7 +71,7 @@ class single_view
             return {m_value + j};
         }
 
-        value_t *const m_value;
+        value_t *m_value;
     };
 
     /// Start and end values of the sequence
@@ -84,15 +81,12 @@ class single_view
     /// Default constructor
     single_view() = default;
 
-    /// Construct iterator from a value.
-    ///
-    /// @param value the single value that this iterator points to
+    /// Construct iterator from the single @param value this iterator points to.
     DETRAY_HOST_DEVICE constexpr single_view(value_t &value)
         : m_begin{&value}, m_end{&value + 1} {}
 
-    /// Construct iterator from a value.
-    ///
-    /// @param value the single value that this iterator points to
+    /// Construct iterator from the single @param value this iterator points to
+    /// - const
     DETRAY_HOST_DEVICE constexpr single_view(const value_t &value)
         : m_begin{&value}, m_end{&value + 1} {}
 
@@ -113,7 +107,6 @@ struct single : public detray::ranges::single_view<value_t> {
 
     using base_type = detray::ranges::single_view<value_t>;
 
-    /// Default constructor
     constexpr single() = default;
 
     template <typename deduced_value_t>

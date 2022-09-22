@@ -13,7 +13,6 @@
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
-#include <iterator>
 #include <type_traits>
 
 namespace detray::ranges {
