@@ -131,10 +131,20 @@ namespace detail {
 ///
 /// Once the sentinel of one range is reached, set the current iterator to the
 /// next ranges 'begin' and update the sentinel.
+///
+/// @note The iterator must not be typed on the current range index, so that
+/// begin and sentinel type are the same.
 template <typename iterator_coll_t>
 struct chain_iterator {
 
     using iterator_t = detray::detail::get_value_type_t<iterator_coll_t>;
+
+    using difference_type =
+        typename std::iterator_traits<iterator_t>::difference_type;
+    using value_type = typename std::iterator_traits<iterator_t>::value_type;
+    using pointer = typename std::iterator_traits<iterator_t>::pointer;
+    using reference = typename std::iterator_traits<iterator_t>::reference;
+    using iterator_category = std::forward_iterator_tag;
 
     /// Default construction
     constexpr chain_iterator(iterator_coll_t &begins, iterator_coll_t &ends)
@@ -238,24 +248,3 @@ struct chain_iterator {
 }  // namespace detail
 
 }  // namespace detray::ranges
-
-/// Add the iterator trait specialization for the chain iterator
-namespace std {
-
-/// Specialization of std::iterator_traits struct for the sequential iteration
-/// of multiple ranges
-template <typename T>
-struct iterator_traits<detray::ranges::detail::chain_iterator<T>> {
-    private:
-    using iterator_t = detray::detail::get_value_type_t<T>;
-
-    public:
-    using difference_type =
-        typename std::iterator_traits<iterator_t>::difference_type;
-    using value_type = typename std::iterator_traits<iterator_t>::value_type;
-    using pointer = typename std::iterator_traits<iterator_t>::pointer;
-    using reference = typename std::iterator_traits<iterator_t>::reference;
-    using iterator_category = std::forward_iterator_tag;
-};
-
-}  // namespace std

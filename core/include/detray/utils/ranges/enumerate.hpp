@@ -19,27 +19,64 @@
 
 namespace detray::ranges {
 
-namespace detail {
-
-template <typename U, typename V>
-struct enumerate_iterator;
-
-}
-
-/// @brief Struct that implements a subrange by providing start and end
-/// iterators on a range.
+/// @brief Enumerates the elements of a range on the fly.
 ///
 /// @see https://en.cppreference.com/w/cpp/ranges/subrange
 ///
-/// @tparam range_t the iterable which to constrain to a subrange
-template <typename range_itr_t, typename incrementable_t = dindex>
-struct enumerate_view : public detray::ranges::view_interface<
-                            enumerate_view<range_itr_t, incrementable_t>> {
-    /// Always use const iterator of the range as the wrapped iterator
-    using iterator_t =
-        ranges::detail::enumerate_iterator<range_itr_t, incrementable_t>;
-    using const_iterator_t = iterator_t;
+/// @tparam range_itr_t the iterator type of the enumerated range
+/// @tparam incr_t a type that can be incremented in lockstep with the
+///         iterator 'range_itr_t'.
+template <typename range_itr_t, typename incr_t = dindex>
+class enumerate_view : public detray::ranges::view_interface<
+                           enumerate_view<range_itr_t, incr_t>> {
 
+    private:
+    /// @brief Nested iterator to enumerate the elements of a range.
+    ///
+    /// The enumeration is done by incrementing an index in lockstep with a
+    /// wrapped iterator of a range. Index and current iterator value are
+    /// returned using structured binding.
+    struct iterator {
+
+        using difference_type =
+            typename std::iterator_traits<range_itr_t>::difference_type;
+        using value_type =
+            typename std::iterator_traits<range_itr_t>::value_type;
+        using pointer = typename std::iterator_traits<range_itr_t>::pointer;
+        using reference = typename std::iterator_traits<range_itr_t>::reference;
+        using iterator_category = std::input_iterator_tag;
+
+        /// Determine whether we reach end of range
+        DETRAY_HOST_DEVICE
+        constexpr auto operator!=(const iterator &rhs) const -> bool {
+            return (m_iter != rhs.m_iter);
+        }
+
+        /// Increment iterator and index in lockstep
+        DETRAY_HOST_DEVICE
+        constexpr auto operator++() -> iterator & {
+            ++m_i;
+            ++m_iter;
+            return *this;
+        }
+
+        /// @return iterator and index together
+        DETRAY_HOST_DEVICE
+        constexpr auto operator*() const { return std::tie(m_i, *m_iter); }
+
+        /// Advance the iterator and index position by @param j.
+        DETRAY_HOST_DEVICE
+        constexpr auto operator+(const incr_t j) const -> iterator {
+            return {m_iter + j, m_i + j};
+        }
+
+        range_itr_t m_iter;
+        incr_t m_i;
+    };
+
+    iterator m_range, m_end;
+
+    public:
     /// Default constructor (only works if @c imrementable_t is default
     /// constructible)
     enumerate_view() = default;
@@ -61,31 +98,26 @@ struct enumerate_view : public detray::ranges::view_interface<
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() -> iterator_t & { return m_range; }
+    constexpr auto begin() -> iterator & { return m_range; }
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> const_iterator_t & { return m_range; }
+    constexpr auto begin() const -> const iterator & { return m_range; }
 
     /// @return sentinel of a sequence.
     DETRAY_HOST_DEVICE
-    constexpr auto end() -> const_iterator_t & { return m_end; }
+    constexpr auto end() const -> const iterator & { return m_end; }
 
     /// @note Cannot peak at the end of input-iterator based range
-    constexpr typename std::iterator_traits<iterator_t>::value_type
-    back() noexcept = delete;
-
-    iterator_t m_range, m_end;
+    constexpr typename iterator::value_type back() noexcept = delete;
 };
 
 namespace views {
 
-template <typename range_itr_t, typename incrementable_t = dindex>
-struct enumerate : public enumerate_view<range_itr_t, incrementable_t> {
+template <typename range_itr_t, typename incr_t = dindex>
+struct enumerate : public enumerate_view<range_itr_t, incr_t> {
 
-    using base_type = enumerate_view<range_itr_t, incrementable_t>;
-    using iterator_t = typename base_type::iterator_t;
-    using const_iterator_t = typename base_type::const_iterator_t;
+    using base_type = enumerate_view<range_itr_t, incr_t>;
 
     enumerate() = default;
 
@@ -135,60 +167,4 @@ DETRAY_HOST_DEVICE enumerate(range_t &&rng, dindex start)
 
 }  // namespace views
 
-namespace detail {
-
-/// @brief Nested iterator to enumerate the elements of a range.
-///
-/// The enumeration is done by incrementing an index in lockstep with a wrapped
-/// iterator of the range. Index and current iterator value are returned
-/// using structured binding.
-template <typename iterator_t, typename index_t>
-struct enumerate_iterator {
-
-    /// Determine whether we reach end of range
-    DETRAY_HOST_DEVICE
-    constexpr auto operator!=(const enumerate_iterator &rhs) const -> bool {
-        return (m_iter != rhs.m_iter);
-    }
-
-    /// Increment
-    DETRAY_HOST_DEVICE
-    constexpr auto operator++() -> enumerate_iterator<iterator_t, index_t> & {
-        ++m_i;
-        ++m_iter;
-        return *this;
-    }
-
-    /// Tie them together for returning
-    DETRAY_HOST_DEVICE
-    constexpr auto operator*() const { return std::tie(m_i, *m_iter); }
-
-    /// Advance the sequence
-    DETRAY_HOST_DEVICE
-    constexpr auto operator+(const index_t j) const
-        -> enumerate_iterator<iterator_t, index_t> {
-        return {m_iter + j, m_i + j};
-    }
-
-    /// Start value of index sequence
-    iterator_t m_iter;
-    index_t m_i;
-};
-
-}  // namespace detail
-
 }  // namespace detray::ranges
-
-namespace std {
-
-/// Specialization of std::iterator_traits struct for the enumrator
-template <typename T, typename I>
-struct iterator_traits<detray::ranges::detail::enumerate_iterator<T, I>> {
-    using difference_type = typename std::iterator_traits<T>::difference_type;
-    using value_type = typename std::iterator_traits<T>::value_type;
-    using pointer = typename std::iterator_traits<T>::pointer;
-    using reference = typename std::iterator_traits<T>::reference;
-    using iterator_category = std::input_iterator_tag;
-};
-
-}  // namespace std
