@@ -9,7 +9,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/utils/ranges.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
 #include "tests/common/tools/track_generators.hpp"
@@ -78,7 +78,8 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
             // Loop over volumes
             for (const auto &v : d.volumes()) {
                 // Loop over all surfaces in volume
-                for (const auto sf : range(data_core.surfaces, v)) {
+                for (const auto sf :
+                     detray::ranges::subrange(data_core.surfaces, v)) {
 
                     auto sfi =
                         data_core.masks.template call<intersection_update>(

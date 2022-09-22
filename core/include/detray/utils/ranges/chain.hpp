@@ -6,13 +6,15 @@
  */
 #pragma once
 
-#include <iterator>
-#include <type_traits>
-
+// Project include(s)
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
+
+// System include(s)
+#include <iterator>
+#include <type_traits>
 
 namespace detray::ranges {
 
@@ -81,7 +83,7 @@ struct chain_view : public ranges::view_interface<chain_view<I, range_itr_t>> {
     constexpr typename std::iterator_traits<range_itr_t>::difference_type size()
         const noexcept = delete;
 
-    /// @note For now no 'size()' function
+    /// @note For now no 'back()' function
     constexpr typename std::iterator_traits<range_itr_t>::value_type back()
         const noexcept = delete;
 

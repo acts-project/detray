@@ -43,8 +43,8 @@ using free_track_parameters_type = free_track_parameters<transform3_type>;
 TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
     // Detector configuration
-    constexpr std::size_t n_brl_layers{4};
-    constexpr std::size_t n_edc_layers{7};
+    constexpr std::size_t n_brl_layers{1};
+    constexpr std::size_t n_edc_layers{0};
     vecmem::host_memory_resource host_mr;
     auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
@@ -57,8 +57,8 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     // Propagator
     propagator_t prop(stepper_t{}, navigator_t{});
 
-    constexpr std::size_t theta_steps{50};
-    constexpr std::size_t phi_steps{50};
+    constexpr std::size_t theta_steps{5};
+    constexpr std::size_t phi_steps{1};
 
     const point3 ori{0., 0., 0.};
     // det.volume_by_pos(ori).index();
@@ -84,8 +84,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
         ASSERT_TRUE(prop.propagate(propagation)) << debug_printer.to_string();
 
         // Compare intersection records
-        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size())
-            << debug_printer.to_string();
+        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size());
 
         std::stringstream debug_stream;
         for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();

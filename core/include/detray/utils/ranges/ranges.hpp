@@ -6,13 +6,15 @@
  */
 #pragma once
 
-#include <cassert>
-#include <iterator>
-#include <type_traits>
-
+// Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/detail/iterable.hpp"
+
+// System include(s)
+#include <cassert>
+#include <iterator>
+#include <type_traits>
 
 namespace detray::ranges {
 
@@ -144,7 +146,7 @@ struct view_interface : public base_view {
         return *(m_impl_ptr->begin() + i);
     }
 
-    view_impl_t* const m_impl_ptr{static_cast<view_impl_t* const>(this)};
+    view_impl_t* const m_impl_ptr{static_cast<view_impl_t*>(this)};
 };
 
 template <typename T>

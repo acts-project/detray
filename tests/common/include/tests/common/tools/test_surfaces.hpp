@@ -19,7 +19,7 @@
 #include "detray/grids/serializer2.hpp"
 #include "detray/masks/rectangle2D.hpp"
 #include "detray/tools/local_object_finder.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -55,7 +55,7 @@ planes_along_direction(dvector<scalar> distances, vector3 direction) {
 
     dvector<surface<plane_masks, plane_materials, transform3>> return_surfaces;
     return_surfaces.reserve(distances.size());
-    for (const auto &[idx, d] : enumerate(distances)) {
+    for (const auto [idx, d] : detray::views::enumerate(distances)) {
         vector3 t = d * direction;
         transform3 trf(t, z, x);
         typename plane_masks::link_type mask_link{

@@ -6,13 +6,16 @@
  */
 #pragma once
 
-#include <iterator>
-#include <tuple>
-#include <type_traits>
-
+// Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/ranges.hpp"
+#include "detray/utils/ranges/subrange.hpp"
+
+// System include(s)
+#include <iterator>
+#include <tuple>
+#include <type_traits>
 
 namespace detray::ranges {
 
@@ -29,7 +32,7 @@ struct enumerate_iterator;
 /// @see https://en.cppreference.com/w/cpp/ranges/subrange
 ///
 /// @tparam range_t the iterable which to constrain to a subrange
-template <typename range_itr_t, typename incrementable_t>
+template <typename range_itr_t, typename incrementable_t = dindex>
 struct enumerate_view : public detray::ranges::view_interface<
                             enumerate_view<range_itr_t, incrementable_t>> {
     /// Always use const iterator of the range as the wrapped iterator
@@ -45,18 +48,16 @@ struct enumerate_view : public detray::ranges::view_interface<
         typename range_t,
         std::enable_if_t<detray::ranges::range<range_t>::value, bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit enumerate_view(range_t &&rng)
-        : m_range{detray::ranges::begin(rng), 0},
-          m_end{detray::ranges::end(rng),
-                static_cast<incrementable_t>(detray::ranges::size(rng))} {}
+        : m_range{detray::ranges::begin(std::forward<range_t>(rng)), 0},
+          m_end{detray::ranges::end(std::forward<range_t>(rng)), 0} {}
 
     template <
         typename range_t,
         std::enable_if_t<detray::ranges::range<range_t>::value, bool> = true>
-    DETRAY_HOST_DEVICE constexpr explicit enumerate_view(
-        range_t &&rng, incrementable_t &&start)
-        : m_range{detray::ranges::begin(rng), start},
-          m_end{detray::ranges::end(rng),
-                static_cast<incrementable_t>(detray::ranges::size(rng))} {}
+    DETRAY_HOST_DEVICE constexpr explicit enumerate_view(range_t &&rng,
+                                                         dindex start)
+        : m_range{detray::ranges::begin(std::forward<range_t>(rng)), start},
+          m_end{detray::ranges::end(std::forward<range_t>(rng)), 0} {}
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
@@ -79,7 +80,7 @@ struct enumerate_view : public detray::ranges::view_interface<
 
 namespace views {
 
-template <typename range_itr_t, typename incrementable_t>
+template <typename range_itr_t, typename incrementable_t = dindex>
 struct enumerate : public enumerate_view<range_itr_t, incrementable_t> {
 
     using base_type = enumerate_view<range_itr_t, incrementable_t>;
@@ -97,9 +98,22 @@ struct enumerate : public enumerate_view<range_itr_t, incrementable_t> {
     template <
         typename range_t,
         std::enable_if_t<detray::ranges::range<range_t>::value, bool> = true>
-    DETRAY_HOST_DEVICE constexpr explicit enumerate(range_t &&rng,
-                                                    incrementable_t &&start)
-        : base_type(std::forward<range_t>(rng), std::forward<range_t>(start)) {}
+    DETRAY_HOST_DEVICE constexpr enumerate(range_t &&rng, dindex start)
+        : base_type(std::forward<range_t>(rng), start) {}
+
+    /// Construct from a range and start/end positions
+    ///
+    /// @param range container to iterate over
+    /// @param vol start and end position for iteration according to the volume
+    template <typename deduced_range_t, typename volume_t,
+              typename = typename std::remove_reference_t<volume_t>::volume_def>
+    DETRAY_HOST_DEVICE enumerate(deduced_range_t &&range, const volume_t &vol)
+        : enumerate(
+              detray::ranges::subrange(std::forward<deduced_range_t>(range),
+                                       vol),
+              detray::detail::get<0>(
+                  vol.template range<typename detray::ranges::range_value_t<
+                      deduced_range_t>>())) {}
 };
 
 // deduction guides
@@ -109,10 +123,15 @@ template <typename range_t,
 DETRAY_HOST_DEVICE enumerate(range_t &&rng)
     ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
 
-template <typename range_t, typename incrementable_t,
+template <typename range_t, typename volume_t,
+          typename = typename std::remove_reference_t<volume_t>::volume_def>
+DETRAY_HOST_DEVICE enumerate(range_t &&range, const volume_t &vol)
+    ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
+
+template <typename range_t,
           std::enable_if_t<detray::ranges::range<range_t>::value, bool> = true>
-DETRAY_HOST_DEVICE enumerate(range_t &&rng, incrementable_t &&start)
-    ->enumerate<detray::ranges::const_iterator_t<range_t>, incrementable_t>;
+DETRAY_HOST_DEVICE enumerate(range_t &&rng, dindex start)
+    ->enumerate<detray::ranges::const_iterator_t<range_t>, dindex>;
 
 }  // namespace views
 
@@ -123,19 +142,18 @@ namespace detail {
 /// The enumeration is done by incrementing an index in lockstep with a wrapped
 /// iterator of the range. Index and current iterator value are returned
 /// using structured binding.
-template <typename itr_t, typename value_t>
+template <typename iterator_t, typename index_t>
 struct enumerate_iterator {
 
     /// Determine whether we reach end of range
     DETRAY_HOST_DEVICE
-    constexpr auto operator!=(
-        const enumerate_iterator<itr_t, value_t> &rhs) const -> bool {
+    constexpr auto operator!=(const enumerate_iterator &rhs) const -> bool {
         return (m_iter != rhs.m_iter);
     }
 
     /// Increment
     DETRAY_HOST_DEVICE
-    constexpr auto operator++() -> enumerate_iterator<itr_t, value_t> & {
+    constexpr auto operator++() -> enumerate_iterator<iterator_t, index_t> & {
         ++m_i;
         ++m_iter;
         return *this;
@@ -147,14 +165,14 @@ struct enumerate_iterator {
 
     /// Advance the sequence
     DETRAY_HOST_DEVICE
-    constexpr auto operator+(const value_t j) const
-        -> enumerate_iterator<itr_t, value_t> {
+    constexpr auto operator+(const index_t j) const
+        -> enumerate_iterator<iterator_t, index_t> {
         return {m_iter + j, m_i + j};
     }
 
     /// Start value of index sequence
-    itr_t m_iter;
-    value_t m_i;
+    iterator_t m_iter;
+    index_t m_i;
 };
 
 }  // namespace detail

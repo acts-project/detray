@@ -6,12 +6,14 @@
  */
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/type_traits.hpp"
+
+// System include(s)
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
-
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/type_traits.hpp"
 
 namespace detray::ranges::detail {
 
@@ -27,14 +29,16 @@ struct iterable : public std::false_type {};
 /// @brief Iterable specialization.
 ///
 /// The type is iterable by simply calling its begin and end member functions.
+/// In case of @c vecmem::device_vector the iterator is a pointer type.
 // TODO: Use concepts in the future. Right now, the existance of 'begin()' is
 // used to infer on the existence of 'end()' etc.
 template <typename T>
 struct iterable<
-    T,
-    std::enable_if_t<
-        std::is_class_v<std::decay_t<decltype(std::begin(std::declval<T&>()))>>,
-        void>> : public std::true_type {
+    T, std::enable_if_t<std::is_class_v<std::decay_t<decltype(std::begin(
+                            std::declval<T&>()))>> or
+                            std::is_pointer_v<std::decay_t<decltype(std::begin(
+                                std::declval<T&>()))>>,
+                        void>> : public std::true_type {
 
     using iterator_type =
         std::decay_t<decltype(std::begin(std::declval<T&>()))>;
@@ -79,7 +83,8 @@ struct iterable<
 // TODO: Use concepts in the future. Right now, the existance of 'begin()' is
 // used to infer on the compliance with the rest of the iterator interface
 template <typename T>
-struct iterable<T, std::enable_if_t<not std::is_class_v<T::value_type>, bool>>
+struct iterable<
+    T, std::enable_if_t<not std::is_class_v<typename T::value_type>, bool>>
     : public std::true_type {
 
     using iterator_type = T*;
