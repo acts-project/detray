@@ -18,25 +18,65 @@
 
 namespace detray::ranges {
 
-namespace detail {
-
-template <typename I>
-struct iota_iterator;
-
-}
-
-/// @brief Struct that implements a subrange by providing start and end
-/// iterators on a range.
+/// @brief Range factory that produces a sequence of values.
 ///
-/// @see https://en.cppreference.com/w/cpp/ranges/subrange
+/// @see https://en.cppreference.com/w/cpp/ranges/iota
 ///
-/// @tparam range_t the iterable which to constrain to a subrange
-template <typename incrementable_t>
-struct iota_view
-    : public detray::ranges::view_interface<iota_view<incrementable_t>> {
+/// @tparam incr_t the incrementable type that makes up the sequence
+template <typename incr_t>
+class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
 
-    using iterator_t = detail::iota_iterator<incrementable_t>;
+    private:
+    /// @brief Nested iterator to generate a range of values on demand.
+    struct iterator {
 
+        using difference_type = incr_t;
+        using value_type = incr_t;
+        using pointer = incr_t *;
+        using reference = incr_t &;
+        using iterator_category = std::input_iterator_tag;
+
+        /// @returns true if we reach end of sequence
+        DETRAY_HOST_DEVICE
+        constexpr auto operator==(const iterator &rhs) const -> bool {
+            return (i == rhs.i);
+        }
+
+        /// @returns true if we reach end of sequence
+        DETRAY_HOST_DEVICE
+        constexpr auto operator!=(const iterator &rhs) const -> bool {
+            return (i != rhs.i);
+        }
+
+        /// Increment the index
+        DETRAY_HOST_DEVICE
+        constexpr auto operator++() -> iterator & {
+            ++i;
+            return *this;
+        }
+
+        /// @returns the current value in the sequence
+        DETRAY_HOST_DEVICE
+        constexpr auto operator*() const -> const incr_t & { return i; }
+
+        /// @returns the current value in the sequence
+        DETRAY_HOST_DEVICE
+        constexpr auto operator*() -> incr_t & { return i; }
+
+        /// Advance the sequence by @param j positions
+        DETRAY_HOST_DEVICE
+        constexpr auto operator+(const incr_t j) const -> iterator {
+            return {i + j};
+        }
+
+        /// Current value of sequence
+        incr_t i;
+    };
+
+    /// Start and end values of the sequence
+    incr_t m_start, m_end;
+
+    public:
     /// Default constructor (only works if @c imrementable_t is default
     /// constructible)
     iota_view() = default;
@@ -68,29 +108,23 @@ struct iota_view
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> iterator_t { return {m_start}; }
+    constexpr auto begin() const -> iterator { return {m_start}; }
 
     /// @return sentinel of a sequence.
     DETRAY_HOST_DEVICE
-    constexpr auto end() const -> iterator_t { return {m_end}; }
+    constexpr auto end() const -> iterator { return {m_end}; }
 
     /// @note Cannot peak at the end of input-iterator based range
-    constexpr typename std::iterator_traits<iterator_t>::value_type
-    back() noexcept = delete;
-
-    /// Start and end values of the sequence
-    incrementable_t m_start;
-    incrementable_t m_end;
+    constexpr typename iterator::value_type back() noexcept = delete;
 };
 
 namespace views {
 
 /// @brief interface type to construct a @c iota_view with CTAD
-template <typename incrementable_t, typename sentinel_t = void>
-struct iota : public detray::ranges::iota_view<incrementable_t> {
+template <typename incr_t, typename sentinel_t = void>
+struct iota : public detray::ranges::iota_view<incr_t> {
 
-    using base_type = detray::ranges::iota_view<incrementable_t>;
-    using iterator_t = typename base_type::iterator_t;
+    using base_type = detray::ranges::iota_view<incr_t>;
 
     /// Default constructor (only works if @c imrementable_t is default
     /// constructible)
@@ -138,63 +172,4 @@ DETRAY_HOST_DEVICE iota(deduced_incr_t &&start)
 
 }  // namespace views
 
-namespace detail {
-
-/// Nested iterator to generate a range of values on demand
-template <typename value_t>
-struct iota_iterator {
-
-    /// @returns true if we reach end of sequence
-    DETRAY_HOST_DEVICE
-    constexpr auto operator==(const iota_iterator<value_t> &rhs) const -> bool {
-        return (i == rhs.i);
-    }
-
-    /// @returns true if we reach end of sequence
-    DETRAY_HOST_DEVICE
-    constexpr auto operator!=(const iota_iterator<value_t> &rhs) const -> bool {
-        return (i != rhs.i);
-    }
-
-    /// Increment
-    DETRAY_HOST_DEVICE
-    constexpr auto operator++() -> iota_iterator<value_t> & {
-        ++i;
-        return *this;
-    }
-
-    /// @returns the current value in the sequence
-    DETRAY_HOST_DEVICE
-    constexpr auto operator*() const -> const value_t & { return i; }
-
-    /// @returns the current value in the sequence
-    DETRAY_HOST_DEVICE
-    constexpr auto operator*() -> value_t & { return i; }
-
-    /// Advance the sequence by @param j positions
-    DETRAY_HOST_DEVICE
-    constexpr auto operator+(const value_t j) const -> iota_iterator<value_t> {
-        return {i + j};
-    }
-
-    /// Current value of sequence
-    value_t i;
-};
-
-}  // namespace detail
-
 }  // namespace detray::ranges
-
-namespace std {
-
-/// Specialization of std::iterator_traits struct for the iota range factory
-template <typename T>
-struct iterator_traits<detray::ranges::detail::iota_iterator<T>> {
-    using difference_type = T;
-    using value_type = T;
-    using pointer = T *;
-    using reference = T &;
-    using iterator_category = std::input_iterator_tag;
-};
-
-}  // namespace std

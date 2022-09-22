@@ -15,48 +15,94 @@
 
 namespace detray::ranges {
 
-namespace detail {
-
-template <typename I>
-struct single_iterator;
-
-}
-
 /// @brief Struct that implements a view on a single element.
 ///
-/// @tparam value_t typen of the single element (outside of a container)
+/// @tparam value_t type of the single element (outside of a container)
 template <typename value_t>
-struct single_view
+class single_view
     : public detray::ranges::view_interface<single_view<value_t>> {
 
-    using iterator_t = detail::single_iterator<value_t>;
+    private:
+    /// @brief Emulates iterator behaviour for a single value.
+    struct iterator {
 
+        using difference_type = std::size_t;
+        using value_type = value_t;
+        using pointer = value_t *;
+        using reference = value_t &;
+        using iterator_category = std::bidirectional_iterator_tag;
+
+        /// @returns true if it points to the same value (not necessarily the
+        /// same instance though).
+        DETRAY_HOST_DEVICE
+        constexpr auto operator==(const iterator &rhs) const -> bool {
+            return *m_value == *rhs.m_value;
+        }
+
+        /// @returns false if it points to the same value (not necessarily the
+        /// same instance though).
+        DETRAY_HOST_DEVICE
+        constexpr auto operator!=(const iterator &rhs) const -> bool {
+            return *m_value != *rhs.m_value;
+        }
+
+        /// Does nothing
+        DETRAY_HOST_DEVICE
+        constexpr auto operator++() -> iterator {
+            ++m_value;
+            return *this;
+        }
+
+        /// Does nothing
+        DETRAY_HOST_DEVICE
+        constexpr auto operator--() -> iterator {
+            --m_value;
+            return *this;
+        }
+
+        /// @returns the single value that the iterator points to - const
+        DETRAY_HOST_DEVICE
+        constexpr auto operator*() const -> const value_t & { return *m_value; }
+
+        /// @returns the single value that the iterator points to
+        DETRAY_HOST_DEVICE
+        constexpr auto operator*() -> value_t & { return *m_value; }
+
+        /// Advance the sequence
+        DETRAY_HOST_DEVICE
+        constexpr auto operator+(const value_t j) const -> iterator {
+            return {m_value + j};
+        }
+
+        value_t *const m_value;
+    };
+
+    /// Start and end values of the sequence
+    iterator m_begin{nullptr}, m_end{nullptr};
+
+    public:
     /// Default constructor
-    constexpr single_view() = default;
+    single_view() = default;
 
     /// Construct iterator from a value.
     ///
     /// @param value the single value that this iterator points to
-    DETRAY_HOST_DEVICE single_view(value_t &value)
+    DETRAY_HOST_DEVICE constexpr single_view(value_t &value)
         : m_begin{&value}, m_end{&value + 1} {}
 
     /// Construct iterator from a value.
     ///
     /// @param value the single value that this iterator points to
-    DETRAY_HOST_DEVICE single_view(const value_t &value)
+    DETRAY_HOST_DEVICE constexpr single_view(const value_t &value)
         : m_begin{&value}, m_end{&value + 1} {}
 
     /// @return start position.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> iterator_t { return m_begin; }
+    constexpr auto begin() const -> iterator { return m_begin; }
 
     /// @return sentinel.
     DETRAY_HOST_DEVICE
-    constexpr auto end() const -> iterator_t { return m_end; }
-
-    /// Start and end values of the sequence
-    iterator_t m_begin{nullptr};
-    iterator_t m_end{nullptr};
+    constexpr auto end() const -> iterator { return m_end; }
 };
 
 namespace views {
@@ -66,7 +112,6 @@ template <typename value_t>
 struct single : public detray::ranges::single_view<value_t> {
 
     using base_type = detray::ranges::single_view<value_t>;
-    using iterator_t = typename base_type::iterator_t;
 
     /// Default constructor
     constexpr single() = default;
@@ -90,73 +135,4 @@ single(const deduced_value_t &value) -> single<const deduced_value_t>;
 
 }  // namespace views
 
-namespace detail {
-
-/// @brief Emulates iterator behaviour for a single value.
-template <typename value_t>
-struct single_iterator {
-
-    /// @returns true if it points to the same value (not necessarily the same
-    /// instance though).
-    DETRAY_HOST_DEVICE
-    constexpr auto operator==(const single_iterator<value_t> &rhs) const
-        -> bool {
-        return *m_value == *rhs.m_value;
-    }
-
-    /// @returns false if it points to the same value (not necessarily the same
-    /// instance though).
-    DETRAY_HOST_DEVICE
-    constexpr auto operator!=(const single_iterator &rhs) const -> bool {
-        return *m_value != *rhs.m_value;
-    }
-
-    /// Does nothing
-    DETRAY_HOST_DEVICE
-    constexpr auto operator++() -> single_iterator<value_t> {
-        ++m_value;
-        return *this;
-    }
-
-    /// Does nothing
-    DETRAY_HOST_DEVICE
-    constexpr auto operator--() -> single_iterator<value_t> {
-        --m_value;
-        return *this;
-    }
-
-    /// @returns the single value that the iterator points to - const
-    DETRAY_HOST_DEVICE
-    constexpr auto operator*() const -> const value_t & { return *m_value; }
-
-    /// @returns the single value that the iterator points to
-    DETRAY_HOST_DEVICE
-    constexpr auto operator*() -> value_t & { return *m_value; }
-
-    /// Advance the sequence
-    DETRAY_HOST_DEVICE
-    constexpr auto operator+(const value_t j) const
-        -> single_iterator<value_t> {
-        return {m_value + j};
-    }
-
-    value_t *m_value;
-};
-
-}  // namespace detail
-
 }  // namespace detray::ranges
-
-namespace std {
-
-/// Specialization of std::iterator_traits struct for the a single value
-template <typename T>
-struct iterator_traits<detray::ranges::detail::single_iterator<T>> {
-    using difference_type = std::size_t;
-    using value_type = T;
-    using pointer = T *;
-    using reference = T &;
-    using iterator_category = std::bidirectional_iterator_tag;
-};
-
-}  // namespace std
