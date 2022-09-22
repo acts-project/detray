@@ -34,7 +34,7 @@ struct is_same_nc<const TYPE, TYPE> {
 ///
 /// @note Only gets the first value type for tuple-like containers
 /// @{
-/*template <typename container_t, typename = void>
+template <typename container_t, typename = void>
 struct get_value_type {
     using type = void;
 };
@@ -45,17 +45,18 @@ struct get_value_type<container_t, typename container_t::value_type> {
 };
 
 template <typename container_t>
-struct get_value_type<container_t,
+struct get_value_type<
+    container_t,
     std::enable_if_t<
-        std::is_class_v<std::remove_reference_t<
-                decltype(detray::detail::get<0>(std::declval<container_t>()))>>,
+        std::is_class_v<std::remove_reference_t<decltype(detray::detail::get<0>(
+            std::declval<container_t>()))>>,
         void>> {
     using type = std::decay_t<decltype(detray::detail::get<0>(
         std::declval<container_t>()))>;
 };
 
 template <typename T>
-using get_value_type_t = typename get_value_type<T>::type;*/
+using get_value_type_t = typename get_value_type<T>::type;
 /// @}
 
 /// Helper trait that checks if a type models an interval of some value that can

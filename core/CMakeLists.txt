@@ -117,8 +117,6 @@ detray_add_library( detray_core core
    "include/detray/utils/ranges/chain_iterator.hpp"
    "include/detray/utils/ranges/iota_iterator.hpp"
    "include/detray/utils/ranges/detail/iterable.hpp"
-   "include/detray/utils/ranges/detail/iterator_traits.hpp"
-   "include/detray/utils/ranges/single_iterator.hpp"
    "include/detray/utils/ranges/enumerate.hpp"
    "include/detray/utils/ranges/chain.hpp"
    "include/detray/utils/ranges/iota.hpp"

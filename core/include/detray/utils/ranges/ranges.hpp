@@ -7,12 +7,12 @@
 #pragma once
 
 #include <cassert>
+#include <iterator>
 #include <type_traits>
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/detail/iterable.hpp"
-#include "detray/utils/ranges/detail/iterator_traits.hpp"
 
 namespace detray::ranges {
 
@@ -24,10 +24,10 @@ struct range : public std::false_type {
     using type = void;
 };
 
-/// @brief Check if a type is iterable and extract iterator types.
+/// @brief Check if a type is iterable and extract iterator type.
 ///
 /// A range has a begin() and an end() member function, which is guaranteed by
-/// 'is_iterable'.
+/// @c iterable.
 template <typename T>
 struct range<T,
              std::enable_if_t<detail::iterable<std::decay_t<T>>::value, void>>
@@ -38,26 +38,26 @@ struct range<T,
 };
 
 /// Check if a type 'T' is a range and get the 'begin()'/'end()' functions from
-/// the  @c iterable interface
+/// the @c iterable interface.
 /// @{
 template <class T>
 constexpr auto begin(T&& iterable) noexcept {
-    return range<std::decay_t<T>>::type::begin(iterable);
+    return range<std::decay_t<T>>::type::begin(std::forward<T>(iterable));
 }
 
 template <class T>
 constexpr auto end(T&& iterable) noexcept {
-    return range<std::decay_t<T>>::type::end(iterable);
+    return range<std::decay_t<T>>::type::end(std::forward<T>(iterable));
 }
 
 template <class T>
 constexpr auto cbegin(T&& iterable) noexcept {
-    return range<std::decay_t<T>>::type::cbegin(iterable);
+    return range<std::decay_t<T>>::type::cbegin(std::forward<T>(iterable));
 }
 
 template <class T>
 constexpr auto cend(T&& iterable) noexcept {
-    return range<std::decay_t<T>>::type::cend(iterable);
+    return range<std::decay_t<T>>::type::cend(std::forward<T>(iterable));
 }
 
 template <class T>

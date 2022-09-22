@@ -11,6 +11,7 @@
 #include <type_traits>
 
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/type_traits.hpp"
 
 namespace detray::ranges::detail {
 

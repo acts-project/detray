@@ -6,15 +6,22 @@
  */
 #pragma once
 
+#include <iterator>
 #include <type_traits>
 
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/ranges/detail/iota_iterator.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
 
 namespace detray::ranges {
+
+namespace detail {
+
+template <typename I>
+struct iota_iterator;
+
+}
 
 /// @brief Struct that implements a subrange by providing start and end
 /// iterators on a range.
@@ -129,4 +136,63 @@ DETRAY_HOST_DEVICE iota(deduced_incr_t &&start)
 
 }  // namespace views
 
+namespace detail {
+
+/// Nested iterator to generate a range of values on demand
+template <typename value_t>
+struct iota_iterator {
+
+    /// @returns true if we reach end of sequence
+    DETRAY_HOST_DEVICE
+    constexpr auto operator==(const iota_iterator<value_t> &rhs) const -> bool {
+        return (i == rhs.i);
+    }
+
+    /// @returns true if we reach end of sequence
+    DETRAY_HOST_DEVICE
+    constexpr auto operator!=(const iota_iterator<value_t> &rhs) const -> bool {
+        return (i != rhs.i);
+    }
+
+    /// Increment
+    DETRAY_HOST_DEVICE
+    constexpr auto operator++() -> iota_iterator<value_t> & {
+        ++i;
+        return *this;
+    }
+
+    /// @returns the current value in the sequence
+    DETRAY_HOST_DEVICE
+    constexpr auto operator*() const -> const value_t & { return i; }
+
+    /// @returns the current value in the sequence
+    DETRAY_HOST_DEVICE
+    constexpr auto operator*() -> value_t & { return i; }
+
+    /// Advance the sequence by @param j positions
+    DETRAY_HOST_DEVICE
+    constexpr auto operator+(const value_t j) const -> iota_iterator<value_t> {
+        return {i + j};
+    }
+
+    /// Current value of sequence
+    value_t i;
+};
+
+}  // namespace detail
+
 }  // namespace detray::ranges
+
+namespace std {
+
+/// Specialization of std::iterator_traits struct for the iota range factory
+template <typename T>
+struct iterator_traits<detray::ranges::detail::iota_iterator<T>> {
+    using difference_type = T;
+    using value_type = T;
+    using pointer = T *;
+    using reference = T &;
+    using iterator_category = std::input_iterator_tag;
+};
+
+}  // namespace std
