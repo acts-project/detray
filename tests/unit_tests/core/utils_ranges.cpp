@@ -23,6 +23,7 @@ TEST(utils, ranges_single) {
     // general tests
     auto sngl = detray::views::single(value);
     ASSERT_TRUE(detray::ranges::range<decltype(sngl)>::value);
+    ASSERT_TRUE(detray::ranges::is_view<decltype(sngl)>);
     ASSERT_EQ(sngl[0], value);
     ASSERT_EQ(sngl.size(), 1UL);
     ASSERT_EQ(sngl.front(), 251UL);
@@ -42,6 +43,7 @@ TEST(utils, ranges_iota_single) {
     // general tests
     auto seq = detray::views::iota(single);
     ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
+    ASSERT_TRUE(detray::ranges::is_view<decltype(seq)>);
     ASSERT_EQ(seq[1], single + 1);
     ASSERT_EQ(seq.size(), 1UL);
     ASSERT_EQ(seq.front(), 7UL);
@@ -60,6 +62,7 @@ TEST(utils, ranges_iota_interval) {
     // general tests
     auto seq = detray::views::iota(interval);
     ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
+    ASSERT_TRUE(detray::ranges::is_view<decltype(seq)>);
     ASSERT_EQ(seq[1], 3UL);
     ASSERT_EQ(seq.size(), 5UL);
     ASSERT_EQ(seq.front(), 2UL);
@@ -85,6 +88,7 @@ TEST(utils, ranges_enumerate) {
     // general tests
     auto enumerator = detray::views::enumerate(seq);
     ASSERT_TRUE(detray::ranges::range<decltype(enumerator)>::value);
+    ASSERT_TRUE(detray::ranges::is_view<decltype(enumerator)>);
     ASSERT_EQ(enumerator.size(), 6UL);
     const auto [i_front, v_front] = enumerator.front();
     ASSERT_EQ(i_front, 0u);
@@ -107,9 +111,9 @@ TEST(utils, ranges_chain) {
     auto chained = detray::views::chain(detray::views::iota(interval_1),
                                         detray::views::iota(interval_2));
     ASSERT_TRUE(detray::ranges::range<decltype(chained)>::value);
+    ASSERT_TRUE(detray::ranges::is_view<decltype(chained)>);
     ASSERT_EQ(chained.front(), 2UL);
 
-    std::size_t i{0};
     for (const auto j : chained) {
         check.push_back(j);
     }
@@ -127,9 +131,10 @@ TEST(utils, ranges_subrange) {
     dvector<int> seq = {0, 1, 2, 3, 4, 5};
 
     // general tests
-    auto sr = detray::views::subrange(seq, interval);
+    auto sr = detray::ranges::subrange(seq, interval);
 
     ASSERT_TRUE(detray::ranges::range<decltype(sr)>::value);
+    ASSERT_TRUE(detray::ranges::is_view<decltype(sr)>);
     ASSERT_EQ(sr[1], seq[begin + 1]);
     ASSERT_EQ(sr.size(), 3UL);
     ASSERT_EQ(sr.front(), 1UL);
@@ -137,7 +142,7 @@ TEST(utils, ranges_subrange) {
 
     // non-const iteration
     std::size_t i = 1;
-    for (const auto &v : detray::views::subrange(seq, interval)) {
+    for (const auto &v : detray::ranges::subrange(seq, interval)) {
         ASSERT_NE(v, 4);
         ASSERT_EQ(v, seq[i++]);
     }
@@ -145,7 +150,7 @@ TEST(utils, ranges_subrange) {
     // const iteration
     const dvector<int> seq_c(seq);
     i = 1;
-    for (const auto &v : detray::views::subrange(seq_c, interval)) {
+    for (const auto &v : detray::ranges::subrange(seq_c, interval)) {
         ASSERT_EQ(v, seq[i++]);
     }
 }
@@ -164,7 +169,7 @@ TEST(utils, ranges_enumerated_subrange) {
     std::array<std::size_t, 2> interval{begin, end};
 
     for (const auto [i, v] :
-         detray::views::enumerate(detray::views::subrange(seq, interval))) {
+         detray::views::enumerate(detray::ranges::subrange(seq, interval))) {
         ASSERT_EQ(i, v.ui - 1);
     }
 }

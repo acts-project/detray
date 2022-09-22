@@ -6,14 +6,22 @@
  */
 #pragma once
 
+#include <iterator>
+#include <tuple>
 #include <type_traits>
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/ranges/detail/enumerate_iterator.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
 namespace detray::ranges {
+
+namespace detail {
+
+template <typename U, typename V>
+struct enumerate_iterator;
+
+}
 
 /// @brief Struct that implements a subrange by providing start and end
 /// iterators on a range.
@@ -108,4 +116,61 @@ DETRAY_HOST_DEVICE enumerate(range_t &&rng, incrementable_t &&start)
 
 }  // namespace views
 
+namespace detail {
+
+/// @brief Nested iterator to enumerate the elements of a range.
+///
+/// The enumeration is done by incrementing an index in lockstep with a wrapped
+/// iterator of the range. Index and current iterator value are returned
+/// using structured binding.
+template <typename itr_t, typename value_t>
+struct enumerate_iterator {
+
+    /// Determine whether we reach end of range
+    DETRAY_HOST_DEVICE
+    constexpr auto operator!=(
+        const enumerate_iterator<itr_t, value_t> &rhs) const -> bool {
+        return (m_iter != rhs.m_iter);
+    }
+
+    /// Increment
+    DETRAY_HOST_DEVICE
+    constexpr auto operator++() -> enumerate_iterator<itr_t, value_t> & {
+        ++m_i;
+        ++m_iter;
+        return *this;
+    }
+
+    /// Tie them together for returning
+    DETRAY_HOST_DEVICE
+    constexpr auto operator*() const { return std::tie(m_i, *m_iter); }
+
+    /// Advance the sequence
+    DETRAY_HOST_DEVICE
+    constexpr auto operator+(const value_t j) const
+        -> enumerate_iterator<itr_t, value_t> {
+        return {m_iter + j, m_i + j};
+    }
+
+    /// Start value of index sequence
+    itr_t m_iter;
+    value_t m_i;
+};
+
+}  // namespace detail
+
 }  // namespace detray::ranges
+
+namespace std {
+
+/// Specialization of std::iterator_traits struct for the enumrator
+template <typename T, typename I>
+struct iterator_traits<detray::ranges::detail::enumerate_iterator<T, I>> {
+    using difference_type = typename std::iterator_traits<T>::difference_type;
+    using value_type = typename std::iterator_traits<T>::value_type;
+    using pointer = typename std::iterator_traits<T>::pointer;
+    using reference = typename std::iterator_traits<T>::reference;
+    using iterator_category = std::input_iterator_tag;
+};
+
+}  // namespace std
