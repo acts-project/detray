@@ -9,7 +9,6 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/ranges/detail/iterable.hpp"
 
 // System include(s)
 #include <cassert>
@@ -28,39 +27,29 @@ struct range : public std::false_type {
 
 /// @brief Check if a type is iterable and extract iterator type.
 ///
-/// A range has a begin() and an end() member function, which is guaranteed by
-/// @c iterable.
+/// A range has a begin() and an end() member function, which is guranteed by
+/// simply calling std::begin and std::end.
+/// In case of @c vecmem::device_vector the iterator is a pointer type.
 template <typename T>
-struct range<T,
-             std::enable_if_t<detail::iterable<std::decay_t<T>>::value, void>>
-    : public std::true_type {
+struct range<
+    T, std::enable_if_t<std::is_class_v<std::decay_t<decltype(std::begin(
+                            std::declval<T&>()))>> or
+                            std::is_pointer_v<std::decay_t<decltype(std::begin(
+                                std::declval<T&>()))>>,
+                        void>> : public std::true_type {
 
-    /// Provide begin() and end() functions of e.g. [detray] containers
-    using type = detail::iterable<std::decay_t<T>>;
+    using iterator_type =
+        std::decay_t<decltype(std::begin(std::declval<T&>()))>;
+    using const_iterator_type =
+        std::decay_t<decltype(std::cbegin(std::declval<T&>()))>;
 };
 
-/// Check if a type 'T' is a range and get the 'begin()'/'end()' functions from
-/// the @c iterable interface.
+/// Simply import the std versions of the 'begin' and 'end' functions for now
 /// @{
-template <class T>
-constexpr auto begin(T&& iterable) noexcept {
-    return range<std::decay_t<T>>::type::begin(std::forward<T>(iterable));
-}
-
-template <class T>
-constexpr auto end(T&& iterable) noexcept {
-    return range<std::decay_t<T>>::type::end(std::forward<T>(iterable));
-}
-
-template <class T>
-constexpr auto cbegin(T&& iterable) noexcept {
-    return range<std::decay_t<T>>::type::cbegin(std::forward<T>(iterable));
-}
-
-template <class T>
-constexpr auto cend(T&& iterable) noexcept {
-    return range<std::decay_t<T>>::type::cend(std::forward<T>(iterable));
-}
+using std::begin;
+using std::cbegin;
+using std::cend;
+using std::end;
 
 template <class T>
 constexpr auto size(T&& iterable) noexcept {
@@ -68,6 +57,11 @@ constexpr auto size(T&& iterable) noexcept {
                          detray::ranges::end(std::forward<T>(iterable)));
 }
 /// @}
+
+// Placeholder definitions
+using std::distance;
+using std::next;
+using std::prev;
 
 /// Compliance with std::ranges typedefs,
 /// @see https://en.cppreference.com/w/cpp/ranges/iterator_t
@@ -102,11 +96,6 @@ using range_const_reference_t = const range_reference_t<T>;
 template <class T>
 using range_rvalue_reference_t = std::decay_t<range_value_t<T>>&&;
 /// @}
-
-// Placeholder definitions
-using std::distance;
-using std::next;
-using std::prev;
 
 // https://en.cppreference.com/w/cpp/ranges/view
 

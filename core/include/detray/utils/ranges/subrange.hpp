@@ -23,8 +23,9 @@ namespace detray::ranges {
 ///
 /// @tparam range_t the iterable which to constrain to a subrange.
 template <typename range_t>
-struct subrange : public ranges::view_interface<subrange<range_t>> {
+class subrange : public ranges::view_interface<subrange<range_t>> {
 
+    public:
     using iterator_t = typename detray::ranges::iterator_t<range_t>;
     using const_iterator_t = typename detray::ranges::const_iterator_t<range_t>;
     using range_size_t = typename detray::ranges::range_size_t<range_t>;
@@ -52,10 +53,8 @@ struct subrange : public ranges::view_interface<subrange<range_t>> {
                   pos},
           m_end{detray::ranges::next(m_start)} {}
 
-    /// Construct from a range and start/end positions
-    ///
-    /// @param range container to iterate over
-    /// @param pos start and end position for iteration
+    /// Construct from a @param range and an index range provided by a volume
+    /// @param vol.
     template <typename deduced_range_t, typename volume_t,
               typename = typename std::remove_reference_t<volume_t>::volume_def>
     DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, const volume_t &vol) {
@@ -69,10 +68,7 @@ struct subrange : public ranges::view_interface<subrange<range_t>> {
         m_end = start + detray::detail::get<1>(r);
     }
 
-    /// Construct from a range and start/end positions
-    ///
-    /// @param range container to iterate over
-    /// @param pos start and end position for iteration
+    /// Construct from a @param range and an index range @param pos.
     template <typename deduced_range_t, typename index_range_t,
               std::enable_if_t<detray::detail::is_interval_v<index_range_t>,
                                bool> = true>
@@ -95,6 +91,7 @@ struct subrange : public ranges::view_interface<subrange<range_t>> {
     DETRAY_HOST_DEVICE
     constexpr auto end() const -> iterator_t { return m_end; }
 
+    private:
     /// Start and end position of the subrange
     iterator_t m_start, m_end;
 };
