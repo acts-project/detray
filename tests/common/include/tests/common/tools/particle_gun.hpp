@@ -50,7 +50,7 @@ struct particle_gun {
         const auto &tf_store = detector.transform_store();
 
         for (const auto &volume : detector.volumes()) {
-            for (const auto &[sf_idx, sf] :
+            for (const auto [sf_idx, sf] :
                  detray::views::enumerate(detector.surfaces(), volume)) {
 
                 // Retrieve candidate from the surface

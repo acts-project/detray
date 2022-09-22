@@ -96,11 +96,11 @@ class subrange : public ranges::view_interface<subrange<range_t>> {
     iterator_t m_start, m_end;
 };
 
-template <typename deduced_range_t>
+/*template <typename deduced_range_t>
 DETRAY_HOST_DEVICE subrange(
     typename detray::ranges::iterator_t<deduced_range_t> &&start,
     typename detray::ranges::iterator_t<deduced_range_t> &&end)
-    ->subrange<deduced_range_t>;
+    ->subrange<deduced_range_t>;*/
 
 template <typename deduced_range_t>
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range)->subrange<deduced_range_t>;

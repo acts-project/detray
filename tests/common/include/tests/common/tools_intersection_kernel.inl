@@ -118,7 +118,7 @@ TEST(tools, intersection_kernel_ray) {
     // Initialize kernel
     std::vector<line_plane_intersection> sfi_init;
 
-    for (const auto& [sf_idx, surface] : detray::views::enumerate(surfaces)) {
+    for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
         mask_store.call<intersection_initialize>(surface.mask(), sfi_init,
                                                  detail::ray(track), surface,
                                                  transform_store);
@@ -127,7 +127,7 @@ TEST(tools, intersection_kernel_ray) {
     // Update kernel
     std::vector<line_plane_intersection> sfi_update;
 
-    for (const auto& [sf_idx, surface] : detray::views::enumerate(surfaces)) {
+    for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
         const auto sfi = mask_store.call<intersection_update>(
             surface.mask(), detail::ray(track), surface, transform_store);
 
@@ -208,7 +208,7 @@ TEST(tools, intersection_kernel_helix) {
         expected_rectangle, expected_trapezoid, expected_annulus};
 
     // Try the intersections - with automated dispatching via the kernel
-    for (const auto& [sf_idx, surface] : detray::views::enumerate(surfaces)) {
+    for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
         const auto sfi_helix = mask_store.call<helix_intersection_update>(
             surface.mask(), h, surface, transform_store);
 

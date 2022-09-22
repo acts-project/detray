@@ -78,7 +78,7 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
             // Loop over volumes
             for (const auto &v : d.volumes()) {
                 // Loop over all surfaces in volume
-                for (const auto sf :
+                for (const auto &sf :
                      detray::ranges::subrange(data_core.surfaces, v)) {
 
                     auto sfi =
