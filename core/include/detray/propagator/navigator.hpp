@@ -16,7 +16,7 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/surface_finders/neighborhood_kernel.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/utils/ranges.hpp"
 
 // vecmem include(s)
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>
@@ -717,8 +717,8 @@ class navigator {
                 volume.sf_finder_link(), *det, volume, track);
 
         // Enumerate the surfaces that are close to the track position
-        return enumerate(det->surfaces(), neighborhood);*/
-        return enumerate(det->surfaces(), volume);
+        return detray::views::enumerate(det->surfaces(), neighborhood);*/
+        return detray::views::enumerate(det->surfaces(), volume);
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:

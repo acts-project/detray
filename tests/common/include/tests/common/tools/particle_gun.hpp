@@ -15,7 +15,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
 namespace detray {
 
@@ -51,7 +51,7 @@ struct particle_gun {
 
         for (const auto &volume : detector.volumes()) {
             for (const auto &[sf_idx, sf] :
-                 enumerate(detector.surfaces(), volume)) {
+                 detray::views::enumerate(detector.surfaces(), volume)) {
 
                 // Retrieve candidate from the surface
                 // NOTE: Change to interection_initialize

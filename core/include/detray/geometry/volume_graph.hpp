@@ -14,7 +14,7 @@
 #include <utility>
 
 #include "detray/definitions/indexing.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -73,7 +73,8 @@ class volume_graph {
             node(const typename detector_t::volume_type &volume,
                  const surface_container_t &surfaces)
                 : _idx(volume.index()) {
-                for (const auto &sf : range(surfaces, volume)) {
+                for (const auto &sf :
+                     detray::ranges::subrange(surfaces, volume)) {
                     _half_edges.push_back(sf.mask());
                 }
             }
@@ -200,7 +201,7 @@ class volume_graph {
                 const typename mask_link_t::index_type &mask_range,
                 const dindex volume_id) {
                 vector_t<edge> edges{};
-                for (const auto &mask : range(mask_group, mask_range)) {
+                for (const auto &mask : detray::ranges::subrange(mask_group, mask_range)) {
                     edges.emplace_back(volume_id, mask.volume_link());
                 }
                 return edges;

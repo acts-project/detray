@@ -7,7 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "utils_enumerate_cuda_kernel.hpp"

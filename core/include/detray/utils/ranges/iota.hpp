@@ -6,13 +6,15 @@
  */
 #pragma once
 
-#include <iterator>
-#include <type_traits>
-
+// Project include(s)
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
+
+// System include(s)
+#include <iterator>
+#include <type_traits>
 
 namespace detray::ranges {
 
@@ -121,18 +123,18 @@ template <typename deduced_interval_t,
           std::enable_if_t<detray::detail::is_interval_v<deduced_interval_t>,
                            bool> = true>
 DETRAY_HOST_DEVICE iota(deduced_interval_t &&interval)
-    ->iota<std::remove_reference_t<
-        decltype(std::get<0>(std::declval<deduced_interval_t>()))>>;
+    ->iota<std::remove_cv_t<std::remove_reference_t<
+        decltype(std::get<0>(std::declval<deduced_interval_t>()))>>>;
 
 template <typename deduced_incr_t = dindex>
 DETRAY_HOST_DEVICE iota(deduced_incr_t &&start, deduced_incr_t &&end)
-    ->iota<std::remove_reference_t<deduced_incr_t>>;
+    ->iota<std::remove_cv_t<std::remove_reference_t<deduced_incr_t>>>;
 
 template <typename deduced_incr_t,
           std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
                            bool> = true>
 DETRAY_HOST_DEVICE iota(deduced_incr_t &&start)
-    ->iota<std::remove_reference_t<deduced_incr_t>>;
+    ->iota<std::remove_cv_t<std::remove_reference_t<deduced_incr_t>>>;
 
 }  // namespace views
 

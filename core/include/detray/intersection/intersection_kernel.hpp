@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -52,7 +53,8 @@ struct intersection_initialize {
         const auto &ctf = contextual_transforms[surface.transform()];
 
         // Run over the masks belonged to the surface
-        for (const auto &mask : range(mask_group, mask_range)) {
+        for (const auto &mask :
+             detray::ranges::subrange(mask_group, mask_range)) {
 
             auto sfi = std::move(mask.intersector()(
                 traj, mask, ctf, mask_tolerance, traj.overstep_tolerance()));
@@ -111,7 +113,8 @@ struct intersection_update {
         const auto &ctf = contextual_transforms[surface.transform()];
 
         // Run over the masks belonging to the surface
-        for (const auto &mask : range(mask_group, mask_range)) {
+        for (const auto &mask :
+             detray::ranges::subrange(mask_group, mask_range)) {
 
             auto sfi = std::move(mask.intersector()(
                 traj, mask, ctf, mask_tolerance, traj.overstep_tolerance()));

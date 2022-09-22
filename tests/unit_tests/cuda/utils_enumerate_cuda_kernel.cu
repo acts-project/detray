@@ -17,7 +17,7 @@ __global__ void sequence_single_kernel(
     vecmem::device_vector<dindex> check(check_data);
     vecmem::device_vector<dindex> single(single_data);
 
-    for (auto i : sequence(single[0])) {
+    for (auto i : detray::views::iota(single[0])) {
         check[0] += i;
     }
 }
@@ -39,7 +39,7 @@ __global__ void sequence_range_kernel(
 
     vecmem::device_vector<dindex> check(check_data);
 
-    for (auto i : sequence(range)) {
+    for (auto i : detray::views::iota(range)) {
         check.push_back(i);
     }
 }
@@ -64,7 +64,7 @@ __global__ void enumerate_sequence_kernel(
     vecmem::device_vector<unsigned int> uint_vec(uint_data);
     vecmem::device_vector<uint_holder> seq(seq_data);
 
-    for (auto [i, v] : enumerate(seq)) {
+    for (auto [i, v] : detray::views::enumerate(seq)) {
         idx_vec.push_back(i);
         uint_vec.push_back(v.ui);
     }
@@ -90,7 +90,7 @@ __global__ void iterate_range_kernel(vecmem::data::vector_view<int> check_data,
     vecmem::device_vector<int> seq(seq_data);
 
     for (const auto& v :
-         iterator_range(seq, std::array<size_t, 2>{begin, end})) {
+         detray::ranges::subrange(seq, std::array<size_t, 2>{begin, end})) {
         check.push_back(v);
     }
 }

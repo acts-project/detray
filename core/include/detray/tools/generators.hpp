@@ -8,6 +8,7 @@
 #pragma once
 
 #include "detray/masks/masks.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 

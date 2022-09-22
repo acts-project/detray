@@ -6,10 +6,12 @@
  */
 #pragma once
 
-#include <iterator>
-
+// Project include(s)
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/ranges.hpp"
+
+// System include(s)
+#include <iterator>
 
 namespace detray::ranges {
 

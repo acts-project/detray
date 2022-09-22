@@ -12,7 +12,6 @@
 #include <type_traits>
 
 #include "detray/definitions/indexing.hpp"
-#include "detray/utils/enumerate.hpp"
 
 namespace detray {
 

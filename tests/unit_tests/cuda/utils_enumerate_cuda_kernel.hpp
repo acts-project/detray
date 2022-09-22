@@ -12,7 +12,7 @@
 
 // detray core
 #include "detray/definitions/indexing.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/utils/ranges.hpp"
 
 // vecmem core
 #include "vecmem/containers/device_vector.hpp"

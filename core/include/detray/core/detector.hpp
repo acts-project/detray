@@ -17,6 +17,7 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/geometry/volume.hpp"
 #include "detray/tools/bin_association.hpp"
+#include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -479,7 +480,7 @@ class detector {
            << " volumes." << std::endl;
         ss << " local surface finders." << std::endl;
 
-        for (const auto &[i, v] : enumerate(_volumes)) {
+        for (const auto &[i, v] : detray::views::enumerate(_volumes)) {
             ss << "[>>] Volume at index " << i << ": " << std::endl;
             ss << " - name: '" << v.name(names) << "'" << std::endl;
 

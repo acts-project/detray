@@ -143,6 +143,7 @@ TEST(utils, ranges_subrange) {
     // non-const iteration
     std::size_t i = 1;
     for (const auto &v : detray::ranges::subrange(seq, interval)) {
+        ASSERT_NE(v, 0);
         ASSERT_NE(v, 4);
         ASSERT_EQ(v, seq[i++]);
     }
