@@ -52,8 +52,6 @@ struct propagator {
     /// also keeps references to the actor states.
     struct state {
 
-        using context_type = typename navigator_t::detector_type::context;
-
         /// Construct the propagation state.
         ///
         /// @param t_in the track state to be propagated
