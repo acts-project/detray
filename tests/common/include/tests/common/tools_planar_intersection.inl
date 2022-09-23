@@ -20,13 +20,10 @@
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 
-// Two-dimensional bound frame to surface
-__plugin::cartesian2<detray::scalar> cartesian2;
-
 // Three-dimensional definitions
-using transform3 = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
@@ -36,15 +33,17 @@ constexpr scalar isclose = 1e-5;
 TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
     // Create a shifted plane
     const transform3 shifted(vector3{3., 2., 10.});
-    plane_intersector pi;
 
     // Test ray
     const point3 pos{2., 1., 0.};
     const vector3 mom{0., 0., 1.};
-    const detail::ray r(pos, 0., mom, 0.);
+    const detail::ray<transform3> r(pos, 0., mom, 0.);
 
     // The same test but bound to local frame
-    unmasked<__plugin::cartesian2<detray::scalar> > unmasked_bound{};
+    using unmasked = unmasked<transform3, plane_intersector, cartesian2>;
+    auto pi = typename unmasked::intersector_type();
+
+    unmasked unmasked_bound{};
     const auto hit_bound = pi(r, unmasked_bound, shifted)[0];
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
@@ -90,12 +89,13 @@ TEST(ALGEBRA_PLUGIN, plane_incidence_angle) {
     const vector3 t{0, 0, 0};
 
     const transform3 rotated{t, vector::normalize(z), vector::normalize(x)};
-    plane_intersector pi;
+
+    plane_intersector<transform3> pi;
 
     // Test ray
     const point3 pos{-1., 0., 0.};
     const vector3 mom{1., 0., 0.};
-    const detail::ray r(pos, 0., mom, 0.);
+    const detail::ray<transform3> r(pos, 0., mom, 0.);
 
     // The same test but bound to local frame & masked - inside
     rectangle2<> rect{3., 3., 0u};
@@ -109,17 +109,19 @@ TEST(ALGEBRA_PLUGIN, plane_incidence_angle) {
 TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
     // Create a shifted plane
     const transform3 shifted(vector3{3., 2., 10.});
-    helix_plane_intersector pi;
 
     // Test helix
     const point3 pos{2., 1., 0.};
     const vector3 mom{0., 0., 1.};
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     epsilon * unit_constants::T};
-    const detail::helix h({pos, 0, mom, -1}, &B);
+    const detail::helix<transform3> h({pos, 0, mom, -1}, &B);
 
     // The same test but bound to local frame
-    unmasked<__plugin::cartesian2<detray::scalar> > unmasked_bound{};
+    using unmasked = unmasked<transform3, plane_intersector, cartesian2>;
+    helix_plane_intersector<transform3> pi;
+
+    unmasked unmasked_bound{};
     const auto hit_bound = pi(h, unmasked_bound, shifted)[0];
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged

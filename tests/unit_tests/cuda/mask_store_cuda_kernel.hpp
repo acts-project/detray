@@ -33,6 +33,7 @@ using namespace detray;
 
 using point2 = __plugin::point2<scalar>;
 using point3 = __plugin::point3<scalar>;
+using transform3 = __plugin::transform3<scalar>;
 const int n_points = 1000;
 
 namespace detray {

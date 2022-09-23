@@ -149,14 +149,14 @@ TEST(materials, material_rod) {
     // Create a track
     const point3 pos{-1. / 6., -10., 0};
     const vector3 dir{0, 1., 3.};
-    const free_track_parameters trk(pos, 0, dir, -1);
+    const free_track_parameters<transform3> trk(pos, 0, dir, -1);
 
     // Infinite wire with 1 mm radial cell size
     const line<> ln{1. * unit_constants::mm,
                     std::numeric_limits<scalar>::infinity(), 0u};
 
     line_plane_intersection is =
-        line_intersector()(detail::ray(trk), ln, tf)[0];
+        line_intersector<transform3>()(detail::ray<transform3>(trk), ln, tf)[0];
 
     EXPECT_NEAR(rod.path_segment(is),
                 scalar(2.) * std::sqrt(1. - 1. / 36) * std::sqrt(10), 1e-5);

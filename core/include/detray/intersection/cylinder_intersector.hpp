@@ -21,12 +21,16 @@ namespace detray {
 
 /** A functor to find intersections between trajectory and cylinder mask
  */
+template <typename transform3_t>
 struct cylinder_intersector {
 
+    /// Transformation matching this struct
+    using scalar_type = typename transform3_t::scalar_type;
+    using point3 = typename transform3_t::point3;
+    using vector3 = typename transform3_t::vector3;
+    using ray_type = detail::ray<transform3_t>;
     using intersection_type = line_plane_intersection;
     using output_type = std::array<intersection_type, 2>;
-    using point3 = __plugin::point3<detray::scalar>;
-    using vector3 = __plugin::vector3<detray::scalar>;
 
     /** Operator function to find intersections between ray and cylinder mask
      *
@@ -41,17 +45,17 @@ struct cylinder_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t, typename transform_t>
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const detail::ray &ray, const mask_t &mask, const transform_t &trf,
-        const scalar mask_tolerance = 0,
-        const scalar overstep_tolerance = 0.) const {
+        const ray_type &ray, const mask_t &mask, const transform3_t &trf,
+        const scalar_type mask_tolerance = 0,
+        const scalar_type overstep_tolerance = 0.) const {
 
         output_type ret;
 
         using local_frame = typename mask_t::local_type;
 
-        const scalar r{mask[0]};
+        const scalar_type r{mask[0]};
         const auto &m = trf.matrix();
         const vector3 sz = getter::vector<3>(m, 0, 2);
         const vector3 sc = getter::vector<3>(m, 0, 3);
@@ -61,33 +65,36 @@ struct cylinder_intersector {
 
         const vector3 pc_cross_sz = vector::cross(ro - sc, sz);
         const vector3 rd_cross_sz = vector::cross(rd, sz);
-        const scalar a = vector::dot(rd_cross_sz, rd_cross_sz);
-        const scalar b = scalar{2.} * vector::dot(rd_cross_sz, pc_cross_sz);
-        const scalar c = vector::dot(pc_cross_sz, pc_cross_sz) - (r * r);
+        const scalar_type a = vector::dot(rd_cross_sz, rd_cross_sz);
+        const scalar_type b =
+            scalar_type{2.} * vector::dot(rd_cross_sz, pc_cross_sz);
+        const scalar_type c = vector::dot(pc_cross_sz, pc_cross_sz) - (r * r);
 
-        quadratic_equation<scalar> qe = {a, b, c};
+        quadratic_equation<scalar_type> qe = {a, b, c};
         auto qe_solution = qe();
 
-        if (std::get<0>(qe_solution) > scalar{0.}) {
+        if (std::get<0>(qe_solution) > scalar_type{0.}) {
             const auto t01 = std::get<1>(qe_solution);
-            const scalar t{(t01[0] > overstep_tolerance) ? t01[0] : t01[1]};
+            const scalar_type t{(t01[0] > overstep_tolerance) ? t01[0]
+                                                              : t01[1]};
 
             if (t > overstep_tolerance) {
                 intersection_type &is = ret[0];
                 is.path = t;
                 is.p3 = ro + is.path * rd;
                 constexpr local_frame local_converter{};
-                is.p2 = local_converter(trf, is.p3);
+                is.p2 = local_converter.global_to_local(trf, is.p3, rd);
                 const auto local3 = trf.point_to_local(is.p3);
                 is.status = mask.template is_inside<local_frame>(
                     local3, mask_tolerance);
-                const scalar rdr = getter::perp(local3 + scalar{0.1} * rd);
+                const scalar_type rdr =
+                    getter::perp(local3 + scalar_type{0.1} * rd);
                 is.direction = rdr > r ? intersection::direction::e_along
                                        : intersection::direction::e_opposite;
                 is.link = mask.volume_link();
 
                 // Get incidence angle
-                const scalar phi = algebra::getter::phi(local3);
+                const scalar_type phi = algebra::getter::phi(local3);
                 const vector3 normal = {std::cos(phi), std::sin(phi), 0};
                 is.cos_incidence_angle = vector::dot(rd, normal);
             }

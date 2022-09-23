@@ -32,15 +32,16 @@ TEST(navigator_cuda, navigator) {
     navigator_host_t nav(det);
 
     // Create the vector of initial track parameters
-    vecmem::vector<free_track_parameters> tracks_host(&mng_mr);
-    vecmem::vector<free_track_parameters> tracks_device(&mng_mr);
+    vecmem::vector<free_track_parameters<transform3>> tracks_host(&mng_mr);
+    vecmem::vector<free_track_parameters<transform3>> tracks_device(&mng_mr);
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
     const scalar p_mag{10. * unit_constants::GeV};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : uniform_track_generator<free_track_parameters>(
+    for (auto track :
+         uniform_track_generator<free_track_parameters<transform3>>(
              theta_steps, phi_steps, ori, p_mag)) {
         track.set_overstep_tolerance(overstep_tolerance);
 

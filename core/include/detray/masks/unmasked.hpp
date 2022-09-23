@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/mask_base.hpp"
@@ -17,14 +18,16 @@
 
 namespace detray {
 
-template <typename local_t = __plugin::cartesian2<detray::scalar>,
+template <typename transform3_t = __plugin::transform3<scalar>,
+          template <class> typename intersector_t = plane_intersector,
+          template <class> typename local_t = cartesian2,
           typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
-class unmasked final
-    : public mask_base<plane_intersector, local_t, links_t, array_t, 1> {
+class unmasked final : public mask_base<transform3_t, intersector_t, local_t,
+                                        links_t, array_t, 1> {
     public:
     using base_type =
-        mask_base<plane_intersector, local_t, links_t, array_t, 1>;
+        mask_base<transform3_t, intersector_t, local_t, links_t, array_t, 1>;
     using base_type::base_type;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;

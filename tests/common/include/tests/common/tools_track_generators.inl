@@ -9,18 +9,18 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "detray/utils/enumerate.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
+using vector3 = __plugin::vector3<scalar>;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 constexpr const float epsilon = 1e-5;
 
 TEST(tools, uniform_track_generator) {
-
-    using vector3 = __plugin::vector3<scalar>;
 
     constexpr std::size_t phi_steps = 5;
     constexpr std::size_t theta_steps = 5;
@@ -40,7 +40,7 @@ TEST(tools, uniform_track_generator) {
             vector3 mom{std::cos(phi) * std::sin(theta),
                         std::sin(phi) * std::sin(theta), std::cos(theta)};
             vector::normalize(mom);
-            free_track_parameters traj({0., 0., 0.}, 0, mom, -1);
+            free_track_parameters<transform3> traj({0., 0., 0.}, 0, mom, -1);
 
             momenta[itheta * phi_steps + iphi] = traj.mom();
         }
@@ -48,7 +48,8 @@ TEST(tools, uniform_track_generator) {
 
     // Now run the track generator and compare
     std::size_t n_tracks = 0;
-    for (const auto track : uniform_track_generator<free_track_parameters>(
+    for (const auto track :
+         uniform_track_generator<free_track_parameters<transform3>>(
              theta_steps, phi_steps)) {
         vector3 &expected = momenta[n_tracks];
         vector3 result = track.mom();
@@ -66,8 +67,8 @@ TEST(tools, uniform_track_generator) {
 
     // Genrate rays
     n_tracks = 0;
-    for (const auto r :
-         uniform_track_generator<detail::ray>(theta_steps, phi_steps)) {
+    for (const auto r : uniform_track_generator<detail::ray<transform3>>(
+             theta_steps, phi_steps)) {
         vector3 &expected = momenta[n_tracks];
         vector3 result = r.dir();
 
@@ -86,9 +87,10 @@ TEST(tools, uniform_track_generator) {
     const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
                     2. * unit_constants::T};
     n_tracks = 0;
-    for (const auto track : uniform_track_generator<free_track_parameters>(
+    for (const auto track :
+         uniform_track_generator<free_track_parameters<transform3>>(
              theta_steps, phi_steps)) {
-        detail::helix helix_traj(track, &B);
+        detail::helix<transform3> helix_traj(track, &B);
         vector3 &expected = momenta[n_tracks];
         vector3 result = helix_traj.dir(0.);
 

@@ -20,12 +20,16 @@ namespace detray {
 
 /** A functor to find intersections between trajectory and line mask
  */
+template <typename transform3_t>
 struct line_intersector {
 
+    /// Transformation matching this struct
+    using scalar_type = typename transform3_t::scalar_type;
+    using point3 = typename transform3_t::point3;
+    using vector3 = typename transform3_t::vector3;
+    using ray_type = detail::ray<transform3_t>;
     using intersection_type = line_plane_intersection;
     using output_type = std::array<intersection_type, 1>;
-    using point3 = __plugin::point3<detray::scalar>;
-    using vector3 = __plugin::vector3<detray::scalar>;
 
     /** Operator function to find intersections between ray and line mask
      *
@@ -40,11 +44,11 @@ struct line_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t, typename transform_t>
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const detail::ray &ray, const mask_t &mask, const transform_t &trf,
-        const scalar mask_tolerance = 0,
-        const scalar overstep_tolerance = 0.) const {
+        const ray_type &ray, const mask_t &mask, const transform3_t &trf,
+        const scalar_type mask_tolerance = 0,
+        const scalar_type overstep_tolerance = 0.) const {
 
         output_type ret;
 
@@ -63,10 +67,10 @@ struct line_intersector {
         // Projection of line to track direction
         const scalar zd = vector::dot(_z, _d);
 
-        const scalar denom = detray::scalar{1.} - (zd * zd);
+        const scalar_type denom = scalar_type{1.} - (zd * zd);
 
         // Case for wire is parallel to track
-        if (denom < detray::scalar{1e-5}) {
+        if (denom < scalar_type{1e-5}) {
             return ret;
         }
 
@@ -74,18 +78,18 @@ struct line_intersector {
         const vector3 t2l = _t - _p;
 
         // t2l projection on line direction
-        const scalar t2l_on_line = vector::dot(t2l, _z);
+        const scalar_type t2l_on_line = vector::dot(t2l, _z);
 
         // t2l projection on track direction
-        const scalar t2l_on_track = vector::dot(t2l, _d);
+        const scalar_type t2l_on_track = vector::dot(t2l, _d);
 
         // path length to the point of closest approach on the track
-        const scalar A =
-            detray::scalar{1.} / denom * (t2l_on_track - t2l_on_line * zd);
+        const scalar_type A =
+            scalar_type{1.} / denom * (t2l_on_track - t2l_on_line * zd);
 
         // distance to the point of closest approarch on the
         // line from line center
-        const scalar B = zd * A - t2l_on_line;
+        const scalar_type B = zd * A - t2l_on_line;
 
         // point of closest approach on the track
         const vector3 m = _p + _d * A;
@@ -101,7 +105,7 @@ struct line_intersector {
         // Right: -1
         // Left: 1
         const auto r = vector::cross(_z, _d);
-        const scalar sign = vector::dot(r, t2l) > 0. ? -1. : 1.;
+        const scalar_type sign = vector::dot(r, t2l) > 0. ? -1. : 1.;
 
         is.p2[0] = sign * getter::perp(loc);
         is.p2[1] = B;

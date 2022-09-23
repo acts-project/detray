@@ -9,7 +9,6 @@
 
 // Detray include(s)
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/definitions/track_parameterization.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
 
 namespace detray {
@@ -17,13 +16,29 @@ namespace detray {
 namespace detail {
 
 // Covariance engine agnostic to surface type
-template <typename scalar_t>
+template <typename transform3_t>
 struct covariance_engine {
 
-    using jacobian_engine = detail::jacobian_engine<scalar_t>;
-    using vector_engine = typename jacobian_engine::vector_engine;
-    using transform3 = typename vector_engine::transform3;
-    using matrix_operator = typename jacobian_engine::matrix_operator;
+    /// Transformation matching this struct
+    using transform3_type = transform3_t;
+    using jacobian_engine = detail::jacobian_engine<transform3_type>;
+    using track_helper = typename jacobian_engine::track_helper;
+    using matrix_operator = typename jacobian_engine::matrix_actor;
+    using size_type = typename transform3_type::size_type;
+    /// 2D matrix type
+    template <size_type ROWS, size_type COLS>
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
+    /// Shorthand vector types related to track parameters.
+    using bound_vector = matrix_type<e_bound_size, 1>;
+    using free_vector = matrix_type<e_free_size, 1>;
+    /// Shorthand matrix types related to track parameters.
+    using bound_matrix = matrix_type<e_bound_size, e_bound_size>;
+    using free_matrix = matrix_type<e_free_size, e_free_size>;
+    /// Mapping matrix
+    using bound_to_free_matrix = matrix_type<e_free_size, e_bound_size>;
+    using free_to_bound_matrix = matrix_type<e_bound_size, e_free_size>;
+    using free_to_path_matrix = matrix_type<1, e_free_size>;
 
     /** Function to get the full jacobian for surface-to-surface propagation
      *
@@ -37,7 +52,7 @@ struct covariance_engine {
      * @returns bound to bound jacobian
      */
     DETRAY_HOST_DEVICE inline bound_matrix bound_to_bound_jacobian(
-        const transform3& trf3, const free_vector& free_vec,
+        const transform3_type& trf3, const free_vector& free_vec,
         const bound_to_free_matrix& bound_to_free_jacobian,
         const free_matrix& free_transport_jacobian,
         const free_vector& free_to_path_derivative) const;
@@ -56,7 +71,7 @@ struct covariance_engine {
      * path at the destination surface
      */
     DETRAY_HOST_DEVICE inline void bound_to_bound_covariance_update(
-        const transform3& trf3, bound_matrix& bound_covariance,
+        const transform3_type& trf3, bound_matrix& bound_covariance,
         const free_vector& free_vec,
         const bound_to_free_matrix& bound_to_free_jacobian,
         const free_matrix& free_transport_jacobian,
@@ -73,7 +88,7 @@ struct covariance_engine {
      * path at the destination surface
      */
     DETRAY_HOST_DEVICE inline void reinitialize_jacobians(
-        const transform3& trf3, const bound_vector& bound_vec,
+        const transform3_type& trf3, const bound_vector& bound_vec,
         bound_to_free_matrix& bound_to_free_jacobian,
         free_matrix& free_transport_jacobian,
         free_vector& free_to_path_derivative) const;

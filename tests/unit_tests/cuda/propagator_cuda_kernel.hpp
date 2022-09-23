@@ -25,14 +25,14 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/track_generators.hpp"
 
 using namespace detray;
 
 using intersection_t = line_plane_intersection;
-
+using transform3 = __plugin::transform3<scalar>;
 using detector_host_type =
     detector<detector_registry::toy_detector, darray, thrust::tuple,
              vecmem::vector, vecmem::jagged_vector>;
@@ -45,10 +45,10 @@ using navigator_device_type = navigator<detector_device_type>;
 
 using constraints_t = constrained_step<>;
 using field_type = constant_magnetic_field<>;
-using rk_stepper_type =
-    rk_stepper<field_type, free_track_parameters, constraints_t>;
+using rk_stepper_type = rk_stepper<field_type, transform3, constraints_t>;
 
 using matrix_operator = standard_matrix_operator<scalar>;
+using free_matrix = typename free_track_parameters<transform3>::covariance_type;
 
 // detector configuration
 constexpr std::size_t n_brl_layers{4};
@@ -60,7 +60,7 @@ constexpr unsigned int phi_steps{10};
 
 constexpr scalar rk_tolerance{1e-4};
 constexpr scalar overstep_tolerance{-7 * unit_constants::um};
-constexpr scalar constrainted_step_size{1. * unit_constants::mm};
+constexpr scalar constrainted_step_size{2. * unit_constants::mm};
 constexpr scalar is_close{1e-4};
 constexpr scalar path_limit{2 * unit_constants::m};
 
@@ -121,7 +121,7 @@ using propagator_device_type =
 /// test function for propagator with single state
 void propagator_test(
     detector_view<detector_host_type> det_data, const vector3 B,
-    vecmem::data::vector_view<free_track_parameters> &tracks_data,
+    vecmem::data::vector_view<free_track_parameters<transform3>> &tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
     vecmem::data::jagged_vector_view<scalar> &path_lengths_data,
     vecmem::data::jagged_vector_view<vector3> &positions_data,

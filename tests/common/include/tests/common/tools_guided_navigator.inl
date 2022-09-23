@@ -17,7 +17,7 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
@@ -25,6 +25,8 @@
 TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
     using namespace navigation;
+    using transform3_type = __plugin::transform3<scalar>;
+    using stepper_type = line_stepper<transform3_type>;
 
     vecmem::host_memory_resource host_mr;
 
@@ -36,7 +38,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
                                            60., 70,  80,  90., 100.};
     // Build telescope detector with unbounded planes
     const auto telescope_det =
-        create_telescope_detector<unbounded>(host_mr, positions);
+        create_telescope_detector<unbounded, stepper_type>(host_mr, positions);
 
     // Inspectors are optional, of course
     using object_tracer_t =
@@ -44,7 +46,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using b_field_t = constant_magnetic_field<>;
     using runge_kutta_stepper =
-        rk_stepper<b_field_t, free_track_parameters, unconstrained_step,
+        rk_stepper<b_field_t, transform3_type, unconstrained_step,
                    guided_navigation>;
     using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
     using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
@@ -54,7 +56,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     // track must point into the direction of the telescope
     const point3 pos{0., 0., 0.};
     const vector3 mom{0., 0., 1.};
-    free_track_parameters track(pos, 0, mom, -1);
+    free_track_parameters<transform3_type> track(pos, 0, mom, -1);
     const vector3 B{0, 0, 1 * unit_constants::T};
     const b_field_t b_field(B);
 

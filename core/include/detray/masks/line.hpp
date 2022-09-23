@@ -7,13 +7,14 @@
 
 #pragma once
 
-// Project include(s)
+// Project include(s).
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/line_intersector.hpp"
 #include "detray/masks/mask_base.hpp"
 
-// System include(s)
+// System include(s).
 #include <climits>
 #include <cmath>
 #include <type_traits>
@@ -23,20 +24,23 @@ namespace detray {
 /** This is a simple mask for a line defined with a line length and its scope
  *
  **/
-template <typename local_t = __plugin::cartesian2<detray::scalar>,
+template <typename transform3_t = __plugin::transform3<scalar>,
+          template <class> typename intersector_t = line_intersector,
+          template <class> typename local_t = cartesian2,
           typename links_t = dindex, bool kSquareScope = false,
           template <typename, std::size_t> class array_t = darray>
-class line final
-    : public mask_base<line_intersector, local_t, links_t, array_t, 2> {
+class line final : public mask_base<transform3_t, intersector_t, local_t,
+                                    links_t, array_t, 2> {
     public:
-    using base_type = mask_base<line_intersector, local_t, links_t, array_t, 2>;
+    using base_type =
+        mask_base<transform3_t, intersector_t, local_t, links_t, array_t, 2>;
     using base_type::base_type;
     using mask_values = typename base_type::mask_values;
     using links_type = typename base_type::links_type;
     using local_type = typename base_type::local_type;
     using intersector_type = typename base_type::intersector_type;
-    using point3 = __plugin::point3<scalar>;
-    using point2 = __plugin::point2<scalar>;
+    using point2 = typename transform3_t::point2;
+    using point3 = typename transform3_t::point3;
 
     static constexpr bool square_scope = kSquareScope;
 
@@ -52,17 +56,6 @@ class line final
     DETRAY_HOST_DEVICE
     line(scalar half_cell_size, scalar half_length, links_type links)
         : base_type({half_cell_size, half_length}, links) {}
-
-    /** Assignment operator from an array, convenience function
-     *
-     * @param rhs is the right hand side object
-     **/
-    DETRAY_HOST_DEVICE
-    line<local_type, links_type, kSquareScope, array_t> &operator=(
-        const array_t<scalar, 2> &rhs) {
-        this->_values = rhs;
-        return (*this);
-    }
 
     /** Mask operation
      *

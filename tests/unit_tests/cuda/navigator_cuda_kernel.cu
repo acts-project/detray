@@ -12,7 +12,7 @@ namespace detray {
 
 __global__ void navigator_test_kernel(
     detector_view<detector_host_t> det_data,
-    vecmem::data::vector_view<free_track_parameters> tracks_data,
+    vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     vecmem::data::jagged_vector_view<dindex> volume_records_data,
     vecmem::data::jagged_vector_view<point3> position_records_data) {
@@ -20,7 +20,8 @@ __global__ void navigator_test_kernel(
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     detector_device_t det(det_data);
-    vecmem::device_vector<free_track_parameters> tracks(tracks_data);
+    vecmem::device_vector<free_track_parameters<transform3>> tracks(
+        tracks_data);
     vecmem::jagged_device_vector<intersection_t> candidates(candidates_data);
     vecmem::jagged_device_vector<dindex> volume_records(volume_records_data);
     vecmem::jagged_device_vector<point3> position_records(
@@ -62,7 +63,7 @@ __global__ void navigator_test_kernel(
 
 void navigator_test(
     detector_view<detector_host_t> det_data,
-    vecmem::data::vector_view<free_track_parameters>& tracks_data,
+    vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data) {
