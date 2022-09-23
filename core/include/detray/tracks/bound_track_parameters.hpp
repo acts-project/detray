@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
@@ -21,7 +22,7 @@ struct bound_track_parameters {
     /// @{
 
     using transform3_type = transform3_t;
-    using matrix_actor = typename transform3_type::matrix_actor;
+    using matrix_operator = typename transform3_type::matrix_actor;
     using size_type = typename transform3_type::size_type;
     using scalar_type = typename transform3_type::scalar_type;
     template <size_type ROWS, size_type COLS>
@@ -37,15 +38,16 @@ struct bound_track_parameters {
     using covariance_type = matrix_type<e_bound_size, e_bound_size>;
 
     // Track helper
-    using track_helper = detail::track_helper<matrix_actor>;
+    using track_helper = detail::track_helper<matrix_operator>;
 
     /// @}
 
     DETRAY_HOST_DEVICE
     bound_track_parameters()
-        : m_vector(matrix_actor().template zero<e_bound_size, 1>()),
+        : m_surface_link(dindex_invalid),
+          m_vector(matrix_operator().template zero<e_bound_size, 1>()),
           m_covariance(
-              matrix_actor().template zero<e_bound_size, e_bound_size>()) {}
+              matrix_operator().template zero<e_bound_size, e_bound_size>()) {}
 
     DETRAY_HOST_DEVICE
     bound_track_parameters(const std::size_t sf_idx, const vector_type& vec,
@@ -72,12 +74,12 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type phi() const {
-        return matrix_actor().element(m_vector, e_bound_phi, 0);
+        return matrix_operator().element(m_vector, e_bound_phi, 0);
     }
 
     DETRAY_HOST_DEVICE
     scalar_type theta() const {
-        return matrix_actor().element(m_vector, e_bound_theta, 0);
+        return matrix_operator().element(m_vector, e_bound_theta, 0);
     }
 
     DETRAY_HOST_DEVICE
@@ -85,12 +87,12 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type time() const {
-        return matrix_actor().element(m_vector, e_bound_time, 0);
+        return matrix_operator().element(m_vector, e_bound_time, 0);
     }
 
     DETRAY_HOST_DEVICE
     scalar_type charge() const {
-        if (matrix_actor().element(m_vector, e_bound_qoverp, 0) < 0) {
+        if (matrix_operator().element(m_vector, e_bound_qoverp, 0) < 0) {
             return -1.;
         } else {
             return 1.;
@@ -99,7 +101,7 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type qop() const {
-        return matrix_actor().element(m_vector, e_bound_qoverp, 0);
+        return matrix_operator().element(m_vector, e_bound_qoverp, 0);
     }
 
     private:

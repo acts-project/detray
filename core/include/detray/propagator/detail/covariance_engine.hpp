@@ -23,7 +23,7 @@ struct covariance_engine {
     using transform3_type = transform3_t;
     using jacobian_engine = detail::jacobian_engine<transform3_type>;
     using track_helper = typename jacobian_engine::track_helper;
-    using matrix_operator = typename jacobian_engine::matrix_operator;
+    using matrix_operator = typename jacobian_engine::matrix_actor;
     using size_type = typename transform3_type::size_type;
     /// 2D matrix type
     template <size_type ROWS, size_type COLS>
