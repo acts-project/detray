@@ -56,7 +56,6 @@ struct propagator {
     struct state {
 
         using detector_type = typename navigator_t::detector_type;
-        using context_type = typename detector_type::context;
         using field_type = typename stepper_t::state::field_type;
 
         /// Construct the propagation state.

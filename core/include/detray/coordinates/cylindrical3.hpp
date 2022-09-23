@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project
  *
  * (c) 2022 CERN for the benefit of the ACTS project
  *
