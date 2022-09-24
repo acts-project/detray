@@ -163,6 +163,19 @@ struct chain_iterator {
           m_end{end},
           m_idx{i} {}
 
+    /// Copy ctor. Otherwise implicitely deleted due to reference member.
+    chain_iterator(const chain_iterator &other) = default;
+
+    /// Copy-assignment operator. Otherwise implicitely deleted due to reference
+    /// member.
+    chain_iterator &operator=(const chain_iterator &other) {
+        m_itr = other.m_itr;
+        m_end = other.m_end;
+        m_idx = other.m_idx;
+
+        return *this;
+    };
+
     /// Create a new chained iterator from an existing type
     template <std::size_t I>
     static constexpr auto create(iterator_coll_t &begins,
@@ -217,7 +230,9 @@ struct chain_iterator {
     DETRAY_HOST_DEVICE
     constexpr auto operator+(const std::size_t j) {
         chain_iterator<iterator_coll_t> tmp(*this);
-        tmp.m_itr = tmp.m_itr + j;
+        for (std::size_t i{0}; i < j; ++i) {
+            ++tmp;
+        }
         return tmp;
     }
 
@@ -226,7 +241,7 @@ struct chain_iterator {
     /// This is the actual iterator state that will be advanced during iteration
     iterator_t m_itr;
     /// Compare against the corresponding sentinel of the wrapped iterator
-    iterator_t &m_end;
+    iterator_t m_end;
     /// Index of the current range in the chain
     std::size_t m_idx;
 

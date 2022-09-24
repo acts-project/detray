@@ -120,6 +120,7 @@ detray_add_library( detray_core core
    "include/detray/utils/ranges/enumerate.hpp"
    "include/detray/utils/ranges/chain.hpp"
    "include/detray/utils/ranges/iota.hpp"
+   "include/detray/utils/ranges/pick.hpp"
    "include/detray/utils/ranges/ranges.hpp"
    "include/detray/utils/ranges/single.hpp"
    "include/detray/utils/ranges/subrange.hpp"
