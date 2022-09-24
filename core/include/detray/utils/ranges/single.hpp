@@ -29,31 +29,29 @@ class single_view
         using reference = value_t &;
         using iterator_category = std::bidirectional_iterator_tag;
 
-        /// @returns true if it points to the same value (not necessarily the
-        /// same instance though).
+        /// @returns true if it points to the same value.
         DETRAY_HOST_DEVICE
         constexpr auto operator==(const iterator &rhs) const -> bool {
-            return *m_value == *rhs.m_value;
+            return m_value == rhs.m_value;
         }
 
-        /// @returns false if it points to the same value (not necessarily the
-        /// same instance though).
+        /// @returns false if it points to the same value.
         DETRAY_HOST_DEVICE
         constexpr auto operator!=(const iterator &rhs) const -> bool {
-            return *m_value != *rhs.m_value;
+            return m_value != rhs.m_value;
         }
 
-        /// Advance pointer
+        /// Advance pointer to end immediately
         DETRAY_HOST_DEVICE
         constexpr auto operator++() -> iterator & {
-            ++m_value;
+            m_value = m_sentinel;
             return *this;
         }
 
-        /// Does nothing
+        /// Advance pointer to end immediately
         DETRAY_HOST_DEVICE
         constexpr auto operator--() -> iterator & {
-            --m_value;
+            m_value = m_sentinel;
             return *this;
         }
 
@@ -65,16 +63,20 @@ class single_view
         DETRAY_HOST_DEVICE
         constexpr auto operator*() -> value_t & { return *m_value; }
 
-        /// Advance the sequence
+        /// Advance the sequence: Immediately points to end
         DETRAY_HOST_DEVICE
-        constexpr auto operator+(const value_t j) const -> iterator {
-            return {m_value + j};
+        constexpr auto operator+(const difference_type j) const -> iterator {
+            if (j == difference_type{0}) {
+                return {m_value, m_sentinel};
+            }
+            return {m_sentinel, m_sentinel};
         }
 
-        value_t *m_value;
+        value_t *m_value, *m_sentinel;
     };
 
     /// Start and end values of the sequence
+    value_t m_sentinel;
     iterator m_begin{nullptr}, m_end{nullptr};
 
     public:
@@ -83,12 +85,16 @@ class single_view
 
     /// Construct iterator from the single @param value this iterator points to.
     DETRAY_HOST_DEVICE constexpr single_view(value_t &value)
-        : m_begin{&value}, m_end{&value + 1} {}
+        : m_sentinel{value},
+          m_begin{&value, &m_sentinel},
+          m_end{&m_sentinel, &m_sentinel} {}
 
     /// Construct iterator from the single @param value this iterator points to
     /// - const
     DETRAY_HOST_DEVICE constexpr single_view(const value_t &value)
-        : m_begin{&value}, m_end{&value + 1} {}
+        : m_sentinel{value},
+          m_begin{&value, &m_sentinel},
+          m_end{&m_sentinel, &m_sentinel} {}
 
     /// @return start position.
     DETRAY_HOST_DEVICE

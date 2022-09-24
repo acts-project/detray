@@ -103,7 +103,7 @@ class static_transform_store {
      * @param args Constructor arguments
      */
     template <class... Args>
-    DETRAY_HOST auto &emplace_back(const context & /*ctx*/, Args &&...args) {
+    DETRAY_HOST auto &emplace_back(const context & /*ctx*/, Args &&... args) {
         return _data.emplace_back(std::forward<Args>(args)...);
     }
 

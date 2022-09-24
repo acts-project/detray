@@ -31,12 +31,11 @@ struct range : public std::false_type {
 /// simply calling std::begin and std::end.
 /// In case of @c vecmem::device_vector the iterator is a pointer type.
 template <typename T>
-struct range<
-    T, std::enable_if_t<std::is_class_v<std::decay_t<decltype(std::begin(
-                            std::declval<T&>()))>> or
-                            std::is_pointer_v<std::decay_t<decltype(std::begin(
-                                std::declval<T&>()))>>,
-                        void>> : public std::true_type {
+struct range<T, std::enable_if_t<std::is_class_v<std::decay_t<decltype(
+                                     std::begin(std::declval<T&>()))>> or
+                                     std::is_pointer_v<std::decay_t<decltype(
+                                         std::begin(std::declval<T&>()))>>,
+                                 void>> : public std::true_type {
 
     using iterator_type =
         std::decay_t<decltype(std::begin(std::declval<T&>()))>;

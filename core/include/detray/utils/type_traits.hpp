@@ -47,12 +47,11 @@ struct get_value_type<container_t, typename container_t::value_type> {
 template <typename container_t>
 struct get_value_type<
     container_t,
-    std::enable_if_t<
-        std::is_class_v<std::remove_reference_t<decltype(detray::detail::get<0>(
-            std::declval<container_t>()))>>,
-        void>> {
-    using type = std::decay_t<decltype(detray::detail::get<0>(
-        std::declval<container_t>()))>;
+    std::enable_if_t<std::is_class_v<std::remove_reference_t<decltype(
+                         detray::detail::get<0>(std::declval<container_t>()))>>,
+                     void>> {
+    using type = std::decay_t<decltype(
+        detray::detail::get<0>(std::declval<container_t>()))>;
 };
 
 template <typename T>
@@ -68,16 +67,14 @@ struct is_interval : public std::false_type {};
 template <typename TYPE>
 struct is_interval<
     TYPE,
-    std::enable_if_t<
-        not std::is_arithmetic_v<std::remove_reference_t<TYPE>> and
-            std::is_arithmetic_v<std::remove_reference_t<
-                decltype(detray::detail::get<0>(std::declval<TYPE>()))>>,
-        void>,
-    std::enable_if_t<
-        not std::is_arithmetic_v<std::remove_reference_t<TYPE>> and
-            std::is_arithmetic_v<std::remove_reference_t<
-                decltype(detray::detail::get<1>(std::declval<TYPE>()))>>,
-        void>> : public std::true_type {};
+    std::enable_if_t<not std::is_arithmetic_v<std::remove_reference_t<TYPE>> and
+                         std::is_arithmetic_v<std::remove_reference_t<decltype(
+                             detray::detail::get<0>(std::declval<TYPE>()))>>,
+                     void>,
+    std::enable_if_t<not std::is_arithmetic_v<std::remove_reference_t<TYPE>> and
+                         std::is_arithmetic_v<std::remove_reference_t<decltype(
+                             detray::detail::get<1>(std::declval<TYPE>()))>>,
+                     void>> : public std::true_type {};
 
 template <typename TYPE>
 inline constexpr bool is_interval_v = is_interval<TYPE>::value;
