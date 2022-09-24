@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project
  *
  * (c) 2022 CERN for the benefit of the ACTS project
  *
@@ -30,7 +30,7 @@ struct line2 : public coordinate_base<line2, transform3_t> {
     // Vector in 3D space
     using vector3 = typename base_type::vector3;
     // Matrix actor
-    using matrix_actor = typename base_type::matrix_actor;
+    using matrix_operator = typename base_type::matrix_operator;
     // Matrix size type
     using size_type = typename base_type::size_type;
     // 2D matrix type
@@ -108,11 +108,11 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         const transform3_t &trf3, const mask_t & /*mask*/,
         const point3 & /*pos*/, const vector3 &dir) const {
 
-        rotation_matrix rot = matrix_actor().template zero<3, 3>();
+        rotation_matrix rot = matrix_operator().template zero<3, 3>();
 
         // y axis of the new frame is the z axis of line coordinate
         const auto new_yaxis =
-            matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
+            matrix_operator().template block<3, 1>(trf3.matrix(), 0, 2);
 
         // x axis of the new frame is (yaxis x track direction)
         auto new_xaxis = vector::cross(new_yaxis, dir);
@@ -121,13 +121,13 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         // z axis
         const auto new_zaxis = vector::cross(new_xaxis, new_yaxis);
 
-        matrix_actor().element(rot, 0, 0) = new_xaxis[0];
-        matrix_actor().element(rot, 1, 0) = new_xaxis[1];
-        matrix_actor().element(rot, 2, 0) = new_xaxis[2];
-        matrix_actor().template set_block<3, 1>(rot, new_yaxis, 0, 1);
-        matrix_actor().element(rot, 0, 2) = new_zaxis[0];
-        matrix_actor().element(rot, 1, 2) = new_zaxis[1];
-        matrix_actor().element(rot, 2, 2) = new_zaxis[2];
+        matrix_operator().element(rot, 0, 0) = new_xaxis[0];
+        matrix_operator().element(rot, 1, 0) = new_xaxis[1];
+        matrix_operator().element(rot, 2, 0) = new_xaxis[2];
+        matrix_operator().template set_block<3, 1>(rot, new_yaxis, 0, 1);
+        matrix_operator().element(rot, 0, 2) = new_zaxis[0];
+        matrix_operator().element(rot, 1, 2) = new_zaxis[1];
+        matrix_operator().element(rot, 2, 2) = new_zaxis[2];
 
         return rot;
     }
@@ -141,11 +141,11 @@ struct line2 : public coordinate_base<line2, transform3_t> {
 
         // Get d(x,y,z)/d(loc0, loc1)
         const auto bound_pos_to_free_pos_derivative =
-            matrix_actor().template block<3, 2>(frame, 0, 0);
+            matrix_operator().template block<3, 2>(frame, 0, 0);
 
-        matrix_actor().template set_block(free_to_bound_jacobian,
-                                          bound_pos_to_free_pos_derivative,
-                                          e_free_pos0, e_bound_loc0);
+        matrix_operator().template set_block(free_to_bound_jacobian,
+                                             bound_pos_to_free_pos_derivative,
+                                             e_free_pos0, e_bound_loc0);
     }
 
     template <typename mask_t>
@@ -154,15 +154,15 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
         const auto frame = reference_frame(trf3, mask, pos, dir);
-        const auto frameT = matrix_actor().transpose(frame);
+        const auto frameT = matrix_operator().transpose(frame);
 
         // Get d(loc0, loc1)/d(x,y,z)
         const auto free_pos_to_bound_pos_derivative =
-            matrix_actor().template block<2, 3>(frameT, 0, 0);
+            matrix_operator().template block<2, 3>(frameT, 0, 0);
 
-        matrix_actor().template set_block(bound_to_free_jacobian,
-                                          free_pos_to_bound_pos_derivative,
-                                          e_bound_loc0, e_free_pos0);
+        matrix_operator().template set_block(bound_to_free_jacobian,
+                                             free_pos_to_bound_pos_derivative,
+                                             e_bound_loc0, e_free_pos0);
     }
 
     template <typename mask_t>
@@ -189,14 +189,14 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         scalar_type ipdn = 1. / vector::dot(dir, new_zaxis);
 
         // d(n_x,n_y,n_z)/dPhi
-        const auto dNdPhi = matrix_actor().template block<3, 1>(
+        const auto dNdPhi = matrix_operator().template block<3, 1>(
             bound_to_free_jacobian, e_free_dir0, e_bound_phi);
 
         // Get new_yaxis X d(n_x,n_y,n_z)/dPhi
         auto y_cross_dNdPhi = vector::cross(new_yaxis, dNdPhi);
 
         // d(n_x,n_y,n_z)/dTheta
-        const auto dNdTheta = matrix_actor().template block<3, 1>(
+        const auto dNdTheta = matrix_operator().template block<3, 1>(
             bound_to_free_jacobian, e_free_dir0, e_bound_theta);
 
         // build the cross product of d(D)/d(eBoundPhi) components with y axis
@@ -216,18 +216,21 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         theta_to_free_pos_derivative = C * theta_to_free_pos_derivative;
 
         // Set the jacobian components
-        matrix_actor().element(bound_to_free_jacobian, e_free_pos0,
-                               e_bound_phi) = phi_to_free_pos_derivative[0];
-        matrix_actor().element(bound_to_free_jacobian, e_free_pos1,
-                               e_bound_phi) = phi_to_free_pos_derivative[1];
-        matrix_actor().element(bound_to_free_jacobian, e_free_pos2,
-                               e_bound_phi) = phi_to_free_pos_derivative[2];
-        matrix_actor().element(bound_to_free_jacobian, e_free_pos0,
-                               e_bound_theta) = theta_to_free_pos_derivative[0];
-        matrix_actor().element(bound_to_free_jacobian, e_free_pos1,
-                               e_bound_theta) = theta_to_free_pos_derivative[1];
-        matrix_actor().element(bound_to_free_jacobian, e_free_pos2,
-                               e_bound_theta) = theta_to_free_pos_derivative[2];
+        matrix_operator().element(bound_to_free_jacobian, e_free_pos0,
+                                  e_bound_phi) = phi_to_free_pos_derivative[0];
+        matrix_operator().element(bound_to_free_jacobian, e_free_pos1,
+                                  e_bound_phi) = phi_to_free_pos_derivative[1];
+        matrix_operator().element(bound_to_free_jacobian, e_free_pos2,
+                                  e_bound_phi) = phi_to_free_pos_derivative[2];
+        matrix_operator().element(bound_to_free_jacobian, e_free_pos0,
+                                  e_bound_theta) =
+            theta_to_free_pos_derivative[0];
+        matrix_operator().element(bound_to_free_jacobian, e_free_pos1,
+                                  e_bound_theta) =
+            theta_to_free_pos_derivative[1];
+        matrix_operator().element(bound_to_free_jacobian, e_free_pos2,
+                                  e_bound_theta) =
+            theta_to_free_pos_derivative[2];
     }
 };
 

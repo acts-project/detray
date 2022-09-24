@@ -1,4 +1,4 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project
  *
  * (c) 2022 CERN for the benefit of the ACTS project
  *
@@ -34,13 +34,14 @@ struct coordinate_base {
     using point3 = typename transform3_t::point3;
     // Vector in 3D space
     using vector3 = typename transform3_t::vector3;
-    // Matrix actor
-    using matrix_actor = typename transform3_t::matrix_actor;
+    // Matrix operator
+    using matrix_operator = typename transform3_t::matrix_actor;
     // Matrix size type
-    using size_type = typename matrix_actor::size_ty;
+    using size_type = typename matrix_operator::size_ty;
     // 2D matrix type
     template <size_type ROWS, size_type COLS>
-    using matrix_type = typename matrix_actor::template matrix_type<ROWS, COLS>;
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
     // Rotation Matrix
     using rotation_matrix = matrix_type<3, 3>;
     // Shorthand vector/matrix types related to bound track parameters.
@@ -55,7 +56,7 @@ struct coordinate_base {
     using free_to_bound_matrix = matrix_type<e_bound_size, e_free_size>;
     using free_to_path_matrix = matrix_type<1, e_free_size>;
     // Track helper
-    using track_helper = detail::track_helper<matrix_actor>;
+    using track_helper = detail::track_helper<matrix_operator>;
 
     /// @}
 
@@ -69,15 +70,15 @@ struct coordinate_base {
             Derived<transform3_t>().global_to_local(trf3, pos, dir);
 
         bound_vector bound_vec;
-        matrix_actor().element(bound_vec, e_bound_loc0, 0) = local[0];
-        matrix_actor().element(bound_vec, e_bound_loc1, 0) = local[1];
-        matrix_actor().element(bound_vec, e_bound_phi, 0) = getter::phi(dir);
-        matrix_actor().element(bound_vec, e_bound_theta, 0) =
+        matrix_operator().element(bound_vec, e_bound_loc0, 0) = local[0];
+        matrix_operator().element(bound_vec, e_bound_loc1, 0) = local[1];
+        matrix_operator().element(bound_vec, e_bound_phi, 0) = getter::phi(dir);
+        matrix_operator().element(bound_vec, e_bound_theta, 0) =
             getter::theta(dir);
-        matrix_actor().element(bound_vec, e_bound_time, 0) =
-            matrix_actor().element(free_vec, e_free_time, 0);
-        matrix_actor().element(bound_vec, e_bound_qoverp, 0) =
-            matrix_actor().element(free_vec, e_free_qoverp, 0);
+        matrix_operator().element(bound_vec, e_bound_time, 0) =
+            matrix_operator().element(free_vec, e_free_time, 0);
+        matrix_operator().element(bound_vec, e_bound_qoverp, 0) =
+            matrix_operator().element(free_vec, e_free_qoverp, 0);
 
         return bound_vec;
     }
@@ -94,16 +95,16 @@ struct coordinate_base {
             Derived<transform3_t>().local_to_global(trf3, mask, local, dir);
 
         free_vector free_vec;
-        matrix_actor().element(free_vec, e_free_pos0, 0) = pos[0];
-        matrix_actor().element(free_vec, e_free_pos1, 0) = pos[1];
-        matrix_actor().element(free_vec, e_free_pos2, 0) = pos[2];
-        matrix_actor().element(free_vec, e_free_time, 0) =
-            matrix_actor().element(bound_vec, e_bound_time, 0);
-        matrix_actor().element(free_vec, e_free_dir0, 0) = dir[0];
-        matrix_actor().element(free_vec, e_free_dir1, 0) = dir[1];
-        matrix_actor().element(free_vec, e_free_dir2, 0) = dir[2];
-        matrix_actor().element(free_vec, e_free_qoverp, 0) =
-            matrix_actor().element(bound_vec, e_bound_qoverp, 0);
+        matrix_operator().element(free_vec, e_free_pos0, 0) = pos[0];
+        matrix_operator().element(free_vec, e_free_pos1, 0) = pos[1];
+        matrix_operator().element(free_vec, e_free_pos2, 0) = pos[2];
+        matrix_operator().element(free_vec, e_free_time, 0) =
+            matrix_operator().element(bound_vec, e_bound_time, 0);
+        matrix_operator().element(free_vec, e_free_dir0, 0) = dir[0];
+        matrix_operator().element(free_vec, e_free_dir1, 0) = dir[1];
+        matrix_operator().element(free_vec, e_free_dir2, 0) = dir[2];
+        matrix_operator().element(free_vec, e_free_qoverp, 0) =
+            matrix_operator().element(bound_vec, e_bound_qoverp, 0);
 
         return free_vec;
     }
@@ -115,13 +116,13 @@ struct coordinate_base {
 
         // Declare jacobian for bound to free coordinate transform
         bound_to_free_matrix jac_to_global =
-            matrix_actor().template zero<e_free_size, e_bound_size>();
+            matrix_operator().template zero<e_free_size, e_bound_size>();
 
         // Get trigonometric values
         const scalar_type theta =
-            matrix_actor().element(bound_vec, e_bound_theta, 0);
+            matrix_operator().element(bound_vec, e_bound_theta, 0);
         const scalar_type phi =
-            matrix_actor().element(bound_vec, e_bound_phi, 0);
+            matrix_operator().element(bound_vec, e_bound_phi, 0);
 
         const scalar_type cos_theta = std::cos(theta);
         const scalar_type sin_theta = std::sin(theta);
@@ -139,21 +140,21 @@ struct coordinate_base {
             jac_to_global, trf3, mask, pos, dir);
 
         // Set d(bound time)/d(free time)
-        matrix_actor().element(jac_to_global, e_free_time, e_bound_time) = 1;
+        matrix_operator().element(jac_to_global, e_free_time, e_bound_time) = 1;
 
         // Set d(n_x,n_y,n_z)/d(phi, theta)
-        matrix_actor().element(jac_to_global, e_free_dir0, e_bound_phi) =
+        matrix_operator().element(jac_to_global, e_free_dir0, e_bound_phi) =
             -1 * sin_theta * sin_phi;
-        matrix_actor().element(jac_to_global, e_free_dir0, e_bound_theta) =
+        matrix_operator().element(jac_to_global, e_free_dir0, e_bound_theta) =
             cos_theta * cos_phi;
-        matrix_actor().element(jac_to_global, e_free_dir1, e_bound_phi) =
+        matrix_operator().element(jac_to_global, e_free_dir1, e_bound_phi) =
             sin_theta * cos_phi;
-        matrix_actor().element(jac_to_global, e_free_dir1, e_bound_theta) =
+        matrix_operator().element(jac_to_global, e_free_dir1, e_bound_theta) =
             cos_theta * sin_phi;
-        matrix_actor().element(jac_to_global, e_free_dir2, e_bound_theta) =
+        matrix_operator().element(jac_to_global, e_free_dir2, e_bound_theta) =
             -1 * sin_theta;
-        matrix_actor().element(jac_to_global, e_free_qoverp, e_bound_qoverp) =
-            1;
+        matrix_operator().element(jac_to_global, e_free_qoverp,
+                                  e_bound_qoverp) = 1;
 
         // Set d(x,y,z)/d(phi, theta)
         Derived<transform3_t>().set_bound_angle_to_free_pos_derivative(
@@ -169,7 +170,7 @@ struct coordinate_base {
 
         // Declare jacobian for bound to free coordinate transform
         free_to_bound_matrix jac_to_local =
-            matrix_actor().template zero<e_bound_size, e_free_size>();
+            matrix_operator().template zero<e_bound_size, e_free_size>();
 
         // Global position and direction
         const vector3 pos = track_helper().pos(free_vec);
@@ -188,23 +189,24 @@ struct coordinate_base {
             jac_to_local, trf3, mask, pos, dir);
 
         // Set d(free time)/d(bound time)
-        matrix_actor().element(jac_to_local, e_bound_time, e_free_time) = 1;
+        matrix_operator().element(jac_to_local, e_bound_time, e_free_time) = 1;
 
         // Set d(phi, theta)/d(n_x, n_y, n_z)
         // @note This codes have a serious bug when theta is equal to zero...
-        matrix_actor().element(jac_to_local, e_bound_phi, e_free_dir0) =
+        matrix_operator().element(jac_to_local, e_bound_phi, e_free_dir0) =
             -1. * sin_phi / sin_theta;
-        matrix_actor().element(jac_to_local, e_bound_phi, e_free_dir1) =
+        matrix_operator().element(jac_to_local, e_bound_phi, e_free_dir1) =
             cos_phi / sin_theta;
-        matrix_actor().element(jac_to_local, e_bound_theta, e_free_dir0) =
+        matrix_operator().element(jac_to_local, e_bound_theta, e_free_dir0) =
             cos_phi * cos_theta;
-        matrix_actor().element(jac_to_local, e_bound_theta, e_free_dir1) =
+        matrix_operator().element(jac_to_local, e_bound_theta, e_free_dir1) =
             sin_phi * cos_theta;
-        matrix_actor().element(jac_to_local, e_bound_theta, e_free_dir2) =
+        matrix_operator().element(jac_to_local, e_bound_theta, e_free_dir2) =
             -1 * sin_theta;
 
         // Set d(Free Qop)/d(Bound Qop)
-        matrix_actor().element(jac_to_local, e_bound_qoverp, e_free_qoverp) = 1;
+        matrix_operator().element(jac_to_local, e_bound_qoverp, e_free_qoverp) =
+            1;
 
         return jac_to_local;
     }
@@ -215,7 +217,7 @@ struct coordinate_base {
         const mask_t& mask) {
 
         free_matrix path_correction =
-            matrix_actor().template zero<e_free_size, e_free_size>();
+            matrix_operator().template zero<e_free_size, e_free_size>();
 
         // Position and direction
         const auto pos = stepping().pos();
@@ -223,23 +225,23 @@ struct coordinate_base {
 
         // dir
         matrix_type<1, 3> t;
-        matrix_actor().element(t, 0, 0) = dir[0];
-        matrix_actor().element(t, 0, 1) = dir[1];
-        matrix_actor().element(t, 0, 2) = dir[2];
+        matrix_operator().element(t, 0, 0) = dir[0];
+        matrix_operator().element(t, 0, 1) = dir[1];
+        matrix_operator().element(t, 0, 2) = dir[2];
 
         // Surface normal vector (w)
         matrix_type<1, 3> w;
         const auto normal =
             Derived<transform3_t>().normal(trf3, mask, pos, dir);
-        matrix_actor().element(w, 0, 0) = normal[0];
-        matrix_actor().element(w, 0, 1) = normal[1];
-        matrix_actor().element(w, 0, 2) = normal[2];
+        matrix_operator().element(w, 0, 0) = normal[0];
+        matrix_operator().element(w, 0, 1) = normal[1];
+        matrix_operator().element(w, 0, 2) = normal[2];
 
         // w dot t
         const scalar_type wt = vector::dot(normal, dir);
 
         // transpose of t
-        const matrix_type<3, 1> t_T = matrix_actor().transpose(t);
+        const matrix_type<3, 1> t_T = matrix_operator().transpose(t);
 
         // r correction term
         const matrix_type<1, 3> r_term = -1. / wt * w;
@@ -247,8 +249,8 @@ struct coordinate_base {
         // dr/dr0
         const matrix_type<3, 3> drdr0 = t_T * r_term;
 
-        matrix_actor().template set_block<3, 3>(path_correction, drdr0,
-                                                e_free_pos0, e_free_pos0);
+        matrix_operator().template set_block<3, 3>(path_correction, drdr0,
+                                                   e_free_pos0, e_free_pos0);
 
         if constexpr (stepper_state_t::id == stepping::id::e_rk) {
             using helix = detail::helix<transform3_t>;
@@ -261,26 +263,26 @@ struct coordinate_base {
 
             // B field at the destination surface
             matrix_type<1, 3> h;
-            matrix_actor().element(h, 0, 0) = hlx._h0[0];
-            matrix_actor().element(h, 0, 1) = hlx._h0[1];
-            matrix_actor().element(h, 0, 2) = hlx._h0[2];
-            // matrix_actor().set_block(h, hlx._h0, 0, 0);
+            matrix_operator().element(h, 0, 0) = hlx._h0[0];
+            matrix_operator().element(h, 0, 1) = hlx._h0[1];
+            matrix_operator().element(h, 0, 2) = hlx._h0[2];
+            // matrix_operator().set_block(h, hlx._h0, 0, 0);
 
             // Normalized vector of h X t
             matrix_type<1, 3> n;
-            matrix_actor().element(n, 0, 0) = hlx._n0[0];
-            matrix_actor().element(n, 0, 1) = hlx._n0[1];
-            matrix_actor().element(n, 0, 2) = hlx._n0[2];
-            // matrix_actor().set_block(n, hlx._n0, 0, 0);
+            matrix_operator().element(n, 0, 0) = hlx._n0[0];
+            matrix_operator().element(n, 0, 1) = hlx._n0[1];
+            matrix_operator().element(n, 0, 2) = hlx._n0[2];
+            // matrix_operator().set_block(n, hlx._n0, 0, 0);
 
             // w cross h
             matrix_type<1, 3> wh;
             const auto _wh = vector::cross(normal, hlx._h0);
-            matrix_actor().element(wh, 0, 0) = _wh[0];
-            matrix_actor().element(wh, 0, 1) = _wh[1];
-            matrix_actor().element(wh, 0, 2) = _wh[2];
-            // matrix_actor().set_block(wh, vector::cross(normal, hlx._h0), 0,
-            // 0);
+            matrix_operator().element(wh, 0, 0) = _wh[0];
+            matrix_operator().element(wh, 0, 1) = _wh[1];
+            matrix_operator().element(wh, 0, 2) = _wh[2];
+            // matrix_operator().set_block(wh, vector::cross(normal, hlx._h0),
+            // 0, 0);
 
             // Alpha
             const scalar_type A = hlx._alpha;
@@ -292,7 +294,7 @@ struct coordinate_base {
             const scalar_type Ks = K * s;
 
             // t correction term
-            matrix_type<1, 3> t_term = matrix_actor().template zero<1, 3>();
+            matrix_type<1, 3> t_term = matrix_operator().template zero<1, 3>();
             t_term = t_term +
                      (Ks - std::sin(Ks)) / K * vector::dot(hlx._h0, normal) * h;
 
@@ -313,7 +315,7 @@ struct coordinate_base {
             const matrix_type<3, 1> drdL0 = t_T * L_term;
 
             // transpose of n
-            const matrix_type<3, 1> n_T = matrix_actor().transpose(n);
+            const matrix_type<3, 1> n_T = matrix_operator().transpose(n);
 
             // dt/dr0
             const scalar_type AK = A * K;
@@ -325,20 +327,20 @@ struct coordinate_base {
             // dt/dL0
             const matrix_type<3, 1> dtdL0 = AK * n_T * L_term;
 
-            matrix_actor().template set_block<3, 3>(path_correction, drdt0,
-                                                    e_free_pos0, e_free_dir0);
+            matrix_operator().template set_block<3, 3>(
+                path_correction, drdt0, e_free_pos0, e_free_dir0);
 
-            matrix_actor().template set_block<3, 1>(path_correction, drdL0,
-                                                    e_free_pos0, e_free_qoverp);
+            matrix_operator().template set_block<3, 1>(
+                path_correction, drdL0, e_free_pos0, e_free_qoverp);
 
-            matrix_actor().template set_block<3, 3>(path_correction, dtdr0,
-                                                    e_free_dir0, e_free_pos0);
+            matrix_operator().template set_block<3, 3>(
+                path_correction, dtdr0, e_free_dir0, e_free_pos0);
 
-            matrix_actor().template set_block<3, 3>(path_correction, dtdt0,
-                                                    e_free_dir0, e_free_dir0);
+            matrix_operator().template set_block<3, 3>(
+                path_correction, dtdt0, e_free_dir0, e_free_dir0);
 
-            matrix_actor().template set_block<3, 1>(path_correction, dtdL0,
-                                                    e_free_dir0, e_free_qoverp);
+            matrix_operator().template set_block<3, 1>(
+                path_correction, dtdL0, e_free_dir0, e_free_qoverp);
         }
 
         return path_correction;

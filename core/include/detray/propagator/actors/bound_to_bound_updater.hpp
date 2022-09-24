@@ -16,7 +16,7 @@
 namespace detray {
 
 template <typename transform3_t>
-struct parameter_transporter : actor {
+struct bound_to_bound_updater : actor {
 
     struct state {};
 
@@ -141,22 +141,19 @@ struct parameter_transporter : actor {
                                        propagator_state_t& propagation) const {
 
         auto& navigation = propagation._navigation;
-        auto& stepping = propagation._stepping;
 
         // Do covariance transport when the track is on surface
         if (navigation.is_on_module()) {
 
             const auto& det = navigation.detector();
+            const auto& surface_container = det->surfaces();
             const auto& mask_store = det->mask_store();
 
             // Intersection
             const auto& is = navigation.current();
 
             // Surface
-            const auto& surface = det->surface_by_index(is->index);
-
-            // Set surface link
-            stepping._bound_params.set_surface_link(is->index);
+            const auto& surface = surface_container[is->index];
 
             mask_store.template execute<kernel>(surface.mask_type(), surface,
                                                 propagation);

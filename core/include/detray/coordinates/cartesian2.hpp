@@ -1,6 +1,6 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -31,8 +31,8 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     using point3 = typename base_type::point3;
     // Vector in 3D space
     using vector3 = typename base_type::vector3;
-    // Matrix actor
-    using matrix_actor = typename base_type::matrix_actor;
+    // Matrix operator
+    using matrix_operator = typename base_type::matrix_operator;
     // Rotation Matrix
     using rotation_matrix = typename base_type::rotation_matrix;
     // Matrix size type
@@ -52,10 +52,7 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     /** This method transform from a point from 2D cartesian frame to a 2D
      * cartesian point */
     DETRAY_HOST_DEVICE
-    inline point2 operator()(const point2 &local2) const {
-
-        return {local2[0], local2[1]};
-    }
+    inline point2 operator()(const point2 &local2) const { return local2; }
 
     /** This method transform from a point from 3D cartesian frame to a 2D
      * cartesian point */
@@ -90,10 +87,10 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
                                              const vector3 & /*dir*/) const {
         vector3 ret;
         const matrix_type<3, 1> n =
-            matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
-        ret[0] = matrix_actor().element(n, 0, 0);
-        ret[1] = matrix_actor().element(n, 1, 0);
-        ret[2] = matrix_actor().element(n, 2, 0);
+            matrix_operator().template block<3, 1>(trf3.matrix(), 0, 2);
+        ret[0] = matrix_operator().element(n, 0, 0);
+        ret[1] = matrix_operator().element(n, 1, 0);
+        ret[2] = matrix_operator().element(n, 2, 0);
         return ret;
     }
 
@@ -113,11 +110,11 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
 
         // Get d(x,y,z)/d(loc0, loc1)
         const matrix_type<3, 2> bound_pos_to_free_pos_derivative =
-            matrix_actor().template block<3, 2>(frame, 0, 0);
+            matrix_operator().template block<3, 2>(frame, 0, 0);
 
-        matrix_actor().template set_block(free_to_bound_jacobian,
-                                          bound_pos_to_free_pos_derivative,
-                                          e_free_pos0, e_bound_loc0);
+        matrix_operator().template set_block(free_to_bound_jacobian,
+                                             bound_pos_to_free_pos_derivative,
+                                             e_free_pos0, e_bound_loc0);
     }
 
     template <typename mask_t>
@@ -126,15 +123,15 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
         const rotation_matrix frame = reference_frame(trf3, mask, pos, dir);
-        const rotation_matrix frameT = matrix_actor().transpose(frame);
+        const rotation_matrix frameT = matrix_operator().transpose(frame);
 
         // Get d(loc0, loc1)/d(x,y,z)
         const matrix_type<2, 3> free_pos_to_bound_pos_derivative =
-            matrix_actor().template block<2, 3>(frameT, 0, 0);
+            matrix_operator().template block<2, 3>(frameT, 0, 0);
 
-        matrix_actor().template set_block(bound_to_free_jacobian,
-                                          free_pos_to_bound_pos_derivative,
-                                          e_bound_loc0, e_free_pos0);
+        matrix_operator().template set_block(bound_to_free_jacobian,
+                                             free_pos_to_bound_pos_derivative,
+                                             e_bound_loc0, e_free_pos0);
     }
 
     template <typename mask_t>

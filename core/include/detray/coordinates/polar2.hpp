@@ -1,6 +1,6 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -32,9 +32,9 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     using point3 = typename base_type::point3;
     // Vector in 3D space
     using vector3 = typename base_type::vector3;
-    // Matrix actor
-    using matrix_actor = typename base_type::matrix_actor;
-    // Matrix size type
+    /// Matrix actor
+    using matrix_operator = typename base_type::matrix_operator;
+    /// Matrix size type
     using size_type = typename base_type::size_type;
     // 2D matrix type
     template <size_type ROWS, size_type COLS>
@@ -91,10 +91,11 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
                                              const point3 & /*pos*/,
                                              const vector3 & /*dir*/) const {
         vector3 ret;
-        const auto n = matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
-        ret[0] = matrix_actor().element(n, 0, 0);
-        ret[1] = matrix_actor().element(n, 1, 0);
-        ret[2] = matrix_actor().element(n, 2, 0);
+        const auto n =
+            matrix_operator().template block<3, 1>(trf3.matrix(), 0, 2);
+        ret[0] = matrix_operator().element(n, 0, 0);
+        ret[1] = matrix_operator().element(n, 1, 0);
+        ret[2] = matrix_operator().element(n, 2, 0);
         return ret;
     }
 
@@ -111,7 +112,7 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
         matrix_type<3, 2> bound_pos_to_free_pos_derivative =
-            matrix_actor().template zero<3, 2>();
+            matrix_operator().template zero<3, 2>();
 
         const point2 local2 = this->global_to_local(trf3, pos, dir);
         // this->operator()(pos);
@@ -126,23 +127,23 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
 
         // dxdu = d(x,y,z)/du
         const matrix_type<3, 1> dxdL =
-            matrix_actor().template block<3, 1>(frame, 0, 0);
+            matrix_operator().template block<3, 1>(frame, 0, 0);
         // dxdv = d(x,y,z)/dv
         const matrix_type<3, 1> dydL =
-            matrix_actor().template block<3, 1>(frame, 0, 1);
+            matrix_operator().template block<3, 1>(frame, 0, 1);
 
         const matrix_type<3, 1> col0 = dxdL * lcos_phi + dydL * lsin_phi;
         const matrix_type<3, 1> col1 =
             (dydL * lcos_phi - dxdL * lsin_phi) * lrad;
 
-        matrix_actor().template set_block<3, 1>(
+        matrix_operator().template set_block<3, 1>(
             bound_pos_to_free_pos_derivative, col0, e_free_pos0, e_bound_loc0);
-        matrix_actor().template set_block<3, 1>(
+        matrix_operator().template set_block<3, 1>(
             bound_pos_to_free_pos_derivative, col1, e_free_pos0, e_bound_loc1);
 
-        matrix_actor().template set_block(free_to_bound_jacobian,
-                                          bound_pos_to_free_pos_derivative,
-                                          e_free_pos0, e_bound_loc0);
+        matrix_operator().template set_block(free_to_bound_jacobian,
+                                             bound_pos_to_free_pos_derivative,
+                                             e_free_pos0, e_bound_loc0);
     }
 
     template <typename mask_t>
@@ -151,7 +152,7 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
         matrix_type<2, 3> free_pos_to_bound_pos_derivative =
-            matrix_actor().template zero<2, 3>();
+            matrix_operator().template zero<2, 3>();
 
         const auto local = this->global_to_local(trf3, pos, dir);
 
@@ -163,27 +164,27 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
 
         // reference matrix
         const auto frame = reference_frame(trf3, mask, pos, dir);
-        const auto frameT = matrix_actor().transpose(frame);
+        const auto frameT = matrix_operator().transpose(frame);
 
         // dudG = du/d(x,y,z)
         const matrix_type<1, 3> dudG =
-            matrix_actor().template block<1, 3>(frameT, 0, 0);
+            matrix_operator().template block<1, 3>(frameT, 0, 0);
         // dvdG = dv/d(x,y,z)
         const matrix_type<1, 3> dvdG =
-            matrix_actor().template block<1, 3>(frameT, 1, 0);
+            matrix_operator().template block<1, 3>(frameT, 1, 0);
 
         const matrix_type<1, 3> row0 = dudG * lcos_phi + dvdG * lsin_phi;
         const matrix_type<1, 3> row1 =
             1. / lrad * (lcos_phi * dvdG - lsin_phi * dudG);
 
-        matrix_actor().template set_block<1, 3>(
+        matrix_operator().template set_block<1, 3>(
             free_pos_to_bound_pos_derivative, row0, e_bound_loc0, e_free_pos0);
-        matrix_actor().template set_block<1, 3>(
+        matrix_operator().template set_block<1, 3>(
             free_pos_to_bound_pos_derivative, row1, e_bound_loc1, e_free_pos0);
 
-        matrix_actor().template set_block(bound_to_free_jacobian,
-                                          free_pos_to_bound_pos_derivative,
-                                          e_bound_loc0, e_free_pos0);
+        matrix_operator().template set_block(bound_to_free_jacobian,
+                                             free_pos_to_bound_pos_derivative,
+                                             e_bound_loc0, e_free_pos0);
     }
 
     template <typename mask_t>
