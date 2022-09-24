@@ -107,7 +107,7 @@ struct helix_inspector : actor {
         free_track_parameters<transform3> free_params;
         free_params.set_vector(free_vec);
 
-        const auto b = stepping._magnetic_field.get_field(last_pos, {});
+        const auto b = stepping._magnetic_field->get_field(last_pos, {});
         detail::helix<transform3> hlx(free_params, &b);
 
         const auto true_pos = hlx(stepping._s);

@@ -33,9 +33,7 @@ class line_stepper final
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
     using matrix_operator = typename base_type::matrix_operator;
-    // Matrix size type
     using size_type = typename matrix_operator::size_ty;
-    // 2D matrix type
     template <size_type ROWS, size_type COLS>
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;

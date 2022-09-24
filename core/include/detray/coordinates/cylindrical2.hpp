@@ -1,6 +1,6 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -35,7 +35,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
     // Vector in 3D space
     using vector3 = typename transform3_t::vector3;
     // Matrix actor
-    using matrix_actor = typename base_type::matrix_actor;
+    using matrix_operator = typename base_type::matrix_operator;
     // Matrix size type
     using size_type = typename base_type::size_type;
     // 2D matrix type
@@ -103,11 +103,11 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         const transform3_t &trf3, const mask_t &mask, const point3 &pos,
         const vector3 &dir) const {
 
-        rotation_matrix rot = matrix_actor().template zero<3, 3>();
+        rotation_matrix rot = matrix_operator().template zero<3, 3>();
 
         // y axis of the new frame is the z axis of cylindrical coordinate
         const auto new_yaxis =
-            matrix_actor().template block<3, 1>(trf3.matrix(), 0, 2);
+            matrix_operator().template block<3, 1>(trf3.matrix(), 0, 2);
 
         // z axis of the new frame is the vector normal to the cylinder surface
         const vector3 new_zaxis = normal(trf3, mask, pos, dir);
@@ -115,13 +115,13 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         // x axis
         const vector3 new_xaxis = vector::cross(new_yaxis, new_zaxis);
 
-        matrix_actor().element(rot, 0, 0) = new_xaxis[0];
-        matrix_actor().element(rot, 1, 0) = new_xaxis[1];
-        matrix_actor().element(rot, 2, 0) = new_xaxis[2];
-        matrix_actor().template set_block<3, 1>(rot, new_yaxis, 0, 1);
-        matrix_actor().element(rot, 0, 2) = new_zaxis[0];
-        matrix_actor().element(rot, 1, 2) = new_zaxis[1];
-        matrix_actor().element(rot, 2, 2) = new_zaxis[2];
+        matrix_operator().element(rot, 0, 0) = new_xaxis[0];
+        matrix_operator().element(rot, 1, 0) = new_xaxis[1];
+        matrix_operator().element(rot, 2, 0) = new_xaxis[2];
+        matrix_operator().template set_block<3, 1>(rot, new_yaxis, 0, 1);
+        matrix_operator().element(rot, 0, 2) = new_zaxis[0];
+        matrix_operator().element(rot, 1, 2) = new_zaxis[1];
+        matrix_operator().element(rot, 2, 2) = new_zaxis[2];
 
         return rot;
     }
@@ -135,11 +135,11 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
 
         // Get d(x,y,z)/d(loc0, loc1)
         const auto bound_pos_to_free_pos_derivative =
-            matrix_actor().template block<3, 2>(frame, 0, 0);
+            matrix_operator().template block<3, 2>(frame, 0, 0);
 
-        matrix_actor().template set_block(free_to_bound_jacobian,
-                                          bound_pos_to_free_pos_derivative,
-                                          e_free_pos0, e_bound_loc0);
+        matrix_operator().template set_block(free_to_bound_jacobian,
+                                             bound_pos_to_free_pos_derivative,
+                                             e_free_pos0, e_bound_loc0);
     }
 
     template <typename mask_t>
@@ -148,15 +148,15 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
         const auto frame = reference_frame(trf3, mask, pos, dir);
-        const auto frameT = matrix_actor().transpose(frame);
+        const auto frameT = matrix_operator().transpose(frame);
 
         // Get d(loc0, loc1)/d(x,y,z)
         const auto free_pos_to_bound_pos_derivative =
-            matrix_actor().template block<2, 3>(frameT, 0, 0);
+            matrix_operator().template block<2, 3>(frameT, 0, 0);
 
-        matrix_actor().template set_block(bound_to_free_jacobian,
-                                          free_pos_to_bound_pos_derivative,
-                                          e_bound_loc0, e_free_pos0);
+        matrix_operator().template set_block(bound_to_free_jacobian,
+                                             free_pos_to_bound_pos_derivative,
+                                             e_bound_loc0, e_free_pos0);
     }
 
     template <typename mask_t>

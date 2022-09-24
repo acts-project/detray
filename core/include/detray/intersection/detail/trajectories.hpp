@@ -26,7 +26,6 @@ class ray {
     public:
     using transform3_type = transform3_t;
     using scalar_type = typename transform3_type::scalar_type;
-    using matrix_actor = typename transform3_type::matrix_actor;
     using vector3 = typename transform3_type::vector3;
     using point3 = typename transform3_type::point3;
 
@@ -91,7 +90,7 @@ class helix : public free_track_parameters<transform3_t> {
     public:
     using transform3_type = transform3_t;
     using scalar_type = typename transform3_type::scalar_type;
-    using matrix_actor = typename transform3_type::matrix_actor;
+    using matrix_operator = typename transform3_type::matrix_actor;
     using vector3 = typename transform3_type::vector3;
     using point3 = typename transform3_type::point3;
 
@@ -101,12 +100,11 @@ class helix : public free_track_parameters<transform3_t> {
     using size_type = typename transform3_type::size_type;
     /// 2D Matrix type
     template <size_type ROWS, size_type COLS>
-    using matrix_type = typename matrix_actor::template matrix_type<ROWS, COLS>;
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
     using free_matrix = matrix_type<e_free_size, e_free_size>;
-    // Column wise operator
-    using mat_helper = matrix_helper<matrix_actor>;
-
     using free_track_parameters_type::pos;
+    using mat_helper = matrix_helper<matrix_operator>;
 
     DETRAY_HOST_DEVICE
     helix() = delete;
@@ -218,10 +216,11 @@ class helix : public free_track_parameters<transform3_t> {
     free_matrix jacobian(const scalar_type s) const {
 
         free_matrix ret =
-            matrix_actor().template zero<e_free_size, e_free_size>();
+            matrix_operator().template zero<e_free_size, e_free_size>();
 
-        const matrix_type<3, 3> I33 = matrix_actor().template identity<3, 3>();
-        const matrix_type<3, 3> Z33 = matrix_actor().template zero<3, 3>();
+        const matrix_type<3, 3> I33 =
+            matrix_operator().template identity<3, 3>();
+        const matrix_type<3, 3> Z33 = matrix_operator().template zero<3, 3>();
 
         // Notations
         // r = position
@@ -230,11 +229,11 @@ class helix : public free_track_parameters<transform3_t> {
 
         // Get drdr
         auto drdr = I33;
-        matrix_actor().set_block(ret, drdr, e_free_pos0, e_free_pos0);
+        matrix_operator().set_block(ret, drdr, e_free_pos0, e_free_pos0);
 
         // Get dtdr
         auto dtdr = Z33;
-        matrix_actor().set_block(ret, dtdr, e_free_dir0, e_free_pos0);
+        matrix_operator().set_block(ret, dtdr, e_free_dir0, e_free_pos0);
 
         // Get drdt
         auto drdt = Z33;
@@ -244,40 +243,40 @@ class helix : public free_track_parameters<transform3_t> {
         const auto H0 = mat_helper().column_wise_multiply(I33, _h0);
         drdt = drdt + (_K * s - std::sin(_K * s)) / _K *
                           mat_helper().column_wise_multiply(
-                              matrix_actor().transpose(H0), _h0);
+                              matrix_operator().transpose(H0), _h0);
 
         drdt = drdt + (std::cos(_K * s) - 1) / _K *
                           mat_helper().column_wise_cross(I33, _h0);
 
-        matrix_actor().set_block(ret, drdt, e_free_pos0, e_free_dir0);
+        matrix_operator().set_block(ret, drdt, e_free_pos0, e_free_dir0);
 
         // Get dtdt
         auto dtdt = Z33;
         dtdt = dtdt + std::cos(_K * s) * I33;
-        dtdt = dtdt +
-               (1 - std::cos(_K * s)) * mat_helper().column_wise_multiply(
-                                            matrix_actor().transpose(H0), _h0);
+        dtdt = dtdt + (1 - std::cos(_K * s)) *
+                          mat_helper().column_wise_multiply(
+                              matrix_operator().transpose(H0), _h0);
         dtdt =
             dtdt - std::sin(_K * s) * mat_helper().column_wise_cross(I33, _h0);
 
-        matrix_actor().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
+        matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
         // Get drdl
         vector3 drdl = 1 / free_track_parameters_type::qop() *
                        (s * this->dir(s) + free_track_parameters_type::pos() -
                         this->pos(s));
 
-        matrix_actor().set_block(ret, drdl, e_free_pos0, e_free_qoverp);
+        matrix_operator().set_block(ret, drdl, e_free_pos0, e_free_qoverp);
 
         // Get dtdl
         vector3 dtdl =
             _alpha * _K * s / free_track_parameters_type::qop() * _n0;
 
-        matrix_actor().set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
+        matrix_operator().set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
 
         // 3x3 and 7x7 element is 1 (Maybe?)
-        matrix_actor().element(ret, e_free_time, e_free_time) = 1;
-        matrix_actor().element(ret, e_free_qoverp, e_free_qoverp) = 1;
+        matrix_operator().element(ret, e_free_time, e_free_time) = 1;
+        matrix_operator().element(ret, e_free_qoverp, e_free_qoverp) = 1;
 
         return ret;
     }

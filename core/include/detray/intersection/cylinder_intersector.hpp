@@ -28,7 +28,6 @@ struct cylinder_intersector {
     using scalar_type = typename transform3_t::scalar_type;
     using point3 = typename transform3_t::point3;
     using vector3 = typename transform3_t::vector3;
-    using matrix_actor = typename transform3_t::matrix_actor;
     using ray_type = detail::ray<transform3_t>;
     using intersection_type = line_plane_intersection;
     using output_type = std::array<intersection_type, 2>;

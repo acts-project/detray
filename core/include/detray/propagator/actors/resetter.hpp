@@ -28,7 +28,7 @@ struct resetter : actor {
         /// @{
 
         // Matrix actor
-        using matrix_actor = typename transform3_t::matrix_actor;
+        using matrix_operator = typename transform3_t::matrix_actor;
 
         /// @}
 
@@ -59,7 +59,7 @@ struct resetter : actor {
                 trf3, mask, stepping._bound_params.vector());
 
             // Reset jacobian transport to identity matrix
-            matrix_actor().set_identity(stepping._jac_transport);
+            matrix_operator().set_identity(stepping._jac_transport);
 
             return true;
         }

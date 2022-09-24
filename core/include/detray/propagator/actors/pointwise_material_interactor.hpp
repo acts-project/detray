@@ -96,6 +96,7 @@ struct pointwise_material_interactor : actor {
                             is, mat, s.pdg, s.mass, qop, charge);
                 }
             }
+
             return true;
         }
     };

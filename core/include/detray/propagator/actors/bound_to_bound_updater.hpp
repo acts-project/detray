@@ -16,7 +16,7 @@
 namespace detray {
 
 template <typename transform3_t>
-struct parameter_transporter : actor {
+struct bound_to_bound_updater : actor {
 
     struct state {};
 
@@ -55,21 +55,28 @@ struct parameter_transporter : actor {
 
         using output_type = bool;
 
-        template <typename mask_group_t, typename transform_store_t,
-                  typename surface_t, typename propagator_state_t>
+        template <typename mask_group_t, typename surface_t,
+                  typename propagator_state_t>
         DETRAY_HOST_DEVICE inline output_type operator()(
-            const mask_group_t& mask_group, const transform_store_t& trf_store,
-            const surface_t& surface, propagator_state_t& propagation) {
+            const mask_group_t& mask_group, const surface_t& surface,
+            propagator_state_t& propagation) const {
 
             // Stepper and Navigator states
+            auto& navigation = propagation._navigation;
             auto& stepping = propagation._stepping;
 
+            // Retrieve surfaces and transform store
+            const auto& det = navigation.detector();
+            const auto& transform_store = det->transform_store();
+
+            // Intersection
+            const auto& is = navigation.current();
+
             // Transform
-            const auto& trf3 = trf_store[surface.transform()];
+            const auto& trf3 = transform_store[surface.transform()];
 
             // Mask
-            // const auto& mask = mask_group[is->mask_index];
-            const auto& mask = mask_group[surface.mask_range()];
+            const auto& mask = mask_group[is->mask_index];
             auto local_coordinate = mask.local();
 
             // Free vector
@@ -90,37 +97,37 @@ struct parameter_transporter : actor {
             free_matrix path_correction =
                 local_coordinate.path_correction(stepping, trf3, mask);
 
+            // Bound to free jacobian at the departure surface
+            const bound_to_free_matrix& bound_to_free_jacobian =
+                stepping._jac_to_global;
+
+            // Acts version
             const free_matrix correction_term =
                 matrix_operator()
                     .template identity<e_free_size, e_free_size>() +
                 path_correction;
 
-            bound_matrix new_cov =
-                matrix_operator().template zero<e_bound_size, e_bound_size>();
+            const bound_matrix full_jacobian =
+                free_to_bound_jacobian * correction_term *
+                free_transport_jacobian * bound_to_free_jacobian;
 
-            if (propagation.param_type() == parameter_type::e_free) {
+            /*
+            const bound_matrix full_jacobian =
+                free_to_bound_jacobian *
+                (path_correction + free_transport_jacobian) *
+                bound_to_free_jacobian;
+            */
 
-                const matrix_type<e_bound_size, e_free_size> full_jacobian =
-                    free_to_bound_jacobian * correction_term *
-                    free_transport_jacobian;
+            // No path correction
+            /*
+            const bound_matrix full_jacobian = free_to_bound_jacobian *
+                                               free_transport_jacobian *
+                                               bound_to_free_jacobian;
+            */
 
-                new_cov = full_jacobian * stepping().covariance() *
-                          matrix_operator().transpose(full_jacobian);
-
-                propagation.set_param_type(parameter_type::e_bound);
-
-            } else if (propagation.param_type() == parameter_type::e_bound) {
-                // Bound to free jacobian at the departure surface
-                const bound_to_free_matrix& bound_to_free_jacobian =
-                    stepping._jac_to_global;
-
-                const matrix_type<e_bound_size, e_bound_size> full_jacobian =
-                    free_to_bound_jacobian * correction_term *
-                    free_transport_jacobian * bound_to_free_jacobian;
-
-                new_cov = full_jacobian * stepping._bound_params.covariance() *
-                          matrix_operator().transpose(full_jacobian);
-            }
+            const bound_matrix new_cov =
+                full_jacobian * stepping._bound_params.covariance() *
+                matrix_operator().transpose(full_jacobian);
 
             // Calculate surface-to-surface covariance transport
             stepping._bound_params.set_covariance(new_cov);
@@ -132,27 +139,24 @@ struct parameter_transporter : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state& /*actor_state*/,
                                        propagator_state_t& propagation) const {
+
         auto& navigation = propagation._navigation;
-        auto& stepping = propagation._stepping;
 
         // Do covariance transport when the track is on surface
         if (navigation.is_on_module()) {
 
             const auto& det = navigation.detector();
-            const auto& trf_store = det->transform_store();
+            const auto& surface_container = det->surfaces();
             const auto& mask_store = det->mask_store();
 
             // Intersection
             const auto& is = navigation.current();
 
             // Surface
-            const auto& surface = det->surface_by_index(is->index);
+            const auto& surface = surface_container[is->index];
 
-            // Set surface link
-            stepping._bound_params.set_surface_link(is->index);
-
-            mask_store.template execute<kernel>(surface.mask_type(), trf_store,
-                                                surface, propagation);
+            mask_store.template execute<kernel>(surface.mask_type(), surface,
+                                                propagation);
         }
     }
 };

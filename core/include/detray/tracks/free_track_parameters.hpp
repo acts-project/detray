@@ -21,7 +21,7 @@ struct free_track_parameters {
     /// @{
 
     using transform3_type = transform3_t;
-    using matrix_actor = typename transform3_type::matrix_actor;
+    using matrix_operator = typename transform3_type::matrix_actor;
     using size_type = typename transform3_type::size_type;
     using scalar_type = typename transform3_type::scalar_type;
     template <size_type ROWS, size_type COLS>
@@ -37,15 +37,15 @@ struct free_track_parameters {
     using covariance_type = matrix_type<e_free_size, e_free_size>;
 
     // Track helper
-    using track_helper = detail::track_helper<matrix_actor>;
+    using track_helper = detail::track_helper<matrix_operator>;
 
     /// @}
 
     DETRAY_HOST_DEVICE
     free_track_parameters()
-        : m_vector(matrix_actor().template zero<e_free_size, 1>()),
+        : m_vector(matrix_operator().template zero<e_free_size, 1>()),
           m_covariance(
-              matrix_actor().template zero<e_free_size, e_free_size>()){};
+              matrix_operator().template zero<e_free_size, e_free_size>()){};
 
     DETRAY_HOST_DEVICE
     free_track_parameters(const vector_type& vec, const covariance_type& cov)
@@ -55,17 +55,17 @@ struct free_track_parameters {
     free_track_parameters(const point3& pos, const scalar_type time,
                           const vector3& mom, const scalar_type q) {
 
-        matrix_actor().element(m_vector, e_free_pos0, 0) = pos[0];
-        matrix_actor().element(m_vector, e_free_pos1, 0) = pos[1];
-        matrix_actor().element(m_vector, e_free_pos2, 0) = pos[2];
-        matrix_actor().element(m_vector, e_free_time, 0) = time;
+        matrix_operator().element(m_vector, e_free_pos0, 0) = pos[0];
+        matrix_operator().element(m_vector, e_free_pos1, 0) = pos[1];
+        matrix_operator().element(m_vector, e_free_pos2, 0) = pos[2];
+        matrix_operator().element(m_vector, e_free_time, 0) = time;
 
         scalar_type p = getter::norm(mom);
         auto mom_norm = vector::normalize(mom);
-        matrix_actor().element(m_vector, e_free_dir0, 0) = mom_norm[0];
-        matrix_actor().element(m_vector, e_free_dir1, 0) = mom_norm[1];
-        matrix_actor().element(m_vector, e_free_dir2, 0) = mom_norm[2];
-        matrix_actor().element(m_vector, e_free_qoverp, 0) = q / p;
+        matrix_operator().element(m_vector, e_free_dir0, 0) = mom_norm[0];
+        matrix_operator().element(m_vector, e_free_dir1, 0) = mom_norm[1];
+        matrix_operator().element(m_vector, e_free_dir2, 0) = mom_norm[2];
+        matrix_operator().element(m_vector, e_free_qoverp, 0) = q / p;
     }
 
     DETRAY_HOST_DEVICE
@@ -105,26 +105,23 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type time() const {
-        return matrix_actor().element(m_vector, e_free_time, 0);
+        return matrix_operator().element(m_vector, e_free_time, 0);
     }
 
     DETRAY_HOST_DEVICE
     scalar_type charge() const {
-        if (matrix_actor().element(m_vector, e_free_qoverp, 0) < 0) {
-            return -1.;
-        } else {
-            return 1.;
-        }
+        return matrix_operator().element(m_vector, e_free_qoverp, 0) < 0 ? -1.
+                                                                         : 1.;
     }
 
     DETRAY_HOST_DEVICE
     scalar_type qop() const {
-        return matrix_actor().element(m_vector, e_free_qoverp, 0);
+        return matrix_operator().element(m_vector, e_free_qoverp, 0);
     }
 
     DETRAY_HOST_DEVICE
     void set_qop(const scalar qop) {
-        matrix_actor().element(m_vector, e_free_qoverp, 0) = qop;
+        matrix_operator().element(m_vector, e_free_qoverp, 0) = qop;
     }
 
     DETRAY_HOST_DEVICE
@@ -138,10 +135,10 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     void flip() {
-        matrix_actor().element(m_vector, e_free_dir0, 0) *= -1.;
-        matrix_actor().element(m_vector, e_free_dir1, 0) *= -1.;
-        matrix_actor().element(m_vector, e_free_dir2, 0) *= -1.;
-        matrix_actor().element(m_vector, e_free_qoverp, 0) *= -1.;
+        matrix_operator().element(m_vector, e_free_dir0, 0) *= -1.;
+        matrix_operator().element(m_vector, e_free_dir1, 0) *= -1.;
+        matrix_operator().element(m_vector, e_free_dir2, 0) *= -1.;
+        matrix_operator().element(m_vector, e_free_qoverp, 0) *= -1.;
     }
 
     private:

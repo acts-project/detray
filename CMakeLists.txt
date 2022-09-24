@@ -6,7 +6,7 @@
 
 # Set up the project.
 cmake_minimum_required( VERSION 3.11 )
-project( detray VERSION 0.11 LANGUAGES CXX )
+project( detray VERSION 0.12 LANGUAGES CXX )
 
 # Set up the used C++ standard(s).
 set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (host) C++ standard to use" )
@@ -105,7 +105,6 @@ if( DETRAY_SETUP_ACTSVG )
    endif()
 endif()
 
-
 # Set up dfelibs.
 option( DETRAY_SETUP_DFELIBS
    "Set up the dfelibs target(s) explicitly" TRUE )
@@ -132,13 +131,13 @@ if( DETRAY_SETUP_THRUST )
    else()
       add_subdirectory( extern/thrust )
    endif()
-   # Set up an IMPORTED library on top of the Thrust library/libraries. One that
-   # the Detray code could depend on publicly.
-   set( DETRAY_THRUST_OPTIONS "" CACHE STRING
-      "Extra options for configuring how Thrust should be used" )
-   mark_as_advanced( DETRAY_THRUST_OPTIONS )
-   thrust_create_target( detray::Thrust ${DETRAY_THRUST_OPTIONS} )
 endif()
+# Set up an IMPORTED library on top of the Thrust library/libraries. One that
+# the Detray code could depend on publicly.
+set( DETRAY_THRUST_OPTIONS "" CACHE STRING
+   "Extra options for configuring how Thrust should be used" )
+mark_as_advanced( DETRAY_THRUST_OPTIONS )
+thrust_create_target( detray::Thrust ${DETRAY_THRUST_OPTIONS} )
 
 # Set up GoogleTest.
 option( DETRAY_SETUP_GOOGLETEST
@@ -168,7 +167,19 @@ if( DETRAY_SETUP_BENCHMARK )
    endif()
 endif()
 
-add_subdirectory( extern/covfie )
+# Set up covfie.
+option( DETRAY_SETUP_COVFIE
+   "Set up the covfie target(s) explicitly" TRUE )
+option( DETRAY_USE_SYSTEM_COVFIE
+   "Pick up an existing installation of covfie from the build environment"
+   FALSE )
+if( DETRAY_SETUP_COVFIE )
+   if( DETRAY_USE_SYSTEM_COVFIE )
+      find_package( covfie REQUIRED )
+   else()
+      add_subdirectory( extern/covfie )
+   endif()
+endif()
 
 # Set up all of the libraries of the project.
 add_subdirectory( core )
