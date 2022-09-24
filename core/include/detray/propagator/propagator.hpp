@@ -56,7 +56,6 @@ struct propagator {
     struct state {
 
         using detector_type = typename navigator_t::detector_type;
-        using field_type = typename stepper_t::state::field_type;
 
         /// Construct the propagation state.
         ///
@@ -71,12 +70,10 @@ struct propagator {
               _navigation(det, std::move(candidates)),
               _actor_states(actor_states) {}
 
-        template <
-            typename track_t,
-            std::enable_if_t<!std::is_same_v<field_type, void>, bool> = true>
+        template <typename field_t>
         DETRAY_HOST_DEVICE state(
-            const track_t &t_in, const field_type &magnetic_field,
-            const detector_type &det,
+            const free_track_parameters_type &t_in,
+            const field_t &magnetic_field, const detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(t_in, magnetic_field),
