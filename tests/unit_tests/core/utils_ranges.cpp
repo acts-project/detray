@@ -121,6 +121,40 @@ TEST(utils, ranges_chain) {
     ASSERT_EQ(check, reference);
 }
 
+// Unittest for the picking of indexed elements from another range
+TEST(utils, ranges_pick) {
+
+    darray<dindex, 2> interval_1 = {2, 4};
+    darray<dindex, 2> interval_2 = {7, 9};
+
+    // The indices of the iota elements to be picked
+    std::vector<dindex> reference = {2, 3, 7, 8};
+    std::vector<dindex> check = {};
+
+    auto indices = detray::views::chain(detray::views::iota(interval_1),
+                                        detray::views::iota(interval_2));
+
+    struct uint_holder {
+        unsigned int ui = 0;
+    };
+
+    dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}};
+
+    // general tests
+    auto selected = detray::views::pick(seq, indices);
+    ASSERT_TRUE(detray::ranges::range<decltype(selected)>::value);
+    ASSERT_TRUE(detray::ranges::is_view<decltype(selected)>);
+    // const auto [i_front, v_front] = selected.front();
+    // ASSERT_EQ(i_front, 0UL);
+    // ASSERT_EQ(v_front, 2UL);
+
+    for (auto [i, v] : selected) {
+        check.push_back(v.ui);
+    }
+    ASSERT_EQ(check.size(), reference.size());
+    ASSERT_EQ(check, reference);
+}
+
 // Unittest for the subrange implementation
 TEST(utils, ranges_subrange) {
 
