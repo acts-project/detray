@@ -45,7 +45,7 @@ struct chain_view : public ranges::view_interface<chain_view<I, range_itr_t>> {
     ///
     /// @param range container to iterate over
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit chain_view(ranges_t &&...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit chain_view(ranges_t &&... ranges)
         : m_begins{detray::ranges::begin(ranges)...},
           m_ends{detray::ranges::end(ranges)...} {}
 
@@ -53,7 +53,7 @@ struct chain_view : public ranges::view_interface<chain_view<I, range_itr_t>> {
     ///
     /// @param range container to iterate over
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit chain_view(const ranges_t &...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit chain_view(const ranges_t &... ranges)
         : m_begins{detray::ranges::cbegin(ranges)...},
           m_ends{detray::ranges::cend(ranges)...} {}
 
@@ -100,24 +100,24 @@ struct chain : public ranges::chain_view<I, range_itr_t> {
     constexpr chain() = default;
 
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit chain(const ranges_t &...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit chain(const ranges_t &... ranges)
         : base_type(ranges...) {}
 
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit chain(ranges_t &&...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit chain(ranges_t &&... ranges)
         : base_type(std::forward<ranges_t>(ranges)...) {}
 };
 
 // deduction guides
 
 template <typename... ranges_t>
-DETRAY_HOST_DEVICE chain(const ranges_t &...ranges)
+DETRAY_HOST_DEVICE chain(const ranges_t &... ranges)
     ->chain<sizeof...(ranges_t),
             typename detray::ranges::const_iterator_t<
                 detray::detail::first_t<ranges_t...>>>;
 
 template <typename... ranges_t>
-DETRAY_HOST_DEVICE chain(ranges_t &&...ranges)
+DETRAY_HOST_DEVICE chain(ranges_t &&... ranges)
     ->chain<sizeof...(ranges_t),
             typename detray::ranges::iterator_t<
                 detray::detail::first_t<ranges_t...>>>;
