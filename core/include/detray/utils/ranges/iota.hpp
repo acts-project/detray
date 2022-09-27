@@ -13,69 +13,76 @@
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
+#include <iterator>
 #include <type_traits>
 
 namespace detray::ranges {
 
 /// @brief Range factory that produces a sequence of values.
 ///
-/// @see https://en.cppreference.com/w/cpp/ranges/iota
+/// @see https://en.cppreference.com/w/cpp/ranges/iota_view
 ///
 /// @tparam incr_t the incrementable type that makes up the sequence
+///
+/// @note Is not fit for lazy evaluation.
 template <typename incr_t>
 class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
 
     private:
     /// @brief Nested iterator to generate a range of values on demand.
-    struct iterator {
+    struct iterator
+        : public std::iterator<std::input_iterator_tag, incr_t, incr_t> {
 
-        using difference_type = incr_t;
-        using value_type = incr_t;
-        using pointer = incr_t *;
-        using reference = incr_t &;
-        using iterator_category = std::input_iterator_tag;
+        /// Default construction only works if incr_t is default constructible
+        iterator() = default;
+
+        /// Parametrized Constructor
+        DETRAY_HOST_DEVICE
+        constexpr explicit iterator(const incr_t &i) : m_i{i} {}
 
         /// @returns true if we reach end of sequence
         DETRAY_HOST_DEVICE
         constexpr auto operator==(const iterator &rhs) const -> bool {
-            return (i == rhs.i);
+            return (m_i == rhs.m_i);
         }
 
         /// @returns true if we reach end of sequence
         DETRAY_HOST_DEVICE
         constexpr auto operator!=(const iterator &rhs) const -> bool {
-            return (i != rhs.i);
+            return (m_i != rhs.m_i);
         }
 
         /// Increment the index
         DETRAY_HOST_DEVICE
         constexpr auto operator++() -> iterator & {
-            ++i;
+            ++m_i;
             return *this;
         }
 
         /// @returns the current value in the sequence
         DETRAY_HOST_DEVICE
-        constexpr auto operator*() const -> const incr_t & { return i; }
+        constexpr auto operator*() const -> const incr_t & { return m_i; }
 
         /// @returns the current value in the sequence
         DETRAY_HOST_DEVICE
-        constexpr auto operator*() -> incr_t & { return i; }
+        auto operator*() -> incr_t & { return m_i; }
 
         /// Advance the sequence by @param j positions
         DETRAY_HOST_DEVICE
         constexpr auto operator+(const incr_t j) const -> iterator {
-            return {i + j};
+            return {m_i + j};
         }
 
         /// Current value of sequence
-        incr_t i;
+        incr_t m_i;
     };
 
     /// Start and end values of the sequence
     incr_t m_start, m_end;
 
     public:
+    using iterator_t = iterator;
+
     /// Default constructor (only works if @c imrementable_t is default
     /// constructible)
     iota_view() = default;
@@ -99,18 +106,37 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
                          bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit iota_view(deduced_incr_t &&start)
-        : m_start{start}, m_end{start + 1} {}
+        : m_start{std::forward<deduced_incr_t>(start)},
+          m_end{std::forward<deduced_incr_t>(start) + 1} {}
+
+    /// Copy assignment operator
+    DETRAY_HOST_DEVICE
+    iota_view &operator=(const iota_view &other) {
+        m_start = other.m_start;
+        m_end = other.m_end;
+
+        return *this;
+    }
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> iterator { return {m_start}; }
+    constexpr auto begin() const -> iterator_t { return iterator_t{m_start}; }
 
     /// @return sentinel of a sequence.
     DETRAY_HOST_DEVICE
-    constexpr auto end() const -> iterator { return {m_end}; }
+    constexpr auto end() const -> iterator_t { return iterator_t{m_end}; }
 
-    /// @note Cannot peak at the end of input-iterator based range
-    constexpr typename iterator::value_type back() noexcept = delete;
+    /// Not pointer to data for range factory
+    DETRAY_HOST_DEVICE
+    constexpr auto data() noexcept = delete;
+
+    /// Not pointer to data for range factory
+    DETRAY_HOST_DEVICE
+    constexpr auto data() const noexcept = delete;
+
+    /// @returns the span of the sequence
+    DETRAY_HOST_DEVICE
+    constexpr auto size() const noexcept -> incr_t { return m_end - m_start; }
 };
 
 namespace views {
