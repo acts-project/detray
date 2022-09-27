@@ -20,11 +20,14 @@ namespace detray::ranges {
 
 /// @brief Enumerates the elements of a range on the fly.
 ///
-/// @see https://en.cppreference.com/w/cpp/ranges/subrange
-///
 /// @tparam range_itr_t the iterator type of the enumerated range
 /// @tparam incr_t a type that can be incremented in lockstep with the
 ///         iterator 'range_itr_t'.
+///
+/// @note Does not take ownership of the range it operates on. Its lifetime
+/// needs to be guranteed throughout iteration or between iterations with the
+/// same enumerate instance.
+/// @note Is not fit for lazy evaluation.
 template <typename range_itr_t, typename incr_t = dindex>
 class enumerate_view : public detray::ranges::view_interface<
                            enumerate_view<range_itr_t, incr_t>> {
@@ -35,6 +38,9 @@ class enumerate_view : public detray::ranges::view_interface<
     /// The enumeration is done by incrementing an index in lockstep with a
     /// wrapped iterator of a range. Index and current iterator value are
     /// returned using structured binding.
+    ///
+    /// @todo Add Comparability to fulfill random access iterator traits once
+    ///       needed.
     struct iterator {
 
         using difference_type =
@@ -43,39 +49,124 @@ class enumerate_view : public detray::ranges::view_interface<
             typename std::iterator_traits<range_itr_t>::value_type;
         using pointer = typename std::iterator_traits<range_itr_t>::pointer;
         using reference = typename std::iterator_traits<range_itr_t>::reference;
-        using iterator_category = std::input_iterator_tag;
+        using iterator_category =
+            typename std::iterator_traits<range_itr_t>::iterator_category;
 
-        /// Determine whether we reach end of range
+        /// @returns true if we reach end of sequence
         DETRAY_HOST_DEVICE
-        constexpr auto operator!=(const iterator &rhs) const -> bool {
+        constexpr auto operator==(const iterator &rhs) const -> bool {
+            return (m_iter == rhs.m_iter);
+        }
+
+        /// @returns true if the wrapped iterators are not the same.
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
+                             bool> = true>
+        DETRAY_HOST_DEVICE constexpr auto operator!=(const iterator &rhs) const
+            -> bool {
             return (m_iter != rhs.m_iter);
         }
 
         /// Increment iterator and index in lockstep
-        DETRAY_HOST_DEVICE
-        constexpr auto operator++() -> iterator & {
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
+                             bool> = true>
+        DETRAY_HOST_DEVICE constexpr auto operator++() -> iterator & {
             ++m_i;
             ++m_iter;
+
             return *this;
         }
 
-        /// @return iterator and index together
-        DETRAY_HOST_DEVICE
-        constexpr auto operator*() const { return std::tie(m_i, *m_iter); }
+        /// Increment iterator and index in lockstep
+        template <typename T = iterator_category,
+                  std::enable_if_t<
+                      std::is_base_of_v<std::bidirectional_iterator_tag, T>,
+                      bool> = true>
+        DETRAY_HOST_DEVICE constexpr auto operator--() -> iterator & {
+            --m_i;
+            --m_iter;
 
-        /// Advance the iterator and index position by @param j.
-        DETRAY_HOST_DEVICE
-        constexpr auto operator+(const incr_t j) const -> iterator {
+            return *this;
+        }
+
+        /// @returns iterator and index together
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
+                             bool> = true>
+        DETRAY_HOST_DEVICE constexpr auto operator*() const {
+            return std::tie(m_i, *m_iter);
+        }
+
+        /// @returns an iterator and index position advanced by @param j.
+        template <typename T = iterator_category,
+                  std::enable_if_t<
+                      std::is_base_of_v<std::random_access_iterator_tag, T>,
+                      bool> = true>
+        DETRAY_HOST_DEVICE constexpr auto operator+(const incr_t j) const
+            -> iterator {
             return {m_iter + j, m_i + j};
         }
 
-        range_itr_t m_iter;
+        /// @returns an iterator and index position advanced by @param j.
+        template <typename T = iterator_category,
+                  std::enable_if_t<
+                      std::is_base_of_v<std::random_access_iterator_tag, T>,
+                      bool> = true>
+        DETRAY_HOST_DEVICE constexpr auto operator-(const incr_t j) const
+            -> iterator {
+            return {m_iter - j, m_i - j};
+        }
+
+        /// @returns the positional difference between two iterators
+        /// (independent from their enumeration of the range values)
+        template <typename T = iterator_category,
+                  std::enable_if_t<
+                      std::is_base_of_v<std::random_access_iterator_tag, T>,
+                      bool> = true>
+        DETRAY_HOST_DEVICE constexpr auto operator-(const iterator &other) const
+            -> difference_type {
+            return m_iter - other.m_iter;
+        }
+
+        /// @returns advance this iterator state by @param j.
+        template <typename T = iterator_category,
+                  std::enable_if_t<
+                      std::is_base_of_v<std::random_access_iterator_tag, T>,
+                      bool> = true>
+        DETRAY_HOST_DEVICE constexpr auto operator+=(const incr_t j)
+            -> iterator & {
+            m_iter += j;
+            m_i += j;
+
+            return *this;
+        }
+
+        /// @returns advance this iterator state by @param j.
+        template <typename T = iterator_category,
+                  std::enable_if_t<
+                      std::is_base_of_v<std::random_access_iterator_tag, T>,
+                      bool> = true>
+        DETRAY_HOST_DEVICE constexpr auto operator-=(const difference_type j)
+            -> iterator & {
+            m_iter -= j;
+            m_i -= j;
+
+            return *this;
+        }
+
+        range_itr_t m_iter{};
         incr_t m_i;
     };
 
-    iterator m_range, m_end;
+    iterator m_begin, m_end;
 
     public:
+    using iterator_t = iterator;
+
     /// Default constructor (only works if @c imrementable_t is default
     /// constructible)
     enumerate_view() = default;
@@ -84,9 +175,10 @@ class enumerate_view : public detray::ranges::view_interface<
     template <
         typename range_t,
         std::enable_if_t<detray::ranges::range<range_t>::value, bool> = true>
-    DETRAY_HOST_DEVICE constexpr explicit enumerate_view(range_t &&range)
-        : m_range{detray::ranges::begin(std::forward<range_t>(range)), 0},
-          m_end{detray::ranges::end(std::forward<range_t>(range)), 0} {}
+    DETRAY_HOST_DEVICE constexpr explicit enumerate_view(range_t &&rng)
+        : m_begin{detray::ranges::begin(std::forward<range_t>(rng)), 0},
+          m_end{detray::ranges::end(std::forward<range_t>(rng)),
+                rng.size() - 1} {}
 
     /// Construct from a @param range that will be enumerated beginning at
     /// @param start.
@@ -95,23 +187,51 @@ class enumerate_view : public detray::ranges::view_interface<
         std::enable_if_t<detray::ranges::range<range_t>::value, bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit enumerate_view(range_t &&rng,
                                                          dindex start)
-        : m_range{detray::ranges::begin(std::forward<range_t>(rng)), start},
-          m_end{detray::ranges::end(std::forward<range_t>(rng)), 0} {}
+        : m_begin{detray::ranges::begin(std::forward<range_t>(rng)), start},
+          m_end{detray::ranges::end(std::forward<range_t>(rng)),
+                start + rng.size() - 1} {}
+
+    /// Copy assignment operator
+    DETRAY_HOST_DEVICE
+    enumerate_view &operator=(const enumerate_view &other) {
+        m_begin = other.m_begin;
+        m_end = other.m_end;
+
+        return *this;
+    }
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() -> iterator & { return m_range; }
+    constexpr auto begin() -> iterator & { return m_begin; }
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> const iterator & { return m_range; }
+    constexpr auto begin() const -> const iterator & { return m_begin; }
 
     /// @return sentinel of a sequence.
     DETRAY_HOST_DEVICE
     constexpr auto end() const -> const iterator & { return m_end; }
 
-    /// @note Cannot peek at the end of input-iterator based range
-    constexpr typename iterator::value_type back() noexcept = delete;
+    /// @returns access to the first element value in the range, including the
+    /// corresponding index.
+    // Needs to implemented here to avoid dangling references on temporaries
+    // in view_interface
+    DETRAY_HOST_DEVICE
+    constexpr auto front() {
+        return std::tie(m_begin.m_i,
+                        *detray::ranges::next(m_begin.m_iter, m_begin.m_i));
+    }
+
+    /// @returns access to the last element value in the range, including the
+    /// corresponding index.
+    // Needs to implemented here to avoid dangling references on temporaries
+    // in view_interface
+    DETRAY_HOST_DEVICE
+    constexpr auto back() {
+        return std::tie(
+            m_end.m_i,
+            *detray::ranges::next(m_begin.m_iter, m_end.m_i - m_begin.m_i));
+    }
 };
 
 namespace views {
@@ -121,7 +241,7 @@ struct enumerate : public enumerate_view<range_itr_t, incr_t> {
 
     using base_type = enumerate_view<range_itr_t, incr_t>;
 
-    enumerate() = default;
+    constexpr enumerate() = default;
 
     template <
         typename range_t,

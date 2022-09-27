@@ -7,11 +7,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
-#include <cassert>
 #include <iterator>
 #include <type_traits>
 
@@ -31,36 +29,51 @@ struct range : public std::false_type {
 /// simply calling std::begin and std::end.
 /// In case of @c vecmem::device_vector the iterator is a pointer type.
 template <typename T>
-struct range<T, std::enable_if_t<std::is_class_v<std::decay_t<decltype(
-                                     std::begin(std::declval<T&>()))>> or
-                                     std::is_pointer_v<std::decay_t<decltype(
-                                         std::begin(std::declval<T&>()))>>,
-                                 void>> : public std::true_type {
-
+struct range<
+    T, std::enable_if_t<std::is_class_v<std::decay_t<decltype(std::begin(
+                            std::declval<T&>()))>> or
+                            std::is_pointer_v<std::decay_t<decltype(std::begin(
+                                std::declval<T&>()))>>,
+                        void>> : public std::true_type {
     using iterator_type =
         std::decay_t<decltype(std::begin(std::declval<T&>()))>;
     using const_iterator_type =
         std::decay_t<decltype(std::cbegin(std::declval<T&>()))>;
 };
 
-/// Simply import the std versions of the 'begin' and 'end' functions for now
+class base_view;
+
+template <typename range_t>
+class view_interface;
+
+template <typename T>
+inline constexpr bool enable_view =
+    std::is_base_of_v<base_view, T> or std::is_base_of_v<view_interface<T>, T>;
+
+template <class T>
+inline constexpr bool is_view = detray::ranges::range<T>::value and
+    std::is_object_v<T>&& std::is_move_constructible_v<T>and enable_view<T>;
+
+/// Simply import the std versions of basic iterator functionality
 /// @{
 using std::begin;
 using std::cbegin;
 using std::cend;
 using std::end;
+using std::rbegin;
+using std::rend;
 
-template <class T>
-constexpr auto size(T&& iterable) noexcept {
-    return std::distance(detray::ranges::begin(std::forward<T>(iterable)),
-                         detray::ranges::end(std::forward<T>(iterable)));
-}
-/// @}
-
-// Placeholder definitions
+using std::advance;
 using std::distance;
 using std::next;
 using std::prev;
+/// @}
+
+/// Implementation of the detray ranges specific functions (size, data)
+/// @{
+using std::size;
+
+/// @}
 
 /// Compliance with std::ranges typedefs,
 /// @see https://en.cppreference.com/w/cpp/ranges/iterator_t
@@ -113,10 +126,10 @@ struct view_interface : public base_view {
     }
 
     DETRAY_HOST_DEVICE
-    constexpr auto data() const noexcept { return m_impl_ptr->begin(); }
+    constexpr auto data() noexcept { return &(*(m_impl_ptr->begin())); }
 
     DETRAY_HOST_DEVICE
-    constexpr auto size() const noexcept {
+    constexpr auto size() noexcept {
         return detray::ranges::distance(m_impl_ptr->begin(), m_impl_ptr->end());
     }
 
@@ -125,24 +138,15 @@ struct view_interface : public base_view {
 
     DETRAY_HOST_DEVICE
     constexpr auto back() noexcept {
-        return *(m_impl_ptr->begin() + (size() - 1));
+        return *detray::ranges::next(m_impl_ptr->begin(), size() - 1);
     }
 
-    /// @return element at position i, relative to iterator range - const
     DETRAY_HOST_DEVICE
     constexpr auto operator[](const dindex i) const {
-        return *(m_impl_ptr->begin() + i);
+        return *detray::ranges::next(m_impl_ptr->begin(), i);
     }
 
     view_impl_t* const m_impl_ptr{static_cast<view_impl_t*>(this)};
 };
-
-template <typename T>
-inline constexpr bool enable_view =
-    std::is_base_of_v<base_view, T> or std::is_base_of_v<view_interface<T>, T>;
-
-template <class T>
-inline constexpr bool is_view = detray::ranges::range<T>::value and
-    std::is_object_v<T>&& std::is_move_constructible_v<T>and enable_view<T>;
 
 }  // namespace detray::ranges

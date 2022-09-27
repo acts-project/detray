@@ -14,20 +14,28 @@ namespace detray::ranges {
 
 /// @brief Struct that implements a view on a single element.
 ///
+/// @see https://en.cppreference.com/w/cpp/ranges/single_view
+///
 /// @tparam value_t type of the single element (outside of a container)
+///
+/// @note Does not take ownership of the value it operates on. Its lifetime
+/// needs to be guaranteed throughout iteration or between iterations with the
+/// same view instance.
+/// @note Is not fit for lazy evaluation.
 template <typename value_t>
 class single_view
     : public detray::ranges::view_interface<single_view<value_t>> {
 
     private:
     /// @brief Emulates iterator behaviour for a single value.
-    struct iterator {
+    struct iterator
+        : public std::iterator<std::bidirectional_iterator_tag, value_t> {
 
-        using difference_type = std::size_t;
-        using value_type = value_t;
-        using pointer = value_t *;
-        using reference = value_t &;
-        using iterator_category = std::bidirectional_iterator_tag;
+        iterator() = default;
+
+        DETRAY_HOST_DEVICE
+        iterator(value_t *const value, value_t *const sentinel)
+            : m_value{value}, m_sentinel{sentinel} {}
 
         /// @returns true if it points to the same value.
         DETRAY_HOST_DEVICE
@@ -63,46 +71,69 @@ class single_view
         DETRAY_HOST_DEVICE
         constexpr auto operator*() -> value_t & { return *m_value; }
 
-        /// Advance the sequence: Immediately points to end
-        DETRAY_HOST_DEVICE
-        constexpr auto operator+(const difference_type j) const -> iterator {
-            if (j == difference_type{0}) {
-                return {m_value, m_sentinel};
-            }
-            return {m_sentinel, m_sentinel};
-        }
-
         value_t *m_value, *m_sentinel;
     };
 
     /// Start and end values of the sequence
-    value_t m_sentinel;
-    iterator m_begin{nullptr}, m_end{nullptr};
+    value_t *m_sentinel{nullptr};
+    iterator m_begin{nullptr, nullptr}, m_end{nullptr, nullptr};
 
     public:
+    using iterator_t = iterator;
+
     /// Default constructor
     single_view() = default;
 
     /// Construct iterator from the single @param value this iterator points to.
-    DETRAY_HOST_DEVICE constexpr single_view(value_t &value)
-        : m_sentinel{value},
-          m_begin{&value, &m_sentinel},
-          m_end{&m_sentinel, &m_sentinel} {}
+    DETRAY_HOST_DEVICE constexpr explicit single_view(value_t &value)
+        : m_sentinel{&value},
+          m_begin{&value, m_sentinel},
+          m_end{m_sentinel, m_sentinel} {}
 
     /// Construct iterator from the single @param value this iterator points to
     /// - const
-    DETRAY_HOST_DEVICE constexpr single_view(const value_t &value)
-        : m_sentinel{value},
-          m_begin{&value, &m_sentinel},
-          m_end{&m_sentinel, &m_sentinel} {}
+    DETRAY_HOST_DEVICE constexpr explicit single_view(const value_t &value)
+        : m_sentinel{&value},
+          m_begin{&value, m_sentinel},
+          m_end{m_sentinel, m_sentinel} {}
+
+    /// Copy assignment operator
+    DETRAY_HOST_DEVICE
+    single_view &operator=(const single_view &other) {
+        m_sentinel = other.m_sentinel;
+        m_begin = other.m_begin;
+        m_end = other.m_end;
+
+        return *this;
+    };
 
     /// @return start position.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> iterator { return m_begin; }
+    constexpr auto begin() const noexcept -> iterator { return m_begin; }
 
     /// @return sentinel.
     DETRAY_HOST_DEVICE
-    constexpr auto end() const -> iterator { return m_end; }
+    constexpr auto end() const noexcept -> iterator { return m_end; }
+
+    /// @returns a pointer to the beginning of the data of the first underlying
+    /// range - const
+    DETRAY_HOST_DEVICE
+    constexpr auto data() const noexcept -> const
+        typename iterator_t::value_type * {
+        return m_begin.m_value;
+    }
+
+    /// @returns a pointer to the beginning of the data of the first underlying
+    /// range - non-const
+    DETRAY_HOST_DEVICE
+    constexpr auto data() noexcept -> typename iterator_t::value_type * {
+        return m_begin.m_value;
+    }
+
+    /// @returns the size of the single view, which is always 'one'.
+    /// @note overwrites the inherited function from the view interface.
+    DETRAY_HOST_DEVICE
+    constexpr auto size() const noexcept -> std::size_t { return 1; }
 };
 
 namespace views {
