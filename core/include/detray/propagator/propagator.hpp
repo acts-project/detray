@@ -59,20 +59,22 @@ struct propagator {
         /// @param candidates buffer for intersections in the navigator
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &t_in,
+            const typename navigator_t::detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(t_in),
-              _navigation(std::move(candidates)),
+              _navigation(det, std::move(candidates)),
               _actor_states(actor_states) {}
 
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &param,
-            const transform3_type &trf3,
+            const typename stepper_t::transform3_type &trf3,
+            const typename navigator_t::detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(param, trf3),
-              _navigation(std::move(candidates)),
+              _navigation(det, std::move(candidates)),
               _actor_states(actor_states) {}
 
         // Is the propagation still alive?
