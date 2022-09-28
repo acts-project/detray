@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.sycl": "cpp",
+        "iosfwd": "cpp",
+        "limits": "cpp"
+    }
+}

@@ -32,7 +32,6 @@ class line_stepper final
         typename base_type::free_track_parameters_type;
 
     struct state : public base_type::state {
-
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type &t) : base_type::state(t) {}
 

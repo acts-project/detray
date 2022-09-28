@@ -12,9 +12,6 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/tracks/tracks.hpp"
 
-// System include(s)
-#include <type_traits>
-
 namespace detray {
 
 /// Templated propagator class, using a stepper and a navigator object in
