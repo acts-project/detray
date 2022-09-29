@@ -81,7 +81,7 @@ detray_add_library( detray_core core
    "include/detray/propagator/actors/parameter_resetter.hpp"
    "include/detray/propagator/actors/parameter_transporter.hpp"
    "include/detray/propagator/actors/pointwise_material_interactor.hpp"
-   "include/detray/propagator/actors/scattering_simulator.hpp"
+   "include/detray/propagator/actors/random_scatterer.hpp"
    "include/detray/propagator/actor_chain.hpp"
    "include/detray/propagator/base_actor.hpp"
    "include/detray/propagator/base_stepper.hpp"

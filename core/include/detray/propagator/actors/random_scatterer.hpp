@@ -18,7 +18,7 @@
 namespace detray {
 
 template <typename interactor_t>
-struct scattering_simulator : actor {
+struct random_scatterer : actor {
     using interactor_type = interactor_t;
     using interactor_state_type = typename interactor_type::state;
     using matrix_operator = typename interactor_type::matrix_operator;
