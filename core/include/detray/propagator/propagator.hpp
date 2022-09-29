@@ -25,6 +25,8 @@ namespace detray {
 template <typename stepper_t, typename navigator_t, typename actor_chain_t>
 struct propagator {
 
+    using navigator_type = navigator_t;
+    using stepper_type = stepper_t;
     using transform3_type = typename stepper_t::transform3_type;
     using free_track_parameters_type =
         typename stepper_t::free_track_parameters_type;
