@@ -16,7 +16,7 @@
 namespace detray {
 
 template <typename transform3_t>
-struct resetter : actor {
+struct parameter_resetter : actor {
 
     using scalar_type = typename transform3_t::scalar_type;
 

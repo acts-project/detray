@@ -76,7 +76,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
             parameter_transporter<transform3>::state transporter_state{};
             pointwise_material_interactor<transform3>::state interactor_state{};
-            resetter<transform3>::state resetter_state{};
+            parameter_resetter<transform3>::state resetter_state{};
 
             actor_chain_t::state actor_states = thrust::tie(
                 transporter_state, interactor_state, resetter_state);

@@ -14,9 +14,9 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
+#include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
-#include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
@@ -188,7 +188,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         actor_chain<dtuple, helix_inspector, propagation::print_inspector,
                     pathlimit_aborter, parameter_transporter<transform3>,
                     pointwise_material_interactor<transform3>,
-                    resetter<transform3>>;
+                    parameter_resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Test parameters
@@ -218,7 +218,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         pathlimit_aborter::state pathlimit_aborter_state{path_limit};
         parameter_transporter<transform3>::state transporter_state{};
         pointwise_material_interactor<transform3>::state interactor_state{};
-        resetter<transform3>::state resetter_state{};
+        parameter_resetter<transform3>::state resetter_state{};
 
         // Create actor states tuples
         actor_chain_t::state actor_states =

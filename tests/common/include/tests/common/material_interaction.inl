@@ -15,9 +15,9 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
+#include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
-#include "detray/propagator/actors/resetter.hpp"
 #include "detray/propagator/actors/scattering_simulator.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -234,7 +234,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
                     parameter_transporter<transform3>, interactor_t,
-                    resetter<transform3>>;
+                    parameter_resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -261,12 +261,12 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     pathlimit_aborter::state aborter_state{};
     parameter_transporter<transform3>::state bound_updater{};
     interactor_t::state interactor_state{};
-    resetter<transform3>::state resetter_state{};
+    parameter_resetter<transform3>::state parameter_resetter_state{};
 
     // Create actor states tuples
     actor_chain_t::state actor_states =
         std::tie(print_insp_state, aborter_state, bound_updater,
-                 interactor_state, resetter_state);
+                 interactor_state, parameter_resetter_state);
 
     propagator_t::state state(bound_param, det, actor_states);
 
@@ -372,7 +372,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
                     parameter_transporter<transform3>, interactor_t,
-                    simulator_t, resetter<transform3>>;
+                    simulator_t, parameter_resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -410,12 +410,12 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
         interactor_t::state interactor_state{};
         interactor_state.do_energy_loss = false;
         simulator_t::state simulator_state(interactor_state);
-        resetter<transform3>::state resetter_state{};
+        parameter_resetter<transform3>::state parameter_resetter_state{};
 
         // Create actor states tuples
-        actor_chain_t::state actor_states =
-            std::tie(print_insp_state, aborter_state, bound_updater,
-                     interactor_state, simulator_state, resetter_state);
+        actor_chain_t::state actor_states = std::tie(
+            print_insp_state, aborter_state, bound_updater, interactor_state,
+            simulator_state, parameter_resetter_state);
 
         propagator_t::state state(bound_param, det, actor_states);
 
@@ -445,6 +445,6 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     EXPECT_NEAR((phi_var - ref_phi_var) / ref_phi_var, 0, 0.05);
     EXPECT_NEAR((theta_var - ref_theta_var) / ref_theta_var, 0, 0.05);
 
-    // To make sure that the varainces are zero
+    // To make sure that the varainces are not zero
     EXPECT_TRUE(ref_phi_var > 1e-4 && ref_theta_var > 1e-4);
 }

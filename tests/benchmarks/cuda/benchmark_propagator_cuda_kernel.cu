@@ -41,7 +41,7 @@ __global__ void propagator_benchmark_kernel(
 
     parameter_transporter<transform3>::state transporter_state{};
     pointwise_material_interactor<transform3>::state interactor_state{};
-    resetter<transform3>::state resetter_state{};
+    parameter_resetter<transform3>::state resetter_state{};
 
     // Create the propagator state
     propagator_device_type::state p_state(

@@ -76,7 +76,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         pathlimit_aborter::state pathlimit_state{path_limit};
         parameter_transporter<transform3>::state transporter_state{};
         pointwise_material_interactor<transform3>::state interactor_state{};
-        resetter<transform3>::state resetter_state{};
+        parameter_resetter<transform3>::state resetter_state{};
 
         propagator_host_type::state state(
             tracks_host[i], B_field, det,

@@ -42,7 +42,7 @@ __global__ void telescope_propagation_test_kernel(
     pathlimit_aborter::state aborter_state{};
     parameter_transporter<transform3>::state bound_updater{};
     pointwise_material_interactor<transform3>::state interactor_state{};
-    resetter<transform3>::state resetter_state{};
+    parameter_resetter<transform3>::state resetter_state{};
 
     // Create actor states tuples
     actor_chain_t::state actor_states = thrust::tie(
