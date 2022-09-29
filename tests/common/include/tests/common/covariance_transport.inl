@@ -10,8 +10,7 @@
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
-#include "detray/propagator/actors/resetter.hpp"
-#include "detray/propagator/actors/surface_targeter.hpp"
+#include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -36,6 +35,48 @@ using matrix_operator = standard_matrix_operator<scalar>;
 using mag_field_t = constant_magnetic_field<>;
 
 constexpr scalar epsilon = 1e-3;
+
+struct surface_targeter : actor {
+
+    struct state {
+
+        scalar _path;
+        dindex _target_surface_index = dindex_invalid;
+    };
+
+    /// Enforces thepath limit on a stepper state
+    ///
+    /// @param abrt_state contains the path limit
+    /// @param prop_state state of the propagation
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(state &actor_state,
+                                       propagator_state_t &prop_state) const {
+
+        prop_state._heartbeat = true;
+        auto &navigation = prop_state._navigation;
+        auto &stepping = prop_state._stepping;
+        navigation.set_full_trust();
+
+        scalar residual = actor_state._path - stepping.path_length();
+        stepping.set_constraint(residual);
+
+        typename propagator_state_t::navigator_state_type::intersection_t is;
+        is.index = actor_state._target_surface_index;
+        is.path = residual;
+        auto &candidates = navigation.candidates();
+        candidates.clear();
+        candidates.push_back(is);
+        navigation.set_next(candidates.begin());
+        navigation.set_unknown();
+
+        if (residual < std::abs(1e-5)) {
+            prop_state._heartbeat = false;
+            candidates.push_back({});
+            navigation.next()++;
+            navigation.set_on_module();
+        }
+    }
+};
 
 // This tests the covariance transport in rk stepper
 TEST(covariance_transport, rk_stepper_cartesian) {
@@ -62,7 +103,7 @@ TEST(covariance_transport, rk_stepper_cartesian) {
         rk_stepper<mag_field_t, transform3, constrained_step<>>;
     using actor_chain_t =
         actor_chain<dtuple, surface_targeter, parameter_transporter<transform3>,
-                    resetter<transform3>>;
+                    parameter_resetter<transform3>>;
     using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
     // Generate track starting point
@@ -107,7 +148,7 @@ TEST(covariance_transport, rk_stepper_cartesian) {
     // Actors
     surface_targeter::state targeter{S, 0};
     parameter_transporter<transform3>::state bound_updater{};
-    resetter<transform3>::state rst{};
+    parameter_resetter<transform3>::state rst{};
 
     actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
 
@@ -190,7 +231,7 @@ TEST(covariance_transport, linear_stepper_cartesian) {
     using navigator_t = navigator<decltype(det)>;
     using cline_stepper_t = line_stepper<transform3, constrained_step<>>;
     using actor_chain_t = actor_chain<dtuple, parameter_transporter<transform3>,
-                                      resetter<transform3>>;
+                                      parameter_resetter<transform3>>;
     using propagator_t =
         propagator<cline_stepper_t, navigator_t, actor_chain_t>;
 
@@ -217,7 +258,7 @@ TEST(covariance_transport, linear_stepper_cartesian) {
 
     // Actors
     parameter_transporter<transform3>::state bound_updater{};
-    resetter<transform3>::state rst{};
+    parameter_resetter<transform3>::state rst{};
     actor_chain_t::state actor_states = std::tie(bound_updater, rst);
 
     propagator_t p({}, {});

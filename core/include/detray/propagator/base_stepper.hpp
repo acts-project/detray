@@ -10,7 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/propagator/actors/resetter.hpp"
+#include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -79,7 +79,7 @@ class base_stepper {
                 surface_container[bound_params.surface_link()];
 
             mask_store
-                .template execute<typename resetter<transform3_t>::kernel>(
+                .template execute<typename parameter_resetter<transform3_t>::kernel>(
                     surface.mask_type(), trf_store, surface, *this);
         }
 

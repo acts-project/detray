@@ -16,7 +16,7 @@
 namespace detray {
 
 template <typename transform3_t>
-struct resetter : actor {
+struct parameter_resetter : actor {
 
     struct state {};
 

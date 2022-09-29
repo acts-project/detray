@@ -75,8 +75,7 @@ detray_add_library( detray_core core
    # propagator include(s)
    "include/detray/propagator/actors/aborters.hpp"
    "include/detray/propagator/actors/parameter_transporter.hpp"
-   "include/detray/propagator/actors/resetter.hpp"
-   "include/detray/propagator/actors/surface_targeter.hpp"
+   "include/detray/propagator/actors/parameter_resetter.hpp"
    "include/detray/propagator/actor_chain.hpp"
    "include/detray/propagator/base_actor.hpp"
    "include/detray/propagator/base_stepper.hpp"
