@@ -60,7 +60,7 @@ inline std::vector<module_placement> module_positions(
     placements.reserve(steps.size());
 
     for (const auto s : steps) {
-        placements.push_back(traj.pos(s), traj.dir(s));
+        placements.push_back({traj.pos(s), traj.dir(s)});
     }
 
     return placements;
@@ -158,36 +158,6 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
 
 }  // namespace
 
-/// Build the telescope geometry from a fixed length and number of surfaces.
-///
-/// @param n_surfaces the number of surfaces that are placed in the geometry
-/// @param tel_length the total length of the steps by the stepper
-template <bool unbounded_planes = true,
-          typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
-auto create_telescope_detector(vecmem::memory_resource &resource,
-                               dindex n_surfaces = 10,
-                               scalar tel_length = 500. * unit_constants::mm,
-                               trajectory_t traj,
-                               scalar half_x = 20. * unit_constants::mm,
-                               scalar half_y = 20. * unit_constants::mm) {
-    // Generate equidistant positions
-    std::vector<scalar> positions = {};
-    scalar pos = 0.;
-    scalar dist = tel_length / (n_surfaces - 1);
-    for (std::size_t i = 0; i < n_surfaces; ++i) {
-        positions.push_back(pos);
-        pos += dist;
-    }
-
-    // Build the geometry
-    return create_telescope_detector<unbounded_planes>(resource, positions,
-                                                       traj, half_x, half_y);
-}
-
 /// Builds a detray geometry that contains only one volume with plane surfaces,
 /// where the last surface is the portal that leaves the telescope. The
 /// detector is auto-constructed by following a track state through space with
@@ -216,8 +186,9 @@ template <bool unbounded_planes = true,
           template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector>
 auto create_telescope_detector(
-    vecmem::memory_resource &resource, std::vector<scalar> pos = {},
-    trajectory_t traj, scalar half_x = 20. * unit_constants::mm,
+    vecmem::memory_resource &resource, std::vector<scalar> pos,
+    trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
+    scalar half_x = 20. * unit_constants::mm,
     scalar half_y = 20. * unit_constants::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
     const scalar thickness = 80 * unit_constants::um) {
@@ -263,6 +234,36 @@ auto create_telescope_detector(
                                transforms);
 
     return det;
+}
+
+/// Build the telescope geometry from a fixed length and number of surfaces.
+///
+/// @param n_surfaces the number of surfaces that are placed in the geometry
+/// @param tel_length the total length of the steps by the stepper
+template <bool unbounded_planes = true,
+          typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
+          template <typename, std::size_t> class array_t = darray,
+          template <typename...> class tuple_t = dtuple,
+          template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector>
+auto create_telescope_detector(
+    vecmem::memory_resource &resource, dindex n_surfaces = 10,
+    scalar tel_length = 500. * unit_constants::mm,
+    trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
+    scalar half_x = 20. * unit_constants::mm,
+    scalar half_y = 20. * unit_constants::mm) {
+    // Generate equidistant positions
+    std::vector<scalar> positions = {};
+    scalar pos = 0.;
+    scalar dist = tel_length / (n_surfaces - 1);
+    for (std::size_t i = 0; i < n_surfaces; ++i) {
+        positions.push_back(pos);
+        pos += dist;
+    }
+
+    // Build the geometry
+    return create_telescope_detector<unbounded_planes>(resource, positions,
+                                                       traj, half_x, half_y);
 }
 
 }  // namespace detray
