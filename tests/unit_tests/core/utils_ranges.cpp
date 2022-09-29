@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -132,6 +132,9 @@ TEST(utils, ranges_enumerate) {
         std::is_destructible_v<typename decltype(enumerator)::iterator_t>);
 
     // Test inherited member functions
+    const auto [i, v] = enumerator[2];
+    ASSERT_EQ(i, 2UL);
+    ASSERT_EQ(v.ui, 2UL);
     ASSERT_EQ(enumerator.size(), 6UL);
     const auto [i_front, v_front] = enumerator.front();
     ASSERT_EQ(i_front, 0u);
@@ -140,8 +143,9 @@ TEST(utils, ranges_enumerate) {
     ASSERT_EQ(i_back, 5u);
     ASSERT_EQ(v_back.ui, 5u);
 
-    for (auto [i, v] : detray::views::enumerate(seq)) {
-        ASSERT_EQ(i, v.ui);
+    for (auto [j, w] : detray::views::enumerate(seq)) {
+        ASSERT_TRUE(j == w.ui);
+        ASSERT_EQ(j, w.ui);
     }
 }
 
@@ -180,18 +184,12 @@ TEST(utils, ranges_chain) {
     ASSERT_EQ(check, reference);
 }
 
-// Unittest for the picking of indexed elements from another range
+// Integration test for the picking of indexed elements from another range
 TEST(utils, ranges_pick) {
 
-    darray<dindex, 2> interval_1 = {2, 4};
-    darray<dindex, 2> interval_2 = {7, 9};
-
     // The indices of the iota elements to be picked
-    std::vector<dindex> reference = {2, 3, 7, 8};
+    std::vector<dindex> indices = {2, 3, 7, 8};
     std::vector<dindex> check = {};
-
-    auto indices = detray::views::chain(detray::views::iota(interval_1),
-                                        detray::views::iota(interval_2));
 
     struct uint_holder {
         unsigned int ui = 0;
@@ -214,19 +212,23 @@ TEST(utils, ranges_pick) {
         std::is_destructible_v<typename decltype(selected)::iterator_t>);
 
     // Test inherited member functions
+    /*const auto [i, v] = selected[2];
+    ASSERT_EQ(i, 7UL);
+    ASSERT_EQ(v.ui, 7UL);*/
     ASSERT_EQ(selected.size(), 4UL);
-    const auto [i_front, v_front] = selected.front();
+    /*const auto [i_front, v_front] = selected.front();
     ASSERT_EQ(i_front, 2UL);
-    ASSERT_EQ(v_front.ui, 2UL);
-    // const auto [i_back, v_back] = selected.back();
-    // ASSERT_EQ(i_back, 8UL);
-    // ASSERT_EQ(v_back.ui, 8UL);
+    ASSERT_EQ(v_front.ui, 2UL);*/
+    const auto [i_back, v_back] = selected.back();
+    ASSERT_EQ(i_back, 8UL);
+    ASSERT_EQ(v_back.ui, 8UL);
 
-    for (auto [i, v] : selected) {
-        check.push_back(v.ui);
+    for (auto [j, w] : selected) {
+        ASSERT_TRUE(j == w.ui);
+        check.push_back(w.ui);
     }
-    ASSERT_EQ(check.size(), reference.size());
-    ASSERT_EQ(check, reference);
+    ASSERT_EQ(check.size(), indices.size());
+    ASSERT_EQ(check, indices);
 }
 
 // Unittest for the subrange implementation
@@ -272,6 +274,10 @@ TEST(utils, ranges_subrange) {
     }
 }
 
+//
+// Integration tests
+//
+
 // Integration test for enumeration of a subrange
 TEST(utils, ranges_enumerated_subrange) {
 
@@ -289,4 +295,44 @@ TEST(utils, ranges_enumerated_subrange) {
          detray::views::enumerate(detray::ranges::subrange(seq, interval))) {
         ASSERT_EQ(i, v.ui - 1);
     }
+}
+
+// Integration test for the picking of indexed elements from another range
+TEST(utils, ranges_pick_chained_sequence) {
+
+    darray<dindex, 2> interval_1 = {2, 4};
+    darray<dindex, 2> interval_2 = {7, 9};
+
+    // The indices of the iota elements to be picked
+    std::vector<dindex> reference = {2, 3, 7, 8};
+    std::vector<dindex> check = {};
+
+    struct uint_holder {
+        unsigned int ui = 0;
+    };
+
+    dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}};
+
+    auto indices = detray::views::chain(detray::views::iota(interval_1),
+                                        detray::views::iota(interval_2));
+    auto selected = detray::views::pick(seq, indices);
+
+    // Test inherited member functions
+    const auto [i, v] = selected[2];
+    ASSERT_EQ(i, 7UL);
+    ASSERT_EQ(v.ui, 7UL);
+    ASSERT_EQ(selected.size(), 4UL);
+    const auto [i_front, v_front] = selected.front();
+    ASSERT_EQ(i_front, 2UL);
+    ASSERT_EQ(v_front.ui, 2UL);
+    const auto [i_back, v_back] = selected.back();
+    ASSERT_EQ(i_back, 8UL);
+    ASSERT_EQ(v_back.ui, 8UL);
+
+    for (auto [j, w] : selected) {
+        ASSERT_TRUE(j == w.ui);
+        check.push_back(w.ui);
+    }
+    ASSERT_EQ(check.size(), reference.size());
+    ASSERT_EQ(check, reference);
 }

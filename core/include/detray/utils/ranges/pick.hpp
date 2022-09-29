@@ -13,6 +13,7 @@
 #include "detray/utils/ranges/subrange.hpp"
 
 // System include(s)
+#include <iostream>
 #include <tuple>
 #include <type_traits>
 
@@ -82,13 +83,26 @@ class pick_view : public detray::ranges::view_interface<
             return *this;
         }
 
+        /// Decrement iterator and index in lockstep
+        template <typename T = iterator_category,
+                  std::enable_if_t<
+                      std::is_base_of_v<std::bidirectional_iterator_tag, T>,
+                      bool> = true>
+        DETRAY_HOST_DEVICE constexpr auto operator--() -> iterator & {
+            m_range_iter = m_range_begin + *(--m_seq_iter);
+            return *this;
+        }
+
         /// @returns iterator and index together
         template <
             typename T = iterator_category,
             std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
                              bool> = true>
         DETRAY_HOST_DEVICE auto operator*() {
-            return std::tie(*m_seq_iter, *m_range_iter);
+            return std::pair<
+                const typename std::iterator_traits<sequence_itr_t>::value_type,
+                const typename std::iterator_traits<range_itr_t>::value_type &>(
+                *m_seq_iter, *m_range_iter);
         }
 
         /// @returns an iterator and index position advanced by @param j.
@@ -156,6 +170,8 @@ class pick_view : public detray::ranges::view_interface<
 
     public:
     using iterator_t = iterator;
+    using index_t = typename std::iterator_traits<sequence_itr_t>::value_type;
+    using value_t = typename std::iterator_traits<range_itr_t>::value_type;
 
     /// Default constructor (only works if @c imrementable_t is default
     /// constructible)
@@ -224,24 +240,20 @@ class pick_view : public detray::ranges::view_interface<
 
     /// @returns access to the first element value in the range, including the
     /// corresponding index.
-    // Needs to implemented here to avoid dangling references on temporaries
-    // in view_interface
     DETRAY_HOST_DEVICE
     constexpr auto front() {
-        return std::tie(*(m_seq_begin),
-                        *detray::ranges::next(m_range_begin, *m_seq_begin));
+        return std::pair<index_t, value_t &>(
+            *(m_seq_begin), *detray::ranges::next(m_range_begin, *m_seq_begin));
     }
 
     /// @returns access to the last element value in the range, including the
     /// corresponding index.
-    // Needs to implemented here to avoid dangling references on temporaries
-    // in view_interface
     DETRAY_HOST_DEVICE
     constexpr auto back() {
         const typename std::iterator_traits<sequence_itr_t>::value_type
             last_idx{*detray::ranges::next(m_seq_begin, (size() - 1))};
-        return std::tie(last_idx,
-                        *detray::ranges::next(m_range_begin, last_idx));
+        return std::pair<index_t, value_t &>(
+            last_idx, *detray::ranges::next(m_range_begin, last_idx));
     }
 };
 

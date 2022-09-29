@@ -13,7 +13,6 @@
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
-#include <iostream>
 #include <type_traits>
 
 namespace detray::ranges {
@@ -44,13 +43,13 @@ struct chain_view : public ranges::view_interface<chain_view<I, range_itr_t>> {
     /// Default constructor
     constexpr chain_view() = default;
 
-    /// Construct from a pack of @param range.
+    /// Construct from a pack of @param ranges.
     template <typename... ranges_t>
     DETRAY_HOST_DEVICE constexpr explicit chain_view(ranges_t &&...ranges)
         : m_begins{detray::ranges::begin(ranges)...},
           m_ends{detray::ranges::end(ranges)...} {}
 
-    /// Construct from a pack of @param range - const
+    /// Construct from a pack of @param ranges - const
     template <typename... ranges_t>
     DETRAY_HOST_DEVICE constexpr explicit chain_view(const ranges_t &...ranges)
         : m_begins{detray::ranges::cbegin(ranges)...},
