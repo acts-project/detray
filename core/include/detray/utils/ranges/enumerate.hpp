@@ -98,7 +98,7 @@ class enumerate_view : public detray::ranges::view_interface<
             std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
                              bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator*() const {
-            return std::tie(m_i, *m_iter);
+            return std::pair<incr_t, const value_type &>(m_i, *m_iter);
         }
 
         /// @returns an iterator and index position advanced by @param j.
@@ -202,36 +202,15 @@ class enumerate_view : public detray::ranges::view_interface<
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() -> iterator & { return m_begin; }
+    constexpr auto begin() -> iterator { return m_begin; }
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> const iterator & { return m_begin; }
+    constexpr auto begin() const -> iterator { return m_begin; }
 
     /// @return sentinel of a sequence.
     DETRAY_HOST_DEVICE
-    constexpr auto end() const -> const iterator & { return m_end; }
-
-    /// @returns access to the first element value in the range, including the
-    /// corresponding index.
-    // Needs to implemented here to avoid dangling references on temporaries
-    // in view_interface
-    DETRAY_HOST_DEVICE
-    constexpr auto front() {
-        return std::tie(m_begin.m_i,
-                        *detray::ranges::next(m_begin.m_iter, m_begin.m_i));
-    }
-
-    /// @returns access to the last element value in the range, including the
-    /// corresponding index.
-    // Needs to implemented here to avoid dangling references on temporaries
-    // in view_interface
-    DETRAY_HOST_DEVICE
-    constexpr auto back() {
-        return std::tie(
-            m_end.m_i,
-            *detray::ranges::next(m_begin.m_iter, m_end.m_i - m_begin.m_i));
-    }
+    constexpr auto end() const -> iterator { return m_end; }
 };
 
 namespace views {
