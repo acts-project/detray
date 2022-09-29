@@ -78,9 +78,9 @@ class base_stepper {
             const auto &surface =
                 surface_container[bound_params.surface_link()];
 
-            mask_store
-                .template execute<typename parameter_resetter<transform3_t>::kernel>(
-                    surface.mask_type(), trf_store, surface, *this);
+            mask_store.template execute<
+                typename parameter_resetter<transform3_t>::kernel>(
+                surface.mask_type(), trf_store, surface, *this);
         }
 
         /// free track parameter

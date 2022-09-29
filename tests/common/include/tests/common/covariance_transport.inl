@@ -9,8 +9,8 @@
 #include "detray/definitions/units.hpp"
 #include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
+#include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -155,7 +155,7 @@ TEST(covariance_transport, rk_stepper_cartesian) {
     propagator_t p({}, {});
     propagator_t::state propagation(bound_param0, mag_field, det, actor_states);
 
-    crk_stepper_t::state& crk_state = propagation._stepping;
+    crk_stepper_t::state &crk_state = propagation._stepping;
 
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = 1e-8;
@@ -268,7 +268,7 @@ TEST(covariance_transport, linear_stepper_cartesian) {
     p.propagate(propagation);
 
     // Bound state after one turn propagation
-    const auto& bound_param1 = propagation._stepping._bound_params;
+    const auto &bound_param1 = propagation._stepping._bound_params;
 
     // const auto bound_vec0 = bound_param0.vector();
     // const auto bound_vec1 = bound_param1.vector();

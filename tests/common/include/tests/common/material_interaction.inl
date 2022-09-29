@@ -15,9 +15,9 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
+#include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
-#include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/scattering_simulator.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
@@ -413,9 +413,9 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
         parameter_resetter<transform3>::state parameter_resetter_state{};
 
         // Create actor states tuples
-        actor_chain_t::state actor_states =
-            std::tie(print_insp_state, aborter_state, bound_updater,
-                     interactor_state, simulator_state, parameter_resetter_state);
+        actor_chain_t::state actor_states = std::tie(
+            print_insp_state, aborter_state, bound_updater, interactor_state,
+            simulator_state, parameter_resetter_state);
 
         propagator_t::state state(bound_param, det, actor_states);
 
