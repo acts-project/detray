@@ -18,7 +18,7 @@
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
-#include "detray/propagator/actors/scattering_simulator.hpp"
+#include "detray/propagator/actors/random_scatterer.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -368,7 +368,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     using policy_t = stepper_default_policy;
     using stepper_t = line_stepper<transform3, constraints_t, policy_t>;
     using interactor_t = pointwise_material_interactor<transform3>;
-    using simulator_t = scattering_simulator<interactor_t>;
+    using simulator_t = random_scatterer<interactor_t>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
                     parameter_transporter<transform3>, interactor_t,
