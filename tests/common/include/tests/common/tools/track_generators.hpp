@@ -24,13 +24,11 @@ namespace detray {
 /// the number of generated tracks) are configurable.
 ///
 /// @tparam track_t the type of track parametrization that should be used.
-template <typename track_t, int C = -1>
+template <typename track_t>
 class uniform_track_generator {
     public:
     using point3 = __plugin::point3<detray::scalar>;
     using vector3 = __plugin::vector3<detray::scalar>;
-
-    constexpr int charge = C;
 
     /// Default constructor
     uniform_track_generator() = default;
@@ -45,7 +43,7 @@ class uniform_track_generator {
     uniform_track_generator(std::size_t n_theta, std::size_t n_phi,
                             point3 trk_origin = {},
                             scalar trk_mom = 1. * unit_constants::GeV,
-                            scalar time = 0.)
+                            scalar time = 0., scalar charge = -1.)
         : m_theta_steps{n_theta},
           m_phi_steps{n_phi},
           m_origin{trk_origin},

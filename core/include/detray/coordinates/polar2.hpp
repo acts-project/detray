@@ -50,6 +50,13 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     using free_to_bound_matrix = typename base_type::free_to_bound_matrix;
     using bound_to_free_matrix = typename base_type::bound_to_free_matrix;
 
+    /** This method returns the measurement **/
+    DETRAY_HOST_DEVICE
+    inline point2 get_measurement(
+        const bound_track_parameters<transform3_t> &param) {
+        return param.local();
+    }
+
     /** This method transform from a point from 2D cartesian frame to a 2D
      * polar point */
     DETRAY_HOST_DEVICE inline point2 operator()(const point2 &p) const {

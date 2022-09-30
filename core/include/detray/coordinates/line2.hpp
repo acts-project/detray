@@ -49,6 +49,13 @@ struct line2 : public coordinate_base<line2, transform3_t> {
 
     /// @}
 
+    /** This method returns the measurement **/
+    DETRAY_HOST_DEVICE
+    inline point2 get_measurement(
+        const bound_track_parameters<transform3_t> &param) {
+        return {std::abs(param.local()[0]), 0.};
+    }
+
     /** This method transform from a point from 3D cartesian frame to a 2D
      * line point */
     DETRAY_HOST_DEVICE

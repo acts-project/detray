@@ -49,6 +49,13 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
 
     /// @}
 
+    /** This method returns the measurement **/
+    DETRAY_HOST_DEVICE
+    inline point2 get_measurement(
+        const bound_track_parameters<transform3_t> &param) {
+        return param.local();
+    }
+
     /** This method transform from a point from 2D cartesian frame to a 2D
      * cartesian point */
     DETRAY_HOST_DEVICE
