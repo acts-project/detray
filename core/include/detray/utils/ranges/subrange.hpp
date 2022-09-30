@@ -23,7 +23,7 @@ namespace detray::ranges {
 ///
 /// @tparam range_t the iterable which to constrain to a subrange.
 template <typename range_t>
-class subrange : public ranges::view_interface<subrange<range_t>> {
+class subrange : public detray::ranges::view_interface<subrange<range_t>> {
 
     public:
     using iterator_t = typename detray::ranges::iterator_t<range_t>;

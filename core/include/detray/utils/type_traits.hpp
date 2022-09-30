@@ -30,28 +30,24 @@ struct is_same_nc<const TYPE, TYPE> {
 };
 /// @}
 
-/// Extract the value type of a container.
-///
-/// @note Only gets the first value type for tuple-like containers
+/// Extract the value type of e.g. a container.
 /// @{
-template <typename container_t, typename = void>
+template <typename T, typename = void>
 struct get_value_type {
     using type = void;
 };
 
-template <typename container_t>
-struct get_value_type<container_t, typename container_t::value_type> {
-    using type = typename container_t::value_type;
+template <typename T>
+struct get_value_type<T*, void> {
+    using type = T;
 };
 
 template <typename container_t>
 struct get_value_type<
     container_t,
-    std::enable_if_t<std::is_class_v<std::remove_reference_t<decltype(
-                         detray::detail::get<0>(std::declval<container_t>()))>>,
+    std::enable_if_t<not std::is_same_v<typename container_t::value_type, void>,
                      void>> {
-    using type = std::decay_t<decltype(
-        detray::detail::get<0>(std::declval<container_t>()))>;
+    using type = typename container_t::value_type;
 };
 
 template <typename T>
@@ -67,14 +63,16 @@ struct is_interval : public std::false_type {};
 template <typename TYPE>
 struct is_interval<
     TYPE,
-    std::enable_if_t<not std::is_arithmetic_v<std::remove_reference_t<TYPE>> and
-                         std::is_arithmetic_v<std::remove_reference_t<decltype(
-                             detray::detail::get<0>(std::declval<TYPE>()))>>,
-                     void>,
-    std::enable_if_t<not std::is_arithmetic_v<std::remove_reference_t<TYPE>> and
-                         std::is_arithmetic_v<std::remove_reference_t<decltype(
-                             detray::detail::get<1>(std::declval<TYPE>()))>>,
-                     void>> : public std::true_type {};
+    std::enable_if_t<
+        not std::is_arithmetic_v<std::remove_reference_t<TYPE>> and
+            std::is_arithmetic_v<std::remove_reference_t<
+                decltype(detray::detail::get<0>(std::declval<TYPE>()))>>,
+        void>,
+    std::enable_if_t<
+        not std::is_arithmetic_v<std::remove_reference_t<TYPE>> and
+            std::is_arithmetic_v<std::remove_reference_t<
+                decltype(detray::detail::get<1>(std::declval<TYPE>()))>>,
+        void>> : public std::true_type {};
 
 template <typename TYPE>
 inline constexpr bool is_interval_v = is_interval<TYPE>::value;

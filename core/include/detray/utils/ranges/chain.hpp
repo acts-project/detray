@@ -34,7 +34,8 @@ struct chain_iterator;
 /// same chain instance.
 /// @note Is not fit for lazy evaluation.
 template <std::size_t I, typename range_itr_t>
-struct chain_view : public ranges::view_interface<chain_view<I, range_itr_t>> {
+struct chain_view
+    : public detray::ranges::view_interface<chain_view<I, range_itr_t>> {
 
     using iterator_coll_t = std::array<range_itr_t, I>;
     using iterator_t = detray::ranges::detail::chain_iterator<iterator_coll_t>;
@@ -73,7 +74,7 @@ struct chain_view : public ranges::view_interface<chain_view<I, range_itr_t>> {
     DETRAY_HOST_DEVICE
     constexpr auto end() const -> iterator_t {
         // Build a chained itr from the last value in the iterator collection
-        return {m_begins, m_ends, detray::detail::get<I - 1>(m_ends), I};
+        return {m_begins, m_ends, detray::detail::get<I - 1>(m_ends), I - 1};
     }
 
     /// @returns a pointer to the beginning of the data of the first underlying
@@ -230,12 +231,16 @@ struct chain_iterator {
         std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, T>,
                          bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator--() -> chain_iterator & {
-        --m_iter;
 
-        // Switch to next range in the collection
-        if (m_iter == (*m_begins)[m_idx] and m_idx > 0) {
+        if (m_iter != (*m_begins)[m_idx] and m_idx > 0) {
+            // Normal case
             --m_idx;
-            m_iter = (*m_ends)[m_idx];
+            --m_iter;
+        } else if (m_idx > 0) {
+            // Iterator has reached last valid position in this range during the
+            // previous decrement. Now go to the end of the next range
+            --m_idx;
+            m_iter = (*m_ends)[m_idx] - difference_type{1};
         }
         return *this;
     }
@@ -266,7 +271,6 @@ struct chain_iterator {
         chain_iterator<iterator_coll_t> tmp(*this);
         // walk through chain to catch the switch between intermediate ranges
         difference_type i{j};
-
         if (i >= difference_type{0}) {
             while (i--) {
                 ++tmp;
@@ -276,7 +280,6 @@ struct chain_iterator {
                 --tmp;
             };
         }
-
         return tmp;
     }
 
@@ -302,13 +305,24 @@ struct chain_iterator {
         if (m_idx == other.m_idx) {
             return m_iter - other.m_iter;
         }
-        std::size_t diff{m_iter - (*m_begins)[m_idx]};
-        for (std::size_t i{m_idx + 1}; i < other.m_idx; ++i) {
-            diff += detray::ranges::distance((*m_begins)[i], (*m_ends)[i]);
-        }
-        diff += other.m_iter - (*other.m_begins)[m_idx];
+        if (m_idx < other.m_idx) {
+            // Negative distance
+            difference_type diff{m_iter - (*m_ends)[m_idx]};
+            for (std::size_t i{m_idx + 1}; i < other.m_idx; ++i) {
+                diff += (*m_begins)[i] - (*m_ends)[i];
+            }
+            diff += (*other.m_begins)[m_idx] - other.m_iter;
 
-        return diff;
+            return diff;
+        } else {
+            // Positive distance
+            difference_type diff{m_iter - (*m_begins)[m_idx]};
+            for (std::size_t i{m_idx - 1}; i > other.m_idx; --i) {
+                diff += (*m_ends)[i] - (*m_begins)[i];
+            }
+            diff += (*other.m_ends)[other.m_idx] - other.m_iter;
+            return diff;
+        }
     }
 
     /// @returns advance this iterator state by @param j.
@@ -320,14 +334,13 @@ struct chain_iterator {
         -> chain_iterator & {
         // walk through chain to catch the switch between intermediate ranges
         difference_type i{j};
-
         if (i >= difference_type{0}) {
             while (i--) {
-                ++m_iter;
+                ++(*this);
             };
         } else {
             while (i++) {
-                --m_iter;
+                --(*this);
             };
         }
 

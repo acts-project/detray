@@ -178,7 +178,7 @@ class enumerate_view : public detray::ranges::view_interface<
     DETRAY_HOST_DEVICE constexpr explicit enumerate_view(range_t &&rng)
         : m_begin{detray::ranges::begin(std::forward<range_t>(rng)), 0},
           m_end{detray::ranges::end(std::forward<range_t>(rng)),
-                rng.size() - 1} {}
+                rng.size() - detray::ranges::range_difference_t<range_t>{1}} {}
 
     /// Construct from a @param range that will be enumerated beginning at
     /// @param start.
@@ -189,7 +189,8 @@ class enumerate_view : public detray::ranges::view_interface<
                                                          dindex start)
         : m_begin{detray::ranges::begin(std::forward<range_t>(rng)), start},
           m_end{detray::ranges::end(std::forward<range_t>(rng)),
-                start + rng.size() - 1} {}
+                start + rng.size() -
+                    detray::ranges::range_difference_t<range_t>{1}} {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE

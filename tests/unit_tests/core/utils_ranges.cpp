@@ -23,8 +23,9 @@ TEST(utils, ranges_single) {
 
     dindex value{251UL};
 
-    // general tests
     auto sngl = detray::views::single(value);
+
+    // general tests
     ASSERT_TRUE(detray::ranges::range<decltype(sngl)>::value);
     ASSERT_TRUE(detray::ranges::is_view<decltype(sngl)>);
     ASSERT_TRUE(std::is_copy_assignable_v<decltype(sngl)>);
@@ -35,13 +36,19 @@ TEST(utils, ranges_single) {
     ASSERT_TRUE(std::is_copy_assignable_v<typename decltype(sngl)::iterator_t>);
     ASSERT_TRUE(std::is_destructible_v<typename decltype(sngl)::iterator_t>);
 
+    // Check iterator category
+    constexpr bool is_correct_itr_tag =
+        std::is_same_v<typename decltype(sngl)::iterator_t::iterator_category,
+                       std::bidirectional_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
+
     // Test inherited member functions
     ASSERT_EQ(sngl[0], value);
     ASSERT_EQ(sngl.size(), 1UL);
     ASSERT_EQ(sngl.front(), 251UL);
     ASSERT_EQ(sngl.back(), 251UL);
 
-    for (auto i : detray::views::single(value)) {
+    for (auto i : sngl) {
         ASSERT_EQ(251, i);
     }
 }
@@ -52,8 +59,9 @@ TEST(utils, ranges_iota_single) {
     dindex check = 0;
     dindex single = 7;
 
-    // general tests
     auto seq = detray::views::iota(single);
+
+    // general tests
     ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
     ASSERT_TRUE(detray::ranges::is_view<decltype(seq)>);
     ASSERT_TRUE(std::is_copy_assignable_v<decltype(seq)>);
@@ -64,13 +72,19 @@ TEST(utils, ranges_iota_single) {
     ASSERT_TRUE(std::is_copy_assignable_v<typename decltype(seq)::iterator_t>);
     ASSERT_TRUE(std::is_destructible_v<typename decltype(seq)::iterator_t>);
 
+    // Check iterator category
+    constexpr bool is_correct_itr_tag =
+        std::is_same_v<typename decltype(seq)::iterator_t::iterator_category,
+                       std::input_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
+
     // Test inherited member functions
     ASSERT_EQ(seq[1], single + 1);
     ASSERT_EQ(seq.size(), 1UL);
     ASSERT_EQ(seq.front(), 7UL);
     ASSERT_EQ(seq.back(), 7UL);
 
-    for (auto i : detray::views::iota(single)) {
+    for (auto i : seq) {
         check += i;
     }
     ASSERT_EQ(check, single);
@@ -81,8 +95,9 @@ TEST(utils, ranges_iota_interval) {
 
     darray<dindex, 2> interval = {2, 7};
 
-    // general tests
     auto seq = detray::views::iota(interval);
+
+    // general tests
     ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
     ASSERT_TRUE(detray::ranges::is_view<decltype(seq)>);
     ASSERT_TRUE(std::is_copy_assignable_v<decltype(seq)>);
@@ -93,6 +108,12 @@ TEST(utils, ranges_iota_interval) {
     ASSERT_TRUE(std::is_copy_assignable_v<typename decltype(seq)::iterator_t>);
     ASSERT_TRUE(std::is_destructible_v<typename decltype(seq)::iterator_t>);
 
+    // Check iterator category
+    constexpr bool is_correct_itr_tag =
+        std::is_same_v<typename decltype(seq)::iterator_t::iterator_category,
+                       std::input_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
+
     // Test inherited member functions
     ASSERT_EQ(seq[1], 3UL);
     ASSERT_EQ(seq.size(), 5UL);
@@ -101,7 +122,7 @@ TEST(utils, ranges_iota_interval) {
 
     std::vector<dindex> reference = {2, 3, 4, 5, 6};
     std::vector<dindex> check = {};
-    for (auto i : detray::views::iota(interval)) {
+    for (auto i : seq) {
         check.push_back(i);
     }
     ASSERT_EQ(check.size(), reference.size());
@@ -117,8 +138,9 @@ TEST(utils, ranges_enumerate) {
 
     dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}};
 
-    // general tests
     auto enumerator = detray::views::enumerate(seq);
+
+    // general tests
     ASSERT_TRUE(detray::ranges::range<decltype(enumerator)>::value);
     ASSERT_TRUE(detray::ranges::is_view<decltype(enumerator)>);
     ASSERT_TRUE(std::is_copy_assignable_v<decltype(enumerator)>);
@@ -130,6 +152,12 @@ TEST(utils, ranges_enumerate) {
         std::is_copy_assignable_v<typename decltype(enumerator)::iterator_t>);
     ASSERT_TRUE(
         std::is_destructible_v<typename decltype(enumerator)::iterator_t>);
+
+    // Check iterator category
+    constexpr bool is_correct_itr_tag = std::is_same_v<
+        typename decltype(enumerator)::iterator_t::iterator_category,
+        std::random_access_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
 
     // Test inherited member functions
     const auto [i, v] = enumerator[2];
@@ -143,7 +171,7 @@ TEST(utils, ranges_enumerate) {
     ASSERT_EQ(i_back, 5u);
     ASSERT_EQ(v_back.ui, 5u);
 
-    for (auto [j, w] : detray::views::enumerate(seq)) {
+    for (auto [j, w] : enumerator) {
         ASSERT_TRUE(j == w.ui);
         ASSERT_EQ(j, w.ui);
     }
@@ -152,15 +180,15 @@ TEST(utils, ranges_enumerate) {
 // Unittest for the chaining of multiple ranges
 TEST(utils, ranges_chain) {
 
-    darray<dindex, 2> interval_1 = {2, 5};
-    darray<dindex, 2> interval_2 = {7, 10};
+    dvector<dindex> interval_1 = {2, 3, 4};
+    dvector<dindex> interval_2 = {7, 8, 9};
 
     std::vector<dindex> reference = {2, 3, 4, 7, 8, 9};
     std::vector<dindex> check = {};
 
+    auto chained = detray::views::chain(interval_1, interval_2);
+
     // general tests
-    auto chained = detray::views::chain(detray::views::iota(interval_1),
-                                        detray::views::iota(interval_2));
     ASSERT_TRUE(detray::ranges::range<decltype(chained)>::value);
     ASSERT_TRUE(detray::ranges::is_view<decltype(chained)>);
     ASSERT_TRUE(std::is_copy_assignable_v<decltype(chained)>);
@@ -172,7 +200,15 @@ TEST(utils, ranges_chain) {
         std::is_copy_assignable_v<typename decltype(chained)::iterator_t>);
     ASSERT_TRUE(std::is_destructible_v<typename decltype(chained)::iterator_t>);
 
+    // Check iterator category
+    constexpr bool is_correct_itr_tag = std::is_same_v<
+        typename decltype(chained)::iterator_t::iterator_category,
+        std::random_access_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
+
     // Test inherited member functions
+    ASSERT_EQ(chained[1], 3UL);
+    ASSERT_EQ(chained[4], 8UL);
     ASSERT_EQ(chained.size(), 6UL);
     ASSERT_EQ(chained.front(), 2UL);
     ASSERT_EQ(chained.back(), 9UL);
@@ -197,8 +233,9 @@ TEST(utils, ranges_pick) {
 
     dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}};
 
-    // general tests
     auto selected = detray::views::pick(seq, indices);
+
+    // general tests
     ASSERT_TRUE(detray::ranges::range<decltype(selected)>::value);
     ASSERT_TRUE(detray::ranges::is_view<decltype(selected)>);
     ASSERT_TRUE(std::is_copy_assignable_v<decltype(selected)>);
@@ -211,14 +248,20 @@ TEST(utils, ranges_pick) {
     ASSERT_TRUE(
         std::is_destructible_v<typename decltype(selected)::iterator_t>);
 
+    // Check iterator category
+    constexpr bool is_correct_itr_tag = std::is_same_v<
+        typename decltype(selected)::iterator_t::iterator_category,
+        std::random_access_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
+
     // Test inherited member functions
-    /*const auto [i, v] = selected[2];
+    const auto [i, v] = selected[2];
     ASSERT_EQ(i, 7UL);
-    ASSERT_EQ(v.ui, 7UL);*/
+    ASSERT_EQ(v.ui, 7UL);
     ASSERT_EQ(selected.size(), 4UL);
-    /*const auto [i_front, v_front] = selected.front();
+    const auto [i_front, v_front] = selected.front();
     ASSERT_EQ(i_front, 2UL);
-    ASSERT_EQ(v_front.ui, 2UL);*/
+    ASSERT_EQ(v_front.ui, 2UL);
     const auto [i_back, v_back] = selected.back();
     ASSERT_EQ(i_back, 8UL);
     ASSERT_EQ(v_back.ui, 8UL);
@@ -240,9 +283,9 @@ TEST(utils, ranges_subrange) {
 
     dvector<int> seq = {0, 1, 2, 3, 4, 5};
 
-    // general tests
     auto sr = detray::ranges::subrange(seq, interval);
 
+    // general tests
     ASSERT_TRUE(detray::ranges::range<decltype(sr)>::value);
     ASSERT_TRUE(detray::ranges::is_view<decltype(sr)>);
     ASSERT_TRUE(std::is_copy_assignable_v<decltype(sr)>);
@@ -253,6 +296,12 @@ TEST(utils, ranges_subrange) {
     ASSERT_TRUE(std::is_copy_assignable_v<typename decltype(sr)::iterator_t>);
     ASSERT_TRUE(std::is_destructible_v<typename decltype(sr)::iterator_t>);
 
+    // Check iterator category
+    constexpr bool is_correct_itr_tag =
+        std::is_same_v<typename decltype(sr)::iterator_t::iterator_category,
+                       std::random_access_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
+
     ASSERT_EQ(sr[1], seq[begin + 1]);
     ASSERT_EQ(sr.size(), 3UL);
     ASSERT_EQ(sr.front(), 1UL);
@@ -260,7 +309,7 @@ TEST(utils, ranges_subrange) {
 
     // non-const iteration
     std::size_t i = 1;
-    for (const auto &v : detray::ranges::subrange(seq, interval)) {
+    for (const auto &v : sr) {
         ASSERT_NE(v, 0);
         ASSERT_NE(v, 4);
         ASSERT_EQ(v, seq[i++]);
@@ -279,6 +328,26 @@ TEST(utils, ranges_subrange) {
 //
 
 // Integration test for enumeration of a subrange
+TEST(utils, ranges_subrange_iota) {
+
+    std::array<std::size_t, 2> seq{1, 10};
+    std::array<std::size_t, 2> interval{3, 7};
+
+    auto iota_sr = detray::ranges::subrange(detray::views::iota(seq), interval);
+
+    // Check iterator category
+    constexpr bool is_correct_itr_tag = std::is_same_v<
+        typename decltype(iota_sr)::iterator_t::iterator_category,
+        std::input_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
+
+    std::size_t i{4};
+    for (const auto v : iota_sr) {
+        ASSERT_EQ(i++, v);
+    }
+}
+
+// Integration test for enumeration of a subrange
 TEST(utils, ranges_enumerated_subrange) {
 
     struct uint_holder {
@@ -291,8 +360,16 @@ TEST(utils, ranges_enumerated_subrange) {
     std::size_t end = 4;
     std::array<std::size_t, 2> interval{begin, end};
 
-    for (const auto [i, v] :
-         detray::views::enumerate(detray::ranges::subrange(seq, interval))) {
+    auto enum_sr =
+        detray::views::enumerate(detray::ranges::subrange(seq, interval));
+
+    // Check iterator category
+    constexpr bool is_correct_itr_tag = std::is_same_v<
+        typename decltype(enum_sr)::iterator_t::iterator_category,
+        std::random_access_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
+
+    for (const auto [i, v] : enum_sr) {
         ASSERT_EQ(i, v.ui - 1);
     }
 }
@@ -316,6 +393,16 @@ TEST(utils, ranges_pick_chained_sequence) {
     auto indices = detray::views::chain(detray::views::iota(interval_1),
                                         detray::views::iota(interval_2));
     auto selected = detray::views::pick(seq, indices);
+
+    // Check iterator category
+    bool is_correct_itr_tag = std::is_same_v<
+        typename decltype(indices)::iterator_t::iterator_category,
+        std::input_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
+    is_correct_itr_tag = std::is_same_v<
+        typename decltype(selected)::iterator_t::iterator_category,
+        std::input_iterator_tag>;
+    ASSERT_TRUE(is_correct_itr_tag);
 
     // Test inherited member functions
     const auto [i, v] = selected[2];

@@ -138,7 +138,8 @@ struct view_interface : public base_view {
 
     DETRAY_HOST_DEVICE
     constexpr auto back() noexcept {
-        return *detray::ranges::next(m_impl_ptr->begin(), size() - 1);
+        auto i = size();
+        return *detray::ranges::next(m_impl_ptr->begin(), i - decltype(i){1});
     }
 
     DETRAY_HOST_DEVICE
