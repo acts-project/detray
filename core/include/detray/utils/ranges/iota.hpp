@@ -70,7 +70,7 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         /// Advance the sequence by @param j positions
         DETRAY_HOST_DEVICE
         constexpr auto operator+(const incr_t j) const -> iterator {
-            return {m_i + j};
+            return iterator{m_i + j};
         }
 
         /// Current value of sequence
