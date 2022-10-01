@@ -35,7 +35,7 @@ void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
 
     // Iterate through uniformly distributed momentum directions
     for (auto traj : uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, ori, mom_mag)) {
+             theta_steps, phi_steps, 0, 0, ori, mom_mag)) {
         tracks.push_back(traj);
     }
 }

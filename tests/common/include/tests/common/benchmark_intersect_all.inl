@@ -71,7 +71,7 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
         // Iterate through uniformly distributed momentum directions
         for (const auto track :
              uniform_track_generator<free_track_parameters<transform3<scalar>>>(
-                 theta_steps, phi_steps, pos)) {
+                 theta_steps, phi_steps, 0, 0, pos)) {
 
             // Loop over volumes
             for (const auto &v : d.volumes()) {

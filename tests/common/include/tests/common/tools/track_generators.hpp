@@ -37,15 +37,20 @@ class uniform_track_generator {
     ///
     /// @param theta_steps the number of steps in the theta space
     /// @param phi_steps the number of steps in the phi space
+    /// @param theta_offset the offset for initial theta value
+    /// @param phi_offset the offset for initial phi value
     /// @param trk_origin the starting point of the track
     /// @param trk_mom magnitude of the track momentum (in GeV)
     DETRAY_HOST_DEVICE
     uniform_track_generator(std::size_t n_theta, std::size_t n_phi,
+                            scalar theta_offset = 0, scalar phi_offset = 0,
                             point3 trk_origin = {},
                             scalar trk_mom = 1. * unit_constants::GeV,
                             scalar time = 0., scalar charge = -1.)
         : m_theta_steps{n_theta},
           m_phi_steps{n_phi},
+          m_theta_offset{theta_offset},
+          m_phi_offset{phi_offset},
           m_origin{trk_origin},
           m_mom_mag{trk_mom},
           m_time{time},
@@ -89,7 +94,8 @@ class uniform_track_generator {
             // Check phi sub-range
             if (i_phi < m_phi_steps) {
                 // Calculate new phi [-pi, pi]
-                m_phi = -pi + i_phi * (scalar{2.} * pi) / m_phi_steps;
+                m_phi = -pi + i_phi * (scalar{2.} * pi) / m_phi_steps +
+                        m_phi_offset;
                 ++i_phi;
                 return *this;
             }
@@ -98,8 +104,9 @@ class uniform_track_generator {
             m_phi = -M_PI;
             // Calculate new theta ]0,pi[
             ++i_theta;
-            m_theta =
-                scalar{0.01} + i_theta * (pi - scalar{0.01}) / m_theta_steps;
+            m_theta = scalar{0.01} +
+                      i_theta * (pi - scalar{0.01}) / m_theta_steps +
+                      m_theta_offset;
         }
         return *this;
     }
@@ -124,6 +131,9 @@ class uniform_track_generator {
 
     /// Phi and theta angles of momentum direction
     scalar m_phi{-M_PI}, m_theta{0.01};
+
+    scalar m_theta_offset{0};
+    scalar m_phi_offset{0};
 
     /// Track origin
     point3 m_origin{0., 0., 0.};

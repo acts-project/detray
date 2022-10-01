@@ -66,7 +66,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
     // Iterate through uniformly distributed momentum directions
     for (const auto ray :
-         uniform_track_generator<ray_type>(theta_steps, phi_steps, ori)) {
+         uniform_track_generator<ray_type>(theta_steps, phi_steps, 0, 0, ori)) {
 
         // Shoot ray through the detector and record all surfaces it encounters
         const auto intersection_trace =
@@ -155,7 +155,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : uniform_track_generator<free_track_parameters_type>(
-             theta_steps, phi_steps, ori, p_mag)) {
+             theta_steps, phi_steps, 0, 0, ori, p_mag)) {
         // Prepare for overstepping in the presence of b fields
         track.set_overstep_tolerance(overstep_tol);
 
