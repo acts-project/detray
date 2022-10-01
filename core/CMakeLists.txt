@@ -110,4 +110,4 @@ detray_add_library( detray_core core
    "include/detray/utils/quadratic_equation.hpp"
    "include/detray/utils/ratio.hpp"
    "include/detray/utils/type_traits.hpp" )
-target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)
+target_link_libraries( detray_core INTERFACE detray_io vecmem::core detray::Thrust)

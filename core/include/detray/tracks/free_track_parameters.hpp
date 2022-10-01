@@ -101,9 +101,6 @@ struct free_track_parameters {
     void set_dir(const vector3& dir) { track_helper().set_dir(m_vector, dir); }
 
     DETRAY_HOST_DEVICE
-    vector3 mom() const { return 1. / std::abs(this->qop()) * this->dir(); }
-
-    DETRAY_HOST_DEVICE
     scalar_type time() const {
         return matrix_operator().element(m_vector, e_free_time, 0);
     }
@@ -126,6 +123,9 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type p() const { return charge() / qop(); }
+
+    DETRAY_HOST_DEVICE
+    vector3 mom() const { return this->p() * this->dir(); }
 
     DETRAY_HOST_DEVICE
     scalar_type pT() const {

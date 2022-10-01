@@ -21,7 +21,8 @@
 
 namespace detray {
 
-template <typename detector_t, typename field_t, typename track_generator_t>
+template <typename detector_t, typename field_t, typename track_generator_t,
+          typename smearer_t>
 struct simulator {
 
     using transform3 = typename detector_t::transform3;
@@ -30,6 +31,7 @@ struct simulator {
     using actor_chain_type =
         actor_chain<std::tuple, parameter_transporter<transform3>, interactor_t,
                     random_scatterer<interactor_t>,
+                    event_writer<transform3, smearer_t>,
                     parameter_resetter<transform3>>;
 
     using navigator_type = navigator<detector_t>;
@@ -37,35 +39,46 @@ struct simulator {
     using propagator_type =
         propagator<stepper_type, navigator_type, actor_chain_type>;
 
-    simulator(const detector_t& det, const field_t& field,
-              track_generator_t& track_gen)
-        : m_detector(det), m_field(field), m_track_generator(track_gen) {}
+    simulator(std::size_t events, const detector_t& det, const field_t& field,
+              track_generator_t& track_gen, smearer_t& smearer)
+        : m_events(events),
+          m_detector(det),
+          m_field(field),
+          m_track_generator(track_gen),
+          m_smearer(smearer) {}
 
     void run() {
-        for (auto track : m_track_generator) {
+        for (std::size_t event_id = 0; event_id < m_events; event_id++) {
+            typename event_writer<transform3, smearer_t>::state writer(
+                event_id, m_smearer);
 
-            typename parameter_transporter<transform3>::state transporter{};
-            typename interactor_t::state interactor{};
-            typename random_scatterer<interactor_t>::state scatterer(
-                interactor);
-            typename parameter_resetter<transform3>::state resetter{};
+            for (auto track : m_track_generator) {
+                writer.write_particle(track);
 
-            typename actor_chain_type::state actor_states =
-                std::tie(transporter, interactor, scatterer, resetter);
+                typename parameter_transporter<transform3>::state transporter{};
+                typename interactor_t::state interactor{};
+                typename random_scatterer<interactor_t>::state scatterer(
+                    interactor);
+                typename parameter_resetter<transform3>::state resetter{};
+                typename actor_chain_type::state actor_states = std::tie(
+                    transporter, interactor, scatterer, writer, resetter);
 
-            typename propagator_type::state state(track, m_field, m_detector,
-                                                  actor_states);
+                typename propagator_type::state state(track, m_field,
+                                                      m_detector, actor_states);
 
-            propagator_type p({}, {});
+                propagator_type p({}, {});
 
-            p.propagate(state);
+                p.propagate(state);
+            }
         }
     }
 
     private:
+    std::size_t m_events = 0;
     detector_t m_detector;
     field_t m_field;
     track_generator_t m_track_generator;
+    smearer_t m_smearer;
 };
 
 }  // namespace detray

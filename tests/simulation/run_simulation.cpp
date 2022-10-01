@@ -31,14 +31,19 @@ int main() {
     constant_magnetic_field<> b_field(b);
 
     // Create track generator
-    constexpr unsigned int theta_steps{50};
-    constexpr unsigned int phi_steps{50};
+    constexpr unsigned int theta_steps{4};
+    constexpr unsigned int phi_steps{4};
     const vector3 ori{0, 0, 0};
     const scalar mom = 1 * unit_constants::GeV;
     auto generator = uniform_track_generator<free_track_parameters<transform3>>(
         theta_steps, phi_steps, ori, mom);
 
-    auto sim = simulator(detector, b_field, generator);
+    // Create smearer
+    measurement_smearer<scalar> smearer(100 * unit_constants::um,
+                                        100 * unit_constants::um);
+
+    std::size_t n_events = 2;
+    auto sim = simulator(n_events, detector, b_field, generator, smearer);
 
     sim.run();
 
