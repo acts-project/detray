@@ -44,7 +44,7 @@ TEST(tools, particle_gun) {
     //  Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray :
          uniform_track_generator<detail::ray<transform3_type>>(
-             theta_steps, phi_steps, 0, 0, ori)) {
+             theta_steps, phi_steps, {0.01, M_PI}, {-M_PI, M_PI}, ori)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
@@ -60,7 +60,7 @@ TEST(tools, particle_gun) {
     std::size_t n_tracks{0};
     for (const auto track :
          uniform_track_generator<free_track_parameters<transform3_type>>(
-             theta_steps, phi_steps, 0, 0, ori)) {
+             theta_steps, phi_steps, {0.01, M_PI}, {-M_PI, M_PI}, ori)) {
         const detail::helix test_helix(track, &B);
 
         // Record all intersections and objects along the ray

@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.sycl": "cpp",
+        "array": "cpp",
+        "*.ipp": "cpp"
+    }
+}

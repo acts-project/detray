@@ -145,8 +145,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     propagator_t p(stepper_t{b_field}, navigator_t{});
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : uniform_track_generator<track_t>(theta_steps, phi_steps,
-                                                       0, 0, ori, mom)) {
+    for (auto track : uniform_track_generator<track_t>(
+             theta_steps, phi_steps, {0.01, M_PI}, {-M_PI, M_PI}, ori, mom)) {
         // Genrate second track state used for propagation with pathlimit
         track_t lim_track(track);
 

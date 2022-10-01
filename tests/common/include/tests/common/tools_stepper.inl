@@ -156,7 +156,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, 0, 0, ori, p_mag)) {
+             theta_steps, phi_steps, {0.01, M_PI}, {-M_PI, M_PI}, ori, p_mag)) {
         // Generate track state used for propagation with constrained step size
         free_track_parameters c_track(track);
 

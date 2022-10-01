@@ -79,8 +79,8 @@ TEST(ALGEBRA_PLUGIN, geometry_scan) {
     dindex start_index = 0;
 
     // Iterate through uniformly distributed momentum directions
-    for (const auto test_ray :
-         uniform_track_generator<ray_type>(theta_steps, phi_steps, 0, 0, ori)) {
+    for (const auto test_ray : uniform_track_generator<ray_type>(
+             theta_steps, phi_steps, {0.01, M_PI}, {-M_PI, M_PI}, ori)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =

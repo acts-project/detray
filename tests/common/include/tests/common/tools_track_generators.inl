@@ -106,23 +106,35 @@ TEST(tools, uniform_track_generator) {
     ASSERT_EQ(momenta.size(), n_tracks);
 }
 
-TEST(tools, uniform_track_generator_with_offset) {
+TEST(tools, uniform_track_generator_with_range) {
 
-    std::size_t theta_steps = 1;
-    std::size_t phi_steps = 5;
-    scalar theta_offset{M_PI_4};
-    scalar phi_offset{M_PI_2};
+    std::size_t theta_steps = 2;
+    std::size_t phi_steps = 4;
 
-    std::vector<std::pair<scalar, scalar>> theta_phi;
+    std::vector<std::array<scalar, 2>> theta_phi;
 
     for (const auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, theta_offset, phi_offset)) {
+             theta_steps, phi_steps, {1, 2}, {-2, 2})) {
         const auto dir = track.dir();
         theta_phi.push_back({getter::theta(dir), getter::phi(dir)});
     }
 
-    EXPECT_EQ(theta_phi.size(), 5);
-    EXPECT_NEAR(theta_phi[0].first, theta_offset + 0.01, epsilon);
-    EXPECT_NEAR(theta_phi[0].second, -M_PI + phi_offset, epsilon);
+    EXPECT_EQ(theta_phi.size(), 8);
+    EXPECT_NEAR(theta_phi[0][0], 1., epsilon);
+    EXPECT_NEAR(theta_phi[0][1], -2., epsilon);
+    EXPECT_NEAR(theta_phi[1][0], 1., epsilon);
+    EXPECT_NEAR(theta_phi[1][1], -1., epsilon);
+    EXPECT_NEAR(theta_phi[2][0], 1., epsilon);
+    EXPECT_NEAR(theta_phi[2][1], 0., epsilon);
+    EXPECT_NEAR(theta_phi[3][0], 1., epsilon);
+    EXPECT_NEAR(theta_phi[3][1], 1., epsilon);
+    EXPECT_NEAR(theta_phi[4][0], 1.5, epsilon);
+    EXPECT_NEAR(theta_phi[4][1], -2., epsilon);
+    EXPECT_NEAR(theta_phi[5][0], 1.5, epsilon);
+    EXPECT_NEAR(theta_phi[5][1], -1., epsilon);
+    EXPECT_NEAR(theta_phi[6][0], 1.5, epsilon);
+    EXPECT_NEAR(theta_phi[6][1], 0., epsilon);
+    EXPECT_NEAR(theta_phi[7][0], 1.5, epsilon);
+    EXPECT_NEAR(theta_phi[7][1], 1., epsilon);
 }
