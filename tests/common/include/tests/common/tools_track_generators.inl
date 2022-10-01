@@ -124,4 +124,5 @@ TEST(tools, uniform_track_generator_with_offset) {
 
     EXPECT_EQ(theta_phi.size(), 5);
     EXPECT_NEAR(theta_phi[0].first, theta_offset + 0.01, epsilon);
+    EXPECT_NEAR(theta_phi[0].second, -M_PI + phi_offset, epsilon);
 }
