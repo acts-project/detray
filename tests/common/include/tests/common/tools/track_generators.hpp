@@ -51,6 +51,8 @@ class uniform_track_generator {
           m_phi_steps{n_phi},
           m_theta_offset{theta_offset},
           m_phi_offset{phi_offset},
+          m_theta(0.01 + m_theta_offset),
+          m_phi(-M_PI + m_phi_offset),
           m_origin{trk_origin},
           m_mom_mag{trk_mom},
           m_time{time},
@@ -129,11 +131,10 @@ class uniform_track_generator {
     std::size_t m_theta_steps{50};
     std::size_t m_phi_steps{50};
 
-    /// Phi and theta angles of momentum direction
-    scalar m_phi{-M_PI}, m_theta{0.01};
-
     scalar m_theta_offset{0};
     scalar m_phi_offset{0};
+    /// Phi and theta angles of momentum direction
+    scalar m_theta, m_phi;
 
     /// Track origin
     point3 m_origin{0., 0., 0.};

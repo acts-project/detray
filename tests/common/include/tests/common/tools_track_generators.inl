@@ -105,3 +105,23 @@ TEST(tools, uniform_track_generator) {
     }
     ASSERT_EQ(momenta.size(), n_tracks);
 }
+
+TEST(tools, uniform_track_generator_with_offset) {
+
+    std::size_t theta_steps = 1;
+    std::size_t phi_steps = 5;
+    scalar theta_offset{M_PI_4};
+    scalar phi_offset{M_PI_2};
+
+    std::vector<std::pair<scalar, scalar>> theta_phi;
+
+    for (const auto track :
+         uniform_track_generator<free_track_parameters<transform3>>(
+             theta_steps, phi_steps, theta_offset, phi_offset)) {
+        const auto dir = track.dir();
+        theta_phi.push_back({getter::theta(dir), getter::phi(dir)});
+    }
+
+    EXPECT_EQ(theta_phi.size(), 5);
+    EXPECT_NEAR(theta_phi[0].first, theta_offset + 0.01, epsilon);
+}
