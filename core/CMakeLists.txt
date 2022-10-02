@@ -113,6 +113,7 @@ detray_add_library( detray_core core
    "include/detray/tracks/tracks.hpp"
    # utils include(s)
    "include/detray/utils/column_wise_operator.hpp"
+   "include/detray/utils/ranges/empty.hpp"
    "include/detray/utils/ranges/enumerate.hpp"
    "include/detray/utils/ranges/chain.hpp"
    "include/detray/utils/ranges/iota.hpp"

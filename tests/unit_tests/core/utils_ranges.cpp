@@ -16,9 +16,12 @@
 
 // Vecmem include(s)
 #include "vecmem/containers/device_vector.hpp"
+#include "vecmem/containers/jagged_device_vector.hpp"
+#include "vecmem/containers/jagged_vector.hpp"
 
 // System include(s)
 #include <forward_list>
+#include <iostream>
 #include <list>
 #include <type_traits>
 
@@ -69,6 +72,15 @@ TEST(utils, ranges) {
     static_assert(detray::ranges::random_access_range_v<djagged_vector<float>>);
     static_assert(detray::ranges::common_range<djagged_vector<float>>);
 
+    // vecmem::jagged_device_vector
+    static_assert(detray::ranges::range_v<vecmem::jagged_device_vector<float>>);
+    static_assert(
+        not detray::ranges::view<vecmem::jagged_device_vector<float>>);
+    static_assert(detray::ranges::random_access_range_v<
+                  vecmem::jagged_device_vector<float>>);
+    static_assert(
+        detray::ranges::common_range<vecmem::jagged_device_vector<float>>);
+
     //
     // Some additional STL containers
     //
@@ -87,6 +99,32 @@ TEST(utils, ranges) {
     static_assert(detray::ranges::bidirectional_range_v<std::list<float>>);
     static_assert(not detray::ranges::random_access_range_v<std::list<float>>);
     static_assert(detray::ranges::common_range<std::list<float>>);
+}
+
+// Unittest for an empty view
+TEST(utils, ranges_empty) {
+
+    auto ev = detray::views::empty<float>();
+
+    // general tests
+    static_assert(std::is_copy_assignable_v<decltype(ev)>);
+    static_assert(detray::ranges::range_v<decltype(ev)>);
+    static_assert(detray::ranges::view<decltype(ev)>);
+    static_assert(detray::ranges::random_access_range_v<decltype(ev)>);
+
+    // Test prerequisits for LagacyIterator
+    static_assert(
+        std::is_copy_constructible_v<typename decltype(ev)::iterator_t>);
+    static_assert(std::is_copy_assignable_v<typename decltype(ev)::iterator_t>);
+    static_assert(std::is_destructible_v<typename decltype(ev)::iterator_t>);
+
+    // Test inherited member functions
+    std::cout << ev[0] << std::endl;
+    ASSERT_EQ(ev.size(), 0UL);
+
+    for (const auto i : ev) {
+        ASSERT_TRUE(i != i);
+    }
 }
 
 // Unittest for the generation of a single element sequence
