@@ -17,7 +17,7 @@
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the linking of a geometry by loading it into a graph structure
-TEST(ALGEBRA_PLUGIN, geometry_linking) {
+TEST(ALGEBRA_PLUGIN, volume_graph) {
     using namespace detray;
     using namespace __plugin;
 
@@ -40,9 +40,9 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     // Is everything accessible from the graph?
     EXPECT_EQ(graph.n_nodes(), det.volumes().size());
 
-    std::cout << graph.to_string() << std::endl;
-    std::cout << "Walking through geometry: " << std::endl;
-    // graph.bfs();
+    // std::cout << graph.to_string() << std::endl;
+    // std::cout << "Walking through geometry: " << std::endl;
+    //  graph.bfs();
 
     const auto &adj_mat = graph.adjacency_matrix();
 

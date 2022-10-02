@@ -7,6 +7,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
@@ -53,16 +54,20 @@ using std::prev;
 /// @see https://en.cppreference.com/w/cpp/ranges/iterator_t
 /// @{
 template <class R>
-using iterator_t = decltype(detray::ranges::begin(std::declval<R&>()));
+using iterator_t = decltype(detray::ranges::begin(
+    std::declval<std::remove_reference_t<std::remove_cv_t<R>>&>()));
 
 template <class R>
-using const_iterator_t = iterator_t<const R>;
+using const_iterator_t = decltype(detray::ranges::begin(
+    std::declval<const std::remove_reference_t<R>&>()));
 
 template <class R>
-using sentinel_t = decltype(detray::ranges::end(std::declval<R&>()));
+using sentinel_t = decltype(detray::ranges::end(
+    std::declval<std::remove_reference_t<std::remove_cv_t<R>>&>()));
 
 template <class R>
-using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));
+using range_size_t = decltype(detray::ranges::size(
+    std::declval<std::remove_reference_t<std::remove_cv_t<R>>&>()));
 
 template <class R>
 using range_difference_t = typename std::iterator_traits<
@@ -101,19 +106,13 @@ struct range : public std::false_type {
 /// and std::end.
 /// @note In case of @c vecmem::device_vector the iterator is a pointer type.
 template <class R>
-struct range<
-    R, std::enable_if_t<
-           (std::is_class_v<std::decay_t<decltype(detray::ranges::begin(
-                std::declval<R&>()))>> or
-            std::is_pointer_v<std::decay_t<decltype(detray::ranges::begin(
-                std::declval<R&>()))>>)and(std::
-                                               is_class_v<std::decay_t<
-                                                   decltype(detray::ranges::end(
-                                                       std::declval<R&>()))>> or
-                                           std::is_pointer_v<std::decay_t<
-                                               decltype(detray::ranges::end(
-                                                   std::declval<R&>()))>>),
-           void>> : public std::true_type {};
+struct range<R,
+             std::enable_if_t<
+                 (std::is_class_v<detray::ranges::iterator_t<R>> or
+                  std::is_pointer_v<detray::ranges::iterator_t<
+                      R>>)and(std::is_class_v<detray::ranges::sentinel_t<R>> or
+                              std::is_pointer_v<detray::ranges::sentinel_t<R>>),
+                 void>> : public std::true_type {};
 
 template <class R>
 inline constexpr bool range_v = detray::ranges::range<R>::value;

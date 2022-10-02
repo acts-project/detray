@@ -13,8 +13,8 @@
 #include "detray/utils/ranges/subrange.hpp"
 
 // System include(s)
-#include <tuple>
 #include <type_traits>
+#include <utility>
 
 namespace detray::ranges {
 
