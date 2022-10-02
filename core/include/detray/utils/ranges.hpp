@@ -7,6 +7,7 @@
 #pragma once
 
 #include "detray/utils/ranges/chain.hpp"
+#include "detray/utils/ranges/empty.hpp"
 #include "detray/utils/ranges/enumerate.hpp"
 #include "detray/utils/ranges/iota.hpp"
 #include "detray/utils/ranges/pick.hpp"
