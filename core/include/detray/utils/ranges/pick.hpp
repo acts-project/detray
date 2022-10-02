@@ -18,7 +18,8 @@
 
 namespace detray::ranges {
 
-/// @brief Indexes the elements of a range by iterating through an index range.
+/// @brief Range adaptor that indexes the elements of a range using another
+///        index range.
 ///
 /// @tparam range_itr_t the iterator type of the enumerated range
 /// @tparam sequence_itr_t range of indices.

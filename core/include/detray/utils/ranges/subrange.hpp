@@ -131,4 +131,10 @@ template <typename deduced_range_t, typename volume_t,
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, const volume_t &vol)
     ->subrange<deduced_range_t>;
 
+/// @see https://en.cppreference.com/w/cpp/ranges/borrowed_iterator_t
+template <class R>
+using borrowed_subrange_t =
+    std::conditional_t<borrowed_range<R>, detray::ranges::subrange<R>,
+                       dangling>;
+
 }  // namespace detray::ranges

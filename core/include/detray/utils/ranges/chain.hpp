@@ -24,7 +24,7 @@ struct chain_iterator;
 
 }
 
-/// @brief Chain together different ranges of the same type.
+/// @brief Range adaptor that chains together different ranges of the same type.
 ///
 /// @tparam I the number of ranges in the chain.
 /// @tparam range_itr_t the iterator type of the ranges.
@@ -177,10 +177,7 @@ struct chain_iterator {
     DETRAY_HOST_DEVICE
     constexpr chain_iterator(const iterator_coll_t &begins,
                              const iterator_coll_t &ends)
-        : m_begins(&begins),
-          m_ends(&ends),
-          m_iter{detray::detail::get<0>(*m_begins)},
-          m_idx{0} {}
+        : m_begins(&begins), m_ends(&ends), m_iter{(*m_begins)[0]}, m_idx{0} {}
 
     /// Fully parametrized construction
     DETRAY_HOST_DEVICE

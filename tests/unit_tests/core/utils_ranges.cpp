@@ -11,12 +11,83 @@
 #include "tests/common/test_defs.hpp"
 
 // detray core
+#include "detray/definitions/containers.hpp"
 #include "detray/utils/ranges.hpp"
 
+// Vecmem include(s)
+#include "vecmem/containers/device_vector.hpp"
+
 // System include(s)
+#include <forward_list>
+#include <list>
 #include <type_traits>
 
 using namespace detray;
+
+// Test basic ranges definitions
+TEST(utils, ranges) {
+    //
+    // detray containers
+    //
+    // std::vector
+    static_assert(detray::ranges::range_v<dvector<float>>);
+    static_assert(not detray::ranges::view<dvector<float>>);
+    static_assert(detray::ranges::random_access_range_v<dvector<float>>);
+    static_assert(detray::ranges::common_range<dvector<float>>);
+
+    // std::array
+    static_assert(detray::ranges::range_v<darray<float, 1>>);
+    static_assert(not detray::ranges::view<darray<float, 1>>);
+    static_assert(detray::ranges::random_access_range_v<darray<float, 1>>);
+    static_assert(detray::ranges::common_range<darray<float, 1>>);
+
+    // std::map
+    static_assert(detray::ranges::range_v<dmap<int, float>>);
+    static_assert(not detray::ranges::view<dmap<int, float>>);
+    static_assert(detray::ranges::bidirectional_range_v<dmap<int, float>>);
+    static_assert(not detray::ranges::random_access_range_v<dmap<int, float>>);
+    static_assert(detray::ranges::common_range<dmap<int, float>>);
+
+    // std::tuple
+    static_assert(not detray::ranges::range_v<dtuple<int, float>>);
+    static_assert(not detray::ranges::view<dtuple<int, float>>);
+
+    //
+    // vecmem containers
+    //
+
+    // vecmem::device_vector
+    static_assert(detray::ranges::range_v<vecmem::device_vector<float>>);
+    static_assert(not detray::ranges::view<vecmem::device_vector<float>>);
+    static_assert(
+        detray::ranges::random_access_range_v<vecmem::device_vector<float>>);
+    static_assert(detray::ranges::common_range<vecmem::device_vector<float>>);
+
+    // vecmem::jagged_vector
+    static_assert(detray::ranges::range_v<djagged_vector<float>>);
+    static_assert(not detray::ranges::view<djagged_vector<float>>);
+    static_assert(detray::ranges::random_access_range_v<djagged_vector<float>>);
+    static_assert(detray::ranges::common_range<djagged_vector<float>>);
+
+    //
+    // Some additional STL containers
+    //
+
+    // std::forward_list
+    static_assert(detray::ranges::range_v<std::forward_list<float>>);
+    static_assert(not detray::ranges::view<std::forward_list<float>>);
+    static_assert(detray::ranges::forward_range_v<std::forward_list<float>>);
+    static_assert(
+        not detray::ranges::bidirectional_range_v<std::forward_list<float>>);
+    static_assert(detray::ranges::common_range<std::forward_list<float>>);
+
+    // std::list
+    static_assert(detray::ranges::range_v<std::list<float>>);
+    static_assert(not detray::ranges::view<std::list<float>>);
+    static_assert(detray::ranges::bidirectional_range_v<std::list<float>>);
+    static_assert(not detray::ranges::random_access_range_v<std::list<float>>);
+    static_assert(detray::ranges::common_range<std::list<float>>);
+}
 
 // Unittest for the generation of a single element sequence
 TEST(utils, ranges_single) {
@@ -26,21 +97,18 @@ TEST(utils, ranges_single) {
     auto sngl = detray::views::single(value);
 
     // general tests
-    ASSERT_TRUE(detray::ranges::range<decltype(sngl)>::value);
-    ASSERT_TRUE(detray::ranges::is_view<decltype(sngl)>);
-    ASSERT_TRUE(std::is_copy_assignable_v<decltype(sngl)>);
+    static_assert(std::is_copy_assignable_v<decltype(sngl)>);
+    static_assert(detray::ranges::range_v<decltype(sngl)>);
+    static_assert(detray::ranges::view<decltype(sngl)>);
+    static_assert(detray::ranges::bidirectional_range_v<decltype(sngl)>);
+    static_assert(not detray::ranges::random_access_range_v<decltype(sngl)>);
 
     // Test prerequisits for LagacyIterator
-    ASSERT_TRUE(
+    static_assert(
         std::is_copy_constructible_v<typename decltype(sngl)::iterator_t>);
-    ASSERT_TRUE(std::is_copy_assignable_v<typename decltype(sngl)::iterator_t>);
-    ASSERT_TRUE(std::is_destructible_v<typename decltype(sngl)::iterator_t>);
-
-    // Check iterator category
-    constexpr bool is_correct_itr_tag =
-        std::is_same_v<typename decltype(sngl)::iterator_t::iterator_category,
-                       std::bidirectional_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
+    static_assert(
+        std::is_copy_assignable_v<typename decltype(sngl)::iterator_t>);
+    static_assert(std::is_destructible_v<typename decltype(sngl)::iterator_t>);
 
     // Test inherited member functions
     ASSERT_EQ(sngl[0], value);
@@ -62,21 +130,18 @@ TEST(utils, ranges_iota_single) {
     auto seq = detray::views::iota(single);
 
     // general tests
-    ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
-    ASSERT_TRUE(detray::ranges::is_view<decltype(seq)>);
-    ASSERT_TRUE(std::is_copy_assignable_v<decltype(seq)>);
+    static_assert(std::is_copy_assignable_v<decltype(seq)>);
+    static_assert(detray::ranges::range_v<decltype(seq)>);
+    static_assert(detray::ranges::view<decltype(seq)>);
+    static_assert(detray::ranges::input_range_v<decltype(seq)>);
+    static_assert(not detray::ranges::forward_range_v<decltype(seq)>);
 
     // Test prerequisits for LagacyIterator
-    ASSERT_TRUE(
+    static_assert(
         std::is_copy_constructible_v<typename decltype(seq)::iterator_t>);
-    ASSERT_TRUE(std::is_copy_assignable_v<typename decltype(seq)::iterator_t>);
-    ASSERT_TRUE(std::is_destructible_v<typename decltype(seq)::iterator_t>);
-
-    // Check iterator category
-    constexpr bool is_correct_itr_tag =
-        std::is_same_v<typename decltype(seq)::iterator_t::iterator_category,
-                       std::input_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
+    static_assert(
+        std::is_copy_assignable_v<typename decltype(seq)::iterator_t>);
+    static_assert(std::is_destructible_v<typename decltype(seq)::iterator_t>);
 
     // Test inherited member functions
     ASSERT_EQ(seq[1], single + 1);
@@ -98,21 +163,18 @@ TEST(utils, ranges_iota_interval) {
     auto seq = detray::views::iota(interval);
 
     // general tests
-    ASSERT_TRUE(detray::ranges::range<decltype(seq)>::value);
-    ASSERT_TRUE(detray::ranges::is_view<decltype(seq)>);
-    ASSERT_TRUE(std::is_copy_assignable_v<decltype(seq)>);
+    static_assert(detray::ranges::range_v<decltype(seq)>);
+    static_assert(detray::ranges::view<decltype(seq)>);
+    static_assert(std::is_copy_assignable_v<decltype(seq)>);
+    static_assert(detray::ranges::input_range_v<decltype(seq)>);
+    static_assert(not detray::ranges::forward_range_v<decltype(seq)>);
 
     // Test prerequisits for LagacyIterator
-    ASSERT_TRUE(
+    static_assert(
         std::is_copy_constructible_v<typename decltype(seq)::iterator_t>);
-    ASSERT_TRUE(std::is_copy_assignable_v<typename decltype(seq)::iterator_t>);
-    ASSERT_TRUE(std::is_destructible_v<typename decltype(seq)::iterator_t>);
-
-    // Check iterator category
-    constexpr bool is_correct_itr_tag =
-        std::is_same_v<typename decltype(seq)::iterator_t::iterator_category,
-                       std::input_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
+    static_assert(
+        std::is_copy_assignable_v<typename decltype(seq)::iterator_t>);
+    static_assert(std::is_destructible_v<typename decltype(seq)::iterator_t>);
 
     // Test inherited member functions
     ASSERT_EQ(seq[1], 3UL);
@@ -141,23 +203,18 @@ TEST(utils, ranges_enumerate) {
     auto enumerator = detray::views::enumerate(seq);
 
     // general tests
-    ASSERT_TRUE(detray::ranges::range<decltype(enumerator)>::value);
-    ASSERT_TRUE(detray::ranges::is_view<decltype(enumerator)>);
-    ASSERT_TRUE(std::is_copy_assignable_v<decltype(enumerator)>);
+    static_assert(detray::ranges::range_v<decltype(enumerator)>);
+    static_assert(detray::ranges::view<decltype(enumerator)>);
+    static_assert(std::is_copy_assignable_v<decltype(enumerator)>);
+    static_assert(detray::ranges::random_access_range_v<decltype(enumerator)>);
 
     // Test prerequisits for LagacyIterator
-    ASSERT_TRUE(std::is_copy_constructible_v<
-                typename decltype(enumerator)::iterator_t>);
-    ASSERT_TRUE(
+    static_assert(std::is_copy_constructible_v<
+                  typename decltype(enumerator)::iterator_t>);
+    static_assert(
         std::is_copy_assignable_v<typename decltype(enumerator)::iterator_t>);
-    ASSERT_TRUE(
+    static_assert(
         std::is_destructible_v<typename decltype(enumerator)::iterator_t>);
-
-    // Check iterator category
-    constexpr bool is_correct_itr_tag = std::is_same_v<
-        typename decltype(enumerator)::iterator_t::iterator_category,
-        std::random_access_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
 
     // Test inherited member functions
     const auto [i, v] = enumerator[2];
@@ -189,22 +246,18 @@ TEST(utils, ranges_chain) {
     auto chained = detray::views::chain(interval_1, interval_2);
 
     // general tests
-    ASSERT_TRUE(detray::ranges::range<decltype(chained)>::value);
-    ASSERT_TRUE(detray::ranges::is_view<decltype(chained)>);
-    ASSERT_TRUE(std::is_copy_assignable_v<decltype(chained)>);
+    static_assert(detray::ranges::range_v<decltype(chained)>);
+    static_assert(detray::ranges::view<decltype(chained)>);
+    static_assert(std::is_copy_assignable_v<decltype(chained)>);
+    static_assert(detray::ranges::random_access_range_v<decltype(chained)>);
 
     // Test prerequisits for LagacyIterator
-    ASSERT_TRUE(
+    static_assert(
         std::is_copy_constructible_v<typename decltype(chained)::iterator_t>);
-    ASSERT_TRUE(
+    static_assert(
         std::is_copy_assignable_v<typename decltype(chained)::iterator_t>);
-    ASSERT_TRUE(std::is_destructible_v<typename decltype(chained)::iterator_t>);
-
-    // Check iterator category
-    constexpr bool is_correct_itr_tag = std::is_same_v<
-        typename decltype(chained)::iterator_t::iterator_category,
-        std::random_access_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
+    static_assert(
+        std::is_destructible_v<typename decltype(chained)::iterator_t>);
 
     // Test inherited member functions
     ASSERT_EQ(chained[1], 3UL);
@@ -236,23 +289,18 @@ TEST(utils, ranges_pick) {
     auto selected = detray::views::pick(seq, indices);
 
     // general tests
-    ASSERT_TRUE(detray::ranges::range<decltype(selected)>::value);
-    ASSERT_TRUE(detray::ranges::is_view<decltype(selected)>);
-    ASSERT_TRUE(std::is_copy_assignable_v<decltype(selected)>);
+    static_assert(detray::ranges::range_v<decltype(selected)>);
+    static_assert(detray::ranges::view<decltype(selected)>);
+    static_assert(std::is_copy_assignable_v<decltype(selected)>);
+    static_assert(detray::ranges::random_access_range_v<decltype(selected)>);
 
     // Test prerequisits for LagacyIterator
-    ASSERT_TRUE(
+    static_assert(
         std::is_copy_constructible_v<typename decltype(selected)::iterator_t>);
-    ASSERT_TRUE(
+    static_assert(
         std::is_copy_assignable_v<typename decltype(selected)::iterator_t>);
-    ASSERT_TRUE(
+    static_assert(
         std::is_destructible_v<typename decltype(selected)::iterator_t>);
-
-    // Check iterator category
-    constexpr bool is_correct_itr_tag = std::is_same_v<
-        typename decltype(selected)::iterator_t::iterator_category,
-        std::random_access_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
 
     // Test inherited member functions
     const auto [i, v] = selected[2];
@@ -286,21 +334,16 @@ TEST(utils, ranges_subrange) {
     auto sr = detray::ranges::subrange(seq, interval);
 
     // general tests
-    ASSERT_TRUE(detray::ranges::range<decltype(sr)>::value);
-    ASSERT_TRUE(detray::ranges::is_view<decltype(sr)>);
-    ASSERT_TRUE(std::is_copy_assignable_v<decltype(sr)>);
+    static_assert(detray::ranges::range_v<decltype(sr)>);
+    static_assert(detray::ranges::view<decltype(sr)>);
+    static_assert(std::is_copy_assignable_v<decltype(sr)>);
+    static_assert(detray::ranges::random_access_range_v<decltype(sr)>);
 
     // Test prerequisits for LagacyIterator
-    ASSERT_TRUE(
+    static_assert(
         std::is_copy_constructible_v<typename decltype(sr)::iterator_t>);
-    ASSERT_TRUE(std::is_copy_assignable_v<typename decltype(sr)::iterator_t>);
-    ASSERT_TRUE(std::is_destructible_v<typename decltype(sr)::iterator_t>);
-
-    // Check iterator category
-    constexpr bool is_correct_itr_tag =
-        std::is_same_v<typename decltype(sr)::iterator_t::iterator_category,
-                       std::random_access_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
+    static_assert(std::is_copy_assignable_v<typename decltype(sr)::iterator_t>);
+    static_assert(std::is_destructible_v<typename decltype(sr)::iterator_t>);
 
     ASSERT_EQ(sr[1], seq[begin + 1]);
     ASSERT_EQ(sr.size(), 3UL);
@@ -336,10 +379,8 @@ TEST(utils, ranges_subrange_iota) {
     auto iota_sr = detray::ranges::subrange(detray::views::iota(seq), interval);
 
     // Check iterator category
-    constexpr bool is_correct_itr_tag = std::is_same_v<
-        typename decltype(iota_sr)::iterator_t::iterator_category,
-        std::input_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
+    static_assert(detray::ranges::input_range_v<decltype(iota_sr)>);
+    static_assert(not detray::ranges::forward_range_v<decltype(iota_sr)>);
 
     std::size_t i{4};
     for (const auto v : iota_sr) {
@@ -364,10 +405,7 @@ TEST(utils, ranges_enumerated_subrange) {
         detray::views::enumerate(detray::ranges::subrange(seq, interval));
 
     // Check iterator category
-    constexpr bool is_correct_itr_tag = std::is_same_v<
-        typename decltype(enum_sr)::iterator_t::iterator_category,
-        std::random_access_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
+    static_assert(detray::ranges::random_access_range_v<decltype(enum_sr)>);
 
     for (const auto [i, v] : enum_sr) {
         ASSERT_EQ(i, v.ui - 1);
@@ -395,14 +433,10 @@ TEST(utils, ranges_pick_chained_sequence) {
     auto selected = detray::views::pick(seq, indices);
 
     // Check iterator category
-    bool is_correct_itr_tag = std::is_same_v<
-        typename decltype(indices)::iterator_t::iterator_category,
-        std::input_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
-    is_correct_itr_tag = std::is_same_v<
-        typename decltype(selected)::iterator_t::iterator_category,
-        std::input_iterator_tag>;
-    ASSERT_TRUE(is_correct_itr_tag);
+    static_assert(detray::ranges::input_range_v<decltype(indices)>);
+    static_assert(not detray::ranges::forward_range_v<decltype(indices)>);
+    static_assert(detray::ranges::input_range_v<decltype(selected)>);
+    static_assert(not detray::ranges::forward_range_v<decltype(selected)>);
 
     // Test inherited member functions
     const auto [i, v] = selected[2];
