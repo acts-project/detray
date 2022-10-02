@@ -21,7 +21,6 @@
 
 // System include(s)
 #include <forward_list>
-#include <iostream>
 #include <list>
 #include <type_traits>
 
@@ -119,7 +118,6 @@ TEST(utils, ranges_empty) {
     static_assert(std::is_destructible_v<typename decltype(ev)::iterator_t>);
 
     // Test inherited member functions
-    std::cout << ev[0] << std::endl;
     ASSERT_EQ(ev.size(), 0UL);
 
     for (const auto i : ev) {

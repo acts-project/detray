@@ -13,8 +13,8 @@
 
 // System include(s)
 #include <cassert>
-#include <tuple>
 #include <type_traits>
+#include <utility>
 
 namespace detray::ranges {
 
@@ -32,7 +32,7 @@ template <typename range_itr_t, typename sequence_itr_t>
 class pick_view : public detray::ranges::view_interface<
                       pick_view<range_itr_t, sequence_itr_t>> {
 
-    public:
+    private:
     using index_t = typename std::iterator_traits<sequence_itr_t>::value_type;
     using value_t = typename std::iterator_traits<range_itr_t>::value_type;
 
@@ -40,7 +40,6 @@ class pick_view : public detray::ranges::view_interface<
                   "Given sequence cannot be "
                   "used to index elements of range.");
 
-    private:
     /// @brief Nested iterator to randomly index the elements of a range.
     ///
     /// The indices by which to reference the range are obtained by a dedicated
@@ -249,16 +248,14 @@ class pick_view : public detray::ranges::view_interface<
     /// corresponding index.
     DETRAY_HOST_DEVICE
     constexpr auto back() noexcept {
-        const typename std::iterator_traits<sequence_itr_t>::value_type
-            last_idx{*detray::ranges::next(m_seq_begin, (size() - 1))};
+        index_t last_idx{*detray::ranges::next(m_seq_begin, (size() - 1))};
         return std::pair<index_t, value_t &>(
             last_idx, *detray::ranges::next(m_range_begin, last_idx));
     }
 
     DETRAY_HOST_DEVICE
     constexpr auto operator[](const dindex i) const {
-        const typename std::iterator_traits<sequence_itr_t>::value_type
-            last_idx{*detray::ranges::next(m_seq_begin, i)};
+        index_t last_idx{*detray::ranges::next(m_seq_begin, i)};
         return std::pair<index_t, value_t &>(
             last_idx, *detray::ranges::next(m_range_begin, last_idx));
     }
