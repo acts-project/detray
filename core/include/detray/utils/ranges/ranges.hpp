@@ -15,53 +15,33 @@
 
 namespace detray::ranges {
 
-/// @brief Detail interface of an iterable type.
+/// @brief Provides c++17 detray iterators in std::ranges style, meant to be
+////       used in device code.
 ///
-/// Base case: The type is not iterable
-template <typename T, typename = void>
-struct range : public std::false_type {
-    using type = void;
-};
-
-/// @brief Check if a type is iterable and extract iterator type.
+/// @note Does make use of concepts and des not implement full ranges standard
+/// (e.g. not every requirement is modelled, range/view complexity guarantees
+/// are not given and there is no lazy-evaluation).
+/// missing: ranges::sized_range, ranges::viewable_range, ranges::constant_range
 ///
-/// A range has a begin() and an end() member function, which is guranteed by
-/// simply calling std::begin and std::end.
-/// In case of @c vecmem::device_vector the iterator is a pointer type.
-template <typename T>
-struct range<
-    T, std::enable_if_t<std::is_class_v<std::decay_t<decltype(std::begin(
-                            std::declval<T&>()))>> or
-                            std::is_pointer_v<std::decay_t<decltype(std::begin(
-                                std::declval<T&>()))>>,
-                        void>> : public std::true_type {
-    using iterator_type =
-        std::decay_t<decltype(std::begin(std::declval<T&>()))>;
-    using const_iterator_type =
-        std::decay_t<decltype(std::cbegin(std::declval<T&>()))>;
-};
+/// @see https://en.cppreference.com/w/cpp/ranges
+/// @{
 
-class base_view;
-
-template <typename range_t>
-class view_interface;
-
-template <typename T>
-inline constexpr bool enable_view =
-    std::is_base_of_v<base_view, T> or std::is_base_of_v<view_interface<T>, T>;
-
-template <class T>
-inline constexpr bool is_view = detray::ranges::range<T>::value and
-    std::is_object_v<T>&& std::is_move_constructible_v<T>and enable_view<T>;
-
-/// Simply import the std versions of basic iterator functionality
+/// Simply import the std versions of basic iterator functionality for now
 /// @{
 using std::begin;
 using std::cbegin;
 using std::cend;
+using std::crbegin;
+using std::crend;
 using std::end;
 using std::rbegin;
 using std::rend;
+
+using std::size;
+// ranges::ssize;
+using std::data;
+using std::empty;
+// ranges::cdata
 
 using std::advance;
 using std::distance;
@@ -69,47 +49,145 @@ using std::next;
 using std::prev;
 /// @}
 
-/// Implementation of the detray ranges specific functions (size, data)
-/// @{
-using std::size;
-
-/// @}
-
-/// Compliance with std::ranges typedefs,
+/// Ranges typedefs,
 /// @see https://en.cppreference.com/w/cpp/ranges/iterator_t
 /// @{
-template <class T>
-using iterator_t = decltype(detray::ranges::begin(std::declval<T&>()));
+template <class R>
+using iterator_t = decltype(detray::ranges::begin(std::declval<R&>()));
 
-template <class T>
-using const_iterator_t = iterator_t<const T>;
+template <class R>
+using const_iterator_t = iterator_t<const R>;
 
-template <class T>
-using sentinel_t = decltype(detray::ranges::end(std::declval<T&>()));
+template <class R>
+using sentinel_t = decltype(detray::ranges::end(std::declval<R&>()));
 
-template <class T>
-using range_size_t = decltype(detray::ranges::size(std::declval<T&>()));
+template <class R>
+using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));
 
-template <class T>
+template <class R>
 using range_difference_t = typename std::iterator_traits<
-    detray::ranges::iterator_t<T>>::difference_type;
+    detray::ranges::iterator_t<R>>::difference_type;
 
-template <class T>
+template <class R>
 using range_value_t =
-    typename std::iterator_traits<detray::ranges::iterator_t<T>>::value_type;
+    typename std::iterator_traits<detray::ranges::iterator_t<R>>::value_type;
 
-template <class T>
+template <class R>
 using range_reference_t =
-    typename std::iterator_traits<detray::ranges::iterator_t<T>>::reference;
+    typename std::iterator_traits<detray::ranges::iterator_t<R>>::reference;
 
-template <class T>
-using range_const_reference_t = const range_reference_t<T>;
+template <class R>
+using range_const_reference_t = const range_reference_t<R>;
 
-template <class T>
-using range_rvalue_reference_t = std::decay_t<range_value_t<T>>&&;
+template <class R>
+using range_rvalue_reference_t = std::decay_t<range_value_t<R>>&&;
+
 /// @}
 
-// https://en.cppreference.com/w/cpp/ranges/view
+/// Range traits
+/// @{
+
+/// Base case: The type is not a 'range'
+template <class R, typename = void>
+struct range : public std::false_type {
+    using type = void;
+};
+
+/// @brief A range has a begin() and an end() member function
+///
+/// @see https://en.cppreference.com/w/cpp/ranges/range
+///
+/// Existance of 'begin' and 'end' is guranteed by simply calling std::begin
+/// and std::end.
+/// @note In case of @c vecmem::device_vector the iterator is a pointer type.
+template <class R>
+struct range<
+    R, std::enable_if_t<
+           (std::is_class_v<std::decay_t<decltype(detray::ranges::begin(
+                std::declval<R&>()))>> or
+            std::is_pointer_v<std::decay_t<decltype(detray::ranges::begin(
+                std::declval<R&>()))>>)and(std::
+                                               is_class_v<std::decay_t<
+                                                   decltype(detray::ranges::end(
+                                                       std::declval<R&>()))>> or
+                                           std::is_pointer_v<std::decay_t<
+                                               decltype(detray::ranges::end(
+                                                   std::declval<R&>()))>>),
+           void>> : public std::true_type {};
+
+template <class R>
+inline constexpr bool range_v = detray::ranges::range<R>::value;
+
+template <class R>
+inline constexpr bool input_range_v = detray::ranges::range_v<R>and
+    std::is_base_of_v<std::input_iterator_tag,
+                      typename std::iterator_traits<
+                          detray::ranges::iterator_t<R>>::iterator_category>;
+
+template <class R>
+inline constexpr bool output_range_v = detray::ranges::range_v<R>and
+    std::is_base_of_v<std::output_iterator_tag,
+                      typename std::iterator_traits<
+                          detray::ranges::iterator_t<R>>::iterator_category>;
+
+template <class R>
+inline constexpr bool forward_range_v = detray::ranges::range_v<R>and
+    std::is_base_of_v<std::forward_iterator_tag,
+                      typename std::iterator_traits<
+                          detray::ranges::iterator_t<R>>::iterator_category>;
+
+template <class R>
+inline constexpr bool bidirectional_range_v = detray::ranges::range_v<R>and
+    std::is_base_of_v<std::bidirectional_iterator_tag,
+                      typename std::iterator_traits<
+                          detray::ranges::iterator_t<R>>::iterator_category>;
+
+template <class R>
+inline constexpr bool random_access_range_v = detray::ranges::range_v<R>and
+    std::is_base_of_v<std::random_access_iterator_tag,
+                      typename std::iterator_traits<
+                          detray::ranges::iterator_t<R>>::iterator_category>;
+
+// Available only in c++20
+/*template <typename R>
+inline constexpr bool contiguous_range_v = range_v<R> and
+std::is_base_of_v<std::contiguous_iterator_tag, typename
+std::iterator_traits<detray::ranges::iterator_t<R>>::iterator_category>;*/
+
+/// @see https://en.cppreference.com/w/cpp/ranges/borrowed_range
+template <class R>
+inline constexpr bool enable_borrowed_range = false;
+
+template <class R>
+inline constexpr bool borrowed_range =
+    detray::ranges::range_v<R> &&
+    (std::is_lvalue_reference_v<R> ||
+     ranges::enable_borrowed_range<
+         std::remove_reference_t<std::remove_cv_t<R>>>);
+
+/// @brief models a dangling iterator
+/// @see https://en.cppreference.com/w/cpp/ranges/dangling
+struct dangling {
+    constexpr dangling() noexcept = default;
+    template <class... Args>
+    constexpr dangling(Args&&...) noexcept {}
+};
+
+template <class R>
+using borrowed_iterator_t =
+    std::conditional_t<borrowed_range<R>, detray::ranges::iterator_t<R>,
+                       dangling>;
+
+/// @see https://en.cppreference.com/w/cpp/ranges/common_range
+template <class R>
+inline constexpr bool common_range =
+    detray::ranges::range_v<R>&& std::is_same_v<detray::ranges::iterator_t<R>,
+                                                detray::ranges::sentinel_t<R>>;
+/// @}
+
+/// Definition of 'view'
+/// @see https://en.cppreference.com/w/cpp/ranges/view
+/// @{
 
 /// Tags a type as a view
 struct base_view {};
@@ -149,5 +227,16 @@ struct view_interface : public base_view {
 
     view_impl_t* const m_impl_ptr{static_cast<view_impl_t*>(this)};
 };
+
+/// View traits
+/// @{
+template <typename R>
+inline constexpr bool enable_view =
+    std::is_base_of_v<base_view, R> or std::is_base_of_v<view_interface<R>, R>;
+
+template <class R>
+inline constexpr bool view = detray::ranges::range_v<R>and std::is_object_v<R>&&
+    std::is_move_constructible_v<R>and enable_view<R>;
+/// @}
 
 }  // namespace detray::ranges

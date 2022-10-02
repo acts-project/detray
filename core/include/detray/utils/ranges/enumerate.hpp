@@ -178,7 +178,7 @@ class enumerate_view : public detray::ranges::view_interface<
     DETRAY_HOST_DEVICE constexpr explicit enumerate_view(range_t &&rng)
         : m_begin{detray::ranges::begin(std::forward<range_t>(rng)), 0},
           m_end{detray::ranges::end(std::forward<range_t>(rng)),
-                rng.size() - detray::ranges::range_difference_t<range_t>{1}} {}
+                rng.size() - dindex{1}} {}
 
     /// Construct from a @param range that will be enumerated beginning at
     /// @param start.
@@ -189,8 +189,7 @@ class enumerate_view : public detray::ranges::view_interface<
                                                          dindex start)
         : m_begin{detray::ranges::begin(std::forward<range_t>(rng)), start},
           m_end{detray::ranges::end(std::forward<range_t>(rng)),
-                start + rng.size() -
-                    detray::ranges::range_difference_t<range_t>{1}} {}
+                start + rng.size() - dindex{1}} {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
@@ -232,7 +231,8 @@ struct enumerate : public enumerate_view<range_itr_t, incr_t> {
     template <
         typename range_t,
         std::enable_if_t<detray::ranges::range<range_t>::value, bool> = true>
-    DETRAY_HOST_DEVICE constexpr enumerate(range_t &&rng, dindex start)
+    DETRAY_HOST_DEVICE constexpr enumerate(
+        range_t &&rng, detray::ranges::range_difference_t<range_t> start)
         : base_type(std::forward<range_t>(rng), start) {}
 
     /// Construct from a @param range and an index range provided by a volume
