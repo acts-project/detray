@@ -39,14 +39,18 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
           m_end{std::forward<iterator_t>(end)} {}
 
     /// Construct from a @param range.
-    template <typename deduced_range_t>
+    template <
+        typename deduced_range_t,
+        std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true>
     DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range)
         : m_begin{detray::ranges::begin(std::forward<deduced_range_t>(range))},
           m_end{detray::ranges::end(std::forward<deduced_range_t>(range))} {}
 
     /// Construct from a @param range and starting position @param pos. Used
     /// as an overload when only a single position is needed.
-    template <typename deduced_range_t>
+    template <
+        typename deduced_range_t,
+        std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true>
     DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
                                           range_size_t pos)
         : m_begin{detray::ranges::begin(std::forward<deduced_range_t>(range)) +
@@ -55,8 +59,10 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
 
     /// Construct from a @param range and an index range provided by a volume
     /// @param vol.
-    template <typename deduced_range_t, typename volume_t,
-              typename = typename std::remove_reference_t<volume_t>::volume_def>
+    template <
+        typename deduced_range_t, typename volume_t,
+        std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
+        typename = typename std::remove_reference_t<volume_t>::volume_def>
     DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, const volume_t &vol) {
         const dindex_range r = vol.template range<
             typename detray::ranges::range_value_t<deduced_range_t>>();
@@ -69,9 +75,11 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
     }
 
     /// Construct from a @param range and an index range @param pos.
-    template <typename deduced_range_t, typename index_range_t,
-              std::enable_if_t<detray::detail::is_interval_v<index_range_t>,
-                               bool> = true>
+    template <
+        typename deduced_range_t, typename index_range_t,
+        std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
+        std::enable_if_t<detray::detail::is_interval_v<index_range_t>, bool> =
+            true>
     DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
                                           index_range_t &&pos)
         : m_begin{detray::ranges::begin(std::forward<deduced_range_t>(range)) +
@@ -105,16 +113,21 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
     iterator_t m_begin, m_end;
 };
 
-/*template <typename deduced_range_t>
-DETRAY_HOST_DEVICE subrange(
-    typename detray::ranges::iterator_t<deduced_range_t> &&start,
-    typename detray::ranges::iterator_t<deduced_range_t> &&end)
+/*template <typename deduced_range_t,
+          std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> =
+true> DETRAY_HOST_DEVICE subrange( typename
+detray::ranges::iterator_t<deduced_range_t> &&start, typename
+detray::ranges::iterator_t<deduced_range_t> &&end)
     ->subrange<deduced_range_t>;*/
 
-template <typename deduced_range_t>
+template <
+    typename deduced_range_t,
+    std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true>
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range)->subrange<deduced_range_t>;
 
-template <typename deduced_range_t>
+template <
+    typename deduced_range_t,
+    std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true>
 DETRAY_HOST_DEVICE subrange(
     deduced_range_t &&range,
     typename detray::ranges::range_size_t<deduced_range_t> pos)
@@ -122,12 +135,15 @@ DETRAY_HOST_DEVICE subrange(
 
 template <
     typename deduced_range_t, typename index_range_t,
+    std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
     std::enable_if_t<detray::detail::is_interval_v<index_range_t>, bool> = true>
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_range_t &&pos)
     ->subrange<deduced_range_t>;
 
-template <typename deduced_range_t, typename volume_t,
-          typename = typename std::remove_reference_t<volume_t>::volume_def>
+template <
+    typename deduced_range_t, typename volume_t,
+    std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
+    typename = typename std::remove_reference_t<volume_t>::volume_def>
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, const volume_t &vol)
     ->subrange<deduced_range_t>;
 

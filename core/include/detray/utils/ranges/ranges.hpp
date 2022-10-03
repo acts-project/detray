@@ -6,6 +6,10 @@
  */
 #pragma once
 
+#if defined(__CUDACC__)
+#include <thrust/iterator/iterator_categories.h>
+#endif
+
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -15,6 +19,21 @@
 #include <type_traits>
 
 namespace detray::ranges {
+
+// Define iterator tags for host and device
+#if defined(__CUDACC__)
+using input_iterator_tag = thrust::input_device_iterator_tag;
+using output_iterator_tag = thrust::output_device_iterator_tag;
+using forward_iterator_tag = thrust::forward_device_iterator_tag;
+using bidirectional_iterator_tag = thrust::bidirectional_device_iterator_tag;
+using random_access_iterator_tag = thrust::random_access_device_iterator_tag;
+#elif !defined(__CUDACC__)
+using input_iterator_tag = std::input_iterator_tag;
+using output_iterator_tag = std::output_iterator_tag;
+using forward_iterator_tag = std::forward_iterator_tag;
+using bidirectional_iterator_tag = std::bidirectional_iterator_tag;
+using random_access_iterator_tag = std::random_access_iterator_tag;
+#endif
 
 /// @brief Provides c++17 detray iterators in std::ranges style, meant to be
 ////       used in device code.
@@ -119,38 +138,38 @@ inline constexpr bool range_v = detray::ranges::range<R>::value;
 
 template <class R>
 inline constexpr bool input_range_v = detray::ranges::range_v<R>and
-    std::is_base_of_v<std::input_iterator_tag,
+    std::is_base_of_v<detray::ranges::input_iterator_tag,
                       typename std::iterator_traits<
                           detray::ranges::iterator_t<R>>::iterator_category>;
 
 template <class R>
 inline constexpr bool output_range_v = detray::ranges::range_v<R>and
-    std::is_base_of_v<std::output_iterator_tag,
+    std::is_base_of_v<detray::ranges::output_iterator_tag,
                       typename std::iterator_traits<
                           detray::ranges::iterator_t<R>>::iterator_category>;
 
 template <class R>
 inline constexpr bool forward_range_v = detray::ranges::range_v<R>and
-    std::is_base_of_v<std::forward_iterator_tag,
+    std::is_base_of_v<detray::ranges::forward_iterator_tag,
                       typename std::iterator_traits<
                           detray::ranges::iterator_t<R>>::iterator_category>;
 
 template <class R>
 inline constexpr bool bidirectional_range_v = detray::ranges::range_v<R>and
-    std::is_base_of_v<std::bidirectional_iterator_tag,
+    std::is_base_of_v<detray::ranges::bidirectional_iterator_tag,
                       typename std::iterator_traits<
                           detray::ranges::iterator_t<R>>::iterator_category>;
 
 template <class R>
 inline constexpr bool random_access_range_v = detray::ranges::range_v<R>and
-    std::is_base_of_v<std::random_access_iterator_tag,
+    std::is_base_of_v<detray::ranges::random_access_iterator_tag,
                       typename std::iterator_traits<
                           detray::ranges::iterator_t<R>>::iterator_category>;
 
 // Available only in c++20
 /*template <typename R>
 inline constexpr bool contiguous_range_v = range_v<R> and
-std::is_base_of_v<std::contiguous_iterator_tag, typename
+std::is_base_of_v<detray::ranges::contiguous_iterator_tag, typename
 std::iterator_traits<detray::ranges::iterator_t<R>>::iterator_category>;*/
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_range

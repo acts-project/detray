@@ -65,10 +65,6 @@ class pick_view : public detray::ranges::view_interface<
         }
 
         /// Determine whether we reach end of range - const
-        template <
-            typename T = iterator_category,
-            std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
-                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator!=(const iterator &rhs) const
             -> bool {
             return (m_seq_iter != rhs.m_seq_iter) or
@@ -76,30 +72,23 @@ class pick_view : public detray::ranges::view_interface<
         }
 
         /// Increment iterator and index in lockstep
-        template <
-            typename T = iterator_category,
-            std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
-                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator++() -> iterator & {
             m_range_iter = m_range_begin + *(++m_seq_iter);
             return *this;
         }
 
         /// Decrement iterator and index in lockstep
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::bidirectional_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::bidirectional_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator--() -> iterator & {
             m_range_iter = m_range_begin + *(--m_seq_iter);
             return *this;
         }
 
         /// @returns iterator and index together
-        template <
-            typename T = iterator_category,
-            std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
-                             bool> = true>
         DETRAY_HOST_DEVICE auto operator*() {
             return std::pair<
                 const typename std::iterator_traits<sequence_itr_t>::value_type,
@@ -108,10 +97,11 @@ class pick_view : public detray::ranges::view_interface<
         }
 
         /// @returns an iterator and index position advanced by @param j.
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::random_access_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::random_access_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator+(
             const difference_type j) const -> iterator {
             auto seq_iter = detray::ranges::next(m_seq_iter, j);
@@ -120,30 +110,33 @@ class pick_view : public detray::ranges::view_interface<
         }
 
         /// @returns an iterator and index position advanced by @param j.
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::random_access_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::random_access_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator-(
             const difference_type j) const -> iterator {
             return *this + -j;
         }
 
         /// @returns the positional difference between two iterations
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::random_access_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::random_access_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator-(const iterator &other) const
             -> difference_type {
             return m_seq_iter - other.m_seq_iter;
         }
 
         /// @returns advance this iterator state by @param j.
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::random_access_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::random_access_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator+=(const difference_type j)
             -> iterator & {
             detray::ranges::advance(m_seq_iter, j);
@@ -153,10 +146,11 @@ class pick_view : public detray::ranges::view_interface<
         }
 
         /// @returns advance this iterator state by @param j.
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::random_access_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::random_access_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator-=(const difference_type j)
             -> iterator & {
             return *this += -j;
@@ -176,7 +170,10 @@ class pick_view : public detray::ranges::view_interface<
     pick_view() = default;
 
     /// Construct from a @param range that will be enumerated beginning at 0
-    template <typename range_t, typename sequence_t>
+    template <
+        typename range_t, typename sequence_t,
+        std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true,
+        std::enable_if_t<detray::ranges::range_v<sequence_t>, bool> = true>
     DETRAY_HOST_DEVICE constexpr pick_view(range_t &&range, sequence_t &&seq)
         : m_range_begin{detray::ranges::begin(std::forward<range_t>(range))},
           m_range_end{detray::ranges::end(std::forward<range_t>(range))},
@@ -270,7 +267,10 @@ struct pick : public pick_view<range_itr_t, sequence_itr_t> {
 
     pick() = default;
 
-    template <typename range_t, typename sequence_t>
+    template <
+        typename range_t, typename sequence_t,
+        std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true,
+        std::enable_if_t<detray::ranges::range_v<sequence_t>, bool> = true>
     DETRAY_HOST_DEVICE constexpr pick(range_t &&range, sequence_t &&seq)
         : base_type(std::forward<range_t>(range),
                     std::forward<sequence_t>(seq)) {}
@@ -278,7 +278,9 @@ struct pick : public pick_view<range_itr_t, sequence_itr_t> {
 
 // deduction guides
 
-template <typename range_t, typename sequence_t>
+template <typename range_t, typename sequence_t,
+          std::enable_if_t<detray::ranges::range_v<range_t>, bool> = true,
+          std::enable_if_t<detray::ranges::range_v<sequence_t>, bool> = true>
 pick(range_t &&range, sequence_t &&seq)
     -> pick<detray::ranges::iterator_t<range_t>,
             detray::ranges::iterator_t<sequence_t>>;

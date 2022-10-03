@@ -211,8 +211,9 @@ struct chain_iterator {
     /// Decrement current iterator and check for switch between ranges.
     template <
         typename T = iterator_category,
-        std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, T>,
-                         bool> = true>
+        std::enable_if_t<
+            std::is_base_of_v<detray::ranges::bidirectional_iterator_tag, T>,
+            bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator--() -> chain_iterator & {
         if (m_iter != (*m_begins)[m_idx] and m_idx > 0) {
             // Normal case
@@ -238,8 +239,9 @@ struct chain_iterator {
     /// @returns an iterator advanced by @param j through the chain.
     template <
         typename T = iterator_category,
-        std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, T>,
-                         bool> = true>
+        std::enable_if_t<
+            std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
+            bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator+(const difference_type j) const
         -> chain_iterator {
         chain_iterator<iterator_coll_t> tmp(*this);
@@ -260,8 +262,9 @@ struct chain_iterator {
     /// @returns an iterator advanced by @param j through the chain.
     template <
         typename T = iterator_category,
-        std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, T>,
-                         bool> = true>
+        std::enable_if_t<
+            std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
+            bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-(const difference_type j) const
         -> chain_iterator {
         return *this + (-j);
@@ -270,8 +273,9 @@ struct chain_iterator {
     /// @returns the positional difference between two iterators
     template <
         typename T = iterator_category,
-        std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, T>,
-                         bool> = true>
+        std::enable_if_t<
+            std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
+            bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-(
         const chain_iterator &other) const -> difference_type {
         if (m_idx == other.m_idx) {
@@ -299,8 +303,9 @@ struct chain_iterator {
     /// @returns advance this iterator state by @param j.
     template <
         typename T = iterator_category,
-        std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, T>,
-                         bool> = true>
+        std::enable_if_t<
+            std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
+            bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator+=(const difference_type j)
         -> chain_iterator & {
         // walk through chain to catch the switch between intermediate ranges
@@ -320,8 +325,9 @@ struct chain_iterator {
     /// @returns advance this iterator state by @param j.
     template <
         typename T = iterator_category,
-        std::enable_if_t<std::is_base_of_v<std::random_access_iterator_tag, T>,
-                         bool> = true>
+        std::enable_if_t<
+            std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
+            bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-=(const difference_type j)
         -> chain_iterator & {
         m_iter += (-j);
