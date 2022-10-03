@@ -21,14 +21,14 @@ TEST(utils_ranges_cuda, single) {
     dindex check{std::numeric_limits<dindex>::max()};
 
     // Run the test code
-    single(value, check);
+    test_single(value, check);
 
     // Check result value
     ASSERT_EQ(value, check);
 }
 
-// This tests the convenience range_enumeration function: range
-/*TEST(utils_ranges_cuda, sequence_range) {
+// This tests the iota range generator
+TEST(utils_ranges_cuda, iota) {
 
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;
@@ -50,7 +50,7 @@ TEST(utils_ranges_cuda, single) {
     copy.setup(check_buffer);
 
     // Run test function
-    sequence_range(range, check_buffer);
+    test_iota(range, check_buffer);
 
     // Copy vector buffer to output vector
     vecmem::vector<dindex> check{&managed_resource};
@@ -61,7 +61,7 @@ TEST(utils_ranges_cuda, single) {
 }
 
 // This tests the convenience enumeration function
-TEST(utils_ranges_cuda, enumerate_sequence) {
+TEST(utils_ranges_cuda, enumerate) {
 
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;
@@ -73,38 +73,126 @@ TEST(utils_ranges_cuda, enumerate_sequence) {
     vecmem::vector<uint_holder> seq({{0}, {1}, {2}, {3}, {4}, {5}},
                                     &managed_resource);
 
+    // Get vector_data object
+    auto seq_data = vecmem::get_data(seq);
+
     // Output vector buffer for enumeration test
     vecmem::data::vector_buffer<dindex> idx_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
         0, managed_resource);
     copy.setup(idx_buffer);
 
-    vecmem::data::vector_buffer<unsigned int> uint_buffer(
-        static_cast<vecmem::data::vector_buffer<unsigned int>::size_type>(
-            seq.size()),
+    vecmem::data::vector_buffer<dindex> value_buffer(
+        static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
         0, managed_resource);
-    copy.setup(uint_buffer);
-
-    // Get vector_data object
-    auto seq_data = vecmem::get_data(seq);
+    copy.setup(value_buffer);
 
     // Run test function
-    enumerate_sequence(idx_buffer, uint_buffer, seq_data);
+    test_enumerate(seq_data, idx_buffer, value_buffer);
 
     // Copy vector buffer to output vector
     vecmem::vector<dindex> idx_vec{&managed_resource};
     copy(idx_buffer, idx_vec);
 
-    vecmem::vector<unsigned int> uint_vec{&managed_resource};
-    copy(uint_buffer, uint_vec);
+    vecmem::vector<dindex> value_vec{&managed_resource};
+    copy(value_buffer, value_vec);
 
     // Check the result
-    for (unsigned int i = 0; i < idx_vec.size(); i++) {
-        ASSERT_EQ(idx_vec[i], static_cast<dindex>(uint_vec[i]));
+    for (std::size_t i = 0; i < idx_vec.size(); i++) {
+        ASSERT_EQ(idx_vec[i], value_vec[i]);
     }
 }
 
-// This tests the restricted iterator
+// This tests the convenience pick function
+TEST(utils_ranges_cuda, pick) {
+
+    // Helper object for performing memory copies.
+    vecmem::cuda::copy copy;
+
+    // memory resource
+    vecmem::cuda::managed_memory_resource managed_resource;
+
+    // Input vector sequence for test
+    vecmem::vector<uint_holder> seq({{0}, {1}, {2}, {3}, {4}, {5}},
+                                    &managed_resource);
+    // Input index sequence for test
+    vecmem::vector<dindex> idx({0, 2, 4, 5}, &managed_resource);
+
+    // Get vector_data object
+    auto seq_data = vecmem::get_data(seq);
+    auto idx_data = vecmem::get_data(idx);
+
+    // Output vector buffer for enumeration test
+    vecmem::data::vector_buffer<dindex> idx_buffer(
+        static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
+        0, managed_resource);
+    copy.setup(idx_buffer);
+
+    vecmem::data::vector_buffer<dindex> value_buffer(
+        static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
+        0, managed_resource);
+    copy.setup(value_buffer);
+
+    // Run test function
+    test_pick(seq_data, idx_data, idx_buffer, value_buffer);
+
+    // Copy vector buffer to output vector
+    vecmem::vector<dindex> idx_vec{&managed_resource};
+    copy(idx_buffer, idx_vec);
+
+    vecmem::vector<dindex> value_vec{&managed_resource};
+    copy(value_buffer, value_vec);
+
+    // Check the result
+    for (std::size_t i = 0; i < idx_vec.size(); i++) {
+        ASSERT_EQ(idx[i], idx_vec[i]);
+        ASSERT_EQ(seq[i].ui, value_vec[i]);
+    }
+}
+
+// This tests the convenience enumeration function
+TEST(utils_ranges_cuda, chain) {
+
+    // Helper object for performing memory copies.
+    vecmem::cuda::copy copy;
+
+    // memory resource
+    vecmem::cuda::managed_memory_resource managed_resource;
+
+    // Input vector sequence for test
+    vecmem::vector<uint_holder> seq_1({{0}, {1}, {2}, {3}, {4}, {5}},
+                                      &managed_resource);
+    vecmem::vector<uint_holder> seq_2({{2}, {0}, {9}, {4}, {15}},
+                                      &managed_resource);
+    // Get vector_data object
+    auto seq_data_1 = vecmem::get_data(seq_1);
+    auto seq_data_2 = vecmem::get_data(seq_2);
+
+    // Output vector buffer for chain test
+    vecmem::data::vector_buffer<dindex> value_buffer(
+        static_cast<vecmem::data::vector_buffer<dindex>::size_type>(
+            seq_1.size() + seq_2.size()),
+        0, managed_resource);
+    copy.setup(value_buffer);
+
+    // Run test function
+    test_chain(seq_data_1, seq_data_2, value_buffer);
+
+    // Copy vector buffer to output vector
+    vecmem::vector<dindex> value_vec{&managed_resource};
+    copy(value_buffer, value_vec);
+
+    // First sequence
+    for (std::size_t i = 0; i < seq_1.size(); i++) {
+        ASSERT_EQ(seq_1[i].ui, value_vec[i]);
+    }
+    // Second sequence
+    for (std::size_t i = 0; i < seq_1.size(); i++) {
+        ASSERT_EQ(seq_2[i].ui, value_vec[i + seq_1.size()]);
+    }
+}
+
+// This tests the subrange view
 TEST(utils_ranges_cuda, range) {
 
     // Helper object for performing memory copies.
@@ -115,10 +203,12 @@ TEST(utils_ranges_cuda, range) {
 
     // Input vector sequence for test
     vecmem::vector<int> seq({0, 1, 2, 3, 4, 5}, &managed_resource);
+    // Get vector_data object
+    auto seq_data = vecmem::get_data(seq);
 
     // Begin and end index for iteration
-    const size_t begin = 1;
-    const size_t end = 4;
+    const std::size_t begin = 1;
+    const std::size_t end = 4;
 
     // Output vector buffer for iteration test
     vecmem::data::vector_buffer<int> check_buffer(
@@ -126,11 +216,8 @@ TEST(utils_ranges_cuda, range) {
         0, managed_resource);
     copy.setup(check_buffer);
 
-    // Get vector_data object
-    auto seq_data = vecmem::get_data(seq);
-
     // Run test function
-    iterate_range(check_buffer, seq_data, begin, end);
+    test_subrange(seq_data, check_buffer, begin, end);
 
     // Copy vector buffer to output vector
     vecmem::vector<int> check{&managed_resource};
@@ -140,4 +227,4 @@ TEST(utils_ranges_cuda, range) {
     ASSERT_EQ(check[0], 1);
     ASSERT_EQ(check[1], 2);
     ASSERT_EQ(check[2], 3);
-}*/
+}

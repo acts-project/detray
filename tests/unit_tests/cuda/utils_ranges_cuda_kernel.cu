@@ -10,6 +10,9 @@
 
 namespace detray {
 
+//
+// single
+//
 __global__ void single_kernel(const dindex value, dindex* result) {
 
     // single view should ony add the value 'i' once
@@ -18,7 +21,7 @@ __global__ void single_kernel(const dindex value, dindex* result) {
     }
 }
 
-void single(const dindex value, dindex& check) {
+void test_single(const dindex value, dindex& check) {
     dindex* result{nullptr};
     cudaMallocManaged(&result, sizeof(dindex));
     *result = 0;
@@ -34,32 +37,11 @@ void single(const dindex value, dindex& check) {
     cudaFree(result);
 }
 
-/*__global__ void sequence_single_kernel(
-    vecmem::data::vector_view<dindex> check_data,
-    vecmem::data::vector_view<dindex> single_data) {
-
-    vecmem::device_vector<dindex> check(check_data);
-    vecmem::device_vector<dindex> single(single_data);
-
-    for (auto i : detray::views::iota(single[0])) {
-        check[0] += i;
-    }
-}
-
-void sequence_single(vecmem::data::vector_view<dindex>& check_data,
-                     vecmem::data::vector_view<dindex>& single_data) {
-
-    // run the kernel
-    sequence_single_kernel<<<1, 1>>>(check_data, single_data);
-
-    // cuda error check
-    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
-    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}
-
-__global__ void sequence_range_kernel(
-    const darray<dindex, 2> range,
-    vecmem::data::vector_view<dindex> check_data) {
+//
+// iota
+//
+__global__ void iota_kernel(const darray<dindex, 2> range,
+                            vecmem::data::vector_view<dindex> check_data) {
 
     vecmem::device_vector<dindex> check(check_data);
 
@@ -68,67 +50,136 @@ __global__ void sequence_range_kernel(
     }
 }
 
-void sequence_range(const darray<dindex, 2> range,
-                    vecmem::data::vector_view<dindex>& check_data) {
+void test_iota(const darray<dindex, 2> range,
+               vecmem::data::vector_view<dindex> check_data) {
 
     // run the kernel
-    sequence_range_kernel<<<1, 1>>>(range, check_data);
+    iota_kernel<<<1, 1>>>(range, check_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
-__global__ void enumerate_sequence_kernel(
-    vecmem::data::vector_view<dindex> idx_data,
-    vecmem::data::vector_view<unsigned int> uint_data,
-    vecmem::data::vector_view<uint_holder> seq_data) {
+//
+// enumerate
+//
+__global__ void enumerate_kernel(
+    vecmem::data::vector_view<uint_holder> seq_data,
+    vecmem::data::vector_view<dindex> check_idx_data,
+    vecmem::data::vector_view<dindex> check_value_data) {
 
-    vecmem::device_vector<dindex> idx_vec(idx_data);
-    vecmem::device_vector<unsigned int> uint_vec(uint_data);
     vecmem::device_vector<uint_holder> seq(seq_data);
+    vecmem::device_vector<dindex> check_idx(check_idx_data);
+    vecmem::device_vector<dindex> check_value(check_value_data);
 
     for (auto [i, v] : detray::views::enumerate(seq)) {
-        idx_vec.push_back(i);
-        uint_vec.push_back(v.ui);
+        check_idx.push_back(i);
+        check_value.push_back(v.ui);
     }
 }
 
-void enumerate_sequence(vecmem::data::vector_view<dindex>& idx_data,
-                        vecmem::data::vector_view<unsigned int>& uint_data,
-                        vecmem::data::vector_view<uint_holder>& seq_data) {
+void test_enumerate(vecmem::data::vector_view<uint_holder> seq_data,
+                    vecmem::data::vector_view<dindex> check_idx_data,
+                    vecmem::data::vector_view<dindex> check_value_data) {
 
     // run the kernel
-    enumerate_sequence_kernel<<<1, 1>>>(idx_data, uint_data, seq_data);
+    enumerate_kernel<<<1, 1>>>(seq_data, check_idx_data, check_value_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
-__global__ void iterate_range_kernel(vecmem::data::vector_view<int> check_data,
-                                     vecmem::data::vector_view<int> seq_data,
-                                     const size_t begin, const size_t end) {
+//
+// pick
+//
+__global__ void pick_kernel(
+    vecmem::data::vector_view<uint_holder> seq_data,
+    vecmem::data::vector_view<dindex> idx_data,
+    vecmem::data::vector_view<dindex> check_idx_data,
+    vecmem::data::vector_view<dindex> check_value_data) {
 
-    vecmem::device_vector<int> check(check_data);
+    vecmem::device_vector<uint_holder> seq(seq_data);
+    vecmem::device_vector<dindex> idx(idx_data);
+    vecmem::device_vector<dindex> check_idx(check_idx_data);
+    vecmem::device_vector<dindex> check_value(check_value_data);
+
+    for (auto [i, v] : detray::views::pick(seq, idx)) {
+        check_idx.push_back(i);
+        check_value.push_back(v.ui);
+    }
+}
+
+void test_pick(vecmem::data::vector_view<uint_holder> seq_data,
+               vecmem::data::vector_view<dindex> idx_data,
+               vecmem::data::vector_view<dindex> check_idx_data,
+               vecmem::data::vector_view<dindex> check_value_data) {
+
+    // run the kernel
+    pick_kernel<<<1, 1>>>(seq_data, idx_data, check_idx_data, check_value_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+//
+// chain
+//
+__global__ void chain_kernel(
+    vecmem::data::vector_view<uint_holder> seq_data_1,
+    vecmem::data::vector_view<uint_holder> seq_data_2,
+    vecmem::data::vector_view<dindex> check_value_data) {
+
+    vecmem::device_vector<uint_holder> seq_1(seq_data_1);
+    vecmem::device_vector<uint_holder> seq_2(seq_data_2);
+    vecmem::device_vector<dindex> check_value(check_value_data);
+
+    for (auto v : detray::views::chain(seq_1, seq_2)) {
+        check_value.push_back(v.ui);
+    }
+}
+
+void test_chain(vecmem::data::vector_view<uint_holder> seq_data_1,
+                vecmem::data::vector_view<uint_holder> seq_data_2,
+                vecmem::data::vector_view<dindex> check_value_data) {
+
+    // run the kernel
+    chain_kernel<<<1, 1>>>(seq_data_1, seq_data_2, check_value_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+//
+// subrange
+//
+__global__ void subrange_kernel(vecmem::data::vector_view<int> seq_data,
+                                vecmem::data::vector_view<int> check_value_data,
+                                const std::size_t begin,
+                                const std::size_t end) {
+
     vecmem::device_vector<int> seq(seq_data);
+    vecmem::device_vector<int> check(check_value_data);
 
-    for (const auto& v :
-         detray::ranges::subrange(seq, std::array<size_t, 2>{begin, end})) {
+    for (const auto& v : detray::ranges::subrange(
+             seq, std::array<std::size_t, 2>{begin, end})) {
         check.push_back(v);
     }
 }
 
-void iterate_range(vecmem::data::vector_view<int>& check_data,
-                   vecmem::data::vector_view<int>& seq_data,
-                   const size_t& begin, const size_t& end) {
+void test_subrange(vecmem::data::vector_view<int> seq_data,
+                   vecmem::data::vector_view<int> check_value_data,
+                   const std::size_t begin, const std::size_t end) {
 
     // run the kernel
-    iterate_range_kernel<<<1, 1>>>(check_data, seq_data, begin, end);
+    subrange_kernel<<<1, 1>>>(seq_data, check_value_data, begin, end);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}*/
+}
 
 }  // namespace detray

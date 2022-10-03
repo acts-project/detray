@@ -269,45 +269,6 @@ TEST(utils, ranges_enumerate) {
     }
 }
 
-// Unittest for the chaining of multiple ranges
-TEST(utils, ranges_chain) {
-
-    dvector<dindex> interval_1 = {2, 3, 4};
-    dvector<dindex> interval_2 = {7, 8, 9};
-
-    std::vector<dindex> reference = {2, 3, 4, 7, 8, 9};
-    std::vector<dindex> check = {};
-
-    auto chained = detray::views::chain(interval_1, interval_2);
-
-    // general tests
-    static_assert(detray::ranges::range_v<decltype(chained)>);
-    static_assert(detray::ranges::view<decltype(chained)>);
-    static_assert(std::is_copy_assignable_v<decltype(chained)>);
-    static_assert(detray::ranges::random_access_range_v<decltype(chained)>);
-
-    // Test prerequisits for LagacyIterator
-    static_assert(
-        std::is_copy_constructible_v<typename decltype(chained)::iterator_t>);
-    static_assert(
-        std::is_copy_assignable_v<typename decltype(chained)::iterator_t>);
-    static_assert(
-        std::is_destructible_v<typename decltype(chained)::iterator_t>);
-
-    // Test inherited member functions
-    ASSERT_EQ(chained[1], 3UL);
-    ASSERT_EQ(chained[4], 8UL);
-    ASSERT_EQ(chained.size(), 6UL);
-    ASSERT_EQ(chained.front(), 2UL);
-    ASSERT_EQ(chained.back(), 9UL);
-
-    for (const auto j : chained) {
-        check.push_back(j);
-    }
-    ASSERT_EQ(check.size(), reference.size());
-    ASSERT_EQ(check, reference);
-}
-
 // Integration test for the picking of indexed elements from another range
 TEST(utils, ranges_pick) {
 
@@ -355,6 +316,45 @@ TEST(utils, ranges_pick) {
     }
     ASSERT_EQ(check.size(), indices.size());
     ASSERT_EQ(check, indices);
+}
+
+// Unittest for the chaining of multiple ranges
+TEST(utils, ranges_chain) {
+
+    dvector<dindex> interval_1 = {2, 3, 4};
+    dvector<dindex> interval_2 = {7, 8, 9};
+
+    std::vector<dindex> reference = {2, 3, 4, 7, 8, 9};
+    std::vector<dindex> check = {};
+
+    auto chained = detray::views::chain(interval_1, interval_2);
+
+    // general tests
+    static_assert(detray::ranges::range_v<decltype(chained)>);
+    static_assert(detray::ranges::view<decltype(chained)>);
+    static_assert(std::is_copy_assignable_v<decltype(chained)>);
+    static_assert(detray::ranges::random_access_range_v<decltype(chained)>);
+
+    // Test prerequisits for LagacyIterator
+    static_assert(
+        std::is_copy_constructible_v<typename decltype(chained)::iterator_t>);
+    static_assert(
+        std::is_copy_assignable_v<typename decltype(chained)::iterator_t>);
+    static_assert(
+        std::is_destructible_v<typename decltype(chained)::iterator_t>);
+
+    // Test inherited member functions
+    ASSERT_EQ(chained[1], 3UL);
+    ASSERT_EQ(chained[4], 8UL);
+    ASSERT_EQ(chained.size(), 6UL);
+    ASSERT_EQ(chained.front(), 2UL);
+    ASSERT_EQ(chained.back(), 9UL);
+
+    for (const auto j : chained) {
+        check.push_back(j);
+    }
+    ASSERT_EQ(check.size(), reference.size());
+    ASSERT_EQ(check, reference);
 }
 
 // Unittest for the subrange implementation
