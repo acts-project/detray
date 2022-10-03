@@ -43,19 +43,19 @@ class uniform_track_generator {
     /// @param trk_mom magnitude of the track momentum (in GeV)
     DETRAY_HOST_DEVICE
     uniform_track_generator(std::size_t n_theta, std::size_t n_phi,
-                            std::array<scalar, 2> theta_range = {0.01, M_PI},
-                            std::array<scalar, 2> phi_range = {-M_PI, M_PI},
                             point3 trk_origin = {},
                             scalar trk_mom = 1. * unit_constants::GeV,
+                            std::array<scalar, 2> theta_range = {0.01, M_PI},
+                            std::array<scalar, 2> phi_range = {-M_PI, M_PI},
                             scalar time = 0., scalar charge = -1.)
         : m_theta_steps{n_theta},
           m_phi_steps{n_phi},
-          m_theta_range{theta_range},
-          m_phi_range{phi_range},
           m_theta(theta_range[0]),
           m_phi(phi_range[0]),
           m_origin{trk_origin},
           m_mom_mag{trk_mom},
+          m_theta_range{theta_range},
+          m_phi_range{phi_range},
           m_time{time},
           m_charge{charge},
           i_phi{0},
@@ -131,10 +131,8 @@ class uniform_track_generator {
     std::size_t m_theta_steps{50};
     std::size_t m_phi_steps{50};
 
-    std::array<scalar, 2> m_theta_range{0.01, M_PI};
-    std::array<scalar, 2> m_phi_range{-M_PI, M_PI};
     /// Phi and theta angles of momentum direction
-    scalar m_theta, m_phi;
+    scalar m_theta{0.01}, m_phi{-M_PI};
 
     /// Track origin
     point3 m_origin{0., 0., 0.};
@@ -142,6 +140,10 @@ class uniform_track_generator {
     /// Magnitude of momentum: Default is one to keep directions normalized if
     /// no momentum information is needed (e.g. for a ray)
     scalar m_mom_mag{1. * unit_constants::GeV};
+
+    /// Range for theta and phi
+    std::array<scalar, 2> m_theta_range{0.01, M_PI};
+    std::array<scalar, 2> m_phi_range{-M_PI, M_PI};
 
     /// Time parameter and charge of the track
     scalar m_time{0}, m_charge{0};

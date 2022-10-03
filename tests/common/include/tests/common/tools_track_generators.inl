@@ -115,7 +115,8 @@ TEST(tools, uniform_track_generator_with_range) {
 
     for (const auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, {1, 2}, {-2, 2})) {
+             theta_steps, phi_steps, {0, 0, 0}, 1 * unit_constants::GeV, {1, 2},
+             {-2, 2})) {
         const auto dir = track.dir();
         theta_phi.push_back({getter::theta(dir), getter::phi(dir)});
     }

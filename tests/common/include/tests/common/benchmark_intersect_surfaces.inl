@@ -72,8 +72,7 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
         // Iterate through uniformly distributed momentum directions
         for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
-                 theta_steps, phi_steps, {0.01, M_PI}, {-M_PI, M_PI}, ori,
-                 1.)) {
+                 theta_steps, phi_steps, ori, 1.)) {
 
             for (const auto &plane : planes) {
                 auto pi = rect.intersector();
