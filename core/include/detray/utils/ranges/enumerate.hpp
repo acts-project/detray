@@ -69,10 +69,11 @@ class enumerate_view : public detray::ranges::view_interface<
         }
 
         /// Increment iterator and index in lockstep
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::bidirectional_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::bidirectional_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator--() -> iterator & {
             --m_i;
             --m_iter;
@@ -85,20 +86,22 @@ class enumerate_view : public detray::ranges::view_interface<
         }
 
         /// @returns an iterator and index position advanced by @param j.
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::random_access_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::random_access_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator+(const incr_t j) const
             -> iterator {
             return {m_iter + j, m_i + j};
         }
 
         /// @returns an iterator and index position advanced by @param j.
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::random_access_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::random_access_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator-(const incr_t j) const
             -> iterator {
             return {m_iter - j, m_i - j};
@@ -106,20 +109,22 @@ class enumerate_view : public detray::ranges::view_interface<
 
         /// @returns the positional difference between two iterators
         /// (independent from their enumeration of the range values)
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::random_access_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::random_access_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator-(const iterator &other) const
             -> difference_type {
             return m_iter - other.m_iter;
         }
 
         /// @returns advance this iterator state by @param j.
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::random_access_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::random_access_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator+=(const incr_t j)
             -> iterator & {
             m_iter += j;
@@ -128,10 +133,11 @@ class enumerate_view : public detray::ranges::view_interface<
         }
 
         /// @returns advance this iterator state by @param j.
-        template <typename T = iterator_category,
-                  std::enable_if_t<
-                      std::is_base_of_v<std::random_access_iterator_tag, T>,
-                      bool> = true>
+        template <
+            typename T = iterator_category,
+            std::enable_if_t<std::is_base_of_v<
+                                 detray::ranges::random_access_iterator_tag, T>,
+                             bool> = true>
         DETRAY_HOST_DEVICE constexpr auto operator-=(const difference_type j)
             -> iterator & {
             m_iter -= j;
