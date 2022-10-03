@@ -19,29 +19,37 @@
 
 namespace detray {
 
-/// Test @c detray::views::single
-void single(const dindex value, dindex& check);
-
-/*void iota(vecmem::data::vector_view<dindex>& check_data,
-          const darray<dindex, 2> interval);
-
+/// Test type
 struct uint_holder {
-    unsigned int ui = 0;
+    dindex ui = 0;
 };
 
-void enumerate(,
-                vecmem::data::vector_view<dindex>& check_data);
+/// Test @c detray::views::single
+void test_single(const dindex value, dindex& check);
 
-void chain(vecmem::data::vector_view<dindex>& idx_data,
-                        vecmem::data::vector_view<unsigned int>& uint_data,
-                        vecmem::data::vector_view<uint_holder>& seq_data);
+/// Test @c detray::views::iota
+void test_iota(const darray<dindex, 2> range,
+               vecmem::data::vector_view<dindex> check_data);
 
-void pick(vecmem::data::vector_view<int>& check_data,
-                   vecmem::data::vector_view<int>& seq_data,
-                   const size_t& begin, const size_t& end);
+/// Test @c detray::views::enumerate
+void test_enumerate(vecmem::data::vector_view<uint_holder> seq_data,
+                    vecmem::data::vector_view<dindex> check_idx_data,
+                    vecmem::data::vector_view<dindex> check_value_data);
 
-void subrange(vecmem::data::vector_view<int>& check_data,
-                   vecmem::data::vector_view<int>& seq_data,
-                   const size_t& begin, const size_t& end);*/
+/// Test @c detray::views::pick
+void test_pick(vecmem::data::vector_view<uint_holder> seq_data,
+               vecmem::data::vector_view<dindex> idx_data,
+               vecmem::data::vector_view<dindex> check_idx_data,
+               vecmem::data::vector_view<dindex> check_value_data);
+
+/// Test @c detray::views::chain
+void test_chain(vecmem::data::vector_view<uint_holder> seq_data_1,
+                vecmem::data::vector_view<uint_holder> seq_data_2,
+                vecmem::data::vector_view<dindex> check_value_data);
+
+/// Test @c detray::views::subrange
+void test_subrange(vecmem::data::vector_view<int> seq_data,
+                   vecmem::data::vector_view<int> check_value_data,
+                   const std::size_t begin, const std::size_t end);
 
 }  // namespace detray
