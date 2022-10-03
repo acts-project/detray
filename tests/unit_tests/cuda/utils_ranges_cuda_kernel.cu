@@ -6,11 +6,35 @@
  */
 
 #include "detray/definitions/cuda_definitions.hpp"
-#include "utils_enumerate_cuda_kernel.hpp"
+#include "utils_ranges_cuda_kernel.hpp"
 
 namespace detray {
 
-__global__ void sequence_single_kernel(
+__global__ void single_kernel(const dindex value, dindex* result) {
+
+    // single view should ony add the value 'i' once
+    for (auto i : detray::views::single(value)) {
+        *result += i;
+    }
+}
+
+void single(const dindex value, dindex& check) {
+    dindex* result{nullptr};
+    cudaMallocManaged(&result, sizeof(dindex));
+    *result = 0;
+
+    // run the kernel
+    single_kernel<<<1, 1>>>(value, result);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+
+    check = *result;
+    cudaFree(result);
+}
+
+/*__global__ void sequence_single_kernel(
     vecmem::data::vector_view<dindex> check_data,
     vecmem::data::vector_view<dindex> single_data) {
 
@@ -105,6 +129,6 @@ void iterate_range(vecmem::data::vector_view<int>& check_data,
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}
+}*/
 
 }  // namespace detray

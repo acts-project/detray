@@ -121,7 +121,6 @@ detray_add_library( detray_core core
    "include/detray/utils/ranges/ranges.hpp"
    "include/detray/utils/ranges/single.hpp"
    "include/detray/utils/ranges/subrange.hpp"
-   "include/detray/utils/algebra_helpers.hpp"
    "include/detray/utils/invalid_values.hpp"
    "include/detray/utils/quadratic_equation.hpp"
    "include/detray/utils/ratio.hpp"

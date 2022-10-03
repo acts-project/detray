@@ -55,19 +55,19 @@ using std::prev;
 /// @{
 template <class R>
 using iterator_t = decltype(detray::ranges::begin(
-    std::declval<std::remove_reference_t<std::remove_cv_t<R>>&>()));
+    std::declval<std::remove_reference_t<R>&>()));
 
 template <class R>
 using const_iterator_t = decltype(detray::ranges::begin(
     std::declval<const std::remove_reference_t<R>&>()));
 
 template <class R>
-using sentinel_t = decltype(detray::ranges::end(
-    std::declval<std::remove_reference_t<std::remove_cv_t<R>>&>()));
+using sentinel_t =
+    decltype(detray::ranges::end(std::declval<std::remove_reference_t<R>&>()));
 
 template <class R>
-using range_size_t = decltype(detray::ranges::size(
-    std::declval<std::remove_reference_t<std::remove_cv_t<R>>&>()));
+using range_size_t =
+    decltype(detray::ranges::size(std::declval<std::remove_reference_t<R>&>()));
 
 template <class R>
 using range_difference_t = typename std::iterator_traits<

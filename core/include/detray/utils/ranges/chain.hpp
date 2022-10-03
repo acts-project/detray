@@ -56,13 +56,11 @@ struct chain_view
         : m_begins{detray::ranges::cbegin(ranges)...},
           m_ends{detray::ranges::cend(ranges)...} {}
 
-    /// Copy assignment operator (otherwise implicitely deleted due to reference
-    /// members)
+    /// Copy assignment operator
     DETRAY_HOST_DEVICE
     chain_view &operator=(const chain_view &other) {
         m_begins = other.m_begins;
         m_ends = other.m_ends;
-
         return *this;
     }
 
@@ -80,26 +78,26 @@ struct chain_view
     /// @returns a pointer to the beginning of the data of the first underlying
     /// range - const
     DETRAY_HOST_DEVICE
-    constexpr auto data() const noexcept -> const value_t * {
+    constexpr auto data() const -> const value_t * {
         return &(*(detray::detail::get<0>(m_begins())));
     }
 
     /// @returns a pointer to the beginning of the data of the first underlying
     /// range - non-const
     DETRAY_HOST_DEVICE
-    constexpr auto data() noexcept -> value_t * {
+    constexpr auto data() -> value_t * {
         return &(*(detray::detail::get<0>(m_begins())));
     }
 
     /// @returns sum of the number elements of all ranges in the chain
     DETRAY_HOST_DEVICE
-    constexpr auto size() const noexcept ->
-        typename std::iterator_traits<range_itr_t>::difference_type {
+    constexpr auto size() const noexcept -> std::size_t {
         std::size_t size{0};
         for (std::size_t i{0}; i < I; ++i) {
             const range_itr_t &begin = m_begins[i];
             const range_itr_t &end = m_ends[i];
-            size += detray::ranges::distance(begin, end);
+            size +=
+                static_cast<std::size_t>(detray::ranges::distance(begin, end));
         }
         return size;
     }
@@ -148,15 +146,13 @@ namespace detail {
 /// @brief Sequentially iterate through multiple ranges of the same type.
 ///
 /// Once the sentinel of one range is reached, set the current iterator to the
-/// next ranges 'begin' and update the sentinel.
+/// next ranges 'begin'.
 ///
 /// @tparam iterator_coll_t type of iterator collection of ranges to be chained.
 ///         Can contain const iterators.
 ///
 /// @note The iterator must not be typed on the current range index, so that
 /// begin and sentinel type are the same.
-/// @todo Add Comparability to fulfill random access iterator traits once
-///       needed.
 template <typename iterator_coll_t>
 struct chain_iterator {
 
@@ -187,9 +183,6 @@ struct chain_iterator {
         : m_begins(&begins), m_ends(&ends), m_iter{current}, m_idx{i} {}
 
     /// @returns true if it points to the same value.
-    template <typename T = iterator_category,
-              std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
-                               bool> = true>
     DETRAY_HOST_DEVICE constexpr bool operator==(
         const chain_iterator &rhs) const {
         return m_iter == rhs.m_iter;
@@ -197,21 +190,14 @@ struct chain_iterator {
 
     /// @returns false if it points to the same value (usually the global
     /// sentinel of the chain).
-    template <typename T = iterator_category,
-              std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
-                               bool> = true>
     DETRAY_HOST_DEVICE constexpr bool operator!=(
         const chain_iterator &rhs) const {
         return m_iter != rhs.m_iter;
     }
 
     /// Increment current iterator and check for switch between ranges.
-    template <typename T = iterator_category,
-              std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
-                               bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator++() -> chain_iterator & {
         ++m_iter;
-
         // Switch to next range in the collection
         constexpr std::size_t max_idx =
             sizeof(iterator_coll_t) / sizeof(iterator_t) - 1;
@@ -228,33 +214,24 @@ struct chain_iterator {
         std::enable_if_t<std::is_base_of_v<std::bidirectional_iterator_tag, T>,
                          bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator--() -> chain_iterator & {
-
         if (m_iter != (*m_begins)[m_idx] and m_idx > 0) {
             // Normal case
             --m_idx;
             --m_iter;
         } else if (m_idx > 0) {
             // Iterator has reached last valid position in this range during the
-            // previous decrement. Now go to the end of the next range
+            // previous decrement. Now go to the end of the previous range
             --m_idx;
             m_iter = (*m_ends)[m_idx] - difference_type{1};
         }
         return *this;
     }
 
-    /// @returns the single value that the iterator points to - const
-    template <typename T = iterator_category,
-              std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator*() const -> const value_type & {
-        return *m_iter;
-    }
-
     /// @returns the single value that the iterator points to.
-    template <typename T = iterator_category,
-              std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, T>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE auto operator*() -> value_type & {
+    DETRAY_HOST_DEVICE auto operator*() -> value_type & { return *m_iter; }
+
+    /// @returns the single value that the iterator points to - const
+    DETRAY_HOST_DEVICE constexpr auto operator*() const -> const value_type & {
         return *m_iter;
     }
 
@@ -287,9 +264,7 @@ struct chain_iterator {
                          bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-(const difference_type j) const
         -> chain_iterator {
-        chain_iterator<iterator_coll_t> tmp(*this);
-
-        return tmp + (-j);
+        return *this + (-j);
     }
 
     /// @returns the positional difference between two iterators
@@ -309,7 +284,6 @@ struct chain_iterator {
                 diff += (*m_begins)[i] - (*m_ends)[i];
             }
             diff += (*other.m_begins)[m_idx] - other.m_iter;
-
             return diff;
         } else {
             // Positive distance
@@ -340,7 +314,6 @@ struct chain_iterator {
                 --(*this);
             };
         }
-
         return *this;
     }
 

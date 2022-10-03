@@ -128,7 +128,7 @@ TEST(utils, ranges_empty) {
 // Unittest for the generation of a single element sequence
 TEST(utils, ranges_single) {
 
-    dindex value{251UL};
+    const dindex value{251UL};
 
     auto sngl = detray::views::single(value);
 
@@ -136,8 +136,7 @@ TEST(utils, ranges_single) {
     static_assert(std::is_copy_assignable_v<decltype(sngl)>);
     static_assert(detray::ranges::range_v<decltype(sngl)>);
     static_assert(detray::ranges::view<decltype(sngl)>);
-    static_assert(detray::ranges::bidirectional_range_v<decltype(sngl)>);
-    static_assert(not detray::ranges::random_access_range_v<decltype(sngl)>);
+    static_assert(detray::ranges::random_access_range_v<decltype(sngl)>);
 
     // Test prerequisits for LagacyIterator
     static_assert(

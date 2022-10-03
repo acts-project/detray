@@ -19,22 +19,29 @@
 
 namespace detray {
 
-void sequence_single(vecmem::data::vector_view<dindex>& check_data,
-                     vecmem::data::vector_view<dindex>& single_data);
+/// Test @c detray::views::single
+void single(const dindex value, dindex& check);
 
-void sequence_range(const darray<dindex, 2> range,
-                    vecmem::data::vector_view<dindex>& check_data);
+/*void iota(vecmem::data::vector_view<dindex>& check_data,
+          const darray<dindex, 2> interval);
 
 struct uint_holder {
     unsigned int ui = 0;
 };
 
-void enumerate_sequence(vecmem::data::vector_view<dindex>& idx_data,
+void enumerate(,
+                vecmem::data::vector_view<dindex>& check_data);
+
+void chain(vecmem::data::vector_view<dindex>& idx_data,
                         vecmem::data::vector_view<unsigned int>& uint_data,
                         vecmem::data::vector_view<uint_holder>& seq_data);
 
-void iterate_range(vecmem::data::vector_view<int>& check_data,
+void pick(vecmem::data::vector_view<int>& check_data,
                    vecmem::data::vector_view<int>& seq_data,
                    const size_t& begin, const size_t& end);
+
+void subrange(vecmem::data::vector_view<int>& check_data,
+                   vecmem::data::vector_view<int>& seq_data,
+                   const size_t& begin, const size_t& end);*/
 
 }  // namespace detray

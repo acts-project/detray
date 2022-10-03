@@ -132,7 +132,7 @@ class volume_graph {
                 return *this;
             }
 
-            /// Prefix increment. No postfix increment implemented
+            /// Prefix decrement. No postfix decrement implemented
             iterator &operator--() {
                 --_vol_itr;
                 return *this;
@@ -144,7 +144,7 @@ class volume_graph {
                 return {_vol_itr + j, _surfaces};
             }
 
-            /// @returns an iterator that has been advanced by @param j
+            /// @returns an iterator that has been advanced by - @param j
             constexpr auto operator-(const difference_type j) const
                 -> iterator {
                 return *this + -j;
@@ -164,7 +164,7 @@ class volume_graph {
 
             /// Advances iterator by - @param j
             constexpr auto operator-=(const difference_type j) -> iterator & {
-                return *this += j;
+                return *this += -j;
             }
 
             /// Iterator over the detector volume container
@@ -175,6 +175,9 @@ class volume_graph {
 
         /// Node iterator type
         using iterator_t = iterator;
+
+        /// No default constructor (holds member reference)
+        node_generator() = delete;
 
         /// Constructor from a detector containers
         node_generator(const volume_container_t &volumes,
@@ -251,6 +254,9 @@ class volume_graph {
             }
         };
 
+        /// No default constructor (holds member reference)
+        edge_generator() = delete;
+
         /// Constructor from the detector masks store.
         edge_generator(const typename detector_t::mask_container &masks,
                        const dindex volume_id = 0,
@@ -315,7 +321,11 @@ class volume_graph {
     const auto &nodes() const { return _nodes; }
 
     /// @return number of surfaces/portals in the geometry */
-    // size_t n_edges() const { return _edges.size(); }
+    size_t n_edges(dindex volume_id) const {
+        const node_type n = _nodes[volume_id];
+        // Number of half_edges is equal to number of edges for volume
+        return n.half_edges().size();
+    }
 
     /// @return edges collection - const access.
     const auto &edges() const { return _edges; }
