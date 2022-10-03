@@ -26,114 +26,64 @@ template <typename value_t>
 class single_view
     : public detray::ranges::view_interface<single_view<value_t>> {
 
-    private:
-    /// @brief Emulates iterator behaviour for a single value.
-    struct iterator
-        : public std::iterator<std::bidirectional_iterator_tag, value_t> {
-
-        iterator() = default;
-
-        DETRAY_HOST_DEVICE
-        iterator(value_t *const value, value_t *const sentinel)
-            : m_value{value}, m_sentinel{sentinel} {}
-
-        /// @returns true if it points to the same value.
-        DETRAY_HOST_DEVICE
-        constexpr auto operator==(const iterator &rhs) const -> bool {
-            return m_value == rhs.m_value;
-        }
-
-        /// @returns false if it points to the same value.
-        DETRAY_HOST_DEVICE
-        constexpr auto operator!=(const iterator &rhs) const -> bool {
-            return m_value != rhs.m_value;
-        }
-
-        /// Advance pointer to end immediately
-        DETRAY_HOST_DEVICE
-        constexpr auto operator++() -> iterator & {
-            m_value = m_sentinel;
-            return *this;
-        }
-
-        /// Advance pointer to end immediately
-        DETRAY_HOST_DEVICE
-        constexpr auto operator--() -> iterator & {
-            m_value = m_sentinel;
-            return *this;
-        }
-
-        /// @returns the single value that the iterator points to - const
-        DETRAY_HOST_DEVICE
-        constexpr auto operator*() const -> const value_t & { return *m_value; }
-
-        /// @returns the single value that the iterator points to
-        DETRAY_HOST_DEVICE
-        constexpr auto operator*() -> value_t & { return *m_value; }
-
-        value_t *m_value, *m_sentinel;
-    };
-
-    /// Start and end values of the sequence
-    value_t *m_sentinel{nullptr};
-    iterator m_begin{nullptr, nullptr}, m_end{nullptr, nullptr};
-
     public:
-    using iterator_t = iterator;
+    using iterator_t = value_t*;
 
     /// Default constructor
     single_view() = default;
 
-    /// Construct iterator from the single @param value this iterator points to.
-    DETRAY_HOST_DEVICE constexpr explicit single_view(value_t &value)
-        : m_sentinel{&value},
-          m_begin{&value, m_sentinel},
-          m_end{m_sentinel, m_sentinel} {}
+    /// Construct iterator from the single @param value - copy
+    DETRAY_HOST_DEVICE constexpr explicit single_view(const value_t& value)
+        : m_value{value} {}
 
-    /// Construct iterator from the single @param value this iterator points to
-    /// - const
-    DETRAY_HOST_DEVICE constexpr explicit single_view(const value_t &value)
-        : m_sentinel{&value},
-          m_begin{&value, m_sentinel},
-          m_end{m_sentinel, m_sentinel} {}
+    /// Construct iterator from the single @param value - move
+    DETRAY_HOST_DEVICE constexpr explicit single_view(value_t&& value)
+        : m_value{std::move(value)} {}
+
+    /// Construct value in place from @param args
+    template <class... Args>
+    DETRAY_HOST_DEVICE constexpr single_view(std::in_place_t, Args&&... args)
+        : m_value{std::in_place, std::forward<Args>(args)...} {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
-    single_view &operator=(const single_view &other) {
-        m_sentinel = other.m_sentinel;
-        m_begin = other.m_begin;
-        m_end = other.m_end;
-
+    single_view& operator=(const single_view& other) {
+        m_value = other.m_value;
         return *this;
     };
 
-    /// @return start position.
+    /// @returns value pointer.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const noexcept -> iterator { return m_begin; }
+    constexpr auto begin() noexcept -> value_t* { return &m_value; }
 
-    /// @return sentinel.
+    /// @returns value pointer - const
     DETRAY_HOST_DEVICE
-    constexpr auto end() const noexcept -> iterator { return m_end; }
+    constexpr auto begin() const noexcept -> const value_t* { return &m_value; }
 
-    /// @returns a pointer to the beginning of the data of the first underlying
-    /// range - const
+    /// @returns sentinel position.
     DETRAY_HOST_DEVICE
-    constexpr auto data() const noexcept -> const
-        typename iterator_t::value_type * {
-        return m_begin.m_value;
+    constexpr auto end() noexcept -> value_t* { return &m_value + 1; }
+
+    /// @returns sentinel position - const
+    DETRAY_HOST_DEVICE
+    constexpr auto end() const noexcept -> const value_t* {
+        return &m_value + 1;
     }
 
-    /// @returns a pointer to the beginning of the data of the first underlying
-    /// range - non-const
+    /// @returns a pointer to the beginning of the data
     DETRAY_HOST_DEVICE
-    constexpr auto data() noexcept -> typename iterator_t::value_type * {
-        return m_begin.m_value;
-    }
+    constexpr auto data() noexcept -> value_t* { return &m_value; }
+
+    /// @returns a pointer to the beginning of the data - const
+    DETRAY_HOST_DEVICE
+    constexpr auto data() const noexcept -> const value_t* { return &m_value; }
 
     /// @returns the size of the single view, which is always 'one'.
-    /// @note overwrites the inherited function from the view interface.
     DETRAY_HOST_DEVICE
-    constexpr auto size() const noexcept -> std::size_t { return 1; }
+    static constexpr auto size() noexcept -> std::size_t { return 1; }
+
+    private:
+    value_t m_value{};
 };
 
 namespace views {
@@ -147,21 +97,22 @@ struct single : public detray::ranges::single_view<value_t> {
     constexpr single() = default;
 
     template <typename deduced_value_t>
-    DETRAY_HOST_DEVICE constexpr explicit single(deduced_value_t &value)
+    DETRAY_HOST_DEVICE constexpr explicit single(const deduced_value_t& value)
         : base_type(value) {}
 
     template <typename deduced_value_t>
-    DETRAY_HOST_DEVICE constexpr explicit single(const deduced_value_t &value)
-        : base_type(value) {}
+    DETRAY_HOST_DEVICE constexpr explicit single(deduced_value_t&& value)
+        : base_type(std::forward<deduced_value_t>(value)) {}
+
+    template <class... Args>
+    DETRAY_HOST_DEVICE constexpr single(std::in_place_t, Args&&... args)
+        : base_type(std::in_place, std::forward<Args>(args)...) {}
 };
 
 // deduction guides
 
 template <typename deduced_value_t>
-single(deduced_value_t &value) -> single<deduced_value_t>;
-
-template <typename deduced_value_t>
-single(const deduced_value_t &value) -> single<const deduced_value_t>;
+single(deduced_value_t) -> single<deduced_value_t>;
 
 }  // namespace views
 

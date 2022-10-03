@@ -9,38 +9,26 @@
 
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
-#include "utils_enumerate_cuda_kernel.hpp"
+#include "utils_ranges_cuda_kernel.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
 using namespace detray;
 
-// This tests the convenience range_enumeration function: single
-TEST(utils_enumerate_cuda, sequence_single) {
+// This tests the single value view
+TEST(utils_ranges_cuda, single) {
 
-    // memory resource
-    vecmem::cuda::managed_memory_resource managed_resource;
-
-    // Input integer (single element vector) as the number of iteration
-    vecmem::vector<dindex> single(&managed_resource);
-    single.push_back(7);
-
-    // Output integer (single element vector) to count the number of iteration
-    vecmem::vector<dindex> check(&managed_resource);
-    check.push_back(0);
-
-    // Get vector_data object
-    auto check_data = vecmem::get_data(check);
-    auto single_data = vecmem::get_data(single);
+    dindex value{251UL};
+    dindex check{std::numeric_limits<dindex>::max()};
 
     // Run the test code
-    sequence_single(check_data, single_data);
+    single(value, check);
 
-    // Check the result
-    ASSERT_EQ(check[0], single[0]);
+    // Check result value
+    ASSERT_EQ(value, check);
 }
 
 // This tests the convenience range_enumeration function: range
-TEST(utils_enumerate_cuda, sequence_range) {
+/*TEST(utils_ranges_cuda, sequence_range) {
 
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;
@@ -73,7 +61,7 @@ TEST(utils_enumerate_cuda, sequence_range) {
 }
 
 // This tests the convenience enumeration function
-TEST(utils_enumerate_cuda, enumerate_sequence) {
+TEST(utils_ranges_cuda, enumerate_sequence) {
 
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;
@@ -117,7 +105,7 @@ TEST(utils_enumerate_cuda, enumerate_sequence) {
 }
 
 // This tests the restricted iterator
-TEST(utils_enumerate_cuda, range) {
+TEST(utils_ranges_cuda, range) {
 
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;
@@ -152,4 +140,4 @@ TEST(utils_enumerate_cuda, range) {
     ASSERT_EQ(check[0], 1);
     ASSERT_EQ(check[1], 2);
     ASSERT_EQ(check[2], 3);
-}
+}*/
