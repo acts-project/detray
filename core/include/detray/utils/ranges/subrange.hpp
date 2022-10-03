@@ -10,6 +10,7 @@
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges/ranges.hpp"
+#include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -53,8 +54,9 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
         std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true>
     DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
                                           range_size_t pos)
-        : m_begin{detray::ranges::begin(std::forward<deduced_range_t>(range)) +
-                  pos},
+        : m_begin{detray::ranges::next(
+              detray::ranges::begin(std::forward<deduced_range_t>(range)),
+              pos)},
           m_end{detray::ranges::next(m_begin)} {}
 
     /// Construct from a @param range and an index range provided by a volume
@@ -82,17 +84,18 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
             true>
     DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
                                           index_range_t &&pos)
-        : m_begin{detray::ranges::begin(std::forward<deduced_range_t>(range)) +
-                  detray::detail::get<0>(pos)},
-          m_end{detray::ranges::begin(std::forward<deduced_range_t>(range)) +
-                detray::detail::get<1>(pos)} {}
+        : m_begin{detray::ranges::next(
+              detray::ranges::begin(std::forward<deduced_range_t>(range)),
+              detray::detail::get<0>(pos))},
+          m_end{detray::ranges::next(
+              detray::ranges::begin(std::forward<deduced_range_t>(range)),
+              detray::detail::get<1>(pos))} {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
     subrange &operator=(const subrange &other) {
         m_begin = other.m_begin;
         m_end = other.m_end;
-
         return *this;
     };
 

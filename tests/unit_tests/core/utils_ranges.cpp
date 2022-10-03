@@ -179,12 +179,10 @@ TEST(utils, ranges_iota_single) {
     static_assert(std::is_destructible_v<typename decltype(seq)::iterator_t>);
 
     // Test inherited member functions
-    ASSERT_EQ(seq[1], single + 1);
     ASSERT_EQ(seq.size(), 1UL);
     ASSERT_EQ(seq.front(), 7UL);
-    ASSERT_EQ(seq.back(), 7UL);
 
-    for (auto i : seq) {
+    for (auto& i : seq) {
         check += i;
     }
     ASSERT_EQ(check, single);
@@ -212,14 +210,12 @@ TEST(utils, ranges_iota_interval) {
     static_assert(std::is_destructible_v<typename decltype(seq)::iterator_t>);
 
     // Test inherited member functions
-    ASSERT_EQ(seq[1], 3UL);
     ASSERT_EQ(seq.size(), 5UL);
     ASSERT_EQ(seq.front(), 2UL);
-    ASSERT_EQ(seq.back(), 6UL);
 
     std::vector<dindex> reference = {2, 3, 4, 5, 6};
     std::vector<dindex> check = {};
-    for (auto i : seq) {
+    for (auto& i : seq) {
         check.push_back(i);
     }
     ASSERT_EQ(check.size(), reference.size());
@@ -318,8 +314,8 @@ TEST(utils, ranges_pick) {
     ASSERT_EQ(check, indices);
 }
 
-// Unittest for the chaining of multiple ranges
-TEST(utils, ranges_chain) {
+// Unittest for the joining of multiple ranges
+TEST(utils, ranges_join) {
 
     dvector<dindex> interval_1 = {2, 3, 4};
     dvector<dindex> interval_2 = {7, 8, 9};
@@ -327,30 +323,30 @@ TEST(utils, ranges_chain) {
     std::vector<dindex> reference = {2, 3, 4, 7, 8, 9};
     std::vector<dindex> check = {};
 
-    auto chained = detray::views::chain(interval_1, interval_2);
+    auto joined = detray::views::join(interval_1, interval_2);
 
     // general tests
-    static_assert(detray::ranges::range_v<decltype(chained)>);
-    static_assert(detray::ranges::view<decltype(chained)>);
-    static_assert(std::is_copy_assignable_v<decltype(chained)>);
-    static_assert(detray::ranges::random_access_range_v<decltype(chained)>);
+    static_assert(detray::ranges::range_v<decltype(joined)>);
+    static_assert(detray::ranges::view<decltype(joined)>);
+    static_assert(std::is_copy_assignable_v<decltype(joined)>);
+    static_assert(detray::ranges::random_access_range_v<decltype(joined)>);
 
     // Test prerequisits for LagacyIterator
     static_assert(
-        std::is_copy_constructible_v<typename decltype(chained)::iterator_t>);
+        std::is_copy_constructible_v<typename decltype(joined)::iterator_t>);
     static_assert(
-        std::is_copy_assignable_v<typename decltype(chained)::iterator_t>);
+        std::is_copy_assignable_v<typename decltype(joined)::iterator_t>);
     static_assert(
-        std::is_destructible_v<typename decltype(chained)::iterator_t>);
+        std::is_destructible_v<typename decltype(joined)::iterator_t>);
 
     // Test inherited member functions
-    ASSERT_EQ(chained[1], 3UL);
-    ASSERT_EQ(chained[4], 8UL);
-    ASSERT_EQ(chained.size(), 6UL);
-    ASSERT_EQ(chained.front(), 2UL);
-    ASSERT_EQ(chained.back(), 9UL);
+    ASSERT_EQ(joined[1], 3UL);
+    ASSERT_EQ(joined[4], 8UL);
+    ASSERT_EQ(joined.size(), 6UL);
+    ASSERT_EQ(joined.front(), 2UL);
+    ASSERT_EQ(joined.back(), 9UL);
 
-    for (const auto j : chained) {
+    for (const auto j : joined) {
         check.push_back(j);
     }
     ASSERT_EQ(check.size(), reference.size());
@@ -387,7 +383,7 @@ TEST(utils, ranges_subrange) {
 
     // non-const iteration
     std::size_t i = 1;
-    for (const auto &v : sr) {
+    for (const auto& v : sr) {
         ASSERT_NE(v, 0);
         ASSERT_NE(v, 4);
         ASSERT_EQ(v, seq[i++]);
@@ -396,7 +392,7 @@ TEST(utils, ranges_subrange) {
     // const iteration
     const dvector<int> seq_c(seq);
     i = 1;
-    for (const auto &v : detray::ranges::subrange(seq_c, interval)) {
+    for (const auto& v : detray::ranges::subrange(seq_c, interval)) {
         ASSERT_EQ(v, seq[i++]);
     }
 }
@@ -448,7 +444,7 @@ TEST(utils, ranges_enumerated_subrange) {
 }
 
 // Integration test for the picking of indexed elements from another range
-TEST(utils, ranges_pick_chained_sequence) {
+TEST(utils, ranges_pick_joined_sequence) {
 
     darray<dindex, 2> interval_1 = {2, 4};
     darray<dindex, 2> interval_2 = {7, 9};
@@ -463,8 +459,8 @@ TEST(utils, ranges_pick_chained_sequence) {
 
     dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}};
 
-    auto indices = detray::views::chain(detray::views::iota(interval_1),
-                                        detray::views::iota(interval_2));
+    auto indices = detray::views::join(detray::views::iota(interval_1),
+                                       detray::views::iota(interval_2));
     auto selected = detray::views::pick(seq, indices);
 
     // Check iterator category

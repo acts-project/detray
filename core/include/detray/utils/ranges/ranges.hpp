@@ -6,6 +6,7 @@
  */
 #pragma once
 
+// Thrust include(s)
 #if defined(__CUDACC__)
 #include <thrust/iterator/iterator_categories.h>
 #endif
@@ -13,6 +14,7 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <iterator>
@@ -35,13 +37,12 @@ using bidirectional_iterator_tag = std::bidirectional_iterator_tag;
 using random_access_iterator_tag = std::random_access_iterator_tag;
 #endif
 
-/// @brief Provides c++17 detray iterators in std::ranges style, meant to be
-////       used in device code.
+/// @brief Provides c++17 detray iterators in a simplified std::ranges style,
+///        meant to be used in device code.
 ///
 /// @note Does make use of concepts and des not implement full ranges standard
 /// (e.g. not every requirement is modelled, range/view complexity guarantees
-/// are not given and there is no lazy-evaluation).
-/// missing: ranges::sized_range, ranges::viewable_range, ranges::constant_range
+/// are not strictly given and there is no lazy-evaluation).
 ///
 /// @see https://en.cppreference.com/w/cpp/ranges
 /// @{
@@ -73,32 +74,30 @@ using std::prev;
 /// @see https://en.cppreference.com/w/cpp/ranges/iterator_t
 /// @{
 template <class R>
-using iterator_t = decltype(detray::ranges::begin(
-    std::declval<std::remove_reference_t<R>&>()));
+using iterator_t = decltype(detray::ranges::begin(std::declval<R&>()));
+
+template <class R>
+using sentinel_t = decltype(detray::ranges::end(std::declval<R&>()));
 
 template <class R>
 using const_iterator_t = decltype(detray::ranges::begin(
     std::declval<const std::remove_reference_t<R>&>()));
 
 template <class R>
-using sentinel_t =
-    decltype(detray::ranges::end(std::declval<std::remove_reference_t<R>&>()));
+using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));
 
 template <class R>
-using range_size_t =
-    decltype(detray::ranges::size(std::declval<std::remove_reference_t<R>&>()));
+using range_difference_t =
+    typename std::iterator_traits<detray::ranges::iterator_t<
+        detray::detail::remove_cvref_t<R>>>::difference_type;
 
 template <class R>
-using range_difference_t = typename std::iterator_traits<
-    detray::ranges::iterator_t<R>>::difference_type;
+using range_value_t = typename std::iterator_traits<
+    detray::ranges::iterator_t<detray::detail::remove_cvref_t<R>>>::value_type;
 
 template <class R>
-using range_value_t =
-    typename std::iterator_traits<detray::ranges::iterator_t<R>>::value_type;
-
-template <class R>
-using range_reference_t =
-    typename std::iterator_traits<detray::ranges::iterator_t<R>>::reference;
+using range_reference_t = typename std::iterator_traits<
+    detray::ranges::iterator_t<detray::detail::remove_cvref_t<R>>>::reference;
 
 template <class R>
 using range_const_reference_t = const range_reference_t<R>;
@@ -172,6 +171,20 @@ inline constexpr bool contiguous_range_v = range_v<R> and
 std::is_base_of_v<detray::ranges::contiguous_iterator_tag, typename
 std::iterator_traits<detray::ranges::iterator_t<R>>::iterator_category>;*/
 
+/// @see https://en.cppreference.com/w/cpp/ranges/sized_range
+template <class R>
+inline constexpr bool disable_sized_range = false;
+
+/// Base case: The type is not a 'sized range'
+template <class R, typename = void>
+struct sized_range : public std::false_type {};
+
+/// @brief A function 'size' is implemented for the range @tparam R
+template <class R>
+struct sized_range<R, std::enable_if_t<detray::ranges::range_v<R> and
+                                           std::is_integral_v<range_size_t>,
+                                       void>> : public std::true_type {};
+
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_range
 template <class R>
 inline constexpr bool enable_borrowed_range = false;
@@ -210,40 +223,75 @@ inline constexpr bool common_range =
 /// Tags a type as a view
 struct base_view {};
 
-/// Defines a detray 'view'
+/// Defines a detray 'view'. For now, the views have to restrict the member
+/// functions themselves (i.e. forward, bidirectional, random access)
 template <typename view_impl_t>
-struct view_interface : public base_view {
+class view_interface : public base_view {
 
+    public:
     constexpr view_interface() = default;
 
+    /// @note requires forward range
     DETRAY_HOST_DEVICE
-    constexpr auto empty() const noexcept -> bool {
-        return (m_impl_ptr->begin() == m_impl_ptr->end());
+    constexpr auto empty() const -> bool {
+        return (_impl_ptr->begin() == _impl_ptr->end());
     }
 
     DETRAY_HOST_DEVICE
-    constexpr auto data() noexcept { return &(*(m_impl_ptr->begin())); }
-
-    DETRAY_HOST_DEVICE
-    constexpr auto size() noexcept {
-        return detray::ranges::distance(m_impl_ptr->begin(), m_impl_ptr->end());
+    constexpr explicit operator bool() const {
+        return !detray::ranges::empty(*_impl_ptr);
     }
 
+    /// @note requires contiguous range
     DETRAY_HOST_DEVICE
-    constexpr auto front() noexcept { return *(m_impl_ptr->begin()); }
+    constexpr auto data() const { return &(*(_impl_ptr->begin())); }
 
+    /// @note requires contiguous range
     DETRAY_HOST_DEVICE
-    constexpr auto back() noexcept {
-        const auto i = size();
-        return *detray::ranges::next(m_impl_ptr->begin(), i - decltype(i){1});
+    constexpr auto data() { return &(*(_impl_ptr->begin())); }
+
+    /// @note requires forward range
+    DETRAY_HOST_DEVICE
+    constexpr auto size() const {
+        return detray::ranges::distance(_impl_ptr->begin(), _impl_ptr->end());
     }
 
+    /// @note requires forward range
     DETRAY_HOST_DEVICE
-    constexpr auto operator[](const dindex i) const {
-        return *detray::ranges::next(m_impl_ptr->begin(), i);
+    constexpr auto front() const { return *(_impl_ptr->begin()); }
+
+    /// @note requires forward range
+    DETRAY_HOST_DEVICE
+    constexpr auto front() { return *(_impl_ptr->begin()); }
+
+    /// @note requires bidirectional range
+    DETRAY_HOST_DEVICE
+    constexpr decltype(auto) back() const {
+        auto sentinel = _impl_ptr->end();
+        return *(--sentinel);
     }
 
-    view_impl_t* const m_impl_ptr{static_cast<view_impl_t*>(this)};
+    /// @note requires bidirectional range
+    DETRAY_HOST_DEVICE
+    constexpr decltype(auto) back() {
+        auto sentinel = _impl_ptr->end();
+        return *(--sentinel);
+    }
+
+    /// @note requires random access range
+    DETRAY_HOST_DEVICE
+    constexpr decltype(auto) operator[](const dindex i) const {
+        return *(_impl_ptr->begin() + i);
+    }
+
+    /// @note requires random access range
+    DETRAY_HOST_DEVICE
+    constexpr decltype(auto) operator[](const dindex i) {
+        return *(_impl_ptr->begin() + i);
+    }
+
+    private:
+    view_impl_t* const _impl_ptr{static_cast<view_impl_t*>(this)};
 };
 
 /// View traits
@@ -255,6 +303,11 @@ inline constexpr bool enable_view =
 template <class R>
 inline constexpr bool view = detray::ranges::range_v<R>and std::is_object_v<R>&&
     std::is_move_constructible_v<R>and enable_view<R>;
+
+template <class R>
+inline constexpr bool viewable_range =
+    detray::ranges::range_v<R> &&
+    (borrowed_range<R> || view<detray::detail::remove_cvref_t<R>>);
 /// @}
 
 }  // namespace detray::ranges

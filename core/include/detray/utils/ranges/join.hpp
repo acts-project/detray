@@ -20,45 +20,49 @@ namespace detray::ranges {
 namespace detail {
 
 template <typename T>
-struct chain_iterator;
+struct join_iterator;
 
 }
 
-/// @brief Range adaptor that chains together different ranges of the same type.
+/// @brief Range adaptor that joins together different ranges of the same type.
 ///
-/// @tparam I the number of ranges in the chain.
+/// @see https://en.cppreference.com/w/cpp/ranges/join_view
+///
+/// @tparam I the number of ranges in the join.
 /// @tparam range_itr_t the iterator type of the ranges.
 ///
+/// @note Static implementation: The number of ranges needs to be know at
+/// compile time
 /// @note Does not take ownership of the ranges it operates on. Their lifetime
 /// needs to be guranteed throughout iteration or between iterations with the
-/// same chain instance.
+/// same join instance.
 /// @note Is not fit for lazy evaluation.
 template <std::size_t I, typename range_itr_t>
-struct chain_view
-    : public detray::ranges::view_interface<chain_view<I, range_itr_t>> {
+struct join_view
+    : public detray::ranges::view_interface<join_view<I, range_itr_t>> {
 
     using iterator_coll_t = std::array<range_itr_t, I>;
-    using iterator_t = detray::ranges::detail::chain_iterator<iterator_coll_t>;
+    using iterator_t = detray::ranges::detail::join_iterator<iterator_coll_t>;
     using value_t = typename std::iterator_traits<iterator_t>::value_type;
 
     /// Default constructor
-    constexpr chain_view() = default;
+    constexpr join_view() = default;
 
     /// Construct from a pack of @param ranges.
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit chain_view(ranges_t &&...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit join_view(ranges_t &&...ranges)
         : m_begins{detray::ranges::begin(ranges)...},
           m_ends{detray::ranges::end(ranges)...} {}
 
     /// Construct from a pack of @param ranges - const
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit chain_view(const ranges_t &...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit join_view(const ranges_t &...ranges)
         : m_begins{detray::ranges::cbegin(ranges)...},
           m_ends{detray::ranges::cend(ranges)...} {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
-    chain_view &operator=(const chain_view &other) {
+    join_view &operator=(const join_view &other) {
         m_begins = other.m_begins;
         m_ends = other.m_ends;
         return *this;
@@ -71,7 +75,7 @@ struct chain_view
     /// @return sentinel of the range.
     DETRAY_HOST_DEVICE
     constexpr auto end() const -> iterator_t {
-        // Build a chained itr from the last value in the iterator collection
+        // Build a joined itr from the last value in the iterator collection
         return {m_begins, m_ends, detray::detail::get<I - 1>(m_ends), I - 1};
     }
 
@@ -89,7 +93,7 @@ struct chain_view
         return &(*(detray::detail::get<0>(m_begins())));
     }
 
-    /// @returns sum of the number elements of all ranges in the chain
+    /// @returns sum of the number elements of all ranges in the join
     DETRAY_HOST_DEVICE
     constexpr auto size() const noexcept -> std::size_t {
         std::size_t size{0};
@@ -108,36 +112,34 @@ struct chain_view
 
 namespace views {
 
-/// @brief interface type to construct a @c chain_view with CTAD
+/// @brief interface type to construct a @c join_view with CTAD
 template <std::size_t I, typename range_itr_t>
-struct chain : public ranges::chain_view<I, range_itr_t> {
+struct join : public ranges::join_view<I, range_itr_t> {
 
-    using base_type = ranges::chain_view<I, range_itr_t>;
+    using base_type = ranges::join_view<I, range_itr_t>;
 
-    constexpr chain() = default;
+    constexpr join() = default;
 
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit chain(const ranges_t &...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit join(const ranges_t &...ranges)
         : base_type(ranges...) {}
 
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit chain(ranges_t &&...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit join(ranges_t &&...ranges)
         : base_type(std::forward<ranges_t>(ranges)...) {}
 };
 
 // deduction guides
 
 template <typename... ranges_t>
-DETRAY_HOST_DEVICE chain(const ranges_t &...ranges)
-    ->chain<sizeof...(ranges_t),
-            typename detray::ranges::const_iterator_t<
-                detray::detail::first_t<ranges_t...>>>;
+DETRAY_HOST_DEVICE join(const ranges_t &...ranges)
+    ->join<sizeof...(ranges_t), typename detray::ranges::const_iterator_t<
+                                    detray::detail::first_t<ranges_t...>>>;
 
 template <typename... ranges_t>
-DETRAY_HOST_DEVICE chain(ranges_t &&...ranges)
-    ->chain<sizeof...(ranges_t),
-            typename detray::ranges::iterator_t<
-                detray::detail::first_t<ranges_t...>>>;
+DETRAY_HOST_DEVICE join(ranges_t &&...ranges)
+    ->join<sizeof...(ranges_t), typename detray::ranges::iterator_t<
+                                    detray::detail::first_t<ranges_t...>>>;
 
 }  // namespace views
 
@@ -148,13 +150,13 @@ namespace detail {
 /// Once the sentinel of one range is reached, set the current iterator to the
 /// next ranges 'begin'.
 ///
-/// @tparam iterator_coll_t type of iterator collection of ranges to be chained.
+/// @tparam iterator_coll_t type of iterator collection of ranges to be joined.
 ///         Can contain const iterators.
 ///
 /// @note The iterator must not be typed on the current range index, so that
 /// begin and sentinel type are the same.
 template <typename iterator_coll_t>
-struct chain_iterator {
+struct join_iterator {
 
     using iterator_t = detray::detail::get_value_type_t<iterator_coll_t>;
 
@@ -167,36 +169,36 @@ struct chain_iterator {
         typename std::iterator_traits<iterator_t>::iterator_category;
 
     /// Default constructor required by LegacyIterator trait
-    constexpr chain_iterator() = default;
+    constexpr join_iterator() = default;
 
     /// Construct from a collection of @param begin and @param  end positions
     DETRAY_HOST_DEVICE
-    constexpr chain_iterator(const iterator_coll_t &begins,
-                             const iterator_coll_t &ends)
+    constexpr join_iterator(const iterator_coll_t &begins,
+                            const iterator_coll_t &ends)
         : m_begins(&begins), m_ends(&ends), m_iter{(*m_begins)[0]}, m_idx{0} {}
 
     /// Fully parametrized construction
     DETRAY_HOST_DEVICE
-    constexpr chain_iterator(const iterator_coll_t &begins,
-                             const iterator_coll_t &ends, iterator_t current,
-                             const std::size_t i)
+    constexpr join_iterator(const iterator_coll_t &begins,
+                            const iterator_coll_t &ends, iterator_t current,
+                            const std::size_t i)
         : m_begins(&begins), m_ends(&ends), m_iter{current}, m_idx{i} {}
 
     /// @returns true if it points to the same value.
     DETRAY_HOST_DEVICE constexpr bool operator==(
-        const chain_iterator &rhs) const {
+        const join_iterator &rhs) const {
         return m_iter == rhs.m_iter;
     }
 
     /// @returns false if it points to the same value (usually the global
-    /// sentinel of the chain).
+    /// sentinel of the join).
     DETRAY_HOST_DEVICE constexpr bool operator!=(
-        const chain_iterator &rhs) const {
+        const join_iterator &rhs) const {
         return m_iter != rhs.m_iter;
     }
 
     /// Increment current iterator and check for switch between ranges.
-    DETRAY_HOST_DEVICE constexpr auto operator++() -> chain_iterator & {
+    DETRAY_HOST_DEVICE constexpr auto operator++() -> join_iterator & {
         ++m_iter;
         // Switch to next range in the collection
         constexpr std::size_t max_idx =
@@ -214,7 +216,7 @@ struct chain_iterator {
         std::enable_if_t<
             std::is_base_of_v<detray::ranges::bidirectional_iterator_tag, T>,
             bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator--() -> chain_iterator & {
+    DETRAY_HOST_DEVICE constexpr auto operator--() -> join_iterator & {
         if (m_iter != (*m_begins)[m_idx] and m_idx > 0) {
             // Normal case
             --m_idx;
@@ -236,16 +238,16 @@ struct chain_iterator {
         return *m_iter;
     }
 
-    /// @returns an iterator advanced by @param j through the chain.
+    /// @returns an iterator advanced by @param j through the join.
     template <
         typename T = iterator_category,
         std::enable_if_t<
             std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
             bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator+(const difference_type j) const
-        -> chain_iterator {
-        chain_iterator<iterator_coll_t> tmp(*this);
-        // walk through chain to catch the switch between intermediate ranges
+        -> join_iterator {
+        join_iterator<iterator_coll_t> tmp(*this);
+        // walk through join to catch the switch between intermediate ranges
         difference_type i{j};
         if (i >= difference_type{0}) {
             while (i--) {
@@ -259,14 +261,14 @@ struct chain_iterator {
         return tmp;
     }
 
-    /// @returns an iterator advanced by @param j through the chain.
+    /// @returns an iterator advanced by @param j through the join.
     template <
         typename T = iterator_category,
         std::enable_if_t<
             std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
             bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-(const difference_type j) const
-        -> chain_iterator {
+        -> join_iterator {
         return *this + (-j);
     }
 
@@ -277,7 +279,7 @@ struct chain_iterator {
             std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
             bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-(
-        const chain_iterator &other) const -> difference_type {
+        const join_iterator &other) const -> difference_type {
         if (m_idx == other.m_idx) {
             return m_iter - other.m_iter;
         }
@@ -307,8 +309,8 @@ struct chain_iterator {
             std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
             bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator+=(const difference_type j)
-        -> chain_iterator & {
-        // walk through chain to catch the switch between intermediate ranges
+        -> join_iterator & {
+        // walk through join to catch the switch between intermediate ranges
         difference_type i{j};
         if (i >= difference_type{0}) {
             while (i--) {
@@ -329,7 +331,7 @@ struct chain_iterator {
             std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
             bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-=(const difference_type j)
-        -> chain_iterator & {
+        -> join_iterator & {
         m_iter += (-j);
         return *this;
     }
@@ -338,7 +340,7 @@ struct chain_iterator {
     const iterator_coll_t *m_begins{nullptr}, *m_ends{nullptr};
     /// This is the actual iterator state that will be advanced during iteration
     iterator_t m_iter{};
-    /// Index of the current range in the chain
+    /// Index of the current range in the join
     std::size_t m_idx{0};
 };
 

@@ -42,10 +42,10 @@ void test_pick(vecmem::data::vector_view<uint_holder> seq_data,
                vecmem::data::vector_view<dindex> check_idx_data,
                vecmem::data::vector_view<dindex> check_value_data);
 
-/// Test @c detray::views::chain
-void test_chain(vecmem::data::vector_view<uint_holder> seq_data_1,
-                vecmem::data::vector_view<uint_holder> seq_data_2,
-                vecmem::data::vector_view<dindex> check_value_data);
+/// Test @c detray::views::join
+void test_join(vecmem::data::vector_view<uint_holder> seq_data_1,
+               vecmem::data::vector_view<uint_holder> seq_data_2,
+               vecmem::data::vector_view<dindex> check_value_data);
 
 /// Test @c detray::views::subrange
 void test_subrange(vecmem::data::vector_view<int> seq_data,

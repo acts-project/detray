@@ -6,10 +6,11 @@
  */
 #pragma once
 
-#include "detray/utils/ranges/chain.hpp"
+// Project include(s)
 #include "detray/utils/ranges/empty.hpp"
 #include "detray/utils/ranges/enumerate.hpp"
 #include "detray/utils/ranges/iota.hpp"
+#include "detray/utils/ranges/join.hpp"
 #include "detray/utils/ranges/pick.hpp"
 #include "detray/utils/ranges/single.hpp"
 #include "detray/utils/ranges/subrange.hpp"
