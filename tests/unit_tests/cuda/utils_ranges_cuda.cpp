@@ -151,7 +151,7 @@ TEST(utils_ranges_cuda, pick) {
 }
 
 // This tests the convenience enumeration function
-TEST(utils_ranges_cuda, chain) {
+TEST(utils_ranges_cuda, join) {
 
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;
@@ -168,7 +168,7 @@ TEST(utils_ranges_cuda, chain) {
     auto seq_data_1 = vecmem::get_data(seq_1);
     auto seq_data_2 = vecmem::get_data(seq_2);
 
-    // Output vector buffer for chain test
+    // Output vector buffer for join test
     vecmem::data::vector_buffer<dindex> value_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(
             seq_1.size() + seq_2.size()),
@@ -176,7 +176,7 @@ TEST(utils_ranges_cuda, chain) {
     copy.setup(value_buffer);
 
     // Run test function
-    test_chain(seq_data_1, seq_data_2, value_buffer);
+    test_join(seq_data_1, seq_data_2, value_buffer);
 
     // Copy vector buffer to output vector
     vecmem::vector<dindex> value_vec{&managed_resource};

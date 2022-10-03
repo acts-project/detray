@@ -51,13 +51,13 @@ class empty_view : public detray::ranges::view_interface<empty_view<value_t>> {
     static constexpr bool empty() noexcept { return true; }
 
     DETRAY_HOST_DEVICE
-    constexpr value_t front() noexcept { return {}; }
+    constexpr value_t front() const noexcept { return {}; }
 
     DETRAY_HOST_DEVICE
-    constexpr value_t back() noexcept { return {}; }
+    constexpr value_t back() const noexcept { return {}; }
 
     DETRAY_HOST_DEVICE
-    constexpr value_t operator[](const dindex) noexcept { return {}; }
+    constexpr value_t operator[](const dindex) const noexcept { return {}; }
 };
 
 namespace views {

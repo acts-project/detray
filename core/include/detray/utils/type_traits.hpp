@@ -7,11 +7,17 @@
 
 #pragma once
 
-#include <type_traits>
-
+// Project include(s)
 #include "detray/definitions/detail/accessor.hpp"
 
+// System include(s)
+#include <type_traits>
+
 namespace detray::detail {
+
+/// Helper trait that should emulate std::remove_cvref_t in c++20
+template <typename T>
+using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
 /// Helper trait for detecting when a type is a non-const version of another
 ///

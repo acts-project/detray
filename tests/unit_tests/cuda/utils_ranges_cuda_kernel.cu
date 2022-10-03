@@ -125,9 +125,9 @@ void test_pick(vecmem::data::vector_view<uint_holder> seq_data,
 }
 
 //
-// chain
+// join
 //
-__global__ void chain_kernel(
+__global__ void join_kernel(
     vecmem::data::vector_view<uint_holder> seq_data_1,
     vecmem::data::vector_view<uint_holder> seq_data_2,
     vecmem::data::vector_view<dindex> check_value_data) {
@@ -136,17 +136,17 @@ __global__ void chain_kernel(
     vecmem::device_vector<uint_holder> seq_2(seq_data_2);
     vecmem::device_vector<dindex> check_value(check_value_data);
 
-    for (auto v : detray::views::chain(seq_1, seq_2)) {
+    for (auto v : detray::views::join(seq_1, seq_2)) {
         check_value.push_back(v.ui);
     }
 }
 
-void test_chain(vecmem::data::vector_view<uint_holder> seq_data_1,
-                vecmem::data::vector_view<uint_holder> seq_data_2,
-                vecmem::data::vector_view<dindex> check_value_data) {
+void test_join(vecmem::data::vector_view<uint_holder> seq_data_1,
+               vecmem::data::vector_view<uint_holder> seq_data_2,
+               vecmem::data::vector_view<dindex> check_value_data) {
 
     // run the kernel
-    chain_kernel<<<1, 1>>>(seq_data_1, seq_data_2, check_value_data);
+    join_kernel<<<1, 1>>>(seq_data_1, seq_data_2, check_value_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

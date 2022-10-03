@@ -24,6 +24,8 @@ namespace detray::ranges {
 ///
 /// @tparam incr_t the incrementable type that makes up the sequence
 ///
+/// @note If given single value, does not do infinite iteration, but only jumps
+///       to next value.
 /// @note Is not fit for lazy evaluation.
 template <typename incr_t>
 class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
@@ -38,15 +40,15 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
 
         /// Parametrized Constructor
         DETRAY_HOST_DEVICE
-        constexpr explicit iterator(const incr_t &i) : m_i{i} {}
+        constexpr explicit iterator(const incr_t i) : m_i{i} {}
 
-        /// @returns true if we reach end of sequence
+        /// @returns true if incremetables are the same
         DETRAY_HOST_DEVICE
         constexpr auto operator==(const iterator &rhs) const -> bool {
             return (m_i == rhs.m_i);
         }
 
-        /// @returns true if we reach end of sequence
+        /// @returns true while incrementables are different
         DETRAY_HOST_DEVICE
         constexpr auto operator!=(const iterator &rhs) const -> bool {
             return (m_i != rhs.m_i);
@@ -59,19 +61,15 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
             return *this;
         }
 
-        /// @returns the current value in the sequence
+        /// @returns the current value in the sequence - copy
         DETRAY_HOST_DEVICE
-        constexpr auto operator*() const -> const incr_t & { return m_i; }
-
-        /// @returns the current value in the sequence
-        DETRAY_HOST_DEVICE
-        auto operator*() -> incr_t & { return m_i; }
-
-        /// Advance the sequence by @param j positions
-        DETRAY_HOST_DEVICE
-        constexpr auto operator+(const incr_t j) const -> iterator {
-            return iterator{m_i + j};
+        constexpr auto operator*() const noexcept -> const incr_t & {
+            return m_i;
         }
+
+        /// @returns the current value in the sequence - copy
+        DETRAY_HOST_DEVICE
+        constexpr auto operator*() noexcept -> incr_t & { return m_i; }
 
         /// Current value of sequence
         incr_t m_i;
@@ -87,6 +85,16 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
     /// constructible)
     iota_view() = default;
 
+    /// Construct from just a @param start value to represent a single value seq
+    template <
+        typename deduced_incr_t,
+        std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
+                         bool> = true>
+    DETRAY_HOST_DEVICE constexpr explicit iota_view(deduced_incr_t &&start)
+        : m_start{std::forward<deduced_incr_t>(start)},
+          m_end{std::forward<deduced_incr_t>(start) + 1} {}
+
+    /// Construct from an @param interval that defines start and end values.
     template <typename interval_t,
               std::enable_if_t<detray::detail::is_interval_v<interval_t>,
                                bool> = true>
@@ -101,21 +109,11 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         : m_start{std::forward<deduced_incr_t>(start)},
           m_end{std::forward<deduced_incr_t>(end) - 1} {}
 
-    /// Construct from just a @param start value to represent a single value seq
-    template <
-        typename deduced_incr_t,
-        std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
-                         bool> = true>
-    DETRAY_HOST_DEVICE constexpr explicit iota_view(deduced_incr_t &&start)
-        : m_start{std::forward<deduced_incr_t>(start)},
-          m_end{std::forward<deduced_incr_t>(start) + 1} {}
-
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
     iota_view &operator=(const iota_view &other) {
         m_start = other.m_start;
         m_end = other.m_end;
-
         return *this;
     }
 
@@ -129,15 +127,31 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
 
     /// Not pointer to data for range factory
     DETRAY_HOST_DEVICE
-    constexpr auto data() noexcept = delete;
+    constexpr auto data() = delete;
 
     /// Not pointer to data for range factory
     DETRAY_HOST_DEVICE
-    constexpr auto data() const noexcept = delete;
+    constexpr auto data() const = delete;
 
     /// @returns the span of the sequence
     DETRAY_HOST_DEVICE
-    constexpr auto size() const noexcept -> incr_t { return m_end - m_start; }
+    constexpr auto size() const -> incr_t { return m_end - m_start; }
+
+    /// Not a bidirectional iterator
+    DETRAY_HOST_DEVICE
+    constexpr decltype(auto) back() = delete;
+
+    /// Not a bidirectional iterator
+    DETRAY_HOST_DEVICE
+    constexpr decltype(auto) back() const = delete;
+
+    /// Not an random access iterator
+    DETRAY_HOST_DEVICE
+    constexpr decltype(auto) operator[](const dindex) = delete;
+
+    /// Not an random access iterator
+    DETRAY_HOST_DEVICE
+    constexpr decltype(auto) operator[](const dindex) const = delete;
 };
 
 namespace views {
@@ -177,18 +191,18 @@ template <typename deduced_interval_t,
           std::enable_if_t<detray::detail::is_interval_v<deduced_interval_t>,
                            bool> = true>
 DETRAY_HOST_DEVICE iota(deduced_interval_t &&interval)
-    ->iota<std::remove_cv_t<std::remove_reference_t<
-        decltype(std::get<0>(std::declval<deduced_interval_t>()))>>>;
+    ->iota<detray::detail::remove_cvref_t<
+        decltype(std::get<0>(std::declval<deduced_interval_t>()))>>;
 
 template <typename deduced_incr_t = dindex>
 DETRAY_HOST_DEVICE iota(deduced_incr_t &&start, deduced_incr_t &&end)
-    ->iota<std::remove_cv_t<std::remove_reference_t<deduced_incr_t>>>;
+    ->iota<detray::detail::remove_cvref_t<deduced_incr_t>>;
 
 template <typename deduced_incr_t,
           std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
                            bool> = true>
 DETRAY_HOST_DEVICE iota(deduced_incr_t &&start)
-    ->iota<std::remove_cv_t<std::remove_reference_t<deduced_incr_t>>>;
+    ->iota<detray::detail::remove_cvref_t<deduced_incr_t>>;
 
 }  // namespace views
 
