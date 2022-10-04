@@ -37,17 +37,25 @@ class uniform_track_generator {
     ///
     /// @param theta_steps the number of steps in the theta space
     /// @param phi_steps the number of steps in the phi space
+    /// @param theta_range the range for theta values
+    /// @param phi_range the range for phi values
     /// @param trk_origin the starting point of the track
     /// @param trk_mom magnitude of the track momentum (in GeV)
     DETRAY_HOST_DEVICE
     uniform_track_generator(std::size_t n_theta, std::size_t n_phi,
                             point3 trk_origin = {},
                             scalar trk_mom = 1. * unit_constants::GeV,
+                            std::array<scalar, 2> theta_range = {0.01, M_PI},
+                            std::array<scalar, 2> phi_range = {-M_PI, M_PI},
                             scalar time = 0., scalar charge = -1.)
         : m_theta_steps{n_theta},
           m_phi_steps{n_phi},
+          m_theta(theta_range[0]),
+          m_phi(phi_range[0]),
           m_origin{trk_origin},
           m_mom_mag{trk_mom},
+          m_theta_range{theta_range},
+          m_phi_range{phi_range},
           m_time{time},
           m_charge{charge},
           i_phi{0},
@@ -83,23 +91,24 @@ class uniform_track_generator {
     /// @returns the generator at its next position.
     DETRAY_HOST_DEVICE
     inline auto operator++() -> uniform_track_generator {
-        constexpr scalar pi{M_PI};
         // Check theta range according to step size
         if (i_theta < m_theta_steps) {
             // Check phi sub-range
             if (i_phi < m_phi_steps) {
                 // Calculate new phi [-pi, pi]
-                m_phi = -pi + i_phi * (scalar{2.} * pi) / m_phi_steps;
+                m_phi = m_phi_range[0] +
+                        i_phi * (m_phi_range[1] - m_phi_range[0]) / m_phi_steps;
                 ++i_phi;
                 return *this;
             }
             // Reset phi range
             i_phi = 1;
-            m_phi = -M_PI;
+            m_phi = m_phi_range[0];
             // Calculate new theta ]0,pi[
             ++i_theta;
             m_theta =
-                scalar{0.01} + i_theta * (pi - scalar{0.01}) / m_theta_steps;
+                m_theta_range[0] +
+                i_theta * (m_theta_range[1] - m_theta_range[0]) / m_theta_steps;
         }
         return *this;
     }
@@ -123,7 +132,7 @@ class uniform_track_generator {
     std::size_t m_phi_steps{50};
 
     /// Phi and theta angles of momentum direction
-    scalar m_phi{-M_PI}, m_theta{0.01};
+    scalar m_theta{0.01}, m_phi{-M_PI};
 
     /// Track origin
     point3 m_origin{0., 0., 0.};
@@ -131,6 +140,10 @@ class uniform_track_generator {
     /// Magnitude of momentum: Default is one to keep directions normalized if
     /// no momentum information is needed (e.g. for a ray)
     scalar m_mom_mag{1. * unit_constants::GeV};
+
+    /// Range for theta and phi
+    std::array<scalar, 2> m_theta_range{0.01, M_PI};
+    std::array<scalar, 2> m_phi_range{-M_PI, M_PI};
 
     /// Time parameter and charge of the track
     scalar m_time{0}, m_charge{0};
