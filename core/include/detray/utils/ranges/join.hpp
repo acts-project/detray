@@ -24,7 +24,7 @@ struct join_iterator;
 
 }
 
-/// @brief Range adaptor that joins together different ranges of the same type.
+/// @brief Range adaptor that joins different ranges of the same type (static)
 ///
 /// @see https://en.cppreference.com/w/cpp/ranges/join_view
 ///
@@ -148,7 +148,7 @@ namespace detail {
 /// @brief Sequentially iterate through multiple ranges of the same type.
 ///
 /// Once the sentinel of one range is reached, set the current iterator to the
-/// next ranges 'begin'.
+/// next ranges 'begin' (or 'end' if decrementing)
 ///
 /// @tparam iterator_coll_t type of iterator collection of ranges to be joined.
 ///         Can contain const iterators.
@@ -187,14 +187,14 @@ struct join_iterator {
     /// @returns true if it points to the same value.
     DETRAY_HOST_DEVICE constexpr bool operator==(
         const join_iterator &rhs) const {
-        return m_iter == rhs.m_iter;
+        return (m_iter == rhs.m_iter);
     }
 
     /// @returns false if it points to the same value (usually the global
     /// sentinel of the join).
     DETRAY_HOST_DEVICE constexpr bool operator!=(
         const join_iterator &rhs) const {
-        return m_iter != rhs.m_iter;
+        return (m_iter != rhs.m_iter);
     }
 
     /// Increment current iterator and check for switch between ranges.
@@ -229,12 +229,12 @@ struct join_iterator {
     }
 
     /// @returns the single value that the iterator points to.
-    DETRAY_HOST_DEVICE auto operator*() -> value_type & { return *m_iter; }
+    DETRAY_HOST_DEVICE
+    constexpr auto operator*() -> value_type & { return *m_iter; }
 
     /// @returns the single value that the iterator points to - const
-    DETRAY_HOST_DEVICE constexpr auto operator*() const -> const value_type & {
-        return *m_iter;
-    }
+    DETRAY_HOST_DEVICE
+    constexpr auto operator*() const -> const value_type & { return *m_iter; }
 
     /// @returns an iterator advanced by @param j through the join.
     template <typename I = iterator_t,
@@ -330,7 +330,8 @@ struct join_iterator {
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator[](const dindex i) const
         -> const value_type & {
-        int offset{static_cast<int>(i) - (m_iter - (*m_begins)[0])};
+        difference_type offset{static_cast<difference_type>(i) -
+                               (m_iter - (*m_begins)[0])};
         return *(*this + offset);
     }
 
@@ -340,7 +341,8 @@ struct join_iterator {
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator[](const dindex i)
         -> value_type & {
-        int offset{static_cast<int>(i) - (m_iter - (*m_begins)[0])};
+        difference_type offset{static_cast<difference_type>(i) -
+                               (m_iter - (*m_begins)[0])};
         return *(*this + offset);
     }
 

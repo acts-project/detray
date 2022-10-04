@@ -21,12 +21,13 @@ template <typename value_t>
 class empty_view : public detray::ranges::view_interface<empty_view<value_t>> {
 
     public:
+    /// Iterator category: bidirectional
     using iterator_t = value_t*;
 
     /// Default constructor
     constexpr empty_view() = default;
 
-    /// Copy assignment operator
+    /// Copy assignment operator - does nothing
     DETRAY_HOST_DEVICE
     empty_view& operator=(const empty_view&){};
 
@@ -50,14 +51,17 @@ class empty_view : public detray::ranges::view_interface<empty_view<value_t>> {
     DETRAY_HOST_DEVICE
     static constexpr bool empty() noexcept { return true; }
 
+    /// No value contained in view
+    /// @{
     DETRAY_HOST_DEVICE
-    constexpr value_t front() const noexcept { return {}; }
+    constexpr value_t front() const noexcept = delete;
 
     DETRAY_HOST_DEVICE
-    constexpr value_t back() const noexcept { return {}; }
+    constexpr value_t back() const noexcept = delete;
 
     DETRAY_HOST_DEVICE
-    constexpr value_t operator[](const dindex) const noexcept { return {}; }
+    constexpr value_t operator[](const dindex) const noexcept = delete;
+    /// @}
 };
 
 namespace views {

@@ -29,23 +29,27 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
     public:
     using iterator_t = typename detray::ranges::iterator_t<range_t>;
     using const_iterator_t = typename detray::ranges::const_iterator_t<range_t>;
-    using range_size_t = typename detray::ranges::range_size_t<range_t>;
+    using difference_t = typename detray::ranges::range_difference_t<range_t>;
 
     /// Default constructor
     subrange() = default;
 
     /// Construct from an @param start and @param end iterator pair.
-    DETRAY_HOST_DEVICE constexpr subrange(iterator_t &&start, iterator_t &&end)
-        : m_begin{std::forward<iterator_t>(start)},
-          m_end{std::forward<iterator_t>(end)} {}
+    template <typename deduced_itr_t,
+              std::enable_if_t<std::is_same_v<deduced_itr_t, iterator_t>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr subrange(deduced_itr_t &&start,
+                                          deduced_itr_t &&end)
+        : m_begin{std::forward<deduced_itr_t>(start)},
+          m_end{std::forward<deduced_itr_t>(end)} {}
 
     /// Construct from a @param range.
     template <
         typename deduced_range_t,
         std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true>
     DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range)
-        : m_begin{detray::ranges::begin(std::forward<deduced_range_t>(range))},
-          m_end{detray::ranges::end(std::forward<deduced_range_t>(range))} {}
+        : m_begin{detray::ranges::begin(range)},
+          m_end{detray::ranges::end(range)} {}
 
     /// Construct from a @param range and starting position @param pos. Used
     /// as an overload when only a single position is needed.
@@ -53,28 +57,20 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
         typename deduced_range_t,
         std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true>
     DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
-                                          range_size_t pos)
-        : m_begin{detray::ranges::next(
-              detray::ranges::begin(std::forward<deduced_range_t>(range)),
-              pos)},
+                                          difference_t pos)
+        : m_begin{detray::ranges::next(detray::ranges::begin(range), pos)},
           m_end{detray::ranges::next(m_begin)} {}
 
     /// Construct from a @param range and an index range provided by a volume
     /// @param vol.
     template <
         typename deduced_range_t, typename volume_t,
+        typename value_t = detray::ranges::range_value_t<deduced_range_t>,
         std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
         typename = typename std::remove_reference_t<volume_t>::volume_def>
-    DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, const volume_t &vol) {
-        const dindex_range r = vol.template range<
-            typename detray::ranges::range_value_t<deduced_range_t>>();
-
-        auto start =
-            detray::ranges::begin(std::forward<deduced_range_t>(range));
-
-        m_begin = start + detray::detail::get<0>(r);
-        m_end = start + detray::detail::get<1>(r);
-    }
+    DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, const volume_t &vol)
+        : subrange(std::forward<deduced_range_t>(range),
+                   vol.template range<value_t>()) {}
 
     /// Construct from a @param range and an index range @param pos.
     template <
@@ -84,12 +80,10 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
             true>
     DETRAY_HOST_DEVICE constexpr subrange(deduced_range_t &&range,
                                           index_range_t &&pos)
-        : m_begin{detray::ranges::next(
-              detray::ranges::begin(std::forward<deduced_range_t>(range)),
-              detray::detail::get<0>(pos))},
-          m_end{detray::ranges::next(
-              detray::ranges::begin(std::forward<deduced_range_t>(range)),
-              detray::detail::get<1>(pos))} {}
+        : m_begin{detray::ranges::next(detray::ranges::begin(range),
+                                       detray::detail::get<0>(pos))},
+          m_end{detray::ranges::next(detray::ranges::begin(range),
+                                     detray::detail::get<1>(pos))} {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
@@ -105,7 +99,7 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
 
     /// @return start position of the range - const
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> const_iterator_t { return m_begin; }
+    constexpr auto begin() const -> iterator_t { return m_begin; }
 
     /// @return sentinel of the range.
     DETRAY_HOST_DEVICE
@@ -133,7 +127,7 @@ template <
     std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true>
 DETRAY_HOST_DEVICE subrange(
     deduced_range_t &&range,
-    typename detray::ranges::range_size_t<deduced_range_t> pos)
+    typename detray::ranges::range_difference_t<deduced_range_t> pos)
     ->subrange<deduced_range_t>;
 
 template <
