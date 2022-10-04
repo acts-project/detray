@@ -17,6 +17,7 @@
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
+#include <cassert>
 #include <iterator>
 #include <type_traits>
 
@@ -45,6 +46,7 @@ using random_access_iterator_tag = std::random_access_iterator_tag;
 /// are not strictly given and there is no lazy-evaluation).
 ///
 /// @see https://en.cppreference.com/w/cpp/ranges
+/// @see https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0896r4.pdf
 /// @{
 
 /// Simply import the std versions of basic iterator functionality for now
@@ -103,7 +105,7 @@ template <class R>
 using range_const_reference_t = const range_reference_t<R>;
 
 template <class R>
-using range_rvalue_reference_t = std::decay_t<range_value_t<R>>&&;
+using range_rvalue_reference_t = std::add_rvalue_reference_t<range_value_t<R>>;
 
 /// @}
 
@@ -132,58 +134,72 @@ struct range<R,
                               std::is_pointer_v<detray::ranges::sentinel_t<R>>),
                  void>> : public std::true_type {};
 
+// Range
 template <class R>
 inline constexpr bool range_v = detray::ranges::range<R>::value;
 
+// Iterator categories
+template <class I>
+inline constexpr bool input_iterator_v =
+    std::is_base_of_v<detray::ranges::input_iterator_tag,
+                      typename std::iterator_traits<I>::iterator_category>;
+
+template <class I>
+inline constexpr bool output_iterator_v =
+    std::is_base_of_v<detray::ranges::output_iterator_tag,
+                      typename std::iterator_traits<I>::iterator_category>;
+
+template <class I>
+inline constexpr bool forward_iterator_v =
+    std::is_base_of_v<detray::ranges::forward_iterator_tag,
+                      typename std::iterator_traits<I>::iterator_category>;
+
+template <class I>
+inline constexpr bool bidirectional_iterator_v =
+    std::is_base_of_v<detray::ranges::bidirectional_iterator_tag,
+                      typename std::iterator_traits<I>::iterator_category>;
+
+template <class I>
+inline constexpr bool random_access_iterator_v =
+    std::is_base_of_v<detray::ranges::random_access_iterator_tag,
+                      typename std::iterator_traits<I>::iterator_category>;
+
+// Range categories
 template <class R>
 inline constexpr bool input_range_v = detray::ranges::range_v<R>and
-    std::is_base_of_v<detray::ranges::input_iterator_tag,
-                      typename std::iterator_traits<
-                          detray::ranges::iterator_t<R>>::iterator_category>;
+    input_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
 inline constexpr bool output_range_v = detray::ranges::range_v<R>and
-    std::is_base_of_v<detray::ranges::output_iterator_tag,
-                      typename std::iterator_traits<
-                          detray::ranges::iterator_t<R>>::iterator_category>;
+    output_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
 inline constexpr bool forward_range_v = detray::ranges::range_v<R>and
-    std::is_base_of_v<detray::ranges::forward_iterator_tag,
-                      typename std::iterator_traits<
-                          detray::ranges::iterator_t<R>>::iterator_category>;
+    forward_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
 inline constexpr bool bidirectional_range_v = detray::ranges::range_v<R>and
-    std::is_base_of_v<detray::ranges::bidirectional_iterator_tag,
-                      typename std::iterator_traits<
-                          detray::ranges::iterator_t<R>>::iterator_category>;
+    bidirectional_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
 inline constexpr bool random_access_range_v = detray::ranges::range_v<R>and
-    std::is_base_of_v<detray::ranges::random_access_iterator_tag,
-                      typename std::iterator_traits<
-                          detray::ranges::iterator_t<R>>::iterator_category>;
+    random_access_iterator_v<detray::ranges::iterator_t<R>>;
 
-// Available only in c++20
-/*template <typename R>
-inline constexpr bool contiguous_range_v = range_v<R> and
-std::is_base_of_v<detray::ranges::contiguous_iterator_tag, typename
-std::iterator_traits<detray::ranges::iterator_t<R>>::iterator_category>;*/
+// Contiguous iterator trait is only available in c++20
+/*
+template <typename R>
+inline constexpr bool contiguous_range_v = ...
+*/
 
 /// @see https://en.cppreference.com/w/cpp/ranges/sized_range
 template <class R>
 inline constexpr bool disable_sized_range = false;
 
-/// Base case: The type is not a 'sized range'
-template <class R, typename = void>
-struct sized_range : public std::false_type {};
-
 /// @brief A function 'size' is implemented for the range @tparam R
 template <class R>
-struct sized_range<R, std::enable_if_t<detray::ranges::range_v<R> and
-                                           std::is_integral_v<range_size_t>,
-                                       void>> : public std::true_type {};
+inline constexpr bool sized_range =
+    not ranges::disable_sized_range<detray::detail::remove_cvref_t<R>> and
+    (detray::ranges::range_v<R> and std::is_integral_v<range_size_t>);
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_range
 template <class R>
@@ -193,8 +209,7 @@ template <class R>
 inline constexpr bool borrowed_range =
     detray::ranges::range_v<R> &&
     (std::is_lvalue_reference_v<R> ||
-     ranges::enable_borrowed_range<
-         std::remove_reference_t<std::remove_cv_t<R>>>);
+     ranges::enable_borrowed_range<detray::detail::remove_cvref_t<R>>);
 
 /// @brief models a dangling iterator
 /// @see https://en.cppreference.com/w/cpp/ranges/dangling
@@ -232,62 +247,89 @@ class view_interface : public base_view {
     constexpr view_interface() = default;
 
     /// @note requires forward range
-    DETRAY_HOST_DEVICE
-    constexpr auto empty() const -> bool {
+    template <typename R = view_impl_t,
+              std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto empty() const -> bool {
         return (_impl_ptr->begin() == _impl_ptr->end());
     }
 
     DETRAY_HOST_DEVICE
     constexpr explicit operator bool() const {
-        return !detray::ranges::empty(*_impl_ptr);
+        return not detray::ranges::empty(*_impl_ptr);
     }
 
-    /// @note requires contiguous range
+    /// @note requires contiguous range (not yet modelled)
     DETRAY_HOST_DEVICE
-    constexpr auto data() const { return &(*(_impl_ptr->begin())); }
+    constexpr auto data() const {
+        return empty() ? nullptr : &(*(_impl_ptr->begin()));
+    }
 
-    /// @note requires contiguous range
+    /// @note requires contiguous range (not yet modelled)
     DETRAY_HOST_DEVICE
-    constexpr auto data() { return &(*(_impl_ptr->begin())); }
+    constexpr auto data() {
+        return empty() ? nullptr : &(*(_impl_ptr->begin()));
+    }
 
     /// @note requires forward range
-    DETRAY_HOST_DEVICE
-    constexpr auto size() const {
+    template <typename R = view_impl_t,
+              std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto size() const {
         return detray::ranges::distance(_impl_ptr->begin(), _impl_ptr->end());
     }
 
     /// @note requires forward range
-    DETRAY_HOST_DEVICE
-    constexpr auto front() const { return *(_impl_ptr->begin()); }
+    template <typename R = view_impl_t,
+              std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto front() const {
+        const auto bg = _impl_ptr->begin();
+        assert(not empty());
+        return *bg;
+    }
 
     /// @note requires forward range
-    DETRAY_HOST_DEVICE
-    constexpr auto front() { return *(_impl_ptr->begin()); }
+    template <typename R = view_impl_t,
+              std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto front() {
+        const auto bg = _impl_ptr->begin();
+        assert(not empty());
+        return *bg;
+    }
 
     /// @note requires bidirectional range
-    DETRAY_HOST_DEVICE
-    constexpr decltype(auto) back() const {
+    template <
+        typename R = view_impl_t,
+        std::enable_if_t<detray::ranges::bidirectional_range_v<R>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) back() const {
         auto sentinel = _impl_ptr->end();
+        assert(not empty());
         return *(--sentinel);
     }
 
     /// @note requires bidirectional range
-    DETRAY_HOST_DEVICE
-    constexpr decltype(auto) back() {
+    template <
+        typename R = view_impl_t,
+        std::enable_if_t<detray::ranges::bidirectional_range_v<R>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) back() {
         auto sentinel = _impl_ptr->end();
+        assert(not empty());
         return *(--sentinel);
     }
 
     /// @note requires random access range
-    DETRAY_HOST_DEVICE
-    constexpr decltype(auto) operator[](const dindex i) const {
-        return *(_impl_ptr->begin() + i);
+    template <
+        typename R = view_impl_t,
+        std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](
+        const dindex i) const {
+        return (_impl_ptr->begin())[i];
     }
 
     /// @note requires random access range
-    DETRAY_HOST_DEVICE
-    constexpr decltype(auto) operator[](const dindex i) {
-        return *(_impl_ptr->begin() + i);
+    template <
+        typename R = view_impl_t,
+        std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](const dindex i) {
+        return (_impl_ptr->begin())[i];
     }
 
     private:

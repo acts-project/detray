@@ -125,33 +125,9 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
     DETRAY_HOST_DEVICE
     constexpr auto end() const -> iterator_t { return iterator_t{m_end}; }
 
-    /// Not pointer to data for range factory
-    DETRAY_HOST_DEVICE
-    constexpr auto data() = delete;
-
-    /// Not pointer to data for range factory
-    DETRAY_HOST_DEVICE
-    constexpr auto data() const = delete;
-
     /// @returns the span of the sequence
     DETRAY_HOST_DEVICE
     constexpr auto size() const -> incr_t { return m_end - m_start; }
-
-    /// Not a bidirectional iterator
-    DETRAY_HOST_DEVICE
-    constexpr decltype(auto) back() = delete;
-
-    /// Not a bidirectional iterator
-    DETRAY_HOST_DEVICE
-    constexpr decltype(auto) back() const = delete;
-
-    /// Not an random access iterator
-    DETRAY_HOST_DEVICE
-    constexpr decltype(auto) operator[](const dindex) = delete;
-
-    /// Not an random access iterator
-    DETRAY_HOST_DEVICE
-    constexpr decltype(auto) operator[](const dindex) const = delete;
 };
 
 namespace views {
@@ -162,7 +138,7 @@ struct iota : public detray::ranges::iota_view<incr_t> {
 
     using base_type = detray::ranges::iota_view<incr_t>;
 
-    iota() = default;
+    constexpr iota() = default;
 
     template <
         typename deduced_interval_t,
