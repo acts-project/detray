@@ -37,15 +37,15 @@ TEST(utils_ranges_cuda, iota) {
     vecmem::cuda::managed_memory_resource managed_resource;
 
     // Input reference vector for test
-    vecmem::vector<dindex> reference({2, 3, 4, 5, 6, 7});
+    vecmem::vector<dindex> reference({2, 3, 4, 5, 6});
 
     // Const range for enumeration test
     const darray<dindex, 2> range = {2, 7};
 
     // Output vector buffer for enumeration test
     vecmem::data::vector_buffer<dindex> check_buffer(
-        static_cast<vecmem::data::vector_buffer<dindex>::size_type>(
-            range[1] - range[0] + 1),
+        static_cast<vecmem::data::vector_buffer<dindex>::size_type>(range[1] -
+                                                                    range[0]),
         0, managed_resource);
     copy.setup(check_buffer);
 
@@ -146,7 +146,7 @@ TEST(utils_ranges_cuda, pick) {
     // Check the result
     for (std::size_t i = 0; i < idx_vec.size(); i++) {
         ASSERT_EQ(idx[i], idx_vec[i]);
-        ASSERT_EQ(seq[i].ui, value_vec[i]);
+        ASSERT_EQ(seq[idx_vec[i]].ui, value_vec[i]);
     }
 }
 
