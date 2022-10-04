@@ -24,19 +24,19 @@
 namespace detray::ranges {
 
 // Define iterator tags for host and device
-#if defined(__CUDACC__)
+/*#if defined(__CUDACC__)
 using input_iterator_tag = thrust::input_device_iterator_tag;
 using output_iterator_tag = thrust::output_device_iterator_tag;
 using forward_iterator_tag = thrust::forward_device_iterator_tag;
 using bidirectional_iterator_tag = thrust::bidirectional_device_iterator_tag;
 using random_access_iterator_tag = thrust::random_access_device_iterator_tag;
-#elif !defined(__CUDACC__)
+#elif !defined(__CUDACC__)*/
 using input_iterator_tag = std::input_iterator_tag;
 using output_iterator_tag = std::output_iterator_tag;
 using forward_iterator_tag = std::forward_iterator_tag;
 using bidirectional_iterator_tag = std::bidirectional_iterator_tag;
 using random_access_iterator_tag = std::random_access_iterator_tag;
-#endif
+//#endif
 
 /// @brief Provides c++17 detray iterators in a simplified std::ranges style,
 ///        meant to be used in device code.
