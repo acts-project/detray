@@ -37,6 +37,7 @@ struct join_iterator;
 /// needs to be guranteed throughout iteration or between iterations with the
 /// same join instance.
 /// @note Is not fit for lazy evaluation.
+/// @todo improve performance of e.g. @c operator+ and @c operator+=
 template <std::size_t I, typename range_itr_t>
 struct join_view
     : public detray::ranges::view_interface<join_view<I, range_itr_t>> {

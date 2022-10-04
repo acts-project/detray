@@ -199,7 +199,8 @@ inline constexpr bool disable_sized_range = false;
 template <class R>
 inline constexpr bool sized_range =
     not ranges::disable_sized_range<detray::detail::remove_cvref_t<R>> and
-    (detray::ranges::range_v<R> and std::is_integral_v<range_size_t>);
+    (detray::ranges::range_v<R> and
+     std::is_integral_v<detray::ranges::range_size_t<R>>);
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_range
 template <class R>
