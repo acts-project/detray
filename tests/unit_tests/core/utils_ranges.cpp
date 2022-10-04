@@ -180,7 +180,6 @@ TEST(utils, ranges_iota_single) {
 
     // Test inherited member functions
     ASSERT_EQ(seq.size(), 1UL);
-    ASSERT_EQ(seq.front(), 7UL);
 
     for (auto& i : seq) {
         check += i;
@@ -211,7 +210,6 @@ TEST(utils, ranges_iota_interval) {
 
     // Test inherited member functions
     ASSERT_EQ(seq.size(), 5UL);
-    ASSERT_EQ(seq.front(), 2UL);
 
     std::vector<dindex> reference = {2, 3, 4, 5, 6};
     std::vector<dindex> check = {};

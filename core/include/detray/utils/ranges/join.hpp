@@ -211,11 +211,9 @@ struct join_iterator {
     }
 
     /// Decrement current iterator and check for switch between ranges.
-    template <
-        typename T = iterator_category,
-        std::enable_if_t<
-            std::is_base_of_v<detray::ranges::bidirectional_iterator_tag, T>,
-            bool> = true>
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::bidirectional_iterator_v<I>,
+                               bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator--() -> join_iterator & {
         if (m_iter != (*m_begins)[m_idx] and m_idx > 0) {
             // Normal case
@@ -239,11 +237,9 @@ struct join_iterator {
     }
 
     /// @returns an iterator advanced by @param j through the join.
-    template <
-        typename T = iterator_category,
-        std::enable_if_t<
-            std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
-            bool> = true>
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                               bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator+(const difference_type j) const
         -> join_iterator {
         join_iterator<iterator_coll_t> tmp(*this);
@@ -262,22 +258,18 @@ struct join_iterator {
     }
 
     /// @returns an iterator advanced by @param j through the join.
-    template <
-        typename T = iterator_category,
-        std::enable_if_t<
-            std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
-            bool> = true>
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                               bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-(const difference_type j) const
         -> join_iterator {
         return *this + (-j);
     }
 
     /// @returns the positional difference between two iterators
-    template <
-        typename T = iterator_category,
-        std::enable_if_t<
-            std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
-            bool> = true>
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                               bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-(
         const join_iterator &other) const -> difference_type {
         if (m_idx == other.m_idx) {
@@ -303,11 +295,9 @@ struct join_iterator {
     }
 
     /// @returns advance this iterator state by @param j.
-    template <
-        typename T = iterator_category,
-        std::enable_if_t<
-            std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
-            bool> = true>
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                               bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator+=(const difference_type j)
         -> join_iterator & {
         // walk through join to catch the switch between intermediate ranges
@@ -325,15 +315,33 @@ struct join_iterator {
     }
 
     /// @returns advance this iterator state by @param j.
-    template <
-        typename T = iterator_category,
-        std::enable_if_t<
-            std::is_base_of_v<detray::ranges::random_access_iterator_tag, T>,
-            bool> = true>
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                               bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-=(const difference_type j)
         -> join_iterator & {
         m_iter += (-j);
         return *this;
+    }
+
+    /// @returns the value at a given position - const
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto operator[](const dindex i) const
+        -> const value_type & {
+        int offset{static_cast<int>(i) - (m_iter - (*m_begins)[0])};
+        return *(*this + offset);
+    }
+
+    /// @returns the value at a given position - const
+    template <typename I = iterator_t,
+              std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto operator[](const dindex i)
+        -> value_type & {
+        int offset{static_cast<int>(i) - (m_iter - (*m_begins)[0])};
+        return *(*this + offset);
     }
 
     /// Global range collection of begin and end iterators
