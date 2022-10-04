@@ -6,37 +6,17 @@
  */
 #pragma once
 
-// Thrust include(s)
-#if defined(__CUDACC__)
-#include <thrust/iterator/iterator_categories.h>
-#endif
-
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/ranges/detail/iterator_functions.hpp"
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <cassert>
-#include <iterator>
 #include <type_traits>
 
 namespace detray::ranges {
-
-// Define iterator tags for host and device
-/*#if defined(__CUDACC__)
-using input_iterator_tag = thrust::input_device_iterator_tag;
-using output_iterator_tag = thrust::output_device_iterator_tag;
-using forward_iterator_tag = thrust::forward_device_iterator_tag;
-using bidirectional_iterator_tag = thrust::bidirectional_device_iterator_tag;
-using random_access_iterator_tag = thrust::random_access_device_iterator_tag;
-#elif !defined(__CUDACC__)*/
-using input_iterator_tag = std::input_iterator_tag;
-using output_iterator_tag = std::output_iterator_tag;
-using forward_iterator_tag = std::forward_iterator_tag;
-using bidirectional_iterator_tag = std::bidirectional_iterator_tag;
-using random_access_iterator_tag = std::random_access_iterator_tag;
-//#endif
 
 /// @brief Provides c++17 detray iterators in a simplified std::ranges style,
 ///        meant to be used in device code.
@@ -49,27 +29,27 @@ using random_access_iterator_tag = std::random_access_iterator_tag;
 /// @see https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0896r4.pdf
 /// @{
 
-/// Simply import the std versions of basic iterator functionality for now
+/// Pull in iterator functionality
 /// @{
-using std::begin;
-using std::cbegin;
-using std::cend;
-using std::crbegin;
-using std::crend;
-using std::end;
-using std::rbegin;
-using std::rend;
+// std version
+using detray::ranges::detail::begin;
+using detray::ranges::detail::cbegin;
+using detray::ranges::detail::cend;
+using detray::ranges::detail::crbegin;
+using detray::ranges::detail::crend;
+using detray::ranges::detail::end;
+using detray::ranges::detail::rbegin;
+using detray::ranges::detail::rend;
 
-using std::size;
-// ranges::ssize;
-using std::data;
-using std::empty;
-// ranges::cdata
+using detray::ranges::detail::data;
+using detray::ranges::detail::empty;
+using detray::ranges::detail::size;
 
-using std::advance;
-using std::distance;
-using std::next;
-using std::prev;
+// These are the only ones that are reimplemented using device quilifiers
+using detray::ranges::detail::advance;
+using detray::ranges::detail::distance;
+using detray::ranges::detail::next;
+using detray::ranges::detail::prev;
 /// @}
 
 /// Ranges typedefs,
@@ -82,8 +62,8 @@ template <class R>
 using sentinel_t = decltype(detray::ranges::end(std::declval<R&>()));
 
 template <class R>
-using const_iterator_t = decltype(
-    detray::ranges::begin(std::declval<const std::remove_reference_t<R>&>()));
+using const_iterator_t = decltype(detray::ranges::begin(
+    std::declval<const std::remove_reference_t<R>&>()));
 
 template <class R>
 using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));

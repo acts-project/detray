@@ -193,7 +193,7 @@ TEST(utils_ranges_cuda, join) {
 }
 
 // This tests the subrange view
-TEST(utils_ranges_cuda, range) {
+TEST(utils_ranges_cuda, subrange) {
 
     // Helper object for performing memory copies.
     vecmem::cuda::copy copy;
@@ -212,7 +212,7 @@ TEST(utils_ranges_cuda, range) {
 
     // Output vector buffer for iteration test
     vecmem::data::vector_buffer<int> check_buffer(
-        static_cast<vecmem::data::vector_buffer<int>::size_type>(begin - end),
+        static_cast<vecmem::data::vector_buffer<int>::size_type>(end - begin),
         0, managed_resource);
     copy.setup(check_buffer);
 
