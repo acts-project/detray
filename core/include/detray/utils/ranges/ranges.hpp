@@ -62,8 +62,8 @@ template <class R>
 using sentinel_t = decltype(detray::ranges::end(std::declval<R&>()));
 
 template <class R>
-using const_iterator_t = decltype(detray::ranges::begin(
-    std::declval<const std::remove_reference_t<R>&>()));
+using const_iterator_t = decltype(
+    detray::ranges::begin(std::declval<const std::remove_reference_t<R>&>()));
 
 template <class R>
 using range_size_t = decltype(detray::ranges::size(std::declval<R&>()));
