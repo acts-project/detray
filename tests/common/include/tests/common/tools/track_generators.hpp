@@ -80,7 +80,6 @@ class uniform_track_generator
         /// @returns the generator at its next position.
         DETRAY_HOST_DEVICE
         inline auto operator++() -> iterator & {
-            constexpr scalar pi{M_PI};
             // Check theta range according to step size
             if (i_theta < m_theta_steps) {
                 // Check phi sub-range
