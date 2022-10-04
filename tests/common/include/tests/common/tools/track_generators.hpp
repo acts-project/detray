@@ -35,17 +35,17 @@ class uniform_track_generator
     /// @brief Nested iterator type that generates track states.
     struct iterator : public std::iterator<std::input_iterator_tag, track_t> {
 
-        constexpr iterator() = default;
+        iterator() = default;
 
         DETRAY_HOST_DEVICE
-        constexpr iterator(std::size_t n_theta, std::size_t n_phi,
-                           point3 trk_origin = {},
-                           scalar trk_mom = 1. * unit_constants::GeV,
-                           std::array<scalar, 2> theta_range = {0.01, M_PI},
-                           std::array<scalar, 2> phi_range = {-M_PI, M_PI},
-                           scalar time = 0. * unit_constants::us,
-                           scalar charge = -1. * unit_constants::e,
-                           std::size_t iph = 1, std::size_t ith = 0)
+        iterator(std::size_t n_theta, std::size_t n_phi,
+                 point3 trk_origin = {0., 0., 0.},
+                 scalar trk_mom = 1. * unit_constants::GeV,
+                 std::array<scalar, 2> theta_range = {0.01, M_PI},
+                 std::array<scalar, 2> phi_range = {-M_PI, M_PI},
+                 scalar time = 0. * unit_constants::us,
+                 scalar charge = -1. * unit_constants::e, std::size_t iph = 1,
+                 std::size_t ith = 0)
             : m_theta_steps{n_theta},
               m_phi_steps{n_phi},
               m_theta_step_size{(theta_range[1] - theta_range[0]) / n_theta},
@@ -148,7 +148,7 @@ class uniform_track_generator
     using iterator_t = iterator;
 
     /// Default constructor
-    constexpr uniform_track_generator() = default;
+    uniform_track_generator() = default;
 
     /// Paramtetrized constructor for fine-grained configurations
     ///
@@ -161,13 +161,13 @@ class uniform_track_generator
     /// @param time time measurement (micro seconds)
     /// @param charge charge of particle (e)
     DETRAY_HOST_DEVICE
-    constexpr uniform_track_generator(
-        std::size_t n_theta, std::size_t n_phi, point3 trk_origin = {},
-        scalar trk_mom = 1. * unit_constants::GeV,
-        std::array<scalar, 2> theta_range = {0.01, M_PI},
-        std::array<scalar, 2> phi_range = {-M_PI, M_PI},
-        scalar time = 0. * unit_constants::us,
-        scalar charge = -1. * unit_constants::e)
+    uniform_track_generator(std::size_t n_theta, std::size_t n_phi,
+                            point3 trk_origin = {0., 0., 0.},
+                            scalar trk_mom = 1. * unit_constants::GeV,
+                            std::array<scalar, 2> theta_range = {0.01, M_PI},
+                            std::array<scalar, 2> phi_range = {-M_PI, M_PI},
+                            scalar time = 0. * unit_constants::us,
+                            scalar charge = -1. * unit_constants::e)
         : m_begin{n_theta,   n_phi, trk_origin, trk_mom, theta_range,
                   phi_range, time,  charge,     1,       0},
           m_end{n_theta,   n_phi, trk_origin, trk_mom, theta_range,
