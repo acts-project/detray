@@ -131,7 +131,6 @@ class pick_view : public detray::ranges::view_interface<
             -> iterator & {
             detray::ranges::advance(m_seq_iter, j);
             m_range_begin += *m_seq_iter;
-
             return *this;
         }
 
@@ -175,7 +174,6 @@ class pick_view : public detray::ranges::view_interface<
         m_range_end = other.m_range_end;
         m_seq_begin = other.m_seq_begin;
         m_seq_end = other.m_seq_end;
-
         return *this;
     }
 

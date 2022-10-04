@@ -91,23 +91,21 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
                          bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit iota_view(deduced_incr_t &&start)
-        : m_start{std::forward<deduced_incr_t>(start)},
-          m_end{std::forward<deduced_incr_t>(start) + 1} {}
+        : m_start{start}, m_end{start + 1} {}
 
     /// Construct from an @param interval that defines start and end values.
     template <typename interval_t,
               std::enable_if_t<detray::detail::is_interval_v<interval_t>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit iota_view(interval_t &&interval)
-        : m_start{detray::detail::get<0>(std::forward<interval_t>(interval))},
-          m_end{detray::detail::get<1>(std::forward<interval_t>(interval))} {}
+        : m_start{detray::detail::get<0>(interval)},
+          m_end{detray::detail::get<1>(interval)} {}
 
     /// Construct from a @param start start and @param end value.
     template <typename deduced_incr_t>
     DETRAY_HOST_DEVICE constexpr iota_view(deduced_incr_t &&start,
                                            deduced_incr_t &&end)
-        : m_start{std::forward<deduced_incr_t>(start)},
-          m_end{std::forward<deduced_incr_t>(end) - 1} {}
+        : m_start{start}, m_end{end - 1} {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
