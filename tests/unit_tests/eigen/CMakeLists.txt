@@ -15,7 +15,7 @@ detray_add_test( eigen
    "eigen_intersection_kernel.cpp" "eigen_mask_store.cpp" "eigen_materials.cpp"
    "eigen_navigator.cpp" "eigen_particle_gun.cpp"
    "eigen_planar_intersection.cpp" "eigen_line_intersection.cpp" "eigen_line.cpp" "eigen_propagator.cpp"
-   "eigen_rectangle2.cpp" "eigen_ring2.cpp" "eigen_single3.cpp"
+   "eigen_rectangle2.cpp" "eigen_ring2.cpp" "eigen_single_plane_detector.cpp" "eigen_single3.cpp"
    "eigen_stepper.cpp" "eigen_surfaces_finder.cpp"
    "eigen_telescope_detector.cpp" "eigen_toy_geometry.cpp" "eigen_track.cpp"
    "eigen_track_generators.cpp" "eigen_transform_store.cpp"

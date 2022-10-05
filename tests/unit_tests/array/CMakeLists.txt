@@ -15,7 +15,7 @@ detray_add_test( array
    "array_intersection_kernel.cpp" "array_particle_gun.cpp"
    "array_mask_store.cpp" "array_materials.cpp" "array_navigator.cpp"
    "array_planar_intersection.cpp" "array_line_intersection.cpp" "array_line.cpp" "array_propagator.cpp"
-   "array_rectangle2.cpp" "array_ring2.cpp" "array_single3.cpp"
+   "array_rectangle2.cpp" "array_ring2.cpp" "array_single_plane_detector.cpp" "array_single3.cpp"
    "array_stepper.cpp" "array_surfaces_finder.cpp"
    "array_telescope_detector.cpp" "array_toy_geometry.cpp" "array_track.cpp" 
    "array_transform_store.cpp" "array_trapezoid2.cpp"
