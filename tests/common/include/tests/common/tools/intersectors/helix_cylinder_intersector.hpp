@@ -14,6 +14,7 @@
 
 // System include(s)
 #include <cmath>
+#include <limits>
 #include <type_traits>
 
 namespace detray {
@@ -29,6 +30,7 @@ struct helix_cylinder_intersector {
 
     using scalar_type = typename transform3_t::scalar_type;
     using matrix_operator = typename transform3_t::matrix_actor;
+    using point2 = typename transform3_t::point2;
     using point3 = typename transform3_t::point3;
     using vector3 = typename transform3_t::vector3;
     using helix_type = detail::helix<transform3_t>;
@@ -55,8 +57,6 @@ struct helix_cylinder_intersector {
 
         output_type ret;
 
-        using local_frame = typename mask_t::local_type;
-
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{100};
         // Tolerance for convergence
@@ -71,7 +71,7 @@ struct helix_cylinder_intersector {
 
         // Starting point on the helix for the Newton iteration
         // The mask is a cylinder -> it provides its radius as the first value
-        const scalar_type r{mask[0]};
+        const scalar_type r{mask[cylinder2D<>::e_r]};
         // Helix path length parameter
         scalar_type s{r * getter::perp(h.dir(tol))};
         // Path length in the previous iteration step
@@ -108,13 +108,16 @@ struct helix_cylinder_intersector {
 
         is.path = getter::norm(helix_pos);
         is.p3 = helix_pos;
-        constexpr local_frame local_converter{};
-        is.p2 = local_converter.global_to_local(trf, is.p3, h.dir(s));
+        is.p2 = mask.to_local_frame(trf, is.p3, h.dir(s));
+        is.status = mask.is_inside(is.p2, mask_tolerance);
 
-        auto local3 = trf.point_to_local(is.p3);
-        // Explicitly check for radial match
-        is.status =
-            mask.template is_inside<local_frame, true>(local3, mask_tolerance);
+        // Additionally check radial position for Newton solution
+        const scalar_type radial_pos{getter::perp(trf.point_to_local(is.p3))};
+        const bool r_check = std::abs(r - radial_pos) < mask_tolerance + 5 * std::numeric_limits<scalar_type>::epsilon();
+        if (not r_check) {
+            is.status = intersection::status::e_outside;
+        }
+
         is.direction = vector::dot(is.p3, h.dir(s)) > scalar_type{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;

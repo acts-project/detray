@@ -61,10 +61,4 @@ DETRAY_HOST_DEVICE inline bool operator==(const test::point3<T> &lhs,
     return true;
 }
 
-// invalid value specialization for test::point3
-template <>
-DETRAY_HOST_DEVICE inline test::point3<scalar> invalid_value() {
-    return test::point3<scalar>{0, 0, 0};
-}
-
 }  // namespace detray

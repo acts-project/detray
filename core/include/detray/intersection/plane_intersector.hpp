@@ -52,8 +52,6 @@ struct plane_intersector {
 
         output_type ret;
 
-        using local_frame = typename mask_t::local_type;
-
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
         const vector3 sn = getter::vector<3>(sm, 0, 2);
@@ -67,10 +65,8 @@ struct plane_intersector {
             intersection_type &is = ret[0];
             is.path = vector::dot(sn, st - ro) / denom;
             is.p3 = ro + is.path * rd;
-            constexpr local_frame local_converter{};
-            is.p2 = local_converter.global_to_local(trf, is.p3, ray.dir());
-            is.status =
-                mask.template is_inside<local_frame>(is.p2, mask_tolerance);
+            is.p2 = mask.to_local_frame(trf, is.p3, ray.dir());
+            is.status = mask.is_inside(is.p2, mask_tolerance);
             is.direction = is.path > overstep_tolerance
                                ? intersection::direction::e_along
                                : intersection::direction::e_opposite;

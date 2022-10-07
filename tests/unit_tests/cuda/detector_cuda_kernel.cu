@@ -64,7 +64,7 @@ __global__ void detector_test_kernel(
     }
 
     auto& cylinders =
-        masks.template group<detector_host_t::masks::id::e_portal_cylinder3>();
+        masks.template group<detector_host_t::masks::id::e_portal_cylinder2>();
     for (unsigned int i = 0; i < cylinders.size(); i++) {
         cylinders_device[i] = cylinders[i];
     }

@@ -79,6 +79,7 @@ class registry_base<ID, true, registered_types...> {
     template <typename object_t>
     struct get_index {
         static constexpr ID value = get_id<object_t>();
+        DETRAY_HOST_DEVICE
         constexpr bool operator()() noexcept { return is_valid(value); }
     };
 
@@ -96,7 +97,7 @@ class registry_base<ID, true, registered_types...> {
                 is_valid(ref_idx),
                 "Index out of range: Please make sure that indices and type "
                 "enums match the number of types in container.");
-            return static_cast<ID>(index);
+            return static_cast<ID>(ref_idx);
         }
         if constexpr (ref_idx < sizeof...(registered_types) - 1) {
             return to_id<ref_idx + 1>(index);

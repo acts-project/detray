@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <iterator>
 #include <tuple>
 #include <type_traits>
 
@@ -14,6 +15,59 @@
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
+
+/// @brief Iterator-like access to a single value instead of a collection
+template <typename value_t>
+struct single_iterator {
+    using container_type_iter = value_t *;
+
+    /// Delete default constructor
+    single_iterator() = delete;
+
+    /// Construct iterator pointing to a @param value.
+    DETRAY_HOST_DEVICE single_iterator(value_t &value) : m_value(&value) {}
+
+    /// @returns start position, which is at the wrapped value.
+    DETRAY_HOST_DEVICE
+    inline auto begin() -> value_t * { return m_value; }
+
+    /// @returns end position, which is the position behind the wrapped value.
+    DETRAY_HOST_DEVICE
+    inline auto end() -> const value_t * {
+        return m_value + static_cast<std::ptrdiff_t>(1);
+    }
+
+    /// @returns true if it points to the same address.
+    DETRAY_HOST_DEVICE
+    bool operator!=(const single_iterator &rhs) {
+        return m_value != rhs.m_value;
+    }
+
+    /// Does nothing
+    DETRAY_HOST_DEVICE
+    inline constexpr auto operator++() -> void {}
+
+    /// @returns the single value that the iterator points to
+    DETRAY_HOST_DEVICE
+    inline constexpr auto operator*() const -> const value_t {
+        return *m_value;
+    }
+
+    /// @return element at position i, relative to iterator range. */
+    DETRAY_HOST_DEVICE
+    inline constexpr auto operator[](const dindex /*i*/) -> value_t {
+        return *m_value;
+    }
+
+    /// @return element at position i, relative to iterator range - const
+    DETRAY_HOST_DEVICE
+    inline constexpr auto operator[](const dindex /*i*/) const
+        -> const value_t & {
+        return *m_value;
+    }
+
+    value_t *m_value;
+};
 
 /** @brief Struct that implements a range by providing start and end iterators.
  *
@@ -25,39 +79,72 @@ template <typename container_t>
 struct iterator_range {
     using container_type_iter =
         decltype(std::begin(std::declval<container_t>()));
+    using difference_type =
+        typename std::iterator_traits<container_type_iter>::difference_type;
 
     /** Delete default constructor */
     iterator_range() = delete;
 
-    /** Always construct from a container and a range
+    /** Construct from a container -> iterates the entire range
+     *
+     * @param iterable container to iterate over
+     * @param range start and end position for iteration
+     */
+    DETRAY_HOST_DEVICE iterator_range(container_t &iterable)
+        : _start(std::begin(iterable)), _end(std::end(iterable)) {}
+
+    /** Construct from a container and a range
      *
      * @param iterable container to iterate over
      * @param range start and end position for iteration
      */
     template <typename range_t>
-    DETRAY_HOST_DEVICE iterator_range(const container_t &iterable,
+    DETRAY_HOST_DEVICE iterator_range(container_t &iterable,
                                       const range_t &range)
-        : _start(std::begin(iterable) + detail::get<0>(range)),
-          _end(std::begin(iterable) + detail::get<1>(range)) {
+        : _start(std::begin(iterable) +
+                 static_cast<difference_type>(detail::get<0>(range))),
+          _end(std::begin(iterable) +
+               static_cast<difference_type>(detail::get<1>(range))) {
         // Observe end of the iterable
-        if (std::distance(_end, std::end(iterable)) <= 0) {
+        //const auto& const_itr = const_cast<const container_t&>(iterable);
+        /*if (std::distance(_end, std::end(const_cast<const container_t&>(iterable))) <= 0) {
             _end = std::end(iterable);
-        }
+        }*/
     }
+
+    /** @return start position of range on container. */
+    DETRAY_HOST_DEVICE
+    inline const auto &begin() const { return _start; }
 
     /** @return start position of range on container. */
     DETRAY_HOST_DEVICE
     inline auto &begin() { return _start; }
 
+    /** @return start position of range on container. */
+    DETRAY_HOST_DEVICE
+    inline const auto &end() const { return _end; }
+
     /** @return end position of range on container. */
     DETRAY_HOST_DEVICE
     inline auto &end() { return _end; }
 
+    /** @return end position of range on container. */
+    DETRAY_HOST_DEVICE
+    inline auto size() const { return _end - _start; }
+
     /** Does this describe the same range? */
     DETRAY_HOST_DEVICE
-    bool operator!=(const iterator_range &rhs) {
+    bool operator!=(iterator_range &rhs) const {
         return _start != rhs._start or _end != rhs._end;
     }
+
+    /** @return element at position i, relative to iterator range. */
+    DETRAY_HOST_DEVICE
+    inline auto operator*() { return *_start; }
+
+    /** @return element at position i, relative to iterator range. */
+    DETRAY_HOST_DEVICE
+    inline const auto &operator*() const { return *_start; }
 
     /** @return element at position i, relative to iterator range. */
     DETRAY_HOST_DEVICE
@@ -71,13 +158,16 @@ struct iterator_range {
 
     /** @return the offset of the range start into the container. */
     DETRAY_HOST_DEVICE
-    inline auto offset(const container_t &iterable) {
+    inline auto offset(container_t &iterable) const -> difference_type {
         return std::distance(_start, std::begin(iterable));
     }
 
     /** Start and end position of a range */
     container_type_iter _start, _end;
 };
+
+template <typename container_t>
+using standard_iterator = iterator_range<container_t>;
 
 /** @brief Struct that increments a given iterator in lockstep with the
  *        iteration index for convenience.
@@ -207,17 +297,17 @@ DETRAY_HOST_DEVICE constexpr inline auto enumerate(const container_t &iterable,
 
     struct iterable_wrapper {
         const container_type_iter iter;
-        iterator_range<container_t> range_iter;
+        iterator_range<const container_t> range_iter;
 
         DETRAY_HOST_DEVICE
         decltype(auto) begin() {
-            return enumerator<container_t>(
+            return enumerator<const container_t>(
                 static_cast<size_t>(std::distance(iter, range_iter.begin())),
                 range_iter.begin());
         }
         DETRAY_HOST_DEVICE
         decltype(auto) end() {
-            return enumerator<container_t>(
+            return enumerator<const container_t>(
                 static_cast<size_t>(std::distance(iter, range_iter.begin())),
                 range_iter.end());
         }

@@ -26,26 +26,16 @@ struct volume_stats {
     std::size_t n_max_objects_per_volume = 0;
 };
 
-/// volume links: next volume during navigation
+/// mask to (next) volume link: next volume(s)
 using volume_link_type = dindex;
 
 /// mask types
-using rectangle = rectangle2<__plugin::transform3<detray::scalar>,
-                             plane_intersector, cartesian2, volume_link_type>;
-using trapezoid = trapezoid2<__plugin::transform3<detray::scalar>,
-                             plane_intersector, cartesian2, volume_link_type>;
-// @TODO: Use Polar2?
-using annulus = annulus2<__plugin::transform3<detray::scalar>,
-                         plane_intersector, polar2, volume_link_type>;
-using cylinder =
-    cylinder3<__plugin::transform3<detray::scalar>, cylinder_intersector,
-              cylindrical2, volume_link_type>;
-// @TODO: Use Polar2?
-using disc = ring2<__plugin::transform3<detray::scalar>, plane_intersector,
-                   polar2, volume_link_type>;
-using unbounded_plane =
-    unmasked<__plugin::transform3<detray::scalar>, plane_intersector,
-             cartesian2, volume_link_type>;
+using rectangle = mask<rectangle2D<>, volume_link_type>;
+using trapezoid = mask<trapezoid2D<>, volume_link_type>;
+using annulus = mask<annulus2D<>, volume_link_type>;
+using cylinder = mask<cylinder2D<>, volume_link_type>;
+using disc = mask<ring2D<>, volume_link_type>;
+using unbounded_plane = mask<unmasked, volume_link_type>;
 
 using slab = material_slab<detray::scalar>;
 using rod = material_rod<detray::scalar>;
@@ -68,8 +58,8 @@ struct full_metadata {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
         e_annulus2 = 2,
-        e_cylinder3 = 3,
-        e_portal_cylinder3 = 3,  // no distinction from surface cylinder
+        e_cylinder2 = 3,
+        e_portal_cylinder2 = 3,  // no distinction from surface cylinder
         e_ring2 = 4,
         e_portal_ring2 = 4,
         e_single3 = 5,
@@ -151,8 +141,8 @@ struct toy_metadata {
     enum class mask_ids {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
-        e_cylinder3 = 2,         // Put the beampipe into the same container as
-        e_portal_cylinder3 = 2,  // the cylinder portals
+        e_cylinder2 = 2,         // Put the beampipe into the same container as
+        e_portal_cylinder2 = 2,  // the cylinder portals
         e_portal_ring2 = 3,
     };
 

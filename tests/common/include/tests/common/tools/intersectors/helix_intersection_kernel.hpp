@@ -59,9 +59,10 @@ struct helix_intersection_update {
         // Run over the masks belonged to the surface
         for (const auto &mask : range(mask_group, mask_range)) {
 
-            if constexpr (std::is_same_v<typename mask_group_t::value_type::
-                                             intersector_type,
-                                         plane_intersector_type>) {
+            using mask_t = typename mask_group_t::value_type;
+            if constexpr (std::is_same_v<
+                              typename mask_t::shape::template intersector_type<transform3_type>,
+                              plane_intersector_type>) {
 
                 auto sfi = std::move(helix_plane_intersector_type()(
                     traj, mask, ctf, mask_tolerance));
@@ -73,8 +74,7 @@ struct helix_intersection_update {
                 }
 
             } else if constexpr (std::is_same_v<
-                                     typename mask_group_t::value_type::
-                                         intersector_type,
+                                     typename mask_t::shape::template intersector_type<transform3_type>,
                                      cylinder_intersector_type>) {
 
                 auto sfi = std::move(helix_cylinder_intersector_type()(

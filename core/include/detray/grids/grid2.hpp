@@ -20,7 +20,7 @@ namespace detray {
 /** A two-dimensional grid for object storage
  *
  * @tparam populator_t  is a prescription what to do when a bin gets
- *pupulated, it broadcasts also the value type
+ * populated, it broadcasts also the value type
  * @tparam tparam axis_p0_t the type of the first axis
  * @tparam tparam axis_p1_t the type of the second axis
  * @tparam serialzier_t  type of the serializer to the storage represenations
@@ -64,7 +64,7 @@ class grid2 {
 
     DETRAY_HOST
     grid2(vecmem::memory_resource &mr,
-          const bare_value m_invalid = invalid_value<bare_value>())
+          const bare_value m_invalid = detail::invalid_value<bare_value>())
         : _axis_p0(mr),
           _axis_p1(mr),
           _data_serialized(&mr),
@@ -79,7 +79,7 @@ class grid2 {
     DETRAY_HOST
     grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
           vecmem::memory_resource &mr,
-          const bare_value m_invalid = invalid_value<bare_value>())
+          const bare_value m_invalid = detail::invalid_value<bare_value>())
         : _axis_p0(axis_p0, mr),
           _axis_p1(axis_p1, mr),
           _data_serialized(&mr),
@@ -97,7 +97,7 @@ class grid2 {
     DETRAY_HOST
     grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1,
           vecmem::memory_resource &mr,
-          const bare_value m_invalid = invalid_value<bare_value>())
+          const bare_value m_invalid = detail::invalid_value<bare_value>())
         : _axis_p0(std::move(axis_p0), mr),
           _axis_p1(std::move(axis_p1), mr),
           _data_serialized(&mr),
@@ -115,7 +115,7 @@ class grid2 {
                   bool> = true>
     DETRAY_HOST_DEVICE grid2(
         const grid_view_t &grid_data,
-        const bare_value m_invalid = invalid_value<bare_value>())
+        const bare_value m_invalid = detail::invalid_value<bare_value>())
         : _axis_p0(grid_data._axis_p0_view),
           _axis_p1(grid_data._axis_p1_view),
           _data_serialized(grid_data._data_view),

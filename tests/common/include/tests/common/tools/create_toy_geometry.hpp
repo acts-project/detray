@@ -58,7 +58,7 @@ inline void add_cylinder_surface(
     using material_defs = typename surface_type::material_defs;
     using material_link_type = typename surface_type::material_link;
 
-    constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder3;
+    constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder2;
     constexpr auto slab_id = material_defs::id::e_slab;
 
     const scalar min_z{std::min(lower_z, upper_z)};
@@ -69,7 +69,7 @@ inline void add_cylinder_surface(
 
     // add transform and masks
     transforms.emplace_back(ctx, tsl);
-    masks.template add_value<cylinder_id>(r, min_z, max_z, volume_link);
+    masks.template add_value<cylinder_id>(volume_link, r, min_z, max_z);
 
     // Add material slab
     materials.template add_value<slab_id>(mat, thickness);
@@ -124,7 +124,7 @@ inline void add_disc_surface(
 
     // add transform and mask
     transforms.emplace_back(ctx, tsl);
-    masks.template add_value<disc_id>(min_r, max_r, volume_link);
+    masks.template add_value<disc_id>(volume_link, min_r, max_r);
 
     // Add material slab
     materials.template add_value<slab_id>(mat, thickness);
@@ -288,8 +288,8 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                               dindex_invalid, false);
 
         // The rectangle bounds for this module
-        masks.template add_value<rectangle_id>(cfg.m_half_x, cfg.m_half_y,
-                                               mask_volume_link);
+        masks.template add_value<rectangle_id>(mask_volume_link, cfg.m_half_x,
+                                               cfg.m_half_y);
         materials.template add_value<slab_id>(cfg.mat, cfg.thickness);
 
         // Build the transform
@@ -512,8 +512,9 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
                 slab_id, materials.template size<slab_id>()};
 
             masks.template add_value<trapezoid_id>(
-                cfg.m_half_x_min_y[ir], cfg.m_half_x_max_y[ir],
-                cfg.m_half_y[ir], mask_volume_link);
+                mask_volume_link, cfg.m_half_x_min_y[ir], cfg.m_half_x_max_y[ir],
+                cfg.m_half_y[ir],
+                static_cast<scalar>(1. / (2. * cfg.m_half_y[ir])));
 
             materials.template add_value<slab_id>(cfg.mat, cfg.thickness);
 

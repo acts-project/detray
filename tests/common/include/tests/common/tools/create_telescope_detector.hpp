@@ -158,7 +158,7 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
         } else {
             // The rectangle bounds for this module
             masks.template add_value<telescope_types::mask_ids::e_rectangle2>(
-                cfg.m_half_x, cfg.m_half_y, mask_volume_link);
+                mask_volume_link, cfg.m_half_x, cfg.m_half_y);
             materials.template add_value<telescope_types::material_ids::e_slab>(
                 cfg.m_mat, cfg.m_thickness);
         }

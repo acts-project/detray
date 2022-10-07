@@ -41,20 +41,16 @@ enum material_ids : unsigned int {
 };
 
 /// Surface components:
-using edge_t = dindex;
+using volume_link_t = dindex;
 using source_link_t = dindex;
-
 /// - masks, with mask identifiers 0,1,2
-using rectangle_t =
-    rectangle2<transform3_type, plane_intersector, cartesian2, edge_t>;
-using trapezoid_t =
-    trapezoid2<transform3_type, plane_intersector, cartesian2, edge_t>;
-using annulus_t =
-    annulus2<transform3_type, plane_intersector, cartesian2, edge_t>;
+using rectangle_t = mask<rectangle2D<>, volume_link_t>;
+using trapezoid_t = mask<trapezoid2D<>, volume_link_t>;
+using annulus_t = mask<annulus2D<>, volume_link_t>;
 
 using mask_defs =
     tuple_vector_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
-using mask_container_t = typename mask_defs::template store_type<>;
+using mask_container_t = typename mask_defs::store_type<>;
 
 constexpr const float epsilon = 1e-3;
 
@@ -84,10 +80,10 @@ TEST(tools, intersection_kernel_ray) {
     transform_store.emplace_back(static_context, point3{0., -20., 30.});
     // The masks & their store
     mask_container_t mask_store(host_mr);
-    mask_store.template add_value<e_rectangle2>(10., 10., 0);
-    mask_store.template add_value<e_trapezoid2>(10., 20., 30., 0);
-    mask_store.template add_value<e_annulus2>(15., 55., 0.75, 1.95, 2., -2., 0.,
-                                              0);
+    mask_store.template add_value<e_rectangle2>(0UL, 10.f, 10.f);
+    mask_store.template add_value<e_trapezoid2>(0UL, 10.f, 20.f, 30.f);
+    mask_store.template add_value<e_annulus2>(0UL, 15.f, 55.f, 0.75f, 1.95f,
+                                              2.f, -2.f, 0.f);
     // Materials and their store
     material_container_t material_store(host_mr);
     material_store.template add_value<e_slab>(silicon<scalar>(),
@@ -176,10 +172,10 @@ TEST(tools, intersection_kernel_helix) {
     transform_store.emplace_back(static_context, point3{0., -20., 30.});
     // The masks & their store
     mask_container_t mask_store(host_mr);
-    mask_store.template add_value<e_rectangle2>(10., 10., 0);
-    mask_store.template add_value<e_trapezoid2>(10., 20., 30., 0);
-    mask_store.template add_value<e_annulus2>(15., 55., 0.75, 1.95, 2., -2., 0.,
-                                              0);
+    mask_store.template add_value<e_rectangle2>(0UL, 10.f, 10.f);
+    mask_store.template add_value<e_trapezoid2>(0UL, 10.f, 20.f, 30.f);
+    mask_store.template add_value<e_annulus2>(0UL, 15.f, 55.f, 0.75f, 1.95f,
+                                              2.f, -2.f, 0.f);
     // Materials and their store
     material_container_t material_store(host_mr);
     material_store.template add_value<e_slab>(silicon<scalar>(),

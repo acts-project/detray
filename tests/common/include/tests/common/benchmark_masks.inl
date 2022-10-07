@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,11 +11,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "detray/masks/annulus2.hpp"
-#include "detray/masks/cylinder3.hpp"
-#include "detray/masks/rectangle2.hpp"
-#include "detray/masks/ring2.hpp"
-#include "detray/masks/trapezoid2.hpp"
+#include "detray/intersection/intersection.hpp"
+#include "detray/masks/masks.hpp"
 
 using namespace detray;
 using namespace __plugin;
@@ -35,39 +32,46 @@ unsigned int steps_y2 = steps_x2;
 
 bool screen_output = false;
 
+using transform_t = __plugin::transform3<detray::scalar>;
+using point3_t = __plugin::point3<detray::scalar>;
+const transform_t trf{};
+
 namespace {
 
-// This test runs a rectangle2 maks test operation
-static void BM_RECTANGLE2_MASK(benchmark::State &state) {
-    using local_type = cartesian2<__plugin::transform3<scalar>>;
-    using point2 = __plugin::point2<detray::scalar>;
+// This runs a benchmark on a rectangle2D mask
+static void BM_RECTANGLE_2D_MASK(benchmark::State &state) {
+    using point_t = typename mask<rectangle2D<>>::loc_point_t;
 
-    rectangle2<> r{3, 4, 0u};
+    mask<rectangle2D<>, dindex, transform_t> r{0UL, 3.f, 4.f};
 
     scalar world = 10.;
     scalar area = 4 * r[0] * r[1];
     scalar rest = world * world - area;
 
-    scalar sx = world / steps_x2;
-    scalar sy = world / steps_y2;
+    scalar sx = world / steps_x3;
+    scalar sy = world / steps_y3;
+    scalar sz = world / steps_z3;
+
     unsigned long inside = 0;
     unsigned long outside = 0;
 
     for (auto _ : state) {
-        for (unsigned int ix = 0; ix < steps_x2; ++ix) {
+        for (unsigned int ix = 0; ix < steps_x3; ++ix) {
             scalar x = -0.5 * world + ix * sx;
-            for (unsigned int iy = 0; iy < steps_y2; ++iy) {
+            for (unsigned int iy = 0; iy < steps_y3; ++iy) {
                 scalar y = -0.5 * world + iy * sy;
+                for (unsigned int iz = 0; iz < steps_z3; ++iz) {
+                    scalar z = -0.5 * world + iz * sz;
 
-                benchmark::DoNotOptimize(inside);
-                benchmark::DoNotOptimize(outside);
-                if (r.is_inside<local_type>(point2{x, y}) ==
-                    intersection::status::e_inside) {
-                    ++inside;
-                } else {
-                    ++outside;
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
+                    point_t loc_p{r.to_local_frame(trf, {x, y, z})};
+                    if (r.is_inside(loc_p) == intersection::status::e_inside) {
+                        ++inside;
+                    } else {
+                        ++outside;
+                    }
                 }
-                benchmark::ClobberMemory();
             }
         }
     }
@@ -80,37 +84,40 @@ static void BM_RECTANGLE2_MASK(benchmark::State &state) {
     }
 }
 
-// This test runs intersection a trapezoid2 mask operation
-static void BM_TRAPEZOID2_MASK(benchmark::State &state) {
-    using local_type = cartesian2<__plugin::transform3<scalar>>;
-    using point2 = __plugin::point2<detray::scalar>;
+// This runs a benchmark on a trapezoid2D mask
+static void BM_TRAPEZOID_2D_MASK(benchmark::State &state) {
+    using point_t = typename mask<trapezoid2D<>>::loc_point_t;
 
-    trapezoid2<> t{2, 3, 4, 0u};
+    mask<trapezoid2D<>> t{0UL, 2.f, 3.f, 4.f};
 
     scalar world = 10.;
     scalar area = 2 * (t[0] + t[1]) * t[2];
     scalar rest = world * world - area;
 
-    scalar sx = world / steps_x2;
-    scalar sy = world / steps_y2;
+    scalar sx = world / steps_x3;
+    scalar sy = world / steps_y3;
+    scalar sz = world / steps_z3;
+
     unsigned long inside = 0;
     unsigned long outside = 0;
 
     for (auto _ : state) {
-        for (unsigned int ix = 0; ix < steps_x2; ++ix) {
+        for (unsigned int ix = 0; ix < steps_x3; ++ix) {
             scalar x = -0.5 * world + ix * sx;
-            for (unsigned int iy = 0; iy < steps_y2; ++iy) {
+            for (unsigned int iy = 0; iy < steps_y3; ++iy) {
                 scalar y = -0.5 * world + iy * sy;
+                for (unsigned int iz = 0; iz < steps_z3; ++iz) {
+                    scalar z = -0.5 * world + iz * sz;
 
-                benchmark::DoNotOptimize(inside);
-                benchmark::DoNotOptimize(outside);
-                if (t.is_inside<local_type>(point2{x, y}) ==
-                    intersection::status::e_inside) {
-                    ++inside;
-                } else {
-                    ++outside;
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
+                    point_t loc_p{t.to_local_frame(trf, {x, y, z})};
+                    if (t.is_inside(loc_p) == intersection::status::e_inside) {
+                        ++inside;
+                    } else {
+                        ++outside;
+                    }
                 }
-                benchmark::ClobberMemory();
             }
         }
     }
@@ -123,37 +130,40 @@ static void BM_TRAPEZOID2_MASK(benchmark::State &state) {
     }
 }
 
-// This test runs a ring2 mask operation
-static void BM_RING2_MASK(benchmark::State &state) {
-    using local_type = cartesian2<__plugin::transform3<scalar>>;
-    using point2 = __plugin::point2<detray::scalar>;
+// This runs a benchmark on a ring2D mask (as disc)
+static void BM_RING_2D_MASK(benchmark::State &state) {
+    using point_t = typename mask<ring2D<>>::loc_point_t;
 
-    ring2<> r{0., 5., 0u};
+    mask<ring2D<>> r{0UL, 0.f, 5.f};
 
     scalar world = 10.;
     scalar area = r[1] * r[1] * M_PI;
     scalar rest = world * world - area;
 
-    scalar sx = world / steps_x2;
-    scalar sy = world / steps_y2;
+    scalar sx = world / steps_x3;
+    scalar sy = world / steps_y3;
+    scalar sz = world / steps_z3;
+
     unsigned long inside = 0;
     unsigned long outside = 0;
 
     for (auto _ : state) {
-        for (unsigned int ix = 0; ix < steps_x2; ++ix) {
+        for (unsigned int ix = 0; ix < steps_x3; ++ix) {
             scalar x = -0.5 * world + ix * sx;
-            for (unsigned int iy = 0; iy < steps_y2; ++iy) {
+            for (unsigned int iy = 0; iy < steps_y3; ++iy) {
                 scalar y = -0.5 * world + iy * sy;
+                for (unsigned int iz = 0; iz < steps_z3; ++iz) {
+                    scalar z = -0.5 * world + iz * sz;
 
-                benchmark::DoNotOptimize(inside);
-                benchmark::DoNotOptimize(outside);
-                if (r.is_inside<local_type>(point2{x, y}) ==
-                    intersection::status::e_inside) {
-                    ++inside;
-                } else {
-                    ++outside;
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
+                    point_t loc_p{r.to_local_frame(trf, {x, y, z})};
+                    if (r.is_inside(loc_p) == intersection::status::e_inside) {
+                        ++inside;
+                    } else {
+                        ++outside;
+                    }
                 }
-                benchmark::ClobberMemory();
             }
         }
     }
@@ -165,37 +175,40 @@ static void BM_RING2_MASK(benchmark::State &state) {
     }
 }
 
-// This test runs mask oeration on a disc2
-static void BM_DISC2_MASK(benchmark::State &state) {
-    using local_type = cartesian2<__plugin::transform3<scalar>>;
-    using point2 = __plugin::point2<detray::scalar>;
+// This runs a benchmark on a ring2D mask
+static void BM_DISC_2D_MASK(benchmark::State &state) {
+    using point_t = typename mask<ring2D<>>::loc_point_t;
 
-    ring2<> r{2., 5., 0u};
+    mask<ring2D<>> r{0UL, 2.f, 5.f};
 
     scalar world = 10.;
     scalar area = (r[1] * r[1] - r[0] * r[0]) * M_PI;
     scalar rest = world * world - area;
 
-    scalar sx = world / steps_x2;
-    scalar sy = world / steps_y2;
+    scalar sx = world / steps_x3;
+    scalar sy = world / steps_y3;
+    scalar sz = world / steps_z3;
+
     unsigned long inside = 0;
     unsigned long outside = 0;
 
     for (auto _ : state) {
-        for (unsigned int ix = 0; ix < steps_x2; ++ix) {
+        for (unsigned int ix = 0; ix < steps_x3; ++ix) {
             scalar x = -0.5 * world + ix * sx;
-            for (unsigned int iy = 0; iy < steps_y2; ++iy) {
+            for (unsigned int iy = 0; iy < steps_y3; ++iy) {
                 scalar y = -0.5 * world + iy * sy;
+                for (unsigned int iz = 0; iz < steps_z3; ++iz) {
+                    scalar z = -0.5 * world + iz * sz;
 
-                benchmark::DoNotOptimize(inside);
-                benchmark::DoNotOptimize(outside);
-                if (r.is_inside<local_type>(point2{x, y}) ==
-                    intersection::status::e_inside) {
-                    ++inside;
-                } else {
-                    ++outside;
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
+                    point_t loc_p{r.to_local_frame(trf, {x, y, z})};
+                    if (r.is_inside(loc_p) == intersection::status::e_inside) {
+                        ++inside;
+                    } else {
+                        ++outside;
+                    }
                 }
-                benchmark::ClobberMemory();
             }
         }
     }
@@ -207,12 +220,11 @@ static void BM_DISC2_MASK(benchmark::State &state) {
     }
 }
 
-// This test runs masking operations on a cylinder3 mask
-static void BM_CYLINDER3_MASK(benchmark::State &state) {
-    using local_type = cartesian2<__plugin::transform3<scalar>>;
-    using point3 = __plugin::point3<detray::scalar>;
+// This runs a benchmark on a cylinder2D mask
+static void BM_CYLINDER_2D_MASK(benchmark::State &state) {
+    using point_t = typename mask<cylinder2D<>>::loc_point_t;
 
-    cylinder3<> c{3., 5., 0., 0u};
+    mask<cylinder2D<>> c{0UL, 3.f, 5.f, 0.f};
 
     scalar world = 10.;
 
@@ -233,54 +245,58 @@ static void BM_CYLINDER3_MASK(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
-                    if (c.is_inside<local_type>(point3{x, y, z}, 0.1) ==
+                    point_t loc_p{c.to_local_frame(trf, {x, y, z})};
+                    if (c.is_inside(loc_p, 0.1) ==
                         intersection::status::e_inside) {
                         ++inside;
                     } else {
                         ++outside;
                     }
-                    benchmark::ClobberMemory();
                 }
             }
         }
     }
     if (screen_output) {
-        std::cout << "Ring : Inside/outside ..." << inside << " / " << outside
+        std::cout << "Cylinder : Inside/outside ..." << inside << " / " << outside
                   << " = "
                   << static_cast<scalar>(inside) / static_cast<scalar>(outside)
                   << std::endl;
     }
 }
 
-// This test runs a annulus mask operation
-static void BM_ANNULUS_MASK(benchmark::State &state) {
-    using local_type = cartesian2<__plugin::transform3<scalar>>;
-    using point2 = __plugin::point2<detray::scalar>;
+// This runs a benchmark on an annulus2D mask
+static void BM_ANNULUS_2D_MASK(benchmark::State &state) {
+    using point_t = typename mask<annulus2D<>>::loc_point_t;
 
-    annulus2<> ann{2.5, 5., -0.64299, 4.13173, 1., 0.5, 0., 0u};
+    mask<annulus2D<>> ann{0UL, 2.5f, 5.f, -0.64299f, 4.13173f, 1.f, 0.5f, 0.f};
 
     scalar world = 10.;
 
-    scalar sx = world / steps_x2;
-    scalar sy = world / steps_y2;
+    scalar sx = world / steps_x3;
+    scalar sy = world / steps_y3;
+    scalar sz = world / steps_z3;
+
     unsigned long inside = 0;
     unsigned long outside = 0;
 
     for (auto _ : state) {
-        for (unsigned int ix = 0; ix < steps_x2; ++ix) {
+        for (unsigned int ix = 0; ix < steps_x3; ++ix) {
             scalar x = -0.5 * world + ix * sx;
-            for (unsigned int iy = 0; iy < steps_y2; ++iy) {
+            for (unsigned int iy = 0; iy < steps_y3; ++iy) {
                 scalar y = -0.5 * world + iy * sy;
+                for (unsigned int iz = 0; iz < steps_z3; ++iz) {
+                    scalar z = -0.5 * world + iz * sz;
 
-                benchmark::DoNotOptimize(inside);
-                benchmark::DoNotOptimize(outside);
-                if (ann.is_inside<local_type>(point2{x, y}) ==
-                    intersection::status::e_inside) {
-                    ++inside;
-                } else {
-                    ++outside;
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
+                    point_t loc_p{ann.to_local_frame(trf, {x, y, z})};
+                    if (ann.is_inside(loc_p) ==
+                        intersection::status::e_inside) {
+                        ++inside;
+                    } else {
+                        ++outside;
+                    }
                 }
-                benchmark::ClobberMemory();
             }
         }
     }
@@ -292,42 +308,42 @@ static void BM_ANNULUS_MASK(benchmark::State &state) {
     }
 }
 
-BENCHMARK(BM_RECTANGLE2_MASK)
+BENCHMARK(BM_RECTANGLE_2D_MASK)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadPerCpu()
 #endif
     ->Unit(benchmark::kMillisecond)
     ->Repetitions(gbench_repetitions)
     ->DisplayAggregatesOnly(true);
-BENCHMARK(BM_TRAPEZOID2_MASK)
+BENCHMARK(BM_TRAPEZOID_2D_MASK)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadPerCpu()
 #endif
     ->Unit(benchmark::kMillisecond)
     ->Repetitions(gbench_repetitions)
     ->DisplayAggregatesOnly(true);
-BENCHMARK(BM_DISC2_MASK)
+BENCHMARK(BM_DISC_2D_MASK)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadPerCpu()
 #endif
     ->Unit(benchmark::kMillisecond)
     ->Repetitions(gbench_repetitions)
     ->DisplayAggregatesOnly(true);
-BENCHMARK(BM_RING2_MASK)
+BENCHMARK(BM_RING_2D_MASK)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadPerCpu()
 #endif
     ->Unit(benchmark::kMillisecond)
     ->Repetitions(gbench_repetitions)
     ->DisplayAggregatesOnly(true);
-BENCHMARK(BM_CYLINDER3_MASK)
+BENCHMARK(BM_CYLINDER_2D_MASK)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadPerCpu()
 #endif
     ->Unit(benchmark::kMillisecond)
     ->Repetitions(gbench_repetitions)
     ->DisplayAggregatesOnly(true);
-BENCHMARK(BM_ANNULUS_MASK)
+BENCHMARK(BM_ANNULUS_2D_MASK)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadPerCpu()
 #endif

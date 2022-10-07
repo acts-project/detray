@@ -34,12 +34,12 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
         e_single3 = 5,
     };
 
-    using rectangle = rectangle2<>;
-    using trapezoid = trapezoid2<>;
-    using annulus = annulus2<>;
-    using cylinder = cylinder3<>;
-    using ring = ring2<>;
-    using single = single3<0>;
+    using rectangle = mask<rectangle2D<>>;
+    using trapezoid = mask<trapezoid2D<>>;
+    using annulus = mask<annulus2D<>>;
+    using cylinder = mask<cylinder2D<>>;
+    using ring = mask<ring2D<>>;
+    using single = mask<single3D<>>;
 
     // Types must be sorted according to their id (here: masks/mask_identifier)
     using mask_defs = tuple_vector_registry<mask_ids, rectangle, trapezoid,
@@ -55,7 +55,7 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(store.empty<id::e_single3>());
     ASSERT_TRUE(store.empty<id::e_trapezoid2>());
 
-    store.add_value<id::e_cylinder3>(1., 0.5, 2.0, 0u);
+    store.add_value<id::e_cylinder3>(0UL, 1.f, 0.5f, 2.0f);
 
     ASSERT_TRUE(store.empty<id::e_annulus2>());
     ASSERT_EQ(store.size<id::e_cylinder3>(), 1);
@@ -64,11 +64,11 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(store.empty<id::e_single3>());
     ASSERT_TRUE(store.empty<id::e_trapezoid2>());
 
-    store.add_value<id::e_cylinder3>(1., 1.5, 2.0, 0u);
-    store.add_value<id::e_trapezoid2>(0.5, 1.5, 4.0, 0u);
-    store.add_value<id::e_rectangle2>(1.0, 2.0, 0u);
-    store.add_value<id::e_rectangle2>(2.0, 1.0, 0u);
-    store.add_value<id::e_rectangle2>(10.0, 100.0, 0u);
+    store.add_value<id::e_cylinder3>(0UL, 1.f, 1.5f, 2.0f);
+    store.add_value<id::e_trapezoid2>(0UL, 0.5f, 1.5f, 4.0f);
+    store.add_value<id::e_rectangle2>(0UL, 1.0f, 2.0f);
+    store.add_value<id::e_rectangle2>(0UL, 2.0f, 1.0f);
+    store.add_value<id::e_rectangle2>(0UL, 10.0f, 100.0f);
 
     ASSERT_TRUE(store.empty<id::e_annulus2>());
     ASSERT_EQ(store.size<id::e_cylinder3>(), 2);
@@ -77,11 +77,11 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(store.empty<id::e_single3>());
     ASSERT_EQ(store.size<id::e_trapezoid2>(), 1);
 
-    store.add_value<id::e_annulus2>(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 0u);
-    store.add_value<id::e_ring2>(10.0, 100.0, 0u);
-    store.add_value<id::e_ring2>(10.0, 100.0, 0u);
-    store.add_value<id::e_ring2>(10.0, 100.0, 0u);
-    store.add_value<id::e_ring2>(10.0, 100.0, 0u);
+    store.add_value<id::e_annulus2>(0UL, 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f);
+    store.add_value<id::e_ring2>(0UL, 10.f, 100.f);
+    store.add_value<id::e_ring2>(0UL, 10.f, 100.f);
+    store.add_value<id::e_ring2>(0UL, 10.f, 100.f);
+    store.add_value<id::e_ring2>(0UL, 10.f, 100.f);
 
     const auto &annulus_masks = store.group<id::e_annulus2>();
     const auto &cylinder_masks = store.group<id::e_cylinder3>();

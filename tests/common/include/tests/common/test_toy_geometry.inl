@@ -132,7 +132,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(transforms.size(ctx), 3244);
     EXPECT_EQ(masks.template size<mask_ids::e_rectangle2>(), 2492);
     EXPECT_EQ(masks.template size<mask_ids::e_trapezoid2>(), 648);
-    EXPECT_EQ(masks.template size<mask_ids::e_portal_cylinder3>(), 52);
+    EXPECT_EQ(masks.template size<mask_ids::e_portal_cylinder2>(), 52);
     EXPECT_EQ(masks.template size<mask_ids::e_portal_ring2>(), 52);
     EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3244);
 
@@ -260,19 +260,19 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // Check links of beampipe itself
     range = {0, 1};
     test_module_links(vol_itr->index(), surfaces.begin(), range, range[0],
-                      {mask_ids::e_cylinder3, 0}, {material_ids::e_slab, 0},
+                      {mask_ids::e_cylinder2, 0}, {material_ids::e_slab, 0},
                       beampipe_mat, {vol_itr->index()});
 
     // Check links of portals
     // cylinder portals
     range = {1, 8};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 1},
+                      range[0], {mask_ids::e_portal_cylinder2, 1},
                       {material_ids::e_slab, 1}, portal_mat,
                       {1, 2, 3, 4, 5, 6, 7});
     range = {8, 14};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 8},
+                      range[0], {mask_ids::e_portal_cylinder2, 8},
                       {material_ids::e_slab, 8}, portal_mat,
                       {14, 15, 16, 17, 18, 19});
 
@@ -310,7 +310,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {124, 126};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 14},
+                      range[0], {mask_ids::e_portal_cylinder2, 14},
                       {material_ids::e_slab, 124}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -337,7 +337,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {128, 130};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 16},
+                      range[0], {mask_ids::e_portal_cylinder2, 16},
                       {material_ids::e_slab, 128}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -373,7 +373,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {240, 242};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 18},
+                      range[0], {mask_ids::e_portal_cylinder2, 18},
                       {material_ids::e_slab, 240}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -399,7 +399,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {244, 246};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 20},
+                      range[0], {mask_ids::e_portal_cylinder2, 20},
                       {material_ids::e_slab, 244}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -435,7 +435,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {356, 358};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 22},
+                      range[0], {mask_ids::e_portal_cylinder2, 22},
                       {material_ids::e_slab, 356}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -461,7 +461,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {360, 362};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 24},
+                      range[0], {mask_ids::e_portal_cylinder2, 24},
                       {material_ids::e_slab, 360}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -502,7 +502,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {594, 596};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 26},
+                      range[0], {mask_ids::e_portal_cylinder2, 26},
                       {material_ids::e_slab, 594}, portal_mat, {0, 8});
 
     // disc portals
@@ -528,7 +528,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {598, 600};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 28},
+                      range[0], {mask_ids::e_portal_cylinder2, 28},
                       {material_ids::e_slab, 598}, portal_mat, {7, 9});
     // disc portals
     range = {600, 602};
@@ -563,7 +563,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {1050, 1052};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 30},
+                      range[0], {mask_ids::e_portal_cylinder2, 30},
                       {material_ids::e_slab, 1050}, portal_mat, {8, 10});
 
     // disc portals
@@ -589,7 +589,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {1054, 1056};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 32},
+                      range[0], {mask_ids::e_portal_cylinder2, 32},
                       {material_ids::e_slab, 1054}, portal_mat, {9, 11});
     // disc portals
     range = {1056, 1058};
@@ -624,7 +624,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {1786, 1788};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 34},
+                      range[0], {mask_ids::e_portal_cylinder2, 34},
                       {material_ids::e_slab, 1786}, portal_mat, {10, 12});
 
     // disc portals
@@ -650,7 +650,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {1790, 1792};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 36},
+                      range[0], {mask_ids::e_portal_cylinder2, 36},
                       {material_ids::e_slab, 1790}, portal_mat, {11, 13});
     // disc portals
     range = {1792, 1794};
@@ -685,7 +685,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {2886, 2888};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 38},
+                      range[0], {mask_ids::e_portal_cylinder2, 38},
                       {material_ids::e_slab, 2886}, portal_mat,
                       {12, leaving_world});
 
@@ -716,7 +716,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {2890, 2892};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 40},
+                      range[0], {mask_ids::e_portal_cylinder2, 40},
                       {material_ids::e_slab, 2890}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -753,7 +753,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {3008, 3010};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 42},
+                      range[0], {mask_ids::e_portal_cylinder2, 42},
                       {material_ids::e_slab, 3008}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -779,7 +779,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {3012, 3014};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 44},
+                      range[0], {mask_ids::e_portal_cylinder2, 44},
                       {material_ids::e_slab, 3012}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -815,7 +815,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {3124, 3126};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 46},
+                      range[0], {mask_ids::e_portal_cylinder2, 46},
                       {material_ids::e_slab, 3124}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -841,7 +841,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {3128, 3130};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 48},
+                      range[0], {mask_ids::e_portal_cylinder2, 48},
                       {material_ids::e_slab, 3128}, portal_mat,
                       {0, leaving_world});
     // disc portals
@@ -877,7 +877,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     // cylinder portals
     range = {3240, 3242};
     test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder3, 50},
+                      range[0], {mask_ids::e_portal_cylinder2, 50},
                       {material_ids::e_slab, 3240}, portal_mat,
                       {0, leaving_world});
     // disc portals

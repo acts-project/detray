@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,6 +17,32 @@ using dindex = unsigned long;
 dindex constexpr dindex_invalid = std::numeric_limits<dindex>::max();
 using dindex_range = darray<dindex, 2>;
 using dindex_sequence = dvector<dindex>;
+
+/// @brief Simple multi-index structure
+///
+/// @tparam DIM number of indices that are held by this type
+/// @tparam value_t type of indices
+template <typename value_t = dindex, std::size_t DIM = 3>
+struct dmulti_index {
+    std::array<value_t, DIM> indices{};
+
+    /// Elementwise access.
+    DETRAY_HOST_DEVICE
+    inline auto operator[](const std::size_t i) -> value_t& {
+        return indices[i];
+    }
+    DETRAY_HOST_DEVICE
+    inline auto operator[](const std::size_t i) const -> const value_t& {
+        return indices[i];
+    }
+
+    /// Equality operator @returns true if all bin indices match.
+    DETRAY_HOST_DEVICE
+    inline auto operator==(const dmulti_index<value_t, DIM>& rhs) const
+        -> bool {
+        return (indices == rhs.indices);
+    }
+};
 
 /// @brief Ties an object type and an index into a container together.
 ///

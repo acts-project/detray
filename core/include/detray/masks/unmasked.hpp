@@ -8,57 +8,71 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/coordinates.hpp"
-#include "detray/intersection/intersection.hpp"
+#include "detray/coordinates/cartesian2.hpp"
 #include "detray/intersection/plane_intersector.hpp"
-#include "detray/masks/mask_base.hpp"
+#include "detray/surface_finders/grid/detail/axis_binning.hpp"
+#include "detray/surface_finders/grid/detail/axis_shape.hpp"
 
 // System include(s)
 #include <string>
+#include <tuple>
 
 namespace detray {
 
-template <typename transform3_t = __plugin::transform3<scalar>,
-          template <class> typename intersector_t = plane_intersector,
-          template <class> typename local_t = cartesian2,
-          typename links_t = dindex,
-          template <typename, std::size_t> class array_t = darray>
-class unmasked final : public mask_base<transform3_t, intersector_t, local_t,
-                                        links_t, array_t, 1> {
+/// @brief flat shape without boundaries.
+class unmasked {
     public:
-    using base_type =
-        mask_base<transform3_t, intersector_t, local_t, links_t, array_t, 1>;
-    using base_type::base_type;
-    using mask_values = typename base_type::mask_values;
-    using links_type = typename base_type::links_type;
-    using local_type = typename base_type::local_type;
-    using intersector_type = typename base_type::intersector_type;
-    using point2 = __plugin::point2<scalar>;
+    /// The name for this shape
+    inline static const std::string name = "unmasked";
 
-    /* Default constructor */
-    unmasked() = default;
+    enum boundaries : std::size_t { e_size = 1 };
 
-    /** Construction from voume link */
-    DETRAY_HOST_DEVICE
-    unmasked(links_type links) : base_type({0}, links) {}
+    /// How to convert into the local system and back
+    template <typename algebra_t>
+    using local_frame_type = cartesian2<algebra_t>;
+    /// Measurement frame
+    template <typename algebra_t>
+    using measurement_frame_type = local_frame_type<algebra_t>;
+    /// Local point type (2D)
+    template <typename algebra_t>
+    using loc_point_type = typename local_frame_type<algebra_t>::point2;
+    /// Underlying surface geometry: planar
+    template <typename algebra_t>
+    using intersector_type = plane_intersector<algebra_t>;
 
-    /** Mask operation
-     *
-     * @tparam point_type is the type of the point to be checked w.r.t. to
-     * the mask bounds
-     *
-     * the parameters are ignored
-     *
-     * @return true
-     **/
-    template <typename inside_local_t>
-    DETRAY_HOST_DEVICE inline intersection::status is_inside(
-        const point2& /*ignored*/, const scalar /*ignored*/) const {
-        return intersection::status::e_inside;
+    /// Behaviour of the two local axes (linear in x, y)
+    template <
+        n_axis::shape e_s = n_axis::shape::e_open,
+        template <typename, typename> class binning_loc0 = n_axis::regular,
+        template <typename, typename> class binning_loc1 = n_axis::regular>
+    struct axes {
+        static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
+        static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
+
+        /// How to convert into the local system and back
+        template <typename algebra_t>
+        using local_frame_type = cartesian2<algebra_t>;
+
+        using types = std::tuple<n_axis::shape_t<e_s, axis_loc0>,
+                                 n_axis::shape_t<e_s, axis_loc1>>;
+
+        template <typename C, typename S>
+        using binning = std::tuple<binning_loc0<C, S>, binning_loc1<C, S>>;
+    };
+
+    /// @brief Check boundary values for a local point.
+    ///
+    /// @tparam bounds_t any type of boundary values
+    ///
+    /// @note the parameters are ignored
+    ///
+    /// @return always true
+    template <typename bounds_t, typename point_t, typename scalar_t>
+    DETRAY_HOST_DEVICE inline constexpr bool check_boundaries(
+        const bounds_t& /*bounds*/, const point_t& /*loc_p*/,
+        const scalar_t /*tol*/) const {
+        return true;
     }
-
-    /** Transform to a string for output debugging */
-    std::string to_string() const { return "unmasked"; }
 };
 
 }  // namespace detray

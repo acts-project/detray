@@ -9,15 +9,15 @@
 #include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/masks/unmasked.hpp"
+#include "detray/masks/masks.hpp"
 #include "detray/materials/material_slab.hpp"
 
 // Google test include(s)
 #include <gtest/gtest.h>
 
 // System include(s)
-#include <climits>
 #include <cmath>
+#include <limits>
 
 /// @note __plugin has to be defined with a preprocessor command
 
@@ -30,7 +30,7 @@ enum mask_ids : unsigned int {
     e_unmasked = 0,
 };
 
-using mask_defs = tuple_vector_registry<mask_ids, unmasked<>>;
+using mask_defs = tuple_vector_registry<mask_ids, mask<unmasked>>;
 using mask_link_type = typename mask_defs::link_type;
 
 /// Define material types

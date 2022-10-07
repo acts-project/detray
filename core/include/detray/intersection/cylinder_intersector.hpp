@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
@@ -45,15 +46,13 @@ struct cylinder_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t>
+    template <typename mask_t, std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type, cylindrical2<transform3_t>>, bool> = true>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
         const scalar_type mask_tolerance = 0,
         const scalar_type overstep_tolerance = 0.) const {
 
         output_type ret;
-
-        using local_frame = typename mask_t::local_type;
 
         const scalar_type r{mask[0]};
         const auto &m = trf.matrix();
@@ -82,19 +81,15 @@ struct cylinder_intersector {
                 intersection_type &is = ret[0];
                 is.path = t;
                 is.p3 = ro + is.path * rd;
-                constexpr local_frame local_converter{};
-                is.p2 = local_converter.global_to_local(trf, is.p3, rd);
-                const auto local3 = trf.point_to_local(is.p3);
-                is.status = mask.template is_inside<local_frame>(
-                    local3, mask_tolerance);
-                const scalar_type rdr =
-                    getter::perp(local3 + scalar_type{0.1} * rd);
-                is.direction = rdr > r ? intersection::direction::e_along
+                is.p2 = mask.to_local_frame(trf, is.p3);
+                is.status = mask.is_inside(is.p2, mask_tolerance);
+                is.direction = vector::dot(is.p3, rd) > static_cast<scalar_type>(0.) ? 
+                                         intersection::direction::e_along
                                        : intersection::direction::e_opposite;
                 is.link = mask.volume_link();
 
                 // Get incidence angle
-                const scalar_type phi = algebra::getter::phi(local3);
+                const scalar_type phi{is.p2[0] / mask[0]};
                 const vector3 normal = {std::cos(phi), std::sin(phi), 0};
                 is.cos_incidence_angle = vector::dot(rd, normal);
             }

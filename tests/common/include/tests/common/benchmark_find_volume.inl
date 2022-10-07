@@ -14,7 +14,6 @@
 
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
-//#include "tests/common/tools/read_geometry.hpp"
 
 using namespace detray;
 
@@ -38,8 +37,6 @@ constexpr std::size_t n_brl_layers{4};
 constexpr std::size_t n_edc_layers{7};
 vecmem::host_memory_resource host_mr;
 auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
-// auto [d, name_map] =
-//     read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
 
 const unsigned int itest = 10000;
 
