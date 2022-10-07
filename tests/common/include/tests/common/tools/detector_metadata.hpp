@@ -36,12 +36,10 @@ using rectangle = rectangle2<__plugin::transform3<detray::scalar>,
                              plane_intersector, cartesian2, edge_type>;
 using trapezoid = trapezoid2<__plugin::transform3<detray::scalar>,
                              plane_intersector, cartesian2, edge_type>;
-// @TODO: Use Polar2?
 using annulus = annulus2<__plugin::transform3<detray::scalar>,
                          plane_intersector, polar2, edge_type>;
 using cylinder = cylinder3<__plugin::transform3<detray::scalar>,
                            cylinder_intersector, cylindrical2, edge_type>;
-// @TODO: Use Polar2?
 using disc = ring2<__plugin::transform3<detray::scalar>, plane_intersector,
                    polar2, edge_type>;
 using unbounded_plane = unmasked<__plugin::transform3<detray::scalar>,
