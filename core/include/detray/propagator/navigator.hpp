@@ -127,8 +127,7 @@ class navigator {
                                  vector_type<intersection_type> candidates)
             : _detector(&det), _candidates(candidates) {}
 
-        /// Scalar representation of the navigation state,
-        /// @returns distance to next
+        /// @returns a pointer of detector
         DETRAY_HOST_DEVICE
         auto detector() const { return _detector; }
 
@@ -444,7 +443,7 @@ class navigator {
     DETRAY_HOST_DEVICE inline bool init(propagator_state_t &propagation) const {
 
         state &navigation = propagation._navigation;
-        const auto &det = navigation.detector();
+        const auto det = navigation.detector();
         const auto &track = propagation._stepping();
         const auto &volume = det->volume_by_index(navigation.volume());
 
@@ -560,7 +559,7 @@ class navigator {
         propagator_state_t &propagation) const {
 
         state &navigation = propagation._navigation;
-        const auto &det = navigation.detector();
+        const auto det = navigation.detector();
         const auto &track = propagation._stepping();
 
         // Current candidates are up to date, nothing left to do

@@ -42,7 +42,7 @@ TEST(navigator_cuda, navigator) {
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, ori, p_mag)) {
+             theta_steps, phi_steps, ori, p_mag, {0.01, M_PI}, {-M_PI, M_PI})) {
         track.set_overstep_tolerance(overstep_tolerance);
 
         tracks_host.push_back(track);
