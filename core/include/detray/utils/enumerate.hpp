@@ -38,7 +38,12 @@ struct iterator_range {
     DETRAY_HOST_DEVICE iterator_range(const container_t &iterable,
                                       const range_t &range)
         : _start(std::begin(iterable) + detail::get<0>(range)),
-          _end(std::begin(iterable) + detail::get<1>(range)) {}
+          _end(std::begin(iterable) + detail::get<1>(range)) {
+        // Observe end of the iterable
+        if (std::distance(_end, std::end(iterable)) <= 0) {
+            _end = std::end(iterable);
+        }
+    }
 
     /** @return start position of range on container. */
     DETRAY_HOST_DEVICE

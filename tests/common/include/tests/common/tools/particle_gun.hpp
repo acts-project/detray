@@ -57,12 +57,11 @@ struct particle_gun {
                 // NOTE: Change to interection_initialize
                 intersection_type sfi;
                 if constexpr (std::is_same_v<trajectory_t, helix_type>) {
-                    sfi =
-                        mask_store.template execute<helix_intersection_update>(
-                            sf.mask_type(), traj, sf, tf_store, 1e-4);
+                    sfi = mask_store.template call<helix_intersection_update>(
+                        sf.mask(), traj, sf, tf_store, 1e-4);
                 } else {
-                    sfi = mask_store.template execute<intersection_update>(
-                        sf.mask_type(), traj, sf, tf_store);
+                    sfi = mask_store.template call<intersection_update>(
+                        sf.mask(), traj, sf, tf_store);
                 }
                 // Candidate is invalid if it oversteps too far (this is neg!)
                 if (sfi.path < traj.overstep_tolerance()) {

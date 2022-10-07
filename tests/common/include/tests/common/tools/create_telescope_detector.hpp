@@ -118,13 +118,13 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
                              material_container_t &materials,
                              transform_container_t &transforms, config_t &cfg) {
     using surface_type = typename surface_container_t::value_type;
-    using edge_t = typename surface_type::edge_type;
+    using volume_link_t = typename surface_type::volume_link_type;
     using mask_link_type = typename surface_type::mask_link;
     using material_defs = typename surface_type::material_defs;
     using material_link_type = typename surface_type::material_link;
 
     auto volume_id = volume.index();
-    edge_t mask_edge{volume_id, dindex_invalid};
+    volume_link_t mask_volume_link{volume_id};
     constexpr auto slab_id = material_defs::id::e_slab;
 
     // Create the module centers
@@ -141,24 +141,24 @@ inline void create_telescope(context_t &ctx, track_t &track, stepper_t &stepper,
         const auto trf_index = transforms.size(ctx);
         surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
                               dindex_invalid, false);
-        surfaces.back().set_grid_status(false);
 
         // The last surface acts as portal that leaves the telescope
         if (m_placement == m_placements.back()) {
-            mask_edge = {dindex_invalid, dindex_invalid};
+            mask_volume_link = dindex_invalid;
         }
 
         if constexpr (mask_id ==
                       telescope_types::mask_ids::e_unbounded_plane2) {
             // No bounds for this module
             masks.template add_value<
-                telescope_types::mask_ids::e_unbounded_plane2>(mask_edge);
+                telescope_types::mask_ids::e_unbounded_plane2>(
+                mask_volume_link);
             materials.template add_value<telescope_types::material_ids::e_slab>(
                 cfg.m_mat, cfg.m_thickness);
         } else {
             // The rectangle bounds for this module
             masks.template add_value<telescope_types::mask_ids::e_rectangle2>(
-                cfg.m_half_x, cfg.m_half_y, mask_edge);
+                cfg.m_half_x, cfg.m_half_y, mask_volume_link);
             materials.template add_value<telescope_types::material_ids::e_slab>(
                 cfg.m_mat, cfg.m_thickness);
         }

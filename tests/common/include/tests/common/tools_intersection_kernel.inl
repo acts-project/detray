@@ -72,8 +72,7 @@ TEST(tools, intersection_kernel_ray) {
 
     /// The Surface definition:
     /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t =
-        surface<mask_defs, material_defs, dindex, dindex, source_link_t>;
+    using surface_t = surface<mask_defs, material_defs, dindex, source_link_t>;
     using surface_container_t = dvector<surface_t>;
 
     // The transforms & their store
@@ -124,17 +123,17 @@ TEST(tools, intersection_kernel_ray) {
     std::vector<line_plane_intersection> sfi_init;
 
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        mask_store.execute<intersection_initialize>(
-            surface.mask_type(), sfi_init, detail::ray(track), surface,
-            transform_store);
+        mask_store.call<intersection_initialize>(surface.mask(), sfi_init,
+                                                 detail::ray(track), surface,
+                                                 transform_store);
     }
 
     // Update kernel
     std::vector<line_plane_intersection> sfi_update;
 
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        const auto sfi = mask_store.execute<intersection_update>(
-            surface.mask_type(), detail::ray(track), surface, transform_store);
+        const auto sfi = mask_store.call<intersection_update>(
+            surface.mask(), detail::ray(track), surface, transform_store);
 
         sfi_update.push_back(sfi);
 
@@ -165,8 +164,7 @@ TEST(tools, intersection_kernel_helix) {
 
     /// The Surface definition:
     /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t =
-        surface<mask_defs, material_defs, dindex, dindex, source_link_t>;
+    using surface_t = surface<mask_defs, material_defs, dindex, source_link_t>;
     using surface_container_t = dvector<surface_t>;
 
     // The transforms & their store
@@ -215,8 +213,8 @@ TEST(tools, intersection_kernel_helix) {
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        const auto sfi_helix = mask_store.execute<helix_intersection_update>(
-            surface.mask_type(), h, surface, transform_store);
+        const auto sfi_helix = mask_store.call<helix_intersection_update>(
+            surface.mask(), h, surface, transform_store);
 
         ASSERT_NEAR(sfi_helix.p3[0], expected_points[sf_idx][0], 1e-7);
         ASSERT_NEAR(sfi_helix.p3[1], expected_points[sf_idx][1], 1e-7);

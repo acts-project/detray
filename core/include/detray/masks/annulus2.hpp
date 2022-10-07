@@ -47,7 +47,6 @@ namespace detray {
  * mask type once for all.
  *
  **/
-
 template <typename transform3_t = __plugin::transform3<scalar>,
           template <class> typename intersector_t = plane_intersector,
           template <class> typename local_t = polar2, typename links_t = dindex,

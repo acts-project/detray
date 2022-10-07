@@ -60,7 +60,7 @@ class grid2 {
     static constexpr array_t<dindex, 2> hermit1 = {0u, 0u};
     static constexpr neighborhood<dindex> hermit2 = {hermit1, hermit1};
 
-    grid2() = delete;
+    grid2() = default;
 
     DETRAY_HOST
     grid2(vecmem::memory_resource &mr,
@@ -227,6 +227,15 @@ class grid2 {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
                                                                axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
+    }
+
+    /// Stub function until the zone call is working correctly
+    template <typename detector_t, typename track_t>
+    DETRAY_HOST_DEVICE dindex_range
+    search(const detector_t & /*det*/,
+           const typename detector_t::volume_type &volume,
+           const track_t & /*track*/) const {
+        return volume.range();
     }
 
     /** Return a zone around a single bin, either with binned or scalar

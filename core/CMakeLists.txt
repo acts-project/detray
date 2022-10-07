@@ -85,6 +85,10 @@ detray_add_library( detray_core core
    "include/detray/propagator/navigator.hpp"
    "include/detray/propagator/propagator.hpp"
    "include/detray/propagator/rk_stepper.hpp"
+   # surface finder include(s)
+   "include/detray/surface_finders/brute_force_finder.hpp"
+   "include/detray/surface_finders/grid2_finder.hpp"
+   "include/detray/surface_finders/neighborhood_kernel.hpp"
    # tools include(s)
    "include/detray/tools/associator.hpp"
    "include/detray/tools/bin_association.hpp"
