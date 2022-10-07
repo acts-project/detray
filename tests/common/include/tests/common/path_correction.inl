@@ -79,7 +79,6 @@ using mask_container = typename detector_type::mask_container;
 using material_container = typename detector_type::material_container;
 using transform3 = typename detector_type::transform3;
 using surface_type = typename detector_type::surface_container::value_type;
-using edge_type = typename surface_type::edge_type;
 using mask_link_type = typename surface_type::mask_link;
 using material_link_type = typename surface_type::material_link;
 using mag_field_t = constant_magnetic_field<>;
@@ -144,7 +143,8 @@ TEST(path_correction, cartesian) {
     // Add a mask
     const scalar hx = 100. * unit_constants::mm;
     const scalar hy = 100. * unit_constants::mm;
-    masks.template add_value<mask_id>(hx, hy, edge_type{0, dindex_invalid});
+    masks.template add_value<mask_id>(
+        hx, hy, typename surface_type::edge_type{0, dindex_invalid});
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
