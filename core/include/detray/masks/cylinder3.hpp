@@ -71,6 +71,10 @@ class cylinder3 final : public mask_base<transform3_t, intersector_t, local_t,
               links_type links)
         : base_type({r, half_length_1, half_length_2}, links) {}
 
+    /// Get radius
+    DETRAY_HOST_DEVICE
+    scalar radius() const { return this->operator[](0); }
+
     /** Mask operation
      *
      * @tparam inside_local_type::point3 is the deduced type of the point to be
