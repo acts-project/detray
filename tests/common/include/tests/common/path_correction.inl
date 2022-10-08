@@ -59,7 +59,7 @@ struct surface_targeter : actor {
         navigation.set_next(candidates.begin());
         navigation.set_unknown();
 
-        if (residual < std::abs(1e-5)) {
+        if (residual < std::abs(1e-6)) {
             prop_state._heartbeat = false;
             candidates.push_back({});
             navigation.next()++;
@@ -158,7 +158,6 @@ TEST(path_correction, cartesian) {
     // Generate track starting point
     vector2 local{2, 3};
     vector3 mom{1 * unit_constants::MeV, 0., 0.};
-    vector3 dir = vector::normalize(mom);
 
     scalar time = 0.;
     scalar q = -1.;
@@ -206,35 +205,282 @@ TEST(path_correction, cartesian) {
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = env::rk_tolerance;
 
-    // RK stepper and its state
-    EXPECT_FLOAT_EQ(crk_state().pos()[0], 0);
-    EXPECT_FLOAT_EQ(crk_state().pos()[1], local[0]);  // y
-    EXPECT_FLOAT_EQ(crk_state().pos()[2], local[1]);  // z
-    EXPECT_NEAR(crk_state().dir()[0], dir[0], env::epsilon);
-    EXPECT_NEAR(crk_state().dir()[1], dir[1], env::epsilon);
-    EXPECT_NEAR(crk_state().dir()[2], dir[2], env::epsilon);
-
-    // helix trajectory
-    detail::helix helix(crk_state(), &env::B);
-
     // Run propagator
     p.propagate(propagation);
 
-    // RK stepper and its state
-    EXPECT_FLOAT_EQ(crk_state().pos()[0], 0);
-    EXPECT_NEAR(crk_state().pos()[1], local[0], env::epsilon);  // y
-    EXPECT_NEAR(crk_state().pos()[2], local[1], env::epsilon);  // z
-    EXPECT_NEAR(crk_state().dir()[0], dir[0], env::epsilon);
-    EXPECT_NEAR(crk_state().dir()[1], dir[1], env::epsilon);
-    EXPECT_NEAR(crk_state().dir()[2], dir[2], env::epsilon);
     EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
-
     const auto bound_vec0 = bound_param0.vector();
     const auto bound_vec1 = bound_param1.vector();
+    const auto bound_cov0 = bound_param0.covariance();
+    const auto bound_cov1 = bound_param1.covariance();
 
+    // Check if the bound state stays the same after one turn propagation
+
+    // vector
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0),
+                    matrix_operator().element(bound_vec1, i, 0), env::epsilon);
+    }
+
+    // covaraince
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
+                        matrix_operator().element(bound_cov1, i, j),
+                        crk_state.path_length() * env::epsilon);
+        }
+    }
+}
+
+TEST(path_correction, polar) {
+
+    // Create a detector
+    detector_type det(env::resource);
+
+    // Mask and material ID
+    constexpr registry_type::mask_ids mask_id =
+        registry_type::mask_ids::e_ring2;
+    constexpr registry_type::material_ids material_id =
+        registry_type::material_ids::e_slab;
+
+    // Add a volume
+    det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
+
+    typename detector_type::surface_container surfaces(&env::resource);
+    typename detector_type::transform_container transforms(env::resource);
+    typename detector_type::mask_container masks(env::resource);
+    typename detector_type::material_container materials(env::resource);
+
+    // Add a surface
+    const auto trf_index = transforms.size(env::ctx);
+    mask_link_type mask_link{mask_id, masks.template size<mask_id>()};
+    material_link_type material_link{material_id,
+                                     materials.template size<material_id>()};
+    surfaces.emplace_back(trf_index, mask_link, material_link, 0,
+                          dindex_invalid, false);
+
+    // Add a transform
+    const vector3 t{0, 0, 0};
+    const vector3 z{1, 0, 0};
+    const vector3 x{0, 1, 0};
+    transforms.emplace_back(env::ctx, t, z, x);
+
+    // Add a mask
+    const scalar r_low = 0. * unit_constants::mm;
+    const scalar r_high = 100. * unit_constants::mm;
+    masks.template add_value<mask_id>(
+        r_low, r_high, typename surface_type::edge_type{0, dindex_invalid});
+
+    // Add a material
+    const material<scalar> mat = silicon<scalar>();
+    const scalar thickness = 2 * unit_constants::mm;
+    materials.template add_value<material_id>(mat, thickness);
+
+    typename detector_type::volume_type &vol = det.volume_by_index(0);
+    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, materials,
+                               transforms);
+
+    // Generate track starting point
+    vector2 local{2, M_PI / 6.};
+    vector3 mom{1 * unit_constants::MeV, 0., 0.};
+
+    scalar time = 0.;
+    scalar q = -1.;
+
+    // bound vector
+    typename bound_track_parameters<transform3>::vector_type bound_vector;
+    getter::element(bound_vector, e_bound_loc0, 0) = local[0];
+    getter::element(bound_vector, e_bound_loc1, 0) = local[1];
+    getter::element(bound_vector, e_bound_phi, 0) = getter::phi(mom);
+    getter::element(bound_vector, e_bound_theta, 0) = getter::theta(mom);
+    getter::element(bound_vector, e_bound_qoverp, 0) = q / getter::norm(mom);
+    getter::element(bound_vector, e_bound_time, 0) = time;
+
+    // bound covariance
+    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.;
+    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.;
+    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.;
+    // Note: Set theta error as ZERO, to constrain the loc1 divergence
+    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
+    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
+    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
+
+    // bound track parameter
+    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
+                                                          bound_cov);
+
+    // Path length per turn
+    scalar S = 2. * getter::perp(mom) / getter::norm(env::B) * M_PI;
+
+    // Actors
+    surface_targeter::state targeter{S, 0};
+    parameter_transporter<transform3>::state bound_updater{};
+    parameter_resetter<transform3>::state rst{};
+
+    actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
+
+    propagator_t p({}, {});
+    propagator_t::state propagation(bound_param0, env::mag_field, det,
+                                    actor_states);
+
+    crk_stepper_t::state &crk_state = propagation._stepping;
+
+    // RK stepper and its state
+    EXPECT_FLOAT_EQ(crk_state().pos()[0], 0);
+    EXPECT_FLOAT_EQ(crk_state().pos()[1], 2 * std::cos(M_PI / 6.));
+    EXPECT_FLOAT_EQ(crk_state().pos()[2], 2 * std::sin(M_PI / 6.));
+
+    // Decrease tolerance down to 1e-8
+    crk_state._tolerance = env::rk_tolerance;
+
+    // Run propagator
+    p.propagate(propagation);
+
+    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
+
+    // Bound state after one turn propagation
+    const auto bound_param1 = crk_state._bound_params;
+    const auto bound_vec0 = bound_param0.vector();
+    const auto bound_vec1 = bound_param1.vector();
+    const auto bound_cov0 = bound_param0.covariance();
+    const auto bound_cov1 = bound_param1.covariance();
+
+    // Check if the bound state stays the same after one turn propagation
+
+    // vector
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0),
+                    matrix_operator().element(bound_vec1, i, 0), env::epsilon);
+    }
+
+    // covaraince
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
+                        matrix_operator().element(bound_cov1, i, j),
+                        crk_state.path_length() * env::epsilon);
+        }
+    }
+}
+
+TEST(path_correction, cylindrical) {
+
+    // Create a detector
+    detector_type det(env::resource);
+
+    // Mask and material ID
+    constexpr registry_type::mask_ids mask_id =
+        registry_type::mask_ids::e_cylinder3;
+    constexpr registry_type::material_ids material_id =
+        registry_type::material_ids::e_slab;
+
+    // Add a volume
+    det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
+
+    typename detector_type::surface_container surfaces(&env::resource);
+    typename detector_type::transform_container transforms(env::resource);
+    typename detector_type::mask_container masks(env::resource);
+    typename detector_type::material_container materials(env::resource);
+
+    // Add a surface
+    const auto trf_index = transforms.size(env::ctx);
+    mask_link_type mask_link{mask_id, masks.template size<mask_id>()};
+    material_link_type material_link{material_id,
+                                     materials.template size<material_id>()};
+    surfaces.emplace_back(trf_index, mask_link, material_link, 0,
+                          dindex_invalid, false);
+
+    // Add a transform
+    const vector3 t{-50 * unit_constants::mm, 0, 0};
+    const vector3 z{0, 0, 1};
+    const vector3 x{1, 0, 0};
+    transforms.emplace_back(env::ctx, t, z, x);
+
+    // Add a mask
+    const scalar r = 50 * unit_constants::mm;
+    const scalar half_length_1 = 1000. * unit_constants::mm;
+    const scalar half_length_2 = 1000. * unit_constants::mm;
+    masks.template add_value<mask_id>(
+        r, half_length_1, half_length_2,
+        typename surface_type::edge_type{0, dindex_invalid});
+
+    // Add a material
+    const material<scalar> mat = silicon<scalar>();
+    const scalar thickness = 2 * unit_constants::mm;
+    materials.template add_value<material_id>(mat, thickness);
+
+    typename detector_type::volume_type &vol = det.volume_by_index(0);
+    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, materials,
+                               transforms);
+
+    // Generate track starting point
+    vector2 local{0., 0.};
+    vector3 mom{1 * unit_constants::MeV, 0., 0.};
+    scalar time = 0.;
+    scalar q = -1.;
+
+    // bound vector
+    typename bound_track_parameters<transform3>::vector_type bound_vector;
+    getter::element(bound_vector, e_bound_loc0, 0) = local[0];
+    getter::element(bound_vector, e_bound_loc1, 0) = local[1];
+    getter::element(bound_vector, e_bound_phi, 0) = getter::phi(mom);
+    getter::element(bound_vector, e_bound_theta, 0) = getter::theta(mom);
+    getter::element(bound_vector, e_bound_qoverp, 0) = q / getter::norm(mom);
+    getter::element(bound_vector, e_bound_time, 0) = time;
+
+    // bound covariance
+    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.;
+    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.;
+    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.;
+    // Note: Set theta error as ZERO, to constrain the loc1 divergence
+    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
+    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
+    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
+
+    // bound track parameter
+    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
+                                                          bound_cov);
+
+    // Path length per turn
+    scalar S = 2. * getter::perp(mom) / getter::norm(env::B) * M_PI;
+
+    // Actors
+    surface_targeter::state targeter{S, 0};
+    parameter_transporter<transform3>::state bound_updater{};
+    parameter_resetter<transform3>::state rst{};
+
+    actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
+
+    propagator_t p({}, {});
+    propagator_t::state propagation(bound_param0, env::mag_field, det,
+                                    actor_states);
+
+    crk_stepper_t::state &crk_state = propagation._stepping;
+
+    // RK stepper and its state
+    EXPECT_FLOAT_EQ(crk_state().pos()[0], 0);
+    EXPECT_FLOAT_EQ(crk_state().pos()[1], 0);  // y
+    EXPECT_FLOAT_EQ(crk_state().pos()[2], 0);  // z
+
+    // Decrease tolerance down to 1e-8
+    crk_state._tolerance = env::rk_tolerance;
+
+    // Run propagator
+    p.propagate(propagation);
+
+    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
+
+    // Bound state after one turn propagation
+    const auto bound_param1 = crk_state._bound_params;
+    const auto bound_vec0 = bound_param0.vector();
+    const auto bound_vec1 = bound_param1.vector();
     const auto bound_cov0 = bound_param0.covariance();
     const auto bound_cov1 = bound_param1.covariance();
 

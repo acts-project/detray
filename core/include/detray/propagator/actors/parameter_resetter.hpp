@@ -83,6 +83,9 @@ struct parameter_resetter : actor {
             // Surface
             const auto& surface = det->surface_by_index(is->index);
 
+            // Set surface link
+            stepping._bound_params.set_surface_link(is->index);
+
             mask_store.template execute<kernel>(surface.mask_type(), trf_store,
                                                 surface, stepping);
         }

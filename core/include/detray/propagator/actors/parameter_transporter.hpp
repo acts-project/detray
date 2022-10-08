@@ -70,13 +70,13 @@ struct parameter_transporter : actor {
             const auto& transform_store = det->transform_store();
 
             // Intersection
-            const auto& is = navigation.current();
+            // const auto& is = navigation.current();
 
             // Transform
             const auto& trf3 = transform_store[surface.transform()];
 
             // Mask
-            const auto& mask = mask_group[is->mask_index];
+            const auto& mask = mask_group[surface.mask_range()];
             auto local_coordinate = mask.local();
 
             // Free vector
@@ -139,9 +139,7 @@ struct parameter_transporter : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state& /*actor_state*/,
                                        propagator_state_t& propagation) const {
-
         auto& navigation = propagation._navigation;
-        auto& stepping = propagation._stepping;
 
         // Do covariance transport when the track is on surface
         if (navigation.is_on_module()) {
@@ -154,9 +152,6 @@ struct parameter_transporter : actor {
 
             // Surface
             const auto& surface = det->surface_by_index(is->index);
-
-            // Set surface link
-            stepping._bound_params.set_surface_link(is->index);
 
             mask_store.template execute<kernel>(surface.mask_type(), surface,
                                                 propagation);
