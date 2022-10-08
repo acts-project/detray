@@ -46,7 +46,7 @@ static constexpr bool is_owning = true;
 // 3D cartesian coordinate axes with closed bin boundaries and regular binning
 template <typename containers = host_container_types>
 using cartesian_3D =
-    coordinate_axes<cuboid3D<>::axes<shape::e_closed>, is_owning, containers>;
+    coordinate_axes<cuboid3D::axes<shape::e_closed>, is_owning, containers>;
 
 // 2D polar coordinate axes with closed bin boundaries, irregular binning in r
 // and regular binning in phi

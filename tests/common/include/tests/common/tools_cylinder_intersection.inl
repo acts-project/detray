@@ -54,7 +54,8 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     const ray_type ray(ori, 0., dir, 0.);
 
     // Check intersection
-    mask<cylinder2D<>, unsigned int, transform3_type> cylinder_bound{0u, r, -hz, hz};
+    mask<cylinder2D<>, unsigned int, transform3_type> cylinder_bound{0u, r, -hz,
+                                                                     hz};
     const auto hit_bound = ci(ray, cylinder_bound, shifted)[0];
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
@@ -78,7 +79,8 @@ TEST(ALGEBRA_PLUGIN, cylinder_incidence_angle) {
     const ray_type ray(ori, 0., dir, 0.);
 
     // Check intersection
-    mask<cylinder2D<>, unsigned int, transform3_type> cylinder_bound{0u, r, -hz, hz};
+    mask<cylinder2D<>, unsigned int, transform3_type> cylinder_bound{0u, r, -hz,
+                                                                     hz};
     const auto hit_bound = ci(ray, cylinder_bound, tf)[0];
     ASSERT_NEAR(hit_bound.cos_incidence_angle, std::sqrt(15) / 4., isclose);
 }
@@ -93,7 +95,8 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     // Create a concentric cylinder and test intersection
     const transform3_type identity(vector3{0., 0., 0.});
     mask<cylinder2D<>, unsigned int, transform3_type> cylinder{0u, r, -hz, hz};
-    mask<cylinder2D<false, concentric_cylinder_intersector>, unsigned int, transform3_type>
+    mask<cylinder2D<false, concentric_cylinder_intersector>, unsigned int,
+         transform3_type>
         conc_cylinder{0u, r, -hz, hz};
     cylinder_intersector<transform3_type> ci;
     concentric_cylinder_intersector<transform3_type> cci;
@@ -136,7 +139,8 @@ TEST(ALGEBRA_PLUGIN, helix_cylinder_intersector) {
     const helix_type h({pos, 0, mom, -1}, &B);
 
     // Check intersection
-    mask<cylinder2D<false, helix_cylinder_intersector>, unsigned int, transform3_type>
+    mask<cylinder2D<false, helix_cylinder_intersector>, unsigned int,
+         transform3_type>
         cylinder_bound{0u, r, -hz, hz};
     const auto hit_bound = hi(h, cylinder_bound, shifted)[0];
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);

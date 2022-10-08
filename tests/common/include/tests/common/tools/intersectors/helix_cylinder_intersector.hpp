@@ -23,8 +23,7 @@ namespace detray {
 /// trajectories.
 ///
 /// The algorithm uses the Newton-Raphson method to find an intersection on
-/// the unbounded surface and then applies the mask. On the @c cylinder3
-/// mask, it switches on the check of the radial distance.
+/// the unbounded surface and then applies the mask.
 template <typename transform3_t>
 struct helix_cylinder_intersector {
 

@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include "detray/intersection/line_intersector.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 
 using namespace detray;
@@ -15,8 +15,8 @@ using namespace detray;
 namespace {
 
 // 50 mm wire with 1 mm radial cell size
-const scalar cell_size{1. * unit_constants::mm};
-const scalar hz{50. * unit_constants::mm};
+constexpr scalar cell_size{1. * unit_constants::mm};
+constexpr scalar hz{50. * unit_constants::mm};
 
 }  // anonymous namespace
 
@@ -31,8 +31,9 @@ TEST(mask, line_radial_cross_sect) {
 
     const mask<line<>> ln{0UL, cell_size, hz};
 
-    ASSERT_FLOAT_EQ(ln[0], static_cast<scalar>(1. * unit_constants::mm));
-    ASSERT_FLOAT_EQ(ln[1], static_cast<scalar>(50. * unit_constants::mm));
+    ASSERT_FLOAT_EQ(ln[line<>::e_cross_section],
+                    scalar{1. * unit_constants::mm});
+    ASSERT_FLOAT_EQ(ln[line<>::e_half_z], scalar{50. * unit_constants::mm});
 
     ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_edge) == intersection::status::e_inside);
@@ -51,8 +52,9 @@ TEST(mask, line_square_cross_sect) {
     // 50 mm wire with 1 mm square cell sizes
     const mask<line<true>> ln{0UL, cell_size, hz};
 
-    ASSERT_FLOAT_EQ(ln[0], static_cast<scalar>(1. * unit_constants::mm));
-    ASSERT_FLOAT_EQ(ln[1], static_cast<scalar>(50. * unit_constants::mm));
+    ASSERT_FLOAT_EQ(ln[line<>::e_cross_section],
+                    scalar{1. * unit_constants::mm});
+    ASSERT_FLOAT_EQ(ln[line<>::e_half_z], scalar{50. * unit_constants::mm});
 
     ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_edge, 1e-5) == intersection::status::e_inside);

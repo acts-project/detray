@@ -45,7 +45,7 @@ template <typename shape_t, bool is_owning = true,
           typename algebra_t = __plugin::transform3<detray::scalar>>
 using coordinate_axes = typename detail::multi_axis_assembler<
     is_owning, containers, 
-    typename shape_t::template local_frame_type<algebra_t>,
+    typename shape_t::template coordinate_type<algebra_t>,
     typename shape_t::axes::types,
     typename shape_t::axes::template binning<containers, typename algebra_t::scalar_type>>::type;
 

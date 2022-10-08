@@ -257,8 +257,8 @@ static void BM_CYLINDER_2D_MASK(benchmark::State &state) {
         }
     }
     if (screen_output) {
-        std::cout << "Cylinder : Inside/outside ..." << inside << " / " << outside
-                  << " = "
+        std::cout << "Cylinder : Inside/outside ..." << inside << " / "
+                  << outside << " = "
                   << static_cast<scalar>(inside) / static_cast<scalar>(outside)
                   << std::endl;
     }

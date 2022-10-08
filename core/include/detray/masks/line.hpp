@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/coordinates/cartesian3.hpp"
 #include "detray/coordinates/line2.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/line_intersector.hpp"
@@ -22,7 +23,7 @@
 
 namespace detray {
 
-/// @brief Mask for a line defined with a line length and its cross section
+/// @brief Geometrical shape of a line surface.
 ///
 /// @tparam kSquareCrossSect determines whether the line has a cricular or
 ///         square cross section. This also changes the local coord. frame.
@@ -49,17 +50,26 @@ class line {
         e_size = 2
     };
 
-    /// How to convert into the local system and back
+    /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = std::conditional_t<kSquareCrossSect, cartesian3<algebra_t>, line2<algebra_t>>;
+    using local_frame_type =
+        std::conditional_t<kSquareCrossSect, cartesian3<algebra_t>,
+                           line2<algebra_t>>;
+    /// Local point type for boundary checks (2D or 3D)
+    template <typename algebra_t>
+    using loc_point_type =
+        std::conditional_t<kSquareCrossSect,
+                           typename local_frame_type<algebra_t>::point3,
+                           typename local_frame_type<algebra_t>::point2>;
+
     /// Measurement frame
     template <typename algebra_t>
     using measurement_frame_type = line2<algebra_t>;
-    /// Local point type (2D)
+    /// Measurement point type (2D)
     template <typename algebra_t>
-    using loc_point_type = std::conditional_t<kSquareCrossSect,
-        typename local_frame_type<algebra_t>::point3,
-        typename local_frame_type<algebra_t>::point2>;
+    using measurement_point_type =
+        typename measurement_frame_type<algebra_t>::point2;
+
     /// Underlying surface geometry: planar
     template <typename algebra_t>
     using intersector_type = intersector_t<algebra_t>;
@@ -76,9 +86,9 @@ class line {
         using types = std::tuple<n_axis::shape_t<e_s, axis_loc0>,
                                  n_axis::shape_t<e_s, axis_loc1>>;
 
-        /// How to convert into the local system and back
+        /// How to convert into the local axis system and back
         template <typename algebra_t>
-        using local_frame_type = std::conditional_t<kSquareCrossSect, cartesian3<algebra_t>, line2<algebra_t>>;
+        using coordinate_type = line2<algebra_t>;
 
         template <typename C, typename S>
         using binning = std::tuple<binning_loc0<C, S>, binning_loc1<C, S>>;

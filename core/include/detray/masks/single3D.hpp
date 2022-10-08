@@ -22,7 +22,7 @@
 
 namespace detray {
 
-/// @brief This is a simple mask for a single parameter bound mask
+/// @brief Underlying geometry for a single parameter bound mask
 ///
 /// @tparam kCheckIndex is the index of the local point on which the mask is
 ///         applied
@@ -41,29 +41,35 @@ class single3D {
         e_size = 2,
     };
 
-    /// How to convert into the local system and back
+    /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cartesian3<algebra_t>;
+    /// Local point type (3D)
+    template <typename algebra_t>
+    using loc_point_type = typename local_frame_type<algebra_t>::point3;
+
     /// Measurement frame
     template <typename algebra_t>
     using measurement_frame_type = local_frame_type<algebra_t>;
-    /// Local point type (2D)
+    /// Local measurement point (2D)
     template <typename algebra_t>
-    using loc_point_type = typename local_frame_type<algebra_t>::point3;
+    using measurement_point_type = loc_point_type<algebra_t>;
+
     /// Underlying surface geometry: planar
     template <typename algebra_t>
     using intersector_type = intersector_t<algebra_t>;
 
-    /// Behaviour of the two local axes (linear in single coordinate x)
+    /// Behaviour of the two local axes (linear in single coordinate x, y or z)
     template <n_axis::shape e_s = n_axis::shape::e_open,
               template <typename, typename> class binning_loc0 =
                   n_axis::regular>
     struct axes {
-        static constexpr n_axis::label axis_loc0 = static_cast<n_axis::label>(kCheckIndex);
+        static constexpr n_axis::label axis_loc0 =
+            static_cast<n_axis::label>(kCheckIndex);
 
-        /// How to convert into the local system and back
+        /// How to convert into the local axis system and back
         template <typename algebra_t>
-        using local_frame_type = cartesian3<algebra_t>;
+        using coordinate_type = local_frame_type<algebra_t>;
 
         using types = std::tuple<n_axis::shape_t<e_s, axis_loc0>>;
 
@@ -86,8 +92,7 @@ class single3D {
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
-        const bounds_t<scalar_t, kDIM> &bounds,
-        const point_t &loc_p,
+        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         return (bounds[e_lower] - tol <= loc_p[kCheckIndex] and
                 loc_p[kCheckIndex] <= bounds[e_upper] + tol);

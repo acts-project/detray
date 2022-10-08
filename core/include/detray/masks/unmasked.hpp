@@ -19,7 +19,7 @@
 
 namespace detray {
 
-/// @brief flat shape without boundaries.
+/// @brief Flat shape without boundaries.
 class unmasked {
     public:
     /// The name for this shape
@@ -27,15 +27,20 @@ class unmasked {
 
     enum boundaries : std::size_t { e_size = 1 };
 
-    /// How to convert into the local system and back
+    /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cartesian2<algebra_t>;
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = local_frame_type<algebra_t>;
     /// Local point type (2D)
     template <typename algebra_t>
     using loc_point_type = typename local_frame_type<algebra_t>::point2;
+
+    /// Measurement frame
+    template <typename algebra_t>
+    using measurement_frame_type = local_frame_type<algebra_t>;
+    /// Local measurement point (2D)
+    template <typename algebra_t>
+    using measurement_point_type = loc_point_type<algebra_t>;
+
     /// Underlying surface geometry: planar
     template <typename algebra_t>
     using intersector_type = plane_intersector<algebra_t>;
@@ -49,9 +54,9 @@ class unmasked {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
 
-        /// How to convert into the local system and back
+        /// How to convert into the local axis system and back
         template <typename algebra_t>
-        using local_frame_type = cartesian2<algebra_t>;
+        using coordinate_type = local_frame_type<algebra_t>;
 
         using types = std::tuple<n_axis::shape_t<e_s, axis_loc0>,
                                  n_axis::shape_t<e_s, axis_loc1>>;

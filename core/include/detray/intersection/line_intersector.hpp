@@ -44,7 +44,11 @@ struct line_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t, std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type, line2<transform3_t>>, bool> = true>
+    template <
+        typename mask_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
+                                        line2<transform3_t>>,
+                         bool> = true>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
         const scalar_type mask_tolerance = 0,
@@ -84,7 +88,8 @@ struct line_intersector {
         const scalar_type t2l_on_track{vector::dot(t2l, _d)};
 
         // path length to the point of closest approach on the track
-        const scalar_type A{scalar_type{1.} / denom * (t2l_on_track - t2l_on_line * zd)};
+        const scalar_type A{scalar_type{1.} / denom *
+                            (t2l_on_track - t2l_on_line * zd)};
 
         // distance to the point of closest approarch on the
         // line from line center
@@ -110,11 +115,12 @@ struct line_intersector {
             // Right: -1
             // Left: 1
             const auto r = vector::cross(_z, _d);
-            const scalar_type sign{vector::dot(r, t2l) > scalar_type{0.} ? scalar_type{-1.} : scalar_type{1.}};
+            const scalar_type sign{vector::dot(r, t2l) > scalar_type{0.}
+                                       ? scalar_type{-1.}
+                                       : scalar_type{1.}};
 
             is.p2[0] = sign * getter::perp(loc3D);
-        }
-        else {
+        } else {
             is.p2 = mask.to_local_frame(trf, is.p3, _d);
             is.status = mask.is_inside(is.p2, mask_tolerance);
         }

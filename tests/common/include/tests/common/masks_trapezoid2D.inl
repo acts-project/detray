@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 
 using namespace detray;
@@ -20,17 +21,17 @@ TEST(mask, trapezoid2D) {
     point_t p2_edge = {2.5, 1.};
     point_t p2_out = {3., 1.5};
 
-    scalar hx_miny = 1.;
-    scalar hx_maxy = 3.;
-    scalar hy = 2.;
-    scalar divisor = 1. / (2. * hy);
+    constexpr scalar hx_miny{1. * unit_constants::mm};
+    constexpr scalar hx_maxy{3. * unit_constants::mm};
+    constexpr scalar hy{2. * unit_constants::mm};
+    constexpr scalar divisor{1. / (2. * hy)};
 
     mask<trapezoid2D<>> t2{0UL, hx_miny, hx_maxy, hy, divisor};
 
-    ASSERT_EQ(t2[0], hx_miny);
-    ASSERT_EQ(t2[1], hx_maxy);
-    ASSERT_EQ(t2[2], hy);
-    ASSERT_EQ(t2[3], divisor);
+    ASSERT_EQ(t2[trapezoid2D<>::e_half_length_0], hx_miny);
+    ASSERT_EQ(t2[trapezoid2D<>::e_half_length_1], hx_maxy);
+    ASSERT_EQ(t2[trapezoid2D<>::e_half_length_2], hy);
+    ASSERT_EQ(t2[trapezoid2D<>::e_divisor], divisor);
 
     ASSERT_TRUE(t2.is_inside(p2_in) == intersection::status::e_inside);
     ASSERT_TRUE(t2.is_inside(p2_edge) == intersection::status::e_inside);

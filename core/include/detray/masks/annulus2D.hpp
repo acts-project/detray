@@ -22,8 +22,8 @@
 
 namespace detray {
 
-/// @brief mask for the stereo annulus geometry that is  used for the
-/// itk strip endcaps.
+/// @brief Geometrical shape of a stereo annulus that is used for the itk
+/// strip endcaps.
 ///
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
@@ -62,15 +62,21 @@ class annulus2D {
         e_size = 7,
     };
 
-    /// Local coordinate frame (both for disc and focal system)
+    /// Local coordinate frame (both for disc and focal system ?)
     template <typename algebra_t>
     using local_frame_type = polar2<algebra_t>;
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = polar2<algebra_t>; // TODO: focal system ?
     /// Local point type (2D)
     template <typename algebra_t>
     using loc_point_type = typename local_frame_type<algebra_t>::point2;
+
+    /// Measurement frame. @todo switch to focal system?
+    template <typename algebra_t>
+    using measurement_frame_type = polar2<algebra_t>;
+    /// Local measurement point (2D)
+    template <typename algebra_t>
+    using measurement_point_type =
+        typename measurement_frame_type<algebra_t>::point2;
+
     /// Underlying surface geometry: planar
     template <typename algebra_t>
     using intersector_type = intersector_t<algebra_t>;
@@ -87,9 +93,9 @@ class annulus2D {
         using types = std::tuple<n_axis::shape_t<e_s, axis_loc0>,
                                  n_axis::circular<axis_loc1>>;
 
-        /// Local coordinate frame (both for disc and focal system)
+        /// Local coordinate frame (both for disc and focal system ?)
         template <typename algebra_t>
-        using local_frame_type = polar2<algebra_t>;
+        using coordinate_type = local_frame_type<algebra_t>;
 
         template <typename C, typename S>
         using binning = std::tuple<binning_loc0<C, S>, binning_loc1<C, S>>;
@@ -129,8 +135,7 @@ class annulus2D {
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
-        const bounds_t<scalar_t, kDIM> &bounds,
-        const point_t &loc_p,
+        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         // The two quantities to check: r^2 in disc system, phi in focal system:
@@ -147,8 +152,8 @@ class annulus2D {
         // Now go to module frame to check r boundaries. Use the origin
         // shift in polar coordinates for that
         // TODO: Put shift in r-phi into the bounds?
-        const point_t shift_xy = {
-            scalar_t{-1} * bounds[e_shift_x], scalar_t{-1} * bounds[e_shift_y]};
+        const point_t shift_xy = {scalar_t{-1} * bounds[e_shift_x],
+                                  scalar_t{-1} * bounds[e_shift_y]};
         const scalar_t shift_r{getter::perp(shift_xy)};
         const scalar_t shift_phi{getter::phi(shift_xy)};
 

@@ -139,7 +139,8 @@ TEST(tools, line_intersector_square_scope) {
     trks.emplace_back(point3{0, -2.1, 0}, 0, vector3{1, 1, 0}, -1);
 
     // Infinite wire with 1 mm square cell size
-    mask<line<true, line_intersector>, dindex, transform3> ln{0UL, 1.f, std::numeric_limits<scalar>::infinity()};
+    mask<line<true, line_intersector>, dindex, transform3> ln{
+        0UL, 1.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     std::vector<line_plane_intersection> is;

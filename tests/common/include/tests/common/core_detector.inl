@@ -50,7 +50,8 @@ TEST(detector, detector_kernel) {
     /// Surface 1
     point3 t1{1., 0., 0.};
     trfs.emplace_back(ctx0, t1);
-    masks.template add_value<mask_ids::e_annulus2>(0UL, 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f);
+    masks.template add_value<mask_ids::e_annulus2>(0UL, 1.f, 2.f, 3.f, 4.f, 5.f,
+                                                   6.f, 7.f);
     materials.template add_value<material_ids::e_slab>(tungsten<scalar>(), 12.);
 
     /// Surface 2

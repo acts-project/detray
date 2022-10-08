@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 
 using namespace detray;
@@ -20,11 +21,11 @@ TEST(mask, single3_0) {
     point_t p3_edge = {1., 9.3, 2.};
     point_t p3_out = {1.5, -9.8, 8.};
 
-    const scalar h0{1.};
+    constexpr scalar h0{1. * unit_constants::mm};
     mask<single3D<>> m1_0{0UL, -h0, h0};
 
-    ASSERT_FLOAT_EQ(m1_0[0], -h0);
-    ASSERT_FLOAT_EQ(m1_0[1], h0);
+    ASSERT_FLOAT_EQ(m1_0[single3D<>::e_lower], -h0);
+    ASSERT_FLOAT_EQ(m1_0[single3D<>::e_upper], h0);
 
     ASSERT_TRUE(m1_0.is_inside(p3_in) == intersection::status::e_inside);
     ASSERT_TRUE(m1_0.is_inside(p3_edge) == intersection::status::e_inside);
@@ -41,11 +42,11 @@ TEST(mask, single3_1) {
     point_t p3_edge = {1., 9.3, 2.};
     point_t p3_out = {1.5, -9.8, 8.};
 
-    const scalar h1{9.3};
+    constexpr scalar h1{9.3 * unit_constants::mm};
     mask<single3D<1>> m1_1{0UL, -h1, h1};
 
-    ASSERT_FLOAT_EQ(m1_1[0], -h1);
-    ASSERT_FLOAT_EQ(m1_1[1], h1);
+    ASSERT_FLOAT_EQ(m1_1[single3D<>::e_lower], -h1);
+    ASSERT_FLOAT_EQ(m1_1[single3D<>::e_upper], h1);
 
     ASSERT_TRUE(m1_1.is_inside(p3_in) == intersection::status::e_inside);
     ASSERT_TRUE(m1_1.is_inside(p3_edge) == intersection::status::e_inside);
@@ -62,11 +63,11 @@ TEST(mask, single3_2) {
     point_t p3_edge = {1., 9.3, 2.};
     point_t p3_out = {1.5, -9.8, 8.};
 
-    const scalar h2{2.};
+    constexpr scalar h2{2. * unit_constants::mm};
     mask<single3D<2>> m1_2{0UL, -h2, h2};
 
-    ASSERT_FLOAT_EQ(m1_2[0], -h2);
-    ASSERT_FLOAT_EQ(m1_2[1], h2);
+    ASSERT_FLOAT_EQ(m1_2[single3D<>::e_lower], -h2);
+    ASSERT_FLOAT_EQ(m1_2[single3D<>::e_upper], h2);
 
     ASSERT_TRUE(m1_2.is_inside(p3_in) == intersection::status::e_inside);
     ASSERT_TRUE(m1_2.is_inside(p3_edge) == intersection::status::e_inside);

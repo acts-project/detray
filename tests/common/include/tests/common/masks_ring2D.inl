@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 
 using namespace detray;
@@ -19,13 +20,13 @@ TEST(mask, ring2D) {
     point_t p2_pl_edge = {0., 3.5};
     point_t p2_pl_out = {3.6, 5.};
 
-    const scalar inner_r{0.};
-    const scalar outer_r{3.5};
+    constexpr scalar inner_r{0. * unit_constants::mm};
+    constexpr scalar outer_r{3.5 * unit_constants::mm};
 
     mask<ring2D<>> r2{0UL, inner_r, outer_r};
 
-    ASSERT_FLOAT_EQ(r2[0], static_cast<scalar>(0.));
-    ASSERT_FLOAT_EQ(r2[1], static_cast<scalar>(3.5));
+    ASSERT_FLOAT_EQ(r2[ring2D<>::e_inner_r], static_cast<scalar>(0.));
+    ASSERT_FLOAT_EQ(r2[ring2D<>::e_outer_r], static_cast<scalar>(3.5));
 
     ASSERT_TRUE(r2.is_inside(p2_pl_in) == intersection::status::e_inside);
     ASSERT_TRUE(r2.is_inside(p2_pl_edge) == intersection::status::e_inside);

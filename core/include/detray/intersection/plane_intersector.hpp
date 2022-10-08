@@ -45,7 +45,10 @@ struct plane_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t, std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>, bool> = true>
+    template <
+        typename mask_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
+                         bool> = true>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
         const scalar_type mask_tolerance = 0,

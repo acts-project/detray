@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 
 using namespace detray;
@@ -16,10 +17,10 @@ using namespace __plugin;
 TEST(mask, annulus2D) {
     using point_t = typename mask<annulus2D<>>::loc_point_t;
 
-    scalar minR = 7.2;
-    scalar maxR = 12.0;
-    scalar minPhi = 0.74195;
-    scalar maxPhi = 1.33970;
+    constexpr scalar minR{7.2 * unit_constants::mm};
+    constexpr scalar maxR{12.0 * unit_constants::mm};
+    constexpr scalar minPhi{0.74195};
+    constexpr scalar maxPhi{1.33970};
     point_t offset = {-2., 2.};
 
     // points in cartesian module frame
@@ -31,21 +32,21 @@ TEST(mask, annulus2D) {
 
     auto toStripFrame = [&](const point_t& xy) -> point_t {
         auto shifted = xy + offset;
-        scalar r = getter::perp(shifted);
-        scalar phi = getter::phi(shifted);
+        scalar r{getter::perp(shifted)};
+        scalar phi{getter::phi(shifted)};
         return point_t{r, phi};
     };
 
     mask<annulus2D<>> ann2{0UL,    minR,      maxR,      minPhi,
                            maxPhi, offset[0], offset[1], 0.f};
 
-    ASSERT_FLOAT_EQ(ann2[0], static_cast<scalar>(7.2));
-    ASSERT_FLOAT_EQ(ann2[1], static_cast<scalar>(12.0));
-    ASSERT_FLOAT_EQ(ann2[2], static_cast<scalar>(0.74195));
-    ASSERT_FLOAT_EQ(ann2[3], static_cast<scalar>(1.33970));
-    ASSERT_FLOAT_EQ(ann2[4], static_cast<scalar>(-2.0));
-    ASSERT_FLOAT_EQ(ann2[5], static_cast<scalar>(2.0));
-    ASSERT_FLOAT_EQ(ann2[6], static_cast<scalar>(0.));
+    ASSERT_FLOAT_EQ(ann2[annulus2D<>::e_min_r], scalar{7.2});
+    ASSERT_FLOAT_EQ(ann2[annulus2D<>::e_max_r], scalar{12.0});
+    ASSERT_FLOAT_EQ(ann2[annulus2D<>::e_min_phi_rel], scalar{0.74195});
+    ASSERT_FLOAT_EQ(ann2[annulus2D<>::e_max_phi_rel], scalar{1.33970});
+    ASSERT_FLOAT_EQ(ann2[annulus2D<>::e_shift_x], scalar{-2.0});
+    ASSERT_FLOAT_EQ(ann2[annulus2D<>::e_shift_y], scalar{2.0});
+    ASSERT_FLOAT_EQ(ann2[annulus2D<>::e_average_phi], scalar{0.});
 
     ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_in)) ==
                 intersection::status::e_inside);

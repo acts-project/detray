@@ -22,13 +22,9 @@
 
 namespace detray {
 
-/// @brief mask for a full 3D cylinder.
-///
-/// @tparam intersector_t defines how to intersect the underlying surface
-///         geometry
+/// @brief Geometrical shape of a full 3D cylinder.
 ///
 /// It is defined by r and the two half lengths rel to the coordinate center.
-template <template <typename> class intersector_t = cylinder_intersector>
 class cylinder3D {
     public:
     /// The name for this shape
@@ -41,18 +37,24 @@ class cylinder3D {
         e_size = 3,
     };
 
-    /// Local coordinate frame
+    /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cylindrical3<algebra_t>;
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = local_frame_type<algebra_t>;
     /// Local point type (3D)
     template <typename algebra_t>
     using loc_point_type = typename local_frame_type<algebra_t>::point3;
-    /// Underlying surface geometry: cylindrical
+
+    /// Measurement frame
     template <typename algebra_t>
-    using intersector_type = intersector_t<algebra_t>;
+    using measurement_frame_type = local_frame_type<algebra_t>;
+    /// Local measurement point (2D)
+    template <typename algebra_t>
+    using measurement_point_type = loc_point_type<algebra_t>;
+    ;
+
+    /// Underlying surface geometry: not a surface.
+    template <typename algebra_t>
+    using intersector_type = void;
 
     /// Behaviour of the three local axes (linear in r, circular in phi,
     /// linear in z)
@@ -70,9 +72,9 @@ class cylinder3D {
                                  n_axis::circular<axis_loc1>,
                                  n_axis::shape_t<e_s, axis_loc2>>;
 
-        /// Local coordinate frame
+        /// How to convert into the local axis system and back
         template <typename algebra_t>
-        using local_frame_type = cylindrical3<algebra_t>;
+        using coordinate_type = local_frame_type<algebra_t>;
 
         template <typename C, typename S>
         using binning = std::tuple<binning_loc0<C, S>, binning_loc1<C, S>,
@@ -97,7 +99,7 @@ class cylinder3D {
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        return (loc_p[0] <= bounds[e_r] + tol and 
+        return (loc_p[0] <= bounds[e_r] + tol and
                 bounds[e_n_half_z] - tol <= loc_p[2] and
                 loc_p[2] <= bounds[e_p_half_z] + tol);
     }

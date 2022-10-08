@@ -49,8 +49,10 @@ class mask {
     using links_type = links_t;
     using scalar_type = typename algebra_t::scalar_type;
     using mask_values = array_t<scalar_type, shape::boundaries::e_size>;
-    using local_frame_type = typename shape::template axes<>::template local_frame_type<algebra_t>;
-    using measurement_frame_type = typename shape::template measurement_frame_type<algebra_t>;
+    using local_frame_type =
+        typename shape::template local_frame_type<algebra_t>;
+    using measurement_frame_type =
+        typename shape::template measurement_frame_type<algebra_t>;
     // Linear algebra types
     using loc_point_t = typename shape::template loc_point_type<algebra_t>;
     using point3_t = typename algebra_t::point3;
@@ -66,8 +68,8 @@ class mask {
     ///
     /// @param rhs is the right hand side object
     DETRAY_HOST
-    mask<shape_t, links_t, algebra_t, array_t>& operator=(
-        const mask_values& rhs) {
+    auto operator=(const mask_values& rhs)
+        -> mask<shape_t, links_t, algebra_t, array_t>& {
         _values = rhs;
         return (*this);
     }
@@ -88,32 +90,36 @@ class mask {
     ///
     /// @returns the reference to the member variable
     DETRAY_HOST_DEVICE
-    constexpr scalar_type& operator[](const std::size_t value_index) { return _values[value_index]; }
+    constexpr auto operator[](const std::size_t value_index) -> scalar_type& {
+        return _values[value_index];
+    }
 
     /// Access operator - const
     ///
     /// @returns a copy of the member variable
     DETRAY_HOST_DEVICE
-    constexpr scalar_type operator[](const std::size_t value_index) const {
+    constexpr auto operator[](const std::size_t value_index) const
+        -> scalar_type {
         return _values[value_index];
     }
 
     /// @returns the boundary values
     DETRAY_HOST_DEVICE
-    inline constexpr const shape& get_shape() const { return _shape; }
+    inline constexpr auto get_shape() const -> const shape& { return _shape; }
 
     /// @returns the functor that projects a global cartesian point onto
     /// the local geometric coordinate system.
     template <typename transform3_t>
-    DETRAY_HOST_DEVICE inline loc_point_t to_local_frame(
-        const transform3_t& trf, const point3_t& glob_p, const point3_t& glob_dir = {}) const {
-        return
-            typename shape::template local_frame_type<transform3_t>{}.global_to_local(trf, glob_p, glob_dir);
+    DETRAY_HOST_DEVICE inline auto to_local_frame(
+        const transform3_t& trf, const point3_t& glob_p,
+        const point3_t& glob_dir = {}) const -> loc_point_t {
+        return local_frame_type{}.global_to_local(trf, glob_p, glob_dir);
     }
 
     /// @returns the intersection functor for the underlying surface geometry.
     DETRAY_HOST_DEVICE
-    inline constexpr typename shape::template intersector_type<algebra_t> intersector() const {
+    inline constexpr auto intersector() const ->
+        typename shape::template intersector_type<algebra_t> {
         return {};
     }
 
@@ -127,11 +133,11 @@ class mask {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return an intersection status e_inside / e_outside
-    // TODO: Use loc_point_type as soon as all shapes are correctly implemented
-    template <typename point_t>
-    DETRAY_HOST_DEVICE intersection::status is_inside(
-        const point_t& loc_p,
-        const scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const {
+    DETRAY_HOST_DEVICE
+    inline auto is_inside(
+        const loc_point_t& loc_p,
+        const scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
+        -> intersection::status {
 
         return _shape.check_boundaries(_values, loc_p, t)
                    ? intersection::status::e_inside
@@ -140,19 +146,19 @@ class mask {
 
     /// @returns the boundary values
     DETRAY_HOST_DEVICE
-    const mask_values& values() const { return _values; }
+    auto values() const -> const mask_values& { return _values; }
 
     /// @returns the volume link - const reference
     DETRAY_HOST_DEVICE
-    auto volume_link() const { return _volume_link; }
+    auto volume_link() const -> const links_type& { return _volume_link; }
 
     /// @returns the volume link - non-const access
     DETRAY_HOST_DEVICE
-    auto volume_link() { return _volume_link; }
+    auto volume_link() -> links_type& { return _volume_link; }
 
     /// @returns a string representation of the mask
     DETRAY_HOST
-    std::string to_string() const {
+    auto to_string() const -> std::string {
         std::stringstream ss;
         ss << shape::name;
         for (const auto& v : _values) {
