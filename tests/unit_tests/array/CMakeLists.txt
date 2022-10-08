@@ -6,7 +6,8 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( array
-   "array_axis_rotation.cpp" "array_actor_chain.cpp" "array_annulus2.cpp" "array_container.cpp"
+   "array_axis_rotation.cpp" "array_actor_chain.cpp" "array_annulus2.cpp" 
+   "array_check_simulation.cpp" "array_container.cpp"
    "array_coordinate_cartesian2.cpp" "array_coordinate_cartesian3.cpp"  "array_coordinate_cylindrical2.cpp" 
    "array_coordinate_cylindrical3.cpp" "array_coordinate_line2.cpp" "array_coordinate_polar2.cpp"
    "array_core.cpp" "array_path_correction.cpp"

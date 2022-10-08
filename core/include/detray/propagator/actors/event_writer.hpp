@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/io/csv_io_types.hpp"
+#include "detray/io/utils.hpp"
 #include "detray/propagator/base_actor.hpp"
 
 // System include(s).
@@ -18,15 +19,6 @@
 #include <sstream>
 
 namespace detray {
-
-inline std::string get_event_filename(std::size_t event,
-                                      const std::string& suffix) {
-    std::stringstream stream;
-    stream << "event";
-    stream << std::setfill('0') << std::setw(9) << event;
-    stream << suffix;
-    return stream.str();
-}
 
 template <typename scalar_t>
 struct measurement_smearer {

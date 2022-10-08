@@ -6,7 +6,8 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( smatrix
-   "smatrix_axis_rotation.cpp" "smatrix_actor_chain.cpp" "smatrix_annulus2.cpp" "smatrix_container.cpp"
+   "smatrix_axis_rotation.cpp" "smatrix_actor_chain.cpp" "smatrix_annulus2.cpp" 
+   "smatrix_check_simulation.cpp" "smatrix_container.cpp"
    "smatrix_coordinate_cartesian2.cpp" "smatrix_coordinate_cartesian3.cpp" "smatrix_coordinate_cylindrical2.cpp" 
    "smatrix_coordinate_cylindrical3.cpp" "smatrix_coordinate_line2.cpp" "smatrix_coordinate_polar2.cpp"
    "smatrix_core.cpp" "smatrix_path_correction.cpp"

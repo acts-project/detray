@@ -6,7 +6,8 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( vc_array
-   "vc_array_actor_chain.cpp" "vc_array_annulus2.cpp" "vc_array_container.cpp" 
+   "vc_array_actor_chain.cpp" "vc_array_annulus2.cpp" 
+   "vc_array_check_simulation.cpp" "vc_array_container.cpp" 
    "vc_array_coordinate_cartesian2.cpp" "vc_array_coordinate_cartesian3.cpp" "vc_array_coordinate_cylindrical2.cpp" 
    "vc_array_coordinate_cylindrical3.cpp" "vc_array_coordinate_line2.cpp" "vc_array_coordinate_polar2.cpp"
    "vc_array_core.cpp" "vc_array_path_correction.cpp" "vc_array_cylinder_intersection.cpp" 

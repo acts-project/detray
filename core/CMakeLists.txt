@@ -106,6 +106,7 @@ detray_add_library( detray_core core
    "include/detray/utils/axis_rotation.hpp"
    "include/detray/utils/enumerate.hpp"
    "include/detray/utils/invalid_values.hpp"
+   "include/detray/utils/math.hpp"
    "include/detray/utils/matrix_helper.hpp"
    "include/detray/utils/quadratic_equation.hpp"
    "include/detray/utils/ratio.hpp"
