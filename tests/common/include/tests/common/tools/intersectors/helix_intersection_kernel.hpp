@@ -61,7 +61,8 @@ struct helix_intersection_update {
 
             using mask_t = typename mask_group_t::value_type;
             if constexpr (std::is_same_v<
-                              typename mask_t::shape::template intersector_type<transform3_type>,
+                              typename mask_t::shape::template intersector_type<
+                                  transform3_type>,
                               plane_intersector_type>) {
 
                 auto sfi = std::move(helix_plane_intersector_type()(
@@ -73,9 +74,10 @@ struct helix_intersection_update {
                     return sfi[0];
                 }
 
-            } else if constexpr (std::is_same_v<
-                                     typename mask_t::shape::template intersector_type<transform3_type>,
-                                     cylinder_intersector_type>) {
+            } else if constexpr (std::is_same_v<typename mask_t::shape::
+                                                    template intersector_type<
+                                                        transform3_type>,
+                                                cylinder_intersector_type>) {
 
                 auto sfi = std::move(helix_cylinder_intersector_type()(
                     traj, mask, ctf, mask_tolerance));

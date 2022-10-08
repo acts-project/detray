@@ -112,7 +112,9 @@ struct helix_cylinder_intersector {
 
         // Additionally check radial position for Newton solution
         const scalar_type radial_pos{getter::perp(trf.point_to_local(is.p3))};
-        const bool r_check = std::abs(r - radial_pos) < mask_tolerance + 5 * std::numeric_limits<scalar_type>::epsilon();
+        const bool r_check =
+            std::abs(r - radial_pos) <
+            mask_tolerance + 5 * std::numeric_limits<scalar_type>::epsilon();
         if (not r_check) {
             is.status = intersection::status::e_outside;
         }

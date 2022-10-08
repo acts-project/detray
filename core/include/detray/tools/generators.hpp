@@ -40,9 +40,11 @@ static inline dvector<scalar_t> phi_values(scalar_t start_phi, scalar_t end_phi,
  *
  * @return a generated list of vertices
  */
-template <typename point2_t, typename point3_t, typename links_t, typename transform3_t>
-dvector<point3_t> vertices(const mask<annulus2D<>, links_t, transform3_t> &annulus_mask,
-                         unsigned int lseg) {
+template <typename point2_t, typename point3_t, typename links_t,
+          typename transform3_t>
+dvector<point3_t> vertices(
+    const mask<annulus2D<>, links_t, transform3_t> &annulus_mask,
+    unsigned int lseg) {
     using scalar_t = typename transform3_t::scalar_type;
 
     const auto &m_values = annulus_mask.values();
@@ -127,10 +129,13 @@ dvector<point3_t> vertices(const mask<annulus2D<>, links_t, transform3_t> &annul
  *
  * @return a generated list of vertices
  */
-template <typename point2_t, typename point3_t, bool kRadialCheck, template <class> typename intersector_t, typename links_t, typename transform3_t>
-dvector<point3_t> vertices(const mask<cylinder2D<kRadialCheck, intersector_t>,
-                                    links_t, transform3_t> & /*cylinder_mask*/,
-                         unsigned int /*lseg*/) {
+template <typename point2_t, typename point3_t, bool kRadialCheck,
+          template <class> typename intersector_t, typename links_t,
+          typename transform3_t>
+dvector<point3_t> vertices(
+    const mask<cylinder2D<kRadialCheck, intersector_t>, links_t, transform3_t>
+        & /*cylinder_mask*/,
+    unsigned int /*lseg*/) {
 
     return {};
 }
@@ -144,9 +149,11 @@ dvector<point3_t> vertices(const mask<cylinder2D<kRadialCheck, intersector_t>,
  *
  * @return a generated list of vertices
  */
-template <typename point2_t, typename point3_t, typename links_t, typename transform3_t>
-dvector<point3_t> vertices(const mask<rectangle2D<>, links_t, transform3_t> &rectangle_mask,
-                         unsigned int /*ignored*/) {
+template <typename point2_t, typename point3_t, typename links_t,
+          typename transform3_t>
+dvector<point3_t> vertices(
+    const mask<rectangle2D<>, links_t, transform3_t> &rectangle_mask,
+    unsigned int /*ignored*/) {
     const auto &m_values = rectangle_mask.values();
     // left hand lower corner
     point3_t lh_lc = {-m_values[0], -m_values[1], 0.};
@@ -169,9 +176,11 @@ dvector<point3_t> vertices(const mask<rectangle2D<>, links_t, transform3_t> &rec
  *
  * @return a generated list of vertices
  */
-template <typename point2_t, typename point3_t, typename links_t, typename transform3_t>
-dvector<point3_t> vertices(const mask<ring2D<>, links_t, transform3_t> & /*ring_mask*/,
-                         unsigned int /*lseg*/) {
+template <typename point2_t, typename point3_t, typename links_t,
+          typename transform3_t>
+dvector<point3_t> vertices(
+    const mask<ring2D<>, links_t, transform3_t> & /*ring_mask*/,
+    unsigned int /*lseg*/) {
     return {};
 }
 
@@ -184,9 +193,11 @@ dvector<point3_t> vertices(const mask<ring2D<>, links_t, transform3_t> & /*ring_
  *
  * @return a generated list of vertices
  */
-template <typename point2_t, typename point3_t, typename links_t, typename transform3_t>
-dvector<point3_t> vertices(const mask<trapezoid2D<>, links_t, transform3_t> &trapezoid_mask,
-                         unsigned int /* ignored */) {
+template <typename point2_t, typename point3_t, typename links_t,
+          typename transform3_t>
+dvector<point3_t> vertices(
+    const mask<trapezoid2D<>, links_t, transform3_t> &trapezoid_mask,
+    unsigned int /* ignored */) {
 
     const auto &m_values = trapezoid_mask.values();
     // left hand lower corner

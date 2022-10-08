@@ -512,8 +512,8 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
                 slab_id, materials.template size<slab_id>()};
 
             masks.template add_value<trapezoid_id>(
-                mask_volume_link, cfg.m_half_x_min_y[ir], cfg.m_half_x_max_y[ir],
-                cfg.m_half_y[ir],
+                mask_volume_link, cfg.m_half_x_min_y[ir],
+                cfg.m_half_x_max_y[ir], cfg.m_half_y[ir],
                 static_cast<scalar>(1. / (2. * cfg.m_half_y[ir])));
 
             materials.template add_value<slab_id>(cfg.mat, cfg.thickness);

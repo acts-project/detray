@@ -106,9 +106,9 @@ struct iterator_range {
           _end(std::begin(iterable) +
                static_cast<difference_type>(detail::get<1>(range))) {
         // Observe end of the iterable
-        //const auto& const_itr = const_cast<const container_t&>(iterable);
-        /*if (std::distance(_end, std::end(const_cast<const container_t&>(iterable))) <= 0) {
-            _end = std::end(iterable);
+        // const auto& const_itr = const_cast<const container_t&>(iterable);
+        /*if (std::distance(_end, std::end(const_cast<const
+        container_t&>(iterable))) <= 0) { _end = std::end(iterable);
         }*/
     }
 

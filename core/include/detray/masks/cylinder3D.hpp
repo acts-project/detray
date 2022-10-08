@@ -50,7 +50,6 @@ class cylinder3D {
     /// Local measurement point (2D)
     template <typename algebra_t>
     using measurement_point_type = loc_point_type<algebra_t>;
-    ;
 
     /// Underlying surface geometry: not a surface.
     template <typename algebra_t>

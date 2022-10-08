@@ -18,13 +18,13 @@ namespace detray {
 namespace detail {
 
 /// @brief Helper type to assemble an multi-axis from shapes tuple and binnings
-template <bool is_owning, typename containers,
-          typename local_frame, typename, typename>
+template <bool is_owning, typename containers, typename local_frame, typename,
+          typename>
 struct multi_axis_assembler;
 
 /// @brief Specialized struct to extract axis shapes from a tuple
-template <bool is_owning, typename containers,
-          typename local_frame, typename... axis_shapes, typename... binning_ts>
+template <bool is_owning, typename containers, typename local_frame,
+          typename... axis_shapes, typename... binning_ts>
 struct multi_axis_assembler<is_owning, containers, local_frame,
                             dtuple<axis_shapes...>, dtuple<binning_ts...>> {
 
@@ -44,10 +44,11 @@ template <typename shape_t, bool is_owning = true,
           typename containers = host_container_types,
           typename algebra_t = __plugin::transform3<detray::scalar>>
 using coordinate_axes = typename detail::multi_axis_assembler<
-    is_owning, containers, 
+    is_owning, containers,
     typename shape_t::template coordinate_type<algebra_t>,
     typename shape_t::axes::types,
-    typename shape_t::axes::template binning<containers, typename algebra_t::scalar_type>>::type;
+    typename shape_t::axes::template binning<
+        containers, typename algebra_t::scalar_type>>::type;
 
 /// A two-dimensional grid for object storage
 ///
