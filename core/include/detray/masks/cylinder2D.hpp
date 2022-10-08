@@ -47,6 +47,9 @@ class cylinder2D {
     /// Local coordinate frame
     template <typename algebra_t>
     using local_frame_type = cylindrical2<algebra_t>;
+    /// Measurement frame
+    template <typename algebra_t>
+    using measurement_frame_type = local_frame_type<algebra_t>;
     /// Local point type (3D)
     template <typename algebra_t>
     using loc_point_type = typename local_frame_type<algebra_t>::point2;

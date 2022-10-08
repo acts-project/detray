@@ -9,7 +9,6 @@
 
 // Project include(s).
 #include "detray/coordinates/line2.hpp"
-#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/line_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
@@ -58,7 +57,9 @@ class line {
     using measurement_frame_type = line2<algebra_t>;
     /// Local point type (2D)
     template <typename algebra_t>
-    using loc_point_type = std::conditional_t<kSquareCrossSect, typename local_frame_type<algebra_t>::point3, typename local_frame_type<algebra_t>::point2>;
+    using loc_point_type = std::conditional_t<kSquareCrossSect,
+        typename local_frame_type<algebra_t>::point3,
+        typename local_frame_type<algebra_t>::point2>;
     /// Underlying surface geometry: planar
     template <typename algebra_t>
     using intersector_type = intersector_t<algebra_t>;
@@ -111,17 +112,17 @@ class line {
         // point of closest approach on thw line from the line center is less
         // than the half line length
         if constexpr (square_cross_sect) {
-            return (std::abs(loc_p[0]) <= bounds[0] + tol &&
-                    std::abs(loc_p[1]) <= bounds[0] + tol &&
-                    std::abs(loc_p[2]) <= bounds[1] + tol);
+            return (std::abs(loc_p[0]) <= bounds[e_cross_section] + tol &&
+                    std::abs(loc_p[1]) <= bounds[e_cross_section] + tol &&
+                    std::abs(loc_p[2]) <= bounds[e_half_z] + tol);
 
             // For a circular cross section, we check if (1) the radial distance
             // is within the scope and (2) the distance to the point of closest
             // approach on the line from the line center is less than the line
             // half length
         } else {
-            return (getter::perp(loc_p) <= bounds[0] + tol &&
-                    std::abs(loc_p[2]) <= bounds[1] + tol);
+            return (loc_p[0] <= bounds[e_cross_section] + tol &&
+                    std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
         }
     }
 };

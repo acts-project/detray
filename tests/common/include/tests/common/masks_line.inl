@@ -31,20 +31,20 @@ TEST(mask, line_radial_cross_sect) {
 
     const mask<line<>> ln{0UL, cell_size, hz};
 
-    /*ASSERT_FLOAT_EQ(ln[0], static_cast<scalar>(1. * unit_constants::mm));
+    ASSERT_FLOAT_EQ(ln[0], static_cast<scalar>(1. * unit_constants::mm));
     ASSERT_FLOAT_EQ(ln[1], static_cast<scalar>(50. * unit_constants::mm));
 
     ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_edge) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
-    ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);*/
+    ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
 }
 
 /// This tests the basic functionality of a line with a square cross section
 TEST(mask, line_square_cross_sect) {
     using point_t = typename mask<line<true>>::loc_point_t;
 
-    /*const point_t ln_in{1., 0., 0};
+    const point_t ln_in{0.9, 0.9, 0};
     const point_t ln_edge{1., 1., 0.};
     const point_t ln_out{1.1, 0., 0};
 
@@ -58,5 +58,5 @@ TEST(mask, line_square_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_edge, 1e-5) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_edge, -1e-5) ==
                 intersection::status::e_outside);
-    ASSERT_TRUE(ln.is_inside(ln_out) == intersection::status::e_outside);*/
+    ASSERT_TRUE(ln.is_inside(ln_out) == intersection::status::e_outside);
 }

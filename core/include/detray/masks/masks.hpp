@@ -49,7 +49,8 @@ class mask {
     using links_type = links_t;
     using scalar_type = typename algebra_t::scalar_type;
     using mask_values = array_t<scalar_type, shape::boundaries::e_size>;
-    using local_frame_type = typename shape::template local_frame_type<algebra_t>;
+    using local_frame_type = typename shape::template axes<>::template local_frame_type<algebra_t>;
+    using measurement_frame_type = typename shape::template measurement_frame_type<algebra_t>;
     // Linear algebra types
     using loc_point_t = typename shape::template loc_point_type<algebra_t>;
     using point3_t = typename algebra_t::point3;

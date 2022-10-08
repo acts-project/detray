@@ -25,6 +25,7 @@ struct plane_intersector {
 
     /// Transformation matching this struct
     using scalar_type = typename transform3_t::scalar_type;
+    using point2 = typename transform3_t::point2;
     using point3 = typename transform3_t::point3;
     using vector3 = typename transform3_t::vector3;
     using ray_type = detail::ray<transform3_t>;
@@ -44,7 +45,7 @@ struct plane_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t>
+    template <typename mask_t, std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>, bool> = true>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
         const scalar_type mask_tolerance = 0,

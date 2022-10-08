@@ -67,7 +67,7 @@ class annulus2D {
     using local_frame_type = polar2<algebra_t>;
     /// Measurement frame
     template <typename algebra_t>
-    using measurement_frame_type = polar2<algebra_t>; // TODO: focal system
+    using measurement_frame_type = polar2<algebra_t>; // TODO: focal system ?
     /// Local point type (2D)
     template <typename algebra_t>
     using loc_point_type = typename local_frame_type<algebra_t>::point2;
