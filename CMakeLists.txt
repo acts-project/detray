@@ -18,6 +18,9 @@ set( CMAKE_CUDA_EXTENSIONS FALSE CACHE BOOL "Disable (CUDA) C++ extensions" )
 include( CMakeDependentOption )
 include( GNUInstallDirs )
 
+# Flags controlling the meta-build system.
+option( DETRAY_USE_SYSTEM_LIBS "Use system libraries be default" FALSE )
+
 # Explicitly set the output directory for the binaries. Such that if this
 # project is included by another project, the main project's configuration would
 # win out.
@@ -68,7 +71,7 @@ option( DETRAY_SETUP_VECMEM
    "Set up the VecMem target(s) explicitly" TRUE )
 option( DETRAY_USE_SYSTEM_VECMEM
    "Pick up an existing installation of VecMem from the build environment"
-   FALSE )
+   ${DETRAY_USE_SYSTEM_LIBS} )
 if( DETRAY_SETUP_VECMEM )
    if( DETRAY_USE_SYSTEM_VECMEM )
       find_package( vecmem REQUIRED )
@@ -82,7 +85,7 @@ option( DETRAY_SETUP_ALGEBRA_PLUGINS
    "Set up the Algebra Plugins target(s) explicitly" TRUE )
 option( DETRAY_USE_SYSTEM_ALGEBRA_PLUGINS
    "Pick up an existing installation of Algebra Plugins from the build environment"
-   FALSE )
+   ${DETRAY_USE_SYSTEM_LIBS} )
 if( DETRAY_SETUP_ALGEBRA_PLUGINS )
    if( DETRAY_USE_SYSTEM_ALGEBRA_PLUGINS )
       find_package( algebra-plugins REQUIRED )
@@ -96,7 +99,7 @@ option( DETRAY_SETUP_ACTSVG
    "Set up the actsvg target(s) explicitly" TRUE )
 option( DETRAY_USE_SYSTEM_ACTSVG
    "Pick up an existing installation of dfelibs from the build environment"
-   FALSE )
+   ${DETRAY_USE_SYSTEM_LIBS} )
 if( DETRAY_SETUP_ACTSVG )
    if( DETRAY_USE_SYSTEM_ACTSVG )
       find_package( actsvg::core actsvg::meta REQUIRED )
@@ -110,7 +113,7 @@ option( DETRAY_SETUP_DFELIBS
    "Set up the dfelibs target(s) explicitly" TRUE )
 option( DETRAY_USE_SYSTEM_DFELIBS
    "Pick up an existing installation of dfelibs from the build environment"
-   FALSE )
+   ${DETRAY_USE_SYSTEM_LIBS} )
 if( DETRAY_SETUP_DFELIBS )
    if( DETRAY_USE_SYSTEM_DFELIBS )
       find_package( dfelibs REQUIRED )
@@ -124,7 +127,7 @@ option( DETRAY_SETUP_THRUST
    "Set up the Thrust target(s) explicitly" TRUE )
 option( DETRAY_USE_SYSTEM_THRUST
    "Pick up an existing installation of Thrust from the build environment"
-   FALSE )
+   ${DETRAY_USE_SYSTEM_LIBS} )
 if( DETRAY_SETUP_THRUST )
    if( DETRAY_USE_SYSTEM_THRUST )
       find_package( Thrust REQUIRED )
@@ -144,7 +147,7 @@ option( DETRAY_SETUP_GOOGLETEST
    "Set up the GoogleTest target(s) explicitly" TRUE )
 option( DETRAY_USE_SYSTEM_GOOGLETEST
    "Pick up an existing installation of GoogleTest from the build environment"
-   FALSE )
+   ${DETRAY_USE_SYSTEM_LIBS} )
 if( DETRAY_SETUP_GOOGLETEST )
    if( DETRAY_USE_SYSTEM_GOOGLETEST )
       find_package( GTest REQUIRED )
@@ -158,7 +161,7 @@ option( DETRAY_SETUP_BENCHMARK
    "Set up the Google Benchmark target(s) explicitly" TRUE )
 option( DETRAY_USE_SYSTEM_BENCHMARK
    "Pick up an existing installation of Google Benchmark from the build environment"
-   FALSE )
+   ${DETRAY_USE_SYSTEM_LIBS} )
 if( DETRAY_SETUP_BENCHMARK )
    if( DETRAY_USE_SYSTEM_BENCHMARK )
       find_package( benchmark REQUIRED )
@@ -172,7 +175,7 @@ option( DETRAY_SETUP_COVFIE
    "Set up the covfie target(s) explicitly" TRUE )
 option( DETRAY_USE_SYSTEM_COVFIE
    "Pick up an existing installation of covfie from the build environment"
-   FALSE )
+   ${DETRAY_USE_SYSTEM_LIBS} )
 if( DETRAY_SETUP_COVFIE )
    if( DETRAY_USE_SYSTEM_COVFIE )
       find_package( covfie REQUIRED )
