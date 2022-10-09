@@ -96,6 +96,7 @@ detray_add_library( detray_core core
    "include/detray/surface_finders/grid/detail/serializer_impl.hpp"
    "include/detray/surface_finders/grid/axis.hpp"
    "include/detray/surface_finders/grid/grid_builder.hpp"
+   "include/detray/surface_finders/grid/grid_collection.hpp"
    "include/detray/surface_finders/grid/grid.hpp"
    "include/detray/surface_finders/grid/populator.hpp"
    "include/detray/surface_finders/grid/serializer.hpp"

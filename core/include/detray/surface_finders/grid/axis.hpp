@@ -157,6 +157,11 @@ struct multi_axis {
 
     /// Projection onto local coordinate system that is spanned by the axes
     using local_frame_type = local_frame_t;
+
+    /// Axes boundary/bin edges storage
+    using boundary_storage_type = vector_type<dindex_range>;
+    using edges_storage_type = vector_type<scalar_type>;
+
     /// Vecmem based multi-axis view type
     using view_type =
         dmulti_view<dvector_view<dindex_range>, dvector_view<scalar_type>>;
@@ -192,7 +197,7 @@ struct multi_axis {
     /// Device-side construction from a vecmem based view type
     template <typename axes_view_t,
               typename std::enable_if_t<
-                  std::is_base_of_v<dbase_view, axes_view_t>, bool> = true>
+                  detray::detail::is_device_view_v<axes_view_t>, bool> = true>
     DETRAY_HOST_DEVICE multi_axis(const axes_view_t &view)
         : m_data(detray::detail::get<0>(view.m_views),
                  detray::detail::get<1>(view.m_views)) {}

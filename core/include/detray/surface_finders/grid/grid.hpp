@@ -88,10 +88,16 @@ class grid {
          const dindex offset = 0)
         : m_data(bin_data_ptr, offset), m_axes(axes) {}
 
+    /// Create grid from container pointers - non-owning (both grid and axes)
+    DETRAY_HOST_DEVICE
+    grid(bin_storage_type *bin_data_ptr, axes_type &&axes,
+         const dindex offset = 0)
+        : m_data(bin_data_ptr, offset), m_axes(axes) {}
+
     /// Device-side construction from a vecmem based view type
     template <typename grid_view_t,
-              typename std::enable_if_t<
-                  std::is_base_of_v<dbase_view, grid_view_t>, bool> = true>
+              typename std::enable_if_t<detail::is_device_view_v<grid_view_t>,
+                                        bool> = true>
     DETRAY_HOST_DEVICE grid(grid_view_t &view)
         : m_data(detray::detail::get<0>(view.m_views)),
           m_axes(detray::detail::get<1>(view.m_views)) {}

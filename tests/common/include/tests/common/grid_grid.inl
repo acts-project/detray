@@ -45,7 +45,7 @@ using cartesian_3D =
 bool constexpr is_owning = true;
 bool constexpr is_n_owning = false;
 
-// Lower bin edges for all axes
+// Bin edges for all axes
 dvector<scalar> bin_edges = {-10, 10., -20., 20., 0., 100.};
 // Offsets into edges container and #bins for all axes
 dvector<dindex_range> edge_ranges = {{0u, 20u}, {2u, 40u}, {4u, 50u}};

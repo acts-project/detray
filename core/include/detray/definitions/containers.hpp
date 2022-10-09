@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/type_traits.hpp"
 
@@ -72,55 +73,26 @@ using device_container_types =
     container_types<vecmem::device_vector, thrust::tuple, darray,
                     vecmem::jagged_device_vector>;
 
-// Views for types that aggregate containers
-
-/// Empty view type for inheritance template resolution
-struct dbase_view {};
-
-/// Tag a vecmem view as @c dbase_view , so that it becomes recognizable in
-/// detray as a view type
-template <typename value_t, template <typename> class view_t>
-struct view_wrapper : public dbase_view {
-    /// The vecmem data view
-    view_t<value_t> m_view{};
-
-    /// Default constructor
-    view_wrapper() = default;
-
-    /// Conversion operator from a view of the same value type
-    DETRAY_HOST
-    view_wrapper(view_t<value_t>&& view) : m_view{view} {}
-};
-
-/// Container view helper that aggregates multiple views and performs
-/// compile-time checks.
-template <bool /*check value*/, typename... view_ts>
-class dmulti_view_helper {};
-
-/// In case the checks fail
-template <typename... view_ts>
-class dmulti_view_helper<false, view_ts...> {};
-
-/// General view type that aggregates vecmem based view implementations
-template <typename... view_ts>
-struct dmulti_view_helper<true, view_ts...> : public dbase_view {
-    dtuple<view_ts...> m_views;
-
-    dmulti_view_helper() = default;
-
-    /// Tie multiple views together
-    DETRAY_HOST
-    dmulti_view_helper(view_ts&&... views) { m_views = std::tie(views...); }
-};
-
-/// The detray container view exists, if all contained view types also derive
-/// from @c dbase_view.
-template <typename... view_ts>
-using dmulti_view = dmulti_view_helper<
-    std::conjunction_v<std::is_base_of<dbase_view, view_ts>...>, view_ts...>;
-
-/// Detray view for vector containers
+/// Specialized view for @c vecmem::vector containers
 template <typename value_t>
-using dvector_view = view_wrapper<value_t, vecmem::data::vector_view>;
+using dvector_view = detail::view_wrapper<value_t, vecmem::data::vector_view>;
+
+/// Specialized view for @c vecmem::jagged_vector containers
+template <typename value_t>
+using djagged_vector_view =
+    detail::view_wrapper<value_t, vecmem::data::jagged_vector_view>;
+
+/// Specialization of the view getter for @c vecmem::vector
+template <typename T>
+struct detail::get_view<vecmem::vector<T>, void> : public std::true_type {
+    using type = dvector_view<T>;
+};
+
+/// Specialization of the view getter for @c vecmem::jagged_vector
+template <typename T>
+struct detail::get_view<vecmem::jagged_vector<T>, void>
+    : public std::true_type {
+    using type = djagged_vector_view<T>;
+};
 
 }  // namespace detray
