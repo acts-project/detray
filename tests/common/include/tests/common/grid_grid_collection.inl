@@ -22,6 +22,7 @@
 #include <climits>
 
 using namespace detray;
+using namespace detray::n_axis;
 
 namespace {
 
@@ -29,29 +30,19 @@ namespace {
 bool constexpr is_owning = true;
 bool constexpr is_n_owning = false;
 
+constexpr dindex inf{std::numeric_limits<dindex>::max()};
+
 // Create some bin data for non-owning grid
 template <class populator_t, typename entry_t>
-struct increment {
-    using bin_t = typename populator_t::template bin_type<entry_t>;
+struct bin_content_sequence {
 
-    bin_t stored_entry;
-    entry_t entry;
+    entry_t entry{0};
 
-    increment() : entry{0} {}
-    bin_t operator()() {
+    auto operator()() {
         entry += entry_t{1};
         return populator_t::init(entry);
     }
 };
-
-/// Test bin content element by element
-/*template <typename grid_t, typename content_t>
-void test_content(const grid_t& g, const point3& p, const content_t& expected) {
-    dindex i = 0;
-    for (const auto& entry : g.search(p)) {
-        ASSERT_FLOAT_EQ(entry, expected[i++]);
-    }
-}*/
 
 }  // anonymous namespace
 
@@ -69,9 +60,9 @@ TEST(grid, grid_collection) {
     // Build test data
 
     // Offsets into edges container and #bins for all axes
-    dvector<dindex_range> edge_ranges = {{0u, 20u},  {2u, 40u},  {4u, 60u},
-                                         {6u, 10u},  {8u, 30u},  {10u, 50u},
-                                         {12u, 15u}, {14u, 35u}, {16u, 55u}};
+    dvector<dindex_range> edge_ranges = {{0u, 2u},  {2u, 4u},  {4u, 6u},
+                                         {6u, 1u},  {8u, 3u},  {10u, 8u},
+                                         {12u, 5u}, {14u, 5u}, {16u, 5u}};
 
     // Bin edges for all axes
     dvector<scalar> bin_edges = {-10, 10., -20., 20., 0.,  120., -5., 5., -15.,
@@ -79,18 +70,44 @@ TEST(grid, grid_collection) {
 
     // Bin test entries
     grid_t::bin_storage_type bin_data{};
-    bin_data.resize(315);
-    std::generate_n(bin_data.begin(), 315u,
-                    increment<grid_t::populator_type, dindex>());
+    bin_data.resize(197UL);
+    std::generate_n(bin_data.begin(), 197UL,
+                    bin_content_sequence<grid_t::populator_type, dindex>());
+    vecmem::vector<dindex> grid_offsets = {0UL, 48UL, 72UL};
 
     // Data-owning grid collection
-    auto gr_coll = grid_collection<grid_t>(
-        std::move(bin_data), std::move(edge_ranges), std::move(bin_edges));
+    auto grid_coll =
+        grid_collection<grid_t>(std::move(grid_offsets), std::move(bin_data),
+                                std::move(edge_ranges), std::move(bin_edges));
 
     // Tests
 
     // Basics
-    EXPECT_EQ(gr_coll.bin_data().size(), 315UL);
-    EXPECT_EQ(gr_coll.axes_data().size(), 9UL);
-    EXPECT_EQ(gr_coll.bin_edges_data().size(), 18UL);
+    EXPECT_EQ(grid_coll.bin_data().size(), 197UL);
+    EXPECT_EQ(grid_coll.axes_data().size(), 9UL);
+    EXPECT_EQ(grid_coll.bin_edges_data().size(), 18UL);
+
+    // Get a grid instance
+    auto single_grid = grid_coll[1];
+
+    static_assert(std::is_same_v<decltype(single_grid), grid_t>,
+                  "Grid from collection has wrong type");
+
+    EXPECT_EQ(single_grid.Dim, 3);
+    auto r_axis = single_grid.get_axis<label::e_r>();
+    EXPECT_EQ(r_axis.nbins(), 1u);
+    using z_axis_t = single_axis<open<label::e_z>, regular<>>;
+    auto z_axis = single_grid.get_axis<z_axis_t>();
+    EXPECT_EQ(z_axis.nbins(), 8u);
+
+    // The generator starts countaing at one instead of zero
+    EXPECT_EQ(single_grid.at(0u, 0u, 0u)[0u], 49UL);
+    EXPECT_EQ(single_grid.at(0u, 0u, 0u)[1u], inf);
+    EXPECT_EQ(single_grid.at(0u, 0u, 0u)[2u], inf);
+
+    auto bin_view = grid_coll[2].at(101u);
+    grid_coll[2].populate(101UL, 42UL);
+    EXPECT_EQ(bin_view[0u], 102UL + 72UL);
+    EXPECT_EQ(bin_view[1u], 42UL);
+    EXPECT_EQ(bin_view[2u], inf);
 }

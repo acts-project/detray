@@ -56,14 +56,11 @@ cartesian_3D<is_n_owning, host_container_types> ax_n_own(&edge_ranges,
 
 // Create some bin data for non-owning grid
 template <class populator_t, typename entry_t>
-struct increment {
-    using bin_t = typename populator_t::template bin_type<entry_t>;
+struct bin_content_sequence {
 
-    bin_t stored_entry;
-    entry_t entry;
+    entry_t entry{0};
 
-    increment() : entry{0} {}
-    bin_t operator()() {
+    auto operator()() {
         entry += entry_t{1};
         return populator_t::init(entry);
     }
@@ -97,8 +94,9 @@ TEST(grid, single_grid) {
     // bin test entries
     grid_owning_t::bin_storage_type bin_data{};
     bin_data.resize(40'000);
-    std::generate_n(bin_data.begin(), 40'000u,
-                    increment<grid_owning_t::populator_type, scalar>());
+    std::generate_n(
+        bin_data.begin(), 40'000u,
+        bin_content_sequence<grid_owning_t::populator_type, scalar>());
 
     // Copy data that will be moved into the data owning types
     dvector<scalar> bin_edges_cp(bin_edges);

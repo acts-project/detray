@@ -52,25 +52,32 @@ class grid_collection<
     using axes_storage_type = typename multi_axis_t::boundary_storage_type;
     /// Contains all bin edges for all axes
     using edges_storage_type = typename multi_axis_t::edges_storage_type;
+    template <typename T>
+    using vector_type = typename multi_axis_t::template vector_type<T>;
 
-    /// Vecmem based grid view type - non-const
+    /// Vecmem based grid view type
     using view_type = dmulti_view<detail::get_view_t<bin_storage_type>,
                                   detail::get_view_t<axes_storage_type>,
-                                  detail::get_view_t<edges_storage_type>>;
+                                  detail::get_view_t<edges_storage_type>,
+                                  dvector_view<size_type>>;
 
     /// Make grid default constructible: Empty grid with empty axis
     grid_collection() = default;
 
     /// Create empty grid with empty axes from specific vecmem memory resource
     DETRAY_HOST
-    grid_collection(vecmem::memory_resource &resource)
-        : m_bins(resource), m_axes_data(resource), m_bin_edges(resource) {}
+    explicit grid_collection(vecmem::memory_resource &resource)
+        : m_offsets(resource),
+          m_bins(resource),
+          m_axes_data(resource),
+          m_bin_edges(resource) {}
 
     /// Create grid colection from existing data - move
     DETRAY_HOST_DEVICE
-    grid_collection(bin_storage_type &&bins, axes_storage_type &&axes_data,
-                    edges_storage_type &&edges)
-        : m_bins(std::move(bins)),
+    grid_collection(vector_type<size_type> &&offs, bin_storage_type &&bins,
+                    axes_storage_type &&axes_data, edges_storage_type &&edges)
+        : m_offsets(std::move(offs)),
+          m_bins(std::move(bins)),
           m_axes_data(std::move(axes_data)),
           m_bin_edges(std::move(edges)) {}
 
@@ -79,11 +86,12 @@ class grid_collection<
               typename std::enable_if_t<detail::is_device_view_v<grid_view_t>,
                                         bool> = true>
     DETRAY_HOST_DEVICE grid_collection(grid_view_t &view)
-        : m_bins(detail::get<0>(view.m_views)),
+        : m_offsets(detail::get<2>(view.m_views)),
+          m_bins(detail::get<0>(view.m_views)),
           m_axes_data(detail::get<1>(view.m_views)),
           m_bin_edges(detail::get<2>(view.m_views)) {}
 
-    /// @returns the underlying bin value storage - const
+    /// @returns the underlying bin content storage - const
     DETRAY_HOST_DEVICE
     auto bin_data() const -> const bin_storage_type & { return m_bins; }
 
@@ -92,22 +100,22 @@ class grid_collection<
     DETRAY_HOST_DEVICE
     auto bin_data() -> bin_storage_type & { return m_bins; }
 
-    /// @returns the underlying bin value storage - const
+    /// @returns the underlying axis boundary storage - const
     DETRAY_HOST_DEVICE
     auto axes_data() const -> const axes_storage_type & { return m_axes_data; }
 
-    /// @returns the underlying bin value storage - non-const for vecmem
+    /// @returns the underlying axis boundary storage - non-const for vecmem
     // TODO: Don't do
     DETRAY_HOST_DEVICE
     auto axes_data() -> axes_storage_type & { return m_axes_data; }
 
-    /// @returns the underlying bin value storage - const
+    /// @returns the underlying bin edges storage - const
     DETRAY_HOST_DEVICE
     auto bin_edges_data() const -> const edges_storage_type & {
         return m_bin_edges;
     }
 
-    /// @returns the underlying bin value storage - non-const for vecmem
+    /// @returns the underlying bin edges storage - non-const for vecmem
     // TODO: Don't do
     DETRAY_HOST_DEVICE
     auto bin_edges_data() -> edges_storage_type & { return m_bin_edges; }
@@ -115,17 +123,24 @@ class grid_collection<
     /// Create grid from container pointers - const
     DETRAY_HOST_DEVICE
     auto operator[](const size_type i) const -> const_grid_type {
-        return const_grid_type(&m_bins,
-                               multi_axis_t(&m_axes_data, &m_bin_edges), i);
+        const size_type axes_offset{grid_type::Dim * i};
+        return const_grid_type(
+            &m_bins, multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
+            m_offsets[i]);
     }
 
     /// Create grid from container pointers - non-const
     DETRAY_HOST_DEVICE
     auto operator[](const size_type i) -> grid_type {
-        return grid_type(&m_bins, multi_axis_t(&m_axes_data, &m_bin_edges), i);
+        const size_type axes_offset{grid_type::Dim * i};
+        return grid_type(&m_bins,
+                         multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
+                         m_offsets[i]);
     }
 
     private:
+    /// Offsets for the respective grids into the bin storage
+    vector_type<size_type> m_offsets{};
     /// Contains the bin content for all grids
     bin_storage_type m_bins{};
     /// Contains the axis boundaries/no. bins for all axes of all grids

@@ -179,8 +179,8 @@ struct multi_axis {
     multi_axis() = default;
 
     /// Constructor with specific vecmem memory resource if the class owns data
-    DETRAY_HOST multi_axis(vecmem::memory_resource &resource)
-        : m_data(resource) {}
+    DETRAY_HOST
+    explicit multi_axis(vecmem::memory_resource &resource) : m_data(resource) {}
 
     /// Constructor from data containers - move
     DETRAY_HOST_DEVICE
