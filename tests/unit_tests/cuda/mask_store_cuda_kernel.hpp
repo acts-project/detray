@@ -38,12 +38,12 @@ const int n_points = 1000;
 
 namespace detray {
 
-using annulus = annulus2<>;
-using cylinder = cylinder3<>;
-using rectangle = rectangle2<>;
-using ring = ring2<>;
-using single = single3<0>;
-using trapezoid = trapezoid2<>;
+using annulus = mask<annulus2D<>>;
+using cylinder = mask<cylinder2D<>>;
+using rectangle = mask<rectangle2D<>>;
+using ring = mask<ring2D<>>;
+using single = mask<single3D<>>;
+using trapezoid = mask<trapezoid2D<>>;
 
 /** Enumerate different mask types for convenience
  **/
@@ -51,7 +51,7 @@ enum mask_ids : unsigned int {
     e_rectangle2 = 0,
     e_trapezoid2 = 1,
     e_ring2 = 2,
-    e_cylinder3 = 3,
+    e_cylinder2 = 3,
     e_single3 = 4,
     e_annulus2 = 5,
 };
@@ -60,9 +60,9 @@ enum mask_ids : unsigned int {
 void mask_test(
     tuple_vector_container_data<tuple_vector_container<
         thrust::tuple, dvector, mask_ids, rectangle, trapezoid, ring, cylinder,
-        single, annulus> >& store_data,
+        single, annulus>>& store_data,
     vecmem::data::vector_view<point2>& input_point2_data,
-    vecmem::data::vector_view<point3>& input_point3_data,
+    /*vecmem::data::vector_view<point3>& input_point3_data,*/
     vecmem::data::jagged_vector_view<intersection::status>& output_data);
 
 }  // namespace detray

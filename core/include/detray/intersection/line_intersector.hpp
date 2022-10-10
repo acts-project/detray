@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/line2.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
@@ -33,8 +34,7 @@ struct line_intersector {
 
     /** Operator function to find intersections between ray and line mask
      *
-     * @tparam mask_t is the input mask type
-     * @tparam transform_t is the input transform type
+     * @tparam mask_t is the input mask type (must be a line mask)
      *
      * @param ray is the input ray trajectory
      * @param mask is the input mask
@@ -44,7 +44,11 @@ struct line_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t>
+    template <
+        typename mask_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
+                                        line2<transform3_t>>,
+                         bool> = true>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
         const scalar_type mask_tolerance = 0,
@@ -65,9 +69,9 @@ struct line_intersector {
         const point3 _p = ray.pos();
 
         // Projection of line to track direction
-        const scalar zd = vector::dot(_z, _d);
+        const scalar_type zd{vector::dot(_z, _d)};
 
-        const scalar_type denom = scalar_type{1.} - (zd * zd);
+        const scalar_type denom{scalar_type{1.} - (zd * zd)};
 
         // Case for wire is parallel to track
         if (denom < scalar_type{1e-5}) {
@@ -78,18 +82,18 @@ struct line_intersector {
         const vector3 t2l = _t - _p;
 
         // t2l projection on line direction
-        const scalar_type t2l_on_line = vector::dot(t2l, _z);
+        const scalar_type t2l_on_line{vector::dot(t2l, _z)};
 
         // t2l projection on track direction
-        const scalar_type t2l_on_track = vector::dot(t2l, _d);
+        const scalar_type t2l_on_track{vector::dot(t2l, _d)};
 
         // path length to the point of closest approach on the track
-        const scalar_type A =
-            scalar_type{1.} / denom * (t2l_on_track - t2l_on_line * zd);
+        const scalar_type A{scalar_type{1.} / denom *
+                            (t2l_on_track - t2l_on_line * zd)};
 
         // distance to the point of closest approarch on the
         // line from line center
-        const scalar_type B = zd * A - t2l_on_line;
+        const scalar_type B{zd * A - t2l_on_line};
 
         // point of closest approach on the track
         const vector3 m = _p + _d * A;
@@ -98,19 +102,29 @@ struct line_intersector {
         is.path = A;
         is.p3 = m;
 
-        // global to local transform in cartesian coordinate
-        auto loc = trf.point_to_local(is.p3);
+        // For the radial cross section, the calculation does not need to be
+        // repeated
+        if constexpr (mask_t::shape::square_cross_sect) {
+            // This is cartesian3 for square cross section
+            auto loc3D = mask.to_local_frame(trf, is.p3);
+            is.status = mask.is_inside(loc3D, mask_tolerance);
 
-        // assign the sign depending on the position w.r.t line surface
-        // Right: -1
-        // Left: 1
-        const auto r = vector::cross(_z, _d);
-        const scalar_type sign = vector::dot(r, t2l) > 0. ? -1. : 1.;
+            // Determine the measurement point from the local point
 
-        is.p2[0] = sign * getter::perp(loc);
+            // assign the sign depending on the position w.r.t line surface
+            // Right: -1
+            // Left: 1
+            const auto r = vector::cross(_z, _d);
+            const scalar_type sign{vector::dot(r, t2l) > scalar_type{0.}
+                                       ? scalar_type{-1.}
+                                       : scalar_type{1.}};
+
+            is.p2[0] = sign * getter::perp(loc3D);
+        } else {
+            is.p2 = mask.to_local_frame(trf, is.p3, _d);
+            is.status = mask.is_inside(is.p2, mask_tolerance);
+        }
         is.p2[1] = B;
-
-        is.status = mask.is_inside(loc, mask_tolerance);
 
         is.direction = is.path > overstep_tolerance
                            ? intersection::direction::e_along
@@ -118,7 +132,7 @@ struct line_intersector {
         is.link = mask.volume_link();
 
         // Get incidence angle
-        is.cos_incidence_angle = std::abs(vector::dot(_d, _z));
+        is.cos_incidence_angle = std::abs(zd);
 
         return ret;
     }

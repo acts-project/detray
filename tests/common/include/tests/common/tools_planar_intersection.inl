@@ -13,8 +13,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/plane_intersector.hpp"
-#include "detray/masks/rectangle2.hpp"
-#include "detray/masks/unmasked.hpp"
+#include "detray/masks/masks.hpp"
 #include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -40,11 +39,10 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
     const detail::ray<transform3> r(pos, 0., mom, 0.);
 
     // The same test but bound to local frame
-    using unmasked = unmasked<transform3, plane_intersector, cartesian2>;
-    auto pi = typename unmasked::intersector_type();
-
-    unmasked unmasked_bound{};
+    plane_intersector<transform3> pi;
+    mask<unmasked> unmasked_bound{};
     const auto hit_bound = pi(r, unmasked_bound, shifted)[0];
+
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound.p3[0], 2., epsilon);
@@ -57,7 +55,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
     ASSERT_NEAR(hit_bound.cos_incidence_angle, 1., epsilon);
 
     // The same test but bound to local frame & masked - inside
-    rectangle2<> rect_for_inside{3., 3., 0u};
+    mask<rectangle2D<>> rect_for_inside{0UL, 3.f, 3.f};
     const auto hit_bound_inside = pi(r, rect_for_inside, shifted)[0];
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
     // Global intersection information - unchanged
@@ -69,7 +67,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
     ASSERT_NEAR(hit_bound_inside.p2[1], -1., epsilon);
 
     // The same test but bound to local frame & masked - outside
-    rectangle2<> rect_for_outside{0.5, 3.5, 0u};
+    mask<rectangle2D<>> rect_for_outside{0UL, 0.5f, 3.5f};
     const auto hit_bound_outside = pi(r, rect_for_outside, shifted)[0];
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
     // Global intersection information - unchanged
@@ -98,7 +96,7 @@ TEST(ALGEBRA_PLUGIN, plane_incidence_angle) {
     const detail::ray<transform3> r(pos, 0., mom, 0.);
 
     // The same test but bound to local frame & masked - inside
-    rectangle2<> rect{3., 3., 0u};
+    mask<rectangle2D<>> rect{0UL, 3.f, 3.f};
 
     const line_plane_intersection is = pi(r, rect, rotated)[0];
 
@@ -118,11 +116,10 @@ TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
     const detail::helix<transform3> h({pos, 0, mom, -1}, &B);
 
     // The same test but bound to local frame
-    using unmasked = unmasked<transform3, plane_intersector, cartesian2>;
     helix_plane_intersector<transform3> pi;
-
-    unmasked unmasked_bound{};
+    mask<unmasked> unmasked_bound{};
     const auto hit_bound = pi(h, unmasked_bound, shifted)[0];
+
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound.p3[0], 2., epsilon);
@@ -135,7 +132,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
     ASSERT_NEAR(hit_bound.cos_incidence_angle, 1., epsilon);
 
     // The same test but bound to local frame & masked - inside
-    rectangle2<> rect_for_inside{3., 3., 0u};
+    mask<rectangle2D<>> rect_for_inside{0UL, 3.f, 3.f};
     const auto hit_bound_inside = pi(h, rect_for_inside, shifted)[0];
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
     // Global intersection information - unchanged
@@ -147,7 +144,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
     ASSERT_NEAR(hit_bound_inside.p2[1], -1., epsilon);
 
     // The same test but bound to local frame & masked - outside
-    rectangle2<> rect_for_outside{0.5, 3.5, 0u};
+    mask<rectangle2D<>> rect_for_outside{0UL, 0.5f, 3.5f};
     const auto hit_bound_outside = pi(h, rect_for_outside, shifted)[0];
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
     // Global intersection information - unchanged

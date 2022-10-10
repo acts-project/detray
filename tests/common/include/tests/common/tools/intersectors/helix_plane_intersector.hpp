@@ -52,8 +52,6 @@ struct helix_plane_intersector {
         const helix_type &h, const mask_t &mask, const transform3_t &trf,
         const scalar mask_tolerance = 0) const {
 
-        using local_frame = typename mask_t::local_type;
-
         output_type ret;
 
         // Guard against inifinite loops
@@ -98,10 +96,9 @@ struct helix_plane_intersector {
 
         is.path = getter::norm(helix_pos);
         is.p3 = helix_pos;
-        constexpr local_frame local_converter{};
-        is.p2 = local_converter.global_to_local(trf, is.p3, h.dir(s));
+        is.p2 = mask.to_local_frame(trf, is.p3, h.dir(s));
 
-        is.status = mask.template is_inside<local_frame>(is.p2, mask_tolerance);
+        is.status = mask.is_inside(is.p2, mask_tolerance);
         is.direction = vector::dot(st, h.dir(s)) > scalar{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;

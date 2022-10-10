@@ -158,7 +158,7 @@ class volume_graph {
     /// half edges in the @c _edges collection (detector masks).
     struct edge_collection {
         /// The link to the next volume
-        using mask_edge_t = typename detector_t::surface_type::edge_type;
+        using mask_edge_t = typename detector_t::surface_type::volume_link_type;
         /// The link to the surfaces mask
         using mask_link_t = typename detector_t::surface_type::mask_link;
 
@@ -174,6 +174,39 @@ class volume_graph {
             dindex _from, _to;
         };
 
+        /// Nested functor that fills the edges from a mask container
+        struct edges_builder {
+
+            using output_type = vector_t<edge>;
+
+            /// @brief Builds the collection of graph edges for a given
+            /// node.
+            ///
+            /// From the volume index and a mask link owned by one of the
+            /// volumes surfaces a vector of graph edges is built.
+            /// The mask container calls this functor and provides the correct
+            /// mask group from which the surface masks can be obtained from
+            /// the surfaces mask range.
+            ///
+            /// @param mask_group the group of masks in the mask container
+            ///                   of the detector
+            /// @param volume_id the index of the volume/node for which to
+            ///                  build edges
+            /// @param mask_range the range of masks in the group for which
+            ///                   to build edges
+            template <typename mask_group_t>
+            inline output_type operator()(
+                const mask_group_t &mask_group,
+                const typename mask_link_t::index_type &mask_range,
+                const dindex volume_id) {
+                vector_t<edge> edges{};
+                for (const auto &mask : range(mask_group, mask_range)) {
+                    edges.emplace_back(volume_id, mask.volume_link());
+                }
+                return edges;
+            }
+        };
+
         /// @brief Iterator that constructs graph edges from mask links on the
         /// fly
         struct iterator {
@@ -186,7 +219,10 @@ class volume_graph {
             /// surfaces
             iterator(const dindex volume_id, const mask_link_t &mask_link,
                      const edge_collection &edges) {
-                build_edges_vector(volume_id, mask_link, edges.get_container());
+
+                _edges = edges.get_container().template call<edges_builder>(
+                    mask_link, volume_id);
+
                 _itr = _edges.begin();
             }
 
@@ -219,40 +255,6 @@ class volume_graph {
             /// Inquality operator
             bool operator!=(const iterator &rhs) {
                 return _itr != rhs._itr and &_edges != &rhs._edges;
-            }
-
-            /// @brief BUilds the collection of graph edges for a given node.
-            ///
-            /// From the volume index, a mask link owned by one of the volumes
-            /// surfaces and the detector mask container, a vector of graph
-            /// edges is built. The mask container needs to be unrolled to find
-            /// the correct instance and therefore link to the next volume.
-            ///
-            /// @param volume_id the index of the volume/node
-            /// @param mask_link a mask link of a surface belonging to that vol.
-            /// @param masks the mask store of the detector
-            template <std::size_t current_id = 0>
-            inline void build_edges_vector(const dindex volume_id,
-                                           const mask_link_t &mask_link,
-                                           const mask_container_t &masks) {
-
-                if (detail::get<0>(mask_link) == current_id) {
-                    // Get the mask group
-                    const auto &mask_group =
-                        masks.template group<mask_container_t::to_id(
-                            current_id)>();
-                    const auto mask_range = detail::get<1>(mask_link);
-                    for (const auto &mask : range(mask_group, mask_range)) {
-                        _edges.emplace_back(volume_id, mask.volume_link());
-                    }
-                }
-
-                // Next mask type
-                using mask_defs = typename detector_t::surface_type::mask_defs;
-                if constexpr (current_id < mask_defs::n_types - 1) {
-                    return build_edges_vector<current_id + 1>(volume_id,
-                                                              mask_link, masks);
-                }
             }
 
             /// Iterator over the edges vector

@@ -190,7 +190,7 @@ TEST(test_host_basics, cylindrical2) {
     // Define cylinder mask
     struct cylinder_mask {
         scalar r = 0.;
-        scalar radius() const { return r; }
+        scalar operator[](dindex) const { return r; }
     };
 
     const scalar r = 2.;
