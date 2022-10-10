@@ -81,7 +81,14 @@ struct single_axis {
 
     /// @returns the total number of bins
     DETRAY_HOST_DEVICE
-    inline std::size_t nbins() const { return m_binning.nbins(); }
+    inline constexpr std::size_t nbins() const { return m_binning.nbins(); }
+
+    /// @returns the width of a bin
+    template <typename... Args>
+    DETRAY_HOST_DEVICE inline constexpr scalar_type bin_width(
+        Args &&...args) const {
+        return m_binning.bin_width(std::forward<Args &&>(args)...);
+    }
 
     /// Given a value on the axis, find the correct bin.
     ///
@@ -165,6 +172,8 @@ struct multi_axis {
     /// Vecmem based multi-axis view type
     using view_type =
         dmulti_view<dvector_view<dindex_range>, dvector_view<scalar_type>>;
+    using const_view_type = dmulti_view<dvector_view<const dindex_range>,
+                                        dvector_view<const scalar_type>>;
     /// Interal storage type depends on whether the class owns the data or not
     using storage_type = std::conditional_t<
         is_owning, detail::multi_axis_data<container_types, scalar_type>,
@@ -333,6 +342,19 @@ inline
     typename n_axis::multi_axis<is_owning, local_frame, axis_ts...>::view_type
     get_data(
         n_axis::multi_axis<is_owning, local_frame, axis_ts...> &mult_axis) {
+    static_assert(is_owning,
+                  "Only mulit-axis types that own their data can move the data "
+                  "to device!");
+
+    return {vecmem::get_data(mult_axis.m_data.m_axes_data),
+            vecmem::get_data(mult_axis.m_data.m_edges)};
+}
+
+template <bool is_owning, typename local_frame, typename... axis_ts>
+inline typename n_axis::multi_axis<is_owning, local_frame,
+                                   axis_ts...>::const_view_type
+get_data(
+    const n_axis::multi_axis<is_owning, local_frame, axis_ts...> &mult_axis) {
     static_assert(is_owning,
                   "Only mulit-axis types that own their data can move the data "
                   "to device!");

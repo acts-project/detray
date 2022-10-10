@@ -276,7 +276,7 @@ inline
 
 /// @returns const view of a grid, for every grid that is passed as a const
 /// reference
-template <typename multi_axis_t, typename value_t,
+/*template <typename multi_axis_t, typename value_t,
           template <std::size_t> class serializer_t, typename populator_t>
 inline typename grid<multi_axis_t, const value_t, serializer_t,
                      populator_t>::view_type
@@ -293,6 +293,6 @@ get_data(const grid<multi_axis_t, value_t, serializer_t, populator_t> &g) {
 
     return {vecmem::get_data(*const_g.data().bin_data()),
             detray::get_data(const_g.axes())};
-}
+}*/
 
 }  // namespace detray

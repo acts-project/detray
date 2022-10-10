@@ -138,7 +138,8 @@ TEST(grid, single_grid) {
     EXPECT_EQ(z_axis_dev.nbins(), grid_n_own.get_axis<label::e_z>().nbins());
 
     // Test const grid view
-    auto const_grid_view = get_data(const_cast<const grid_owning_t&>(grid_own));
+    /*auto const_grid_view = get_data(const_cast<const
+    grid_owning_t&>(grid_own));
 
     static_assert(
         std::is_same_v<decltype(const_grid_view),
@@ -153,7 +154,7 @@ TEST(grid, single_grid) {
     static_assert(
         std::is_same_v<typename decltype(const_device_grid)::bin_type,
                        typename replacer::template bin_type<const scalar>>,
-        "Const grid was not correctly constructed from view!");
+        "Const grid was not correctly constructed from view!");*/
 }
 
 /// Test bin entry retrieval

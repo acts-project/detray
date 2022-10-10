@@ -73,7 +73,7 @@ TEST(grid, grid_collection) {
     bin_data.resize(197UL);
     std::generate_n(bin_data.begin(), 197UL,
                     bin_content_sequence<grid_t::populator_type, dindex>());
-    vecmem::vector<dindex> grid_offsets = {0UL, 48UL, 72UL};
+    dvector<dindex> grid_offsets = {0UL, 48UL, 72UL};
 
     // Data-owning grid collection
     auto grid_coll =
@@ -83,9 +83,10 @@ TEST(grid, grid_collection) {
     // Tests
 
     // Basics
-    EXPECT_EQ(grid_coll.bin_data().size(), 197UL);
-    EXPECT_EQ(grid_coll.axes_data().size(), 9UL);
-    EXPECT_EQ(grid_coll.bin_edges_data().size(), 18UL);
+    EXPECT_EQ(grid_coll.ngrids(), 3UL);
+    EXPECT_EQ(grid_coll.bin_storage().size(), 197UL);
+    EXPECT_EQ(grid_coll.axes_storage().size(), 9UL);
+    EXPECT_EQ(grid_coll.bin_edges_storage().size(), 18UL);
 
     // Get a grid instance
     auto single_grid = grid_coll[1];
