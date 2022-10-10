@@ -17,6 +17,9 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
+
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
@@ -30,11 +33,12 @@ using intersection_t = line_plane_intersection;
 
 // some useful type declarations
 using detector_host_t =
-    detector<detector_registry::toy_detector, darray, thrust::tuple,
-             vecmem::vector, vecmem::jagged_vector>;
+    detector<detector_registry::toy_detector, covfie::field, darray,
+             thrust::tuple, vecmem::vector, vecmem::jagged_vector>;
 using detector_device_t =
-    detector<detector_registry::toy_detector, darray, thrust::tuple,
-             vecmem::device_vector, vecmem::jagged_device_vector>;
+    detector<detector_registry::toy_detector, covfie::field_view, darray,
+             thrust::tuple, vecmem::device_vector,
+             vecmem::jagged_device_vector>;
 using navigator_host_t = navigator<detector_host_t>;
 using navigator_device_t = navigator<detector_device_t>;
 using stepper_t = line_stepper<transform3>;

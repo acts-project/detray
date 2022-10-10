@@ -17,6 +17,9 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/field.hpp>
+
 // System include(s)
 #include <limits>
 
@@ -194,8 +197,8 @@ auto create_telescope_detector(
     const scalar thickness = 80 * unit_constants::um) {
 
     // detector type
-    using detector_t =
-        detector<telescope_types, array_t, tuple_t, vector_t, jagged_vector_t>;
+    using detector_t = detector<telescope_types, covfie::field, array_t,
+                                tuple_t, vector_t, jagged_vector_t>;
 
     // module parameters
     struct plane_config {
@@ -206,8 +209,12 @@ auto create_telescope_detector(
         scalar m_thickness;
     };
 
+    typename detector_t::bfield_type bfield(
+        typename detector_t::bfield_type::backend_t::configuration_t{0.f, 0.f,
+                                                                     2.f});
+
     // create empty detector
-    detector_t det(resource);
+    detector_t det(resource, std::move(bfield));
 
     typename detector_t::context ctx{};
     plane_config pl_config{half_x, half_y, pos, mat, thickness};

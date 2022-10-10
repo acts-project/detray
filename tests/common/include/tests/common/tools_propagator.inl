@@ -10,7 +10,6 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/aborters.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -118,28 +117,33 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     constexpr std::size_t n_brl_layers{4};
     constexpr std::size_t n_edc_layers{7};
     vecmem::host_memory_resource host_mr;
-    const auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+
+    // Construct the constant magnetic field.
+    using b_field_t = decltype(
+        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers))::bfield_type;
+    const vector3 B = std::get<0>(GetParam());
+
+    const auto d = create_toy_geometry(
+        host_mr,
+        b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
+        n_brl_layers, n_edc_layers);
 
     // Create the navigator
     // using navigator_t = navigator<decltype(d), navigation::print_inspector>;
     using navigator_t = navigator<decltype(d)>;
-    using b_field_t = constant_magnetic_field<>;
     using track_t = free_track_parameters<transform3>;
     using constraints_t = constrained_step<>;
     using policy_t = stepper_default_policy;
     using stepper_t =
-        rk_stepper<b_field_t, transform3, constraints_t, policy_t>;
+        rk_stepper<b_field_t::view_t, transform3, constraints_t, policy_t>;
     using actor_chain_t =
         actor_chain<dtuple, helix_inspector, propagation::print_inspector,
                     pathlimit_aborter>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Test parameters
-    const vector3 B = std::get<0>(GetParam());
     const scalar overstep_tol = std::get<1>(GetParam());
     const scalar step_constr = std::get<2>(GetParam());
-    // Constant magnetic field
-    const b_field_t b_field(B);
 
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{}, navigator_t{});
@@ -167,8 +171,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             helix_insp_state, lim_print_insp_state, pathlimit_aborter_state);
 
         // Init propagator states
-        propagator_t::state state(track, b_field, d, actor_states);
-        propagator_t::state lim_state(lim_track, b_field, d, lim_actor_states);
+        propagator_t::state state(track, d.get_bfield(), d, actor_states);
+        propagator_t::state lim_state(lim_track, d.get_bfield(), d,
+                                      lim_actor_states);
 
         // Set step constraints
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
