@@ -21,7 +21,9 @@ namespace detail {
 /// Helper trait to check whether a type has a vecmem view defined
 /// @{
 template <class T, typename = void>
-struct get_view : public std::false_type {};
+struct get_view : public std::false_type {
+    using type = void;
+};
 
 template <class T>
 struct get_view<T, typename T::view_type> : public std::true_type {
@@ -53,7 +55,13 @@ struct view_wrapper : public dbase_view {
     /// Conversion operator from a view of the same value type
     DETRAY_HOST
     view_wrapper(view_t<value_t>&& view) : m_view{view} {}
+
+    /// Conversion operator from a view of the same value type
+    DETRAY_HOST
+    view_wrapper(const view_t<value_t>& view) : m_view{view} {}
 };
+template <typename value_t, template <typename> class view_t>
+view_wrapper(const view_t<value_t>&) -> view_wrapper<const value_t, view_t>;
 
 /// Container view helper that aggregates multiple vecmem views and performs
 /// compile-time checks.
@@ -89,8 +97,10 @@ struct is_device_view : public std::false_type {};
 
 template <typename T>
 struct is_device_view<
-    T, std::enable_if_t<std::is_base_of_v<detray::detail::dbase_view, T>, void>>
-    : public std::true_type {};
+    T, std::enable_if_t<
+           std::is_base_of_v<detray::detail::dbase_view,
+                             std::remove_reference_t<std::remove_cv_t<T>>>,
+           void>> : public std::true_type {};
 
 template <typename T>
 inline constexpr bool is_device_view_v = is_device_view<T>::value;

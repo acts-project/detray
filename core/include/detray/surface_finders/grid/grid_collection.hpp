@@ -55,11 +55,18 @@ class grid_collection<
     template <typename T>
     using vector_type = typename multi_axis_t::template vector_type<T>;
 
-    /// Vecmem based grid view type
-    using view_type = dmulti_view<detail::get_view_t<bin_storage_type>,
+    /// Vecmem based grid collection view type
+    using view_type = dmulti_view<dvector_view<size_type>,
+                                  detail::get_view_t<bin_storage_type>,
                                   detail::get_view_t<axes_storage_type>,
-                                  detail::get_view_t<edges_storage_type>,
-                                  dvector_view<size_type>>;
+                                  detail::get_view_t<edges_storage_type>>;
+
+    /// Vecmem based grid collection view type
+    using const_view_type =
+        dmulti_view<dvector_view<const size_type>,
+                    detail::get_view_t<const bin_storage_type>,
+                    detail::get_view_t<const axes_storage_type>,
+                    detail::get_view_t<const edges_storage_type>>;
 
     /// Make grid default constructible: Empty grid with empty axis
     grid_collection() = default;
@@ -82,42 +89,39 @@ class grid_collection<
           m_bin_edges(std::move(edges)) {}
 
     /// Device-side construction from a vecmem based view type
-    template <typename grid_view_t,
-              typename std::enable_if_t<detail::is_device_view_v<grid_view_t>,
+    template <typename coll_view_t,
+              typename std::enable_if_t<detail::is_device_view_v<coll_view_t>,
                                         bool> = true>
-    DETRAY_HOST_DEVICE grid_collection(grid_view_t &view)
-        : m_offsets(detail::get<2>(view.m_views)),
-          m_bins(detail::get<0>(view.m_views)),
-          m_axes_data(detail::get<1>(view.m_views)),
-          m_bin_edges(detail::get<2>(view.m_views)) {}
+    DETRAY_HOST_DEVICE grid_collection(coll_view_t &view)
+        : m_offsets(detail::get<0>(view.m_views).m_view),
+          m_bins(detail::get<1>(view.m_views).m_view),
+          m_axes_data(detail::get<2>(view.m_views).m_view),
+          m_bin_edges(detail::get<3>(view.m_views).m_view) {}
+
+    /// @returns the offsets for the grids in the bin storage - const
+    DETRAY_HOST
+    auto offsets() const -> const vector_type<size_type> & { return m_offsets; }
+    DETRAY_HOST
+    auto offsets() -> vector_type<size_type> & { return m_offsets; }
 
     /// @returns the underlying bin content storage - const
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     auto bin_data() const -> const bin_storage_type & { return m_bins; }
-
-    /// @returns the underlying bin value storage - non-const for vecmem
-    // TODO: Don't do
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     auto bin_data() -> bin_storage_type & { return m_bins; }
 
     /// @returns the underlying axis boundary storage - const
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     auto axes_data() const -> const axes_storage_type & { return m_axes_data; }
-
-    /// @returns the underlying axis boundary storage - non-const for vecmem
-    // TODO: Don't do
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     auto axes_data() -> axes_storage_type & { return m_axes_data; }
 
     /// @returns the underlying bin edges storage - const
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     auto bin_edges_data() const -> const edges_storage_type & {
         return m_bin_edges;
     }
-
-    /// @returns the underlying bin edges storage - non-const for vecmem
-    // TODO: Don't do
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     auto bin_edges_data() -> edges_storage_type & { return m_bin_edges; }
 
     /// Create grid from container pointers - const
@@ -149,30 +153,27 @@ class grid_collection<
     edges_storage_type m_bin_edges{};
 };
 
-/// @returns const view of a grid, for every grid that is passed as a const
-/// reference
-/*template <typename grid_t, typename containers>
-inline typename grid_collection<grid_t, containers>::view_type
-get_data(grid_collection<grid_t, containers> &g_coll) {
-    return {vecmem::get_data(*g.data().bin_data()), detray::get_data(g.axes())};
+/// @returns view of a grid collection
+template <typename grid_t>
+DETRAY_HOST inline typename grid_collection<grid_t>::view_type get_data(
+    grid_collection<grid_t> &grid_coll) {
+    return {vecmem::get_data(grid_coll.offsets()),
+            vecmem::get_data(grid_coll.bin_data()),
+            vecmem::get_data(grid_coll.axes_data()),
+            vecmem::get_data(grid_coll.bin_edges_data())};
 }
 
 /// @returns const view of a grid, for every grid that is passed as a const
 /// reference
-template <typename grid_t, typename containers>
-inline typename grid_collection<const grid_t, containers>::view_type
-get_data(const grid_collection<grid_t, containers> &g_coll) {
+template <typename grid_t>
+DETRAY_HOST inline typename grid_collection<grid_t>::const_view_type get_data(
+    const grid_collection<grid_t> &grid_coll) {
+    return {vecmem::get_data(grid_coll.offsets()),
+            vecmem::get_data(grid_coll.bin_data()),
+            vecmem::get_data(grid_coll.axes_data()),
+            vecmem::get_data(grid_coll.bin_edges_data())};
+}
 
-    // add const to grid value type
-    auto const_g = reinterpret_cast<
-        const grid<multi_axis_t, const value_t, serializer_t, populator_t> &>(
-        g);
-
-    return {vecmem::get_data(*const_g.data().bin_data()),
-            detray::get_data(const_g.axes())};
-}*/
-
-// template<typename grid_t, typename containers>
-// using grid_container = viewable_collection<grid_collection<grid_t,
-// containers>>;
+// template<typename grid_t>
+// using grid_container = viewable_collection<grid_collection<grid_t>>;
 }  // namespace detray

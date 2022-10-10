@@ -88,11 +88,24 @@ struct detail::get_view<vecmem::vector<T>, void> : public std::true_type {
     using type = dvector_view<T>;
 };
 
+/// Specialization of the view getter for @c vecmem::vector
+template <typename T>
+struct detail::get_view<const vecmem::vector<T>, void> : public std::true_type {
+    using type = dvector_view<const T>;
+};
+
 /// Specialization of the view getter for @c vecmem::jagged_vector
 template <typename T>
 struct detail::get_view<vecmem::jagged_vector<T>, void>
     : public std::true_type {
     using type = djagged_vector_view<T>;
+};
+
+/// Specialization of the view getter for @c vecmem::jagged_vector
+template <typename T>
+struct detail::get_view<const vecmem::jagged_vector<T>, void>
+    : public std::true_type {
+    using type = djagged_vector_view<const T>;
 };
 
 }  // namespace detray

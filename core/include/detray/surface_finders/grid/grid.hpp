@@ -152,7 +152,7 @@ class grid {
     /// @param indices the single indices corresponding to a multi_bin
     template <typename... I, std::enable_if_t<sizeof...(I) == Dim, bool> = true>
     DETRAY_HOST_DEVICE auto at(I... indices) const {
-        return at(n_axis::multi_bin<Dim>{indices...});
+        return at(n_axis::multi_bin<Dim>{{indices...}});
     }
 
     /// @param mbin the multi-index of bins over all axes

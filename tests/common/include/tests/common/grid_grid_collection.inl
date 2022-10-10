@@ -110,4 +110,16 @@ TEST(grid, grid_collection) {
     EXPECT_EQ(bin_view[0u], 102UL + 72UL);
     EXPECT_EQ(bin_view[1u], 42UL);
     EXPECT_EQ(bin_view[2u], inf);
+
+    auto grid_coll_view = get_data(grid_coll);
+    static_assert(std::is_same_v<decltype(grid_coll_view),
+                                 typename grid_collection<grid_t>::view_type>,
+                  "Grid collection view incorrectly assembled");
+
+    const grid_collection<grid_t>& const_coll = grid_coll;
+    auto const_coll_view = get_data(const_coll);
+    static_assert(
+        std::is_same_v<decltype(const_coll_view),
+                       typename grid_collection<grid_t>::const_view_type>,
+        "Grid collection const view incorrectly assembled");
 }
