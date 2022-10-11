@@ -41,7 +41,7 @@ using mask_defs = typename detector_host_t::masks;
 
 constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
 constexpr auto disc_id = mask_defs::id::e_portal_ring2;
-constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder3;
+constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder2;
 
 using rectangle_t = typename mask_defs::template get_type<rectangle_id>::type;
 using disc_t = typename mask_defs::template get_type<disc_id>::type;

@@ -44,6 +44,8 @@ foreach(algebra ${algebras})
       "navigator_cuda_kernel.cu"
       "rk_stepper_cuda.cpp" "rk_stepper_cuda_kernel.hpp"
       "rk_stepper_cuda_kernel.cu"
+      "sf_finders_grid_cuda.cpp" "sf_finders_grid_cuda_kernel.hpp"
+      "sf_finders_grid_cuda_kernel.cu"
       "propagator_cuda.cpp" "propagator_cuda_kernel.hpp"
       "propagator_cuda_kernel.cu"            
       LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray_tests_common

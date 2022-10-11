@@ -7,10 +7,14 @@
 
 // Project include(s).
 #include "detray/coordinates/cylindrical2.hpp"
+#include "detray/masks/masks.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>
+
+// System include(s).
+#include <climits>
 
 using namespace detray;
 using point2 = __plugin::point2<scalar>;
@@ -40,14 +44,9 @@ TEST(coordinate, cylindrical2) {
     const scalar time = 0.1;
     const scalar charge = -1.;
 
-    // Define cylinder mask
-    struct cylinder_mask {
-        scalar r = 0.;
-        scalar radius() const { return r; }
-    };
-
     const scalar r = 2.;
-    const cylinder_mask mask{r};
+    const scalar hz = std::numeric_limits<scalar>::infinity();
+    mask<cylinder2D<>> mask{0UL, r, -hz, hz};
 
     // Global to local transformation
     const point2 local = c2.global_to_local(trf, global1, d);

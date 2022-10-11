@@ -17,7 +17,7 @@
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
-#include "detray/masks/rectangle2.hpp"
+#include "detray/masks/rectangle2D.hpp"
 #include "detray/tools/local_object_finder.hpp"
 #include "detray/utils/enumerate.hpp"
 
@@ -39,8 +39,9 @@ enum plane_material_ids : unsigned int {
 using transform3 = __plugin::transform3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
-using plane_masks = tuple_vector_registry<plane_mask_ids, rectangle2<>>;
-using plane_materials = tuple_vector_registry<plane_material_ids, rectangle2<>>;
+using plane_masks = tuple_vector_registry<plane_mask_ids, mask<rectangle2D<>>>;
+using plane_materials =
+    tuple_vector_registry<plane_material_ids, mask<rectangle2D<>>>;
 
 using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 

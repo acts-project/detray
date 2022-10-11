@@ -112,7 +112,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
         // Create navigator candidates buffer
         auto candidates_buffer =
-            create_candidates_buffer(det, tracks.size(), dev_mr);
+            create_candidates_buffer(det, tracks.size(), dev_mr, &mng_mr);
         copy.setup(candidates_buffer);
 
         // Run the propagator test for GPU device

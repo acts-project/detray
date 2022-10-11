@@ -67,7 +67,7 @@ class annulus2 final : public mask_base<transform3_t, intersector_t, local_t,
 
     /* Default constructor */
     annulus2()
-        : base_type({0., std::numeric_limits<scalar>::infinity(),
+        : base_type({0., std::numeric_limits<scalar>::y(),
                      -std::numeric_limits<scalar>::infinity(),
                      std::numeric_limits<scalar>::infinity(), 0., 0., 0.},
                     {}) {}

@@ -143,8 +143,7 @@ TEST(path_correction, cartesian) {
     // Add a mask
     const scalar hx = 100. * unit_constants::mm;
     const scalar hy = 100. * unit_constants::mm;
-    masks.template add_value<mask_id>(
-        hx, hy, typename surface_type::edge_type{0, dindex_invalid});
+    masks.template add_value<mask_id>(0UL, hx, hy);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
@@ -271,8 +270,7 @@ TEST(path_correction, polar) {
     // Add a mask
     const scalar r_low = 0. * unit_constants::mm;
     const scalar r_high = 100. * unit_constants::mm;
-    masks.template add_value<mask_id>(
-        r_low, r_high, typename surface_type::edge_type{0, dindex_invalid});
+    masks.template add_value<mask_id>(0UL, r_low, r_high);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
@@ -375,7 +373,7 @@ TEST(path_correction, cylindrical) {
 
     // Mask and material ID
     constexpr registry_type::mask_ids mask_id =
-        registry_type::mask_ids::e_cylinder3;
+        registry_type::mask_ids::e_cylinder2;
     constexpr registry_type::material_ids material_id =
         registry_type::material_ids::e_slab;
 
@@ -405,9 +403,7 @@ TEST(path_correction, cylindrical) {
     const scalar r = 50 * unit_constants::mm;
     const scalar half_length_1 = 1000. * unit_constants::mm;
     const scalar half_length_2 = 1000. * unit_constants::mm;
-    masks.template add_value<mask_id>(
-        r, half_length_1, half_length_2,
-        typename surface_type::edge_type{0, dindex_invalid});
+    masks.template add_value<mask_id>(0UL, r, half_length_1, half_length_2);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();

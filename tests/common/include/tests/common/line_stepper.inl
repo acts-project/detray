@@ -24,27 +24,23 @@
 
 using namespace detray;
 using matrix_operator = standard_matrix_operator<scalar>;
-constexpr scalar epsilon = 1e-6;
-
 using transform3 = __plugin::transform3<detray::scalar>;
+
+constexpr scalar epsilon = 1e-6;
 
 TEST(line_stepper, covariance_transport) {
 
     vecmem::host_memory_resource host_mr;
 
-    using ln_stepper_t = line_stepper<transform3>;
-
     // Use rectangular surfaces
     constexpr bool unbounded = true;
 
     // Create telescope detector with a single plane
-    typename ln_stepper_t::free_track_parameters_type default_trk{
-        {0, 0, 0}, 0, {1, 0, 0}, -1};
+    detail::ray<transform3> traj{{0, 0, 0}, 0, {1, 0, 0}, -1};
     std::vector<scalar> positions = {0., 10., 20., 30., 40., 50., 60.};
 
-    const auto det = create_telescope_detector<unbounded>(
-        host_mr, positions, ln_stepper_t(),
-        typename ln_stepper_t::state{default_trk});
+    const auto det =
+        create_telescope_detector<unbounded>(host_mr, positions, traj);
 
     using navigator_t = navigator<decltype(det)>;
     using cline_stepper_t = line_stepper<transform3, constrained_step<>>;

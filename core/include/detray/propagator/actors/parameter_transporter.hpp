@@ -55,11 +55,11 @@ struct parameter_transporter : actor {
 
         using output_type = bool;
 
-        template <typename mask_group_t, typename surface_t,
+        template <typename mask_group_t, typename index_t, typename surface_t,
                   typename propagator_state_t>
         DETRAY_HOST_DEVICE inline output_type operator()(
-            const mask_group_t& mask_group, const surface_t& surface,
-            propagator_state_t& propagation) const {
+            const mask_group_t& mask_group, const index_t& /*index*/,
+            const surface_t& surface, propagator_state_t& propagation) const {
 
             // Stepper and Navigator states
             auto& navigation = propagation._navigation;
@@ -69,15 +69,12 @@ struct parameter_transporter : actor {
             const auto& det = navigation.detector();
             const auto& transform_store = det->transform_store();
 
-            // Intersection
-            // const auto& is = navigation.current();
-
             // Transform
             const auto& trf3 = transform_store[surface.transform()];
 
             // Mask
             const auto& mask = mask_group[surface.mask_range()];
-            auto local_coordinate = mask.local();
+            auto local_coordinate = mask.local_frame();
 
             // Free vector
             const auto& free_vec = stepping().vector();
@@ -153,8 +150,8 @@ struct parameter_transporter : actor {
             // Surface
             const auto& surface = det->surface_by_index(is->index);
 
-            mask_store.template execute<kernel>(surface.mask_type(), surface,
-                                                propagation);
+            mask_store.template call<kernel>(surface.mask_type(), surface,
+                                             propagation);
         }
     }
 };

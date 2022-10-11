@@ -116,7 +116,7 @@ TEST(navigator_cuda, navigator) {
 
     // Create navigator candidates buffer
     auto candidates_buffer =
-        create_candidates_buffer(det, theta_steps * phi_steps, dev_mr);
+        create_candidates_buffer(det, theta_steps * phi_steps, dev_mr, &mng_mr);
     copy.setup(candidates_buffer);
 
     // Run navigator test

@@ -36,11 +36,11 @@ struct helix_intersection_update {
     ///
     /// @return the intersection
     ///
-    template <typename mask_group_t, typename traj_t, typename surface_t,
-              typename transform_container_t>
+    template <typename mask_group_t, typename mask_range_t, typename traj_t,
+              typename surface_t, typename transform_container_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const mask_group_t &mask_group, const traj_t &traj,
-        const surface_t &surface,
+        const mask_group_t &mask_group, const mask_range_t &mask_range,
+        const traj_t &traj, const surface_t &surface,
         const transform_container_t &contextual_transforms,
         const scalar mask_tolerance = 0.) const {
 
@@ -54,15 +54,16 @@ struct helix_intersection_update {
         using plane_intersector_type = plane_intersector<transform3_type>;
         using cylinder_intersector_type = cylinder_intersector<transform3_type>;
 
-        const auto &mask_range = surface.mask_range();
         const auto &ctf = contextual_transforms[surface.transform()];
 
         // Run over the masks belonged to the surface
         for (const auto &mask : range(mask_group, mask_range)) {
 
-            if constexpr (std::is_same_v<typename mask_group_t::value_type::
-                                             intersector_type,
-                                         plane_intersector_type>) {
+            using mask_t = typename mask_group_t::value_type;
+            if constexpr (std::is_same_v<
+                              typename mask_t::shape::template intersector_type<
+                                  transform3_type>,
+                              plane_intersector_type>) {
 
                 auto sfi = std::move(helix_plane_intersector_type()(
                     traj, mask, ctf, mask_tolerance));
@@ -73,10 +74,10 @@ struct helix_intersection_update {
                     return sfi[0];
                 }
 
-            } else if constexpr (std::is_same_v<
-                                     typename mask_group_t::value_type::
-                                         intersector_type,
-                                     cylinder_intersector_type>) {
+            } else if constexpr (std::is_same_v<typename mask_t::shape::
+                                                    template intersector_type<
+                                                        transform3_type>,
+                                                cylinder_intersector_type>) {
 
                 auto sfi = std::move(helix_cylinder_intersector_type()(
                     traj, mask, ctf, mask_tolerance));

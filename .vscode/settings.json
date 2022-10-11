@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "*.sycl": "cpp",
+        "algorithm": "cpp",
+        "allocator": "cpp",
+        "array": "cpp",
+        "limits": "cpp"
+    }
+}
