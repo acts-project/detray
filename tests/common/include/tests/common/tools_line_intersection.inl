@@ -9,15 +9,15 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/line_intersector.hpp"
-#include "detray/masks/line.hpp"
+#include "detray/masks/masks.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
 
 // System include(s)
-#include <climits>
 #include <cmath>
+#include <limits>
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
@@ -29,6 +29,7 @@ using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 using point2 = __plugin::point2<scalar>;
 using line_intersector_type = line_intersector<transform3>;
+
 constexpr scalar tolerance = 1e-5;
 
 // Test simplest case
@@ -49,7 +50,7 @@ TEST(tools, line_intersector_case1) {
     trks.emplace_back(point3{1, -1, 2}, 0, vector3{0, 1, -1}, -1);
 
     // Infinite wire with 10 mm radial cell size
-    const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
+    const mask<line<>> ln{0UL, 10.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     std::vector<line_intersector_type::intersection_type> is(3);
@@ -76,7 +77,7 @@ TEST(tools, line_intersector_case1) {
     EXPECT_NEAR(is[2].p3[2], 1., tolerance);
     EXPECT_NEAR(is[2].p2[0], -1., tolerance);  // right
     EXPECT_NEAR(is[2].p2[1], 1., tolerance);
-    EXPECT_NEAR(is[2].cos_incidence_angle, 1. / sqrt(2), tolerance);
+    EXPECT_NEAR(is[2].cos_incidence_angle, 1. / std::sqrt(2), tolerance);
 }
 
 // Test inclined wire
@@ -94,14 +95,14 @@ TEST(tools, line_intersector_case2) {
 
     // Infinite wire with 10 mm
     // radial cell size
-    const line<> ln{10., std::numeric_limits<scalar>::infinity(), 0u};
+    const mask<line<>> ln{0UL, 10.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     const line_intersector_type::intersection_type is =
         line_intersector_type()(detail::ray<transform3>(trk), ln, tf)[0];
 
     EXPECT_EQ(is.status, intersection::status::e_inside);
-    EXPECT_FLOAT_EQ(is.path, 2.);
+    EXPECT_NEAR(is.path, 2., tolerance);
     EXPECT_NEAR(is.p3[0], 1., tolerance);
     EXPECT_NEAR(is.p3[1], 1., tolerance);
     EXPECT_NEAR(is.p3[2], 0., tolerance);
@@ -138,8 +139,8 @@ TEST(tools, line_intersector_square_scope) {
     trks.emplace_back(point3{0, -2.1, 0}, 0, vector3{1, 1, 0}, -1);
 
     // Infinite wire with 1 mm square cell size
-    line<transform3, line_intersector, cartesian2, dindex, true> ln{
-        1., std::numeric_limits<scalar>::infinity(), 0u};
+    mask<line<true, line_intersector>, dindex, transform3> ln{
+        0UL, 1.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     std::vector<line_plane_intersection> is;

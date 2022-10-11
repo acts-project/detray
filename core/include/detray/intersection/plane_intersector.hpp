@@ -25,6 +25,7 @@ struct plane_intersector {
 
     /// Transformation matching this struct
     using scalar_type = typename transform3_t::scalar_type;
+    using point2 = typename transform3_t::point2;
     using point3 = typename transform3_t::point3;
     using vector3 = typename transform3_t::vector3;
     using ray_type = detail::ray<transform3_t>;
@@ -44,15 +45,16 @@ struct plane_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t>
+    template <
+        typename mask_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
+                         bool> = true>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
         const scalar_type mask_tolerance = 0,
         const scalar_type overstep_tolerance = 0.) const {
 
         output_type ret;
-
-        using local_frame = typename mask_t::local_type;
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
@@ -67,10 +69,8 @@ struct plane_intersector {
             intersection_type &is = ret[0];
             is.path = vector::dot(sn, st - ro) / denom;
             is.p3 = ro + is.path * rd;
-            constexpr local_frame local_converter{};
-            is.p2 = local_converter.global_to_local(trf, is.p3, ray.dir());
-            is.status =
-                mask.template is_inside<local_frame>(is.p2, mask_tolerance);
+            is.p2 = mask.to_local_frame(trf, is.p3, ray.dir());
+            is.status = mask.is_inside(is.p2, mask_tolerance);
             is.direction = is.path > overstep_tolerance
                                ? intersection::direction::e_along
                                : intersection::direction::e_opposite;

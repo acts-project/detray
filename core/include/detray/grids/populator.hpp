@@ -39,7 +39,7 @@ template <template <typename...> class vector_t = dvector,
           typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 struct replace_populator {
     DETRAY_HOST_DEVICE
-    replace_populator(const value_t invalid = invalid_value<value_t>())
+    replace_populator(const value_t invalid = detail::invalid_value<value_t>())
         : m_invalid(invalid) {}
 
     value_t m_invalid;
@@ -113,7 +113,7 @@ template <template <typename...> class vector_t = dvector,
           typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 struct complete_populator {
     DETRAY_HOST_DEVICE
-    complete_populator(const value_t invalid = invalid_value<value_t>())
+    complete_populator(const value_t invalid = detail::invalid_value<value_t>())
         : m_invalid(invalid) {}
 
     value_t m_invalid;
@@ -207,7 +207,7 @@ template <template <typename...> class vector_t = dvector,
           typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
 struct attach_populator {
     DETRAY_HOST_DEVICE
-    attach_populator(const value_t invalid = invalid_value<value_t>())
+    attach_populator(const value_t invalid = detail::invalid_value<value_t>())
         : m_invalid(invalid) {}
 
     value_t m_invalid;

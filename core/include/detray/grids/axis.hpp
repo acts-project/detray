@@ -43,14 +43,14 @@ struct regular {
     /** Defualt constructor for dummy axis **/
     DETRAY_HOST_DEVICE
     regular()
-        : n_bins(invalid_value<dindex>()),
+        : n_bins(detail::invalid_value<dindex>()),
           min(0.),
           max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     regular(vecmem::memory_resource & /*resource*/)
-        : n_bins(invalid_value<dindex>()),
+        : n_bins(detail::invalid_value<dindex>()),
           min(0.),
           max(static_cast<scalar>(n_bins)) {}
 
@@ -225,14 +225,14 @@ struct circular {
     /** Defualt constructor for dummy axis **/
     DETRAY_HOST_DEVICE
     circular()
-        : n_bins(invalid_value<dindex>()),
+        : n_bins(detail::invalid_value<dindex>()),
           min(0.),
           max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     circular(vecmem::memory_resource & /*resource*/)
-        : n_bins(invalid_value<dindex>()),
+        : n_bins(detail::invalid_value<dindex>()),
           min(0.),
           max(static_cast<scalar>(n_bins)) {}
 
@@ -432,7 +432,7 @@ struct irregular {
     /** Defualt constructor for dummy axis **/
     DETRAY_HOST_DEVICE
     irregular()
-        : n_bins(invalid_value<dindex>()),
+        : n_bins(detail::invalid_value<dindex>()),
           min(0.),
           max(static_cast<scalar>(n_bins)),
           boundaries({}) {}
@@ -440,7 +440,7 @@ struct irregular {
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     irregular(vecmem::memory_resource &resource)
-        : n_bins(invalid_value<dindex>()),
+        : n_bins(detail::invalid_value<dindex>()),
           min(0.),
           max(static_cast<scalar>(n_bins)),
           boundaries(&resource) {}
@@ -628,7 +628,7 @@ struct axis_data<axis_t, scalar_t,
     /// Construct a const data object from a non-const one
     template <
         typename other_scalar_t,
-        std::enable_if_t<details::is_same_nc<scalar_t, other_scalar_t>::value,
+        std::enable_if_t<detail::is_same_nc<scalar_t, other_scalar_t>::value,
                          bool> = true>
     DETRAY_HOST_DEVICE axis_data(
         const axis_data<axis_t, other_scalar_t, void> &parent)
@@ -654,7 +654,7 @@ struct axis_data<axis_t, scalar_t,
     /// Construct a const data object from a non-const one
     template <
         typename other_scalar_t,
-        std::enable_if_t<details::is_same_nc<scalar_t, other_scalar_t>::value,
+        std::enable_if_t<detail::is_same_nc<scalar_t, other_scalar_t>::value,
                          bool> = true>
     DETRAY_HOST_DEVICE axis_data(
         const axis_data<axis_t, other_scalar_t, void> &parent)
