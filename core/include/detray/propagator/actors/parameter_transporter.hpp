@@ -55,11 +55,13 @@ struct parameter_transporter : actor {
 
         using output_type = bool;
 
-        template <typename mask_group_t, typename transform_store_t,
-                  typename surface_t, typename propagator_state_t>
+        template <typename mask_group_t, typename index_t,
+                  typename transform_store_t, typename surface_t,
+                  typename propagator_state_t>
         DETRAY_HOST_DEVICE inline output_type operator()(
-            const mask_group_t& mask_group, const transform_store_t& trf_store,
-            const surface_t& surface, propagator_state_t& propagation) {
+            const mask_group_t& mask_group, const index_t& /*index*/,
+            const transform_store_t& trf_store, const surface_t& surface,
+            propagator_state_t& propagation) {
 
             // Stepper and Navigator states
             auto& stepping = propagation._stepping;
@@ -68,9 +70,8 @@ struct parameter_transporter : actor {
             const auto& trf3 = trf_store[surface.transform()];
 
             // Mask
-            // const auto& mask = mask_group[is->mask_index];
             const auto& mask = mask_group[surface.mask_range()];
-            auto local_coordinate = mask.local();
+            auto local_coordinate = mask.local_frame();
 
             // Free vector
             const auto& free_vec = stepping().vector();
@@ -133,7 +134,6 @@ struct parameter_transporter : actor {
     DETRAY_HOST_DEVICE void operator()(state& /*actor_state*/,
                                        propagator_state_t& propagation) const {
         auto& navigation = propagation._navigation;
-        auto& stepping = propagation._stepping;
 
         // Do covariance transport when the track is on surface
         if (navigation.is_on_module()) {
@@ -148,13 +148,10 @@ struct parameter_transporter : actor {
             // Surface
             const auto& surface = det->surface_by_index(is->index);
 
-            // Set surface link
-            stepping._bound_params.set_surface_link(is->index);
-
-            mask_store.template execute<kernel>(surface.mask_type(), trf_store,
-                                                surface, propagation);
+            mask_store.template call<kernel>(surface.mask_type(), trf_store,
+                                             surface, propagation);
         }
     }
-};
+};  // namespace detray
 
 }  // namespace detray

@@ -30,7 +30,7 @@ struct test_func {
     using output_type = std::size_t;
 
     template <typename container_t>
-    output_type operator()(const container_t& gr) {
+    output_type operator()(const container_t& gr, const int /*index*/) {
         return gr.size();
     }
 };
@@ -97,9 +97,9 @@ TEST(container, tuple_vector_container) {
     EXPECT_FLOAT_EQ(container.group<2>()[3], 7.6);
 
     // unrolling test
-    EXPECT_EQ(container.execute<test_func>(0), 5);
-    EXPECT_EQ(container.execute<test_func>(1), 3);
-    EXPECT_EQ(container.execute<test_func>(2), 4);
+    EXPECT_EQ(container.call<test_func>(std::make_pair(0, 0)), 5);
+    EXPECT_EQ(container.call<test_func>(std::make_pair(1, 0)), 3);
+    EXPECT_EQ(container.call<test_func>(std::make_pair(2, 0)), 4);
 }
 
 using grid2r =

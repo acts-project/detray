@@ -209,12 +209,8 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
 
     vecmem::host_memory_resource host_mr;
 
-    using ln_stepper_t = line_stepper<transform3>;
-
-    typename ln_stepper_t::free_track_parameters_type default_trk{
-        {0, 0, 0}, 0, {1, 0, 0}, -1};
-
     // Build from given module positions
+    detail::ray<transform3> traj{{0, 0, 0}, 0, {1, 0, 0}, -1};
     std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
                                      300., 350, 400,  450., 500.};
 
@@ -222,8 +218,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     const scalar thickness = 0.17 * unit_constants::cm;
 
     const auto det = create_telescope_detector(
-        host_mr, positions, ln_stepper_t(),
-        typename ln_stepper_t::state{default_trk}, 20. * unit_constants::mm,
+        host_mr, positions, traj, 20. * unit_constants::mm,
         20. * unit_constants::mm, mat, thickness);
 
     using navigator_t = navigator<decltype(det)>;
@@ -345,12 +340,8 @@ scalar get_variance(const std::vector<scalar>& v) {
 TEST(material_interaction, telescope_geometry_scattering_angle) {
     vecmem::host_memory_resource host_mr;
 
-    using ln_stepper_t = line_stepper<transform3>;
-
-    typename ln_stepper_t::free_track_parameters_type default_trk{
-        {0, 0, 0}, 0, {1, 0, 0}, -1};
-
     // Build from given module positions
+    detail::ray<transform3> traj{{0, 0, 0}, 0, {1, 0, 0}, -1};
     std::vector<scalar> positions = {0., 1000. * unit_constants::cm};
 
     const auto mat = silicon_tml<scalar>();
@@ -359,8 +350,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     constexpr bool unbounded = true;
 
     const auto det = create_telescope_detector<unbounded>(
-        host_mr, positions, ln_stepper_t(),
-        typename ln_stepper_t::state{default_trk}, 2000. * unit_constants::mm,
+        host_mr, positions, traj, 2000. * unit_constants::mm,
         2000. * unit_constants::mm, mat, thickness);
 
     using navigator_t = navigator<decltype(det)>;

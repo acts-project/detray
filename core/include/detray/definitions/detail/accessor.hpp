@@ -7,6 +7,7 @@
 #pragma once
 
 #if defined(__CUDACC__)
+#include <thrust/binary_search.h>
 #include <thrust/execution_policy.h>
 #include <thrust/find.h>
 #include <thrust/sort.h>
@@ -35,6 +36,24 @@ namespace vtuple = std;
 #endif
 
 namespace detail {
+
+/// Extract the first type from a parameter pack.
+template <typename first_t = void, typename... other_t>
+struct first_type {
+    using type = first_t;
+};
+
+template <typename... TYPES>
+using first_t = typename first_type<TYPES...>::type;
+
+/// Extract the first value from an index pack.
+template <std::size_t first_t, std::size_t... other_t>
+struct first_idx {
+    static constexpr std::size_t value = first_t;
+};
+
+template <std::size_t... TYPES>
+inline constexpr std::size_t first_idx_v = first_idx<TYPES...>::value;
 
 namespace {
 struct empty_type {};
@@ -251,6 +270,28 @@ DETRAY_HOST_DEVICE auto find_if(RandomIt first, RandomIt last, Predicate comp) {
     return thrust::find_if(thrust::seq, first, last, comp);
 #elif !defined(__CUDACC__)
     return std::find_if(first, last, comp);
+#endif
+}
+
+/// @brief lower_bound implementation for device
+template <class ForwardIt, typename Value>
+DETRAY_HOST_DEVICE auto lower_bound(ForwardIt first, ForwardIt last,
+                                    Value value) {
+#if defined(__CUDACC__)
+    return thrust::lower_bound(thrust::seq, first, last, value);
+#elif !defined(__CUDACC__)
+    return std::lower_bound(first, last, value);
+#endif
+}
+
+/// @brief upper_bound implementation for device
+template <class ForwardIt, typename Value>
+DETRAY_HOST_DEVICE auto upper_bound(ForwardIt first, ForwardIt last,
+                                    Value value) {
+#if defined(__CUDACC__)
+    return thrust::upper_bound(thrust::seq, first, last, value);
+#elif !defined(__CUDACC__)
+    return std::upper_bound(first, last, value);
 #endif
 }
 

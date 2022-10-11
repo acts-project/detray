@@ -7,7 +7,7 @@
 
 #pragma once
 
-namespace detray::details {
+namespace detray::detail {
 
 /// Helper trait for detecting when a type is a non-const version of another
 ///
@@ -24,4 +24,4 @@ struct is_same_nc<const TYPE, TYPE> {
     static constexpr bool value = true;
 };
 
-}  // namespace detray::details
+}  // namespace detray::detail

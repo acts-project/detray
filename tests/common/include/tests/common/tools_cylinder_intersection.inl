@@ -7,19 +7,25 @@
 
 #include <gtest/gtest.h>
 
-#include <climits>
-#include <cmath>
-
+// Project include(s)
 #include "detray/intersection/concentric_cylinder_intersector.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
-#include "detray/masks/cylinder3.hpp"
+#include "detray/masks/masks.hpp"
 #include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
 
-// Three-dimensional definitions
+// System include(s)
+#include <cmath>
+#include <limits>
+
+/// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
+
+namespace {
+
+// Three-dimensional definitions
 using transform3_type = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
@@ -27,10 +33,14 @@ using scalar_type = typename transform3_type::scalar_type;
 using ray_type = detray::detail::ray<transform3_type>;
 using helix_type = detray::detail::helix<transform3_type>;
 
-constexpr scalar_type epsilon = std::numeric_limits<scalar_type>::epsilon();
-constexpr scalar_type not_defined =
-    std::numeric_limits<scalar_type>::infinity();
-constexpr scalar_type isclose = 1e-5;
+constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
+constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
+constexpr scalar isclose = 1e-5;
+
+const scalar r{4.};
+const scalar hz{10.};
+
+}  // anonymous namespace
 
 // This defines the local frame test suite
 TEST(ALGEBRA_PLUGIN, translated_cylinder) {
@@ -44,8 +54,8 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     const ray_type ray(ori, 0., dir, 0.);
 
     // Check intersection
-    cylinder3<transform3_type, cylinder_intersector, cylindrical2, unsigned int>
-        cylinder_bound{4., -10., 10., 0u};
+    mask<cylinder2D<>, unsigned int, transform3_type> cylinder_bound{0u, r, -hz,
+                                                                     hz};
     const auto hit_bound = ci(ray, cylinder_bound, shifted)[0];
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
@@ -69,8 +79,8 @@ TEST(ALGEBRA_PLUGIN, cylinder_incidence_angle) {
     const ray_type ray(ori, 0., dir, 0.);
 
     // Check intersection
-    cylinder3<transform3_type, cylinder_intersector, cylindrical2, unsigned int>
-        cylinder_bound{4., -10., 10., 0u};
+    mask<cylinder2D<>, unsigned int, transform3_type> cylinder_bound{0u, r, -hz,
+                                                                     hz};
     const auto hit_bound = ci(ray, cylinder_bound, tf)[0];
     ASSERT_NEAR(hit_bound.cos_incidence_angle, std::sqrt(15) / 4., isclose);
 }
@@ -83,11 +93,11 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     const ray_type ray(ori, 0., dir, 0.);
 
     // Create a concentric cylinder and test intersection
-    const scalar r = 4.;
-    const scalar hz = 10.;
     const transform3_type identity(vector3{0., 0., 0.});
-    cylinder3<transform3_type, cylinder_intersector, cylindrical2, unsigned int>
-        cylinder{r, -hz, hz, 0u};
+    mask<cylinder2D<>, unsigned int, transform3_type> cylinder{0u, r, -hz, hz};
+    mask<cylinder2D<false, concentric_cylinder_intersector>, unsigned int,
+         transform3_type>
+        conc_cylinder{0u, r, -hz, hz};
     cylinder_intersector<transform3_type> ci;
     concentric_cylinder_intersector<transform3_type> cci;
 
@@ -119,7 +129,7 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
 TEST(ALGEBRA_PLUGIN, helix_cylinder_intersector) {
     // Create a translated cylinder and test untersection
     const transform3_type shifted(vector3{3., 2., 10.});
-    helix_cylinder_intersector<transform3_type> ci;
+    helix_cylinder_intersector<transform3_type> hi;
 
     // Test helix
     const point3 pos{3., 2., 5.};
@@ -129,9 +139,10 @@ TEST(ALGEBRA_PLUGIN, helix_cylinder_intersector) {
     const helix_type h({pos, 0, mom, -1}, &B);
 
     // Check intersection
-    cylinder3<transform3_type, cylinder_intersector, cylindrical2, unsigned int>
-        cylinder_bound{4., -10., 10., 0u};
-    const auto hit_bound = ci(h, cylinder_bound, shifted)[0];
+    mask<cylinder2D<false, helix_cylinder_intersector>, unsigned int,
+         transform3_type>
+        cylinder_bound{0u, r, -hz, hz};
+    const auto hit_bound = hi(h, cylinder_bound, shifted)[0];
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     ASSERT_NEAR(hit_bound.p3[0], 7., epsilon);
     ASSERT_NEAR(hit_bound.p3[1], 2., epsilon);

@@ -7,6 +7,7 @@
 
 #pragma once
 
+// Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
@@ -14,7 +15,12 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
+#include "detray/surface_finders/neighborhood_kernel.hpp"
 #include "detray/utils/enumerate.hpp"
+
+// vecmem include(s)
+#include <vecmem/containers/data/jagged_vector_buffer.hpp>
+#include <vecmem/memory/memory_resource.hpp>
 
 namespace detray {
 
@@ -132,8 +138,7 @@ class navigator {
                                  vector_type<intersection_type> candidates)
             : _detector(&det), _candidates(candidates) {}
 
-        /// Scalar representation of the navigation state,
-        /// @returns distance to next
+        /// @returns a pointer of detector
         DETRAY_HOST_DEVICE
         auto detector() const { return _detector; }
 
@@ -464,7 +469,7 @@ class navigator {
     DETRAY_HOST_DEVICE inline bool init(propagator_state_t &propagation) const {
 
         state &navigation = propagation._navigation;
-        const auto &det = navigation.detector();
+        const auto det = navigation.detector();
         const auto &track = propagation._stepping();
         const auto &volume = det->volume_by_index(navigation.volume());
 
@@ -479,12 +484,12 @@ class navigator {
         const auto &tf_store = det->transform_store();
         const auto &mask_store = det->mask_store();
 
-        for (const auto [obj_idx, obj] : enumerate(det->surfaces(), volume)) {
+        for (const auto [obj_idx, obj] : find_surfaces(det, volume, track)) {
 
             std::size_t count =
-                mask_store.template execute<intersection_initialize>(
-                    obj.mask_type(), navigation.candidates(),
-                    detail::ray(track), obj, tf_store);
+                mask_store.template call<intersection_initialize>(
+                    obj.mask(), navigation.candidates(), detail::ray(track),
+                    obj, tf_store);
 
             // TODO: Do NOT use index but use other member variable
             for (std::size_t i = navigation.candidates().size() - count;
@@ -580,7 +585,7 @@ class navigator {
         propagator_state_t &propagation) const {
 
         state &navigation = propagation._navigation;
-        const auto &det = navigation.detector();
+        const auto det = navigation.detector();
         const auto &track = propagation._stepping();
 
         // Current candidates are up to date, nothing left to do
@@ -733,13 +738,37 @@ class navigator {
 
         const auto &mask_store = det->mask_store();
         const auto &sf = det->surface_by_index(obj_idx);
-        candidate = mask_store.template execute<intersection_update>(
-            sf.mask_type(), detail::ray(track), sf, det->transform_store());
+        candidate = mask_store.template call<intersection_update>(
+            sf.mask(), detail::ray(track), sf, det->transform_store());
 
         candidate.index = obj_idx;
         // Check whether this candidate is reachable by the track
         return candidate.status == intersection::status::e_inside and
                candidate.path >= track.overstep_tolerance();
+    }
+
+    /// Helper method that performs the neighborhood lookup
+    ///
+    /// @tparam track_t type of the track parametrization
+    ///
+    /// @param track the track information
+    ///
+    /// @returns an iterable over the detector surface container
+    template <typename track_t>
+    DETRAY_HOST_DEVICE inline auto find_surfaces(
+        const detector_type *det, const volume_type &volume,
+        const track_t & /*track*/) const {
+        // Gain access to all surface finders in the detector
+        /*const auto &sf_finders = det->sf_finder_store();
+
+        // Return an index range for now
+        dindex_range neighborhood =
+            sf_finders.template call<neighborhood_getter>(
+                volume.sf_finder_link(), *det, volume, track);
+
+        // Enumerate the surfaces that are close to the track position
+        return enumerate(det->surfaces(), neighborhood);*/
+        return enumerate(det->surfaces(), volume);
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:
@@ -765,12 +794,14 @@ class navigator {
 // restricted to much smaller value
 template <typename detector_t>
 DETRAY_HOST vecmem::data::jagged_vector_buffer<line_plane_intersection>
-create_candidates_buffer(const detector_t &det, const unsigned int n_tracks,
-                         vecmem::memory_resource &device_resource) {
+create_candidates_buffer(
+    const detector_t &det, const unsigned int n_tracks,
+    vecmem::memory_resource &device_resource,
+    vecmem::memory_resource *host_access_resource = nullptr) {
     return vecmem::data::jagged_vector_buffer<line_plane_intersection>(
         std::vector<std::size_t>(n_tracks, 0),
         std::vector<std::size_t>(n_tracks, det.get_n_max_objects_per_volume()),
-        device_resource, det.resource());
+        device_resource, host_access_resource);
 }
 
 }  // namespace detray

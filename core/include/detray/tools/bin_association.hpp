@@ -18,13 +18,6 @@
 
 namespace detray {
 
-namespace {
-
-using point2 = __plugin::point2<detray::scalar>;
-using point3 = __plugin::point3<detray::scalar>;
-
-}  // namespace
-
 /** Run the bin association of surfaces (via their contour)
  *  - to a given grid.
  *
@@ -43,6 +36,9 @@ static inline void bin_association(const context_t & /*context*/,
                                    const volume_t &volume, grid_t &grid,
                                    const std::array<scalar, 2> &bin_tolerance,
                                    bool absolute_tolerance = true) {
+
+    using point2_t = typename detector_t::point2;
+    using point3_t = typename detector_t::point3;
 
     // Get surfaces, transforms and masks
     const auto &dc = detector.data();
@@ -79,31 +75,33 @@ static inline void bin_association(const context_t & /*context*/,
                         : bin_tolerance[1] * (phi_borders[1] - phi_borders[0]);
 
                 // Create a contour for the bin
-                std::vector<point2> bin_contour = r_phi_polygon(
-                    r_borders[0] - r_add, r_borders[1] + r_add,
-                    phi_borders[0] - phi_add, phi_borders[1] + phi_add);
+                std::vector<point2_t> bin_contour =
+                    r_phi_polygon<scalar, point2_t>(
+                        r_borders[0] - r_add, r_borders[1] + r_add,
+                        phi_borders[0] - phi_add, phi_borders[1] + phi_add);
 
                 // Run through the surfaces and associate them by contour
                 for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
+
+                    // Add only sensitive surfaces to the grid
+                    if (sf.is_portal()) {
+                        continue;
+                    }
+
                     // Unroll the mask container and generate vertices
                     const auto &transform = dc.transforms[sf.transform()];
 
-                    const auto &mask_context = sf.mask_type();
-                    const auto &mask_range = sf.mask_range();
-
-                    auto vertices_per_masks = unroll_masks_for_vertices(
-                        surface_masks, mask_range, mask_context,
-                        std::make_integer_sequence<
-                            dindex, std::tuple_size_v<
-                                        typename detector_t::mask_container::
-                                            container_type>>{});
+                    auto vertices_per_masks =
+                        surface_masks
+                            .template call<vertexer<point2_t, point3_t>>(
+                                sf.mask());
 
                     // Usually one mask per surface, but design allows - a
                     // single association  is sufficient though
                     for (auto &vertices : vertices_per_masks) {
                         if (not vertices.empty()) {
                             // Create a surface contour
-                            std::vector<point2> surface_contour;
+                            std::vector<point2_t> surface_contour;
                             surface_contour.reserve(vertices.size());
                             for (const auto &v : vertices) {
                                 auto vg = transform.point_to_global(v);
@@ -148,42 +146,42 @@ static inline void bin_association(const context_t & /*context*/,
                 scalar phi_min_rep = phi_borders[0];
                 scalar phi_max_rep = phi_borders[1];
 
-                point2 p0_bin = {z_min - z_add, phi_min_rep - phi_add};
-                point2 p1_bin = {z_min - z_add, phi_max_rep + phi_add};
-                point2 p2_bin = {z_max + z_add, phi_max_rep + phi_add};
-                point2 p3_bin = {z_max + z_add, phi_min_rep - phi_add};
+                point2_t p0_bin = {z_min - z_add, phi_min_rep - phi_add};
+                point2_t p1_bin = {z_min - z_add, phi_max_rep + phi_add};
+                point2_t p2_bin = {z_max + z_add, phi_max_rep + phi_add};
+                point2_t p3_bin = {z_max + z_add, phi_min_rep - phi_add};
 
-                std::vector<point2> bin_contour = {p0_bin, p1_bin, p2_bin,
-                                                   p3_bin};
+                std::vector<point2_t> bin_contour = {p0_bin, p1_bin, p2_bin,
+                                                     p3_bin};
 
                 // Loop over the surfaces within a volume
                 for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
 
+                    // Add only sensitive surfaces to the grid
+                    if (sf.is_portal()) {
+                        continue;
+                    }
+
                     // Unroll the mask container and generate vertices
                     const auto &transform = dc.transforms[sf.transform()];
 
-                    const auto &mask_context = sf.mask_type();
-                    const auto &mask_range = sf.mask_range();
-
-                    auto vertices_per_masks = unroll_masks_for_vertices(
-                        surface_masks, mask_range, mask_context,
-                        std::make_integer_sequence<
-                            dindex, std::tuple_size_v<
-                                        typename detector_t::mask_container::
-                                            container_type>>{});
+                    auto vertices_per_masks =
+                        surface_masks
+                            .template call<vertexer<point2_t, point3_t>>(
+                                sf.mask());
 
                     for (auto &vertices : vertices_per_masks) {
 
                         if (not vertices.empty()) {
                             // Create a surface contour
-                            std::vector<point2> surface_contour;
+                            std::vector<point2_t> surface_contour;
                             surface_contour.reserve(vertices.size());
                             scalar phi_min = std::numeric_limits<scalar>::max();
                             scalar phi_max =
                                 -std::numeric_limits<scalar>::max();
                             // We poentially need the split vertices
-                            std::vector<point2> s_c_neg;
-                            std::vector<point2> s_c_pos;
+                            std::vector<point2_t> s_c_neg;
+                            std::vector<point2_t> s_c_pos;
                             scalar z_min_neg =
                                 std::numeric_limits<scalar>::max();
                             scalar z_max_neg =
@@ -194,7 +192,8 @@ static inline void bin_association(const context_t & /*context*/,
                                 -std::numeric_limits<scalar>::max();
 
                             for (const auto &v : vertices) {
-                                const point3 vg = transform.point_to_global(v);
+                                const point3_t vg =
+                                    transform.point_to_global(v);
                                 scalar phi = std::atan2(vg[1], vg[0]);
                                 phi_min = std::min(phi, phi_min);
                                 phi_max = std::max(phi, phi_max);
@@ -210,7 +209,7 @@ static inline void bin_association(const context_t & /*context*/,
                                 }
                             }
                             // Check for phi wrapping
-                            std::vector<std::vector<point2>> surface_contours;
+                            std::vector<std::vector<point2_t>> surface_contours;
                             if (phi_max - phi_min > M_PI and
                                 phi_max * phi_min < 0.) {
                                 s_c_neg.push_back({z_max_neg, -M_PI});

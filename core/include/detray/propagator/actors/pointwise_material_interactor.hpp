@@ -60,12 +60,12 @@ struct pointwise_material_interactor : actor {
         using scalar_type = typename interaction_type::scalar_type;
         using state = typename pointwise_material_interactor::state;
 
-        template <typename material_group_t, typename surface_t,
-                  typename stepper_state_t>
+        template <typename material_group_t, typename index_t,
+                  typename surface_t, typename stepper_state_t>
         DETRAY_HOST_DEVICE inline output_type operator()(
-            const material_group_t &material_group, const surface_t &surface,
-            const line_plane_intersection &is, state &s,
-            const stepper_state_t &stepping) const {
+            const material_group_t &material_group, const index_t & /*index*/,
+            const surface_t &surface, const line_plane_intersection &is,
+            state &s, const stepper_state_t &stepping) const {
 
             const auto &material_range = surface.material_range();
 
@@ -118,7 +118,7 @@ struct pointwise_material_interactor : actor {
             const auto &surface = det->surface_by_index(is.index);
             const auto &mat_store = det->material_store();
 
-            auto succeed = mat_store.template execute<kernel>(
+            auto succeed = mat_store.template call<kernel>(
                 surface.material_type(), surface, is, interactor_state,
                 stepping);
 

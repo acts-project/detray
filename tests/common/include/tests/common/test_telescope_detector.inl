@@ -50,7 +50,6 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     using namespace detray;
 
     using b_field_t = constant_magnetic_field<>;
-    using ln_stepper_t = line_stepper<transform3>;
     using rk_stepper_t = rk_stepper<b_field_t, transform3>;
     using inspector_t = navigation::print_inspector;
 
@@ -71,9 +70,6 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     // steppers
     rk_stepper_t rk_stepper_z;
     rk_stepper_t rk_stepper_x;
-    ln_stepper_t ln_stepper;
-    typename ln_stepper_t::free_track_parameters_type default_trk{
-        {0, 0, 0}, 0, {0, 0, 1}, -1};
 
     //
     // telescope along z
@@ -83,17 +79,15 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
                                      300., 350, 400,  450., 500.};
     // Build telescope detector with unbounded planes
-    const auto z_tel_det1 = create_telescope_detector<rectangular>(
-        host_mr, positions, ln_stepper_t(),
-        typename ln_stepper_t::state{default_trk});
+    const auto z_tel_det1 =
+        create_telescope_detector<rectangular>(host_mr, positions);
 
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
     dindex n_surfaces = 11;
     scalar tel_length = 500. * unit_constants::mm;
-    const auto z_tel_det2 = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, ln_stepper_t(),
-        typename ln_stepper_t::state{default_trk});
+    const auto z_tel_det2 =
+        create_telescope_detector<rectangular>(host_mr, n_surfaces, tel_length);
 
     // Compare
     for (std::size_t i = 0; i < z_tel_det1.surfaces().size(); ++i) {
@@ -106,21 +100,18 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     //
 
     // Same telescope, but in x direction and created from custom stepper
-    point3 pos{0., 0., 0.};
-    vector3 mom{1., 0., 0.};
-    free_track_parameters<transform3> pilot_track(pos, 0, mom, -1);
-    typename ln_stepper_t::state ln_stepping(pilot_track);
+    detail::ray<transform3> x_track({0, 0, 0}, 0, {1, 0, 0}, -1);
 
     const auto x_tel_det = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, ln_stepper, ln_stepping);
+        host_mr, n_surfaces, tel_length, x_track);
 
     //
     // test propagation in all telescope detector instances
     //
 
     // Telescope navigation should be symmetric in x and z
-    pos = {0., 0., 0.};
-    mom = {0., 0., 1.};
+    vector3 pos = {0., 0., 0.};
+    vector3 mom = {0., 0., 1.};
     free_track_parameters<transform3> test_track_z1(pos, 0, mom, -1);
     free_track_parameters<transform3> test_track_z2(pos, 0, mom, -1);
     mom = {1., 0., 0.};
@@ -203,14 +194,14 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     //
     pos = {0., 0., 0.};
     mom = {0., 1., 0.};
-    pilot_track = free_track_parameters<transform3>(pos, 0, mom, -1);
+
+    auto pilot_track = free_track_parameters<transform3>(pos, 0, mom, -1);
     pilot_track.set_overstep_tolerance(-10 * unit_constants::um);
 
-    typename rk_stepper_t::state rk_stepping_z(pilot_track, b_field_z);
-    typename rk_stepper_t::state rk_stepping_x(pilot_track, b_field_x);
+    detail::helix<transform3> helix_bz(pilot_track, &B_z);
 
     const auto tel_detector = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, rk_stepper_z, rk_stepping_z);
+        host_mr, n_surfaces, tel_length, helix_bz);
 
     // make at least sure it is navigatable
     navigator<decltype(tel_detector), inspector_t> tel_navigator;

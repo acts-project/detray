@@ -39,7 +39,6 @@ class line_stepper final
         typename matrix_operator::template matrix_type<ROWS, COLS>;
 
     struct state : public base_type::state {
-
         static constexpr const stepping::id id = stepping::id::e_linear;
 
         DETRAY_HOST_DEVICE

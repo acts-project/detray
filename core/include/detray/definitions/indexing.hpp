@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -18,24 +18,53 @@ dindex constexpr dindex_invalid = std::numeric_limits<dindex>::max();
 using dindex_range = darray<dindex, 2>;
 using dindex_sequence = dvector<dindex>;
 
-/** Small type to tie an object type and an index into a container together.
- *
- * @tparam id_type Represents the indexed type
- * @tparam intex_type The type of indexing needed for the indexed types
- * container
- */
-template <typename id_type = unsigned int, typename index_type = dindex>
+/// @brief Simple multi-index structure
+///
+/// @tparam DIM number of indices that are held by this type
+/// @tparam value_t type of indices
+template <typename value_t = dindex, std::size_t DIM = 3>
+struct dmulti_index {
+    std::array<value_t, DIM> indices{};
+
+    /// Elementwise access.
+    DETRAY_HOST_DEVICE
+    inline auto operator[](const std::size_t i) -> value_t& {
+        return indices[i];
+    }
+    DETRAY_HOST_DEVICE
+    inline auto operator[](const std::size_t i) const -> const value_t& {
+        return indices[i];
+    }
+
+    /// Equality operator @returns true if all bin indices match.
+    DETRAY_HOST_DEVICE
+    inline auto operator==(const dmulti_index<value_t, DIM>& rhs) const
+        -> bool {
+        return (indices == rhs.indices);
+    }
+};
+
+/// @brief Ties an object type and an index into a container together.
+///
+/// @tparam id_type Represents the type of object that is being indexed
+/// @tparam index_type The type of indexing needed for the indexed type's
+///         container (e.g. single index, range, multiindex)
+template <typename id_t = unsigned int, typename index_t = dindex>
 struct typed_index {
+
+    using id_type = id_t;
+    using index_type = index_t;
+
     id_type _object_id;
     index_type _index;
 
-    /** Equality operator */
+    /// Equality operator
     DETRAY_HOST_DEVICE
     bool operator==(const typed_index<id_type, index_type>& rhs) const {
         return (_object_id == rhs._object_id && _index == rhs._index);
     }
 
-    /** Arithmetic operators*/
+    /// Arithmetic operators
     DETRAY_HOST_DEVICE
     typed_index<id_type, index_type> operator+(
         const typed_index<id_type, index_type>& rhs) const {
@@ -84,7 +113,7 @@ struct typed_index {
         return *this;
     }
 
-    /** Only make the prefix operator available */
+    /// Only make the prefix operator available
     DETRAY_HOST_DEVICE
     typed_index<id_type, index_type>& operator++() {
         ++_index;
@@ -94,12 +123,13 @@ struct typed_index {
 
 namespace detail {
 
+/// Stub function to get a single index
 template <std::size_t ID>
 dindex get(dindex idx) noexcept {
     return idx;
 }
 
-/** Custom get function for the typed_index struct. Get the type. */
+/// Custom get function for the typed_index struct. Get the type.
 template <std::size_t ID, typename id_type, typename index_type,
           std::enable_if_t<ID == 0, bool> = true>
 DETRAY_HOST_DEVICE constexpr auto& get(
@@ -107,7 +137,7 @@ DETRAY_HOST_DEVICE constexpr auto& get(
     return index._object_id;
 }
 
-/** Custom get function for the typed_index struct. Get the index. */
+/// Custom get function for the typed_index struct. Get the index.
 template <std::size_t ID, typename id_type, typename index_type,
           std::enable_if_t<ID == 1, bool> = true>
 DETRAY_HOST_DEVICE constexpr auto& get(

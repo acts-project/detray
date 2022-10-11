@@ -23,12 +23,8 @@ TEST(propagation, telescope_geometry) {
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    using ln_stepper_t = line_stepper<transform3>;
-
-    typename ln_stepper_t::free_track_parameters_type default_trk{
-        {0, 0, 0}, 0, {0, 0, 1}, -1};
-
     // Build from given module positions
+    detail::ray<transform3> traj{{0, 0, 0}, 0, {0, 0, 1}, -1};
     std::vector<scalar> positions = {0., 10., 20., 30., 40., 50.};
 
     // Use unbounded surfaces
@@ -36,13 +32,12 @@ TEST(propagation, telescope_geometry) {
 
     // Create the telescope geometry
     detector_host_type det =
-        create_telescope_detector<rectangle, ln_stepper_t, darray,
+        create_telescope_detector<rectangle, detail::ray<transform3>, darray,
                                   thrust::tuple, vecmem::vector,
                                   vecmem::jagged_vector>(
-            mng_mr, positions, ln_stepper_t(),
-            typename ln_stepper_t::state{default_trk},
-            10000. * unit_constants::mm, 10000. * unit_constants::mm,
-            silicon_tml<scalar>(), 0.17 * unit_constants::cm);
+            mng_mr, positions, traj, 10000. * unit_constants::mm,
+            10000. * unit_constants::mm, silicon_tml<scalar>(),
+            0.17 * unit_constants::cm);
 
     const scalar q = -1.;
     const scalar iniP = 10 * unit_constants::GeV;

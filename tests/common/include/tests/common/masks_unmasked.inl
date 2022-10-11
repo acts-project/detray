@@ -7,24 +7,15 @@
 
 #include <gtest/gtest.h>
 
-#include "detray/masks/unmasked.hpp"
+#include "detray/masks/masks.hpp"
 
 using namespace detray;
-using point2 = __plugin::point2<scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
 
-// This tests the construction of a surface
+/// This tests the basic functionality of an unmasked plane
 TEST(mask, unmasked) {
-    using local_type = cartesian2<transform3>;
-    point2 p2 = {0.5, -9.};
+    typename mask<unmasked>::loc_point_t p2 = {0.5, -9.};
 
-    unmasked u;
-    ASSERT_TRUE(u.is_inside<local_type>(p2, 0) ==
-                intersection::status::e_inside);
-    /*
-    ASSERT_TRUE(u.is_inside<local_type>() ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(u.is_inside<local_type>(p2, false) ==
-                intersection::status::e_outside);
-    */
+    mask<unmasked> u{};
+
+    ASSERT_TRUE(u.is_inside(p2, 0) == intersection::status::e_inside);
 }
