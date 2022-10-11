@@ -55,7 +55,6 @@ detray_add_test( smatrix
    "smatrix_trapezoid2D.cpp"
    "smatrix_unmasked.cpp"
    "smatrix_volume.cpp"
->>>>>>> add-jacobian-transformation
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::smatrix )
 
 # Set up the "conditional" tests.
