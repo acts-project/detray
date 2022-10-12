@@ -40,7 +40,7 @@ namespace detray {
 /// @tparam array_t the type of the internal array, must have STL semantics.
 template <typename ID, typename obj_link_t = dmulti_index<dindex_range, 1>,
           typename sf_finder_link_t = dtyped_index<dindex, dindex>,
-          typename scalar_t = float,
+          typename scalar_t = scalar,
           template <typename, std::size_t> class array_t = darray>
 class detector_volume {
 

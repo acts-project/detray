@@ -54,6 +54,8 @@ struct full_metadata {
     using bfield_backend_t = _bfield_backend_t;
 
     /// How to index the constituent objects in a volume
+    /// If they share the same index value here, they will be added into the
+    /// same container range without any sorting guarantees
     enum geo_objects : std::size_t {
         e_sensitive = 0,
         e_portal = 0,
@@ -157,6 +159,8 @@ struct toy_metadata {
     using bfield_backend_t = _bfield_backend_t;
 
     /// How to index the constituent objects in a volume
+    /// If they share the same index value here, they will be added into the
+    /// same container range without any sorting guarantees
     enum geo_objects : std::size_t {
         e_sensitive = 0,
         e_portal = 0,
@@ -252,6 +256,8 @@ struct telescope_metadata {
     using bfield_backend_t = _bfield_backend_t;
 
     /// How to index the constituent objects in a volume
+    /// If they share the same index value here, they will be added into the
+    /// same container range without any sorting guarantees
     enum geo_objects : std::size_t {
         e_sensitive = 0,
         e_portal = 0,

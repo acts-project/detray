@@ -63,6 +63,7 @@ struct intersection_initialize {
                 if (is.status == intersection::status::e_inside &&
                     is.path >= traj.overstep_tolerance()) {
                     is.index = surface.volume();
+                    is.sf_id = surface.id();
                     is_container.push_back(is);
                     count++;
                 }
@@ -122,6 +123,7 @@ struct intersection_update {
             if (sfi[0].status == intersection::status::e_inside &&
                 sfi[0].path >= traj.overstep_tolerance()) {
                 sfi[0].index = surface.volume();
+                sfi[0].sf_id = surface.id();
                 return sfi[0];
             }
         }
