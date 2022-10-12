@@ -87,6 +87,11 @@ TEST(tools, bound_track_parameters) {
     EXPECT_FLOAT_EQ(trck1.qop(), getter::element(param1, e_bound_qoverp, 0));
     EXPECT_FLOAT_EQ(trck1.charge(), -1);
     EXPECT_FLOAT_EQ(trck1.time(), getter::element(param1, e_bound_time, 0));
+    EXPECT_FLOAT_EQ(trck1.mom()[0], trck1.p() * std::sin(trck1.theta()) *
+                                        std::cos(trck1.phi()));
+    EXPECT_FLOAT_EQ(trck1.mom()[1], trck1.p() * std::sin(trck1.theta()) *
+                                        std::sin(trck1.phi()));
+    EXPECT_FLOAT_EQ(trck1.mom()[2], trck1.p() * std::cos(trck1.theta()));
 
     // second track
     EXPECT_FLOAT_EQ(trck2.local()[0], getter::element(param2, e_bound_loc0, 0));
@@ -96,6 +101,11 @@ TEST(tools, bound_track_parameters) {
     EXPECT_FLOAT_EQ(trck2.qop(), getter::element(param2, e_bound_qoverp, 0));
     EXPECT_FLOAT_EQ(trck2.charge(), 1.);
     EXPECT_FLOAT_EQ(trck2.time(), getter::element(param2, e_bound_time, 0));
+    EXPECT_FLOAT_EQ(trck2.mom()[0], trck2.p() * std::sin(trck2.theta()) *
+                                        std::cos(trck2.phi()));
+    EXPECT_FLOAT_EQ(trck2.mom()[1], trck2.p() * std::sin(trck2.theta()) *
+                                        std::sin(trck2.phi()));
+    EXPECT_FLOAT_EQ(trck2.mom()[2], trck2.p() * std::cos(trck2.theta()));
 }
 
 TEST(tools, free_track_parameters) {
@@ -130,6 +140,9 @@ TEST(tools, free_track_parameters) {
     EXPECT_FLOAT_EQ(trck1.qop(), getter::element(param, e_free_qoverp, 0));
     EXPECT_FLOAT_EQ(trck1.pT(),
                     std::sqrt(std::pow(mom[0], 2) + std::pow(mom[1], 2)));
+    EXPECT_FLOAT_EQ(trck1.mom()[0], trck1.p() * trck1.dir()[0]);
+    EXPECT_FLOAT_EQ(trck1.mom()[1], trck1.p() * trck1.dir()[1]);
+    EXPECT_FLOAT_EQ(trck1.mom()[2], trck1.p() * trck1.dir()[2]);
 
     // second constructor
     free_track_parameters<transform3> trck2(pos, time, mom, charge);
@@ -144,4 +157,7 @@ TEST(tools, free_track_parameters) {
     EXPECT_FLOAT_EQ(trck2.qop(), charge / getter::norm(mom));
     EXPECT_FLOAT_EQ(trck2.pT(),
                     std::sqrt(std::pow(mom[0], 2) + std::pow(mom[1], 2)));
+    EXPECT_FLOAT_EQ(trck2.mom()[0], trck2.p() * trck2.dir()[0]);
+    EXPECT_FLOAT_EQ(trck2.mom()[1], trck2.p() * trck2.dir()[1]);
+    EXPECT_FLOAT_EQ(trck2.mom()[2], trck2.p() * trck2.dir()[2]);
 }

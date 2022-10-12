@@ -22,6 +22,7 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
+#include "detray/utils/math.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
@@ -322,18 +323,6 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     EXPECT_NEAR(new_var_qop, dvar_qop, 1e-10);
 
     // @todo: Validate the backward direction case as well?
-}
-
-scalar get_variance(const std::vector<scalar>& v) {
-    scalar sum = std::accumulate(v.begin(), v.end(), 0.0);
-    scalar mean = sum / v.size();
-    std::vector<double> diff(v.size());
-    std::transform(v.begin(), v.end(), diff.begin(),
-                   [mean](double x) { return x - mean; });
-    scalar sq_sum =
-        std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-    scalar variance = sq_sum / v.size();
-    return variance;
 }
 
 // Material interaction test with telescope Geometry

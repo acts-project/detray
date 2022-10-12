@@ -97,4 +97,71 @@ struct csv_layer_volume {
 
 using layer_volume_reader = dfe::NamedTupleCsvReader<csv_layer_volume>;
 
+struct csv_particle {
+    uint64_t particle_id = 0;
+    int particle_type = 0;
+    int process = 0;
+    scalar vx;
+    scalar vy;
+    scalar vz;
+    scalar vt;
+    scalar px;
+    scalar py;
+    scalar pz;
+    scalar m;
+    scalar q;
+
+    DFE_NAMEDTUPLE(csv_particle, particle_id, particle_type, process, vx, vy,
+                   vz, vt, px, py, pz, m, q);
+};
+
+using particle_reader = dfe::NamedTupleCsvReader<csv_particle>;
+using particle_writer = dfe::NamedTupleCsvWriter<csv_particle>;
+
+struct csv_hit {
+    uint64_t particle_id = 0;
+    uint64_t geometry_id = 0;
+    scalar tx = 0;
+    scalar ty = 0;
+    scalar tz = 0;
+    scalar tt = 0;
+    scalar tpx = 0;
+    scalar tpy = 0;
+    scalar tpz = 0;
+    scalar te = 0;
+    scalar deltapx = 0;
+    scalar deltapy = 0;
+    scalar deltapz = 0;
+    scalar deltae = 0;
+    uint64_t index = 0;
+
+    DFE_NAMEDTUPLE(csv_hit, particle_id, geometry_id, tx, ty, tz, tt, tpx, tpy,
+                   tpz, te, deltapx, deltapy, deltapz, deltae, index);
+};
+
+using hit_reader = dfe::NamedTupleCsvReader<csv_hit>;
+using hit_writer = dfe::NamedTupleCsvWriter<csv_hit>;
+
+struct csv_measurement {
+
+    uint64_t geometry_id = 0;
+    std::string local_key = "";
+    scalar local0 = 0.;
+    scalar local1 = 0.;
+    scalar phi = 0.;
+    scalar theta = 0.;
+    scalar time = 0.;
+    scalar var_local0 = 0.;
+    scalar var_local1 = 0.;
+    scalar var_phi = 0.;
+    scalar var_theta = 0.;
+    scalar var_time = 0.;
+
+    DFE_NAMEDTUPLE(csv_measurement, geometry_id, local0, local1, phi, theta,
+                   time, var_local0, var_local1, var_phi, var_theta, var_time);
+};
+
+using measurement_reader = dfe::NamedTupleCsvReader<csv_measurement>;
+using measurement_writer = dfe::NamedTupleCsvWriter<csv_measurement>;
+
 }  // namespace detray
