@@ -82,6 +82,20 @@ class single_view
     DETRAY_HOST_DEVICE
     static constexpr auto size() noexcept -> std::size_t { return 1; }
 
+    /// @returns the value directly
+    DETRAY_HOST_DEVICE
+    constexpr auto front() noexcept -> value_t { return m_value; }
+
+    /// @returns the value directly
+    DETRAY_HOST_DEVICE
+    constexpr auto back() noexcept -> value_t { return m_value; }
+
+    /// @returns the value directly
+    DETRAY_HOST_DEVICE constexpr auto operator[](const dindex) const
+        -> value_t {
+        return m_value;
+    }
+
     private:
     value_t m_value{};
 };

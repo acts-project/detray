@@ -201,7 +201,7 @@ TEST(grid, replace_population) {
                 p = {static_cast<scalar>(-10 + ib0),
                      static_cast<scalar>(-20 + ib1),
                      static_cast<scalar>(0. + ib2)};
-                EXPECT_FLOAT_EQ(*g3r.search(p),
+                EXPECT_FLOAT_EQ(g3r.search(p)[0],
                                 std::numeric_limits<scalar>::max());
             }
         }
@@ -210,7 +210,7 @@ TEST(grid, replace_population) {
     p = {-4.5, -4.5, 4.5};
     // Fill and read
     g3r.populate(p, 3u);
-    EXPECT_FLOAT_EQ(*g3r.search(p), static_cast<scalar>(3u));
+    EXPECT_FLOAT_EQ(g3r.search(p).begin()[0], static_cast<scalar>(3u));
 
     // Fill and read two times, fill first 0-99, then 100-199
     for (unsigned int il = 0; il < 2; ++il) {
@@ -222,7 +222,7 @@ TEST(grid, replace_population) {
                          static_cast<scalar>(-20 + ib1),
                          static_cast<scalar>(0. + ib2)};
                     g3r.populate(p, counter);
-                    EXPECT_FLOAT_EQ(*g3r.search(p), counter);
+                    EXPECT_FLOAT_EQ(g3r.search(p)[0], counter);
                     counter += scalar{1};
                 }
             }
