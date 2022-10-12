@@ -72,9 +72,6 @@ struct full_metadata {
     template <template <typename...> class vector_t = dvector>
     using transform_store = static_transform_store<vector_t>;
 
-    template <typename... objects>
-    using object_definitions = object_registry<objects...>;
-
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
     enum class mask_ids {

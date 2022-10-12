@@ -157,38 +157,6 @@ class registry_base<ID, true, registered_types...> {
     }
 };
 
-/// Registry for geometric objects.
-template <typename... registered_types>
-class object_registry
-    : public registry_base<unsigned int, true, registered_types...> {
-    public:
-    using type_registry =
-        registry_base<unsigned int, true, registered_types...>;
-
-    enum : std::size_t {
-        n_types = type_registry::n_types,
-        e_any = type_registry::e_any,
-        e_unknown = type_registry::e_unknown,
-    };
-
-    /// Known primitives
-    enum id : unsigned int {
-        e_surface = 0,
-        e_portal = 0,  // not used (same as surface)
-    };
-
-    using link_type = dindex;
-    using range_type = dindex_range;
-
-    template <typename T>
-    using get_index = typename type_registry::template get_index<T>;
-
-    template <unsigned int type_id,
-              template <typename...> class tuple_t = dtuple>
-    using get_type =
-        typename type_registry::template get_type<type_id, tuple_t>;
-};
-
 /// Tuple vector container registry
 template <class ID, typename... registered_types>
 class tuple_vector_registry
