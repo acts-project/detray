@@ -230,8 +230,7 @@ template <typename container_t,
           typename = typename std::remove_reference_t<volume_t>::volume_def>
 DETRAY_HOST_DEVICE inline constexpr auto range(const container_t &iterable,
                                                volume_t &&volume) {
-    return iterator_range(
-        iterable, volume.obj_link());
+    return iterator_range(iterable, volume.obj_link());
 }
 
 /** Overload of the range-function for dindex_range */

@@ -106,7 +106,7 @@ class tuple_vector_container final
      * @note in general can throw an exception
      */
     template <id_t ID, typename... Args>
-    DETRAY_HOST auto &add_value(Args &&...args) noexcept(false) {
+    DETRAY_HOST auto &add_value(Args &&... args) noexcept(false) {
 
         auto &gr = detail::get<to_index(ID)>(this->m_container);
 

@@ -86,7 +86,7 @@ struct single_axis {
     /// @returns the width of a bin
     template <typename... Args>
     DETRAY_HOST_DEVICE inline constexpr scalar_type bin_width(
-        Args &&...args) const {
+        Args &&... args) const {
         return m_binning.bin_width(std::forward<Args &&>(args)...);
     }
 
