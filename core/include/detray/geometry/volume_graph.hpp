@@ -262,8 +262,8 @@ class volume_graph {
                        const dindex volume_id = 0,
                        const mask_link_t mask_link = {})
             : _masks(masks), _volume_id(volume_id), _mask_link{mask_link} {
-            _edges = _masks.template call<edges_builder>(
-                _mask_link, _volume_id);
+            _edges =
+                _masks.template call<edges_builder>(_mask_link, _volume_id);
         }
 
         /// @returns begging of graph edges container
@@ -278,8 +278,8 @@ class volume_graph {
             _volume_id = volume_id;
             _mask_link = mask_link;
             _edges.clear();
-            _edges = _masks.template call<edges_builder>(
-                _mask_link, _volume_id);
+            _edges =
+                _masks.template call<edges_builder>(_mask_link, _volume_id);
 
             return *this;
         }

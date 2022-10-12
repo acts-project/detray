@@ -210,7 +210,7 @@ TEST(grid, replace_population) {
     p = {-4.5, -4.5, 4.5};
     // Fill and read
     g3r.populate(p, 3u);
-    EXPECT_FLOAT_EQ(g3r.search(p).begin()[0], static_cast<scalar>(3u));
+    EXPECT_FLOAT_EQ(g3r.search(p)[0], static_cast<scalar>(3u));
 
     // Fill and read two times, fill first 0-99, then 100-199
     for (unsigned int il = 0; il < 2; ++il) {
