@@ -79,7 +79,7 @@ class base_stepper {
 
             mask_store.template call<
                 typename parameter_resetter<transform3_t>::kernel>(
-                surface.mask_type(), trf_store, surface, *this);
+                surface.mask(), trf_store, surface, *this);
         }
 
         /// free track parameter
