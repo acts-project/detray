@@ -237,7 +237,7 @@ struct enumerate : public enumerate_view<range_itr_t, incr_t> {
     DETRAY_HOST_DEVICE enumerate(deduced_range_t &&range, const volume_t &vol)
         : enumerate(detray::ranges::subrange(
                         std::forward<deduced_range_t>(range), vol),
-                    detray::detail::get<0>(vol.get_all())) {}
+                    detray::detail::get<0>(vol.full_range())) {}
 };
 
 // deduction guides

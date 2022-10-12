@@ -138,7 +138,7 @@ class detector_volume {
 
     /// @returns the entire span of all links combined.
     DETRAY_HOST_DEVICE
-    constexpr auto get_all() const -> typename obj_link_type::index_type {
+    constexpr auto full_range() const -> typename obj_link_type::index_type {
         return {
             detail::get<0>(detail::get<0>(_obj_links)),
             detail::get<1>(detail::get<obj_link_type::size() - 1>(_obj_links))};

@@ -43,9 +43,11 @@ TEST(tools, bound_track_parameters) {
     // surface container
     std::vector<surface<mask_link_t, material_link_t>> surfaces;
     surfaces.emplace_back(0, mask_link_t{e_rectangle2, 0},
-                          material_link_t{e_slab, 0}, 0, 0, false);
+                          material_link_t{e_slab, 0}, 0, 0,
+                          surface_id::e_sensitive);
     surfaces.emplace_back(1, mask_link_t{e_rectangle2, 0},
-                          material_link_t{e_slab, 0}, 0, 0, false);
+                          material_link_t{e_slab, 0}, 0, 0,
+                          surface_id::e_sensitive);
 
     /// Declare track parameters
 

@@ -96,11 +96,11 @@ TEST(tools, intersection_kernel_ray) {
 
     // The surfaces and their store
     const surface_t rectangle_surface(0u, {e_rectangle2, 0}, {e_slab, 0}, 0, 0,
-                                      false);
+                                      surface_id::e_sensitive);
     const surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, {e_slab, 1}, 0, 1,
-                                      false);
+                                      surface_id::e_sensitive);
     const surface_t annulus_surface(2u, {e_annulus2, 0}, {e_slab, 2}, 0, 2,
-                                    false);
+                                    surface_id::e_sensitive);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
 
@@ -178,11 +178,11 @@ TEST(tools, intersection_kernel_helix) {
 
     // The surfaces and their store
     const surface_t rectangle_surface(0u, {e_rectangle2, 0}, {e_slab, 0}, 0, 0,
-                                      false);
+                                      surface_id::e_sensitive);
     const surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, {e_slab, 1}, 0, 1,
-                                      false);
+                                      surface_id::e_sensitive);
     const surface_t annulus_surface(2u, {e_annulus2, 0}, {e_slab, 2}, 0, 2,
-                                    false);
+                                    surface_id::e_sensitive);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
     const point3 pos{0., 0., 0.};

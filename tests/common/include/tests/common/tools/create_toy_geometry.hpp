@@ -83,9 +83,11 @@ inline void add_cylinder_surface(
                              masks.template size<cylinder_id>() - 1};
     material_link_type material_link{slab_id,
                                      materials.template size<slab_id>() - 1};
-    const bool is_portal = (volume_link != volume_id);
+    const surface_id sf_id = (volume_link != volume_id)
+                                 ? surface_id::e_portal
+                                 : surface_id::e_sensitive;
     surfaces.emplace_back(transforms.size(ctx) - 1, mask_link, material_link,
-                          volume_id, dindex_invalid, is_portal);
+                          volume_id, dindex_invalid, sf_id);
 }
 
 /** Function that adds a disc portal.
@@ -137,9 +139,11 @@ inline void add_disc_surface(
     mask_link_type mask_link{disc_id, masks.template size<disc_id>() - 1};
     material_link_type material_link{slab_id,
                                      materials.template size<slab_id>() - 1};
-    const bool is_portal = (volume_link != volume_id);
+    const surface_id sf_id = (volume_link != volume_id)
+                                 ? surface_id::e_portal
+                                 : surface_id::e_sensitive;
     surfaces.emplace_back(transforms.size(ctx) - 1, mask_link, material_link,
-                          volume_id, dindex_invalid, is_portal);
+                          volume_id, dindex_invalid, sf_id);
 }
 
 /** Function that adds a generic cylinder volume, using a factory for contained
@@ -289,7 +293,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                          materials.template size<slab_id>()};
         const auto trf_index = transforms.size(ctx);
         surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
-                              dindex_invalid, false);
+                              dindex_invalid, surface_id::e_sensitive);
 
         // The rectangle bounds for this module
         masks.template add_value<rectangle_id>(mask_volume_link, cfg.m_half_x,
@@ -525,7 +529,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             // Surfaces with the linking into the local containers
             surfaces.emplace_back(transforms.size(ctx), mask_link,
                                   material_link, volume_id, dindex_invalid,
-                                  false);
+                                  surface_id::e_sensitive);
 
             // the module transform from the position
             scalar m_phi{algebra::getter::phi(m_position)};

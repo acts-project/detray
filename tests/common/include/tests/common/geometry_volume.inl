@@ -66,7 +66,7 @@ TEST(ALGEBRA_PLUGIN, detector_volume) {
     ASSERT_EQ(v1.obj_link<geo_objects::e_sensitive>(), full_surface_range);
     v1.update_obj_link<geo_objects::e_portal>(portal_range);
     ASSERT_EQ(v1.obj_link<geo_objects::e_portal>(), portal_range);
-    ASSERT_EQ(v1.get_all(), full_range);
+    ASSERT_EQ(v1.full_range(), full_range);
 
     ASSERT_FALSE(v1.empty());
     ASSERT_EQ(v1.template n_objects<geo_objects::e_all>(), 22);
@@ -83,5 +83,5 @@ TEST(ALGEBRA_PLUGIN, detector_volume) {
     ASSERT_EQ(v2.template obj_link<geo_objects::e_sensitive>(),
               full_surface_range);
     ASSERT_EQ(v2.template obj_link<geo_objects::e_portal>(), portal_range);
-    ASSERT_EQ(v2.get_all(), full_range);
+    ASSERT_EQ(v2.full_range(), full_range);
 }

@@ -112,11 +112,12 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
                                          materials.template size<slab_id>()};
         const auto trf_index = transforms.size(ctx);
         surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
-                              dindex_invalid, false);
+                              dindex_invalid, surface_id::e_sensitive);
 
         // The last surface acts as portal that leaves the telescope
         if (m_placement == m_placements.back()) {
             mask_volume_link = dindex_invalid;
+            surfaces.back().set_id(surface_id::e_portal);
         }
 
         if constexpr (mask_id ==

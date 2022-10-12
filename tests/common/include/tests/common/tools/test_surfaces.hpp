@@ -62,7 +62,8 @@ planes_along_direction(dvector<scalar> distances, vector3 direction) {
         plane_material_link_t material_link{plane_material_ids::e_plane_slab,
                                             0};
         return_surfaces.emplace_back(std::move(trf), std::move(mask_link),
-                                     std::move(material_link), 0, false, false);
+                                     std::move(material_link), 0, false,
+                                     surface_id::e_sensitive);
     }
     return return_surfaces;
 }

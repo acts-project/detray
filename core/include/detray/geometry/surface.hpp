@@ -15,10 +15,11 @@
 
 namespace detray {
 
-namespace {
-
-enum surface_id { e_sensitive, e_portal, e_passive };
-}
+enum class surface_id {
+    e_sensitive = 0,
+    e_portal = 1,
+    e_passive = 2,
+};
 
 /// Templated surface class for detector surfaces and portals.
 ///
@@ -45,7 +46,6 @@ class surface {
     using mask_id = typename mask_link::id_type;
     using material_link = material_link_t;
     using material_id = typename material_link::id_type;
-    ;
     using source_link = source_link_t;
 
     /// Constructor with full arguments - move semantics
@@ -55,15 +55,16 @@ class surface {
     /// @param material the type and index of the material for this surface
     /// @param vol the volume this surface belongs to
     /// @param src the source object/source link this surface is representing
-    /// @param is_portal remember whether this is a portal or not
-    surface(transform_link &&trf, mask_link &&mask, material_link &&material,
-            dindex volume, source_link &&src, bool is_portal)
+    /// @param sf_id remember whether this is a portal or not
+    constexpr surface(transform_link &&trf, mask_link &&mask,
+                      material_link &&material, dindex volume,
+                      source_link &&src, surface_id sf_id)
         : _trf(std::move(trf)),
           _mask(std::move(mask)),
           _material(std::move(material)),
           _volume(volume),
           _src(std::move(src)),
-          _is_portal(is_portal) {}
+          _sf_id(sf_id) {}
 
     /// Constructor with full arguments - copy semantics
     ///
@@ -72,19 +73,19 @@ class surface {
     /// @param material the type and index of the material for this surface
     /// @param vol the volume this surface belongs to
     /// @param src the source object/source link this surface is representing
-    /// @param is_portal remember whether this is a portal or not
-    surface(const transform_link trf, const mask_link &mask,
-            const material_link &material, const dindex volume,
-            const source_link &src, bool is_portal)
+    /// @param sf_id remember whether this is a portal or not
+    constexpr surface(const transform_link trf, const mask_link &mask,
+                      const material_link &material, const dindex volume,
+                      const source_link &src, surface_id sf_id)
         : _trf(trf),
           _mask(mask),
           _material(material),
           _volume(volume),
           _src(src),
-          _is_portal(is_portal) {}
+          _sf_id(sf_id) {}
 
     /// Portal vs module decision must be made explicitly
-    surface() = default;
+    constexpr surface() = default;
     surface(const surface &lhs) = default;
     ~surface() = default;
 
@@ -92,10 +93,10 @@ class surface {
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    auto operator==(const surface &rhs) const -> bool {
+    constexpr auto operator==(const surface &rhs) const -> bool {
         return (_trf == rhs._trf and _mask == rhs._mask and
                 _volume == rhs._volume and _src == rhs._src and
-                _is_portal == rhs._is_portal);
+                _sf_id == rhs._sf_id);
     }
 
     /// Update the transform index
@@ -106,11 +107,11 @@ class surface {
 
     /// Access to the transform index
     DETRAY_HOST_DEVICE
-    auto transform() -> const transform_link & { return _trf; }
+    constexpr auto transform() -> const transform_link & { return _trf; }
 
     /// @return the transform index
     DETRAY_HOST_DEVICE
-    auto transform() const -> const transform_link & { return _trf; }
+    constexpr auto transform() const -> const transform_link & { return _trf; }
 
     /// Update the mask link
     ///
@@ -120,34 +121,11 @@ class surface {
 
     /// Access to the mask
     DETRAY_HOST_DEVICE
-    auto mask() -> const mask_link & { return _mask; }
+    constexpr auto mask() -> const mask_link & { return _mask; }
 
     /// @return the mask link
     DETRAY_HOST_DEVICE
-    auto mask() const -> const mask_link & { return _mask; }
-
-    /// Access to the mask id
-    DETRAY_HOST_DEVICE
-    auto mask_type() -> typename mask_link::id_type {
-        return detail::get<0>(_mask);
-    }
-
-    /// @return the mask link
-    auto mask_type() const -> typename mask_link::id_type {
-        return detail::get<0>(_mask);
-    }
-
-    /// Access to the mask
-    DETRAY_HOST_DEVICE
-    auto mask_range() -> typename mask_link::index_type & {
-        return detail::get<1>(_mask);
-    }
-
-    /// @return the mask link
-    DETRAY_HOST_DEVICE
-    auto mask_range() const -> const typename mask_link::index_type & {
-        return detail::get<1>(_mask);
-    }
+    constexpr auto mask() const -> const mask_link & { return _mask; }
 
     /// Update the material link
     ///
@@ -157,51 +135,47 @@ class surface {
 
     /// Access to the material
     DETRAY_HOST_DEVICE
-    auto material() -> const material_link & { return _material; }
+    constexpr auto material() -> material_link & { return _material; }
 
     /// @return the material link
     DETRAY_HOST_DEVICE
-    auto material() const -> const material_link & { return _material; }
-
-    /// Access to the material id
-    DETRAY_HOST_DEVICE
-    auto material_type() -> typename material_link::id_type & {
-        return detail::get<0>(_material);
+    constexpr auto material() const -> const material_link & {
+        return _material;
     }
-
-    /// @return the material link
-    DETRAY_HOST_DEVICE
-    auto material_type() const -> const typename material_link::id_type & {
-        return detail::get<0>(_material);
-    }
-
-    /// Access to the material
-    DETRAY_HOST_DEVICE
-    auto material_range() -> typename material_link::index_type & {
-        return detail::get<1>(_material);
-    }
-
-    /// @return the material link
-    DETRAY_HOST_DEVICE
-    auto material_range() const -> const typename material_link::index_type & {
-        return detail::get<1>(_material);
-    }
-
-    /// Access to the volume
-    DETRAY_HOST_DEVICE
-    auto volume() -> dindex { return _volume; }
 
     /// @return the volume index
     DETRAY_HOST_DEVICE
-    auto volume() const -> dindex { return _volume; }
+    constexpr auto volume() const -> dindex { return _volume; }
 
     /// @return the source link
     DETRAY_HOST_DEVICE
-    auto source() const -> const source_link & { return _src; }
+    constexpr auto source() const -> const source_link & { return _src; }
 
-    /// Is this instance a portal in the sense of the unified_index_geometry?
+    /// Sets a new surface id
     DETRAY_HOST_DEVICE
-    auto is_portal() const -> bool { return _is_portal; }
+    auto set_id(const surface_id new_id) -> void { _sf_id = new_id; }
+
+    /// @returns the surface id (sensitive, ppassive or portal)
+    DETRAY_HOST_DEVICE
+    constexpr auto id() const -> surface_id { return _sf_id; }
+
+    /// @returns true if the surface is a senstive detector module.
+    DETRAY_HOST_DEVICE
+    constexpr auto is_sensitive() const -> bool {
+        return _sf_id == surface_id::e_sensitive;
+    }
+
+    /// @returns true if the surface is a portal.
+    DETRAY_HOST_DEVICE
+    constexpr auto is_portal() const -> bool {
+        return _sf_id == surface_id::e_portal;
+    }
+
+    /// @returns true if the surface is a passive detector element.
+    DETRAY_HOST_DEVICE
+    constexpr auto is_passive() const -> bool {
+        return _sf_id == surface_id::e_passive;
+    }
 
     private:
     transform_link_t _trf{};
@@ -209,7 +183,7 @@ class surface {
     material_link _material{};
     dindex _volume{dindex_invalid};
     source_link_t _src{};
-    bool _is_portal = false;
+    surface_id _sf_id = surface_id::e_sensitive;
 };
 
 }  // namespace detray

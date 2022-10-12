@@ -61,6 +61,17 @@ struct dtyped_index {
     id_type _object_id;
     index_type _index;
 
+    /// @return the type id
+    auto id() const -> id_type { return _object_id; }
+
+    /// @return a reference to the index - const
+    DETRAY_HOST_DEVICE
+    auto index() const -> const index_type& { return _index; }
+
+    /// @return a reference to the index - non-const
+    DETRAY_HOST_DEVICE
+    auto index() -> index_type& { return _index; }
+
     /// Equality operator
     DETRAY_HOST_DEVICE
     bool operator==(const dtyped_index<id_type, index_type>& rhs) const {

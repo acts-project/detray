@@ -8,8 +8,6 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/masks/masks.hpp"
-#include "detray/materials/material_slab.hpp"
 
 // Google test include(s)
 #include <gtest/gtest.h>
@@ -23,6 +21,9 @@
 using namespace detray;
 
 using transform3 = __plugin::transform3<detray::scalar>;
+using point2 = __plugin::point2<scalar>;
+using vector3 = __plugin::vector3<scalar>;
+using point3 = __plugin::point3<scalar>;
 
 /// Define mask types
 enum mask_ids : unsigned int {
@@ -39,10 +40,6 @@ using material_link_t = dtyped_index<material_ids, dindex>;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
-using point2 = __plugin::point2<scalar>;
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
-
 // This tests the construction of a surface_base object
 TEST(ALGEBRA_PLUGIN, surface) {
     // Preparatioon work, create a transform
@@ -54,8 +51,8 @@ TEST(ALGEBRA_PLUGIN, surface) {
     mask_link_t mask_id{mask_ids::e_unmasked, 0};
     material_link_t material_id{material_ids::e_slab, 0};
     surface<mask_link_t, material_link_t, transform3> s(
-        std::move(trf), std::move(mask_id), std::move(material_id), -1, false,
-        false);
+        std::move(trf), mask_id, material_id, -1, false,
+        surface_id::e_sensitive);
 }
 
 // This tests the construction of a intresection
