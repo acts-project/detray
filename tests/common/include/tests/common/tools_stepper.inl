@@ -145,8 +145,8 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     mag_field_t mag_field(B);
 
     // RK stepper
-    rk_stepper_t rk_stepper(mag_field);
-    crk_stepper_t crk_stepper(mag_field);
+    rk_stepper_t rk_stepper;
+    crk_stepper_t crk_stepper;
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
@@ -164,9 +164,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
         // RK Stepping into forward direction
         prop_state<rk_stepper_t::state, nav_state> propagation{
-            rk_stepper_t::state{track}, nav_state{}};
+            rk_stepper_t::state{track, mag_field}, nav_state{}};
         prop_state<crk_stepper_t::state, nav_state> c_propagation{
-            crk_stepper_t::state{c_track}, nav_state{}};
+            crk_stepper_t::state{c_track, mag_field}, nav_state{}};
 
         rk_stepper_t::state &rk_state = propagation._stepping;
         crk_stepper_t::state &crk_state = c_propagation._stepping;
@@ -265,12 +265,16 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
     getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
 
+    // B field
+    vector3 B{0, 0, 1. * unit_constants::T};
+    mag_field_t mag_field(B);
+
     // bound track parameter
     const bound_track_parameters<transform3> bound_param0(0, bound_vector,
                                                           bound_cov);
 
     prop_state<crk_stepper_t::state, nav_state> propagation{
-        crk_stepper_t::state(bound_param0, trf), nav_state{}};
+        crk_stepper_t::state(bound_param0, trf, mag_field), nav_state{}};
     crk_stepper_t::state &crk_state = propagation._stepping;
     nav_state &n_state = propagation._navigation;
 
@@ -278,9 +282,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     crk_state._tolerance = 1e-8;
 
     // RK stepper and its state
-    vector3 B{0, 0, 1. * unit_constants::T};
-    mag_field_t mag_field(B);
-    crk_stepper_t crk_stepper(mag_field);
+    crk_stepper_t crk_stepper;
 
     ASSERT_FLOAT_EQ(crk_state().pos()[0], 0);
     ASSERT_FLOAT_EQ(crk_state().pos()[1], local[0]);

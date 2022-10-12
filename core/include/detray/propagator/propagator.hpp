@@ -52,17 +52,28 @@ struct propagator {
     /// also keeps references to the actor states.
     struct state {
 
+        using detector_type = typename navigator_t::detector_type;
+
         /// Construct the propagation state.
         ///
         /// @param t_in the track state to be propagated
         /// @param actor_states tuple that contains references to actor states
         /// @param candidates buffer for intersections in the navigator
         DETRAY_HOST_DEVICE state(
-            const free_track_parameters_type &t_in,
-            const typename navigator_t::detector_type &det,
+            const free_track_parameters_type &t_in, const detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(t_in),
+              _navigation(det, std::move(candidates)),
+              _actor_states(actor_states) {}
+
+        template <typename field_t>
+        DETRAY_HOST_DEVICE state(
+            const free_track_parameters_type &t_in,
+            const field_t &magnetic_field, const detector_type &det,
+            typename actor_chain_t::state actor_states = {},
+            vector_type<line_plane_intersection> &&candidates = {})
+            : _stepping(t_in, magnetic_field),
               _navigation(det, std::move(candidates)),
               _actor_states(actor_states) {}
 
@@ -70,7 +81,7 @@ struct propagator {
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &param,
             const typename stepper_t::transform3_type &trf3,
-            const typename navigator_t::detector_type &det,
+            const detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
             : _stepping(param, trf3),

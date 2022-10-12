@@ -26,19 +26,20 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
     using namespace navigation;
     using transform3_type = __plugin::transform3<scalar>;
-    using stepper_type = line_stepper<transform3_type>;
 
     vecmem::host_memory_resource host_mr;
 
     // Use unbounded surfaces
     constexpr bool unbounded = true;
 
+    detail::ray<transform3_type> default_trk({0, 0, 0}, 0, {0, 0, 1}, -1);
+
     // Module positions along z-axis
     const std::vector<scalar> positions = {0.,  10., 20., 30., 40., 50.,
                                            60., 70,  80,  90., 100.};
     // Build telescope detector with unbounded planes
     const auto telescope_det =
-        create_telescope_detector<unbounded, stepper_type>(host_mr, positions);
+        create_telescope_detector<unbounded>(host_mr, positions, default_trk);
 
     // Inspectors are optional, of course
     using object_tracer_t =
@@ -64,8 +65,9 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     pathlimit_aborter::state pathlimit{200. * unit_constants::cm};
 
     // Propagator
-    propagator_t p(runge_kutta_stepper{b_field}, guided_navigator{});
-    propagator_t::state guided_state(track, telescope_det, std::tie(pathlimit));
+    propagator_t p(runge_kutta_stepper{}, guided_navigator{});
+    propagator_t::state guided_state(track, b_field, telescope_det,
+                                     std::tie(pathlimit));
 
     // Propagate
     p.propagate(guided_state);

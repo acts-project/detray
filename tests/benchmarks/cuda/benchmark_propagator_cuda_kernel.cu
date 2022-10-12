@@ -31,7 +31,7 @@ __global__ void propagator_benchmark_kernel(
     field_type B_field(B);
 
     // Create RK stepper
-    rk_stepper_type s(B_field);
+    rk_stepper_type s;
 
     // Create navigator
     navigator_device_type n;
@@ -40,8 +40,9 @@ __global__ void propagator_benchmark_kernel(
     propagator_device_type p(std::move(s), std::move(n));
 
     // Create the propagator state
-    propagator_device_type::state p_state(
-        tracks.at(gid), det, actor_chain<>::state{}, candidates.at(gid));
+    propagator_device_type::state p_state(tracks.at(gid), B_field, det,
+                                          actor_chain<>::state{},
+                                          candidates.at(gid));
 
     // Run propagation
     p.propagate(p_state);
