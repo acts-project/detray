@@ -19,6 +19,9 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/field_view.hpp>
+
 // System include(s)
 #include <climits>
 #include <map>
@@ -98,13 +101,14 @@ struct grid_writer {
 ///
 /// @return a detector object
 template <typename detector_registry,
+          template <typename> class bfield_type = covfie::field,
           template <typename, std::size_t> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
-detector<detector_registry, array_type, tuple_type, vector_type,
+detector<detector_registry, bfield_type, array_type, tuple_type, vector_type,
          jagged_vector_type>
 detector_from_csv(const std::string &detector_name,
                   const std::string &surface_file_name,
@@ -116,12 +120,16 @@ detector_from_csv(const std::string &detector_name,
                   scalar /*r_sync_tolerance*/ = 0.,
                   scalar /*z_sync_tolerance*/ = 0.) {
     using alignable_store = static_transform_store<vector_type>;
-    using detector_t = detector<detector_registry, array_type, tuple_type,
-                                vector_type, jagged_vector_type>;
+    using detector_t = detector<detector_registry, bfield_type, array_type,
+                                tuple_type, vector_type, jagged_vector_type>;
     using vector3_t = typename detector_t::vector3;
 
+    typename detector_t::bfield_type B_field(
+        typename detector_t::bfield_type::backend_t::configuration_t{0.f, 0.f,
+                                                                     2.f});
+
     name_map[0] = detector_name;
-    detector_t d(resource);
+    detector_t d(resource, std::move(B_field));
 
     // Surface reading
     surface_reader s_reader(surface_file_name);

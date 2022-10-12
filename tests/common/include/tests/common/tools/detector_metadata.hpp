@@ -20,6 +20,10 @@
 #include "detray/surface_finders/brute_force_finder.hpp"
 #include "detray/surface_finders/grid2_finder.hpp"
 
+// Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/vector.hpp>
+
 namespace detray {
 
 struct volume_stats {
@@ -42,8 +46,12 @@ using rod = material_rod<detray::scalar>;
 
 /// Defines all available types
 template <typename dynamic_data, std::size_t kBrlGrids = 1,
-          std::size_t kEdcGrids = 1, std::size_t kDefault = 1>
+          std::size_t kEdcGrids = 1, std::size_t kDefault = 1,
+          typename _bfield_backend_t =
+              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                        covfie::vector::vector_d<scalar, 3>>>
 struct full_metadata {
+    using bfield_backend_t = _bfield_backend_t;
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
@@ -127,7 +135,11 @@ struct full_metadata {
 };
 
 /// Defines the data types needed for the toy detector
+template <typename _bfield_backend_t =
+              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                        covfie::vector::vector_d<scalar, 3>>>
 struct toy_metadata {
+    using bfield_backend_t = _bfield_backend_t;
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
@@ -206,7 +218,11 @@ struct toy_metadata {
 };
 
 /// Defines a detector with only rectangle/unbounded surfaces
+template <typename _bfield_backend_t =
+              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                        covfie::vector::vector_d<scalar, 3>>>
 struct telescope_metadata {
+    using bfield_backend_t = _bfield_backend_t;
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
@@ -274,8 +290,8 @@ struct telescope_metadata {
 struct detector_registry {
     using default_detector = full_metadata<volume_stats, 1>;
     using tml_detector = full_metadata<volume_stats, 192>;
-    using toy_detector = toy_metadata;
-    using telescope_detector = telescope_metadata;
+    using toy_detector = toy_metadata<>;
+    using telescope_detector = telescope_metadata<>;
 };
 
 }  // namespace detray
