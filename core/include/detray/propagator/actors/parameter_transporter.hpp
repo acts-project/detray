@@ -148,8 +148,8 @@ struct parameter_transporter : actor {
             // Surface
             const auto& surface = det->surface_by_index(is->index);
 
-            mask_store.template call<kernel>(surface.mask(), trf_store,
-                                             surface, propagation);
+            mask_store.template call<kernel>(surface.mask(), trf_store, surface,
+                                             propagation);
         }
     }
 };  // namespace detray

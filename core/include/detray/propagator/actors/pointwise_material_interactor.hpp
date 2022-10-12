@@ -119,8 +119,7 @@ struct pointwise_material_interactor : actor {
             const auto &mat_store = det->material_store();
 
             auto succeed = mat_store.template call<kernel>(
-                surface.material(), surface, is, interactor_state,
-                stepping);
+                surface.material(), surface, is, interactor_state, stepping);
 
             if (succeed) {
 
