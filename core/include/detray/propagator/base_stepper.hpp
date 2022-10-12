@@ -78,8 +78,7 @@ class base_stepper {
                 det.surface_by_index(bound_params.surface_link());
 
             mask_store.template call<
-                typename parameter_resetter<transform3_t>::kernel,
-                typename detector_t::masks::link_type>(
+                typename parameter_resetter<transform3_t>::kernel>(
                 surface.mask_type(), trf_store, surface, *this);
         }
 

@@ -38,7 +38,7 @@ struct parameter_resetter : actor {
         DETRAY_HOST_DEVICE inline output_type operator()(
             const mask_group_t& mask_group, const index_t& /*index*/,
             const transform_store_t& trf_store, const surface_t& surface,
-            stepper_state_t& stepping) {
+            stepper_state_t& stepping) const {
 
             const auto& trf3 = trf_store[surface.transform()];
 
