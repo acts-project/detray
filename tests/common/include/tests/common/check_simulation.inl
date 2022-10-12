@@ -28,11 +28,12 @@ struct global_to_local {
 
     using output_type = point2;
 
-    template <typename mask_group_t, typename index_t, typename transform_store_t,
-              typename surface_t>
+    template <typename mask_group_t, typename index_t,
+              typename transform_store_t, typename surface_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const mask_group_t& mask_group, const index_t& /*index*/, const transform_store_t& trf_store,
-        const surface_t& surface, const point3 pos, const vector3 dir) {
+        const mask_group_t& mask_group, const index_t& /*index*/,
+        const transform_store_t& trf_store, const surface_t& surface,
+        const point3 pos, const vector3 dir) {
 
         const auto& trf3 = trf_store[surface.transform()];
 
@@ -125,8 +126,7 @@ TEST(check_simulation, toy_geometry) {
         const point3 pos{hits[i].tx, hits[i].ty, hits[i].tz};
         const vector3 mom{hits[i].tpx, hits[i].tpy, hits[i].tpz};
         const auto truth_local = mask_store.template call<global_to_local>(
-            surface.mask(), trf_store, surface, pos,
-            vector::normalize(mom));
+            surface.mask(), trf_store, surface, pos, vector::normalize(mom));
 
         local0_diff.push_back(truth_local[0] - measurements[i].local0);
         local1_diff.push_back(truth_local[1] - measurements[i].local1);

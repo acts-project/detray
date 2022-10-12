@@ -87,7 +87,8 @@ struct event_writer : actor {
 
         template <typename mask_group_t, typename index_t, typename surface_t>
         inline output_type operator()(
-            const mask_group_t& mask_group, const index_t& /*index*/, const surface_t& surface,
+            const mask_group_t& mask_group, const index_t& /*index*/,
+            const surface_t& surface,
             const bound_track_parameters<transform3_t>& bound_params,
             smearer_t smearer) {
 
