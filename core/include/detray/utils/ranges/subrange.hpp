@@ -69,8 +69,7 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
         std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
         typename = typename std::remove_reference_t<volume_t>::volume_def>
     DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, const volume_t &vol)
-        : subrange(std::forward<deduced_range_t>(range),
-                   vol.template range<value_t>()) {}
+        : subrange(std::forward<deduced_range_t>(range), vol.get_all()) {}
 
     /// Construct from a @param range and an index range @param pos.
     template <

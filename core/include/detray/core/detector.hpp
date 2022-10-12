@@ -100,7 +100,9 @@ class detector {
     /// The surface takes a mask (defines the local coordinates and the surface
     /// extent), its material, a link to an element in the transform container
     /// to define its placement and a source link to the object it represents.
-    using surface_type = surface<masks, materials, transform_link, source_link>;
+    using surface_type = surface<typename metadata::mask_link_type,
+                                 typename metadata::material_link_type,
+                                 transform_link, source_link>;
 
     using surface_container = vector_t<surface_type>;
     /// Volume type

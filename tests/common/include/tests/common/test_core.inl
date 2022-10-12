@@ -6,7 +6,6 @@
  */
 
 // Project include(s)
-#include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/masks/masks.hpp"
@@ -30,17 +29,13 @@ enum mask_ids : unsigned int {
     e_unmasked = 0,
 };
 
-using mask_defs = tuple_vector_registry<mask_ids, mask<unmasked>>;
-using mask_link_type = typename mask_defs::link_type;
-
 /// Define material types
 enum material_ids : unsigned int {
     e_slab = 0,
 };
 
-using material_defs =
-    tuple_vector_registry<material_ids, material_slab<scalar>>;
-using material_link_type = typename material_defs::link_type;
+using mask_link_t = dtyped_index<mask_ids, dindex>;
+using material_link_t = dtyped_index<material_ids, dindex>;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
@@ -56,9 +51,9 @@ TEST(ALGEBRA_PLUGIN, surface) {
     point3 t{2., 3., 4.};
     transform3 trf(t, z, x);
 
-    mask_link_type mask_id{mask_defs::id::e_unmasked, 0};
-    material_link_type material_id{material_defs::id::e_slab, 0};
-    surface<mask_defs, material_defs, transform3> s(
+    mask_link_t mask_id{mask_ids::e_unmasked, 0};
+    material_link_t material_id{material_ids::e_slab, 0};
+    surface<mask_link_t, material_link_t, transform3> s(
         std::move(trf), std::move(mask_id), std::move(material_id), -1, false,
         false);
 }

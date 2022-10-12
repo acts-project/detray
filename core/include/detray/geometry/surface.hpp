@@ -15,6 +15,11 @@
 
 namespace detray {
 
+namespace {
+
+enum surface_id { e_sensitive, e_portal, e_passive };
+}
+
 /// Templated surface class for detector surfaces and portals.
 ///
 /// @note might be holding multiple surfaces in the future
@@ -25,23 +30,22 @@ namespace detray {
 ///                             linked to the surface
 /// @tparam transform_link_t how to reference the surfaces transforms
 /// @tparam source_link_t the type of the source link representation
-template <typename mask_regsitry_t, typename material_registry_t,
+template <typename mask_link_t = dtyped_index<dindex, dindex>,
+          typename material_link_t = dtyped_index<dindex, dindex>,
           typename transform_link_t = dindex, typename source_link_t = bool>
 class surface {
 
     public:
+    /// Link type of the mask to a volume.
+    using volume_link_type = dindex;
     // Broadcast the type of links
     using transform_link = transform_link_t;
-    using mask_defs = mask_regsitry_t;
     /// might be a single mask, a range of masks or a multiindex in the future
-    using mask_link = typename mask_defs::link_type;
-    /// Link type of the mask to a volume. At least one mask type is present in
-    /// any geometry
-    using volume_link_type =
-        typename mask_defs::template get_type<mask_defs::to_id(
-            0)>::type::links_type;
-    using material_defs = material_registry_t;
-    using material_link = typename material_defs::link_type;
+    using mask_link = mask_link_t;
+    using mask_id = typename mask_link::id_type;
+    using material_link = material_link_t;
+    using material_id = typename material_link::id_type;
+    ;
     using source_link = source_link_t;
 
     /// Constructor with full arguments - move semantics

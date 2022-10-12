@@ -57,13 +57,13 @@ inline void add_cylinder_surface(
     const scalar upper_z, const volume_links volume_link,
     const material<scalar> &mat, const scalar thickness) {
     using surface_type = typename surface_container_t::value_type;
-    using mask_defs = typename surface_type::mask_defs;
+    using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
-    using material_defs = typename surface_type::material_defs;
+    using material_id = typename surface_type::material_id;
     using material_link_type = typename surface_type::material_link;
 
-    constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder2;
-    constexpr auto slab_id = material_defs::id::e_slab;
+    constexpr auto cylinder_id = mask_id::e_portal_cylinder2;
+    constexpr auto slab_id = material_id::e_slab;
 
     const scalar min_z{std::min(lower_z, upper_z)};
     const scalar max_z{std::max(lower_z, upper_z)};
@@ -112,13 +112,13 @@ inline void add_disc_surface(
     const scalar outer_r, const scalar z, const volume_links volume_link,
     const material<scalar> &mat, const scalar thickness) {
     using surface_type = typename surface_container_t::value_type;
-    using mask_defs = typename surface_type::mask_defs;
+    using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
-    using material_defs = typename surface_type::material_defs;
+    using material_id = typename surface_type::material_id;
     using material_link_type = typename surface_type::material_link;
 
-    constexpr auto disc_id = mask_defs::id::e_portal_ring2;
-    constexpr auto slab_id = material_defs::id::e_slab;
+    constexpr auto disc_id = mask_id::e_portal_ring2;
+    constexpr auto slab_id = material_id::e_slab;
 
     const scalar min_r{std::min(inner_r, outer_r)};
     const scalar max_r{std::max(inner_r, outer_r)};
@@ -235,13 +235,13 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                   config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
     using volume_link_t = typename surface_type::volume_link_type;
-    using mask_defs = typename surface_type::mask_defs;
+    using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
-    using material_defs = typename surface_type::material_defs;
+    using material_id = typename surface_type::material_id;
     using material_link_type = typename surface_type::material_link;
 
-    constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
-    constexpr auto slab_id = material_defs::id::e_slab;
+    constexpr auto rectangle_id = mask_id::e_rectangle2;
+    constexpr auto slab_id = material_id::e_slab;
 
     auto volume_id = vol.index();
     volume_link_t mask_volume_link{volume_id};
@@ -442,13 +442,13 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
                            transform_container_t &transforms, config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
     using volume_link_t = typename surface_type::volume_link_type;
-    using mask_defs = typename surface_type::mask_defs;
+    using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
-    using material_defs = typename surface_type::material_defs;
+    using material_id = typename surface_type::material_id;
     using material_link_type = typename surface_type::material_link;
 
-    constexpr auto trapezoid_id = mask_defs::id::e_trapezoid2;
-    constexpr auto slab_id = material_defs::id::e_slab;
+    constexpr auto trapezoid_id = mask_id::e_trapezoid2;
+    constexpr auto slab_id = material_id::e_slab;
 
     auto volume_id = vol.index();
     volume_link_t mask_volume_link{volume_id};

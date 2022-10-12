@@ -90,6 +90,7 @@ struct full_metadata {
     using mask_definitions =
         tuple_vector_registry<mask_ids, rectangle, trapezoid, annulus, cylinder,
                               disc>;
+    using mask_link_type = dtyped_index<mask_ids, dindex>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -100,6 +101,7 @@ struct full_metadata {
 
     // How to store and link materials
     using material_definitions = tuple_vector_registry<material_ids, slab, rod>;
+    using material_link_type = dtyped_index<material_ids, dindex>;
 
     /// How many grids have to be built
     enum grids : std::size_t {
@@ -184,6 +186,7 @@ struct toy_metadata {
     /// How to store and link masks
     using mask_definitions =
         tuple_vector_registry<mask_ids, rectangle, trapezoid, cylinder, disc>;
+    using mask_link_type = dtyped_index<mask_ids, dindex>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -193,6 +196,7 @@ struct toy_metadata {
 
     /// How to store and link materials
     using material_definitions = tuple_vector_registry<material_ids, slab>;
+    using material_link_type = dtyped_index<material_ids, dindex>;
 
     /// How many grids have to be built
     enum grids : std::size_t {
@@ -273,6 +277,7 @@ struct telescope_metadata {
     /// How to store and link masks
     using mask_definitions =
         tuple_vector_registry<mask_ids, rectangle, unbounded_plane>;
+    using mask_link_type = dtyped_index<mask_ids, dindex>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -282,6 +287,7 @@ struct telescope_metadata {
 
     /// How to store and link materials
     using material_definitions = tuple_vector_registry<material_ids, slab>;
+    using material_link_type = dtyped_index<material_ids, dindex>;
 
     /// How many grids have to be built
     enum grids : std::size_t {

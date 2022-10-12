@@ -235,12 +235,9 @@ struct enumerate : public enumerate_view<range_itr_t, incr_t> {
     template <typename deduced_range_t, typename volume_t,
               typename = typename std::remove_reference_t<volume_t>::volume_def>
     DETRAY_HOST_DEVICE enumerate(deduced_range_t &&range, const volume_t &vol)
-        : enumerate(
-              detray::ranges::subrange(std::forward<deduced_range_t>(range),
-                                       vol),
-              detray::detail::get<0>(
-                  vol.template range<typename detray::ranges::range_value_t<
-                      deduced_range_t>>())) {}
+        : enumerate(detray::ranges::subrange(
+                        std::forward<deduced_range_t>(range), vol),
+                    detray::detail::get<0>(vol.get_all())) {}
 };
 
 // deduction guides
