@@ -151,7 +151,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             const sf_finder_link_t& /*sf_finder_link*/) {
             EXPECT_EQ(vol_itr->index(), vol_index);
             EXPECT_EQ(vol_itr->bounds(), bounds);
-            EXPECT_EQ(vol_itr->range(), range);
+            EXPECT_EQ(vol_itr->obj_link(), range);
             // EXPECT_EQ(vol_itr->sf_finder_link(), sf_finder_link);
         };
 

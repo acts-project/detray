@@ -75,14 +75,6 @@ class registry_base<ID, true, registered_types...> {
         return type_id < n_types;
     }
 
-    /// Extract an index and check it.
-    template <typename object_t>
-    struct get_index {
-        static constexpr ID value = get_id<object_t>();
-        DETRAY_HOST_DEVICE
-        constexpr bool operator()() noexcept { return is_valid(value); }
-    };
-
     /// Convert index to ID and do some (limited) checking.
     ///
     /// @tparam ref_idx matches to index arg to perform static checks
@@ -129,12 +121,21 @@ class registry_base<ID, true, registered_types...> {
         return sizeof...(registered_types);
     }
 
+    /// Extract an index and check it.
+    template <typename object_t>
+    struct get_index {
+        static constexpr ID value = get_id<object_t>();
+        DETRAY_HOST_DEVICE
+        constexpr bool operator()() noexcept { return is_valid(value); }
+    };
+
     /// Return a type for an index. If the index cannot be mapped, there will be
     /// a compiler error.
     template <ID type_id, template <typename...> class tuple_t = dtuple>
     struct get_type {
-        using type = std::remove_reference_t<decltype(
-            detail::get<to_index(type_id)>(tuple_t<registered_types...>{}))>;
+        using type =
+            std::remove_reference_t<decltype(detail::get<to_index(type_id)>(
+                tuple_t<registered_types...>{}))>;
     };
 
     private:
@@ -210,8 +211,8 @@ class tuple_vector_registry
               template <typename...> class vector_t = dvector>
     using store_type =
         tuple_vector_container<tuple_t, vector_t, ID, registered_types...>;
-    using link_type = typed_index<ID, dindex>;
-    using range_type = typed_index<ID, dindex_range>;
+    using link_type = dtyped_index<ID, dindex>;
+    using range_type = dtyped_index<ID, dindex_range>;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
@@ -250,8 +251,8 @@ class tuple_array_registry<ID, std::index_sequence<sizes...>,
     using store_type = tuple_array_container<tuple_t, array_t, ID,
                                              std::index_sequence<sizes...>,
                                              registered_types...>;
-    using link_type = typed_index<ID, dindex>;
-    using range_type = typed_index<ID, dindex_range>;
+    using link_type = dtyped_index<ID, dindex>;
+    using range_type = dtyped_index<ID, dindex_range>;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;

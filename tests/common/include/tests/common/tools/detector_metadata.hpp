@@ -53,6 +53,19 @@ template <typename dynamic_data, std::size_t kBrlGrids = 1,
 struct full_metadata {
     using bfield_backend_t = _bfield_backend_t;
 
+    /// How to index the constituent objects in a volume
+    enum geo_objects : std::size_t {
+        e_sensitive = 0,
+        e_portal = 0,
+        e_passive = 0,
+        e_size = 1,
+        e_all = e_size,
+    };
+
+    /// How a volume finds its constituent objects in the detector containers
+    /// In this case: One range for sensitive/passive surfaces, one for portals
+    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
+
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store = static_transform_store<vector_t>;
@@ -141,12 +154,22 @@ template <typename _bfield_backend_t =
 struct toy_metadata {
     using bfield_backend_t = _bfield_backend_t;
 
+    /// How to index the constituent objects in a volume
+    enum geo_objects : std::size_t {
+        e_sensitive = 0,
+        e_portal = 0,
+        e_passive = 0,
+        e_size = 1,
+        e_all = e_size,
+    };
+
+    /// How a volume finds its constituent objects in the detector containers
+    /// In this case: One range for sensitive/passive surfaces, one for portals
+    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
+
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store = static_transform_store<vector_t>;
-
-    template <typename... objects>
-    using object_definitions = object_registry<objects...>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -224,12 +247,21 @@ template <typename _bfield_backend_t =
 struct telescope_metadata {
     using bfield_backend_t = _bfield_backend_t;
 
+    /// How to index the constituent objects in a volume
+    enum geo_objects : std::size_t {
+        e_sensitive = 0,
+        e_portal = 0,
+        e_size = 1,
+        e_all = e_size,
+    };
+
+    /// How a volume finds its constituent objects in the detector containers
+    /// In this case: One range for sensitive/passive surfaces, one for portals
+    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
+
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store = static_transform_store<vector_t>;
-
-    template <typename... objects>
-    using object_definitions = object_registry<objects...>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
