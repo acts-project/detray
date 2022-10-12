@@ -39,8 +39,8 @@ struct parameter_resetter : actor {
                   typename stepper_state_t>
         DETRAY_HOST_DEVICE inline output_type operator()(
             const mask_group_t& mask_group, const index_t& /*index*/,
-            const transform_store_t& trf_store, const surface_t& surface,
-            stepper_state_t& stepping) {
+            transform_store_t& trf_store, surface_t& surface,
+            stepper_state_t& stepping) const {
 
             const auto& trf3 = trf_store[surface.transform()];
 
@@ -77,7 +77,7 @@ struct parameter_resetter : actor {
         // Do covariance transport when the track is on surface
         if (navigation.is_on_module()) {
 
-            const auto& det = navigation.detector();
+            auto det = navigation.detector();
             const auto& trf_store = det->transform_store();
             const auto& mask_store = det->mask_store();
 
@@ -90,7 +90,7 @@ struct parameter_resetter : actor {
             // Set surface link
             stepping._bound_params.set_surface_link(is->index);
 
-            mask_store.template call<kernel>(surface.mask_type(), trf_store,
+            mask_store.template call<kernel>(surface.mask(), trf_store,
                                              surface, stepping);
         }
     }

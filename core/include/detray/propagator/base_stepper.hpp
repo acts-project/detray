@@ -72,15 +72,14 @@ class base_stepper {
             const detector_t &det)
             : _bound_params(bound_params) {
 
-            const auto &surface_container = det.surfaces();
             const auto &trf_store = det.transform_store();
             const auto &mask_store = det.mask_store();
             const auto &surface =
-                surface_container[bound_params.surface_link()];
+                det.surface_by_index(bound_params.surface_link());
 
             mask_store.template call<
                 typename parameter_resetter<transform3_t>::kernel>(
-                surface.mask_type(), trf_store, surface, *this);
+                surface.mask(), trf_store, surface, *this);
         }
 
         /// free track parameter

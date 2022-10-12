@@ -100,7 +100,7 @@ struct helix_inspector : actor {
             surface_container[stepping._bound_params.surface_link()];
 
         const auto free_vec = mask_store.template call<kernel>(
-            surface.mask_type(), trf_store, surface, stepping);
+            surface.mask(), trf_store, surface, stepping);
 
         const auto last_pos =
             detail::track_helper<matrix_operator>().pos(free_vec);

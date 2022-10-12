@@ -114,12 +114,12 @@ struct pointwise_material_interactor : actor {
         if (navigation.is_on_module()) {
 
             const auto &is = *navigation.current();
-            const auto &det = navigation.detector();
+            auto det = navigation.detector();
             const auto &surface = det->surface_by_index(is.index);
             const auto &mat_store = det->material_store();
 
             auto succeed = mat_store.template call<kernel>(
-                surface.material_type(), surface, is, interactor_state,
+                surface.material(), surface, is, interactor_state,
                 stepping);
 
             if (succeed) {
