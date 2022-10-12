@@ -88,8 +88,8 @@ struct parameter_resetter : actor {
             // Set surface link
             stepping._bound_params.set_surface_link(is->index);
 
-            mask_store.template call<kernel>(surface.mask(), trf_store,
-                                             surface, stepping);
+            mask_store.template call<kernel>(surface.mask(), trf_store, surface,
+                                             stepping);
         }
     }
 };
