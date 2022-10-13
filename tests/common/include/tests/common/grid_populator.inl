@@ -59,20 +59,20 @@ TEST(grid, replace_populator) {
 
     // Check test setup
     EXPECT_EQ(bin_data[2].content(), 3UL);
-    EXPECT_EQ(*replace_populator.view(bin_data, 2), 3UL);
+    EXPECT_EQ(replace_populator.view(bin_data, 2)[0], 3UL);
     EXPECT_EQ(bin_data[42].content(), 43UL);
-    EXPECT_EQ(*replace_populator.view(bin_data, 42), 43UL);
+    EXPECT_EQ(replace_populator.view(bin_data, 42)[0], 43UL);
 
     // Replace some bin entries
     dindex entry{15};
 
     replace_populator(bin_data, 2, entry);
     EXPECT_EQ(bin_data[2].content(), 15UL);
-    EXPECT_EQ(*replace_populator.view(bin_data, 2), 15UL);
+    EXPECT_EQ(replace_populator.view(bin_data, 2)[0], 15UL);
 
     replace_populator(bin_data, 2, entry);
     EXPECT_EQ(bin_data[2].content(), 15UL);
-    EXPECT_EQ(*replace_populator.view(bin_data, 2), 15UL);
+    EXPECT_EQ(replace_populator.view(bin_data, 2)[0], 15UL);
 }
 
 /// Complete populator

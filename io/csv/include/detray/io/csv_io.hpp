@@ -15,6 +15,7 @@
 #include "detray/surface_finders/brute_force_finder.hpp"
 #include "detray/surface_finders/grid2_finder.hpp"
 #include "detray/tools/bin_association.hpp"
+#include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -662,7 +663,7 @@ detector_from_csv(const std::string &detector_name,
     // Loop over the volumes
     // - fill the volume grid
     // - run the bin association
-    for (auto [iv, v] : enumerate(d.volumes())) {
+    for (auto [iv, v] : detray::views::enumerate(d.volumes())) {
         // Get the volume bounds for filling
         const auto &v_bounds = v.bounds();
 

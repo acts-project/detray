@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 

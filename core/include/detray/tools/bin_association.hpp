@@ -14,7 +14,7 @@
 
 #include "detray/tools/associator.hpp"
 #include "detray/tools/generators.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -81,7 +81,8 @@ static inline void bin_association(const context_t & /*context*/,
                         phi_borders[0] - phi_add, phi_borders[1] + phi_add);
 
                 // Run through the surfaces and associate them by contour
-                for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
+                for (auto [isf, sf] :
+                     detray::views::enumerate(dc.surfaces, volume)) {
 
                     // Add only sensitive surfaces to the grid
                     if (sf.is_portal()) {
@@ -155,7 +156,8 @@ static inline void bin_association(const context_t & /*context*/,
                                                      p3_bin};
 
                 // Loop over the surfaces within a volume
-                for (auto [isf, sf] : enumerate(dc.surfaces, volume)) {
+                for (auto [isf, sf] :
+                     detray::views::enumerate(dc.surfaces, volume)) {
 
                     // Add only sensitive surfaces to the grid
                     if (sf.is_portal()) {
