@@ -7,6 +7,7 @@
 
 #include <benchmark/benchmark.h>
 
+#include <covfie/core/field.hpp>
 #include <vecmem/memory/binary_page_memory_resource.hpp>
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
@@ -45,12 +46,11 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
     // Create the toy geometry
     detector_host_type det =
         create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(host_mr, n_brl_layers,
-                                                   n_edc_layers);
-
-    // Set the magnetic field
-    const vector3 B{0, 0, 2 * unit_constants::T};
-    field_type B_field(B);
+                            vecmem::jagged_vector>(
+            host_mr,
+            field_type(field_type::backend_t::configuration_t{
+                0.f, 0.f, 2.f * unit_constants::T}),
+            n_brl_layers, n_edc_layers);
 
     // Create RK stepper
     rk_stepper_type s;
@@ -82,7 +82,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
                 transporter_state, interactor_state, resetter_state);
 
             // Create the propagator state
-            propagator_host_type::state p_state(track, B_field, det,
+            propagator_host_type::state p_state(track, det.get_bfield(), det,
                                                 actor_states);
 
             // Run propagation

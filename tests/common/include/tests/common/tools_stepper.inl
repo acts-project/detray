@@ -9,7 +9,6 @@
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -20,6 +19,12 @@
 // google-test include(s)
 #include <gtest/gtest.h>
 
+// covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
+#include <covfie/core/vector.hpp>
+
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 using vector2 = __plugin::vector2<scalar>;
@@ -27,9 +32,11 @@ using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 using transform3 = __plugin::transform3<scalar>;
 using matrix_operator = standard_matrix_operator<scalar>;
-using mag_field_t = constant_magnetic_field<>;
-using rk_stepper_t = rk_stepper<mag_field_t, transform3>;
-using crk_stepper_t = rk_stepper<mag_field_t, transform3, constrained_step<>>;
+using mag_field_t = covfie::field<covfie::backend::constant<
+    covfie::vector::vector_d<scalar, 3>, covfie::vector::vector_d<scalar, 3>>>;
+using rk_stepper_t = rk_stepper<mag_field_t::view_t, transform3>;
+using crk_stepper_t =
+    rk_stepper<mag_field_t::view_t, transform3, constrained_step<>>;
 
 namespace {
 
@@ -142,7 +149,8 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     // Constant magnetic field
     vector3 B{1 * unit_constants::T, 1 * unit_constants::T,
               1 * unit_constants::T};
-    mag_field_t mag_field(B);
+    mag_field_t mag_field(
+        typename mag_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
 
     // RK stepper
     rk_stepper_t rk_stepper;

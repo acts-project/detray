@@ -36,8 +36,6 @@ detray_add_library( detray_core core
    "include/detray/definitions/units.hpp"
    "include/detray/definitions/detail/accessor.hpp"
    "include/detray/definitions/track_parametrization.hpp"
-   # field include(s)
-   "include/detray/field/constant_magnetic_field.hpp"
    # geometry include(s)
    "include/detray/geometry/surface.hpp"
    "include/detray/geometry/volume_connector.hpp"

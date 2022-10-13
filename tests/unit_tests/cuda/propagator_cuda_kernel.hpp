@@ -17,8 +17,10 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
+
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
@@ -37,18 +39,20 @@ using namespace detray;
 using intersection_t = line_plane_intersection;
 using transform3 = __plugin::transform3<scalar>;
 using detector_host_type =
-    detector<detector_registry::toy_detector, darray, thrust::tuple,
-             vecmem::vector, vecmem::jagged_vector>;
+    detector<detector_registry::toy_detector, covfie::field, darray,
+             thrust::tuple, vecmem::vector, vecmem::jagged_vector>;
 using detector_device_type =
-    detector<detector_registry::toy_detector, darray, thrust::tuple,
-             vecmem::device_vector, vecmem::jagged_device_vector>;
+    detector<detector_registry::toy_detector, covfie::field_view, darray,
+             thrust::tuple, vecmem::device_vector,
+             vecmem::jagged_device_vector>;
 
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 
 using constraints_t = constrained_step<>;
-using field_type = constant_magnetic_field<>;
-using rk_stepper_type = rk_stepper<field_type, transform3, constraints_t>;
+using field_type = detector_host_type::bfield_type;
+using rk_stepper_type =
+    rk_stepper<field_type::view_t, transform3, constraints_t>;
 
 using matrix_operator = standard_matrix_operator<scalar>;
 using free_matrix = typename free_track_parameters<transform3>::covariance_type;
@@ -129,7 +133,7 @@ using propagator_device_type =
 
 /// test function for propagator with single state
 void propagator_test(
-    detector_view<detector_host_type> det_data, const vector3 B,
+    detector_view<detector_host_type> det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> &tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
     vecmem::data::jagged_vector_view<scalar> &path_lengths_data,

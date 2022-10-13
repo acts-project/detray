@@ -18,7 +18,7 @@ __global__ void telescope_propagation_test_kernel(
         initial_states,
     vecmem::data::vector_view<bound_track_parameters<transform3>>
         final_states) {
-
+    /*
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     detector_device_type det(det_data);
@@ -33,7 +33,8 @@ __global__ void telescope_propagation_test_kernel(
     }
 
     // Set the magnetic field
-    field_type B_field(B);
+    field_device_type B_field{
+        field_device_type::backend_t::configuration_t{B[0], B[1], B[2]}};
 
     // Propagator is built from the stepper and navigator
     propagator_device_type p({}, {});
@@ -57,6 +58,7 @@ __global__ void telescope_propagation_test_kernel(
     p.propagate(state);
 
     device_final_states[gid] = state._stepping._bound_params;
+    */
 }
 
 void telescope_propagation_test(

@@ -178,7 +178,7 @@ option( DETRAY_USE_SYSTEM_COVFIE
    ${DETRAY_USE_SYSTEM_LIBS} )
 if( DETRAY_SETUP_COVFIE )
    if( DETRAY_USE_SYSTEM_COVFIE )
-      find_package( covfie REQUIRED )
+      find_package( covfie 0.5.0 REQUIRED )
    else()
       add_subdirectory( extern/covfie )
    endif()

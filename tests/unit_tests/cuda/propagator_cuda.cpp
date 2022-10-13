@@ -24,11 +24,15 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
 
+    // Set the magnetic field
+    const vector3 B = GetParam();
+
     // Create the toy geometry
-    detector_host_type det =
-        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(mng_mr, n_brl_layers,
-                                                   n_edc_layers);
+    detector_host_type det = create_toy_geometry<
+        darray, thrust::tuple, vecmem::vector, vecmem::jagged_vector>(
+        mng_mr,
+        field_type(field_type::backend_t::configuration_t{B[0], B[1], B[2]}),
+        n_brl_layers, n_edc_layers);
 
     // Create the vector of initial track parameters
     vecmem::vector<free_track_parameters<transform3>> tracks_host(&mng_mr);
@@ -53,10 +57,6 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
      * Host propagation
      */
 
-    // Set the magnetic field
-    const vector3 B = GetParam();
-    field_type B_field(B);
-
     // Create RK stepper
     rk_stepper_type s;
     // Create navigator
@@ -77,9 +77,8 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         parameter_transporter<transform3>::state transporter_state{};
         pointwise_material_interactor<transform3>::state interactor_state{};
         parameter_resetter<transform3>::state resetter_state{};
-
         propagator_host_type::state state(
-            tracks_host[i], B_field, det,
+            tracks_host[i], det.get_bfield(), det,
             thrust::tie(insp_state, pathlimit_state, transporter_state,
                         interactor_state, resetter_state));
 
@@ -131,7 +130,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     copy.setup(jac_transports_buffer);
 
     // Run the propagator test for GPU device
-    propagator_test(det_data, B, tracks_data, candidates_buffer,
+    propagator_test(det_data, tracks_data, candidates_buffer,
                     path_lengths_buffer, positions_buffer,
                     jac_transports_buffer);
 

@@ -7,7 +7,6 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
@@ -15,6 +14,10 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
+
+// Covfie include(s).
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
 
 // Vecmem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
