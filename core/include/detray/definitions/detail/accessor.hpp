@@ -17,7 +17,7 @@
 
 #include <algorithm>
 #include <array>
-#include <climits>
+#include <limits>
 #include <tuple>
 #include <type_traits>
 #include <utility>
