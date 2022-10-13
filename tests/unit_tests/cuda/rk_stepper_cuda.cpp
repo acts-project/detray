@@ -56,9 +56,10 @@ TEST(rk_stepper_cuda, bound_state) {
 
     // Get CPU bound parameter after one turn
 
-    mag_field_t mag_field(B);
+    mag_field_t mag_field(
+        mag_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
     prop_state<crk_stepper_t::state, nav_state> propagation{
-        crk_stepper_t::state(in_param, mag_field), nav_state{}};
+        crk_stepper_t::state(in_param, trf, mag_field), nav_state{}};
     crk_stepper_t::state &crk_state = propagation._stepping;
     nav_state &n_state = propagation._navigation;
 
@@ -118,6 +119,6 @@ TEST(rk_stepper_cuda, bound_state) {
             EXPECT_NEAR(matrix_operator().element(bcov_cpu, i, j),
                         matrix_operator().element(bcov_cuda, i, j), epsilon);
         }
-   }
-   */
+    }
+    */
 }

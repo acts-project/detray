@@ -21,6 +21,9 @@
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/field.hpp>
+
 // System include(s)
 #include <map>
 #include <sstream>
@@ -39,7 +42,7 @@ namespace detray {
 /// @tparam tuple_t the type of the internal tuple, must have STL semantics
 /// @tparam vector_t the type of the internal array, must have STL semantics
 /// @tparam source_link the surface source link
-template <typename metadata,
+template <typename metadata, template <typename> class bfield_t = covfie::field,
           template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class vector_t = dvector,
@@ -54,6 +57,10 @@ class detector {
     using point3 = __plugin::point3<scalar_type>;
     using vector3 = __plugin::vector3<scalar_type>;
     using point2 = __plugin::point2<scalar_type>;
+
+    using bfield_backend_type = typename metadata::bfield_backend_t;
+
+    using bfield_type = bfield_t<bfield_backend_type>;
 
     /// Raw container types
     template <typename T>
@@ -113,6 +120,23 @@ class detector {
     /// Allowed costructor
     /// @param resource memory resource for the allocation of members
     DETRAY_HOST
+    detector(vecmem::memory_resource &resource, bfield_type &&field)
+        : _volumes(&resource),
+          _surfaces(&resource),
+          _transforms(resource),
+          _masks(resource),
+          _materials(resource),
+          //_sf_finders(resource),
+          _volume_finder(
+              std::move(typename volume_finder::axis_p0_type{resource}),
+              std::move(typename volume_finder::axis_p1_type{resource}),
+              resource),
+          _resource(&resource),
+          _bfield(field) {}
+
+    /// Constructor with simplified constant-zero B-field
+    /// @param resource memory resource for the allocation of members
+    DETRAY_HOST
     detector(vecmem::memory_resource &resource)
         : _volumes(&resource),
           _surfaces(&resource),
@@ -124,7 +148,9 @@ class detector {
               std::move(typename volume_finder::axis_p0_type{resource}),
               std::move(typename volume_finder::axis_p1_type{resource}),
               resource),
-          _resource(&resource) {}
+          _resource(&resource),
+          _bfield(typename bfield_type::backend_t::configuration_t{0.f, 0.f,
+                                                                   0.f}) {}
 
     /// Constructor with detector_data
     template <typename detector_data_type,
@@ -137,7 +163,8 @@ class detector {
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
           _materials(det_data._materials_data),
-          _volume_finder(det_data._volume_finder_view) {}
+          _volume_finder(det_data._volume_finder_view),
+          _bfield(det_data._bfield_view) {}
 
     /// Add a new volume and retrieve a reference to it
     ///
@@ -439,6 +466,9 @@ class detector {
         return _n_max_objects_per_volume;
     }
 
+    DETRAY_HOST_DEVICE
+    inline const bfield_type &get_bfield() const { return _bfield; }
+
     /// @param names maps a volume to its string representation.
     /// @returns a string representation of the detector.
     DETRAY_HOST
@@ -520,6 +550,9 @@ class detector {
     /// candidates vector in the navigator. Is determined during detector
     /// building.
     dindex _n_max_objects_per_volume = 0;
+
+    /** Storage for magnetic field data */
+    bfield_type _bfield;
 };
 
 /// @brief A static inplementation of detector data for device
@@ -534,6 +567,7 @@ struct detector_data {
     using transform_container_t = typename detector_type::transform_container;
     using volume_finder_t = typename detector_type::volume_finder;
     // using surfaces_finder_t = typename detector_type::surfaces_finder_type;
+    using bfield_t = typename detector_type::bfield_type::view_t;
 
     detector_data(detector_type &det)
         : _volumes_data(vecmem::get_data(det.volumes())),
@@ -542,7 +576,8 @@ struct detector_data {
           _materials_data(get_data(det.material_store())),
           _transforms_data(get_data(det.transform_store())),
           _volume_finder_data(
-              get_data(det.volume_search_grid(), *det.resource())) {}
+              get_data(det.volume_search_grid(), *det.resource())),
+          _bfield_data(det.get_bfield()) {}
 
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
@@ -551,6 +586,7 @@ struct detector_data {
     tuple_vector_container_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_data<volume_finder_t> _volume_finder_data;
+    bfield_t _bfield_data;
 };
 
 /// @brief A static inplementation of detector view for device
@@ -564,6 +600,7 @@ struct detector_view {
     using material_container_t = typename detector_type::material_container;
     using transform_container_t = typename detector_type::transform_container;
     using volume_finder_t = typename detector_type::volume_finder;
+    using bfield_t = typename detector_type::bfield_type::view_t;
 
     detector_view(detector_data<detector_type> &det_data)
         : _volumes_data(det_data._volumes_data),
@@ -571,7 +608,8 @@ struct detector_view {
           _masks_data(det_data._masks_data),
           _materials_data(det_data._materials_data),
           _transforms_data(det_data._transforms_data),
-          _volume_finder_view(det_data._volume_finder_data) {}
+          _volume_finder_view(det_data._volume_finder_data),
+          _bfield_view(det_data._bfield_data) {}
 
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
@@ -580,20 +618,22 @@ struct detector_view {
     tuple_vector_container_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_view<volume_finder_t> _volume_finder_view;
+    bfield_t _bfield_view;
 };
 
 /// stand alone function for that @returns the detector data for transfer to
 /// device.
 ///
 /// @param detector the detector to be tranferred
-template <typename metadata, template <typename, std::size_t> class array_t,
+template <typename detector_registry, template <typename> class bfield_t,
+          template <typename, std::size_t> class array_t,
           template <typename...> class tuple_t,
           template <typename...> class vector_t,
           template <typename...> class jagged_vector_t, typename source_link>
-inline detector_data<detector<metadata, array_t, tuple_t, vector_t,
-                              jagged_vector_t, source_link> >
-get_data(detector<metadata, array_t, tuple_t, vector_t, jagged_vector_t,
-                  source_link> &det) {
+inline detector_data<detector<detector_registry, bfield_t, array_t, tuple_t,
+                              vector_t, jagged_vector_t, source_link> >
+get_data(detector<detector_registry, bfield_t, array_t, tuple_t, vector_t,
+                  jagged_vector_t, source_link> &det) {
     return det;
 }
 

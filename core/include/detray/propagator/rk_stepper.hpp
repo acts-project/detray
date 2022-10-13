@@ -36,7 +36,6 @@ class rk_stepper final
     using point3 = typename transform3_type::point3;
     using vector2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
-    using context_type = typename magnetic_field_t::context_type;
     using matrix_operator = typename base_type::matrix_operator;
     using column_wise_op = column_wise_operator<matrix_operator>;
 
@@ -55,15 +54,13 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type& t,
               const magnetic_field_t& mag_field)
-            : base_type::state(t), _magnetic_field(&mag_field) {}
+            : base_type::state(t), _magnetic_field(mag_field) {}
 
         template <typename detector_t>
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type& bound_params,
             const magnetic_field_t& mag_field, const detector_t& det)
-            : base_type::state(bound_params, det),
-              _magnetic_field(&mag_field) {}
-
+            : base_type::state(bound_params, det), _magnetic_field(mag_field) {}
         /// error tolerance
         scalar _tolerance = 1e-4;
 
@@ -80,7 +77,7 @@ class rk_stepper final
             array_t<scalar, 4> k_qop;
         } _step_data;
 
-        const magnetic_field_t* const _magnetic_field;
+        const magnetic_field_t _magnetic_field;
 
         // Set the local error tolerenace
         DETRAY_HOST_DEVICE

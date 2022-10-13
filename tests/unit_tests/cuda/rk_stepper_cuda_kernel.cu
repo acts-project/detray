@@ -5,24 +5,33 @@
  * Mozilla Public License Version 2.0
  */
 
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
+#include <covfie/core/vector.hpp>
 #include <vecmem/containers/device_vector.hpp>
 
 #include "detray/definitions/cuda_definitions.hpp"
 #include "rk_stepper_cuda_kernel.hpp"
 
+namespace {
+using field_t = covfie::field<
+    covfie::backend::constant<covfie::vector::vector_d<detray::scalar, 3>,
+                              covfie::vector::vector_d<detray::scalar, 3>>>;
+}
+
 namespace detray {
 
 __global__ void bound_state_test_kernel(
     vecmem::data::vector_view<bound_track_parameters<transform3>> out_param,
-    const bound_track_parameters<transform3> in_param, const vector3 B,
+    const bound_track_parameters<transform3> in_param, const field_t::view_t B,
     const transform3 trf) {
     /*
     vecmem::device_vector<bound_track_parameters<transform3>> out_param_cuda(
         out_param);
 
-    mag_field_t mag_field(B);
     prop_state<crk_stepper_t::state, nav_state> propagation{
-        crk_stepper_t::state(in_param, mag_field), nav_state{}};
+        crk_stepper_t::state(in_param, trf, B), nav_state{}};
     crk_stepper_t::state &crk_state = propagation._stepping;
     nav_state &n_state = propagation._navigation;
 
@@ -31,9 +40,11 @@ __global__ void bound_state_test_kernel(
 
     // RK stepper and its state
     crk_stepper_t crk_stepper;
+    vector3 Bv{B.at(0.f, 0.f, 0.f)[0], B.at(0.f, 0.f, 0.f)[1],
+               B.at(0.f, 0.f, 0.f)[2]};
 
     // Path length per turn
-    scalar S = 2. * std::fabs(1. / in_param.qop()) / getter::norm(B) * M_PI;
+    scalar S = 2. * std::fabs(1. / in_param.qop()) / getter::norm(Bv) * M_PI;
 
     // Run stepper for one turn
     unsigned int max_steps = 1e4;
@@ -63,8 +74,10 @@ void bound_state_test(
     constexpr int thread_dim = 1;
     constexpr int block_dim = 1;
 
+    field_t f(field_t::backend_t::configuration_t{B[0], B[1], B[2]});
+
     // run the test kernel
-    bound_state_test_kernel<<<block_dim, thread_dim>>>(out_param, in_param, B,
+    bound_state_test_kernel<<<block_dim, thread_dim>>>(out_param, in_param, f,
                                                        trf);
 
     // cuda error check
