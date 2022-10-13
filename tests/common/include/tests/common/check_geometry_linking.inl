@@ -36,7 +36,7 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
     volume_graph graph(det);
     const auto &adj_mat = graph.adjacency_matrix();
 
-    std::cout << graph.to_string() << std::endl;
+    // std::cout << graph.to_string() << std::endl;
 
     auto geo_checker = hash_tree(adj_mat);
 

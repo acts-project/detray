@@ -115,7 +115,6 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
             matrix_operator().template zero<3, 2>();
 
         const point2 local2 = this->global_to_local(trf3, pos, dir);
-        // this->operator()(pos);
         const scalar_type lrad = local2[0];
         const scalar_type lphi = local2[1];
 

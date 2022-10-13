@@ -89,7 +89,7 @@ TEST(grids_cuda, grid3_replace_populator) {
                 const auto& bin = g3.at({i_x, i_y, i_z});
                 auto invalid_bin =
                     host_grid3_replace::populator_type::init<point3>();
-                test_content(*bin, invalid_bin.content());
+                test_content(bin[0], invalid_bin.content());
             }
         }
     }
@@ -109,7 +109,7 @@ TEST(grids_cuda, grid3_replace_populator) {
                                 axis_y.min() + gbin_idx * width_y,
                                 axis_z.min() + gbin_idx * width_z};
 
-                test_content(*bin, tp);
+                test_content(bin[0], tp);
             }
         }
     }
@@ -148,7 +148,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
             auto invalid_bin =
                 host_grid2_replace_ci::populator_type::init<point3>();
 
-            test_content(*bin, invalid_bin.content());
+            test_content(bin[0], invalid_bin.content());
         }
     }
 
@@ -169,7 +169,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
             const point3 tp{axis_r.min() + gbin_idx * width_r,
                             axis_phi.min() + gbin_idx * width_phi, 0.5};
 
-            test_content(*bin, tp);
+            test_content(bin[0], tp);
         }
     }
 }

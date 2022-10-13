@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
 #include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
 
@@ -57,7 +58,8 @@ struct helix_intersection_update {
         const auto &ctf = contextual_transforms[surface.transform()];
 
         // Run over the masks belonged to the surface
-        for (const auto &mask : range(mask_group, mask_range)) {
+        for (const auto &mask :
+             detray::ranges::subrange(mask_group, mask_range)) {
 
             using mask_t = typename mask_group_t::value_type;
             if constexpr (std::is_same_v<

@@ -145,7 +145,9 @@ class mask {
     }
 
     /// @returns return local frame object
-    local_frame_type local_frame() const { return local_frame_type{}; }
+    DETRAY_HOST_DEVICE inline constexpr local_frame_type local_frame() const {
+        return local_frame_type{};
+    }
 
     /// @returns the boundary values
     DETRAY_HOST_DEVICE
