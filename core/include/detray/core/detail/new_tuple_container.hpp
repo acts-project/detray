@@ -9,6 +9,7 @@
 
 // Detray include(s)
 #include "detray/core/detail/container_views.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
@@ -20,8 +21,6 @@
 #include <type_traits>
 
 namespace detray {
-
-using vecmem::get_data;
 
 namespace detail {
 
@@ -49,10 +48,12 @@ class tuple_container {
 
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
-    DETRAY_HOST explicit tuple_container(vecmem::memory_resource &resource)
+    template <typename allocator_t = vecmem::memory_resource,
+              std::enable_if_t<not is_device_view_v<allocator_t>, bool> = true>
+    DETRAY_HOST explicit tuple_container(allocator_t &resource)
         : _tuple(Ts(&resource)...) {}
 
-    /// Copy Construct with a specific vecmem memory resource @param resource
+    /// Copy Construct with a specific (vecmem) memory resource @param resource
     /// (host-side only)
     template <
         typename allocator_t = vecmem::memory_resource,
@@ -62,11 +63,7 @@ class tuple_container {
                                          const Ts &...args)
         : _tuple(std::allocator_arg, resource, args...) {}
 
-    /// Construct from the container view type. Mainly used device-side.
-    ///
-    /// @tparam is the type of input data container
-    ///
-    /// @param container_data is the data container
+    /// Construct from the container @param view type. Mainly used device-side.
     template <typename tuple_view_t,
               std::enable_if_t<is_device_view_v<tuple_view_t>, bool> = true>
     DETRAY_HOST_DEVICE tuple_container(tuple_view_t &view)
@@ -80,7 +77,7 @@ class tuple_container {
         return {detray::get_data(detail::get<I>(_tuple))...};
     }
 
-    /// @returns the view for all contained types.
+    /// @returns the const view for all contained types.
     template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
     DETRAY_HOST const_view_type
