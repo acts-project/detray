@@ -19,6 +19,7 @@ detray_add_library( detray_core core
    "include/detray/coordinates/line2.hpp"
    "include/detray/coordinates/polar2.hpp"
    # core include(s)
+   "include/detray/core/detail/data_store.hpp"
    "include/detray/core/detail/tuple_array_container.hpp"
    "include/detray/core/detail/tuple_container.hpp"
    "include/detray/core/detail/new_tuple_container.hpp"
