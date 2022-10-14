@@ -114,9 +114,4 @@ template <typename... view_ts>
 using dmulti_view = detray::detail::dmulti_view_helper<
     std::conjunction_v<detail::is_device_view<view_ts>...>, view_ts...>;
 
-/// Forward declare a generic 'get_data' function, to which all subsequent
-/// definitions will be template specializations.
-template <typename T>
-typename T::view_type get_data(T&);
-
 }  // namespace detray
