@@ -54,8 +54,6 @@ class data_store {
     using type_matcher = registry_base<ID, true, Ts...>;
     template <ID id>
     using get_type = typename type_matcher::template get_type<id>::type;
-    // using type_matcher::to_id;
-    // using type_matcher::to_index;
     /// @}
 
     /// Underlying tuple container that can handle vecmem views
@@ -113,20 +111,121 @@ class data_store {
     DETRAY_HOST_DEVICE
     constexpr auto data() -> tuple_type * { return m_tuple_container; }
 
+    /// @returns the size of the underlying tuple
+    template <ID id>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() const noexcept {
+        return detail::get<type_matcher::to_index(id)>(m_tuple_container);
+    }
+
+    /// @returns the size of the underlying tuple
+    template <ID id>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() noexcept {
+        return detail::get<type_matcher::to_index(id)>(m_tuple_container);
+    }
+
     /// @returns the size of a data collection by id
-    /*template <ID id>
-    DETRAY_HOST_DEVICE
-    constexpr auto size() const -> std::size_t {
-        return detail::get<to_index(id)>(m_tuple_container).size();
+    template <ID id>
+    DETRAY_HOST_DEVICE constexpr auto size() const -> std::size_t {
+        return detail::get<type_matcher::to_index(id)>(m_tuple_container)
+            .size();
     }
 
     /// @tparam ID is the index of tuple element
     /// @returns true if the tuple element is empty
     template <ID id>
-    DETRAY_HOST_DEVICE
-    bool empty() const {
-        return detail::get<to_index(id)>(m_tuple_container).empty();
-    }*/
+    DETRAY_HOST_DEVICE constexpr auto empty() const -> bool {
+        return detray::detail::get<type_matcher::to_index(id)>(
+                   m_tuple_container)
+            .empty();
+    }
+
+    /// Add a new value to a collection
+    ///
+    /// @tparam ID is the index of target vector
+    /// @tparam Args are the types of the constructor arguments
+    ///
+    /// @param args is the list of constructor argument
+    ///
+    /// @note in general can throw an exception
+    template <ID id, typename T>
+    DETRAY_HOST constexpr auto push_back(const T &arg) noexcept(false) -> void {
+        auto &coll = detail::get<type_matcher::to_index(id)>(m_tuple_container);
+        return coll.push_back(arg);
+    }
+
+    /// Add a new value to a collection in place
+    ///
+    /// @tparam ID is the index of target vector
+    /// @tparam Args are the types of the constructor arguments
+    ///
+    /// @param args is the list of constructor argument
+    ///
+    /// @note in general can throw an exception
+    template <ID id, typename... Args>
+    DETRAY_HOST constexpr decltype(auto) emplace_back(Args &&...args) noexcept(
+        false) {
+        auto &coll = detail::get<type_matcher::to_index(id)>(m_tuple_container);
+        return coll.emplace_back(std::forward<Args>(args)...);
+    }
+
+    /// Add a new vector
+    ///
+    /// @tparam current_id is the index of target vector
+    /// @tparam T is the value type
+    ///
+    /// @param vec is the vector to be added
+    ///
+    /// @note in general can throw an exception
+    template <typename T>
+    DETRAY_HOST auto insert(const container_t<T> &new_data) noexcept(false)
+        -> void {
+
+        static_assert((std::is_same_v<T, Ts> || ...) == true,
+                      "The type is not included in the parameter pack.");
+
+        auto &coll = detail::get<container_t<T>>(m_tuple_container);
+
+        coll.reserve(coll.size() + new_data.size());
+        coll.insert(coll.end(), new_data.begin(), new_data.end());
+    }
+
+    /// Add a new vector (move semantics)
+    ///
+    /// @tparam current_id is the index of target vector
+    /// @tparam T is the value type
+    ///
+    /// @param vec is the vector to be added
+    ///
+    /// @note in general can throw an exception
+    template <typename T>
+    DETRAY_HOST auto insert(container_t<T> &&new_data) noexcept(false) -> void {
+
+        static_assert((std::is_same_v<T, Ts> || ...) == true,
+                      "The type is not included in the parameter pack.");
+
+        auto &coll = detail::get<container_t<T>>(m_tuple_container);
+
+        coll.reserve(coll.size() + new_data.size());
+        coll.insert(coll.end(), std::make_move_iterator(new_data.begin()),
+                    std::make_move_iterator(new_data.end()));
+    }
+
+    /// Append another store to the current one
+    ///
+    /// @tparam current_idx is the index to start unrolling
+    ///
+    /// @param other The other container
+    ///
+    /// @note in general can throw an exception
+    template <std::size_t current_idx = 0>
+    DETRAY_HOST void append(data_store &other) noexcept(false) {
+        auto &coll = detail::get<current_idx>(other);
+        insert(coll);
+
+        if constexpr (current_idx < sizeof...(Ts) - 1) {
+            append<current_idx + 1>(other);
+        }
+    }
 
     /// Calls a functor on a specific element of the tuple (given by ID).
     ///
@@ -143,79 +242,6 @@ class data_store {
         return unroll_call<functor_t>(static_cast<size_type>(id),
                                       std::make_index_sequence<sizeof...(Ts)>{},
                                       std::forward<Args>(args)...);
-    }
-
-    /// Add a new value in place
-    ///
-    /// @tparam ID is the index of target vector
-    /// @tparam Args are the types of the constructor arguments
-    ///
-    /// @param args is the list of constructor argument
-    ///
-    /// @note in general can throw an exception
-    template <id_t ID, typename... Args>
-    DETRAY_HOST auto &emplace_back(Args &&...args) noexcept(false) {
-        auto &gr = detail::get<to_index(ID)>(m_container);
-        return gr.emplace_back(std::forward<Args>(args)...);
-    }
-
-    /// Add a new vector
-    ///
-    /// @tparam current_id is the index of target vector
-    /// @tparam T is the value type
-    ///
-    /// @param vec is the vector to be added
-    ///
-    /// @note in general can throw an exception
-    template <typename container_t, typename T>
-    DETRAY_HOST inline void insert(vector_type<T> &vec) noexcept(false) {
-
-        static_assert((std::is_same_v<T, Ts> || ...) == true,
-                      "The type is not included in the parameter pack.");
-
-        auto &gr = detail::get<vector_type<T>>(this->m_container);
-
-        gr.reserve(gr.size() + vec.size());
-        gr.insert(gr.end(), vec.begin(), vec.end());
-    }
-
-    /// Add a new vector (move semantics)
-    ///
-    /// @tparam current_id is the index of target vector
-    /// @tparam T is the value type
-    ///
-    /// @param vec is the vector to be added
-    ///
-    /// @note in general can throw an exception
-    template <typename T>
-    DETRAY_HOST inline void insert(vector_type<T> &&vec) noexcept(false) {
-
-        static_assert((std::is_same_v<T, Ts> || ...) == true,
-                      "The type is not included in the parameter pack.");
-
-        auto &gr = detail::get<vector_type<T>>(this->m_container);
-
-        gr.reserve(gr.size() + vec.size());
-        gr.insert(gr.end(), std::make_move_iterator(vec.begin()),
-                  std::make_move_iterator(vec.end()));
-    }
-
-    /// Append a container to the current one
-    ///
-    /// @tparam current_idx is the index to start unrolling
-    ///
-    /// @param other The other container
-    ///
-    /// @note in general can throw an exception
-    template <std::size_t current_idx = 0>
-    DETRAY_HOST inline void append(tuple_vector_container &other) noexcept(
-        false) {
-        auto &gr = detail::get<current_idx>(other);
-        add_vector(gr);
-
-        if constexpr (current_idx < sizeof...(Ts) - 1) {
-            append_container<current_idx + 1>(other);
-        }
     }*/
 
     private:
