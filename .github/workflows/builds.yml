@@ -52,7 +52,7 @@ jobs:
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "HOST"
-            CONTAINER: "ghcr.io/acts-project/ubuntu2004:v26"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2004:v30"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
 
     # The system to run on.
@@ -102,10 +102,10 @@ jobs:
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "CUDA"
-            CONTAINER: "ghcr.io/acts-project/ubuntu2004_cuda:v26"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2004_cuda:v30"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
           - NAME: "SYCL"
-            CONTAINER: "ghcr.io/acts-project/ubuntu2004_oneapi:v26"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2004_oneapi:v30"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
 
     # The system to run on.
