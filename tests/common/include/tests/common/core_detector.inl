@@ -30,7 +30,8 @@ TEST(detector, detector_kernel) {
 
     vecmem::host_memory_resource host_mr;
 
-    using detector_t = detector<detector_registry::default_detector>;
+    using detector_t =
+        detector<detector_registry::default_detector, covfie::field>;
     using mask_ids = typename detector_t::masks::id;
     using material_ids = typename detector_t::materials::id;
 
@@ -41,25 +42,23 @@ TEST(detector, detector_kernel) {
     detector_t::mask_container masks(host_mr);
     detector_t::material_container materials(host_mr);
 
-    typename detector_t::surface_type::edge_type mask_edge{0, 0};
-
     /// Surface 0
     point3 t0{0., 0., 0.};
     trfs.emplace_back(ctx0, t0);
-    masks.template add_value<mask_ids::e_rectangle2>(-3., 3., mask_edge);
+    masks.template add_value<mask_ids::e_rectangle2>(0UL, -3.f, 3.f);
     materials.template add_value<material_ids::e_slab>(gold<scalar>(), 3.);
 
     /// Surface 1
     point3 t1{1., 0., 0.};
     trfs.emplace_back(ctx0, t1);
-    masks.template add_value<mask_ids::e_annulus2>(1., 2., 3., 4., 5., 6., 7.,
-                                                   mask_edge);
+    masks.template add_value<mask_ids::e_annulus2>(0UL, 1.f, 2.f, 3.f, 4.f, 5.f,
+                                                   6.f, 7.f);
     materials.template add_value<material_ids::e_slab>(tungsten<scalar>(), 12.);
 
     /// Surface 2
     point3 t2{2., 0., 0.};
     trfs.emplace_back(ctx0, t2);
-    masks.template add_value<mask_ids::e_trapezoid2>(1., 2., 3., mask_edge);
+    masks.template add_value<mask_ids::e_trapezoid2>(0UL, 1.f, 2.f, 3.f);
     materials.template add_value<material_ids::e_rod>(aluminium<scalar>(), 4.);
 
     detector_t d(host_mr);

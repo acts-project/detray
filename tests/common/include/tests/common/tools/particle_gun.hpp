@@ -15,7 +15,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
 namespace detray {
 
@@ -50,19 +50,18 @@ struct particle_gun {
         const auto &tf_store = detector.transform_store();
 
         for (const auto &volume : detector.volumes()) {
-            for (const auto &[sf_idx, sf] :
-                 enumerate(detector.surfaces(), volume)) {
+            for (const auto [sf_idx, sf] :
+                 detray::views::enumerate(detector.surfaces(), volume)) {
 
                 // Retrieve candidate from the surface
                 // NOTE: Change to interection_initialize
                 intersection_type sfi;
                 if constexpr (std::is_same_v<trajectory_t, helix_type>) {
-                    sfi =
-                        mask_store.template execute<helix_intersection_update>(
-                            sf.mask_type(), traj, sf, tf_store, 1e-4);
+                    sfi = mask_store.template call<helix_intersection_update>(
+                        sf.mask(), traj, sf, tf_store, 1e-4);
                 } else {
-                    sfi = mask_store.template execute<intersection_update>(
-                        sf.mask_type(), traj, sf, tf_store);
+                    sfi = mask_store.template call<intersection_update>(
+                        sf.mask(), traj, sf, tf_store);
                 }
                 // Candidate is invalid if it oversteps too far (this is neg!)
                 if (sfi.path < traj.overstep_tolerance()) {

@@ -11,14 +11,17 @@
 #include "detray/core/detector.hpp"
 #include "detray/geometry/volume_connector.hpp"
 #include "detray/grids/axis.hpp"
-#include "detray/grids/grid2.hpp"
-#include "detray/grids/populator.hpp"
-#include "detray/grids/serializer2.hpp"
 #include "detray/io/csv_io_types.hpp"
+#include "detray/surface_finders/brute_force_finder.hpp"
+#include "detray/surface_finders/grid2_finder.hpp"
 #include "detray/tools/bin_association.hpp"
+#include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
+
+// Covfie include(s)
+#include <covfie/core/field_view.hpp>
 
 // System include(s)
 #include <climits>
@@ -26,6 +29,58 @@
 #include <vector>
 
 namespace detray {
+
+namespace {
+
+/// Functor that writes grid entries from the surface finder
+/// container to file
+struct grid_writer {
+    using output_type = bool;
+
+    template <
+        typename grid_group_t, typename grid_index_t, typename grid_entry_t,
+        typename writer_t,
+        std::enable_if_t<not std::is_same_v<typename grid_group_t::value_type,
+                                            brute_force_finder>,
+                         bool> = true>
+    inline output_type operator()(const grid_group_t &grid_group,
+                                  const grid_index_t &grid_idx,
+                                  grid_entry_t &csv_ge,
+                                  writer_t &sge_writer) const {
+
+        const auto &grid = grid_group.at(grid_idx);
+
+        size_t nbins0 = grid.axis_p0().bins();
+        size_t nbins1 = grid.axis_p1().bins();
+        for (size_t b0 = 0; b0 < nbins0; ++b0) {
+            for (size_t b1 = 0; b1 < nbins1; ++b1) {
+                csv_ge.detray_bin0 = b0;
+                csv_ge.detray_bin1 = b1;
+                for (auto e : grid.bin(b0, b1)) {
+                    csv_ge.detray_entry = e;
+                    sge_writer.append(csv_ge);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// Call for the brute force type (do nothing)
+    template <typename grid_group_t, typename grid_index_t,
+              typename grid_entry_t, typename writer_t,
+              std::enable_if_t<std::is_same_v<typename grid_group_t::value_type,
+                                              brute_force_finder>,
+                               bool> = true>
+    inline output_type operator()(const grid_group_t & /*grid_group*/,
+                                  const grid_index_t & /*grid_idx*/,
+                                  const grid_entry_t & /*csv_ge*/,
+                                  writer_t & /*sge_writer*/) {
+        return true;
+    }
+};
+
+}  // anonymous namespace
 
 /// Function to read the detector from the CSV file
 ///
@@ -47,13 +102,14 @@ namespace detray {
 ///
 /// @return a detector object
 template <typename detector_registry,
+          template <typename> class bfield_type = covfie::field,
           template <typename, std::size_t> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,
           template <typename...> class jagged_vector_type = djagged_vector,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
-detector<detector_registry, array_type, tuple_type, vector_type,
+detector<detector_registry, bfield_type, array_type, tuple_type, vector_type,
          jagged_vector_type>
 detector_from_csv(const std::string &detector_name,
                   const std::string &surface_file_name,
@@ -65,11 +121,16 @@ detector_from_csv(const std::string &detector_name,
                   scalar /*r_sync_tolerance*/ = 0.,
                   scalar /*z_sync_tolerance*/ = 0.) {
     using alignable_store = static_transform_store<vector_type>;
-    using detector_t = detector<detector_registry, array_type, tuple_type,
-                                vector_type, jagged_vector_type>;
+    using detector_t = detector<detector_registry, bfield_type, array_type,
+                                tuple_type, vector_type, jagged_vector_type>;
+    using vector3_t = typename detector_t::vector3;
+
+    typename detector_t::bfield_type B_field(
+        typename detector_t::bfield_type::backend_t::configuration_t{0.f, 0.f,
+                                                                     2.f});
 
     name_map[0] = detector_name;
-    detector_t d(resource);
+    detector_t d(resource, std::move(B_field));
 
     // Surface reading
     surface_reader s_reader(surface_file_name);
@@ -228,81 +289,8 @@ detector_from_csv(const std::string &detector_name,
         return {_r_min, _r_max, _z_min, _z_max, _phi_min, _phi_max};
     };
 
-    // Create the surface finders & reserve
-    std::map<volume_layer_index, dindex> surface_finder_entries;
-
-    using surfaces_finder = typename detector_t::surfaces_finder_type;
-    using surfaces_regular_circular_grid =
-        typename surfaces_finder::surfaces_regular_circular_grid;
-
-    using surfaces_r_axis =
-        typename surfaces_regular_circular_grid::axis_p0_type;
-    using surfaces_z_axis =
-        typename surfaces_regular_circular_grid::axis_p0_type;
-    using surfaces_phi_axis =
-        typename surfaces_regular_circular_grid::axis_p1_type;
-
-    using surfaces_r_phi_grid = surfaces_regular_circular_grid;
-    using surfaces_z_phi_grid = surfaces_regular_circular_grid;
-
-    surfaces_finder &detector_surfaces_finders = d.get_surfaces_finder();
-
-    // (B) Pre-read the grids & create local object finders
-    int sg_counts = 0;
-
-    while (sg_reader.read(io_surface_grid)) {
-        assert(sg_counts <
-               static_cast<int>(detector_t::surfaces_finder_type::N_GRIDS));
-
-        volume_layer_index c_index = {io_surface_grid.volume_id,
-                                      io_surface_grid.layer_id};
-
-        surface_finder_entries[c_index] = detector_surfaces_finders.size();
-
-        bool is_disk = (io_surface_grid.type_loc0 == 3);
-
-        // Prepare z axis parameters
-        scalar _z_min = is_disk ? std::numeric_limits<scalar>::min()
-                                : io_surface_grid.min_loc1;
-        scalar _z_max = is_disk ? std::numeric_limits<scalar>::max()
-                                : io_surface_grid.max_loc1;
-        dindex _z_bins =
-            is_disk ? 1u : static_cast<dindex>(io_surface_grid.nbins_loc1);
-
-        // Prepare r axis parameters
-        scalar _r_min = is_disk ? io_surface_grid.min_loc0 : 0.;
-        scalar _r_max = is_disk ? io_surface_grid.max_loc0
-                                : std::numeric_limits<scalar>::max();
-        dindex _r_bins =
-            is_disk ? static_cast<dindex>(io_surface_grid.nbins_loc0) : 1u;
-
-        // Prepare phi axis parameters
-        scalar _phi_min =
-            is_disk ? io_surface_grid.min_loc1 : io_surface_grid.min_loc0;
-        scalar _phi_max =
-            is_disk ? io_surface_grid.max_loc1 : io_surface_grid.max_loc0;
-        dindex _phi_bins =
-            is_disk ? static_cast<dindex>(io_surface_grid.nbins_loc1)
-                    : static_cast<dindex>(io_surface_grid.nbins_loc0);
-
-        surfaces_z_axis z_axis{_z_bins, _z_min, _z_max, resource};
-        surfaces_r_axis r_axis{_r_bins, _r_min, _r_max, resource};
-        surfaces_phi_axis phi_axis{_phi_bins, _phi_min, _phi_max, resource};
-
-        // negative / positive / inner / outer
-        surfaces_r_phi_grid rphi_grid_n(r_axis, phi_axis, resource);
-        surfaces_r_phi_grid rphi_grid_p(r_axis, phi_axis, resource);
-        surfaces_z_phi_grid zphi_grid_i{z_axis, phi_axis, resource};
-        surfaces_z_phi_grid zphi_grid_o{z_axis, phi_axis, resource};
-
-        detector_surfaces_finders[sg_counts++] = std::move(rphi_grid_n);
-        detector_surfaces_finders[sg_counts++] = std::move(rphi_grid_p);
-        detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_i);
-        detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_o);
-    }
-
     using mask_defs = typename detector_t::masks;
-    typename detector_t::surface_type::edge_type mask_edge{};
+    typename detector_t::surface_type::volume_link_type mask_volume_link{};
     typename mask_defs::link_type mask_index{};
     constexpr auto cylinder_id = mask_defs::id::e_cylinder3;
     constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
@@ -347,21 +335,13 @@ detector_from_csv(const std::string &detector_name,
             auto _volume_bounds =
                 synchronize_bounds(unsynchronized_volume_bounds, is_gap);
 
-            // Check if this volume has a surface finder entry associated
-            dindex surfaces_finder_entry = dindex_invalid;
-            auto surface_finder_itr = surface_finder_entries.find(c_index);
-            if (surface_finder_itr != surface_finder_entries.end()) {
-                surfaces_finder_entry = surface_finder_itr->second;
-            }
-
             std::string volume_name = detector_name;
             volume_name +=
                 std::string("_vol_") + std::to_string(io_surface.volume_id);
             volume_name +=
                 std::string("_lay_") + std::to_string(io_surface.layer_id);
 
-            auto &new_volume =
-                d.new_volume(_volume_bounds, surfaces_finder_entry);
+            auto &new_volume = d.new_volume(_volume_bounds);
 
             name_map[new_volume.index() + 1] = volume_name;
 
@@ -388,9 +368,11 @@ detector_from_csv(const std::string &detector_name,
             const bool is_portal = false;
 
             // Read the transform
-            vector3 t{io_surface.cx, io_surface.cy, io_surface.cz};
-            vector3 x{io_surface.rot_xu, io_surface.rot_yu, io_surface.rot_zu};
-            vector3 z{io_surface.rot_xw, io_surface.rot_yw, io_surface.rot_zw};
+            vector3_t t{io_surface.cx, io_surface.cy, io_surface.cz};
+            vector3_t x{io_surface.rot_xu, io_surface.rot_yu,
+                        io_surface.rot_zu};
+            vector3_t z{io_surface.rot_xw, io_surface.rot_yw,
+                        io_surface.rot_zw};
 
             // Translate the mask & add it to the mask container
             unsigned int bounds_type = io_surface.bounds_type;
@@ -409,11 +391,11 @@ detector_from_csv(const std::string &detector_name,
 
                 // Add a new cylinder mask
                 dindex cylinder_index = c_masks.template size<cylinder_id>();
-                mask_edge = {c_volume->index(), dindex_invalid};
+                mask_volume_link = c_volume->index();
                 c_masks.template add_value<cylinder_id>(
                     io_surface.bound_param0,
                     io_surface.cz - io_surface.bound_param1,
-                    io_surface.cz + io_surface.bound_param1, mask_edge);
+                    io_surface.cz + io_surface.bound_param1, mask_volume_link);
                 // The read is valid: set the index
                 mask_index = {cylinder_id, cylinder_index};
 
@@ -440,7 +422,7 @@ detector_from_csv(const std::string &detector_name,
                 scalar half_y =
                     0.5 * (io_surface.bound_param3 - io_surface.bound_param1);
                 c_masks.template add_value<rectangle_id>(half_x, half_y,
-                                                         mask_edge);
+                                                         mask_volume_link);
                 // The read is valid: set the index
                 mask_index = {rectangle_id, rectangle_index};
 
@@ -462,7 +444,7 @@ detector_from_csv(const std::string &detector_name,
                 dindex trapezoid_index = c_masks.template size<trapezoid_id>();
                 c_masks.template add_value<trapezoid_id>(
                     io_surface.bound_param0, io_surface.bound_param1,
-                    io_surface.bound_param2, mask_edge);
+                    io_surface.bound_param2, mask_volume_link);
 
                 // The read is valid: set the index
                 mask_index = {trapezoid_id, trapezoid_index};
@@ -487,7 +469,7 @@ detector_from_csv(const std::string &detector_name,
                     io_surface.bound_param0, io_surface.bound_param1,
                     io_surface.bound_param2, io_surface.bound_param3,
                     io_surface.bound_param4, io_surface.bound_param5,
-                    io_surface.bound_param6, mask_edge);
+                    io_surface.bound_param6, mask_volume_link);
 
                 // The read is valid: set the index
                 mask_index = {annulus_id, annulus_index};
@@ -505,6 +487,142 @@ detector_from_csv(const std::string &detector_name,
                     is_portal);
             }
         }  // end of exclusion for navigation layers
+    }
+
+    // Create the surface finders & reserve
+    // std::map<volume_layer_index, std::pair<dindex, dindex>>
+    //    surface_finder_entries;
+
+    constexpr auto r_phi_grid_id = detector_t::sf_finders::id::e_r_phi_grid;
+    constexpr auto z_phi_grid_id = detector_t::sf_finders::id::e_z_phi_grid;
+
+    using surfaces_r_phi_grid =
+        typename detector_t::sf_finders::template get_type<r_phi_grid_id>::type;
+    using surfaces_z_phi_grid =
+        typename detector_t::sf_finders::template get_type<z_phi_grid_id>::type;
+
+    using surfaces_r_axis = typename surfaces_r_phi_grid::axis_p0_type;
+    using surfaces_z_axis = typename surfaces_r_phi_grid::axis_p0_type;
+    using surfaces_phi_axis = typename surfaces_r_phi_grid::axis_p1_type;
+
+    const auto &detector_surface_finders = d.sf_finder_store();
+
+    // (B) Pre-read the grids & create local object finders
+    int sg_counts = 0;
+
+    surface_grid_entries_writer sge_writer("grid-entries.csv");
+    bool write_grid_entries =
+        (grid_entries_file_name.find("write") != std::string::npos);
+    bool read_grid_entries =
+        not grid_entries_file_name.empty() and not write_grid_entries and
+        not(grid_entries_file_name.find("none") != std::string::npos);
+
+    while (sg_reader.read(io_surface_grid)) {
+
+        /*volume_layer_index c_index = {io_surface_grid.volume_id,
+                                      io_surface_grid.layer_id};
+
+        surface_finder_entries[c_index] = std::make_pair<dindex, dindex>(
+             io_surface_grid.type_loc0, detector_surfaces_finders.size());*/
+
+        bool is_disk = (io_surface_grid.type_loc0 == 3);
+
+        // Prepare z axis parameters
+        scalar _z_min = is_disk ? std::numeric_limits<scalar>::min()
+                                : io_surface_grid.min_loc1;
+        scalar _z_max = is_disk ? std::numeric_limits<scalar>::max()
+                                : io_surface_grid.max_loc1;
+        dindex _z_bins =
+            is_disk ? 1u : static_cast<dindex>(io_surface_grid.nbins_loc1);
+
+        // Prepare r axis parameters
+        scalar _r_min = is_disk ? io_surface_grid.min_loc0 : 0.;
+        scalar _r_max = is_disk ? io_surface_grid.max_loc0
+                                : std::numeric_limits<scalar>::max();
+        dindex _r_bins =
+            is_disk ? static_cast<dindex>(io_surface_grid.nbins_loc0) : 1u;
+
+        // Prepare phi axis parameters
+        scalar _phi_min =
+            is_disk ? io_surface_grid.min_loc1 : io_surface_grid.min_loc0;
+        scalar _phi_max =
+            is_disk ? io_surface_grid.max_loc1 : io_surface_grid.max_loc0;
+        dindex _phi_bins =
+            is_disk ? static_cast<dindex>(io_surface_grid.nbins_loc1)
+                    : static_cast<dindex>(io_surface_grid.nbins_loc0);
+
+        surfaces_z_axis z_axis{_z_bins, _z_min, _z_max, resource};
+        surfaces_r_axis r_axis{_r_bins, _r_min, _r_max, resource};
+        surfaces_phi_axis phi_axis{_phi_bins, _phi_min, _phi_max, resource};
+
+        typename detector_t::volume_type &vol =
+            d.volume_by_index(io_surface_grid.volume_id);
+        if (is_disk) {
+            assert(
+                sg_counts <
+                static_cast<int>(
+                    detector_surface_finders.template size<r_phi_grid_id>()));
+            surfaces_r_phi_grid r_phi_grid(r_axis, phi_axis, resource);
+            d.template add_grid<surfaces_r_phi_grid, r_phi_grid_id>(vol,
+                                                                    r_phi_grid);
+
+            // Fast option, read the grid entries back in
+            if (read_grid_entries) {
+                surface_grid_entries_reader sge_reader(grid_entries_file_name);
+                csv_surface_grid_entry surface_grid_entry;
+                while (sge_reader.read(surface_grid_entry)) {
+                    // Get the volume bounds for filling
+                    assert(vol.index() ==
+                           static_cast<dindex>(
+                               surface_grid_entry.detray_volume_id));
+                    r_phi_grid.populate(
+                        static_cast<dindex>(surface_grid_entry.detray_bin0),
+                        static_cast<dindex>(surface_grid_entry.detray_bin1),
+                        static_cast<dindex>(surface_grid_entry.detray_entry));
+                }
+            } else {
+                // Auto-fill the grids using the bin association
+                d.fill_grid(surface_default_context, vol, r_phi_grid);
+            }
+        } else {
+            assert(
+                sg_counts <
+                static_cast<int>(
+                    detector_surface_finders.template size<z_phi_grid_id>()));
+            surfaces_z_phi_grid z_phi_grid(z_axis, phi_axis, resource);
+            d.template add_grid<surfaces_z_phi_grid, z_phi_grid_id>(vol,
+                                                                    z_phi_grid);
+
+            // Fast option, read the grid entries back in
+            if (read_grid_entries) {
+                surface_grid_entries_reader sge_reader(grid_entries_file_name);
+                csv_surface_grid_entry surface_grid_entry;
+                while (sge_reader.read(surface_grid_entry)) {
+                    // Get the volume bounds for filling
+                    assert(vol.index() ==
+                           static_cast<dindex>(
+                               surface_grid_entry.detray_volume_id));
+                    z_phi_grid.populate(
+                        static_cast<dindex>(surface_grid_entry.detray_bin0),
+                        static_cast<dindex>(surface_grid_entry.detray_bin1),
+                        static_cast<dindex>(surface_grid_entry.detray_entry));
+                }
+            } else {
+                // Auto-fill the grids using the bin association
+                d.fill_grid(surface_default_context, vol, z_phi_grid);
+            }
+        }
+        ++sg_counts;
+        // negative / positive / inner / outer
+        /*surfaces_r_phi_grid rphi_grid_n(r_axis, phi_axis, resource);
+        surfaces_r_phi_grid rphi_grid_p(r_axis, phi_axis, resource);
+        surfaces_z_phi_grid zphi_grid_i{z_axis, phi_axis, resource};
+        surfaces_z_phi_grid zphi_grid_o{z_axis, phi_axis, resource};
+
+        detector_surfaces_finders[sg_counts++] = std::move(rphi_grid_n);
+        detector_surfaces_finders[sg_counts++] = std::move(rphi_grid_p);
+        detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_i);
+        detector_surfaces_finders[sg_counts++] = std::move(zphi_grid_o);*/
     }
 
     /** Helper method to sort and remove duplicates
@@ -542,18 +660,10 @@ detector_from_csv(const std::string &detector_name,
     // difference
     scalar stepsilon = 1.;
 
-    // Run the bin association and write out
-    surface_grid_entries_writer sge_writer("grid-entries.csv");
-    bool write_grid_entries =
-        (grid_entries_file_name.find("write") != std::string::npos);
-    bool read_grid_entries =
-        not grid_entries_file_name.empty() and not write_grid_entries and
-        not(grid_entries_file_name.find("none") != std::string::npos);
-
     // Loop over the volumes
     // - fill the volume grid
     // - run the bin association
-    for (auto [iv, v] : enumerate(d.volumes())) {
+    for (auto [iv, v] : detray::views::enumerate(d.volumes())) {
         // Get the volume bounds for filling
         const auto &v_bounds = v.bounds();
 
@@ -568,65 +678,26 @@ detector_from_csv(const std::string &detector_name,
         auto z_low = v_grid.axis_p1().borders(izl)[0];
         auto z_high = v_grid.axis_p1().borders(izh)[1];*/
 
-        bool is_cylinder = std::abs(v_bounds[1] - v_bounds[0]) <
-                           std::abs(v_bounds[3] - v_bounds[2]);
-
         for (dindex ir = irl; ir <= irh; ++ir) {
             for (dindex iz = izl; iz <= izh; ++iz) {
                 v_grid.populate(ir, iz, std::move(volume_index));
             }
         }
 
-        dindex sfi = v.surfaces_finder_entry();
+        dindex sfi = v.sf_finder_index();
         if (sfi != dindex_invalid and write_grid_entries) {
-            auto &grid = is_cylinder ? detector_surfaces_finders[sfi + 2]
-                                     : detector_surfaces_finders[sfi];
-            bin_association(surface_default_context, d, v, grid, {0.1, 0.1},
-                            false);
+
+            // bin_association(surface_default_context, d, v, grid, {0.1, 0.1},
+            //                 false);
 
             csv_surface_grid_entry csv_ge;
             csv_ge.detray_volume_id = static_cast<int>(iv);
-            size_t nbins0 = grid.axis_p0().bins();
-            size_t nbins1 = grid.axis_p1().bins();
-            for (size_t b0 = 0; b0 < nbins0; ++b0) {
-                for (size_t b1 = 0; b1 < nbins1; ++b1) {
-                    csv_ge.detray_bin0 = b0;
-                    csv_ge.detray_bin1 = b1;
-                    for (auto e : grid.bin(b0, b1)) {
-                        csv_ge.detray_entry = e;
-                        sge_writer.append(csv_ge);
-                    }
-                }
-            }
+            d.sf_finder_store().template call<grid_writer>(v.sf_finder_link(),
+                                                           csv_ge, sge_writer);
         }
     }
 
-    // Fast option, read the grid entries back in
-    if (read_grid_entries) {
-
-        surface_grid_entries_reader sge_reader(grid_entries_file_name);
-        csv_surface_grid_entry surface_grid_entry;
-        while (sge_reader.read(surface_grid_entry)) {
-            // Get the volume bounds for fillind
-            const auto &v =
-                d.volume_by_index(surface_grid_entry.detray_volume_id);
-            const auto &v_bounds = v.bounds();
-            dindex sfi = v.surfaces_finder_entry();
-            if (sfi != dindex_invalid) {
-                bool is_cylinder = std::abs(v_bounds[1] - v_bounds[0]) <
-                                   std::abs(v_bounds[3] - v_bounds[2]);
-                auto &grid = is_cylinder ? detector_surfaces_finders[sfi + 2]
-                                         : detector_surfaces_finders[sfi];
-                // Fill the entry
-                grid.populate(
-                    static_cast<dindex>(surface_grid_entry.detray_bin0),
-                    static_cast<dindex>(surface_grid_entry.detray_bin1),
-                    static_cast<dindex>(surface_grid_entry.detray_entry));
-            }
-        }
-    }
-
-    // Connect the cylindrical volumes
+    // Connect the cylindrical volumes via portals
     connect_cylindrical_volumes<detector_t, array_type, tuple_type,
                                 vector_type>(d, v_grid);
 

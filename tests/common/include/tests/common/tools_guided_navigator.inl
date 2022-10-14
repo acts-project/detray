@@ -10,7 +10,6 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/aborters.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/navigation_policies.hpp"
@@ -26,27 +25,28 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
     using namespace navigation;
     using transform3_type = __plugin::transform3<scalar>;
-    using stepper_type = line_stepper<transform3_type>;
 
     vecmem::host_memory_resource host_mr;
 
     // Use unbounded surfaces
     constexpr bool unbounded = true;
 
+    detail::ray<transform3_type> default_trk({0, 0, 0}, 0, {0, 0, 1}, -1);
+
     // Module positions along z-axis
     const std::vector<scalar> positions = {0.,  10., 20., 30., 40., 50.,
                                            60., 70,  80,  90., 100.};
     // Build telescope detector with unbounded planes
     const auto telescope_det =
-        create_telescope_detector<unbounded, stepper_type>(host_mr, positions);
+        create_telescope_detector<unbounded>(host_mr, positions, default_trk);
 
     // Inspectors are optional, of course
     using object_tracer_t =
         object_tracer<dvector, status::e_on_portal, status::e_on_module>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using b_field_t = constant_magnetic_field<>;
+    using b_field_t = decltype(telescope_det)::bfield_type;
     using runge_kutta_stepper =
-        rk_stepper<b_field_t, transform3_type, unconstrained_step,
+        rk_stepper<b_field_t::view_t, transform3_type, unconstrained_step,
                    guided_navigation>;
     using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
     using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
@@ -58,14 +58,16 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     const vector3 mom{0., 0., 1.};
     free_track_parameters<transform3_type> track(pos, 0, mom, -1);
     const vector3 B{0, 0, 1 * unit_constants::T};
-    const b_field_t b_field(B);
+    const b_field_t b_field(
+        b_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
 
     // Actors
     pathlimit_aborter::state pathlimit{200. * unit_constants::cm};
 
     // Propagator
-    propagator_t p(runge_kutta_stepper{b_field}, guided_navigator{});
-    propagator_t::state guided_state(track, telescope_det, std::tie(pathlimit));
+    propagator_t p(runge_kutta_stepper{}, guided_navigator{});
+    propagator_t::state guided_state(track, b_field, telescope_det,
+                                     std::tie(pathlimit));
 
     // Propagate
     p.propagate(guided_state);

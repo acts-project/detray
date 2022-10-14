@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
@@ -48,18 +49,19 @@ struct concentric_cylinder_intersector {
      *
      * @return the intersection
      */
-    template <typename mask_t>
+    template <
+        typename mask_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
+                                        cylindrical2<transform3_t>>,
+                         bool> = true>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t & /*trf*/,
-        const scalar_type /*mask_tolerance*/ = 0,
+        const scalar_type mask_tolerance = 0.,
         const scalar_type overstep_tolerance = 0.) const {
 
         output_type ret;
 
-        using local_frame = typename mask_t::local_type;
-
         const scalar_type r{mask[0]};
-
         // Two points on the line, thes are in the cylinder frame
         const point3 &ro = ray.pos();
         const vector3 &rd = ray.dir();
@@ -107,12 +109,23 @@ struct concentric_cylinder_intersector {
                 is.path = t01[cindex];
 
                 is.p2 = point2{r * getter::phi(is.p3), is.p3[2]};
-                is.status = mask.template is_inside<local_frame>(is.p3);
-                const scalar_type rdir{
-                    getter::perp(is.p3 + scalar_type{0.1} * rd)};
-                is.direction = rdir > r ? intersection::direction::e_along
-                                        : intersection::direction::e_opposite;
+                // In this case, the point has to be in cylinder3 coordinates
+                // for the r-check
+                if constexpr (mask_t::shape::check_radius) {
+                    point3 loc3D = {r, getter::phi(is.p3), is.p3[2]};
+                    is.status = mask.is_inside(is.p3, mask_tolerance);
+                } else {
+                    is.status = mask.is_inside(is.p2, mask_tolerance);
+                }
+                is.direction = vector::dot(is.p3, rd) > scalar_type{0.}
+                                   ? intersection::direction::e_along
+                                   : intersection::direction::e_opposite;
                 is.link = mask.volume_link();
+
+                // Get incidence angle
+                const scalar_type phi{is.p2[0] / mask[mask_t::shape::e_r]};
+                const vector3 normal = {std::cos(phi), std::sin(phi), 0};
+                is.cos_incidence_angle = vector::dot(rd, normal);
             }
         }
         return ret;

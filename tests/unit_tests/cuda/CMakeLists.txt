@@ -17,8 +17,8 @@ include( detray-compiler-options-cuda )
 detray_add_test( core_cuda
    "container_cuda.cpp" "container_cuda_kernel.hpp" "container_cuda_kernel.cu"
    "grids_grid2_cuda.cpp" "grids_grid2_cuda_kernel.hpp"
-   "grids_grid2_cuda_kernel.cu" "utils_enumerate_cuda.cpp"
-   "utils_enumerate_cuda_kernel.hpp" "utils_enumerate_cuda_kernel.cu"
+   "grids_grid2_cuda_kernel.cu" "utils_ranges_cuda.cpp"
+   "utils_ranges_cuda_kernel.hpp" "utils_ranges_cuda_kernel.cu"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common vecmem::cuda )
 
 # make unit tests for multiple algebras
@@ -44,6 +44,8 @@ foreach(algebra ${algebras})
       "navigator_cuda_kernel.cu"
       "rk_stepper_cuda.cpp" "rk_stepper_cuda_kernel.hpp"
       "rk_stepper_cuda_kernel.cu"
+      "sf_finders_grid_cuda.cpp" "sf_finders_grid_cuda_kernel.hpp"
+      "sf_finders_grid_cuda_kernel.cu"
       "propagator_cuda.cpp" "propagator_cuda_kernel.hpp"
       "propagator_cuda_kernel.cu"            
       LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray_tests_common

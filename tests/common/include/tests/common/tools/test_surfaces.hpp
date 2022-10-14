@@ -17,9 +17,9 @@
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
-#include "detray/masks/rectangle2.hpp"
+#include "detray/masks/rectangle2D.hpp"
 #include "detray/tools/local_object_finder.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -39,8 +39,9 @@ enum plane_material_ids : unsigned int {
 using transform3 = __plugin::transform3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
-using plane_masks = tuple_vector_registry<plane_mask_ids, rectangle2<>>;
-using plane_materials = tuple_vector_registry<plane_material_ids, rectangle2<>>;
+using plane_masks = tuple_vector_registry<plane_mask_ids, mask<rectangle2D<>>>;
+using plane_materials =
+    tuple_vector_registry<plane_material_ids, mask<rectangle2D<>>>;
 
 using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 
@@ -54,7 +55,7 @@ planes_along_direction(dvector<scalar> distances, vector3 direction) {
 
     dvector<surface<plane_masks, plane_materials, transform3>> return_surfaces;
     return_surfaces.reserve(distances.size());
-    for (const auto &[idx, d] : enumerate(distances)) {
+    for (const auto [idx, d] : detray::views::enumerate(distances)) {
         vector3 t = d * direction;
         transform3 trf(t, z, x);
         typename plane_masks::link_type mask_link{

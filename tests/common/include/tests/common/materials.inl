@@ -8,7 +8,7 @@
 /// Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/line_intersector.hpp"
-#include "detray/masks/line.hpp"
+#include "detray/masks/masks.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -152,8 +152,8 @@ TEST(materials, material_rod) {
     const free_track_parameters<transform3> trk(pos, 0, dir, -1);
 
     // Infinite wire with 1 mm radial cell size
-    const line<> ln{1. * unit_constants::mm,
-                    std::numeric_limits<scalar>::infinity(), 0u};
+    const mask<line<>> ln{0UL, static_cast<scalar>(1. * unit_constants::mm),
+                          std::numeric_limits<scalar>::infinity()};
 
     line_plane_intersection is =
         line_intersector<transform3>()(detail::ray<transform3>(trk), ln, tf)[0];

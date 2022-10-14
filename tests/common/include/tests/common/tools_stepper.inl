@@ -9,10 +9,8 @@
 #include "detray/core/transform_store.hpp"
 #include "detray/core/type_registry.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/masks/rectangle2.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -21,6 +19,12 @@
 // google-test include(s)
 #include <gtest/gtest.h>
 
+// covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
+#include <covfie/core/vector.hpp>
+
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;
 using vector2 = __plugin::vector2<scalar>;
@@ -28,9 +32,11 @@ using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 using transform3 = __plugin::transform3<scalar>;
 using matrix_operator = standard_matrix_operator<scalar>;
-using mag_field_t = constant_magnetic_field<>;
-using rk_stepper_t = rk_stepper<mag_field_t, transform3>;
-using crk_stepper_t = rk_stepper<mag_field_t, transform3, constrained_step<>>;
+using mag_field_t = covfie::field<covfie::backend::constant<
+    covfie::vector::vector_d<scalar, 3>, covfie::vector::vector_d<scalar, 3>>>;
+using rk_stepper_t = rk_stepper<mag_field_t::view_t, transform3>;
+using crk_stepper_t =
+    rk_stepper<mag_field_t::view_t, transform3, constrained_step<>>;
 
 namespace {
 
@@ -143,11 +149,12 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     // Constant magnetic field
     vector3 B{1 * unit_constants::T, 1 * unit_constants::T,
               1 * unit_constants::T};
-    mag_field_t mag_field(B);
+    mag_field_t mag_field(
+        typename mag_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
 
     // RK stepper
-    rk_stepper_t rk_stepper(mag_field);
-    crk_stepper_t crk_stepper(mag_field);
+    rk_stepper_t rk_stepper;
+    crk_stepper_t crk_stepper;
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
@@ -165,9 +172,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
 
         // RK Stepping into forward direction
         prop_state<rk_stepper_t::state, nav_state> propagation{
-            rk_stepper_t::state{track}, nav_state{}};
+            rk_stepper_t::state{track, mag_field}, nav_state{}};
         prop_state<crk_stepper_t::state, nav_state> c_propagation{
-            crk_stepper_t::state{c_track}, nav_state{}};
+            crk_stepper_t::state{c_track, mag_field}, nav_state{}};
 
         rk_stepper_t::state &rk_state = propagation._stepping;
         crk_stepper_t::state &crk_state = c_propagation._stepping;
@@ -266,12 +273,16 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
     getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
 
+    // B field
+    vector3 B{0, 0, 1. * unit_constants::T};
+    mag_field_t mag_field(B);
+
     // bound track parameter
     const bound_track_parameters<transform3> bound_param0(0, bound_vector,
                                                           bound_cov);
 
     prop_state<crk_stepper_t::state, nav_state> propagation{
-        crk_stepper_t::state(bound_param0, trf), nav_state{}};
+        crk_stepper_t::state(bound_param0, trf, mag_field), nav_state{}};
     crk_stepper_t::state &crk_state = propagation._stepping;
     nav_state &n_state = propagation._navigation;
 
@@ -279,9 +290,7 @@ TEST(ALGEBRA_PLUGIN, covariance_transport) {
     crk_state._tolerance = 1e-8;
 
     // RK stepper and its state
-    vector3 B{0, 0, 1. * unit_constants::T};
-    mag_field_t mag_field(B);
-    crk_stepper_t crk_stepper(mag_field);
+    crk_stepper_t crk_stepper;
 
     ASSERT_FLOAT_EQ(crk_state().pos()[0], 0);
     ASSERT_FLOAT_EQ(crk_state().pos()[1], local[0]);

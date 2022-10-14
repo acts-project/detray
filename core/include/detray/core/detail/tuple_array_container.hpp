@@ -56,6 +56,8 @@ class tuple_array_container<tuple_t, array_t, id_t, std::index_sequence<Ns...>,
 
     using container_type = typename base_type::container_type;
 
+    tuple_array_container() = default;
+
     /**
      * Constructor with a vecmem memory resource. (host-side only)
      *

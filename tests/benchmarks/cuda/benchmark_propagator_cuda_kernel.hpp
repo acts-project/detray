@@ -17,8 +17,10 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
+
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/navigator.hpp"
@@ -33,17 +35,18 @@ using transform3 = __plugin::transform3<scalar>;
 using intersection_t = line_plane_intersection;
 
 using detector_host_type =
-    detector<detector_registry::toy_detector, darray, thrust::tuple,
-             vecmem::vector, vecmem::jagged_vector>;
+    detector<detector_registry::toy_detector, covfie::field, darray,
+             thrust::tuple, vecmem::vector, vecmem::jagged_vector>;
 using detector_device_type =
-    detector<detector_registry::toy_detector, darray, thrust::tuple,
-             vecmem::device_vector, vecmem::jagged_device_vector>;
+    detector<detector_registry::toy_detector, covfie::field_view, darray,
+             thrust::tuple, vecmem::device_vector,
+             vecmem::jagged_device_vector>;
 
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 
-using field_type = constant_magnetic_field<>;
-using rk_stepper_type = rk_stepper<field_type, transform3>;
+using field_type = detector_host_type::bfield_type;
+using rk_stepper_type = rk_stepper<field_type::view_t, transform3>;
 using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain<>>;
 using propagator_device_type =

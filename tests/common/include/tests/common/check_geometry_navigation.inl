@@ -11,7 +11,6 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -85,8 +84,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
         ASSERT_TRUE(prop.propagate(propagation)) << debug_printer.to_string();
 
         // Compare intersection records
-        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size())
-            << debug_printer.to_string();
+        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size());
 
         std::stringstream debug_stream;
         for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
@@ -128,20 +126,27 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     constexpr std::size_t n_brl_layers{4};
     constexpr std::size_t n_edc_layers{7};
     vecmem::host_memory_resource host_mr;
-    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+
+    using b_field_t = decltype(
+        create_toy_geometry(std::declval<vecmem::host_memory_resource &>(),
+                            n_brl_layers, n_edc_layers))::bfield_type;
+
+    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
+                    2. * unit_constants::T};
+
+    auto det = create_toy_geometry(
+        host_mr,
+        b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
+        n_brl_layers, n_edc_layers);
 
     // Runge-Kutta based navigation
     using navigator_t = navigator<decltype(det), inspector_t>;
-    using b_field_t = constant_magnetic_field<>;
-    using stepper_t =
-        rk_stepper<b_field_t, transform3_type, unconstrained_step, always_init>;
+    using stepper_t = rk_stepper<b_field_t::view_t, transform3_type,
+                                 unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
-    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
-                    2. * unit_constants::T};
-    b_field_t b_field(B);
-    propagator_t prop(stepper_t{b_field}, navigator_t{});
+    propagator_t prop(stepper_t{}, navigator_t{});
 
     constexpr std::size_t theta_steps{10};
     constexpr std::size_t phi_steps{10};
@@ -168,7 +173,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
         // Now follow that helix with the same track and check, if we find
         // the same volumes and distances along the way
-        propagator_t::state propagation(track, det);
+        propagator_t::state propagation(track, det.get_bfield(), det);
 
         // Retrieve navigation information
         auto &inspector = propagation._navigation.inspector();

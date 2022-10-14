@@ -31,7 +31,7 @@ unsigned int gbench_repetitions = 0;
 
 enum mask_ids : unsigned int {
     e_rectangle2 = 0,
-    e_cylinder3 = 1,
+    e_cylinder2 = 1,
     e_conc_cylinder3 = 2,
 };
 
@@ -39,11 +39,9 @@ enum material_ids : unsigned int {
     e_slab = 0,
 };
 
-using cylinder3_t = cylinder3<>;
-
 using mask_defs = tuple_vector_registry<
-    mask_ids, rectangle2<>, cylinder3<>,
-    cylinder3<transform3, concentric_cylinder_intersector>>;
+    mask_ids, mask<rectangle2D<>>, mask<cylinder2D<>>,
+    mask<cylinder2D<false, concentric_cylinder_intersector>>>;
 
 using material_defs =
     tuple_vector_registry<material_ids, material_slab<scalar>>;
@@ -63,7 +61,7 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
     auto planes =
         planes_along_direction(dists, vector::normalize(vector3{1., 1., 1.}));
-    rectangle2<> rect{10., 20., 0u};
+    mask<rectangle2D<>> rect{0UL, 10.f, 20.f};
     point3 ori = {0., 0., 0.};
 
     for (auto _ : state) {
@@ -103,17 +101,17 @@ BENCHMARK(BM_INTERSECT_PLANES)
 static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
     using cylinder_mask =
-        typename mask_defs::template get_type<e_cylinder3>::type;
+        typename mask_defs::template get_type<e_cylinder2>::type;
 
     unsigned int sfhit = 0;
     unsigned int sfmiss = 0;
     dvector<cylinder_mask> cylinders;
 
-    for (auto r : dists) {
-        cylinders.push_back(cylinder_mask{r, -10., 10., 0u});
+    for (scalar r : dists) {
+        cylinders.push_back(cylinder_mask{0UL, r, -10.f, 10.f});
     }
 
-    typename mask_defs::link_type mask_link{e_cylinder3, 0};
+    typename mask_defs::link_type mask_link{e_cylinder2, 0};
     typename material_defs::link_type material_link{e_slab, 0};
     plane_surface plain(transform3(), mask_link, material_link, 0, false,
                         false);
@@ -176,8 +174,8 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
         typename mask_defs::template get_type<e_conc_cylinder3>::type;
     ;
     dvector<cylinder_mask> cylinders;
-    for (auto r : dists) {
-        cylinders.push_back(cylinder_mask{r, -10., 10., 0u});
+    for (scalar r : dists) {
+        cylinders.push_back(cylinder_mask(0UL, r, -10.f, 10.f));
     }
 
     typename mask_defs::link_type mask_link{e_conc_cylinder3, 0};
