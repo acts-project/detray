@@ -172,7 +172,13 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     scalar error_estimate = 0;
 
     // First Runge-Kutta point
-    sd.b_first = magnetic_field->get_field(stepping().pos(), context_type{});
+    const vector3 spos = stepping().pos();
+    const typename magnetic_field_t::output_t bvec =
+        magnetic_field.at(spos[0], spos[1], spos[2]);
+    sd.b_first[0] = bvec[0];
+    sd.b_first[1] = bvec[1];
+    sd.b_first[2] = bvec[2];
+
     sd.k1 = stepping.evaluate_k(sd.b_first, 0, 0, vector3{0, 0, 0});
 
     const auto try_rk4 = [&](const scalar& h) -> bool {
@@ -184,7 +190,11 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
         // Second Runge-Kutta point
         const vector3 pos1 = pos + half_h * dir + h2 * 0.125 * sd.k1;
-        sd.b_middle = magnetic_field->get_field(pos1, context_type{});
+        const typename magnetic_field_t::output_t bvec1 =
+            magnetic_field.at(pos1[0], pos1[1], pos1[2]);
+        sd.b_middle[0] = bvec1[0];
+        sd.b_middle[1] = bvec1[1];
+        sd.b_middle[2] = bvec1[2];
         sd.k2 = stepping.evaluate_k(sd.b_middle, 1, half_h, sd.k1);
 
         // Third Runge-Kutta point
@@ -192,7 +202,11 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
         // Last Runge-Kutta point
         const vector3 pos2 = pos + h * dir + h2 * 0.5 * sd.k3;
-        sd.b_last = magnetic_field->get_field(pos2, context_type{});
+        const typename magnetic_field_t::output_t bvec2 =
+            magnetic_field.at(pos2[0], pos2[1], pos2[2]);
+        sd.b_last[0] = bvec2[0];
+        sd.b_last[1] = bvec2[1];
+        sd.b_last[2] = bvec2[2];
         sd.k4 = stepping.evaluate_k(sd.b_last, 3, h, sd.k3);
 
         // Compute and check the local integration error estimate

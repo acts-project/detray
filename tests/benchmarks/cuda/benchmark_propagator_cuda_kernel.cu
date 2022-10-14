@@ -26,10 +26,6 @@ __global__ void propagator_benchmark_kernel(
         return;
     }
 
-    // Set the magnetic field
-    const vector3 B{0, 0, 2 * unit_constants::T};
-    field_type B_field(B);
-
     // Create RK stepper
     rk_stepper_type s;
 
@@ -45,7 +41,7 @@ __global__ void propagator_benchmark_kernel(
 
     // Create the propagator state
     propagator_device_type::state p_state(
-        tracks.at(gid), B_field, det,
+        tracks.at(gid), det.get_bfield(), det,
         thrust::tie(transporter_state, interactor_state, resetter_state),
         candidates.at(gid));
 

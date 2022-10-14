@@ -7,11 +7,11 @@
 
 #include <gtest/gtest.h>
 
+#include <utility>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -34,8 +34,8 @@ struct prop_state {
     stepping_t _stepping;
     navigation_t _navigation;
 
-    template <typename track_t, typename field_t>
-    prop_state(const track_t &t_in, const field_t &field,
+    template <typename track_t, typename field_type>
+    prop_state(const track_t &t_in, const field_type &field,
                const typename navigation_t::detector_type &det)
         : _stepping(t_in, field), _navigation(det) {}
 };
@@ -49,12 +49,14 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
 
     using namespace detray;
 
-    using b_field_t = constant_magnetic_field<>;
-    using rk_stepper_t = rk_stepper<b_field_t, transform3>;
-    using inspector_t = navigation::print_inspector;
-
     // Use rectangular surfaces
     constexpr bool rectangular = false;
+
+    using b_field_t = decltype(create_telescope_detector<rectangular>(
+        std::declval<vecmem::host_memory_resource &>(),
+        std::declval<std::vector<scalar> &>()))::bfield_type;
+    using rk_stepper_t = rk_stepper<b_field_t::view_t, transform3>;
+    using inspector_t = navigation::print_inspector;
 
     // Test tolerance
     constexpr scalar tol = 1e-4;
@@ -64,8 +66,10 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     // B-fields
     vector3 B_z{0., 0., 1. * unit_constants::T};
     vector3 B_x{1. * unit_constants::T, 0., 0.};
-    b_field_t b_field_z{B_z};
-    b_field_t b_field_x{B_x};
+    b_field_t b_field_z{
+        b_field_t::backend_t::configuration_t{B_z[0], B_z[1], B_z[2]}};
+    b_field_t b_field_x{
+        b_field_t::backend_t::configuration_t{B_x[0], B_x[1], B_x[2]}};
 
     // steppers
     rk_stepper_t rk_stepper_z;

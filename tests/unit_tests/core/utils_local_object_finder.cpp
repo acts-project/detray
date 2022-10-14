@@ -20,7 +20,6 @@
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/tools/local_object_finder.hpp"
-#include "detray/utils/enumerate.hpp"
 
 using namespace detray;
 

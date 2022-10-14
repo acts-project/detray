@@ -36,8 +36,6 @@ detray_add_library( detray_core core
    "include/detray/definitions/units.hpp"
    "include/detray/definitions/detail/accessor.hpp"
    "include/detray/definitions/track_parametrization.hpp"
-   # field include(s)
-   "include/detray/field/constant_magnetic_field.hpp"
    # geometry include(s)
    "include/detray/geometry/surface.hpp"
    "include/detray/geometry/volume_connector.hpp"
@@ -120,7 +118,16 @@ detray_add_library( detray_core core
    "include/detray/tracks/tracks.hpp"
    # utils include(s)
    "include/detray/utils/axis_rotation.hpp"
-   "include/detray/utils/enumerate.hpp"
+   "include/detray/utils/column_wise_operator.hpp"
+   "include/detray/utils/ranges/detail/iterator_functions.hpp"
+   "include/detray/utils/ranges/empty.hpp"
+   "include/detray/utils/ranges/enumerate.hpp"
+   "include/detray/utils/ranges/iota.hpp"
+   "include/detray/utils/ranges/join.hpp"
+   "include/detray/utils/ranges/pick.hpp"
+   "include/detray/utils/ranges/ranges.hpp"
+   "include/detray/utils/ranges/single.hpp"
+   "include/detray/utils/ranges/subrange.hpp"
    "include/detray/utils/invalid_values.hpp"
    "include/detray/utils/math.hpp"
    "include/detray/utils/matrix_helper.hpp"

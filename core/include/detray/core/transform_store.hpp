@@ -10,7 +10,7 @@
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -71,7 +71,7 @@ class static_transform_store {
     DETRAY_HOST_DEVICE
     inline auto range(const size_t begin, const size_t end,
                       const context & /*ctx*/) const {
-        return iterator_range(_data, dindex_range{begin, end});
+        return detray::ranges::subrange(_data, dindex_range{begin, end});
     }
 
     /** Access to a predefined range of elements

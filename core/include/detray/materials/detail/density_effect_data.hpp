@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
 // System include(s)
@@ -24,10 +25,10 @@ struct density_effect_data {
     density_effect_data() = default;
 
     DETRAY_HOST_DEVICE
-    constexpr density_effect_data(const scalar_type a, const scalar_type m,
-                                  const scalar_type X0, const scalar_type X1,
-                                  const scalar_type I, const scalar_type nC,
-                                  const scalar_type delta0)
+    density_effect_data(const scalar_type a, const scalar_type m,
+                        const scalar_type X0, const scalar_type X1,
+                        const scalar_type I, const scalar_type nC,
+                        const scalar_type delta0)
         : m_a(a),
           m_m(m),
           m_X0(X0),

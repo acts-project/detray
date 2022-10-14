@@ -18,6 +18,7 @@
 #include <thrust/tuple.h>
 
 #include "detray/core/detector.hpp"
+#include "detray/utils/ranges.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
 
 #pragma once
@@ -29,11 +30,12 @@ namespace detray {
 
 // some useful type declarations
 using detector_host_t =
-    detector<detector_registry::toy_detector, darray, thrust::tuple,
-             vecmem::vector, vecmem::jagged_vector>;
+    detector<detector_registry::toy_detector, covfie::field, darray,
+             thrust::tuple, vecmem::vector, vecmem::jagged_vector>;
 using detector_device_t =
-    detector<detector_registry::toy_detector, darray, thrust::tuple,
-             vecmem::device_vector, vecmem::jagged_device_vector>;
+    detector<detector_registry::toy_detector, covfie::field_view, darray,
+             thrust::tuple, vecmem::device_vector,
+             vecmem::jagged_device_vector>;
 using volume_t = typename detector_host_t::volume_type;
 using surface_t = typename detector_host_t::surface_type;
 using transform_store_t = typename detector_host_t::transform_container;

@@ -30,7 +30,8 @@ TEST(detector, detector_kernel) {
 
     vecmem::host_memory_resource host_mr;
 
-    using detector_t = detector<detector_registry::default_detector>;
+    using detector_t =
+        detector<detector_registry::default_detector, covfie::field>;
     using mask_ids = typename detector_t::masks::id;
     using material_ids = typename detector_t::materials::id;
 

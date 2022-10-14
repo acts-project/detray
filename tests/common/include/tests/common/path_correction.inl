@@ -7,7 +7,6 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
@@ -18,6 +17,10 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/detector_metadata.hpp"
+
+// Covfie include(s).
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
 
 // Vecmem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -73,17 +76,19 @@ using vector2 = __plugin::vector2<scalar>;
 using vector3 = __plugin::vector3<scalar>;
 using matrix_operator = standard_matrix_operator<scalar>;
 using registry_type = detector_registry::default_detector;
-using detector_type = detector<registry_type, std::array, std::tuple,
-                               vecmem::vector, vecmem::jagged_vector>;
+using detector_type =
+    detector<registry_type, covfie::field, std::array, std::tuple,
+             vecmem::vector, vecmem::jagged_vector>;
 using mask_container = typename detector_type::mask_container;
 using material_container = typename detector_type::material_container;
 using transform3 = typename detector_type::transform3;
 using surface_type = typename detector_type::surface_container::value_type;
 using mask_link_type = typename surface_type::mask_link;
 using material_link_type = typename surface_type::material_link;
-using mag_field_t = constant_magnetic_field<>;
+using mag_field_t = detector_type::bfield_type;
 using navigator_t = navigator<detector_type>;
-using crk_stepper_t = rk_stepper<mag_field_t, transform3, constrained_step<>>;
+using crk_stepper_t =
+    rk_stepper<mag_field_t::view_t, transform3, constrained_step<>>;
 using actor_chain_t =
     actor_chain<dtuple, surface_targeter, parameter_transporter<transform3>,
                 parameter_resetter<transform3>>;
@@ -96,7 +101,8 @@ constexpr scalar rk_tolerance = 1e-8;
 
 // B field
 const vector3 B{0, 0, 1. * unit_constants::T};
-const mag_field_t mag_field(B);
+mag_field_t mag_field(mag_field_t::backend_t::configuration_t{B[0], B[1],
+                                                              B[2]});
 
 // memory resource
 vecmem::host_memory_resource resource;
@@ -110,7 +116,7 @@ const typename detector_type::context ctx{};
 TEST(path_correction, cartesian) {
 
     // Create a detector
-    detector_type det(env::resource);
+    detector_type det(env::resource, std::move(env::mag_field));
 
     // Mask and material ID
     constexpr registry_type::mask_ids mask_id =
@@ -229,9 +235,28 @@ TEST(path_correction, cartesian) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
                         matrix_operator().element(bound_cov1, i, j),
-                        crk_state.path_length() * env::epsilon);
+                        env::epsilon);
         }
     }
+
+    /*
+    // Print the matrix elements
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            std::cout << matrix_operator().element(bound_cov0, i, j) << "  ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            std::cout << matrix_operator().element(bound_cov1, i, j) << "  ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+    */
 }
 
 TEST(path_correction, polar) {
@@ -361,7 +386,7 @@ TEST(path_correction, polar) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
                         matrix_operator().element(bound_cov1, i, j),
-                        crk_state.path_length() * env::epsilon);
+                        env::epsilon);
         }
     }
 }
@@ -493,7 +518,7 @@ TEST(path_correction, cylindrical) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
                         matrix_operator().element(bound_cov1, i, j),
-                        crk_state.path_length() * env::epsilon);
+                        env::epsilon);
         }
     }
 }

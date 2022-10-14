@@ -17,12 +17,11 @@
 
 #include <algorithm>
 #include <array>
-#include <climits>
+#include <limits>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
-#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {

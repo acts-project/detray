@@ -10,7 +10,6 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/navigation_policies.hpp"
@@ -45,9 +44,9 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using object_tracer_t =
         object_tracer<dvector, status::e_on_portal, status::e_on_module>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using b_field_t = constant_magnetic_field<>;
+    using b_field_t = decltype(telescope_det)::bfield_type;
     using runge_kutta_stepper =
-        rk_stepper<b_field_t, transform3_type, unconstrained_step,
+        rk_stepper<b_field_t::view_t, transform3_type, unconstrained_step,
                    guided_navigation>;
     using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
     using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
@@ -59,7 +58,8 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     const vector3 mom{0., 0., 1.};
     free_track_parameters<transform3_type> track(pos, 0, mom, -1);
     const vector3 B{0, 0, 1 * unit_constants::T};
-    const b_field_t b_field(B);
+    const b_field_t b_field(
+        b_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
 
     // Actors
     pathlimit_aborter::state pathlimit{200. * unit_constants::cm};
