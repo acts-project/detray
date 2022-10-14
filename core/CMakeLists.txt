@@ -22,6 +22,7 @@ detray_add_library( detray_core core
    "include/detray/core/detail/container_view.hpp"
    "include/detray/core/detail/tuple_array_container.hpp"
    "include/detray/core/detail/tuple_container.hpp"
+   "include/detray/core/detail/new_tuple_container.hpp"
    "include/detray/core/detail/tuple_vector_container.hpp"
    "include/detray/core/detail/viewable_collection.hpp"
    "include/detray/core/detector.hpp"

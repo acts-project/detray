@@ -6,6 +6,7 @@
  */
 
 // Detray include(s)
+#include "detray/core/detail/new_tuple_container.hpp"
 #include "detray/core/detail/tuple_array_container.hpp"
 #include "detray/core/detail/tuple_vector_container.hpp"
 #include "detray/grids/grid2.hpp"
@@ -34,6 +35,47 @@ struct test_func {
         return gr.size();
     }
 };
+
+TEST(container, tuple_container) {
+
+    // Vecmem memory resource
+    vecmem::host_memory_resource resource;
+    using host_tuple_t =
+        detail::tuple_container<std::tuple, vecmem::vector<float>,
+                                vecmem::vector<std::size_t>,
+                                vecmem::vector<int*>>;
+
+    using device_tuple_t =
+        detail::tuple_container<thrust::tuple, vecmem::device_vector<float>,
+                                vecmem::device_vector<std::size_t>,
+                                vecmem::device_vector<int*>>;
+
+    vecmem::vector<float> vec1{};
+    vecmem::vector<std::size_t> vec2{};
+    vecmem::vector<int*> vec3{};
+
+    host_tuple_t container(resource, vec1, vec2, vec3);
+
+    static_assert(
+        std::is_same_v<
+            typename host_tuple_t::view_type,
+            dmulti_view<dvector_view<float>, dvector_view<std::size_t>,
+                        dvector_view<int*>>>,
+        "View type incorrectly assembled");
+
+    static_assert(std::is_same_v<typename host_tuple_t::const_view_type,
+                                 dmulti_view<dvector_view<const float>,
+                                             dvector_view<const std::size_t>,
+                                             dvector_view<int* const>>>,
+                  "Const view type incorrectly assembled");
+
+    typename host_tuple_t::view_type view = get_data(container);
+    device_tuple_t dev_container(view);
+
+    // Base container function check
+    EXPECT_EQ(container.size(), 3);
+    EXPECT_EQ(dev_container.size(), 3);
+}
 
 TEST(container, tuple_vector_container) {
 
