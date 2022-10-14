@@ -76,6 +76,10 @@ TEST(container, tuple_container) {
     // Base container function check
     EXPECT_EQ(container.size(), 3);
     EXPECT_EQ(dev_container.size(), 3);
+
+    EXPECT_TRUE(container.get<0>().empty());
+    EXPECT_TRUE(container.get<1>().empty());
+    EXPECT_TRUE(detail::get<2>(container).empty());
 }
 
 TEST(container, vector_data_store) {
@@ -90,57 +94,59 @@ TEST(container, vector_data_store) {
 
     // Base container function check
     EXPECT_EQ(vector_store.n_collections(), 3);
-    // EXPECT_EQ(vector_store.empty<0>(), true);
-    // EXPECT_EQ(vector_store.empty<1>(), true);
-    // EXPECT_EQ(vector_store.empty<2>(), true);
-
-    // EXPECT_EQ(vector_store.to_id<>(0), 0);
-    // EXPECT_EQ(vector_store.to_id<1>(2), 2);
-    // EXPECT_EQ(vector_store.to_id<1>(0), 3);
+    EXPECT_EQ(vector_store.empty<0>(), true);
+    EXPECT_EQ(vector_store.empty<1>(), true);
+    EXPECT_EQ(vector_store.empty<2>(), true);
+    EXPECT_EQ(vector_store.size<0>(), 0UL);
+    EXPECT_EQ(vector_store.size<1>(), 0UL);
+    EXPECT_EQ(vector_store.size<2>(), 0UL);
 
     // Add elements to the container
-    /*container.add_value<0>(1);
-    container.add_value<0>(2);
-    container.add_value<1>(3.1);
-    container.add_value<1>(4.5);
-    container.add_value<2>(5.5);
-    container.add_value<2>(6.);
+    vector_store.push_back<0>(1UL);
+    vector_store.emplace_back<0>(2UL);
+    vector_store.push_back<1>(3.1f);
+    vector_store.emplace_back<1>(4.5f);
+    vector_store.push_back<2>(5.5);
+    vector_store.emplace_back<2>(6.);
 
-    vecmem::vector<int> int_vec{3, 4, 5};
-    container.add_vector(int_vec);
+    EXPECT_EQ(vector_store.empty<0>(), false);
+    EXPECT_EQ(vector_store.empty<1>(), false);
+    EXPECT_EQ(vector_store.empty<2>(), false);
+    EXPECT_EQ(vector_store.size<0>(), 2UL);
+    EXPECT_EQ(vector_store.size<1>(), 2UL);
+    EXPECT_EQ(vector_store.size<2>(), 2UL);
 
-    vecmem::vector<float> float_vec{12.1};
-    container.add_vector(float_vec);
+    vecmem::vector<std::size_t> int_vec{3UL, 4UL, 5UL};
+    vector_store.insert(int_vec);
 
-    container.add_vector(vecmem::vector<double>{10.5, 7.6});
+    vecmem::vector<float> float_vec{12.1f};
+    vector_store.insert(float_vec);
 
-    EXPECT_EQ(container.empty<0>(), false);
-    EXPECT_EQ(container.empty<1>(), false);
-    EXPECT_EQ(container.empty<2>(), false);
+    vector_store.insert(vecmem::vector<double>{10.5, 7.6});
 
     // int group
-    EXPECT_EQ(container.size<0>(), 5);
-    EXPECT_EQ(container.group<0>()[0], 1);
-    EXPECT_EQ(container.group<0>()[1], 2);
-    EXPECT_EQ(container.group<0>()[2], 3);
-    EXPECT_EQ(container.group<0>()[3], 4);
-    EXPECT_EQ(container.group<0>()[4], 5);
+    EXPECT_EQ(vector_store.size<0>(), 5UL);
+    EXPECT_EQ(vector_store.get<0>()[0], 1UL);
+    EXPECT_EQ(vector_store.get<0>()[1], 2UL);
+    EXPECT_EQ(vector_store.get<0>()[2], 3UL);
+    EXPECT_EQ(vector_store.get<0>()[3], 4UL);
+    EXPECT_EQ(vector_store.get<0>()[4], 5UL);
 
     // float group
-    EXPECT_EQ(container.size<1>(), 3);
-    EXPECT_FLOAT_EQ(container.group<1>()[0], 3.1);
-    EXPECT_FLOAT_EQ(container.group<1>()[1], 4.5);
-    EXPECT_FLOAT_EQ(container.group<1>()[2], 12.1);
+    EXPECT_EQ(vector_store.size<1>(), 3UL);
+    EXPECT_FLOAT_EQ(vector_store.get<1>()[0], 3.1f);
+    EXPECT_FLOAT_EQ(vector_store.get<1>()[1], 4.5f);
+    EXPECT_FLOAT_EQ(vector_store.get<1>()[2], 12.1f);
 
     // double group
-    EXPECT_EQ(container.size<2>(), 4);
-    EXPECT_FLOAT_EQ(container.group<2>()[0], 5.5);
-    EXPECT_FLOAT_EQ(container.group<2>()[1], 6.);
-    EXPECT_FLOAT_EQ(container.group<2>()[2], 10.5);
-    EXPECT_FLOAT_EQ(container.group<2>()[3], 7.6);
+    EXPECT_EQ(vector_store.size<2>(), 4UL);
+    EXPECT_FLOAT_EQ(vector_store.get<2>()[0], 5.5);
+    EXPECT_FLOAT_EQ(vector_store.get<2>()[1], 6.);
+    EXPECT_FLOAT_EQ(vector_store.get<2>()[2], 10.5);
+    EXPECT_FLOAT_EQ(vector_store.get<2>()[3], 7.6);
 
     // unrolling test
-    EXPECT_EQ(container.call<test_func>(std::make_pair(0, 0)), 5);
+    /*EXPECT_EQ(container.call<test_func>(std::make_pair(0, 0)), 5);
     EXPECT_EQ(container.call<test_func>(std::make_pair(1, 0)), 3);
     EXPECT_EQ(container.call<test_func>(std::make_pair(2, 0)), 4);*/
 }
