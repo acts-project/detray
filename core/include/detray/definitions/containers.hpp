@@ -73,6 +73,9 @@ using device_container_types =
     container_types<vecmem::device_vector, thrust::tuple, darray,
                     vecmem::jagged_device_vector>;
 
+/// How to obtain views for vecmem types
+using vecmem::get_data;
+
 /// Specialized view for @c vecmem::vector containers
 template <typename value_t>
 using dvector_view = detail::view_wrapper<value_t, vecmem::data::vector_view>;
