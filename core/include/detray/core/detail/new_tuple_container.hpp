@@ -71,10 +71,40 @@ class tuple_container {
         : _tuple(
               unroll_views(view, std::make_index_sequence<sizeof...(Ts)>{})) {}
 
+    /// @returns the size of the tuple
+    DETRAY_HOST_DEVICE
+    constexpr auto size() const noexcept -> std::size_t {
+        return sizeof...(Ts);
+    }
+
+    /// @returns the tuple element corresponding to the index @tparam idx
+    template <std::size_t idx>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() const noexcept {
+        return detail::get<idx>(_tuple);
+    }
+
+    /// @returns the tuple element corresponding to the index @tparam idx
+    template <std::size_t idx>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() noexcept {
+        return detail::get<idx>(_tuple);
+    }
+
+    /// @returns the tuple element corresponding to the index @tparam idx
+    template <typename T>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() const noexcept {
+        return detail::get<T>(_tuple);
+    }
+
+    /// @returns the tuple element corresponding to the index @tparam idx
+    template <typename T>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() noexcept {
+        return detail::get<T>(_tuple);
+    }
+
     /// @returns the view for all contained types.
     template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
-    DETRAY_HOST view_type get_data(std::index_sequence<I...> /*seq*/) {
+    DETRAY_HOST view_type get_data(std::index_sequence<I...> /*seq*/) noexcept {
         return {detray::get_data(detail::get<I>(_tuple))...};
     }
 
@@ -82,22 +112,12 @@ class tuple_container {
     template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
     DETRAY_HOST const_view_type
-    get_data(std::index_sequence<I...> /*seq*/) const {
+    get_data(std::index_sequence<I...> /*seq*/) const noexcept {
         return {detray::get_data(detail::get<I>(_tuple))...};
     }
 
-    /// @returns the size of a data collection by id
-    DETRAY_HOST_DEVICE
-    constexpr auto size() const -> std::size_t {
-        return detail::tuple_size<tuple_type>::value;
-    }
-
     private:
-    /// Construct from the container view type. Mainly used device-side.
-    ///
-    /// @tparam is the type of input data container
-    ///
-    /// @param container_data is the data container
+    /// @returns a tuple constructed from the elements @param view s.
     template <typename tuple_view_t, std::size_t... I,
               std::enable_if_t<is_device_view_v<tuple_view_t>, bool> = true>
     DETRAY_HOST_DEVICE auto unroll_views(tuple_view_t &view,
@@ -108,6 +128,33 @@ class tuple_container {
 
     tuple_type _tuple;
 };
+
+/// Overloads to 'get' for the tuple container
+/// @{
+template <std::size_t idx, template <typename...> class tuple_t, typename... Ts>
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    const detail::tuple_container<tuple_t, Ts...> &container) {
+    return container.template get<idx>();
+}
+
+template <std::size_t idx, template <typename...> class tuple_t, typename... Ts>
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    detail::tuple_container<tuple_t, Ts...> &container) {
+    return container.template get<idx>();
+}
+
+template <typename T, template <typename...> class tuple_t, typename... Ts>
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    const detail::tuple_container<tuple_t, Ts...> &container) {
+    return container.template get<T>();
+}
+
+template <typename T, template <typename...> class tuple_t, typename... Ts>
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    detail::tuple_container<tuple_t, Ts...> &container) {
+    return container.template get<T>();
+}
+/// @}
 
 }  // namespace detail
 
