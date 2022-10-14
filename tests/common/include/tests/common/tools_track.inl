@@ -35,15 +35,19 @@ enum material_ids : unsigned int {
 using mask_defs = tuple_vector_registry<mask_ids, mask<rectangle2D<>>>;
 using material_defs =
     tuple_vector_registry<material_ids, material_slab<scalar>>;
+using mask_link_t = dtyped_index<mask_ids, dindex>;
+using material_link_t = dtyped_index<material_ids, dindex>;
 
 TEST(tools, bound_track_parameters) {
 
     // surface container
-    std::vector<surface<mask_defs, material_defs>> surfaces;
-    surfaces.emplace_back(0, mask_defs::link_type{e_rectangle2, 0},
-                          material_defs::link_type{e_slab, 0}, 0, 0, false);
-    surfaces.emplace_back(1, mask_defs::link_type{e_rectangle2, 0},
-                          material_defs::link_type{e_slab, 0}, 0, 0, false);
+    std::vector<surface<mask_link_t, material_link_t>> surfaces;
+    surfaces.emplace_back(0, mask_link_t{e_rectangle2, 0},
+                          material_link_t{e_slab, 0}, 0, 0,
+                          surface_id::e_sensitive);
+    surfaces.emplace_back(1, mask_link_t{e_rectangle2, 0},
+                          material_link_t{e_slab, 0}, 0, 0,
+                          surface_id::e_sensitive);
 
     /// Declare track parameters
 
