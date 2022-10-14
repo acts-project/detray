@@ -75,14 +75,6 @@ class registry_base<ID, true, registered_types...> {
         return type_id < n_types;
     }
 
-    /// Extract an index and check it.
-    template <typename object_t>
-    struct get_index {
-        static constexpr ID value = get_id<object_t>();
-        DETRAY_HOST_DEVICE
-        constexpr bool operator()() noexcept { return is_valid(value); }
-    };
-
     /// Convert index to ID and do some (limited) checking.
     ///
     /// @tparam ref_idx matches to index arg to perform static checks
@@ -129,6 +121,14 @@ class registry_base<ID, true, registered_types...> {
         return sizeof...(registered_types);
     }
 
+    /// Extract an index and check it.
+    template <typename object_t>
+    struct get_index {
+        static constexpr ID value = get_id<object_t>();
+        DETRAY_HOST_DEVICE
+        constexpr bool operator()() noexcept { return is_valid(value); }
+    };
+
     /// Return a type for an index. If the index cannot be mapped, there will be
     /// a compiler error.
     template <ID type_id, template <typename...> class tuple_t = dtuple>
@@ -156,38 +156,6 @@ class registry_base<ID, true, registered_types...> {
     }
 };
 
-/// Registry for geometric objects.
-template <typename... registered_types>
-class object_registry
-    : public registry_base<unsigned int, true, registered_types...> {
-    public:
-    using type_registry =
-        registry_base<unsigned int, true, registered_types...>;
-
-    enum : std::size_t {
-        n_types = type_registry::n_types,
-        e_any = type_registry::e_any,
-        e_unknown = type_registry::e_unknown,
-    };
-
-    /// Known primitives
-    enum id : unsigned int {
-        e_surface = 0,
-        e_portal = 0,  // not used (same as surface)
-    };
-
-    using link_type = dindex;
-    using range_type = dindex_range;
-
-    template <typename T>
-    using get_index = typename type_registry::template get_index<T>;
-
-    template <unsigned int type_id,
-              template <typename...> class tuple_t = dtuple>
-    using get_type =
-        typename type_registry::template get_type<type_id, tuple_t>;
-};
-
 /// Tuple vector container registry
 template <class ID, typename... registered_types>
 class tuple_vector_registry
@@ -210,8 +178,8 @@ class tuple_vector_registry
               template <typename...> class vector_t = dvector>
     using store_type =
         tuple_vector_container<tuple_t, vector_t, ID, registered_types...>;
-    using link_type = typed_index<ID, dindex>;
-    using range_type = typed_index<ID, dindex_range>;
+    using link_type = dtyped_index<ID, dindex>;
+    using range_type = dtyped_index<ID, dindex_range>;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;
@@ -250,8 +218,8 @@ class tuple_array_registry<ID, std::index_sequence<sizes...>,
     using store_type = tuple_array_container<tuple_t, array_t, ID,
                                              std::index_sequence<sizes...>,
                                              registered_types...>;
-    using link_type = typed_index<ID, dindex>;
-    using range_type = typed_index<ID, dindex_range>;
+    using link_type = dtyped_index<ID, dindex>;
+    using range_type = dtyped_index<ID, dindex_range>;
 
     template <typename T>
     using get_index = typename type_registry::template get_index<T>;

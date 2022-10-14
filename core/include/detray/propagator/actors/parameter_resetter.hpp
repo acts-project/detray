@@ -45,7 +45,7 @@ struct parameter_resetter : actor {
             const auto& trf3 = trf_store[surface.transform()];
 
             // Note: How is it possible with "range"???
-            const auto& mask = mask_group[surface.mask_range()];
+            const auto& mask = mask_group[surface.mask().index()];
 
             auto local_coordinate = mask.local_frame();
 

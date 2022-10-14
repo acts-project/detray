@@ -21,25 +21,28 @@ using dindex_sequence = dvector<dindex>;
 /// @brief Simple multi-index structure
 ///
 /// @tparam DIM number of indices that are held by this type
-/// @tparam value_t type of indices
-template <typename value_t = dindex, std::size_t DIM = 3>
+/// @tparam index_t type of indices
+template <typename index_t = dindex, std::size_t DIM = 3>
 struct dmulti_index {
-    std::array<value_t, DIM> indices{};
+    using index_type = index_t;
+
+    std::array<index_t, DIM> indices{};
+
+    /// @returns the number of conatined indices
+    DETRAY_HOST_DEVICE
+    constexpr static auto size() -> std::size_t { return DIM; }
 
     /// Elementwise access.
     DETRAY_HOST_DEVICE
-    inline auto operator[](const std::size_t i) -> value_t& {
-        return indices[i];
-    }
+    auto operator[](const std::size_t i) -> index_t& { return indices[i]; }
     DETRAY_HOST_DEVICE
-    inline auto operator[](const std::size_t i) const -> const value_t& {
+    auto operator[](const std::size_t i) const -> const index_t& {
         return indices[i];
     }
 
     /// Equality operator @returns true if all bin indices match.
     DETRAY_HOST_DEVICE
-    inline auto operator==(const dmulti_index<value_t, DIM>& rhs) const
-        -> bool {
+    auto operator==(const dmulti_index<index_t, DIM>& rhs) const -> bool {
         return (indices == rhs.indices);
     }
 };
@@ -50,7 +53,7 @@ struct dmulti_index {
 /// @tparam index_type The type of indexing needed for the indexed type's
 ///         container (e.g. single index, range, multiindex)
 template <typename id_t = unsigned int, typename index_t = dindex>
-struct typed_index {
+struct dtyped_index {
 
     using id_type = id_t;
     using index_type = index_t;
@@ -58,64 +61,75 @@ struct typed_index {
     id_type _object_id;
     index_type _index;
 
+    /// @return the type id
+    auto id() const -> id_type { return _object_id; }
+
+    /// @return a reference to the index - const
+    DETRAY_HOST_DEVICE
+    auto index() const -> const index_type& { return _index; }
+
+    /// @return a reference to the index - non-const
+    DETRAY_HOST_DEVICE
+    auto index() -> index_type& { return _index; }
+
     /// Equality operator
     DETRAY_HOST_DEVICE
-    bool operator==(const typed_index<id_type, index_type>& rhs) const {
+    bool operator==(const dtyped_index<id_type, index_type>& rhs) const {
         return (_object_id == rhs._object_id && _index == rhs._index);
     }
 
     /// Arithmetic operators
     DETRAY_HOST_DEVICE
-    typed_index<id_type, index_type> operator+(
-        const typed_index<id_type, index_type>& rhs) const {
+    dtyped_index<id_type, index_type> operator+(
+        const dtyped_index<id_type, index_type>& rhs) const {
         return {_object_id, _index + rhs._index};
     }
 
     DETRAY_HOST_DEVICE
-    typed_index<id_type, index_type> operator+(const index_type& index) const {
+    dtyped_index<id_type, index_type> operator+(const index_type& index) const {
         return {_object_id, _index + index};
     }
 
     DETRAY_HOST_DEVICE
-    typed_index<id_type, index_type> operator-(
-        const typed_index<id_type, index_type>& rhs) const {
+    dtyped_index<id_type, index_type> operator-(
+        const dtyped_index<id_type, index_type>& rhs) const {
         return {_object_id, _index - rhs._index};
     }
 
     DETRAY_HOST_DEVICE
-    typed_index<id_type, index_type> operator-(const index_type& index) const {
+    dtyped_index<id_type, index_type> operator-(const index_type& index) const {
         return {_object_id, _index - index};
     }
 
     DETRAY_HOST_DEVICE
-    typed_index<id_type, index_type>& operator+=(
-        const typed_index<id_type, index_type>& rhs) {
+    dtyped_index<id_type, index_type>& operator+=(
+        const dtyped_index<id_type, index_type>& rhs) {
         _index += rhs._index;
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    typed_index<id_type, index_type>& operator+=(const index_type& index) {
+    dtyped_index<id_type, index_type>& operator+=(const index_type& index) {
         _index += index;
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    typed_index<id_type, index_type>& operator-=(
-        const typed_index<id_type, index_type>& rhs) {
+    dtyped_index<id_type, index_type>& operator-=(
+        const dtyped_index<id_type, index_type>& rhs) {
         _index -= rhs._index;
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    typed_index<id_type, index_type>& operator-=(const index_type& index) {
+    dtyped_index<id_type, index_type>& operator-=(const index_type& index) {
         _index -= index;
         return *this;
     }
 
     /// Only make the prefix operator available
     DETRAY_HOST_DEVICE
-    typed_index<id_type, index_type>& operator++() {
+    dtyped_index<id_type, index_type>& operator++() {
         ++_index;
         return *this;
     }
@@ -129,19 +143,33 @@ dindex get(dindex idx) noexcept {
     return idx;
 }
 
-/// Custom get function for the typed_index struct. Get the type.
+/// Custom get function for the dtyped_index struct. Get the type.
+template <std::size_t idx, typename index_type, std::size_t index_size>
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    const dmulti_index<index_type, index_size>& index) noexcept {
+    return index.indices[idx];
+}
+
+/// Custom get function for the dtyped_index struct. Get the type.
+template <std::size_t idx, typename index_type, std::size_t index_size>
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    dmulti_index<index_type, index_size>& index) noexcept {
+    return index.indices[idx];
+}
+
+/// Custom get function for the dtyped_index struct. Get the type.
 template <std::size_t ID, typename id_type, typename index_type,
           std::enable_if_t<ID == 0, bool> = true>
 DETRAY_HOST_DEVICE constexpr auto& get(
-    const typed_index<id_type, index_type>& index) noexcept {
+    const dtyped_index<id_type, index_type>& index) noexcept {
     return index._object_id;
 }
 
-/// Custom get function for the typed_index struct. Get the index.
+/// Custom get function for the dtyped_index struct. Get the index.
 template <std::size_t ID, typename id_type, typename index_type,
           std::enable_if_t<ID == 1, bool> = true>
 DETRAY_HOST_DEVICE constexpr auto& get(
-    const typed_index<id_type, index_type>& index) noexcept {
+    const dtyped_index<id_type, index_type>& index) noexcept {
     return index._index;
 }
 

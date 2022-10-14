@@ -151,7 +151,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             const sf_finder_link_t& /*sf_finder_link*/) {
             EXPECT_EQ(vol_itr->index(), vol_index);
             EXPECT_EQ(vol_itr->bounds(), bounds);
-            EXPECT_EQ(vol_itr->range(), range);
+            EXPECT_EQ(vol_itr->obj_link(), range);
             // EXPECT_EQ(vol_itr->sf_finder_link(), sf_finder_link);
         };
 
@@ -181,7 +181,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             EXPECT_EQ(volume_link, volume_links[pti - range[0]]);
             EXPECT_EQ(
                 materials
-                    .group<material_ids::e_slab>()[sf_itr->material_range()],
+                    .group<material_ids::e_slab>()[sf_itr->material().index()],
                 mat);
 
             ++sf_itr;
@@ -217,7 +217,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             EXPECT_EQ(volume_link, volume_links[0]);
             EXPECT_EQ(
                 materials
-                    .group<material_ids::e_slab>()[sf_itr->material_range()],
+                    .group<material_ids::e_slab>()[sf_itr->material().index()],
                 mat);
             ++sf_itr;
             ++trf_index;

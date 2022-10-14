@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/core/type_registry.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/intersection/concentric_cylinder_intersector.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -39,14 +39,10 @@ enum material_ids : unsigned int {
     e_slab = 0,
 };
 
-using mask_defs = tuple_vector_registry<
-    mask_ids, mask<rectangle2D<>>, mask<cylinder2D<>>,
-    mask<cylinder2D<false, concentric_cylinder_intersector>>>;
+using mask_link_t = dtyped_index<mask_ids, dindex>;
+using material_link_t = dtyped_index<material_ids, dindex>;
 
-using material_defs =
-    tuple_vector_registry<material_ids, material_slab<scalar>>;
-
-using plane_surface = surface<mask_defs, material_defs, transform3>;
+using plane_surface = surface<mask_link_t, material_link_t, transform3>;
 
 unsigned int theta_steps = 1000;
 unsigned int phi_steps = 1000;
@@ -100,8 +96,7 @@ BENCHMARK(BM_INTERSECT_PLANES)
 // This test runs intersection with all surfaces of the TrackML detector
 static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
-    using cylinder_mask =
-        typename mask_defs::template get_type<e_cylinder2>::type;
+    using cylinder_mask = mask<cylinder2D<>>;
 
     unsigned int sfhit = 0;
     unsigned int sfmiss = 0;
@@ -111,10 +106,10 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
         cylinders.push_back(cylinder_mask{0UL, r, -10.f, 10.f});
     }
 
-    typename mask_defs::link_type mask_link{e_cylinder2, 0};
-    typename material_defs::link_type material_link{e_slab, 0};
+    mask_link_t mask_link{mask_ids::e_cylinder2, 0};
+    material_link_t material_link{material_ids::e_slab, 0};
     plane_surface plain(transform3(), mask_link, material_link, 0, false,
-                        false);
+                        surface_id::e_sensitive);
 
     const point3 ori = {0., 0., 0.};
 
@@ -171,17 +166,17 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     unsigned int sfmiss = 0;
 
     using cylinder_mask =
-        typename mask_defs::template get_type<e_conc_cylinder3>::type;
-    ;
+        mask<cylinder2D<false, concentric_cylinder_intersector>>;
+
     dvector<cylinder_mask> cylinders;
     for (scalar r : dists) {
         cylinders.push_back(cylinder_mask(0UL, r, -10.f, 10.f));
     }
 
-    typename mask_defs::link_type mask_link{e_conc_cylinder3, 0};
-    typename material_defs::link_type material_link{e_slab, 0};
+    mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0};
+    material_link_t material_link{material_ids::e_slab, 0};
     plane_surface plain(transform3(), mask_link, material_link, 0, false,
-                        false);
+                        surface_id::e_sensitive);
 
     const point3 ori = {0., 0., 0.};
 

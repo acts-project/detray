@@ -119,10 +119,8 @@ TEST(path_correction, cartesian) {
     detector_type det(env::resource, std::move(env::mag_field));
 
     // Mask and material ID
-    constexpr registry_type::mask_ids mask_id =
-        registry_type::mask_ids::e_rectangle2;
-    constexpr registry_type::material_ids material_id =
-        registry_type::material_ids::e_slab;
+    constexpr auto mask_id = registry_type::mask_ids::e_rectangle2;
+    constexpr auto material_id = registry_type::material_ids::e_slab;
 
     // Add a volume
     det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
@@ -138,7 +136,7 @@ TEST(path_correction, cartesian) {
     material_link_type material_link{material_id,
                                      materials.template size<material_id>()};
     surfaces.emplace_back(trf_index, mask_link, material_link, 0,
-                          dindex_invalid, false);
+                          dindex_invalid, surface_id::e_sensitive);
 
     // Add a transform
     const vector3 t{0, 0, 0};
@@ -265,10 +263,8 @@ TEST(path_correction, polar) {
     detector_type det(env::resource);
 
     // Mask and material ID
-    constexpr registry_type::mask_ids mask_id =
-        registry_type::mask_ids::e_ring2;
-    constexpr registry_type::material_ids material_id =
-        registry_type::material_ids::e_slab;
+    constexpr auto mask_id = registry_type::mask_ids::e_ring2;
+    constexpr auto material_id = registry_type::material_ids::e_slab;
 
     // Add a volume
     det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
@@ -284,7 +280,7 @@ TEST(path_correction, polar) {
     material_link_type material_link{material_id,
                                      materials.template size<material_id>()};
     surfaces.emplace_back(trf_index, mask_link, material_link, 0,
-                          dindex_invalid, false);
+                          dindex_invalid, surface_id::e_sensitive);
 
     // Add a transform
     const vector3 t{0, 0, 0};
@@ -397,10 +393,8 @@ TEST(path_correction, cylindrical) {
     detector_type det(env::resource);
 
     // Mask and material ID
-    constexpr registry_type::mask_ids mask_id =
-        registry_type::mask_ids::e_cylinder2;
-    constexpr registry_type::material_ids material_id =
-        registry_type::material_ids::e_slab;
+    constexpr auto mask_id = registry_type::mask_ids::e_cylinder2;
+    constexpr auto material_id = registry_type::material_ids::e_slab;
 
     // Add a volume
     det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
@@ -416,7 +410,7 @@ TEST(path_correction, cylindrical) {
     material_link_type material_link{material_id,
                                      materials.template size<material_id>()};
     surfaces.emplace_back(trf_index, mask_link, material_link, 0,
-                          dindex_invalid, false);
+                          dindex_invalid, surface_id::e_sensitive);
 
     // Add a transform
     const vector3 t{-50 * unit_constants::mm, 0, 0};
