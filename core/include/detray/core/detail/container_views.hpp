@@ -80,7 +80,7 @@ class dmulti_view_helper<false, view_ts...> {};
 /// member constructors.
 template <typename... view_ts>
 struct dmulti_view_helper<true, view_ts...> : public dbase_view {
-    std::tuple<view_ts...> m_views;
+    std::tuple<std::remove_reference_t<std::remove_cv_t<view_ts>>...> m_views;
 
     dmulti_view_helper() = default;
 
