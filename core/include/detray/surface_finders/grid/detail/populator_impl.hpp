@@ -10,8 +10,8 @@
 // Project include(s).
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/enumerate.hpp"
 #include "detray/utils/invalid_values.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -73,7 +73,7 @@ struct replacer {
     static constexpr bool do_sort = false;
 
     template <typename content_t>
-    using bin_type = bin<content_t, single_iterator>;
+    using bin_type = bin<content_t, detray::views::single>;
 
     /// Replace the bin content with a new entry - forwarding
     ///
@@ -125,7 +125,7 @@ struct completer {
     static constexpr bool do_sort = kSORT;
 
     template <typename entry_t>
-    using bin_type = bin<array_t<entry_t, kDIM>, standard_iterator>;
+    using bin_type = bin<array_t<entry_t, kDIM>, detray::ranges::subrange>;
 
     /// Complete the bin content with a new entry - copy
     ///
@@ -189,7 +189,7 @@ struct regular_attacher {
     static constexpr bool do_sort = kSORT;
 
     template <typename entry_t>
-    using bin_type = bin<array_t<entry_t, kDIM>, standard_iterator>;
+    using bin_type = bin<array_t<entry_t, kDIM>, detray::ranges::subrange>;
 
     /// Append a new entry to the bin - forwarding
     ///

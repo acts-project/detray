@@ -6,8 +6,14 @@
 
 # Set up the core tests.
 detray_add_test( core
-   "grids_axis.cpp" "grids_grid2.cpp" "grids_populator.cpp"
-   "grids_serializer.cpp" "thrust_tuple.cpp" "tools_hash_tree.cpp"
-   "tuple_accessor.cpp" "utils_enumerate.cpp" "utils_local_object_finder.cpp"
+   "grids_axis.cpp"
+   "grids_grid2.cpp"
+   "grids_populator.cpp"
+   "grids_serializer.cpp"
+   "thrust_tuple.cpp"
+   "tools_hash_tree.cpp"
+   "tuple_accessor.cpp"
+   "utils_local_object_finder.cpp"
+   "utils_ranges.cpp"
    "utils_quadratic_equation.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core )

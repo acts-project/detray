@@ -235,9 +235,28 @@ TEST(path_correction, cartesian) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
                         matrix_operator().element(bound_cov1, i, j),
-                        crk_state.path_length() * env::epsilon);
+                        env::epsilon);
         }
     }
+
+    /*
+    // Print the matrix elements
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            std::cout << matrix_operator().element(bound_cov0, i, j) << "  ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            std::cout << matrix_operator().element(bound_cov1, i, j) << "  ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+    */
 }
 
 TEST(path_correction, polar) {
@@ -367,7 +386,7 @@ TEST(path_correction, polar) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
                         matrix_operator().element(bound_cov1, i, j),
-                        crk_state.path_length() * env::epsilon);
+                        env::epsilon);
         }
     }
 }
@@ -499,7 +518,7 @@ TEST(path_correction, cylindrical) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
                         matrix_operator().element(bound_cov1, i, j),
-                        crk_state.path_length() * env::epsilon);
+                        env::epsilon);
         }
     }
 }

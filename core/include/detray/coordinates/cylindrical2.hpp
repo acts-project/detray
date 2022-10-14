@@ -128,7 +128,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
 
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline void set_bound_pos_to_free_pos_derivative(
-        bound_to_free_matrix &free_to_bound_jacobian, const transform3_t &trf3,
+        bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
         const auto frame = reference_frame(trf3, mask, pos, dir);
@@ -137,14 +137,14 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         const auto bound_pos_to_free_pos_derivative =
             matrix_operator().template block<3, 2>(frame, 0, 0);
 
-        matrix_operator().template set_block(free_to_bound_jacobian,
+        matrix_operator().template set_block(bound_to_free_jacobian,
                                              bound_pos_to_free_pos_derivative,
                                              e_free_pos0, e_bound_loc0);
     }
 
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline void set_free_pos_to_bound_pos_derivative(
-        free_to_bound_matrix &bound_to_free_jacobian, const transform3_t &trf3,
+        free_to_bound_matrix &free_to_bound_jacobian, const transform3_t &trf3,
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
 
         const auto frame = reference_frame(trf3, mask, pos, dir);
@@ -154,7 +154,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         const auto free_pos_to_bound_pos_derivative =
             matrix_operator().template block<2, 3>(frameT, 0, 0);
 
-        matrix_operator().template set_block(bound_to_free_jacobian,
+        matrix_operator().template set_block(free_to_bound_jacobian,
                                              free_pos_to_bound_pos_derivative,
                                              e_bound_loc0, e_free_pos0);
     }

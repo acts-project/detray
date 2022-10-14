@@ -12,6 +12,7 @@
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/utils/axis_rotation.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -72,7 +73,8 @@ struct pointwise_material_interactor : actor {
             const scalar qop = stepping().qop();
             const scalar charge = stepping().charge();
 
-            for (const auto &mat : range(material_group, material_range)) {
+            for (const auto &mat :
+                 detray::ranges::subrange(material_group, material_range)) {
 
                 // Energy Loss
                 if (s.do_energy_loss) {

@@ -84,8 +84,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
         ASSERT_TRUE(prop.propagate(propagation)) << debug_printer.to_string();
 
         // Compare intersection records
-        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size())
-            << debug_printer.to_string();
+        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size());
 
         std::stringstream debug_stream;
         for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
