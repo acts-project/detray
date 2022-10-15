@@ -243,19 +243,19 @@ TEST(path_correction, cartesian) {
     // Print the matrix elements
     for (std::size_t i = 0; i < e_bound_size; i++) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
-            std::cout << matrix_operator().element(bound_cov0, i, j) << "  ";
+            printf("%f ", matrix_operator().element(bound_cov0, i, j));
         }
-        std::cout << std::endl;
+        printf("\n");
     }
-    std::cout << std::endl;
+    printf("\n");
 
     for (std::size_t i = 0; i < e_bound_size; i++) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
-            std::cout << matrix_operator().element(bound_cov1, i, j) << "  ";
+            printf("%f ", matrix_operator().element(bound_cov1, i, j));
         }
-        std::cout << std::endl;
+        printf("\n");
     }
-    std::cout << std::endl;
+    printf("\n");
     */
 }
 
