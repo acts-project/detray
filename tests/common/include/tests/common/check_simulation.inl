@@ -6,7 +6,6 @@
  */
 
 // Project include(s).
-#include "detray/field/constant_magnetic_field.hpp"
 #include "detray/io/utils.hpp"
 #include "detray/utils/math.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
@@ -49,11 +48,15 @@ TEST(check_simulation, toy_geometry) {
 
     // Create geometry
     vecmem::host_memory_resource host_mr;
-    const auto detector = create_toy_geometry(host_mr);
 
     // Create B field
-    const vector3 b{0, 0, 2 * unit_constants::T};
-    constant_magnetic_field<> b_field(b);
+    const vector3 B{0, 0, 2 * unit_constants::T};
+
+    // Create geometry
+    using b_field_t = decltype(create_toy_geometry(host_mr))::bfield_type;
+    const auto detector = create_toy_geometry(
+        host_mr,
+        b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}));
 
     // Create track generator
     constexpr unsigned int theta_steps{50};
@@ -67,7 +70,7 @@ TEST(check_simulation, toy_geometry) {
                                         170 * unit_constants::um);
 
     std::size_t n_events = 1;
-    auto sim = simulator(n_events, detector, b_field, generator, smearer);
+    auto sim = simulator(n_events, detector, generator, smearer);
 
     // Do the simulation
     sim.run();

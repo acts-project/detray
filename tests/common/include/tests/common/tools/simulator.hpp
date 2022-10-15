@@ -21,12 +21,12 @@
 
 namespace detray {
 
-template <typename detector_t, typename field_t, typename track_generator_t,
-          typename smearer_t>
+template <typename detector_t, typename track_generator_t, typename smearer_t>
 struct simulator {
 
     using transform3 = typename detector_t::transform3;
     using interactor_t = pointwise_material_interactor<transform3>;
+    using bfield_type = typename detector_t::bfield_type;
 
     using actor_chain_type =
         actor_chain<std::tuple, parameter_transporter<transform3>, interactor_t,
@@ -35,17 +35,15 @@ struct simulator {
                     parameter_resetter<transform3>>;
 
     using navigator_type = navigator<detector_t>;
-    using stepper_type = rk_stepper<field_t, transform3>;
+    using stepper_type = rk_stepper<typename bfield_type::view_t, transform3>;
     using propagator_type =
         propagator<stepper_type, navigator_type, actor_chain_type>;
 
-    simulator(std::size_t events, const detector_t& det, const field_t& field,
+    simulator(std::size_t events, const detector_t& det,
               track_generator_t& track_gen, smearer_t& smearer)
-        : m_events(events),
-          m_detector(det),
-          m_field(field),
-          m_track_generator(track_gen),
-          m_smearer(smearer) {}
+        : m_events(events), m_detector(det), m_smearer(smearer) {
+        m_track_generator = track_gen;
+    }
 
     void run() {
         for (std::size_t event_id = 0; event_id < m_events; event_id++) {
@@ -63,8 +61,8 @@ struct simulator {
                 typename actor_chain_type::state actor_states = std::tie(
                     transporter, interactor, scatterer, writer, resetter);
 
-                typename propagator_type::state state(track, m_field,
-                                                      m_detector, actor_states);
+                typename propagator_type::state state(
+                    track, m_detector.get_bfield(), m_detector, actor_states);
 
                 propagator_type p({}, {});
 
@@ -76,7 +74,6 @@ struct simulator {
     private:
     std::size_t m_events = 0;
     detector_t m_detector;
-    field_t m_field;
     track_generator_t m_track_generator;
     smearer_t m_smearer;
 };
