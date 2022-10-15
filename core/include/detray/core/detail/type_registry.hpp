@@ -18,7 +18,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace detray {
+namespace detray::detail {
 
 /// Base class for a type registry that allows to map indices to types and vice
 /// versa.
@@ -229,4 +229,4 @@ class tuple_array_registry<ID, std::index_sequence<sizes...>,
         typename type_registry::template get_type<type_id, tuple_t>;
 };
 
-}  // namespace detray
+}  // namespace detray::detail
