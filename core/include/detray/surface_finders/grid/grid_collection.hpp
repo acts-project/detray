@@ -105,12 +105,16 @@ class grid_collection<
     /// @returns the offsets for the grids in the bin storage - const
     DETRAY_HOST_DEVICE
     auto offsets() const -> const vector_type<size_type> & { return m_offsets; }
+
+    /// @returns the offsets for the grids in the bin storage - non-const
     DETRAY_HOST_DEVICE
     auto offsets() -> vector_type<size_type> & { return m_offsets; }
 
     /// @returns the underlying bin content storage - const
     DETRAY_HOST_DEVICE
     auto bin_storage() const -> const bin_storage_type & { return m_bins; }
+
+    /// @returns the underlying bin content storage - non-const
     DETRAY_HOST_DEVICE
     auto bin_storage() -> bin_storage_type & { return m_bins; }
 
@@ -119,6 +123,8 @@ class grid_collection<
     auto axes_storage() const -> const axes_storage_type & {
         return m_axes_data;
     }
+
+    /// @returns the underlying axis boundary storage - non-const
     DETRAY_HOST_DEVICE
     auto axes_storage() -> axes_storage_type & { return m_axes_data; }
 
@@ -127,6 +133,8 @@ class grid_collection<
     auto bin_edges_storage() const -> const edges_storage_type & {
         return m_bin_edges;
     }
+
+    /// @returns the underlying bin edges storage - non-const
     DETRAY_HOST_DEVICE
     auto bin_edges_storage() -> edges_storage_type & { return m_bin_edges; }
 
@@ -180,6 +188,4 @@ DETRAY_HOST inline typename grid_collection<grid_t>::const_view_type get_data(
             vecmem::get_data(grid_coll.bin_edges_storage())};
 }
 
-// template<typename grid_t>
-// using grid_container = viewable_collection<grid_collection<grid_t>>;
 }  // namespace detray
