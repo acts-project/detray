@@ -9,7 +9,7 @@ detray_add_test( smatrix
    "smatrix_axis_rotation.cpp"
    "smatrix_actor_chain.cpp"
    "smatrix_annulus2D.cpp"
-   "eigen_check_simulation.cpp"
+   "smatrix_check_simulation.cpp"
    "smatrix_container.cpp"
    "smatrix_coordinate_cartesian2.cpp"
    "smatrix_coordinate_cartesian3.cpp"
