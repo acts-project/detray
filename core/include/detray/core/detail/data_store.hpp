@@ -23,15 +23,16 @@
 
 namespace detray {
 
-/// @brief Wraps the vecmem enabled tuple and adds functionality to handle data
+/// @brief Wraps a vecmem enabled tuple and adds functionality to handle data
 /// collections.
 ///
-/// @tparam An enum of type IDs that needs to match the [value] types of the
+/// @tparam An enum of type IDs that needs to match the value types of the
 /// @c Ts pack.
 /// @tparam context_t How to retrieve data according to e.g. conditions data
+/// @tparam tuple_t The type of the underlying tuple container.
 /// @tparam container_t The type of container to use for the respective
 ///                     data collections.
-/// @tparam Ts the data types
+/// @tparam Ts the data types (value types of the collections)
 template <typename ID = std::size_t, typename context_t = void,
           template <typename...> class tuple_t = dtuple,
           template <typename...> class container_t = dvector, typename... Ts>
@@ -101,37 +102,36 @@ class data_store {
         return sizeof...(Ts);
     }
 
-    /// @returns the size of the underlying tuple
+    /// @returns a pointer to the underlying tuple container - const
     DETRAY_HOST_DEVICE
     constexpr auto data() const -> const tuple_type * {
         return m_tuple_container;
     }
 
-    /// @returns the size of the underlying tuple
+    /// @returns a pointer to the underlying tuple container - non-const
     DETRAY_HOST_DEVICE
     constexpr auto data() -> tuple_type * { return m_tuple_container; }
 
-    /// @returns the size of the underlying tuple
+    /// @returns a data collection by @tparam ID - const
     template <ID id>
     DETRAY_HOST_DEVICE constexpr decltype(auto) get() const noexcept {
         return detail::get<type_matcher::to_index(id)>(m_tuple_container);
     }
 
-    /// @returns the size of the underlying tuple
+    /// @returns a data collection by @tparam ID - non-const
     template <ID id>
     DETRAY_HOST_DEVICE constexpr decltype(auto) get() noexcept {
         return detail::get<type_matcher::to_index(id)>(m_tuple_container);
     }
 
-    /// @returns the size of a data collection by id
+    /// @returns the size of a data collection by @tparam ID
     template <ID id>
     DETRAY_HOST_DEVICE constexpr auto size() const -> std::size_t {
         return detail::get<type_matcher::to_index(id)>(m_tuple_container)
             .size();
     }
 
-    /// @tparam ID is the index of tuple element
-    /// @returns true if the tuple element is empty
+    /// @returns true if the collection given by @tparam ID is empty
     template <ID id>
     DETRAY_HOST_DEVICE constexpr auto empty() const -> bool {
         return detray::detail::get<type_matcher::to_index(id)>(
@@ -139,12 +139,12 @@ class data_store {
             .empty();
     }
 
-    /// Add a new value to a collection
+    /// Add a new element to a collection
     ///
-    /// @tparam ID is the index of target vector
+    /// @tparam ID is the id of the collection
     /// @tparam Args are the types of the constructor arguments
     ///
-    /// @param args is the list of constructor argument
+    /// @param args is the list of constructor arguments
     ///
     /// @note in general can throw an exception
     template <ID id, typename T>
@@ -153,12 +153,12 @@ class data_store {
         return coll.push_back(arg);
     }
 
-    /// Add a new value to a collection in place
+    /// Add a new element to a collection in place
     ///
-    /// @tparam ID is the index of target vector
+    /// @tparam ID is the id of the collection
     /// @tparam Args are the types of the constructor arguments
     ///
-    /// @param args is the list of constructor argument
+    /// @param args is the list of constructor arguments
     ///
     /// @note in general can throw an exception
     template <ID id, typename... Args>
@@ -168,12 +168,11 @@ class data_store {
         return coll.emplace_back(std::forward<Args>(args)...);
     }
 
-    /// Add a new vector
+    /// Add a collection - copy
     ///
-    /// @tparam current_id is the index of target vector
-    /// @tparam T is the value type
+    /// @tparam T is the value type of the collection
     ///
-    /// @param vec is the vector to be added
+    /// @param new_data is the new collection to be added
     ///
     /// @note in general can throw an exception
     template <typename T>
@@ -189,12 +188,11 @@ class data_store {
         coll.insert(coll.end(), new_data.begin(), new_data.end());
     }
 
-    /// Add a new vector (move semantics)
+    /// Add a new collection - move
     ///
-    /// @tparam current_id is the index of target vector
-    /// @tparam T is the value type
+    /// @tparam T is the value type of the collection
     ///
-    /// @param vec is the vector to be added
+    /// @param new_data is the new collection to be added
     ///
     /// @note in general can throw an exception
     template <typename T>
@@ -227,53 +225,42 @@ class data_store {
         }
     }
 
-    /// Calls a functor on a specific element of the tuple (given by ID).
+    /// Calls a functor with a specific data collection (given by ID).
     ///
     /// @tparam functor_t functor that will be called on the group.
     /// @tparam Args argument types for the functor
     ///
     /// @param id the element id
-    /// @param As additional functor arguments
+    /// @param args additional functor arguments
     ///
     /// @return the functor output
-    /*template <typename functor_t, typename... Args>
+    template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE typename functor_t::output_type call(const ID id,
                                                             Args &&...args) {
-        return unroll_call<functor_t>(static_cast<size_type>(id),
-                                      std::make_index_sequence<sizeof...(Ts)>{},
-                                      std::forward<Args>(args)...);
-    }*/
+        return m_tuple_container.template call<functor_t>(
+            static_cast<size_type>(id), std::forward<Args>(args)...);
+    }
+
+    /// Calls a functor with a specific element of a data collection
+    /// (given by a link).
+    ///
+    /// @tparam functor_t functor that will be called on the group.
+    /// @tparam Args argument types for the functor
+    ///
+    /// @param id the element id
+    /// @param args additional functor arguments
+    ///
+    /// @return the functor output
+    template <typename functor_t, typename link_t, typename... Args>
+    DETRAY_HOST_DEVICE typename functor_t::output_type call(
+        const link_t link, Args &&...args) const {
+        return m_tuple_container.template call<functor_t>(
+            detail::get<0>(link), detail::get<1>(link),
+            std::forward<Args>(args)...);
+    }
 
     private:
-    /// Variadic unrolling used to call a functor on a given tuple element.
-    ///
-    /// @tparam functor_t functor that will be called on the element.
-    /// @tparam Args argument types for the functor
-    /// @tparam first_idx Current index into the container tuple. Is converted
-    ///         to an id_t and tested aginst the given id.
-    /// @tparam remaining_idcs te remaining tuple indices to be tested.
-    /*template <typename functor_t, typename... Args, typename... Ts,
-              std::size_t first_idx, std::size_t... remaining_idcs>
-    DETRAY_HOST_DEVICE typename functor_t::output_type unroll_call(
-        const std::size_t idx, tuple_t<Ts...> &t,
-        std::index_sequence<first_idx, remaining_idcs...> /*seq*//*,
-        Args &&...args) const {
-        // Check if the first tuple index is matched to the target ID
-        if (idx == first_idx) {
-            return functor_t{}(detail::get<first_idx>(t),
-                               std::forward<Args>(args)...);
-        }
-        // Check the next index
-        if constexpr (sizeof...(remaining_idcs) >= 1) {
-            return unroll_call<functor_t>(
-                idx, t, std::index_sequence<remaining_idcs...>{},
-                std::forward<Args>(args)...);
-        }
-        // If there is no matching index, return null output
-        return typename functor_t::output_type{};
-    }*/
-
-    /// The underlying container implementation
+    /// The underlying tuple container implementation
     tuple_type m_tuple_container;
 };
 
