@@ -252,6 +252,7 @@ struct coordinate_base {
         matrix_operator().template set_block<3, 3>(path_correction, drdr0,
                                                    e_free_pos0, e_free_pos0);
 
+        // @note: Helical correction which doesn't exist in ACTS main
         if constexpr (stepper_state_t::id == stepping::id::e_rk) {
             using helix = detail::helix<transform3_t>;
 
