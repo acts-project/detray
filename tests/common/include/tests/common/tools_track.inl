@@ -6,8 +6,8 @@
  */
 
 // Project include(s)
+#include "detray/core/detail/type_registry.hpp"
 #include "detray/core/transform_store.hpp"
-#include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -32,9 +32,9 @@ enum material_ids : unsigned int {
     e_slab = 0,
 };
 
-using mask_defs = tuple_vector_registry<mask_ids, mask<rectangle2D<>>>;
+using mask_defs = detail::tuple_vector_registry<mask_ids, mask<rectangle2D<>>>;
 using material_defs =
-    tuple_vector_registry<material_ids, material_slab<scalar>>;
+    detail::tuple_vector_registry<material_ids, material_slab<scalar>>;
 using mask_link_t = dtyped_index<mask_ids, dindex>;
 using material_link_t = dtyped_index<material_ids, dindex>;
 

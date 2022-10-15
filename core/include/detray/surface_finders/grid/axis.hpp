@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/core/type_registry.hpp"
+#include "detray/core/detail/type_registry.hpp"
 #include "detray/definitions/detail/accessor.hpp"  // detail::first_t
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -86,7 +86,7 @@ struct single_axis {
     /// @returns the width of a bin
     template <typename... Args>
     DETRAY_HOST_DEVICE inline constexpr scalar_type bin_width(
-        Args &&... args) const {
+        Args &&...args) const {
         return m_binning.bin_width(std::forward<Args &&>(args)...);
     }
 
@@ -181,7 +181,8 @@ class multi_axis {
         detail::multi_axis_view<container_types, scalar_type>>;
 
     /// Match an axis to its label at compile time
-    using axis_reg = registry_base<n_axis::label, true, axis_ts...>;
+    using axis_reg =
+        detray::detail::registry_base<n_axis::label, true, axis_ts...>;
     template <n_axis::label L>
     using label_matcher = typename axis_reg::template get_type<L, tuple_type>;
 

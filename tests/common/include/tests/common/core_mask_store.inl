@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/core/type_registry.hpp"
+#include "detray/core/detail/type_registry.hpp"
 #include "detray/masks/masks.hpp"
 
 // Vecmem include(s)
@@ -42,8 +42,9 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     using single = mask<single3D<>>;
 
     // Types must be sorted according to their id (here: masks/mask_identifier)
-    using mask_defs = tuple_vector_registry<mask_ids, rectangle, trapezoid,
-                                            annulus, cylinder, ring, single>;
+    using mask_defs =
+        detail::tuple_vector_registry<mask_ids, rectangle, trapezoid, annulus,
+                                      cylinder, ring, single>;
     using id = typename mask_defs::id;
     using mask_container_t = typename mask_defs::store_type<>;
     mask_container_t store(host_mr);
