@@ -10,7 +10,7 @@
 // Detray include(s)
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/new_tuple_container.hpp"
-#include "detray/core/type_registry.hpp"
+#include "detray/core/detail/type_registry.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -51,7 +51,7 @@ class data_store {
 
     /// Allow matching between IDs and collection value types
     /// @{
-    using type_matcher = registry_base<ID, true, Ts...>;
+    using type_matcher = detail::registry_base<ID, true, Ts...>;
     template <ID id>
     using get_type = typename type_matcher::template get_type<id>::type;
     /// @}

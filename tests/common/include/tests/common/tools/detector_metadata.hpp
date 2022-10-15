@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detail/type_registry.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
-#include "detray/core/type_registry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
@@ -87,8 +87,8 @@ struct full_metadata {
 
     /// How to store and link masks
     using mask_definitions =
-        tuple_vector_registry<mask_ids, rectangle, trapezoid, annulus, cylinder,
-                              disc>;
+        detail::tuple_vector_registry<mask_ids, rectangle, trapezoid, annulus,
+                                      cylinder, disc>;
     using mask_link_type = dtyped_index<mask_ids, dindex>;
 
     /// Give your material types a name (needs to be consecutive to be matched
@@ -99,7 +99,8 @@ struct full_metadata {
     };
 
     // How to store and link materials
-    using material_definitions = tuple_vector_registry<material_ids, slab, rod>;
+    using material_definitions =
+        detail::tuple_vector_registry<material_ids, slab, rod>;
     using material_link_type = dtyped_index<material_ids, dindex>;
 
     /// How many grids have to be built
@@ -138,7 +139,7 @@ struct full_metadata {
               template <typename...> class vector_t = dvector,
               template <typename...> class tuple_t = dtuple,
               template <typename...> class jagged_vector_t = djagged_vector>
-    using sf_finder_definitions = tuple_array_registry<
+    using sf_finder_definitions = detail::tuple_array_registry<
         sf_finder_ids,
         std::index_sequence<n_other, n_z_phi_grids, n_r_phi_grids>,
         brute_force_finder,
@@ -186,7 +187,8 @@ struct toy_metadata {
 
     /// How to store and link masks
     using mask_definitions =
-        tuple_vector_registry<mask_ids, rectangle, trapezoid, cylinder, disc>;
+        detail::tuple_vector_registry<mask_ids, rectangle, trapezoid, cylinder,
+                                      disc>;
     using mask_link_type = dtyped_index<mask_ids, dindex>;
 
     /// Give your material types a name (needs to be consecutive to be matched
@@ -196,7 +198,8 @@ struct toy_metadata {
     };
 
     /// How to store and link materials
-    using material_definitions = tuple_vector_registry<material_ids, slab>;
+    using material_definitions =
+        detail::tuple_vector_registry<material_ids, slab>;
     using material_link_type = dtyped_index<material_ids, dindex>;
 
     /// How many grids have to be built
@@ -235,7 +238,7 @@ struct toy_metadata {
               template <typename...> class vector_t = dvector,
               template <typename...> class tuple_t = dtuple,
               template <typename...> class jagged_vector_t = djagged_vector>
-    using sf_finder_definitions = tuple_array_registry<
+    using sf_finder_definitions = detail::tuple_array_registry<
         sf_finder_ids,
         std::index_sequence<n_other, n_barrel_grids, n_endcap_grids>,
         brute_force_finder,
@@ -279,7 +282,7 @@ struct telescope_metadata {
 
     /// How to store and link masks
     using mask_definitions =
-        tuple_vector_registry<mask_ids, rectangle, unbounded_plane>;
+        detail::tuple_vector_registry<mask_ids, rectangle, unbounded_plane>;
     using mask_link_type = dtyped_index<mask_ids, dindex>;
 
     /// Give your material types a name (needs to be consecutive to be matched
@@ -289,7 +292,8 @@ struct telescope_metadata {
     };
 
     /// How to store and link materials
-    using material_definitions = tuple_vector_registry<material_ids, slab>;
+    using material_definitions =
+        detail::tuple_vector_registry<material_ids, slab>;
     using material_link_type = dtyped_index<material_ids, dindex>;
 
     /// How many grids have to be built
@@ -323,9 +327,8 @@ struct telescope_metadata {
               template <typename...> class vector_t = dvector,
               template <typename...> class tuple_t = dtuple,
               template <typename...> class jagged_vector_t = djagged_vector>
-    using sf_finder_definitions =
-        tuple_array_registry<sf_finder_ids, std::index_sequence<n_other>,
-                             brute_force_finder>;
+    using sf_finder_definitions = detail::tuple_array_registry<
+        sf_finder_ids, std::index_sequence<n_other>, brute_force_finder>;
 };
 
 struct detector_registry {

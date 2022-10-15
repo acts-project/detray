@@ -7,7 +7,6 @@
 
 // detray include(s)
 #include "detray/core/transform_store.hpp"
-#include "detray/core/type_registry.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
