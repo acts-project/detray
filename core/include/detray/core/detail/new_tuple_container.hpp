@@ -116,6 +116,18 @@ class tuple_container {
         return {detray::get_data(detail::get<I>(_tuple))...};
     }
 
+    /// Calls a functor with an element with a specific index.
+    ///
+    /// @return the functor output
+    template <typename functor_t, typename... Args>
+    DETRAY_HOST_DEVICE typename functor_t::output_type call(
+        const std::size_t idx, Args &&...As) const {
+
+        return unroll_call<functor_t>(idx,
+                                      std::make_index_sequence<sizeof...(Ts)>{},
+                                      std::forward<Args>(As)...);
+    }
+
     private:
     /// @returns a tuple constructed from the elements @param view s.
     template <typename tuple_view_t, std::size_t... I,
@@ -126,6 +138,37 @@ class tuple_container {
             Ts(detail::get<I>(view.m_views).m_view)...);
     }
 
+    /// Variadic unrolling of the tuple that calls a functor with the element.
+    ///
+    /// @tparam functor_t functor that will be called on the element.
+    /// @tparam Args argument types for the functor
+    /// @tparam first_idx Current index into the container tuple. Is converted
+    ///         to an id_t and tested aginst the given id.
+    /// @tparam remaining_idcs te remaining tuple indices to be tested.
+    template <typename functor_t, typename... Args, std::size_t first_idx,
+              std::size_t... remaining_idcs>
+    DETRAY_HOST_DEVICE typename functor_t::output_type unroll_call(
+        const std::size_t idx,
+        std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
+        Args &&...As) const {
+
+        // Check if the first tuple index is matched to the target ID
+        if (idx == first_idx) {
+            const auto &elem = get<first_idx>();
+
+            return functor_t()(elem, std::forward<Args>(As)...);
+        }
+        // Check the next ID
+        if constexpr (sizeof...(remaining_idcs) >= 1) {
+            return unroll_call<functor_t>(
+                idx, std::index_sequence<remaining_idcs...>{},
+                std::forward<Args>(As)...);
+        }
+        // If there is no matching ID, return null output
+        return typename functor_t::output_type{};
+    }
+
+    /// The underlying tuple container
     tuple_type _tuple;
 };
 

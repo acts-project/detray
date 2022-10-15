@@ -32,8 +32,8 @@ struct test_func {
     using output_type = std::size_t;
 
     template <typename container_t>
-    output_type operator()(const container_t& gr, const int /*index*/) {
-        return gr.size();
+    output_type operator()(const container_t& coll, const int /*index*/) {
+        return coll.size();
     }
 };
 
@@ -124,7 +124,7 @@ TEST(container, vector_data_store) {
 
     vector_store.insert(vecmem::vector<double>{10.5, 7.6});
 
-    // int group
+    // int collectiont
     EXPECT_EQ(vector_store.size<0>(), 5UL);
     EXPECT_EQ(vector_store.get<0>()[0], 1UL);
     EXPECT_EQ(vector_store.get<0>()[1], 2UL);
@@ -132,23 +132,23 @@ TEST(container, vector_data_store) {
     EXPECT_EQ(vector_store.get<0>()[3], 4UL);
     EXPECT_EQ(vector_store.get<0>()[4], 5UL);
 
-    // float group
+    // float collectiont
     EXPECT_EQ(vector_store.size<1>(), 3UL);
     EXPECT_FLOAT_EQ(vector_store.get<1>()[0], 3.1f);
     EXPECT_FLOAT_EQ(vector_store.get<1>()[1], 4.5f);
     EXPECT_FLOAT_EQ(vector_store.get<1>()[2], 12.1f);
 
-    // double group
+    // double collectiont
     EXPECT_EQ(vector_store.size<2>(), 4UL);
     EXPECT_FLOAT_EQ(vector_store.get<2>()[0], 5.5);
     EXPECT_FLOAT_EQ(vector_store.get<2>()[1], 6.);
     EXPECT_FLOAT_EQ(vector_store.get<2>()[2], 10.5);
     EXPECT_FLOAT_EQ(vector_store.get<2>()[3], 7.6);
 
-    // unrolling test
-    /*EXPECT_EQ(container.call<test_func>(std::make_pair(0, 0)), 5);
-    EXPECT_EQ(container.call<test_func>(std::make_pair(1, 0)), 3);
-    EXPECT_EQ(container.call<test_func>(std::make_pair(2, 0)), 4);*/
+    // call functor
+    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(0, 0)), 5UL);
+    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(1, 0)), 3UL);
+    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(2, 0)), 4UL);
 }
 
 TEST(container, tuple_vector_container) {
