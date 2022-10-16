@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detail/data_store.hpp"
 #include "detray/core/detail/type_registry.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
@@ -86,10 +87,15 @@ struct full_metadata {
     };
 
     /// How to store and link masks
-    using mask_definitions =
+    /*using mask_definitions =
         detail::tuple_vector_registry<mask_ids, rectangle, trapezoid, annulus,
                                       cylinder, disc>;
-    using mask_link_type = dtyped_index<mask_ids, dindex>;
+    using mask_link_type = dtyped_index<mask_ids, dindex>;*/
+    template <template <typename...> class tuple_t = dtuple,
+              template <typename...> class vector_t = dvector>
+    using mask_store =
+        multi_type_store<mask_ids, empty_context, tuple_t, vector_t, rectangle,
+                         trapezoid, annulus, cylinder, disc>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -186,10 +192,15 @@ struct toy_metadata {
     };
 
     /// How to store and link masks
-    using mask_definitions =
+    /*using mask_definitions =
         detail::tuple_vector_registry<mask_ids, rectangle, trapezoid, cylinder,
                                       disc>;
-    using mask_link_type = dtyped_index<mask_ids, dindex>;
+    using mask_link_type = dtyped_index<mask_ids, dindex>;*/
+    template <template <typename...> class tuple_t = dtuple,
+              template <typename...> class vector_t = dvector>
+    using mask_store =
+        multi_type_store<mask_ids, empty_context, tuple_t, vector_t, rectangle,
+                         trapezoid, cylinder, disc>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -281,9 +292,13 @@ struct telescope_metadata {
     };
 
     /// How to store and link masks
-    using mask_definitions =
+    /*using mask_definitions =
         detail::tuple_vector_registry<mask_ids, rectangle, unbounded_plane>;
-    using mask_link_type = dtyped_index<mask_ids, dindex>;
+    using mask_link_type = dtyped_index<mask_ids, dindex>;*/
+    template <template <typename...> class tuple_t = dtuple,
+              template <typename...> class vector_t = dvector>
+    using mask_store = multi_type_store<mask_ids, empty_context, tuple_t,
+                                        vector_t, rectangle, unbounded_plane>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)

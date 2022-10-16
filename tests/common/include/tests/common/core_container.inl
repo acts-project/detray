@@ -88,8 +88,8 @@ TEST(container, vector_data_store) {
     vecmem::host_memory_resource resource;
 
     // Create tuple vector container
-    data_store<std::size_t, void, std::tuple, vecmem::vector, std::size_t,
-               float, double>
+    multi_type_store<std::size_t, empty_context, std::tuple, vecmem::vector,
+                     std::size_t, float, double>
         vector_store(resource);
 
     // Base container function check
@@ -103,11 +103,11 @@ TEST(container, vector_data_store) {
 
     // Add elements to the container
     vector_store.push_back<0>(1UL);
-    vector_store.emplace_back<0>(2UL);
+    vector_store.emplace_back<0>(empty_context{}, 2UL);
     vector_store.push_back<1>(3.1f);
-    vector_store.emplace_back<1>(4.5f);
+    vector_store.emplace_back<1>(empty_context{}, 4.5f);
     vector_store.push_back<2>(5.5);
-    vector_store.emplace_back<2>(6.);
+    vector_store.emplace_back<2>(empty_context{}, 6.);
 
     EXPECT_EQ(vector_store.empty<0>(), false);
     EXPECT_EQ(vector_store.empty<1>(), false);

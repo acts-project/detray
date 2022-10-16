@@ -43,6 +43,9 @@ class registry_base<ID, false, registered_types...> {
 template <class ID, typename... registered_types>
 class registry_base<ID, true, registered_types...> {
     public:
+    // Make the type IDs accessible
+    using id = ID;
+
     /// Conventions for some basic info
     enum : std::size_t {
         n_types = sizeof...(registered_types),
@@ -133,8 +136,9 @@ class registry_base<ID, true, registered_types...> {
     /// a compiler error.
     template <ID type_id, template <typename...> class tuple_t = dtuple>
     struct get_type {
-        using type = std::remove_reference_t<decltype(
-            detail::get<to_index(type_id)>(tuple_t<registered_types...>{}))>;
+        using type =
+            std::remove_reference_t<decltype(detail::get<to_index(type_id)>(
+                tuple_t<registered_types...>{}))>;
     };
 
     private:

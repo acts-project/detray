@@ -73,7 +73,8 @@ inline void add_cylinder_surface(
 
     // add transform and masks
     transforms.emplace_back(ctx, tsl);
-    masks.template add_value<cylinder_id>(volume_link, r, min_z, max_z);
+    masks.template emplace_back<cylinder_id>(empty_context{}, volume_link, r,
+                                             min_z, max_z);
 
     // Add material slab
     materials.template add_value<slab_id>(mat, thickness);
@@ -130,7 +131,8 @@ inline void add_disc_surface(
 
     // add transform and mask
     transforms.emplace_back(ctx, tsl);
-    masks.template add_value<disc_id>(volume_link, min_r, max_r);
+    masks.template emplace_back<disc_id>(empty_context{}, volume_link, min_r,
+                                         max_r);
 
     // Add material slab
     materials.template add_value<slab_id>(mat, thickness);
@@ -191,7 +193,7 @@ void create_cyl_volume(
 
     // Add module surfaces to volume
     typename detector_t::surface_container surfaces(&resource);
-    typename detector_t::mask_container masks = {resource};
+    typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials = {resource};
     typename detector_t::transform_container transforms = {resource};
 
@@ -296,8 +298,8 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                               dindex_invalid, surface_id::e_sensitive);
 
         // The rectangle bounds for this module
-        masks.template add_value<rectangle_id>(mask_volume_link, cfg.m_half_x,
-                                               cfg.m_half_y);
+        masks.template emplace_back<rectangle_id>(
+            empty_context{}, mask_volume_link, cfg.m_half_x, cfg.m_half_y);
         materials.template add_value<slab_id>(cfg.mat, cfg.thickness);
 
         // Build the transform
@@ -519,8 +521,8 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             material_link_type material_link{
                 slab_id, materials.template size<slab_id>()};
 
-            masks.template add_value<trapezoid_id>(
-                mask_volume_link, cfg.m_half_x_min_y[ir],
+            masks.template emplace_back<trapezoid_id>(
+                empty_context{}, mask_volume_link, cfg.m_half_x_min_y[ir],
                 cfg.m_half_x_max_y[ir], cfg.m_half_y[ir],
                 static_cast<scalar>(1. / (2. * cfg.m_half_y[ir])));
 
@@ -574,7 +576,7 @@ inline void add_beampipe(
     scalar min_z = -max_z;
 
     typename detector_t::surface_container surfaces(&resource);
-    typename detector_t::mask_container masks = {resource};
+    typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials = {resource};
     typename detector_t::transform_container transforms = {resource};
 
@@ -671,7 +673,7 @@ inline void add_endcap_barrel_connection(
     scalar brl_disc_z = side < 0 ? max_z : min_z;
 
     typename detector_t::surface_container surfaces(&resource);
-    typename detector_t::mask_container masks = {resource};
+    typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials = {resource};
     typename detector_t::transform_container transforms = {resource};
 
