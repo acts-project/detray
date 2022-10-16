@@ -9,6 +9,7 @@
 
 // Detray include(s)
 #include "detray/core/detail/container_views.hpp"
+#include "detray/core/detail/data_context.hpp"
 #include "detray/core/detail/new_tuple_container.hpp"
 #include "detray/core/detail/type_registry.hpp"
 #include "detray/definitions/detail/accessor.hpp"
@@ -22,9 +23,6 @@
 #include <type_traits>
 
 namespace detray {
-
-/// Placeholder context type
-struct empty_context {};
 
 /// @brief Wraps a vecmem enabled tuple and adds functionality to handle data
 /// collections.
@@ -103,13 +101,15 @@ class multi_type_store {
 
     /// @returns a pointer to the underlying tuple container - const
     DETRAY_HOST_DEVICE
-    constexpr auto data() const -> const tuple_type * {
+    constexpr auto data() const noexcept -> const tuple_type * {
         return &m_tuple_container;
     }
 
     /// @returns a pointer to the underlying tuple container - non-const
     DETRAY_HOST_DEVICE
-    constexpr auto data() -> tuple_type * { return &m_tuple_container; }
+    constexpr auto data() noexcept -> tuple_type * {
+        return &m_tuple_container;
+    }
 
     /// Convenience functionality: Only available for a store with a single
     /// collection.
@@ -165,14 +165,14 @@ class multi_type_store {
     /// @returns the size of a data collection by @tparam ID
     template <ID id>
     DETRAY_HOST_DEVICE constexpr auto size(
-        const context_type & /*ctx*/ = {}) const -> std::size_t {
+        const context_type & /*ctx*/ = {}) const noexcept -> std::size_t {
         return detail::get<value_types::to_index(id)>(m_tuple_container).size();
     }
 
     /// @returns true if the collection given by @tparam ID is empty
     template <ID id>
     DETRAY_HOST_DEVICE constexpr auto empty(
-        const context_type & /*ctx*/ = {}) const -> bool {
+        const context_type & /*ctx*/ = {}) const noexcept -> bool {
         return detail::get<value_types::to_index(id)>(m_tuple_container)
             .empty();
     }
@@ -266,12 +266,13 @@ class multi_type_store {
     ///
     /// @note in general can throw an exception
     template <std::size_t current_idx = 0>
-    DETRAY_HOST void append(multi_type_store &other) noexcept(false) {
+    DETRAY_HOST void append(multi_type_store &&other,
+                            const context_type &ctx = {}) noexcept(false) {
         auto &coll = other.template get<value_types::to_id(current_idx)>();
-        insert(coll);
+        insert(coll, ctx);
 
         if constexpr (current_idx < sizeof...(Ts) - 1) {
-            append<current_idx + 1>(other);
+            append<current_idx + 1>(std::move(other));
         }
     }
 
