@@ -7,6 +7,9 @@
 
 #pragma once
 
+// Project include(s).
+#include "detray/definitions/qualifiers.hpp"
+
 // System include(s)
 #include <limits>
 #include <type_traits>
