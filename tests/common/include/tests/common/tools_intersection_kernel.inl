@@ -6,15 +6,13 @@
  */
 
 // Project include(s)
-#include "detray/core/detail/tuple_vector_container.hpp"
+#include "detray/core/detail/multi_type_store.hpp"
 #include "detray/core/transform_store.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/materials/material_slab.hpp"
-#include "detray/materials/predefined_materials.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
@@ -49,14 +47,9 @@ using trapezoid_t = mask<trapezoid2D<>, volume_link_t>;
 using annulus_t = mask<annulus2D<>, volume_link_t>;
 
 using mask_container_t =
-    tuple_vector_container<dtuple, dvector, mask_ids, rectangle_t, trapezoid_t,
-                           annulus_t>;
-using mask_link_t = dtyped_index<mask_ids, dindex>;
-
-// Materials with a slab
-using material_container_t =
-    tuple_vector_container<dtuple, dvector, material_ids,
-                           material_slab<scalar>>;
+    multi_type_store<mask_ids, empty_context, dtuple, dvector, rectangle_t,
+                     trapezoid_t, annulus_t>;
+using mask_link_t = typename mask_container_t::single_link;
 using material_link_t = dtyped_index<material_ids, dindex>;
 
 /// The Surface definition:
@@ -81,18 +74,12 @@ TEST(tools, intersection_kernel_ray) {
     transform_store.emplace_back(static_context, point3{0., -20., 30.});
     // The masks & their store
     mask_container_t mask_store(host_mr);
-    mask_store.template add_value<e_rectangle2>(0UL, 10.f, 10.f);
-    mask_store.template add_value<e_trapezoid2>(0UL, 10.f, 20.f, 30.f);
-    mask_store.template add_value<e_annulus2>(0UL, 15.f, 55.f, 0.75f, 1.95f,
-                                              2.f, -2.f, 0.f);
-    // Materials and their store
-    material_container_t material_store(host_mr);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              1. * unit_constants::mm);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              2. * unit_constants::mm);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              3. * unit_constants::mm);
+    mask_store.template emplace_back<e_rectangle2>(empty_context{}, 0UL, 10.f,
+                                                   10.f);
+    mask_store.template emplace_back<e_trapezoid2>(empty_context{}, 0UL, 10.f,
+                                                   20.f, 30.f);
+    mask_store.template emplace_back<e_annulus2>(
+        empty_context{}, 0UL, 15.f, 55.f, 0.75f, 1.95f, 2.f, -2.f, 0.f);
 
     // The surfaces and their store
     const surface_t rectangle_surface(0u, {e_rectangle2, 0}, {e_slab, 0}, 0, 0,
@@ -163,18 +150,12 @@ TEST(tools, intersection_kernel_helix) {
     transform_store.emplace_back(static_context, point3{0., -20., 30.});
     // The masks & their store
     mask_container_t mask_store(host_mr);
-    mask_store.template add_value<e_rectangle2>(0UL, 10.f, 10.f);
-    mask_store.template add_value<e_trapezoid2>(0UL, 10.f, 20.f, 30.f);
-    mask_store.template add_value<e_annulus2>(0UL, 15.f, 55.f, 0.75f, 1.95f,
-                                              2.f, -2.f, 0.f);
-    // Materials and their store
-    material_container_t material_store(host_mr);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              1. * unit_constants::mm);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              2. * unit_constants::mm);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              3. * unit_constants::mm);
+    mask_store.template emplace_back<e_rectangle2>(empty_context{}, 0UL, 10.f,
+                                                   10.f);
+    mask_store.template emplace_back<e_trapezoid2>(empty_context{}, 0UL, 10.f,
+                                                   20.f, 30.f);
+    mask_store.template emplace_back<e_annulus2>(
+        empty_context{}, 0UL, 15.f, 55.f, 0.75f, 1.95f, 2.f, -2.f, 0.f);
 
     // The surfaces and their store
     const surface_t rectangle_surface(0u, {e_rectangle2, 0}, {e_slab, 0}, 0, 0,

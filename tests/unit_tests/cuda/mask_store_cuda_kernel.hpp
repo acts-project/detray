@@ -16,13 +16,15 @@
 #endif
 
 // Project include(s)
-#include "detray/core/detector.hpp"
+#include "detray/core/detail/multi_type_store.hpp"
 #include "detray/masks/masks.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
+
+#include "vecmem/containers/device_vector.hpp"
 
 // Thrust include(s)
 #include <thrust/tuple.h>
@@ -56,13 +58,19 @@ enum mask_ids : unsigned int {
     e_annulus2 = 5,
 };
 
+using host_store_type =
+    multi_type_store<mask_ids, empty_context, dtuple, vecmem::vector, rectangle,
+                     trapezoid, ring, cylinder, single, annulus>;
+
+using device_store_type =
+    multi_type_store<mask_ids, empty_context, thrust::tuple,
+                     vecmem::device_vector, rectangle, trapezoid, ring,
+                     cylinder, single, annulus>;
+
 /// test function for mask store
 void mask_test(
-    tuple_vector_container_data<tuple_vector_container<
-        thrust::tuple, dvector, mask_ids, rectangle, trapezoid, ring, cylinder,
-        single, annulus>>& store_data,
-    vecmem::data::vector_view<point2>& input_point2_data,
-    /*vecmem::data::vector_view<point3>& input_point3_data,*/
-    vecmem::data::jagged_vector_view<intersection::status>& output_data);
+    typename host_store_type::view_type store_data,
+    vecmem::data::vector_view<point2> input_point2_data,
+    vecmem::data::jagged_vector_view<intersection::status> output_data);
 
 }  // namespace detray

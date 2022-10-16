@@ -77,7 +77,7 @@ inline void add_cylinder_surface(
                                              min_z, max_z);
 
     // Add material slab
-    materials.template add_value<slab_id>(mat, thickness);
+    materials.template emplace_back<slab_id>(empty_context{}, mat, thickness);
 
     // add surface
     mask_link_type mask_link{cylinder_id,
@@ -134,7 +134,7 @@ inline void add_disc_surface(
                                          max_r);
 
     // Add material slab
-    materials.template add_value<slab_id>(mat, thickness);
+    materials.template emplace_back<slab_id>(empty_context{}, mat, thickness);
 
     // add surface
     mask_link_type mask_link{disc_id, masks.template size<disc_id>() - 1};
@@ -193,8 +193,8 @@ void create_cyl_volume(
     // Add module surfaces to volume
     typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
-    typename detector_t::material_container materials = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::material_container materials(resource);
+    typename detector_t::transform_container transforms(resource);
 
     // fill the surfaces
     module_factory(ctx, cyl_volume, surfaces, masks, materials, transforms);
@@ -299,7 +299,8 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
         // The rectangle bounds for this module
         masks.template emplace_back<rectangle_id>(
             empty_context{}, mask_volume_link, cfg.m_half_x, cfg.m_half_y);
-        materials.template add_value<slab_id>(cfg.mat, cfg.thickness);
+        materials.template emplace_back<slab_id>(empty_context{}, cfg.mat,
+                                                 cfg.thickness);
 
         // Build the transform
         // The local phi
@@ -525,7 +526,8 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
                 cfg.m_half_x_max_y[ir], cfg.m_half_y[ir],
                 static_cast<scalar>(1. / (2. * cfg.m_half_y[ir])));
 
-            materials.template add_value<slab_id>(cfg.mat, cfg.thickness);
+            materials.template emplace_back<slab_id>(empty_context{}, cfg.mat,
+                                                     cfg.thickness);
 
             // Surfaces with the linking into the local containers
             surfaces.emplace_back(transforms.size(ctx), mask_link,
@@ -576,8 +578,8 @@ inline void add_beampipe(
 
     typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
-    typename detector_t::material_container materials = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::material_container materials(resource);
+    typename detector_t::transform_container transforms(resource);
 
     auto &beampipe =
         det.new_volume({beampipe_vol_size.first, beampipe_vol_size.second,
@@ -673,8 +675,8 @@ inline void add_endcap_barrel_connection(
 
     typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
-    typename detector_t::material_container materials = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::material_container materials(resource);
+    typename detector_t::transform_container transforms(resource);
 
     auto &connector_gap =
         det.new_volume({edc_inner_r, edc_outer_r, min_z, max_z, -M_PI, M_PI});

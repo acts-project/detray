@@ -181,7 +181,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             EXPECT_EQ(volume_link, volume_links[pti - range[0]]);
             EXPECT_EQ(
                 materials
-                    .group<material_ids::e_slab>()[sf_itr->material().index()],
+                    .get<material_ids::e_slab>()[sf_itr->material().index()],
                 mat);
 
             ++sf_itr;
@@ -217,7 +217,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
             EXPECT_EQ(volume_link, volume_links[0]);
             EXPECT_EQ(
                 materials
-                    .group<material_ids::e_slab>()[sf_itr->material().index()],
+                    .get<material_ids::e_slab>()[sf_itr->material().index()],
                 mat);
             ++sf_itr;
             ++trf_index;
