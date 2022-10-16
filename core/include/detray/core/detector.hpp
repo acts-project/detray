@@ -79,9 +79,14 @@ class detector {
     using context = typename transform_container::context;
 
     /// Forward mask types that are present in this detector
-    using masks = typename metadata::mask_definitions;
     using mask_container =
-        typename masks::template store_type<tuple_t, vector_t>;
+        typename metadata::template mask_store<tuple_t, vector_t>;
+    using masks = typename mask_container::value_types;
+    using mask_link = typename mask_container::single_link;
+
+    /*using masks = typename metadata::mask_definitions;
+    using mask_container =
+        typename masks::template store_type<tuple_t, vector_t>;*/
 
     /// Forward material types that are present in this detector
     using materials = typename metadata::material_definitions;
@@ -100,9 +105,9 @@ class detector {
     /// The surface takes a mask (defines the local coordinates and the surface
     /// extent), its material, a link to an element in the transform container
     /// to define its placement and a source link to the object it represents.
-    using surface_type = surface<typename metadata::mask_link_type,
-                                 typename metadata::material_link_type,
-                                 transform_link, source_link>;
+    using surface_type =
+        surface<mask_link, typename metadata::material_link_type,
+                transform_link, source_link>;
 
     using surface_container = vector_t<surface_type>;
     /// Volume type
@@ -420,7 +425,7 @@ class detector {
         vol.update_obj_link({sf_offset, _surfaces.size()});
 
         // Append mask and material container
-        _masks.append_container(masks_per_vol);
+        _masks.append(masks_per_vol);
         _materials.append_container(materials_per_vol);
 
         // Update max objects per volume
@@ -584,7 +589,7 @@ struct detector_data {
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
-    tuple_vector_container_data<mask_container_t> _masks_data;
+    typename detector_type::mask_container::view_type _masks_data;
     tuple_vector_container_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_data<volume_finder_t> _volume_finder_data;
@@ -616,7 +621,7 @@ struct detector_view {
     // members
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
-    tuple_vector_container_data<mask_container_t> _masks_data;
+    typename detector_type::mask_container::view_type _masks_data;
     tuple_vector_container_data<material_container_t> _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_view<volume_finder_t> _volume_finder_view;
