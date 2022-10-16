@@ -126,16 +126,18 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
             masks.template emplace_back<
                 telescope_types::mask_ids::e_unbounded_plane2>(
                 empty_context{}, mask_volume_link);
-            materials.template add_value<telescope_types::material_ids::e_slab>(
-                cfg.m_mat, cfg.m_thickness);
+            materials
+                .template emplace_back<telescope_types::material_ids::e_slab>(
+                    empty_context{}, cfg.m_mat, cfg.m_thickness);
         } else {
             // The rectangle bounds for this module
             masks
                 .template emplace_back<telescope_types::mask_ids::e_rectangle2>(
                     empty_context{}, mask_volume_link, cfg.m_half_x,
                     cfg.m_half_y);
-            materials.template add_value<telescope_types::material_ids::e_slab>(
-                cfg.m_mat, cfg.m_thickness);
+            materials
+                .template emplace_back<telescope_types::material_ids::e_slab>(
+                    empty_context{}, cfg.m_mat, cfg.m_thickness);
         }
         // Build the transform
         // Local z axis is the global normal vector
@@ -226,8 +228,8 @@ auto create_telescope_detector(
     // Add module surfaces to volume
     typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
-    typename detector_t::material_container materials = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::material_container materials(resource);
+    typename detector_t::transform_container transforms(resource);
 
     if constexpr (unbounded_planes) {
         create_telescope<telescope_types::mask_ids::e_unbounded_plane2>(

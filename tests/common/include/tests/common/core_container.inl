@@ -6,10 +6,9 @@
  */
 
 // Detray include(s)
-#include "detray/core/detail/data_store.hpp"
+#include "detray/core/detail/multi_type_store.hpp"
 #include "detray/core/detail/new_tuple_container.hpp"
 #include "detray/core/detail/tuple_array_container.hpp"
-#include "detray/core/detail/tuple_vector_container.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
@@ -82,7 +81,7 @@ TEST(container, tuple_container) {
     EXPECT_TRUE(detail::get<2>(container).empty());
 }
 
-TEST(container, vector_data_store) {
+TEST(container, vector_multi_type_store) {
 
     // Vecmem memory resource
     vecmem::host_memory_resource resource;
@@ -149,73 +148,6 @@ TEST(container, vector_data_store) {
     EXPECT_EQ(vector_store.call<test_func>(std::make_pair(0, 0)), 5UL);
     EXPECT_EQ(vector_store.call<test_func>(std::make_pair(1, 0)), 3UL);
     EXPECT_EQ(vector_store.call<test_func>(std::make_pair(2, 0)), 4UL);
-}
-
-TEST(container, tuple_vector_container) {
-
-    // Vecmem memory resource
-    vecmem::host_memory_resource resource;
-
-    // Create tuple vector container
-    tuple_vector_container<std::tuple, vecmem::vector, std::size_t, int, float,
-                           double>
-        container(resource);
-
-    // Base container function check
-    EXPECT_EQ(container.size(), 3);
-    EXPECT_EQ(container.empty<0>(), true);
-    EXPECT_EQ(container.empty<1>(), true);
-    EXPECT_EQ(container.empty<2>(), true);
-
-    EXPECT_EQ(container.to_id<>(0), 0);
-    EXPECT_EQ(container.to_id<1>(2), 2);
-    EXPECT_EQ(container.to_id<1>(0), 3);
-
-    // Add elements to the container
-    container.add_value<0>(1);
-    container.add_value<0>(2);
-    container.add_value<1>(3.1);
-    container.add_value<1>(4.5);
-    container.add_value<2>(5.5);
-    container.add_value<2>(6.);
-
-    vecmem::vector<int> int_vec{3, 4, 5};
-    container.add_vector(int_vec);
-
-    vecmem::vector<float> float_vec{12.1};
-    container.add_vector(float_vec);
-
-    container.add_vector(vecmem::vector<double>{10.5, 7.6});
-
-    EXPECT_EQ(container.empty<0>(), false);
-    EXPECT_EQ(container.empty<1>(), false);
-    EXPECT_EQ(container.empty<2>(), false);
-
-    // int group
-    EXPECT_EQ(container.size<0>(), 5);
-    EXPECT_EQ(container.group<0>()[0], 1);
-    EXPECT_EQ(container.group<0>()[1], 2);
-    EXPECT_EQ(container.group<0>()[2], 3);
-    EXPECT_EQ(container.group<0>()[3], 4);
-    EXPECT_EQ(container.group<0>()[4], 5);
-
-    // float group
-    EXPECT_EQ(container.size<1>(), 3);
-    EXPECT_FLOAT_EQ(container.group<1>()[0], 3.1);
-    EXPECT_FLOAT_EQ(container.group<1>()[1], 4.5);
-    EXPECT_FLOAT_EQ(container.group<1>()[2], 12.1);
-
-    // double group
-    EXPECT_EQ(container.size<2>(), 4);
-    EXPECT_FLOAT_EQ(container.group<2>()[0], 5.5);
-    EXPECT_FLOAT_EQ(container.group<2>()[1], 6.);
-    EXPECT_FLOAT_EQ(container.group<2>()[2], 10.5);
-    EXPECT_FLOAT_EQ(container.group<2>()[3], 7.6);
-
-    // unrolling test
-    EXPECT_EQ(container.call<test_func>(std::make_pair(0, 0)), 5);
-    EXPECT_EQ(container.call<test_func>(std::make_pair(1, 0)), 3);
-    EXPECT_EQ(container.call<test_func>(std::make_pair(2, 0)), 4);
 }
 
 using grid2r =

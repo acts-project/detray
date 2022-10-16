@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/data_store.hpp"
+#include "detray/core/detail/multi_type_store.hpp"
 #include "detray/core/detail/type_registry.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
@@ -87,10 +87,6 @@ struct full_metadata {
     };
 
     /// How to store and link masks
-    /*using mask_definitions =
-        detail::tuple_vector_registry<mask_ids, rectangle, trapezoid, annulus,
-                                      cylinder, disc>;
-    using mask_link_type = dtyped_index<mask_ids, dindex>;*/
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using mask_store =
@@ -105,9 +101,10 @@ struct full_metadata {
     };
 
     // How to store and link materials
-    using material_definitions =
-        detail::tuple_vector_registry<material_ids, slab, rod>;
-    using material_link_type = dtyped_index<material_ids, dindex>;
+    template <template <typename...> class tuple_t = dtuple,
+              template <typename...> class vector_t = dvector>
+    using material_store = multi_type_store<material_ids, empty_context,
+                                            tuple_t, vector_t, slab, rod>;
 
     /// How many grids have to be built
     enum grids : std::size_t {
@@ -192,10 +189,6 @@ struct toy_metadata {
     };
 
     /// How to store and link masks
-    /*using mask_definitions =
-        detail::tuple_vector_registry<mask_ids, rectangle, trapezoid, cylinder,
-                                      disc>;
-    using mask_link_type = dtyped_index<mask_ids, dindex>;*/
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using mask_store =
@@ -209,9 +202,10 @@ struct toy_metadata {
     };
 
     /// How to store and link materials
-    using material_definitions =
-        detail::tuple_vector_registry<material_ids, slab>;
-    using material_link_type = dtyped_index<material_ids, dindex>;
+    template <template <typename...> class tuple_t = dtuple,
+              template <typename...> class vector_t = dvector>
+    using material_store =
+        multi_type_store<material_ids, empty_context, tuple_t, vector_t, slab>;
 
     /// How many grids have to be built
     enum grids : std::size_t {
@@ -292,9 +286,6 @@ struct telescope_metadata {
     };
 
     /// How to store and link masks
-    /*using mask_definitions =
-        detail::tuple_vector_registry<mask_ids, rectangle, unbounded_plane>;
-    using mask_link_type = dtyped_index<mask_ids, dindex>;*/
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using mask_store = multi_type_store<mask_ids, empty_context, tuple_t,
@@ -307,9 +298,10 @@ struct telescope_metadata {
     };
 
     /// How to store and link materials
-    using material_definitions =
-        detail::tuple_vector_registry<material_ids, slab>;
-    using material_link_type = dtyped_index<material_ids, dindex>;
+    template <template <typename...> class tuple_t = dtuple,
+              template <typename...> class vector_t = dvector>
+    using material_store =
+        multi_type_store<material_ids, empty_context, tuple_t, vector_t, slab>;
 
     /// How many grids have to be built
     enum grids : std::size_t {

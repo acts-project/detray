@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/tuple_vector_container.hpp"
 #include "detray/core/detector_kernel.hpp"
 #include "detray/core/surfaces_finder.hpp"
 #include "detray/core/transform_store.hpp"
@@ -84,14 +83,16 @@ class detector {
     using masks = typename mask_container::value_types;
     using mask_link = typename mask_container::single_link;
 
-    /*using masks = typename metadata::mask_definitions;
-    using mask_container =
-        typename masks::template store_type<tuple_t, vector_t>;*/
+    /// Forward mask types that are present in this detector
+    using material_container =
+        typename metadata::template material_store<tuple_t, vector_t>;
+    using materials = typename material_container::value_types;
+    using material_link = typename material_container::single_link;
 
     /// Forward material types that are present in this detector
-    using materials = typename metadata::material_definitions;
+    /*using materials = typename metadata::material_definitions;
     using material_container =
-        typename materials::template store_type<tuple_t, vector_t>;
+        typename materials::template store_type<tuple_t, vector_t>;*/
 
     /// Surface Finders: structures that enable neigborhood searches in the
     /// detector geometry during navigation. Can be different in each volume
@@ -106,8 +107,7 @@ class detector {
     /// extent), its material, a link to an element in the transform container
     /// to define its placement and a source link to the object it represents.
     using surface_type =
-        surface<mask_link, typename metadata::material_link_type,
-                transform_link, source_link>;
+        surface<mask_link, material_link, transform_link, source_link>;
 
     using surface_container = vector_t<surface_type>;
     /// Volume type
@@ -426,7 +426,7 @@ class detector {
 
         // Append mask and material container
         _masks.append(masks_per_vol);
-        _materials.append_container(materials_per_vol);
+        _materials.append(materials_per_vol);
 
         // Update max objects per volume
         _n_max_objects_per_volume =
@@ -590,7 +590,7 @@ struct detector_data {
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
     typename detector_type::mask_container::view_type _masks_data;
-    tuple_vector_container_data<material_container_t> _materials_data;
+    typename detector_type::material_container::view_type _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_data<volume_finder_t> _volume_finder_data;
     bfield_t _bfield_data;
@@ -622,7 +622,7 @@ struct detector_view {
     vecmem::data::vector_view<volume_t> _volumes_data;
     vecmem::data::vector_view<surface_t> _surfaces_data;
     typename detector_type::mask_container::view_type _masks_data;
-    tuple_vector_container_data<material_container_t> _materials_data;
+    typename detector_type::material_container::view_type _materials_data;
     static_transform_store_data<transform_container_t> _transforms_data;
     grid2_view<volume_finder_t> _volume_finder_view;
     bfield_t _bfield_view;

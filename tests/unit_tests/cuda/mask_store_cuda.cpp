@@ -19,9 +19,7 @@ TEST(mask_store_cuda, mask_store) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Types must be sorted according to their id (here: masks/mask_identifier)
-    tuple_vector_container<thrust::tuple, dvector, mask_ids, rectangle,
-                           trapezoid, ring, cylinder, single, annulus>
-        store(mng_mr);
+    host_store_type store(mng_mr);
 
     ASSERT_TRUE(store.template empty<e_annulus2>());
     ASSERT_TRUE(store.template empty<e_cylinder2>());
@@ -30,45 +28,40 @@ TEST(mask_store_cuda, mask_store) {
     ASSERT_TRUE(store.template empty<e_single3>());
     ASSERT_TRUE(store.template empty<e_trapezoid2>());
 
-    store.template add_value<e_rectangle2>(0UL, 1.0f, 2.0f);
-    store.template add_value<e_trapezoid2>(0UL, 0.5f, 1.5f, 4.0f);
-    store.template add_value<e_ring2>(0UL, 1.0f, 10.0f);
-    store.template add_value<e_cylinder2>(0UL, 1.f, 0.5f, 2.0f);
-    // store.group<e_single3>().push_back(single{0UL, 3.0f ,6.0f});
-    store.template add_value<e_annulus2>(0UL, 1.f, 2.f, 3.f, 4.f, 5.f, 6.f,
-                                         7.f);
+    store.template emplace_back<e_rectangle2>(empty_context{}, 0UL, 1.0f, 2.0f);
+    store.template emplace_back<e_trapezoid2>(empty_context{}, 0UL, 0.5f, 1.5f,
+                                              4.0f);
+    store.template emplace_back<e_ring2>(empty_context{}, 0UL, 1.0f, 10.0f);
+    store.template emplace_back<e_cylinder2>(empty_context{}, 0UL, 1.f, 0.5f,
+                                             2.0f);
+    store.template emplace_back<e_annulus2>(empty_context{}, 0UL, 1.f, 2.f, 3.f,
+                                            4.f, 5.f, 6.f, 7.f);
 
     ASSERT_FALSE(store.empty<e_annulus2>());
     ASSERT_FALSE(store.empty<e_cylinder2>());
     ASSERT_FALSE(store.empty<e_rectangle2>());
     ASSERT_FALSE(store.empty<e_ring2>());
-    // ASSERT_FALSE(store.template empty<e_single3>());
+    ASSERT_FALSE(store.empty<e_single3>());
     ASSERT_FALSE(store.empty<e_trapezoid2>());
 
     /** Generate random points for test **/
     vecmem::vector<point2> input_point2(n_points, &mng_mr);
-    // vecmem::vector<point3> input_point3(n_points, &mng_mr);
 
     for (int i = 0; i < n_points; i++) {
         point2 rand_point2 = {static_cast<scalar>(rand() % 100 / 10.),
                               static_cast<scalar>(rand() % 100 / 10.)};
-        /*point3 rand_point3 = {static_cast<scalar>(rand() % 100 / 10.),
-                              static_cast<scalar>(rand() % 100 / 10.),
-                              static_cast<scalar>(rand() % 100 / 10.)};*/
-
         input_point2[i] = rand_point2;
-        // input_point3[i] = rand_point3;
     }
 
     /** host output for intersection status **/
     vecmem::jagged_vector<intersection::status> output_host(5, &mng_mr);
 
     /** get mask objects **/
-    const auto& rectangle_mask = store.group<e_rectangle2>()[0];
-    const auto& trapezoid_mask = store.group<e_trapezoid2>()[0];
-    const auto& ring_mask = store.group<e_ring2>()[0];
-    const auto& cylinder_mask = store.group<e_cylinder2>()[0];
-    const auto& annulus_mask = store.group<e_annulus2>()[0];
+    const auto& rectangle_mask = store.get<e_rectangle2>()[0];
+    const auto& trapezoid_mask = store.get<e_trapezoid2>()[0];
+    const auto& ring_mask = store.get<e_ring2>()[0];
+    const auto& cylinder_mask = store.get<e_cylinder2>()[0];
+    const auto& annulus_mask = store.get<e_annulus2>()[0];
 
     /** get host results from is_inside function **/
     for (int i = 0; i < n_points; i++) {
@@ -94,8 +87,7 @@ TEST(mask_store_cuda, mask_store) {
     auto store_data = get_data(store);
 
     /** run the kernel **/
-    mask_test(store_data, input_point2_data,
-              /*input_point3_data,*/ output_buffer);
+    mask_test(store_data, input_point2_data, output_buffer);
 
     vecmem::jagged_vector<intersection::status> output_device(&mng_mr);
     copy(output_buffer, output_device);
