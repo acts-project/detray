@@ -9,9 +9,9 @@
 
 // Project include(s)
 #include "detray/core/detail/multi_type_store.hpp"
+#include "detray/core/detail/single_type_store.hpp"
 #include "detray/core/detail/type_registry.hpp"
 #include "detray/core/surfaces_finder.hpp"
-#include "detray/core/transform_store.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
@@ -71,7 +71,8 @@ struct full_metadata {
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
-    using transform_store = static_transform_store<vector_t>;
+    using transform_store =
+        single_type_store<__plugin::transform3<detray::scalar>, vector_t>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -176,7 +177,8 @@ struct toy_metadata {
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
-    using transform_store = static_transform_store<vector_t>;
+    using transform_store =
+        single_type_store<__plugin::transform3<detray::scalar>, vector_t>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -276,7 +278,8 @@ struct telescope_metadata {
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
-    using transform_store = static_transform_store<vector_t>;
+    using transform_store =
+        single_type_store<__plugin::transform3<detray::scalar>, vector_t>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)

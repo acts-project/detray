@@ -120,7 +120,7 @@ detector_from_csv(const std::string &detector_name,
                   vecmem::memory_resource &resource,
                   scalar /*r_sync_tolerance*/ = 0.,
                   scalar /*z_sync_tolerance*/ = 0.) {
-    using alignable_store = static_transform_store<vector_type>;
+    // using alignable_store = static_transform_store<vector_type>;
     using detector_t = detector<detector_registry, bfield_type, array_type,
                                 tuple_type, vector_type, jagged_vector_type>;
     using vector3_t = typename detector_t::vector3;
@@ -147,16 +147,17 @@ detector_from_csv(const std::string &detector_name,
     using volume_layer_index = std::pair<uint32_t, uint32_t>;
     std::map<volume_layer_index, typename detector_t::volume_type *> volumes;
 
-    // Read in with a default context
-    typename alignable_store::storage surface_transform_storage;
-    typename alignable_store::context surface_default_context{};
-
     // Flushable containers
     typename detector_t::volume_type *c_volume = nullptr;
     typename detector_t::surface_container c_surfaces;
     typename detector_t::mask_container c_masks(resource);
     typename detector_t::material_container c_materials(resource);
     typename detector_t::transform_container c_transforms;
+
+    // Read in with a default context
+    typename detector_t::transform_container surface_transform_storage;
+    typename detector_t::transform_container::context_type
+        surface_default_context{};
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
 

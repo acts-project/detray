@@ -46,8 +46,8 @@ TEST(detector_cuda, detector) {
     vecmem::vector<volume_t> volumes_device(volumes_host.size(), &mng_mr);
     vecmem::vector<surface_t> surfaces_device(surfaces_host.size(), &mng_mr);
     transform_store_t transforms_device(mng_mr);
-    auto& trfs = transforms_device.data();
-    trfs.resize(transforms_host.size(ctx0));
+    auto* trfs = transforms_device.data();
+    trfs->resize(transforms_host.size(ctx0));
     vecmem::vector<rectangle_t> rectangles_device(rectangles_host.size(),
                                                   &mng_mr);
     vecmem::vector<disc_t> discs_device(discs_host.size(), &mng_mr);
@@ -80,8 +80,7 @@ TEST(detector_cuda, detector) {
 
     // check if the same transform objects are copied
     for (unsigned int i = 0; i < transforms_host.size(ctx0); i++) {
-        EXPECT_EQ(transforms_host.contextual_transform(ctx0, i) ==
-                      transforms_device.contextual_transform(ctx0, i),
+        EXPECT_EQ(transforms_host.at(i, ctx0) == transforms_device.at(i, ctx0),
                   true);
     }
 

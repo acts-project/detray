@@ -15,7 +15,7 @@ __global__ void detector_test_kernel(
     detector_view<detector_host_t> det_data,
     vecmem::data::vector_view<volume_t> volumes_data,
     vecmem::data::vector_view<surface_t> surfaces_data,
-    static_transform_store_data<transform_store_t> transforms_data,
+    typename transform_store_t::view_type transforms_data,
     vecmem::data::vector_view<rectangle_t> rectangles_data,
     vecmem::data::vector_view<disc_t> discs_data,
     vecmem::data::vector_view<cylinder_t> cylinders_data) {
@@ -26,7 +26,7 @@ __global__ void detector_test_kernel(
     // convert subdetector data objects into objects w/ device vectors
     vecmem::device_vector<volume_t> volumes_device(volumes_data);
     vecmem::device_vector<surface_t> surfaces_device(surfaces_data);
-    static_transform_store<vecmem::device_vector> transforms_device(
+    typename detector_device_t::transform_container transforms_device(
         transforms_data);
     vecmem::device_vector<rectangle_t> rectangles_device(rectangles_data);
     vecmem::device_vector<disc_t> discs_device(discs_data);
@@ -85,14 +85,13 @@ __global__ void detector_test_kernel(
 }
 
 /// implementation of the test function for detector
-void detector_test(
-    detector_view<detector_host_t> det_data,
-    vecmem::data::vector_view<volume_t>& volumes_data,
-    vecmem::data::vector_view<surface_t>& surfaces_data,
-    static_transform_store_data<transform_store_t>& transforms_data,
-    vecmem::data::vector_view<rectangle_t>& rectangles_data,
-    vecmem::data::vector_view<disc_t>& discs_data,
-    vecmem::data::vector_view<cylinder_t>& cylinders_data) {
+void detector_test(detector_view<detector_host_t> det_data,
+                   vecmem::data::vector_view<volume_t>& volumes_data,
+                   vecmem::data::vector_view<surface_t>& surfaces_data,
+                   typename transform_store_t::view_type transforms_data,
+                   vecmem::data::vector_view<rectangle_t>& rectangles_data,
+                   vecmem::data::vector_view<disc_t>& discs_data,
+                   vecmem::data::vector_view<cylinder_t>& cylinders_data) {
 
     constexpr int block_dim = 1;
     constexpr int thread_dim = 1;
