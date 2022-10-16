@@ -123,15 +123,17 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
         if constexpr (mask_id ==
                       telescope_types::mask_ids::e_unbounded_plane2) {
             // No bounds for this module
-            masks.template add_value<
+            masks.template emplace_back<
                 telescope_types::mask_ids::e_unbounded_plane2>(
-                mask_volume_link);
+                empty_context{}, mask_volume_link);
             materials.template add_value<telescope_types::material_ids::e_slab>(
                 cfg.m_mat, cfg.m_thickness);
         } else {
             // The rectangle bounds for this module
-            masks.template add_value<telescope_types::mask_ids::e_rectangle2>(
-                mask_volume_link, cfg.m_half_x, cfg.m_half_y);
+            masks
+                .template emplace_back<telescope_types::mask_ids::e_rectangle2>(
+                    empty_context{}, mask_volume_link, cfg.m_half_x,
+                    cfg.m_half_y);
             materials.template add_value<telescope_types::material_ids::e_slab>(
                 cfg.m_mat, cfg.m_thickness);
         }
@@ -223,7 +225,7 @@ auto create_telescope_detector(
 
     // Add module surfaces to volume
     typename detector_t::surface_container surfaces(&resource);
-    typename detector_t::mask_container masks = {resource};
+    typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials = {resource};
     typename detector_t::transform_container transforms = {resource};
 
