@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detail/multi_type_store.hpp"
-#include "detray/core/transform_store.hpp"
+#include "detray/core/detail/single_type_store.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
@@ -52,8 +52,11 @@ using mask_container_t =
 using mask_link_t = typename mask_container_t::single_link;
 using material_link_t = dtyped_index<material_ids, dindex>;
 
+using transform_container_t = single_type_store<__plugin::transform3<scalar>>;
+using transform_link_t = dindex;
+
 /// The Surface definition:
-using surface_t = surface<mask_link_t, material_link_t>;
+using surface_t = surface<mask_link_t, material_link_t, transform_link_t>;
 using surface_container_t = dvector<surface_t>;
 
 constexpr const float epsilon = 1e-3;
@@ -66,8 +69,8 @@ TEST(tools, intersection_kernel_ray) {
     vecmem::host_memory_resource host_mr;
 
     // The transforms & their store
-    static_transform_store<>::context static_context{};
-    static_transform_store transform_store;
+    typename transform_container_t::context_type static_context{};
+    transform_container_t transform_store;
     // Transforms of the rectangle, trapezoid and annulus
     transform_store.emplace_back(static_context, point3{0., 0., 10.});
     transform_store.emplace_back(static_context, point3{0., 0., 20.});
@@ -142,8 +145,8 @@ TEST(tools, intersection_kernel_helix) {
     vecmem::host_memory_resource host_mr;
 
     // The transforms & their store
-    static_transform_store<>::context static_context{};
-    static_transform_store transform_store;
+    typename transform_container_t::context_type static_context{};
+    transform_container_t transform_store;
     // Transforms of the rectangle, trapezoid and annulus
     transform_store.emplace_back(static_context, point3{0., 0., 10.});
     transform_store.emplace_back(static_context, point3{0., 0., 20.});

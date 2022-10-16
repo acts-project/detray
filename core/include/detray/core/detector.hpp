@@ -10,7 +10,6 @@
 // Project include(s)
 #include "detray/core/detector_kernel.hpp"
 #include "detray/core/surfaces_finder.hpp"
-#include "detray/core/transform_store.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detector_volume.hpp"
@@ -73,9 +72,9 @@ class detector {
     /// the geo context (e.g. for alignment)
     using transform_container =
         typename metadata::template transform_store<vector_t>;
-    using transform3 = typename transform_container::transform3;
+    using transform3 = typename transform_container::value_type;
     using transform_link = typename transform_container::link_type;
-    using context = typename transform_container::context;
+    using context = typename transform_container::context_type;
 
     /// Forward mask types that are present in this detector
     using mask_container =
@@ -270,18 +269,6 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto material_store() -> material_container & { return _materials; }
 
-    /// Get all transform in an index range from the detector
-    ///
-    /// @param range The range of surfaces in the transform store
-    /// @param ctx The context of the call
-    ///
-    /// @return ranged iterator to the surface transforms
-    /*DETRAY_HOST_DEVICE
-    inline auto transform_store(const dindex_range &range,
-                                const context &ctx = {}) const {
-        return _transforms.range(range, ctx);
-    }*/
-
     /// Get all transform in an index range from the detector - const
     ///
     /// @param ctx The context of the call
@@ -406,7 +393,7 @@ class detector {
 
         // Append transforms
         const auto trf_offset = _transforms.size(ctx);
-        _transforms.append(ctx, std::move(trfs_per_vol));
+        _transforms.append(std::move(trfs_per_vol), ctx);
 
         // Update mask, material and transform index of surfaces
         for (auto &sf : surfaces_per_vol) {
@@ -425,8 +412,8 @@ class detector {
         vol.update_obj_link({sf_offset, _surfaces.size()});
 
         // Append mask and material container
-        _masks.append(masks_per_vol);
-        _materials.append(materials_per_vol);
+        _masks.append(std::move(masks_per_vol));
+        _materials.append(std::move(materials_per_vol));
 
         // Update max objects per volume
         _n_max_objects_per_volume =
@@ -591,7 +578,7 @@ struct detector_data {
     vecmem::data::vector_view<surface_t> _surfaces_data;
     typename detector_type::mask_container::view_type _masks_data;
     typename detector_type::material_container::view_type _materials_data;
-    static_transform_store_data<transform_container_t> _transforms_data;
+    typename detector_type::transform_container::view_type _transforms_data;
     grid2_data<volume_finder_t> _volume_finder_data;
     bfield_t _bfield_data;
 };
@@ -623,7 +610,7 @@ struct detector_view {
     vecmem::data::vector_view<surface_t> _surfaces_data;
     typename detector_type::mask_container::view_type _masks_data;
     typename detector_type::material_container::view_type _materials_data;
-    static_transform_store_data<transform_container_t> _transforms_data;
+    typename detector_type::transform_container::view_type _transforms_data;
     grid2_view<volume_finder_t> _volume_finder_view;
     bfield_t _bfield_view;
 };
