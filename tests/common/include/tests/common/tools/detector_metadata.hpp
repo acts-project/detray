@@ -166,9 +166,9 @@ struct full_metadata {
 
     /// Surface finders
     enum class sf_finder_ids {
-        e_brute_force = 0,  // test all surfaces in a volume (brute force)
-        e_z_phi_grid = 1,   // barrel
-        e_r_phi_grid = 2,   // endcap
+        e_brute_force = 0,    // test all surfaces in a volume (brute force)
+        e_disc_grid = 1,      // barrel
+        e_cylinder_grid = 2,  // endcap
         e_default = e_brute_force,
     };
 
@@ -179,13 +179,6 @@ struct full_metadata {
         multi_store<sf_finder_ids, empty_context, tuple_t, brute_force_finder,
                     grid_collection<disc_sf_grid<container_t>>,
                     grid_collection<cylinder_sf_grid<container_t>>>;
-
-    /// How many grids have to be built
-    enum grids : std::size_t {
-        n_other = kDefault,
-        n_z_phi_grids = kBrlGrids,
-        n_r_phi_grids = kEdcGrids
-    };
 
     /// Volume grid
     template <typename container_t = host_container_types>
@@ -253,18 +246,11 @@ struct toy_metadata {
     using material_store = regular_multi_store<material_ids, empty_context,
                                                tuple_t, vector_t, slab>;
 
-    /// How many grids have to be built
-    enum grids : std::size_t {
-        n_other = 1,
-        n_barrel_grids = 4,
-        n_endcap_grids = 14,
-    };
-
     /// Surface finders
     enum class sf_finder_ids {
-        e_brute_force = 0,  // test all surfaces in a volume (brute force)
-        e_z_phi_grid = 1,   // barrel
-        e_r_phi_grid = 2,   // endcap
+        e_brute_force = 0,    // test all surfaces in a volume (brute force)
+        e_disc_grid = 1,      // barrel
+        e_cylinder_grid = 2,  // endcap
         e_default = e_brute_force,
     };
 
@@ -337,11 +323,6 @@ struct telescope_metadata {
               template <typename...> class vector_t = dvector>
     using material_store = regular_multi_store<material_ids, empty_context,
                                                tuple_t, vector_t, slab>;
-
-    /// How many grids have to be built
-    enum grids : std::size_t {
-        n_other = 1,
-    };
 
     /// Surface finders
     enum class sf_finder_ids {

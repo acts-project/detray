@@ -126,9 +126,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     EXPECT_EQ(volumes.size(), 20);
     EXPECT_EQ(surfaces.size(), 3244);
     /*EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_brute_force>(), 1);
-    EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_z_phi_grid>(),
+    EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_cylinder_grid>(),
               n_brl_layers);
-    EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_r_phi_grid>(), 14);*/
+    EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_disc_grid>(), 14);*/
     EXPECT_EQ(transforms.size(ctx), 3244);
     EXPECT_EQ(masks.template size<mask_ids::e_rectangle2>(), 2492);
     EXPECT_EQ(masks.template size<mask_ids::e_trapezoid2>(), 648);
@@ -291,7 +291,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     ++vol_itr;
     bounds = {27., 180., -825., -815., -M_PI, M_PI};
     range = {16, 128};
-    sf_finder_link = {sf_finder_ids::e_r_phi_grid, 0};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 0};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 1, bounds, range, sf_finder_link);
@@ -354,7 +354,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     ++vol_itr;
     bounds = {27., 180., -705., -695., -M_PI, M_PI};
     range = {132, 244};
-    sf_finder_link = {sf_finder_ids::e_r_phi_grid, 1};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 1};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 3, bounds, range, sf_finder_link);
@@ -416,7 +416,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     ++vol_itr;
     bounds = {27., 180., -605., -595., -M_PI, M_PI};
     range = {248, 360};
-    sf_finder_link = {sf_finder_ids::e_r_phi_grid, 2};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 2};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 5, bounds, range, sf_finder_link);
@@ -483,7 +483,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     ++vol_itr;
     bounds = {27., 38., -500., 500, -M_PI, M_PI};
     range = {370, 598};
-    sf_finder_link = {sf_finder_ids::e_z_phi_grid, 0};
+    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 0};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 7, bounds, range, sf_finder_link);
@@ -544,7 +544,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     ++vol_itr;
     bounds = {64., 80., -500., 500, -M_PI, M_PI};
     range = {602, 1054};
-    sf_finder_link = {sf_finder_ids::e_z_phi_grid, 1};
+    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 1};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 9, bounds, range, sf_finder_link);
@@ -605,7 +605,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     ++vol_itr;
     bounds = {108., 124., -500., 500, -M_PI, M_PI};
     range = {1058, 1790};
-    sf_finder_link = {sf_finder_ids::e_z_phi_grid, 2};
+    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 2};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 11, bounds, range, sf_finder_link);
@@ -666,7 +666,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     ++vol_itr;
     bounds = {164., 180., -500., 500, -M_PI, M_PI};
     range = {1794, 2890};
-    sf_finder_link = {sf_finder_ids::e_z_phi_grid, 3};
+    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 3};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 13, bounds, range, sf_finder_link);
@@ -734,7 +734,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     ++vol_itr;
     bounds = {27., 180., 595., 605., -M_PI, M_PI};
     range = {2900, 3012};
-    sf_finder_link = {sf_finder_ids::e_r_phi_grid, 3};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 3};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 15, bounds, range, sf_finder_link);
@@ -796,7 +796,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     ++vol_itr;
     bounds = {27., 180., 695., 705., -M_PI, M_PI};
     range = {3016, 3128};
-    sf_finder_link = {sf_finder_ids::e_r_phi_grid, 4};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 4};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 17, bounds, range, sf_finder_link);
@@ -858,7 +858,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     ++vol_itr;
     bounds = {27., 180., 815., 825., -M_PI, M_PI};
     range = {3132, 3244};
-    sf_finder_link = {sf_finder_ids::e_r_phi_grid, 5};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 5};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 19, bounds, range, sf_finder_link);
