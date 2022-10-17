@@ -58,6 +58,10 @@ struct bound_track_parameters {
      **/
     DETRAY_HOST_DEVICE
     bool operator==(const bound_track_parameters& rhs) const {
+        if (m_surface_link != rhs.surface_link()) {
+            return false;
+        }
+
         for (std::size_t i = 0; i < e_bound_size; i++) {
             const auto lhs_val = matrix_operator().element(m_vector, i, 0);
             const auto rhs_val = matrix_operator().element(rhs.vector(), i, 0);
