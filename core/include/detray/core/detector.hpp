@@ -94,10 +94,6 @@ class detector {
 
     /// Surface Finders: structures that enable neigborhood searches in the
     /// detector geometry during navigation. Can be different in each volume
-    /*using sf_finders = typename metadata::template sf_finder_definitions<
-        array_t, vector_t, tuple_t, jagged_vector_t>;
-    using sf_finder_container =
-        typename sf_finders::template store_type<tuple_t, array_t>;*/
     using sf_finder_container =
         typename metadata::template surface_finder_store<tuple_type,
                                                          container_t>;
@@ -549,19 +545,9 @@ class detector {
 
 /// @brief A static inplementation of detector data for device
 template <typename detector_type>
-struct detector_data {
+struct detector_view {
 
-    // type definitions
-    using volume_t = typename detector_type::volume_type;
-    using surface_t = typename detector_type::surface_type;
-    using mask_container_t = typename detector_type::mask_container;
-    using material_container_t = typename detector_type::material_container;
-    using transform_container_t = typename detector_type::transform_container;
-    using volume_finder_t = typename detector_type::volume_finder;
-    // using surfaces_finder_t = typename detector_type::surfaces_finder_type;
-    using bfield_t = typename detector_type::bfield_type::view_t;
-
-    detector_data(detector_type &det)
+    detector_view(detector_type &det)
         : _volumes_data(vecmem::get_data(det.volumes())),
           _surfaces_data(vecmem::get_data(det.surfaces())),
           _masks_data(get_data(det.mask_store())),
@@ -569,51 +555,19 @@ struct detector_data {
           _transforms_data(get_data(det.transform_store())),
           _sf_finder_data(get_data(det.sf_finder_store())),
           _volume_finder_data(get_data(det.volume_search_grid())),
-          _bfield_data(det.get_bfield()) {}
+          _bfield_view(det.get_bfield()) {}
 
     // members
-    vecmem::data::vector_view<volume_t> _volumes_data;
-    vecmem::data::vector_view<surface_t> _surfaces_data;
+    vecmem::data::vector_view<typename detector_type::volume_type>
+        _volumes_data;
+    vecmem::data::vector_view<typename detector_type::surface_type>
+        _surfaces_data;
     typename detector_type::mask_container::view_type _masks_data;
     typename detector_type::material_container::view_type _materials_data;
     typename detector_type::transform_container::view_type _transforms_data;
     typename detector_type::sf_finder_container::view_type _sf_finder_data;
     typename detector_type::volume_finder::view_type _volume_finder_data;
-    bfield_t _bfield_data;
-};
-
-/// @brief A static inplementation of detector view for device
-template <typename detector_type>
-struct detector_view {
-
-    // type definitions
-    using volume_t = typename detector_type::volume_type;
-    using surface_t = typename detector_type::surface_type;
-    using mask_container_t = typename detector_type::mask_container;
-    using material_container_t = typename detector_type::material_container;
-    using transform_container_t = typename detector_type::transform_container;
-    using volume_finder_t = typename detector_type::volume_finder;
-    using bfield_t = typename detector_type::bfield_type::view_t;
-
-    detector_view(detector_data<detector_type> &det_data)
-        : _volumes_data(det_data._volumes_data),
-          _surfaces_data(det_data._surfaces_data),
-          _masks_data(det_data._masks_data),
-          _materials_data(det_data._materials_data),
-          _transforms_data(det_data._transforms_data),
-          _sf_finder_data(det_data._sf_finder_data),
-          _volume_finder_data(det_data._volume_finder_data),
-          _bfield_view(det_data._bfield_data) {}
-
-    // members
-    vecmem::data::vector_view<volume_t> _volumes_data;
-    vecmem::data::vector_view<surface_t> _surfaces_data;
-    typename detector_type::mask_container::view_type _masks_data;
-    typename detector_type::material_container::view_type _materials_data;
-    typename detector_type::transform_container::view_type _transforms_data;
-    typename detector_type::sf_finder_container::view_type _sf_finder_data;
-    typename detector_type::volume_finder::view_type _volume_finder_data;
-    bfield_t _bfield_view;
+    typename detector_type::bfield_type::view_t _bfield_view;
 };
 
 /// stand alone function for that @returns the detector data for transfer to
@@ -622,7 +576,7 @@ struct detector_view {
 /// @param detector the detector to be tranferred
 template <typename detector_registry, template <typename> class bfield_t,
           typename container_t, typename source_link>
-inline detector_data<
+inline detector_view<
     detector<detector_registry, bfield_t, container_t, source_link> >
 get_data(detector<detector_registry, bfield_t, container_t, source_link> &det) {
     return det;
