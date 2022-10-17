@@ -29,7 +29,7 @@ TEST(detector_cuda, detector) {
     // create toy geometry
     detector_host_t toy_det = create_toy_geometry<host_container_types>(mng_mr);
 
-    auto ctx0 = typename detector_host_t::context();
+    auto ctx0 = typename detector_host_t::geometry_context();
 
     // host objects
     auto& volumes_host = toy_det.volumes();

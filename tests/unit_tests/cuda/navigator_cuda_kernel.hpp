@@ -39,7 +39,6 @@ using detector_device_t = detector<detector_registry::toy_detector,
 using navigator_host_t = navigator<detector_host_t>;
 using navigator_device_t = navigator<detector_device_t>;
 using stepper_t = line_stepper<transform3>;
-using nav_context = detector_host_t::context;
 
 // detector configuration
 constexpr std::size_t n_brl_layers = 4;

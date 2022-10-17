@@ -165,18 +165,19 @@ inline void add_disc_surface(
  * @param module_factory functor that adds module surfaces to volume
  */
 
-template <typename detector_t, typename factory_t,
-          std::enable_if_t<
-              std::is_invocable_v<factory_t, typename detector_t::context &,
-                                  typename detector_t::volume_type &,
-                                  typename detector_t::surface_container &,
-                                  typename detector_t::mask_container &,
-                                  typename detector_t::material_container &,
-                                  typename detector_t::transform_container &>,
-              bool> = true>
+template <
+    typename detector_t, typename factory_t,
+    std::enable_if_t<
+        std::is_invocable_v<factory_t, typename detector_t::geometry_context &,
+                            typename detector_t::volume_type &,
+                            typename detector_t::surface_container &,
+                            typename detector_t::mask_container &,
+                            typename detector_t::material_container &,
+                            typename detector_t::transform_container &>,
+        bool> = true>
 void create_cyl_volume(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, const scalar lay_inner_r,
+    typename detector_t::geometry_context &ctx, const scalar lay_inner_r,
     const scalar lay_outer_r, const scalar lay_neg_z, const scalar lay_pos_z,
     const std::vector<typename detector_t::surface_type::volume_link_type>
         &volume_links,
@@ -325,7 +326,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
  * @param cfg config struct for module creation
  */
 /*template <typename detector_t, typename config_t>
-inline void add_z_phi_grid(const typename detector_t::context &ctx,
+inline void add_z_phi_grid(const typename detector_t::geometry_context &ctx,
                            typename detector_t::volume_type &vol,
                            detector_t &det, vecmem::memory_resource &resource,
                            const config_t &cfg) {
@@ -360,7 +361,7 @@ inline void add_z_phi_grid(const typename detector_t::context &ctx,
  * @param cfg config struct for module creation
  */
 /*template <typename detector_t, typename config_t>
-inline void add_r_phi_grid(const typename detector_t::context &ctx,
+inline void add_r_phi_grid(const typename detector_t::geometry_context &ctx,
                            typename detector_t::volume_type &vol,
                            detector_t &det, vecmem::memory_resource &resource,
                            const config_t &cfg) {
@@ -565,7 +566,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
 template <typename detector_t>
 inline void add_beampipe(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, const std::size_t n_edc_layers,
+    typename detector_t::geometry_context &ctx, const std::size_t n_edc_layers,
     const std::size_t n_brl_layers,
     const std::vector<std::pair<scalar, scalar>> &edc_lay_sizes,
     const std::pair<scalar, scalar> &beampipe_vol_size, const scalar beampipe_r,
@@ -663,7 +664,7 @@ inline void add_beampipe(
 template <typename detector_t>
 inline void add_endcap_barrel_connection(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, const int side,
+    typename detector_t::geometry_context &ctx, const int side,
     const unsigned int n_brl_layers, const dindex beampipe_idx,
     const std::vector<std::pair<scalar, scalar>> &brl_lay_sizes,
     const scalar edc_inner_r, const scalar edc_outer_r,
@@ -735,7 +736,7 @@ template <typename empty_vol_factory, typename edc_module_factory,
           typename detector_t, typename config_t>
 void add_endcap_detector(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, std::size_t n_layers,
+    typename detector_t::geometry_context &ctx, std::size_t n_layers,
     dindex beampipe_idx,
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions, config_t cfg) {
@@ -829,7 +830,7 @@ template <typename empty_vol_factory, typename brl_module_factory,
           typename detector_t, typename config_t>
 void add_barrel_detector(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, const unsigned int n_layers,
+    typename detector_t::geometry_context &ctx, const unsigned int n_layers,
     dindex beampipe_idx, const scalar brl_half_z,
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions,
@@ -970,7 +971,7 @@ auto create_toy_geometry(
     // Don't create modules in gap volume
     struct empty_vol_factory {
         void operator()(
-            typename detector_t::context & /*ctx*/,
+            typename detector_t::geometry_context & /*ctx*/,
             typename detector_t::volume_type & /*volume*/,
             typename detector_t::surface_container & /*surfaces*/,
             typename detector_t::mask_container & /*masks*/,
@@ -982,7 +983,7 @@ auto create_toy_geometry(
     struct brl_module_factory {
         brl_m_config cfg;
 
-        void operator()(typename detector_t::context &ctx,
+        void operator()(typename detector_t::geometry_context &ctx,
                         typename detector_t::volume_type &volume,
                         typename detector_t::surface_container &surfaces,
                         typename detector_t::mask_container &masks,
@@ -997,7 +998,7 @@ auto create_toy_geometry(
     struct edc_module_factory {
         edc_m_config cfg;
 
-        void operator()(typename detector_t::context &ctx,
+        void operator()(typename detector_t::geometry_context &ctx,
                         typename detector_t::volume_type &volume,
                         typename detector_t::surface_container &surfaces,
                         typename detector_t::mask_container &masks,
@@ -1011,8 +1012,8 @@ auto create_toy_geometry(
     // create empty detector
     detector_t det(resource, std::move(bfield));
 
-    // context object
-    typename detector_t::context ctx0{};
+    // geometry context object
+    typename detector_t::geometry_context ctx0{};
 
     brl_m_config brl_config{};
     edc_m_config edc_config{};

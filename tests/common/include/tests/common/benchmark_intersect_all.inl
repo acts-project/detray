@@ -46,10 +46,10 @@ auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
 using detector_t = decltype(d);
 
-using detray_context = detector_t::context;
-detray_context default_context;
+using detray_context = detector_t::geometry_context;
+detray_context geo_context;
 
-const auto data_core = d.data(default_context);
+const auto data_core = d.data(geo_context);
 
 namespace __plugin {
 
