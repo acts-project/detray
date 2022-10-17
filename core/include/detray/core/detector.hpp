@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/core/detector_kernel.hpp"
 #include "detray/core/surfaces_finder.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detector_volume.hpp"
@@ -37,15 +38,11 @@ namespace detray {
 /// structures. Its view type is used to move the data between host and device.
 ///
 /// @tparam metadata helper that defines collection and link types centrally
-/// @tparam array_t the type of the internal array, must have STL semantics
-/// @tparam tuple_t the type of the internal tuple, must have STL semantics
-/// @tparam vector_t the type of the internal array, must have STL semantics
+/// @tparam bfield_t the type of the b-field frontend
+/// @tparam container_t type collection of the underlying containers
 /// @tparam source_link the surface source link
 template <typename metadata, template <typename> class bfield_t = covfie::field,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector,
+          typename container_t = host_container_types,
           typename source_link = dindex>
 class detector {
 
@@ -62,8 +59,15 @@ class detector {
     using bfield_type = bfield_t<bfield_backend_type>;
 
     /// Raw container types
+    template <typename T, std::size_t N>
+    using array_type = typename container_t::template array_type<T, N>;
     template <typename T>
-    using vector_type = vector_t<T>;
+    using vector_type = typename container_t::template vector_type<T>;
+    template <typename... T>
+    using tuple_type = typename container_t::template tuple_type<T...>;
+    template <typename T>
+    using jagged_vector_type =
+        typename container_t::template jagged_vector_type<T>;
 
     /// In case the detector needs to be printed
     using name_map = std::map<dindex, std::string>;
@@ -71,34 +75,34 @@ class detector {
     /// Forward the alignable transform container (surface placements) and
     /// the geo context (e.g. for alignment)
     using transform_container =
-        typename metadata::template transform_store<vector_t>;
+        typename metadata::template transform_store<vector_type>;
     using transform3 = typename transform_container::value_type;
     using transform_link = typename transform_container::link_type;
     using context = typename transform_container::context_type;
 
     /// Forward mask types that are present in this detector
     using mask_container =
-        typename metadata::template mask_store<tuple_t, vector_t>;
+        typename metadata::template mask_store<tuple_type, vector_type>;
     using masks = typename mask_container::value_types;
     using mask_link = typename mask_container::single_link;
 
     /// Forward mask types that are present in this detector
     using material_container =
-        typename metadata::template material_store<tuple_t, vector_t>;
+        typename metadata::template material_store<tuple_type, vector_type>;
     using materials = typename material_container::value_types;
     using material_link = typename material_container::single_link;
 
-    /// Forward material types that are present in this detector
-    /*using materials = typename metadata::material_definitions;
-    using material_container =
-        typename materials::template store_type<tuple_t, vector_t>;*/
-
     /// Surface Finders: structures that enable neigborhood searches in the
     /// detector geometry during navigation. Can be different in each volume
-    using sf_finders = typename metadata::template sf_finder_definitions<
+    /*using sf_finders = typename metadata::template sf_finder_definitions<
         array_t, vector_t, tuple_t, jagged_vector_t>;
     using sf_finder_container =
-        typename sf_finders::template store_type<tuple_t, array_t>;
+        typename sf_finders::template store_type<tuple_t, array_t>;*/
+    using sf_finder_container =
+        typename metadata::template surface_finder_store<tuple_type,
+                                                         container_t>;
+    using sf_finders = typename sf_finder_container::value_types;
+    using sf_finder_link = typename sf_finder_container::single_link;
 
     // TODO: Move to the following to volume builder
 
@@ -108,18 +112,17 @@ class detector {
     using surface_type =
         surface<mask_link, material_link, transform_link, source_link>;
 
-    using surface_container = vector_t<surface_type>;
+    using surface_container = vector_type<surface_type>;
     /// Volume type
     using geo_obj_ids = typename metadata::geo_objects;
     using volume_type =
         detector_volume<geo_obj_ids, typename metadata::object_link_type,
-                        typename sf_finders::link_type, scalar_type, array_t>;
+                        sf_finder_link, scalar_type>;
 
     /// Volume finder definition: Make volume index available from track
     /// position
-    using volume_finder =
-        typename metadata::template volume_finder<array_t, vector_t, tuple_t,
-                                                  jagged_vector_t>;
+    using volume_finder = typename metadata::template volume_finder<
+        array_type, vector_type, tuple_type, jagged_vector_type>;
 
     detector() = delete;
 
@@ -132,7 +135,7 @@ class detector {
           _transforms(resource),
           _masks(resource),
           _materials(resource),
-          //_sf_finders(resource),
+          _sf_finders(resource),
           _volume_finder(
               std::move(typename volume_finder::axis_p0_type{resource}),
               std::move(typename volume_finder::axis_p1_type{resource}),
@@ -149,7 +152,7 @@ class detector {
           _transforms(resource),
           _masks(resource),
           _materials(resource),
-          //_sf_finders(resource),
+          _sf_finders(resource),
           _volume_finder(
               std::move(typename volume_finder::axis_p0_type{resource}),
               std::move(typename volume_finder::axis_p1_type{resource}),
@@ -169,6 +172,7 @@ class detector {
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
           _materials(det_data._materials_data),
+          _sf_finders(det_data._sf_finder_data),
           _volume_finder(det_data._volume_finder_view),
           _bfield(det_data._bfield_view) {}
 
@@ -180,25 +184,25 @@ class detector {
     /// @return non-const reference to the new volume
     DETRAY_HOST
     volume_type &new_volume(
-        const array_t<scalar, 6> &bounds,
-        typename volume_type::sf_finder_link_type sf_finder_link = {
+        const array_type<scalar, 6> &bounds,
+        typename volume_type::sf_finder_link_type srf_finder_link = {
             sf_finders::id::e_default, dindex_invalid}) {
         volume_type &cvolume = _volumes.emplace_back(bounds);
         cvolume.set_index(_volumes.size() - 1);
-        cvolume.set_sf_finder(sf_finder_link);
+        cvolume.set_sf_finder(srf_finder_link);
 
         return cvolume;
     }
 
     /// @return the sub-volumes of the detector - const access
     DETRAY_HOST_DEVICE
-    inline auto volumes() const -> const vector_t<volume_type> & {
+    inline auto volumes() const -> const vector_type<volume_type> & {
         return _volumes;
     }
 
     /// @return the sub-volumes of the detector - non-const access
     DETRAY_HOST_DEVICE
-    inline auto volumes() -> vector_t<volume_type> & { return _volumes; }
+    inline auto volumes() -> vector_type<volume_type> & { return _volumes; }
 
     /// @return the volume by @param volume_index - const access
     DETRAY_HOST_DEVICE
@@ -442,7 +446,7 @@ class detector {
 
     /// @returns access to the surface finder container - non-const access
     // TODO: remove once possible
-    /*DETRAY_HOST_DEVICE
+    DETRAY_HOST_DEVICE
     inline auto sf_finder_store() -> sf_finder_container & {
         return _sf_finders;
     }
@@ -451,7 +455,7 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto sf_finder_store() const -> const sf_finder_container & {
         return _sf_finders;
-    }*/
+    }
 
     /// @returns the maximum number of surfaces (sensitive + portal) in all
     /// volumes.
@@ -516,7 +520,7 @@ class detector {
 
     private:
     /// Contains the detector sub-volumes.
-    vector_t<volume_type> _volumes;
+    vector_type<volume_type> _volumes;
 
     /// All surfaces (sensitive and portal) in the geometry in contiguous memory
     surface_container _surfaces;
@@ -531,7 +535,7 @@ class detector {
     material_container _materials;
 
     /// All surface finder data structures that are used in the detector volumes
-    // sf_finder_container _sf_finders;
+    sf_finder_container _sf_finders;
 
     /// Search structure for volumes
     volume_finder _volume_finder;
@@ -569,6 +573,7 @@ struct detector_data {
           _masks_data(get_data(det.mask_store())),
           _materials_data(get_data(det.material_store())),
           _transforms_data(get_data(det.transform_store())),
+          _sf_finder_data(get_data(det.sf_finder_store())),
           _volume_finder_data(
               get_data(det.volume_search_grid(), *det.resource())),
           _bfield_data(det.get_bfield()) {}
@@ -579,6 +584,7 @@ struct detector_data {
     typename detector_type::mask_container::view_type _masks_data;
     typename detector_type::material_container::view_type _materials_data;
     typename detector_type::transform_container::view_type _transforms_data;
+    typename detector_type::sf_finder_container::view_type _sf_finder_data;
     grid2_data<volume_finder_t> _volume_finder_data;
     bfield_t _bfield_data;
 };
@@ -602,6 +608,7 @@ struct detector_view {
           _masks_data(det_data._masks_data),
           _materials_data(det_data._materials_data),
           _transforms_data(det_data._transforms_data),
+          _sf_finder_data(det_data._sf_finder_data),
           _volume_finder_view(det_data._volume_finder_data),
           _bfield_view(det_data._bfield_data) {}
 
@@ -611,6 +618,7 @@ struct detector_view {
     typename detector_type::mask_container::view_type _masks_data;
     typename detector_type::material_container::view_type _materials_data;
     typename detector_type::transform_container::view_type _transforms_data;
+    typename detector_type::sf_finder_container::view_type _sf_finder_data;
     grid2_view<volume_finder_t> _volume_finder_view;
     bfield_t _bfield_view;
 };
@@ -620,14 +628,10 @@ struct detector_view {
 ///
 /// @param detector the detector to be tranferred
 template <typename detector_registry, template <typename> class bfield_t,
-          template <typename, std::size_t> class array_t,
-          template <typename...> class tuple_t,
-          template <typename...> class vector_t,
-          template <typename...> class jagged_vector_t, typename source_link>
-inline detector_data<detector<detector_registry, bfield_t, array_t, tuple_t,
-                              vector_t, jagged_vector_t, source_link> >
-get_data(detector<detector_registry, bfield_t, array_t, tuple_t, vector_t,
-                  jagged_vector_t, source_link> &det) {
+          typename container_t, typename source_link>
+inline detector_data<
+    detector<detector_registry, bfield_t, container_t, source_link> >
+get_data(detector<detector_registry, bfield_t, container_t, source_link> &det) {
     return det;
 }
 

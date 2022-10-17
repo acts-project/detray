@@ -64,6 +64,9 @@ class grid {
     /// Vecmem based grid view type
     using view_type =
         dmulti_view<dvector_view<bin_type>, typename axes_type::view_type>;
+    /// Vecmem based grid view type
+    using const_view_type = dmulti_view<dvector_view<const bin_type>,
+                                        typename axes_type::const_view_type>;
     /// Grid backend can be owning (single grid) or non-owning (grid collection)
     using storage_type =
         std::conditional_t<is_owning, detail::grid_data<bin_storage_type>,
@@ -99,8 +102,8 @@ class grid {
               typename std::enable_if_t<detail::is_device_view_v<grid_view_t>,
                                         bool> = true>
     DETRAY_HOST_DEVICE grid(grid_view_t &view)
-        : m_data(detray::detail::get<0>(view.m_views)),
-          m_axes(detray::detail::get<1>(view.m_views)) {}
+        : m_data(detray::detail::get<0>(view.m_view)),
+          m_axes(detray::detail::get<1>(view.m_view)) {}
 
     /// @returns the underlying bin content storage. Either the container
     /// or a container pointer to a global collection - const
@@ -257,6 +260,24 @@ class grid {
 
     static constexpr auto serializer() -> serializer_t<Dim> { return {}; }
 
+    /// @returns view of a grid, including the grids mulit_axis. Also valid if
+    /// the value type of the grid is cv qualified (then value_t propagates
+    /// quialifiers) - non-const
+    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
+    DETRAY_HOST auto get_data() -> view_type {
+        return {detray::get_data(*(m_data.bin_data())),
+                detray::get_data(m_axes)};
+    }
+
+    /// @returns view of a grid, including the grids mulit_axis. Also valid if
+    /// the value type of the grid is cv qualified (then value_t propagates
+    /// quialifiers) - const
+    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
+    DETRAY_HOST auto get_data() const -> const_view_type {
+        return {detray::get_data(*(m_data.bin_data())),
+                detray::get_data(m_axes)};
+    }
+
     private:
     /// Struct that contains the grid's data state
     storage_type m_data{};
@@ -268,41 +289,5 @@ class grid {
     /// data storage
     serializer_t<Dim> m_serializer{};
 };
-
-/// @returns view of a grid, including the grids mulit_axis. Also valid if the
-/// value type of the grid is cv qualified (then value_t propagates quialifiers)
-template <typename multi_axis_t, typename value_t,
-          template <std::size_t> class serializer_t, typename populator_t>
-inline
-    typename grid<multi_axis_t, value_t, serializer_t, populator_t>::view_type
-    get_data(grid<multi_axis_t, value_t, serializer_t, populator_t> &g) {
-    static_assert(
-        grid<multi_axis_t, value_t, serializer_t, populator_t>::is_owning,
-        "Only grid types that own their data can move the data "
-        "to device!");
-
-    return {vecmem::get_data(*g.data().bin_data()), detray::get_data(g.axes())};
-}
-
-/// @returns const view of a grid, for every grid that is passed as a const
-/// reference
-/*template <typename multi_axis_t, typename value_t,
-          template <std::size_t> class serializer_t, typename populator_t>
-inline typename grid<multi_axis_t, const value_t, serializer_t,
-                     populator_t>::view_type
-get_data(const grid<multi_axis_t, value_t, serializer_t, populator_t> &g) {
-    static_assert(
-        grid<multi_axis_t, value_t, serializer_t, populator_t>::is_owning,
-        "Only grid types that own their data can move the data "
-        "to device!");
-
-    // add const to grid value type
-    auto const_g = reinterpret_cast<
-        const grid<multi_axis_t, const value_t, serializer_t, populator_t> &>(
-        g);
-
-    return {vecmem::get_data(*const_g.data().bin_data()),
-            detray::get_data(const_g.axes())};
-}*/
 
 }  // namespace detray

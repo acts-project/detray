@@ -188,10 +188,7 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
 /// @returns a complete detector object
 template <bool unbounded_planes = true,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+          typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, std::vector<scalar> pos,
     trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
@@ -201,8 +198,7 @@ auto create_telescope_detector(
     const scalar thickness = 80 * unit_constants::um) {
 
     // detector type
-    using detector_t = detector<telescope_types, covfie::field, array_t,
-                                tuple_t, vector_t, jagged_vector_t>;
+    using detector_t = detector<telescope_types, covfie::field, container_t>;
 
     // module parameters
     struct plane_config {
@@ -253,10 +249,7 @@ auto create_telescope_detector(
 /// @param tel_length the total length of the steps by the stepper
 template <bool unbounded_planes = true,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+          typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, dindex n_surfaces = 10,
     scalar tel_length = 500. * unit_constants::mm,

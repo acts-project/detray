@@ -210,8 +210,8 @@ class multi_axis {
               typename std::enable_if_t<
                   detray::detail::is_device_view_v<axes_view_t>, bool> = true>
     DETRAY_HOST_DEVICE multi_axis(const axes_view_t &view)
-        : m_data(detray::detail::get<0>(view.m_views),
-                 detray::detail::get<1>(view.m_views)) {}
+        : m_data(detray::detail::get<0>(view.m_view),
+                 detray::detail::get<1>(view.m_view)) {}
 
     /// @returns the underlying axes storage. Either the container
     /// or a container pointer to a global collection - const
@@ -310,6 +310,21 @@ class multi_axis {
         return bin_ranges;
     }
 
+    /// @returns a vecmem view on the axes data. Only allowed if it owning data.
+    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
+    DETRAY_HOST auto get_data() -> view_type {
+        return {detray::get_data(m_data.m_axes_data),
+                detray::get_data(m_data.m_edges)};
+    }
+
+    /// @returns a vecmem const view on the axes data. Only allowed if it
+    /// owning data.
+    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
+    DETRAY_HOST auto get_data() const -> const_view_type {
+        return {detray::get_data(m_data.m_axes_data),
+                detray::get_data(m_data.m_edges)};
+    }
+
     private:
     /// Get the number of bins for a single axis.
     ///
@@ -375,31 +390,5 @@ class multi_axis {
 };
 
 }  // namespace n_axis
-
-template <bool is_owning, typename local_frame, typename... axis_ts>
-inline
-    typename n_axis::multi_axis<is_owning, local_frame, axis_ts...>::view_type
-    get_data(
-        n_axis::multi_axis<is_owning, local_frame, axis_ts...> &mult_axis) {
-    static_assert(is_owning,
-                  "Only mulit-axis types that own their data can move the data "
-                  "to device!");
-
-    return {vecmem::get_data(mult_axis.data().m_axes_data),
-            vecmem::get_data(mult_axis.data().m_edges)};
-}
-
-template <bool is_owning, typename local_frame, typename... axis_ts>
-inline typename n_axis::multi_axis<is_owning, local_frame,
-                                   axis_ts...>::const_view_type
-get_data(
-    const n_axis::multi_axis<is_owning, local_frame, axis_ts...> &mult_axis) {
-    static_assert(is_owning,
-                  "Only mulit-axis types that own their data can move the data "
-                  "to device!");
-
-    return {vecmem::get_data(mult_axis.data().m_axes_data),
-            vecmem::get_data(mult_axis.data().m_edges)};
-}
 
 }  // namespace detray

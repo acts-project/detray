@@ -18,50 +18,10 @@ namespace detray {
 
 namespace detail {
 
-/// Helper trait to check whether a type has a vecmem view defined
-/// @{
-template <class T, typename = void>
-struct get_view : public std::false_type {
-    using type = void;
-};
-
-template <class T>
-struct get_view<T, typename T::view_type> : public std::true_type {
-    using type = typename T::view_type;
-};
-
-template <class T>
-inline constexpr bool is_viewable_v = get_view<T>::value;
-
-template <class T>
-using get_view_t = typename get_view<T>::type;
-/// @}
-
 // Views for types that aggregate containers/other viewable types
 
 /// Empty view type for inheritance template resolution
 struct dbase_view {};
-
-/// Tag a vecmem view as @c dbase_view , so that it becomes recognizable in
-/// detray as a vecmem view type
-template <typename value_t, template <typename> class view_t>
-struct view_wrapper : public dbase_view {
-    /// The vecmem data view
-    view_t<value_t> m_view{};
-
-    /// Default constructor
-    view_wrapper() = default;
-
-    /// Conversion operator from a view of the same value type
-    DETRAY_HOST
-    view_wrapper(view_t<value_t>&& view) : m_view{view} {}
-
-    /// Conversion operator from a view of the same value type
-    DETRAY_HOST
-    view_wrapper(const view_t<value_t>& view) : m_view{view} {}
-};
-template <typename value_t, template <typename> class view_t>
-view_wrapper(const view_t<value_t>&) -> view_wrapper<const value_t, view_t>;
 
 /// Container view helper that aggregates multiple vecmem views and performs
 /// compile-time checks.
@@ -80,13 +40,13 @@ class dmulti_view_helper<false, view_ts...> {};
 /// member constructors.
 template <typename... view_ts>
 struct dmulti_view_helper<true, view_ts...> : public dbase_view {
-    std::tuple<std::remove_reference_t<std::remove_cv_t<view_ts>>...> m_views;
+    std::tuple<std::remove_reference_t<std::remove_cv_t<view_ts>>...> m_view;
 
     dmulti_view_helper() = default;
 
     /// Tie multiple views together
     DETRAY_HOST
-    dmulti_view_helper(view_ts&&... views) { m_views = std::tie(views...); }
+    dmulti_view_helper(view_ts&&... views) { m_view = std::tie(views...); }
 };
 
 /// Helper trait to determine if a type can be interpreted as a (composite)
@@ -106,6 +66,27 @@ template <typename T>
 inline constexpr bool is_device_view_v = is_device_view<T>::value;
 /// @}
 
+/// Helper trait to check whether a type has a vecmem view defined
+/// @{
+template <class T, typename = void>
+struct get_view : public std::false_type {
+    using type = void;
+};
+
+template <class T>
+struct get_view<
+    T, std::enable_if_t<detray::detail::is_device_view_v<typename T::view_type>,
+                        void>> : public std::true_type {
+    using type = typename T::view_type;
+};
+
+template <class T>
+inline constexpr bool is_viewable_v = get_view<T>::value;
+
+template <class T>
+using get_view_t = typename get_view<T>::type;
+/// @}
+
 }  // namespace detail
 
 /// The detray container view exists, if all contained view types also derive
@@ -113,10 +94,5 @@ inline constexpr bool is_device_view_v = is_device_view<T>::value;
 template <typename... view_ts>
 using dmulti_view = detray::detail::dmulti_view_helper<
     std::conjunction_v<detail::is_device_view<view_ts>...>, view_ts...>;
-
-/// Forward declare a generic 'get_data' function, to which all subsequent
-/// definitions will be template specializations.
-template <typename T>
-typename T::view_type get_data(T&);
 
 }  // namespace detray
