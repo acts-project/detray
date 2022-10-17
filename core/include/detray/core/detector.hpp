@@ -121,8 +121,8 @@ class detector {
 
     /// Volume finder definition: Make volume index available from track
     /// position
-    using volume_finder = typename metadata::template volume_finder<
-        array_type, vector_type, tuple_type, jagged_vector_type>;
+    using volume_finder =
+        typename metadata::template volume_finder<container_t>;
 
     detector() = delete;
 
@@ -136,10 +136,7 @@ class detector {
           _masks(resource),
           _materials(resource),
           _sf_finders(resource),
-          _volume_finder(
-              std::move(typename volume_finder::axis_p0_type{resource}),
-              std::move(typename volume_finder::axis_p1_type{resource}),
-              resource),
+          _volume_finder(resource),
           _resource(&resource),
           _bfield(field) {}
 
@@ -153,10 +150,7 @@ class detector {
           _masks(resource),
           _materials(resource),
           _sf_finders(resource),
-          _volume_finder(
-              std::move(typename volume_finder::axis_p0_type{resource}),
-              std::move(typename volume_finder::axis_p1_type{resource}),
-              resource),
+          _volume_finder(resource),
           _resource(&resource),
           _bfield(typename bfield_type::backend_t::configuration_t{0.f, 0.f,
                                                                    0.f}) {}
@@ -173,7 +167,7 @@ class detector {
           _masks(det_data._masks_data),
           _materials(det_data._materials_data),
           _sf_finders(det_data._sf_finder_data),
-          _volume_finder(det_data._volume_finder_view),
+          _volume_finder(det_data._volume_finder_data),
           _bfield(det_data._bfield_view) {}
 
     /// Add a new volume and retrieve a reference to it
@@ -220,8 +214,8 @@ class detector {
     /// @return the volume by @param position - const access
     DETRAY_HOST_DEVICE
     inline auto volume_by_pos(const point3 &p) const -> const volume_type & {
-        point2 p2 = {getter::perp(p), p[2]};
-        dindex volume_index = _volume_finder.bin(p2);
+        // Replace grid: only one entry per bin
+        dindex volume_index = *_volume_finder.search(p);
         return _volumes[volume_index];
     }
 
@@ -574,8 +568,7 @@ struct detector_data {
           _materials_data(get_data(det.material_store())),
           _transforms_data(get_data(det.transform_store())),
           _sf_finder_data(get_data(det.sf_finder_store())),
-          _volume_finder_data(
-              get_data(det.volume_search_grid(), *det.resource())),
+          _volume_finder_data(get_data(det.volume_search_grid())),
           _bfield_data(det.get_bfield()) {}
 
     // members
@@ -585,7 +578,7 @@ struct detector_data {
     typename detector_type::material_container::view_type _materials_data;
     typename detector_type::transform_container::view_type _transforms_data;
     typename detector_type::sf_finder_container::view_type _sf_finder_data;
-    grid2_data<volume_finder_t> _volume_finder_data;
+    typename detector_type::volume_finder::view_type _volume_finder_data;
     bfield_t _bfield_data;
 };
 
@@ -609,7 +602,7 @@ struct detector_view {
           _materials_data(det_data._materials_data),
           _transforms_data(det_data._transforms_data),
           _sf_finder_data(det_data._sf_finder_data),
-          _volume_finder_view(det_data._volume_finder_data),
+          _volume_finder_data(det_data._volume_finder_data),
           _bfield_view(det_data._bfield_data) {}
 
     // members
@@ -619,7 +612,7 @@ struct detector_view {
     typename detector_type::material_container::view_type _materials_data;
     typename detector_type::transform_container::view_type _transforms_data;
     typename detector_type::sf_finder_container::view_type _sf_finder_data;
-    grid2_view<volume_finder_t> _volume_finder_view;
+    typename detector_type::volume_finder::view_type _volume_finder_data;
     bfield_t _bfield_view;
 };
 
