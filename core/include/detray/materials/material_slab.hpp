@@ -23,7 +23,6 @@ template <typename scalar_t>
 struct material_slab {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;
-    using transform3 = __plugin::transform3<scalar_t>;
 
     material_slab() = default;
 
