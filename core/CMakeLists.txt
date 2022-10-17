@@ -21,13 +21,9 @@ detray_add_library( detray_core core
    # core include(s)
    "include/detray/core/detail/multi_store.hpp"
    "include/detray/core/detail/single_store.hpp"
-   "include/detray/core/detail/tuple_array_container.hpp"
    "include/detray/core/detail/tuple_container.hpp"
-   "include/detray/core/detail/type_registry.hpp"
-   "include/detray/core/detail/new_tuple_container.hpp"
    "include/detray/core/detector.hpp"
    "include/detray/core/detector_kernel.hpp"
-   "include/detray/core/surfaces_finder.hpp"
    "include/detray/core/transform_store.hpp"
    # definitions include(s)
    "include/detray/definitions/containers.hpp"
@@ -87,9 +83,6 @@ detray_add_library( detray_core core
    "include/detray/propagator/rk_stepper.hpp"
    # surface finder include(s)
    "include/detray/surface_finders/brute_force_finder.hpp"
-   "include/detray/surface_finders/grid2_finder.hpp"
-   "include/detray/surface_finders/neighborhood_kernel.hpp"
-   # surface finder include(s)
    "include/detray/surface_finders/grid/detail/axis_binning.hpp"
    "include/detray/surface_finders/grid/detail/axis_helpers.hpp"
    "include/detray/surface_finders/grid/detail/axis_shape.hpp"
@@ -102,6 +95,7 @@ detray_add_library( detray_core core
    "include/detray/surface_finders/grid/grid.hpp"
    "include/detray/surface_finders/grid/populator.hpp"
    "include/detray/surface_finders/grid/serializer.hpp"
+   "include/detray/surface_finders/neighborhood_kernel.hpp"
    # tools include(s)
    "include/detray/tools/associator.hpp"
    "include/detray/tools/bin_association.hpp"
@@ -128,5 +122,6 @@ detray_add_library( detray_core core
    "include/detray/utils/invalid_values.hpp"
    "include/detray/utils/quadratic_equation.hpp"
    "include/detray/utils/ratio.hpp"
+   "include/detray/core/detail/type_registry.hpp"
    "include/detray/utils/type_traits.hpp" )
 target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)

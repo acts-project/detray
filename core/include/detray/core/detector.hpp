@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/core/detector_kernel.hpp"
-#include "detray/core/surfaces_finder.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -479,9 +478,8 @@ class detector {
                << v.template n_objects<geo_obj_ids::e_portal>() << " portals "
                << std::endl;
 
-            ss << "                 " << /*_sf_finders.size(v.sf_finder_type())
-               << " surface finders " <<*/
-                std::endl;
+            ss << "                 " << _sf_finders.n_collections()
+               << " surface finders " << std::endl;
 
             if (v.sf_finder_index() != dindex_invalid) {
                 ss << "  sf finder id " << v.sf_finder_type()
@@ -539,7 +537,7 @@ class detector {
     /// building.
     dindex _n_max_objects_per_volume = 0;
 
-    /** Storage for magnetic field data */
+    /// Storage for magnetic field data
     bfield_type _bfield;
 };
 
@@ -579,7 +577,7 @@ template <typename detector_registry, template <typename> class bfield_t,
 inline detector_view<
     detector<detector_registry, bfield_t, container_t, source_link> >
 get_data(detector<detector_registry, bfield_t, container_t, source_link> &det) {
-    return det;
+    return {det};
 }
 
 }  // namespace detray

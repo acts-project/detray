@@ -10,11 +10,11 @@
 // Detray include(s)
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
-#include "detray/core/detail/new_tuple_container.hpp"
-#include "detray/core/detail/type_registry.hpp"
+#include "detray/core/detail/tuple_container.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/type_registry.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -53,8 +53,7 @@ class multi_store {
 
     /// Allow matching between IDs and collection value types
     /// @{
-    using value_types =
-        detail::registry_base<ID, true, detail::get_value_t<Ts>...>;
+    using value_types = type_registry<ID, detail::get_value_t<Ts>...>;
     template <ID id>
     using get_type = typename value_types::template get_type<id>::type;
     /// @}
