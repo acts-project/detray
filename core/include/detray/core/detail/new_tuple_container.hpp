@@ -101,19 +101,14 @@ class tuple_container {
         return detail::get<T>(_tuple);
     }
 
-    /// @returns the view for all contained types.
-    template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
-              std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
-    DETRAY_HOST view_type get_data(std::index_sequence<I...> /*seq*/) noexcept {
-        return {detray::get_data(detail::get<I>(_tuple))...};
+    /// @returns a tuple of the views of all elements - non-const
+    DETRAY_HOST auto get_data() -> view_type {
+        return get_data(std::make_index_sequence<sizeof...(Ts)>{});
     }
 
-    /// @returns the const view for all contained types.
-    template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
-              std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
-    DETRAY_HOST const_view_type
-    get_data(std::index_sequence<I...> /*seq*/) const noexcept {
-        return {detray::get_data(detail::get<I>(_tuple))...};
+    /// @returns a tuple of the views of all elements - const
+    DETRAY_HOST auto get_data() const -> const_view_type {
+        return get_data(std::make_index_sequence<sizeof...(Ts)>{});
     }
 
     /// Calls a functor with an element with a specific index.
@@ -129,13 +124,27 @@ class tuple_container {
     }
 
     private:
+    /// @returns the view for all contained types.
+    template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
+              std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
+    DETRAY_HOST view_type get_data(std::index_sequence<I...> /*seq*/) noexcept {
+        return {detray::get_data(detail::get<I>(_tuple))...};
+    }
+
+    /// @returns the const view for all contained types.
+    template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
+              std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
+    DETRAY_HOST const_view_type
+    get_data(std::index_sequence<I...> /*seq*/) const noexcept {
+        return {detray::get_data(detail::get<I>(_tuple))...};
+    }
+
     /// @returns a tuple constructed from the elements @param view s.
     template <typename tuple_view_t, std::size_t... I,
               std::enable_if_t<is_device_view_v<tuple_view_t>, bool> = true>
     DETRAY_HOST_DEVICE auto unroll_views(tuple_view_t &view,
                                          std::index_sequence<I...> /*seq*/) {
-        return detail::make_tuple<tuple_t>(
-            Ts(detail::get<I>(view.m_views).m_view)...);
+        return detail::make_tuple<tuple_t>(Ts(detail::get<I>(view.m_view))...);
     }
 
     /// Variadic unrolling of the tuple that calls a functor with the element.
@@ -200,17 +209,5 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
 /// @}
 
 }  // namespace detail
-
-/// A stand-alone function to get the vecmem view of the tuple container
-///
-/// @note the @c view_type typedef will not be available, if one of the element
-/// types does not define a vecmem view.
-///
-/// @return the view on this tuple container
-template <template <typename...> class tuple_t, typename... Ts>
-inline typename detail::tuple_container<tuple_t, Ts...>::view_type get_data(
-    detail::tuple_container<tuple_t, Ts...> &container) {
-    return container.get_data(std::make_index_sequence<sizeof...(Ts)>{});
-}
 
 }  // namespace detray

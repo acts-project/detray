@@ -6,8 +6,8 @@
  */
 
 // Project include(s)
-#include "detray/core/detail/multi_type_store.hpp"
-#include "detray/core/detail/single_type_store.hpp"
+#include "detray/core/detail/multi_store.hpp"
+#include "detray/core/detail/single_store.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
@@ -47,12 +47,12 @@ using trapezoid_t = mask<trapezoid2D<>, volume_link_t>;
 using annulus_t = mask<annulus2D<>, volume_link_t>;
 
 using mask_container_t =
-    multi_type_store<mask_ids, empty_context, dtuple, dvector, rectangle_t,
-                     trapezoid_t, annulus_t>;
+    regular_multi_store<mask_ids, empty_context, dtuple, dvector, rectangle_t,
+                        trapezoid_t, annulus_t>;
 using mask_link_t = typename mask_container_t::single_link;
 using material_link_t = dtyped_index<material_ids, dindex>;
 
-using transform_container_t = single_type_store<__plugin::transform3<scalar>>;
+using transform_container_t = single_store<__plugin::transform3<scalar>>;
 using transform_link_t = dindex;
 
 /// The Surface definition:

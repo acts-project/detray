@@ -15,7 +15,6 @@
 #include <gtest/gtest.h>
 
 // System include(s).
-#include <iostream>
 #include <limits>
 
 using namespace detray;
@@ -332,7 +331,7 @@ axis_phi.nbins());
 TEST(grids_cuda, cylindrical3D_collection) {
     // Data-owning grid collection
     vecmem::cuda::managed_memory_resource mng_mr;
-    auto grid_coll = grid_collection<n_own_host_grid2_attach>(mng_mr);
+    auto grid_coll = grid_collection<n_own_host_grid2_attach>(&mng_mr);
 
     auto& grid_offsets = grid_coll.offsets();
     auto& bin_data = grid_coll.bin_storage();

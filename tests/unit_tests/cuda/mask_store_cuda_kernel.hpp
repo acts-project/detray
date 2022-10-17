@@ -16,7 +16,7 @@
 #endif
 
 // Project include(s)
-#include "detray/core/detail/multi_type_store.hpp"
+#include "detray/core/detail/multi_store.hpp"
 #include "detray/masks/masks.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
@@ -59,11 +59,10 @@ enum mask_ids : unsigned int {
 };
 
 using host_store_type =
-    multi_type_store<mask_ids, empty_context, dtuple, vecmem::vector, rectangle,
-                     trapezoid, ring, cylinder, single, annulus>;
+    regular_multi_store<mask_ids, empty_context, dtuple, vecmem::vector, rectangle, trapezoid, ring, cylinder, single, annulus>;
 
 using device_store_type =
-    multi_type_store<mask_ids, empty_context, thrust::tuple,
+    regular_multi_store<mask_ids, empty_context, thrust::tuple,
                      vecmem::device_vector, rectangle, trapezoid, ring,
                      cylinder, single, annulus>;
 

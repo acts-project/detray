@@ -20,15 +20,16 @@ detray_add_library( detray_core core
    "include/detray/coordinates/polar2.hpp"
    # core include(s)
    "include/detray/core/detail/container_view.hpp"
-   "include/detray/core/detail/multi_type_store.hpp"
+   "include/detray/core/detail/data_context.hpp"
+   "include/detray/core/detail/multi_store.hpp"
    "include/detray/core/detail/new_tuple_container.hpp"
+   "include/detray/core/detail/single_store.hpp"
    "include/detray/core/detail/tuple_array_container.hpp"
    "include/detray/core/detail/tuple_container.hpp"
    "include/detray/core/detail/type_registry.hpp"
    "include/detray/core/detector.hpp"
    "include/detray/core/detector_kernel.hpp"
    "include/detray/core/surfaces_finder.hpp"
-   "include/detray/core/transform_store.hpp"
    # definitions include(s)
    "include/detray/definitions/containers.hpp"
    "include/detray/definitions/cuda_definitions.hpp"

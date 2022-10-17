@@ -33,7 +33,7 @@ namespace detray {
 /// @tparam Ts the data types (value types of the collections)
 template <typename T, template <typename...> class container_t = dvector,
           typename context_t = empty_context>
-class single_type_store {
+class single_store {
 
     public:
     /// Underlying container type that can handle vecmem views
@@ -56,19 +56,19 @@ class single_type_store {
     using const_view_type = detail::get_view_t<const container_t<T>>;
 
     /// Empty container
-    constexpr single_type_store() = default;
+    constexpr single_store() = default;
 
     // Delegate constructors to container, which handles the memory
 
     /// Copy construct from element types
-    constexpr explicit single_type_store(const T &arg) : m_container(arg) {}
+    constexpr explicit single_store(const T &arg) : m_container(arg) {}
 
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource,
               std::enable_if_t<not detail::is_device_view_v<allocator_t>,
                                bool> = true>
-    DETRAY_HOST explicit single_type_store(allocator_t &resource)
+    DETRAY_HOST explicit single_store(allocator_t &resource)
         : m_container(&resource) {}
 
     /// Copy Construct with a specific (vecmem) memory resource @param resource
@@ -76,15 +76,15 @@ class single_type_store {
     template <typename allocator_t = vecmem::memory_resource,
               typename C = container_t<T>,
               std::enable_if_t<std::is_same_v<C, std::vector<T>>, bool> = true>
-    DETRAY_HOST explicit single_type_store(allocator_t &resource, const T &arg)
+    DETRAY_HOST explicit single_store(allocator_t &resource, const T &arg)
         : m_container(&resource, arg) {}
 
     /// Construct from the container @param view . Mainly used device-side.
     template <typename container_view_t,
               std::enable_if_t<detail::is_device_view_v<container_view_t>,
                                bool> = true>
-    DETRAY_HOST_DEVICE single_type_store(container_view_t &view)
-        : m_container(view.m_view) {}
+    DETRAY_HOST_DEVICE single_store(container_view_t &view)
+        : m_container(view) {}
 
     /// @returns a pointer to the underlying container - const
     DETRAY_HOST_DEVICE
@@ -247,27 +247,24 @@ class single_type_store {
     /// @param other The other container
     ///
     /// @note in general can throw an exception
-    DETRAY_HOST void append(single_type_store &&other,
+    DETRAY_HOST void append(single_store &&other,
                             const context_type &ctx = {}) noexcept(false) {
         insert(std::move(other.m_container), ctx);
+    }
+
+    /// @return the view on the underlying container - non-const
+    DETRAY_HOST auto get_data() -> view_type {
+        return detray::get_data(m_container);
+    }
+
+    /// @return the view on the underlying container - const
+    DETRAY_HOST auto get_data() const -> const_view_type {
+        return detray::get_data(m_container);
     }
 
     private:
     /// The underlying container implementation
     base_type m_container;
 };
-
-/// A stand-alone function to get the vecmem view of the container
-///
-/// @note the @c view_type typedef will not be available, if one of the element
-/// types does not define a vecmem view.
-///
-/// @return the view on this container
-template <typename T, template <typename...> class container_t,
-          typename context_t>
-inline typename single_type_store<T, container_t, context_t>::view_type
-get_data(single_type_store<T, container_t, context_t> &container) {
-    return get_data(*container.data());
-}
 
 }  // namespace detray

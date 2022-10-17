@@ -6,7 +6,7 @@
  */
 
 // Detray include(s)
-#include "detray/core/detail/multi_type_store.hpp"
+#include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/new_tuple_container.hpp"
 #include "detray/core/detail/tuple_array_container.hpp"
 #include "detray/grids/grid2.hpp"
@@ -87,8 +87,8 @@ TEST(container, vector_multi_type_store) {
     vecmem::host_memory_resource resource;
 
     // Create tuple vector container
-    multi_type_store<std::size_t, empty_context, std::tuple, vecmem::vector,
-                     std::size_t, float, double>
+    regular_multi_store<std::size_t, empty_context, std::tuple, vecmem::vector,
+                        std::size_t, float, double>
         vector_store(resource);
 
     // Base container function check

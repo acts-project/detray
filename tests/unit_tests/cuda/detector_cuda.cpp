@@ -27,9 +27,7 @@ TEST(detector_cuda, detector) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // create toy geometry
-    detector_host_t toy_det =
-        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(mng_mr);
+    detector_host_t toy_det = create_toy_geometry<host_container_types>(mng_mr);
 
     auto ctx0 = typename detector_host_t::context();
 
@@ -110,8 +108,7 @@ TEST(detector_cuda, enumerate) {
 
     // create toy geometry
     detector_host_t detector =
-        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(mng_mr);
+        create_toy_geometry<host_container_types>(mng_mr);
 
     // Get the vector of volumes
     auto& volumes = detector.volumes();

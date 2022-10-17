@@ -24,8 +24,7 @@ TEST(navigator_cuda, navigator) {
 
     // Create detector
     detector_host_t det =
-        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(mng_mr, n_brl_layers,
+        create_toy_geometry<host_container_types>(mng_mr, n_brl_layers,
                                                    n_edc_layers);
 
     // Create navigator

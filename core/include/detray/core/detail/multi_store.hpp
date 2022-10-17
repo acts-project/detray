@@ -35,12 +35,11 @@ namespace detray {
 ///                     data collections.
 /// @tparam Ts the data types (value types of the collections)
 template <typename ID = std::size_t, typename context_t = empty_context,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class container_t = dvector, typename... Ts>
-class multi_type_store {
+          template <typename...> class tuple_t = dtuple, typename... Ts>
+class multi_store {
 
     public:
-    using size_type = typename container_t<detail::first_t<Ts...>>::size_type;
+    using size_type = typename detail::first_t<Ts...>::size_type;
     using context_type = context_t;
 
     /// How to find a data collection in the store
@@ -54,24 +53,25 @@ class multi_type_store {
 
     /// Allow matching between IDs and collection value types
     /// @{
-    using value_types = detail::registry_base<ID, true, Ts...>;
+    using value_types =
+        detail::registry_base<ID, true, detail::get_value_t<Ts>...>;
     template <ID id>
     using get_type = typename value_types::template get_type<id>::type;
     /// @}
 
     /// Underlying tuple container that can handle vecmem views
-    using tuple_type = detail::tuple_container<tuple_t, container_t<Ts>...>;
+    using tuple_type = detail::tuple_container<tuple_t, Ts...>;
     /// Vecmem view types
     using view_type = typename tuple_type::view_type;
     using const_view_type = typename tuple_type::const_view_type;
 
     /// Empty container
-    constexpr multi_type_store() = default;
+    constexpr multi_store() = default;
 
     // Delegate constructors to tuple container, which handles the memory
 
     /// Copy construct from element types
-    constexpr explicit multi_type_store(const Ts &...args)
+    constexpr explicit multi_store(const Ts &...args)
         : m_tuple_container(args...) {}
 
     /// Construct with a specific vecmem memory resource @param resource
@@ -79,7 +79,7 @@ class multi_type_store {
     template <typename allocator_t = vecmem::memory_resource,
               std::enable_if_t<not detail::is_device_view_v<allocator_t>,
                                bool> = true>
-    DETRAY_HOST explicit multi_type_store(allocator_t &resource)
+    DETRAY_HOST explicit multi_store(allocator_t &resource)
         : m_tuple_container(resource) {}
 
     /// Copy Construct with a specific (vecmem) memory resource @param resource
@@ -88,15 +88,14 @@ class multi_type_store {
         typename allocator_t = vecmem::memory_resource,
         typename T = tuple_t<Ts...>,
         std::enable_if_t<std::is_same_v<T, std::tuple<Ts...>>, bool> = true>
-    DETRAY_HOST explicit multi_type_store(allocator_t &resource,
-                                          const Ts &...args)
+    DETRAY_HOST explicit multi_store(allocator_t &resource, const Ts &...args)
         : m_tuple_container(resource, args...) {}
 
     /// Construct from the container @param view . Mainly used device-side.
     template <
         typename tuple_view_t,
         std::enable_if_t<detail::is_device_view_v<tuple_view_t>, bool> = true>
-    DETRAY_HOST_DEVICE multi_type_store(tuple_view_t &view)
+    DETRAY_HOST_DEVICE multi_store(tuple_view_t &view)
         : m_tuple_container(view) {}
 
     /// @returns a pointer to the underlying tuple container - const
@@ -221,16 +220,16 @@ class multi_type_store {
     /// @param new_data is the new collection to be added
     ///
     /// @note in general can throw an exception
-    template <typename T>
-    DETRAY_HOST auto insert(container_t<T> &new_data,
+    template <typename collection_t>
+    DETRAY_HOST auto insert(collection_t &new_data,
                             const context_type & /*ctx*/ = {}) noexcept(false)
         -> void {
 
-        static_assert((std::is_same_v<T, Ts> || ...) == true,
+        static_assert((std::is_same_v<collection_t, Ts> || ...) == true,
                       "The type is not included in the parameter pack.");
 
-        auto &coll = const_cast<container_t<T> &>(
-            detail::get<container_t<T>>(m_tuple_container));
+        auto &coll = const_cast<collection_t &>(
+            detail::get<collection_t>(m_tuple_container));
 
         coll.reserve(coll.size() + new_data.size());
         coll.insert(coll.end(), new_data.begin(), new_data.end());
@@ -243,15 +242,15 @@ class multi_type_store {
     /// @param new_data is the new collection to be added
     ///
     /// @note in general can throw an exception
-    template <typename T>
-    DETRAY_HOST auto insert(container_t<T> &&new_data,
+    template <typename collection_t>
+    DETRAY_HOST auto insert(collection_t &&new_data,
                             const context_type & /*ctx*/ = {}) noexcept(false)
         -> void {
 
-        static_assert((std::is_same_v<T, Ts> || ...) == true,
+        static_assert((std::is_same_v<collection_t, Ts> || ...) == true,
                       "The type is not included in the parameter pack.");
 
-        auto &coll = detail::get<container_t<T>>(m_tuple_container);
+        auto &coll = detail::get<collection_t>(m_tuple_container);
 
         coll.reserve(coll.size() + new_data.size());
         coll.insert(coll.end(), std::make_move_iterator(new_data.begin()),
@@ -266,7 +265,7 @@ class multi_type_store {
     ///
     /// @note in general can throw an exception
     template <std::size_t current_idx = 0>
-    DETRAY_HOST void append(multi_type_store &&other,
+    DETRAY_HOST void append(multi_store &&other,
                             const context_type &ctx = {}) noexcept(false) {
         auto &coll = other.template get<value_types::to_id(current_idx)>();
         insert(coll, ctx);
@@ -310,24 +309,25 @@ class multi_type_store {
             std::forward<Args>(args)...);
     }
 
+    /// @return the view on this tuple container - non-const
+    DETRAY_HOST auto get_data() -> view_type {
+        return m_tuple_container.get_data();
+    }
+
+    /// @return the view on this tuple container - const
+    DETRAY_HOST auto get_data() const -> const_view_type {
+        return m_tuple_container.get_data();
+    }
+
     private:
     /// The underlying tuple container implementation
     tuple_type m_tuple_container;
 };
 
-/// A stand-alone function to get the vecmem view of the tuple container
-///
-/// @note the @c view_type typedef will not be available, if one of the element
-/// types does not define a vecmem view.
-///
-/// @return the view on this tuple container
+/// Helper type for a data store that uses a sinlge collection container
 template <typename ID, typename context_t, template <typename...> class tuple_t,
           template <typename...> class container_t, typename... Ts>
-inline typename multi_type_store<ID, context_t, tuple_t, container_t,
-                                 Ts...>::view_type
-get_data(
-    multi_type_store<ID, context_t, tuple_t, container_t, Ts...> &container) {
-    return get_data(*container.data());
-}
+using regular_multi_store =
+    multi_store<ID, context_t, tuple_t, container_t<Ts>...>;
 
 }  // namespace detray
