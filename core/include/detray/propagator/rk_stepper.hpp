@@ -11,7 +11,6 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/base_stepper.hpp"
-#include "detray/propagator/detail/covariance_engine.hpp"
 #include "detray/propagator/navigation_policies.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/column_wise_operator.hpp"
@@ -38,7 +37,6 @@ class rk_stepper final
     using vector2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
     using matrix_operator = typename base_type::matrix_operator;
-    using covariance_engine = typename base_type::covariance_engine;
     using column_wise_op = column_wise_operator<matrix_operator>;
 
     using free_track_parameters_type =
@@ -51,19 +49,18 @@ class rk_stepper final
 
     struct state : public base_type::state {
 
-        using field_type = magnetic_field_t;
+        static constexpr const stepping::id id = stepping::id::e_rk;
 
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type& t,
               const magnetic_field_t& mag_field)
             : base_type::state(t), _magnetic_field(mag_field) {}
 
-        DETRAY_HOST_DEVICE
-        state(const bound_track_parameters_type& bound_params,
-              const transform3_type& trf3, const field_type& mag_field)
-            : base_type::state(bound_params, trf3),
-              _magnetic_field(mag_field) {}
-
+        template <typename detector_t>
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters_type& bound_params,
+            const magnetic_field_t& mag_field, const detector_t& det)
+            : base_type::state(bound_params, det), _magnetic_field(mag_field) {}
         /// error tolerance
         scalar _tolerance = 1e-4;
 
@@ -110,14 +107,6 @@ class rk_stepper final
      */
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation);
-
-    /** Get the bound state at the surface
-     *
-     * @return returning the bound track parameter
-     */
-    template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bound_track_parameters_type bound_state(
-        propagation_state_t& /*propagation*/, const transform3_type& /*trf*/);
 };
 
 }  // namespace detray

@@ -53,6 +53,7 @@ struct propagator {
     struct state {
 
         using detector_type = typename navigator_t::detector_type;
+        using navigator_state_type = typename navigator_t::state;
 
         /// Construct the propagation state.
         ///
@@ -79,12 +80,21 @@ struct propagator {
 
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state(
-            const bound_track_parameters_type &param,
-            const typename stepper_t::transform3_type &trf3,
-            const detector_type &det,
+            const bound_track_parameters_type &param, const detector_type &det,
             typename actor_chain_t::state actor_states = {},
             vector_type<line_plane_intersection> &&candidates = {})
-            : _stepping(param, trf3),
+            : _stepping(param, det),
+              _navigation(det, std::move(candidates)),
+              _actor_states(actor_states) {}
+
+        /// Construct the propagation state with bound parameter
+        template <typename field_t>
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters_type &param,
+            const field_t &magnetic_field, const detector_type &det,
+            typename actor_chain_t::state actor_states = {},
+            vector_type<line_plane_intersection> &&candidates = {})
+            : _stepping(param, magnetic_field, det),
               _navigation(det, std::move(candidates)),
               _actor_states(actor_states) {}
 

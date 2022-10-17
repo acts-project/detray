@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/array_definitions.hpp"
-#include "tests/common/coordinates.inl"
+#include "tests/common/coordinate_cartesian3.inl"

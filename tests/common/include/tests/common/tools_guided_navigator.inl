@@ -10,8 +10,8 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/definitions/units.hpp"
-#include "detray/propagator/aborters.hpp"
 #include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"

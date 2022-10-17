@@ -16,7 +16,7 @@
 namespace detray {
 
 template <typename transform3_t>
-struct bound_to_bound_updater : actor {
+struct parameter_transporter : actor {
 
     struct state {};
 
@@ -55,11 +55,11 @@ struct bound_to_bound_updater : actor {
 
         using output_type = bool;
 
-        template <typename mask_group_t, typename surface_t,
+        template <typename mask_group_t, typename index_t, typename surface_t,
                   typename propagator_state_t>
         DETRAY_HOST_DEVICE inline output_type operator()(
-            const mask_group_t& mask_group, const surface_t& surface,
-            propagator_state_t& propagation) const {
+            const mask_group_t& mask_group, const index_t& /*index*/,
+            const surface_t& surface, propagator_state_t& propagation) const {
 
             // Stepper and Navigator states
             auto& navigation = propagation._navigation;
@@ -69,15 +69,12 @@ struct bound_to_bound_updater : actor {
             const auto& det = navigation.detector();
             const auto& transform_store = det->transform_store();
 
-            // Intersection
-            const auto& is = navigation.current();
-
             // Transform
             const auto& trf3 = transform_store[surface.transform()];
 
             // Mask
-            const auto& mask = mask_group[is->mask_index];
-            auto local_coordinate = mask.local();
+            const auto& mask = mask_group[surface.mask_range()];
+            auto local_coordinate = mask.local_frame();
 
             // Free vector
             const auto& free_vec = stepping().vector();
@@ -101,7 +98,8 @@ struct bound_to_bound_updater : actor {
             const bound_to_free_matrix& bound_to_free_jacobian =
                 stepping._jac_to_global;
 
-            // Acts version
+            // @note: (Beomki) I really don't understand why the identity matrix
+            // should be added here but it makes result better :/
             const free_matrix correction_term =
                 matrix_operator()
                     .template identity<e_free_size, e_free_size>() +
@@ -110,20 +108,6 @@ struct bound_to_bound_updater : actor {
             const bound_matrix full_jacobian =
                 free_to_bound_jacobian * correction_term *
                 free_transport_jacobian * bound_to_free_jacobian;
-
-            /*
-            const bound_matrix full_jacobian =
-                free_to_bound_jacobian *
-                (path_correction + free_transport_jacobian) *
-                bound_to_free_jacobian;
-            */
-
-            // No path correction
-            /*
-            const bound_matrix full_jacobian = free_to_bound_jacobian *
-                                               free_transport_jacobian *
-                                               bound_to_free_jacobian;
-            */
 
             const bound_matrix new_cov =
                 full_jacobian * stepping._bound_params.covariance() *
@@ -139,24 +123,22 @@ struct bound_to_bound_updater : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state& /*actor_state*/,
                                        propagator_state_t& propagation) const {
-
         auto& navigation = propagation._navigation;
 
         // Do covariance transport when the track is on surface
         if (navigation.is_on_module()) {
 
-            const auto& det = navigation.detector();
-            const auto& surface_container = det->surfaces();
+            auto det = navigation.detector();
             const auto& mask_store = det->mask_store();
 
             // Intersection
             const auto& is = navigation.current();
 
             // Surface
-            const auto& surface = surface_container[is->index];
+            const auto& surface = det->surface_by_index(is->index);
 
-            mask_store.template execute<kernel>(surface.mask_type(), surface,
-                                                propagation);
+            mask_store.template call<kernel>(surface.mask(), surface,
+                                             propagation);
         }
     }
 };

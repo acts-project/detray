@@ -139,8 +139,8 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type charge() const {
-        return -1 ? matrix_operator().element(m_vector, e_free_qoverp, 0) < 0
-                  : 1.;
+        return matrix_operator().element(m_vector, e_free_qoverp, 0) < 0 ? -1.
+                                                                         : 1.;
     }
 
     DETRAY_HOST_DEVICE

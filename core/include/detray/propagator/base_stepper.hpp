@@ -10,11 +10,20 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
-#include "detray/propagator/detail/covariance_engine.hpp"
 #include "detray/tracks/tracks.hpp"
 
 namespace detray {
+
+namespace stepping {
+
+enum class id {
+    e_linear = 0,
+    e_rk = 1,
+};
+
+}  // namespace stepping
 
 /// Base stepper implementation
 template <typename transform3_t, typename constraint_t, typename policy_t>
@@ -25,7 +34,6 @@ class base_stepper {
     using free_track_parameters_type = free_track_parameters<transform3_t>;
     using bound_track_parameters_type = bound_track_parameters<transform3_t>;
     using matrix_operator = typename transform3_t::matrix_actor;
-    using covariance_engine = detail::covariance_engine<transform3_t>;
     using track_helper = detail::track_helper<matrix_operator>;
 
     using size_type = typename transform3_type::size_type;
@@ -58,25 +66,20 @@ class base_stepper {
         state(const free_track_parameters_type &t) : _track(t) {}
 
         /// Sets track parameters from bound track parameter.
-        DETRAY_HOST_DEVICE
-        state(const bound_track_parameters_type & /*bound_params*/,
-              const transform3_type & /*trf3*/) {
+        template <typename detector_t>
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters_type &bound_params,
+            const detector_t &det)
+            : _bound_params(bound_params) {
 
-            // @TODO: Rewrite with kernel
+            const auto &trf_store = det.transform_store();
+            const auto &mask_store = det.mask_store();
+            const auto &surface =
+                det.surface_by_index(bound_params.surface_link());
 
-            /*
-            // Set the free vector
-            _track.set_vector(vector_engine().bound_to_free_vector(
-                trf3, bound_params.vector()));
-
-            // Set the bound covariance
-            _bound_covariance = bound_params.covariance();
-
-            // Reset the jacobians
-            covariance_engine().reinitialize_jacobians(
-                trf3, bound_params.vector(), _jac_to_global, _jac_transport,
-                _derivative);
-            */
+            mask_store.template call<
+                typename parameter_resetter<transform3_t>::kernel>(
+                surface.mask(), trf_store, surface, *this);
         }
 
         /// free track parameter
@@ -86,17 +89,12 @@ class base_stepper {
         free_matrix _jac_transport =
             matrix_operator().template identity<e_free_size, e_free_size>();
 
-        /// The free parameter derivative defined at destination surface
-        free_vector _derivative =
-            matrix_operator().template zero<e_free_size, 1>();
-
         /// bound-to-free jacobian from departure surface
         bound_to_free_matrix _jac_to_global =
             matrix_operator().template zero<e_free_size, e_bound_size>();
 
         /// bound covariance
-        bound_matrix _bound_covariance =
-            matrix_operator().template zero<e_bound_size, e_bound_size>();
+        bound_track_parameters_type _bound_params;
 
         /// @returns track parameters - const access
         DETRAY_HOST_DEVICE
@@ -116,6 +114,10 @@ class base_stepper {
 
         /// Track path length
         scalar _path_length{0.};
+
+        /// Track path length from the last surface. It will be reset to 0 when
+        /// the track reaches a new surface
+        scalar _s{0.};
 
         /// Current step size
         scalar _step_size{0.};

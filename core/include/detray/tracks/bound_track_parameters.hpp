@@ -91,6 +91,9 @@ struct bound_track_parameters {
     const std::size_t& surface_link() const { return m_surface_link; }
 
     DETRAY_HOST_DEVICE
+    void set_surface_link(std::size_t link) { m_surface_link = link; }
+
+    DETRAY_HOST_DEVICE
     const vector_type& vector() const { return m_vector; }
 
     DETRAY_HOST_DEVICE

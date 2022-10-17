@@ -106,6 +106,8 @@ class helix : public free_track_parameters<transform3_t> {
     // Column wise operator
     using column_wise_op = column_wise_operator<matrix_operator>;
 
+    using free_track_parameters_type::pos;
+
     DETRAY_HOST_DEVICE
     helix() = delete;
 
@@ -222,13 +224,18 @@ class helix : public free_track_parameters<transform3_t> {
             matrix_operator().template identity<3, 3>();
         const matrix_type<3, 3> Z33 = matrix_operator().template zero<3, 3>();
 
+        // Notations
+        // r = position
+        // t = direction
+        // l = qoverp
+
         // Get drdr
         auto drdr = I33;
-        matrix_operator().set_block(ret, drdr, 0, 0);
+        matrix_operator().set_block(ret, drdr, e_free_pos0, e_free_pos0);
 
         // Get dtdr
         auto dtdr = Z33;
-        matrix_operator().set_block(ret, dtdr, 4, 0);
+        matrix_operator().set_block(ret, dtdr, e_free_dir0, e_free_pos0);
 
         // Get drdt
         auto drdt = Z33;
@@ -243,7 +250,7 @@ class helix : public free_track_parameters<transform3_t> {
         drdt = drdt +
                (std::cos(_K * s) - 1) / _K * column_wise_op().cross(I33, _h0);
 
-        matrix_operator().set_block(ret, drdt, 0, 4);
+        matrix_operator().set_block(ret, drdt, e_free_pos0, e_free_dir0);
 
         // Get dtdt
         auto dtdt = Z33;
@@ -253,29 +260,28 @@ class helix : public free_track_parameters<transform3_t> {
                               matrix_operator().transpose(H0), _h0);
         dtdt = dtdt - std::sin(_K * s) * column_wise_op().cross(I33, _h0);
 
-        matrix_operator().set_block(ret, dtdt, 4, 4);
+        matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
         // Get drdl
         vector3 drdl = 1 / free_track_parameters_type::qop() *
                        (s * this->dir(s) + free_track_parameters_type::pos() -
                         this->pos(s));
 
-        matrix_operator().set_block(ret, drdl, 0, 7);
+        matrix_operator().set_block(ret, drdl, e_free_pos0, e_free_qoverp);
 
         // Get dtdl
         vector3 dtdl =
             _alpha * _K * s / free_track_parameters_type::qop() * _n0;
 
-        matrix_operator().set_block(ret, dtdl, 4, 7);
+        matrix_operator().set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
 
         // 3x3 and 7x7 element is 1 (Maybe?)
-        matrix_operator().element(ret, 3, 3) = 1;
-        matrix_operator().element(ret, 7, 7) = 1;
+        matrix_operator().element(ret, e_free_time, e_free_time) = 1;
+        matrix_operator().element(ret, e_free_qoverp, e_free_qoverp) = 1;
 
         return ret;
     }
 
-    private:
     /// B field
     vector3 const *_mag_field;
 

@@ -151,7 +151,6 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
             // ASSERT_NEAR((host_pl - device_pl) / host_pl, 0, is_close);
 
             ASSERT_EQ(host_positions[i].size(), device_positions[i].size());
-
             ASSERT_NEAR(host_pl, device_pl, host_pl * is_close);
 
             auto& host_pos = host_positions[i][j];

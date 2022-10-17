@@ -42,8 +42,6 @@ foreach(algebra ${algebras})
       "detector_cuda_kernel.cu"
       "navigator_cuda.cpp" "navigator_cuda_kernel.hpp"
       "navigator_cuda_kernel.cu"
-      "rk_stepper_cuda.cpp" "rk_stepper_cuda_kernel.hpp"
-      "rk_stepper_cuda_kernel.cu"
       "sf_finders_grid_cuda.cpp" "sf_finders_grid_cuda_kernel.hpp"
       "sf_finders_grid_cuda_kernel.cu"
       "propagator_cuda.cpp" "propagator_cuda_kernel.hpp"

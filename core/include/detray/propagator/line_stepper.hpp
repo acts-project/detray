@@ -30,10 +30,26 @@ class line_stepper final
     using policy_type = policy_t;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
+    using bound_track_parameters_type =
+        typename base_type::bound_track_parameters_type;
+    using transform3_type = transform3_t;
+    using matrix_operator = typename base_type::matrix_operator;
+    using size_type = typename matrix_operator::size_ty;
+    template <size_type ROWS, size_type COLS>
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
 
     struct state : public base_type::state {
+        static constexpr const stepping::id id = stepping::id::e_linear;
+
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type &t) : base_type::state(t) {}
+
+        template <typename detector_t>
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters_type &bound_params,
+            const detector_t &det)
+            : base_type::state(bound_params, det) {}
 
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE
@@ -42,6 +58,25 @@ class line_stepper final
             track.set_pos(track.pos() + track.dir() * this->_step_size);
 
             this->_path_length += this->_step_size;
+        }
+
+        DETRAY_HOST_DEVICE
+        inline void advance_jacobian() {
+
+            // The step transport matrix in global coordinates
+            matrix_type<e_free_size, e_free_size> D =
+                matrix_operator().template identity<e_free_size, e_free_size>();
+
+            // d(x,y,z)/d(n_x,n_y,n_z)
+            matrix_type<3, 3> dxdn =
+                this->_step_size * matrix_operator().template identity<3, 3>();
+            matrix_operator().template set_block<3, 3>(D, dxdn, e_free_pos0,
+                                                       e_free_dir0);
+
+            /// NOTE: Let's skip the element for d(time)/d(qoverp) for the
+            /// moment..
+
+            this->_jac_transport = D * this->_jac_transport;
         }
     };
 
@@ -76,6 +111,9 @@ class line_stepper final
 
         // Update track state
         stepping.advance_track();
+
+        // Advance jacobian transport
+        stepping.advance_jacobian();
 
         // Call navigation update policy
         policy_t{}(stepping.policy_state(), propagation);
