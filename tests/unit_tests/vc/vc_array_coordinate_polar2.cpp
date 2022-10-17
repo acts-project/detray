@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
-#include "tests/common/coordinates.inl"
+#include "tests/common/coordinate_polar2.inl"

@@ -24,16 +24,31 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
     /// @name Type definitions for the struct
     /// @{
 
-    /// Base type
+    // Base type
     using base_type = coordinate_base<cylindrical2, transform3_t>;
-    /// Sclar type
+    // Sclar type
     using scalar_type = typename transform3_t::scalar_type;
-    /// Point in 2D space
+    // Point in 2D space
     using point2 = typename transform3_t::point2;
-    /// Point in 3D space
+    // Point in 3D space
     using point3 = typename transform3_t::point3;
-    /// Vector in 3D space
+    // Vector in 3D space
     using vector3 = typename transform3_t::vector3;
+    // Matrix actor
+    using matrix_operator = typename base_type::matrix_operator;
+    // Matrix size type
+    using size_type = typename base_type::size_type;
+    // 2D matrix type
+    template <size_type ROWS, size_type COLS>
+    using matrix_type = typename base_type::template matrix_type<ROWS, COLS>;
+    // Rotation Matrix
+    using rotation_matrix = typename base_type::rotation_matrix;
+    // Vector types
+    using bound_vector = typename base_type::bound_vector;
+    using free_vector = typename base_type::free_vector;
+    // Matrix types
+    using free_to_bound_matrix = typename base_type::free_to_bound_matrix;
+    using bound_to_free_matrix = typename base_type::bound_to_free_matrix;
 
     /// @}
 
@@ -69,6 +84,90 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         return trf.point_to_global(point3{x, y, z});
     }
 
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
+                                             const mask_t &mask,
+                                             const point3 &pos,
+                                             const vector3 &dir) const {
+        const point2 local2 = this->global_to_local(trf3, pos, dir);
+        const scalar_type r = mask[0];
+        const scalar_type phi = local2[0] / r;
+
+        // normal vector in local coordinate
+        const vector3 local_normal{std::cos(phi), std::sin(phi), 0};
+
+        // normal vector in global coordinate
+        return trf3.rotation() * local_normal;
+    }
+
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline rotation_matrix reference_frame(
+        const transform3_t &trf3, const mask_t &mask, const point3 &pos,
+        const vector3 &dir) const {
+
+        rotation_matrix rot = matrix_operator().template zero<3, 3>();
+
+        // y axis of the new frame is the z axis of cylindrical coordinate
+        const auto new_yaxis =
+            matrix_operator().template block<3, 1>(trf3.matrix(), 0, 2);
+
+        // z axis of the new frame is the vector normal to the cylinder surface
+        const vector3 new_zaxis = normal(trf3, mask, pos, dir);
+
+        // x axis
+        const vector3 new_xaxis = vector::cross(new_yaxis, new_zaxis);
+
+        matrix_operator().element(rot, 0, 0) = new_xaxis[0];
+        matrix_operator().element(rot, 1, 0) = new_xaxis[1];
+        matrix_operator().element(rot, 2, 0) = new_xaxis[2];
+        matrix_operator().template set_block<3, 1>(rot, new_yaxis, 0, 1);
+        matrix_operator().element(rot, 0, 2) = new_zaxis[0];
+        matrix_operator().element(rot, 1, 2) = new_zaxis[1];
+        matrix_operator().element(rot, 2, 2) = new_zaxis[2];
+
+        return rot;
+    }
+
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline void set_bound_pos_to_free_pos_derivative(
+        bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
+        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
+
+        const auto frame = reference_frame(trf3, mask, pos, dir);
+
+        // Get d(x,y,z)/d(loc0, loc1)
+        const auto bound_pos_to_free_pos_derivative =
+            matrix_operator().template block<3, 2>(frame, 0, 0);
+
+        matrix_operator().template set_block(bound_to_free_jacobian,
+                                             bound_pos_to_free_pos_derivative,
+                                             e_free_pos0, e_bound_loc0);
+    }
+
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline void set_free_pos_to_bound_pos_derivative(
+        free_to_bound_matrix &free_to_bound_jacobian, const transform3_t &trf3,
+        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
+
+        const auto frame = reference_frame(trf3, mask, pos, dir);
+        const auto frameT = matrix_operator().transpose(frame);
+
+        // Get d(loc0, loc1)/d(x,y,z)
+        const auto free_pos_to_bound_pos_derivative =
+            matrix_operator().template block<2, 3>(frameT, 0, 0);
+
+        matrix_operator().template set_block(free_to_bound_jacobian,
+                                             free_pos_to_bound_pos_derivative,
+                                             e_bound_loc0, e_free_pos0);
+    }
+
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline void set_bound_angle_to_free_pos_derivative(
+        bound_to_free_matrix & /*bound_to_free_jacobian*/,
+        const transform3_t & /*trf3*/, const mask_t & /*mask*/,
+        const point3 & /*pos*/, const vector3 & /*dir*/) const {
+        // Do nothing
+    }
 };  // struct cylindrical2
 
 }  // namespace detray

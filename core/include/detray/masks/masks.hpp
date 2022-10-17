@@ -144,6 +144,11 @@ class mask {
                    : intersection::status::e_outside;
     }
 
+    /// @returns return local frame object
+    DETRAY_HOST_DEVICE inline constexpr local_frame_type local_frame() const {
+        return local_frame_type{};
+    }
+
     /// @returns the boundary values
     DETRAY_HOST_DEVICE
     auto values() const -> const mask_values& { return _values; }

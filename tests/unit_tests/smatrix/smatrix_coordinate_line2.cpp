@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/smatrix_definitions.hpp"
-#include "tests/common/covariance_engine.inl"
+#include "tests/common/coordinate_line2.inl"
