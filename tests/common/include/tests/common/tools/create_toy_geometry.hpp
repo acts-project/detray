@@ -331,7 +331,7 @@ inline void add_z_phi_grid(const typename detector_t::geometry_context &ctx,
                            detector_t &det, vecmem::memory_resource &resource,
                            const config_t &cfg) {
     // Get correct grid type
-    constexpr auto grid_id = detector_t::sf_finders::id::e_z_phi_grid;
+    constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder_grid;
     using surface_grid_t =
         typename detector_t::sf_finders::template get_type<grid_id>::type;
 
@@ -366,7 +366,7 @@ inline void add_r_phi_grid(const typename detector_t::geometry_context &ctx,
                            detector_t &det, vecmem::memory_resource &resource,
                            const config_t &cfg) {
     // Get correct grid type
-    constexpr auto grid_id = detector_t::sf_finders::id::e_r_phi_grid;
+    constexpr auto grid_id = detector_t::sf_finders::id::e_disc_grid;
     using surface_grid_t =
         typename detector_t::sf_finders::template get_type<grid_id>::type;
 
