@@ -47,7 +47,6 @@ detray_add_test( eigen
    "eigen_ring2D.cpp"
    "eigen_single3D.cpp"
    "eigen_stepper.cpp"
-   "eigen_surfaces_finder.cpp"
    "eigen_telescope_detector.cpp"
    "eigen_toy_geometry.cpp"
    "eigen_track.cpp"

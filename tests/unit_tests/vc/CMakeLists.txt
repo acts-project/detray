@@ -47,7 +47,6 @@ detray_add_test( vc_array
    "vc_array_ring2D.cpp"
    "vc_array_single3D.cpp"
    "vc_array_stepper.cpp"
-   "vc_array_surfaces_finder.cpp"
    "vc_array_telescope_detector.cpp"
    "vc_array_toy_geometry.cpp"
    "vc_array_track.cpp"

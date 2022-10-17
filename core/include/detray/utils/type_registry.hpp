@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/tuple_array_container.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -17,30 +16,14 @@
 #include <type_traits>
 #include <utility>
 
-namespace detray::detail {
+namespace detray {
 
-/// Base class for a type registry that allows to map indices to types and vice
-/// versa.
+/// @brief match types with indices and vice versa.
 ///
 /// @tparam IDs enum that references the types (not used in base class)
 /// @tparam registered_types the types that can be mapped to indices
-// TODO: Merge with tuple_container
-template <class ID, bool /*put checks on IDs type*/,
-          typename... registered_types>
-class registry_base;
-
 template <class ID, typename... registered_types>
-class registry_base<ID, false, registered_types...> {
-    // Produce meaningful errors
-    static_assert(
-        std::is_enum_v<ID>,
-        "First template parameter of a type registry must be the type enum!");
-    static_assert(std::is_convertible_v<ID, std::size_t>,
-                  "Type enum must be convertible to std::size_t!");
-};
-
-template <class ID, typename... registered_types>
-class registry_base<ID, true, registered_types...> {
+class type_registry {
     public:
     // Make the type IDs accessible
     using id = ID;
@@ -159,44 +142,4 @@ class registry_base<ID, true, registered_types...> {
     }
 };
 
-/// Registry class for surface finders (e.g. grids)
-// TODO: Merge with mask registry
-template <class ID, typename...>
-class tuple_array_registry;
-
-/// Specialization to resolve template parameter packs
-template <class ID, std::size_t... sizes, typename... registered_types>
-class tuple_array_registry<ID, std::index_sequence<sizes...>,
-                           registered_types...>
-    : public registry_base<ID, std::is_enum_v<ID>, registered_types...> {
-    public:
-    using type_registry =
-        registry_base<ID, std::is_enum_v<ID>, registered_types...>;
-
-    enum : std::size_t {
-        n_types = type_registry::n_types,
-        e_any = type_registry::e_any,
-        e_unknown = type_registry::e_unknown,
-    };
-
-    // Make the type IDs accessible
-    using id = ID;
-
-    // Cuda cannot handle ID non-types here, so leave it for now
-    template <template <typename...> class tuple_t = dtuple,
-              template <typename, std::size_t> class array_t = darray>
-    using store_type = tuple_array_container<tuple_t, array_t, ID,
-                                             std::index_sequence<sizes...>,
-                                             registered_types...>;
-    using link_type = dtyped_index<ID, dindex>;
-    using range_type = dtyped_index<ID, dindex_range>;
-
-    template <typename T>
-    using get_index = typename type_registry::template get_index<T>;
-
-    template <ID type_id, template <typename...> class tuple_t = dtuple>
-    using get_type =
-        typename type_registry::template get_type<type_id, tuple_t>;
-};
-
-}  // namespace detray::detail
+}  // namespace detray

@@ -8,13 +8,13 @@
 #pragma once
 
 // Project include(s).
-#include "detray/core/detail/type_registry.hpp"
 #include "detray/definitions/detail/accessor.hpp"  // detail::first_t
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_helpers.hpp"
 #include "detray/surface_finders/grid/detail/axis_shape.hpp"
+#include "detray/utils/type_registry.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/memory_resource.hpp>
@@ -181,8 +181,7 @@ class multi_axis {
         detail::multi_axis_view<container_types, scalar_type>>;
 
     /// Match an axis to its label at compile time
-    using axis_reg =
-        detray::detail::registry_base<n_axis::label, true, axis_ts...>;
+    using axis_reg = type_registry<n_axis::label, axis_ts...>;
     template <n_axis::label L>
     using label_matcher = typename axis_reg::template get_type<L, tuple_type>;
 
