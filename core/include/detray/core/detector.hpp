@@ -77,7 +77,7 @@ class detector {
         typename metadata::template transform_store<vector_type>;
     using transform3 = typename transform_container::value_type;
     using transform_link = typename transform_container::link_type;
-    using context = typename transform_container::context_type;
+    using geometry_context = typename transform_container::context_type;
 
     /// Forward mask types that are present in this detector
     using mask_container =
@@ -268,13 +268,13 @@ class detector {
     ///
     /// @return detector transform store
     DETRAY_HOST_DEVICE
-    inline auto transform_store(const context & /*ctx*/ = {}) const
+    inline auto transform_store(const geometry_context & /*ctx*/ = {}) const
         -> const transform_container & {
         return _transforms;
     }
 
     DETRAY_HOST_DEVICE
-    inline auto transform_store(const context & /*ctx*/ = {})
+    inline auto transform_store(const geometry_context & /*ctx*/ = {})
         -> transform_container & {
         return _transforms;
     }
@@ -293,7 +293,7 @@ class detector {
     ///
     /// @return a struct that contains references to all relevant containers.
     DETRAY_HOST_DEVICE
-    auto data(const context & /*ctx*/ = {}) const {
+    auto data(const geometry_context & /*ctx*/ = {}) const {
         struct data_core {
             const dvector<volume_type> &volumes;
             const transform_container &transforms;
@@ -366,9 +366,9 @@ class detector {
     }*/
 
     /// Add a new full set of detector components (e.g. transforms or volumes)
-    /// according to given context.
+    /// according to given geometry_context.
     ///
-    /// @param ctx is the context of the call
+    /// @param ctx is the geometry_context of the call
     /// @param vol is the target volume
     /// @param surfaces_per_vol is the surface vector per volume
     /// @param masks_per_vol is the mask container per volume
@@ -379,7 +379,7 @@ class detector {
     // TODO: Provide volume builder structure separate from the detector
     DETRAY_HOST
     auto add_objects_per_volume(
-        const context ctx, volume_type &vol,
+        const geometry_context ctx, volume_type &vol,
         surface_container &surfaces_per_vol, mask_container &masks_per_vol,
         material_container &materials_per_vol,
         transform_container &trfs_per_vol) noexcept(false) -> void {

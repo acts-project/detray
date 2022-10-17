@@ -214,7 +214,7 @@ auto create_telescope_detector(
     // create empty detector
     detector_t det(resource, std::move(bfield));
 
-    typename detector_t::context ctx{};
+    typename detector_t::geometry_context ctx{};
     plane_config pl_config{half_x, half_y, pos, mat, thickness};
 
     // volume boundaries are not needed. Same goes for portals
