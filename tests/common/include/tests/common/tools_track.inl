@@ -49,7 +49,8 @@ TEST(tools, bound_track_parameters) {
 
     // first track
     dindex sf_idx1 = 0;
-    typename bound_track_parameters<transform3>::vector_type bound_vec1;
+    typename bound_track_parameters<transform3>::vector_type bound_vec1 =
+        matrix_operator().template zero<e_bound_size, 1>();
     getter::element(bound_vec1, e_bound_loc0, 0) = 1.;
     getter::element(bound_vec1, e_bound_loc1, 0) = 2.;
     getter::element(bound_vec1, e_bound_phi, 0) = 0.1;
@@ -65,7 +66,8 @@ TEST(tools, bound_track_parameters) {
 
     // second track
     dindex sf_idx2 = 1;
-    typename bound_track_parameters<transform3>::vector_type bound_vec2;
+    typename bound_track_parameters<transform3>::vector_type bound_vec2 =
+        matrix_operator().template zero<e_bound_size, 1>();
     getter::element(bound_vec2, e_bound_loc0, 0) = 4.;
     getter::element(bound_vec2, e_bound_loc1, 0) = 20.;
     getter::element(bound_vec2, e_bound_phi, 0) = 0.8;
@@ -124,7 +126,8 @@ TEST(tools, free_track_parameters) {
     vector3 mom = {10., 20., 30.};
     scalar charge = -1.;
 
-    typename free_track_parameters<transform3>::vector_type free_vec;
+    typename free_track_parameters<transform3>::vector_type free_vec =
+        matrix_operator().template zero<e_free_size, 1>();
     getter::element(free_vec, e_free_pos0, 0) = pos[0];
     getter::element(free_vec, e_free_pos1, 0) = pos[1];
     getter::element(free_vec, e_free_pos2, 0) = pos[2];
@@ -134,7 +137,8 @@ TEST(tools, free_track_parameters) {
     getter::element(free_vec, e_free_dir2, 0) = mom[2] / getter::norm(mom);
     getter::element(free_vec, e_free_qoverp, 0) = charge / getter::norm(mom);
 
-    typename free_track_parameters<transform3>::covariance_type free_cov;
+    typename free_track_parameters<transform3>::covariance_type free_cov =
+        matrix_operator().template zero<e_free_size, e_free_size>();
 
     // first constructor
     free_track_parameters<transform3> free_param1(free_vec, free_cov);
@@ -172,8 +176,5 @@ TEST(tools, free_track_parameters) {
     EXPECT_FLOAT_EQ(free_param2.pT(),
                     std::sqrt(std::pow(mom[0], 2) + std::pow(mom[1], 2)));
 
-    free_track_parameters<transform3> free_param3(pos, time, mom, charge);
-
-    EXPECT_TRUE(!(free_param2 == free_param1));
-    EXPECT_TRUE(free_param2 == free_param3);
+    EXPECT_TRUE(free_param2 == free_param1);
 }
