@@ -190,35 +190,14 @@ struct full_metadata {
         n_r_phi_grids = kEdcGrids
     };
 
-    /// Surface finder types
-    template <template <typename, std::size_t> class array_t = darray,
-              template <typename...> class vector_t = dvector,
-              template <typename...> class tuple_t = dtuple,
-              template <typename...> class jagged_vector_t = djagged_vector>
+    /// Volume grid
+    template <typename container_t = host_container_types>
     using volume_finder =
-        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
-              vector_t, jagged_vector_t, array_t, tuple_t, dindex>;
-
-    template <template <typename, std::size_t> class array_t = darray,
-              template <typename...> class vector_t = dvector,
-              template <typename...> class tuple_t = dtuple,
-              template <typename...> class jagged_vector_t = djagged_vector>
-    using surface_finder =
-        surfaces_finder<n_z_phi_grids + n_r_phi_grids, array_t, tuple_t,
-                        vector_t, jagged_vector_t>;
-
-    template <template <typename, std::size_t> class array_t = darray,
-              template <typename...> class vector_t = dvector,
-              template <typename...> class tuple_t = dtuple,
-              template <typename...> class jagged_vector_t = djagged_vector>
-    using sf_finder_definitions = detail::tuple_array_registry<
-        sf_finder_ids,
-        std::index_sequence<n_other, n_z_phi_grids, n_r_phi_grids>,
-        brute_force_finder,
-        regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
-        regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>>;
-
-    dynamic_data _data;
+        grid<coordinate_axes<
+                 cylinder3D::axes<n_axis::shape::e_open, n_axis::irregular,
+                                  n_axis::regular, n_axis::irregular>,
+                 true, container_t>,
+             dindex, simple_serializer, replacer>;
 };
 
 /// Defines the data types needed for the toy detector
@@ -300,35 +279,14 @@ struct toy_metadata {
                     grid_collection<disc_sf_grid<container_t>>,
                     grid_collection<cylinder_sf_grid<container_t>>>;
 
-    ///  Surface finder types
-    template <template <typename, std::size_t> class array_t = darray,
-              template <typename...> class vector_t = dvector,
-              template <typename...> class tuple_t = dtuple,
-              template <typename...> class jagged_vector_t = djagged_vector>
+    /// Volume grid
+    template <typename container_t = host_container_types>
     using volume_finder =
-        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
-              vector_t, jagged_vector_t, array_t, tuple_t, dindex>;
-
-    template <template <typename, std::size_t> class array_t = darray,
-              template <typename...> class vector_t = dvector,
-              template <typename...> class tuple_t = dtuple,
-              template <typename...> class jagged_vector_t = djagged_vector>
-    using surface_finder =
-        surfaces_finder<n_barrel_grids + n_endcap_grids, array_t, tuple_t,
-                        vector_t, jagged_vector_t>;
-
-    template <template <typename, std::size_t> class array_t = darray,
-              template <typename...> class vector_t = dvector,
-              template <typename...> class tuple_t = dtuple,
-              template <typename...> class jagged_vector_t = djagged_vector>
-    using sf_finder_definitions = detail::tuple_array_registry<
-        sf_finder_ids,
-        std::index_sequence<n_other, n_barrel_grids, n_endcap_grids>,
-        brute_force_finder,
-        regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>,
-        regular_circular_grid<vector_t, jagged_vector_t, array_t, tuple_t>>;
-
-    volume_stats _data;
+        grid<coordinate_axes<
+                 cylinder3D::axes<n_axis::shape::e_open, n_axis::irregular,
+                                  n_axis::regular, n_axis::irregular>,
+                 true, container_t>,
+             dindex, simple_serializer, replacer>;
 };
 
 /// Defines a detector with only rectangle/unbounded surfaces
@@ -400,28 +358,14 @@ struct telescope_metadata {
     using surface_finder_store =
         multi_store<sf_finder_ids, empty_context, tuple_t, brute_force_finder>;
 
-    ///  Surface finder types (are not used in telescope detector)
-    template <template <typename, std::size_t> class array_t = darray,
-              template <typename...> class vector_t = dvector,
-              template <typename...> class tuple_t = dtuple,
-              template <typename...> class jagged_vector_t = djagged_vector>
+    /// Volume grid
+    template <typename container_t = host_container_types>
     using volume_finder =
-        grid2<replace_populator, axis::irregular, axis::irregular, serializer2,
-              vector_t, jagged_vector_t, array_t, tuple_t, dindex>;
-
-    template <template <typename, std::size_t> class array_t = darray,
-              template <typename...> class vector_t = dvector,
-              template <typename...> class tuple_t = dtuple,
-              template <typename...> class jagged_vector_t = djagged_vector>
-    using surface_finder =
-        surfaces_finder<n_other, array_t, tuple_t, vector_t, jagged_vector_t>;
-
-    template <template <typename, std::size_t> class array_t = darray,
-              template <typename...> class vector_t = dvector,
-              template <typename...> class tuple_t = dtuple,
-              template <typename...> class jagged_vector_t = djagged_vector>
-    using sf_finder_definitions = detail::tuple_array_registry<
-        sf_finder_ids, std::index_sequence<n_other>, brute_force_finder>;
+        grid<coordinate_axes<
+                 cylinder3D::axes<n_axis::shape::e_open, n_axis::irregular,
+                                  n_axis::regular, n_axis::irregular>,
+                 true, container_t>,
+             dindex, simple_serializer, replacer>;
 };
 
 struct detector_registry {
