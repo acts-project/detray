@@ -54,6 +54,35 @@ struct bound_track_parameters {
                            const covariance_type& cov)
         : m_surface_link(sf_idx), m_vector(vec), m_covariance(cov) {}
 
+    /** @param rhs is the left hand side params for comparison
+     **/
+    DETRAY_HOST_DEVICE
+    bool operator==(const bound_track_parameters& rhs) const {
+        for (std::size_t i = 0; i < e_bound_size; i++) {
+            const auto lhs_val = matrix_operator().element(m_vector, i, 0);
+            const auto rhs_val = matrix_operator().element(rhs.vector(), i, 0);
+
+            if (std::abs(lhs_val - rhs_val) >
+                std::numeric_limits<scalar_type>::epsilon()) {
+                return false;
+            }
+        }
+        for (std::size_t i = 0; i < e_bound_size; i++) {
+            for (std::size_t j = 0; j < e_bound_size; j++) {
+                const auto lhs_val =
+                    matrix_operator().element(m_covariance, i, j);
+                const auto rhs_val =
+                    matrix_operator().element(rhs.covariance(), i, j);
+
+                if (std::abs(lhs_val - rhs_val) >
+                    std::numeric_limits<scalar_type>::epsilon()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     DETRAY_HOST_DEVICE
     const std::size_t& surface_link() const { return m_surface_link; }
 

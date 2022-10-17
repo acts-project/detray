@@ -68,6 +68,35 @@ struct free_track_parameters {
         matrix_operator().element(m_vector, e_free_qoverp, 0) = q / p;
     }
 
+    /** @param rhs is the left hand side params for comparison
+     **/
+    DETRAY_HOST_DEVICE
+    bool operator==(const free_track_parameters& rhs) const {
+        for (std::size_t i = 0; i < e_free_size; i++) {
+            const auto lhs_val = matrix_operator().element(m_vector, i, 0);
+            const auto rhs_val = matrix_operator().element(rhs.vector(), i, 0);
+
+            if (std::abs(lhs_val - rhs_val) >
+                std::numeric_limits<scalar_type>::epsilon()) {
+                return false;
+            }
+        }
+        for (std::size_t i = 0; i < e_free_size; i++) {
+            for (std::size_t j = 0; j < e_free_size; j++) {
+                const auto lhs_val =
+                    matrix_operator().element(m_covariance, i, j);
+                const auto rhs_val =
+                    matrix_operator().element(rhs.covariance(), i, j);
+
+                if (std::abs(lhs_val - rhs_val) >
+                    std::numeric_limits<scalar_type>::epsilon()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     DETRAY_HOST_DEVICE
     const vector_type& vector() const { return m_vector; }
 
@@ -134,8 +163,9 @@ struct free_track_parameters {
     }
 
     private:
-    vector_type m_vector;
-    covariance_type m_covariance;
+    vector_type m_vector = matrix_operator().template zero<e_free_size, 1>();
+    covariance_type m_covariance =
+        matrix_operator().template zero<e_free_size, e_free_size>();
     scalar_type m_overstep_tolerance = -1e-4;
 };
 
