@@ -8,10 +8,15 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/containers.hpp"
+#include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
-#include "detray/surface_finders/grid/populator.hpp"
-#include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/surface_finders/grid/grid.hpp"
+#include "detray/surface_finders/grid/grid_collection.hpp"
+
+// System include(s)
+#include <iostream>
+#include <string>
 
 namespace detray {
 
@@ -55,77 +60,151 @@ using coordinate_axes = typename detail::multi_axis_assembler<
 /// @tparam populator_t  is a prescription what to do when a bin gets
 /// pupulated, it broadcasts also the value type
 /// @tparam serialzier_t  type of the serializer to the storage represenations
-/*template<typename value_t, typename serializer_t,
-         typename populator_t, typename containers, typename algebra>
-class grid_builder {
+template <typename value_t, template <std::size_t> class serializer_t,
+          typename populator_impl_t, typename container_t, typename algebra_t>
+class grid_factory {
 
     public:
-
+    // All grids are owning since they are used to fill the data
     static constexpr bool is_owning = true;
+
     using value_type = value_t;
-    using populator_type = populator_t<value_type>;
-    using serializer_type = serializer_t;
+    using populator_type = populator<populator_impl_t>;
+    template <std::size_t DIM>
+    using serializer_type = serializer_t<DIM>;
 
-    grid(vecmem::memory_resource &resource) : m_resource(resource) {}
+    template <typename grid_shape_t>
+    using grid_type =
+        grid<grid_shape_t, value_type, serializer_type, populator_type>;
 
-    /// Single grid
-    template <typename mask_t>
-    DETRAY_HOST void grid(bin_data_view_t &&bin_data, ) {
-        using axes_t = coordinate_system<true, containers, algebra, mask_t,
-binning_ts...>;
+    using scalar_type = typename algebra_t::scalar_type;
+    template <typename T>
+    using vector_type = typename container_t::template vector_type<T>;
 
-        axes_t axes = construct_axes<true, mask_t>();
-        using grid_t = grid<value_type, serializer_type, axes_t, true,
-containers, algebra>;
+    grid_factory(vecmem::memory_resource &resource) : m_resource(&resource) {}
 
-        grid_t grid(m_resource);
+    /// Get new grid collection
+    /*template<typename grid_t>
+    auto new_collection() -> grid_collection<grid_t> {
 
-        for(auto&& bin : bin_data) {
-            grid.populate(bin.pos(), bin.value());
+    }
+
+    /// Get new grid collection
+    template<typename grid_t>
+    auto to_string(const grid_t & gr) -> std::string {
+
+    }*/
+
+    /// @brief Build empty grids from boundary values.
+    struct grid_builder {
+
+        template <
+            n_axis::shape e_shape = n_axis::shape::e_open,
+            template <typename, typename> class binning_r = n_axis::regular,
+            template <typename, typename> class binning_phi = n_axis::regular>
+        auto new_annulus_grid(
+            const scalar min_r, const scalar max_r, const scalar min_phi,
+            const scalar max_phi, const std::size_t n_bins_r,
+            const std::size_t n_bins_phi,
+            const vector_type<scalar_type> &bin_edges_r = {},
+            const vector_type<scalar_type> &bin_edges_phi = {}) {
+            // Prepare data
+            vector_type<dindex_range> axes_data(m_resource);
+            vector_type<scalar_type> bin_edges(m_resource);
+
+            // Setup empty grid data
+
+            // local 0 axis (r)
+            if constexpr (std::is_same_v<
+                              binning_r<host_container_types, scalar>,
+                              n_axis::regular<>>) {
+                axes_data.push_back({0, n_bins_r});
+                bin_edges.push_back(min_r);
+                bin_edges.push_back(max_r);
+            } else {
+                axes_data.push_back({0, bin_edges_r.size()});
+                bin_edges.insert(bin_edges.begin(), bin_edges_r.begin(),
+                                 bin_edges_r.end());
+            }
+            // local 1 axis (phi)
+            if constexpr (std::is_same_v<
+                              binning_phi<host_container_types, scalar>,
+                              n_axis::regular<>>) {
+                axes_data.push_back({bin_edges.size(), n_bins_phi});
+                bin_edges.push_back(min_phi);
+                bin_edges.push_back(max_phi);
+            } else {
+                axes_data.push_back({bin_edges.size(), bin_edges_r.size()});
+                bin_edges.insert(bin_edges.begin(), bin_edges_phi.begin(),
+                                 bin_edges_phi.end());
+            }
+
+            // Build the coordinate axes and the grid
+            using axes_t = coordinate_axes<
+                annulus2D<>::axes<e_shape, binning_r, binning_phi>, is_owning,
+                container_t, algebra_t>;
+
+            axes_t axes(std::move(axes_data), std::move(bin_edges));
+
+            vector_type<typename grid_type<axes_t>::bin_type> bin_data(
+                m_resource);
+            bin_data.reserve(axes.nbins());
+            return grid_type<axes_t>(std::move(bin_data), std::move(axes));
         }
-    }
 
-    /// Fill/populate from volume
-    template <typename detector_t, typename volume_t>
-    DETRAY_HOST void grid(const volume_t &vol, const detector_t &det) {
-        for (const auto [sf, sf_idx]: enumerate(vol, det.surfaces())) {
-            ...
+        template <
+            n_axis::shape e_shape = n_axis::shape::e_open,
+            template <typename, typename> class binning_r = n_axis::regular,
+            template <typename, typename> class binning_phi = n_axis::regular>
+        auto new_grid(const mask<annulus2D<>> &grid_bounds,
+                      const std::size_t n_bins_r, const std::size_t n_bins_phi,
+                      const vector_type<scalar_type> &bin_edges_r = {},
+                      const vector_type<scalar_type> &bin_edges_phi = {}) {
+            // Axes boundaries
+            using boundary = annulus2D<>::boundaries;
+            auto b_values = grid_bounds.values();
+
+            return new_annulus_grid<annulus2D<>, e_shape, binning_r,
+                                    binning_phi>(
+                b_values[boundary::e_min_r], b_values[boundary::e_max_r],
+                b_values[boundary::e_average_phi] -
+                    b_values[boundary::e_min_phi_rel],
+                b_values[boundary::e_average_phi] +
+                    b_values[boundary::e_max_phi_rel],
+                n_bins_r, n_bins_phi, bin_edges_r, bin_edges_phi);
         }
-    }
 
-    /// Fill/populate from surface
-    template <typename detector_t, typename surface_t,
-              template <typename, typename> class... binning_ts>
-    DETRAY_HOST void grid(const surface_t &sf, const detector_t &det) {
-        using mask_t = typename detector_t::mask_defs ...
-        using axes_t = coordinate_system<true, containers, algebra, mask_t,
-binning_ts...>;
-    }
+        /*new_grid(const mask<cuboid3D> & grid_bounds) {
 
+        }
 
-    /// add owning grid to detector collection
-    template<template<bool ownership> class grid_t, typename detector_t>
-    DETRAY_HOST
-    void add_to_collection(grid_t<ownership> &&g, detector_t &det) {
-        auto gr_coll = detail::get<grid_t<not is_owning>>(det.grid_store());
+        new_grid(const mask<cylinder2D<>> & grid_bounds) {
 
-        gr_coll.append(std::forward<grid_t<is_owning>>(g));
-    }
+        }
 
-    /// @returns access to the serialized data
-    DETRAY_HOST
-    serialized_storage &finalize() { return _serialized_data; }
+        new_grid(const mask<cylinder3D> & grid_bounds) {
 
-    /// @returns reference to the serialized data
-    DETRAY_HOST
-    const serialized_storage &tmp_data_store() const {
-        return _serialized_data;
-    }
+        }
 
-    private:
-    storage_type m_serialized_data{};
-    populator_type m_populator{};
-    serializer_type m_serializer{};
-};*/
+        new_grid(const mask<rectangle2D<>> & grid_bounds) {
+
+        }
+
+        new_grid(const mask<ring2D<>> & grid_bounds) {
+
+        }
+
+        new_grid(const mask<trapezoid2D<>> & grid_bounds) {
+
+        }*/
+
+        vecmem::memory_resource *m_resource{nullptr};
+    };
+
+    /// Get new grid builder
+    auto new_grid_builder() -> grid_builder { return {&m_resource}; }
+
+    vecmem::memory_resource *m_resource{};
+};
 
 }  // namespace detray
