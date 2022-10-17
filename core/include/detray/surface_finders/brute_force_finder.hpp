@@ -8,6 +8,7 @@
 #pragma once
 
 // Detray include(s).
+#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
@@ -16,23 +17,27 @@
 
 namespace detray {
 
+/// Does nothing
+struct brute_force_view : public detail::dbase_view {
+    dindex m_view{0};
+};
+
 /// @brief A surface finder that returns all surfaces in a volume (brute force)
 struct brute_force_finder {
+
+    using size_type = dindex;
+    using view_type = brute_force_view;
+    using const_view_type = brute_force_view;
 
     /// Default constructor
     brute_force_finder() = default;
 
     /// Constructor from memory resource: Not needed
     DETRAY_HOST
-    brute_force_finder(vecmem::memory_resource & /*mr*/) {}
+    brute_force_finder(vecmem::memory_resource * /*mr*/) {}
 
     /// Constructor from a vecmem view: Not needed
-    template <typename view_t,
-              std::enable_if_t<
-                  !std::is_same_v<brute_force_finder, view_t> &&
-                      !std::is_base_of_v<vecmem::memory_resource, view_t>,
-                  bool> = true>
-    DETRAY_HOST_DEVICE brute_force_finder(const view_t & /*view*/) {}
+    DETRAY_HOST_DEVICE brute_force_finder(const brute_force_view & /*view*/) {}
 
     /// @returns the complete surface range of the search volume
     template <typename detector_t, typename track_t>
@@ -42,6 +47,16 @@ struct brute_force_finder {
            const track_t & /*track*/) const {
         return volume.range();
     }
+
+    /// A stand-alone function to get the vecmem view of the brute force finder
+    /// @return the view on this tuple container
+    brute_force_view get_data() { return {}; }
 };
+
+/// A stand-alone function to get the vecmem view of the brute force finder
+/// @return the view on this tuple container
+/*inline brute_force_view get_data(brute_force_finder &container) {
+    return {};
+}*/
 
 }  // namespace detray

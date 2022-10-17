@@ -16,7 +16,7 @@
 #endif
 
 // Project includes(s)
-#include "detray/core/detail/single_type_store.hpp"
+#include "detray/core/detail/single_store.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
@@ -29,11 +29,10 @@ using namespace __plugin;
 namespace detray {
 
 using host_transform_store_t =
-    single_type_store<__plugin::transform3<detray::scalar>, vecmem::vector>;
+    single_store<__plugin::transform3<detray::scalar>, vecmem::vector>;
 
 using device_transform_store_t =
-    single_type_store<__plugin::transform3<detray::scalar>,
-                      vecmem::device_vector>;
+    single_store<__plugin::transform3<detray::scalar>, vecmem::device_vector>;
 
 void transform_test(
     vecmem::data::vector_view<point3<detray::scalar> > input_data,

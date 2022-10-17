@@ -8,7 +8,7 @@
 #pragma once
 
 // Detray Core include(s)
-#include "detray/core/detail/multi_type_store.hpp"
+#include "detray/core/detail/multi_store.hpp"
 
 // Vecmem include(s)
 #include "vecmem/containers/device_vector.hpp"
@@ -19,12 +19,12 @@
 namespace detray {
 
 using host_store_type =
-    multi_type_store<int, empty_context, dtuple, vecmem::vector, std::size_t,
-                     float, double>;
+    regular_multi_store<int, empty_context, dtuple, vecmem::vector, std::size_t,
+                        float, double>;
 
 using device_store_type =
-    multi_type_store<int, empty_context, thrust::tuple, vecmem::device_vector,
-                     std::size_t, float, double>;
+    regular_multi_store<int, empty_context, thrust::tuple,
+                        vecmem::device_vector, std::size_t, float, double>;
 
 void get_sum(typename host_store_type::view_type store_view,
              vecmem::data::vector_view<double> sum_data);

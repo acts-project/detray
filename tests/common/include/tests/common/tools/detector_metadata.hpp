@@ -8,16 +8,18 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/multi_type_store.hpp"
-#include "detray/core/detail/single_type_store.hpp"
+#include "detray/core/detail/multi_store.hpp"
+#include "detray/core/detail/single_store.hpp"
 #include "detray/core/detail/type_registry.hpp"
 #include "detray/core/surfaces_finder.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
+#include "detray/surface_finders/accelerator_grid.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
 #include "detray/surface_finders/grid2_finder.hpp"
 
@@ -42,8 +44,58 @@ using cylinder = mask<cylinder2D<>, volume_link_type>;
 using disc = mask<ring2D<>, volume_link_type>;
 using unbounded_plane = mask<unmasked, volume_link_type>;
 
+/// material types
 using slab = material_slab<detray::scalar>;
 using rod = material_rod<detray::scalar>;
+
+/// surface grid types (regular, open binning)
+/// @{
+
+// surface grid definition: bin-content: std::array<dindex, 9>
+template <typename grid_shape_t, typename container_t>
+using surface_grid_t = grid<coordinate_axes<grid_shape_t, false, container_t>,
+                            dindex, simple_serializer, regular_attacher<9>>;
+
+// cylindrical grid for the barrel layers
+template <typename container_t>
+using cylinder_sf_grid = surface_grid_t<cylinder2D<>::axes<>, container_t>;
+
+// disc grid for the endcap layers
+template <typename container_t>
+using disc_sf_grid = surface_grid_t<ring2D<>::axes<>, container_t>;
+
+/// @}
+
+/// Material grid types
+/// @{
+
+// material grid definition: bin-content: material slab
+template <typename grid_shape_t, typename container_t>
+using material_grid_t =
+    grid<coordinate_axes<grid_shape_t, false, container_t>,
+         material_slab<detray::scalar>, simple_serializer, replacer>;
+
+// cylindrical grid for the barrel portals
+template <typename container_t>
+using cylinder_mat_grid = material_grid_t<cylinder2D<>::axes<>, container_t>;
+
+// disc grid for the endcap portals
+template <typename container_t>
+using disc_mat_grid = material_grid_t<ring2D<>::axes<>, container_t>;
+
+// rectangular grid for the barrel modules
+template <typename container_t>
+using rectangle_mat_grid = material_grid_t<rectangle2D<>::axes<>, container_t>;
+
+// trapezoid grid for the endcap modules (maps onto rectangles)
+template <typename container_t>
+using trapezoid_mat_grid = material_grid_t<trapezoid2D<>::axes<>, container_t>;
+
+// annulus grid for the ITk endcap modules
+template <typename container_t>
+using annulus_mat_grid = material_grid_t<annulus2D<>::axes<>, container_t>;
+
+/// @}
 
 /// Defines all available types
 template <typename dynamic_data, std::size_t kBrlGrids = 1,
@@ -72,7 +124,7 @@ struct full_metadata {
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store =
-        single_type_store<__plugin::transform3<detray::scalar>, vector_t>;
+        single_store<__plugin::transform3<detray::scalar>, vector_t>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -84,15 +136,14 @@ struct full_metadata {
         e_portal_cylinder2 = 3,  // no distinction from surface cylinder
         e_ring2 = 4,
         e_portal_ring2 = 4,
-        e_single3 = 5,
     };
 
     /// How to store and link masks
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using mask_store =
-        multi_type_store<mask_ids, empty_context, tuple_t, vector_t, rectangle,
-                         trapezoid, annulus, cylinder, disc>;
+        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
+                            rectangle, trapezoid, annulus, cylinder, disc>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -101,18 +152,20 @@ struct full_metadata {
         e_rod = 1,
     };
 
-    // How to store and link materials
+    /// How to store and link materials
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
-    using material_store = multi_type_store<material_ids, empty_context,
-                                            tuple_t, vector_t, slab, rod>;
+    using material_store = regular_multi_store<material_ids, empty_context,
+                                               tuple_t, vector_t, slab, rod>;
 
-    /// How many grids have to be built
-    enum grids : std::size_t {
-        n_other = kDefault,
-        n_z_phi_grids = kBrlGrids,
-        n_r_phi_grids = kEdcGrids
-    };
+    /// How to store and link materials
+    template <template <typename...> class tuple_t = dtuple,
+              typename container_t = host_container_types>
+    using binned_material_store = regular_multi_store<
+        mask_ids, empty_context, tuple_t, grid_collection,
+        cylinder_mat_grid<container_t>, disc_mat_grid<container_t>,
+        rectangle_mat_grid<container_t>, trapezoid_mat_grid<container_t>,
+        annulus_mat_grid<container_t>>;
 
     /// Surface finders
     enum class sf_finder_ids {
@@ -120,6 +173,21 @@ struct full_metadata {
         e_z_phi_grid = 1,   // barrel
         e_r_phi_grid = 2,   // endcap
         e_default = e_brute_force,
+    };
+
+    /// How to store and link surface grids
+    template <template <typename...> class tuple_t = dtuple,
+              typename container_t = host_container_types>
+    using surface_finder_store =
+        multi_store<sf_finder_ids, empty_context, tuple_t, brute_force_finder,
+                    grid_collection<disc_sf_grid<container_t>>,
+                    grid_collection<cylinder_sf_grid<container_t>>>;
+
+    /// How many grids have to be built
+    enum grids : std::size_t {
+        n_other = kDefault,
+        n_z_phi_grids = kBrlGrids,
+        n_r_phi_grids = kEdcGrids
     };
 
     /// Surface finder types
@@ -178,7 +246,7 @@ struct toy_metadata {
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store =
-        single_type_store<__plugin::transform3<detray::scalar>, vector_t>;
+        single_store<__plugin::transform3<detray::scalar>, vector_t>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -194,8 +262,8 @@ struct toy_metadata {
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using mask_store =
-        multi_type_store<mask_ids, empty_context, tuple_t, vector_t, rectangle,
-                         trapezoid, cylinder, disc>;
+        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
+                            rectangle, trapezoid, cylinder, disc>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -206,8 +274,8 @@ struct toy_metadata {
     /// How to store and link materials
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
-    using material_store =
-        multi_type_store<material_ids, empty_context, tuple_t, vector_t, slab>;
+    using material_store = regular_multi_store<material_ids, empty_context,
+                                               tuple_t, vector_t, slab>;
 
     /// How many grids have to be built
     enum grids : std::size_t {
@@ -223,6 +291,14 @@ struct toy_metadata {
         e_r_phi_grid = 2,   // endcap
         e_default = e_brute_force,
     };
+
+    /// How to store and link surface grids
+    template <template <typename...> class tuple_t = dtuple,
+              typename container_t = host_container_types>
+    using surface_finder_store =
+        multi_store<sf_finder_ids, empty_context, tuple_t, brute_force_finder,
+                    grid_collection<disc_sf_grid<container_t>>,
+                    grid_collection<cylinder_sf_grid<container_t>>>;
 
     ///  Surface finder types
     template <template <typename, std::size_t> class array_t = darray,
@@ -279,7 +355,7 @@ struct telescope_metadata {
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store =
-        single_type_store<__plugin::transform3<detray::scalar>, vector_t>;
+        single_store<__plugin::transform3<detray::scalar>, vector_t>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -291,8 +367,9 @@ struct telescope_metadata {
     /// How to store and link masks
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
-    using mask_store = multi_type_store<mask_ids, empty_context, tuple_t,
-                                        vector_t, rectangle, unbounded_plane>;
+    using mask_store =
+        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
+                            rectangle, unbounded_plane>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -303,8 +380,8 @@ struct telescope_metadata {
     /// How to store and link materials
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
-    using material_store =
-        multi_type_store<material_ids, empty_context, tuple_t, vector_t, slab>;
+    using material_store = regular_multi_store<material_ids, empty_context,
+                                               tuple_t, vector_t, slab>;
 
     /// How many grids have to be built
     enum grids : std::size_t {
@@ -316,6 +393,12 @@ struct telescope_metadata {
         e_brute_force = 0,  // test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };
+
+    /// How to store and link surface grids
+    template <template <typename...> class tuple_t = dtuple,
+              typename container_t = host_container_types>
+    using surface_finder_store =
+        multi_store<sf_finder_ids, empty_context, tuple_t, brute_force_finder>;
 
     ///  Surface finder types (are not used in telescope detector)
     template <template <typename, std::size_t> class array_t = darray,

@@ -902,18 +902,15 @@ void add_barrel_detector(
  *
  * @returns a complete detector object
  */
-template <template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+template <typename container_t = host_container_types>
 auto create_toy_geometry(
     vecmem::memory_resource &resource,
     covfie::field<detector_registry::toy_detector::bfield_backend_t> &&bfield,
     std::size_t n_brl_layers = 4, std::size_t n_edc_layers = 3) {
 
     // detector type
-    using detector_t = detector<detector_registry::toy_detector, covfie::field,
-                                array_t, tuple_t, vector_t, jagged_vector_t>;
+    using detector_t =
+        detector<detector_registry::toy_detector, covfie::field, container_t>;
 
     /// Leaving world
     constexpr dindex leaving_world{dindex_invalid};
@@ -1094,14 +1091,11 @@ auto create_toy_geometry(
 
 /** Wrapper for create_toy_geometry with constant zero bfield.
  */
-template <template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+template <typename container_t = host_container_types>
 auto create_toy_geometry(vecmem::memory_resource &resource,
                          std::size_t n_brl_layers = 4,
                          std::size_t n_edc_layers = 3) {
-    return create_toy_geometry<array_t, tuple_t, vector_t, jagged_vector_t>(
+    return create_toy_geometry<container_t>(
         resource,
         covfie::field<detector_registry::toy_detector::bfield_backend_t>{
             detector_registry::toy_detector::bfield_backend_t::configuration_t{

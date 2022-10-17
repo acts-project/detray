@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/core/detail/multi_type_store.hpp"
+#include "detray/core/detail/multi_store.hpp"
 #include "detray/masks/masks.hpp"
 
 // Vecmem include(s)
@@ -43,8 +43,8 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
 
     // Types must be sorted according to their id (here: masks/mask_identifier)
     using mask_container_t =
-        multi_type_store<mask_ids, empty_context, dtuple, dvector, rectangle,
-                         trapezoid, annulus, cylinder, ring, single>;
+        regular_multi_store<mask_ids, empty_context, dtuple, dvector, rectangle,
+                            trapezoid, annulus, cylinder, ring, single>;
 
     mask_container_t store(host_mr);
 
