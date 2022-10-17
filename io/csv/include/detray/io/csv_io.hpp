@@ -13,7 +13,6 @@
 #include "detray/grids/axis.hpp"
 #include "detray/io/csv_io_types.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
-#include "detray/surface_finders/grid2_finder.hpp"
 #include "detray/tools/bin_association.hpp"
 #include "detray/utils/ranges.hpp"
 

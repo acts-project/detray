@@ -95,7 +95,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     using detector_t = decltype(toy_det);
     using volume_t = typename detector_t::volume_type;
-    using context_t = typename decltype(toy_det)::context;
+    using geo_context_t = typename decltype(toy_det)::geometry_context;
     using mask_ids = typename detector_t::masks::id;
     using mask_link_t = typename detector_t::surface_type::mask_link;
     using material_link_t = typename detector_t::surface_type::material_link;
@@ -103,7 +103,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     using sf_finder_ids = typename detector_t::sf_finders::id;
     using sf_finder_link_t = typename volume_t::sf_finder_link_type;
 
-    context_t ctx{};
+    geo_context_t ctx{};
     auto& volumes = toy_det.volumes();
     auto& surfaces = toy_det.surfaces();
     // auto& sf_finders = toy_det.sf_finder_store();

@@ -120,8 +120,8 @@ struct full_metadata {
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
-    using transform_store =
-        single_store<__plugin::transform3<detray::scalar>, vector_t>;
+    using transform_store = single_store<__plugin::transform3<detray::scalar>,
+                                         vector_t, geometry_context>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -221,8 +221,8 @@ struct toy_metadata {
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
-    using transform_store =
-        single_store<__plugin::transform3<detray::scalar>, vector_t>;
+    using transform_store = single_store<__plugin::transform3<detray::scalar>,
+                                         vector_t, geometry_context>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -309,8 +309,8 @@ struct telescope_metadata {
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
-    using transform_store =
-        single_store<__plugin::transform3<detray::scalar>, vector_t>;
+    using transform_store = single_store<__plugin::transform3<detray::scalar>,
+                                         vector_t, geometry_context>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)

@@ -34,7 +34,7 @@ TEST(detector, detector_kernel) {
     using mask_ids = typename detector_t::masks::id;
     using material_ids = typename detector_t::materials::id;
 
-    detector_t::context ctx0{};
+    detector_t::geometry_context ctx0{};
 
     detector_t::transform_container trfs;
     detector_t::surface_container surfaces = {};

@@ -109,24 +109,6 @@ class multi_store {
         return &m_tuple_container;
     }
 
-    /// Convenience functionality: Only available for a store with a single
-    /// collection.
-    /// @{
-
-    /// Elementwise access. Needs @c operator[] for storage type - non-const
-    DETRAY_HOST_DEVICE
-    constexpr auto operator[](const dindex i) {
-        return detail::get<0>(m_tuple_container)[i];
-    }
-
-    /// Elementwise access. Needs @c operator[] for storage type - const
-    DETRAY_HOST_DEVICE
-    constexpr auto operator[](const dindex i) const {
-        return detail::get<0>(m_tuple_container)[i];
-    }
-
-    /// @}
-
     /// @returns the size of the underlying tuple
     DETRAY_HOST_DEVICE
     constexpr auto n_collections() const -> std::size_t {

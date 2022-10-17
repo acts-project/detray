@@ -44,8 +44,8 @@ __global__ void detector_test_kernel(
 
     // copy objects - transforms
     auto& trfs = det_device.transform_store();
-    for (unsigned int i = 0; i < trfs.size(typename detector_host_t::context());
-         i++) {
+    for (unsigned int i = 0;
+         i < trfs.size(typename detector_host_t::geometry_context()); i++) {
         transforms_device.data()[i] = trfs.data()[i];
     }
 
