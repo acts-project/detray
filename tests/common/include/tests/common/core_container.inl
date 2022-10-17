@@ -7,11 +7,7 @@
 
 // Detray include(s)
 #include "detray/core/detail/multi_store.hpp"
-#include "detray/core/detail/new_tuple_container.hpp"
-#include "detray/core/detail/tuple_array_container.hpp"
-#include "detray/grids/grid2.hpp"
-#include "detray/grids/populator.hpp"
-#include "detray/grids/serializer2.hpp"
+#include "detray/core/detail/tuple_container.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/vector.hpp>
@@ -148,64 +144,4 @@ TEST(container, vector_multi_type_store) {
     EXPECT_EQ(vector_store.call<test_func>(std::make_pair(0, 0)), 5UL);
     EXPECT_EQ(vector_store.call<test_func>(std::make_pair(1, 0)), 3UL);
     EXPECT_EQ(vector_store.call<test_func>(std::make_pair(2, 0)), 4UL);
-}
-
-using grid2r =
-    grid2<replace_populator, axis::regular, axis::regular, serializer2>;
-
-using grid2a =
-    grid2<attach_populator, axis::regular, axis::regular, serializer2>;
-
-TEST(container, tuple_array_container) {
-
-    // Vecmem memory resource
-    vecmem::host_memory_resource resource;
-
-    // Create tuple array container
-    tuple_array_container<std::tuple, std::array, std::size_t,
-                          std::index_sequence<1, 2>, grid2r, grid2a>
-        container(resource);
-
-    EXPECT_EQ(container.size(), 2);
-    EXPECT_EQ(container.empty<0>(), false);
-    EXPECT_EQ(container.empty<1>(), false);
-    EXPECT_EQ(container.to_id<>(0), 0);
-    EXPECT_EQ(container.to_id<1>(1), 1);
-    EXPECT_EQ(container.to_id<1>(0), 2);
-
-    // Populate the elements
-    auto& grid2_replace_array = container.group<0>();
-    grid2r::axis_p0_type xaxisr{1, 0., 1., resource};
-    grid2r::axis_p1_type yaxisr{1, 0., 1., resource};
-    grid2_replace_array[0] =
-        grid2r(std::move(xaxisr), std::move(yaxisr), resource);
-    grid2_replace_array[0].bin(0, 0) = 3;
-
-    auto& grid2_attach_array = container.group<1>();
-    grid2a::axis_p0_type xaxisa{2, 0., 2., resource};
-    grid2a::axis_p1_type yaxisa{1, 0., 1., resource};
-
-    grid2_attach_array[0] =
-        grid2a(std::move(xaxisa), std::move(yaxisa), resource);
-    grid2_attach_array[0].bin(0, 0).push_back(0);
-    grid2_attach_array[0].bin(0, 0).push_back(1);
-    grid2_attach_array[0].bin(1, 0).push_back(2);
-    grid2_attach_array[0].bin(1, 0).push_back(3);
-
-    grid2_attach_array[1] =
-        grid2a(std::move(xaxisa), std::move(yaxisa), resource);
-    grid2_attach_array[1].bin(0, 0).push_back(4);
-    grid2_attach_array[1].bin(1, 0).push_back(5);
-
-    // Check the element
-    EXPECT_EQ(container.size<0>(), 1);
-    EXPECT_EQ(container.group<0>()[0].bin(0, 0), 3);
-
-    EXPECT_EQ(container.size<1>(), 2);
-    EXPECT_EQ(container.group<1>()[0].bin(0, 0),
-              vecmem::vector<dindex>({0, 1}));
-    EXPECT_EQ(container.group<1>()[0].bin(1, 0),
-              vecmem::vector<dindex>({2, 3}));
-    EXPECT_EQ(container.group<1>()[1].bin(0, 0), vecmem::vector<dindex>({4}));
-    EXPECT_EQ(container.group<1>()[1].bin(1, 0), vecmem::vector<dindex>({5}));
 }

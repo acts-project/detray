@@ -10,8 +10,6 @@
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
-#include "detray/core/detail/type_registry.hpp"
-#include "detray/core/surfaces_finder.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
@@ -21,7 +19,6 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
-#include "detray/surface_finders/grid2_finder.hpp"
 
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>
