@@ -217,12 +217,6 @@ class multi_axis {
     DETRAY_HOST_DEVICE
     auto data() const -> const storage_type & { return m_data; }
 
-    /// @returns the underlying axes storage. Either the container
-    /// or a container pointer to a global collection - non-const for vecmem
-    // TODO: Don't do
-    DETRAY_HOST_DEVICE
-    auto data() -> storage_type & { return m_data; }
-
     /// Build an axis object in place.
     ///
     /// @tparam index the position of the axis in the parameter pack. Also
@@ -232,7 +226,7 @@ class multi_axis {
     template <std::size_t index>
     DETRAY_HOST_DEVICE typename label_matcher<axis_reg::to_id(index)>::type
     get_axis() const {
-        return {m_data.axis_data(index), m_data.edges()};
+        return {data().axis_data(index), data().edges()};
     }
 
     /// Build an axis object in place.
@@ -258,7 +252,7 @@ class multi_axis {
     /// @returns the number of bins per axis
     DETRAY_HOST_DEVICE inline constexpr auto nbins() const -> multi_bin<Dim> {
         // Empty bin indices to be filled
-        multi_bin<Dim> n_bins{{0, 0, 0}};
+        multi_bin<Dim> n_bins{};
         // Get the number of bins for every axis
         (single_axis(get_axis<axis_ts>(), n_bins), ...);
 
