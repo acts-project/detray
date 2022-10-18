@@ -104,39 +104,27 @@ class grid_collection<
 
     /// @returns the offsets for the grids in the bin storage - const
     DETRAY_HOST_DEVICE
-    auto offsets() const -> const vector_type<size_type> & { return m_offsets; }
-
-    /// @returns the offsets for the grids in the bin storage - non-const
-    DETRAY_HOST_DEVICE
-    auto offsets() -> vector_type<size_type> & { return m_offsets; }
+    constexpr auto offsets() const -> const vector_type<size_type> & {
+        return m_offsets;
+    }
 
     /// @returns the underlying bin content storage - const
     DETRAY_HOST_DEVICE
-    auto bin_storage() const -> const bin_storage_type & { return m_bins; }
-
-    /// @returns the underlying bin content storage - non-const
-    DETRAY_HOST_DEVICE
-    auto bin_storage() -> bin_storage_type & { return m_bins; }
+    constexpr auto bin_storage() const -> const bin_storage_type & {
+        return m_bins;
+    }
 
     /// @returns the underlying axis boundary storage - const
     DETRAY_HOST_DEVICE
-    auto axes_storage() const -> const axes_storage_type & {
+    constexpr auto axes_storage() const -> const axes_storage_type & {
         return m_axes_data;
     }
 
-    /// @returns the underlying axis boundary storage - non-const
-    DETRAY_HOST_DEVICE
-    auto axes_storage() -> axes_storage_type & { return m_axes_data; }
-
     /// @returns the underlying bin edges storage - const
     DETRAY_HOST_DEVICE
-    auto bin_edges_storage() const -> const edges_storage_type & {
+    constexpr auto bin_edges_storage() const -> const edges_storage_type & {
         return m_bin_edges;
     }
-
-    /// @returns the underlying bin edges storage - non-const
-    DETRAY_HOST_DEVICE
-    auto bin_edges_storage() -> edges_storage_type & { return m_bin_edges; }
 
     /// Create grid from container pointers - const
     DETRAY_HOST_DEVICE

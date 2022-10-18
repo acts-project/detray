@@ -96,7 +96,7 @@ class single_store {
     DETRAY_HOST_DEVICE
     constexpr auto data() noexcept -> base_type * { return &m_container; }
 
-    /// @returns the size of the underlying tuple
+    /// @returns the size of the underlying container
     DETRAY_HOST_DEVICE
     constexpr auto size(const context_type & /*ctx*/ = {}) const noexcept
         -> std::size_t {

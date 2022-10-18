@@ -110,20 +110,9 @@ class grid {
     DETRAY_HOST_DEVICE
     auto data() const -> const storage_type & { return m_data; }
 
-    /// @returns the underlying bin content storage. Either the container
-    /// or a container pointer to a global collection - non-const for vecmem
-    // TODO: Don't do
-    DETRAY_HOST_DEVICE
-    auto data() -> storage_type & { return m_data; }
-
     /// @returns the multi-axis used by the grid - const
     DETRAY_HOST_DEVICE
     auto axes() const -> const axes_type & { return m_axes; }
-
-    /// @returns the multi-axis used by the grid - non-const for vecmem
-    // TODO: Don't do
-    DETRAY_HOST_DEVICE
-    auto axes() -> axes_type & { return m_axes; }
 
     /// @returns an axis object, corresponding to the label.
     template <n_axis::label L>
@@ -155,9 +144,10 @@ class grid {
     ///
     /// @returns a point in the coordinate system that is spanned by the grid's
     /// axes.
-    template <typename transform_t, typename point3_t>
-    auto global_to_local(const transform_t &trf, const point3_t &p) const {
-        return local_frame{}(trf, p);
+    template <typename transform_t, typename point3_t, typename vector3_t>
+    auto global_to_local(const transform_t &trf, const point3_t &p,
+                         const vector3_t &d) const {
+        return local_frame().global_to_local(trf, p, d);
     }
 
     /// @returns the iterable view of the bin content
@@ -177,7 +167,7 @@ class grid {
     /// @param gbin the multi-index of bins over all axes
     DETRAY_HOST_DEVICE
     auto at(dindex gbin) const {
-        return m_populator.view(*(data().bin_data()), gbin + m_data.offset());
+        return m_populator.view(*(data().bin_data()), gbin + data().offset());
     }
     /// @}
 
@@ -208,7 +198,7 @@ class grid {
     DETRAY_HOST_DEVICE auto search(const point_t &p,
                                    neighborhood_type<neighbor_t> &nhood) const
         -> void {
-        n_axis::multi_bin_range<Dim> bin_ranges = m_axes.bin_ranges(p, nhood);
+        n_axis::multi_bin_range<Dim> bin_ranges = axes().bin_ranges(p, nhood);
         // Return iterable over bin values in the multi-range
 
         // Placeholder
@@ -231,13 +221,13 @@ class grid {
     /// @param gbin the global bin index to be populated
     DETRAY_HOST_DEVICE auto populate(const dindex gbin, const value_type &v)
         -> void {
-        m_populator(*(data().bin_data()), gbin + m_data.offset(), v);
+        m_populator(*(m_data.bin_data()), gbin + m_data.offset(), v);
     }
 
     /// @param gbin the global bin index to be populated
     DETRAY_HOST_DEVICE auto populate(const dindex gbin, value_type &&v)
         -> void {
-        m_populator(*(data().bin_data()), gbin + m_data.offset(), std::move(v));
+        m_populator(*(m_data.bin_data()), gbin + m_data.offset(), std::move(v));
     }
 
     /// @param p the point in local coordinates that defines the bin to be
@@ -274,8 +264,8 @@ class grid {
     /// quialifiers) - const
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() const -> const_view_type {
-        return {detray::get_data(*(m_data.bin_data())),
-                detray::get_data(m_axes)};
+        return {detray::get_data(*(data().bin_data())),
+                detray::get_data(axes())};
     }
 
     private:

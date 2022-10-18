@@ -14,6 +14,9 @@
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
 
+// Vecmem include(s)
+#include <vecmem/memory/memory_resource.hpp>
+
 // System include(s)
 #include <iostream>
 #include <string>
@@ -61,7 +64,9 @@ using coordinate_axes = typename detail::multi_axis_assembler<
 /// pupulated, it broadcasts also the value type
 /// @tparam serialzier_t  type of the serializer to the storage represenations
 template <typename value_t, template <std::size_t> class serializer_t,
-          typename populator_impl_t, typename container_t, typename algebra_t>
+          typename populator_impl_t,
+          typename algebra_t = __plugin::transform3<detray::scalar>,
+          typename container_t = host_container_types>
 class grid_factory {
 
     public:
@@ -69,18 +74,15 @@ class grid_factory {
     static constexpr bool is_owning = true;
 
     using value_type = value_t;
-    using populator_type = populator<populator_impl_t>;
-    template <std::size_t DIM>
-    using serializer_type = serializer_t<DIM>;
-
     template <typename grid_shape_t>
     using grid_type =
-        grid<grid_shape_t, value_type, serializer_type, populator_type>;
+        grid<grid_shape_t, value_type, serializer_t, populator_impl_t>;
 
     using scalar_type = typename algebra_t::scalar_type;
     template <typename T>
     using vector_type = typename container_t::template vector_type<T>;
 
+    /// Takes the resource of the detector to allocate memory correctly
     grid_factory(vecmem::memory_resource &resource) : m_resource(&resource) {}
 
     /// Get new grid collection
@@ -146,9 +148,13 @@ class grid_factory {
 
             axes_t axes(std::move(axes_data), std::move(bin_edges));
 
-            vector_type<typename grid_type<axes_t>::bin_type> bin_data(
-                m_resource);
-            bin_data.reserve(axes.nbins());
+            using bin_t = typename grid_type<axes_t>::bin_type;
+
+            vector_type<bin_t> bin_data(m_resource);
+            bin_data.resize(axes.nbins()[0] * axes.nbins()[1],
+                            populator_impl_t::template init<
+                                typename grid_type<axes_t>::value_type>());
+
             return grid_type<axes_t>(std::move(bin_data), std::move(axes));
         }
 
@@ -164,8 +170,7 @@ class grid_factory {
             using boundary = annulus2D<>::boundaries;
             auto b_values = grid_bounds.values();
 
-            return new_annulus_grid<annulus2D<>, e_shape, binning_r,
-                                    binning_phi>(
+            return new_annulus_grid<e_shape, binning_r, binning_phi>(
                 b_values[boundary::e_min_r], b_values[boundary::e_max_r],
                 b_values[boundary::e_average_phi] -
                     b_values[boundary::e_min_phi_rel],
@@ -202,7 +207,7 @@ class grid_factory {
     };
 
     /// Get new grid builder
-    auto new_grid_builder() -> grid_builder { return {&m_resource}; }
+    auto new_grid_builder() -> grid_builder { return {m_resource}; }
 
     vecmem::memory_resource *m_resource{};
 };
