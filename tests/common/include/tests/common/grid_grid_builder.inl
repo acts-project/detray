@@ -50,15 +50,17 @@ TEST(grid, grid_builder) {
 
     // Grid with correctly initialized axes, but empty bin content
     auto ann_gr = grid_builder.new_grid(ann2, 5, 10);
-    const auto& axis_r = ann_gr.template get_axis<label::e_r>();
+    const auto& ann_axis_r = ann_gr.template get_axis<label::e_r>();
 
     // Test axis
-    EXPECT_EQ(axis_r.label(), label::e_r);
-    EXPECT_EQ(axis_r.shape(), shape::e_open);
-    EXPECT_EQ(axis_r.binning(), binning::e_regular);
-    EXPECT_EQ(axis_r.nbins(), 5UL);
-    EXPECT_NEAR(axis_r.span()[0], 0.f, std::numeric_limits<scalar>::epsilon());
-    EXPECT_NEAR(axis_r.span()[1], 10.f, std::numeric_limits<scalar>::epsilon());
+    EXPECT_EQ(ann_axis_r.label(), label::e_r);
+    EXPECT_EQ(ann_axis_r.shape(), shape::e_open);
+    EXPECT_EQ(ann_axis_r.binning(), binning::e_regular);
+    EXPECT_EQ(ann_axis_r.nbins(), 5UL);
+    EXPECT_NEAR(ann_axis_r.span()[0], 0.f,
+                std::numeric_limits<scalar>::epsilon());
+    EXPECT_NEAR(ann_axis_r.span()[1], 10.f,
+                std::numeric_limits<scalar>::epsilon());
 
     // Test fill a bin to see, if bin content was correctly initialized
     point3 p = {0.5f, 2.f, 0.f};
@@ -68,20 +70,34 @@ TEST(grid, grid_builder) {
 
     EXPECT_FLOAT_EQ(ann_gr.search(loc_p)[0], 3UL);
 
-
     // Build from parameters
-    /*auto cyl_gr = grid_builder.new_cylinder_grid<shape::e_closed, binning::e_regular, binning::e_regular, binning::e_regular>(, 5, 10);
-    const auto& axis_r = ann_gr.template get_axis<label::e_r>();
+    const std::vector<scalar> bin_edges_z{-10.f, -8.f, -6.5f, -1.f,
+                                          4.f,   5.f,  6.f,   9.f};
+    const std::vector<scalar> bin_edges_phi{};
 
-    // Test axis shape
-    EXPECT_EQ(axis_r.label(), label::e_r);
-    EXPECT_EQ(axis_r.shape(), shape::e_closed);
-    EXPECT_EQ(axis_r.binning(), binning::e_regular);
+    auto cyl_gr = grid_builder.template new_grid<cylinder2D<>, shape::e_closed,
+                                                 regular, irregular>(
+        bin_edges_z.front(), bin_edges_z.back(), 0.f,
+        2.f * static_cast<scalar>(M_PI), bin_edges_z.size() - 1, 10UL,
+        bin_edges_phi, bin_edges_z);
+    const auto& cyl_axis_z = cyl_gr.template get_axis<label::e_cyl_z>();
 
-    // N bins
-    EXPECT_EQ(axis_r.nbins(), 5UL);
-    EXPECT_NEAR(axis_r.span()[0], 0.f, std::numeric_limits<scalar>::epsilon);
-    EXPECT_NEAR(axis_r.span()[1], 10.f, std::numeric_limits<scalar>::epsilon);*/
+    // Test axis
+    EXPECT_EQ(cyl_axis_z.label(), label::e_cyl_z);
+    EXPECT_EQ(cyl_axis_z.shape(), shape::e_closed);
+    EXPECT_EQ(cyl_axis_z.binning(), binning::e_irregular);
+    EXPECT_EQ(cyl_axis_z.nbins(), 7UL);
+    EXPECT_NEAR(cyl_axis_z.span()[0], -10.f,
+                std::numeric_limits<scalar>::epsilon());
+    EXPECT_NEAR(cyl_axis_z.span()[1], 9.f,
+                std::numeric_limits<scalar>::epsilon());
+
+    // Test fill a bin to see, if bin content was correctly initialized
+    loc_p = cyl_gr.global_to_local(Identity, p, d);
+    cyl_gr.populate(loc_p, 33UL);
+
+    EXPECT_FLOAT_EQ(cyl_gr.search(loc_p)[0], 33UL);
+
     // Basics
     /*EXPECT_EQ(grid_coll.ngrids(), 3UL);
     EXPECT_EQ(grid_coll.bin_storage().size(), 197UL);
