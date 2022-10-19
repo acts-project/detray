@@ -35,7 +35,7 @@ struct random_scatterer : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline void operator()(
+    DETRAY_HOST inline void operator()(
         state& simulator_state, propagator_state_t& prop_state) const {
 
         auto& navigation = prop_state._navigation;
