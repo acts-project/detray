@@ -47,7 +47,8 @@ struct material_slab {
     /// Boolean operator
     DETRAY_HOST_DEVICE constexpr operator bool() const {
         if (m_thickness <= std::numeric_limits<scalar_type>::epsilon() ||
-            m_material.Z() == 0 || m_material.mass_density() == 0) {
+            m_material == vacuum<scalar_type>() || m_material.Z() == 0 ||
+            m_material.mass_density() == 0) {
             return false;
         }
         return true;
