@@ -19,7 +19,7 @@ jobs:
         PLATFORM:
           - OS: "ubuntu-latest"
             GENERATOR: "Unix Makefiles"
-          - OS: "macos-11"
+          - OS: "macos-latest"
             GENERATOR: "Xcode"
 
     # The system to run on.
