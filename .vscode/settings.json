@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.sycl": "cpp",
+        "utility": "cpp",
+        "algorithm": "cpp"
+    }
+}

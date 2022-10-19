@@ -6,6 +6,7 @@
  */
 #pragma once
 
+// Project include(s).
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -164,6 +165,13 @@ class volume {
     template <typename range_type>
     DETRAY_HOST_DEVICE inline auto n_in_range(range_type &&rg) const -> dindex {
         return detail::get<1>(rg) - detail::get<0>(rg);
+    }
+
+    /// @return the size of volume
+    DETRAY_HOST_DEVICE inline scalar_t volume_size() const {
+        return (_bounds[5] - _bounds[4]) / scalar_t(2.) *
+               (_bounds[1] * _bounds[1] - _bounds[0] * _bounds[0]) *
+               (_bounds[3] - _bounds[2]);
     }
 
     /// Equality operator

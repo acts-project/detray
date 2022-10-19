@@ -35,6 +35,7 @@ TEST(ALGEBRA_PLUGIN, volume) {
     volume v1 = volume(bounds);
     v1.set_index(12345);
     v1.set_sf_finder({sf_finder_defs::id::e_default, 12});
+    EXPECT_NEAR(v1.volume_size(), 1000 * M_PI, 1e-3);
 
     ASSERT_TRUE(v1.empty());
     ASSERT_TRUE(v1.index() == 12345);
@@ -63,4 +64,8 @@ TEST(ALGEBRA_PLUGIN, volume) {
     ASSERT_TRUE(v2.sf_finder_link() == sf_finder_link);
     ASSERT_TRUE(v2.template range<object_defs::e_surface>() == full_range);
     ASSERT_TRUE(v2.template range<object_defs::e_portal>() == full_range);
+
+    darray<scalar, 6> bounds_3 = {5., 10., -2., 5., -M_PI / 2., M_PI};
+    volume v3 = volume(bounds_3);
+    EXPECT_NEAR(v3.volume_size(), 393.75 * M_PI, 1e-3);
 }
