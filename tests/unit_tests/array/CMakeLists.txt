@@ -6,9 +6,9 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( array
-   "array_axis_rotation.cpp"
    "array_actor_chain.cpp"
    "array_annulus2D.cpp"
+   "array_axis_rotation.cpp"
    "array_container.cpp"
    "array_coordinate_cartesian2.cpp"
    "array_coordinate_cartesian3.cpp"

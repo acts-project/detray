@@ -6,9 +6,9 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( eigen
-   "eigen_axis_rotation.cpp"
    "eigen_actor_chain.cpp"
    "eigen_annulus2D.cpp"
+   "eigen_axis_rotation.cpp"
    "eigen_container.cpp"
    "eigen_coordinate_cartesian2.cpp"
    "eigen_coordinate_cartesian3.cpp"
