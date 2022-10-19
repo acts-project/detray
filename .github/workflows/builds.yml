@@ -19,7 +19,6 @@ jobs:
         PLATFORM:
           - OS: "ubuntu-latest"
             GENERATOR: "Unix Makefiles"
-          #- OS: "macos-latest"
           - OS: "macos-11"
             GENERATOR: "Xcode"
 
