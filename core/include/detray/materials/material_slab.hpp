@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/predefined_materials.hpp"
 
 // System include(s)
 #include <climits>
@@ -37,10 +38,20 @@ struct material_slab {
     /// Equality operator
     ///
     /// @param rhs is the right hand side to be compared to
-    DETRAY_HOST_DEVICE
-    bool operator==(const material_slab<scalar_t>& rhs) const {
+    DETRAY_HOST_DEVICE bool operator==(
+        const material_slab<scalar_t>& rhs) const {
         return (m_material == rhs.get_material() &&
                 m_thickness == rhs.thickness());
+    }
+
+    /// Boolean operator
+    DETRAY_HOST_DEVICE constexpr operator bool() const {
+        if (m_thickness <= std::numeric_limits<scalar_type>::epsilon() ||
+            m_material == vacuum<scalar_type>() || m_material.Z() == 0 ||
+            m_material.mass_density() == 0) {
+            return false;
+        }
+        return true;
     }
 
     /// Access the (average) material parameters.
@@ -61,10 +72,12 @@ struct material_slab {
         return m_thickness / is.cos_incidence_angle;
     }
     /// Return the path segment in X0
+    DETRAY_HOST_DEVICE
     scalar_type path_segment_in_X0(const line_plane_intersection& is) const {
         return m_thickness_in_X0 / is.cos_incidence_angle;
     }
     /// Return the path segment in L0
+    DETRAY_HOST_DEVICE
     scalar_type path_segment_in_L0(const line_plane_intersection& is) const {
         return m_thickness_in_L0 / is.cos_incidence_angle;
     }

@@ -129,6 +129,7 @@ class surface {
     }
 
     /// @return the mask link
+    DETRAY_HOST_DEVICE
     auto mask_type() const -> typename mask_link::id_type {
         return detail::get<0>(_mask);
     }

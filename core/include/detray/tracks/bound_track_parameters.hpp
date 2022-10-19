@@ -94,10 +94,16 @@ struct bound_track_parameters {
     void set_surface_link(std::size_t link) { m_surface_link = link; }
 
     DETRAY_HOST_DEVICE
+    vector_type& vector() { return m_vector; }
+
+    DETRAY_HOST_DEVICE
     const vector_type& vector() const { return m_vector; }
 
     DETRAY_HOST_DEVICE
     void set_vector(const vector_type& v) { m_vector = v; }
+
+    DETRAY_HOST_DEVICE
+    covariance_type& covariance() { return m_covariance; }
 
     DETRAY_HOST_DEVICE
     const covariance_type& covariance() const { return m_covariance; }
@@ -138,6 +144,11 @@ struct bound_track_parameters {
     DETRAY_HOST_DEVICE
     scalar_type qop() const {
         return matrix_operator().element(m_vector, e_bound_qoverp, 0);
+    }
+
+    DETRAY_HOST_DEVICE
+    void set_qop(const scalar qop) {
+        matrix_operator().element(m_vector, e_bound_qoverp, 0) = qop;
     }
 
     private:

@@ -8,6 +8,7 @@
 detray_add_test( eigen
    "eigen_actor_chain.cpp"
    "eigen_annulus2D.cpp"
+   "eigen_axis_rotation.cpp"
    "eigen_container.cpp"
    "eigen_coordinate_cartesian2.cpp"
    "eigen_coordinate_cartesian3.cpp"
@@ -34,6 +35,7 @@ detray_add_test( eigen
    "eigen_line_stepper.cpp"
    "eigen_line.cpp"
    "eigen_mask_store.cpp"
+   "eigen_material_interaction.cpp"
    "eigen_materials.cpp"
    "eigen_navigator.cpp"
    "eigen_particle_gun.cpp"
