@@ -136,6 +136,7 @@ struct material {
     struct MATERIAL_NAME final : public material<scalar_t, R> {              \
         using base_type = material<scalar_t, R>;                             \
         using base_type::base_type;                                          \
+        DETRAY_HOST_DEVICE                                                   \
         MATERIAL_NAME()                                                      \
             : base_type(X0, L0, Ar, Z, Rho, State, Density0, Density1,       \
                         Density2, Density3, Density4, Density5, Density6) {} \
