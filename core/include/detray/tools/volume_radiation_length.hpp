@@ -18,9 +18,15 @@ class volume_radiation_length {
     using scalar_type = detector_t::scalar_type;
 
     volume_radiation_length(const detector_t& det) {
-        const auto& n_volumes = det.volumes().size();
 
-        for (std::size_t i = 0; i < n_volumes; i++) {
+        for (const auto& vol : det.volumes()) {
+            const scalar_type vol_size = vol.volume_size();
+
+            for (const auto [obj_idx, obj] : detray::views::enumerate(det->surfaces(), vol){
+
+
+
+            }
         }
     }
 
