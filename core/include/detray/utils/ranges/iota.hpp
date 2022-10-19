@@ -32,8 +32,13 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
 
     private:
     /// @brief Nested iterator to generate a range of values on demand.
-    struct iterator : public std::iterator<detray::ranges::input_iterator_tag,
-                                           incr_t, incr_t> {
+    struct iterator {
+
+        using difference_type = incr_t;
+        using value_type = incr_t;
+        using pointer = incr_t *;
+        using reference = incr_t &;
+        using iterator_category = detray::ranges::input_iterator_tag;
 
         /// Default construction only works if incr_t is default constructible
         iterator() = default;
