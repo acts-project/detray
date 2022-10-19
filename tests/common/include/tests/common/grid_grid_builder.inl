@@ -70,6 +70,8 @@ TEST(grid, grid_builder) {
 
     EXPECT_FLOAT_EQ(ann_gr.search(loc_p)[0], 3UL);
 
+    gf.to_string(ann_gr);
+
     // Build from parameters
     const std::vector<scalar> bin_edges_z{-10.f, -8.f, -6.5f, -1.f,
                                           4.f,   5.f,  6.f,   9.f};

@@ -115,6 +115,12 @@ class grid {
     auto axes() const -> const axes_type & { return m_axes; }
 
     /// @returns an axis object, corresponding to the label.
+    template <std::size_t index>
+    DETRAY_HOST_DEVICE inline constexpr auto get_axis() const {
+        return m_axes.template get_axis<index>();
+    }
+
+    /// @returns an axis object, corresponding to the label.
     template <n_axis::label L>
     DETRAY_HOST_DEVICE inline constexpr auto get_axis() const {
         return m_axes.template get_axis<L>();

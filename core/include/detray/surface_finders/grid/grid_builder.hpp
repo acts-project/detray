@@ -89,13 +89,72 @@ class grid_factory {
     /*template<typename grid_t>
     auto new_collection() -> grid_collection<grid_t> {
 
-    }
-
-    /// Get new grid collection
-    template<typename grid_t>
-    auto to_string(const grid_t & gr) -> std::string {
-
     }*/
+
+    /// Print grid - up to three dimensions
+    template <typename grid_t>
+    auto to_string(const grid_t &gr) -> void {
+
+        using entry_t = typename grid_t::value_type;
+
+        // Loop over the first dimension
+        const auto &ax0 = gr.template get_axis<0>();
+        std::cout << "{";
+        for (std::size_t i{0}; i < ax0.nbins(); ++i) {
+
+            // Loop over the second dimension
+            if constexpr (grid_t::Dim > 1) {
+                const auto &ax1 = gr.template get_axis<1>();
+                std::cout << "{";
+                for (std::size_t j{0}; j < ax1.nbins(); ++j) {
+
+                    // Loop over the third dimension
+                    if constexpr (grid_t::Dim > 2) {
+                        const auto &ax2 = gr.template get_axis<2>();
+                        std::cout << "{";
+                        for (std::size_t k{0}; k < ax2.nbins(); ++k) {
+
+                            // Print the bin content - three dimensions
+                            std::cout << "( ";
+                            for (const auto &entry : gr.at(i, j, k)) {
+                                if (entry == detail::invalid_value<entry_t>()) {
+                                    std::cout << "inv ";
+                                } else {
+                                    std::cout << entry << " ";
+                                }
+                            }
+                            std::cout << ")";
+                        }
+                        std::cout << "}" << std::endl << std::endl;
+                    } else {
+                        // Print the bin content - two dimensions
+                        std::cout << "( ";
+                        for (const auto &entry : gr.at(i, j)) {
+                            if (entry == detail::invalid_value<entry_t>()) {
+                                std::cout << "inv ";
+                            } else {
+                                std::cout << entry << " ";
+                            }
+                        }
+                        std::cout << ")";
+                    }
+                }
+                std::cout << "}" << std::endl;
+            } else {
+                // Print the bin content - one dimension
+                std::cout << "( ";
+                for (const auto &entry : gr.at(i)) {
+                    if (entry == detail::invalid_value<entry_t>()) {
+                        std::cout << "inv ";
+                    } else {
+                        std::cout << entry << " ";
+                    }
+                }
+                std::cout << ")" << std::endl;
+            }
+        }
+        std::cout << "}" << std::endl;
+    }
 
     /// @brief Build empty grids from boundary values.
     struct grid_builder {
