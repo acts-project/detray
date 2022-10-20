@@ -26,7 +26,11 @@ namespace detray {
 ///                that the grid collection can manage the underlying memory.
 /// @tparam containers Host or device container types
 template <typename grid_t, typename = void>
-class grid_collection {};
+class grid_collection {
+    grid_collection() = delete;
+    grid_collection(const grid_collection &) = delete;
+    grid_collection(grid_collection &&) = delete;
+};
 
 /// Specialization for @c detray::grid
 ///
@@ -155,6 +159,25 @@ class grid_collection<
     auto get_data() const -> const_view_type {
         return {detray::get_data(m_offsets), detray::get_data(m_bins),
                 detray::get_data(m_axes_data), detray::get_data(m_bin_edges)};
+    }
+
+    /// Add a new grid @param gr to the collection.
+    /// @note this takes a data owning grid to transcribe the data from.
+    DETRAY_HOST constexpr auto push_back(
+        const typename grid_type::template type<true> &gr) noexcept(false)
+        -> void {
+        m_offsets.push_back(m_bins.size());
+
+        const auto *grid_bins = gr.data().bin_data();
+        m_bins.insert(m_bins.end(), grid_bins->begin(), grid_bins->end());
+
+        const auto *axes_data = gr.axes().data().axes_data();
+        m_axes_data.insert(m_axes_data.end(), axes_data->begin(),
+                           axes_data->end());
+
+        const auto *bin_edges = gr.axes().data().edges();
+        m_bin_edges.insert(m_bin_edges.end(), bin_edges->begin(),
+                           bin_edges->end());
     }
 
     private:

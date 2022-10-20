@@ -71,6 +71,9 @@ class grid {
     using storage_type =
         std::conditional_t<is_owning, detail::grid_data<bin_storage_type>,
                            detail::grid_view<bin_storage_type>>;
+    template <bool owning>
+    using type = grid<typename multi_axis_t::template type<owning>, value_t,
+                      serializer_t, populator_impl_t>;
 
     /// Make grid default constructible: Empty grid with empty axis
     grid() = default;
