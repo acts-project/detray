@@ -274,10 +274,7 @@ auto create_telescope_detector(
  */
 template <bool unbounded_planes = true,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+          typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, std::vector<scalar> pos,
     trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
@@ -287,8 +284,8 @@ auto create_telescope_detector(
     const scalar thickness = 80 * unit_constants::um) {
 
     // Build the geometry
-    return create_telescope_detector<unbounded_planes, trajectory_t, array_t,
-                                     tuple_t, vector_t, jagged_vector_t>(
+    return create_telescope_detector<unbounded_planes, trajectory_t,
+                                     container_t>(
         resource,
         covfie::field<detector_registry::telescope_detector::bfield_backend_t>{
             detector_registry::telescope_detector::bfield_backend_t::
@@ -298,10 +295,7 @@ auto create_telescope_detector(
 
 template <bool unbounded_planes = true,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+          typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, dindex n_surfaces = 10,
     scalar tel_length = 500. * unit_constants::mm,
@@ -310,8 +304,8 @@ auto create_telescope_detector(
     scalar half_y = 20. * unit_constants::mm) {
 
     // Build the geometry
-    return create_telescope_detector<unbounded_planes, trajectory_t, array_t,
-                                     tuple_t, vector_t, jagged_vector_t>(
+    return create_telescope_detector<unbounded_planes, trajectory_t,
+                                     container_t>(
         resource,
         covfie::field<detector_registry::telescope_detector::bfield_backend_t>{
             detector_registry::telescope_detector::bfield_backend_t::
