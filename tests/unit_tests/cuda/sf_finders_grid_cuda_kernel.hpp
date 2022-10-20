@@ -20,6 +20,7 @@
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/grid_builder.hpp"
+#include "detray/surface_finders/grid/grid_collection.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
 
@@ -47,6 +48,12 @@ static constexpr bool is_owning = true;
 template <typename containers = host_container_types>
 using cartesian_3D =
     coordinate_axes<cuboid3D::axes<shape::e_closed>, is_owning, containers>;
+
+// 3D cylindrical coordinate axes with open bin boundaries and regular binning
+// non-owning
+template <typename containers = host_container_types>
+using cylindrical_3D =
+    coordinate_axes<cylinder3D::axes<shape::e_open>, not is_owning, containers>;
 
 // 2D polar coordinate axes with closed bin boundaries, irregular binning in r
 // and regular binning in phi
@@ -92,6 +99,14 @@ using const_device_grid2_attach =
     grid<polar<device_container_types>, const point3, simple_serializer,
          regular_attacher<n_points>>;
 
+using n_own_host_grid2_attach =
+    grid<cylindrical_3D<>, dindex, simple_serializer,
+         regular_attacher<n_points>>;
+
+using n_own_device_grid2_attach =
+    grid<cylindrical_3D<device_container_types>, dindex, simple_serializer,
+         regular_attacher<n_points>>;
+
 /// test function for replace populator
 void grid_replace_test(host_grid3_replace::view_type grid_view,
                        std::size_t dim_x, std::size_t dim_y, std::size_t dim_z);
@@ -109,7 +124,15 @@ void grid_attach_test(host_grid2_attach::view_type grid_view, std::size_t dim_x,
                       std::size_t dim_y);
 
 // read test function for grid with attach populator
-void grid_attach_read_test(const_host_grid2_attach::view_type grid_view,
-                           std::size_t dim_x, std::size_t dim_y);
+/*void grid_attach_read_test(const_host_grid2_attach::view_type grid_view,
+                           std::size_t dim_x, std::size_t dim_y);*/
+
+// test function for a collection of grids
+void grid_collection_test(
+    grid_collection<n_own_host_grid2_attach>::view_type grid_collection_view,
+    vecmem::data::vector_view<std::size_t> n_bins_view,
+    vecmem::data::vector_view<std::array<dindex, 3>> result_bins_view,
+    std::size_t n_grids, std::size_t dim_x, std::size_t dim_y,
+    std::size_t dim_z);
 
 }  // namespace detray

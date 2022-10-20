@@ -48,6 +48,18 @@ void test_entry_collection(const content_t& bin_content,
     }
 }
 
+// Create some bin data for non-owning grid
+template <class populator_t, typename entry_t>
+struct bin_content_sequence {
+
+    entry_t entry{0};
+
+    auto operator()() {
+        entry += entry_t{1};
+        return populator_t::init(entry);
+    }
+};
+
 }  // anonymous namespace
 
 TEST(grids_cuda, grid3_replace_populator) {
@@ -57,8 +69,8 @@ TEST(grids_cuda, grid3_replace_populator) {
     // Build multi-axis
     cartesian_3D<host_container_types> axes(mng_mr);
 
-    auto axis_data = axes.m_data.axes_data();
-    auto bin_edges = axes.m_data.edges();
+    auto* axis_data = axes.data().axes_data();
+    auto* bin_edges = axes.data().edges();
 
     axis_data->reserve(3);
     axis_data->insert(
@@ -77,10 +89,6 @@ TEST(grids_cuda, grid3_replace_populator) {
     const auto& axis_x = g3.template get_axis<n_axis::label::e_x>();
     const auto& axis_y = g3.template get_axis<n_axis::label::e_y>();
     const auto& axis_z = g3.template get_axis<n_axis::label::e_z>();
-
-    auto width_x = axis_x.m_binning.bin_width();
-    auto width_y = axis_y.m_binning.bin_width();
-    auto width_z = axis_z.m_binning.bin_width();
 
     // pre-check
     for (std::size_t i_x = 0; i_x < axis_x.nbins(); i_x++) {
@@ -105,9 +113,9 @@ TEST(grids_cuda, grid3_replace_populator) {
 
                 const auto& bin = g3.at(gbin_idx);
 
-                const point3 tp{axis_x.min() + gbin_idx * width_x,
-                                axis_y.min() + gbin_idx * width_y,
-                                axis_z.min() + gbin_idx * width_z};
+                const point3 tp{axis_x.min() + gbin_idx * axis_x.bin_width(),
+                                axis_y.min() + gbin_idx * axis_y.bin_width(),
+                                axis_z.min() + gbin_idx * axis_z.bin_width()};
 
                 test_content(bin[0], tp);
             }
@@ -122,8 +130,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     // Build multi-axis
     polar_ir<host_container_types> axes(mng_mr);
 
-    auto axis_data = axes.m_data.axes_data();
-    auto bin_edges = axes.m_data.edges();
+    auto* axis_data = axes.data().axes_data();
+    auto* bin_edges = axes.data().edges();
 
     axis_data->reserve(2);
     axis_data->insert(axis_data->end(),
@@ -156,18 +164,15 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     grid_replace_ci_test(get_data(g2), axis_r.nbins(), axis_phi.nbins());
 
     // post-check
-    auto width_phi = axis_phi.m_binning.bin_width();
-
     for (std::size_t i_r = 0; i_r < axis_r.nbins(); i_r++) {
         for (std::size_t i_phi = 0; i_phi < axis_phi.nbins(); i_phi++) {
             dindex gbin_idx = g2.serializer()(
                 g2.axes(), detray::n_axis::multi_bin<2>{i_r, i_phi});
             const auto& bin = g2.at(gbin_idx);
 
-            auto width_r = axis_r.m_binning.bin_width(i_r);
-
-            const point3 tp{axis_r.min() + gbin_idx * width_r,
-                            axis_phi.min() + gbin_idx * width_phi, 0.5};
+            const point3 tp{axis_r.min() + gbin_idx * axis_r.bin_width(i_r),
+                            axis_phi.min() + gbin_idx * axis_phi.bin_width(),
+                            0.5};
 
             test_content(bin[0], tp);
         }
@@ -181,8 +186,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     // Build multi-axis
     polar<host_container_types> axes(mng_mr);
 
-    auto axis_data = axes.m_data.axes_data();
-    auto bin_edges = axes.m_data.edges();
+    auto axis_data = axes.data().axes_data();
+    auto bin_edges = axes.data().edges();
 
     axis_data->reserve(2);
     axis_data->insert(axis_data->begin(),
@@ -202,8 +207,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     const auto& axis_r = g2.template get_axis<n_axis::label::e_r>();
     const auto& axis_phi = g2.template get_axis<n_axis::label::e_phi>();
 
-    auto width_r = axis_r.m_binning.bin_width();
-    auto width_phi = axis_phi.m_binning.bin_width();
+    auto width_r = axis_r.bin_width();
+    auto width_phi = axis_phi.bin_width();
 
     // pre-check
     for (std::size_t i_r = 0; i_r < axis_r.nbins(); i_r++) {
@@ -252,8 +257,8 @@ TEST(grids_cuda, grid2_attach_populator) {
     // Build multi-axis
     polar<host_container_types> axes(mng_mr);
 
-    auto axis_data = axes.m_data.axes_data();
-    auto bin_edges = axes.m_data.edges();
+    auto axis_data = axes.data().axes_data();
+    auto bin_edges = axes.data().edges();
 
     axis_data->reserve(2);
     axis_data->insert(axis_data->begin(),
@@ -274,8 +279,8 @@ TEST(grids_cuda, grid2_attach_populator) {
     const auto& axis_r = g2.template get_axis<n_axis::label::e_r>();
     const auto& axis_phi = g2.template get_axis<n_axis::label::e_phi>();
 
-    auto width_r = axis_r.m_binning.bin_width();
-    auto width_phi = axis_phi.m_binning.bin_width();
+    auto width_r = axis_r.bin_width();
+    auto width_phi = axis_phi.bin_width();
 
     // pre-check
     for (std::size_t i_r = 0; i_r < axis_r.nbins(); i_r++) {
@@ -323,3 +328,67 @@ TEST(grids_cuda, grid2_attach_populator) {
     //grid_attach_read_test(get_data(g2_const), axis_r.nbins(),
 axis_phi.nbins());
 }*/
+
+TEST(grids_cuda, cylindrical3D_collection) {
+    // Data-owning grid collection
+    vecmem::cuda::managed_memory_resource mng_mr;
+    auto grid_coll = grid_collection<n_own_host_grid2_attach>(mng_mr);
+
+    auto& grid_offsets = grid_coll.offsets();
+    auto& bin_data = grid_coll.bin_storage();
+    auto& edge_ranges = grid_coll.axes_storage();
+    auto& bin_edges = grid_coll.bin_edges_storage();
+
+    // Offsets for the grids into the bin storage
+    grid_offsets.reserve(3);
+    grid_offsets.insert(grid_offsets.begin(), {0UL, 48UL, 72UL});
+
+    // Offsets into edges container and #bins for all axes
+    edge_ranges.reserve(9);
+    edge_ranges.insert(
+        edge_ranges.begin(),
+        {dindex_range{0u, 2u}, dindex_range{2u, 4u}, dindex_range{4u, 6u},
+         dindex_range{6u, 1u}, dindex_range{8u, 3u}, dindex_range{10u, 8u},
+         dindex_range{12u, 5u}, dindex_range{14u, 5u}, dindex_range{16u, 5u}});
+
+    // Bin edges for all axes (two boundaries for regular binned axes)
+    bin_edges.reserve(18);
+    bin_edges.insert(bin_edges.begin(),
+                     {-10, 10., -20., 20., 0., 120., -5., 5., -15., 15., 0.,
+                      50., -15, 15., -35., 35., 0., 550.});
+
+    // Bin test entries
+    bin_data.resize(197UL);
+    std::generate_n(
+        bin_data.begin(), 197UL,
+        bin_content_sequence<n_own_host_grid2_attach::populator_type,
+                             dindex>());
+
+    vecmem::vector<std::size_t> n_bins(9, &mng_mr);
+    vecmem::vector<std::array<dindex, 3>> result_bins(bin_data.size(), &mng_mr);
+
+    // Call test function
+    const auto& axis_r = grid_coll[2].template get_axis<n_axis::label::e_r>();
+    const auto& axis_phi =
+        grid_coll[2].template get_axis<n_axis::label::e_phi>();
+    const auto& axis_z = grid_coll[2].template get_axis<n_axis::label::e_z>();
+
+    grid_collection_test(get_data(grid_coll), vecmem::get_data(n_bins),
+                         vecmem::get_data(result_bins), grid_coll.ngrids(),
+                         axis_r.nbins(), axis_phi.nbins(), axis_z.nbins());
+
+    // Compare results
+    EXPECT_EQ(2UL, n_bins[0]);
+    EXPECT_EQ(4UL, n_bins[1]);
+    EXPECT_EQ(6UL, n_bins[2]);
+    EXPECT_EQ(1UL, n_bins[3]);
+    EXPECT_EQ(3UL, n_bins[4]);
+    EXPECT_EQ(8UL, n_bins[5]);
+    EXPECT_EQ(5UL, n_bins[6]);
+    EXPECT_EQ(5UL, n_bins[7]);
+    EXPECT_EQ(5UL, n_bins[8]);
+
+    for (std::size_t i{0}; i < bin_data.size(); ++i) {
+        EXPECT_EQ(bin_data[i].content(), result_bins[i]);
+    }
+}
