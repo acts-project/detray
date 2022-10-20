@@ -41,7 +41,7 @@ TEST(mask_store_cuda, mask_store) {
     ASSERT_FALSE(store.empty<e_cylinder2>());
     ASSERT_FALSE(store.empty<e_rectangle2>());
     ASSERT_FALSE(store.empty<e_ring2>());
-    ASSERT_FALSE(store.empty<e_single3>());
+    ASSERT_TRUE(store.empty<e_single3>());
     ASSERT_FALSE(store.empty<e_trapezoid2>());
 
     /** Generate random points for test **/

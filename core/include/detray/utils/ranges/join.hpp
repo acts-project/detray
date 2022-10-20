@@ -51,13 +51,13 @@ struct join_view
 
     /// Construct from a pack of @param ranges.
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit join_view(ranges_t &&...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit join_view(ranges_t &&... ranges)
         : m_begins{detray::ranges::begin(ranges)...},
           m_ends{detray::ranges::end(ranges)...} {}
 
     /// Construct from a pack of @param ranges - const
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit join_view(const ranges_t &...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit join_view(const ranges_t &... ranges)
         : m_begins{detray::ranges::cbegin(ranges)...},
           m_ends{detray::ranges::cend(ranges)...} {}
 
@@ -122,23 +122,23 @@ struct join : public ranges::join_view<I, range_itr_t> {
     constexpr join() = default;
 
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit join(const ranges_t &...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit join(const ranges_t &... ranges)
         : base_type(ranges...) {}
 
     template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit join(ranges_t &&...ranges)
+    DETRAY_HOST_DEVICE constexpr explicit join(ranges_t &&... ranges)
         : base_type(std::forward<ranges_t>(ranges)...) {}
 };
 
 // deduction guides
 
 template <typename... ranges_t>
-DETRAY_HOST_DEVICE join(const ranges_t &...ranges)
+DETRAY_HOST_DEVICE join(const ranges_t &... ranges)
     ->join<sizeof...(ranges_t), typename detray::ranges::const_iterator_t<
                                     detray::detail::first_t<ranges_t...>>>;
 
 template <typename... ranges_t>
-DETRAY_HOST_DEVICE join(ranges_t &&...ranges)
+DETRAY_HOST_DEVICE join(ranges_t &&... ranges)
     ->join<sizeof...(ranges_t), typename detray::ranges::iterator_t<
                                     detray::detail::first_t<ranges_t...>>>;
 
