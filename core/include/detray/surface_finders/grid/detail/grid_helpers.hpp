@@ -64,6 +64,7 @@ struct grid_data {
 ///
 /// The grid holds a view onto a global collection of data. This type is NOT
 /// used to move @c grid_data from host to device.
+/// @todo Use spans
 template <typename backend_storage_type>
 struct grid_view {
     /// Contains all bin edges for all the axes
