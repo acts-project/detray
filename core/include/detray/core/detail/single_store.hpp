@@ -11,7 +11,6 @@
 #include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-//#include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -21,16 +20,11 @@
 
 namespace detray {
 
-/// @brief Wraps a vecmem enabled tuple and adds functionality to handle data
-/// collections.
+/// @brief Wraps a vector-like container and implements a data store around it.
 ///
-/// @tparam An enum of type IDs that needs to match the value types of the
-/// @c Ts pack.
-/// @tparam context_t How to retrieve data according to e.g. conditions data
-/// @tparam tuple_t The type of the underlying container.
-/// @tparam container_t The type of container to use for the respective
-///                     data collections.
-/// @tparam Ts the data types (value types of the collections)
+/// @tparam T The type of the collection data, e.g. transforms
+/// @tparam container_t The type of container to use for the data collection.
+/// @tparam context_t the context with which to retrieve the correct data.
 template <typename T, template <typename...> class container_t = dvector,
           typename context_t = empty_context>
 class single_store {
@@ -44,7 +38,7 @@ class single_store {
     using const_iterator = typename base_type::const_iterator;
     using context_type = context_t;
 
-    /// How to find a data collection in the store
+    /// How to find data in the store
     /// @{
     using link_type = dindex;
     using single_link = dindex;
@@ -96,14 +90,14 @@ class single_store {
     DETRAY_HOST_DEVICE
     constexpr auto data() noexcept -> base_type * { return &m_container; }
 
-    /// @returns the size of the underlying tuple
+    /// @returns the size of the underlying container
     DETRAY_HOST_DEVICE
     constexpr auto size(const context_type & /*ctx*/ = {}) const noexcept
         -> std::size_t {
         return m_container.size();
     }
 
-    /// @returns true if the collection given by @tparam ID is empty
+    /// @returns true if the underlying container is empty
     DETRAY_HOST_DEVICE
     constexpr auto empty(const context_type & /*ctx*/ = {}) const noexcept
         -> bool {
@@ -147,7 +141,7 @@ class single_store {
         return m_container[i];
     }
 
-    /// @returns context based access to an element
+    /// @returns context based access to an element (also range checked)
     DETRAY_HOST_DEVICE
     constexpr auto at(const dindex i,
                       const context_type & /*ctx*/) const noexcept
@@ -155,7 +149,7 @@ class single_store {
         return m_container.at(i);
     }
 
-    /// @returns context based access to an element
+    /// @returns context based access to an element (also range checked)
     DETRAY_HOST_DEVICE
     constexpr auto at(const dindex i, const context_type & /*ctx*/) noexcept
         -> T & {
@@ -167,11 +161,11 @@ class single_store {
         m_container.reserve(n);
     }
 
-    /// Add a new element to a collection - copy
+    /// Add a new element to the collection - copy
     ///
-    /// @tparam U are the types of the constructor arguments
+    /// @tparam U type that can be converted to T
     ///
-    /// @param args is the list of constructor arguments
+    /// @param arg the constructor argument
     ///
     /// @note in general can throw an exception
     template <typename U>
@@ -181,11 +175,11 @@ class single_store {
         m_container.push_back(arg);
     }
 
-    /// Add a new element to a collection - move
+    /// Add a new element to the collection - move
     ///
-    /// @tparam Args are the types of the constructor arguments
+    /// @tparam U type that can be converted to T
     ///
-    /// @param args is the list of constructor arguments
+    /// @param arg the constructor argument
     ///
     /// @note in general can throw an exception
     template <typename U>
@@ -194,9 +188,8 @@ class single_store {
         m_container.push_back(std::move(arg));
     }
 
-    /// Add a new element to a collection in place
+    /// Add a new element to the collection in place
     ///
-    /// @tparam ID is the id of the collection
     /// @tparam Args are the types of the constructor arguments
     ///
     /// @param args is the list of constructor arguments
@@ -208,9 +201,9 @@ class single_store {
         return m_container.emplace_back(std::forward<Args>(args)...);
     }
 
-    /// Add a collection - copy
+    /// Insert another collection - copy
     ///
-    /// @tparam T is the value type of the collection
+    /// @tparam U type that can be converted to T
     ///
     /// @param new_data is the new collection to be added
     ///
@@ -223,9 +216,9 @@ class single_store {
         m_container.insert(m_container.end(), new_data.begin(), new_data.end());
     }
 
-    /// Add a new collection - move
+    /// Insert another collection - move
     ///
-    /// @tparam T is the value type of the collection
+    /// @tparam U type that can be converted to T
     ///
     /// @param new_data is the new collection to be added
     ///
@@ -241,8 +234,6 @@ class single_store {
     }
 
     /// Append another store to the current one
-    ///
-    /// @tparam current_idx is the index to start unrolling
     ///
     /// @param other The other container
     ///
