@@ -383,7 +383,7 @@ TEST(grids_cuda, cylindrical3D_collection) {
     const auto& axis_z = grid_coll[2].template get_axis<n_axis::label::e_z>();
 
     grid_collection_test(get_data(grid_coll), vecmem::get_data(n_bins),
-                         vecmem::get_data(result_bins), grid_coll.ngrids(),
+                         vecmem::get_data(result_bins), grid_coll.size(),
                          axis_r.nbins(), axis_phi.nbins(), axis_z.nbins());
 
     // Compare results

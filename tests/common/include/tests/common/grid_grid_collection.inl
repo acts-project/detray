@@ -83,7 +83,7 @@ TEST(grid, grid_collection) {
     // Tests
 
     // Basics
-    EXPECT_EQ(grid_coll.ngrids(), 3UL);
+    EXPECT_EQ(grid_coll.size(), 3UL);
     EXPECT_EQ(grid_coll.bin_storage().size(), 197UL);
     EXPECT_EQ(grid_coll.axes_storage().size(), 9UL);
     EXPECT_EQ(grid_coll.bin_edges_storage().size(), 18UL);

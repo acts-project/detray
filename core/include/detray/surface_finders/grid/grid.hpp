@@ -39,6 +39,8 @@ class grid {
     public:
     // Single value in a bin entry
     using value_type = value_t;
+    template <std::size_t DIM>
+    using serializer_type = serializer_t<DIM>;
     // Interface to the populator (detramines the bin entry and value type).
     using populator_type = populator<populator_impl_t>;
     using bin_type = typename populator_type::template bin_type<value_type>;
