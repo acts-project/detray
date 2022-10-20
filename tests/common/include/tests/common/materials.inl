@@ -131,6 +131,7 @@ TEST(materials, material_slab) {
                     slab.path_segment(is) / slab.get_material().X0());
     EXPECT_FLOAT_EQ(slab.path_segment_in_L0(is),
                     slab.path_segment(is) / slab.get_material().L0());
+    EXPECT_FLOAT_EQ(slab.area(), scalar{2.} * unit_constants::mm);
 }
 
 // This tests the material rod functionalities
@@ -164,4 +165,5 @@ TEST(materials, material_rod) {
                     rod.path_segment(is) / rod.get_material().X0());
     EXPECT_FLOAT_EQ(rod.path_segment_in_L0(is),
                     rod.path_segment(is) / rod.get_material().L0());
+    EXPECT_FLOAT_EQ(rod.area(), scalar{M_PI} * unit_constants::mm2);
 }

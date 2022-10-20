@@ -82,6 +82,10 @@ struct material_slab {
         return m_thickness_in_L0 / is.cos_incidence_angle;
     }
 
+    /// Return the area of slab (thickness for slab).
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type area() const { return this->thickness(); }
+
     private:
     material_type m_material = {};
     scalar_type m_thickness = std::numeric_limits<scalar>::epsilon();

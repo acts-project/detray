@@ -79,6 +79,12 @@ struct material_rod {
         return this->path_segment(is) / m_material.L0();
     }
 
+    /// Return the area of rod ( area of circle)
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type area() const {
+        return scalar_type{M_PI} * m_radius * m_radius;
+    }
+
     private:
     material_type m_material = {};
     scalar_type m_radius = std::numeric_limits<scalar>::epsilon();
