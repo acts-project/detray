@@ -17,7 +17,8 @@ constexpr double mm = 1.0;
 constexpr double cm = 10.0;
 constexpr double m = 1000.0;
 
-// Volume, native unit mm3
+// Volume, native unit
+constexpr double mm2 = mm * mm;
 constexpr double mm3 = mm * mm * mm;
 constexpr double cm2 = cm * cm;
 constexpr double cm3 = cm * cm * cm;

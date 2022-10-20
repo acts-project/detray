@@ -55,6 +55,7 @@ detray_add_test( vc_array
    "vc_array_trapezoid2D.cpp"
    "vc_array_unmasked.cpp" 
    "vc_array_volume.cpp"
+   "vc_array_volume_radiation_length.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::vc_array )
 
 # Set up the "conditional" tests.

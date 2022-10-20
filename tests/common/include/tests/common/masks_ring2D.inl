@@ -33,4 +33,7 @@ TEST(mask, ring2D) {
     ASSERT_TRUE(r2.is_inside(p2_pl_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(r2.is_inside(p2_pl_out, 1.2) == intersection::status::e_inside);
+
+    EXPECT_FLOAT_EQ(r2.area(),
+                    scalar{12.25} * scalar{M_PI} * unit_constants::mm2);
 }

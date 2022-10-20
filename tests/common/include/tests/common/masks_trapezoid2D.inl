@@ -38,4 +38,6 @@ TEST(mask, trapezoid2D) {
     ASSERT_TRUE(t2.is_inside(p2_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(t2.is_inside(p2_out, 1.) == intersection::status::e_inside);
+
+    EXPECT_EQ(t2.area(), 16. * unit_constants::mm2);
 }

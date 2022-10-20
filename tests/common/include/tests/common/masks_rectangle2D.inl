@@ -35,6 +35,8 @@ TEST(mask, rectangle2D) {
     ASSERT_TRUE(r2.is_inside(p2_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(r2.is_inside(p2_out, 1.) == intersection::status::e_inside);
+
+    EXPECT_FLOAT_EQ(r2.area(), 37.2 * unit_constants::mm2);
 }
 
 /// This tests the basic functionality of a cuboid3D

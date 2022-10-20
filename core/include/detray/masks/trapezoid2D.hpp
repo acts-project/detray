@@ -108,6 +108,20 @@ class trapezoid2D {
                                           tol and
                 std::abs(loc_p[1]) <= bounds[e_half_length_2] + tol);
     }
+
+    /// @brief Get the physical area of the mask
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @return the area of shape
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE scalar_t
+    area(const bounds_t<scalar_t, kDIM> &bounds) const {
+        return (bounds[e_half_length_0] + bounds[e_half_length_1]) *
+               bounds[e_half_length_2] * scalar{2.};
+    }
 };
 
 }  // namespace detray

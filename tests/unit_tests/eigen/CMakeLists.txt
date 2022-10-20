@@ -55,6 +55,7 @@ detray_add_test( eigen
    "eigen_trapezoid2D.cpp"
    "eigen_unmasked.cpp"
    "eigen_volume.cpp"
+   "eigen_volume_radiation_length.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::eigen )
 
 # Set up the "conditional" tests.

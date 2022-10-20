@@ -153,6 +153,10 @@ class mask {
     DETRAY_HOST_DEVICE
     auto values() const -> const mask_values& { return _values; }
 
+    /// @returns the area of mask shape
+    DETRAY_HOST_DEVICE
+    scalar_type area() const { return _shape.area(_values); }
+
     /// @returns the volume link - const reference
     DETRAY_HOST_DEVICE
     auto volume_link() const -> const links_type& { return _volume_link; }

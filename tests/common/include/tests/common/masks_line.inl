@@ -39,6 +39,8 @@ TEST(mask, line_radial_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_edge) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
     ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
+
+    EXPECT_EQ(ln.area(), 100. * unit_constants::mm);
 }
 
 /// This tests the basic functionality of a line with a square cross section
@@ -61,4 +63,6 @@ TEST(mask, line_square_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_edge, -1e-5) ==
                 intersection::status::e_outside);
     ASSERT_TRUE(ln.is_inside(ln_out) == intersection::status::e_outside);
+
+    EXPECT_EQ(ln.area(), 100. * unit_constants::mm);
 }

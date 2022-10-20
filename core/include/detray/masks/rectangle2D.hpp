@@ -98,6 +98,19 @@ class rectangle2D {
         return (std::abs(loc_p[0]) <= bounds[e_half_x] + tol and
                 std::abs(loc_p[1]) <= bounds[e_half_y] + tol);
     }
+
+    /// @brief Get the physical area of the mask
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @return the area of shape
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE scalar_t
+    area(const bounds_t<scalar_t, kDIM> &bounds) const {
+        return scalar_t{4.} * bounds[e_half_x] * bounds[e_half_y];
+    }
 };
 
 }  // namespace detray

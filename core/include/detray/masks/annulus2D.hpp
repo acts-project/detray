@@ -168,6 +168,21 @@ class annulus2D {
         return ((r_mod2 >= minR_tol * minR_tol) and
                 (r_mod2 <= maxR_tol * maxR_tol));
     }
+
+    /// @brief Get the physical area of the mask
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @return the area of shape
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE scalar_t
+    area(const bounds_t<scalar_t, kDIM> &bounds) const {
+        return (bounds[e_max_phi_rel] - bounds[e_min_phi_rel]) / scalar_t{2.} *
+               (bounds[e_max_r] * bounds[e_max_r] -
+                bounds[e_min_r] * bounds[e_min_r]);
+    }
 };
 
 }  // namespace detray

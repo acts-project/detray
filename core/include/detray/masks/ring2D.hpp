@@ -100,6 +100,20 @@ class ring2D {
         return (loc_p[0] + tol >= bounds[e_inner_r] and
                 loc_p[0] <= bounds[e_outer_r] + tol);
     }
+
+    /// @brief Get the physical area of the mask
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @return the area of shape
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE scalar_t
+    area(const bounds_t<scalar_t, kDIM> &bounds) const {
+        return scalar_t{M_PI} * (bounds[e_outer_r] * bounds[e_outer_r] -
+                                 bounds[e_inner_r] * bounds[e_inner_r]);
+    }
 };
 
 }  // namespace detray

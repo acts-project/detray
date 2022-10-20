@@ -55,6 +55,7 @@ detray_add_test( array
    "array_track_generators.cpp"
    "array_unmasked.cpp"
    "array_volume.cpp"
+   "array_volume_radiation_length.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::array )
 
 # Set up the "conditional" tests.

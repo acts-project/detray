@@ -55,6 +55,7 @@ detray_add_test( smatrix
    "smatrix_trapezoid2D.cpp"
    "smatrix_unmasked.cpp"
    "smatrix_volume.cpp"
+   "smatrix_volume_radiation_length.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::smatrix )
 
 # Set up the "conditional" tests.

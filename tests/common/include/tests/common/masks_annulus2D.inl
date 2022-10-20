@@ -63,4 +63,7 @@ TEST(mask, annulus2D) {
                 intersection::status::e_inside);
     ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out4), 0.07) ==
                 intersection::status::e_inside);
+
+    EXPECT_FLOAT_EQ(ann2.area(),
+                    46.08 * (1.33970 - 0.74195) * unit_constants::mm2);
 }

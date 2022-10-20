@@ -61,4 +61,6 @@ TEST(mask, cylinder2D) {
     ASSERT_TRUE(c.is_inside(p2_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(c.is_inside(p2_out, 0.6) == intersection::status::e_inside);
+
+    EXPECT_FLOAT_EQ(c.area(), scalar{48.} * scalar{M_PI} * unit_constants::mm2);
 }

@@ -135,6 +135,19 @@ class line {
                     std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
         }
     }
+
+    /// @brief Get the physical area of the mask (the length of the line)
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @return the area of shape
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE scalar_t
+    area(const bounds_t<scalar_t, kDIM> &bounds) const {
+        return scalar_t{2.} * bounds[e_half_z];
+    }
 };
 
 }  // namespace detray
