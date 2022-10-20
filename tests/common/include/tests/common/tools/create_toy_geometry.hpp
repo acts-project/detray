@@ -217,6 +217,9 @@ void create_cyl_volume(
 
     det.add_objects_per_volume(ctx, cyl_volume, surfaces, masks, materials,
                                transforms);
+
+    // Volume placement
+    // return det.transform_store().emplace_back(ctx, tsl);
 }
 
 /** Helper function that creates a layer of rectangular barrel modules.
@@ -325,33 +328,35 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
  * @param resource vecmem memory resource
  * @param cfg config struct for module creation
  */
-/*template <typename detector_t, typename config_t>
-inline void add_z_phi_grid(const typename detector_t::geometry_context &ctx,
-                           typename detector_t::volume_type &vol,
-                           detector_t &det, vecmem::memory_resource &resource,
-                           const config_t &cfg) {
-    // Get correct grid type
+template <typename detector_t, typename config_t>
+inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
+                              typename detector_t::volume_type &vol,
+                              detector_t &det,
+                              vecmem::memory_resource &resource,
+                              const config_t &cfg) {
+    // Get relevant ids
+    constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
     constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder_grid;
-    using surface_grid_t =
-        typename detector_t::sf_finders::template get_type<grid_id>::type;
+    constexpr auto portal_id = detector_t::geo_obj_ids::e_portal;
 
-    // return the first z position of module
-    std::size_t n_z_bins = cfg.m_binning.second;
-    scalar z_start{scalar{-0.5} * (n_z_bins - 1) *
-                   (scalar{2} * cfg.m_half_y - cfg.m_long_overlap)};
-    scalar z_end{std::abs(z_start)};
-    scalar z_half_step{scalar{0.5} * (z_end - z_start) / (n_z_bins - 1)};
+    grid_builder<dindex, simple_serializer, regular_attacher<9>> gbuilder(
+        resource);
+    auto gfactory = gbuilder.new_factory();
 
-    // add surface grid
-    typename surface_grid_t::axis_p0_type z_axis(
-        n_z_bins, z_start - z_half_step, z_end + z_half_step, resource);
-    typename surface_grid_t::axis_p1_type phi_axis(cfg.m_binning.first, -M_PI,
-                                                   M_PI, resource);
+    // The cylinder portals are at the end of the surface range by construction
+    auto portal_link = vol.template obj_link<portal_id>();
+    auto portal_mask_idx = det.surfaces()[portal_link[1] - 3].mask().index();
+    mask<cylinder2D<>> cyl_mask =
+        det.mask_store().template get<cyl_id>().at(portal_mask_idx);
 
     // Add new grid to the detector
-    surface_grid_t z_phi_grid(z_axis, phi_axis, resource);
-    det.template add_sf_finder<surface_grid_t, grid_id>(ctx, vol, z_phi_grid);
-}*/
+    auto cyl_grid =
+        gfactory.new_grid(cyl_mask, cfg.m_binning.first, cfg.m_binning.second);
+    det.template add_sf_finder<decltype(cyl_grid), grid_id>(ctx, vol, cyl_grid);
+
+    auto &grid_coll = det.sf_finder_store().template get<grid_id>();
+    // gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
+}
 
 /** Helper function that creates a surface grid of trapezoidal endcap modules.
  *
@@ -360,27 +365,36 @@ inline void add_z_phi_grid(const typename detector_t::geometry_context &ctx,
  * @param resource vecmem memory resource
  * @param cfg config struct for module creation
  */
-/*template <typename detector_t, typename config_t>
-inline void add_r_phi_grid(const typename detector_t::geometry_context &ctx,
-                           typename detector_t::volume_type &vol,
-                           detector_t &det, vecmem::memory_resource &resource,
-                           const config_t &cfg) {
-    // Get correct grid type
+template <typename detector_t, typename config_t>
+inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
+                          typename detector_t::volume_type &vol,
+                          detector_t &det, vecmem::memory_resource &resource,
+                          const config_t &cfg) {
+    // Get relevant ids
+    constexpr auto disc_id = detector_t::masks::id::e_portal_ring2;
     constexpr auto grid_id = detector_t::sf_finders::id::e_disc_grid;
-    using surface_grid_t =
-        typename detector_t::sf_finders::template get_type<grid_id>::type;
+    constexpr auto portal_id = detector_t::geo_obj_ids::e_portal;
 
-    // add surface grid
-    // TODO: What is the proper value of n_phi_bins?
-    typename surface_grid_t::axis_p0_type r_axis(
-        cfg.disc_binning.size(), cfg.inner_r, cfg.outer_r, resource);
-    typename surface_grid_t::axis_p1_type phi_axis(cfg.disc_binning.front(),
-                                                   -M_PI, M_PI, resource);
+    grid_builder<dindex, simple_serializer, regular_attacher<9>> gbuilder(
+        resource);
+    auto gfactory = gbuilder.new_factory();
+
+    // The disc portal are at the end of the surface range by construction
+    auto portal_link = vol.template obj_link<portal_id>();
+    auto portal_mask_idx = det.surfaces()[portal_link[1] - 1].mask().index();
+    mask<ring2D<>> disc_mask =
+        det.mask_store().template get<disc_id>().at(portal_mask_idx);
+
+    auto disc_grid = gfactory.new_grid(disc_mask, cfg.disc_binning.size(),
+                                       cfg.disc_binning.front());
 
     // Add new grid to the detector
-    surface_grid_t r_phi_grid(r_axis, phi_axis, resource);
-    det.template add_sf_finder<surface_grid_t, grid_id>(ctx, vol, r_phi_grid);
-}*/
+    det.template add_sf_finder<decltype(disc_grid), grid_id>(ctx, vol,
+                                                             disc_grid);
+
+    auto &grid_coll = det.sf_finder_store().template get<grid_id>();
+    // gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
+}
 
 /** Helper method for positioning of modules in an endcap ring
  *
@@ -809,7 +823,7 @@ void add_endcap_detector(
                               cfg.side * (vol_size_itr + cfg.side * i)->first,
                               cfg.side * (vol_size_itr + cfg.side * i)->second,
                               volume_links_vec[i], m_factory);
-            // add_r_phi_grid(ctx, det.volumes().back(), det, resource, cfg);
+            add_disc_grid(ctx, det.volumes().back(), det, resource, cfg);
         }
     }
 }
@@ -887,7 +901,7 @@ void add_barrel_detector(
             create_cyl_volume(det, resource, ctx, vol_sizes[i].first,
                               vol_sizes[i].second, -brl_half_z, brl_half_z,
                               volume_links_vec[i], m_factory);
-            // add_z_phi_grid(ctx, det.volumes().back(), det, resource, cfg);
+            add_cylinder_grid(ctx, det.volumes().back(), det, resource, cfg);
         }
     }
 }
@@ -917,6 +931,11 @@ auto create_toy_geometry(
     /// Leaving world
     constexpr dindex leaving_world{dindex_invalid};
 
+    /// How to build surface grids
+    using grid_builder_t =
+        grid_builder<dindex, simple_serializer, regular_attacher<9>>;
+    grid_builder_t gbuilder(resource);
+
     //
     // barrel
     //
@@ -937,6 +956,7 @@ auto create_toy_geometry(
         std::pair<int, int> m_binning = {16, 14};
         material<scalar> mat = silicon_tml<scalar>();
         scalar thickness = 0.15 * unit_constants::mm;
+        typename grid_builder_t::grid_factory gfactory;
     };
 
     //
@@ -966,6 +986,7 @@ auto create_toy_geometry(
         std::vector<scalar> m_tilt = {0., 0.};
         material<scalar> mat = silicon_tml<scalar>();
         scalar thickness = 0.15 * unit_constants::mm;
+        typename grid_builder_t::grid_factory gfactory;
     };
 
     // Don't create modules in gap volume

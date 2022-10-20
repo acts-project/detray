@@ -104,7 +104,13 @@ class grid_collection<
 
     /// @returns the number of grids in the collection - const
     DETRAY_HOST_DEVICE
-    constexpr auto ngrids() const -> std::size_t { return m_offsets.size(); }
+    constexpr auto size() const noexcept -> std::size_t {
+        return m_offsets.size();
+    }
+
+    /// @returns the number of grids in the collection - const
+    DETRAY_HOST_DEVICE
+    constexpr auto empty() const noexcept -> bool { return m_offsets.empty(); }
 
     /// @returns the offsets for the grids in the bin storage - const
     DETRAY_HOST_DEVICE
@@ -132,11 +138,11 @@ class grid_collection<
 
     /// Create grid from container pointers - const
     DETRAY_HOST_DEVICE
-    auto operator[](const size_type i) const -> const_grid_type {
+    auto operator[](const size_type i) const -> grid_type {
         const size_type axes_offset{grid_type::Dim * i};
-        return const_grid_type(
-            &m_bins, multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
-            m_offsets[i]);
+        return grid_type(&m_bins,
+                         multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
+                         m_offsets[i]);
     }
 
     /// Create grid from container pointers - non-const

@@ -439,4 +439,13 @@ auto grid_builder<value_t, serializer_t, populator_impl_t, algebra_t,
     std::cout << "}" << std::endl;
 }
 
+template <typename grid_t,
+          template <std::size_t> class serializer_t =
+              grid_t::template serializer_type,
+          typename algebra_t = __plugin::transform3<detray::scalar>,
+          typename container_t = host_container_types>
+using get_grid_builder =
+    grid_builder<typename grid_t::value_type, serializer_t,
+                 typename grid_t::populator_type, algebra_t, container_t>;
+
 }  // namespace detray

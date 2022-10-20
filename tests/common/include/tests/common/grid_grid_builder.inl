@@ -113,10 +113,10 @@ TEST(grid, grid_builder) {
 
     // Get grid collection with the correct allocator
     auto grid_coll = gr_builder.new_collection<decltype(cyl_gr)>();
-    EXPECT_TRUE(grid_coll.ngrids() == 0UL);
+    EXPECT_TRUE(grid_coll.size() == 0UL);
     grid_coll.push_back(cyl_gr);
     grid_coll.push_back(cyl_gr2);
-    EXPECT_TRUE(grid_coll.ngrids() == 2UL);
+    EXPECT_TRUE(grid_coll.size() == 2UL);
 
     EXPECT_FLOAT_EQ(grid_coll[0].search(loc_p)[0], 33UL);
     // gr_builder.to_string(grid_coll[0]);
