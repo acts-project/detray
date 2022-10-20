@@ -50,8 +50,7 @@ template <typename detector_t,
 class volume_graph {
 
     public:
-    // Objects ids of the geometry
-    using object_defs = typename detector_t::objects;
+    using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_container_t = vector_t<typename detector_t::volume_type>;
     using surface_container_t = vector_t<typename detector_t::surface_type>;
     using mask_container_t = typename detector_t::mask_container;
@@ -358,7 +357,7 @@ class volume_graph {
             inspector(*current);
 
             // Visit neighbors and perform action
-            actor(*current, current->template range<object_defs::e_portal>());
+            actor(*current, current->template range<geo_obj_ids::e_portal>());
 
             // Add neightbors to queue
             for (const auto &edg_link : current->edges()) {

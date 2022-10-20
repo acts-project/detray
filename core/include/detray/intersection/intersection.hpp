@@ -12,6 +12,7 @@
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/geometry/surface.hpp"
 
 namespace detray {
 
@@ -68,6 +69,8 @@ struct line_plane_intersection {
     // Navigation information
     // TODO: rename the variable properly
     dindex link = dindex_invalid;
+    // Surface id for this intersection (sensitive, portal, passive)
+    surface_id sf_id = surface_id::e_sensitive;
 
     // cosine of incidence angle
     scalar cos_incidence_angle = 1.;
