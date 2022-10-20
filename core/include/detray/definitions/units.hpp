@@ -19,6 +19,7 @@ constexpr double m = 1000.0;
 
 // Volume, native unit mm3
 constexpr double mm3 = mm * mm * mm;
+constexpr double cm2 = cm * cm;
 constexpr double cm3 = cm * cm * cm;
 
 // Time, native unit mm = [speed-of-light * time] = mm/s * s
@@ -32,8 +33,9 @@ constexpr double min = 60.0 * s;
 constexpr double h = 3600.0 * s;
 
 // Energy, native unit GeV
-constexpr double keV = 0.000001;
-constexpr double MeV = 0.001;
+constexpr double eV = 1e-9;
+constexpr double keV = 1e-6;
+constexpr double MeV = 1e-3;
 constexpr double GeV = 1.0;
 constexpr double TeV = 1e3;
 

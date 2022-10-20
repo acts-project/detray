@@ -8,6 +8,7 @@
 detray_add_test( array
    "array_actor_chain.cpp"
    "array_annulus2D.cpp"
+   "array_axis_rotation.cpp"
    "array_container.cpp"
    "array_coordinate_cartesian2.cpp"
    "array_coordinate_cartesian3.cpp"
@@ -34,6 +35,7 @@ detray_add_test( array
    "array_line_stepper.cpp"
    "array_line.cpp"
    "array_mask_store.cpp"
+   "array_material_interaction.cpp"
    "array_materials.cpp"
    "array_navigator.cpp"
    "array_particle_gun.cpp"

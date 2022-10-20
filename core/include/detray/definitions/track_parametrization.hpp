@@ -59,4 +59,7 @@ enum free_indices : std::size_t {
     e_free_size,
 };
 
+// Track parameter type
+enum class parameter_type : int { e_free = 0, e_bound = 1 };
+
 }  // namespace detray

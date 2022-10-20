@@ -33,7 +33,13 @@ class uniform_track_generator
     using vector3 = __plugin::vector3<detray::scalar>;
 
     /// @brief Nested iterator type that generates track states.
-    struct iterator : public std::iterator<std::input_iterator_tag, track_t> {
+    struct iterator {
+
+        using difference_type = std::ptrdiff_t;
+        using value_type = track_t;
+        using pointer = track_t *;
+        using reference = track_t &;
+        using iterator_category = detray::ranges::input_iterator_tag;
 
         iterator() = default;
 

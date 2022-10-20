@@ -48,11 +48,16 @@ __global__ void propagator_test_kernel(
     inspector_device_t::state insp_state(
         path_lengths.at(gid), positions.at(gid), jac_transports.at(gid));
     pathlimit_aborter::state aborter_state{path_limit};
+    parameter_transporter<transform3>::state transporter_state{};
+    pointwise_material_interactor<transform3>::state interactor_state{};
+    parameter_resetter<transform3>::state resetter_state{};
 
     // Create the propagator state
-    propagator_device_type::state state(tracks[gid], B_field, det,
-                                        thrust::tie(insp_state, aborter_state),
-                                        candidates.at(gid));
+    propagator_device_type::state state(
+        tracks[gid], B_field, det,
+        thrust::tie(insp_state, aborter_state, transporter_state,
+                    interactor_state, resetter_state),
+        candidates.at(gid));
 
     state._stepping.set_tolerance(rk_tolerance);
 

@@ -7,14 +7,13 @@
 
 #pragma once
 
-// detray definitions
+// Project include(s).
 #include "detray/definitions/qualifiers.hpp"
-
-// detray tools
+#include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/navigation_policies.hpp"
 
-// system includes
+// System includes(s).
 #include <cmath>
 
 namespace detray {
@@ -27,12 +26,12 @@ class line_stepper final
 
     public:
     using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
+    using transform3_type = transform3_t;
     using policy_type = policy_t;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
-    using transform3_type = transform3_t;
     using matrix_operator = typename base_type::matrix_operator;
     using size_type = typename matrix_operator::size_ty;
     template <size_type ROWS, size_type COLS>
@@ -43,21 +42,22 @@ class line_stepper final
         static constexpr const stepping::id id = stepping::id::e_linear;
 
         DETRAY_HOST_DEVICE
-        state(const free_track_parameters_type &t) : base_type::state(t) {}
+        state(const free_track_parameters_type& t) : base_type::state(t) {}
 
         template <typename detector_t>
         DETRAY_HOST_DEVICE state(
-            const bound_track_parameters_type &bound_params,
-            const detector_t &det)
+            const bound_track_parameters_type& bound_params,
+            const detector_t& det)
             : base_type::state(bound_params, det) {}
 
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE
         inline void advance_track() {
-            auto &track = this->_track;
+            auto& track = this->_track;
             track.set_pos(track.pos() + track.dir() * this->_step_size);
 
             this->_path_length += this->_step_size;
+            this->_s += this->_step_size;
         }
 
         DETRAY_HOST_DEVICE
@@ -88,9 +88,9 @@ class line_stepper final
     ///
     /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bool step(propagation_state_t &propagation) {
+    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation) {
         // Get stepper state
-        state &stepping = propagation._stepping;
+        state& stepping = propagation._stepping;
         // Distance to next surface as fixed step size
         scalar step_size = propagation._navigation();
 

@@ -18,6 +18,8 @@ namespace detray {
 template <typename transform3_t>
 struct parameter_resetter : actor {
 
+    using scalar_type = typename transform3_t::scalar_type;
+
     struct state {};
 
     struct kernel {
@@ -66,7 +68,7 @@ struct parameter_resetter : actor {
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state& /*actor_state*/,
+    DETRAY_HOST_DEVICE void operator()(state& /*resetter_state*/,
                                        propagator_state_t& propagation) const {
 
         auto& navigation = propagation._navigation;

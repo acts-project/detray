@@ -8,6 +8,7 @@
 detray_add_test( smatrix
    "smatrix_actor_chain.cpp"
    "smatrix_annulus2D.cpp"
+   "smatrix_axis_rotation.cpp"
    "smatrix_container.cpp"
    "smatrix_coordinate_cartesian2.cpp"
    "smatrix_coordinate_cartesian3.cpp"
@@ -34,6 +35,7 @@ detray_add_test( smatrix
    "smatrix_line_stepper.cpp"
    "smatrix_line.cpp"
    "smatrix_mask_store.cpp"
+   "smatrix_material_interaction.cpp"
    "smatrix_materials.cpp"
    "smatrix_navigator.cpp"
    "smatrix_particle_gun.cpp"

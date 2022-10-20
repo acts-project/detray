@@ -35,10 +35,15 @@ __global__ void propagator_benchmark_kernel(
     // Create propagator
     propagator_device_type p(std::move(s), std::move(n));
 
+    parameter_transporter<transform3>::state transporter_state{};
+    pointwise_material_interactor<transform3>::state interactor_state{};
+    parameter_resetter<transform3>::state resetter_state{};
+
     // Create the propagator state
-    propagator_device_type::state p_state(tracks.at(gid), det.get_bfield(), det,
-                                          actor_chain<>::state{},
-                                          candidates.at(gid));
+    propagator_device_type::state p_state(
+        tracks.at(gid), det.get_bfield(), det,
+        thrust::tie(transporter_state, interactor_state, resetter_state),
+        candidates.at(gid));
 
     // Run propagation
     p.propagate(p_state);

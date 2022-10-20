@@ -7,14 +7,14 @@
 
 #pragma once
 
-// system include
-#include <climits>
-#include <cmath>
-
-// detray include(s)
+// Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/column_wise_operator.hpp"
+#include "detray/utils/matrix_helper.hpp"
+
+// System include(s).
+#include <climits>
+#include <cmath>
 
 namespace detray {
 
@@ -103,10 +103,8 @@ class helix : public free_track_parameters<transform3_t> {
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;
     using free_matrix = matrix_type<e_free_size, e_free_size>;
-    // Column wise operator
-    using column_wise_op = column_wise_operator<matrix_operator>;
-
     using free_track_parameters_type::pos;
+    using mat_helper = matrix_helper<matrix_operator>;
 
     DETRAY_HOST_DEVICE
     helix() = delete;
@@ -242,13 +240,13 @@ class helix : public free_track_parameters<transform3_t> {
 
         drdt = drdt + std::sin(_K * s) / _K * I33;
 
-        const auto H0 = column_wise_op().multiply(I33, _h0);
+        const auto H0 = mat_helper().column_wise_multiply(I33, _h0);
         drdt = drdt + (_K * s - std::sin(_K * s)) / _K *
-                          column_wise_op().multiply(
+                          mat_helper().column_wise_multiply(
                               matrix_operator().transpose(H0), _h0);
 
-        drdt = drdt +
-               (std::cos(_K * s) - 1) / _K * column_wise_op().cross(I33, _h0);
+        drdt = drdt + (std::cos(_K * s) - 1) / _K *
+                          mat_helper().column_wise_cross(I33, _h0);
 
         matrix_operator().set_block(ret, drdt, e_free_pos0, e_free_dir0);
 
@@ -256,9 +254,10 @@ class helix : public free_track_parameters<transform3_t> {
         auto dtdt = Z33;
         dtdt = dtdt + std::cos(_K * s) * I33;
         dtdt = dtdt + (1 - std::cos(_K * s)) *
-                          column_wise_op().multiply(
+                          mat_helper().column_wise_multiply(
                               matrix_operator().transpose(H0), _h0);
-        dtdt = dtdt - std::sin(_K * s) * column_wise_op().cross(I33, _h0);
+        dtdt =
+            dtdt - std::sin(_K * s) * mat_helper().column_wise_cross(I33, _h0);
 
         matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
