@@ -230,11 +230,15 @@ struct tuple_vector_container_data {
  *
  * @return the tuple vector data container
  */
-template <typename container_t>
-inline tuple_vector_container_data<container_t> get_data(
-    container_t &container) {
-    return tuple_vector_container_data<container_t>(
-        container, std::make_index_sequence<container_t::m_tuple_size>{});
+template <template <typename...> class tuple_t,
+          template <typename...> class vector_t, typename id_t, typename... Ts>
+inline tuple_vector_container_data<
+    tuple_vector_container<tuple_t, vector_t, id_t, Ts...>>
+get_data(tuple_vector_container<tuple_t, vector_t, id_t, Ts...> &container) {
+    return tuple_vector_container_data<
+        tuple_vector_container<tuple_t, vector_t, id_t, Ts...>>(
+        container, std::make_index_sequence<tuple_vector_container<
+                       tuple_t, vector_t, id_t, Ts...>::m_tuple_size>{});
 }
 
 }  // namespace detray
