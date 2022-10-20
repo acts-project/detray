@@ -21,6 +21,12 @@ struct volume_radiation_length {
 
     using scalar_type = typename detector_t::scalar_type;
 
+    struct material_property {
+        scalar_type area = 0;
+        scalar_type mass_density = 0;
+        scalar_type radiation_length = 0;
+    }
+
     struct get_mask_area {
         using output_type = std::vector<scalar_type>;
 
@@ -43,10 +49,8 @@ struct volume_radiation_length {
     };
 
     struct get_material_property {
-        // output_type[0]: area
-        // output_type[1]: mass density
-        // output_type[2]: radiation length
-        using output_type = std::vector<std::array<scalar_type, 3>>;
+
+        using output_type = std::vector<material_property>;
 
         template <typename material_group_t, typename index_t,
                   typename surface_t>
@@ -85,9 +89,17 @@ struct volume_radiation_length {
                 const auto mask_areas =
                     mask_store.template call<get_mask_area>(obj.mask(), obj);
 
-                const auto mat_property =
+                const auto mat_properties =
                     mat_store.template call<get_material_property>(
                         obj.material(), obj);
+
+                // Averaged radiation length (X_0) = M_0/sum(M_i, X_i) where
+                // M_0 is the total mass of the volume and,
+                // M_i and X_i is the mass and radiation length of surface
+                for (std::size_t i = 0; i < mask_areas.size(); i++) {
+                    const scalar_type mass =
+                        mask_areas[i] * mat_peroperties[i].area;
+                }
             }
 
             m_radiation_lengths.push_back(avg_rad_len);
@@ -96,5 +108,4 @@ struct volume_radiation_length {
 
     std::vector<scalar_type> m_radiation_lengths = {};
 };
-
 }  // namespace detray
