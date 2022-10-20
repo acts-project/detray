@@ -31,7 +31,7 @@ struct volume_radiation_length {
 
             const auto &mask_range = surface.mask_range();
 
-            std::vector<scalar_type> ret;
+            output_type ret;
 
             for (const auto &mask :
                  detray::ranges::subrange(mask_group, mask_range)) {
@@ -42,8 +42,11 @@ struct volume_radiation_length {
         }
     };
 
-    struct get_material_area {
-        using output_type = std::vector<scalar_type>;
+    struct get_material_property {
+        // output_type[0]: area
+        // output_type[1]: mass density
+        // output_type[2]: radiation length
+        using output_type = std::vector<std::array<scalar_type, 3>>;
 
         template <typename material_group_t, typename index_t,
                   typename surface_t>
@@ -53,35 +56,13 @@ struct volume_radiation_length {
 
             const auto &material_range = surface.material_range();
 
-            std::vector<scalar_type> ret;
+            output_type ret;
 
             for (const auto &mat :
                  detray::ranges::subrange(material_group, material_range)) {
 
-                ret.push_back(mat.area());
-            }
-
-            return ret;
-        }
-    };
-
-    struct get_radiation_length {
-        using output_type = std::vector<scalar_type>;
-
-        template <typename material_group_t, typename index_t,
-                  typename surface_t>
-        DETRAY_HOST_DEVICE inline output_type operator()(
-            const material_group_t &material_group, const index_t & /*index*/,
-            const surface_t &surface) const {
-
-            const auto &material_range = surface.material_range();
-
-            std::vector<scalar_type> ret;
-
-            for (const auto &mat :
-                 detray::ranges::subrange(material_group, material_range)) {
-
-                ret.push_back(mat.get_material().X0());
+                ret.push_back({mat.area(), mat.get_material().mass_density(),
+                               mat.get_material().X0()});
             }
 
             return ret;
@@ -91,7 +72,6 @@ struct volume_radiation_length {
     volume_radiation_length(const detector_t &det) {
 
         // @todo: Consider the case where the volume is filled with gas
-
         const auto &mask_store = det.mask_store();
         const auto &mat_store = det.material_store();
 
@@ -105,12 +85,8 @@ struct volume_radiation_length {
                 const auto mask_areas =
                     mask_store.template call<get_mask_area>(obj.mask(), obj);
 
-                const auto mat_areas =
-                    mat_store.template call<get_material_area>(obj.material(),
-                                                               obj);
-
-                const auto rad_lengths =
-                    mat_store.template call<get_radiation_length>(
+                const auto mat_property =
+                    mat_store.template call<get_material_property>(
                         obj.material(), obj);
             }
 
