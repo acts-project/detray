@@ -12,6 +12,8 @@
 // google-test include(s).
 #include <gtest/gtest.h>
 
+#include <iostream>
+
 using namespace detray;
 
 TEST(tools, volume_radiation_length) {
@@ -26,8 +28,24 @@ TEST(tools, volume_radiation_length) {
     std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
                                      300., 350, 400,  450., 500.};
 
-    // Build telescope detector with unbounded planes
-    const auto det = create_telescope_detector<rectangular>(host_mr, positions);
+    // Build detector and get radiation length of detector
+    const auto det_1 = create_telescope_detector<rectangular>(
+        host_mr, positions, {{0, 0, 0}, 0, {0, 0, 1}, -1},
+        20. * unit_constants::mm, 20. * unit_constants::mm,
+        silicon_tml<scalar>(), 80 * unit_constants::um);
+    volume_radiation_length<decltype(det_1)> vrl_1(det_1);
 
-    volume_radiation_length<decltype(det)> vrl(det);
+    // Same but with larger thickness
+    const auto det_2 = create_telescope_detector<rectangular>(
+        host_mr, positions, {{0, 0, 0}, 0, {0, 0, 1}, -1},
+        20. * unit_constants::mm, 20. * unit_constants::mm,
+        silicon_tml<scalar>(), 100 * unit_constants::um);
+    volume_radiation_length<decltype(det_2)> vrl_2(det_2);
+
+    EXPECT_EQ(vrl_1().size(), 1);
+    EXPECT_EQ(vrl_2().size(), 1);
+
+    // Radiation length of the first detector should be larger than the second
+    // one
+    EXPECT_TRUE(vrl_1[0] > vrl_2[0]);
 }

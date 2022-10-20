@@ -23,9 +23,8 @@ struct volume_radiation_length {
 
     struct material_property {
         scalar_type area = 0;
-        scalar_type mass_density = 0;
         scalar_type radiation_length = 0;
-    }
+    };
 
     struct get_mask_area {
         using output_type = std::vector<scalar_type>;
@@ -65,8 +64,7 @@ struct volume_radiation_length {
             for (const auto &mat :
                  detray::ranges::subrange(material_group, material_range)) {
 
-                ret.push_back({mat.area(), mat.get_material().mass_density(),
-                               mat.get_material().X0()});
+                ret.push_back({mat.area(), mat.get_material().X0()});
             }
 
             return ret;
@@ -81,7 +79,7 @@ struct volume_radiation_length {
 
         for (const auto &vol : det.volumes()) {
             const scalar_type vol_size = vol.volume_size();
-            const scalar_type avg_rad_len = 0;
+            scalar_type denom = 0;
 
             for (const auto [obj_idx, obj] :
                  detray::views::enumerate(det.surfaces(), vol)) {
@@ -93,19 +91,30 @@ struct volume_radiation_length {
                     mat_store.template call<get_material_property>(
                         obj.material(), obj);
 
-                // Averaged radiation length (X_0) = M_0/sum(M_i, X_i) where
-                // M_0 is the total mass of the volume and,
-                // M_i and X_i is the mass and radiation length of surface
+                // Averaged radiation length (X_0) = V_0/sum(V_i/X_i) where
+                // V_0 is the volume size and,
+                // V_i and X_i is the size and radiation length of surface
                 for (std::size_t i = 0; i < mask_areas.size(); i++) {
-                    const scalar_type mass =
-                        mask_areas[i] * mat_peroperties[i].area;
+                    const scalar_type mat_size =
+                        mask_areas[i] * mat_properties[i].area;
+
+                    denom += mat_size / mat_properties[i].radiation_length;
                 }
             }
+
+            const scalar_type avg_rad_len = vol_size / denom;
 
             m_radiation_lengths.push_back(avg_rad_len);
         }
     }
 
+    scalar_type operator[](std::size_t vol_index) const {
+        return m_radiation_lengths[vol_index];
+    }
+
+    std::vector<scalar_type> operator()() const { return m_radiation_lengths; }
+
+    private:
     std::vector<scalar_type> m_radiation_lengths = {};
 };
 }  // namespace detray

@@ -217,8 +217,17 @@ auto create_telescope_detector(
     typename detector_t::context ctx{};
     plane_config pl_config{half_x, half_y, pos, mat, thickness};
 
-    // volume boundaries are not needed. Same goes for portals
-    det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
+    // We don't have to take care of unbounded planes case
+    if constexpr (unbounded_planes) {
+        det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
+    }
+    // @note: For telescope geometry, cuboid volume is better than
+    // cylindrical volume. transform3 should also be defined.
+    else {
+        det.new_volume({0., std::sqrt(half_x * half_x + half_y * half_y),
+                        pos.front(), pos.back(), -M_PI, M_PI});
+    }
+
     typename detector_t::volume_type &vol = det.volume_by_index(0);
 
     // Add module surfaces to volume
