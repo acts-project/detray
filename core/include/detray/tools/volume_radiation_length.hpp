@@ -12,20 +12,38 @@
 
 // System include(s).
 #include <climits>
+#include <iostream>
 
 namespace detray {
 
 template <typename detector_t>
-class volume_radiation_length {
+struct volume_radiation_length {
 
     using scalar_type = typename detector_t::scalar_type;
 
-    struct get_mask_area {};
+    struct get_mask_area {
+        using output_type = std::vector<scalar_type>;
 
-    struct get_material_area {};
+        template <typename mask_group_t, typename index_t, typename surface_t>
+        DETRAY_HOST_DEVICE inline output_type operator()(
+            const mask_group_t &mask_group, const index_t & /*index*/,
+            const surface_t &surface) const {
 
-    struct get_surface_rad_len {
-        using output_type = scalar_type;
+            const auto &mask_range = surface.mask_range();
+
+            std::vector<scalar_type> ret;
+
+            for (const auto &mask :
+                 detray::ranges::subrange(mask_group, mask_range)) {
+
+                ret.push_back(mask.area());
+            }
+            return ret;
+        }
+    };
+
+    struct get_material_area {
+        using output_type = std::vector<scalar_type>;
 
         template <typename material_group_t, typename index_t,
                   typename surface_t>
@@ -35,11 +53,38 @@ class volume_radiation_length {
 
             const auto &material_range = surface.material_range();
 
+            std::vector<scalar_type> ret;
+
             for (const auto &mat :
                  detray::ranges::subrange(material_group, material_range)) {
+
+                ret.push_back(mat.area());
             }
 
-            return 0;
+            return ret;
+        }
+    };
+
+    struct get_radiation_length {
+        using output_type = std::vector<scalar_type>;
+
+        template <typename material_group_t, typename index_t,
+                  typename surface_t>
+        DETRAY_HOST_DEVICE inline output_type operator()(
+            const material_group_t &material_group, const index_t & /*index*/,
+            const surface_t &surface) const {
+
+            const auto &material_range = surface.material_range();
+
+            std::vector<scalar_type> ret;
+
+            for (const auto &mat :
+                 detray::ranges::subrange(material_group, material_range)) {
+
+                ret.push_back(mat.get_material().X0());
+            }
+
+            return ret;
         }
     };
 
@@ -47,18 +92,33 @@ class volume_radiation_length {
 
         // @todo: Consider the case where the volume is filled with gas
 
+        const auto &mask_store = det.mask_store();
         const auto &mat_store = det.material_store();
 
         for (const auto &vol : det.volumes()) {
             const scalar_type vol_size = vol.volume_size();
+            const scalar_type avg_rad_len = 0;
 
             for (const auto [obj_idx, obj] :
-                 detray::views::enumerate(det->surfaces(), vol)) {
+                 detray::views::enumerate(det.surfaces(), vol)) {
+
+                const auto mask_areas =
+                    mask_store.template call<get_mask_area>(obj.mask(), obj);
+
+                const auto mat_areas =
+                    mat_store.template call<get_material_area>(obj.material(),
+                                                               obj);
+
+                const auto rad_lengths =
+                    mat_store.template call<get_radiation_length>(
+                        obj.material(), obj);
             }
+
+            m_radiation_lengths.push_back(avg_rad_len);
         }
     }
 
-    std::vector<scalar_type> radiation_lengths = {};
+    std::vector<scalar_type> m_radiation_lengths = {};
 };
 
 }  // namespace detray

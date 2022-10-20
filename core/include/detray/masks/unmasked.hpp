@@ -14,6 +14,7 @@
 #include "detray/surface_finders/grid/detail/axis_shape.hpp"
 
 // System include(s)
+#include <climits>
 #include <string>
 #include <tuple>
 
@@ -77,6 +78,19 @@ class unmasked {
         const bounds_t& /*bounds*/, const point_t& /*loc_p*/,
         const scalar_t /*tol*/) const {
         return true;
+    }
+
+    /// @brief Get the inifinite area of the mask
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @return the area of shape
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE scalar_t
+    area(const bounds_t<scalar_t, kDIM>& /*bounds*/) const {
+        return std::numeric_limits<scalar_t>::infinity();
     }
 };
 
