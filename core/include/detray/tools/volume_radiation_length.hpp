@@ -10,10 +10,6 @@
 // Project include(s).
 #include "detray/utils/ranges.hpp"
 
-// System include(s).
-#include <climits>
-#include <iostream>
-
 namespace detray {
 
 template <typename detector_t>

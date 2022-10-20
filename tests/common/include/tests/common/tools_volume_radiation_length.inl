@@ -12,8 +12,6 @@
 // google-test include(s).
 #include <gtest/gtest.h>
 
-#include <iostream>
-
 using namespace detray;
 
 TEST(tools, volume_radiation_length) {
