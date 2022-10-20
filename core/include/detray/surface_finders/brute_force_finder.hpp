@@ -18,9 +18,7 @@
 namespace detray {
 
 /// Does nothing
-struct brute_force_view : public detail::dbase_view {
-    dindex m_view{0};
-};
+struct brute_force_view : public detail::dbase_view {};
 
 /// @brief A surface finder that returns all surfaces in a volume (brute force)
 struct brute_force_finder {
@@ -30,33 +28,27 @@ struct brute_force_finder {
     using const_view_type = brute_force_view;
 
     /// Default constructor
-    brute_force_finder() = default;
+    constexpr brute_force_finder() = default;
 
     /// Constructor from memory resource: Not needed
     DETRAY_HOST
-    brute_force_finder(vecmem::memory_resource * /*mr*/) {}
+    constexpr brute_force_finder(vecmem::memory_resource * /*mr*/) {}
 
     /// Constructor from a vecmem view: Not needed
-    DETRAY_HOST_DEVICE brute_force_finder(const brute_force_view & /*view*/) {}
+    DETRAY_HOST_DEVICE
+    constexpr brute_force_finder(const brute_force_view & /*view*/) {}
 
     /// @returns the complete surface range of the search volume
     template <typename detector_t, typename track_t>
-    DETRAY_HOST_DEVICE dindex_range
-    search(const detector_t & /*det*/,
-           const typename detector_t::volume_type &volume,
-           const track_t & /*track*/) const {
-        return volume.range();
+    DETRAY_HOST_DEVICE constexpr auto search(
+        const detector_t & /*det*/,
+        const typename detector_t::volume_type &volume,
+        const track_t & /*track*/) const -> dindex_range {
+        return volume.full_range();
     }
 
-    /// A stand-alone function to get the vecmem view of the brute force finder
-    /// @return the view on this tuple container
-    brute_force_view get_data() { return {}; }
+    /// @return the view on the brute force finder
+    constexpr auto get_data() const noexcept -> brute_force_view { return {}; }
 };
-
-/// A stand-alone function to get the vecmem view of the brute force finder
-/// @return the view on this tuple container
-/*inline brute_force_view get_data(brute_force_finder &container) {
-    return {};
-}*/
 
 }  // namespace detray
