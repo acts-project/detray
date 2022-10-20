@@ -17,6 +17,7 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -41,13 +42,11 @@ using bound_matrix =
 
 using intersection_t = line_plane_intersection;
 using transform3 = __plugin::transform3<scalar>;
-using detector_host_type =
-    detector<detector_registry::telescope_detector, covfie::field, darray,
-             thrust::tuple, vecmem::vector, vecmem::jagged_vector>;
+using detector_host_type = detector<detector_registry::telescope_detector,
+                                    covfie::field, host_container_types>;
 using detector_device_type =
-    detector<detector_registry::telescope_detector, covfie::field_view, darray,
-             thrust::tuple, vecmem::device_vector,
-             vecmem::jagged_device_vector>;
+    detector<detector_registry::telescope_detector, covfie::field_view,
+             device_container_types>;
 
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;

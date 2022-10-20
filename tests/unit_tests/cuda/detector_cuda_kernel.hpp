@@ -29,12 +29,13 @@ using namespace __plugin;
 namespace detray {
 
 // some useful type declarations
-using detector_host_t =
-    detector<detector_registry::toy_detector, covfie::field, host_container_types>;
-using detector_device_t =
-    detector<detector_registry::toy_detector, covfie::field_view, device_container_types>;
+using detector_host_t = detector<detector_registry::toy_detector, covfie::field,
+                                 host_container_types>;
+using detector_device_t = detector<detector_registry::toy_detector,
+                                   covfie::field_view, device_container_types>;
 using volume_t = typename detector_host_t::volume_type;
 using surface_t = typename detector_host_t::surface_type;
+using transform_t = typename detector_host_t::transform3;
 using transform_store_t = typename detector_host_t::transform_container;
 using mask_defs = typename detector_host_t::masks;
 
@@ -48,12 +49,12 @@ using cylinder_t = typename mask_defs::template get_type<cylinder_id>::type;
 
 /// declaration of a test function for detector
 void detector_test(detector_view<detector_host_t> det_data,
-                   vecmem::data::vector_view<volume_t>& volumes_data,
-                   vecmem::data::vector_view<surface_t>& surfaces_data,
-                   typename transform_store_t::view_type transforms_data,
-                   vecmem::data::vector_view<rectangle_t>& rectangles_data,
-                   vecmem::data::vector_view<disc_t>& discs_data,
-                   vecmem::data::vector_view<cylinder_t>& cylinders_data);
+                   vecmem::data::vector_view<volume_t> volumes_data,
+                   vecmem::data::vector_view<surface_t> surfaces_data,
+                   vecmem::data::vector_view<transform_t> transforms_data,
+                   vecmem::data::vector_view<rectangle_t> rectangles_data,
+                   vecmem::data::vector_view<disc_t> discs_data,
+                   vecmem::data::vector_view<cylinder_t> cylinders_data);
 
 // declaration of a test function for volume enumeration
 void enumerate_test(detector_view<detector_host_t> det_data,
