@@ -184,6 +184,8 @@ class multi_axis {
     using axis_reg = type_registry<n_axis::label, axis_ts...>;
     template <n_axis::label L>
     using label_matcher = typename axis_reg::template get_type<L, tuple_type>;
+    template <bool owning>
+    using type = multi_axis<owning, local_frame_t, axis_ts...>;
 
     /// Default constructor
     multi_axis() = default;
