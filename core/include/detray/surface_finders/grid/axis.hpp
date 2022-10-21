@@ -81,7 +81,14 @@ struct single_axis {
 
     /// @returns the total number of bins
     DETRAY_HOST_DEVICE
-    inline std::size_t nbins() const { return m_binning.nbins(); }
+    inline constexpr std::size_t nbins() const { return m_binning.nbins(); }
+
+    /// @returns the width of a bin
+    template <typename... Args>
+    DETRAY_HOST_DEVICE inline constexpr scalar_type bin_width(
+        Args &&... args) const {
+        return m_binning.bin_width(std::forward<Args &&>(args)...);
+    }
 
     /// Given a value on the axis, find the correct bin.
     ///
@@ -139,8 +146,9 @@ struct single_axis {
 /// @note can be owning the data (as member of a standalone grid) or can be
 /// non-owning if the grid is part of a larger collection.
 template <bool ownership, typename local_frame_t, typename... axis_ts>
-struct multi_axis {
+class multi_axis {
 
+    public:
     /// Dimension of the local coordinate system that is spanned by the axes
     static constexpr dindex Dim = sizeof...(axis_ts);
     static constexpr bool is_owning = ownership;
@@ -157,9 +165,16 @@ struct multi_axis {
 
     /// Projection onto local coordinate system that is spanned by the axes
     using local_frame_type = local_frame_t;
+
+    /// Axes boundary/bin edges storage
+    using boundary_storage_type = vector_type<dindex_range>;
+    using edges_storage_type = vector_type<scalar_type>;
+
     /// Vecmem based multi-axis view type
     using view_type =
         dmulti_view<dvector_view<dindex_range>, dvector_view<scalar_type>>;
+    using const_view_type = dmulti_view<dvector_view<const dindex_range>,
+                                        dvector_view<const scalar_type>>;
     /// Interal storage type depends on whether the class owns the data or not
     using storage_type = std::conditional_t<
         is_owning, detail::multi_axis_data<container_types, scalar_type>,
@@ -174,8 +189,8 @@ struct multi_axis {
     multi_axis() = default;
 
     /// Constructor with specific vecmem memory resource if the class owns data
-    DETRAY_HOST multi_axis(vecmem::memory_resource &resource)
-        : m_data(resource) {}
+    DETRAY_HOST
+    explicit multi_axis(vecmem::memory_resource &resource) : m_data(resource) {}
 
     /// Constructor from data containers - move
     DETRAY_HOST_DEVICE
@@ -192,10 +207,21 @@ struct multi_axis {
     /// Device-side construction from a vecmem based view type
     template <typename axes_view_t,
               typename std::enable_if_t<
-                  std::is_base_of_v<dbase_view, axes_view_t>, bool> = true>
+                  detray::detail::is_device_view_v<axes_view_t>, bool> = true>
     DETRAY_HOST_DEVICE multi_axis(const axes_view_t &view)
         : m_data(detray::detail::get<0>(view.m_views),
                  detray::detail::get<1>(view.m_views)) {}
+
+    /// @returns the underlying axes storage. Either the container
+    /// or a container pointer to a global collection - const
+    DETRAY_HOST_DEVICE
+    auto data() const -> const storage_type & { return m_data; }
+
+    /// @returns the underlying axes storage. Either the container
+    /// or a container pointer to a global collection - non-const for vecmem
+    // TODO: Don't do
+    DETRAY_HOST_DEVICE
+    auto data() -> storage_type & { return m_data; }
 
     /// Build an axis object in place.
     ///
@@ -229,6 +255,16 @@ struct multi_axis {
         return get_axis<axis_t::shape_type::label>();
     }
 
+    /// @returns the number of bins per axis
+    DETRAY_HOST_DEVICE inline constexpr auto nbins() const -> multi_bin<Dim> {
+        // Empty bin indices to be filled
+        multi_bin<Dim> n_bins{{0, 0, 0}};
+        // Get the number of bins for every axis
+        (single_axis(get_axis<axis_ts>(), n_bins), ...);
+
+        return n_bins;
+    }
+
     /// Query the bin index for every coordinate of the given point on the axes.
     ///
     /// @tparam point_t the point in the local coordinate system that is spanned
@@ -241,7 +277,7 @@ struct multi_axis {
         // Empty bin indices to be filled
         multi_bin<Dim> bin_indices{};
         // Run the bin resolution for every axis in this multi-axis type
-        (single_bin(get_axis<axis_ts>(), p, bin_indices), ...);
+        (single_axis(get_axis<axis_ts>(), p, bin_indices), ...);
 
         return bin_indices;
     }
@@ -268,9 +304,25 @@ struct multi_axis {
         // Empty bin ranges to be filled
         multi_bin_range<Dim> bin_ranges{};
         // Run the range resolution for every axis in this multi-axis type
-        (single_range(get_axis<axis_ts>(), p, nhood, bin_ranges), ...);
+        (single_axis(get_axis<axis_ts>(), p, nhood, bin_ranges), ...);
 
         return bin_ranges;
+    }
+
+    private:
+    /// Get the number of bins for a single axis.
+    ///
+    /// @tparam axis_t defines the axis for the lookup (axis types are unique)
+    ///
+    /// @param ax the axis that performs the lookup
+    /// @param n_bins the resulting bin numbers
+    template <typename axis_t>
+    DETRAY_HOST_DEVICE void single_axis(const axis_t &ax,
+                                        multi_bin<Dim> &n_bins) const {
+        // Get the index corresponding to the axis label (e.g. bin_x <=> 0)
+        constexpr dindex loc_idx =
+            axis_reg::to_index(axis_t::shape_type::label);
+        n_bins[loc_idx] = ax.nbins();
     }
 
     /// Perform the bin lookup on a particular axis
@@ -284,8 +336,8 @@ struct multi_axis {
     ///                    (axis index corresponds to entry of the multi-bin
     ///                    (e.g. binx <=> 0)
     template <typename axis_t, typename point_t>
-    DETRAY_HOST_DEVICE void single_bin(const axis_t &ax, const point_t &p,
-                                       multi_bin<Dim> &bin_indices) const {
+    DETRAY_HOST_DEVICE void single_axis(const axis_t &ax, const point_t &p,
+                                        multi_bin<Dim> &bin_indices) const {
         // Get the index corresponding to the axis label (e.g. bin_x <=> 0)
         constexpr dindex loc_idx =
             axis_reg::to_index(axis_t::shape_type::label);
@@ -307,7 +359,7 @@ struct multi_axis {
     ///                    (axis index corresponds to entry of the multi-range
     ///                    (e.g. bin_rangex <=> 0)
     template <typename axis_t, typename point_t, typename neighbor_t>
-    DETRAY_HOST_DEVICE void single_range(
+    DETRAY_HOST_DEVICE void single_axis(
         const axis_t &ax, const point_t &p,
         const std::array<neighbor_t, 2> &nhood,
         multi_bin_range<Dim> &bin_ranges) const {
@@ -332,8 +384,21 @@ inline
                   "Only mulit-axis types that own their data can move the data "
                   "to device!");
 
-    return {vecmem::get_data(mult_axis.m_data.m_axes_data),
-            vecmem::get_data(mult_axis.m_data.m_edges)};
+    return {vecmem::get_data(mult_axis.data().m_axes_data),
+            vecmem::get_data(mult_axis.data().m_edges)};
+}
+
+template <bool is_owning, typename local_frame, typename... axis_ts>
+inline typename n_axis::multi_axis<is_owning, local_frame,
+                                   axis_ts...>::const_view_type
+get_data(
+    const n_axis::multi_axis<is_owning, local_frame, axis_ts...> &mult_axis) {
+    static_assert(is_owning,
+                  "Only mulit-axis types that own their data can move the data "
+                  "to device!");
+
+    return {vecmem::get_data(mult_axis.data().m_axes_data),
+            vecmem::get_data(mult_axis.data().m_edges)};
 }
 
 }  // namespace detray

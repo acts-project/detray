@@ -155,7 +155,9 @@ struct interaction {
     }
 
     private:
-    /// Multiple scattering theta0 for minimum ionizing particles.
+    /// Multiple scattering (mainly due to Coulomb interaction) for charged
+    /// particles
+    /// Original source: G. R. Lynch and O. I. Dahl, NIM.B58, 6
     DETRAY_HOST_DEVICE scalar_type
     theta0Highland(const scalar_type xOverX0, const scalar_type momentumInv,
                    const scalar_type q2OverBeta2) const {

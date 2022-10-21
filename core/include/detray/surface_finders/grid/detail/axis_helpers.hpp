@@ -104,6 +104,7 @@ struct multi_axis_data {
 /// which it uses to provide the bin index lookup as a pure service to the
 /// grid. This type is NOT used to move the @c multi_axis_data between host
 /// and device when the data is owned by the multi-axis.
+/// @todo Use spans
 template <typename containers = host_container_types,
           typename scalar_t = scalar>
 struct multi_axis_view {

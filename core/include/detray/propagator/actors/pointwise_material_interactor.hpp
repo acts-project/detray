@@ -68,7 +68,7 @@ struct pointwise_material_interactor : actor {
             const surface_t &surface, const line_plane_intersection &is,
             state &s, const stepper_state_t &stepping) const {
 
-            const auto &material_range = surface.material_range();
+            const auto &material_range = surface.material().index();
 
             const scalar qop = stepping().qop();
             const scalar charge = stepping().charge();

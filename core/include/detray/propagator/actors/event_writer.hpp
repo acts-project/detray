@@ -92,7 +92,7 @@ struct event_writer : actor {
             const bound_track_parameters<transform3_t>& bound_params,
             smearer_t smearer) {
 
-            const auto& mask = mask_group[surface.mask_range()];
+            const auto& mask = mask_group[surface.mask().index()];
 
             auto local_coordinate = mask.local_frame();
 
@@ -145,7 +145,6 @@ struct event_writer : actor {
 
             meas.geometry_id = navigation.current()->index;
 
-            // @todo: apply measurement error
             meas.local0 = local[0];
             meas.local1 = local[1];
             meas.phi = bound_params.phi();

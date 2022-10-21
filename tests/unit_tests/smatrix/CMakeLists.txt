@@ -6,9 +6,9 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( smatrix
-   "smatrix_axis_rotation.cpp"
    "smatrix_actor_chain.cpp"
    "smatrix_annulus2D.cpp"
+   "smatrix_axis_rotation.cpp"
    "smatrix_check_simulation.cpp"
    "smatrix_container.cpp"
    "smatrix_coordinate_cartesian2.cpp"
@@ -25,8 +25,9 @@ detray_add_test( smatrix
    "smatrix_geometry_linking.cpp"
    "smatrix_geometry_navigation.cpp"
    "smatrix_geometry_scan.cpp"
-   "smatrix_grid_axis.cpp"
    "smatrix_grid.cpp"
+   "smatrix_grid_axis.cpp"
+   "smatrix_grid_collection.cpp"
    "smatrix_grid_populator.cpp"
    "smatrix_grid_serializer.cpp"
    "smatrix_guided_navigator.cpp"

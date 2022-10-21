@@ -45,7 +45,6 @@ vecmem::host_memory_resource host_mr;
 auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
 using detector_t = decltype(d);
-constexpr auto k_surfaces = detector_t::objects::e_surface;
 
 using detray_context = detector_t::context;
 detray_context default_context;

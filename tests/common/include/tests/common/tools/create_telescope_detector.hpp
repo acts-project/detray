@@ -93,12 +93,11 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
     using surface_type = typename surface_container_t::value_type;
     using volume_link_t = typename surface_type::volume_link_type;
     using mask_link_type = typename surface_type::mask_link;
-    using material_defs = typename surface_type::material_defs;
     using material_link_type = typename surface_type::material_link;
 
     auto volume_id = volume.index();
     volume_link_t mask_volume_link{volume_id};
-    constexpr auto slab_id = material_defs::id::e_slab;
+    constexpr auto slab_id = material_link_type::id_type::e_slab;
 
     // Create the module centers
     const std::vector<module_placement> m_placements =
@@ -113,11 +112,12 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
                                          materials.template size<slab_id>()};
         const auto trf_index = transforms.size(ctx);
         surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
-                              dindex_invalid, false);
+                              dindex_invalid, surface_id::e_sensitive);
 
         // The last surface acts as portal that leaves the telescope
         if (m_placement == m_placements.back()) {
             mask_volume_link = dindex_invalid;
+            surfaces.back().set_id(surface_id::e_portal);
         }
 
         if constexpr (mask_id ==
@@ -189,8 +189,10 @@ template <bool unbounded_planes = true,
           template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector>
 auto create_telescope_detector(
-    vecmem::memory_resource &resource, std::vector<scalar> pos,
-    trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
+    vecmem::memory_resource &resource,
+    covfie::field<detector_registry::telescope_detector::bfield_backend_t>
+        &&bfield,
+    std::vector<scalar> pos, trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
     scalar half_x = 20. * unit_constants::mm,
     scalar half_y = 20. * unit_constants::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
@@ -208,10 +210,6 @@ auto create_telescope_detector(
         material<scalar> m_mat;
         scalar m_thickness;
     };
-
-    typename detector_t::bfield_type bfield(
-        typename detector_t::bfield_type::backend_t::configuration_t{0.f, 0.f,
-                                                                     2.f});
 
     // create empty detector
     detector_t det(resource, std::move(bfield));
@@ -254,8 +252,10 @@ template <bool unbounded_planes = true,
           template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector>
 auto create_telescope_detector(
-    vecmem::memory_resource &resource, dindex n_surfaces = 10,
-    scalar tel_length = 500. * unit_constants::mm,
+    vecmem::memory_resource &resource,
+    covfie::field<detector_registry::telescope_detector::bfield_backend_t>
+        &&bfield,
+    dindex n_surfaces = 10, scalar tel_length = 500. * unit_constants::mm,
     trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
     scalar half_x = 20. * unit_constants::mm,
     scalar half_y = 20. * unit_constants::mm) {
@@ -269,8 +269,57 @@ auto create_telescope_detector(
     }
 
     // Build the geometry
-    return create_telescope_detector<unbounded_planes>(resource, positions,
-                                                       traj, half_x, half_y);
+    return create_telescope_detector<unbounded_planes>(
+        resource, std::move(bfield), positions, traj, half_x, half_y);
+}
+
+/** Wrapper for create_telescope_geometry with constant zero bfield.
+ */
+template <bool unbounded_planes = true,
+          typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
+          template <typename, std::size_t> class array_t = darray,
+          template <typename...> class tuple_t = dtuple,
+          template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector>
+auto create_telescope_detector(
+    vecmem::memory_resource &resource, std::vector<scalar> pos,
+    trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
+    scalar half_x = 20. * unit_constants::mm,
+    scalar half_y = 20. * unit_constants::mm,
+    const material<scalar> mat = silicon_tml<scalar>(),
+    const scalar thickness = 80 * unit_constants::um) {
+
+    // Build the geometry
+    return create_telescope_detector<unbounded_planes, trajectory_t, array_t,
+                                     tuple_t, vector_t, jagged_vector_t>(
+        resource,
+        covfie::field<detector_registry::telescope_detector::bfield_backend_t>{
+            detector_registry::telescope_detector::bfield_backend_t::
+                configuration_t{0.f, 0.f, 0.f}},
+        pos, traj, half_x, half_y, mat, thickness);
+}
+
+template <bool unbounded_planes = true,
+          typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
+          template <typename, std::size_t> class array_t = darray,
+          template <typename...> class tuple_t = dtuple,
+          template <typename...> class vector_t = dvector,
+          template <typename...> class jagged_vector_t = djagged_vector>
+auto create_telescope_detector(
+    vecmem::memory_resource &resource, dindex n_surfaces = 10,
+    scalar tel_length = 500. * unit_constants::mm,
+    trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
+    scalar half_x = 20. * unit_constants::mm,
+    scalar half_y = 20. * unit_constants::mm) {
+
+    // Build the geometry
+    return create_telescope_detector<unbounded_planes, trajectory_t, array_t,
+                                     tuple_t, vector_t, jagged_vector_t>(
+        resource,
+        covfie::field<detector_registry::telescope_detector::bfield_backend_t>{
+            detector_registry::telescope_detector::bfield_backend_t::
+                configuration_t{0.f, 0.f, 0.f}},
+        n_surfaces, tel_length, traj, half_x, half_y);
 }
 
 }  // namespace detray

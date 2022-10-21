@@ -36,7 +36,7 @@ struct global_to_local {
 
         const auto& trf3 = trf_store[surface.transform()];
 
-        const auto& mask = mask_group[surface.mask_range()];
+        const auto& mask = mask_group[surface.mask().index()];
 
         auto local_coordinate = mask.local_frame();
 

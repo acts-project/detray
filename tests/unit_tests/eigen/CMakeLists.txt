@@ -6,9 +6,9 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( eigen
-   "eigen_axis_rotation.cpp"
    "eigen_actor_chain.cpp"
    "eigen_annulus2D.cpp"
+   "eigen_axis_rotation.cpp"
    "eigen_check_simulation.cpp"
    "eigen_container.cpp"
    "eigen_coordinate_cartesian2.cpp"
@@ -25,8 +25,9 @@ detray_add_test( eigen
    "eigen_geometry_linking.cpp"
    "eigen_geometry_navigation.cpp"
    "eigen_geometry_scan.cpp"
-   "eigen_grid_axis.cpp"
    "eigen_grid.cpp"
+   "eigen_grid_axis.cpp"
+   "eigen_grid_collection.cpp"
    "eigen_grid_populator.cpp"
    "eigen_grid_serializer.cpp"
    "eigen_guided_navigator.cpp"

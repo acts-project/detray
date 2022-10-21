@@ -262,7 +262,6 @@ struct coordinate_base {
             const auto bvec =
                 stepping._magnetic_field.at(pos[0], pos[1], pos[2]);
             const vector3 b{bvec[0], bvec[1], bvec[2]};
-            // auto b = stepping._magnetic_field->get_field(pos, {});
 
             // helix
             helix hlx(stepping(), &b);

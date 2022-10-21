@@ -6,9 +6,9 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( vc_array
-   "vc_array_axis_rotation.cpp"
    "vc_array_actor_chain.cpp"
    "vc_array_annulus2D.cpp"
+   "vc_array_axis_rotation.cpp"
    "vc_array_check_simulation.cpp"
    "vc_array_container.cpp"
    "vc_array_coordinate_cartesian2.cpp"
@@ -25,8 +25,9 @@ detray_add_test( vc_array
    "vc_array_geometry_linking.cpp"
    "vc_array_geometry_navigation.cpp"
    "vc_array_geometry_scan.cpp"
-   "vc_array_grid_axis.cpp"
    "vc_array_grid.cpp"
+   "vc_array_grid_axis.cpp"
+   "vc_array_grid_collection.cpp"
    "vc_array_grid_populator.cpp"
    "vc_array_grid_serializer.cpp"
    "vc_array_guided_navigator.cpp"

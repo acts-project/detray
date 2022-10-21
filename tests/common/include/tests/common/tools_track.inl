@@ -35,77 +35,108 @@ enum material_ids : unsigned int {
 using mask_defs = tuple_vector_registry<mask_ids, mask<rectangle2D<>>>;
 using material_defs =
     tuple_vector_registry<material_ids, material_slab<scalar>>;
+using mask_link_t = dtyped_index<mask_ids, dindex>;
+using material_link_t = dtyped_index<material_ids, dindex>;
 
 TEST(tools, bound_track_parameters) {
 
     // surface container
-    std::vector<surface<mask_defs, material_defs>> surfaces;
-    surfaces.emplace_back(0, mask_defs::link_type{e_rectangle2, 0},
-                          material_defs::link_type{e_slab, 0}, 0, 0, false);
-    surfaces.emplace_back(1, mask_defs::link_type{e_rectangle2, 0},
-                          material_defs::link_type{e_slab, 0}, 0, 0, false);
+    std::vector<surface<mask_link_t, material_link_t>> surfaces;
+    surfaces.emplace_back(0, mask_link_t{e_rectangle2, 0},
+                          material_link_t{e_slab, 0}, 0, 0,
+                          surface_id::e_sensitive);
+    surfaces.emplace_back(1, mask_link_t{e_rectangle2, 0},
+                          material_link_t{e_slab, 0}, 0, 0,
+                          surface_id::e_sensitive);
 
     /// Declare track parameters
 
     // first track
     dindex sf_idx1 = 0;
-    typename bound_track_parameters<transform3>::vector_type param1;
-    getter::element(param1, e_bound_loc0, 0) = 1.;
-    getter::element(param1, e_bound_loc1, 0) = 2.;
-    getter::element(param1, e_bound_phi, 0) = 0.1;
-    getter::element(param1, e_bound_theta, 0) = 0.2;
-    getter::element(param1, e_bound_qoverp, 0) = -0.01;
-    getter::element(param1, e_bound_time, 0) = 0.1;
+    typename bound_track_parameters<transform3>::vector_type bound_vec1 =
+        matrix_operator().template zero<e_bound_size, 1>();
+    getter::element(bound_vec1, e_bound_loc0, 0) = 1.;
+    getter::element(bound_vec1, e_bound_loc1, 0) = 2.;
+    getter::element(bound_vec1, e_bound_phi, 0) = 0.1;
+    getter::element(bound_vec1, e_bound_theta, 0) = 0.2;
+    getter::element(bound_vec1, e_bound_qoverp, 0) = -0.01;
+    getter::element(bound_vec1, e_bound_time, 0) = 0.1;
 
-    typename bound_track_parameters<transform3>::covariance_type cov1 =
+    typename bound_track_parameters<transform3>::covariance_type bound_cov1 =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
-    bound_track_parameters<transform3> trck1(sf_idx1, param1, cov1);
+    bound_track_parameters<transform3> bound_param1(sf_idx1, bound_vec1,
+                                                    bound_cov1);
 
     // second track
     dindex sf_idx2 = 1;
-    typename bound_track_parameters<transform3>::vector_type param2;
-    getter::element(param2, e_bound_loc0, 0) = 4.;
-    getter::element(param2, e_bound_loc1, 0) = 20.;
-    getter::element(param2, e_bound_phi, 0) = 0.8;
-    getter::element(param2, e_bound_theta, 0) = 1.4;
-    getter::element(param2, e_bound_qoverp, 0) = 1.;
-    getter::element(param2, e_bound_time, 0) = 0.;
+    typename bound_track_parameters<transform3>::vector_type bound_vec2 =
+        matrix_operator().template zero<e_bound_size, 1>();
+    getter::element(bound_vec2, e_bound_loc0, 0) = 4.;
+    getter::element(bound_vec2, e_bound_loc1, 0) = 20.;
+    getter::element(bound_vec2, e_bound_phi, 0) = 0.8;
+    getter::element(bound_vec2, e_bound_theta, 0) = 1.4;
+    getter::element(bound_vec2, e_bound_qoverp, 0) = 1.;
+    getter::element(bound_vec2, e_bound_time, 0) = 0.;
 
-    typename bound_track_parameters<transform3>::covariance_type cov2 =
+    typename bound_track_parameters<transform3>::covariance_type bound_cov2 =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
-    bound_track_parameters<transform3> trck2(sf_idx2, param2, cov2);
+    bound_track_parameters<transform3> bound_param2(sf_idx2, bound_vec2,
+                                                    bound_cov2);
+    bound_track_parameters<transform3> bound_param3(sf_idx2, bound_vec2,
+                                                    bound_cov2);
 
     /// Check the elements
 
     // first track
-    EXPECT_FLOAT_EQ(trck1.local()[0], getter::element(param1, e_bound_loc0, 0));
-    EXPECT_FLOAT_EQ(trck1.local()[1], getter::element(param1, e_bound_loc1, 0));
-    EXPECT_FLOAT_EQ(trck1.phi(), getter::element(param1, e_bound_phi, 0));
-    EXPECT_FLOAT_EQ(trck1.theta(), getter::element(param1, e_bound_theta, 0));
-    EXPECT_FLOAT_EQ(trck1.qop(), getter::element(param1, e_bound_qoverp, 0));
-    EXPECT_FLOAT_EQ(trck1.charge(), -1);
-    EXPECT_FLOAT_EQ(trck1.time(), getter::element(param1, e_bound_time, 0));
-    EXPECT_FLOAT_EQ(trck1.mom()[0], trck1.p() * std::sin(trck1.theta()) *
-                                        std::cos(trck1.phi()));
-    EXPECT_FLOAT_EQ(trck1.mom()[1], trck1.p() * std::sin(trck1.theta()) *
-                                        std::sin(trck1.phi()));
-    EXPECT_FLOAT_EQ(trck1.mom()[2], trck1.p() * std::cos(trck1.theta()));
+    EXPECT_FLOAT_EQ(bound_param1.local()[0],
+                    getter::element(bound_vec1, e_bound_loc0, 0));
+    EXPECT_FLOAT_EQ(bound_param1.local()[1],
+                    getter::element(bound_vec1, e_bound_loc1, 0));
+    EXPECT_FLOAT_EQ(bound_param1.phi(),
+                    getter::element(bound_vec1, e_bound_phi, 0));
+    EXPECT_FLOAT_EQ(bound_param1.theta(),
+                    getter::element(bound_vec1, e_bound_theta, 0));
+    EXPECT_FLOAT_EQ(bound_param1.qop(),
+                    getter::element(bound_vec1, e_bound_qoverp, 0));
+    EXPECT_FLOAT_EQ(bound_param1.charge(), -1);
+    EXPECT_FLOAT_EQ(bound_param1.time(),
+                    getter::element(bound_vec1, e_bound_time, 0));
+    EXPECT_FLOAT_EQ(bound_param1.mom()[0], bound_param1.p() *
+                                               std::sin(bound_param1.theta()) *
+                                               std::cos(bound_param1.phi()));
+    EXPECT_FLOAT_EQ(bound_param1.mom()[1], bound_param1.p() *
+                                               std::sin(bound_param1.theta()) *
+                                               std::sin(bound_param1.phi()));
+    EXPECT_FLOAT_EQ(bound_param1.mom()[2],
+                    bound_param1.p() * std::cos(bound_param1.theta()));
 
     // second track
-    EXPECT_FLOAT_EQ(trck2.local()[0], getter::element(param2, e_bound_loc0, 0));
-    EXPECT_FLOAT_EQ(trck2.local()[1], getter::element(param2, e_bound_loc1, 0));
-    EXPECT_FLOAT_EQ(trck2.phi(), getter::element(param2, e_bound_phi, 0));
-    EXPECT_FLOAT_EQ(trck2.theta(), getter::element(param2, e_bound_theta, 0));
-    EXPECT_FLOAT_EQ(trck2.qop(), getter::element(param2, e_bound_qoverp, 0));
-    EXPECT_FLOAT_EQ(trck2.charge(), 1.);
-    EXPECT_FLOAT_EQ(trck2.time(), getter::element(param2, e_bound_time, 0));
-    EXPECT_FLOAT_EQ(trck2.mom()[0], trck2.p() * std::sin(trck2.theta()) *
-                                        std::cos(trck2.phi()));
-    EXPECT_FLOAT_EQ(trck2.mom()[1], trck2.p() * std::sin(trck2.theta()) *
-                                        std::sin(trck2.phi()));
-    EXPECT_FLOAT_EQ(trck2.mom()[2], trck2.p() * std::cos(trck2.theta()));
+    EXPECT_FLOAT_EQ(bound_param2.local()[0],
+                    getter::element(bound_vec2, e_bound_loc0, 0));
+    EXPECT_FLOAT_EQ(bound_param2.local()[1],
+                    getter::element(bound_vec2, e_bound_loc1, 0));
+    EXPECT_FLOAT_EQ(bound_param2.phi(),
+                    getter::element(bound_vec2, e_bound_phi, 0));
+    EXPECT_FLOAT_EQ(bound_param2.theta(),
+                    getter::element(bound_vec2, e_bound_theta, 0));
+    EXPECT_FLOAT_EQ(bound_param2.qop(),
+                    getter::element(bound_vec2, e_bound_qoverp, 0));
+    EXPECT_FLOAT_EQ(bound_param2.charge(), 1.);
+    EXPECT_FLOAT_EQ(bound_param2.time(),
+                    getter::element(bound_vec2, e_bound_time, 0));
+    EXPECT_FLOAT_EQ(bound_param2.mom()[0], bound_param2.p() *
+                                               std::sin(bound_param2.theta()) *
+                                               std::cos(bound_param2.phi()));
+    EXPECT_FLOAT_EQ(bound_param2.mom()[1], bound_param2.p() *
+                                               std::sin(bound_param2.theta()) *
+                                               std::sin(bound_param2.phi()));
+    EXPECT_FLOAT_EQ(bound_param2.mom()[2],
+                    bound_param2.p() * std::cos(bound_param2.theta()));
+
+    EXPECT_TRUE(!(bound_param2 == bound_param1));
+    EXPECT_TRUE(bound_param2 == bound_param3);
 }
 
 TEST(tools, free_track_parameters) {
@@ -115,49 +146,67 @@ TEST(tools, free_track_parameters) {
     vector3 mom = {10., 20., 30.};
     scalar charge = -1.;
 
-    typename free_track_parameters<transform3>::vector_type param;
-    getter::element(param, e_free_pos0, 0) = pos[0];
-    getter::element(param, e_free_pos1, 0) = pos[1];
-    getter::element(param, e_free_pos2, 0) = pos[2];
-    getter::element(param, e_free_time, 0) = time;
-    getter::element(param, e_free_dir0, 0) = mom[0] / getter::norm(mom);
-    getter::element(param, e_free_dir1, 0) = mom[1] / getter::norm(mom);
-    getter::element(param, e_free_dir2, 0) = mom[2] / getter::norm(mom);
-    getter::element(param, e_free_qoverp, 0) = charge / getter::norm(mom);
+    typename free_track_parameters<transform3>::vector_type free_vec =
+        matrix_operator().template zero<e_free_size, 1>();
+    getter::element(free_vec, e_free_pos0, 0) = pos[0];
+    getter::element(free_vec, e_free_pos1, 0) = pos[1];
+    getter::element(free_vec, e_free_pos2, 0) = pos[2];
+    getter::element(free_vec, e_free_time, 0) = time;
+    getter::element(free_vec, e_free_dir0, 0) = mom[0] / getter::norm(mom);
+    getter::element(free_vec, e_free_dir1, 0) = mom[1] / getter::norm(mom);
+    getter::element(free_vec, e_free_dir2, 0) = mom[2] / getter::norm(mom);
+    getter::element(free_vec, e_free_qoverp, 0) = charge / getter::norm(mom);
 
-    typename free_track_parameters<transform3>::covariance_type cov;
+    typename free_track_parameters<transform3>::covariance_type free_cov =
+        matrix_operator().template zero<e_free_size, e_free_size>();
 
     // first constructor
-    free_track_parameters<transform3> trck1(param, cov);
-    EXPECT_FLOAT_EQ(trck1.pos()[0], getter::element(param, e_free_pos0, 0));
-    EXPECT_FLOAT_EQ(trck1.pos()[1], getter::element(param, e_free_pos1, 0));
-    EXPECT_FLOAT_EQ(trck1.pos()[2], getter::element(param, e_free_pos2, 0));
-    EXPECT_FLOAT_EQ(trck1.dir()[0], getter::element(param, e_free_dir0, 0));
-    EXPECT_FLOAT_EQ(trck1.dir()[1], getter::element(param, e_free_dir1, 0));
-    EXPECT_FLOAT_EQ(trck1.dir()[2], getter::element(param, e_free_dir2, 0));
-    EXPECT_FLOAT_EQ(getter::norm(trck1.mom()), getter::norm(mom));
-    EXPECT_FLOAT_EQ(trck1.time(), getter::element(param, e_free_time, 0));
-    EXPECT_FLOAT_EQ(trck1.qop(), getter::element(param, e_free_qoverp, 0));
-    EXPECT_FLOAT_EQ(trck1.pT(),
+    free_track_parameters<transform3> free_param1(free_vec, free_cov);
+    EXPECT_FLOAT_EQ(free_param1.pos()[0],
+                    getter::element(free_vec, e_free_pos0, 0));
+    EXPECT_FLOAT_EQ(free_param1.pos()[1],
+                    getter::element(free_vec, e_free_pos1, 0));
+    EXPECT_FLOAT_EQ(free_param1.pos()[2],
+                    getter::element(free_vec, e_free_pos2, 0));
+    EXPECT_FLOAT_EQ(free_param1.dir()[0],
+                    getter::element(free_vec, e_free_dir0, 0));
+    EXPECT_FLOAT_EQ(free_param1.dir()[1],
+                    getter::element(free_vec, e_free_dir1, 0));
+    EXPECT_FLOAT_EQ(free_param1.dir()[2],
+                    getter::element(free_vec, e_free_dir2, 0));
+    EXPECT_FLOAT_EQ(getter::norm(free_param1.mom()), getter::norm(mom));
+    EXPECT_FLOAT_EQ(free_param1.time(),
+                    getter::element(free_vec, e_free_time, 0));
+    EXPECT_FLOAT_EQ(free_param1.qop(),
+                    getter::element(free_vec, e_free_qoverp, 0));
+    EXPECT_FLOAT_EQ(free_param1.pT(),
                     std::sqrt(std::pow(mom[0], 2) + std::pow(mom[1], 2)));
-    EXPECT_FLOAT_EQ(trck1.mom()[0], trck1.p() * trck1.dir()[0]);
-    EXPECT_FLOAT_EQ(trck1.mom()[1], trck1.p() * trck1.dir()[1]);
-    EXPECT_FLOAT_EQ(trck1.mom()[2], trck1.p() * trck1.dir()[2]);
+    EXPECT_FLOAT_EQ(free_param1.mom()[0],
+                    free_param1.p() * free_param1.dir()[0]);
+    EXPECT_FLOAT_EQ(free_param1.mom()[1],
+                    free_param1.p() * free_param1.dir()[1]);
+    EXPECT_FLOAT_EQ(free_param1.mom()[2],
+                    free_param1.p() * free_param1.dir()[2]);
 
     // second constructor
-    free_track_parameters<transform3> trck2(pos, time, mom, charge);
-    EXPECT_FLOAT_EQ(trck2.pos()[0], pos[0]);
-    EXPECT_FLOAT_EQ(trck2.pos()[1], pos[1]);
-    EXPECT_FLOAT_EQ(trck2.pos()[2], pos[2]);
-    EXPECT_FLOAT_EQ(trck2.dir()[0], mom[0] / getter::norm(mom));
-    EXPECT_FLOAT_EQ(trck2.dir()[1], mom[1] / getter::norm(mom));
-    EXPECT_FLOAT_EQ(trck2.dir()[2], mom[2] / getter::norm(mom));
-    EXPECT_FLOAT_EQ(getter::norm(trck2.mom()), getter::norm(mom));
-    EXPECT_FLOAT_EQ(trck2.time(), time);
-    EXPECT_FLOAT_EQ(trck2.qop(), charge / getter::norm(mom));
-    EXPECT_FLOAT_EQ(trck2.pT(),
+    free_track_parameters<transform3> free_param2(pos, time, mom, charge);
+    EXPECT_FLOAT_EQ(free_param2.pos()[0], pos[0]);
+    EXPECT_FLOAT_EQ(free_param2.pos()[1], pos[1]);
+    EXPECT_FLOAT_EQ(free_param2.pos()[2], pos[2]);
+    EXPECT_FLOAT_EQ(free_param2.dir()[0], mom[0] / getter::norm(mom));
+    EXPECT_FLOAT_EQ(free_param2.dir()[1], mom[1] / getter::norm(mom));
+    EXPECT_FLOAT_EQ(free_param2.dir()[2], mom[2] / getter::norm(mom));
+    EXPECT_FLOAT_EQ(getter::norm(free_param2.mom()), getter::norm(mom));
+    EXPECT_FLOAT_EQ(free_param2.time(), time);
+    EXPECT_FLOAT_EQ(free_param2.qop(), charge / getter::norm(mom));
+    EXPECT_FLOAT_EQ(free_param2.pT(),
                     std::sqrt(std::pow(mom[0], 2) + std::pow(mom[1], 2)));
-    EXPECT_FLOAT_EQ(trck2.mom()[0], trck2.p() * trck2.dir()[0]);
-    EXPECT_FLOAT_EQ(trck2.mom()[1], trck2.p() * trck2.dir()[1]);
-    EXPECT_FLOAT_EQ(trck2.mom()[2], trck2.p() * trck2.dir()[2]);
+    EXPECT_FLOAT_EQ(free_param2.mom()[0],
+                    free_param2.p() * free_param2.dir()[0]);
+    EXPECT_FLOAT_EQ(free_param2.mom()[1],
+                    free_param2.p() * free_param2.dir()[1]);
+    EXPECT_FLOAT_EQ(free_param2.mom()[2],
+                    free_param2.p() * free_param2.dir()[2]);
+
+    EXPECT_TRUE(free_param2 == free_param1);
 }

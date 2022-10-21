@@ -240,7 +240,7 @@ TEST(grid, circular_regular_axis) {
     darray<scalar, 2> nhood00s = {0., 0.};
     darray<scalar, 2> nhoodEpsilon = {scalar{0.5} * epsilon,
                                       scalar{0.5} * epsilon};
-    scalar bin_step{cr_axis.m_binning.bin_width()};
+    scalar bin_step{cr_axis.bin_width()};
     darray<scalar, 2> nhood22s = {2 * bin_step, 2 * bin_step};
 
     expected_range = {0u, 0u};
