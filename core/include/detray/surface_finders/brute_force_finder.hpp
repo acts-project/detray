@@ -18,7 +18,9 @@
 namespace detray {
 
 /// Does nothing
-struct brute_force_view : public detail::dbase_view {};
+struct brute_force_view : public detail::dbase_view {
+    bool m_view = true;
+};
 
 /// @brief A surface finder that returns all surfaces in a volume (brute force)
 struct brute_force_finder {
