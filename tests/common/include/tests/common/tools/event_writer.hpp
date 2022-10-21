@@ -77,8 +77,9 @@ struct event_writer : actor {
         auto& navigation = propagation._navigation;
         auto& stepping = propagation._stepping;
 
-        // @note: This should be changed for active surface rather than module
-        if (navigation.is_on_module()) {
+        // triggered only for sensitive surfaces
+        if (navigation.is_on_module() &&
+            navigation.current()->sf_id == surface_id::e_sensitive) {
 
             // Write hits
             csv_hit hit;

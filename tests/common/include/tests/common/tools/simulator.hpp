@@ -50,6 +50,7 @@ struct simulator {
                 event_id, m_smearer);
 
             for (auto track : m_track_generator) {
+
                 writer.write_particle(track);
 
                 typename parameter_transporter<transform3>::state transporter{};
