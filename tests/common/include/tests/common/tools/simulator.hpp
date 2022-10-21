@@ -12,11 +12,11 @@
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
-#include "detray/propagator/actors/random_scatterer.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "tests/common/tools/event_writer.hpp"
+#include "tests/common/tools/random_scatterer.hpp"
 
 namespace detray {
 
