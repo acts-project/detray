@@ -53,12 +53,24 @@ template <typename dynamic_data, std::size_t kBrlGrids = 1,
 struct full_metadata {
     using bfield_backend_t = _bfield_backend_t;
 
+    /// How to index the constituent objects in a volume
+    /// If they share the same index value here, they will be added into the
+    /// same container range without any sorting guarantees
+    enum geo_objects : std::size_t {
+        e_sensitive = 0,
+        e_portal = 0,
+        e_passive = 0,
+        e_size = 1,
+        e_all = e_size,
+    };
+
+    /// How a volume finds its constituent objects in the detector containers
+    /// In this case: One range for sensitive/passive surfaces, one for portals
+    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
+
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store = static_transform_store<vector_t>;
-
-    template <typename... objects>
-    using object_definitions = object_registry<objects...>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -77,6 +89,7 @@ struct full_metadata {
     using mask_definitions =
         tuple_vector_registry<mask_ids, rectangle, trapezoid, annulus, cylinder,
                               disc>;
+    using mask_link_type = dtyped_index<mask_ids, dindex>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -87,6 +100,7 @@ struct full_metadata {
 
     // How to store and link materials
     using material_definitions = tuple_vector_registry<material_ids, slab, rod>;
+    using material_link_type = dtyped_index<material_ids, dindex>;
 
     /// How many grids have to be built
     enum grids : std::size_t {
@@ -141,12 +155,24 @@ template <typename _bfield_backend_t =
 struct toy_metadata {
     using bfield_backend_t = _bfield_backend_t;
 
+    /// How to index the constituent objects in a volume
+    /// If they share the same index value here, they will be added into the
+    /// same container range without any sorting guarantees
+    enum geo_objects : std::size_t {
+        e_sensitive = 0,
+        e_portal = 0,
+        e_passive = 0,
+        e_size = 1,
+        e_all = e_size,
+    };
+
+    /// How a volume finds its constituent objects in the detector containers
+    /// In this case: One range for sensitive/passive surfaces, one for portals
+    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
+
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store = static_transform_store<vector_t>;
-
-    template <typename... objects>
-    using object_definitions = object_registry<objects...>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -161,6 +187,7 @@ struct toy_metadata {
     /// How to store and link masks
     using mask_definitions =
         tuple_vector_registry<mask_ids, rectangle, trapezoid, cylinder, disc>;
+    using mask_link_type = dtyped_index<mask_ids, dindex>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -170,6 +197,7 @@ struct toy_metadata {
 
     /// How to store and link materials
     using material_definitions = tuple_vector_registry<material_ids, slab>;
+    using material_link_type = dtyped_index<material_ids, dindex>;
 
     /// How many grids have to be built
     enum grids : std::size_t {
@@ -224,12 +252,23 @@ template <typename _bfield_backend_t =
 struct telescope_metadata {
     using bfield_backend_t = _bfield_backend_t;
 
+    /// How to index the constituent objects in a volume
+    /// If they share the same index value here, they will be added into the
+    /// same container range without any sorting guarantees
+    enum geo_objects : std::size_t {
+        e_sensitive = 0,
+        e_portal = 0,
+        e_size = 1,
+        e_all = e_size,
+    };
+
+    /// How a volume finds its constituent objects in the detector containers
+    /// In this case: One range for sensitive/passive surfaces, one for portals
+    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
+
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store = static_transform_store<vector_t>;
-
-    template <typename... objects>
-    using object_definitions = object_registry<objects...>;
 
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -241,6 +280,7 @@ struct telescope_metadata {
     /// How to store and link masks
     using mask_definitions =
         tuple_vector_registry<mask_ids, rectangle, unbounded_plane>;
+    using mask_link_type = dtyped_index<mask_ids, dindex>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -250,6 +290,7 @@ struct telescope_metadata {
 
     /// How to store and link materials
     using material_definitions = tuple_vector_registry<material_ids, slab>;
+    using material_link_type = dtyped_index<material_ids, dindex>;
 
     /// How many grids have to be built
     enum grids : std::size_t {

@@ -6,8 +6,8 @@
  */
 
 // Project include(s)
+#include "detray/core/detail/tuple_vector_container.hpp"
 #include "detray/core/transform_store.hpp"
-#include "detray/core/type_registry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
@@ -42,15 +42,26 @@ enum material_ids : unsigned int {
 
 /// Surface components:
 using volume_link_t = dindex;
-using source_link_t = dindex;
+
 /// - masks, with mask identifiers 0,1,2
 using rectangle_t = mask<rectangle2D<>, volume_link_t>;
 using trapezoid_t = mask<trapezoid2D<>, volume_link_t>;
 using annulus_t = mask<annulus2D<>, volume_link_t>;
 
-using mask_defs =
-    tuple_vector_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
-using mask_container_t = typename mask_defs::store_type<>;
+using mask_container_t =
+    tuple_vector_container<dtuple, dvector, mask_ids, rectangle_t, trapezoid_t,
+                           annulus_t>;
+using mask_link_t = dtyped_index<mask_ids, dindex>;
+
+// Materials with a slab
+using material_container_t =
+    tuple_vector_container<dtuple, dvector, material_ids,
+                           material_slab<scalar>>;
+using material_link_t = dtyped_index<material_ids, dindex>;
+
+/// The Surface definition:
+using surface_t = surface<mask_link_t, material_link_t>;
+using surface_container_t = dvector<surface_t>;
 
 constexpr const float epsilon = 1e-3;
 
@@ -60,16 +71,6 @@ constexpr const float epsilon = 1e-3;
 // This tests the construction of a surface
 TEST(tools, intersection_kernel_ray) {
     vecmem::host_memory_resource host_mr;
-
-    // Materials with a slab
-    using material_defs =
-        tuple_vector_registry<material_ids, material_slab<scalar>>;
-    using material_container_t = typename material_defs::store_type<>;
-
-    /// The Surface definition:
-    /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t = surface<mask_defs, material_defs, dindex, source_link_t>;
-    using surface_container_t = dvector<surface_t>;
 
     // The transforms & their store
     static_transform_store<>::context static_context{};
@@ -95,11 +96,11 @@ TEST(tools, intersection_kernel_ray) {
 
     // The surfaces and their store
     const surface_t rectangle_surface(0u, {e_rectangle2, 0}, {e_slab, 0}, 0, 0,
-                                      false);
+                                      surface_id::e_sensitive);
     const surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, {e_slab, 1}, 0, 1,
-                                      false);
+                                      surface_id::e_sensitive);
     const surface_t annulus_surface(2u, {e_annulus2, 0}, {e_slab, 2}, 0, 2,
-                                    false);
+                                    surface_id::e_sensitive);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
 
@@ -153,16 +154,6 @@ TEST(tools, intersection_kernel_helix) {
 
     vecmem::host_memory_resource host_mr;
 
-    // Materials with a slab
-    using material_defs =
-        tuple_vector_registry<material_ids, material_slab<scalar>>;
-    using material_container_t = typename material_defs::store_type<>;
-
-    /// The Surface definition:
-    /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t = surface<mask_defs, material_defs, dindex, source_link_t>;
-    using surface_container_t = dvector<surface_t>;
-
     // The transforms & their store
     static_transform_store<>::context static_context{};
     static_transform_store transform_store;
@@ -187,11 +178,11 @@ TEST(tools, intersection_kernel_helix) {
 
     // The surfaces and their store
     const surface_t rectangle_surface(0u, {e_rectangle2, 0}, {e_slab, 0}, 0, 0,
-                                      false);
+                                      surface_id::e_sensitive);
     const surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, {e_slab, 1}, 0, 1,
-                                      false);
+                                      surface_id::e_sensitive);
     const surface_t annulus_surface(2u, {e_annulus2, 0}, {e_slab, 2}, 0, 2,
-                                    false);
+                                    surface_id::e_sensitive);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
     const point3 pos{0., 0., 0.};

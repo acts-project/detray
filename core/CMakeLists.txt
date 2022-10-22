@@ -39,10 +39,10 @@ detray_add_library( detray_core core
    "include/detray/definitions/detail/accessor.hpp"
    "include/detray/definitions/track_parametrization.hpp"
    # geometry include(s)
+   "include/detray/geometry/detector_volume.hpp"
    "include/detray/geometry/surface.hpp"
    "include/detray/geometry/volume_connector.hpp"
    "include/detray/geometry/volume_graph.hpp"
-   "include/detray/geometry/volume.hpp"
    # grids include(s)
    "include/detray/grids/axis.hpp"
    "include/detray/grids/grid2.hpp"
