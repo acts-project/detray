@@ -144,8 +144,9 @@ class line {
     template <typename param_t>
     DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
         param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+
         auto local = param.local();
-        local[0] = std::max(std::abs(local[0]) + offset[0], 0);
+        local[0] = std::max(std::abs(local[0]) + offset[0], 0.f);
         local[1] = local[1] + offset[1];
         return local;
     }
