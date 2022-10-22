@@ -25,6 +25,9 @@ class unmasked {
     /// The name for this shape
     inline static const std::string name = "unmasked";
 
+    /// The measurement dimension
+    inline static constexpr const std::size_t meas_dim = 2;
+
     enum boundaries : std::size_t { e_size = 1 };
 
     /// Local coordinate frame for boundary checks

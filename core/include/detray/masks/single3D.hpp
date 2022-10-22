@@ -28,12 +28,17 @@ namespace detray {
 ///         applied
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
+/// @tparam kMeasDim defines the dimension of the measurement
 template <unsigned int kCheckIndex = 0,
-          template <typename> class intersector_t = plane_intersector>
+          template <typename> class intersector_t = plane_intersector,
+          std::size_t kMeasDim = 2>
 class single3D {
     public:
     /// The name for this shape
     inline static const std::string name = "single3D";
+
+    /// The measurement dimension
+    inline static constexpr const std::size_t meas_dim = kMeasDim;
 
     enum boundaries : std::size_t {
         e_lower = 0,

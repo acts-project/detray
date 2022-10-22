@@ -56,6 +56,11 @@ class mask {
     // Linear algebra types
     using loc_point_t = typename shape::template loc_point_type<algebra_t>;
     using point3_t = typename algebra_t::point3;
+    using matrix_operator = typename algebra_t::matrix_actor;
+    using size_type = typename matrix_operator::size_ty;
+    template <size_type ROWS, size_type COLS>
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
 
     /// Default constructor
     constexpr mask() = default;
@@ -170,6 +175,13 @@ class mask {
             ss << ", " << v;
         }
         return ss.str();
+    }
+
+    template <size_type parameter_dim>
+    DETRAY_HOST_DEVICE matrix_type<parameter_dim, shape::meas_dim>
+    projection_matrix() const {
+        return matrix_operator()
+            .template identity<parameter_dim, shape::meas_dim>();
     }
 
     private:
