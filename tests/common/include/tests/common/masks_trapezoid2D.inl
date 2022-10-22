@@ -56,8 +56,8 @@ TEST(mask, trapezoid2D) {
         using point2 = point_t;
         point_t loc;
         point_t local() const { return loc; }
-    } param = {.loc = {1, 2}};
-
+    } param;
+    param.loc = {1, 2};
     const auto meas = t2.get_shape().to_measurement(param, {-3, 2});
     ASSERT_EQ(meas, point_t({-2, 4}));
 }

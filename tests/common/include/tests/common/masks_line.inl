@@ -90,7 +90,9 @@ TEST(mask, line_square_cross_sect) {
         using point2 = point_t;
         point_t loc;
         point_t local() const { return loc; }
-    } param_1 = {.loc = {1, 2}}, param_2 = {.loc = {2.5, 3}};
+    } param_1, param_2;
+    param_1.loc = {1, 2};
+    param_2.loc = {2.5, 3};
 
     const auto meas_1 = ln.get_shape().to_measurement(param_1, {-3, 2});
     const auto meas_2 = ln.get_shape().to_measurement(param_2, {1, -4});
