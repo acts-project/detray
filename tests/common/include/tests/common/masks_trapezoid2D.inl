@@ -13,6 +13,18 @@
 using namespace detray;
 using namespace __plugin;
 
+struct test_param {
+    using point2 = __plugin::point2<scalar>;
+
+    test_param(scalar loc_0, scalar loc_1) {
+        loc[0] = loc_0;
+        loc[1] = loc_1;
+    }
+
+    point2 loc;
+    point2 local() const { return loc; }
+};
+
 /// This tests the basic functionality of a trapezoid
 TEST(mask, trapezoid2D) {
     using point_t = typename mask<trapezoid2D<>>::loc_point_t;
@@ -52,12 +64,9 @@ TEST(mask, trapezoid2D) {
     }
 
     // Test to_measurement function
-    struct test_param {
-        using point2 = point_t;
-        point_t loc;
-        point_t local() const { return loc; }
-    } param;
-    param.loc = {1, 2};
+    test_param param(1, 2);
+
     const auto meas = t2.get_shape().to_measurement(param, {-3, 2});
-    ASSERT_EQ(meas, point_t({-2, 4}));
+    ASSERT_FLOAT_EQ(meas[0], -2.);
+    ASSERT_FLOAT_EQ(meas[1], 4.);
 }

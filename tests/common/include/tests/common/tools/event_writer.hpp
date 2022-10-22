@@ -64,7 +64,10 @@ struct event_writer : actor {
 
             const auto& mask = mask_group[surface.mask().index()];
 
-            return mask.get_shape().to_measurement(bound_params, smearer());
+            const auto offset = smearer();
+
+            return mask.get_shape().to_measurement(bound_params,
+                                                   {offset[0], offset[1]});
         }
     };
 
