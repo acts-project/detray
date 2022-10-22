@@ -140,7 +140,7 @@ class annulus2D {
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
-        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
+        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         // The two quantities to check: r^2 in disc system, phi in focal system:
@@ -172,6 +172,12 @@ class annulus2D {
 
         return ((r_mod2 >= minR_tol * minR_tol) and
                 (r_mod2 <= maxR_tol * maxR_tol));
+    }
+
+    template <typename param_t>
+    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
+        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        return param.local() + offset;
     }
 };
 

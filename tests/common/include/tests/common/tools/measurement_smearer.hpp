@@ -26,15 +26,9 @@ struct measurement_smearer {
     std::random_device rd{};
     std::mt19937 generator{rd()};
 
-    template <int ID>
-    scalar_t get() {
-        static_assert(ID == 0 || ID == 1);
-
-        if constexpr (ID == 0) {
-            return std::normal_distribution<scalar_t>(0, stddev[0])(generator);
-        } else if (ID == 1) {
-            return std::normal_distribution<scalar_t>(0, stddev[1])(generator);
-        }
+    std::array<scalar_t, 2> operator()() {
+        return {std::normal_distribution<scalar_t>(0, stddev[0])(generator),
+                std::normal_distribution<scalar_t>(0, stddev[1])(generator)};
     }
 };
 

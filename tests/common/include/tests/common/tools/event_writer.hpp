@@ -60,13 +60,11 @@ struct event_writer : actor {
             const mask_group_t& mask_group, const index_t& /*index*/,
             const surface_t& surface,
             const bound_track_parameters<transform3_t>& bound_params,
-            smearer_t smearer) {
+            smearer_t smearer) const {
 
             const auto& mask = mask_group[surface.mask().index()];
 
-            auto local_coordinate = mask.local_frame();
-
-            return local_coordinate.get_measurement(bound_params, smearer);
+            return mask.get_shape().to_measurement(bound_params, smearer());
         }
     };
 

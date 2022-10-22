@@ -49,19 +49,6 @@ struct line2 : public coordinate_base<line2, transform3_t> {
 
     /// @}
 
-    /** This method returns the measurement **/
-    template <typename smearer_t>
-    DETRAY_HOST_DEVICE inline point2 get_measurement(
-        const bound_track_parameters<transform3_t> &param, smearer_t &smearer) {
-        auto loc = param.local();
-        loc[0] = smearer.template get<0>() + std::abs(loc[0]);
-        if (loc[0] < 0) {
-            loc[0] = 0;
-        }
-        loc[1] = 0;
-        return loc;
-    }
-
     /** This method transform from a point from 3D cartesian frame to a 2D
      * line point */
     DETRAY_HOST_DEVICE

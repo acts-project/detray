@@ -81,6 +81,12 @@ class unmasked {
         const scalar_t /*tol*/) const {
         return true;
     }
+
+    template <typename param_t>
+    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
+        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        return param.local() + offset;
+    }
 };
 
 }  // namespace detray
