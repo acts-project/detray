@@ -41,7 +41,7 @@ TEST(mask, cylinder3D) {
     ASSERT_TRUE(c.is_inside(p3_out, 0.6) == intersection::status::e_inside);
 
     // Check projection matrix
-    const auto proj = c.projection_matrix();
+    const auto proj = c.projection_matrix<e_bound_size>();
     for (std::size_t i = 0; i < e_bound_size; i++) {
         for (std::size_t j = 0; j < decltype(c)::shape::meas_dim; j++) {
             if (i == j) {
@@ -75,7 +75,7 @@ TEST(mask, cylinder2D) {
     ASSERT_TRUE(c.is_inside(p2_out, 0.6) == intersection::status::e_inside);
 
     // Check projection matrix
-    const auto proj = c.projection_matrix();
+    const auto proj = c.projection_matrix<e_bound_size>();
     for (std::size_t i = 0; i < e_bound_size; i++) {
         for (std::size_t j = 0; j < decltype(c)::shape::meas_dim; j++) {
             if (i == j) {

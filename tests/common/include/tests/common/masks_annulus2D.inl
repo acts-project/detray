@@ -65,7 +65,7 @@ TEST(mask, annulus2D) {
                 intersection::status::e_inside);
 
     // Check projection matrix
-    const auto proj = ann2.projection_matrix();
+    const auto proj = ann2.projection_matrix<e_bound_size>();
     for (std::size_t i = 0; i < e_bound_size; i++) {
         for (std::size_t j = 0; j < decltype(ann2)::shape::meas_dim; j++) {
             if (i == j) {

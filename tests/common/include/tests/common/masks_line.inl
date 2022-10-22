@@ -41,7 +41,7 @@ TEST(mask, line_radial_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
 
     // Check projection matrix
-    const auto proj = ln.projection_matrix();
+    const auto proj = ln.projection_matrix<e_bound_size>();
     for (std::size_t i = 0; i < e_bound_size; i++) {
         for (std::size_t j = 0; j < decltype(ln)::shape::meas_dim; j++) {
             if (i == j) {
@@ -75,7 +75,7 @@ TEST(mask, line_square_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_out) == intersection::status::e_outside);
 
     // Check projection matrix
-    const auto proj = ln.projection_matrix();
+    const auto proj = ln.projection_matrix<e_bound_size>();
     for (std::size_t i = 0; i < e_bound_size; i++) {
         for (std::size_t j = 0; j < decltype(ln)::shape::meas_dim; j++) {
             if (i == j) {

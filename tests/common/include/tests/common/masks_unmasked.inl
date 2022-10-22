@@ -20,7 +20,7 @@ TEST(mask, unmasked) {
     ASSERT_TRUE(u.is_inside(p2, 0) == intersection::status::e_inside);
 
     // Check projection matrix
-    const auto proj = u.projection_matrix();
+    const auto proj = u.projection_matrix<e_bound_size>();
     for (std::size_t i = 0; i < e_bound_size; i++) {
         for (std::size_t j = 0; j < decltype(u)::shape::meas_dim; j++) {
             if (i == j) {

@@ -177,10 +177,11 @@ class mask {
         return ss.str();
     }
 
-    DETRAY_HOST_DEVICE matrix_type<e_bound_size, shape::meas_dim>
+    template <size_type parameter_dim>
+    DETRAY_HOST_DEVICE matrix_type<parameter_dim, shape::meas_dim>
     projection_matrix() const {
         return matrix_operator()
-            .template identity<e_bound_size, shape::meas_dim>();
+            .template identity<parameter_dim, shape::meas_dim>();
     }
 
     private:
