@@ -53,6 +53,18 @@ TEST(mask, single3_1) {
     ASSERT_TRUE(m1_1.is_inside(p3_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
     ASSERT_TRUE(m1_1.is_inside(p3_out, 0.6) == intersection::status::e_inside);
+
+    // Check projection matrix
+    const auto proj = m1_1.projection_matrix();
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < decltype(m1_1)::shape::meas_dim; j++) {
+            if (i == j) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
 }
 
 /// This tests the basic functionality of a single value mask (index 2)
@@ -74,4 +86,16 @@ TEST(mask, single3_2) {
     ASSERT_TRUE(m1_2.is_inside(p3_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
     ASSERT_TRUE(m1_2.is_inside(p3_out, 6.1) == intersection::status::e_inside);
+
+    // Check projection matrix
+    const auto proj = m1_2.projection_matrix();
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < decltype(m1_2)::shape::meas_dim; j++) {
+            if (i == j) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
 }

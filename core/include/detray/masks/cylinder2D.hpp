@@ -29,10 +29,12 @@ namespace detray {
 ///         needs to be checked (changes local coordinate system def.)
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
+/// @tparam kMeasDim defines the dimension of the measurement
 ///
 /// It is defined by r and the two half lengths rel to the coordinate center.
 template <bool kRadialCheck = false,
-          template <typename> class intersector_t = cylinder_intersector>
+          template <typename> class intersector_t = cylinder_intersector,
+          std::size_t kMeasDim = 2>
 class cylinder2D {
     public:
     /// The name for this shape
@@ -40,6 +42,9 @@ class cylinder2D {
 
     /// Check the radial position in boundary check
     static constexpr bool check_radius = kRadialCheck;
+
+    /// The measurement dimension
+    inline static constexpr const std::size_t meas_dim = kMeasDim;
 
     enum boundaries : std::size_t {
         e_r = 0,

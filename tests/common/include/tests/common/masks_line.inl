@@ -39,6 +39,18 @@ TEST(mask, line_radial_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_edge) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
     ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
+
+    // Check projection matrix
+    const auto proj = ln.projection_matrix();
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < decltype(ln)::shape::meas_dim; j++) {
+            if (i == j) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
 }
 
 /// This tests the basic functionality of a line with a square cross section
@@ -61,4 +73,16 @@ TEST(mask, line_square_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_edge, -1e-5) ==
                 intersection::status::e_outside);
     ASSERT_TRUE(ln.is_inside(ln_out) == intersection::status::e_outside);
+
+    // Check projection matrix
+    const auto proj = ln.projection_matrix();
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < decltype(ln)::shape::meas_dim; j++) {
+            if (i == j) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
 }

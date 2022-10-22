@@ -31,6 +31,9 @@ class cuboid3D {
     /// The name for this shape
     inline static const std::string name = "cuboid3D";
 
+    /// The measurement dimension (not allowed)
+    inline static constexpr const std::size_t meas_dim = 0;
+
     enum boundaries : std::size_t {
         e_half_x = 0,
         e_half_y = 1,

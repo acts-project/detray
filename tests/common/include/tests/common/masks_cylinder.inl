@@ -39,6 +39,18 @@ TEST(mask, cylinder3D) {
     ASSERT_TRUE(c.is_inside(p3_off) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(c.is_inside(p3_out, 0.6) == intersection::status::e_inside);
+
+    // Check projection matrix
+    const auto proj = c.projection_matrix();
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < decltype(c)::shape::meas_dim; j++) {
+            if (i == j) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
 }
 
 /// This tests the basic functionality of a 2D cylinder
@@ -61,4 +73,16 @@ TEST(mask, cylinder2D) {
     ASSERT_TRUE(c.is_inside(p2_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(c.is_inside(p2_out, 0.6) == intersection::status::e_inside);
+
+    // Check projection matrix
+    const auto proj = c.projection_matrix();
+    for (std::size_t i = 0; i < e_bound_size; i++) {
+        for (std::size_t j = 0; j < decltype(c)::shape::meas_dim; j++) {
+            if (i == j) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
 }

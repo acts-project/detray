@@ -27,6 +27,7 @@ namespace detray {
 ///
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
+/// @tparam kMeasDim defines the dimension of the measurement
 ///
 /// The stereo annulus is defined in two different(!) polar coordinate systems
 /// that differ by an origin shift. The boundaries are the inner and outer
@@ -44,11 +45,15 @@ namespace detray {
 /// parameters are included (bounds[4], bounds[5], bounds[6]).
 /// The first two are the origin shift in x and y respectively, while
 /// bounds[6] is the average Phi angle mentioned above.
-template <template <typename> class intersector_t = plane_intersector>
+template <template <typename> class intersector_t = plane_intersector,
+          std::size_t kMeasDim = 2>
 class annulus2D {
     public:
     /// The name for this shape
     inline static const std::string name = "(stereo) annulus2D";
+
+    /// The measurement dimension
+    inline static constexpr const std::size_t meas_dim = kMeasDim;
 
     /// Names for the mask boundary values
     enum boundaries : std::size_t {

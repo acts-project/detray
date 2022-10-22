@@ -30,6 +30,9 @@ class cylinder3D {
     /// The name for this shape
     inline static const std::string name = "cylinder3D";
 
+    /// The measurement dimension (not allowed)
+    inline static constexpr const std::size_t meas_dim = 0;
+
     enum boundaries : std::size_t {
         e_r = 0,
         e_n_half_z = 1,
