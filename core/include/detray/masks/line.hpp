@@ -146,7 +146,10 @@ class line {
         param_t& param, const typename param_t::point2& offset = {0, 0}) const {
 
         auto local = param.local();
-        local[0] = std::max(std::abs(local[0]) + offset[0], 0.f);
+        local[0] = std::abs(local[0]) + offset[0];
+        if (local[0] < 0.) {
+            local[0] = 0.;
+        }
         local[1] = local[1] + offset[1];
         return local;
     }
