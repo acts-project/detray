@@ -24,8 +24,8 @@ namespace detray::test {
 template <typename track_generator_t>
 struct detector_scan_config : public test::fixture_base<>::configuration {
     using base_type = test::fixture_base<>;
-    using scalar_type = typename base_type::scalar;
-    using vector3_type = typename base_type::vector3;
+    using scalar_type = typename base_type::scalar_type;
+    using vector3_type = typename base_type::vector3_type;
     using trk_gen_config_t = typename track_generator_t::configuration;
 
     /// Name of the test

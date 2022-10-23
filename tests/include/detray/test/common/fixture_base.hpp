@@ -31,12 +31,12 @@ class fixture_base : public scope {
     public:
     /// Linear algebra typedefs
     /// @{
-    using algebra_t = ALGEBRA_PLUGIN<test::scalar>;
-    using scalar = detray::scalar;
-    using point2 = test::point2;
-    using point3 = test::point3;
-    using vector3 = test::vector3;
-    using transform3 = test::transform3;
+    using algebra_type = ALGEBRA_PLUGIN<test::scalar>;
+    using scalar_type = dscalar<algebra_type>;
+    using point2_type = dpoint2D<algebra_type>;
+    using point3_type = dpoint3D<algebra_type>;
+    using vector3_type = dvector3D<algebra_type>;
+    using transform3_type = dtransform3D<algebra_type>;
     /// @}
 
     /// Local configuration type
@@ -102,10 +102,10 @@ class fixture_base : public scope {
     float tolerance{}, inf{}, epsilon{}, path_limit{}, overstep_tolerance{},
         step_constraint{};
 
-    static void SetUpTestSuite() {}
-    static void TearDownTestSuite() {}
-    virtual void SetUp() override {}
-    virtual void TearDown() override {}
+    //static void SetUpTestSuite() {}
+    //static void TearDownTestSuite() {}
+    //virtual void SetUp() override {}
+    //virtual void TearDown() override {}
 };
 
 }  // namespace detray::test
