@@ -67,12 +67,15 @@ int main(int argc, char** argv) {
     vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
 
     // Number of tracks in the different benchmark cases
-    std::vector<int> n_tracks{8 * 8,     16 * 16,   32 * 32,  64 * 64,
-                              128 * 128, 256 * 256, 512 * 512};
+    std::vector<int> n_tracks{10,     100,    500,     1000,   5000,
+                              10'000, 50'000, 100'000, 250'000};
 
     //
     // Configuration
     //
+
+    // Google benchmark specific options
+    ::benchmark::Initialize(&argc, argv);
 
     // Specific options for this test
     po::options_description desc("\ndetray propagation benchmark options");
@@ -157,7 +160,6 @@ int main(int argc, char** argv) {
     }
 
     // Run benchmarks
-    ::benchmark::Initialize(&argc, argv);
     ::benchmark::RunSpecifiedBenchmarks();
     ::benchmark::Shutdown();
 }

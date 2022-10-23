@@ -1,3 +1,9 @@
+from .plot_benchmark_results import (
+    read_benchmark_data,
+    prepare_benchmark_data,
+    plot_benchmark_case,
+    plot_benchmark_data,
+)
 from .plot_navigation_validation import (
     read_scan_data,
     read_navigation_data,

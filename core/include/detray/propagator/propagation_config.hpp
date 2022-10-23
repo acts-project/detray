@@ -33,7 +33,7 @@ struct config {
             << "----------------------------\n"
             << cfg.stepping << "\nGeometry Context\n"
             << "----------------------------\n"
-            << cfg.context.get() << "\n";
+            << "  No.                   : " << cfg.context.get() << "\n";
 
         return out;
     }

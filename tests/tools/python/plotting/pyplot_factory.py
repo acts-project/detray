@@ -119,6 +119,106 @@ class pyplot_factory:
         else:
             axis.set_major_formatter(self.axis_formatter)
 
+    """ Create a graph from given input data. """
+
+    def graph(
+        self,
+        x,
+        y,
+        y_errors=None,
+        title="",
+        label="",
+        x_axis=axis_options(label="x"),
+        y_axis=axis_options(label="y"),
+        color=None,
+        marker=".",
+        lgd_ops=legend_options(),
+        figsize=(8, 8),
+        layout="constrained",
+    ):
+        # Create fresh plot
+        fig = plt.figure(figsize=figsize, layout=layout)
+        ax = fig.add_subplot(1, 1, 1)
+
+        # Refine plot
+        ax.set_title(title)
+        ax.set_xlabel(x_axis.label)
+        ax.set_ylabel(y_axis.label)
+        ax.grid(True, alpha=0.25)
+
+        # Plot log scale
+        if x_axis.log_scale:
+            ax.set_xscale("log")
+        if y_axis.log_scale:
+            ax.set_yscale("log")
+
+        # Format of tick labels
+        # self.__set_label_format(x_axis.label_format, ax.xaxis)
+        self.__set_label_format(y_axis.label_format, ax.yaxis)
+
+        if x_axis.tick_positions is not None:
+            ax.set_xticks(x_axis.tick_positions)
+            ax.tick_params(axis="x", which="major", pad=7)
+
+        # Restrict x and y ranges
+        x = self.__apply_boundary(x, x_axis.min, x_axis.max)
+        y = self.__apply_boundary(y, y_axis.min, y_axis.max)
+
+        # Nothing left to do
+        if len(x) == 0:
+            self.logger.debug(rf" create graph: empty data {label}")
+            return plt_data(fig=fig, axes=ax)
+
+        if len(x) != len(y):
+            self.logger.debug(rf" create graph: x range does match y range {label}")
+            return plt_data(fig=fig, axes=ax, errors=y_errors)
+
+        data = ax.errorbar(
+            x=x, y=y, label=label, yerr=y_errors, marker=marker, color=color
+        )
+
+        # Add legend
+        lgd = self.__add_legend(ax, lgd_ops)
+
+        return plt_data(fig=fig, axes=ax, lgd=lgd, data=data, errors=y_errors)
+
+    """ Add new graph to an existing plot """
+
+    def add_graph(
+        self,
+        plot,
+        x,
+        y,
+        y_errors=None,
+        label="",
+        marker="+",
+        color=None,
+    ):
+        # Nothing left to do
+        if len(y) == 0 or plot.data is None:
+            self.logger.debug(rf" add graph: empty data {label}")
+            return plot
+
+        # Add new data to old plot axis
+        data = plot.axes.errorbar(
+            x=x,
+            y=y,
+            label=label,
+            yerr=y_errors,
+            color=color,
+            marker=marker,
+        )
+
+        self.__update_legend(plot.lgd)
+
+        # Rescale the plot
+        plot.axes.relim()
+        plot.axes.autoscale_view()
+
+        return plt_data(
+            fig=plot.fig, axes=plot.axes, lgd=plot.lgd, data=data, errors=y_errors
+        )
+
     """
     Create a histogram from given input data. The normalization is achieved by
     dividing the bin count by the total number of observations. The error is
