@@ -134,7 +134,7 @@ struct intersection_update {
     /// @return the intersection
     template <typename mask_group_t, typename mask_range_t, typename traj_t,
               typename intersection_t, typename transform_container_t,
-              typename scalar_t>
+              concepts::scalar scalar_t>
     DETRAY_HOST_DEVICE inline bool operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, intersection_t &sfi,
