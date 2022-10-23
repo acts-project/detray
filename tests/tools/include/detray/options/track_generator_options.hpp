@@ -41,6 +41,9 @@ void add_uniform_track_gen_options(
         boost::program_options::value<std::size_t>()->default_value(
             cfg.eta_steps()),
         "No. eta steps for particle gun")(
+        "random_seed",
+        boost::program_options::value<std::size_t>()->default_value(cfg.seed()),
+        "Seed for the random number generator")(
         "eta_range",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
         "Min, Max range of eta values for particle gun")(
@@ -48,14 +51,12 @@ void add_uniform_track_gen_options(
         "origin",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
         "Coordintates for particle gun origin position [mm]")(
-        "p_tot",
-        boost::program_options::value<scalar_t>()->default_value(
-            static_cast<scalar_t>(cfg.m_p_mag) / unit<scalar_t>::GeV),
-        "Total momentum of the test particle [GeV]")(
-        "p_T",
-        boost::program_options::value<scalar_t>()->default_value(
-            static_cast<scalar_t>(cfg.m_p_mag) / unit<scalar_t>::GeV),
-        "Transverse momentum of the test particle [GeV]");
+        "p_range",
+        boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
+        "Total momentum [range] of the test particle [GeV]")(
+        "pT_range",
+        boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
+        "Transverse momentum [range] of the test particle [GeV]");
 }
 
 /// Add options for detray event generation
@@ -66,6 +67,7 @@ void configure_uniform_track_gen_options(
 
     cfg.phi_steps(vm["phi_steps"].as<std::size_t>());
     cfg.eta_steps(vm["eta_steps"].as<std::size_t>());
+    cfg.seed(vm["random_seed"].as<std::size_t>());
     cfg.randomize_charge(vm.count("randomize_charge"));
 
     if (vm.count("eta_range")) {
@@ -87,15 +89,47 @@ void configure_uniform_track_gen_options(
                 "Particle gun origin needs three arguments");
         }
     }
-    if (!vm["p_T"].defaulted() && !vm["p_tot"].defaulted()) {
+    if (vm.count("pT_range") && vm.count("p_range")) {
         throw std::invalid_argument(
             "Transverse and total momentum cannot be specified at the same "
             "time");
     }
-    if (!vm["p_T"].defaulted()) {
-        cfg.p_T(vm["p_T"].as<scalar_t>() * unit<scalar_t>::GeV);
+    if (vm.count("pT_range")) {
+        const auto pt_range = vm["pT_range"].as<std::vector<scalar_t>>();
+
+        // Default
+        if (pt_range.empty()) {
+            cfg.p_T(static_cast<scalar_t>(cfg.m_p_mag) * unit<scalar_t>::GeV);
+        } else if (pt_range.size() == 1u) {
+            cfg.p_T(pt_range[0] * unit<scalar_t>::GeV);
+        } else if (pt_range.size() == 2u) {
+            std::cout << "WARNING: Momentum range not possible with uniform "
+                         "track generator: Using first value."
+                      << std::endl;
+            cfg.p_T(pt_range[0] * unit<scalar_t>::GeV);
+        } else {
+            throw std::invalid_argument(
+                "Wrong number of arguments for pT range: Need one argument or "
+                "range");
+        }
     } else {
-        cfg.p_tot(vm["p_tot"].as<scalar_t>() * unit<scalar_t>::GeV);
+        const auto p_range = vm["p_range"].as<std::vector<scalar_t>>();
+
+        // Default
+        if (p_range.empty()) {
+            cfg.p_tot(static_cast<scalar_t>(cfg.m_p_mag) * unit<scalar_t>::GeV);
+        } else if (p_range.size() == 1u) {
+            cfg.p_tot(p_range[0] * unit<scalar_t>::GeV);
+        } else if (p_range.size() == 2u) {
+            std::cout << "WARNING: Momentum range not possible with uniform "
+                         "track generator: Using first value."
+                      << std::endl;
+            cfg.p_tot(p_range[0] * unit<scalar_t>::GeV);
+        } else {
+            throw std::invalid_argument(
+                "Wrong number of arguments for p_tot range: Need one argument "
+                "or range");
+        }
     }
 }
 
@@ -110,6 +144,9 @@ void add_rnd_track_gen_options(
         boost::program_options::value<std::size_t>()->default_value(
             cfg.n_tracks()),
         "No. of tracks for particle gun")(
+        "random_seed",
+        boost::program_options::value<std::size_t>()->default_value(cfg.seed()),
+        "Seed for the random number generator")(
         "theta_range",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
         "Min, Max range of theta values for particle gun")(
@@ -120,14 +157,12 @@ void add_rnd_track_gen_options(
         "origin",
         boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
         "Coordintates for particle gun origin position")(
-        "p_tot",
-        boost::program_options::value<scalar_t>()->default_value(
-            static_cast<scalar_t>(cfg.mom_range()[0]) / unit<scalar_t>::GeV),
-        "Total momentum of the test particle [GeV]")(
-        "p_T",
-        boost::program_options::value<scalar_t>()->default_value(
-            static_cast<scalar_t>(cfg.mom_range()[0]) / unit<scalar_t>::GeV),
-        "Transverse momentum of the test particle [GeV]");
+        "p_range",
+        boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
+        "Total momentum [range] of the test particle [GeV]")(
+        "pT_range",
+        boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
+        "Transverse momentum [range] of the test particle [GeV]");
 }
 
 /// Add options for detray event generation
@@ -137,6 +172,7 @@ void configure_rnd_track_gen_options(
     random_track_generator_config<scalar_t> &cfg) {
 
     cfg.n_tracks(vm["n_tracks"].as<std::size_t>());
+    cfg.seed(vm["random_seed"].as<std::size_t>());
     cfg.randomize_charge(vm.count("randomize_charge"));
 
     if (vm.count("eta_range") && vm.count("theta_range")) {
@@ -178,15 +214,43 @@ void configure_rnd_track_gen_options(
                 "Particle gun origin needs three coordinates");
         }
     }
-    if (!vm["p_T"].defaulted() && !vm["p_tot"].defaulted()) {
+    if (vm.count("pT_range") && vm.count("p_range")) {
         throw std::invalid_argument(
             "Transverse and total momentum cannot be specified at the same "
             "time");
     }
-    if (!vm["p_T"].defaulted()) {
-        cfg.p_T(vm["p_T"].as<scalar_t>() * unit<scalar_t>::GeV);
+    if (vm.count("pT_range")) {
+        const auto pt_range = vm["pT_range"].as<std::vector<scalar_t>>();
+
+        // Default
+        if (pt_range.empty()) {
+            cfg.p_T(cfg.mom_range()[0] * unit<scalar_t>::GeV);
+        } else if (pt_range.size() == 1u) {
+            cfg.p_T(pt_range[0] * unit<scalar_t>::GeV);
+        } else if (pt_range.size() == 2u) {
+            cfg.pT_range(pt_range[0] * unit<scalar_t>::GeV,
+                         pt_range[1] * unit<scalar_t>::GeV);
+        } else {
+            throw std::invalid_argument(
+                "Wrong number of arguments for pT range: Need one argument or "
+                "range");
+        }
     } else {
-        cfg.p_tot(vm["p_tot"].as<scalar_t>() * unit<scalar_t>::GeV);
+        const auto p_range = vm["p_range"].as<std::vector<scalar_t>>();
+
+        // Default
+        if (p_range.empty()) {
+            cfg.p_tot(cfg.mom_range()[0] * unit<scalar_t>::GeV);
+        } else if (p_range.size() == 1u) {
+            cfg.p_tot(p_range[0] * unit<scalar_t>::GeV);
+        } else if (p_range.size() == 2u) {
+            cfg.mom_range(p_range[0] * unit<scalar_t>::GeV,
+                          p_range[1] * unit<scalar_t>::GeV);
+        } else {
+            throw std::invalid_argument(
+                "Wrong number of arguments for p_tot range: Need one argument "
+                "or range");
+        }
     }
 }
 

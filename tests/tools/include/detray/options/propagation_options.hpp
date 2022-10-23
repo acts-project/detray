@@ -172,6 +172,7 @@ void configure_options<detray::stepping::config>(
 
         cfg.path_limit = path_limit * unit<float>::m;
     }
+    cfg.do_covariance_transport = false;
     if (vm.count("covariance_transport")) {
         cfg.do_covariance_transport = true;
     }
