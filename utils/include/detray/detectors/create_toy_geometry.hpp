@@ -417,6 +417,8 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
     scalar phi_step{2.f * constant<scalar>::pi /
                     static_cast<scalar>(n_phi_bins)};
     scalar min_phi{-constant<scalar>::pi + 0.5f * phi_step};
+    // std::array<scalar, 4> z_stagger3{z - 0.5f * phi_stagger, 0.f, z + 0.5f *
+    // phi_stagger, 0.f};
 
     for (std::size_t iphi = 0; iphi < std::size_t(n_phi_bins); ++iphi) {
         // if we have a phi sub stagger presents

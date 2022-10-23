@@ -88,4 +88,44 @@ struct stepper_default_policy : actor {
     }
 };
 
+/// Specific navigation policy for the Runge-Kutta stepper: Use the relative
+/// amount of step size correction as a measure for the change in direction of
+/// the track state.
+struct stepper_rk_policy : actor {
+
+    struct state {
+        const scalar m_threshold_fair_trust{0.05};
+        const scalar m_threshold_no_trust{0.1};
+    };
+
+    /// Sets the navigation trust level depending on the step size limit
+    ///
+    /// @param pol_state not used
+    /// @param propagation state of the propagation
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE inline void operator()(
+        const state &pol_state, propagator_state_t &propagation) const {
+
+        const auto &stepping = propagation._stepping;
+        auto &navigation = propagation._navigation;
+
+        scalar rel_correction =
+            (stepping.step_size() - navigation()) / navigation();
+
+        // Not a severe change to track state expected
+        if (rel_correction > pol_state.m_threshold_no_trust) {
+            // Re-evaluate only next candidate
+            navigation.set_no_trust();
+        }
+        // Step size hit a constraint - the track state was probably changed a
+        // lot
+        else if (rel_correction > pol_state.m_threshold_fair_trust) {
+            // Re-evaluate all candidates
+            navigation.set_fair_trust();
+        } else {
+            navigation.set_high_trust();
+        }
+    }
+};
+
 }  // namespace detray

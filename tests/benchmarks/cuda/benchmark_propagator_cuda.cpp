@@ -41,7 +41,7 @@ void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
     }
 }
 
-template <propagate_option opt>
+template <typename stepper_policy_t, propagate_option opt>
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create the toy geometry
@@ -52,13 +52,13 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
         n_brl_layers, n_edc_layers);
 
     // Create RK stepper
-    rk_stepper_type s;
+    rk_stepper_type<stepper_policy_t> s;
 
     // Create navigator
     navigator_host_type n;
 
     // Create propagator
-    propagator_host_type p(std::move(s), std::move(n));
+    propagator_host_type<stepper_policy_t> p(std::move(s), std::move(n));
 
     for (auto _ : state) {
 
@@ -72,6 +72,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
         state.ResumeTiming();
 
+#pragma omp parallel for
         for (auto &track : tracks) {
 
             parameter_transporter<transform3>::state transporter_state{};
@@ -82,7 +83,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
                                             resetter_state);
 
             // Create the propagator state
-            propagator_host_type::state p_state(track, det.get_bfield(), det);
+            typename propagator_host_type<stepper_policy_t>::state p_state(track, det.get_bfield(), det);
 
             // Run propagation
             if constexpr (opt == propagate_option::e_unsync) {
@@ -94,7 +95,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
     }
 }
 
-template <propagate_option opt>
+template <typename stepper_policy_t, propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
@@ -127,25 +128,33 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         copy.setup(candidates_buffer);
 
         // Run the propagator test for GPU device
-        propagator_benchmark(det_data, tracks_data, candidates_buffer, opt);
+        propagator_benchmark<stepper_policy_t>(det_data, tracks_data, candidates_buffer, opt);
     }
 }
 
-BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, propagate_option::e_unsync)
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, stepper_default_policy, propagate_option::e_unsync)
     ->Name("CPU unsync propagation")
     ->RangeMultiplier(2)
     ->Range(8, 256);
-BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, propagate_option::e_sync)
+    ->Repetitions(50)
+    ->DisplayAggregatesOnly(true);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, stepper_default_policy, propagate_option::e_sync)
     ->Name("CPU sync propagation")
     ->RangeMultiplier(2)
     ->Range(8, 256);
-BENCHMARK_TEMPLATE(BM_PROPAGATOR_CUDA, propagate_option::e_unsync)
+    ->Repetitions(50)
+    ->DisplayAggregatesOnly(true);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CUDA, stepper_rk_policy, propagate_option::e_unsync)
     ->Name("CUDA unsync propagation")
     ->RangeMultiplier(2)
     ->Range(8, 256);
-BENCHMARK_TEMPLATE(BM_PROPAGATOR_CUDA, propagate_option::e_sync)
+    ->Repetitions(50)
+    ->DisplayAggregatesOnly(true);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CUDA, stepper_rk_policy, propagate_option::e_sync)
     ->Name("CUDA sync propagation")
     ->RangeMultiplier(2)
     ->Range(8, 256);
+    ->Repetitions(50)
+    ->DisplayAggregatesOnly(true);
 
 BENCHMARK_MAIN();
