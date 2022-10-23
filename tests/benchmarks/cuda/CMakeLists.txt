@@ -30,7 +30,7 @@ foreach(algebra ${algebras})
    "benchmark_propagator_cuda_kernel.hpp"
        "benchmark_propagator_cuda.cpp"
        "benchmark_propagator_cuda_kernel.cu"
-       LINK_LIBRARIES benchmark::benchmark detray::core detray::algebra_${algebra} vecmem::cuda detray::test_utils
+       LINK_LIBRARIES detray::benchmarks detray::core detray::algebra_${algebra} vecmem::cuda detray::test_utils
     )
 
     target_compile_definitions(
