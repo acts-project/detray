@@ -27,6 +27,7 @@
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/navigation_policies.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -49,19 +50,24 @@ using detector_device_type =
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 using field_type = detector_host_type::bfield_type;
-using rk_stepper_type = rk_stepper<field_type::view_t, transform3>;
+template <typename policy_t>
+using rk_stepper_type =
+    rk_stepper<field_type::view_t, transform3, unconstrained_step, policy_t>;
 using actor_chain_t =
     actor_chain<thrust::tuple, parameter_transporter<transform3>,
                 pointwise_material_interactor<transform3>,
                 parameter_resetter<transform3>>;
-using propagator_host_type =
-    propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
-using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type, actor_chain_t>;
+template <typename stepper_policy_t>
+using propagator_host_type = propagator<rk_stepper_type<stepper_policy_t>,
+                                        navigator_host_type, actor_chain_t>;
+template <typename stepper_policy_t>
+using propagator_device_type = propagator<rk_stepper_type<stepper_policy_t>,
+                                          navigator_device_type, actor_chain_t>;
 
 namespace detray {
 
 /// test function for propagator with single state
+template <typename stepper_policy_t>
 void propagator_benchmark(
     detector_view<detector_host_type> det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,

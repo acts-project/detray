@@ -212,7 +212,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
-        // Genrate second track state used for propagation with pathlimit
+        // Generate second track state used for propagation with pathlimit
         track_t lim_track(track);
 
         track.set_overstep_tolerance(overstep_tol);

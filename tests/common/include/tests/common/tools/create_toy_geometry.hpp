@@ -398,6 +398,8 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
     scalar pi{static_cast<scalar>(M_PI)};
     scalar phi_step{scalar{2} * pi / (n_phi_bins)};
     scalar min_phi{-pi + scalar{0.5} * phi_step};
+    // std::array<scalar, 4> z_stagger3{z - 0.5f * phi_stagger, 0.f, z + 0.5f *
+    // phi_stagger, 0.f};
 
     for (size_t iphi = 0; iphi < size_t(n_phi_bins); ++iphi) {
         // if we have a phi sub stagger presents
@@ -416,6 +418,7 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
         // the module phi
         scalar phi{min_phi + iphi * phi_step};
         // main z position depending on phi bin
+        // scalar rz{z_stagger3[iphi % 4]};
         scalar rz{iphi % 2 ? z - scalar{0.5} * phi_stagger
                            : z + scalar{0.5} * phi_stagger};
         r_positions.push_back(
@@ -472,6 +475,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
         // sum up the total length of the modules along r
         scalar tot_length{0};
         for (auto &m_hlength : cfg.m_half_y) {
+            // tot_length += 2 * m_hlength + 3.5;
             tot_length += 2 * m_hlength + 0.5;
         }
         // now calculate the overlap (equal pay)
