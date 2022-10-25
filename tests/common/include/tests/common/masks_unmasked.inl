@@ -21,8 +21,8 @@ TEST(mask, unmasked) {
 
     // Check projection matrix
     const auto proj = u.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < decltype(u)::shape::meas_dim; j++) {
+    for (std::size_t i = 0; i < decltype(u)::shape::meas_dim; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
             if (i == j) {
                 ASSERT_EQ(getter::element(proj, i, j), 1);
             } else {
