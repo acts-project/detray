@@ -56,8 +56,8 @@ TEST(mask, single3_1) {
 
     // Check projection matrix
     const auto proj = m1_1.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < decltype(m1_1)::shape::meas_dim; j++) {
+    for (std::size_t i = 0; i < decltype(m1_1)::shape::meas_dim; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
             if (i == j) {
                 ASSERT_EQ(getter::element(proj, i, j), 1);
             } else {
@@ -89,8 +89,8 @@ TEST(mask, single3_2) {
 
     // Check projection matrix
     const auto proj = m1_2.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < decltype(m1_2)::shape::meas_dim; j++) {
+    for (std::size_t i = 0; i < decltype(m1_2)::shape::meas_dim; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
             if (i == j) {
                 ASSERT_EQ(getter::element(proj, i, j), 1);
             } else {

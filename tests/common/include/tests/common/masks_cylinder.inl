@@ -54,8 +54,8 @@ TEST(mask, cylinder3D) {
 
     // Check projection matrix
     const auto proj = c.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < decltype(c)::shape::meas_dim; j++) {
+    for (std::size_t i = 0; i < decltype(c)::shape::meas_dim; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
             if (i == j) {
                 ASSERT_EQ(getter::element(proj, i, j), 1);
             } else {
@@ -88,8 +88,8 @@ TEST(mask, cylinder2D) {
 
     // Check projection matrix
     const auto proj = c.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < decltype(c)::shape::meas_dim; j++) {
+    for (std::size_t i = 0; i < decltype(c)::shape::meas_dim; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
             if (i == j) {
                 ASSERT_EQ(getter::element(proj, i, j), 1);
             } else {
