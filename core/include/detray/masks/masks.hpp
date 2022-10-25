@@ -178,10 +178,14 @@ class mask {
     }
 
     template <size_type parameter_dim>
-    DETRAY_HOST_DEVICE matrix_type<shape::meas_dim, parameter_dim>
-    projection_matrix() const {
-        return matrix_operator()
-            .template identity<shape::meas_dim, parameter_dim>();
+    DETRAY_HOST_DEVICE matrix_type<2, parameter_dim> projection_matrix() const {
+
+        auto ret = matrix_operator().template zero<2, parameter_dim>();
+        for (std::size_t i = 0; i < shape::meas_dim; i++) {
+            matrix_operator().element(ret, i, i) = 1.;
+        }
+
+        return ret;
     }
 
     private:

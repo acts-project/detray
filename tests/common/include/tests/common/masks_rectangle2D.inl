@@ -50,9 +50,9 @@ TEST(mask, rectangle2D) {
 
     // Check projection matrix
     const auto proj = r2.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < decltype(r2)::shape::meas_dim; i++) {
+    for (std::size_t i = 0; i < 2; i++) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
-            if (i == j) {
+            if (i == j && i < decltype(r2)::shape::meas_dim) {
                 ASSERT_EQ(getter::element(proj, i, j), 1);
             } else {
                 ASSERT_EQ(getter::element(proj, i, j), 0);

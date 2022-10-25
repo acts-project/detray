@@ -55,9 +55,9 @@ TEST(mask, line_radial_cross_sect) {
 
     // Check projection matrix
     const auto proj = ln.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < decltype(ln)::shape::meas_dim; i++) {
+    for (std::size_t i = 0; i < 2; i++) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
-            if (i == j) {
+            if (i == j && i < decltype(ln)::shape::meas_dim) {
                 ASSERT_EQ(getter::element(proj, i, j), 1);
             } else {
                 ASSERT_EQ(getter::element(proj, i, j), 0);
@@ -100,9 +100,9 @@ TEST(mask, line_square_cross_sect) {
 
     // Check projection matrix
     const auto proj = ln.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < decltype(ln)::shape::meas_dim; i++) {
+    for (std::size_t i = 0; i < 2; i++) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
-            if (i == j) {
+            if (i == j && i < decltype(ln)::shape::meas_dim) {
                 ASSERT_EQ(getter::element(proj, i, j), 1);
             } else {
                 ASSERT_EQ(getter::element(proj, i, j), 0);
