@@ -57,10 +57,9 @@ class mask {
     using loc_point_t = typename shape::template loc_point_type<algebra_t>;
     using point3_t = typename algebra_t::point3;
     using matrix_operator = typename algebra_t::matrix_actor;
-    using size_type = typename matrix_operator::size_ty;
+    using size_type = typename algebra_t::size_type;
     template <size_type ROWS, size_type COLS>
-    using matrix_type =
-        typename matrix_operator::template matrix_type<ROWS, COLS>;
+    using matrix_type = typename algebra_t::template matrix_type<ROWS, COLS>;
 
     /// Default constructor
     constexpr mask() = default;
