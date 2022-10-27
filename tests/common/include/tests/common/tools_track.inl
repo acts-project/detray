@@ -35,15 +35,19 @@ enum material_ids : unsigned int {
 using mask_defs = tuple_vector_registry<mask_ids, mask<rectangle2D<>>>;
 using material_defs =
     tuple_vector_registry<material_ids, material_slab<scalar>>;
+using mask_link_t = dtyped_index<mask_ids, dindex>;
+using material_link_t = dtyped_index<material_ids, dindex>;
 
 TEST(tools, bound_track_parameters) {
 
     // surface container
-    std::vector<surface<mask_defs, material_defs>> surfaces;
-    surfaces.emplace_back(0, mask_defs::link_type{e_rectangle2, 0},
-                          material_defs::link_type{e_slab, 0}, 0, 0, false);
-    surfaces.emplace_back(1, mask_defs::link_type{e_rectangle2, 0},
-                          material_defs::link_type{e_slab, 0}, 0, 0, false);
+    std::vector<surface<mask_link_t, material_link_t>> surfaces;
+    surfaces.emplace_back(0, mask_link_t{e_rectangle2, 0},
+                          material_link_t{e_slab, 0}, 0, 0,
+                          surface_id::e_sensitive);
+    surfaces.emplace_back(1, mask_link_t{e_rectangle2, 0},
+                          material_link_t{e_slab, 0}, 0, 0,
+                          surface_id::e_sensitive);
 
     /// Declare track parameters
 
@@ -99,6 +103,14 @@ TEST(tools, bound_track_parameters) {
     EXPECT_FLOAT_EQ(bound_param1.charge(), -1);
     EXPECT_FLOAT_EQ(bound_param1.time(),
                     getter::element(bound_vec1, e_bound_time, 0));
+    EXPECT_FLOAT_EQ(bound_param1.mom()[0], bound_param1.p() *
+                                               std::sin(bound_param1.theta()) *
+                                               std::cos(bound_param1.phi()));
+    EXPECT_FLOAT_EQ(bound_param1.mom()[1], bound_param1.p() *
+                                               std::sin(bound_param1.theta()) *
+                                               std::sin(bound_param1.phi()));
+    EXPECT_FLOAT_EQ(bound_param1.mom()[2],
+                    bound_param1.p() * std::cos(bound_param1.theta()));
 
     // second track
     EXPECT_FLOAT_EQ(bound_param2.local()[0],
@@ -114,6 +126,14 @@ TEST(tools, bound_track_parameters) {
     EXPECT_FLOAT_EQ(bound_param2.charge(), 1.);
     EXPECT_FLOAT_EQ(bound_param2.time(),
                     getter::element(bound_vec2, e_bound_time, 0));
+    EXPECT_FLOAT_EQ(bound_param2.mom()[0], bound_param2.p() *
+                                               std::sin(bound_param2.theta()) *
+                                               std::cos(bound_param2.phi()));
+    EXPECT_FLOAT_EQ(bound_param2.mom()[1], bound_param2.p() *
+                                               std::sin(bound_param2.theta()) *
+                                               std::sin(bound_param2.phi()));
+    EXPECT_FLOAT_EQ(bound_param2.mom()[2],
+                    bound_param2.p() * std::cos(bound_param2.theta()));
 
     EXPECT_TRUE(!(bound_param2 == bound_param1));
     EXPECT_TRUE(bound_param2 == bound_param3);
@@ -161,6 +181,12 @@ TEST(tools, free_track_parameters) {
                     getter::element(free_vec, e_free_qoverp, 0));
     EXPECT_FLOAT_EQ(free_param1.pT(),
                     std::sqrt(std::pow(mom[0], 2) + std::pow(mom[1], 2)));
+    EXPECT_FLOAT_EQ(free_param1.mom()[0],
+                    free_param1.p() * free_param1.dir()[0]);
+    EXPECT_FLOAT_EQ(free_param1.mom()[1],
+                    free_param1.p() * free_param1.dir()[1]);
+    EXPECT_FLOAT_EQ(free_param1.mom()[2],
+                    free_param1.p() * free_param1.dir()[2]);
 
     // second constructor
     free_track_parameters<transform3> free_param2(pos, time, mom, charge);
@@ -175,6 +201,12 @@ TEST(tools, free_track_parameters) {
     EXPECT_FLOAT_EQ(free_param2.qop(), charge / getter::norm(mom));
     EXPECT_FLOAT_EQ(free_param2.pT(),
                     std::sqrt(std::pow(mom[0], 2) + std::pow(mom[1], 2)));
+    EXPECT_FLOAT_EQ(free_param2.mom()[0],
+                    free_param2.p() * free_param2.dir()[0]);
+    EXPECT_FLOAT_EQ(free_param2.mom()[1],
+                    free_param2.p() * free_param2.dir()[1]);
+    EXPECT_FLOAT_EQ(free_param2.mom()[2],
+                    free_param2.p() * free_param2.dir()[2]);
 
     EXPECT_TRUE(free_param2 == free_param1);
 }

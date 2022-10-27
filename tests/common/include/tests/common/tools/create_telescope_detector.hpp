@@ -93,12 +93,11 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
     using surface_type = typename surface_container_t::value_type;
     using volume_link_t = typename surface_type::volume_link_type;
     using mask_link_type = typename surface_type::mask_link;
-    using material_defs = typename surface_type::material_defs;
     using material_link_type = typename surface_type::material_link;
 
     auto volume_id = volume.index();
     volume_link_t mask_volume_link{volume_id};
-    constexpr auto slab_id = material_defs::id::e_slab;
+    constexpr auto slab_id = material_link_type::id_type::e_slab;
 
     // Create the module centers
     const std::vector<module_placement> m_placements =
@@ -113,11 +112,12 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
                                          materials.template size<slab_id>()};
         const auto trf_index = transforms.size(ctx);
         surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
-                              dindex_invalid, false);
+                              dindex_invalid, surface_id::e_sensitive);
 
         // The last surface acts as portal that leaves the telescope
         if (m_placement == m_placements.back()) {
             mask_volume_link = dindex_invalid;
+            surfaces.back().set_id(surface_id::e_portal);
         }
 
         if constexpr (mask_id ==

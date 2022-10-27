@@ -57,13 +57,13 @@ inline void add_cylinder_surface(
     const scalar upper_z, const volume_links volume_link,
     const material<scalar> &mat, const scalar thickness) {
     using surface_type = typename surface_container_t::value_type;
-    using mask_defs = typename surface_type::mask_defs;
+    using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
-    using material_defs = typename surface_type::material_defs;
+    using material_id = typename surface_type::material_id;
     using material_link_type = typename surface_type::material_link;
 
-    constexpr auto cylinder_id = mask_defs::id::e_portal_cylinder2;
-    constexpr auto slab_id = material_defs::id::e_slab;
+    constexpr auto cylinder_id = mask_id::e_portal_cylinder2;
+    constexpr auto slab_id = material_id::e_slab;
 
     const scalar min_z{std::min(lower_z, upper_z)};
     const scalar max_z{std::max(lower_z, upper_z)};
@@ -83,9 +83,10 @@ inline void add_cylinder_surface(
                              masks.template size<cylinder_id>() - 1};
     material_link_type material_link{slab_id,
                                      materials.template size<slab_id>() - 1};
-    const bool is_portal = (volume_link != volume_id);
+    const surface_id sf_id = (volume_link != volume_id) ? surface_id::e_portal
+                                                        : surface_id::e_passive;
     surfaces.emplace_back(transforms.size(ctx) - 1, mask_link, material_link,
-                          volume_id, dindex_invalid, is_portal);
+                          volume_id, dindex_invalid, sf_id);
 }
 
 /** Function that adds a disc portal.
@@ -112,13 +113,13 @@ inline void add_disc_surface(
     const scalar outer_r, const scalar z, const volume_links volume_link,
     const material<scalar> &mat, const scalar thickness) {
     using surface_type = typename surface_container_t::value_type;
-    using mask_defs = typename surface_type::mask_defs;
+    using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
-    using material_defs = typename surface_type::material_defs;
+    using material_id = typename surface_type::material_id;
     using material_link_type = typename surface_type::material_link;
 
-    constexpr auto disc_id = mask_defs::id::e_portal_ring2;
-    constexpr auto slab_id = material_defs::id::e_slab;
+    constexpr auto disc_id = mask_id::e_portal_ring2;
+    constexpr auto slab_id = material_id::e_slab;
 
     const scalar min_r{std::min(inner_r, outer_r)};
     const scalar max_r{std::max(inner_r, outer_r)};
@@ -137,9 +138,11 @@ inline void add_disc_surface(
     mask_link_type mask_link{disc_id, masks.template size<disc_id>() - 1};
     material_link_type material_link{slab_id,
                                      materials.template size<slab_id>() - 1};
-    const bool is_portal = (volume_link != volume_id);
+    const surface_id sf_id = (volume_link != volume_id)
+                                 ? surface_id::e_portal
+                                 : surface_id::e_sensitive;
     surfaces.emplace_back(transforms.size(ctx) - 1, mask_link, material_link,
-                          volume_id, dindex_invalid, is_portal);
+                          volume_id, dindex_invalid, sf_id);
 }
 
 /** Function that adds a generic cylinder volume, using a factory for contained
@@ -235,13 +238,13 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                   config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
     using volume_link_t = typename surface_type::volume_link_type;
-    using mask_defs = typename surface_type::mask_defs;
+    using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
-    using material_defs = typename surface_type::material_defs;
+    using material_id = typename surface_type::material_id;
     using material_link_type = typename surface_type::material_link;
 
-    constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
-    constexpr auto slab_id = material_defs::id::e_slab;
+    constexpr auto rectangle_id = mask_id::e_rectangle2;
+    constexpr auto slab_id = material_id::e_slab;
 
     auto volume_id = vol.index();
     volume_link_t mask_volume_link{volume_id};
@@ -289,7 +292,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                          materials.template size<slab_id>()};
         const auto trf_index = transforms.size(ctx);
         surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
-                              dindex_invalid, false);
+                              dindex_invalid, surface_id::e_sensitive);
 
         // The rectangle bounds for this module
         masks.template add_value<rectangle_id>(mask_volume_link, cfg.m_half_x,
@@ -442,13 +445,13 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
                            transform_container_t &transforms, config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
     using volume_link_t = typename surface_type::volume_link_type;
-    using mask_defs = typename surface_type::mask_defs;
+    using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
-    using material_defs = typename surface_type::material_defs;
+    using material_id = typename surface_type::material_id;
     using material_link_type = typename surface_type::material_link;
 
-    constexpr auto trapezoid_id = mask_defs::id::e_trapezoid2;
-    constexpr auto slab_id = material_defs::id::e_slab;
+    constexpr auto trapezoid_id = mask_id::e_trapezoid2;
+    constexpr auto slab_id = material_id::e_slab;
 
     auto volume_id = vol.index();
     volume_link_t mask_volume_link{volume_id};
@@ -525,7 +528,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             // Surfaces with the linking into the local containers
             surfaces.emplace_back(transforms.size(ctx), mask_link,
                                   material_link, volume_id, dindex_invalid,
-                                  false);
+                                  surface_id::e_sensitive);
 
             // the module transform from the position
             scalar m_phi{algebra::getter::phi(m_position)};

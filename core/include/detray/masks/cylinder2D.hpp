@@ -29,10 +29,12 @@ namespace detray {
 ///         needs to be checked (changes local coordinate system def.)
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
+/// @tparam kMeasDim defines the dimension of the measurement
 ///
 /// It is defined by r and the two half lengths rel to the coordinate center.
 template <bool kRadialCheck = false,
-          template <typename> class intersector_t = cylinder_intersector>
+          template <typename> class intersector_t = cylinder_intersector,
+          std::size_t kMeasDim = 2>
 class cylinder2D {
     public:
     /// The name for this shape
@@ -40,6 +42,9 @@ class cylinder2D {
 
     /// Check the radial position in boundary check
     static constexpr bool check_radius = kRadialCheck;
+
+    /// The measurement dimension
+    inline static constexpr const std::size_t meas_dim = kMeasDim;
 
     enum boundaries : std::size_t {
         e_r = 0,
@@ -111,7 +116,7 @@ class cylinder2D {
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
-        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
+        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         if constexpr (kRadialCheck) {
             return (loc_p[0] <= bounds[e_r] + tol and
@@ -121,6 +126,12 @@ class cylinder2D {
             return (bounds[e_n_half_z] - tol <= loc_p[1] and
                     loc_p[1] <= bounds[e_p_half_z] + tol);
         }
+    }
+
+    template <typename param_t>
+    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
+        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        return param.local() + offset;
     }
 };
 

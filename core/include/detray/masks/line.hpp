@@ -29,13 +29,15 @@ namespace detray {
 ///         square cross section. This also changes the local coord. frame.
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
+/// @tparam kMeasDim defines the dimension of the measurement
 ///
 /// The line can either have a circular or a square cross section. In the first
 /// case bounds[0] refers to the radius, while in the second case it is the
 /// half length of the square. The second boundary bounds[1] is the half length
 /// in z.
 template <bool kSquareCrossSect = false,
-          template <typename> class intersector_t = line_intersector>
+          template <typename> class intersector_t = line_intersector,
+          std::size_t kMeasDim = 1>
 class line {
     public:
     /// The name for this shape
@@ -43,6 +45,9 @@ class line {
 
     /// Geometrical cross section of the line
     static constexpr bool square_cross_sect = kSquareCrossSect;
+
+    /// The measurement dimension
+    inline static constexpr const std::size_t meas_dim = kMeasDim;
 
     enum boundaries : std::size_t {
         e_cross_section = 0,
@@ -114,7 +119,7 @@ class line {
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == 2, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
-        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
+        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         // For square cross section, we check if (1) x and y of the local cart.
@@ -134,6 +139,19 @@ class line {
             return (loc_p[0] <= bounds[e_cross_section] + tol &&
                     std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
         }
+    }
+
+    template <typename param_t>
+    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
+        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+
+        auto local = param.local();
+        local[0] = std::abs(local[0]) + offset[0];
+        if (local[0] < 0.) {
+            local[0] = 0.;
+        }
+        local[1] = local[1] + offset[1];
+        return local;
     }
 };
 

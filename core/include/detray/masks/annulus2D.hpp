@@ -27,6 +27,7 @@ namespace detray {
 ///
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
+/// @tparam kMeasDim defines the dimension of the measurement
 ///
 /// The stereo annulus is defined in two different(!) polar coordinate systems
 /// that differ by an origin shift. The boundaries are the inner and outer
@@ -44,11 +45,15 @@ namespace detray {
 /// parameters are included (bounds[4], bounds[5], bounds[6]).
 /// The first two are the origin shift in x and y respectively, while
 /// bounds[6] is the average Phi angle mentioned above.
-template <template <typename> class intersector_t = plane_intersector>
+template <template <typename> class intersector_t = plane_intersector,
+          std::size_t kMeasDim = 2>
 class annulus2D {
     public:
     /// The name for this shape
     inline static const std::string name = "(stereo) annulus2D";
+
+    /// The measurement dimension
+    inline static constexpr const std::size_t meas_dim = kMeasDim;
 
     /// Names for the mask boundary values
     enum boundaries : std::size_t {
@@ -135,7 +140,7 @@ class annulus2D {
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
-        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
+        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         // The two quantities to check: r^2 in disc system, phi in focal system:
@@ -167,6 +172,12 @@ class annulus2D {
 
         return ((r_mod2 >= minR_tol * minR_tol) and
                 (r_mod2 <= maxR_tol * maxR_tol));
+    }
+
+    template <typename param_t>
+    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
+        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        return param.local() + offset;
     }
 };
 

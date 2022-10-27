@@ -25,6 +25,9 @@ class unmasked {
     /// The name for this shape
     inline static const std::string name = "unmasked";
 
+    /// The measurement dimension
+    inline static constexpr const std::size_t meas_dim = 2;
+
     enum boundaries : std::size_t { e_size = 1 };
 
     /// Local coordinate frame for boundary checks
@@ -77,6 +80,12 @@ class unmasked {
         const bounds_t& /*bounds*/, const point_t& /*loc_p*/,
         const scalar_t /*tol*/) const {
         return true;
+    }
+
+    template <typename param_t>
+    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
+        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        return param.local() + offset;
     }
 };
 

@@ -26,14 +26,19 @@ namespace detray {
 ///
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
+/// @tparam kMeasDim defines the dimension of the measurement
 ///
 /// It is defined by the two radii bounds[0] and bounds[1],
 /// and can be checked with a tolerance in t[0] and t[1].
-template <template <typename> class intersector_t = plane_intersector>
+template <template <typename> class intersector_t = plane_intersector,
+          std::size_t kMeasDim = 2>
 class ring2D {
     public:
     /// The name for this shape
     inline static const std::string name = "ring2D";
+
+    /// The measurement dimension
+    inline static constexpr const std::size_t meas_dim = kMeasDim;
 
     enum boundaries : std::size_t {
         e_inner_r = 0,
@@ -94,11 +99,17 @@ class ring2D {
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
-        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
+        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         return (loc_p[0] + tol >= bounds[e_inner_r] and
                 loc_p[0] <= bounds[e_outer_r] + tol);
+    }
+
+    template <typename param_t>
+    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
+        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        return param.local() + offset;
     }
 };
 

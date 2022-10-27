@@ -39,10 +39,10 @@ detray_add_library( detray_core core
    "include/detray/definitions/detail/accessor.hpp"
    "include/detray/definitions/track_parametrization.hpp"
    # geometry include(s)
+   "include/detray/geometry/detector_volume.hpp"
    "include/detray/geometry/surface.hpp"
    "include/detray/geometry/volume_connector.hpp"
    "include/detray/geometry/volume_graph.hpp"
-   "include/detray/geometry/volume.hpp"
    # grids include(s)
    "include/detray/grids/axis.hpp"
    "include/detray/grids/grid2.hpp"
@@ -81,7 +81,6 @@ detray_add_library( detray_core core
    "include/detray/propagator/actors/parameter_resetter.hpp"
    "include/detray/propagator/actors/parameter_transporter.hpp"
    "include/detray/propagator/actors/pointwise_material_interactor.hpp"
-   "include/detray/propagator/actors/random_scatterer.hpp"
    "include/detray/propagator/actor_chain.hpp"
    "include/detray/propagator/base_actor.hpp"
    "include/detray/propagator/base_stepper.hpp"
@@ -135,5 +134,6 @@ detray_add_library( detray_core core
    "include/detray/utils/matrix_helper.hpp"
    "include/detray/utils/quadratic_equation.hpp"
    "include/detray/utils/ratio.hpp"
+   "include/detray/utils/statistics.hpp"
    "include/detray/utils/type_traits.hpp" )
-target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)
+target_link_libraries( detray_core INTERFACE detray_io vecmem::core detray::Thrust)

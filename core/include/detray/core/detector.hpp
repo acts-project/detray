@@ -14,8 +14,8 @@
 #include "detray/core/transform_store.hpp"
 #include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/geometry/volume.hpp"
 #include "detray/tools/bin_association.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -100,15 +100,16 @@ class detector {
     /// The surface takes a mask (defines the local coordinates and the surface
     /// extent), its material, a link to an element in the transform container
     /// to define its placement and a source link to the object it represents.
-    using surface_type = surface<masks, materials, transform_link, source_link>;
-    /// Define the different kinds of surfaces that are present in the detector
-    /// Can model the distinction between portals and sensitive surfaces
-    using objects =
-        typename metadata::template object_definitions<surface_type>;
+    using surface_type = surface<typename metadata::mask_link_type,
+                                 typename metadata::material_link_type,
+                                 transform_link, source_link>;
+
     using surface_container = vector_t<surface_type>;
     /// Volume type
+    using geo_obj_ids = typename metadata::geo_objects;
     using volume_type =
-        volume<objects, scalar_type, typename sf_finders::link_type, array_t>;
+        detector_volume<geo_obj_ids, typename metadata::object_link_type,
+                        typename sf_finders::link_type, scalar_type, array_t>;
 
     /// Volume finder definition: Make volume index available from track
     /// position
@@ -416,7 +417,7 @@ class detector {
                          surfaces_per_vol.end());
 
         // Update the surface range per volume
-        vol.update_range({sf_offset, _surfaces.size()});
+        vol.update_obj_link({sf_offset, _surfaces.size()});
 
         // Append mask and material container
         _masks.append_container(masks_per_vol);
@@ -485,11 +486,11 @@ class detector {
             ss << " - name: '" << v.name(names) << "'" << std::endl;
 
             ss << "     contains    "
-               << v.template n_objects<objects::e_surface>() << " surfaces "
-               << std::endl;
+               << v.template n_objects<geo_obj_ids::e_sensitive>()
+               << " sensitive surfaces " << std::endl;
 
             ss << "                 "
-               << v.template n_objects<objects::e_portal>() << " portals "
+               << v.template n_objects<geo_obj_ids::e_portal>() << " portals "
                << std::endl;
 
             ss << "                 " << /*_sf_finders.size(v.sf_finder_type())
