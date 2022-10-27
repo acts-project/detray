@@ -315,9 +315,10 @@ class detector {
     template <typename grid_t, typename sf_finders::id grid_id =
                                    sf_finders::template get_id<grid_t>()>
     DETRAY_HOST auto add_grid(volume_type &vol, const grid_t &grid) -> void {
-        constexpr auto grid_id2 = sf_finders::get_id(grid);
+        // constexpr auto grid_id2 = sf_finders::get_id(grid);
+        // std::cout << static_cast<std::size_t>(grid_id2) << std::endl;
         _sf_finders.template push_back<grid_id>(grid);
-        vol.set_sf_finder(grid_id, _sf_finders.template size<grid_id>() - 1);
+        vol.set_sf_finder(grid_id2, _sf_finders.template size<grid_id>() - 1);
     }
 
     /// Fill a grid surface finder by bin association, then add it to the

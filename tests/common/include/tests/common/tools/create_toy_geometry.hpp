@@ -354,8 +354,8 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
         gfactory.new_grid(cyl_mask, cfg.m_binning.first, cfg.m_binning.second);
     det.template add_sf_finder<decltype(cyl_grid), grid_id>(ctx, vol, cyl_grid);
 
-    auto &grid_coll = det.sf_finder_store().template get<grid_id>();
-    // gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
+    // auto &grid_coll = det.sf_finder_store().template get<grid_id>();
+    //  gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
 }
 
 /** Helper function that creates a surface grid of trapezoidal endcap modules.
@@ -392,8 +392,8 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
     det.template add_sf_finder<decltype(disc_grid), grid_id>(ctx, vol,
                                                              disc_grid);
 
-    auto &grid_coll = det.sf_finder_store().template get<grid_id>();
-    // gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
+    // auto &grid_coll = det.sf_finder_store().template get<grid_id>();
+    //  gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
 }
 
 /** Helper method for positioning of modules in an endcap ring
