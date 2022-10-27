@@ -161,7 +161,8 @@ TEST(check_simulation, toy_geometry) {
     std::vector<scalar> local0_diff;
     std::vector<scalar> local1_diff;
 
-    for (std::size_t i = 0; i < hits.size(); i++) {
+    const std::size_t nhits = hits.size();
+    for (std::size_t i = 0; i < nhits; i++) {
         const auto& surface = detector.surface_by_index(hits[i].geometry_id);
         const point3 pos{hits[i].tx, hits[i].ty, hits[i].tz};
         const vector3 mom{hits[i].tpx, hits[i].tpy, hits[i].tpz};
