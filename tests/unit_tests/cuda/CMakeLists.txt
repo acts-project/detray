@@ -40,8 +40,6 @@ foreach(algebra ${algebras})
       "surfaces_finder_cuda_kernel.cu"
       "detector_cuda.cpp" "detector_cuda_kernel.hpp"
       "detector_cuda_kernel.cu"
-      "telescope_propagation_cuda.cpp" "telescope_propagation_cuda_kernel.hpp"
-      "telescope_propagation_cuda_kernel.cu"
       "navigator_cuda.cpp" "navigator_cuda_kernel.hpp"
       "navigator_cuda_kernel.cu"
       "sf_finders_grid_cuda.cpp" "sf_finders_grid_cuda_kernel.hpp"
