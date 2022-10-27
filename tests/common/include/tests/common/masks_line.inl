@@ -11,6 +11,7 @@
 #include "detray/masks/masks.hpp"
 
 using namespace detray;
+using namespace __plugin;
 
 namespace {
 

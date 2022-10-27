@@ -83,9 +83,8 @@ inline void add_cylinder_surface(
                              masks.template size<cylinder_id>() - 1};
     material_link_type material_link{slab_id,
                                      materials.template size<slab_id>() - 1};
-    const surface_id sf_id = (volume_link != volume_id)
-                                 ? surface_id::e_portal
-                                 : surface_id::e_sensitive;
+    const surface_id sf_id = (volume_link != volume_id) ? surface_id::e_portal
+                                                        : surface_id::e_passive;
     surfaces.emplace_back(transforms.size(ctx) - 1, mask_link, material_link,
                           volume_id, dindex_invalid, sf_id);
 }

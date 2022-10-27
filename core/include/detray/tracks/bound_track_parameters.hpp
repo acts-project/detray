@@ -151,6 +151,12 @@ struct bound_track_parameters {
         matrix_operator().element(m_vector, e_bound_qoverp, 0) = qop;
     }
 
+    DETRAY_HOST_DEVICE
+    scalar_type p() const { return charge() / qop(); }
+
+    DETRAY_HOST_DEVICE
+    vector3 mom() const { return this->p() * this->dir(); }
+
     private:
     std::size_t m_surface_link;
     vector_type m_vector;
