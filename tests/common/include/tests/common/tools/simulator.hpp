@@ -40,7 +40,9 @@ struct simulator {
 
     simulator(std::size_t events, const detector_t& det,
               track_generator_t& track_gen, smearer_t& smearer)
-        : m_events(events), m_detector(det), m_smearer(smearer) {
+        : m_events(events),
+          m_detector(std::make_unique<detector_t>(det)),
+          m_smearer(smearer) {
         m_track_generator = track_gen;
     }
 
@@ -62,7 +64,7 @@ struct simulator {
                     transporter, interactor, scatterer, writer, resetter);
 
                 typename propagator_type::state state(
-                    track, m_detector.get_bfield(), m_detector, actor_states);
+                    track, m_detector->get_bfield(), *m_detector, actor_states);
 
                 propagator_type p({}, {});
 
@@ -73,7 +75,7 @@ struct simulator {
 
     private:
     std::size_t m_events = 0;
-    detector_t m_detector;
+    std::unique_ptr<detector_t> m_detector;
     track_generator_t m_track_generator;
     smearer_t m_smearer;
 };

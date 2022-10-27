@@ -19,6 +19,8 @@ namespace detray {
 template <typename transform3_t, typename smearer_t>
 struct event_writer : actor {
 
+    using scalar_type = typename transform3_t::scalar_type;
+
     struct state {
         state(std::size_t event_id, smearer_t smearer)
             : m_particle_writer(get_event_filename(event_id, "-particles.csv")),
@@ -53,21 +55,17 @@ struct event_writer : actor {
     };
 
     struct measurement_kernel {
-        using output_type = point2;
+        using output_type = std::array<scalar_type, 2>;
 
-        template <typename mask_group_t, typename index_t, typename surface_t>
+        template <typename mask_group_t, typename index_t>
         inline output_type operator()(
-            const mask_group_t& mask_group, const index_t& /*index*/,
-            const surface_t& surface,
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const bound_track_parameters<transform3_t>& bound_params,
             smearer_t smearer) const {
 
-            const auto& mask = mask_group[surface.mask().index()];
-
-            const auto offset = smearer();
-
-            return mask.get_shape().to_measurement(bound_params,
-                                                   {offset[0], offset[1]});
+            return smearer(mask_group_t::value_type::shape::name,
+                           mask_group_t::value_type::shape::meas_dim,
+                           smearer.get_offset(), bound_params);
         }
     };
 
@@ -88,14 +86,13 @@ struct event_writer : actor {
             const auto track = stepping();
             const auto pos = track.pos();
             const auto mom = track.mom();
-            const auto time = track.time();
 
             hit.particle_id = writer_state.particle_id;
-            hit.geometry_id = navigation.current()->index;
+            hit.geometry_id = navigation.current_object();
             hit.tx = pos[0];
             hit.ty = pos[1];
             hit.tz = pos[2];
-            hit.tt = time;
+            hit.tt = track.time();
             hit.tpx = mom[0];
             hit.tpy = mom[1];
             hit.tpz = mom[2];
@@ -108,14 +105,12 @@ struct event_writer : actor {
             const auto bound_params = stepping._bound_params;
             auto det = navigation.detector();
             const auto& mask_store = det->mask_store();
-            const auto& is = navigation.current();
-            const auto& surface = det->surface_by_index(is->index);
+            const auto& surface = det->surface_by_index(hit.geometry_id);
 
             const auto local = mask_store.template call<measurement_kernel>(
-                surface.mask(), surface, bound_params,
-                writer_state.m_meas_smearer);
+                surface.mask(), bound_params, writer_state.m_meas_smearer);
 
-            meas.geometry_id = navigation.current()->index;
+            meas.geometry_id = hit.geometry_id;
 
             meas.local0 = local[0];
             meas.local1 = local[1];

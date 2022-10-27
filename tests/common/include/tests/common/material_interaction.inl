@@ -20,7 +20,7 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/utils/math.hpp"
+#include "detray/utils/statistics.hpp"
 #include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/random_scatterer.hpp"

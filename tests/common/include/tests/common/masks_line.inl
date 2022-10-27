@@ -13,18 +13,6 @@
 using namespace detray;
 using namespace __plugin;
 
-struct test_param {
-    using point2 = __plugin::point2<scalar>;
-
-    test_param(scalar loc_0, scalar loc_1) {
-        loc[0] = loc_0;
-        loc[1] = loc_1;
-    }
-
-    point2 loc;
-    point2 local() const { return loc; }
-};
-
 namespace {
 
 // 50 mm wire with 1 mm radial cell size
@@ -64,17 +52,6 @@ TEST(mask, line_radial_cross_sect) {
             }
         }
     }
-
-    // Test to_measurement function
-    test_param param_1(1, 2);
-    test_param param_2(2.5, 3);
-
-    const auto meas_1 = ln.get_shape().to_measurement(param_1, {-3, 2});
-    const auto meas_2 = ln.get_shape().to_measurement(param_2, {1, -4});
-    ASSERT_FLOAT_EQ(meas_1[0], 0.);
-    ASSERT_FLOAT_EQ(meas_1[1], 4.);
-    ASSERT_FLOAT_EQ(meas_2[0], 3.5);
-    ASSERT_FLOAT_EQ(meas_2[1], -1);
 }
 
 /// This tests the basic functionality of a line with a square cross section
@@ -109,15 +86,4 @@ TEST(mask, line_square_cross_sect) {
             }
         }
     }
-
-    // Test to_measurement function
-    test_param param_1(1, 2);
-    test_param param_2(2.5, 3);
-
-    const auto meas_1 = ln.get_shape().to_measurement(param_1, {-3, 2});
-    const auto meas_2 = ln.get_shape().to_measurement(param_2, {1, -4});
-    ASSERT_FLOAT_EQ(meas_1[0], 0.);
-    ASSERT_FLOAT_EQ(meas_1[1], 4.);
-    ASSERT_FLOAT_EQ(meas_2[0], 3.5);
-    ASSERT_FLOAT_EQ(meas_2[1], -1);
 }

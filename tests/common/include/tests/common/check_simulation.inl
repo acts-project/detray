@@ -7,7 +7,7 @@
 
 // Project include(s).
 #include "detray/io/utils.hpp"
-#include "detray/utils/math.hpp"
+#include "detray/utils/statistics.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/simulator.hpp"
 #include "tests/common/tools/track_generators.hpp"
@@ -43,6 +43,43 @@ struct global_to_local {
         return local_coordinate.global_to_local(trf3, pos, dir);
     }
 };
+
+struct test_param {
+    using point2 = __plugin::point2<scalar>;
+
+    test_param(scalar loc_0, scalar loc_1) {
+        loc[0] = loc_0;
+        loc[1] = loc_1;
+    }
+
+    point2 loc;
+    point2 local() const { return loc; }
+};
+
+// Test measurement smearer
+TEST(check_simulation, measurement_smearer) {
+
+    test_param param(1, 2);
+    measurement_smearer<scalar> smearer(0., 0.);
+
+    const auto local_line_1 = smearer("line", 1, {-3, 2}, param);
+    ASSERT_FLOAT_EQ(local_line_1[0], 0);
+    // Null for one dimensional measurement
+    ASSERT_FLOAT_EQ(local_line_1[1], 0);
+
+    const auto local_line_2 = smearer("line", 2, {2, -5}, param);
+    ASSERT_FLOAT_EQ(local_line_2[0], 3);
+    ASSERT_FLOAT_EQ(local_line_2[1], -3);
+
+    const auto local_rectangle_1 = smearer("rectangle2D", 1, {-3, 2}, param);
+    ASSERT_FLOAT_EQ(local_rectangle_1[0], -2);
+    // Null for one dimensional measurement
+    ASSERT_FLOAT_EQ(local_rectangle_1[1], 0);
+
+    const auto local_rectangle_2 = smearer("rectangle2D", 2, {2, -5}, param);
+    ASSERT_FLOAT_EQ(local_rectangle_2[0], 3);
+    ASSERT_FLOAT_EQ(local_rectangle_2[1], -3);
+}
 
 TEST(check_simulation, toy_geometry) {
 
@@ -114,7 +151,7 @@ TEST(check_simulation, toy_geometry) {
         measurements.push_back(io_measurement);
     }
 
-    ASSERT_TRUE(measurements.size() > 0);
+    ASSERT_TRUE(not measurements.empty());
     ASSERT_EQ(hits.size(), measurements.size());
 
     // Let's check if measurement smearing works correctly...

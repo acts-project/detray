@@ -13,18 +13,6 @@
 using namespace detray;
 using namespace __plugin;
 
-struct test_param {
-    using point2 = __plugin::point2<scalar>;
-
-    test_param(scalar loc_0, scalar loc_1) {
-        loc[0] = loc_0;
-        loc[1] = loc_1;
-    }
-
-    point2 loc;
-    point2 local() const { return loc; }
-};
-
 constexpr scalar r{3. * unit_constants::mm};
 constexpr scalar hz{4. * unit_constants::mm};
 
@@ -97,11 +85,4 @@ TEST(mask, cylinder2D) {
             }
         }
     }
-
-    // Test to_measurement function
-    test_param param(1, 2);
-
-    const auto meas = c.get_shape().to_measurement(param, {-3, 2});
-    ASSERT_FLOAT_EQ(meas[0], -2.);
-    ASSERT_FLOAT_EQ(meas[1], 4.);
 }
