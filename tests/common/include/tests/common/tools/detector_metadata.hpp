@@ -63,37 +63,6 @@ using disc_sf_grid = surface_grid_t<ring2D<>::axes<>, container_t>;
 
 /// @}
 
-/// Material grid types
-/// @{
-
-// material grid definition: bin-content: material slab
-template <typename grid_shape_t, typename container_t>
-using material_grid_t =
-    grid<coordinate_axes<grid_shape_t, false, container_t>,
-         material_slab<detray::scalar>, simple_serializer, replacer>;
-
-// cylindrical grid for the barrel portals
-template <typename container_t>
-using cylinder_mat_grid = material_grid_t<cylinder2D<>::axes<>, container_t>;
-
-// disc grid for the endcap portals
-template <typename container_t>
-using disc_mat_grid = material_grid_t<ring2D<>::axes<>, container_t>;
-
-// rectangular grid for the barrel modules
-template <typename container_t>
-using rectangle_mat_grid = material_grid_t<rectangle2D<>::axes<>, container_t>;
-
-// trapezoid grid for the endcap modules (maps onto rectangles)
-template <typename container_t>
-using trapezoid_mat_grid = material_grid_t<trapezoid2D<>::axes<>, container_t>;
-
-// annulus grid for the ITk endcap modules
-template <typename container_t>
-using annulus_mat_grid = material_grid_t<annulus2D<>::axes<>, container_t>;
-
-/// @}
-
 /// Defines all available types
 template <typename dynamic_data, std::size_t kBrlGrids = 1,
           std::size_t kEdcGrids = 1, std::size_t kDefault = 1,
@@ -154,15 +123,6 @@ struct full_metadata {
               template <typename...> class vector_t = dvector>
     using material_store = regular_multi_store<material_ids, empty_context,
                                                tuple_t, vector_t, slab, rod>;
-
-    /// How to store and link materials
-    template <template <typename...> class tuple_t = dtuple,
-              typename container_t = host_container_types>
-    using binned_material_store = regular_multi_store<
-        mask_ids, empty_context, tuple_t, grid_collection,
-        cylinder_mat_grid<container_t>, disc_mat_grid<container_t>,
-        rectangle_mat_grid<container_t>, trapezoid_mat_grid<container_t>,
-        annulus_mat_grid<container_t>>;
 
     /// Surface finders
     enum class sf_finder_ids {
