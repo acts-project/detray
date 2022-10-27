@@ -107,7 +107,6 @@ detray_add_library( detray_core core
    "include/detray/tools/associator.hpp"
    "include/detray/tools/bin_association.hpp"
    "include/detray/tools/generators.hpp"
-   "include/detray/tools/grid_array_helper.hpp"
    "include/detray/tools/local_object_finder.hpp"
    # tracks include(s)
    "include/detray/tracks/detail/track_helper.hpp"
