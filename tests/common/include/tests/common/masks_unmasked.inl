@@ -18,4 +18,16 @@ TEST(mask, unmasked) {
     mask<unmasked> u{};
 
     ASSERT_TRUE(u.is_inside(p2, 0) == intersection::status::e_inside);
+
+    // Check projection matrix
+    const auto proj = u.projection_matrix<e_bound_size>();
+    for (std::size_t i = 0; i < 2; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            if (i == j) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
 }

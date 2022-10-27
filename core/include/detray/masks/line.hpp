@@ -29,13 +29,15 @@ namespace detray {
 ///         square cross section. This also changes the local coord. frame.
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
+/// @tparam kMeasDim defines the dimension of the measurement
 ///
 /// The line can either have a circular or a square cross section. In the first
 /// case bounds[0] refers to the radius, while in the second case it is the
 /// half length of the square. The second boundary bounds[1] is the half length
 /// in z.
 template <bool kSquareCrossSect = false,
-          template <typename> class intersector_t = line_intersector>
+          template <typename> class intersector_t = line_intersector,
+          std::size_t kMeasDim = 1>
 class line {
     public:
     /// The name for this shape
@@ -43,6 +45,9 @@ class line {
 
     /// Geometrical cross section of the line
     static constexpr bool square_cross_sect = kSquareCrossSect;
+
+    /// The measurement dimension
+    inline static constexpr const std::size_t meas_dim = kMeasDim;
 
     enum boundaries : std::size_t {
         e_cross_section = 0,

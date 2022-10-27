@@ -38,4 +38,16 @@ TEST(mask, trapezoid2D) {
     ASSERT_TRUE(t2.is_inside(p2_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(t2.is_inside(p2_out, 1.) == intersection::status::e_inside);
+
+    // Check projection matrix
+    const auto proj = t2.projection_matrix<e_bound_size>();
+    for (std::size_t i = 0; i < 2; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            if (i == j && i < decltype(t2)::shape::meas_dim) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
 }

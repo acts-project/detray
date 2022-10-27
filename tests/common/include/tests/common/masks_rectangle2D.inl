@@ -35,6 +35,18 @@ TEST(mask, rectangle2D) {
     ASSERT_TRUE(r2.is_inside(p2_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(r2.is_inside(p2_out, 1.) == intersection::status::e_inside);
+
+    // Check projection matrix
+    const auto proj = r2.projection_matrix<e_bound_size>();
+    for (std::size_t i = 0; i < 2; i++) {
+        for (std::size_t j = 0; j < e_bound_size; j++) {
+            if (i == j && i < decltype(r2)::shape::meas_dim) {
+                ASSERT_EQ(getter::element(proj, i, j), 1);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0);
+            }
+        }
+    }
 }
 
 /// This tests the basic functionality of a cuboid3D
