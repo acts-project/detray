@@ -22,10 +22,14 @@ struct event_writer : actor {
     using scalar_type = typename transform3_t::scalar_type;
 
     struct state {
-        state(std::size_t event_id, smearer_t smearer)
-            : m_particle_writer(get_event_filename(event_id, "-particles.csv")),
-              m_hit_writer(get_event_filename(event_id, "-hits.csv")),
-              m_meas_writer(get_event_filename(event_id, "-measurements.csv")),
+        state(std::size_t event_id, const std::string directory,
+              smearer_t smearer)
+            : m_particle_writer(directory +
+                                get_event_filename(event_id, "-particles.csv")),
+              m_hit_writer(directory +
+                           get_event_filename(event_id, "-hits.csv")),
+              m_meas_writer(directory +
+                            get_event_filename(event_id, "-measurements.csv")),
               m_meas_smearer(smearer) {}
 
         std::size_t particle_id = 0;
