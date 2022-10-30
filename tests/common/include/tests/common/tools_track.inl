@@ -228,24 +228,26 @@ TEST(tools, test_flip) {
 
         // Make a bound parameter
         bound_track_parameters<transform3> bound_param;
-        auto& bound_vec_0 = bound_param.vector();
+        auto& bound_vec = bound_param.vector();
+        getter::element(bound_vec, e_bound_phi, 0) = phi;
+        getter::element(bound_vec, e_bound_theta, 0) = theta;
+        getter::element(bound_vec, e_bound_qoverp, 0) = 1.;
 
-        getter::element(bound_vec_0, e_bound_phi, 0) = phi;
-        getter::element(bound_vec_0, e_bound_theta, 0) = theta;
-        getter::element(bound_vec_0, e_bound_qoverp, 0) = 1.;
+        // Get direction and qop of original vector
+        const auto dir_0 = bound_param.dir();
+        const auto qop_0 = bound_param.qop();
 
-        // Get direction of original vector
-        const auto dir_0 = track_helper().dir(bound_vec_0);
-
+        // Do flip
         bound_param.flip();
 
-        // Get direction of flpped vector
-        const auto& bound_vec_1 = bound_param.vector();
-        const auto dir_1 = track_helper().dir(bound_vec_1);
+        // Get direction and qop of flpped vector
+        const auto dir_1 = bound_param.dir();
+        const auto qop_1 = bound_param.qop();
 
         // Check the direction
         ASSERT_NEAR(dir_0[0], -dir_1[0], 1e-5);
         ASSERT_NEAR(dir_0[1], -dir_1[1], 1e-5);
         ASSERT_NEAR(dir_0[2], -dir_1[2], 1e-5);
+        ASSERT_NEAR(qop_0, -qop_1, 1e-5);
     }
 }
