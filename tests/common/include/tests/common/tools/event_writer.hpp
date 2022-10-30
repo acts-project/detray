@@ -118,6 +118,10 @@ struct event_writer : actor {
 
             meas.local0 = local[0];
             meas.local1 = local[1];
+            auto stddev_0 = writer_state.m_meas_smearer.stddev[0];
+            auto stddev_1 = writer_state.m_meas_smearer.stddev[1];
+            meas.var_local0 = stddev_0 * stddev_0;
+            meas.var_local1 = stddev_1 * stddev_1;
             meas.phi = bound_params.phi();
             meas.theta = bound_params.theta();
             meas.time = bound_params.time();
