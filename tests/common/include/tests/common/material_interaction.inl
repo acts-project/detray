@@ -248,8 +248,8 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     typename bound_track_parameters<transform3>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
-    // bound track parameter
-    const bound_track_parameters<transform3> bound_param(0, bound_vector,
+    // bound track parameter at first physical plane
+    const bound_track_parameters<transform3> bound_param(1, bound_vector,
                                                          bound_cov);
 
     propagation::print_inspector::state print_insp_state{};
@@ -308,7 +308,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     // -1 is required because the last surface is a portal
     const scalar dE =
         I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP, q) *
-        (positions.size() - 1);
+        (positions.size() - 2);
 
     // Check if the new energy after propagation is enough close to the
     // expected value
@@ -330,7 +330,8 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
 
     // Build from given module positions
     detail::ray<transform3> traj{{0, 0, 0}, 0, {1, 0, 0}, -1};
-    std::vector<scalar> positions = {0., 1000. * unit_constants::cm};
+    std::vector<scalar> positions = {0., 1000. * unit_constants::cm,
+                                     2000. * unit_constants::cm};
 
     const auto mat = silicon_tml<scalar>();
     const scalar thickness = 500 * unit_constants::cm;
@@ -370,7 +371,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param(0, bound_vector,
+    const bound_track_parameters<transform3> bound_param(1, bound_vector,
                                                          bound_cov);
 
     int n_samples = 100000;
