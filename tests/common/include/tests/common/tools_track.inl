@@ -16,6 +16,9 @@
 // Google Test include(s)
 #include <gtest/gtest.h>
 
+// System include(s).
+#include <random>
+
 using namespace detray;
 using vector2 = __plugin::vector2<scalar>;
 using vector3 = __plugin::vector3<scalar>;
@@ -209,4 +212,40 @@ TEST(tools, free_track_parameters) {
                     free_param2.p() * free_param2.dir()[2]);
 
     EXPECT_TRUE(free_param2 == free_param1);
+}
+
+TEST(tools, test_flip) {
+    std::random_device rd{};
+    std::mt19937 generator{rd()};
+
+    const scalar PI = static_cast<scalar>(M_PI);
+
+    for (std::size_t i = 0; i < 100; i++) {
+
+        // Generate random phi and theta
+        const scalar phi = std::normal_distribution<scalar>(-PI, PI)(generator);
+        const scalar theta = std::normal_distribution<scalar>(0, PI)(generator);
+
+        // Make a bound parameter
+        bound_track_parameters<transform3> bound_param;
+        auto& bound_vec_0 = bound_param.vector();
+
+        getter::element(bound_vec_0, e_bound_phi, 0) = phi;
+        getter::element(bound_vec_0, e_bound_theta, 0) = theta;
+        getter::element(bound_vec_0, e_bound_qoverp, 0) = 1.;
+
+        // Get direction of original vector
+        const auto dir_0 = track_helper().dir(bound_vec_0);
+
+        bound_param.flip();
+
+        // Get direction of flpped vector
+        const auto& bound_vec_1 = bound_param.vector();
+        const auto dir_1 = track_helper().dir(bound_vec_1);
+
+        // Check the direction
+        ASSERT_NEAR(dir_0[0], -dir_1[0], 1e-5);
+        ASSERT_NEAR(dir_0[1], -dir_1[1], 1e-5);
+        ASSERT_NEAR(dir_0[2], -dir_1[2], 1e-5);
+    }
 }
