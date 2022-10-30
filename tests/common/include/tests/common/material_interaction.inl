@@ -276,11 +276,11 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     const scalar mass = interactor_state.mass;
 
     // new momentum
-    const scalar newP = state._stepping._bound_params.charge() /
-                        state._stepping._bound_params.qop();
+    scalar newP = state._stepping._bound_params.charge() /
+                  state._stepping._bound_params.qop();
 
     // new energy
-    const scalar newE = std::sqrt(newP * newP + mass * mass);
+    scalar newE = std::sqrt(newP * newP + mass * mass);
 
     // Initial energy
     const scalar iniE = std::sqrt(iniP * iniP + mass * mass);
@@ -305,7 +305,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     // propagation. However, since the energy loss << the track momentum,
     // the assumption is not very bad
 
-    // -1 is required because the last surface is a portal
+    // -2 is required because the first and last surface is a portal
     const scalar dE =
         I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP, q) *
         (positions.size() - 2);
@@ -322,6 +322,26 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     EXPECT_NEAR(new_var_qop, dvar_qop, 1e-10);
 
     // @todo: Validate the backward direction case as well?
+    // Flip the stepper direction and momentum for backward filtering
+    state._stepping().flip();
+
+    // Flip the navigation direction for backward filtering
+    state._navigation.set_direction(detray::navigation::direction::e_backward);
+
+    // Set the volume id to 0
+    state._navigation.set_volume(0u);
+
+    // Do it again backwardly
+    ASSERT_TRUE(p.propagate(state))
+        << print_insp_state.to_string() << std::endl;
+
+    // Check if the momentum is restored
+    newP = state._stepping._bound_params.charge() /
+           state._stepping._bound_params.qop();
+
+    newE = std::sqrt(newP * newP + mass * mass);
+
+    EXPECT_NEAR(newE, iniE, 1e-5);
 }
 
 // Material interaction test with telescope Geometry
