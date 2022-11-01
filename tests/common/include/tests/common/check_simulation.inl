@@ -106,7 +106,7 @@ TEST(check_simulation, toy_geometry) {
     measurement_smearer<scalar> smearer(67 * unit_constants::um,
                                         170 * unit_constants::um);
 
-    std::size_t n_events = 2;
+    std::size_t n_events = 10;
     auto sim = simulator(n_events, detector, generator, smearer);
 
     // Do the simulation
