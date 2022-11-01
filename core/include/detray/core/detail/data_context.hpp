@@ -7,9 +7,9 @@
 
 #pragma once
 
-// System include(s)
-#include <any>
-#include <utility>
+// Project include(s)
+#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
 
@@ -17,86 +17,23 @@ namespace detail {
 
 /// @brief ACTS-style context object.
 ///
-/// @see
-/// https://github.com/acts-project/acts/blob/main/Core/include/Acts/Utilities/detail/ContextType.hpp
+/// @note the detray version simply wraps the index into the corresponding data
+/// store collection.
 class data_context {
-    /*public:
+    public:
+    /// Default constructor
+    constexpr data_context() noexcept = default;
 
-   /// Does nothing.
-   constexpr data_context() noexcept {};
+    /// Construct from @param value .
+    DETRAY_HOST_DEVICE
+    explicit data_context(dindex value) : m_data{value} {}
 
-   /// Move construct a new Context Type object from anything. Must be explicit.
-   ///
-   /// @tparam T The type of the value to construct from
-   /// @param value The value to construct from
-   template <typename T>
-   DETRAY_HOST_DEVICE
-   explicit data_context(T&& value) : m_data{std::move(value)} {}
+    /// @returns the index to find the data for the context - const
+    DETRAY_HOST_DEVICE
+    dindex get() const { return m_data; }
 
-   /// Copy construct a new Context Type object from anything. Must be explicit.
-   ///
-   /// @tparam T The type of the value to construct from
-   /// @param value The value to construct from
-   template <typename T>
-   DETRAY_HOST_DEVICE
-   explicit data_context(const T& value) : m_data{value} {}
-
-   template<class T, class... Args>
-   DETRAY_HOST_DEVICE
-   explicit data_context(std::in_place_type_t<T>, Args&&... args)
-       : m_data{std::in_place, std::forward<Args>(args)...} {}
-
-   /// Move assignment of anything to this object is allowed.
-   ///
-   /// @tparam T The type of the value to assign
-   /// @param value The value to assign
-   /// @return data_context&
-   template <typename T>
-   DETRAY_HOST_DEVICE
-   auto operator=(T&& value) noexcept -> data_context&  {
-       m_data = std::move(value);
-       return *this;
-   }
-
-   /// Copy assignment of anything to this object is allowed.
-   ///
-   /// @tparam T The type of the value to assign
-   /// @param value The value to assign
-   /// @return data_context&
-   template <typename T>
-   DETRAY_HOST_DEVICE
-   auto operator=(const T& value) -> data_context& {
-       m_data = value;
-       return *this;
-   }
-
-   /// Retrieve a reference to the contained type
-   ///
-   /// @tparam T The type to attempt to retrieve the value as
-   /// @return Reference to the contained value
-   template <typename T>
-   DETRAY_HOST_DEVICE
-   auto get() -> std::decay_t<T>& {
-       return std::any_cast<std::decay_t<T>&>(m_data);
-   }
-
-   /// Retrieve a reference to the contained type
-   ///
-   /// @tparam T The type to attempt to retrieve the value as
-   /// @return Reference to the contained value
-   template <typename T>
-   DETRAY_HOST_DEVICE
-   auto get() const -> const std::decay_t<T>&  {
-       return std::any_cast<const std::decay_t<T>&>(m_data);
-   }
-
-   /// Check if the contained type is initialized.
-   /// @return Boolean indicating whether a type is present
-   DETRAY_HOST_DEVICE
-   auto has_value() const noexcept -> bool { return m_data.has_value(); }
-
-   private:
-   std::any m_data;*/
+    private:
+    dindex m_data{0};
 };
 
 }  // namespace detail
