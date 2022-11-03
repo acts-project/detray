@@ -76,9 +76,7 @@ using vector2 = __plugin::vector2<scalar>;
 using vector3 = __plugin::vector3<scalar>;
 using matrix_operator = standard_matrix_operator<scalar>;
 using registry_type = detector_registry::default_detector;
-using detector_type =
-    detector<registry_type, covfie::field, std::array, std::tuple,
-             vecmem::vector, vecmem::jagged_vector>;
+using detector_type = detector<registry_type, covfie::field>;
 using mask_container = typename detector_type::mask_container;
 using material_container = typename detector_type::material_container;
 using transform3 = typename detector_type::transform3;
@@ -108,7 +106,7 @@ mag_field_t mag_field(mag_field_t::backend_t::configuration_t{B[0], B[1],
 vecmem::host_memory_resource resource;
 
 // Context
-const typename detector_type::context ctx{};
+const typename detector_type::geometry_context ctx{};
 
 }  // namespace env
 
@@ -147,12 +145,13 @@ TEST(path_correction, cartesian) {
     // Add a mask
     const scalar hx = 100. * unit_constants::mm;
     const scalar hy = 100. * unit_constants::mm;
-    masks.template add_value<mask_id>(0UL, hx, hy);
+    masks.template emplace_back<mask_id>(empty_context{}, 0UL, hx, hy);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
     const scalar thickness = 2 * unit_constants::mm;
-    materials.template add_value<material_id>(mat, thickness);
+    materials.template emplace_back<material_id>(empty_context{}, mat,
+                                                 thickness);
 
     typename detector_type::volume_type &vol = det.volume_by_index(0);
     det.add_objects_per_volume(env::ctx, vol, surfaces, masks, materials,
@@ -291,12 +290,13 @@ TEST(path_correction, polar) {
     // Add a mask
     const scalar r_low = 0. * unit_constants::mm;
     const scalar r_high = 100. * unit_constants::mm;
-    masks.template add_value<mask_id>(0UL, r_low, r_high);
+    masks.template emplace_back<mask_id>(empty_context{}, 0UL, r_low, r_high);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
     const scalar thickness = 2 * unit_constants::mm;
-    materials.template add_value<material_id>(mat, thickness);
+    materials.template emplace_back<material_id>(empty_context{}, mat,
+                                                 thickness);
 
     typename detector_type::volume_type &vol = det.volume_by_index(0);
     det.add_objects_per_volume(env::ctx, vol, surfaces, masks, materials,
@@ -422,12 +422,14 @@ TEST(path_correction, cylindrical) {
     const scalar r = 50 * unit_constants::mm;
     const scalar half_length_1 = 1000. * unit_constants::mm;
     const scalar half_length_2 = 1000. * unit_constants::mm;
-    masks.template add_value<mask_id>(0UL, r, half_length_1, half_length_2);
+    masks.template emplace_back<mask_id>(empty_context{}, 0UL, r, half_length_1,
+                                         half_length_2);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
     const scalar thickness = 2 * unit_constants::mm;
-    materials.template add_value<material_id>(mat, thickness);
+    materials.template emplace_back<material_id>(empty_context{}, mat,
+                                                 thickness);
 
     typename detector_type::volume_type &vol = det.volume_by_index(0);
     det.add_objects_per_volume(env::ctx, vol, surfaces, masks, materials,

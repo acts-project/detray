@@ -7,26 +7,26 @@
 
 #pragma once
 
-// Detray Test include(s)
-#include "tests/common/test_defs.hpp"
-
 // Detray Core include(s)
-#include "detray/core/detail/tuple_array_container.hpp"
-#include "detray/core/detail/tuple_vector_container.hpp"
+#include "detray/core/detail/multi_store.hpp"
 
 // Vecmem include(s)
 #include "vecmem/containers/device_vector.hpp"
 
+// Thrust include(s)
+#include <thrust/tuple.h>
+
 namespace detray {
 
-using tuple_vector_container_type =
-    tuple_vector_container<thrust::tuple, vecmem::vector, std::size_t, int,
-                           float, double>;
+using host_store_type =
+    regular_multi_store<int, empty_context, dtuple, vecmem::vector, std::size_t,
+                        float, double>;
 
-using tuple_vector_container_data_type =
-    tuple_vector_container_data<tuple_vector_container_type>;
+using device_store_type =
+    regular_multi_store<int, empty_context, thrust::tuple,
+                        vecmem::device_vector, std::size_t, float, double>;
 
-void get_sum(tuple_vector_container_data_type& container_data,
-             vecmem::data::vector_view<double>& sum_data);
+void get_sum(typename host_store_type::view_type store_view,
+             vecmem::data::vector_view<double> sum_data);
 
 }  // namespace detray

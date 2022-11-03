@@ -40,7 +40,7 @@ struct is_same_nc<const TYPE, TYPE> {
 /// @{
 template <typename T, typename = void>
 struct get_value_type {
-    using type = void;
+    using type = T;
 };
 
 template <typename T>
@@ -57,7 +57,7 @@ struct get_value_type<
 };
 
 template <typename T>
-using get_value_type_t = typename get_value_type<T>::type;
+using get_value_t = typename get_value_type<T>::type;
 /// @}
 
 /// Helper trait that checks if a type models an interval of some value that can

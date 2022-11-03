@@ -73,10 +73,11 @@ inline void add_cylinder_surface(
 
     // add transform and masks
     transforms.emplace_back(ctx, tsl);
-    masks.template add_value<cylinder_id>(volume_link, r, min_z, max_z);
+    masks.template emplace_back<cylinder_id>(empty_context{}, volume_link, r,
+                                             min_z, max_z);
 
     // Add material slab
-    materials.template add_value<slab_id>(mat, thickness);
+    materials.template emplace_back<slab_id>(empty_context{}, mat, thickness);
 
     // add surface
     mask_link_type mask_link{cylinder_id,
@@ -129,10 +130,11 @@ inline void add_disc_surface(
 
     // add transform and mask
     transforms.emplace_back(ctx, tsl);
-    masks.template add_value<disc_id>(volume_link, min_r, max_r);
+    masks.template emplace_back<disc_id>(empty_context{}, volume_link, min_r,
+                                         max_r);
 
     // Add material slab
-    materials.template add_value<slab_id>(mat, thickness);
+    materials.template emplace_back<slab_id>(empty_context{}, mat, thickness);
 
     // add surface
     mask_link_type mask_link{disc_id, masks.template size<disc_id>() - 1};
@@ -162,18 +164,19 @@ inline void add_disc_surface(
  * @param module_factory functor that adds module surfaces to volume
  */
 
-template <typename detector_t, typename factory_t,
-          std::enable_if_t<
-              std::is_invocable_v<factory_t, typename detector_t::context &,
-                                  typename detector_t::volume_type &,
-                                  typename detector_t::surface_container &,
-                                  typename detector_t::mask_container &,
-                                  typename detector_t::material_container &,
-                                  typename detector_t::transform_container &>,
-              bool> = true>
+template <
+    typename detector_t, typename factory_t,
+    std::enable_if_t<
+        std::is_invocable_v<factory_t, typename detector_t::geometry_context &,
+                            typename detector_t::volume_type &,
+                            typename detector_t::surface_container &,
+                            typename detector_t::mask_container &,
+                            typename detector_t::material_container &,
+                            typename detector_t::transform_container &>,
+        bool> = true>
 void create_cyl_volume(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, const scalar lay_inner_r,
+    typename detector_t::geometry_context &ctx, const scalar lay_inner_r,
     const scalar lay_outer_r, const scalar lay_neg_z, const scalar lay_pos_z,
     const std::vector<typename detector_t::surface_type::volume_link_type>
         &volume_links,
@@ -190,9 +193,9 @@ void create_cyl_volume(
 
     // Add module surfaces to volume
     typename detector_t::surface_container surfaces(&resource);
-    typename detector_t::mask_container masks = {resource};
-    typename detector_t::material_container materials = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::mask_container masks(resource);
+    typename detector_t::material_container materials(resource);
+    typename detector_t::transform_container transforms(resource);
 
     // fill the surfaces
     module_factory(ctx, cyl_volume, surfaces, masks, materials, transforms);
@@ -295,9 +298,10 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                               dindex_invalid, surface_id::e_sensitive);
 
         // The rectangle bounds for this module
-        masks.template add_value<rectangle_id>(mask_volume_link, cfg.m_half_x,
-                                               cfg.m_half_y);
-        materials.template add_value<slab_id>(cfg.mat, cfg.thickness);
+        masks.template emplace_back<rectangle_id>(
+            empty_context{}, mask_volume_link, cfg.m_half_x, cfg.m_half_y);
+        materials.template emplace_back<slab_id>(empty_context{}, cfg.mat,
+                                                 cfg.thickness);
 
         // Build the transform
         // The local phi
@@ -321,12 +325,12 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
  * @param cfg config struct for module creation
  */
 /*template <typename detector_t, typename config_t>
-inline void add_z_phi_grid(const typename detector_t::context &ctx,
+inline void add_z_phi_grid(const typename detector_t::geometry_context &ctx,
                            typename detector_t::volume_type &vol,
                            detector_t &det, vecmem::memory_resource &resource,
                            const config_t &cfg) {
     // Get correct grid type
-    constexpr auto grid_id = detector_t::sf_finders::id::e_z_phi_grid;
+    constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder_grid;
     using surface_grid_t =
         typename detector_t::sf_finders::template get_type<grid_id>::type;
 
@@ -356,12 +360,12 @@ inline void add_z_phi_grid(const typename detector_t::context &ctx,
  * @param cfg config struct for module creation
  */
 /*template <typename detector_t, typename config_t>
-inline void add_r_phi_grid(const typename detector_t::context &ctx,
+inline void add_r_phi_grid(const typename detector_t::geometry_context &ctx,
                            typename detector_t::volume_type &vol,
                            detector_t &det, vecmem::memory_resource &resource,
                            const config_t &cfg) {
     // Get correct grid type
-    constexpr auto grid_id = detector_t::sf_finders::id::e_r_phi_grid;
+    constexpr auto grid_id = detector_t::sf_finders::id::e_disc_grid;
     using surface_grid_t =
         typename detector_t::sf_finders::template get_type<grid_id>::type;
 
@@ -518,12 +522,13 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             material_link_type material_link{
                 slab_id, materials.template size<slab_id>()};
 
-            masks.template add_value<trapezoid_id>(
-                mask_volume_link, cfg.m_half_x_min_y[ir],
+            masks.template emplace_back<trapezoid_id>(
+                empty_context{}, mask_volume_link, cfg.m_half_x_min_y[ir],
                 cfg.m_half_x_max_y[ir], cfg.m_half_y[ir],
                 static_cast<scalar>(1. / (2. * cfg.m_half_y[ir])));
 
-            materials.template add_value<slab_id>(cfg.mat, cfg.thickness);
+            materials.template emplace_back<slab_id>(empty_context{}, cfg.mat,
+                                                     cfg.thickness);
 
             // Surfaces with the linking into the local containers
             surfaces.emplace_back(transforms.size(ctx), mask_link,
@@ -560,7 +565,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
 template <typename detector_t>
 inline void add_beampipe(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, const std::size_t n_edc_layers,
+    typename detector_t::geometry_context &ctx, const std::size_t n_edc_layers,
     const std::size_t n_brl_layers,
     const std::vector<std::pair<scalar, scalar>> &edc_lay_sizes,
     const std::pair<scalar, scalar> &beampipe_vol_size, const scalar beampipe_r,
@@ -573,9 +578,9 @@ inline void add_beampipe(
     scalar min_z = -max_z;
 
     typename detector_t::surface_container surfaces(&resource);
-    typename detector_t::mask_container masks = {resource};
-    typename detector_t::material_container materials = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::mask_container masks(resource);
+    typename detector_t::material_container materials(resource);
+    typename detector_t::transform_container transforms(resource);
 
     auto &beampipe =
         det.new_volume({beampipe_vol_size.first, beampipe_vol_size.second,
@@ -658,7 +663,7 @@ inline void add_beampipe(
 template <typename detector_t>
 inline void add_endcap_barrel_connection(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, const int side,
+    typename detector_t::geometry_context &ctx, const int side,
     const unsigned int n_brl_layers, const dindex beampipe_idx,
     const std::vector<std::pair<scalar, scalar>> &brl_lay_sizes,
     const scalar edc_inner_r, const scalar edc_outer_r,
@@ -670,9 +675,9 @@ inline void add_endcap_barrel_connection(
     scalar brl_disc_z = side < 0 ? max_z : min_z;
 
     typename detector_t::surface_container surfaces(&resource);
-    typename detector_t::mask_container masks = {resource};
-    typename detector_t::material_container materials = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::mask_container masks(resource);
+    typename detector_t::material_container materials(resource);
+    typename detector_t::transform_container transforms(resource);
 
     auto &connector_gap =
         det.new_volume({edc_inner_r, edc_outer_r, min_z, max_z, -M_PI, M_PI});
@@ -730,7 +735,7 @@ template <typename empty_vol_factory, typename edc_module_factory,
           typename detector_t, typename config_t>
 void add_endcap_detector(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, std::size_t n_layers,
+    typename detector_t::geometry_context &ctx, std::size_t n_layers,
     dindex beampipe_idx,
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions, config_t cfg) {
@@ -824,7 +829,7 @@ template <typename empty_vol_factory, typename brl_module_factory,
           typename detector_t, typename config_t>
 void add_barrel_detector(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::context &ctx, const unsigned int n_layers,
+    typename detector_t::geometry_context &ctx, const unsigned int n_layers,
     dindex beampipe_idx, const scalar brl_half_z,
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions,
@@ -898,18 +903,15 @@ void add_barrel_detector(
  *
  * @returns a complete detector object
  */
-template <template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+template <typename container_t = host_container_types>
 auto create_toy_geometry(
     vecmem::memory_resource &resource,
     covfie::field<detector_registry::toy_detector::bfield_backend_t> &&bfield,
     std::size_t n_brl_layers = 4, std::size_t n_edc_layers = 3) {
 
     // detector type
-    using detector_t = detector<detector_registry::toy_detector, covfie::field,
-                                array_t, tuple_t, vector_t, jagged_vector_t>;
+    using detector_t =
+        detector<detector_registry::toy_detector, covfie::field, container_t>;
 
     /// Leaving world
     constexpr dindex leaving_world{dindex_invalid};
@@ -968,7 +970,7 @@ auto create_toy_geometry(
     // Don't create modules in gap volume
     struct empty_vol_factory {
         void operator()(
-            typename detector_t::context & /*ctx*/,
+            typename detector_t::geometry_context & /*ctx*/,
             typename detector_t::volume_type & /*volume*/,
             typename detector_t::surface_container & /*surfaces*/,
             typename detector_t::mask_container & /*masks*/,
@@ -980,7 +982,7 @@ auto create_toy_geometry(
     struct brl_module_factory {
         brl_m_config cfg;
 
-        void operator()(typename detector_t::context &ctx,
+        void operator()(typename detector_t::geometry_context &ctx,
                         typename detector_t::volume_type &volume,
                         typename detector_t::surface_container &surfaces,
                         typename detector_t::mask_container &masks,
@@ -995,7 +997,7 @@ auto create_toy_geometry(
     struct edc_module_factory {
         edc_m_config cfg;
 
-        void operator()(typename detector_t::context &ctx,
+        void operator()(typename detector_t::geometry_context &ctx,
                         typename detector_t::volume_type &volume,
                         typename detector_t::surface_container &surfaces,
                         typename detector_t::mask_container &masks,
@@ -1009,8 +1011,8 @@ auto create_toy_geometry(
     // create empty detector
     detector_t det(resource, std::move(bfield));
 
-    // context object
-    typename detector_t::context ctx0{};
+    // geometry context object
+    typename detector_t::geometry_context ctx0{};
 
     brl_m_config brl_config{};
     edc_m_config edc_config{};
@@ -1090,14 +1092,11 @@ auto create_toy_geometry(
 
 /** Wrapper for create_toy_geometry with constant zero bfield.
  */
-template <template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+template <typename container_t = host_container_types>
 auto create_toy_geometry(vecmem::memory_resource &resource,
                          std::size_t n_brl_layers = 4,
                          std::size_t n_edc_layers = 3) {
-    return create_toy_geometry<array_t, tuple_t, vector_t, jagged_vector_t>(
+    return create_toy_geometry<container_t>(
         resource,
         covfie::field<detector_registry::toy_detector::bfield_backend_t>{
             detector_registry::toy_detector::bfield_backend_t::configuration_t{

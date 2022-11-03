@@ -123,17 +123,21 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
         if constexpr (mask_id ==
                       telescope_types::mask_ids::e_unbounded_plane2) {
             // No bounds for this module
-            masks.template add_value<
+            masks.template emplace_back<
                 telescope_types::mask_ids::e_unbounded_plane2>(
-                mask_volume_link);
-            materials.template add_value<telescope_types::material_ids::e_slab>(
-                cfg.m_mat, cfg.m_thickness);
+                empty_context{}, mask_volume_link);
+            materials
+                .template emplace_back<telescope_types::material_ids::e_slab>(
+                    empty_context{}, cfg.m_mat, cfg.m_thickness);
         } else {
             // The rectangle bounds for this module
-            masks.template add_value<telescope_types::mask_ids::e_rectangle2>(
-                mask_volume_link, cfg.m_half_x, cfg.m_half_y);
-            materials.template add_value<telescope_types::material_ids::e_slab>(
-                cfg.m_mat, cfg.m_thickness);
+            masks
+                .template emplace_back<telescope_types::mask_ids::e_rectangle2>(
+                    empty_context{}, mask_volume_link, cfg.m_half_x,
+                    cfg.m_half_y);
+            materials
+                .template emplace_back<telescope_types::material_ids::e_slab>(
+                    empty_context{}, cfg.m_mat, cfg.m_thickness);
         }
         // Build the transform
         // Local z axis is the global normal vector
@@ -184,10 +188,7 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
 /// @returns a complete detector object
 template <bool unbounded_planes = true,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+          typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource,
     covfie::field<detector_registry::telescope_detector::bfield_backend_t>
@@ -199,8 +200,7 @@ auto create_telescope_detector(
     const scalar thickness = 80 * unit_constants::um) {
 
     // detector type
-    using detector_t = detector<telescope_types, covfie::field, array_t,
-                                tuple_t, vector_t, jagged_vector_t>;
+    using detector_t = detector<telescope_types, covfie::field, container_t>;
 
     // module parameters
     struct plane_config {
@@ -214,7 +214,7 @@ auto create_telescope_detector(
     // create empty detector
     detector_t det(resource, std::move(bfield));
 
-    typename detector_t::context ctx{};
+    typename detector_t::geometry_context ctx{};
     plane_config pl_config{half_x, half_y, pos, mat, thickness};
 
     // volume boundaries are not needed. Same goes for portals
@@ -223,9 +223,9 @@ auto create_telescope_detector(
 
     // Add module surfaces to volume
     typename detector_t::surface_container surfaces(&resource);
-    typename detector_t::mask_container masks = {resource};
-    typename detector_t::material_container materials = {resource};
-    typename detector_t::transform_container transforms = {resource};
+    typename detector_t::mask_container masks(resource);
+    typename detector_t::material_container materials(resource);
+    typename detector_t::transform_container transforms(resource);
 
     if constexpr (unbounded_planes) {
         create_telescope<telescope_types::mask_ids::e_unbounded_plane2>(
@@ -247,10 +247,7 @@ auto create_telescope_detector(
 /// @param tel_length the total length of the steps by the stepper
 template <bool unbounded_planes = true,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+          typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource,
     covfie::field<detector_registry::telescope_detector::bfield_backend_t>
@@ -277,10 +274,7 @@ auto create_telescope_detector(
  */
 template <bool unbounded_planes = true,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+          typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, std::vector<scalar> pos,
     trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
@@ -290,8 +284,8 @@ auto create_telescope_detector(
     const scalar thickness = 80 * unit_constants::um) {
 
     // Build the geometry
-    return create_telescope_detector<unbounded_planes, trajectory_t, array_t,
-                                     tuple_t, vector_t, jagged_vector_t>(
+    return create_telescope_detector<unbounded_planes, trajectory_t,
+                                     container_t>(
         resource,
         covfie::field<detector_registry::telescope_detector::bfield_backend_t>{
             detector_registry::telescope_detector::bfield_backend_t::
@@ -301,10 +295,7 @@ auto create_telescope_detector(
 
 template <bool unbounded_planes = true,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          template <typename, std::size_t> class array_t = darray,
-          template <typename...> class tuple_t = dtuple,
-          template <typename...> class vector_t = dvector,
-          template <typename...> class jagged_vector_t = djagged_vector>
+          typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, dindex n_surfaces = 10,
     scalar tel_length = 500. * unit_constants::mm,
@@ -313,8 +304,8 @@ auto create_telescope_detector(
     scalar half_y = 20. * unit_constants::mm) {
 
     // Build the geometry
-    return create_telescope_detector<unbounded_planes, trajectory_t, array_t,
-                                     tuple_t, vector_t, jagged_vector_t>(
+    return create_telescope_detector<unbounded_planes, trajectory_t,
+                                     container_t>(
         resource,
         covfie::field<detector_registry::telescope_detector::bfield_backend_t>{
             detector_registry::telescope_detector::bfield_backend_t::
