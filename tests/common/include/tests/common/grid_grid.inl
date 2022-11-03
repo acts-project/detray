@@ -37,9 +37,7 @@ constexpr scalar inf{std::numeric_limits<scalar>::max()};
 
 // Either a data owning or non-owning 3D cartesian multi-axis
 template <bool ownership = true, typename containers = host_container_types>
-using cartesian_3D =
-    coordinate_axes<cuboid3D::axes<shape::e_closed, regular, regular, regular>,
-                    ownership, containers>;
+using cartesian_3D = coordinate_axes<cuboid3D::axes<>, ownership, containers>;
 
 // non-owning multi-axis: Takes external containers
 bool constexpr is_owning = true;

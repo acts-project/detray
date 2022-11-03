@@ -13,7 +13,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/line_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_shape.hpp"
+#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
 #include <cmath>
@@ -76,15 +76,15 @@ class line {
 
     /// Behaviour of the two local axes (linear in r/x, linear in z)
     template <
-        n_axis::shape e_s = n_axis::shape::e_open,
+        n_axis::bounds e_s = n_axis::bounds::e_closed,
         template <typename, typename> class binning_loc0 = n_axis::regular,
         template <typename, typename> class binning_loc1 = n_axis::regular>
     struct axes {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_r;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_z;
 
-        using types = std::tuple<n_axis::shape_t<e_s, axis_loc0>,
-                                 n_axis::shape_t<e_s, axis_loc1>>;
+        using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>,
+                                 n_axis::bounds_t<e_s, axis_loc1>>;
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>

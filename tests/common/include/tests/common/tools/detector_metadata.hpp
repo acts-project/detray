@@ -55,13 +55,11 @@ using surface_grid_t = grid<coordinate_axes<grid_shape_t, false, container_t>,
 
 // cylindrical grid for the barrel layers
 template <typename container_t>
-using cylinder_sf_grid =
-    surface_grid_t<cylinder2D<>::axes<n_axis::shape::e_closed>, container_t>;
+using cylinder_sf_grid = surface_grid_t<cylinder2D<>::axes<>, container_t>;
 
 // disc grid for the endcap layers
 template <typename container_t>
-using disc_sf_grid =
-    surface_grid_t<ring2D<>::axes<n_axis::shape::e_closed>, container_t>;
+using disc_sf_grid = surface_grid_t<ring2D<>::axes<>, container_t>;
 
 /// @}
 
@@ -146,7 +144,7 @@ struct full_metadata {
     template <typename container_t = host_container_types>
     using volume_finder =
         grid<coordinate_axes<
-                 cylinder3D::axes<n_axis::shape::e_open, n_axis::irregular,
+                 cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
                                   n_axis::regular, n_axis::irregular>,
                  true, container_t>,
              dindex, simple_serializer, replacer>;
@@ -228,7 +226,7 @@ struct toy_metadata {
     template <typename container_t = host_container_types>
     using volume_finder =
         grid<coordinate_axes<
-                 cylinder3D::axes<n_axis::shape::e_open, n_axis::irregular,
+                 cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
                                   n_axis::regular, n_axis::irregular>,
                  true, container_t>,
              dindex, simple_serializer, replacer>;
@@ -302,7 +300,7 @@ struct telescope_metadata {
     template <typename container_t = host_container_types>
     using volume_finder =
         grid<coordinate_axes<
-                 cylinder3D::axes<n_axis::shape::e_open, n_axis::irregular,
+                 cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
                                   n_axis::regular, n_axis::irregular>,
                  true, container_t>,
              dindex, simple_serializer, replacer>;

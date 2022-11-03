@@ -12,7 +12,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_shape.hpp"
+#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
 #include <cmath>
@@ -60,7 +60,7 @@ class single3D {
     using intersector_type = intersector_t<algebra_t>;
 
     /// Behaviour of the two local axes (linear in single coordinate x, y or z)
-    template <n_axis::shape e_s = n_axis::shape::e_open,
+    template <n_axis::bounds e_s = n_axis::bounds::e_closed,
               template <typename, typename> class binning_loc0 =
                   n_axis::regular>
     struct axes {
@@ -71,7 +71,7 @@ class single3D {
         template <typename algebra_t>
         using coordinate_type = local_frame_type<algebra_t>;
 
-        using types = std::tuple<n_axis::shape_t<e_s, axis_loc0>>;
+        using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>>;
 
         template <typename C, typename S>
         using binning = std::tuple<binning_loc0<C, S>>;

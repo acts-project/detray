@@ -53,9 +53,9 @@ TEST(grid, open_regular_axis) {
     // An open regular x-axis
     single_axis<open<label::e_x>, regular<>> or_axis{&edge_range, &bin_edges};
 
-    // Test axis shape
+    // Test axis bounds
     EXPECT_EQ(or_axis.label(), n_axis::label::e_x);
-    EXPECT_EQ(or_axis.shape(), n_axis::shape::e_open);
+    EXPECT_EQ(or_axis.bounds(), n_axis::bounds::e_open);
     EXPECT_EQ(or_axis.binning(), n_axis::binning::e_regular);
 
     // N bins
@@ -122,9 +122,9 @@ TEST(grid, closed_regular_axis) {
     // A closed regular r-axis
     single_axis<closed<label::e_r>, regular<>> cr_axis{&edge_range, &bin_edges};
 
-    // Test axis shape
+    // Test axis bounds
     EXPECT_EQ(cr_axis.label(), n_axis::label::e_r);
-    EXPECT_EQ(cr_axis.shape(), n_axis::shape::e_closed);
+    EXPECT_EQ(cr_axis.bounds(), n_axis::bounds::e_closed);
     EXPECT_EQ(cr_axis.binning(), n_axis::binning::e_regular);
 
     // N bins
@@ -198,9 +198,9 @@ TEST(grid, circular_regular_axis) {
     // A closed regular x-axis
     single_axis<circular<>, regular<>> cr_axis(&edge_range, &bin_edges);
 
-    // Test axis shape
+    // Test axis bounds
     EXPECT_EQ(cr_axis.label(), n_axis::label::e_phi);
-    EXPECT_EQ(cr_axis.shape(), n_axis::shape::e_circular);
+    EXPECT_EQ(cr_axis.bounds(), n_axis::bounds::e_circular);
     EXPECT_EQ(cr_axis.binning(), n_axis::binning::e_regular);
 
     // N bins
@@ -214,12 +214,12 @@ TEST(grid, circular_regular_axis) {
     EXPECT_EQ(cr_axis.bin(0), 18u);
 
     // Bin wrapping test
-    typename single_axis<circular<>, regular<>>::shape_type circ_shape{};
-    EXPECT_EQ(circ_shape.wrap(4, 36u), 4u);
-    EXPECT_EQ(circ_shape.wrap(0, 36u), 0u);
-    EXPECT_EQ(circ_shape.wrap(-1, 36u), 35u);
-    EXPECT_EQ(circ_shape.wrap(36, 36u), 0u);
-    EXPECT_EQ(circ_shape.wrap(40, 36u), 4u);
+    typename single_axis<circular<>, regular<>>::bounds_type circ_bounds{};
+    EXPECT_EQ(circ_bounds.wrap(4, 36u), 4u);
+    EXPECT_EQ(circ_bounds.wrap(0, 36u), 0u);
+    EXPECT_EQ(circ_bounds.wrap(-1, 36u), 35u);
+    EXPECT_EQ(circ_bounds.wrap(36, 36u), 0u);
+    EXPECT_EQ(circ_bounds.wrap(40, 36u), 4u);
 
     // Axis range access - binned (symmetric & asymmetric)
     darray<dindex, 2> nhood00i = {0u, 0u};
@@ -262,9 +262,9 @@ TEST(grid, closed_irregular_axis) {
     single_axis<closed<label::e_z>, irregular<>> cir_axis(&edge_range,
                                                           &bin_edges);
 
-    // Test axis shape
+    // Test axis bounds
     EXPECT_EQ(cir_axis.label(), n_axis::label::e_z);
-    EXPECT_EQ(cir_axis.shape(), n_axis::shape::e_closed);
+    EXPECT_EQ(cir_axis.bounds(), n_axis::bounds::e_closed);
     EXPECT_EQ(cir_axis.binning(), n_axis::binning::e_irregular);
 
     // Axis bin access

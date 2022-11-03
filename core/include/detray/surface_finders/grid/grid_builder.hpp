@@ -26,24 +26,24 @@ namespace detray {
 
 namespace detail {
 
-/// @brief Helper type to assemble an multi-axis from shapes tuple and binnings
+/// @brief Helper type to assemble an multi-axis from boundss tuple and binnings
 template <bool is_owning, typename containers, typename local_frame, typename,
           typename>
 struct multi_axis_assembler;
 
-/// @brief Specialized struct to extract axis shapes from a tuple
+/// @brief Specialized struct to extract axis bounds from a tuple
 template <bool is_owning, typename containers, typename local_frame,
-          typename... axis_shapes, typename... binning_ts>
+          typename... axis_bounds, typename... binning_ts>
 struct multi_axis_assembler<is_owning, containers, local_frame,
-                            dtuple<axis_shapes...>, dtuple<binning_ts...>> {
+                            dtuple<axis_bounds...>, dtuple<binning_ts...>> {
 
-    static_assert(sizeof...(axis_shapes) == sizeof...(binning_ts),
-                  "Number of axis shapes for this mask and given binning types "
+    static_assert(sizeof...(axis_bounds) == sizeof...(binning_ts),
+                  "Number of axis bounds for this mask and given binning types "
                   "don't match!");
 
     using type =
         n_axis::multi_axis<is_owning, local_frame,
-                           n_axis::single_axis<axis_shapes, binning_ts>...>;
+                           n_axis::single_axis<axis_bounds, binning_ts>...>;
 };
 
 }  // namespace detail
@@ -170,7 +170,7 @@ class grid_builder {
         // annulus 2D
         //
         template <
-            n_axis::shape e_shape = n_axis::shape::e_open,
+            n_axis::bounds e_bounds = n_axis::bounds::e_closed,
             template <typename, typename> class binning_r = n_axis::regular,
             template <typename, typename> class binning_phi = n_axis::regular>
         auto new_grid(
@@ -182,7 +182,7 @@ class grid_builder {
             using boundary = annulus2D<>::boundaries;
             auto b_values = grid_bounds.values();
 
-            return new_grid<annulus2D<>, e_shape, binning_r, binning_phi>(
+            return new_grid<annulus2D<>, e_bounds, binning_r, binning_phi>(
                 {b_values[boundary::e_min_r], b_values[boundary::e_max_r],
                  b_values[boundary::e_average_phi] -
                      b_values[boundary::e_min_phi_rel],
@@ -195,7 +195,7 @@ class grid_builder {
         // cuboid 3D
         //
         template <
-            n_axis::shape e_shape = n_axis::shape::e_open,
+            n_axis::bounds e_bounds = n_axis::bounds::e_closed,
             template <typename, typename> class binning_x = n_axis::regular,
             template <typename, typename> class binning_y = n_axis::regular,
             template <typename, typename> class binning_z = n_axis::regular>
@@ -209,7 +209,8 @@ class grid_builder {
             using boundary = cuboid3D::boundaries;
             auto b_values = grid_bounds.values();
 
-            return new_grid<cuboid3D, e_shape, binning_x, binning_y, binning_z>(
+            return new_grid<cuboid3D, e_bounds, binning_x, binning_y,
+                            binning_z>(
                 {-b_values[boundary::e_half_x], b_values[boundary::e_half_x],
                  -b_values[boundary::e_half_y], b_values[boundary::e_half_y],
                  -b_values[boundary::e_half_z], b_values[boundary::e_half_z]},
@@ -221,7 +222,7 @@ class grid_builder {
         // cylinder 2D
         //
         template <
-            n_axis::shape e_shape = n_axis::shape::e_open,
+            n_axis::bounds e_bounds = n_axis::bounds::e_closed,
             template <typename, typename> class binning_phi = n_axis::regular,
             template <typename, typename> class binning_z = n_axis::regular>
         auto new_grid(const mask<cylinder2D<>> &grid_bounds,
@@ -235,7 +236,7 @@ class grid_builder {
             std::cout << "phi bins: " << n_bins_phi << ", z bins: " << n_bins_z
                       << std::endl;
 
-            return new_grid<cylinder2D<>, e_shape, binning_phi, binning_z>(
+            return new_grid<cylinder2D<>, e_bounds, binning_phi, binning_z>(
                 {-static_cast<scalar_type>(M_PI) * b_values[boundary::e_r],
                  static_cast<scalar_type>(M_PI) * b_values[boundary::e_r],
                  b_values[boundary::e_n_half_z],
@@ -247,7 +248,7 @@ class grid_builder {
         // cylinder 3D
         //
         template <
-            n_axis::shape e_shape = n_axis::shape::e_open,
+            n_axis::bounds e_bounds = n_axis::bounds::e_closed,
             template <typename, typename> class binning_r = n_axis::regular,
             template <typename, typename> class binning_phi = n_axis::regular,
             template <typename, typename> class binning_z = n_axis::regular>
@@ -261,7 +262,7 @@ class grid_builder {
             using boundary = cylinder3D::boundaries;
             auto b_values = grid_bounds.values();
 
-            return new_grid<cylinder3D, e_shape, binning_r, binning_phi,
+            return new_grid<cylinder3D, e_bounds, binning_r, binning_phi,
                             binning_z>(
                 {0.f, b_values[boundary::e_r], -static_cast<scalar_type>(M_PI),
                  static_cast<scalar_type>(M_PI),
@@ -275,7 +276,7 @@ class grid_builder {
         // polar 2D
         //
         template <
-            n_axis::shape e_shape = n_axis::shape::e_open,
+            n_axis::bounds e_bounds = n_axis::bounds::e_closed,
             template <typename, typename> class binning_phi = n_axis::regular,
             template <typename, typename> class binning_z = n_axis::regular>
         auto new_grid(
@@ -287,7 +288,7 @@ class grid_builder {
             using boundary = ring2D<>::boundaries;
             auto b_values = grid_bounds.values();
 
-            return new_grid<ring2D<>, e_shape, binning_phi, binning_z>(
+            return new_grid<ring2D<>, e_bounds, binning_phi, binning_z>(
                 {b_values[boundary::e_inner_r], b_values[boundary::e_outer_r],
                  -static_cast<scalar_type>(M_PI),
                  static_cast<scalar_type>(M_PI)},
@@ -298,7 +299,7 @@ class grid_builder {
         // rectangle 2D
         //
         template <
-            n_axis::shape e_shape = n_axis::shape::e_open,
+            n_axis::bounds e_bounds = n_axis::bounds::e_closed,
             template <typename, typename> class binning_phi = n_axis::regular,
             template <typename, typename> class binning_z = n_axis::regular>
         auto new_grid(const mask<rectangle2D<>> &grid_bounds,
@@ -309,7 +310,7 @@ class grid_builder {
             using boundary = rectangle2D<>::boundaries;
             auto b_values = grid_bounds.values();
 
-            return new_grid<rectangle2D<>, e_shape, binning_phi, binning_z>(
+            return new_grid<rectangle2D<>, e_bounds, binning_phi, binning_z>(
                 {-b_values[boundary::e_half_x], b_values[boundary::e_half_x],
                  -b_values[boundary::e_half_y], b_values[boundary::e_half_y]},
                 {n_bins_x, n_bins_y}, {bin_edges_x, bin_edges_y});
@@ -319,7 +320,7 @@ class grid_builder {
         // trapezoid 2D
         //
         template <
-            n_axis::shape e_shape = n_axis::shape::e_open,
+            n_axis::bounds e_bounds = n_axis::bounds::e_closed,
             template <typename, typename> class binning_phi = n_axis::regular,
             template <typename, typename> class binning_z = n_axis::regular>
         auto new_grid(const mask<trapezoid2D<>> &grid_bounds,
@@ -330,7 +331,7 @@ class grid_builder {
             using boundary = trapezoid2D<>::boundaries;
             auto b_values = grid_bounds.values();
 
-            return new_grid<trapezoid2D<>, e_shape, binning_phi, binning_z>(
+            return new_grid<trapezoid2D<>, e_bounds, binning_phi, binning_z>(
                 {-b_values[boundary::e_half_length_1],
                  b_values[boundary::e_half_length_1],
                  -b_values[boundary::e_half_length_2],
@@ -342,8 +343,8 @@ class grid_builder {
         ///
         /// @tparam grid_shape_t the shape of the resulting grid
         ///         (e.g. cylinder2D).
-        /// @tparam e_shape the shape of the regular axes
-        ///         (open vs. closed binning).
+        /// @tparam e_bounds the bounds of the regular axes
+        ///         (open vs. closed bounds).
         /// @tparam binnings the binning types of the axes
         ///         (regular vs. irregular)
         ///
@@ -354,7 +355,7 @@ class grid_builder {
         ///                     (lower bin edges + the the upper edge of the
         ///                     last bin), otherwise ignored.
         template <typename grid_shape_t,
-                  n_axis::shape e_shape = n_axis::shape::e_open,
+                  n_axis::bounds e_bounds = n_axis::bounds::e_closed,
                   template <typename, typename> class... binning_ts>
         auto new_grid(const std::vector<scalar_type> spans,
                       const std::vector<std::size_t> n_bins,
@@ -363,7 +364,7 @@ class grid_builder {
 
             // Build the coordinate axes and the grid
             using axes_t = coordinate_axes<
-                typename grid_shape_t::template axes<e_shape, binning_ts...>,
+                typename grid_shape_t::template axes<e_bounds, binning_ts...>,
                 is_owning, container_t, algebra_t>;
             using bin_t = typename grid_type<axes_t>::bin_type;
 

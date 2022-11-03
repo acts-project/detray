@@ -91,8 +91,8 @@ detray_add_library( detray_core core
    # surface finder include(s)
    "include/detray/surface_finders/brute_force_finder.hpp"
    "include/detray/surface_finders/grid/detail/axis_binning.hpp"
+   "include/detray/surface_finders/grid/detail/axis_bounds.hpp"
    "include/detray/surface_finders/grid/detail/axis_helpers.hpp"
-   "include/detray/surface_finders/grid/detail/axis_shape.hpp"
    "include/detray/surface_finders/grid/detail/grid_helpers.hpp"
    "include/detray/surface_finders/grid/detail/populator_impl.hpp"
    "include/detray/surface_finders/grid/detail/serializer_impl.hpp"

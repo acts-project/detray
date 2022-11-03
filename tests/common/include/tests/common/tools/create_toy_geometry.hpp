@@ -351,7 +351,7 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
         det.mask_store().template get<cyl_id>().at(portal_mask_idx);
 
     // Add new grid to the detector
-    auto cyl_grid = gfactory.template new_grid<n_axis::shape::e_closed>(
+    auto cyl_grid = gfactory.template new_grid<n_axis::bounds::e_closed>(
         cyl_mask, 0.5f * cfg.m_binning.first, cfg.m_binning.second);
     gbuilder.fill_by_pos(cyl_grid, det, vol, ctx);
     det.template add_sf_finder<decltype(cyl_grid), grid_id>(vol, cyl_grid);
@@ -388,7 +388,7 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
         det.mask_store().template get<disc_id>().at(portal_mask_idx);
 
     // Add new grid to the detector
-    auto disc_grid = gfactory.template new_grid<n_axis::shape::e_closed>(
+    auto disc_grid = gfactory.template new_grid<n_axis::bounds::e_closed>(
         disc_mask, cfg.disc_binning.size(), cfg.disc_binning.front());
     gbuilder.fill_by_pos(disc_grid, det, vol, ctx);
     det.template add_sf_finder<decltype(disc_grid), grid_id>(vol, disc_grid);

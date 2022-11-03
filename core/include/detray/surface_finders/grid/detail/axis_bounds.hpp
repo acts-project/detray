@@ -17,8 +17,8 @@
 
 namespace detray::n_axis {
 
-/// axis shape names.
-enum class shape {
+/// axis bounds names.
+enum class bounds {
     e_open = 0,
     e_closed = 1,
     e_circular = 2,
@@ -78,11 +78,11 @@ template <n_axis::label axis_label>
 struct open {
 
     static constexpr n_axis::label label = axis_label;
-    static constexpr n_axis::shape type = shape::e_open;
+    static constexpr n_axis::bounds type = bounds::e_open;
 
     /// Access function to a single bin from a value v.
     ///
-    /// @param ibin bin index to be mapped to axis shape
+    /// @param ibin bin index to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @returns an open axis bin index
@@ -122,7 +122,7 @@ struct open {
 
     /// Access function to a range of bins - convenience function
     ///
-    /// @param range signed range to be mapped to axis shape
+    /// @param range signed range to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @returns open bin range
@@ -144,11 +144,11 @@ template <n_axis::label axis_label>
 struct closed {
 
     static constexpr n_axis::label label = axis_label;
-    static constexpr shape type = shape::e_closed;
+    static constexpr bounds type = bounds::e_closed;
 
     /// Access function to a single bin from a value v
     ///
-    /// @param ibin bin index to be mapped to axis shape
+    /// @param ibin bin index to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @returns a closed axis bin index
@@ -187,7 +187,7 @@ struct closed {
 
     /// Access function to a range of bins - convenience function
     ///
-    /// @param range signed range to be mapped to axis shape
+    /// @param range signed range to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @returns closed bin range
@@ -207,11 +207,11 @@ template <n_axis::label axis_label = n_axis::label::e_phi>
 struct circular {
 
     static constexpr n_axis::label label = axis_label;
-    static constexpr shape type = shape::e_circular;
+    static constexpr bounds type = bounds::e_circular;
 
     /// Access function to a single bin from a value v
     ///
-    /// @param ibin bin index to be mapped to axis shape
+    /// @param ibin bin index to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @returns a circular axis bin index
@@ -243,7 +243,7 @@ struct circular {
 
     /// Access function to a range of bins - convenience function
     ///
-    /// @param range signed range to be mapped to axis shape
+    /// @param range signed range to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// The axis is circular: it @returns an ordered dindex_range: If the
@@ -256,7 +256,7 @@ struct circular {
 
     /// Wraps the bin index around for the periodic boundary condition
     ///
-    /// @param ibin bin index to be mapped to axis shape
+    /// @param ibin bin index to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @return an index of a remapped bin
@@ -267,10 +267,10 @@ struct circular {
     }
 };
 
-/// Determine axis shape as either 'open' or 'closed' for non-circular axes
-template <n_axis::shape s, n_axis::label axis_label>
-using shape_t =
-    std::conditional_t<s == n_axis::shape::e_open, n_axis::open<axis_label>,
+/// Determine axis bounds as either 'open' or 'closed' for non-circular axes
+template <n_axis::bounds s, n_axis::label axis_label>
+using bounds_t =
+    std::conditional_t<s == n_axis::bounds::e_open, n_axis::open<axis_label>,
                        n_axis::closed<axis_label>>;
 
 }  // namespace detray::n_axis
