@@ -390,8 +390,9 @@ class detector {
 
         // Update mask, material and transform index of surfaces
         for (auto &sf : surfaces_per_vol) {
-            _masks.template call<mask_index_update>(sf.mask(), sf);
-            _materials.template call<material_index_update>(sf.material(), sf);
+            _masks.template call<detail::mask_index_update>(sf.mask(), sf);
+            _materials.template call<detail::material_index_update>(
+                sf.material(), sf);
             sf.update_transform(trf_offset);
         }
 
@@ -455,6 +456,16 @@ class detector {
 
     DETRAY_HOST_DEVICE
     inline const bfield_type &get_bfield() const { return _bfield; }
+
+    DETRAY_HOST_DEVICE
+    inline point2 global_to_local(const dindex sf_idx, const point3 pos,
+                                  const vector3 dir) const {
+        const auto &sf = surface_by_index(sf_idx);
+        const auto ret =
+            _masks.template call<detail::global_to_local<transform3>>(
+                sf.mask(), _transforms, sf, pos, dir);
+        return ret;
+    }
 
     /// @param names maps a volume to its string representation.
     /// @returns a string representation of the detector.
@@ -575,7 +586,7 @@ struct detector_view {
 template <typename detector_registry, template <typename> class bfield_t,
           typename container_t, typename source_link>
 inline detector_view<
-    detector<detector_registry, bfield_t, container_t, source_link> >
+    detector<detector_registry, bfield_t, container_t, source_link>>
 get_data(detector<detector_registry, bfield_t, container_t, source_link> &det) {
     return {det};
 }
