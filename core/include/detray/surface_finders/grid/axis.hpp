@@ -23,14 +23,12 @@
 #include <cstddef>
 #include <type_traits>
 
-namespace detray {
-
-namespace n_axis {
+namespace detray::n_axis {
 
 /// @brief A single axis.
 ///
-/// The axis ties together shape and binning behaviour with the bin edges
-/// storage. The shape determines how bin indices are mapped at the over-
+/// An axis ties shape and binning behaviour with the bin edges storage.
+/// The shape determines how bin indices are mapped at the over-
 /// and underflow bins. The type of binning determines whether the axis has
 /// regular or irregular binning. The bin edges needed to find bin indices
 /// are not owned by the axis, but are passed to the binning type.
@@ -42,13 +40,16 @@ struct single_axis {
     /// Make axis binning type accessible
     using binning_type = binning_t;
 
-    // Extract container types
     using scalar_type = typename binning_type::scalar_type;
+
+    /// Extract container types
+    /// @{
     using container_types = typename binning_type::container_types;
     template <typename T>
     using vector_type = typename binning_type::template vector_type<T>;
     template <typename T, std::size_t N>
     using array_type = typename binning_type::template array_type<T, N>;
+    /// @}
 
     /// Defines the geometrical shape of the axis as a service:
     /// open, closed or circular
@@ -81,12 +82,20 @@ struct single_axis {
 
     /// @returns the total number of bins
     DETRAY_HOST_DEVICE
-    inline constexpr std::size_t nbins() const { return m_binning.nbins(); }
+    inline constexpr std::size_t nbins() const {
+        // The open axis boundary has extra over- and underflow bins that are
+        // automatically added beyond the axis span
+        if constexpr (shape_type::type == n_axis::shape::e_open) {
+            return m_binning.nbins() + 2;
+        } else {
+            return m_binning.nbins();
+        }
+    }
 
     /// @returns the width of a bin
     template <typename... Args>
     DETRAY_HOST_DEVICE inline constexpr scalar_type bin_width(
-        Args &&... args) const {
+        Args &&...args) const {
         return m_binning.bin_width(std::forward<Args &&>(args)...);
     }
 
@@ -153,32 +162,37 @@ class multi_axis {
     static constexpr dindex Dim = sizeof...(axis_ts);
     static constexpr bool is_owning = ownership;
 
-    // Extract container types
     using scalar_type =
         typename detray::detail::first_t<axis_ts...>::scalar_type;
+
+    /// Extract container types
+    /// @{
     using container_types =
         typename detray::detail::first_t<axis_ts...>::container_types;
     template <typename T>
     using vector_type = typename container_types::template vector_type<T>;
     template <typename... T>
     using tuple_type = typename container_types::template tuple_type<T...>;
+    /// @}
 
     /// Projection onto local coordinate system that is spanned by the axes
     using local_frame_type = local_frame_t;
 
     /// Axes boundary/bin edges storage
+    /// @{
     using boundary_storage_type = vector_type<dindex_range>;
     using edges_storage_type = vector_type<scalar_type>;
+    // Interal storage type depends on whether the class owns the data or not
+    using storage_type = std::conditional_t<
+        is_owning, detail::multi_axis_data<container_types, scalar_type>,
+        detail::multi_axis_view<container_types, scalar_type>>;
+    /// @}
 
     /// Vecmem based multi-axis view type
     using view_type =
         dmulti_view<dvector_view<dindex_range>, dvector_view<scalar_type>>;
     using const_view_type = dmulti_view<dvector_view<const dindex_range>,
                                         dvector_view<const scalar_type>>;
-    /// Interal storage type depends on whether the class owns the data or not
-    using storage_type = std::conditional_t<
-        is_owning, detail::multi_axis_data<container_types, scalar_type>,
-        detail::multi_axis_view<container_types, scalar_type>>;
 
     /// Match an axis to its label at compile time
     using axis_reg = type_registry<n_axis::label, axis_ts...>;
@@ -384,6 +398,4 @@ class multi_axis {
     storage_type m_data{};
 };
 
-}  // namespace n_axis
-
-}  // namespace detray
+}  // namespace detray::n_axis

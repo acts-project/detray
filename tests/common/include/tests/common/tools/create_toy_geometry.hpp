@@ -344,18 +344,20 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
     auto gfactory = gbuilder.new_factory();
 
     // The cylinder portals are at the end of the surface range by construction
-    auto portal_link = vol.template obj_link<portal_id>();
-    auto portal_mask_idx = det.surfaces()[portal_link[1] - 3].mask().index();
-    mask<cylinder2D<>> cyl_mask =
+    const auto portal_link = vol.template obj_link<portal_id>();
+    const auto portal_mask_idx =
+        det.surfaces()[portal_link[1] - 3].mask().index();
+    const auto &cyl_mask =
         det.mask_store().template get<cyl_id>().at(portal_mask_idx);
 
     // Add new grid to the detector
-    auto cyl_grid =
-        gfactory.new_grid(cyl_mask, cfg.m_binning.first, cfg.m_binning.second);
-    det.template add_sf_finder<decltype(cyl_grid), grid_id>(ctx, vol, cyl_grid);
+    auto cyl_grid = gfactory.template new_grid<n_axis::shape::e_closed>(
+        cyl_mask, 0.5f * cfg.m_binning.first, cfg.m_binning.second);
+    gbuilder.fill_by_pos(cyl_grid, det, vol, ctx);
+    det.template add_sf_finder<decltype(cyl_grid), grid_id>(vol, cyl_grid);
 
     // auto &grid_coll = det.sf_finder_store().template get<grid_id>();
-    //  gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
+    // gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
 }
 
 /** Helper function that creates a surface grid of trapezoidal endcap modules.
@@ -385,15 +387,14 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
     mask<ring2D<>> disc_mask =
         det.mask_store().template get<disc_id>().at(portal_mask_idx);
 
-    auto disc_grid = gfactory.new_grid(disc_mask, cfg.disc_binning.size(),
-                                       cfg.disc_binning.front());
-
     // Add new grid to the detector
-    det.template add_sf_finder<decltype(disc_grid), grid_id>(ctx, vol,
-                                                             disc_grid);
+    auto disc_grid = gfactory.template new_grid<n_axis::shape::e_closed>(
+        disc_mask, cfg.disc_binning.size(), cfg.disc_binning.front());
+    gbuilder.fill_by_pos(disc_grid, det, vol, ctx);
+    det.template add_sf_finder<decltype(disc_grid), grid_id>(vol, disc_grid);
 
     // auto &grid_coll = det.sf_finder_store().template get<grid_id>();
-    //  gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
+    // gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
 }
 
 /** Helper method for positioning of modules in an endcap ring

@@ -314,30 +314,12 @@ class detector {
     // TODO: Provide grid builder structure separate from the detector
     template <typename grid_t, typename sf_finders::id grid_id =
                                    sf_finders::template get_id<grid_t>()>
-    DETRAY_HOST auto add_grid(volume_type &vol, const grid_t &grid) -> void {
+    DETRAY_HOST auto add_sf_finder(volume_type &vol, const grid_t &grid)
+        -> void {
         // constexpr auto grid_id2 = sf_finders::get_id(grid);
         // std::cout << static_cast<std::size_t>(grid_id2) << std::endl;
         _sf_finders.template push_back<grid_id>(grid);
-        vol.set_sf_finder(grid_id2, _sf_finders.template size<grid_id>() - 1);
-    }
-
-    /// Fill a grid surface finder by bin association, then add it to the
-    /// detector.
-    ///
-    /// New surface finder id can be been given explicitly. That is helpful, if
-    /// multiple sf finders have the same type in the tuple container. Otherwise
-    /// it is determined automatically.
-    ///
-    /// @param ctx the geometry context
-    /// @param vol the volume the surface finder should be added to
-    /// @param grid the grid that should be added
-    // TODO: Provide grid builder structure separate from the detector
-    template <typename grid_t>
-    DETRAY_HOST auto fill_grid(const geometry_context ctx, volume_type &vol,
-                               grid_t &grid) -> void {
-
-        // Fill the volumes surfaces into the grid
-        bin_association(ctx, *this, vol, grid, {0.1, 0.1}, false);
+        vol.set_sf_finder(grid_id, _sf_finders.template size<grid_id>() - 1);
     }
 
     /// Detector interface to add surface finders
@@ -345,7 +327,7 @@ class detector {
     /// @param ctx the geometry context
     /// @param vol the volume the surface finder should be added to
     /// @param grid the grid that should be added
-    template <typename sf_finder_t,
+    /*template <typename sf_finder_t,
               typename sf_finders::id sf_finder_id =
                   sf_finders::template get_id<sf_finder_t>()>
     DETRAY_HOST auto add_sf_finder(const geometry_context ctx, volume_type &vol,
@@ -354,7 +336,7 @@ class detector {
         // For now, only implemented for grids
         fill_grid(ctx, vol, sf_finder);
         add_grid<sf_finder_t, sf_finder_id>(vol, sf_finder);
-    }
+    }*/
 
     /// Add a new full set of detector components (e.g. transforms or volumes)
     /// according to given geometry_context.

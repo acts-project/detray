@@ -59,7 +59,7 @@ TEST(grid, open_regular_axis) {
     EXPECT_EQ(or_axis.binning(), n_axis::binning::e_regular);
 
     // N bins
-    EXPECT_EQ(or_axis.nbins(), 10u);
+    EXPECT_EQ(or_axis.nbins(), 10UL + 2UL);
     EXPECT_NEAR(or_axis.span()[0], scalar{-3}, tol);
     EXPECT_NEAR(or_axis.span()[1], scalar{7}, tol);
     // Axis bin access
@@ -211,15 +211,15 @@ TEST(grid, circular_regular_axis) {
     // underflow
     EXPECT_EQ(cr_axis.bin(phi_min - epsilon), 35u);
     // middle of the axis
-    EXPECT_EQ(cr_axis.bin(0), 19u);
+    EXPECT_EQ(cr_axis.bin(0), 18u);
 
     // Bin wrapping test
     typename single_axis<circular<>, regular<>>::shape_type circ_shape{};
-    EXPECT_EQ(circ_shape.wrap(4, 36u), 3u);
-    EXPECT_EQ(circ_shape.wrap(0, 36u), 35u);
-    EXPECT_EQ(circ_shape.wrap(-1, 36u), 34u);
-    EXPECT_EQ(circ_shape.wrap(36, 36u), 35u);
-    EXPECT_EQ(circ_shape.wrap(40, 36u), 3u);
+    EXPECT_EQ(circ_shape.wrap(4, 36u), 4u);
+    EXPECT_EQ(circ_shape.wrap(0, 36u), 0u);
+    EXPECT_EQ(circ_shape.wrap(-1, 36u), 35u);
+    EXPECT_EQ(circ_shape.wrap(36, 36u), 0u);
+    EXPECT_EQ(circ_shape.wrap(40, 36u), 4u);
 
     // Axis range access - binned (symmetric & asymmetric)
     darray<dindex, 2> nhood00i = {0u, 0u};

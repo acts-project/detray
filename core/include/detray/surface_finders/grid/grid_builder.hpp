@@ -13,6 +13,7 @@
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
+#include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -94,6 +95,69 @@ class grid_builder {
             m_resource);
     }
 
+    /// Fill a grid surface finder by bin association, then add it to the
+    /// detector.
+    ///
+    /// New surface finder id can be been given explicitly. That is helpful, if
+    /// multiple sf finders have the same type in the tuple container. Otherwise
+    /// it is determined automatically.
+    ///
+    /// @param ctx the geometry context
+    /// @param vol the volume the surface finder should be added to
+    /// @param grid the grid that should be added
+    // TODO: Provide grid builder structure separate from the detector
+    template <typename detector_t, typename grid_t>
+    DETRAY_HOST auto fill_bin_assoiation(
+        grid_t &grid, detector_t &det, typename detector_t::volume_type &vol,
+        const typename detector_t::geometry_context ctx = {}) -> void {
+        // Fill the volumes surfaces into the grid
+        bin_association(ctx, det, vol, grid, {0.1, 0.1}, false);
+    }
+
+    /// Fill a grid surface finder by bin association, then add it to the
+    /// detector.
+    ///
+    /// New surface finder id can be been given explicitly. That is helpful, if
+    /// multiple sf finders have the same type in the tuple container. Otherwise
+    /// it is determined automatically.
+    ///
+    /// @param ctx the geometry context
+    /// @param vol the volume the surface finder should be added to
+    /// @param grid the grid that should be added
+    // TODO: Provide grid builder structure separate from the detector
+    template <typename detector_t, typename grid_t>
+    DETRAY_HOST auto fill_by_pos(
+        grid_t &grid, const detector_t &det,
+        typename detector_t::volume_type &vol,
+        const typename detector_t::geometry_context /*ctx*/ = {}) -> void {
+
+        /*std::cout << "phi bins: " << std::endl;
+        const auto& phi_ax = grid.template get_axis<n_axis::label::e_rphi>();
+        const auto& z_ax = grid.template get_axis<n_axis::label::e_cyl_z>();
+        for (const auto edge : phi_ax.bin_edges()){
+            std::cout << edge << std::endl;
+        }
+        std::cout << "z bins: " << std::endl;
+        for (const auto edge : z_ax.bin_edges()){
+            std::cout << edge << std::endl;
+        }*/
+
+        // Fill the volumes surfaces into the grid
+        const auto &trf_store = det.transform_store();
+        for (const auto &[idx, sf] :
+             detray::views::enumerate(det.surfaces(), vol)) {
+            const auto &sf_trf = trf_store[sf.transform()];
+            const auto &t = sf_trf.translation();
+            const auto loc_pos = grid.global_to_local(
+                __plugin::transform3<detray::scalar>{}, t, t);
+            grid.populate(loc_pos, idx);
+            // std::cout << "sf " << idx << ": pos 0: " << loc_pos[0] << ", pos
+            // 1: " << loc_pos[1] << std::endl; std::cout << "phi bin: " <<
+            // phi_ax.bin(loc_pos[0]) << ", z bin: " << z_ax.bin(loc_pos[1]) <<
+            // std::endl;
+        }
+    }
+
     /// Print grid - up to three dimensions
     /// @note will likely become obsolete with the actsvg implementation
     template <typename grid_t>
@@ -168,8 +232,12 @@ class grid_builder {
             using boundary = cylinder2D<>::boundaries;
             auto b_values = grid_bounds.values();
 
+            std::cout << "phi bins: " << n_bins_phi << ", z bins: " << n_bins_z
+                      << std::endl;
+
             return new_grid<cylinder2D<>, e_shape, binning_phi, binning_z>(
-                {0.f, 2.f * static_cast<scalar_type>(M_PI),
+                {-static_cast<scalar_type>(M_PI) * b_values[boundary::e_r],
+                 static_cast<scalar_type>(M_PI) * b_values[boundary::e_r],
                  b_values[boundary::e_n_half_z],
                  b_values[boundary::e_p_half_z]},
                 {n_bins_phi, n_bins_z}, {bin_edges_phi, bin_edges_z});
@@ -195,8 +263,8 @@ class grid_builder {
 
             return new_grid<cylinder3D, e_shape, binning_r, binning_phi,
                             binning_z>(
-                {0.f, b_values[boundary::e_r], 0.f,
-                 2.f * static_cast<scalar_type>(M_PI),
+                {0.f, b_values[boundary::e_r], -static_cast<scalar_type>(M_PI),
+                 static_cast<scalar_type>(M_PI),
                  -b_values[boundary::e_n_half_z],
                  b_values[boundary::e_p_half_z]},
                 {n_bins_r, n_bins_phi, n_bins_z},
@@ -221,7 +289,8 @@ class grid_builder {
 
             return new_grid<ring2D<>, e_shape, binning_phi, binning_z>(
                 {b_values[boundary::e_inner_r], b_values[boundary::e_outer_r],
-                 0.f, 2.f * static_cast<scalar_type>(M_PI)},
+                 -static_cast<scalar_type>(M_PI),
+                 static_cast<scalar_type>(M_PI)},
                 {n_bins_r, n_bins_phi}, {bin_edges_r, bin_edges_phi});
         }
 
@@ -401,7 +470,7 @@ auto grid_builder<value_t, serializer_t, populator_impl_t, algebra_t,
                         std::cout << "( ";
                         for (const auto &entry : gr.at(i, j, k)) {
                             if (entry == detail::invalid_value<entry_t>()) {
-                                std::cout << "inv ";
+                                std::cout << "none ";
                             } else {
                                 std::cout << entry << " ";
                             }
@@ -414,7 +483,7 @@ auto grid_builder<value_t, serializer_t, populator_impl_t, algebra_t,
                     std::cout << "( ";
                     for (const auto &entry : gr.at(i, j)) {
                         if (entry == detail::invalid_value<entry_t>()) {
-                            std::cout << "inv ";
+                            std::cout << "none ";
                         } else {
                             std::cout << entry << " ";
                         }
@@ -428,7 +497,7 @@ auto grid_builder<value_t, serializer_t, populator_impl_t, algebra_t,
             std::cout << "( ";
             for (const auto &entry : gr.at(i)) {
                 if (entry == detail::invalid_value<entry_t>()) {
-                    std::cout << "inv ";
+                    std::cout << "none ";
                 } else {
                     std::cout << entry << " ";
                 }

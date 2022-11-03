@@ -55,11 +55,13 @@ using surface_grid_t = grid<coordinate_axes<grid_shape_t, false, container_t>,
 
 // cylindrical grid for the barrel layers
 template <typename container_t>
-using cylinder_sf_grid = surface_grid_t<cylinder2D<>::axes<>, container_t>;
+using cylinder_sf_grid =
+    surface_grid_t<cylinder2D<>::axes<n_axis::shape::e_closed>, container_t>;
 
 // disc grid for the endcap layers
 template <typename container_t>
-using disc_sf_grid = surface_grid_t<ring2D<>::axes<>, container_t>;
+using disc_sf_grid =
+    surface_grid_t<ring2D<>::axes<n_axis::shape::e_closed>, container_t>;
 
 /// @}
 

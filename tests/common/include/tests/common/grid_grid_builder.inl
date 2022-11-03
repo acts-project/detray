@@ -57,7 +57,7 @@ TEST(grid, grid_builder) {
     EXPECT_EQ(ann_axis_r.label(), label::e_r);
     EXPECT_EQ(ann_axis_r.shape(), shape::e_open);
     EXPECT_EQ(ann_axis_r.binning(), binning::e_regular);
-    EXPECT_EQ(ann_axis_r.nbins(), 5UL);
+    EXPECT_EQ(ann_axis_r.nbins(), 7UL);
     EXPECT_NEAR(ann_axis_r.span()[0], 0.f,
                 std::numeric_limits<scalar>::epsilon());
     EXPECT_NEAR(ann_axis_r.span()[1], 10.f,

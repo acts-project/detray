@@ -96,10 +96,10 @@ TEST(grid, grid_collection) {
 
     EXPECT_EQ(single_grid.Dim, 3);
     auto r_axis = single_grid.get_axis<label::e_r>();
-    EXPECT_EQ(r_axis.nbins(), 1u);
+    EXPECT_EQ(r_axis.nbins(), 3u);
     using z_axis_t = single_axis<open<label::e_z>, regular<>>;
     auto z_axis = single_grid.get_axis<z_axis_t>();
-    EXPECT_EQ(z_axis.nbins(), 8u);
+    EXPECT_EQ(z_axis.nbins(), 10u);
 
     // The generator starts countaing at one instead of zero
     EXPECT_EQ(single_grid.at(0u, 0u, 0u)[0u], 49UL);
