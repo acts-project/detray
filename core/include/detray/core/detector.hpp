@@ -458,8 +458,8 @@ class detector {
     inline const bfield_type &get_bfield() const { return _bfield; }
 
     DETRAY_HOST_DEVICE
-    inline point2 global_to_local(const dindex sf_idx, const point3 pos,
-                                  const vector3 dir) const {
+    inline point2 global_to_local(const dindex sf_idx, const point3 &pos,
+                                  const vector3 &dir) const {
         const auto &sf = surface_by_index(sf_idx);
         const auto ret =
             _masks.template call<detail::global_to_local<transform3>>(
