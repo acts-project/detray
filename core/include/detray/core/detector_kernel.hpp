@@ -53,7 +53,7 @@ struct global_to_local {
     DETRAY_HOST_DEVICE inline output_type operator()(
         const mask_group_t& mask_group, const index_t& /*index*/,
         const transform_store_t& trf_store, const surface_t& surface,
-        const point3 pos, const vector3 dir) const {
+        const point3& pos, const vector3& dir) const {
 
         const auto& trf3 = trf_store[surface.transform()];
 
