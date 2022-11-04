@@ -32,17 +32,13 @@ using transform3 = __plugin::transform3<scalar>;
 using intersection_t = line_plane_intersection;
 
 // some useful type declarations
-using detector_host_t =
-    detector<detector_registry::toy_detector, covfie::field, darray,
-             thrust::tuple, vecmem::vector, vecmem::jagged_vector>;
-using detector_device_t =
-    detector<detector_registry::toy_detector, covfie::field_view, darray,
-             thrust::tuple, vecmem::device_vector,
-             vecmem::jagged_device_vector>;
+using detector_host_t = detector<detector_registry::toy_detector, covfie::field,
+                                 host_container_types>;
+using detector_device_t = detector<detector_registry::toy_detector,
+                                   covfie::field_view, device_container_types>;
 using navigator_host_t = navigator<detector_host_t>;
 using navigator_device_t = navigator<detector_device_t>;
 using stepper_t = line_stepper<transform3>;
-using nav_context = detector_host_t::context;
 
 // detector configuration
 constexpr std::size_t n_brl_layers = 4;

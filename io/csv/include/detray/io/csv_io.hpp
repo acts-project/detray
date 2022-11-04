@@ -13,7 +13,6 @@
 #include "detray/grids/axis.hpp"
 #include "detray/io/csv_io_types.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
-#include "detray/surface_finders/grid2_finder.hpp"
 #include "detray/tools/bin_association.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -109,8 +108,7 @@ template <typename detector_registry,
           template <typename...> class jagged_vector_type = djagged_vector,
           typename surface_source_link = dindex,
           typename bounds_source_link = dindex>
-detector<detector_registry, bfield_type, array_type, tuple_type, vector_type,
-         jagged_vector_type>
+detector<detector_registry, bfield_type, host_container_types>
 detector_from_csv(const std::string &detector_name,
                   const std::string &surface_file_name,
                   const std::string &layer_volume_file_name,
@@ -120,9 +118,9 @@ detector_from_csv(const std::string &detector_name,
                   vecmem::memory_resource &resource,
                   scalar /*r_sync_tolerance*/ = 0.,
                   scalar /*z_sync_tolerance*/ = 0.) {
-    using alignable_store = static_transform_store<vector_type>;
-    using detector_t = detector<detector_registry, bfield_type, array_type,
-                                tuple_type, vector_type, jagged_vector_type>;
+    // using alignable_store = static_transform_store<vector_type>;
+    using detector_t =
+        detector<detector_registry, bfield_type, host_container_types>;
     using vector3_t = typename detector_t::vector3;
 
     typename detector_t::bfield_type B_field(
@@ -147,16 +145,17 @@ detector_from_csv(const std::string &detector_name,
     using volume_layer_index = std::pair<uint32_t, uint32_t>;
     std::map<volume_layer_index, typename detector_t::volume_type *> volumes;
 
-    // Read in with a default context
-    typename alignable_store::storage surface_transform_storage;
-    typename alignable_store::context surface_default_context{};
-
     // Flushable containers
     typename detector_t::volume_type *c_volume = nullptr;
     typename detector_t::surface_container c_surfaces;
     typename detector_t::mask_container c_masks(resource);
     typename detector_t::material_container c_materials(resource);
     typename detector_t::transform_container c_transforms;
+
+    // Read in with a default context
+    typename detector_t::transform_container surface_transform_storage;
+    typename detector_t::transform_container::context_type
+        surface_default_context{};
 
     std::map<volume_layer_index, array_type<scalar, 6>> volume_bounds;
 

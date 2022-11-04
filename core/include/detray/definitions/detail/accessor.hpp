@@ -106,6 +106,20 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
         std::forward<const tuple_t<value_types...>>(tuple));
 }
 
+/// Retrieve an element from a thrust tuple by value. No perfect forwarding for
+/// composite types like tuple_t<value_types...>
+template <typename query_t, template <typename...> class tuple_t,
+          class... value_types,
+          std::enable_if_t<std::is_same_v<tuple_t<value_types...>,
+                                          thrust::tuple<value_types...>>,
+                           bool> = true>
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
+    tuple_t<value_types...>& tuple) noexcept {
+    return thrust::get<sizeof...(value_types) -
+                       unroll_values<query_t, value_types...>()>(
+        std::forward<tuple_t<value_types...>>(tuple));
+}
+
 /**
  *  tuple_element accessor
  *
