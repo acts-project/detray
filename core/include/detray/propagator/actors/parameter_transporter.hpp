@@ -117,12 +117,13 @@ struct parameter_transporter : actor {
                 const bound_to_free_matrix& bound_to_free_jacobian =
                     stepping._jac_to_global;
 
-                const matrix_type<e_bound_size, e_bound_size> full_jacobian =
+                stepping._full_jacobian =
                     free_to_bound_jacobian * correction_term *
                     free_transport_jacobian * bound_to_free_jacobian;
 
-                new_cov = full_jacobian * stepping._bound_params.covariance() *
-                          matrix_operator().transpose(full_jacobian);
+                new_cov = stepping._full_jacobian *
+                          stepping._bound_params.covariance() *
+                          matrix_operator().transpose(stepping._full_jacobian);
             }
 
             // Calculate surface-to-surface covariance transport
