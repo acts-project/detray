@@ -11,9 +11,6 @@
 // Vecmem include(s)
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
-// Thrust include(s)
-#include <thrust/tuple.h>
-
 // GTest include(s)
 #include <gtest/gtest.h>
 
@@ -22,58 +19,54 @@
 
 using namespace detray;
 
-TEST(container_cuda, tuple_vector_container) {
+TEST(container_cuda, multi_type_store) {
 
     // Vecmem memory resource
     vecmem::cuda::managed_memory_resource resource;
 
-    // Create tuple vector container
-    tuple_vector_container_type container(resource);
+    // Create tuple vector store
+    host_store_type store(resource);
 
-    // Base container function check
-    EXPECT_EQ(container.size(), 3);
-    EXPECT_EQ(container.empty<0>(), true);
-    EXPECT_EQ(container.empty<1>(), true);
-    EXPECT_EQ(container.empty<2>(), true);
+    // Base store function check
+    EXPECT_EQ(store.n_collections(), 3u);
+    EXPECT_EQ(store.empty<0>(), true);
+    EXPECT_EQ(store.empty<1>(), true);
+    EXPECT_EQ(store.empty<2>(), true);
 
-    EXPECT_EQ(container.to_id<>(0), 0);
-    EXPECT_EQ(container.to_id<1>(2), 2);
-    EXPECT_EQ(container.to_id<1>(0), 3);
+    // Add elements to the store
+    store.emplace_back<0>(empty_context{}, 1UL);
+    store.emplace_back<0>(empty_context{}, 2UL);
+    store.emplace_back<1>(empty_context{}, 3.1f);
+    store.emplace_back<1>(empty_context{}, 4.5f);
+    store.emplace_back<2>(empty_context{}, 5.5);
+    store.emplace_back<2>(empty_context{}, 6.);
 
-    // Add elements to the container
-    container.add_value<0>(1);
-    container.add_value<0>(2);
-    container.add_value<1>(3.1);
-    container.add_value<1>(4.5);
-    container.add_value<2>(5.5);
-    container.add_value<2>(6.);
+    vecmem::vector<std::size_t> int_vec{3UL, 4UL, 5UL};
+    store.insert(int_vec);
 
-    vecmem::vector<int> int_vec{3, 4, 5};
-    container.add_vector(int_vec);
+    vecmem::vector<float> float_vec{12.1f, 5.6f};
+    store.insert(float_vec);
 
-    vecmem::vector<float> float_vec{12.1, 5.6};
-    container.add_vector(float_vec);
-
-    container.add_vector(vecmem::vector<double>{10.5, 7.6});
+    store.insert(vecmem::vector<double>{10.5, 7.6});
 
     // CPU sum check
     double cpu_sum = 0;
-    cpu_sum = std::accumulate(container.group<0>().begin(),
-                              container.group<0>().end(), cpu_sum);
-    cpu_sum = std::accumulate(container.group<1>().begin(),
-                              container.group<1>().end(), cpu_sum);
-    cpu_sum = std::accumulate(container.group<2>().begin(),
-                              container.group<2>().end(), cpu_sum);
+    cpu_sum =
+        std::accumulate(store.get<0>().begin(), store.get<0>().end(), cpu_sum);
+    cpu_sum =
+        std::accumulate(store.get<1>().begin(), store.get<1>().end(), cpu_sum);
+    cpu_sum =
+        std::accumulate(store.get<2>().begin(), store.get<2>().end(), cpu_sum);
     EXPECT_FLOAT_EQ(cpu_sum, 69.9);
 
     // CUDA sum check
-    auto container_data = get_data(container);
+    typename host_store_type::view_type store_data = get_data(store);
 
     vecmem::vector<double> cuda_sum(&resource);
     cuda_sum.push_back(0);
     auto sum_data = vecmem::get_data(cuda_sum);
 
-    get_sum(container_data, sum_data);
+    get_sum(store_data, sum_data);
 
     EXPECT_FLOAT_EQ(cpu_sum, cuda_sum[0]);
 }

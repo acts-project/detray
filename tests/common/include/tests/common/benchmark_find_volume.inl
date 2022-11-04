@@ -40,27 +40,28 @@ auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
 const unsigned int itest = 10000;
 
-// This test a reference run to deduce the random number
+// Benchmarks the cost of searching a volume by position
 static void BM_FIND_VOLUMES(benchmark::State &state) {
-    auto volume_grid = d.volume_search_grid();
+    auto &volume_grid = d.volume_search_grid();
 
-    const auto &axis0 = volume_grid.axis_p0();
-    // const auto &axis1 = volume_grid.axis_p1();
+    const auto &axis_r = volume_grid.get_axis<n_axis::label::e_r>();
+    const auto &axis_z = volume_grid.get_axis<n_axis::label::e_z>();
 
-    auto range0 = axis0.span();
-    // auto range1 = axis1.span();
+    // Get a rough step size from irregular axes
+    auto range0 = axis_r.span();
+    auto range1 = axis_z.span();
 
-    scalar step0 = (range0[1] - range0[0]) / itest;
-    scalar step1 = (range0[1] - range0[0]) / itest;
+    scalar step0{(range0[1] - range0[0]) / itest};
+    scalar step1{(range1[1] - range1[0]) / itest};
 
-    size_t successful = 0;
-    size_t unsuccessful = 0;
+    std::size_t successful{0};
+    std::size_t unsuccessful{0};
 
     for (auto _ : state) {
         for (unsigned int i1 = 0; i1 < itest; ++i1) {
             for (unsigned int i0 = 0; i0 < itest; ++i0) {
                 vector3 rz{i0 * step0, 0., i1 * step1};
-                auto &v = d.volume_by_pos(rz);
+                const auto &v = d.volume_by_pos(rz);
 
                 benchmark::DoNotOptimize(successful);
                 benchmark::DoNotOptimize(unsuccessful);

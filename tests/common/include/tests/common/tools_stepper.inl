@@ -5,9 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-// Project include(s)
-#include "detray/core/transform_store.hpp"
-#include "detray/core/type_registry.hpp"
+// detray include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"

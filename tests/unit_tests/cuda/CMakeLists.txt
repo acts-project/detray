@@ -36,8 +36,6 @@ foreach(algebra ${algebras})
       "transform_store_cuda_kernel.cu"
       "mask_store_cuda.cpp" "mask_store_cuda_kernel.hpp"
       "mask_store_cuda_kernel.cu"
-      "surfaces_finder_cuda.cpp" "surfaces_finder_cuda_kernel.hpp"
-      "surfaces_finder_cuda_kernel.cu"
       "detector_cuda.cpp" "detector_cuda_kernel.hpp"
       "detector_cuda_kernel.cu"
       "navigator_cuda.cpp" "navigator_cuda_kernel.hpp"
