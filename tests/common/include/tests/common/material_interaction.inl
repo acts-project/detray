@@ -280,10 +280,10 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
                         state._stepping._bound_params.qop();
 
     // new energy
-    const scalar newE = std::sqrt(newP * newP + mass * mass);
+    const scalar newE = std::hypot(newP, mass);
 
     // Initial energy
-    const scalar iniE = std::sqrt(iniP * iniP + mass * mass);
+    const scalar iniE = std::hypot(iniP, mass);
 
     // New qop variance
     const scalar new_var_qop =
