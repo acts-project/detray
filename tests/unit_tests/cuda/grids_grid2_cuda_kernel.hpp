@@ -14,7 +14,6 @@
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
-#include "detray/tools/grid_array_helper.hpp"
 
 #pragma once
 

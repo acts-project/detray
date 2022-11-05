@@ -11,17 +11,15 @@
 
 namespace detray {
 
-__global__ void get_sum_kernel(tuple_vector_container_data_type container_data,
+__global__ void get_sum_kernel(typename host_store_type::view_type store_view,
                                vecmem::data::vector_view<double> sum_data) {
 
-    tuple_vector_container<thrust::tuple, vecmem::device_vector, std::size_t,
-                           int, float, double>
-        container(container_data);
+    device_store_type store(store_view);
     vecmem::device_vector<double> sum(sum_data);
 
-    const auto& g0 = container.group<0>();
-    const auto& g1 = container.group<1>();
-    const auto& g2 = container.group<2>();
+    const auto& g0 = store.get<0>();
+    const auto& g1 = store.get<1>();
+    const auto& g2 = store.get<2>();
 
     for (auto e : g0) {
         sum[0] += e;
@@ -34,11 +32,11 @@ __global__ void get_sum_kernel(tuple_vector_container_data_type container_data,
     }
 }
 
-void get_sum(tuple_vector_container_data_type& container_data,
-             vecmem::data::vector_view<double>& sum_data) {
+void get_sum(typename host_store_type::view_type store_view,
+             vecmem::data::vector_view<double> sum_data) {
 
     // run the test kernel
-    get_sum_kernel<<<1, 1>>>(container_data, sum_data);
+    get_sum_kernel<<<1, 1>>>(store_view, sum_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

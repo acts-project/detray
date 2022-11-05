@@ -30,8 +30,8 @@ struct simulator {
     using actor_chain_type =
         actor_chain<std::tuple, parameter_transporter<transform3>, interactor_t,
                     random_scatterer<interactor_t>,
-                    event_writer<transform3, smearer_t>,
-                    parameter_resetter<transform3>>;
+                    parameter_resetter<transform3>,
+                    event_writer<transform3, smearer_t>>;
 
     using navigator_type = navigator<detector_t>;
     using stepper_type = rk_stepper<typename bfield_type::view_t, transform3>;
@@ -63,7 +63,7 @@ struct simulator {
                     interactor);
                 typename parameter_resetter<transform3>::state resetter{};
                 typename actor_chain_type::state actor_states = std::tie(
-                    transporter, interactor, scatterer, writer, resetter);
+                    transporter, interactor, scatterer, resetter, writer);
 
                 typename propagator_type::state state(
                     track, m_detector->get_bfield(), *m_detector, actor_states);

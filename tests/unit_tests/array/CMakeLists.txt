@@ -48,7 +48,6 @@ detray_add_test( array
    "array_ring2D.cpp"
    "array_single3D.cpp"
    "array_stepper.cpp"
-   "array_surfaces_finder.cpp"
    "array_telescope_detector.cpp"
    "array_toy_geometry.cpp"
    "array_track.cpp"

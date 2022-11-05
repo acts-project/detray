@@ -159,7 +159,7 @@ namespace detail {
 template <typename iterator_coll_t>
 struct join_iterator {
 
-    using iterator_t = detray::detail::get_value_type_t<iterator_coll_t>;
+    using iterator_t = detray::detail::get_value_t<iterator_coll_t>;
 
     using difference_type =
         typename std::iterator_traits<iterator_t>::difference_type;
