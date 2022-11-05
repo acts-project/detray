@@ -46,7 +46,7 @@ int main() {
                                         100 * unit_constants::um);
 
     std::size_t n_events = 2;
-    auto sim = simulator(n_events, "", detector, generator, smearer);
+    auto sim = simulator(n_events, detector, generator, smearer);
 
     sim.run();
 

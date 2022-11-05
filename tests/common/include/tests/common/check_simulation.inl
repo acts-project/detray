@@ -107,7 +107,7 @@ TEST(check_simulation, toy_geometry) {
                                         170 * unit_constants::um);
 
     std::size_t n_events = 1;
-    auto sim = simulator(n_events, "", detector, generator, smearer);
+    auto sim = simulator(n_events, detector, generator, smearer);
 
     // Do the simulation
     sim.run();
