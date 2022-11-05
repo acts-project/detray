@@ -50,7 +50,15 @@ class single_view
     single_view& operator=(const single_view& other) {
         m_value = other.m_value;
         return *this;
-    };
+    }
+
+    /// @return the single value
+    DETRAY_HOST_DEVICE
+    constexpr auto operator*() const -> const value_t& { return m_value; }
+
+    /// @return the single value
+    DETRAY_HOST_DEVICE
+    constexpr auto operator*() -> value_t& { return m_value; }
 
     /// @returns value pointer.
     DETRAY_HOST_DEVICE

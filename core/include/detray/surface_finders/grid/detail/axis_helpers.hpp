@@ -65,7 +65,7 @@ struct multi_axis_data {
     DETRAY_HOST_DEVICE
     multi_axis_data(const dvector_view<dindex_range> &axes_view,
                     const dvector_view<scalar_t> &edges_view)
-        : m_axes_data(axes_view.m_view), m_edges(edges_view.m_view) {}
+        : m_axes_data(axes_view), m_edges(edges_view) {}
 
     /// @returns pointer to all of the axes data
     DETRAY_HOST_DEVICE
