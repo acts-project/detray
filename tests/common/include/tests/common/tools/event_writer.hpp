@@ -22,15 +22,20 @@ struct event_writer : actor {
     using scalar_type = typename transform3_t::scalar_type;
 
     struct state {
-        state(std::size_t event_id, smearer_t smearer)
-            : m_particle_writer(get_event_filename(event_id, "-particles.csv")),
-              m_hit_writer(get_event_filename(event_id, "-hits.csv")),
-              m_meas_writer(get_event_filename(event_id, "-measurements.csv")),
+        state(std::size_t event_id, smearer_t smearer,
+              const std::string directory)
+            : m_particle_writer(directory +
+                                get_event_filename(event_id, "-particles.csv")),
+              m_hit_writer(directory +
+                           get_event_filename(event_id, "-hits.csv")),
+              m_meas_writer(directory +
+                            get_event_filename(event_id, "-measurements.csv")),
               m_meas_hit_id_writer(
+                  directory +
                   get_event_filename(event_id, "-measurement-simhit-map.csv")),
               m_meas_smearer(smearer) {}
 
-        std::size_t particle_id = 0;
+        std::size_t particle_id = -1;
         particle_writer m_particle_writer;
         hit_writer m_hit_writer;
         measurement_writer m_meas_writer;
@@ -39,6 +44,8 @@ struct event_writer : actor {
         smearer_t m_meas_smearer;
 
         void write_particle(const free_track_parameters<transform3_t>& track) {
+            particle_id++;
+
             csv_particle particle;
             const auto pos = track.pos();
             const auto mom = track.mom();
@@ -54,7 +61,6 @@ struct event_writer : actor {
             particle.q = track.charge();
 
             m_particle_writer.append(particle);
-            particle_id++;
         }
     };
 

@@ -169,7 +169,7 @@ struct csv_meas_hit_id {
     uint64_t measurement_id = 0;
     uint64_t hit_id = 0;
 
-    // geometry_id,hit_id,channel0,channel1,timestamp,value
+    // measurement_id, hit_id
     DFE_NAMEDTUPLE(csv_meas_hit_id, measurement_id, hit_id);
 };
 

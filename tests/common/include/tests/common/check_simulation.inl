@@ -129,7 +129,7 @@ TEST(check_simulation, toy_geometry) {
             particles.push_back(io_particle);
         }
 
-        ASSERT_EQ(particles.size(), theta_steps * phi_steps);
+        ASSERT_EQ(particles.size(), generator.size());
 
         // Check hit & measurement data
         const auto io_hits_file = get_event_filename(i_event, "-hits.csv");

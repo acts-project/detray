@@ -42,7 +42,7 @@ struct grid_data {
     DETRAY_HOST_DEVICE
     grid_data(
         const dvector_view<typename backend_storage_type::value_type> &view)
-        : m_bin_data(view.m_view) {}
+        : m_bin_data(view) {}
 
     /// @returns pointer to the entire bin data for the grid - const
     DETRAY_HOST_DEVICE
