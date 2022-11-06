@@ -97,7 +97,6 @@ detray_add_library( detray_core core
    "include/detray/surface_finders/grid/detail/populator_impl.hpp"
    "include/detray/surface_finders/grid/detail/serializer_impl.hpp"
    "include/detray/surface_finders/grid/axis.hpp"
-   "include/detray/surface_finders/grid/grid_builder.hpp"
    "include/detray/surface_finders/grid/grid_collection.hpp"
    "include/detray/surface_finders/grid/grid.hpp"
    "include/detray/surface_finders/grid/populator.hpp"
@@ -107,7 +106,10 @@ detray_add_library( detray_core core
    "include/detray/tools/associator.hpp"
    "include/detray/tools/bin_association.hpp"
    "include/detray/tools/generators.hpp"
+   "include/detray/tool/grid_builder.hpp"
+   "include/detray/tool/grid_factory.hpp"
    "include/detray/tools/local_object_finder.hpp"
+   "include/detray/tools/volume_builder.hpp"
    # tracks include(s)
    "include/detray/tracks/detail/track_helper.hpp"
    "include/detray/tracks/bound_track_parameters.hpp"

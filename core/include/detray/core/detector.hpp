@@ -14,7 +14,6 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/tools/bin_association.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)

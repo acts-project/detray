@@ -10,9 +10,9 @@
 // Detray include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/surface_finders/grid/grid_builder.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/tools/grid_builder.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -33,14 +33,17 @@ __plugin::transform3<scalar> Identity{};
 }  // anonymous namespace
 
 /// Unittest: Test the construction of a collection of grids
-TEST(grid, grid_builder) {
+TEST(grid, grid_factory) {
 
     // Data-owning grid collection
     vecmem::host_memory_resource host_mr;
-    grid_builder<dindex, simple_serializer, regular_attacher<3>> gr_builder(
-        host_mr);
+    auto gr_factory =
+        grid_factory<dindex, simple_serializer, regular_attacher<3>>{host_mr};
 
-    auto grid_factory = gr_builder.new_factory();
+    /*auto gr_builder = gid_builder_type<void, grid_factory, cylinder2D<>,
+     * dindex, simple_serializer, regular_attacher<3>, n_axis::bounds::e_closed,
+     * __plugin::transform3<detray::scalar>, n_axis::regular,
+     * n_axis::regular>;*/
 
     // Build from existing mask of a surface
     const scalar minR{0.f};
@@ -50,7 +53,7 @@ TEST(grid, grid_builder) {
     mask<annulus2D<>> ann2{0UL, minR, maxR, minPhi, maxPhi, 0.f, 0.f, 0.f};
 
     // Grid with correctly initialized axes, but empty bin content
-    auto ann_gr = grid_factory.new_grid(ann2, 5, 10);
+    auto ann_gr = gr_factory.new_grid(ann2, {5, 10});
 
     // Test axis
     const auto& ann_axis_r = ann_gr.template get_axis<label::e_r>();
@@ -78,11 +81,12 @@ TEST(grid, grid_builder) {
                                           4.f,   5.f,  6.f,   9.f};
     const std::vector<scalar> bin_edges_phi{};
 
-    auto cyl_gr = grid_factory.template new_grid<cylinder2D<>, bounds::e_closed,
-                                                 regular, irregular>(
+    auto cyl_gr = gr_factory.template new_grid<cylinder2D<>>(
         {bin_edges_z.front(), bin_edges_z.back(), 0.f,
          2.f * static_cast<scalar>(M_PI)},
-        {bin_edges_z.size() - 1, 10UL}, {bin_edges_phi, bin_edges_z});
+        {bin_edges_z.size() - 1, 10UL}, {bin_edges_phi, bin_edges_z},
+        std::tuple<circular<label::e_rphi>, closed<label::e_cyl_z>>{},
+        std::tuple<regular<>, irregular<>>{});
 
     // Test axis
     const auto& cyl_axis_z = cyl_gr.template get_axis<label::e_cyl_z>();
@@ -107,17 +111,49 @@ TEST(grid, grid_builder) {
     const scalar p_half_z{9.f};
     mask<cylinder2D<>> cyl2{0UL, r, n_half_z, p_half_z};
 
-    auto cyl_gr2 =
-        grid_factory.template new_grid<bounds::e_closed, regular, irregular>(
-            cyl2, bin_edges_z.size() - 1, 10UL, bin_edges_phi, bin_edges_z);
+    auto cyl_gr2 = gr_factory.template new_grid<circular<label::e_rphi>,
+                                                closed<label::e_cyl_z>,
+                                                regular<>, irregular<>>(
+        cyl2, {bin_edges_z.size() - 1, 10UL}, {bin_edges_phi, bin_edges_z});
 
     // Get grid collection with the correct allocator
-    auto grid_coll = gr_builder.new_collection<decltype(cyl_gr)>();
+    auto grid_coll = gr_factory.new_collection<decltype(cyl_gr)>();
     EXPECT_TRUE(grid_coll.size() == 0UL);
     grid_coll.push_back(cyl_gr);
     grid_coll.push_back(cyl_gr2);
     EXPECT_TRUE(grid_coll.size() == 2UL);
 
     EXPECT_FLOAT_EQ(grid_coll[0].search(loc_p)[0], 33UL);
-    // gr_builder.to_string(grid_coll[0]);
+    // gr_factory.to_string(grid_coll[0]);
+}
+
+/// Unittest: Test the grid builder
+TEST(grid, grid_builder) {
+
+    // surface grid definition: bin-content: std::array<dindex, 9>
+    using cyl_grid_t =
+        grid<coordinate_axes<cylinder2D<>::axes<>, false, host_container_types>,
+             dindex, simple_serializer, replacer>;
+
+    auto gbuilder = grid_builder<void, cyl_grid_t>{};
+
+    // The cylinder portals are at the end of the surface range by construction
+    const auto cyl_mask = mask<cylinder2D<>>{0UL, 10.f, -500.f, 500.f};
+
+    // approximate binning for the barrel sensors
+    std::size_t n_phi_bins{5UL}, n_z_bins{4UL};
+
+    // Build empty grid
+    gbuilder.init(cyl_mask, {n_phi_bins, n_z_bins});
+    auto cyl_grid = gbuilder();
+
+    const auto& cyl_axis_z = cyl_grid.template get_axis<label::e_cyl_z>();
+    EXPECT_EQ(cyl_axis_z.label(), label::e_cyl_z);
+    EXPECT_EQ(cyl_axis_z.bounds(), bounds::e_closed);
+    EXPECT_EQ(cyl_axis_z.binning(), binning::e_regular);
+    EXPECT_EQ(cyl_axis_z.nbins(), 4UL);
+    EXPECT_NEAR(cyl_axis_z.span()[0], -500.f,
+                std::numeric_limits<scalar>::epsilon());
+    EXPECT_NEAR(cyl_axis_z.span()[1], 500.f,
+                std::numeric_limits<scalar>::epsilon());
 }

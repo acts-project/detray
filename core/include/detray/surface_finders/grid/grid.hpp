@@ -41,9 +41,10 @@ class grid {
     using value_type = value_t;
     template <std::size_t DIM>
     using serializer_type = serializer_t<DIM>;
-    // Interface to the populator (detramines the bin entry and value type).
-    using populator_type = populator<populator_impl_t>;
-    using bin_type = typename populator_type::template bin_type<value_type>;
+    // Interface to the populator (determines the bin content and value type).
+    using populator_impl = populator_impl_t;
+    using bin_type =
+        typename populator<populator_impl>::template bin_type<value_type>;
     /// The type of the multi-axis is tied to the type of the grid: a non-
     /// owning grid holds a non-owning multi-axis member.
     using axes_type = multi_axis_t;
@@ -66,13 +67,14 @@ class grid {
     /// Vecmem based grid view type
     using view_type =
         dmulti_view<dvector_view<bin_type>, typename axes_type::view_type>;
-    /// Vecmem based grid view type
+    /// Vecmem based grid view type - const
     using const_view_type = dmulti_view<dvector_view<const bin_type>,
                                         typename axes_type::const_view_type>;
     /// Grid backend can be owning (single grid) or non-owning (grid collection)
     using storage_type =
         std::conditional_t<is_owning, detail::grid_data<bin_storage_type>,
                            detail::grid_view<bin_storage_type>>;
+    /// Find the corresponding (non-)owning grid type
     template <bool owning>
     using type = grid<typename multi_axis_t::template type<owning>, value_t,
                       serializer_t, populator_impl_t>;
@@ -119,7 +121,7 @@ class grid {
     DETRAY_HOST_DEVICE
     auto axes() const -> const axes_type & { return m_axes; }
 
-    /// @returns an axis object, corresponding to the label.
+    /// @returns an axis object, corresponding to the index.
     template <std::size_t index>
     DETRAY_HOST_DEVICE inline constexpr auto get_axis() const {
         return m_axes.template get_axis<index>();
@@ -285,7 +287,7 @@ class grid {
     /// The axes of the grid
     axes_type m_axes{};
     /// How to write and fetch bin values from the backend storage
-    populator_type m_populator{};
+    populator<populator_impl> m_populator{};
     /// Serialization/Deserialization of multi-bin indices to the global bin
     /// data storage
     serializer_t<Dim> m_serializer{};

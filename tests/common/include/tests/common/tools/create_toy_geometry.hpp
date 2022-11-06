@@ -335,29 +335,34 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
                               vecmem::memory_resource &resource,
                               const config_t &cfg) {
     // Get relevant ids
+    using geo_obj_ids = typename detector_t::geo_obj_ids;
+
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
     constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder_grid;
-    constexpr auto portal_id = detector_t::geo_obj_ids::e_portal;
 
-    grid_builder<dindex, simple_serializer, regular_attacher<9>> gbuilder(
-        resource);
-    auto gfactory = gbuilder.new_factory();
+    using cyl_grid_t =
+        typename detector_t::sf_finder_container::template get_type<grid_id>;
+    auto gbuilder = grid_builder<geo_obj_ids, cyl_grid_t>{};
 
     // The cylinder portals are at the end of the surface range by construction
-    const auto portal_link = vol.template obj_link<portal_id>();
+    const auto portal_link = vol.template obj_link<geo_obj_ids::e_portal>();
     const auto portal_mask_idx =
         det.surfaces()[portal_link[1] - 3].mask().index();
     const auto &cyl_mask =
         det.mask_store().template get<cyl_id>().at(portal_mask_idx);
 
+    // approximate binning for the barrel sensors
+    std::size_t n_phi_bins{vol.template n_objects<geo_obj_ids::e_sensitive>() /
+                           cfg.m_binning.second};
+    std::size_t n_z_bins{cfg.m_binning.second};
+
     // Add new grid to the detector
-    auto cyl_grid = gfactory.template new_grid<n_axis::bounds::e_closed>(
-        cyl_mask, 0.5f * cfg.m_binning.first, cfg.m_binning.second);
-    gbuilder.fill_by_pos(cyl_grid, det, vol, ctx);
-    det.template add_sf_finder<decltype(cyl_grid), grid_id>(vol, cyl_grid);
+    gbuilder.init(cyl_mask, {n_phi_bins, n_z_bins});
+    gbuilder.fill(detail::fill_by_pos{}, det, vol, ctx);
+    det.sf_finder_store().template push_back<grid_id>(gbuilder());
 
     // auto &grid_coll = det.sf_finder_store().template get<grid_id>();
-    // gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
+    // grid_factory_type<cyl_grid_t>{}.to_string(grid_coll[vol.sf_finder_index()]);
 }
 
 /** Helper function that creates a surface grid of trapezoidal endcap modules.
@@ -373,28 +378,29 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
                           detector_t &det, vecmem::memory_resource &resource,
                           const config_t &cfg) {
     // Get relevant ids
+    using geo_obj_ids = typename detector_t::geo_obj_ids;
+
     constexpr auto disc_id = detector_t::masks::id::e_portal_ring2;
     constexpr auto grid_id = detector_t::sf_finders::id::e_disc_grid;
-    constexpr auto portal_id = detector_t::geo_obj_ids::e_portal;
 
-    grid_builder<dindex, simple_serializer, regular_attacher<9>> gbuilder(
-        resource);
-    auto gfactory = gbuilder.new_factory();
+    using disc_grid_t =
+        typename detector_t::sf_finder_container::template get_type<grid_id>;
+    auto gbuilder = grid_builder<geo_obj_ids, disc_grid_t>{};
 
-    // The disc portal are at the end of the surface range by construction
-    auto portal_link = vol.template obj_link<portal_id>();
+    // The cylinder portals are at the end of the surface range by construction
+    auto portal_link = vol.template obj_link<geo_obj_ids::e_portal>();
     auto portal_mask_idx = det.surfaces()[portal_link[1] - 1].mask().index();
-    mask<ring2D<>> disc_mask =
+    const auto &disc_mask =
         det.mask_store().template get<disc_id>().at(portal_mask_idx);
 
     // Add new grid to the detector
-    auto disc_grid = gfactory.template new_grid<n_axis::bounds::e_closed>(
-        disc_mask, cfg.disc_binning.size(), cfg.disc_binning.front());
-    gbuilder.fill_by_pos(disc_grid, det, vol, ctx);
-    det.template add_sf_finder<decltype(disc_grid), grid_id>(vol, disc_grid);
+    gbuilder.init(disc_mask,
+                  {cfg.disc_binning.size(), cfg.disc_binning.front()});
+    gbuilder.fill(detail::fill_by_pos{}, det, vol, ctx);
+    det.sf_finder_store().template push_back<grid_id>(gbuilder());
 
     // auto &grid_coll = det.sf_finder_store().template get<grid_id>();
-    // gbuilder.to_string(grid_coll[vol.sf_finder_index()]);
+    // grid_factory_type<disc_grid_t>{}.to_string(grid_coll[vol.sf_finder_index()]);
 }
 
 /** Helper method for positioning of modules in an endcap ring
@@ -932,11 +938,6 @@ auto create_toy_geometry(
     /// Leaving world
     constexpr dindex leaving_world{dindex_invalid};
 
-    /// How to build surface grids
-    using grid_builder_t =
-        grid_builder<dindex, simple_serializer, regular_attacher<9>>;
-    grid_builder_t gbuilder(resource);
-
     //
     // barrel
     //
@@ -954,10 +955,9 @@ auto create_toy_geometry(
         scalar layer_r{32.};
         scalar m_radial_stagger{0.5};  // 2.;
         scalar m_long_overlap{2.};     // 5.;
-        std::pair<int, int> m_binning = {16, 14};
+        std::pair<std::size_t, std::size_t> m_binning = {16, 14};
         material<scalar> mat = silicon_tml<scalar>();
         scalar thickness = 0.15 * unit_constants::mm;
-        typename grid_builder_t::grid_factory gfactory;
     };
 
     //
@@ -987,7 +987,6 @@ auto create_toy_geometry(
         std::vector<scalar> m_tilt = {0., 0.};
         material<scalar> mat = silicon_tml<scalar>();
         scalar thickness = 0.15 * unit_constants::mm;
-        typename grid_builder_t::grid_factory gfactory;
     };
 
     // Don't create modules in gap volume

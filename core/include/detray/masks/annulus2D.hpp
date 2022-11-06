@@ -89,6 +89,7 @@ class annulus2D {
     struct axes {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_r;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_phi;
+        static constexpr std::size_t dim{2UL};
 
         using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>,
                                  n_axis::circular<axis_loc1>>;

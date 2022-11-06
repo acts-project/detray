@@ -66,6 +66,7 @@ class single3D {
     struct axes {
         static constexpr n_axis::label axis_loc0 =
             static_cast<n_axis::label>(kCheckIndex);
+        static constexpr std::size_t dim{1UL};
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>

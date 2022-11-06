@@ -45,10 +45,11 @@ template <typename shape_t, typename links_t = dindex,
           template <typename, std::size_t> class array_t = darray>
 class mask {
     public:
-    using shape = shape_t;
     using links_type = links_t;
     using scalar_type = typename algebra_t::scalar_type;
-    using mask_values = array_t<scalar_type, shape::boundaries::e_size>;
+    using shape = shape_t;
+    using boundaries = typename shape::boundaries;
+    using mask_values = array_t<scalar_type, boundaries::e_size>;
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
     using measurement_frame_type =

@@ -21,6 +21,7 @@
 
 // System include(s).
 #include <cstddef>
+#include <tuple>
 #include <type_traits>
 
 namespace detray::n_axis {
@@ -177,6 +178,12 @@ class multi_axis {
     using tuple_type = typename container_types::template tuple_type<T...>;
     /// @}
 
+    /// binnings and axis bounds
+    /// @{
+    using binnings = std::tuple<typename axis_ts::binning_type...>;
+    using bounds = std::tuple<typename axis_ts::bounds_type...>;
+    /// @}
+
     /// Projection onto local coordinate system that is spanned by the axes
     using local_frame_type = local_frame_t;
 
@@ -200,6 +207,7 @@ class multi_axis {
     using axis_reg = type_registry<n_axis::label, axis_ts...>;
     template <n_axis::label L>
     using label_matcher = typename axis_reg::template get_type<L, tuple_type>;
+    /// Find the corresponding (non-)owning type
     template <bool owning>
     using type = multi_axis<owning, local_frame_t, axis_ts...>;
 

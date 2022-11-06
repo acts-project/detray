@@ -81,8 +81,9 @@ TEST(grids_cuda, grid3_replace_populator) {
 
     // build host grid
     host_grid3_replace::bin_storage_type bin_data(&mng_mr);
-    bin_data.resize(3 * 6 * 10,
-                    host_grid3_replace::populator_type::init<point3>());
+    bin_data.resize(
+        3 * 6 * 10,
+        populator<host_grid3_replace::populator_impl>::init<point3>());
 
     host_grid3_replace g3(std::move(bin_data), std::move(axes));
 
@@ -95,8 +96,8 @@ TEST(grids_cuda, grid3_replace_populator) {
         for (std::size_t i_y = 0; i_y < axis_y.nbins(); i_y++) {
             for (std::size_t i_z = 0; i_z < axis_z.nbins(); i_z++) {
                 const auto& bin = g3.at({i_x, i_y, i_z});
-                auto invalid_bin =
-                    host_grid3_replace::populator_type::init<point3>();
+                auto invalid_bin = populator<
+                    host_grid3_replace::populator_impl>::init<point3>();
                 test_content(bin[0], invalid_bin.content());
             }
         }
@@ -142,8 +143,9 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
 
     // build host grid
     host_grid2_replace_ci::bin_storage_type bin_data(&mng_mr);
-    bin_data.resize(2 * 4,
-                    host_grid2_replace_ci::populator_type::init<point3>());
+    bin_data.resize(
+        2 * 4,
+        populator<host_grid2_replace_ci::populator_impl>::init<point3>());
 
     host_grid2_replace_ci g2(std::move(bin_data), std::move(axes));
 
@@ -154,8 +156,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     for (std::size_t i_r = 0; i_r < axis_r.nbins(); i_r++) {
         for (std::size_t i_phi = 0; i_phi < axis_phi.nbins(); i_phi++) {
             const auto& bin = g2.at({i_r, i_phi});
-            auto invalid_bin =
-                host_grid2_replace_ci::populator_type::init<point3>();
+            auto invalid_bin = populator<
+                host_grid2_replace_ci::populator_impl>::init<point3>();
 
             test_content(bin[0], invalid_bin.content());
         }
@@ -203,7 +205,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
 
     host_grid2_complete::bin_storage_type bin_data(&mng_mr);
     bin_data.resize(
-        3 * 7, host_grid2_complete::populator_type::init<point3>(first_tp));
+        3 * 7,
+populator<host_grid2_complete::populator_impl>::init<point3>(first_tp));
 
     host_grid2_complete g2(std::move(bin_data), std::move(axes));
 
@@ -218,7 +221,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
         for (std::size_t i_phi = 0; i_phi < axis_phi.nbins(); i_phi++) {
             auto bin = g2.at({i_r, i_phi});
             auto invalid_bin =
-                host_grid2_complete::populator_type::init<point3>(first_tp);
+                populator<host_grid2_complete::populator_impl>::init<point3>(first_tp);
 
             test_entry_collection(bin, invalid_bin.view());
         }
@@ -277,7 +280,7 @@ TEST(grids_cuda, grid2_attach_populator) {
 
     host_grid2_attach::bin_storage_type bin_data(&mng_mr);
     bin_data.resize(2 * 65,
-                    host_grid2_attach::populator_type::init<point3>(first_tp));
+                    populator<host_grid2_attach::populator_impl>::init<point3>(first_tp));
 
     host_grid2_attach g2(std::move(bin_data), std::move(axes));
 
@@ -292,7 +295,7 @@ TEST(grids_cuda, grid2_attach_populator) {
         for (std::size_t i_phi = 0; i_phi < axis_phi.nbins(); i_phi++) {
             auto bin = g2.at({i_r, i_phi});
             auto invalid_bin =
-                host_grid2_complete::populator_type::init<point3>(first_tp);
+                populator<host_grid2_complete::populator_impl>::init<point3>(first_tp);
 
             test_entry_collection(bin, invalid_bin.view());
         }
@@ -367,7 +370,7 @@ TEST(grids_cuda, cylindrical3D_collection) {
     bin_data.resize(197UL);
     std::generate_n(
         bin_data.begin(), 197UL,
-        bin_content_sequence<n_own_host_grid2_attach::populator_type,
+        bin_content_sequence<populator<n_own_host_grid2_attach::populator_impl>,
                              dindex>());
 
     vecmem::vector<std::size_t> n_bins(9, &mng_mr);

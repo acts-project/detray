@@ -67,6 +67,7 @@ class cuboid3D {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
         static constexpr n_axis::label axis_loc2 = n_axis::label::e_z;
+        static constexpr std::size_t dim{3UL};
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>

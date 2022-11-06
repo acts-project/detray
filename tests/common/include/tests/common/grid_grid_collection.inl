@@ -12,10 +12,10 @@
 #include "detray/masks/cylinder3D.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
-#include "detray/surface_finders/grid/grid_builder.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/tools/grid_builder.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -71,8 +71,9 @@ TEST(grid, grid_collection) {
     // Bin test entries
     grid_t::bin_storage_type bin_data{};
     bin_data.resize(197UL);
-    std::generate_n(bin_data.begin(), 197UL,
-                    bin_content_sequence<grid_t::populator_type, dindex>());
+    std::generate_n(
+        bin_data.begin(), 197UL,
+        bin_content_sequence<populator<grid_t::populator_impl>, dindex>());
     dvector<dindex> grid_offsets = {0UL, 48UL, 72UL};
 
     // Data-owning grid collection

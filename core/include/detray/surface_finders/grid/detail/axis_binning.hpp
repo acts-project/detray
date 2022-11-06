@@ -130,7 +130,7 @@ struct regular {
         const array_type<scalar_t, 2> sp = span();
         const scalar_t step{bin_width()};
 
-        for (dindex ib = 0; ib < nbins(); ++ib) {
+        for (dindex ib = 0; ib <= nbins(); ++ib) {
             edges.push_back(sp[0] + ib * step);
         }
 

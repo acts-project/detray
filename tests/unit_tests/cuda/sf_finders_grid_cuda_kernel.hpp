@@ -19,10 +19,10 @@
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
-#include "detray/surface_finders/grid/grid_builder.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/tools/grid_builder.hpp"
 
 #pragma once
 

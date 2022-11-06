@@ -71,6 +71,7 @@ class trapezoid2D {
     struct axes {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
+        static constexpr std::size_t dim{2UL};
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
