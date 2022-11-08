@@ -23,27 +23,6 @@
 using namespace detray;
 using transform3 = __plugin::transform3<detray::scalar>;
 
-struct global_to_local {
-
-    using output_type = point2;
-
-    template <typename mask_group_t, typename index_t,
-              typename transform_store_t, typename surface_t>
-    DETRAY_HOST_DEVICE inline output_type operator()(
-        const mask_group_t& mask_group, const index_t& /*index*/,
-        const transform_store_t& trf_store, const surface_t& surface,
-        const point3 pos, const vector3 dir) {
-
-        const auto& trf3 = trf_store[surface.transform()];
-
-        const auto& mask = mask_group[surface.mask().index()];
-
-        auto local_coordinate = mask.local_frame();
-
-        return local_coordinate.global_to_local(trf3, pos, dir);
-    }
-};
-
 struct test_param {
     using point2 = __plugin::point2<scalar>;
 
@@ -170,21 +149,15 @@ TEST(check_simulation, toy_geometry) {
         ASSERT_EQ(hits.size(), meas_hit_ids.size());
 
         // Let's check if measurement smearing works correctly...
-        const auto& trf_store = detector.transform_store();
-        const auto& mask_store = detector.mask_store();
-
         std::vector<scalar> local0_diff;
         std::vector<scalar> local1_diff;
 
         const std::size_t nhits = hits.size();
         for (std::size_t i = 0; i < nhits; i++) {
-            const auto& surface =
-                detector.surface_by_index(hits[i].geometry_id);
             const point3 pos{hits[i].tx, hits[i].ty, hits[i].tz};
             const vector3 mom{hits[i].tpx, hits[i].tpy, hits[i].tpz};
-            const auto truth_local = mask_store.template call<global_to_local>(
-                surface.mask(), trf_store, surface, pos,
-                vector::normalize(mom));
+            const auto truth_local = detector.global_to_local(
+                hits[i].geometry_id, pos, vector::normalize(mom));
 
             local0_diff.push_back(truth_local[0] - measurements[i].local0);
             local1_diff.push_back(truth_local[1] - measurements[i].local1);
