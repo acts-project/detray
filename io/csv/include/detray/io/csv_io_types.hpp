@@ -164,4 +164,16 @@ struct csv_measurement {
 using measurement_reader = dfe::NamedTupleCsvReader<csv_measurement>;
 using measurement_writer = dfe::NamedTupleCsvWriter<csv_measurement>;
 
+struct csv_meas_hit_id {
+
+    uint64_t measurement_id = 0;
+    uint64_t hit_id = 0;
+
+    // measurement_id, hit_id
+    DFE_NAMEDTUPLE(csv_meas_hit_id, measurement_id, hit_id);
+};
+
+using meas_hit_id_reader = dfe::NamedTupleCsvReader<csv_meas_hit_id>;
+using meas_hit_id_writer = dfe::NamedTupleCsvWriter<csv_meas_hit_id>;
+
 }  // namespace detray

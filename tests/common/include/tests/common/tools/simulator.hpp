@@ -30,17 +30,17 @@ struct simulator {
     using actor_chain_type =
         actor_chain<std::tuple, parameter_transporter<transform3>, interactor_t,
                     random_scatterer<interactor_t>,
-                    event_writer<transform3, smearer_t>,
-                    parameter_resetter<transform3>>;
+                    parameter_resetter<transform3>,
+                    event_writer<transform3, smearer_t>>;
 
     using navigator_type = navigator<detector_t>;
     using stepper_type = rk_stepper<typename bfield_type::view_t, transform3>;
     using propagator_type =
         propagator<stepper_type, navigator_type, actor_chain_type>;
 
-    simulator(std::size_t events, const std::string directory,
-              const detector_t& det, track_generator_t& track_gen,
-              smearer_t& smearer)
+    simulator(std::size_t events, const detector_t& det,
+              track_generator_t& track_gen, smearer_t& smearer,
+              const std::string directory = "")
         : m_events(events),
           m_directory(directory),
           m_detector(std::make_unique<detector_t>(det)),
@@ -51,7 +51,7 @@ struct simulator {
     void run() {
         for (std::size_t event_id = 0; event_id < m_events; event_id++) {
             typename event_writer<transform3, smearer_t>::state writer(
-                event_id, m_directory, m_smearer);
+                event_id, m_smearer, m_directory);
 
             for (auto track : m_track_generator) {
 
@@ -63,7 +63,7 @@ struct simulator {
                     interactor);
                 typename parameter_resetter<transform3>::state resetter{};
                 typename actor_chain_type::state actor_states = std::tie(
-                    transporter, interactor, scatterer, writer, resetter);
+                    transporter, interactor, scatterer, resetter, writer);
 
                 typename propagator_type::state state(
                     track, m_detector->get_bfield(), *m_detector, actor_states);

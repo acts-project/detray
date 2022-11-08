@@ -27,27 +27,24 @@ TEST(detector_cuda, detector) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // create toy geometry
-    detector_host_t toy_det =
-        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(mng_mr);
+    detector_host_t toy_det = create_toy_geometry<host_container_types>(mng_mr);
 
-    auto ctx0 = typename detector_host_t::context();
+    auto ctx0 = typename detector_host_t::geometry_context();
 
     // host objects
     auto& volumes_host = toy_det.volumes();
     auto& surfaces_host = toy_det.surfaces();
     auto& transforms_host = toy_det.transform_store();
     auto& masks_host = toy_det.mask_store();
-    auto& discs_host = masks_host.group<disc_id>();
-    auto& cylinders_host = masks_host.group<cylinder_id>();
-    auto& rectangles_host = masks_host.group<rectangle_id>();
+    auto& discs_host = masks_host.get<disc_id>();
+    auto& cylinders_host = masks_host.get<cylinder_id>();
+    auto& rectangles_host = masks_host.get<rectangle_id>();
 
     // copied outpus from device side
     vecmem::vector<volume_t> volumes_device(volumes_host.size(), &mng_mr);
     vecmem::vector<surface_t> surfaces_device(surfaces_host.size(), &mng_mr);
-    transform_store_t transforms_device(mng_mr);
-    auto& trfs = transforms_device.data();
-    trfs.resize(transforms_host.size(ctx0));
+    vecmem::vector<transform_t> transforms_device(transforms_host.size(),
+                                                  &mng_mr);
     vecmem::vector<rectangle_t> rectangles_device(rectangles_host.size(),
                                                   &mng_mr);
     vecmem::vector<disc_t> discs_device(discs_host.size(), &mng_mr);
@@ -59,7 +56,7 @@ TEST(detector_cuda, detector) {
     // get data object for device outputs
     auto volumes_data = vecmem::get_data(volumes_device);
     auto surfaces_data = vecmem::get_data(surfaces_device);
-    auto transforms_data = get_data(transforms_device);
+    auto transforms_data = vecmem::get_data(transforms_device);
     auto rectangles_data = vecmem::get_data(rectangles_device);
     auto discs_data = vecmem::get_data(discs_device);
     auto cylinders_data = vecmem::get_data(cylinders_device);
@@ -80,9 +77,7 @@ TEST(detector_cuda, detector) {
 
     // check if the same transform objects are copied
     for (unsigned int i = 0; i < transforms_host.size(ctx0); i++) {
-        EXPECT_EQ(transforms_host.contextual_transform(ctx0, i) ==
-                      transforms_device.contextual_transform(ctx0, i),
-                  true);
+        EXPECT_EQ(transforms_host.at(i, ctx0) == transforms_device[i], true);
     }
 
     // check if the same masks are copied
@@ -111,8 +106,7 @@ TEST(detector_cuda, enumerate) {
 
     // create toy geometry
     detector_host_t detector =
-        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(mng_mr);
+        create_toy_geometry<host_container_types>(mng_mr);
 
     // Get the vector of volumes
     auto& volumes = detector.volumes();

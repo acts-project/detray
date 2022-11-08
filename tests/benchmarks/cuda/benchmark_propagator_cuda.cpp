@@ -44,13 +44,11 @@ void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create the toy geometry
-    detector_host_type det =
-        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(
-            host_mr,
-            field_type(field_type::backend_t::configuration_t{
-                0.f, 0.f, 2.f * unit_constants::T}),
-            n_brl_layers, n_edc_layers);
+    detector_host_type det = create_toy_geometry<host_container_types>(
+        host_mr,
+        field_type(field_type::backend_t::configuration_t{
+            0.f, 0.f, 2.f * unit_constants::T}),
+        n_brl_layers, n_edc_layers);
 
     // Create RK stepper
     rk_stepper_type s;
@@ -94,10 +92,8 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
-    detector_host_type det =
-        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(bp_mng_mr, n_brl_layers,
-                                                   n_edc_layers);
+    detector_host_type det = create_toy_geometry<host_container_types>(
+        bp_mng_mr, n_brl_layers, n_edc_layers);
 
     // Get detector data
     auto det_data = get_data(det);
