@@ -30,12 +30,17 @@ struct event_writer : actor {
                            get_event_filename(event_id, "-hits.csv")),
               m_meas_writer(directory +
                             get_event_filename(event_id, "-measurements.csv")),
+              m_meas_hit_id_writer(
+                  directory +
+                  get_event_filename(event_id, "-measurement-simhit-map.csv")),
               m_meas_smearer(smearer) {}
 
         std::size_t particle_id = -1;
         particle_writer m_particle_writer;
         hit_writer m_hit_writer;
         measurement_writer m_meas_writer;
+        meas_hit_id_writer m_meas_hit_id_writer;
+        std::size_t m_hit_count = 0;
         smearer_t m_meas_smearer;
 
         void write_particle(const free_track_parameters<transform3_t>& track) {
@@ -128,6 +133,13 @@ struct event_writer : actor {
             meas.time = bound_params.time();
 
             writer_state.m_meas_writer.append(meas);
+
+            // Write hit measurement map
+            csv_meas_hit_id meas_hit_id;
+            meas_hit_id.hit_id = writer_state.m_hit_count;
+            meas_hit_id.measurement_id = writer_state.m_hit_count;
+            writer_state.m_meas_hit_id_writer.append(meas_hit_id);
+            writer_state.m_hit_count++;
         }
     }
 };
