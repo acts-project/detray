@@ -39,8 +39,10 @@ struct simulator {
         propagator<stepper_type, navigator_type, actor_chain_type>;
 
     simulator(std::size_t events, const detector_t& det,
-              track_generator_t& track_gen, smearer_t& smearer)
+              track_generator_t& track_gen, smearer_t& smearer,
+              const std::string directory = "")
         : m_events(events),
+          m_directory(directory),
           m_detector(std::make_unique<detector_t>(det)),
           m_smearer(smearer) {
         m_track_generator = track_gen;
@@ -49,7 +51,7 @@ struct simulator {
     void run() {
         for (std::size_t event_id = 0; event_id < m_events; event_id++) {
             typename event_writer<transform3, smearer_t>::state writer(
-                event_id, m_smearer);
+                event_id, m_smearer, m_directory);
 
             for (auto track : m_track_generator) {
 
@@ -75,6 +77,7 @@ struct simulator {
 
     private:
     std::size_t m_events = 0;
+    std::string m_directory = "";
     std::unique_ptr<detector_t> m_detector;
     track_generator_t m_track_generator;
     smearer_t m_smearer;
