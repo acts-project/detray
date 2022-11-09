@@ -188,6 +188,7 @@ endif()
 add_subdirectory( core )
 add_subdirectory( plugins )
 add_subdirectory( io )
+add_subdirectory( utils )
 
 # Set up the test(s).
 include( CTest )

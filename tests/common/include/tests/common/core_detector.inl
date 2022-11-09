@@ -8,8 +8,8 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/core/detector_kernel.hpp"
+#include "detray/detectors/detector_metadata.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "tests/common/tools/detector_metadata.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

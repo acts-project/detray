@@ -21,6 +21,7 @@
 #include <covfie/core/field_view.hpp>
 
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
@@ -31,7 +32,6 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/create_toy_geometry.hpp"
 
 using namespace detray;
 

@@ -15,8 +15,8 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "tests/common/tools/event_writer.hpp"
-#include "tests/common/tools/random_scatterer.hpp"
+#include "detray/simulation/event_writer.hpp"
+#include "detray/simulation/random_scatterer.hpp"
 
 namespace detray {
 

@@ -12,7 +12,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "tests/common/tools/detector_metadata.hpp"
+#include "detray/detectors/detector_metadata.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

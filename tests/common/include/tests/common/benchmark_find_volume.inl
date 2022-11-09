@@ -12,8 +12,8 @@
 #include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
-#include "tests/common/tools/create_toy_geometry.hpp"
-#include "tests/common/tools/detector_metadata.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/detector_metadata.hpp"
 
 using namespace detray;
 

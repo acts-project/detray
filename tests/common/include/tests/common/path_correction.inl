@@ -7,6 +7,7 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/detector_metadata.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
@@ -16,7 +17,6 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/detector_metadata.hpp"
 
 // Covfie include(s).
 #include <covfie/core/field.hpp>

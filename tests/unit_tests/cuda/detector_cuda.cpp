@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detector_cuda_kernel.hpp"
-#include "tests/common/tools/create_toy_geometry.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
 // Vecmem include(s)

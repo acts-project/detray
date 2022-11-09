@@ -10,6 +10,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/navigation_policies.hpp"
@@ -17,7 +18,6 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
 // This tests the construction and general methods of the navigator

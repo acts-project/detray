@@ -6,11 +6,11 @@
  */
 
 // Project include(s).
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/io/utils.hpp"
+#include "detray/simulation/simulator.hpp"
+#include "detray/simulation/track_generators.hpp"
 #include "detray/utils/statistics.hpp"
-#include "tests/common/tools/create_toy_geometry.hpp"
-#include "tests/common/tools/simulator.hpp"
-#include "tests/common/tools/track_generators.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

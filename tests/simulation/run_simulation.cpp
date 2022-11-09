@@ -9,9 +9,9 @@
 #include "detray/plugins/algebra/array_definitions.hpp"
 
 // Project include(s).
-#include "tests/common/tools/create_toy_geometry.hpp"
-#include "tests/common/tools/simulator.hpp"
-#include "tests/common/tools/track_generators.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/simulation/simulator.hpp"
+#include "detray/simulation/track_generators.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
