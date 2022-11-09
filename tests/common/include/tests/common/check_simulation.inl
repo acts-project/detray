@@ -8,6 +8,7 @@
 // Project include(s).
 #include "detray/io/utils.hpp"
 #include "detray/utils/statistics.hpp"
+#include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/simulator.hpp"
 #include "tests/common/tools/track_generators.hpp"
@@ -175,3 +176,144 @@ TEST(check_simulation, toy_geometry) {
                     0, 0.1);
     }
 }
+
+// Test parameters: <initial momentum, theta direction>
+class TelescopeDetectorSimulation
+    : public ::testing::TestWithParam<std::tuple<scalar, scalar>> {};
+
+TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
+
+    // Create geometry
+    vecmem::host_memory_resource host_mr;
+
+    // Build from given module positions
+    detail::ray<transform3> traj{{0, 0, 0}, 0, {0, 0, 1}, -1};
+    std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
+                                     300., 350, 400,  450., 500.};
+
+    const auto mat = silicon_tml<scalar>();
+    const scalar thickness = 0.17 * unit_constants::cm;
+
+    // Detector type
+    using detector_type =
+        detray::detector<detray::detector_registry::telescope_detector,
+                         covfie::field>;
+
+    // Create B field
+    const vector3 B{0, 0, 2 * unit_constants::T};
+    using b_field_t = typename detector_type::bfield_type;
+
+    const auto detector = create_telescope_detector(
+        host_mr,
+        b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
+        positions, traj, 100000. * unit_constants::mm,
+        100000. * unit_constants::mm, mat, thickness);
+
+    // Momentum
+    const scalar mom = std::get<0>(GetParam());
+
+    // Create track generator
+    constexpr unsigned int theta_steps{1};
+    constexpr unsigned int phi_steps{1};
+    const vector3 ori{0, 0, 0};
+    const scalar theta = std::get<1>(GetParam());
+    auto generator = uniform_track_generator<free_track_parameters<transform3>>(
+        theta_steps, phi_steps, ori, mom, {theta, theta}, {0., 0.});
+
+    // Create smearer
+    measurement_smearer<scalar> smearer(50 * unit_constants::um,
+                                        50 * unit_constants::um);
+
+    std::size_t n_events = 1000;
+
+    auto sim = simulator(n_events, detector, generator, smearer);
+
+    // Run simulation
+    sim.run();
+
+    for (std::size_t i_event = 0; i_event < n_events; i_event++) {
+
+        std::vector<csv_measurement> measurements;
+
+        const auto io_measurements_file =
+            get_event_filename(i_event, "-measurements.csv");
+        measurement_reader mreader(
+            io_measurements_file,
+            {"geometry_id", "local_key", "local0", "local1", "phi", "theta",
+             "time", "var_local0", "var_local1", "var_phi", "var_theta",
+             "var_time"});
+
+        csv_measurement io_measurement;
+        while (mreader.read(io_measurement)) {
+            measurements.push_back(io_measurement);
+        }
+
+        // Make sure that number of measurements is equal to the number of
+        // physical planes
+        ASSERT_EQ(measurements.size(), positions.size() - 2);
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation1, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(0.1 * unit_constants::GeV, 0.01)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation2, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(1. * unit_constants::GeV, 0.01)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation3, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(10. * unit_constants::GeV, 0.01)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation4, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(100. * unit_constants::GeV, 0.01)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation5, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(0.1 * unit_constants::GeV, 0.01)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation6, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(1. * unit_constants::GeV, 0.01)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation7, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(10. * unit_constants::GeV, 0.01)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation8, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(100. * unit_constants::GeV, 0.01)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation9, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(0.1 * unit_constants::GeV, M_PI / 8.)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation10, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(1. * unit_constants::GeV, M_PI / 8.)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation11, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(10. * unit_constants::GeV, M_PI / 8.)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation12, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(100. * unit_constants::GeV, M_PI / 8.)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation13, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(0.1 * unit_constants::GeV, M_PI / 6.)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation14, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(1. * unit_constants::GeV, M_PI / 6.)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation15, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(10. * unit_constants::GeV, M_PI / 6.)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Simulation16, TelescopeDetectorSimulation,
+    ::testing::Values(std::make_tuple(100. * unit_constants::GeV, M_PI / 6.)));
