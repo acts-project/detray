@@ -253,6 +253,8 @@ struct coordinate_base {
                                                    e_free_pos0, e_free_pos0);
 
         // @note: Helical correction which doesn't exist in ACTS main
+        // @note2: The correction makes the result worse in kalman filtering :(
+        /*
         if constexpr (stepper_state_t::id == stepping::id::e_rk) {
             using helix = detail::helix<transform3_t>;
 
@@ -347,6 +349,7 @@ struct coordinate_base {
             matrix_operator().template set_block<3, 1>(
                 path_correction, dtdL0, e_free_dir0, e_free_qoverp);
         }
+        */
 
         return path_correction;
     }
