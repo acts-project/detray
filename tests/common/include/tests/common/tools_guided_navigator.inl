@@ -66,11 +66,10 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
 
     // Propagator
     propagator_t p(runge_kutta_stepper{}, guided_navigator{});
-    propagator_t::state guided_state(track, b_field, telescope_det,
-                                     std::tie(pathlimit));
+    propagator_t::state guided_state(track, b_field, telescope_det);
 
     // Propagate
-    p.propagate(guided_state);
+    p.propagate(guided_state, std::tie(pathlimit));
 
     auto &nav_state = guided_state._navigation;
     auto &debug_printer = nav_state.inspector().template get<print_inspector>();

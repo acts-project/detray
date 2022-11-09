@@ -52,12 +52,13 @@ __global__ void propagator_test_kernel(
     pointwise_material_interactor<transform3>::state interactor_state{};
     parameter_resetter<transform3>::state resetter_state{};
 
-    // Create the propagator state
-    propagator_device_type::state state(
-        tracks[gid], B_field, det,
+    // Create the actor states
+    auto actor_states =
         thrust::tie(insp_state, aborter_state, transporter_state,
-                    interactor_state, resetter_state),
-        candidates.at(gid));
+                    interactor_state, resetter_state);
+    // Create the propagator state
+    propagator_device_type::state state(tracks[gid], B_field, det,
+                                        candidates.at(gid));
 
     state._stepping.set_tolerance(rk_tolerance);
 
@@ -65,7 +66,7 @@ __global__ void propagator_test_kernel(
         constrainted_step_size);
 
     // Run propagation
-    p.propagate(state);
+    p.propagate(state, actor_states);
 }
 
 void propagator_test(

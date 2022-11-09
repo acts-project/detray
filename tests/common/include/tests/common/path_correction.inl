@@ -196,11 +196,8 @@ TEST(path_correction, cartesian) {
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
-    actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
-
     propagator_t p({}, {});
-    propagator_t::state propagation(bound_param0, env::mag_field, det,
-                                    actor_states);
+    propagator_t::state propagation(bound_param0, env::mag_field, det);
 
     crk_stepper_t::state &crk_state = propagation._stepping;
 
@@ -208,7 +205,7 @@ TEST(path_correction, cartesian) {
     crk_state._tolerance = env::rk_tolerance;
 
     // Run propagator
-    p.propagate(propagation);
+    p.propagate(propagation, std::tie(targeter, bound_updater, rst));
 
     EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
 
@@ -341,11 +338,8 @@ TEST(path_correction, polar) {
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
-    actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
-
     propagator_t p({}, {});
-    propagator_t::state propagation(bound_param0, env::mag_field, det,
-                                    actor_states);
+    propagator_t::state propagation(bound_param0, env::mag_field, det);
 
     crk_stepper_t::state &crk_state = propagation._stepping;
 
@@ -358,7 +352,7 @@ TEST(path_correction, polar) {
     crk_state._tolerance = env::rk_tolerance;
 
     // Run propagator
-    p.propagate(propagation);
+    p.propagate(propagation, std::tie(targeter, bound_updater, rst));
 
     EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
 
@@ -473,11 +467,8 @@ TEST(path_correction, cylindrical) {
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
-    actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
-
     propagator_t p({}, {});
-    propagator_t::state propagation(bound_param0, env::mag_field, det,
-                                    actor_states);
+    propagator_t::state propagation(bound_param0, env::mag_field, det);
 
     crk_stepper_t::state &crk_state = propagation._stepping;
 
@@ -490,7 +481,7 @@ TEST(path_correction, cylindrical) {
     crk_state._tolerance = env::rk_tolerance;
 
     // Run propagator
-    p.propagate(propagation);
+    p.propagate(propagation, std::tie(targeter, bound_updater, rst));
 
     EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
 
