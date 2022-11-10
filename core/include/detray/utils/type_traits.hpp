@@ -51,9 +51,11 @@ struct get_value_type<T*, void> {
 template <typename container_t>
 struct get_value_type<
     container_t,
-    std::enable_if_t<not std::is_same_v<typename container_t::value_type, void>,
-                     void>> {
-    using type = typename container_t::value_type;
+    std::enable_if_t<
+        not std::is_same_v<typename remove_cvref_t<container_t>::value_type,
+                           void>,
+        void>> {
+    using type = typename remove_cvref_t<container_t>::value_type;
 };
 
 template <typename T>
