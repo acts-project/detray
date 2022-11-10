@@ -15,15 +15,13 @@
 #include <cstddef>
 #include <type_traits>
 
-namespace detray {
+namespace detray::n_axis {
 
-namespace n_axis {
-
-/// axis shape names.
-enum class shape {
+/// axis bounds names.
+enum class bounds {
     e_open = 0,
     e_closed = 1,
-    e_circular = 1,
+    e_circular = 2,
 };
 
 /// axis coordinate names. Used to get a specific axes from an axes collection.
@@ -47,26 +45,26 @@ struct bin_range {
     int upper{0};
 
     /// Default constructor.
-    bin_range() = default;
+    constexpr bin_range() = default;
 
     /// Construction from two bin indices @param l (lower) @param u (upper).
     DETRAY_HOST_DEVICE
-    bin_range(const int l, const int u) : lower{l}, upper{u} {}
+    constexpr bin_range(const int l, const int u) : lower{l}, upper{u} {}
 
     /// Implicit conversion from an @tparam array_t container of bin indices.
     template <template <typename, std::size_t> class array_t>
-    DETRAY_HOST_DEVICE bin_range(const array_t<int, 2>& bin_array)
+    DETRAY_HOST_DEVICE constexpr bin_range(const array_t<int, 2>& bin_array)
         : lower{bin_array[0]}, upper{bin_array[1]} {}
 
     /// Equality operator @returns true if both bin indices match.
     DETRAY_HOST_DEVICE
-    inline bool operator==(const bin_range& rhs) const {
+    constexpr bool operator==(const bin_range& rhs) const noexcept {
         return (lower == rhs.lower && upper == rhs.upper);
     }
 
     /// @returns the distance between the two bin indices.
     DETRAY_HOST_DEVICE
-    int nbins() const { return upper - lower; }
+    constexpr int nbins() const { return upper - lower; }
 };
 
 /// @brief Describes the behaviour of an open axis.
@@ -80,22 +78,26 @@ template <n_axis::label axis_label>
 struct open {
 
     static constexpr n_axis::label label = axis_label;
-    static constexpr n_axis::shape type = shape::e_open;
+    static constexpr n_axis::bounds type = bounds::e_open;
 
     /// Access function to a single bin from a value v.
     ///
-    /// @param ibin bin index to be mapped to axis shape
+    /// @param ibin bin index to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @returns an open axis bin index
-    DETRAY_HOST_DEVICE inline dindex map(const int ibin,
-                                         const std::size_t nbins) const {
+    DETRAY_HOST_DEVICE
+    constexpr auto map(const int ibin, const std::size_t nbins) const noexcept
+        -> dindex {
         if (ibin <= 0) {
+            // underflow bin
             return 0;
-        } else if (ibin > static_cast<int>(nbins)) {
+        } else if (ibin >= static_cast<int>(nbins)) {
+            // overflow bin
             return static_cast<dindex>(nbins + 1);
         } else {
-            return static_cast<dindex>(ibin);
+            // Shift the regular bins into the range [1, #bins]
+            return static_cast<dindex>(ibin + 1);
         }
     }
 
@@ -107,12 +109,12 @@ struct open {
     ///
     /// @returns open bin range
     DETRAY_HOST_DEVICE
-    inline dindex_range map(const int lbin, const int ubin,
-                            const std::size_t nbins) const {
+    constexpr auto map(const int lbin, const int ubin,
+                       const std::size_t nbins) const noexcept -> dindex_range {
 
-        dindex min_bin = (lbin > 0) ? static_cast<dindex>(lbin) : 0;
-        dindex max_bin = (ubin <= static_cast<int>(nbins))
-                             ? static_cast<dindex>(ubin)
+        dindex min_bin = (lbin >= 0) ? static_cast<dindex>(lbin + 1) : 0;
+        dindex max_bin = (ubin < static_cast<int>(nbins))
+                             ? static_cast<dindex>(ubin + 1)
                              : static_cast<dindex>(nbins + 1);
 
         return {min_bin, max_bin};
@@ -120,13 +122,13 @@ struct open {
 
     /// Access function to a range of bins - convenience function
     ///
-    /// @param range signed range to be mapped to axis shape
+    /// @param range signed range to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @returns open bin range
     DETRAY_HOST_DEVICE
-    inline dindex_range map(const bin_range range,
-                            const std::size_t nbins) const {
+    constexpr auto map(const bin_range range,
+                       const std::size_t nbins) const noexcept -> dindex_range {
         return map(range.lower, range.upper, nbins);
     }
 };
@@ -142,22 +144,25 @@ template <n_axis::label axis_label>
 struct closed {
 
     static constexpr n_axis::label label = axis_label;
-    static constexpr shape type = shape::e_closed;
+    static constexpr bounds type = bounds::e_closed;
 
     /// Access function to a single bin from a value v
     ///
-    /// @param ibin bin index to be mapped to axis shape
+    /// @param ibin bin index to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @returns a closed axis bin index
-    DETRAY_HOST_DEVICE inline dindex map(const int ibin,
-                                         const std::size_t nbins) const {
+    DETRAY_HOST_DEVICE
+    constexpr auto map(const int ibin, const std::size_t nbins) const noexcept
+        -> dindex {
         if (ibin <= 0) {
+            // underflow gets mapped onto axis bin 0
             return 0;
-        } else if (ibin > static_cast<int>(nbins) - 1) {
+        } else if (ibin >= static_cast<int>(nbins)) {
+            // overflow gets mapped onto axis bin #bins - 1
             return static_cast<dindex>(static_cast<int>(nbins) - 1);
         } else {
-            return static_cast<dindex>(ibin - 1);
+            return static_cast<dindex>(ibin);
         }
     }
 
@@ -172,17 +177,17 @@ struct closed {
     inline dindex_range map(const int lbin, const int ubin,
                             const std::size_t nbins) const {
 
-        dindex min_bin = (lbin > 0) ? static_cast<dindex>(lbin - 1) : 0;
-        dindex max_bin = (ubin > static_cast<int>(nbins) - 1)
+        dindex min_bin = (lbin > 0) ? static_cast<dindex>(lbin) : 0;
+        dindex max_bin = (ubin >= static_cast<int>(nbins))
                              ? static_cast<dindex>(static_cast<int>(nbins) - 1)
-                             : static_cast<dindex>(ubin - 1);
+                             : static_cast<dindex>(ubin);
 
         return {min_bin, max_bin};
     }
 
     /// Access function to a range of bins - convenience function
     ///
-    /// @param range signed range to be mapped to axis shape
+    /// @param range signed range to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @returns closed bin range
@@ -195,24 +200,25 @@ struct closed {
 
 /// @brief Describes the behaviour of a circular axis.
 ///
-/// The axis will be periodic, i.e. underflow and underflow bins map into 0:
-/// 0 = #bins, so that [0, #bins - 1].
-// TODO: rename to circular, once there is no name clash
+/// The axis will be periodic, i.e. underflow bins map into #bins - 1 and
+/// overflow bins map into 0: so that [0, #bins - 1], with -1 = #bins - 1 and
+/// #bins = 0.
 template <n_axis::label axis_label = n_axis::label::e_phi>
 struct circular {
 
     static constexpr n_axis::label label = axis_label;
-    static constexpr shape type = shape::e_circular;
+    static constexpr bounds type = bounds::e_circular;
 
     /// Access function to a single bin from a value v
     ///
-    /// @param ibin bin index to be mapped to axis shape
+    /// @param ibin bin index to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @returns a circular axis bin index
-    DETRAY_HOST_DEVICE inline dindex map(const int ibin,
-                                         const std::size_t nbins) const {
-        if (ibin > 0 and ibin < static_cast<int>(nbins)) {
+    DETRAY_HOST_DEVICE
+    auto constexpr map(const int ibin, const std::size_t nbins) const noexcept
+        -> dindex {
+        if (ibin >= 0 and ibin < static_cast<int>(nbins)) {
             return static_cast<dindex>(ibin);
         } else {
             return static_cast<dindex>(wrap(ibin, nbins));
@@ -228,8 +234,8 @@ struct circular {
     /// The axis is circular: it @returns an ordered dindex_range: If the
     /// second range index is larger than the first, there has been a wraparound
     DETRAY_HOST_DEVICE
-    inline dindex_range map(const int lbin, const int ubin,
-                            const std::size_t nbins) const {
+    auto constexpr map(const int lbin, const int ubin,
+                       const std::size_t nbins) const noexcept -> dindex_range {
         dindex min_bin = static_cast<dindex>(wrap(lbin, nbins));
         dindex max_bin = static_cast<dindex>(wrap(ubin, nbins));
         return {min_bin, max_bin};
@@ -237,36 +243,34 @@ struct circular {
 
     /// Access function to a range of bins - convenience function
     ///
-    /// @param range signed range to be mapped to axis shape
+    /// @param range signed range to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// The axis is circular: it @returns an ordered dindex_range: If the
     /// second range index is larger than the first, there has been a wraparound
     DETRAY_HOST_DEVICE
-    inline dindex_range map(const bin_range range,
-                            const std::size_t nbins) const {
+    auto constexpr map(const bin_range range,
+                       const std::size_t nbins) const noexcept -> dindex_range {
         return map(range.lower, range.upper, nbins);
     }
 
     /// Wraps the bin index around for the periodic boundary condition
     ///
-    /// @param ibin bin index to be mapped to axis shape
+    /// @param ibin bin index to be mapped to axis bounds
     /// @param nbins is the total number of bins
     ///
     /// @return an index of a remapped bin
-    DETRAY_HOST_DEVICE inline int wrap(const int ibin,
-                                       const std::size_t nbins) const {
+    DETRAY_HOST_DEVICE
+    auto constexpr wrap(const int ibin, const std::size_t nbins) const -> int {
         const int bins = static_cast<int>(nbins);
-        return (bins + ((ibin - 1) % bins)) % bins;
+        return (bins + (ibin % bins)) % bins;
     }
 };
 
-/// Determine axis shape as either 'open' or 'closed' for non-circular axes
-template <n_axis::shape s, n_axis::label axis_label>
-using shape_t =
-    std::conditional_t<s == n_axis::shape::e_open, n_axis::open<axis_label>,
+/// Determine axis bounds as either 'open' or 'closed' for non-circular axes
+template <n_axis::bounds s, n_axis::label axis_label>
+using bounds_t =
+    std::conditional_t<s == n_axis::bounds::e_open, n_axis::open<axis_label>,
                        n_axis::closed<axis_label>>;
 
-}  // namespace n_axis
-
-}  // namespace detray
+}  // namespace detray::n_axis

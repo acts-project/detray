@@ -16,6 +16,7 @@
 namespace detray {
 
 /// Enforce the populator interface and implement some common functionality
+/// @todo remove this interface
 template <typename populator_impl_t>
 class populator {
 

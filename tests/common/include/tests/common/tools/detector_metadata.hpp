@@ -144,7 +144,7 @@ struct full_metadata {
     template <typename container_t = host_container_types>
     using volume_finder =
         grid<coordinate_axes<
-                 cylinder3D::axes<n_axis::shape::e_open, n_axis::irregular,
+                 cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
                                   n_axis::regular, n_axis::irregular>,
                  true, container_t>,
              dindex, simple_serializer, replacer>;
@@ -226,7 +226,7 @@ struct toy_metadata {
     template <typename container_t = host_container_types>
     using volume_finder =
         grid<coordinate_axes<
-                 cylinder3D::axes<n_axis::shape::e_open, n_axis::irregular,
+                 cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
                                   n_axis::regular, n_axis::irregular>,
                  true, container_t>,
              dindex, simple_serializer, replacer>;
@@ -300,7 +300,7 @@ struct telescope_metadata {
     template <typename container_t = host_container_types>
     using volume_finder =
         grid<coordinate_axes<
-                 cylinder3D::axes<n_axis::shape::e_open, n_axis::irregular,
+                 cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
                                   n_axis::regular, n_axis::irregular>,
                  true, container_t>,
              dindex, simple_serializer, replacer>;

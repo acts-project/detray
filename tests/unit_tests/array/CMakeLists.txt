@@ -27,6 +27,7 @@ detray_add_test( array
    "array_geometry_scan.cpp"
    "array_grid.cpp"
    "array_grid_axis.cpp"
+   "array_grid_builder.cpp"
    "array_grid_collection.cpp"
    "array_grid_populator.cpp"
    "array_grid_serializer.cpp"

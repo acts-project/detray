@@ -12,9 +12,9 @@
 #include "detray/masks/cuboid3D.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
-#include "detray/surface_finders/grid/grid_builder.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/tools/grid_builder.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
@@ -37,9 +37,7 @@ constexpr scalar inf{std::numeric_limits<scalar>::max()};
 
 // Either a data owning or non-owning 3D cartesian multi-axis
 template <bool ownership = true, typename containers = host_container_types>
-using cartesian_3D =
-    coordinate_axes<cuboid3D::axes<shape::e_closed, regular, regular, regular>,
-                    ownership, containers>;
+using cartesian_3D = coordinate_axes<cuboid3D::axes<>, ownership, containers>;
 
 // non-owning multi-axis: Takes external containers
 bool constexpr is_owning = true;
@@ -96,7 +94,8 @@ TEST(grid, single_grid) {
     bin_data.resize(40'000);
     std::generate_n(
         bin_data.begin(), 40'000u,
-        bin_content_sequence<grid_owning_t::populator_type, scalar>());
+        bin_content_sequence<populator<grid_owning_t::populator_impl>,
+                             scalar>());
 
     // Copy data that will be moved into the data owning types
     dvector<scalar> bin_edges_cp(bin_edges);
@@ -166,7 +165,7 @@ TEST(grid, search) {
                         cartesian_3D, is_n_owning>;
     // init
     grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000, grid_t::populator_type::init<scalar>());
+    bin_data.resize(40'000, populator<grid_t::populator_impl>::init<scalar>());
 
     grid_t grid_3D(&bin_data, ax_n_own);
 
@@ -188,7 +187,7 @@ TEST(grid, replace_population) {
         grid<cartesian_3D<is_n_owning>, scalar, simple_serializer, replacer>;
     // init
     grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000, grid_t::populator_type::init<scalar>());
+    bin_data.resize(40'000, populator<grid_t::populator_impl>::init<scalar>());
 
     // Create non-owning grid
     grid_t g3r(&bin_data, ax_n_own);
@@ -279,13 +278,14 @@ TEST(grid, complete_population) {
 
     // init
     grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000, grid_t::populator_type::init<scalar>());
+    bin_data.resize(40'000, populator<grid_t::populator_impl>::init<scalar>());
     // Create non-owning grid
     grid_t g3c(&bin_data, ax_n_own);
 
     // Test the initialization
     point3 p = {-10., -20., 0.};
-    grid_t::bin_type invalid = grid_t::populator_type::init<scalar>();
+    grid_t::bin_type invalid =
+        populator<grid_t::populator_impl>::init<scalar>();
     for (int ib0 = 0; ib0 < 20; ++ib0) {
         for (int ib1 = 0; ib1 < 40; ++ib1) {
             for (int ib2 = 0; ib2 < 100; ib2 += 2) {
@@ -354,14 +354,15 @@ TEST(grid, regular_attach_population) {
 
     // init
     grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000, grid_t::populator_type::init<scalar>());
+    bin_data.resize(40'000, populator<grid_t::populator_impl>::init<scalar>());
 
     // Create non-owning grid
     grid_t g3ra(&bin_data, ax_n_own);
 
     // Test the initialization
     point3 p = {-10., -20., 0.};
-    grid_t::bin_type invalid = grid_t::populator_type::init<scalar>();
+    grid_t::bin_type invalid =
+        populator<grid_t::populator_impl>::init<scalar>();
     for (int ib0 = 0; ib0 < 20; ++ib0) {
         for (int ib1 = 0; ib1 < 40; ++ib1) {
             for (int ib2 = 0; ib2 < 100; ib2 += 2) {
@@ -410,7 +411,7 @@ TEST(grid, regular_attach_population) {
         grid<scalar, simple_serializer, replacer<>, cartesian_3D, is_n_owning>;
     // init
     grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000, grid_t::populator_type::init<scalar>());
+    bin_data.resize(40'000, populator<grid_t::populator_impl>::init<scalar>());
 
     // Create non-owning grid
     grid_t g3r(&bin_data, ax_n_own);

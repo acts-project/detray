@@ -66,22 +66,24 @@ TEST(grids_cuda, grid3_replace_populator) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Build multi-axis
-    cartesian_3D<host_container_types> axes(mng_mr);
+    using axes_t = cartesian_3D<host_container_types>;
 
-    auto* axis_data = axes.data().axes_data();
-    auto* bin_edges = axes.data().edges();
+    typename axes_t::boundary_storage_type axis_data(&mng_mr);
+    typename axes_t::edges_storage_type bin_edges(&mng_mr);
 
-    axis_data->reserve(3);
-    axis_data->insert(
-        axis_data->begin(),
-        {dindex_range{0, 3}, dindex_range{2, 6}, dindex_range{4, 10}});
-    bin_edges->reserve(6);
-    bin_edges->insert(bin_edges->begin(), {-1., 4., 0., 6., -5., 5.});
+    axis_data.reserve(3);
+    axis_data.insert(axis_data.begin(), {dindex_range{0, 3}, dindex_range{2, 6},
+                                         dindex_range{4, 10}});
+    bin_edges.reserve(6);
+    bin_edges.insert(bin_edges.begin(), {-1., 4., 0., 6., -5., 5.});
+
+    axes_t axes(std::move(axis_data), std::move(bin_edges));
 
     // build host grid
     host_grid3_replace::bin_storage_type bin_data(&mng_mr);
-    bin_data.resize(3 * 6 * 10,
-                    host_grid3_replace::populator_type::init<point3>());
+    bin_data.resize(
+        3 * 6 * 10,
+        populator<host_grid3_replace::populator_impl>::init<point3>());
 
     host_grid3_replace g3(std::move(bin_data), std::move(axes));
 
@@ -94,8 +96,8 @@ TEST(grids_cuda, grid3_replace_populator) {
         for (std::size_t i_y = 0; i_y < axis_y.nbins(); i_y++) {
             for (std::size_t i_z = 0; i_z < axis_z.nbins(); i_z++) {
                 const auto& bin = g3.at({i_x, i_y, i_z});
-                auto invalid_bin =
-                    host_grid3_replace::populator_type::init<point3>();
+                auto invalid_bin = populator<
+                    host_grid3_replace::populator_impl>::init<point3>();
                 test_content(bin[0], invalid_bin.content());
             }
         }
@@ -127,21 +129,23 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Build multi-axis
-    polar_ir<host_container_types> axes(mng_mr);
+    using axes_t = polar_ir<host_container_types>;
 
-    auto* axis_data = axes.data().axes_data();
-    auto* bin_edges = axes.data().edges();
+    typename axes_t::boundary_storage_type axis_data(&mng_mr);
+    typename axes_t::edges_storage_type bin_edges(&mng_mr);
 
-    axis_data->reserve(2);
-    axis_data->insert(axis_data->end(),
-                      {dindex_range{0, 4}, dindex_range{5, 2}});
-    bin_edges->reserve(7);
-    bin_edges->insert(bin_edges->end(), {1., 3., 9., 27., 81., -2., 4.});
+    axis_data.reserve(2);
+    axis_data.insert(axis_data.end(), {dindex_range{0, 4}, dindex_range{5, 2}});
+    bin_edges.reserve(7);
+    bin_edges.insert(bin_edges.end(), {1., 3., 9., 27., 81., -2., 4.});
+
+    axes_t axes(std::move(axis_data), std::move(bin_edges));
 
     // build host grid
     host_grid2_replace_ci::bin_storage_type bin_data(&mng_mr);
-    bin_data.resize(2 * 4,
-                    host_grid2_replace_ci::populator_type::init<point3>());
+    bin_data.resize(
+        2 * 4,
+        populator<host_grid2_replace_ci::populator_impl>::init<point3>());
 
     host_grid2_replace_ci g2(std::move(bin_data), std::move(axes));
 
@@ -152,8 +156,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     for (std::size_t i_r = 0; i_r < axis_r.nbins(); i_r++) {
         for (std::size_t i_phi = 0; i_phi < axis_phi.nbins(); i_phi++) {
             const auto& bin = g2.at({i_r, i_phi});
-            auto invalid_bin =
-                host_grid2_replace_ci::populator_type::init<point3>();
+            auto invalid_bin = populator<
+                host_grid2_replace_ci::populator_impl>::init<point3>();
 
             test_content(bin[0], invalid_bin.content());
         }
@@ -183,23 +187,26 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Build multi-axis
-    polar<host_container_types> axes(mng_mr);
+    using axes_t = polar<host_container_types>;
 
-    auto axis_data = axes.data().axes_data();
-    auto bin_edges = axes.data().edges();
+    typename axes_t::boundary_storage_type axis_data(&mng_mr);
+    typename axes_t::edges_storage_type bin_edges(&mng_mr);
 
-    axis_data->reserve(2);
-    axis_data->insert(axis_data->begin(),
+    axis_data.reserve(2);
+    axis_data.insert(axis_data.begin(),
                       {dindex_range{0, 3}, dindex_range{2, 7}});
-    bin_edges->reserve(4);
-    bin_edges->insert(bin_edges->begin(), {0., 3., -1, 6.});
+    bin_edges.reserve(4);
+    bin_edges.insert(bin_edges.begin(), {0., 3., -1, 6.});
+
+    axes_t axes(std::move(axis_data), std::move(bin_edges));
 
     // build host grid
     const point3 first_tp{3., 3., 3.};
 
     host_grid2_complete::bin_storage_type bin_data(&mng_mr);
     bin_data.resize(
-        3 * 7, host_grid2_complete::populator_type::init<point3>(first_tp));
+        3 * 7,
+populator<host_grid2_complete::populator_impl>::init<point3>(first_tp));
 
     host_grid2_complete g2(std::move(bin_data), std::move(axes));
 
@@ -214,7 +221,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
         for (std::size_t i_phi = 0; i_phi < axis_phi.nbins(); i_phi++) {
             auto bin = g2.at({i_r, i_phi});
             auto invalid_bin =
-                host_grid2_complete::populator_type::init<point3>(first_tp);
+                populator<host_grid2_complete::populator_impl>::init<point3>(first_tp);
 
             test_entry_collection(bin, invalid_bin.view());
         }
@@ -254,16 +261,18 @@ TEST(grids_cuda, grid2_attach_populator) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Build multi-axis
-    polar<host_container_types> axes(mng_mr);
+    using axes_t = polar<host_container_types>;
 
-    auto axis_data = axes.data().axes_data();
-    auto bin_edges = axes.data().edges();
+    typename axes_t::boundary_storage_type axis_data(&mng_mr);
+    typename axes_t::edges_storage_type bin_edges(&mng_mr);
 
-    axis_data->reserve(2);
-    axis_data->insert(axis_data->begin(),
+    axis_data.reserve(2);
+    axis_data.insert(axis_data.begin(),
                       {dindex_range{0, 2}, dindex_range{2, 65}});
-    bin_edges->reserve(4);
-    bin_edges->insert(bin_edges->begin(), {0., 6., -M_PI, M_PI});
+    bin_edges.reserve(4);
+    bin_edges.insert(bin_edges.begin(), {0., 6., -M_PI, M_PI});
+
+    axes_t axes(std::move(axis_data), std::move(bin_edges));
 
     // build host grid
     const point3 first_tp{3., 3., 3.};
@@ -271,7 +280,7 @@ TEST(grids_cuda, grid2_attach_populator) {
 
     host_grid2_attach::bin_storage_type bin_data(&mng_mr);
     bin_data.resize(2 * 65,
-                    host_grid2_attach::populator_type::init<point3>(first_tp));
+                    populator<host_grid2_attach::populator_impl>::init<point3>(first_tp));
 
     host_grid2_attach g2(std::move(bin_data), std::move(axes));
 
@@ -286,7 +295,7 @@ TEST(grids_cuda, grid2_attach_populator) {
         for (std::size_t i_phi = 0; i_phi < axis_phi.nbins(); i_phi++) {
             auto bin = g2.at({i_r, i_phi});
             auto invalid_bin =
-                host_grid2_complete::populator_type::init<point3>(first_tp);
+                populator<host_grid2_complete::populator_impl>::init<point3>(first_tp);
 
             test_entry_collection(bin, invalid_bin.view());
         }
@@ -331,12 +340,13 @@ axis_phi.nbins());
 TEST(grids_cuda, cylindrical3D_collection) {
     // Data-owning grid collection
     vecmem::cuda::managed_memory_resource mng_mr;
-    auto grid_coll = grid_collection<n_own_host_grid2_attach>(&mng_mr);
 
-    auto& grid_offsets = grid_coll.offsets();
-    auto& bin_data = grid_coll.bin_storage();
-    auto& edge_ranges = grid_coll.axes_storage();
-    auto& bin_edges = grid_coll.bin_edges_storage();
+    using grid_collection_t = grid_collection<n_own_host_grid2_attach>;
+
+    vecmem::vector<typename grid_collection_t::size_type> grid_offsets(&mng_mr);
+    typename grid_collection_t::bin_storage_type bin_data(&mng_mr);
+    typename grid_collection_t::axes_storage_type edge_ranges(&mng_mr);
+    typename grid_collection_t::edges_storage_type bin_edges(&mng_mr);
 
     // Offsets for the grids into the bin storage
     grid_offsets.reserve(3);
@@ -360,11 +370,14 @@ TEST(grids_cuda, cylindrical3D_collection) {
     bin_data.resize(197UL);
     std::generate_n(
         bin_data.begin(), 197UL,
-        bin_content_sequence<n_own_host_grid2_attach::populator_type,
+        bin_content_sequence<populator<n_own_host_grid2_attach::populator_impl>,
                              dindex>());
 
     vecmem::vector<std::size_t> n_bins(9, &mng_mr);
     vecmem::vector<std::array<dindex, 3>> result_bins(bin_data.size(), &mng_mr);
+
+    grid_collection_t grid_coll(std::move(grid_offsets), std::move(bin_data),
+                                std::move(edge_ranges), std::move(bin_edges));
 
     // Call test function
     const auto& axis_r = grid_coll[2].template get_axis<n_axis::label::e_r>();
@@ -373,19 +386,19 @@ TEST(grids_cuda, cylindrical3D_collection) {
     const auto& axis_z = grid_coll[2].template get_axis<n_axis::label::e_z>();
 
     grid_collection_test(get_data(grid_coll), vecmem::get_data(n_bins),
-                         vecmem::get_data(result_bins), grid_coll.ngrids(),
+                         vecmem::get_data(result_bins), grid_coll.size(),
                          axis_r.nbins(), axis_phi.nbins(), axis_z.nbins());
 
     // Compare results
-    EXPECT_EQ(2UL, n_bins[0]);
+    EXPECT_EQ(4UL, n_bins[0]);
     EXPECT_EQ(4UL, n_bins[1]);
-    EXPECT_EQ(6UL, n_bins[2]);
-    EXPECT_EQ(1UL, n_bins[3]);
+    EXPECT_EQ(8UL, n_bins[2]);
+    EXPECT_EQ(3UL, n_bins[3]);
     EXPECT_EQ(3UL, n_bins[4]);
-    EXPECT_EQ(8UL, n_bins[5]);
-    EXPECT_EQ(5UL, n_bins[6]);
+    EXPECT_EQ(10UL, n_bins[5]);
+    EXPECT_EQ(7UL, n_bins[6]);
     EXPECT_EQ(5UL, n_bins[7]);
-    EXPECT_EQ(5UL, n_bins[8]);
+    EXPECT_EQ(7UL, n_bins[8]);
 
     for (std::size_t i{0}; i < bin_data.size(); ++i) {
         EXPECT_EQ(bin_data[i].content(), result_bins[i]);

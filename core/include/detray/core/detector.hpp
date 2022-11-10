@@ -14,7 +14,6 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/tools/bin_association.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
@@ -303,68 +302,6 @@ class detector {
         return data_core{_volumes, _transforms, _masks, _surfaces};
     }
 
-    /// Add a grid to the surface finder store of the detector
-    ///
-    /// New surface finder id can be been given explicitly. That is helpful, if
-    /// multiple sf finders have the same type in the tuple container. Otherwise
-    /// it is determined automatically.
-    ///
-    /// @param vol the volume the surface finder should be added to
-    /// @param grid the grid that should be added
-    // TODO: Provide grid builder structure separate from the detector
-    /*template <typename grid_t, typename sf_finders::id grid_id =
-                                   sf_finders::template get_id<grid_t>()>
-    DETRAY_HOST auto add_grid(volume_type &vol, grid_t &grid) -> void {
-
-        // Add surfaces grid to surfaces finder container
-        auto &grid_group = _sf_finders.template group<grid_id>();
-
-        // Find correct index for this surface finder
-        std::size_t grid_idx = 0;
-        for (unsigned int i_s = 0; i_s < grid_group.size(); i_s++) {
-            if (!grid_group.at(i_s).data().empty()) {
-                grid_idx++;
-            }
-        }
-        grid_group.at(grid_idx) = std::move(grid);
-        vol.set_sf_finder(grid_id, grid_idx);
-    }
-
-    /// Fill a grid surface finder by bin association, then add it to the
-    /// detector.
-    ///
-    /// New surface finder id can be been given explicitly. That is helpful, if
-    /// multiple sf finders have the same type in the tuple container. Otherwise
-    /// it is determined automatically.
-    ///
-    /// @param ctx the geometry context
-    /// @param vol the volume the surface finder should be added to
-    /// @param grid the grid that should be added
-    // TODO: Provide grid builder structure separate from the detector
-    template <typename grid_t>
-    DETRAY_HOST auto fill_grid(const context ctx, volume_type &vol,
-                               grid_t &grid) -> void {
-
-        // Fill the volumes surfaces into the grid
-        bin_association(ctx, *this, vol, grid, {0.1, 0.1}, false);
-    }
-
-    /// Detector interface to add surface finders
-    ///
-    /// @param ctx the geometry context
-    /// @param vol the volume the surface finder should be added to
-    /// @param grid the grid that should be added
-    template <typename sf_finder_t,
-              typename sf_finders::id sf_finder_id =
-                  sf_finders::template get_id<sf_finder_t>()>
-    DETRAY_HOST auto add_sf_finder(const context ctx, volume_type &vol,
-                                   sf_finder_t &sf_finder) -> void {
-
-        // For now, only implemented for grids
-        fill_grid(ctx, vol, sf_finder);
-        add_grid<sf_finder_t, sf_finder_id>(vol, sf_finder);
-    }*/
-
     /// Add a new full set of detector components (e.g. transforms or volumes)
     /// according to given geometry_context.
     ///
@@ -509,13 +446,11 @@ class detector {
 
     /// @return the pointer of memoery resource - non-const access
     DETRAY_HOST
-    auto resource() -> vecmem::memory_resource * { return _resource; }
+    auto *resource() { return _resource; }
 
     /// @return the pointer of memoery resource
     DETRAY_HOST
-    auto resource() const -> const vecmem::memory_resource * {
-        return _resource;
-    }
+    const auto *resource() const { return _resource; }
 
     private:
     /// Contains the detector sub-volumes.

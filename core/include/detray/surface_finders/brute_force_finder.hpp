@@ -51,6 +51,16 @@ struct brute_force_finder {
 
     /// @return the view on the brute force finder
     constexpr auto get_data() const noexcept -> brute_force_view { return {}; }
+
+    /// @note outside of navigation, the number of elements is unknown
+    constexpr auto size() const noexcept -> std::size_t { return 0; }
+
+    /// @note outside of navigation, the number of elements is unknown
+    constexpr auto empty() const noexcept -> bool { return true; }
+
+    /// Does nothing
+    template <typename... Args>
+    constexpr auto push_back(Args &&... /*args*/) const noexcept -> void {}
 };
 
 }  // namespace detray

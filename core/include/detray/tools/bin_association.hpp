@@ -48,8 +48,8 @@ static inline void bin_association(const context_t & /*context*/,
     bool is_cylinder =
         std::abs(bounds[1] - bounds[0]) < std::abs(bounds[3] - bounds[2]);
 
-    const auto &axis_0 = grid.axis_p0();
-    const auto &axis_1 = grid.axis_p1();
+    const auto &axis_0 = grid.template get_axis<0>();
+    const auto &axis_1 = grid.template get_axis<1>();
 
     // Disk type bin association
     if (not is_cylinder) {
@@ -59,11 +59,11 @@ static inline void bin_association(const context_t & /*context*/,
         edges_intersect_generic edges_assoc;
 
         // Loop over all bins and associate the surfaces
-        for (unsigned int bin_0 = 0; bin_0 < axis_0.bins(); ++bin_0) {
-            for (unsigned int bin_1 = 0; bin_1 < axis_1.bins(); ++bin_1) {
+        for (unsigned int bin_0 = 0; bin_0 < axis_0.nbins(); ++bin_0) {
+            for (unsigned int bin_1 = 0; bin_1 < axis_1.nbins(); ++bin_1) {
 
-                auto r_borders = axis_0.borders(bin_0);
-                auto phi_borders = axis_1.borders(bin_1);
+                auto r_borders = axis_0.bin_edges(bin_0);
+                auto phi_borders = axis_1.bin_edges(bin_1);
 
                 scalar r_add =
                     absolute_tolerance
@@ -112,8 +112,7 @@ static inline void bin_association(const context_t & /*context*/,
                             if (cgs_assoc(bin_contour, surface_contour) or
                                 edges_assoc(bin_contour, surface_contour)) {
                                 dindex bin_index = isf;
-                                grid.populate(bin_0, bin_1,
-                                              std::move(bin_index));
+                                grid.populate({bin_0, bin_1}, bin_index);
                                 break;
                             }
                         }
@@ -127,11 +126,11 @@ static inline void bin_association(const context_t & /*context*/,
         edges_intersect_generic edges_assoc;
 
         // Loop over all bins and associate the surfaces
-        for (unsigned int bin_0 = 0; bin_0 < axis_0.bins(); ++bin_0) {
-            for (unsigned int bin_1 = 0; bin_1 < axis_1.bins(); ++bin_1) {
+        for (unsigned int bin_0 = 0; bin_0 < axis_0.nbins(); ++bin_0) {
+            for (unsigned int bin_1 = 0; bin_1 < axis_1.nbins(); ++bin_1) {
 
-                auto z_borders = axis_0.borders(bin_0);
-                auto phi_borders = axis_1.borders(bin_1);
+                auto z_borders = axis_0.bin_edges(bin_0);
+                auto phi_borders = axis_1.bin_edges(bin_1);
 
                 scalar z_add =
                     absolute_tolerance
@@ -236,8 +235,7 @@ static inline void bin_association(const context_t & /*context*/,
                             // Register if associated
                             if (associated) {
                                 dindex bin_index = isf;
-                                grid.populate(bin_0, bin_1,
-                                              std::move(bin_index));
+                                grid.populate({bin_0, bin_1}, bin_index);
                                 break;
                             }
                         }
