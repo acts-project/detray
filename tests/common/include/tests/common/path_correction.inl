@@ -94,7 +94,7 @@ using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
 namespace env {
 
-constexpr scalar epsilon = 1e-3;
+constexpr scalar epsilon = 1e-2;
 constexpr scalar rk_tolerance = 1e-8;
 
 // B field
