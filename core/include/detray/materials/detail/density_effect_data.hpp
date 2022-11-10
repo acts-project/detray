@@ -33,7 +33,7 @@ struct density_effect_data {
           m_m(m),
           m_X0(X0),
           m_X1(X1),
-          m_I(I * unit_constants::eV),
+          m_I(I * unit<scalar_type>::eV),
           m_nC(nC),
           m_delta0(delta0) {}
 

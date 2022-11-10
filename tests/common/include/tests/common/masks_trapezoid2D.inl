@@ -21,9 +21,9 @@ TEST(mask, trapezoid2D) {
     point_t p2_edge = {2.5, 1.};
     point_t p2_out = {3., 1.5};
 
-    constexpr scalar hx_miny{1. * unit_constants::mm};
-    constexpr scalar hx_maxy{3. * unit_constants::mm};
-    constexpr scalar hy{2. * unit_constants::mm};
+    constexpr scalar hx_miny{1. * unit<scalar>::mm};
+    constexpr scalar hx_maxy{3. * unit<scalar>::mm};
+    constexpr scalar hy{2. * unit<scalar>::mm};
     constexpr scalar divisor{1. / (2. * hy)};
 
     mask<trapezoid2D<>> t2{0UL, hx_miny, hx_maxy, hy, divisor};

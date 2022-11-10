@@ -32,7 +32,7 @@ struct pointwise_material_interactor : actor {
         using vector3 = __plugin::vector3<scalar>;
 
         /// The particle mass
-        scalar_type mass = 105.7 * unit_constants::MeV;
+        scalar_type mass = 105.7 * unit<scalar_type>::MeV;
         /// The particle pdg
         int pdg = 13;  // default muon
 

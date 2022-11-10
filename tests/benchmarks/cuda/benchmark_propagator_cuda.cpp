@@ -32,7 +32,7 @@ void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
                  const unsigned int theta_steps, const unsigned int phi_steps) {
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
-    const scalar mom_mag = 10. * unit_constants::GeV;
+    const scalar mom_mag = 10. * unit<scalar>::GeV;
 
     // Iterate through uniformly distributed momentum directions
     for (auto traj : uniform_track_generator<free_track_parameters<transform3>>(
@@ -47,7 +47,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
     detector_host_type det = create_toy_geometry<host_container_types>(
         host_mr,
         field_type(field_type::backend_t::configuration_t{
-            0.f, 0.f, 2.f * unit_constants::T}),
+            0.f, 0.f, 2.f * unit<scalar>::T}),
         n_brl_layers, n_edc_layers);
 
     // Create RK stepper

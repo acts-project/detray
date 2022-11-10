@@ -35,7 +35,7 @@ TEST(navigator_cuda, navigator) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
-    const scalar p_mag{10. * unit_constants::GeV};
+    const scalar p_mag{10. * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :

@@ -39,7 +39,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
-    const scalar p_mag{10. * unit_constants::GeV};
+    const scalar p_mag{10. * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
@@ -193,20 +193,20 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation1, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             0. * unit_constants::T, 0. * unit_constants::T,
-                             2. * unit_constants::T}));
+                             0. * unit<scalar>::T, 0. * unit<scalar>::T,
+                             2. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation2, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             0. * unit_constants::T, 1. * unit_constants::T,
-                             1. * unit_constants::T}));
+                             0. * unit<scalar>::T, 1. * unit<scalar>::T,
+                             1. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation3, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             1. * unit_constants::T, 0. * unit_constants::T,
-                             1. * unit_constants::T}));
+                             1. * unit<scalar>::T, 0. * unit<scalar>::T,
+                             1. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation4, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             1. * unit_constants::T, 1. * unit_constants::T,
-                             1. * unit_constants::T}));
+                             1. * unit<scalar>::T, 1. * unit<scalar>::T,
+                             1. * unit<scalar>::T}));

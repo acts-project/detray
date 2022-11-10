@@ -32,7 +32,7 @@ using transform3 = __plugin::transform3<detray::scalar>;
 namespace {
 
 constexpr scalar epsilon{1e-3};
-constexpr scalar path_limit{5 * unit_constants::cm};
+constexpr scalar path_limit{5 * unit<scalar>::cm};
 
 /// Compare helical track positions for stepper
 struct helix_inspector : actor {
@@ -170,7 +170,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
-    constexpr scalar mom{10. * unit_constants::GeV};
+    constexpr scalar mom{10. * unit<scalar>::GeV};
 
     // detector configuration
     constexpr std::size_t n_brl_layers{4};
@@ -266,36 +266,32 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 }
 
 // Realistic case
-INSTANTIATE_TEST_SUITE_P(PropagatorValidation1, PropagatorWithRkStepper,
-                         ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{0. * unit_constants::T,
-                                                       0. * unit_constants::T,
-                                                       2. * unit_constants::T},
-                             -7. * unit_constants::um,
-                             std::numeric_limits<scalar>::max())));
+INSTANTIATE_TEST_SUITE_P(
+    PropagatorValidation1, PropagatorWithRkStepper,
+    ::testing::Values(std::make_tuple(
+        __plugin::vector3<scalar>{0. * unit<scalar>::T, 0. * unit<scalar>::T,
+                                  2. * unit<scalar>::T},
+        -7. * unit<scalar>::um, std::numeric_limits<scalar>::max())));
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
 INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{0. * unit_constants::T,
-                                                       1. * unit_constants::T,
-                                                       1. * unit_constants::T},
-                             -10. * unit_constants::um,
-                             5. * unit_constants::mm)));
+                             __plugin::vector3<scalar>{0. * unit<scalar>::T,
+                                                       1. * unit<scalar>::T,
+                                                       1. * unit<scalar>::T},
+                             -10. * unit<scalar>::um, 5. * unit<scalar>::mm)));
 
 INSTANTIATE_TEST_SUITE_P(PropagatorValidation3, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{1. * unit_constants::T,
-                                                       0. * unit_constants::T,
-                                                       1. * unit_constants::T},
-                             -10. * unit_constants::um,
-                             5. * unit_constants::mm)));
+                             __plugin::vector3<scalar>{1. * unit<scalar>::T,
+                                                       0. * unit<scalar>::T,
+                                                       1. * unit<scalar>::T},
+                             -10. * unit<scalar>::um, 5. * unit<scalar>::mm)));
 
 INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{1. * unit_constants::T,
-                                                       1. * unit_constants::T,
-                                                       1. * unit_constants::T},
-                             -10. * unit_constants::um,
-                             5. * unit_constants::mm)));
+                             __plugin::vector3<scalar>{1. * unit<scalar>::T,
+                                                       1. * unit<scalar>::T,
+                                                       1. * unit<scalar>::T},
+                             -10. * unit<scalar>::um, 5. * unit<scalar>::mm)));

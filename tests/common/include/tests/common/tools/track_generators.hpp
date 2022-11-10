@@ -46,11 +46,11 @@ class uniform_track_generator
         DETRAY_HOST_DEVICE
         iterator(std::size_t n_theta, std::size_t n_phi,
                  point3 trk_origin = {0., 0., 0.},
-                 scalar trk_mom = 1. * unit_constants::GeV,
+                 scalar trk_mom = 1. * unit<scalar>::GeV,
                  std::array<scalar, 2> theta_range = {0.01, M_PI},
                  std::array<scalar, 2> phi_range = {-M_PI, M_PI},
-                 scalar time = 0. * unit_constants::us,
-                 scalar charge = -1. * unit_constants::e, std::size_t iph = 1,
+                 scalar time = 0. * unit<scalar>::us,
+                 scalar charge = -1. * unit<scalar>::e, std::size_t iph = 1,
                  std::size_t ith = 0)
             : m_theta_steps{n_theta},
               m_phi_steps{n_phi},
@@ -134,7 +134,7 @@ class uniform_track_generator
 
         /// Magnitude of momentum: Default is one to keep directions normalized
         /// if no momentum information is needed (e.g. for a ray)
-        scalar m_mom_mag{1. * unit_constants::GeV};
+        scalar m_mom_mag{1. * unit<scalar>::GeV};
 
         /// Range for theta and phi
         std::array<scalar, 2> m_theta_range{0.01, M_PI};
@@ -169,11 +169,11 @@ class uniform_track_generator
     DETRAY_HOST_DEVICE
     uniform_track_generator(std::size_t n_theta, std::size_t n_phi,
                             point3 trk_origin = {0., 0., 0.},
-                            scalar trk_mom = 1. * unit_constants::GeV,
+                            scalar trk_mom = 1. * unit<scalar>::GeV,
                             std::array<scalar, 2> theta_range = {0.01, M_PI},
                             std::array<scalar, 2> phi_range = {-M_PI, M_PI},
-                            scalar time = 0. * unit_constants::us,
-                            scalar charge = -1. * unit_constants::e)
+                            scalar time = 0. * unit<scalar>::us,
+                            scalar charge = -1. * unit<scalar>::e)
         : m_begin{n_theta,   n_phi, trk_origin, trk_mom, theta_range,
                   phi_range, time,  charge,     1,       0},
           m_end{n_theta,   n_phi, trk_origin, trk_mom, theta_range,
