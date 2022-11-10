@@ -10,6 +10,7 @@
 
 namespace detray {
 
+template <typename stepper_policy_t>
 __global__ void propagator_benchmark_kernel(
     detector_view<detector_host_type> det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
@@ -27,20 +28,20 @@ __global__ void propagator_benchmark_kernel(
     }
 
     // Create RK stepper
-    rk_stepper_type s;
+    rk_stepper_type<stepper_policy_t> s;
 
     // Create navigator
     navigator_device_type n;
 
     // Create propagator
-    propagator_device_type p(std::move(s), std::move(n));
+    propagator_device_type<stepper_policy_t> p(std::move(s), std::move(n));
 
     parameter_transporter<transform3>::state transporter_state{};
     pointwise_material_interactor<transform3>::state interactor_state{};
     parameter_resetter<transform3>::state resetter_state{};
 
     // Create the propagator state
-    propagator_device_type::state p_state(
+    typename propagator_device_type<stepper_policy_t>::state p_state(
         tracks.at(gid), det.get_bfield(), det,
         thrust::tie(transporter_state, interactor_state, resetter_state),
         candidates.at(gid));
@@ -49,6 +50,7 @@ __global__ void propagator_benchmark_kernel(
     p.propagate(p_state);
 }
 
+template <typename stepper_policy_t>
 void propagator_benchmark(
     detector_view<detector_host_type> det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
@@ -58,12 +60,27 @@ void propagator_benchmark(
     int block_dim = tracks_data.size() / thread_dim + 1;
 
     // run the test kernel
-    propagator_benchmark_kernel<<<block_dim, thread_dim>>>(
-        det_data, tracks_data, candidates_data);
+    propagator_benchmark_kernel<stepper_policy_t>
+        <<<block_dim, thread_dim>>>(det_data, tracks_data, candidates_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
+
+template void propagator_benchmark<always_init>(
+    detector_view<detector_host_type>,
+    vecmem::data::vector_view<free_track_parameters<transform3>>&,
+    vecmem::data::jagged_vector_view<intersection_t>&);
+
+template void propagator_benchmark<stepper_default_policy>(
+    detector_view<detector_host_type>,
+    vecmem::data::vector_view<free_track_parameters<transform3>>&,
+    vecmem::data::jagged_vector_view<intersection_t>&);
+
+template void propagator_benchmark<stepper_rk_policy>(
+    detector_view<detector_host_type>,
+    vecmem::data::vector_view<free_track_parameters<transform3>>&,
+    vecmem::data::jagged_vector_view<intersection_t>&);
 
 }  // namespace detray
