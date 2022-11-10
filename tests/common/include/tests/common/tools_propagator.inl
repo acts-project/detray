@@ -229,17 +229,16 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         parameter_resetter<transform3>::state resetter_state{};
 
         // Create actor states tuples
-        actor_chain_t::state actor_states =
+        auto actor_states =
             std::tie(helix_insp_state, print_insp_state, unlimted_aborter_state,
                      transporter_state, interactor_state, resetter_state);
-        actor_chain_t::state lim_actor_states = std::tie(
+        auto lim_actor_states = std::tie(
             helix_insp_state, lim_print_insp_state, pathlimit_aborter_state,
             transporter_state, interactor_state, resetter_state);
 
         // Init propagator states
-        propagator_t::state state(track, d.get_bfield(), d, actor_states);
-        propagator_t::state lim_state(lim_track, d.get_bfield(), d,
-                                      lim_actor_states);
+        propagator_t::state state(track, d.get_bfield(), d);
+        propagator_t::state lim_state(lim_track, d.get_bfield(), d);
 
         // Set step constraints
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
@@ -248,13 +247,13 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // Propagate the entire detector
-        ASSERT_TRUE(p.propagate(state))
+        ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string() << std::endl;
         //<< state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, epsilon);
-        ASSERT_FALSE(p.propagate(lim_state))
+        ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
             << lim_print_insp_state.to_string() << std::endl;
         //<< lim_state._navigation.inspector().to_string() << std::endl;
 

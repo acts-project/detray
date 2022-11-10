@@ -76,15 +76,14 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
             pointwise_material_interactor<transform3>::state interactor_state{};
             parameter_resetter<transform3>::state resetter_state{};
 
-            actor_chain_t::state actor_states = thrust::tie(
-                transporter_state, interactor_state, resetter_state);
+            auto actor_states = thrust::tie(transporter_state, interactor_state,
+                                            resetter_state);
 
             // Create the propagator state
-            propagator_host_type::state p_state(track, det.get_bfield(), det,
-                                                actor_states);
+            propagator_host_type::state p_state(track, det.get_bfield(), det);
 
             // Run propagation
-            p.propagate(p_state);
+            p.propagate(p_state, actor_states);
         }
     }
 }

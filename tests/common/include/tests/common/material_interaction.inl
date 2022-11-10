@@ -259,14 +259,13 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     parameter_resetter<transform3>::state parameter_resetter_state{};
 
     // Create actor states tuples
-    actor_chain_t::state actor_states =
-        std::tie(print_insp_state, aborter_state, bound_updater,
-                 interactor_state, parameter_resetter_state);
+    auto actor_states = std::tie(print_insp_state, aborter_state, bound_updater,
+                                 interactor_state, parameter_resetter_state);
 
-    propagator_t::state state(bound_param, det, actor_states);
+    propagator_t::state state(bound_param, det);
 
     // Propagate the entire detector
-    ASSERT_TRUE(p.propagate(state))
+    ASSERT_TRUE(p.propagate(state, actor_states))
         << print_insp_state.to_string() << std::endl;
 
     // muon
@@ -348,10 +347,11 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     using stepper_t = line_stepper<transform3, constraints_t, policy_t>;
     using interactor_t = pointwise_material_interactor<transform3>;
     using simulator_t = random_scatterer<interactor_t>;
+    using material_actor_t = composite_actor<dtuple, interactor_t, simulator_t>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
-                    parameter_transporter<transform3>, interactor_t,
-                    simulator_t, parameter_resetter<transform3>>;
+                    parameter_transporter<transform3>, material_actor_t,
+                    parameter_resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -388,20 +388,20 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
         parameter_transporter<transform3>::state bound_updater{};
         interactor_t::state interactor_state{};
         interactor_state.do_energy_loss = false;
-        simulator_t::state simulator_state(interactor_state);
+        simulator_t::state simulator_state{};
         parameter_resetter<transform3>::state parameter_resetter_state{};
 
         // Create actor states tuples
-        actor_chain_t::state actor_states = std::tie(
-            print_insp_state, aborter_state, bound_updater, interactor_state,
-            simulator_state, parameter_resetter_state);
+        auto actor_states = std::tie(print_insp_state, aborter_state,
+                                     bound_updater, interactor_state,
+                                     simulator_state, parameter_resetter_state);
 
-        propagator_t::state state(bound_param, det, actor_states);
+        propagator_t::state state(bound_param, det);
 
         state._stepping().set_overstep_tolerance(-1000. * unit_constants::um);
 
         // Propagate the entire detector
-        ASSERT_TRUE(p.propagate(state))
+        ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string() << std::endl;
 
         const auto& final_params = state._stepping._bound_params;

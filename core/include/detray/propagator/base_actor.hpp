@@ -45,6 +45,7 @@ class composite_actor final : public actor_impl_t {
     /// The composite is an actor in itself. For simplicity, it cannot be
     /// derived from another composition (final).
     using actor_type = actor_impl_t;
+    using state = typename actor_type::state;
 
     /// Call to the implementation of the actor (the actor possibly being an
     /// observer itself)
