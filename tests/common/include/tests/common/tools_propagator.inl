@@ -56,13 +56,13 @@ struct helix_inspector : actor {
                   typename transform_store_t, typename surface_t,
                   typename stepper_state_t>
         DETRAY_HOST_DEVICE inline output_type operator()(
-            const mask_group_t& mask_group, const index_t& /*index*/,
+            const mask_group_t& mask_group, const index_t& index,
             const transform_store_t& trf_store, const surface_t& surface,
             const stepper_state_t& stepping) {
 
             const auto& trf3 = trf_store[surface.transform()];
 
-            const auto& mask = mask_group[surface.mask().index()];
+            const auto& mask = mask_group[index];
 
             auto local_coordinate = mask.local_frame();
 
