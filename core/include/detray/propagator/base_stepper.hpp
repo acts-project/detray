@@ -128,7 +128,7 @@ class base_stepper {
 
         /// TODO: Use options?
         /// hypothetical mass of particle (assume pion by default)
-        /// scalar _mass = 139.57018 * unit_constants::MeV;
+        /// scalar _mass = 139.57018 * unit<scalar_type>::MeV;
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>

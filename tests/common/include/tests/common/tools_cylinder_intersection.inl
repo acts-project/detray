@@ -134,8 +134,8 @@ TEST(ALGEBRA_PLUGIN, helix_cylinder_intersector) {
     // Test helix
     const point3 pos{3., 2., 5.};
     const vector3 mom{1., 0., 0.};
-    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
-                    epsilon * unit_constants::T};
+    const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
+                    epsilon * unit<scalar>::T};
     const helix_type h({pos, 0, mom, -1}, &B);
 
     // Check intersection

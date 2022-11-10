@@ -91,7 +91,7 @@ struct material {
         // use approximative computation as defined in ATL-SOFT-PUB-2008-003
         if (m_density ==
             detail::density_effect_data<scalar_type>(0, 0, 0, 0, 0, 0, 0)) {
-            return scalar_type(16 * unit_constants::eV) *
+            return scalar_type(16 * unit<scalar_type>::eV) *
                    std::pow(m_z, scalar_type(0.9));
         } else {
             return m_density.get_mean_excitation_energy();
@@ -110,11 +110,11 @@ struct material {
             return 0;
         }
 
-        double atomic_mass = static_cast<double>(ar) * unit_constants::u;
+        double atomic_mass = static_cast<double>(ar) * unit<scalar_type>::u;
 
         return static_cast<scalar_type>(
             static_cast<double>(mass_rho) /
-            (atomic_mass * unit_constants::kAvogadro));
+            (atomic_mass * constant<scalar_type>::avogadro));
     }
 
     // Material properties

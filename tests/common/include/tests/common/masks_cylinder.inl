@@ -13,8 +13,8 @@
 using namespace detray;
 using namespace __plugin;
 
-constexpr scalar r{3. * unit_constants::mm};
-constexpr scalar hz{4. * unit_constants::mm};
+constexpr scalar r{3. * unit<scalar>::mm};
+constexpr scalar hz{4. * unit<scalar>::mm};
 
 /// This tests the basic functionality of a 3D cylinder
 TEST(mask, cylinder3D) {

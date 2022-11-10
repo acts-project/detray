@@ -20,8 +20,8 @@ TEST(mask, ring2D) {
     point_t p2_pl_edge = {0., 3.5};
     point_t p2_pl_out = {3.6, 5.};
 
-    constexpr scalar inner_r{0. * unit_constants::mm};
-    constexpr scalar outer_r{3.5 * unit_constants::mm};
+    constexpr scalar inner_r{0. * unit<scalar>::mm};
+    constexpr scalar outer_r{3.5 * unit<scalar>::mm};
 
     mask<ring2D<>> r2{0UL, inner_r, outer_r};
 

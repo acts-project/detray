@@ -171,8 +171,8 @@ TEST(tools, intersection_kernel_helix) {
                                     annulus_surface};
     const point3 pos{0., 0., 0.};
     const vector3 mom{0.01, 0.01, 10.};
-    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
-                    epsilon * unit_constants::T};
+    const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
+                    epsilon * unit<scalar>::T};
     const detail::helix<transform3_type> h({pos, 0, mom, -1}, &B);
 
     // Validation data

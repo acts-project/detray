@@ -111,8 +111,8 @@ TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
     // Test helix
     const point3 pos{2., 1., 0.};
     const vector3 mom{0., 0., 1.};
-    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
-                    epsilon * unit_constants::T};
+    const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
+                    epsilon * unit<scalar>::T};
     const detail::helix<transform3> h({pos, 0, mom, -1}, &B);
 
     // The same test but bound to local frame
