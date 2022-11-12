@@ -19,7 +19,8 @@
 // GTest include(s).
 #include <gtest/gtest.h>
 
-#include <iostream>
+// System include(s).
+#include <climits>
 
 using namespace detray;
 using transform3 = __plugin::transform3<detray::scalar>;
@@ -206,8 +207,8 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     const auto detector = create_telescope_detector(
         host_mr,
         b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
-        positions, traj, 100000. * unit<scalar>::mm, 100000. * unit<scalar>::mm,
-        mat, thickness);
+        positions, traj, std::numeric_limits<scalar>::infinity(),
+        std::numeric_limits<scalar>::infinity(), mat, thickness);
 
     // Momentum
     const scalar mom = std::get<0>(GetParam());
