@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
@@ -23,6 +24,13 @@ namespace detray {
 template <typename detector_t, typename track_generator_t, typename smearer_t>
 struct simulator {
 
+    using scalar_type = typename detector_t::scalar_type;
+
+    struct config {
+        scalar_type overstep_tolerance = -10 * detray::unit<scalar_type>::um;
+        scalar_type step_constraint = 10. * detray::unit<scalar_type>::mm;
+    };
+
     using transform3 = typename detector_t::transform3;
     using interactor_t = pointwise_material_interactor<transform3>;
     using bfield_type = typename detector_t::bfield_type;
@@ -36,7 +44,8 @@ struct simulator {
                     event_writer<transform3, smearer_t>>;
 
     using navigator_type = navigator<detector_t>;
-    using stepper_type = rk_stepper<typename bfield_type::view_t, transform3>;
+    using stepper_type = rk_stepper<typename bfield_type::view_t, transform3,
+                                    constrained_step<>>;
     using propagator_type =
         propagator<stepper_type, navigator_type, actor_chain_type>;
 
@@ -49,6 +58,8 @@ struct simulator {
           m_smearer(smearer) {
         m_track_generator = track_gen;
     }
+
+    config& get_config() { return m_cfg; }
 
     void run() {
         for (std::size_t event_id = 0; event_id < m_events; event_id++) {
@@ -63,20 +74,29 @@ struct simulator {
                 typename interactor_t::state interactor{};
                 typename random_scatterer<interactor_t>::state scatterer{};
                 typename parameter_resetter<transform3>::state resetter{};
+
                 auto actor_states = std::tie(transporter, interactor, scatterer,
                                              resetter, writer);
 
-                typename propagator_type::state state(
+                typename propagator_type::state propagation(
                     track, m_detector->get_bfield(), *m_detector);
 
                 propagator_type p({}, {});
 
-                p.propagate(state, actor_states);
+                // Set overstep tolerance and stepper constraint
+                propagation._stepping().set_overstep_tolerance(
+                    m_cfg.overstep_tolerance);
+                propagation._stepping.template set_constraint<
+                    detray::step::constraint::e_accuracy>(
+                    m_cfg.step_constraint);
+
+                p.propagate(propagation, actor_states);
             }
         }
     }
 
     private:
+    config m_cfg;
     std::size_t m_events = 0;
     std::string m_directory = "";
     std::unique_ptr<detector_t> m_detector;
