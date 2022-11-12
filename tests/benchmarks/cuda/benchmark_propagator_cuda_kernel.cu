@@ -39,14 +39,15 @@ __global__ void propagator_benchmark_kernel(
     pointwise_material_interactor<transform3>::state interactor_state{};
     parameter_resetter<transform3>::state resetter_state{};
 
+    // Create the actor states
+    auto actor_states =
+        thrust::tie(transporter_state, interactor_state, resetter_state);
     // Create the propagator state
-    propagator_device_type::state p_state(
-        tracks.at(gid), det.get_bfield(), det,
-        thrust::tie(transporter_state, interactor_state, resetter_state),
-        candidates.at(gid));
+    propagator_device_type::state p_state(tracks.at(gid), det.get_bfield(), det,
+                                          candidates.at(gid));
 
     // Run propagation
-    p.propagate(p_state);
+    p.propagate(p_state, actor_states);
 }
 
 void propagator_benchmark(

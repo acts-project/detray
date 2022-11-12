@@ -79,7 +79,7 @@ class base_stepper {
 
             mask_store.template call<
                 typename parameter_resetter<transform3_t>::kernel>(
-                surface.mask(), trf_store, surface, *this);
+                surface.mask(), trf_store[surface.transform()], *this);
         }
 
         /// free track parameter
@@ -128,7 +128,7 @@ class base_stepper {
 
         /// TODO: Use options?
         /// hypothetical mass of particle (assume pion by default)
-        /// scalar _mass = 139.57018 * unit_constants::MeV;
+        /// scalar _mass = 139.57018 * unit<scalar_type>::MeV;
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>

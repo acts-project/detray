@@ -32,7 +32,7 @@ struct pointwise_material_interactor : actor {
         using vector3 = __plugin::vector3<scalar>;
 
         /// The particle mass
-        scalar_type mass = 105.7 * unit_constants::MeV;
+        scalar_type mass = 105.7 * unit<scalar_type>::MeV;
         /// The particle pdg
         int pdg = 13;  // default muon
 
@@ -62,13 +62,11 @@ struct pointwise_material_interactor : actor {
         using state = typename pointwise_material_interactor::state;
 
         template <typename material_group_t, typename index_t,
-                  typename surface_t, typename stepper_state_t>
+                  typename stepper_state_t>
         DETRAY_HOST_DEVICE inline output_type operator()(
-            const material_group_t &material_group, const index_t & /*index*/,
-            const surface_t &surface, const line_plane_intersection &is,
+            const material_group_t &material_group,
+            const index_t &material_range, const line_plane_intersection &is,
             state &s, const stepper_state_t &stepping) const {
-
-            const auto &material_range = surface.material().index();
 
             const scalar qop = stepping().qop();
             const scalar charge = stepping().charge();
@@ -121,7 +119,7 @@ struct pointwise_material_interactor : actor {
             const auto &mat_store = det->material_store();
 
             auto succeed = mat_store.template call<kernel>(
-                surface.material(), surface, is, interactor_state, stepping);
+                surface.material(), is, interactor_state, stepping);
 
             if (succeed) {
 

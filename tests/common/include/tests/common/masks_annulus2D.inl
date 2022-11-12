@@ -17,8 +17,8 @@ using namespace __plugin;
 TEST(mask, annulus2D) {
     using point_t = typename mask<annulus2D<>>::loc_point_t;
 
-    constexpr scalar minR{7.2 * unit_constants::mm};
-    constexpr scalar maxR{12.0 * unit_constants::mm};
+    constexpr scalar minR{7.2 * unit<scalar>::mm};
+    constexpr scalar maxR{12.0 * unit<scalar>::mm};
     constexpr scalar minPhi{0.74195};
     constexpr scalar maxPhi{1.33970};
     point_t offset = {-2., 2.};

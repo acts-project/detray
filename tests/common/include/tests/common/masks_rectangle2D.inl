@@ -13,9 +13,9 @@
 using namespace detray;
 using namespace __plugin;
 
-constexpr scalar hx{1. * unit_constants::mm};
-constexpr scalar hy{9.3 * unit_constants::mm};
-constexpr scalar hz{0.5 * unit_constants::mm};
+constexpr scalar hx{1. * unit<scalar>::mm};
+constexpr scalar hy{9.3 * unit<scalar>::mm};
+constexpr scalar hz{0.5 * unit<scalar>::mm};
 
 /// This tests the basic functionality of a rectangle
 TEST(mask, rectangle2D) {

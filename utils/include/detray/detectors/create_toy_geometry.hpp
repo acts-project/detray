@@ -203,16 +203,16 @@ void create_cyl_volume(
     // negative and positive, inner and outer portal surface
     add_cylinder_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
                          transforms, inner_r, lower_z, upper_z, volume_links[0],
-                         vacuum<scalar>(), 0. * unit_constants::mm);
+                         vacuum<scalar>(), 0. * unit<scalar>::mm);
     add_cylinder_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
                          transforms, outer_r, lower_z, upper_z, volume_links[1],
-                         vacuum<scalar>(), 0. * unit_constants::mm);
+                         vacuum<scalar>(), 0. * unit<scalar>::mm);
     add_disc_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
                      transforms, inner_r, outer_r, lower_z, volume_links[2],
-                     vacuum<scalar>(), 0. * unit_constants::mm);
+                     vacuum<scalar>(), 0. * unit<scalar>::mm);
     add_disc_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
                      transforms, inner_r, outer_r, upper_z, volume_links[3],
-                     vacuum<scalar>(), 0. * unit_constants::mm);
+                     vacuum<scalar>(), 0. * unit<scalar>::mm);
 
     det.add_objects_per_volume(ctx, cyl_volume, surfaces, masks, materials,
                                transforms);
@@ -593,7 +593,7 @@ inline void add_beampipe(
         beampipe_idx};
     add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
                          transforms, beampipe_r, min_z, max_z, volume_link,
-                         beryllium_tml<scalar>(), 0.8 * unit_constants::mm);
+                         beryllium_tml<scalar>(), 0.8 * unit<scalar>::mm);
 
     // Get vol sizes in z, including for gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes{
@@ -612,15 +612,14 @@ inline void add_beampipe(
         add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
                              transforms, edc_inner_r, -vol_sizes[i].second,
                              -vol_sizes[i].first, volume_link, vacuum<scalar>(),
-                             0. * unit_constants::mm);
+                             0. * unit<scalar>::mm);
     }
 
     // barrel portals
     volume_link = n_brl_layers <= 0 ? leaving_world : link + 1;
     add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
                          transforms, edc_inner_r, -brl_half_z, brl_half_z,
-                         volume_link, vacuum<scalar>(),
-                         0. * unit_constants::mm);
+                         volume_link, vacuum<scalar>(), 0. * unit<scalar>::mm);
 
     // positive endcap portals
     link += 7;
@@ -629,17 +628,17 @@ inline void add_beampipe(
         add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
                              transforms, edc_inner_r, vol_sizes[i].second,
                              vol_sizes[i].first, volume_link, vacuum<scalar>(),
-                             0. * unit_constants::mm);
+                             0. * unit<scalar>::mm);
     }
 
     // disc portals
     volume_link = leaving_world;
     add_disc_surface(beampipe_idx, ctx, surfaces, masks, materials, transforms,
                      beampipe_vol_size.first, beampipe_vol_size.second, min_z,
-                     volume_link, vacuum<scalar>(), 0. * unit_constants::mm);
+                     volume_link, vacuum<scalar>(), 0. * unit<scalar>::mm);
     add_disc_surface(beampipe_idx, ctx, surfaces, masks, materials, transforms,
                      beampipe_vol_size.first, beampipe_vol_size.second, max_z,
-                     volume_link, vacuum<scalar>(), 0. * unit_constants::mm);
+                     volume_link, vacuum<scalar>(), 0. * unit<scalar>::mm);
 
     det.add_objects_per_volume(ctx, beampipe, surfaces, masks, materials,
                                transforms);
@@ -689,15 +688,15 @@ inline void add_endcap_barrel_connection(
         beampipe_idx};
     add_cylinder_surface(connector_gap_idx, ctx, surfaces, masks, materials,
                          transforms, edc_inner_r, min_z, max_z, volume_link,
-                         vacuum<scalar>(), 0. * unit_constants::mm);
+                         vacuum<scalar>(), 0. * unit<scalar>::mm);
     volume_link = leaving_world;
     add_cylinder_surface(connector_gap_idx, ctx, surfaces, masks, materials,
                          transforms, edc_outer_r, min_z, max_z, volume_link,
-                         vacuum<scalar>(), 0. * unit_constants::mm);
+                         vacuum<scalar>(), 0. * unit<scalar>::mm);
     volume_link = edc_vol_idx;
     add_disc_surface(connector_gap_idx, ctx, surfaces, masks, materials,
                      transforms, edc_inner_r, edc_outer_r, edc_disc_z,
-                     volume_link, vacuum<scalar>(), 0. * unit_constants::mm);
+                     volume_link, vacuum<scalar>(), 0. * unit<scalar>::mm);
 
     // Get vol sizes in z also for gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes;
@@ -713,7 +712,7 @@ inline void add_endcap_barrel_connection(
         add_disc_surface(connector_gap_idx, ctx, surfaces, masks, materials,
                          transforms, vol_sizes[i].first, vol_sizes[i].second,
                          brl_disc_z, volume_link, vacuum<scalar>(),
-                         0. * unit_constants::mm);
+                         0. * unit<scalar>::mm);
     }
 
     det.add_objects_per_volume(ctx, connector_gap, surfaces, masks, materials,
@@ -935,7 +934,7 @@ auto create_toy_geometry(
         scalar m_long_overlap{2.};     // 5.;
         std::pair<int, int> m_binning = {16, 14};
         material<scalar> mat = silicon_tml<scalar>();
-        scalar thickness = 0.15 * unit_constants::mm;
+        scalar thickness = 0.15 * unit<scalar>::mm;
     };
 
     //
@@ -964,7 +963,7 @@ auto create_toy_geometry(
         std::vector<scalar> m_half_x_max_y = {12.4, 12.4};
         std::vector<scalar> m_tilt = {0., 0.};
         material<scalar> mat = silicon_tml<scalar>();
-        scalar thickness = 0.15 * unit_constants::mm;
+        scalar thickness = 0.15 * unit<scalar>::mm;
     };
 
     // Don't create modules in gap volume

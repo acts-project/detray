@@ -57,20 +57,19 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     const point3 pos{0., 0., 0.};
     const vector3 mom{0., 0., 1.};
     free_track_parameters<transform3_type> track(pos, 0, mom, -1);
-    const vector3 B{0, 0, 1 * unit_constants::T};
+    const vector3 B{0, 0, 1 * unit<scalar>::T};
     const b_field_t b_field(
         b_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
 
     // Actors
-    pathlimit_aborter::state pathlimit{200. * unit_constants::cm};
+    pathlimit_aborter::state pathlimit{200. * unit<scalar>::cm};
 
     // Propagator
     propagator_t p(runge_kutta_stepper{}, guided_navigator{});
-    propagator_t::state guided_state(track, b_field, telescope_det,
-                                     std::tie(pathlimit));
+    propagator_t::state guided_state(track, b_field, telescope_det);
 
     // Propagate
-    p.propagate(guided_state);
+    p.propagate(guided_state, std::tie(pathlimit));
 
     auto &nav_state = guided_state._navigation;
     auto &debug_printer = nav_state.inspector().template get<print_inspector>();

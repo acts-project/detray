@@ -131,8 +131,8 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
         create_toy_geometry(std::declval<vecmem::host_memory_resource &>(),
                             n_brl_layers, n_edc_layers))::bfield_type;
 
-    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
-                    2. * unit_constants::T};
+    const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
+                    2. * unit<scalar>::T};
 
     auto det = create_toy_geometry(
         host_mr,
@@ -153,10 +153,10 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
     // det.volume_by_pos(ori).index();
     const point3 ori{0., 0., 0.};
-    const scalar p_mag{10. * unit_constants::GeV};
+    const scalar p_mag{10. * unit<scalar>::GeV};
 
     // Overstepping
-    constexpr scalar overstep_tol{-7. * unit_constants::um};
+    constexpr scalar overstep_tol{-7. * unit<scalar>::um};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : uniform_track_generator<free_track_parameters_type>(

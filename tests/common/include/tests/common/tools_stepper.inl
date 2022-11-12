@@ -39,7 +39,7 @@ using crk_stepper_t =
 namespace {
 
 constexpr scalar epsilon = 1e-3;
-constexpr scalar path_limit = 100 * unit_constants::cm;
+constexpr scalar path_limit = 100 * unit<scalar>::cm;
 
 // dummy navigation struct
 struct nav_state {
@@ -52,7 +52,7 @@ struct nav_state {
     inline void set_no_trust() {}
     inline bool abort() { return false; }
 
-    scalar _step_size = 1. * unit_constants::mm;
+    scalar _step_size = 1. * unit<scalar>::mm;
 };
 
 // dummy propagator state
@@ -88,28 +88,27 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     cline_stepper_t::state &cl_state = c_propagation._stepping;
 
     // Test the setting of step constraints
-    cl_state.template set_constraint<constraint::e_accuracy>(
-        10 * unit_constants::mm);
-    cl_state.template set_constraint<constraint::e_actor>(2 *
-                                                          unit_constants::mm);
+    cl_state.template set_constraint<constraint::e_accuracy>(10 *
+                                                             unit<scalar>::mm);
+    cl_state.template set_constraint<constraint::e_actor>(2 * unit<scalar>::mm);
     cl_state.template set_constraint<constraint::e_aborter>(5 *
-                                                            unit_constants::mm);
+                                                            unit<scalar>::mm);
     cl_state.template set_constraint<constraint::e_user>(0.5 *
-                                                         unit_constants::mm);
+                                                         unit<scalar>::mm);
     ASSERT_NEAR(cl_state.constraints().template size<>(),
-                0.5 * unit_constants::mm, epsilon);
+                0.5 * unit<scalar>::mm, epsilon);
 
     // Release all except 'actor', then set 'user' again
     cl_state.template release_step<constraint::e_accuracy>();
     cl_state.template release_step<constraint::e_aborter>();
     cl_state.template release_step<constraint::e_user>();
-    ASSERT_NEAR(cl_state.constraints().template size<>(),
-                2 * unit_constants::mm, epsilon);
+    ASSERT_NEAR(cl_state.constraints().template size<>(), 2 * unit<scalar>::mm,
+                epsilon);
 
     cl_state.template set_constraint<constraint::e_user>(0.5 *
-                                                         unit_constants::mm);
+                                                         unit<scalar>::mm);
     ASSERT_NEAR(cl_state.constraints().template size<>(),
-                0.5 * unit_constants::mm, epsilon);
+                0.5 * unit<scalar>::mm, epsilon);
 
     // Run a few steps
     ASSERT_TRUE(l_stepper.step(propagation));
@@ -145,8 +144,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     constexpr unsigned int rk_steps = 100;
 
     // Constant magnetic field
-    vector3 B{1 * unit_constants::T, 1 * unit_constants::T,
-              1 * unit_constants::T};
+    vector3 B{1 * unit<scalar>::T, 1 * unit<scalar>::T, 1 * unit<scalar>::T};
     mag_field_t mag_field(
         typename mag_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
 
@@ -181,12 +179,12 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
         nav_state &n_state = propagation._navigation;
         nav_state &cn_state = c_propagation._navigation;
 
-        crk_state.template set_constraint<constraint::e_user>(
-            0.5 * unit_constants::mm);
-        n_state._step_size = 1. * unit_constants::mm;
-        cn_state._step_size = 1. * unit_constants::mm;
+        crk_state.template set_constraint<constraint::e_user>(0.5 *
+                                                              unit<scalar>::mm);
+        n_state._step_size = 1. * unit<scalar>::mm;
+        cn_state._step_size = 1. * unit<scalar>::mm;
         ASSERT_NEAR(crk_state.constraints().template size<>(),
-                    0.5 * unit_constants::mm, epsilon);
+                    0.5 * unit<scalar>::mm, epsilon);
 
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation);
@@ -211,8 +209,8 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
         // Roll the same track back to the origin
         // Use the same path length, since there is no overstepping
         const scalar path_length = rk_state.path_length();
-        n_state._step_size *= -1. * unit_constants::mm;
-        cn_state._step_size *= -1. * unit_constants::mm;
+        n_state._step_size *= -1. * unit<scalar>::mm;
+        cn_state._step_size *= -1. * unit<scalar>::mm;
         for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation);
             crk_stepper.step(c_propagation);

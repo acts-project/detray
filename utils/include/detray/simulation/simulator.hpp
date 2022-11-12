@@ -27,9 +27,11 @@ struct simulator {
     using interactor_t = pointwise_material_interactor<transform3>;
     using bfield_type = typename detector_t::bfield_type;
 
+    using material_actor_t =
+        composite_actor<dtuple, interactor_t, random_scatterer<interactor_t>>;
+
     using actor_chain_type =
-        actor_chain<std::tuple, parameter_transporter<transform3>, interactor_t,
-                    random_scatterer<interactor_t>,
+        actor_chain<dtuple, parameter_transporter<transform3>, material_actor_t,
                     parameter_resetter<transform3>,
                     event_writer<transform3, smearer_t>>;
 
@@ -59,18 +61,17 @@ struct simulator {
 
                 typename parameter_transporter<transform3>::state transporter{};
                 typename interactor_t::state interactor{};
-                typename random_scatterer<interactor_t>::state scatterer(
-                    interactor);
+                typename random_scatterer<interactor_t>::state scatterer{};
                 typename parameter_resetter<transform3>::state resetter{};
-                typename actor_chain_type::state actor_states = std::tie(
-                    transporter, interactor, scatterer, resetter, writer);
+                auto actor_states = std::tie(transporter, interactor, scatterer,
+                                             resetter, writer);
 
                 typename propagator_type::state state(
-                    track, m_detector->get_bfield(), *m_detector, actor_states);
+                    track, m_detector->get_bfield(), *m_detector);
 
                 propagator_type p({}, {});
 
-                p.propagate(state);
+                p.propagate(state, actor_states);
             }
         }
     }

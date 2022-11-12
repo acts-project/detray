@@ -83,8 +83,8 @@ TEST(tools, uniform_track_generator) {
     ASSERT_EQ(momenta.size(), n_tracks);
 
     // Generate helical trajectories
-    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
-                    2. * unit_constants::T};
+    const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
+                    2. * unit<scalar>::T};
     n_tracks = 0;
     for (const auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
@@ -114,7 +114,7 @@ TEST(tools, uniform_track_generator_with_range) {
 
     for (const auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, {0, 0, 0}, 1 * unit_constants::GeV, {1, 2},
+             theta_steps, phi_steps, {0, 0, 0}, 1 * unit<scalar>::GeV, {1, 2},
              {-2, 2})) {
         const auto dir = track.dir();
         theta_phi.push_back({getter::theta(dir), getter::phi(dir)});

@@ -54,8 +54,8 @@ TEST(tools, particle_gun) {
     }
 
     // Simulate straight line track
-    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
-                    epsilon * unit_constants::T};
+    const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
+                    epsilon * unit<scalar>::T};
     // Iterate through uniformly distributed momentum directions with helix
     std::size_t n_tracks{0};
     for (const auto track :

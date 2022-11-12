@@ -39,7 +39,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
-    const scalar p_mag{10. * unit_constants::GeV};
+    const scalar p_mag{10. * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
@@ -76,10 +76,12 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         parameter_transporter<transform3>::state transporter_state{};
         pointwise_material_interactor<transform3>::state interactor_state{};
         parameter_resetter<transform3>::state resetter_state{};
-        propagator_host_type::state state(
-            tracks_host[i], det.get_bfield(), det,
+        auto actor_states =
             thrust::tie(insp_state, pathlimit_state, transporter_state,
-                        interactor_state, resetter_state));
+                        interactor_state, resetter_state);
+
+        propagator_host_type::state state(tracks_host[i], det.get_bfield(),
+                                          det);
 
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
             constrainted_step_size);
@@ -87,7 +89,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         state._stepping.set_tolerance(rk_tolerance);
 
         // Run propagation
-        p.propagate(state);
+        p.propagate(state, actor_states);
 
         // Record the step information
         host_path_lengths.push_back(insp_state._path_lengths);
@@ -191,20 +193,20 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation1, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             0. * unit_constants::T, 0. * unit_constants::T,
-                             2. * unit_constants::T}));
+                             0. * unit<scalar>::T, 0. * unit<scalar>::T,
+                             2. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation2, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             0. * unit_constants::T, 1. * unit_constants::T,
-                             1. * unit_constants::T}));
+                             0. * unit<scalar>::T, 1. * unit<scalar>::T,
+                             1. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation3, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             1. * unit_constants::T, 0. * unit_constants::T,
-                             1. * unit_constants::T}));
+                             1. * unit<scalar>::T, 0. * unit<scalar>::T,
+                             1. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation4, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
-                             1. * unit_constants::T, 1. * unit_constants::T,
-                             1. * unit_constants::T}));
+                             1. * unit<scalar>::T, 1. * unit<scalar>::T,
+                             1. * unit<scalar>::T}));

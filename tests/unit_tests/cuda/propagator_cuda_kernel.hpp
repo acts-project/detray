@@ -64,10 +64,10 @@ constexpr unsigned int theta_steps{10};
 constexpr unsigned int phi_steps{10};
 
 constexpr scalar rk_tolerance{1e-4};
-constexpr scalar overstep_tolerance{-3 * unit_constants::um};
-constexpr scalar constrainted_step_size{2. * unit_constants::mm};
+constexpr scalar overstep_tolerance{-3 * unit<scalar>::um};
+constexpr scalar constrainted_step_size{2. * unit<scalar>::mm};
 constexpr scalar is_close{1e-4};
-constexpr scalar path_limit{2 * unit_constants::m};
+constexpr scalar path_limit{2 * unit<scalar>::m};
 
 namespace detray {
 

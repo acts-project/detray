@@ -48,20 +48,12 @@ struct global_to_local {
     using point3 = typename algebra_t::point3;
     using vector3 = typename algebra_t::vector3;
 
-    template <typename mask_group_t, typename index_t,
-              typename transform_store_t, typename surface_t>
+    template <typename mask_group_t, typename index_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
-        const mask_group_t& mask_group, const index_t& /*index*/,
-        const transform_store_t& trf_store, const surface_t& surface,
-        const point3& pos, const vector3& dir) const {
+        const mask_group_t& mask_group, const index_t& index,
+        const algebra_t& trf3, const point3& pos, const vector3& dir) const {
 
-        const auto& trf3 = trf_store[surface.transform()];
-
-        const auto& mask = mask_group[surface.mask().index()];
-
-        auto local_coordinate = mask.local_frame();
-
-        return local_coordinate.global_to_local(trf3, pos, dir);
+        return mask_group[index].to_local_frame(trf3, pos, dir);
     }
 };
 

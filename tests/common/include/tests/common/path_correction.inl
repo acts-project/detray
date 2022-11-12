@@ -94,11 +94,11 @@ using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
 namespace env {
 
-constexpr scalar epsilon = 1e-3;
+constexpr scalar epsilon = 1e-2;
 constexpr scalar rk_tolerance = 1e-8;
 
 // B field
-const vector3 B{0, 0, 1. * unit_constants::T};
+const vector3 B{0, 0, 1. * unit<scalar>::T};
 mag_field_t mag_field(mag_field_t::backend_t::configuration_t{B[0], B[1],
                                                               B[2]});
 
@@ -143,13 +143,13 @@ TEST(path_correction, cartesian) {
     transforms.emplace_back(env::ctx, t, z, x);
 
     // Add a mask
-    const scalar hx = 100. * unit_constants::mm;
-    const scalar hy = 100. * unit_constants::mm;
+    const scalar hx = 100. * unit<scalar>::mm;
+    const scalar hy = 100. * unit<scalar>::mm;
     masks.template emplace_back<mask_id>(empty_context{}, 0UL, hx, hy);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
-    const scalar thickness = 2 * unit_constants::mm;
+    const scalar thickness = 2 * unit<scalar>::mm;
     materials.template emplace_back<material_id>(empty_context{}, mat,
                                                  thickness);
 
@@ -159,7 +159,7 @@ TEST(path_correction, cartesian) {
 
     // Generate track starting point
     vector2 local{2, 3};
-    vector3 mom{1 * unit_constants::MeV, 0., 0.};
+    vector3 mom{1 * unit<scalar>::MeV, 0., 0.};
 
     scalar time = 0.;
     scalar q = -1.;
@@ -196,11 +196,8 @@ TEST(path_correction, cartesian) {
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
-    actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
-
     propagator_t p({}, {});
-    propagator_t::state propagation(bound_param0, env::mag_field, det,
-                                    actor_states);
+    propagator_t::state propagation(bound_param0, env::mag_field, det);
 
     crk_stepper_t::state &crk_state = propagation._stepping;
 
@@ -208,7 +205,7 @@ TEST(path_correction, cartesian) {
     crk_state._tolerance = env::rk_tolerance;
 
     // Run propagator
-    p.propagate(propagation);
+    p.propagate(propagation, std::tie(targeter, bound_updater, rst));
 
     EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
 
@@ -288,13 +285,13 @@ TEST(path_correction, polar) {
     transforms.emplace_back(env::ctx, t, z, x);
 
     // Add a mask
-    const scalar r_low = 0. * unit_constants::mm;
-    const scalar r_high = 100. * unit_constants::mm;
+    const scalar r_low = 0. * unit<scalar>::mm;
+    const scalar r_high = 100. * unit<scalar>::mm;
     masks.template emplace_back<mask_id>(empty_context{}, 0UL, r_low, r_high);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
-    const scalar thickness = 2 * unit_constants::mm;
+    const scalar thickness = 2 * unit<scalar>::mm;
     materials.template emplace_back<material_id>(empty_context{}, mat,
                                                  thickness);
 
@@ -304,7 +301,7 @@ TEST(path_correction, polar) {
 
     // Generate track starting point
     vector2 local{2, M_PI / 6.};
-    vector3 mom{1 * unit_constants::MeV, 0., 0.};
+    vector3 mom{1 * unit<scalar>::MeV, 0., 0.};
 
     scalar time = 0.;
     scalar q = -1.;
@@ -341,11 +338,8 @@ TEST(path_correction, polar) {
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
-    actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
-
     propagator_t p({}, {});
-    propagator_t::state propagation(bound_param0, env::mag_field, det,
-                                    actor_states);
+    propagator_t::state propagation(bound_param0, env::mag_field, det);
 
     crk_stepper_t::state &crk_state = propagation._stepping;
 
@@ -358,7 +352,7 @@ TEST(path_correction, polar) {
     crk_state._tolerance = env::rk_tolerance;
 
     // Run propagator
-    p.propagate(propagation);
+    p.propagate(propagation, std::tie(targeter, bound_updater, rst));
 
     EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
 
@@ -413,21 +407,21 @@ TEST(path_correction, cylindrical) {
                           dindex_invalid, surface_id::e_sensitive);
 
     // Add a transform
-    const vector3 t{-50 * unit_constants::mm, 0, 0};
+    const vector3 t{-50 * unit<scalar>::mm, 0, 0};
     const vector3 z{0, 0, 1};
     const vector3 x{1, 0, 0};
     transforms.emplace_back(env::ctx, t, z, x);
 
     // Add a mask
-    const scalar r = 50 * unit_constants::mm;
-    const scalar half_length_1 = 1000. * unit_constants::mm;
-    const scalar half_length_2 = 1000. * unit_constants::mm;
+    const scalar r = 50 * unit<scalar>::mm;
+    const scalar half_length_1 = 1000. * unit<scalar>::mm;
+    const scalar half_length_2 = 1000. * unit<scalar>::mm;
     masks.template emplace_back<mask_id>(empty_context{}, 0UL, r, half_length_1,
                                          half_length_2);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
-    const scalar thickness = 2 * unit_constants::mm;
+    const scalar thickness = 2 * unit<scalar>::mm;
     materials.template emplace_back<material_id>(empty_context{}, mat,
                                                  thickness);
 
@@ -437,7 +431,7 @@ TEST(path_correction, cylindrical) {
 
     // Generate track starting point
     vector2 local{0., 0.};
-    vector3 mom{1 * unit_constants::MeV, 0., 0.};
+    vector3 mom{1 * unit<scalar>::MeV, 0., 0.};
     scalar time = 0.;
     scalar q = -1.;
 
@@ -473,11 +467,8 @@ TEST(path_correction, cylindrical) {
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
-    actor_chain_t::state actor_states = std::tie(targeter, bound_updater, rst);
-
     propagator_t p({}, {});
-    propagator_t::state propagation(bound_param0, env::mag_field, det,
-                                    actor_states);
+    propagator_t::state propagation(bound_param0, env::mag_field, det);
 
     crk_stepper_t::state &crk_state = propagation._stepping;
 
@@ -490,7 +481,7 @@ TEST(path_correction, cylindrical) {
     crk_state._tolerance = env::rk_tolerance;
 
     // Run propagator
-    p.propagate(propagation);
+    p.propagate(propagation, std::tie(targeter, bound_updater, rst));
 
     EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
 

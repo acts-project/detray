@@ -38,25 +38,25 @@ TEST(materials, material) {
     EXPECT_FLOAT_EQ(vacuum<scalar>().molar_electron_density(), 0);
 
     // beryllium
-    EXPECT_FLOAT_EQ(beryllium_tml<scalar>().X0(), 352.8 * unit_constants::mm);
-    EXPECT_FLOAT_EQ(beryllium_tml<scalar>().L0(), 407.0 * unit_constants::mm);
+    EXPECT_FLOAT_EQ(beryllium_tml<scalar>().X0(), 352.8 * unit<scalar>::mm);
+    EXPECT_FLOAT_EQ(beryllium_tml<scalar>().L0(), 407.0 * unit<scalar>::mm);
     EXPECT_FLOAT_EQ(beryllium_tml<scalar>().Ar(), 9.012);
     EXPECT_FLOAT_EQ(beryllium_tml<scalar>().Z(), 4.0);
 
     // @note molar density is obtained by the following equation:
     // molar_density = mass_density [GeV/c²] / molar_mass [GeV/c²] * mol / cm³
     EXPECT_FLOAT_EQ(beryllium_tml<scalar>().molar_density(),
-                    1.848 / beryllium_tml<scalar>().Ar() * unit_constants::mol /
-                        unit_constants::cm3);
+                    1.848 / beryllium_tml<scalar>().Ar() * unit<scalar>::mol /
+                        unit<scalar>::cm3);
 
     // silicon
-    EXPECT_FLOAT_EQ(silicon_tml<scalar>().X0(), 95.7 * unit_constants::mm);
-    EXPECT_FLOAT_EQ(silicon_tml<scalar>().L0(), 465.2 * unit_constants::mm);
+    EXPECT_FLOAT_EQ(silicon_tml<scalar>().X0(), 95.7 * unit<scalar>::mm);
+    EXPECT_FLOAT_EQ(silicon_tml<scalar>().L0(), 465.2 * unit<scalar>::mm);
     EXPECT_FLOAT_EQ(silicon_tml<scalar>().Ar(), 28.03);
     EXPECT_FLOAT_EQ(silicon_tml<scalar>().Z(), 14.);
     EXPECT_FLOAT_EQ(silicon_tml<scalar>().molar_density(),
-                    2.32 / silicon_tml<scalar>().Ar() * unit_constants::mol /
-                        unit_constants::cm3);
+                    2.32 / silicon_tml<scalar>().Ar() * unit<scalar>::mol /
+                        unit<scalar>::cm3);
 }
 
 TEST(materials, mixture) {
@@ -120,13 +120,13 @@ TEST(materials, mixture) {
 TEST(materials, material_slab) {
 
     material_slab<scalar> slab(oxygen_gas<scalar>(),
-                               scalar(2) * scalar(unit_constants::mm));
+                               scalar(2) * scalar(unit<scalar>::mm));
 
     line_plane_intersection is;
     is.cos_incidence_angle = scalar(0.3);
 
     EXPECT_FLOAT_EQ(slab.path_segment(is),
-                    scalar(2) * scalar(unit_constants::mm) / scalar(0.3));
+                    scalar(2) * scalar(unit<scalar>::mm) / scalar(0.3));
     EXPECT_FLOAT_EQ(slab.path_segment_in_X0(is),
                     slab.path_segment(is) / slab.get_material().X0());
     EXPECT_FLOAT_EQ(slab.path_segment_in_L0(is),
@@ -138,7 +138,7 @@ TEST(materials, material_rod) {
 
     // Rod with 1 mm radius
     material_rod<scalar> rod(oxygen_gas<scalar>(),
-                             scalar(1.) * scalar(unit_constants::mm));
+                             scalar(1.) * scalar(unit<scalar>::mm));
 
     // tf3 with Identity rotation and no translation
     const vector3 x{1, 0, 0};
@@ -152,7 +152,7 @@ TEST(materials, material_rod) {
     const free_track_parameters<transform3> trk(pos, 0, dir, -1);
 
     // Infinite wire with 1 mm radial cell size
-    const mask<line<>> ln{0UL, static_cast<scalar>(1. * unit_constants::mm),
+    const mask<line<>> ln{0UL, static_cast<scalar>(1. * unit<scalar>::mm),
                           std::numeric_limits<scalar>::infinity()};
 
     line_plane_intersection is =

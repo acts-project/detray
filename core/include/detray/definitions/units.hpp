@@ -9,59 +9,83 @@
 
 namespace detray {
 
-namespace unit_constants {
+/// Unit conversion factors
+template <typename scalar_t>
+struct unit {
 
-// Length, native unit mm
-constexpr double um = 0.001;
-constexpr double mm = 1.0;
-constexpr double cm = 10.0;
-constexpr double m = 1000.0;
+    /// Length, native unit mm
+    /// @{
+    static constexpr scalar_t um{0.001};
+    static constexpr scalar_t mm{1.0};
+    static constexpr scalar_t cm{10.0};
+    static constexpr scalar_t m{1000.0};
+    /// @}
 
-// Volume, native unit mm3
-constexpr double mm3 = mm * mm * mm;
-constexpr double cm2 = cm * cm;
-constexpr double cm3 = cm * cm * cm;
+    /// Volume, native unit mm3
+    /// @{
+    static constexpr scalar_t mm3{mm * mm * mm};
+    static constexpr scalar_t cm2{cm * cm};
+    static constexpr scalar_t cm3{cm * cm * cm};
+    /// @}
 
-// Time, native unit mm = [speed-of-light * time] = mm/s * s
-constexpr double s = 299792458000.0;
-constexpr double fs = 1e-15 * s;
-constexpr double ps = 1e-12 * s;
-constexpr double ns = 1e-9 * s;
-constexpr double us = 1e-6 * s;
-constexpr double ms = 1e-3 * s;
-constexpr double min = 60.0 * s;
-constexpr double h = 3600.0 * s;
+    /// Time, native unit mm{[speed-of-light * time]{mm/s * s}}
+    /// @{
+    static constexpr scalar_t s{299792458000.0};
+    static constexpr scalar_t fs{1e-15 * s};
+    static constexpr scalar_t ps{1e-12 * s};
+    static constexpr scalar_t ns{1e-9 * s};
+    static constexpr scalar_t us{1e-6 * s};
+    static constexpr scalar_t ms{1e-3 * s};
+    static constexpr scalar_t min{60.0 * s};
+    static constexpr scalar_t h{3600.0 * s};
+    /// @}
 
-// Energy, native unit GeV
-constexpr double eV = 1e-9;
-constexpr double keV = 1e-6;
-constexpr double MeV = 1e-3;
-constexpr double GeV = 1.0;
-constexpr double TeV = 1e3;
+    /// Energy, native unit GeV
+    /// @{
+    static constexpr scalar_t eV{1e-9};
+    static constexpr scalar_t keV{1e-6};
+    static constexpr scalar_t MeV{1e-3};
+    static constexpr scalar_t GeV{1.0};
+    static constexpr scalar_t TeV{1e3};
+    /// @}
 
-// Atomic mass unit u
-// 1u == 0.93149410242 GeV/c
-constexpr double u = 0.93149410242;
+    /// Atomic mass unit u
+    /// 1u == 0.93149410242 GeV/c
+    static constexpr scalar_t u{0.93149410242};
 
-// Mass
-//     1eV/c² == 1.782662e-36kg
-//    1GeV/c² == 1.782662e-27kg
-// ->     1kg == (1/1.782662e-27)GeV/c²
-// ->      1g == (1/(1e3*1.782662e-27))GeV/c²
-constexpr double g = 1.0 / 1.782662e-24;
-constexpr double kg = 1.0 / 1.782662e-27;
+    /// Mass
+    ///     1eV/c² == 1.782662e-36kg
+    ///    1GeV/c² == 1.782662e-27kg
+    /// ->     1kg == (1/1.782662e-27)GeV/c²
+    /// ->      1g == (1/(1e3*1.782662e-27))GeV/c²
+    /// @{
+    static constexpr scalar_t g{1.0 / 1.782662e-24};
+    static constexpr scalar_t kg{1.0 / 1.782662e-27};
+    /// @}
 
-// Amount of substance, native unit mol
-constexpr double mol = 1.0;
-// Avogadro constant
-constexpr double kAvogadro = 6.02214076e23 / unit_constants::mol;
+    /// Amount of substance, native unit mol
+    static constexpr scalar_t mol{1.0};
 
-// Charge, native unit e (elementary charge)
-constexpr double e = 1.0;
+    /// Charge, native unit e (elementary charge)
+    static constexpr scalar_t e{1.0};
 
-// Magnetic field, native unit GeV/(e*mm)
-constexpr double T = 0.000299792458;  // equivalent to c in appropriate SI units
+    /// Magnetic field, native unit GeV/(e*mm)
+    static constexpr scalar_t T{
+        0.000299792458};  // equivalent to c in appropriate SI units
+};
 
-}  // namespace unit_constants
+/// Physical constants
+template <typename scalar_t>
+struct constant {
+
+    /// Avogadro constant
+    static constexpr scalar_t avogadro{6.02214076e23 / unit<scalar_t>::mol};
+
+    /// Reduced Planck constant h/2*pi.
+    ///
+    /// Computed from CODATA 2018 constants to double precision.
+    static constexpr scalar_t hbar{6.582119569509066e-25 * unit<scalar_t>::GeV *
+                                   unit<scalar_t>::s};
+};
 
 }  // namespace detray

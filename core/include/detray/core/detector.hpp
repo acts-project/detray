@@ -463,7 +463,7 @@ class detector {
         const auto &sf = surface_by_index(sf_idx);
         const auto ret =
             _masks.template call<detail::global_to_local<transform3>>(
-                sf.mask(), _transforms, sf, pos, dir);
+                sf.mask(), _transforms[sf.transform()], pos, dir);
         return ret;
     }
 

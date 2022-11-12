@@ -32,7 +32,7 @@ TEST(tools, helix_trajectory) {
     free_track_parameters<transform3_type> vertex(pos, time, mom, q);
 
     // magnetic field
-    vector3 B{0, 0, 1 * unit_constants::T};
+    vector3 B{0, 0, 1 * unit<scalar>::T};
 
     scalar p_mag = getter::norm(mom);
     scalar B_mag = getter::norm(B);
@@ -76,7 +76,7 @@ TEST(tools, helix_trajectory_small_pT) {
     free_track_parameters<transform3_type> vertex(pos, time, mom, q);
 
     // magnetic field
-    vector3 B{0, 0, 1 * unit_constants::T};
+    vector3 B{0, 0, 1 * unit<scalar>::T};
 
     // helix trajectory
     detail::helix helix_traj(vertex, &B);

@@ -64,8 +64,8 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     vecmem::host_memory_resource host_mr;
 
     // B-fields
-    vector3 B_z{0., 0., 1. * unit_constants::T};
-    vector3 B_x{1. * unit_constants::T, 0., 0.};
+    vector3 B_z{0., 0., 1. * unit<scalar>::T};
+    vector3 B_x{1. * unit<scalar>::T, 0., 0.};
     b_field_t b_field_z{
         b_field_t::backend_t::configuration_t{B_z[0], B_z[1], B_z[2]}};
     b_field_t b_field_x{
@@ -89,7 +89,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
     dindex n_surfaces = 11;
-    scalar tel_length = 500. * unit_constants::mm;
+    scalar tel_length = 500. * unit<scalar>::mm;
     const auto z_tel_det2 =
         create_telescope_detector<rectangular>(host_mr, n_surfaces, tel_length);
 
@@ -200,7 +200,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     mom = {0., 1., 0.};
 
     auto pilot_track = free_track_parameters<transform3>(pos, 0, mom, -1);
-    pilot_track.set_overstep_tolerance(-10 * unit_constants::um);
+    pilot_track.set_overstep_tolerance(-10 * unit<scalar>::um);
 
     detail::helix<transform3> helix_bz(pilot_track, &B_z);
 
