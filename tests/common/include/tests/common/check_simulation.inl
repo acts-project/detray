@@ -168,8 +168,8 @@ TEST(check_simulation, toy_geometry) {
             ASSERT_EQ(meas_hit_ids[i].measurement_id, i);
         }
 
-        const auto var0 = get_variance(local0_diff);
-        const auto var1 = get_variance(local1_diff);
+        const auto var0 = statistics::variance(local0_diff);
+        const auto var1 = statistics::variance(local1_diff);
 
         EXPECT_NEAR((std::sqrt(var0) - smearer.stddev[0]) / smearer.stddev[0],
                     0, 0.1);
