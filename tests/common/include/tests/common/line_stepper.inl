@@ -76,13 +76,12 @@ TEST(line_stepper, covariance_transport) {
     // Actors
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
-    actor_chain_t::state actor_states = std::tie(bound_updater, rst);
 
     propagator_t p({}, {});
-    propagator_t::state propagation(bound_param0, det, actor_states);
+    propagator_t::state propagation(bound_param0, det);
 
     // Run propagator
-    p.propagate(propagation);
+    p.propagate(propagation, std::tie(bound_updater, rst));
 
     // Bound state after one turn propagation
     const auto &bound_param1 = propagation._stepping._bound_params;

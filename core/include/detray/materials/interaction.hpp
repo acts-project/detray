@@ -165,7 +165,7 @@ struct interaction {
         const scalar_type t = std::sqrt(xOverX0 * q2OverBeta2);
         // log((x/X0) * (q²/beta²)) = log((sqrt(x/X0) * (q/beta))²)
         //                          = 2 * log(sqrt(x/X0) * (q/beta))
-        return 13.6 * unit_constants::MeV * momentumInv * t *
+        return 13.6 * unit<scalar_type>::MeV * momentumInv * t *
                (1.0 + 0.038 * 2. * std::log(t));
     }
 
@@ -175,7 +175,7 @@ struct interaction {
                        const scalar_type q2OverBeta2) const {
         // TODO add source paper/ resource
         const scalar_type t = std::sqrt(xOverX0 * q2OverBeta2);
-        return 17.5 * unit_constants::MeV * momentumInv * t *
+        return 17.5 * unit<scalar_type>::MeV * momentumInv * t *
                (1.0 + 0.125 * std::log10(10.0 * xOverX0));
     }
 

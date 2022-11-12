@@ -21,11 +21,12 @@ struct relativistic_quantities {
 
     // values from RPP2018 table 33.1
     // electron mass
-    const scalar_type Me = 0.5109989461 * unit_constants::MeV;
+    const scalar_type Me = 0.5109989461 * unit<scalar_type>::MeV;
     // Bethe formular prefactor. 1/mol unit is just a factor 1 here.
-    const scalar_type K = 0.307075 * unit_constants::MeV * unit_constants::cm2;
+    const scalar_type K =
+        0.307075 * unit<scalar_type>::MeV * unit<scalar_type>::cm2;
     // Energy scale for plasma energy.
-    const scalar_type PlasmaEnergyScale = 28.816 * unit_constants::eV;
+    const scalar_type PlasmaEnergyScale = 28.816 * unit<scalar_type>::eV;
 
     scalar_type m_q2OverBeta2 = 0.0;
     scalar_type m_beta2 = 0.0;

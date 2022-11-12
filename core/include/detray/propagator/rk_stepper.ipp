@@ -228,7 +228,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     while (!try_rk4(stepping._step_size)) {
 
         step_size_scaling = std::min(
-            std::max(0.25 * unit_constants::mm,
+            std::max(0.25 * unit<scalar>::mm,
                      std::sqrt(std::sqrt((stepping._tolerance /
                                           std::abs(2. * error_estimate))))),
             4.);

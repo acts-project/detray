@@ -21,7 +21,7 @@ TEST(mask, single3_0) {
     point_t p3_edge = {1., 9.3, 2.};
     point_t p3_out = {1.5, -9.8, 8.};
 
-    constexpr scalar h0{1. * unit_constants::mm};
+    constexpr scalar h0{1. * unit<scalar>::mm};
     mask<single3D<>> m1_0{0UL, -h0, h0};
 
     ASSERT_FLOAT_EQ(m1_0[single3D<>::e_lower], -h0);
@@ -42,7 +42,7 @@ TEST(mask, single3_1) {
     point_t p3_edge = {1., 9.3, 2.};
     point_t p3_out = {1.5, -9.8, 8.};
 
-    constexpr scalar h1{9.3 * unit_constants::mm};
+    constexpr scalar h1{9.3 * unit<scalar>::mm};
     mask<single3D<1>> m1_1{0UL, -h1, h1};
 
     ASSERT_FLOAT_EQ(m1_1[single3D<>::e_lower], -h1);
@@ -75,7 +75,7 @@ TEST(mask, single3_2) {
     point_t p3_edge = {1., 9.3, 2.};
     point_t p3_out = {1.5, -9.8, 8.};
 
-    constexpr scalar h2{2. * unit_constants::mm};
+    constexpr scalar h2{2. * unit<scalar>::mm};
     mask<single3D<2>> m1_2{0UL, -h2, h2};
 
     ASSERT_FLOAT_EQ(m1_2[single3D<>::e_lower], -h2);

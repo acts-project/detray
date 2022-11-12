@@ -29,13 +29,12 @@ struct random_scatterer : actor {
     struct state {
         std::random_device rd{};
         std::mt19937 generator{rd()};
-        interactor_state_type& interactor_state;
-
-        state(interactor_state_type& s) : interactor_state(s) {}
     };
 
-    template <typename propagator_state_t>
+    /// Observes a material interactor state @param interactor_state
+    template <typename interactor_state_t, typename propagator_state_t>
     DETRAY_HOST inline void operator()(state& simulator_state,
+                                       interactor_state_t& interactor_state,
                                        propagator_state_t& prop_state) const {
 
         auto& navigation = prop_state._navigation;
@@ -43,7 +42,6 @@ struct random_scatterer : actor {
         if (navigation.is_on_module()) {
 
             auto& stepping = prop_state._stepping;
-            auto& interactor_state = simulator_state.interactor_state;
             auto& generator = simulator_state.generator;
 
             const auto r_theta = std::normal_distribution<scalar_type>(

@@ -32,7 +32,7 @@ using transform3 = __plugin::transform3<detray::scalar>;
 namespace {
 
 constexpr scalar epsilon{1e-3};
-constexpr scalar path_limit{5 * unit_constants::cm};
+constexpr scalar path_limit{5 * unit<scalar>::cm};
 
 /// Compare helical track positions for stepper
 struct helix_inspector : actor {
@@ -56,13 +56,13 @@ struct helix_inspector : actor {
                   typename transform_store_t, typename surface_t,
                   typename stepper_state_t>
         DETRAY_HOST_DEVICE inline output_type operator()(
-            const mask_group_t& mask_group, const index_t& /*index*/,
+            const mask_group_t& mask_group, const index_t& index,
             const transform_store_t& trf_store, const surface_t& surface,
             const stepper_state_t& stepping) {
 
             const auto& trf3 = trf_store[surface.transform()];
 
-            const auto& mask = mask_group[surface.mask().index()];
+            const auto& mask = mask_group[index];
 
             auto local_coordinate = mask.local_frame();
 
@@ -170,7 +170,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
-    constexpr scalar mom{10. * unit_constants::GeV};
+    constexpr scalar mom{10. * unit<scalar>::GeV};
 
     // detector configuration
     constexpr std::size_t n_brl_layers{4};
@@ -229,17 +229,16 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         parameter_resetter<transform3>::state resetter_state{};
 
         // Create actor states tuples
-        actor_chain_t::state actor_states =
+        auto actor_states =
             std::tie(helix_insp_state, print_insp_state, unlimted_aborter_state,
                      transporter_state, interactor_state, resetter_state);
-        actor_chain_t::state lim_actor_states = std::tie(
+        auto lim_actor_states = std::tie(
             helix_insp_state, lim_print_insp_state, pathlimit_aborter_state,
             transporter_state, interactor_state, resetter_state);
 
         // Init propagator states
-        propagator_t::state state(track, d.get_bfield(), d, actor_states);
-        propagator_t::state lim_state(lim_track, d.get_bfield(), d,
-                                      lim_actor_states);
+        propagator_t::state state(track, d.get_bfield(), d);
+        propagator_t::state lim_state(lim_track, d.get_bfield(), d);
 
         // Set step constraints
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
@@ -248,13 +247,13 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // Propagate the entire detector
-        ASSERT_TRUE(p.propagate(state))
+        ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string() << std::endl;
         //<< state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, epsilon);
-        ASSERT_FALSE(p.propagate(lim_state))
+        ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
             << lim_print_insp_state.to_string() << std::endl;
         //<< lim_state._navigation.inspector().to_string() << std::endl;
 
@@ -267,36 +266,32 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 }
 
 // Realistic case
-INSTANTIATE_TEST_SUITE_P(PropagatorValidation1, PropagatorWithRkStepper,
-                         ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{0. * unit_constants::T,
-                                                       0. * unit_constants::T,
-                                                       2. * unit_constants::T},
-                             -7. * unit_constants::um,
-                             std::numeric_limits<scalar>::max())));
+INSTANTIATE_TEST_SUITE_P(
+    PropagatorValidation1, PropagatorWithRkStepper,
+    ::testing::Values(std::make_tuple(
+        __plugin::vector3<scalar>{0. * unit<scalar>::T, 0. * unit<scalar>::T,
+                                  2. * unit<scalar>::T},
+        -7. * unit<scalar>::um, std::numeric_limits<scalar>::max())));
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
 INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{0. * unit_constants::T,
-                                                       1. * unit_constants::T,
-                                                       1. * unit_constants::T},
-                             -10. * unit_constants::um,
-                             5. * unit_constants::mm)));
+                             __plugin::vector3<scalar>{0. * unit<scalar>::T,
+                                                       1. * unit<scalar>::T,
+                                                       1. * unit<scalar>::T},
+                             -10. * unit<scalar>::um, 5. * unit<scalar>::mm)));
 
 INSTANTIATE_TEST_SUITE_P(PropagatorValidation3, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{1. * unit_constants::T,
-                                                       0. * unit_constants::T,
-                                                       1. * unit_constants::T},
-                             -10. * unit_constants::um,
-                             5. * unit_constants::mm)));
+                             __plugin::vector3<scalar>{1. * unit<scalar>::T,
+                                                       0. * unit<scalar>::T,
+                                                       1. * unit<scalar>::T},
+                             -10. * unit<scalar>::um, 5. * unit<scalar>::mm)));
 
 INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{1. * unit_constants::T,
-                                                       1. * unit_constants::T,
-                                                       1. * unit_constants::T},
-                             -10. * unit_constants::um,
-                             5. * unit_constants::mm)));
+                             __plugin::vector3<scalar>{1. * unit<scalar>::T,
+                                                       1. * unit<scalar>::T,
+                                                       1. * unit<scalar>::T},
+                             -10. * unit<scalar>::um, 5. * unit<scalar>::mm)));

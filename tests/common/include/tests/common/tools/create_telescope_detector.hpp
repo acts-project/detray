@@ -200,10 +200,10 @@ auto create_telescope_detector(
     covfie::field<detector_registry::telescope_detector::bfield_backend_t>
         &&bfield,
     std::vector<scalar> pos, trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
-    scalar half_x = 20. * unit_constants::mm,
-    scalar half_y = 20. * unit_constants::mm,
+    scalar half_x = 20. * unit<scalar>::mm,
+    scalar half_y = 20. * unit<scalar>::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
-    const scalar thickness = 80 * unit_constants::um) {
+    const scalar thickness = 80 * unit<scalar>::um) {
 
     // detector type
     using detector_t = detector<telescope_types, covfie::field, container_t>;
@@ -258,10 +258,10 @@ auto create_telescope_detector(
     vecmem::memory_resource &resource,
     covfie::field<detector_registry::telescope_detector::bfield_backend_t>
         &&bfield,
-    dindex n_surfaces = 10, scalar tel_length = 500. * unit_constants::mm,
+    dindex n_surfaces = 10, scalar tel_length = 500. * unit<scalar>::mm,
     trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
-    scalar half_x = 20. * unit_constants::mm,
-    scalar half_y = 20. * unit_constants::mm) {
+    scalar half_x = 20. * unit<scalar>::mm,
+    scalar half_y = 20. * unit<scalar>::mm) {
     // Generate equidistant positions
     std::vector<scalar> positions = {};
     scalar pos = 0.;
@@ -284,10 +284,10 @@ template <bool unbounded_planes = true,
 auto create_telescope_detector(
     vecmem::memory_resource &resource, std::vector<scalar> pos,
     trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
-    scalar half_x = 20. * unit_constants::mm,
-    scalar half_y = 20. * unit_constants::mm,
+    scalar half_x = 20. * unit<scalar>::mm,
+    scalar half_y = 20. * unit<scalar>::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
-    const scalar thickness = 80 * unit_constants::um) {
+    const scalar thickness = 80 * unit<scalar>::um) {
 
     // Build the geometry
     return create_telescope_detector<unbounded_planes, trajectory_t,
@@ -304,10 +304,10 @@ template <bool unbounded_planes = true,
           typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, dindex n_surfaces = 10,
-    scalar tel_length = 500. * unit_constants::mm,
+    scalar tel_length = 500. * unit<scalar>::mm,
     trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
-    scalar half_x = 20. * unit_constants::mm,
-    scalar half_y = 20. * unit_constants::mm) {
+    scalar half_x = 20. * unit<scalar>::mm,
+    scalar half_y = 20. * unit<scalar>::mm) {
 
     // Build the geometry
     return create_telescope_detector<unbounded_planes, trajectory_t,

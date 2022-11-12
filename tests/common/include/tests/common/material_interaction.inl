@@ -53,13 +53,13 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
     line_plane_intersection is;
 
     // H2 liquid with a unit thickness
-    material_slab<scalar> slab(std::get<0>(GetParam()), 1 * unit_constants::cm);
+    material_slab<scalar> slab(std::get<0>(GetParam()), 1 * unit<scalar>::cm);
 
     // muon
     const int pdg = pdg_particle::eMuon;
 
     // mass
-    const scalar m = 105.7 * unit_constants::MeV;
+    const scalar m = 105.7 * unit<scalar>::MeV;
 
     // qOverP
     const scalar qOverP = -1. / std::get<1>(GetParam());
@@ -68,7 +68,7 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
     const scalar dEdx =
         I.compute_energy_loss_bethe(is, slab, pdg, m, qOverP, -1.) /
         slab.path_segment(is) / slab.get_material().mass_density() /
-        (unit_constants::MeV * unit_constants::cm2 / unit_constants::g);
+        (unit<scalar>::MeV * unit<scalar>::cm2 / unit<scalar>::g);
 
     // Check if difference is within 5% error
     EXPECT_TRUE(std::abs(std::get<2>(GetParam()) - dEdx) / dEdx < 0.05);
@@ -77,82 +77,82 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
 INSTANTIATE_TEST_SUITE_P(
     Bethe_0p1GeV_H2Liquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
-                                      0.1003 * unit_constants::GeV, 6.539)));
+                                      0.1003 * unit<scalar>::GeV, 6.539)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_1GeV_H2Liquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
-                                      1.101 * unit_constants::GeV, 4.182)));
+                                      1.101 * unit<scalar>::GeV, 4.182)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_10GeV_H2Liquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
-                                      10.11 * unit_constants::GeV, 4.777)));
+                                      10.11 * unit<scalar>::GeV, 4.777)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_100GeV_H2Liquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
-                                      100.1 * unit_constants::GeV, 5.305)));
+                                      100.1 * unit<scalar>::GeV, 5.305)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_0p1GeV_HeGas, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(),
-                                      0.1003 * unit_constants::GeV, 3.082)));
+                                      0.1003 * unit<scalar>::GeV, 3.082)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_1GeV_HeGas, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(),
-                                      1.101 * unit_constants::GeV, 2.133)));
+                                      1.101 * unit<scalar>::GeV, 2.133)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_10GeV_HeGas, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(),
-                                      10.11 * unit_constants::GeV, 2.768)));
+                                      10.11 * unit<scalar>::GeV, 2.768)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_100GeV_HeGas, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(),
-                                      100.1 * unit_constants::GeV, 3.188)));
+                                      100.1 * unit<scalar>::GeV, 3.188)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_0p1GeV_Al, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(aluminium<scalar>(),
-                                      0.1003 * unit_constants::GeV, 2.533)));
+                                      0.1003 * unit<scalar>::GeV, 2.533)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_1GeV_Al, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(aluminium<scalar>(),
-                                      1.101 * unit_constants::GeV, 1.744)));
+                                      1.101 * unit<scalar>::GeV, 1.744)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_10GeV_Al, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(aluminium<scalar>(),
-                                      10.11 * unit_constants::GeV, 2.097)));
+                                      10.11 * unit<scalar>::GeV, 2.097)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_100GeV_Al, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(aluminium<scalar>(),
-                                      100.1 * unit_constants::GeV, 2.360)));
+                                      100.1 * unit<scalar>::GeV, 2.360)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_0p1GeV_Si, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
-                                      0.1003 * unit_constants::GeV, 2.608)));
+                                      0.1003 * unit<scalar>::GeV, 2.608)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_1GeV_Si, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
-                                      1.101 * unit_constants::GeV, 1.803)));
+                                      1.101 * unit<scalar>::GeV, 1.803)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_10GeV_Si, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
-                                      10.11 * unit_constants::GeV, 2.177)));
+                                      10.11 * unit<scalar>::GeV, 2.177)));
 
 INSTANTIATE_TEST_SUITE_P(
     Bethe_100GeV_Si, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
-                                      100.1 * unit_constants::GeV, 2.451)));
+                                      100.1 * unit<scalar>::GeV, 2.451)));
 
 // Test class for MUON energy loss with Landau function
 // Input tuple: < material / energy / expected energy loss  / expected fwhm  >
@@ -170,13 +170,13 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
 
     // H2 liquid with a unit thickness
     material_slab<scalar> slab(std::get<0>(GetParam()),
-                               0.17 * unit_constants::cm);
+                               0.17 * unit<scalar>::cm);
 
     // muon
     const int pdg = pdg_particle::eMuon;
 
     // mass
-    const scalar m = 105.7 * unit_constants::MeV;
+    const scalar m = 105.7 * unit<scalar>::MeV;
 
     // qOverP
     const scalar qOverP = -1. / std::get<1>(GetParam());
@@ -184,7 +184,7 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     // Landau Energy loss in MeV
     const scalar dE =
         I.compute_energy_loss_landau(is, slab, pdg, m, qOverP, -1) /
-        (unit_constants::MeV);
+        (unit<scalar>::MeV);
 
     // Check if difference is within 5% error
     EXPECT_TRUE(std::abs(std::get<2>(GetParam()) - dE) / dE < 0.05);
@@ -192,7 +192,7 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     // Landau Energy loss Fluctuation
     const scalar fwhm =
         I.compute_energy_loss_landau_fwhm(is, slab, pdg, m, qOverP, -1) /
-        (unit_constants::MeV);
+        (unit<scalar>::MeV);
 
     // Check if difference is within 10% error
     EXPECT_TRUE(std::abs(std::get<3>(GetParam()) - fwhm) / fwhm < 0.1);
@@ -202,7 +202,7 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
 INSTANTIATE_TEST_SUITE_P(
     Landau_10GeV_Silicon, EnergyLossLandauValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
-                                      10. * unit_constants::GeV, 0.525, 0.13)));
+                                      10. * unit<scalar>::GeV, 0.525, 0.13)));
 
 // Material interaction test with telescope Geometry
 TEST(material_interaction, telescope_geometry_energy_loss) {
@@ -215,11 +215,11 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
                                      300., 350, 400,  450., 500.};
 
     const auto mat = silicon_tml<scalar>();
-    const scalar thickness = 0.17 * unit_constants::cm;
+    const scalar thickness = 0.17 * unit<scalar>::cm;
 
     const auto det = create_telescope_detector(
-        host_mr, positions, traj, 20. * unit_constants::mm,
-        20. * unit_constants::mm, mat, thickness);
+        host_mr, positions, traj, 20. * unit<scalar>::mm,
+        20. * unit<scalar>::mm, mat, thickness);
 
     using navigator_t = navigator<decltype(det)>;
     using constraints_t = constrained_step<>;
@@ -236,7 +236,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     propagator_t p({}, {});
 
     const scalar q = -1.;
-    const scalar iniP = 10 * unit_constants::GeV;
+    const scalar iniP = 10 * unit<scalar>::GeV;
 
     typename bound_track_parameters<transform3>::vector_type bound_vector;
     getter::element(bound_vector, e_bound_loc0, 0) = 0.;
@@ -259,14 +259,13 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     parameter_resetter<transform3>::state parameter_resetter_state{};
 
     // Create actor states tuples
-    actor_chain_t::state actor_states =
-        std::tie(print_insp_state, aborter_state, bound_updater,
-                 interactor_state, parameter_resetter_state);
+    auto actor_states = std::tie(print_insp_state, aborter_state, bound_updater,
+                                 interactor_state, parameter_resetter_state);
 
-    propagator_t::state state(bound_param, det, actor_states);
+    propagator_t::state state(bound_param, det);
 
     // Propagate the entire detector
-    ASSERT_TRUE(p.propagate(state))
+    ASSERT_TRUE(p.propagate(state, actor_states))
         << print_insp_state.to_string() << std::endl;
 
     // muon
@@ -330,17 +329,17 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
 
     // Build from given module positions
     detail::ray<transform3> traj{{0, 0, 0}, 0, {1, 0, 0}, -1};
-    std::vector<scalar> positions = {0., 1000. * unit_constants::cm,
-                                     2000. * unit_constants::cm};
+    std::vector<scalar> positions = {0., 1000. * unit<scalar>::cm,
+                                     2000. * unit<scalar>::cm};
 
     const auto mat = silicon_tml<scalar>();
-    const scalar thickness = 500 * unit_constants::cm;
+    const scalar thickness = 500 * unit<scalar>::cm;
     // Use unbounded surfaces
     constexpr bool unbounded = true;
 
     const auto det = create_telescope_detector<unbounded>(
-        host_mr, positions, traj, 2000. * unit_constants::mm,
-        2000. * unit_constants::mm, mat, thickness);
+        host_mr, positions, traj, 2000. * unit<scalar>::mm,
+        2000. * unit<scalar>::mm, mat, thickness);
 
     using navigator_t = navigator<decltype(det)>;
     using constraints_t = constrained_step<>;
@@ -348,17 +347,18 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     using stepper_t = line_stepper<transform3, constraints_t, policy_t>;
     using interactor_t = pointwise_material_interactor<transform3>;
     using simulator_t = random_scatterer<interactor_t>;
+    using material_actor_t = composite_actor<dtuple, interactor_t, simulator_t>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
-                    parameter_transporter<transform3>, interactor_t,
-                    simulator_t, parameter_resetter<transform3>>;
+                    parameter_transporter<transform3>, material_actor_t,
+                    parameter_resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
     propagator_t p({}, {});
 
     const scalar q = -1.;
-    const scalar iniP = 10 * unit_constants::GeV;
+    const scalar iniP = 10 * unit<scalar>::GeV;
 
     typename bound_track_parameters<transform3>::vector_type bound_vector;
     getter::element(bound_vector, e_bound_loc0, 0) = 0.;
@@ -388,20 +388,20 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
         parameter_transporter<transform3>::state bound_updater{};
         interactor_t::state interactor_state{};
         interactor_state.do_energy_loss = false;
-        simulator_t::state simulator_state(interactor_state);
+        simulator_t::state simulator_state{};
         parameter_resetter<transform3>::state parameter_resetter_state{};
 
         // Create actor states tuples
-        actor_chain_t::state actor_states = std::tie(
-            print_insp_state, aborter_state, bound_updater, interactor_state,
-            simulator_state, parameter_resetter_state);
+        auto actor_states = std::tie(print_insp_state, aborter_state,
+                                     bound_updater, interactor_state,
+                                     simulator_state, parameter_resetter_state);
 
-        propagator_t::state state(bound_param, det, actor_states);
+        propagator_t::state state(bound_param, det);
 
-        state._stepping().set_overstep_tolerance(-1000. * unit_constants::um);
+        state._stepping().set_overstep_tolerance(-1000. * unit<scalar>::um);
 
         // Propagate the entire detector
-        ASSERT_TRUE(p.propagate(state))
+        ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string() << std::endl;
 
         const auto& final_params = state._stepping._bound_params;

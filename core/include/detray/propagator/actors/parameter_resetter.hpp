@@ -35,17 +35,13 @@ struct parameter_resetter : actor {
         using output_type = bool;
 
         template <typename mask_group_t, typename index_t,
-                  typename transform_store_t, typename surface_t,
                   typename stepper_state_t>
         DETRAY_HOST_DEVICE inline output_type operator()(
-            const mask_group_t& mask_group, const index_t& /*index*/,
-            transform_store_t& trf_store, surface_t& surface,
-            stepper_state_t& stepping) const {
-
-            const auto& trf3 = trf_store[surface.transform()];
+            const mask_group_t& mask_group, const index_t& index,
+            const transform3_t& trf3, stepper_state_t& stepping) const {
 
             // Note: How is it possible with "range"???
-            const auto& mask = mask_group[surface.mask().index()];
+            const auto& mask = mask_group[index];
 
             auto local_coordinate = mask.local_frame();
 
@@ -77,7 +73,7 @@ struct parameter_resetter : actor {
         // Do covariance transport when the track is on surface
         if (navigation.is_on_module()) {
 
-            auto det = navigation.detector();
+            auto* det = navigation.detector();
             const auto& trf_store = det->transform_store();
             const auto& mask_store = det->mask_store();
 
@@ -90,8 +86,8 @@ struct parameter_resetter : actor {
             // Set surface link
             stepping._bound_params.set_surface_link(is->index);
 
-            mask_store.template call<kernel>(surface.mask(), trf_store, surface,
-                                             stepping);
+            mask_store.template call<kernel>(
+                surface.mask(), trf_store[surface.transform()], stepping);
         }
     }
 };

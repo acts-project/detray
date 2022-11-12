@@ -113,11 +113,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Materials
     auto portal_mat =
-        material_slab<scalar>(vacuum<scalar>(), 0. * unit_constants::mm);
-    auto beampipe_mat = material_slab<scalar>(beryllium_tml<scalar>(),
-                                              0.8 * unit_constants::mm);
+        material_slab<scalar>(vacuum<scalar>(), 0. * unit<scalar>::mm);
+    auto beampipe_mat =
+        material_slab<scalar>(beryllium_tml<scalar>(), 0.8 * unit<scalar>::mm);
     auto pixel_mat =
-        material_slab<scalar>(silicon_tml<scalar>(), 0.15 * unit_constants::mm);
+        material_slab<scalar>(silicon_tml<scalar>(), 0.15 * unit<scalar>::mm);
 
     /** Link to outer world (leaving detector) */
     const dindex leaving_world = dindex_invalid;
