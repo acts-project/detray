@@ -12,8 +12,8 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
+#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 #include "detray/surface_finders/grid/detail/axis_helpers.hpp"
-#include "detray/surface_finders/grid/detail/axis_shape.hpp"
 #include "detray/utils/type_registry.hpp"
 
 // VecMem include(s).
@@ -21,38 +21,40 @@
 
 // System include(s).
 #include <cstddef>
+#include <tuple>
 #include <type_traits>
 
-namespace detray {
-
-namespace n_axis {
+namespace detray::n_axis {
 
 /// @brief A single axis.
 ///
-/// The axis ties together shape and binning behaviour with the bin edges
-/// storage. The shape determines how bin indices are mapped at the over-
+/// An axis ties bounds and binning behaviour with the bin edges storage.
+/// The bounds determine how bin indices are mapped at the over-
 /// and underflow bins. The type of binning determines whether the axis has
 /// regular or irregular binning. The bin edges needed to find bin indices
 /// are not owned by the axis, but are passed to the binning type.
-template <typename shape_t, typename binning_t>
+template <typename bounds_t, typename binning_t>
 struct single_axis {
 
-    /// Make axis shape accessible
-    using shape_type = shape_t;
+    /// Make axis bounds accessible
+    using bounds_type = bounds_t;
     /// Make axis binning type accessible
     using binning_type = binning_t;
 
-    // Extract container types
     using scalar_type = typename binning_type::scalar_type;
+
+    /// Extract container types
+    /// @{
     using container_types = typename binning_type::container_types;
     template <typename T>
     using vector_type = typename binning_type::template vector_type<T>;
     template <typename T, std::size_t N>
     using array_type = typename binning_type::template array_type<T, N>;
+    /// @}
 
-    /// Defines the geometrical shape of the axis as a service:
+    /// Defines the geometrical bounds of the axis as a service:
     /// open, closed or circular
-    shape_type m_shape{};
+    bounds_type m_bounds{};
     /// Defines the binning on the axis as a service: regular vs irregular
     binning_type m_binning{};
 
@@ -63,15 +65,17 @@ struct single_axis {
     template <typename... Args>
     DETRAY_HOST_DEVICE single_axis(const dindex_range *indx_range,
                                    const vector_type<scalar_type> *edges)
-        : m_shape(), m_binning(indx_range, edges) {}
+        : m_bounds(), m_binning(indx_range, edges) {}
 
-    /// @returns the axis shape label, i.e. x, y, z, r or phi axis.
+    /// @returns the axis label, i.e. x, y, z, r or phi axis.
     DETRAY_HOST_DEVICE
-    constexpr auto label() const -> n_axis::label { return shape_type::label; }
+    constexpr auto label() const -> n_axis::label { return bounds_type::label; }
 
-    /// @returns the type of shape of the axis, i.e. closed, open or circular.
+    /// @returns the type of bounds of the axis, i.e. closed, open or circular.
     DETRAY_HOST_DEVICE
-    constexpr auto shape() const -> n_axis::shape { return shape_type::type; }
+    constexpr auto bounds() const -> n_axis::bounds {
+        return bounds_type::type;
+    }
 
     /// @returns the type of binning of the axis, i.e. regular or irregular.
     DETRAY_HOST_DEVICE
@@ -81,7 +85,15 @@ struct single_axis {
 
     /// @returns the total number of bins
     DETRAY_HOST_DEVICE
-    inline constexpr std::size_t nbins() const { return m_binning.nbins(); }
+    inline constexpr std::size_t nbins() const {
+        // The open axis boundary has extra over- and underflow bins that are
+        // automatically added beyond the axis span
+        if constexpr (bounds_type::type == n_axis::bounds::e_open) {
+            return m_binning.nbins() + 2;
+        } else {
+            return m_binning.nbins();
+        }
+    }
 
     /// @returns the width of a bin
     template <typename... Args>
@@ -97,7 +109,7 @@ struct single_axis {
     /// @returns the bin index.
     DETRAY_HOST_DEVICE
     inline dindex bin(const scalar_type v) const {
-        return m_shape.map(m_binning.bin(v), m_binning.nbins());
+        return m_bounds.map(m_binning.bin(v), m_binning.nbins());
     }
 
     /// Given a value on the axis and a neighborhood, find the correct bin range
@@ -109,7 +121,7 @@ struct single_axis {
     template <typename neighbor_t>
     DETRAY_HOST_DEVICE dindex_range
     range(const scalar_type v, const array_type<neighbor_t, 2> &nhood) const {
-        return m_shape.map(m_binning.range(v, nhood), m_binning.nbins());
+        return m_bounds.map(m_binning.range(v, nhood), m_binning.nbins());
     }
 
     /// @returns the bin edges for a given @param ibin .
@@ -153,37 +165,51 @@ class multi_axis {
     static constexpr dindex Dim = sizeof...(axis_ts);
     static constexpr bool is_owning = ownership;
 
-    // Extract container types
     using scalar_type =
         typename detray::detail::first_t<axis_ts...>::scalar_type;
+
+    /// Extract container types
+    /// @{
     using container_types =
         typename detray::detail::first_t<axis_ts...>::container_types;
     template <typename T>
     using vector_type = typename container_types::template vector_type<T>;
     template <typename... T>
     using tuple_type = typename container_types::template tuple_type<T...>;
+    /// @}
+
+    /// binnings and axis bounds
+    /// @{
+    using binnings = std::tuple<typename axis_ts::binning_type...>;
+    using bounds = std::tuple<typename axis_ts::bounds_type...>;
+    /// @}
 
     /// Projection onto local coordinate system that is spanned by the axes
     using local_frame_type = local_frame_t;
 
     /// Axes boundary/bin edges storage
+    /// @{
     using boundary_storage_type = vector_type<dindex_range>;
     using edges_storage_type = vector_type<scalar_type>;
+    // Interal storage type depends on whether the class owns the data or not
+    using storage_type = std::conditional_t<
+        is_owning, detail::multi_axis_data<container_types, scalar_type>,
+        detail::multi_axis_view<container_types, scalar_type>>;
+    /// @}
 
     /// Vecmem based multi-axis view type
     using view_type =
         dmulti_view<dvector_view<dindex_range>, dvector_view<scalar_type>>;
     using const_view_type = dmulti_view<dvector_view<const dindex_range>,
                                         dvector_view<const scalar_type>>;
-    /// Interal storage type depends on whether the class owns the data or not
-    using storage_type = std::conditional_t<
-        is_owning, detail::multi_axis_data<container_types, scalar_type>,
-        detail::multi_axis_view<container_types, scalar_type>>;
 
     /// Match an axis to its label at compile time
     using axis_reg = type_registry<n_axis::label, axis_ts...>;
     template <n_axis::label L>
     using label_matcher = typename axis_reg::template get_type<L, tuple_type>;
+    /// Find the corresponding (non-)owning type
+    template <bool owning>
+    using type = multi_axis<owning, local_frame_t, axis_ts...>;
 
     /// Default constructor
     multi_axis() = default;
@@ -217,12 +243,6 @@ class multi_axis {
     DETRAY_HOST_DEVICE
     auto data() const -> const storage_type & { return m_data; }
 
-    /// @returns the underlying axes storage. Either the container
-    /// or a container pointer to a global collection - non-const for vecmem
-    // TODO: Don't do
-    DETRAY_HOST_DEVICE
-    auto data() -> storage_type & { return m_data; }
-
     /// Build an axis object in place.
     ///
     /// @tparam index the position of the axis in the parameter pack. Also
@@ -232,7 +252,7 @@ class multi_axis {
     template <std::size_t index>
     DETRAY_HOST_DEVICE typename label_matcher<axis_reg::to_id(index)>::type
     get_axis() const {
-        return {m_data.axis_data(index), m_data.edges()};
+        return {data().axis_data(index), data().edges()};
     }
 
     /// Build an axis object in place.
@@ -252,13 +272,13 @@ class multi_axis {
     /// @returns an axis object of the given type.
     template <typename axis_t>
     DETRAY_HOST_DEVICE axis_t get_axis() const {
-        return get_axis<axis_t::shape_type::label>();
+        return get_axis<axis_t::bounds_type::label>();
     }
 
     /// @returns the number of bins per axis
     DETRAY_HOST_DEVICE inline constexpr auto nbins() const -> multi_bin<Dim> {
         // Empty bin indices to be filled
-        multi_bin<Dim> n_bins{{0, 0, 0}};
+        multi_bin<Dim> n_bins{};
         // Get the number of bins for every axis
         (single_axis(get_axis<axis_ts>(), n_bins), ...);
 
@@ -336,7 +356,7 @@ class multi_axis {
                                         multi_bin<Dim> &n_bins) const {
         // Get the index corresponding to the axis label (e.g. bin_x <=> 0)
         constexpr dindex loc_idx =
-            axis_reg::to_index(axis_t::shape_type::label);
+            axis_reg::to_index(axis_t::bounds_type::label);
         n_bins[loc_idx] = ax.nbins();
     }
 
@@ -355,7 +375,7 @@ class multi_axis {
                                         multi_bin<Dim> &bin_indices) const {
         // Get the index corresponding to the axis label (e.g. bin_x <=> 0)
         constexpr dindex loc_idx =
-            axis_reg::to_index(axis_t::shape_type::label);
+            axis_reg::to_index(axis_t::bounds_type::label);
         bin_indices.indices[loc_idx] = ax.bin(p[loc_idx]);
     }
 
@@ -380,7 +400,7 @@ class multi_axis {
         multi_bin_range<Dim> &bin_ranges) const {
         // Get the index corresponding to the axis label (e.g. bin_range_x = 0)
         constexpr dindex loc_idx =
-            axis_reg::to_index(axis_t::shape_type::label);
+            axis_reg::to_index(axis_t::bounds_type::label);
         bin_ranges.indices[loc_idx] = ax.range(p[loc_idx], nhood);
     }
 
@@ -388,6 +408,4 @@ class multi_axis {
     storage_type m_data{};
 };
 
-}  // namespace n_axis
-
-}  // namespace detray
+}  // namespace detray::n_axis

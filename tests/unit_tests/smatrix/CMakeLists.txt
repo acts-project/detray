@@ -27,6 +27,7 @@ detray_add_test( smatrix
    "smatrix_geometry_scan.cpp"
    "smatrix_grid.cpp"
    "smatrix_grid_axis.cpp"
+   "smatrix_grid_builder.cpp"
    "smatrix_grid_collection.cpp"
    "smatrix_grid_populator.cpp"
    "smatrix_grid_serializer.cpp"

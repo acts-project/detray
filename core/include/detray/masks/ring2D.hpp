@@ -12,7 +12,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_shape.hpp"
+#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
 #include <cmath>
@@ -66,18 +66,19 @@ class ring2D {
 
     /// Behaviour of the two local axes (linear in r, circular in phi)
     template <
-        n_axis::shape e_s = n_axis::shape::e_open,
+        n_axis::bounds e_s = n_axis::bounds::e_closed,
         template <typename, typename> class binning_loc0 = n_axis::regular,
         template <typename, typename> class binning_loc1 = n_axis::regular>
     struct axes {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_r;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_phi;
+        static constexpr std::size_t dim{2UL};
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
         using coordinate_type = local_frame_type<algebra_t>;
 
-        using types = std::tuple<n_axis::shape_t<e_s, axis_loc0>,
+        using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>,
                                  n_axis::circular<axis_loc1>>;
 
         template <typename C, typename S>

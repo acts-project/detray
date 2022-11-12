@@ -15,9 +15,7 @@
 // System include(s).
 #include <cstddef>
 
-namespace detray {
-
-namespace n_axis {
+namespace detray::n_axis {
 
 /// axis binning type names.
 enum class binning {
@@ -71,10 +69,16 @@ struct regular {
     ///
     /// @param v is the value for the bin search
     ///
+    /// @note the floating point truncation to integer leaves
+    /// int(-0.9) = int(0.9) = 0, which wrongfully maps overflow bins onto the
+    /// axis range itself.
+    /// Therefore, the values are shifted towards positive bin numbers first,
+    /// and then shifted back, in order to emulate @c std::floor for this case.
+    ///
     /// @returns the corresponding bin index
     DETRAY_HOST_DEVICE
     int bin(const scalar_t v) const {
-        return static_cast<int>((v - span()[0]) / bin_width() + 1);
+        return static_cast<int>((v - span()[0]) / bin_width() + 1) - 1;
     }
 
     /// Access function to a range with binned neighborhood
@@ -126,7 +130,7 @@ struct regular {
         const array_type<scalar_t, 2> sp = span();
         const scalar_t step{bin_width()};
 
-        for (dindex ib = 0; ib < nbins(); ++ib) {
+        for (dindex ib = 0; ib <= nbins(); ++ib) {
             edges.push_back(sp[0] + ib * step);
         }
 
@@ -212,8 +216,9 @@ struct irregular {
         auto bins_begin = m_bin_edges->begin() + detail::get<0>(*m_edges_range);
         auto bins_end = m_bin_edges->begin() + detail::get<1>(*m_edges_range);
 
-        return static_cast<int>(detail::upper_bound(bins_begin, bins_end, v) -
-                                bins_begin);
+        return static_cast<int>(detail::lower_bound(bins_begin, bins_end, v) -
+                                bins_begin) -
+               1;
     }
 
     /// Access function to a range with binned neighborhood
@@ -293,6 +298,4 @@ struct irregular {
     }
 };
 
-}  // namespace n_axis
-
-}  // namespace detray
+}  // namespace detray::n_axis
