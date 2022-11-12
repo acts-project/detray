@@ -12,10 +12,10 @@
 #include "detray/masks/cylinder3D.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
-#include "detray/surface_finders/grid/grid_builder.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/tools/grid_builder.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -71,8 +71,9 @@ TEST(grid, grid_collection) {
     // Bin test entries
     grid_t::bin_storage_type bin_data{};
     bin_data.resize(197UL);
-    std::generate_n(bin_data.begin(), 197UL,
-                    bin_content_sequence<grid_t::populator_type, dindex>());
+    std::generate_n(
+        bin_data.begin(), 197UL,
+        bin_content_sequence<populator<grid_t::populator_impl>, dindex>());
     dvector<dindex> grid_offsets = {0UL, 48UL, 72UL};
 
     // Data-owning grid collection
@@ -83,7 +84,7 @@ TEST(grid, grid_collection) {
     // Tests
 
     // Basics
-    EXPECT_EQ(grid_coll.ngrids(), 3UL);
+    EXPECT_EQ(grid_coll.size(), 3UL);
     EXPECT_EQ(grid_coll.bin_storage().size(), 197UL);
     EXPECT_EQ(grid_coll.axes_storage().size(), 9UL);
     EXPECT_EQ(grid_coll.bin_edges_storage().size(), 18UL);
@@ -96,10 +97,10 @@ TEST(grid, grid_collection) {
 
     EXPECT_EQ(single_grid.Dim, 3);
     auto r_axis = single_grid.get_axis<label::e_r>();
-    EXPECT_EQ(r_axis.nbins(), 1u);
-    using z_axis_t = single_axis<open<label::e_z>, regular<>>;
+    EXPECT_EQ(r_axis.nbins(), 1UL);
+    using z_axis_t = single_axis<closed<label::e_z>, regular<>>;
     auto z_axis = single_grid.get_axis<z_axis_t>();
-    EXPECT_EQ(z_axis.nbins(), 8u);
+    EXPECT_EQ(z_axis.nbins(), 8UL);
 
     // The generator starts countaing at one instead of zero
     EXPECT_EQ(single_grid.at(0u, 0u, 0u)[0u], 49UL);

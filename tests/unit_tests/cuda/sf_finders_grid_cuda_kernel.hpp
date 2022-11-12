@@ -19,10 +19,10 @@
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
-#include "detray/surface_finders/grid/grid_builder.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/tools/grid_builder.hpp"
 
 #pragma once
 
@@ -46,26 +46,24 @@ static constexpr bool is_owning = true;
 
 // 3D cartesian coordinate axes with closed bin boundaries and regular binning
 template <typename containers = host_container_types>
-using cartesian_3D =
-    coordinate_axes<cuboid3D::axes<shape::e_closed>, is_owning, containers>;
+using cartesian_3D = coordinate_axes<cuboid3D::axes<>, is_owning, containers>;
 
 // 3D cylindrical coordinate axes with open bin boundaries and regular binning
 // non-owning
 template <typename containers = host_container_types>
-using cylindrical_3D =
-    coordinate_axes<cylinder3D::axes<shape::e_open>, not is_owning, containers>;
+using cylindrical_3D = coordinate_axes<cylinder3D::axes<bounds::e_open>,
+                                       not is_owning, containers>;
 
 // 2D polar coordinate axes with closed bin boundaries, irregular binning in r
 // and regular binning in phi
 template <typename containers = host_container_types>
 using polar_ir =
-    coordinate_axes<ring2D<>::axes<shape::e_closed, irregular, regular>,
+    coordinate_axes<ring2D<>::axes<bounds::e_closed, irregular, regular>,
                     is_owning, containers>;
 
 // 2D polar coordinate axes with closed bin boundaries and regular binning
 template <typename containers = host_container_types>
-using polar =
-    coordinate_axes<ring2D<>::axes<shape::e_closed>, is_owning, containers>;
+using polar = coordinate_axes<ring2D<>::axes<>, is_owning, containers>;
 
 // host and device grid definitions
 using host_grid3_replace =

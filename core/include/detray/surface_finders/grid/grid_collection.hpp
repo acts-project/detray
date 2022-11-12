@@ -26,7 +26,11 @@ namespace detray {
 ///                that the grid collection can manage the underlying memory.
 /// @tparam containers Host or device container types
 template <typename grid_t, typename = void>
-class grid_collection {};
+class grid_collection {
+    grid_collection() = delete;
+    grid_collection(const grid_collection &) = delete;
+    grid_collection(grid_collection &&) = delete;
+};
 
 /// Specialization for @c detray::grid
 ///
@@ -100,51 +104,45 @@ class grid_collection<
 
     /// @returns the number of grids in the collection - const
     DETRAY_HOST_DEVICE
-    constexpr auto ngrids() const -> std::size_t { return m_offsets.size(); }
+    constexpr auto size() const noexcept -> std::size_t {
+        return m_offsets.size();
+    }
+
+    /// @returns the number of grids in the collection - const
+    DETRAY_HOST_DEVICE
+    constexpr auto empty() const noexcept -> bool { return m_offsets.empty(); }
 
     /// @returns the offsets for the grids in the bin storage - const
     DETRAY_HOST_DEVICE
-    auto offsets() const -> const vector_type<size_type> & { return m_offsets; }
-
-    /// @returns the offsets for the grids in the bin storage - non-const
-    DETRAY_HOST_DEVICE
-    auto offsets() -> vector_type<size_type> & { return m_offsets; }
+    constexpr auto offsets() const -> const vector_type<size_type> & {
+        return m_offsets;
+    }
 
     /// @returns the underlying bin content storage - const
     DETRAY_HOST_DEVICE
-    auto bin_storage() const -> const bin_storage_type & { return m_bins; }
-
-    /// @returns the underlying bin content storage - non-const
-    DETRAY_HOST_DEVICE
-    auto bin_storage() -> bin_storage_type & { return m_bins; }
+    constexpr auto bin_storage() const -> const bin_storage_type & {
+        return m_bins;
+    }
 
     /// @returns the underlying axis boundary storage - const
     DETRAY_HOST_DEVICE
-    auto axes_storage() const -> const axes_storage_type & {
+    constexpr auto axes_storage() const -> const axes_storage_type & {
         return m_axes_data;
     }
 
-    /// @returns the underlying axis boundary storage - non-const
-    DETRAY_HOST_DEVICE
-    auto axes_storage() -> axes_storage_type & { return m_axes_data; }
-
     /// @returns the underlying bin edges storage - const
     DETRAY_HOST_DEVICE
-    auto bin_edges_storage() const -> const edges_storage_type & {
+    constexpr auto bin_edges_storage() const -> const edges_storage_type & {
         return m_bin_edges;
     }
 
-    /// @returns the underlying bin edges storage - non-const
-    DETRAY_HOST_DEVICE
-    auto bin_edges_storage() -> edges_storage_type & { return m_bin_edges; }
-
     /// Create grid from container pointers - const
     DETRAY_HOST_DEVICE
-    auto operator[](const size_type i) const -> const_grid_type {
+    auto operator[](const size_type i) const -> grid_type {
         const size_type axes_offset{grid_type::Dim * i};
-        return const_grid_type(
-            &m_bins, multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
-            m_offsets[i]);
+        return grid_type(&m_bins,
+                         multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
+                         m_offsets[i]);
     }
 
     /// Create grid from container pointers - non-const
@@ -167,6 +165,25 @@ class grid_collection<
     auto get_data() const -> const_view_type {
         return {detray::get_data(m_offsets), detray::get_data(m_bins),
                 detray::get_data(m_axes_data), detray::get_data(m_bin_edges)};
+    }
+
+    /// Add a new grid @param gr to the collection.
+    /// @note this takes a data owning grid to transcribe the data from.
+    DETRAY_HOST constexpr auto push_back(
+        const typename grid_type::template type<true> &gr) noexcept(false)
+        -> void {
+        m_offsets.push_back(m_bins.size());
+
+        const auto *grid_bins = gr.data().bin_data();
+        m_bins.insert(m_bins.end(), grid_bins->begin(), grid_bins->end());
+
+        const auto *axes_data = gr.axes().data().axes_data();
+        m_axes_data.insert(m_axes_data.end(), axes_data->begin(),
+                           axes_data->end());
+
+        const auto *bin_edges = gr.axes().data().edges();
+        m_bin_edges.insert(m_bin_edges.end(), bin_edges->begin(),
+                           bin_edges->end());
     }
 
     private:

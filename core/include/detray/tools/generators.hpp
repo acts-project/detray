@@ -8,6 +8,7 @@
 #pragma once
 
 #include "detray/masks/masks.hpp"
+#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -231,7 +232,7 @@ struct vertexer {
     output_type operator()(const mask_group_t &masks, const mask_range_t &range,
                            dindex n_segments = 1) {
         output_type mask_vertices = {};
-        for (auto i : sequence(range)) {
+        for (auto i : detray::views::iota(range)) {
             const auto &mask = masks[i];
             mask_vertices.push_back(
                 vertices<point2_t, point3_t>(mask, n_segments));

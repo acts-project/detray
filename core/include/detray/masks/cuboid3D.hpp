@@ -12,7 +12,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_shape.hpp"
+#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
 #include <cmath>
@@ -62,7 +62,7 @@ class cuboid3D {
     /// Behaviour of the three local axes (linear in x, linear in y,
     /// linear in z)
     template <
-        n_axis::shape e_s = n_axis::shape::e_open,
+        n_axis::bounds e_s = n_axis::bounds::e_closed,
         template <typename, typename> class binning_loc0 = n_axis::regular,
         template <typename, typename> class binning_loc1 = n_axis::regular,
         template <typename, typename> class binning_loc2 = n_axis::regular>
@@ -70,14 +70,15 @@ class cuboid3D {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
         static constexpr n_axis::label axis_loc2 = n_axis::label::e_z;
+        static constexpr std::size_t dim{3UL};
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
         using coordinate_type = local_frame_type<algebra_t>;
 
-        using types = std::tuple<n_axis::shape_t<e_s, axis_loc0>,
-                                 n_axis::shape_t<e_s, axis_loc1>,
-                                 n_axis::shape_t<e_s, axis_loc2>>;
+        using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>,
+                                 n_axis::bounds_t<e_s, axis_loc1>,
+                                 n_axis::bounds_t<e_s, axis_loc2>>;
 
         template <typename C, typename S>
         using binning = std::tuple<binning_loc0<C, S>, binning_loc1<C, S>,

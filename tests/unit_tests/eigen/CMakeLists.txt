@@ -27,6 +27,7 @@ detray_add_test( eigen
    "eigen_geometry_scan.cpp"
    "eigen_grid.cpp"
    "eigen_grid_axis.cpp"
+   "eigen_grid_builder.cpp"
    "eigen_grid_collection.cpp"
    "eigen_grid_populator.cpp"
    "eigen_grid_serializer.cpp"
