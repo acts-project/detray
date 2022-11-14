@@ -152,32 +152,6 @@ struct bound_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
-    void flip() {
-        // Make sure that we only use the precision necessary.
-        const scalar_type PI = static_cast<scalar_type>(M_PI);
-        const scalar_type TWOPI = 2. * PI;
-
-        scalar_type phi = matrix_operator().element(m_vector, e_bound_phi, 0);
-        phi = phi - PI;
-
-        // Bring the phi within bounds.
-        while (phi > PI) {
-            phi -= TWOPI;
-        }
-        while (phi < -PI) {
-            phi += TWOPI;
-        }
-
-        scalar_type theta =
-            matrix_operator().element(m_vector, e_bound_theta, 0);
-        theta = PI - theta;
-
-        matrix_operator().element(m_vector, e_bound_phi, 0) = phi;
-        matrix_operator().element(m_vector, e_bound_theta, 0) = theta;
-        matrix_operator().element(m_vector, e_bound_qoverp, 0) *= -1.;
-    }
-
-    DETRAY_HOST_DEVICE
     scalar_type p() const { return charge() / qop(); }
 
     DETRAY_HOST_DEVICE
