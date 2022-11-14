@@ -8,6 +8,7 @@
 // Project include(s).
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -20,10 +21,9 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
+#include "detray/simulation/random_scatterer.hpp"
 #include "detray/utils/statistics.hpp"
-#include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/inspectors.hpp"
-#include "tests/common/tools/random_scatterer.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

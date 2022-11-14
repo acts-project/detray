@@ -12,7 +12,7 @@
 #include "detray/io/csv_io_types.hpp"
 #include "detray/io/utils.hpp"
 #include "detray/propagator/base_actor.hpp"
-#include "tests/common/tools/measurement_smearer.hpp"
+#include "detray/simulation/measurement_smearer.hpp"
 
 namespace detray {
 

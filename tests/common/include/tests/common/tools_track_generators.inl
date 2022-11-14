@@ -9,9 +9,9 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/simulation/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/statistics.hpp"
-#include "tests/common/tools/track_generators.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;

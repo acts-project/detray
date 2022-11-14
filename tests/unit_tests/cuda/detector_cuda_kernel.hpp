@@ -18,8 +18,8 @@
 #include <thrust/tuple.h>
 
 #include "detray/core/detector.hpp"
+#include "detray/detectors/detector_metadata.hpp"
 #include "detray/utils/ranges.hpp"
-#include "tests/common/tools/detector_metadata.hpp"
 
 #pragma once
 

@@ -11,8 +11,8 @@
 #include <map>
 #include <vecmem/memory/host_memory_resource.hpp>
 
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/volume_graph.hpp"
-#include "tests/common/tools/create_toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 

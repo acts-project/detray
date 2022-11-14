@@ -7,10 +7,10 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/create_toy_geometry.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
 // GoogleTest include(s)

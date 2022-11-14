@@ -12,11 +12,11 @@
 
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/create_telescope_detector.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command

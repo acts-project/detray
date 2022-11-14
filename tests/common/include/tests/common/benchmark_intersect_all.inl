@@ -7,12 +7,12 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/detector_metadata.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
+#include "detray/simulation/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
-#include "tests/common/tools/create_toy_geometry.hpp"
-#include "tests/common/tools/detector_metadata.hpp"
-#include "tests/common/tools/track_generators.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

@@ -11,8 +11,8 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
+#include "detray/simulation/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/track_generators.hpp"
 
 // google-test include(s)
 #include <gtest/gtest.h>
