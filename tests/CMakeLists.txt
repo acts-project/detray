@@ -9,11 +9,8 @@ include(detray-compiler-options-cpp)
 
 # Include all of the code-holding sub-directories.
 add_subdirectory(common)
-
-if(BUILD_TESTING AND DETRAY_BUILD_TESTING)
-   add_subdirectory(unit_tests)
-   add_subdirectory(simulation)
-endif()
+add_subdirectory(unit_tests)
+add_subdirectory(simulation)
 
 if(DETRAY_BENCHMARKS)
    add_subdirectory(benchmarks)
