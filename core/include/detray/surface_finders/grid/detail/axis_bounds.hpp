@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
@@ -16,24 +17,6 @@
 #include <type_traits>
 
 namespace detray::n_axis {
-
-/// axis bounds names.
-enum class bounds {
-    e_open = 0,
-    e_closed = 1,
-    e_circular = 2,
-};
-
-/// axis coordinate names. Used to get a specific axes from an axes collection.
-enum class label {
-    e_x = 0,
-    e_y = 1,
-    e_z = 2,
-    e_r = 0,
-    e_phi = 1,
-    e_rphi = 0,
-    e_cyl_z = 1,
-};
 
 /// @brief Helper to tie two bin indices to a range.
 ///
@@ -266,11 +249,5 @@ struct circular {
         return (bins + (ibin % bins)) % bins;
     }
 };
-
-/// Determine axis bounds as either 'open' or 'closed' for non-circular axes
-template <n_axis::bounds s, n_axis::label axis_label>
-using bounds_t =
-    std::conditional_t<s == n_axis::bounds::e_open, n_axis::open<axis_label>,
-                       n_axis::closed<axis_label>>;
 
 }  // namespace detray::n_axis

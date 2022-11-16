@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
@@ -16,12 +17,6 @@
 #include <cstddef>
 
 namespace detray::n_axis {
-
-/// axis binning type names.
-enum class binning {
-    e_regular = 0,
-    e_irregular = 1,
-};
 
 /// @brief A regular binning scheme.
 ///

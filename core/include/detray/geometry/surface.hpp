@@ -10,16 +10,11 @@
 #include <memory>
 
 #include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
-
-enum class surface_id {
-    e_sensitive = 0,
-    e_portal = 1,
-    e_passive = 2,
-};
 
 /// Templated surface class for detector surfaces and portals.
 ///

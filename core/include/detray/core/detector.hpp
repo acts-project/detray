@@ -172,10 +172,10 @@ class detector {
     /// @return non-const reference to the new volume
     DETRAY_HOST
     volume_type &new_volume(
-        const array_type<scalar, 6> &bounds,
+        const volume_id id, const array_type<scalar, 6> &bounds,
         typename volume_type::sf_finder_link_type srf_finder_link = {
             sf_finders::id::e_default, dindex_invalid}) {
-        volume_type &cvolume = _volumes.emplace_back(bounds);
+        volume_type &cvolume = _volumes.emplace_back(id, bounds);
         cvolume.set_index(_volumes.size() - 1);
         cvolume.set_sf_finder(srf_finder_link);
 

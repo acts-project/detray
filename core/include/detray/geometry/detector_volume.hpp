@@ -9,6 +9,7 @@
 // Project include(s)
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
@@ -57,16 +58,22 @@ class detector_volume {
     using volume_def = detector_volume<ID, obj_link_type, sf_finder_link_type,
                                        scalar_t, array_t>;
 
-    /// Default constructor
+    /// Default constructor builds an infinitely long cylinder
     constexpr detector_volume() = default;
 
     /// Constructor from boundary values.
     ///
+    /// @param id id values that determines how to interpret the bounds.
     /// @param bounds values of volume boundaries. They depend on the volume
     ///               shape, which is defined by its portals and are chosen in
-    ///               the detector builder
-    constexpr detector_volume(const array_t<scalar_t, 6> &bounds)
-        : _bounds(bounds) {}
+    ///               the detector builder.
+    constexpr detector_volume(const volume_id id,
+                              const array_t<scalar_t, 6> &bounds)
+        : _id{id}, _bounds(bounds) {}
+
+    /// @return the volume shape id
+    DETRAY_HOST_DEVICE
+    constexpr auto id() const -> volume_id { return _id; }
 
     /// @return the bounds - const access
     DETRAY_HOST_DEVICE
@@ -202,7 +209,10 @@ class detector_volume {
     }
 
     private:
-    /// Bounds section, default for r, z, phi
+    /// How to interpret the boundary values
+    volume_id _id = volume_id::e_cylinder;
+
+    /// Bounds section, default for cylinder volume
     array_t<scalar_t, 6> _bounds = {0.,
                                     std::numeric_limits<scalar_t>::max(),
                                     -std::numeric_limits<scalar_t>::max(),

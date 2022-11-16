@@ -121,7 +121,7 @@ TEST(path_correction, cartesian) {
     constexpr auto material_id = registry_type::material_ids::e_slab;
 
     // Add a volume
-    det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
+    det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
 
     typename detector_type::surface_container surfaces(&env::resource);
     typename detector_type::transform_container transforms(env::resource);
@@ -263,7 +263,7 @@ TEST(path_correction, polar) {
     constexpr auto material_id = registry_type::material_ids::e_slab;
 
     // Add a volume
-    det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
+    det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
 
     typename detector_type::surface_container surfaces(&env::resource);
     typename detector_type::transform_container transforms(env::resource);
@@ -391,7 +391,7 @@ TEST(path_correction, cylindrical) {
     constexpr auto material_id = registry_type::material_ids::e_slab;
 
     // Add a volume
-    det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
+    det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
 
     typename detector_type::surface_container surfaces(&env::resource);
     typename detector_type::transform_container transforms(env::resource);
