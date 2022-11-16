@@ -91,6 +91,7 @@ void from_json(const nlohmann::json& j, single_object_payload& so) {
     so.link = j;
 }
 
+/// @brief grid objects
 struct grid_objects_payload {
     grid_payload grid;
     std::optional<transform_payload> transform;
@@ -110,7 +111,7 @@ void from_json(const nlohmann::json& j, grid_objects_payload& g) {
     }
 }
 
-/// @brief local navigation definition
+/// @brief navigation definition
 struct links_payload {
     std::vector<single_object_payload> single_links;
     std::optional<grid_objects_payload> grid_links;
