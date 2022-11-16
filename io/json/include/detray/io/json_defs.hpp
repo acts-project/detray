@@ -15,5 +15,5 @@
 #pragma GCC diagnostic pop
 
 namespace detray {
-    using real_io = float;
+using real_io = float;
 }
