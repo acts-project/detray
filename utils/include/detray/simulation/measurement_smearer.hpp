@@ -21,8 +21,11 @@ struct measurement_smearer {
     measurement_smearer(measurement_smearer<scalar_t>& smearer)
         : stddev(smearer.stddev) {}
 
-    std::array<scalar_t, 2> stddev;
+    void set_seed(const std::size_t sd){
+        generator.seed(sd);
+    }
 
+    std::array<scalar_t, 2> stddev;
     std::random_device rd{};
     std::mt19937 generator{rd()};
 

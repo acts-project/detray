@@ -29,6 +29,13 @@ struct random_scatterer : actor {
     struct state {
         std::random_device rd{};
         std::mt19937 generator{rd()};
+
+        /// Constructor with seed
+        ///
+        /// @param sd the seed number
+        state(const std::size_t sd = 0) { generator.seed(sd); }
+
+        void set_seed(const std::size_t sd) { generator.seed(sd); }
     };
 
     /// Observes a material interactor state @param interactor_state

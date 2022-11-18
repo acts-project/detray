@@ -43,6 +43,8 @@ struct event_writer : actor {
         std::size_t m_hit_count = 0;
         smearer_t m_meas_smearer;
 
+        void set_seed(const std::size_t sd) { m_meas_smearer.set_seed(sd); }
+
         void write_particle(const free_track_parameters<transform3_t>& track) {
             particle_id++;
 
@@ -71,7 +73,7 @@ struct event_writer : actor {
         inline output_type operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const bound_track_parameters<transform3_t>& bound_params,
-            smearer_t smearer) const {
+            smearer_t& smearer) const {
 
             return smearer(mask_group_t::value_type::shape::name,
                            mask_group_t::value_type::shape::meas_dim,

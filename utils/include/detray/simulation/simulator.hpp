@@ -51,8 +51,9 @@ struct simulator {
 
     simulator(std::size_t events, const detector_t& det,
               track_generator_t& track_gen, smearer_t& smearer,
-              const std::string directory = "")
+              const std::size_t sd = 0, const std::string directory = "")
         : m_events(events),
+          m_seed(sd),
           m_directory(directory),
           m_detector(std::make_unique<detector_t>(det)),
           m_smearer(smearer) {
@@ -65,6 +66,7 @@ struct simulator {
         for (std::size_t event_id = 0; event_id < m_events; event_id++) {
             typename event_writer<transform3, smearer_t>::state writer(
                 event_id, m_smearer, m_directory);
+            writer.set_seed(m_seed);
 
             for (auto track : m_track_generator) {
 
@@ -73,6 +75,8 @@ struct simulator {
                 typename parameter_transporter<transform3>::state transporter{};
                 typename interactor_t::state interactor{};
                 typename random_scatterer<interactor_t>::state scatterer{};
+                scatterer.set_seed(m_seed);
+
                 typename parameter_resetter<transform3>::state resetter{};
 
                 auto actor_states = std::tie(transporter, interactor, scatterer,
@@ -98,6 +102,7 @@ struct simulator {
     private:
     config m_cfg;
     std::size_t m_events = 0;
+    std::size_t m_seed = 0;
     std::string m_directory = "";
     std::unique_ptr<detector_t> m_detector;
     track_generator_t m_track_generator;
