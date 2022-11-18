@@ -51,15 +51,12 @@ struct simulator {
 
     simulator(std::size_t events, const detector_t& det,
               track_generator_t& track_gen, smearer_t& smearer,
-              const std::size_t sd = 0, const std::string directory = "")
+              const std::string directory = "")
         : m_events(events),
-          m_seed(sd),
           m_directory(directory),
           m_detector(std::make_unique<detector_t>(det)),
           m_smearer(smearer) {
         m_track_generator = track_gen;
-        m_smearer.set_seed(m_seed);
-        m_scatterer.set_seed(m_seed);
     }
 
     config& get_config() { return m_cfg; }
@@ -69,6 +66,10 @@ struct simulator {
         for (std::size_t event_id = 0; event_id < m_events; event_id++) {
             typename event_writer<transform3, smearer_t>::state writer(
                 event_id, m_smearer, m_directory);
+
+            // Set random seed
+            m_scatterer.set_seed(event_id);
+            writer.set_seed(event_id);
 
             auto actor_states = std::tie(m_transporter, m_interactor,
                                          m_scatterer, m_resetter, writer);
@@ -97,7 +98,6 @@ struct simulator {
     private:
     config m_cfg;
     std::size_t m_events = 0;
-    std::size_t m_seed = 0;
     std::string m_directory = "";
     std::unique_ptr<detector_t> m_detector;
     track_generator_t m_track_generator;
