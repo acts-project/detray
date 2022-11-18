@@ -19,11 +19,9 @@ struct measurement_smearer {
         : stddev({stddev_local0, stddev_local1}) {}
 
     measurement_smearer(measurement_smearer<scalar_t>& smearer)
-        : stddev(smearer.stddev) {}
+        : stddev(smearer.stddev), generator(smearer.generator) {}
 
-    void set_seed(const std::size_t sd){
-        generator.seed(sd);
-    }
+    void set_seed(const std::size_t sd) { generator.seed(sd); }
 
     std::array<scalar_t, 2> stddev;
     std::random_device rd{};

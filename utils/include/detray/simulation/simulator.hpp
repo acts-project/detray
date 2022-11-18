@@ -58,6 +58,8 @@ struct simulator {
           m_detector(std::make_unique<detector_t>(det)),
           m_smearer(smearer) {
         m_track_generator = track_gen;
+        m_smearer.set_seed(m_seed);
+        m_scatterer.set_seed(m_seed);
     }
 
     config& get_config() { return m_cfg; }
@@ -66,21 +68,13 @@ struct simulator {
         for (std::size_t event_id = 0; event_id < m_events; event_id++) {
             typename event_writer<transform3, smearer_t>::state writer(
                 event_id, m_smearer, m_directory);
-            writer.set_seed(m_seed);
 
             for (auto track : m_track_generator) {
 
                 writer.write_particle(track);
 
-                typename parameter_transporter<transform3>::state transporter{};
-                typename interactor_t::state interactor{};
-                typename random_scatterer<interactor_t>::state scatterer{};
-                scatterer.set_seed(m_seed);
-
-                typename parameter_resetter<transform3>::state resetter{};
-
-                auto actor_states = std::tie(transporter, interactor, scatterer,
-                                             resetter, writer);
+                auto actor_states = std::tie(m_transporter, m_interactor,
+                                             m_scatterer, m_resetter, writer);
 
                 typename propagator_type::state propagation(
                     track, m_detector->get_bfield(), *m_detector);
@@ -107,6 +101,12 @@ struct simulator {
     std::unique_ptr<detector_t> m_detector;
     track_generator_t m_track_generator;
     smearer_t m_smearer;
+
+    /// Actor states
+    typename parameter_transporter<transform3>::state m_transporter{};
+    typename interactor_t::state m_interactor{};
+    typename random_scatterer<interactor_t>::state m_scatterer{};
+    typename parameter_resetter<transform3>::state m_resetter{};
 };
 
 }  // namespace detray
