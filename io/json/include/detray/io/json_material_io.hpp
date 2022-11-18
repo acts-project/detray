@@ -9,6 +9,7 @@
 
 #include <array>
 
+#include "detray/io/io_payload.hpp"
 #include "detray/io/json_algebra_io.hpp"
 #include "detray/io/json_defs.hpp"
 
@@ -16,11 +17,6 @@
 /// can read/write ACTS files that are written with the Detray
 /// JSON I/O extension
 namespace detray {
-
-/// @brief  A payload object for masks
-struct material_slab_payload {
-    std::array<real_io, 5u> slab;
-};
 
 void to_json(nlohmann::json& j, const material_slab_payload& m) {
     j = m.slab;

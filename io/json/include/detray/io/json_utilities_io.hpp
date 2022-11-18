@@ -11,32 +11,10 @@
 #include <optional>
 #include <vector>
 
+#include "detray/io/io_payload.hpp"
 #include "detray/io/json_defs.hpp"
 
 namespace detray {
-
-/// @brief axis definition
-struct axis_payload {
-    /// axis lookup type
-    enum class axis_lookup : unsigned int {
-        x = 0u,
-        y = 1u,
-        z = 2u,
-        r = 3u,
-        phi = 4u
-    };
-    /// How the axis is done
-    enum class axis_type : unsigned int { equidistant = 0u, variable = 1u };
-    /// How the axis is bound
-    enum class axis_bracket : unsigned int { bound = 0u, closed = 1u };
-
-    axis_type type = axis_type::equidistant;
-    axis_bracket bracket = axis_bracket::bound;
-    axis_lookup lookup = axis_lookup::r;
-
-    std::vector<real_io> borders = {};
-    std::size_t bins = 0u;
-};
 
 void to_json(nlohmann::json& j, const axis_payload& a) {
     j["type"] = static_cast<unsigned int>(a.type);
@@ -53,12 +31,6 @@ void from_json(const nlohmann::json& j, axis_payload& a) {
     a.borders = j["borders"].get<std::vector<real_io>>();
     a.bins = j["bins"];
 }
-
-/// @brief axis definition
-struct grid_payload {
-    std::vector<axis_payload> axes = {};
-    std::vector<std::vector<unsigned int>> entries = {};
-};
 
 void to_json(nlohmann::json& j, const grid_payload& g) {
     nlohmann::json jaxes;
@@ -78,11 +50,6 @@ void from_json(const nlohmann::json& j, grid_payload& g) {
     g.entries = j["entries"];
 }
 
-/// @brief single object
-struct single_object_payload {
-    unsigned int link;
-};
-
 void to_json(nlohmann::json& j, const single_object_payload& so) {
     j = so.link;
 }
@@ -90,12 +57,6 @@ void to_json(nlohmann::json& j, const single_object_payload& so) {
 void from_json(const nlohmann::json& j, single_object_payload& so) {
     so.link = j;
 }
-
-/// @brief grid objects
-struct grid_objects_payload {
-    grid_payload grid;
-    std::optional<transform_payload> transform;
-};
 
 void to_json(nlohmann::json& j, const grid_objects_payload& g) {
     j["grid"] = g.grid;
@@ -110,12 +71,6 @@ void from_json(const nlohmann::json& j, grid_objects_payload& g) {
         g.transform = j["transform"];
     }
 }
-
-/// @brief navigation definition
-struct links_payload {
-    std::vector<single_object_payload> single_links;
-    std::optional<grid_objects_payload> grid_links;
-};
 
 void to_json(nlohmann::json& j, const links_payload& l) {
     nlohmann::json js;

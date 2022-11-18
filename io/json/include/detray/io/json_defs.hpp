@@ -13,7 +13,3 @@
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 #include <nlohmann/json.hpp>
 #pragma GCC diagnostic pop
-
-namespace detray {
-using real_io = float;
-}

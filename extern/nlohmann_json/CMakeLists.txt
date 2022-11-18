@@ -9,7 +9,7 @@ endif()
 # Tell the user what's happening.
 message( STATUS "Building nlohmann_json as part of the detray project" )
 
-# Declare where to get VecMem from.
+# Declare where to get nlohmann from.
 set( DETRAY_NLOHMANN_JSON_GIT_TAG "v3.10.5" CACHE STRING "Version of nlohmann_json to build" )
 set( DETRAY_NLOHMANN_JSON_SHA1 "8969f5ad1a422e01f040ff48dcae9c0e6ad0811d" CACHE STRING "SHA1 hash of the downloaded zip" )
 mark_as_advanced( DETRAY_NLOHMANN_JSON_GIT_REPOSITORY DETRAT_NLOHMANN_JSON_GIT_TAG )

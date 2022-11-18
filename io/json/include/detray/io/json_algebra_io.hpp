@@ -7,20 +7,13 @@
 
 #pragma once
 
-#include <array>
-
+#include "detray/io/io_payload.hpp"
 #include "detray/io/json_defs.hpp"
 
 /// @brief  The detray JSON I/O is written in such a way that it
 /// can read/write ACTS files that are written with the Detray
 /// JSON I/O extension
 namespace detray {
-
-/// @brief  A small pa
-struct transform_payload {
-    std::array<real_io, 3u> tr;
-    std::array<real_io, 9u> rot;
-};
 
 void to_json(nlohmann::json& j, const transform_payload& t) {
     j["translation"] = t.tr;
