@@ -13,7 +13,7 @@
 #include "detray/io/json_algebra_io.hpp"
 #include "detray/io/json_defs.hpp"
 #include "detray/io/json_material_io.hpp"
-#include "detray/io/json_utilities_io.hpp"
+#include "detray/io/json_grids_io.hpp"
 
 /// @brief  The detray JSON I/O is written in such a way that it
 /// can read/write ACTS files that are written with the Detray
@@ -21,12 +21,12 @@
 namespace detray {
 
 void to_json(nlohmann::json& j, const mask_payload& m) {
-    j["type"] = static_cast<unsigned int>(m.type);
+    j["shape"] = static_cast<unsigned int>(m.shape);
     j["boundaries"] = m.boundaries;
 }
 
 void from_json(const nlohmann::json& j, mask_payload& m) {
-    m.type = static_cast<mask_payload::mask_type>(j["type"]);
+    m.shape = static_cast<mask_payload::mask_shape>(j["shape"]);
     m.boundaries = j["boundaries"].get<std::vector<real_io>>();
 }
 

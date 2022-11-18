@@ -23,7 +23,7 @@ struct transform_payload {
 /// @brief axis definition
 struct axis_payload {
     /// axis lookup type
-    enum class axis_lookup : unsigned int {
+    enum class axis_label : unsigned int {
         x = 0u,
         y = 1u,
         z = 2u,
@@ -31,15 +31,15 @@ struct axis_payload {
         phi = 4u
     };
     /// How the axis is done
-    enum class axis_type : unsigned int { equidistant = 0u, variable = 1u };
+    enum class axis_binning : unsigned int { equidistant = 0u, variable = 1u };
     /// How the axis is bound
-    enum class axis_bracket : unsigned int { bound = 0u, closed = 1u };
+    enum class axis_bounds : unsigned int { closed = 0u, circular = 1u };
 
-    axis_type type = axis_type::equidistant;
-    axis_bracket bracket = axis_bracket::bound;
-    axis_lookup lookup = axis_lookup::r;
+    axis_binning binning = axis_binning::equidistant;
+    axis_bounds bounds = axis_bounds::closed;
+    axis_label label = axis_label::r;
 
-    std::vector<real_io> borders = {};
+    std::vector<real_io> edges = {};
     std::size_t bins = 0u;
 };
 
@@ -73,7 +73,7 @@ struct links_payload {
 
 /// @brief A payload object for surface masks
 struct mask_payload {
-    enum class mask_type : unsigned int {
+    enum class mask_shape : unsigned int {
         annulus2 = 0u,
         cuboid3 = 1u,
         cylinder2 = 2u,
@@ -84,7 +84,7 @@ struct mask_payload {
         single3 = 7u,
         trapezoid2 = 8u
     };
-    mask_type type = mask_type::ring2;
+    mask_shape shape = mask_shape::ring2;
     std::vector<real_io> boundaries;
 };
 

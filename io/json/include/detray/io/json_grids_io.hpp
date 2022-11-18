@@ -17,18 +17,18 @@
 namespace detray {
 
 void to_json(nlohmann::json& j, const axis_payload& a) {
-    j["type"] = static_cast<unsigned int>(a.type);
-    j["bracket"] = static_cast<unsigned int>(a.bracket);
-    j["lookup"] = static_cast<unsigned int>(a.lookup);
-    j["borders"] = a.borders;
+    j["label"] = static_cast<unsigned int>(a.label);
+    j["bounds"] = static_cast<unsigned int>(a.bounds);
+    j["binning"] = static_cast<unsigned int>(a.binning);
+    j["edges"] = a.edges;
     j["bins"] = a.bins;
 }
 
 void from_json(const nlohmann::json& j, axis_payload& a) {
-    a.type = static_cast<axis_payload::axis_type>(j["type"]);
-    a.bracket = static_cast<axis_payload::axis_bracket>(j["bracket"]);
-    a.lookup = static_cast<axis_payload::axis_lookup>(j["lookup"]);
-    a.borders = j["borders"].get<std::vector<real_io>>();
+    a.binning = static_cast<axis_payload::axis_binning>(j["binning"]);
+    a.bounds = static_cast<axis_payload::axis_bounds>(j["bounds"]);
+    a.label = static_cast<axis_payload::axis_label>(j["label"]);
+    a.edges = j["edges"].get<std::vector<real_io>>();
     a.bins = j["bins"];
 }
 

@@ -27,10 +27,10 @@ TEST(io, json_algebra_payload) {
 TEST(io, json_axis_payload) {
 
     detray::axis_payload ea;
-    ea.type = detray::axis_payload::axis_type::equidistant;
-    ea.bracket = detray::axis_payload::axis_bracket::closed;
-    ea.lookup = detray::axis_payload::axis_lookup::phi;
-    ea.borders = {-M_PI, M_PI};
+    ea.binning = detray::axis_payload::axis_binning::equidistant;
+    ea.bounds = detray::axis_payload::axis_bounds::circular;
+    ea.label = detray::axis_payload::axis_label::phi;
+    ea.edges = {-M_PI, M_PI};
     ea.bins = 10u;
 
     nlohmann::json je;
@@ -38,28 +38,28 @@ TEST(io, json_axis_payload) {
 
     detray::axis_payload pea = je["axis"];
 
-    EXPECT_EQ(ea.type, pea.type);
-    EXPECT_EQ(ea.bracket, pea.bracket);
-    EXPECT_EQ(ea.borders, pea.borders);
+    EXPECT_EQ(ea.binning, pea.binning);
+    EXPECT_EQ(ea.bounds, pea.bounds);
+    EXPECT_EQ(ea.edges, pea.edges);
 
     EXPECT_EQ(ea.bins, pea.bins);
 
     detray::axis_payload va;
-    va.type = detray::axis_payload::axis_type::variable;
-    va.bracket = detray::axis_payload::axis_bracket::bound;
-    va.lookup = detray::axis_payload::axis_lookup::r;
-    va.borders = {0, 1, 4, 5, 8, 10};
-    va.bins = va.borders.size() - 1;
+    va.binning = detray::axis_payload::axis_binning::variable;
+    va.bounds = detray::axis_payload::axis_bounds::closed;
+    va.label = detray::axis_payload::axis_label::r;
+    va.edges = {0, 1, 4, 5, 8, 10};
+    va.bins = va.edges.size() - 1;
 
     nlohmann::json jv;
     jv["axis"] = va;
 
     detray::axis_payload pva = jv["axis"];
 
-    EXPECT_EQ(va.type, pva.type);
-    EXPECT_EQ(va.bracket, pva.bracket);
-    EXPECT_EQ(va.lookup, pva.lookup);
-    EXPECT_EQ(va.borders, pva.borders);
+    EXPECT_EQ(va.binning, pva.binning);
+    EXPECT_EQ(va.bounds, pva.bounds);
+    EXPECT_EQ(va.label, pva.label);
+    EXPECT_EQ(va.edges, pva.edges);
     EXPECT_EQ(va.bins, pva.bins);
 }
 
@@ -68,14 +68,14 @@ TEST(io, json_grid_payload) {
     std::vector<std::vector<unsigned int>> entries = {{0, 1}, {0, 2}, {1, 1},
                                                       {1, 2}, {2, 1}, {2, 2}};
 
-    detray::axis_payload a0{detray::axis_payload::axis_type::equidistant,
-                            detray::axis_payload::axis_bracket::closed,
-                            detray::axis_payload::axis_lookup::phi,
+    detray::axis_payload a0{detray::axis_payload::axis_binning::equidistant,
+                            detray::axis_payload::axis_bounds::circular,
+                            detray::axis_payload::axis_label::phi,
                             std::vector<detray::real_io>{-M_PI, M_PI}, 3u};
 
-    detray::axis_payload a1{detray::axis_payload::axis_type::equidistant,
-                            detray::axis_payload::axis_bracket::bound,
-                            detray::axis_payload::axis_lookup::r,
+    detray::axis_payload a1{detray::axis_payload::axis_binning::equidistant,
+                            detray::axis_payload::axis_bounds::closed,
+                            detray::axis_payload::axis_label::r,
                             std::vector<detray::real_io>{0, 2u}, 2u};
 
     detray::grid_payload g;
@@ -109,14 +109,14 @@ TEST(io, grid_objects_payload) {
     std::vector<std::vector<unsigned int>> entries = {{0, 1}, {0, 2}, {1, 1},
                                                       {1, 2}, {2, 1}, {2, 2}};
 
-    detray::axis_payload a0{detray::axis_payload::axis_type::equidistant,
-                            detray::axis_payload::axis_bracket::closed,
-                            detray::axis_payload::axis_lookup::phi,
+    detray::axis_payload a0{detray::axis_payload::axis_binning::equidistant,
+                            detray::axis_payload::axis_bounds::circular,
+                            detray::axis_payload::axis_label::phi,
                             std::vector<detray::real_io>{-M_PI, M_PI}, 3u};
 
-    detray::axis_payload a1{detray::axis_payload::axis_type::equidistant,
-                            detray::axis_payload::axis_bracket::bound,
-                            detray::axis_payload::axis_lookup::r,
+    detray::axis_payload a1{detray::axis_payload::axis_binning::equidistant,
+                            detray::axis_payload::axis_bounds::closed,
+                            detray::axis_payload::axis_label::r,
                             std::vector<detray::real_io>{0, 2u}, 2u};
 
     detray::grid_payload g;
@@ -155,14 +155,14 @@ TEST(io, json_links_payload) {
     std::vector<std::vector<unsigned int>> entries = {{0, 1}, {0, 2}, {1, 1},
                                                       {1, 2}, {2, 1}, {2, 2}};
 
-    detray::axis_payload a0{detray::axis_payload::axis_type::equidistant,
-                            detray::axis_payload::axis_bracket::closed,
-                            detray::axis_payload::axis_lookup::phi,
+    detray::axis_payload a0{detray::axis_payload::axis_binning::equidistant,
+                            detray::axis_payload::axis_bounds::circular,
+                            detray::axis_payload::axis_label::phi,
                             std::vector<detray::real_io>{-M_PI, M_PI}, 3u};
 
-    detray::axis_payload a1{detray::axis_payload::axis_type::equidistant,
-                            detray::axis_payload::axis_bracket::bound,
-                            detray::axis_payload::axis_lookup::r,
+    detray::axis_payload a1{detray::axis_payload::axis_binning::equidistant,
+                            detray::axis_payload::axis_bounds::closed,
+                            detray::axis_payload::axis_label::r,
                             std::vector<detray::real_io>{0, 2u}, 2u};
 
     detray::grid_payload g;
@@ -194,7 +194,7 @@ TEST(io, json_links_payload) {
 TEST(io, json_mask_payload) {
 
     detray::mask_payload m;
-    m.type = detray::mask_payload::mask_type::cylinder3;
+    m.shape = detray::mask_payload::mask_shape::cylinder3;
     m.boundaries = {10., 100.};
 
     nlohmann::json j;
@@ -202,7 +202,7 @@ TEST(io, json_mask_payload) {
 
     detray::mask_payload pm = j["mask"];
 
-    EXPECT_EQ(m.type, pm.type);
+    EXPECT_EQ(m.shape, pm.shape);
     EXPECT_EQ(m.boundaries, pm.boundaries);
 }
 
@@ -228,7 +228,7 @@ TEST(io, json_surface_payload) {
     t.rot = {1., 0., 0., 0., 1., 0., 0., 0., 1};
 
     detray::mask_payload m;
-    m.type = detray::mask_payload::mask_type::trapezoid2;
+    m.shape = detray::mask_payload::mask_shape::trapezoid2;
     m.boundaries = {10., 20., 34., 1.4};
 
     detray::material_slab_payload mat;
@@ -246,7 +246,7 @@ TEST(io, json_surface_payload) {
     EXPECT_EQ(s.transform.tr, ps.transform.tr);
     EXPECT_EQ(s.transform.rot, ps.transform.rot);
 
-    EXPECT_EQ(s.mask.type, ps.mask.type);
+    EXPECT_EQ(s.mask.shape, ps.mask.shape);
     EXPECT_EQ(s.mask.boundaries, ps.mask.boundaries);
 
     EXPECT_EQ(s.material.slab, ps.material.slab);
@@ -261,7 +261,7 @@ TEST(io, json_portal_payload) {
     t.rot = {1., 0., 0., 0., 1., 0., 0., 0., 1};
 
     detray::mask_payload m;
-    m.type = detray::mask_payload::mask_type::trapezoid2;
+    m.shape = detray::mask_payload::mask_shape::trapezoid2;
     m.boundaries = {10., 20., 34., 1.4};
 
     detray::material_slab_payload mat;
@@ -326,7 +326,7 @@ TEST(io, json_volume_payload) {
     detray::surface_payload s;
 
     detray::mask_payload m;
-    m.type = detray::mask_payload::mask_type::trapezoid2;
+    m.shape = detray::mask_payload::mask_shape::trapezoid2;
     m.boundaries = {10., 20., 34., 1.4};
 
     detray::material_slab_payload mat;
