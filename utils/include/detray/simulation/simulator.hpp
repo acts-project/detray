@@ -65,16 +65,17 @@ struct simulator {
     config& get_config() { return m_cfg; }
 
     void run() {
+
         for (std::size_t event_id = 0; event_id < m_events; event_id++) {
             typename event_writer<transform3, smearer_t>::state writer(
                 event_id, m_smearer, m_directory);
 
+            auto actor_states = std::tie(m_transporter, m_interactor,
+                                         m_scatterer, m_resetter, writer);
+
             for (auto track : m_track_generator) {
 
                 writer.write_particle(track);
-
-                auto actor_states = std::tie(m_transporter, m_interactor,
-                                             m_scatterer, m_resetter, writer);
 
                 typename propagator_type::state propagation(
                     track, m_detector->get_bfield(), *m_detector);
