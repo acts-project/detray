@@ -12,8 +12,8 @@
 #include "detray/io/io_payload.hpp"
 #include "detray/io/json_algebra_io.hpp"
 #include "detray/io/json_defs.hpp"
-#include "detray/io/json_material_io.hpp"
 #include "detray/io/json_grids_io.hpp"
+#include "detray/io/json_material_io.hpp"
 
 /// @brief  The detray JSON I/O is written in such a way that it
 /// can read/write ACTS files that are written with the Detray

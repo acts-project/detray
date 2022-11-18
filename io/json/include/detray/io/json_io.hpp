@@ -9,5 +9,5 @@
 
 #include "detray/io/json_algebra_io.hpp"
 #include "detray/io/json_geometry_io.hpp"
-#include "detray/io/json_material_io.hpp"
 #include "detray/io/json_grids_io.hpp"
+#include "detray/io/json_material_io.hpp"
