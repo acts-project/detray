@@ -22,7 +22,7 @@ struct event_writer : actor {
     using scalar_type = typename transform3_t::scalar_type;
 
     struct state {
-        state(std::size_t event_id, smearer_t smearer,
+        state(std::size_t event_id, smearer_t& smearer,
               const std::string directory)
             : m_particle_writer(directory +
                                 get_event_filename(event_id, "-particles.csv")),
@@ -42,6 +42,8 @@ struct event_writer : actor {
         meas_hit_id_writer m_meas_hit_id_writer;
         std::size_t m_hit_count = 0;
         smearer_t m_meas_smearer;
+
+        void set_seed(const std::size_t sd) { m_meas_smearer.set_seed(sd); }
 
         void write_particle(const free_track_parameters<transform3_t>& track) {
             particle_id++;
@@ -71,7 +73,7 @@ struct event_writer : actor {
         inline output_type operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const bound_track_parameters<transform3_t>& bound_params,
-            smearer_t smearer) const {
+            smearer_t& smearer) const {
 
             return smearer(mask_group_t::value_type::shape::name,
                            mask_group_t::value_type::shape::meas_dim,

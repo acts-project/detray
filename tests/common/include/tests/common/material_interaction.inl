@@ -374,21 +374,22 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     const bound_track_parameters<transform3> bound_param(1, bound_vector,
                                                          bound_cov);
 
-    int n_samples = 100000;
+    std::size_t n_samples = 100000;
     std::vector<scalar> phi_vec;
     std::vector<scalar> theta_vec;
 
     scalar ref_phi_var(0);
     scalar ref_theta_var(0);
 
-    for (int i = 0; i < n_samples; i++) {
+    for (std::size_t i = 0; i < n_samples; i++) {
 
         propagation::print_inspector::state print_insp_state{};
         pathlimit_aborter::state aborter_state{};
         parameter_transporter<transform3>::state bound_updater{};
         interactor_t::state interactor_state{};
         interactor_state.do_energy_loss = false;
-        simulator_t::state simulator_state{};
+        // Seed = sample id
+        simulator_t::state simulator_state{i};
         parameter_resetter<transform3>::state parameter_resetter_state{};
 
         // Create actor states tuples
