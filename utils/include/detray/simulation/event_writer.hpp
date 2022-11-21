@@ -122,8 +122,9 @@ struct event_writer : actor {
             const auto local = mask_store.template call<measurement_kernel>(
                 surface.mask(), bound_params, writer_state.m_meas_smearer);
 
-            meas.geometry_id = hit.geometry_id;
-
+            meas.measurement_id = writer_state.m_hit_count;
+            meas.geometry_id = hit.geometry_id;            
+            meas.local_key = "unknown";
             meas.local0 = local[0];
             meas.local1 = local[1];
             auto stddev_0 = writer_state.m_meas_smearer.stddev[0];
