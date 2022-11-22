@@ -235,6 +235,7 @@ TEST(io, json_surface_payload) {
 
     s.transform = t;
     s.mask = m;
+    s.type = detray::surface_id::e_passive;
     s.material = mat;
 
     nlohmann::json j;
@@ -247,6 +248,8 @@ TEST(io, json_surface_payload) {
 
     EXPECT_EQ(s.mask.shape, ps.mask.shape);
     EXPECT_EQ(s.mask.boundaries, ps.mask.boundaries);
+
+    EXPECT_EQ(s.type, ps.type);
 
     EXPECT_EQ(s.material.slab, ps.material.slab);
 }
@@ -268,6 +271,7 @@ TEST(io, json_portal_payload) {
 
     s.transform = t;
     s.mask = m;
+    s.type = detray::surface_id::e_portal;
     s.material = mat;
 
     detray::single_object_payload so;
@@ -333,6 +337,7 @@ TEST(io, json_volume_payload) {
 
     s.transform = t;
     s.mask = m;
+    s.type = detray::surface_id::e_portal;
     s.material = mat;
 
     detray::portal_payload p;

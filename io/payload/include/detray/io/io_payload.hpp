@@ -83,6 +83,7 @@ struct mask_payload {
 struct surface_payload {
     transform_payload transform;
     mask_payload mask;
+    detray::surface_id type = detray::surface_id::e_sensitive;
     material_slab_payload material;
     std::size_t gid;
 };
@@ -95,13 +96,7 @@ struct portal_payload {
 
 /// @brief A payload for volume bounds
 struct volume_bounds_payload {
-    /*enum class volume_bounds_type {
-        cuboid = 0u,
-        cylindrical = 1u,
-        generic_cuboid = 2u,
-        trapezoid = 3u
-    };*/
-    volume_id type = volume_id::e_cylinder;
+    detray::volume_id type = detray::volume_id::e_cylinder;
     std::vector<real_io> values = {};
 };
 
