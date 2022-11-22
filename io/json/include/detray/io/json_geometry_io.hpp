@@ -61,7 +61,7 @@ void to_json(nlohmann::json& j, const volume_bounds_payload& vb) {
 
 void from_json(const nlohmann::json& j, volume_bounds_payload& vb) {
     vb.values = j["values"].get<std::vector<real_io>>();
-    vb.type = static_cast<volume_bounds_payload::volume_bounds_type>(j["type"]);
+    vb.type = static_cast<detray::volume_id>(j["type"]);
 }
 
 void to_json(nlohmann::json& j, const volume_payload& v) {

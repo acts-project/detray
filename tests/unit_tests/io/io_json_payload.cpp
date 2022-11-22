@@ -7,6 +7,8 @@
 
 #include <gtest/gtest.h>
 
+#include "detray/definitions/geometry.hpp"
+#include "detray/definitions/grid_axis.hpp"
 #include "detray/io/json_io.hpp"
 
 TEST(io, json_algebra_payload) {
@@ -27,9 +29,9 @@ TEST(io, json_algebra_payload) {
 TEST(io, json_axis_payload) {
 
     detray::axis_payload ea;
-    ea.binning = detray::axis_payload::axis_binning::equidistant;
-    ea.bounds = detray::axis_payload::axis_bounds::circular;
-    ea.label = detray::axis_payload::axis_label::phi;
+    ea.binning = detray::n_axis::binning::e_regular;
+    ea.bounds = detray::n_axis::bounds::e_circular;
+    ea.label = detray::n_axis::label::e_phi;
     ea.edges = {-M_PI, M_PI};
     ea.bins = 10u;
 
@@ -45,9 +47,9 @@ TEST(io, json_axis_payload) {
     EXPECT_EQ(ea.bins, pea.bins);
 
     detray::axis_payload va;
-    va.binning = detray::axis_payload::axis_binning::variable;
-    va.bounds = detray::axis_payload::axis_bounds::closed;
-    va.label = detray::axis_payload::axis_label::r;
+    va.binning = detray::n_axis::binning::e_irregular;
+    va.bounds = detray::n_axis::bounds::e_closed;
+    va.label = detray::n_axis::label::e_r;
     va.edges = {0, 1, 4, 5, 8, 10};
     va.bins = va.edges.size() - 1;
 
@@ -68,15 +70,14 @@ TEST(io, json_grid_payload) {
     std::vector<std::vector<unsigned int>> entries = {{0, 1}, {0, 2}, {1, 1},
                                                       {1, 2}, {2, 1}, {2, 2}};
 
-    detray::axis_payload a0{detray::axis_payload::axis_binning::equidistant,
-                            detray::axis_payload::axis_bounds::circular,
-                            detray::axis_payload::axis_label::phi,
+    detray::axis_payload a0{detray::n_axis::binning::e_regular,
+                            detray::n_axis::bounds::e_circular,
+                            detray::n_axis::label::e_phi,
                             std::vector<detray::real_io>{-M_PI, M_PI}, 3u};
 
-    detray::axis_payload a1{detray::axis_payload::axis_binning::equidistant,
-                            detray::axis_payload::axis_bounds::closed,
-                            detray::axis_payload::axis_label::r,
-                            std::vector<detray::real_io>{0, 2u}, 2u};
+    detray::axis_payload a1{
+        detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
+        detray::n_axis::label::e_r, std::vector<detray::real_io>{0, 2u}, 2u};
 
     detray::grid_payload g;
     g.axes = {a0, a1};
@@ -109,15 +110,14 @@ TEST(io, grid_objects_payload) {
     std::vector<std::vector<unsigned int>> entries = {{0, 1}, {0, 2}, {1, 1},
                                                       {1, 2}, {2, 1}, {2, 2}};
 
-    detray::axis_payload a0{detray::axis_payload::axis_binning::equidistant,
-                            detray::axis_payload::axis_bounds::circular,
-                            detray::axis_payload::axis_label::phi,
+    detray::axis_payload a0{detray::n_axis::binning::e_regular,
+                            detray::n_axis::bounds::e_circular,
+                            detray::n_axis::label::e_phi,
                             std::vector<detray::real_io>{-M_PI, M_PI}, 3u};
 
-    detray::axis_payload a1{detray::axis_payload::axis_binning::equidistant,
-                            detray::axis_payload::axis_bounds::closed,
-                            detray::axis_payload::axis_label::r,
-                            std::vector<detray::real_io>{0, 2u}, 2u};
+    detray::axis_payload a1{
+        detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
+        detray::n_axis::label::e_r, std::vector<detray::real_io>{0, 2u}, 2u};
 
     detray::grid_payload g;
     g.axes = {a0, a1};
@@ -155,15 +155,14 @@ TEST(io, json_links_payload) {
     std::vector<std::vector<unsigned int>> entries = {{0, 1}, {0, 2}, {1, 1},
                                                       {1, 2}, {2, 1}, {2, 2}};
 
-    detray::axis_payload a0{detray::axis_payload::axis_binning::equidistant,
-                            detray::axis_payload::axis_bounds::circular,
-                            detray::axis_payload::axis_label::phi,
+    detray::axis_payload a0{detray::n_axis::binning::e_regular,
+                            detray::n_axis::bounds::e_circular,
+                            detray::n_axis::label::e_phi,
                             std::vector<detray::real_io>{-M_PI, M_PI}, 3u};
 
-    detray::axis_payload a1{detray::axis_payload::axis_binning::equidistant,
-                            detray::axis_payload::axis_bounds::closed,
-                            detray::axis_payload::axis_label::r,
-                            std::vector<detray::real_io>{0, 2u}, 2u};
+    detray::axis_payload a1{
+        detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
+        detray::n_axis::label::e_r, std::vector<detray::real_io>{0, 2u}, 2u};
 
     detray::grid_payload g;
     g.axes = {a0, a1};
@@ -295,7 +294,7 @@ TEST(io, json_portal_payload) {
 TEST(io, json_volume_bounds_payload) {
 
     detray::volume_bounds_payload vb;
-    vb.type = detray::volume_bounds_payload::volume_bounds_type::cylindrical;
+    vb.type = detray::volume_id::e_cylinder;
     vb.values = {0., 100., 120.};
 
     nlohmann::json j;
@@ -314,7 +313,7 @@ TEST(io, json_volume_payload) {
     t.rot = {1., 0., 0., 0., 1., 0., 0., 0., 1};
 
     detray::volume_bounds_payload vb;
-    vb.type = detray::volume_bounds_payload::volume_bounds_type::cylindrical;
+    vb.type = detray::volume_id::e_cylinder;
     vb.values = {0., 100., 120.};
 
     detray::single_object_payload so;

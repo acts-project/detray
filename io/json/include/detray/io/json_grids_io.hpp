@@ -11,6 +11,7 @@
 #include <optional>
 #include <vector>
 
+#include "detray/definitions/grid_axis.hpp"
 #include "detray/io/io_payload.hpp"
 #include "detray/io/json_defs.hpp"
 
@@ -25,9 +26,9 @@ void to_json(nlohmann::json& j, const axis_payload& a) {
 }
 
 void from_json(const nlohmann::json& j, axis_payload& a) {
-    a.binning = static_cast<axis_payload::axis_binning>(j["binning"]);
-    a.bounds = static_cast<axis_payload::axis_bounds>(j["bounds"]);
-    a.label = static_cast<axis_payload::axis_label>(j["label"]);
+    a.binning = static_cast<n_axis::binning>(j["binning"]);
+    a.bounds = static_cast<n_axis::bounds>(j["bounds"]);
+    a.label = static_cast<n_axis::label>(j["label"]);
     a.edges = j["edges"].get<std::vector<real_io>>();
     a.bins = j["bins"];
 }
