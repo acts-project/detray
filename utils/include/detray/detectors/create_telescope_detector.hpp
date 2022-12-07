@@ -10,9 +10,9 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/detector_metadata.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/detectors/detector_metadata.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -95,7 +95,7 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
     using mask_link_type = typename surface_type::mask_link;
     using material_link_type = typename surface_type::material_link;
 
-    auto volume_id = volume.index();
+    auto volume_idx = volume.index();
     constexpr auto slab_id = material_link_type::id_type::e_slab;
 
     // Create the module centers
@@ -105,14 +105,14 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
     // Create geometry data
     for (const auto &m_placement : m_placements) {
 
-        volume_link_t mask_volume_link{volume_id};
+        volume_link_t mask_volume_link{volume_idx};
 
         // Surfaces with the linking into the local containers
         mask_link_type mask_link{mask_id, masks.template size<mask_id>()};
         material_link_type material_link{slab_id,
                                          materials.template size<slab_id>()};
         const auto trf_index = transforms.size(ctx);
-        surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
+        surfaces.emplace_back(trf_index, mask_link, material_link, volume_idx,
                               dindex_invalid, surface_id::e_sensitive);
 
         // The first and last surface acts as portal that leaves the telescope
@@ -224,7 +224,7 @@ auto create_telescope_detector(
     plane_config pl_config{half_x, half_y, pos, mat, thickness};
 
     // volume boundaries are not needed. Same goes for portals
-    det.new_volume({0., 0., 0., 0., -M_PI, M_PI});
+    det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
     typename detector_t::volume_type &vol = det.volume_by_index(0);
 
     // Add module surfaces to volume

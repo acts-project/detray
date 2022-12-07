@@ -10,8 +10,8 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/materials/predefined_materials.hpp"
 #include "detray/detectors/detector_metadata.hpp"
+#include "detray/materials/predefined_materials.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -37,7 +37,7 @@ using point2 = __plugin::point2<detray::scalar>;
  *
  * @tparam cylinder_id default cylinder id
  *
- * @param volume_id volume the portal should be added to
+ * @param volume_idx volume the portal should be added to
  * @param ctx geometric context
  * @param surfaces container to add new surface to
  * @param masks container to add new cylinder mask to
@@ -51,7 +51,7 @@ template <typename context_t, typename surface_container_t,
           typename mask_container_t, typename material_container_t,
           typename transform_container_t, typename volume_links>
 inline void add_cylinder_surface(
-    const dindex volume_id, context_t &ctx, surface_container_t &surfaces,
+    const dindex volume_idx, context_t &ctx, surface_container_t &surfaces,
     mask_container_t &masks, material_container_t &materials,
     transform_container_t &transforms, const scalar r, const scalar lower_z,
     const scalar upper_z, const volume_links volume_link,
@@ -84,17 +84,18 @@ inline void add_cylinder_surface(
                              masks.template size<cylinder_id>() - 1};
     material_link_type material_link{slab_id,
                                      materials.template size<slab_id>() - 1};
-    const surface_id sf_id = (volume_link != volume_id) ? surface_id::e_portal
-                                                        : surface_id::e_passive;
+    const surface_id sf_id = (volume_link != volume_idx)
+                                 ? surface_id::e_portal
+                                 : surface_id::e_passive;
     surfaces.emplace_back(transforms.size(ctx) - 1, mask_link, material_link,
-                          volume_id, dindex_invalid, sf_id);
+                          volume_idx, dindex_invalid, sf_id);
 }
 
 /** Function that adds a disc portal.
  *
  * @tparam disc_id default disc id
  *
- * @param volume_id volume the portal should be added to
+ * @param volume_idx volume the portal should be added to
  * @param ctx geometric context
  * @param surfaces container to add new surface to
  * @param masks container to add new cylinder mask to
@@ -108,7 +109,7 @@ template <typename context_t, typename surface_container_t,
           typename mask_container_t, typename material_container_t,
           typename transform_container_t, typename volume_links>
 inline void add_disc_surface(
-    const dindex volume_id, context_t &ctx, surface_container_t &surfaces,
+    const dindex volume_idx, context_t &ctx, surface_container_t &surfaces,
     mask_container_t &masks, material_container_t &materials,
     transform_container_t &transforms, const scalar inner_r,
     const scalar outer_r, const scalar z, const volume_links volume_link,
@@ -140,11 +141,11 @@ inline void add_disc_surface(
     mask_link_type mask_link{disc_id, masks.template size<disc_id>() - 1};
     material_link_type material_link{slab_id,
                                      materials.template size<slab_id>() - 1};
-    const surface_id sf_id = (volume_link != volume_id)
+    const surface_id sf_id = (volume_link != volume_idx)
                                  ? surface_id::e_portal
                                  : surface_id::e_sensitive;
     surfaces.emplace_back(transforms.size(ctx) - 1, mask_link, material_link,
-                          volume_id, dindex_invalid, sf_id);
+                          volume_idx, dindex_invalid, sf_id);
 }
 
 /** Function that adds a generic cylinder volume, using a factory for contained
@@ -188,7 +189,8 @@ void create_cyl_volume(
     const scalar upper_z = std::max(lay_neg_z, lay_pos_z);
 
     auto &cyl_volume =
-        det.new_volume({inner_r, outer_r, lower_z, upper_z, -M_PI, M_PI});
+        det.new_volume(volume_id::e_cylinder,
+                       {inner_r, outer_r, lower_z, upper_z, -M_PI, M_PI});
     cyl_volume.set_sf_finder(detector_t::sf_finders::id::e_default, 0);
 
     // Add module surfaces to volume
@@ -223,7 +225,7 @@ void create_cyl_volume(
  * @tparam rctangle_id default rectangle id
  *
  * @param ctx geometric context
- * @param volume_id volume the portal should be added to
+ * @param volume_idx volume the portal should be added to
  * @param surfaces container to add new surface to
  * @param masks container to add new cylinder mask to
  * @param transforms container to add new transform to
@@ -249,8 +251,8 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     constexpr auto rectangle_id = mask_id::e_rectangle2;
     constexpr auto slab_id = material_id::e_slab;
 
-    auto volume_id = vol.index();
-    volume_link_t mask_volume_link{volume_id};
+    auto volume_idx = vol.index();
+    volume_link_t mask_volume_link{volume_idx};
 
     // Create the module centers
 
@@ -294,7 +296,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
         material_link_type material_link{slab_id,
                                          materials.template size<slab_id>()};
         const auto trf_index = transforms.size(ctx);
-        surfaces.emplace_back(trf_index, mask_link, material_link, volume_id,
+        surfaces.emplace_back(trf_index, mask_link, material_link, volume_idx,
                               dindex_invalid, surface_id::e_sensitive);
 
         // The rectangle bounds for this module
@@ -447,7 +449,7 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
  * @tparam trapezoid_id default trapezoid id
  *
  * @param ctx geometric context
- * @param volume_id volume the portal should be added to
+ * @param volume_idx volume the portal should be added to
  * @param surfaces container to add new surface to
  * @param masks container to add new cylinder mask to
  * @param transforms container to add new transform to
@@ -472,8 +474,8 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     constexpr auto trapezoid_id = mask_id::e_trapezoid2;
     constexpr auto slab_id = material_id::e_slab;
 
-    auto volume_id = vol.index();
-    volume_link_t mask_volume_link{volume_id};
+    auto volume_idx = vol.index();
+    volume_link_t mask_volume_link{volume_idx};
 
     // calculate the radii of the rings
     std::vector<scalar> radii;
@@ -547,7 +549,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
 
             // Surfaces with the linking into the local containers
             surfaces.emplace_back(transforms.size(ctx), mask_link,
-                                  material_link, volume_id, dindex_invalid,
+                                  material_link, volume_idx, dindex_invalid,
                                   surface_id::e_sensitive);
 
             // the module transform from the position
@@ -598,7 +600,8 @@ inline void add_beampipe(
     typename detector_t::transform_container transforms(resource);
 
     auto &beampipe =
-        det.new_volume({beampipe_vol_size.first, beampipe_vol_size.second,
+        det.new_volume(volume_id::e_cylinder,
+                       {beampipe_vol_size.first, beampipe_vol_size.second,
                         min_z, max_z, -M_PI, M_PI});
     const auto beampipe_idx = beampipe.index();
     beampipe.set_sf_finder(detector_t::sf_finders::id::e_default, 0);
@@ -694,7 +697,8 @@ inline void add_endcap_barrel_connection(
     typename detector_t::transform_container transforms(resource);
 
     auto &connector_gap =
-        det.new_volume({edc_inner_r, edc_outer_r, min_z, max_z, -M_PI, M_PI});
+        det.new_volume(volume_id::e_cylinder,
+                       {edc_inner_r, edc_outer_r, min_z, max_z, -M_PI, M_PI});
     connector_gap.set_sf_finder(detector_t::sf_finders::id::e_default, 0);
     dindex connector_gap_idx{det.volumes().back().index()};
     dindex leaving_world = dindex_invalid;

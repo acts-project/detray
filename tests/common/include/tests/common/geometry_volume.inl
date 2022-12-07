@@ -41,11 +41,12 @@ TEST(ALGEBRA_PLUGIN, detector_volume) {
 
     // Check construction, setters and getters
     darray<scalar, 6> bounds = {0., 10., -5., 5., -M_PI, M_PI};
-    volume_t v1(bounds);
+    volume_t v1(volume_id::e_cylinder, bounds);
     v1.set_index(12345);
     v1.set_sf_finder({sf_finder_ids::e_default, 12});
 
     ASSERT_TRUE(v1.empty());
+    ASSERT_TRUE(v1.id() == volume_id::e_cylinder);
     ASSERT_TRUE(v1.index() == 12345);
     ASSERT_TRUE(v1.bounds() == bounds);
     ASSERT_TRUE(v1.sf_finder_type() == sf_finder_ids::e_default);
@@ -78,6 +79,7 @@ TEST(ALGEBRA_PLUGIN, detector_volume) {
     const auto v2 = volume_t(v1);
     ASSERT_FALSE(v1.empty());
     ASSERT_EQ(v2.index(), 12345);
+    ASSERT_EQ(v2.id(), volume_id::e_cylinder);
     ASSERT_EQ(v2.bounds(), bounds);
     ASSERT_EQ(v2.sf_finder_link(), sf_finder_link);
     ASSERT_EQ(v2.template obj_link<geo_objects::e_sensitive>(),

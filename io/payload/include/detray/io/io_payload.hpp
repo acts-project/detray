@@ -10,6 +10,9 @@
 #include <array>
 #include <vector>
 
+#include "detray/definitions/geometry.hpp"
+#include "detray/definitions/grid_axis.hpp"
+
 namespace detray {
 
 using real_io = float;
@@ -23,21 +26,9 @@ struct transform_payload {
 /// @brief axis definition
 struct axis_payload {
     /// axis lookup type
-    enum class axis_label : unsigned int {
-        x = 0u,
-        y = 1u,
-        z = 2u,
-        r = 3u,
-        phi = 4u
-    };
-    /// How the axis is done
-    enum class axis_binning : unsigned int { equidistant = 0u, variable = 1u };
-    /// How the axis is bound
-    enum class axis_bounds : unsigned int { closed = 0u, circular = 1u };
-
-    axis_binning binning = axis_binning::equidistant;
-    axis_bounds bounds = axis_bounds::closed;
-    axis_label label = axis_label::r;
+    n_axis::binning binning = n_axis::binning::e_regular;
+    n_axis::bounds bounds = n_axis::bounds::e_closed;
+    n_axis::label label = n_axis::label::e_r;
 
     std::vector<real_io> edges = {};
     std::size_t bins = 0u;
@@ -92,6 +83,7 @@ struct mask_payload {
 struct surface_payload {
     transform_payload transform;
     mask_payload mask;
+    detray::surface_id type = detray::surface_id::e_sensitive;
     material_slab_payload material;
     std::size_t gid;
 };
@@ -104,13 +96,7 @@ struct portal_payload {
 
 /// @brief A payload for volume bounds
 struct volume_bounds_payload {
-    enum class volume_bounds_type {
-        cuboid = 0u,
-        cylindrical = 1u,
-        generic_cuboid = 2u,
-        trapezoid = 3u
-    };
-    volume_bounds_type type = volume_bounds_type::cylindrical;
+    detray::volume_id type = detray::volume_id::e_cylinder;
     std::vector<real_io> values = {};
 };
 
