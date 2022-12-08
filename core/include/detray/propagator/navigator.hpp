@@ -9,7 +9,8 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/containers.hpp"
+#include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"

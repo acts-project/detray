@@ -27,13 +27,13 @@ detray_add_library( detray_core core
    "include/detray/core/detector.hpp"
    "include/detray/core/detector_kernel.hpp"
    # definitions include(s)
+   "include/detray/definitions/detail/algorithms.hpp"
    "include/detray/definitions/containers.hpp"
    "include/detray/definitions/cuda_definitions.hpp"
    "include/detray/definitions/indexing.hpp"
    "include/detray/definitions/pdg_particle.hpp"
    "include/detray/definitions/qualifiers.hpp"
    "include/detray/definitions/units.hpp"
-   "include/detray/definitions/detail/accessor.hpp"
    "include/detray/definitions/track_parametrization.hpp"
    # geometry include(s)
    "include/detray/geometry/detector_volume.hpp"
@@ -131,6 +131,7 @@ detray_add_library( detray_core core
    "include/detray/utils/quadratic_equation.hpp"
    "include/detray/utils/ratio.hpp"
    "include/detray/utils/statistics.hpp"
+   "include/detray/utils/tuple_helpers.hpp"
    "include/detray/utils/type_registry.hpp"
    "include/detray/utils/type_traits.hpp" )
 target_link_libraries( detray_core INTERFACE detray_io vecmem::core detray::Thrust)

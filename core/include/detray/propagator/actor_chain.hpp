@@ -11,8 +11,8 @@
 #include <utility>
 
 #include "detray/definitions/containers.hpp"
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/tuple_helpers.hpp"
 
 namespace detray {
 

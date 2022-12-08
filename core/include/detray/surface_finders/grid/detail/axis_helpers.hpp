@@ -8,12 +8,11 @@
 #pragma once
 
 // Project include(s).
+#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
-namespace detray {
-
-namespace n_axis {
+namespace detray::n_axis {
 
 /// @brief Multi-bin: contains bin indices from multiple axes
 template <std::size_t DIM>
@@ -165,6 +164,4 @@ struct multi_axis_view {
 
 }  // namespace detail
 
-}  // namespace n_axis
-
-}  // namespace detray
+}  // namespace detray::n_axis

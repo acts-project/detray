@@ -10,7 +10,6 @@
 // Project include(s)
 #include "detray/core/detector_kernel.hpp"
 #include "detray/definitions/containers.hpp"
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"

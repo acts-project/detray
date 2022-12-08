@@ -10,8 +10,8 @@
 // Detray include(s)
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/containers.hpp"
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/tuple_helpers.hpp"
 #include "detray/utils/type_traits.hpp"
 
 // Vecmem include(s)
@@ -89,13 +89,13 @@ class tuple_container {
         return detail::get<idx>(_tuple);
     }
 
-    /// @returns the tuple element corresponding to the index @tparam idx
+    /// @returns the tuple element corresponding to the type @tparam T
     template <typename T>
     DETRAY_HOST_DEVICE constexpr decltype(auto) get() const noexcept {
         return detail::get<T>(_tuple);
     }
 
-    /// @returns the tuple element corresponding to the index @tparam idx
+    /// @returns the tuple element corresponding to the type @tparam T
     template <typename T>
     DETRAY_HOST_DEVICE constexpr decltype(auto) get() noexcept {
         return detail::get<T>(_tuple);
@@ -147,13 +147,16 @@ class tuple_container {
         return detail::make_tuple<tuple_t>(Ts(detail::get<I>(view.m_view))...);
     }
 
-    /// Variadic unrolling of the tuple that calls a functor with the element.
+    /// Variadic unrolling of the tuple that calls a functor on the element that
+    /// corresponds to @param idx.
     ///
     /// @tparam functor_t functor that will be called on the element.
     /// @tparam Args argument types for the functor
     /// @tparam first_idx Current index into the container tuple. Is converted
     ///         to an id_t and tested aginst the given id.
     /// @tparam remaining_idcs te remaining tuple indices to be tested.
+    ///
+    /// @see https://godbolt.org/z/qd6xns7KG
     template <typename functor_t, typename... Args, std::size_t first_idx,
               std::size_t... remaining_idcs>
     DETRAY_HOST_DEVICE typename functor_t::output_type unroll_call(

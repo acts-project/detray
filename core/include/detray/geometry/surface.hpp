@@ -9,7 +9,6 @@
 
 #include <memory>
 
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"

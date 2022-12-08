@@ -8,12 +8,11 @@
 #pragma once
 
 // Project include(s).
+#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
-namespace detray {
-
-namespace detail {
+namespace detray::detail {
 
 // TODO: Replace by iterator based approach, along the lines of std::ranges
 
@@ -95,6 +94,4 @@ struct grid_view {
     auto offset() const -> dindex { return m_offset; }
 };
 
-}  // namespace detail
-
-}  // namespace detray
+}  // namespace detray::detail

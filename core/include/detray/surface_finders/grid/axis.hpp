@@ -8,13 +8,13 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/detail/accessor.hpp"  // detail::first_t
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 #include "detray/surface_finders/grid/detail/axis_helpers.hpp"
 #include "detray/utils/type_registry.hpp"
+#include "detray/utils/type_traits.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/memory_resource.hpp>

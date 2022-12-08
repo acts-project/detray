@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/detail/accessor.hpp"
+#include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/surface_finders/grid/detail/populator_impl.hpp"
