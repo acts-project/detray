@@ -5,9 +5,9 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <iostream>
+#include "detray/utils/tuple_helpers.hpp"
 
-#include "detray/definitions/detail/accessor.hpp"
+#include <iostream>
 
 // Thrust include(s).
 #include <thrust/tuple.h>
@@ -15,7 +15,7 @@
 // GoogleTest include(s).
 #include <gtest/gtest.h>
 
-TEST(tuple_accessor, tuple_accessor) {
+TEST(tuple_helpers, tuple_helpers) {
 
     using namespace detray;
 

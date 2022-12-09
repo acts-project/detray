@@ -7,14 +7,17 @@
 
 #pragma once
 
-#include <limits>
-
+// Project include(s)
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
+// System include(s)
+#include <limits>
+
 namespace detray {
+
 using dindex = unsigned long;
-dindex constexpr dindex_invalid = std::numeric_limits<dindex>::max();
+inline dindex constexpr dindex_invalid = std::numeric_limits<dindex>::max();
 using dindex_range = darray<dindex, 2>;
 using dindex_sequence = dvector<dindex>;
 

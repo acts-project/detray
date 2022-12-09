@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/detail/grid_helpers.hpp"

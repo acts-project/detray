@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/masks/annulus2D.hpp"

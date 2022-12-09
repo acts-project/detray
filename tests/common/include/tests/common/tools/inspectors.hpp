@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/utils/tuple_helpers.hpp"
 
 // System include(s)
 #include <iomanip>

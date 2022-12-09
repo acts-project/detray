@@ -12,7 +12,7 @@ detray_add_test( core
    "grids_serializer.cpp"
    "thrust_tuple.cpp"
    "tools_hash_tree.cpp"
-   "tuple_accessor.cpp"
+   "tuple_helpers.cpp"
    "utils_local_object_finder.cpp"
    "utils_ranges.cpp"
    "utils_quadratic_equation.cpp"

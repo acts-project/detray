@@ -11,7 +11,6 @@
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/core/detail/tuple_container.hpp"
-#include "detray/definitions/detail/accessor.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/type_registry.hpp"
@@ -25,10 +24,10 @@
 namespace detray {
 
 /// @brief Wraps a vecmem enabled tuple and adds functionality to handle data
-/// collections.
+/// collections @tparam Ts.
 ///
 /// @tparam An enum of type IDs that needs to match the value types of the
-/// @c Ts pack.
+/// @tparam Ts pack.
 /// @tparam context_t How to retrieve data according to e.g. conditions data
 /// @tparam tuple_t The type of the underlying tuple container.
 /// @tparam container_t The type of container to use for the respective
@@ -42,7 +41,7 @@ class multi_store {
     using size_type = typename detail::first_t<Ts...>::size_type;
     using context_type = context_t;
 
-    /// How to find a data collection in the store
+    /// How to find and index a data collection in the store
     /// @{
     using ids = ID;
     template <typename index_t>
