@@ -154,8 +154,8 @@ TEST(path_correction, cartesian) {
                                                  thickness);
 
     typename detector_type::volume_type &vol = det.volume_by_index(0);
-    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, materials,
-                               transforms);
+    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, transforms,
+                               materials);
 
     // Generate track starting point
     vector2 local{2, 3};
@@ -296,8 +296,8 @@ TEST(path_correction, polar) {
                                                  thickness);
 
     typename detector_type::volume_type &vol = det.volume_by_index(0);
-    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, materials,
-                               transforms);
+    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, transforms,
+                               materials);
 
     // Generate track starting point
     vector2 local{2, M_PI / 6.};
@@ -426,8 +426,8 @@ TEST(path_correction, cylindrical) {
                                                  thickness);
 
     typename detector_type::volume_type &vol = det.volume_by_index(0);
-    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, materials,
-                               transforms);
+    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, transforms,
+                               materials);
 
     // Generate track starting point
     vector2 local{0., 0.};

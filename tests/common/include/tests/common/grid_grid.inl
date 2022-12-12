@@ -69,7 +69,7 @@ template <typename grid_t, typename content_t>
 void test_content(const grid_t& g, const point3& p, const content_t& expected) {
     dindex i = 0;
     for (const auto& entry : g.search(p)) {
-        ASSERT_FLOAT_EQ(entry, expected[i++]);
+        ASSERT_FLOAT_EQ(entry, expected[i++]) << " at index " << i - 1;
     }
 }
 

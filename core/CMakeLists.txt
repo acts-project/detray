@@ -21,11 +21,11 @@ detray_add_library( detray_core core
    # core include(s)
    "include/detray/core/detail/container_view.hpp"
    "include/detray/core/detail/data_context.hpp"
+   "include/detray/core/detail/detector_kernel.hpp"
    "include/detray/core/detail/multi_store.hpp"
    "include/detray/core/detail/single_store.hpp"
    "include/detray/core/detail/tuple_container.hpp"
    "include/detray/core/detector.hpp"
-   "include/detray/core/detector_kernel.hpp"
    # definitions include(s)
    "include/detray/definitions/detail/algorithms.hpp"
    "include/detray/definitions/containers.hpp"
@@ -109,6 +109,7 @@ detray_add_library( detray_core core
    "include/detray/tool/grid_factory.hpp"
    "include/detray/tools/local_object_finder.hpp"
    "include/detray/tools/volume_builder.hpp"
+   "include/detray/tools/volume_builder_interface.hpp"
    # tracks include(s)
    "include/detray/tracks/detail/track_helper.hpp"
    "include/detray/tracks/bound_track_parameters.hpp"

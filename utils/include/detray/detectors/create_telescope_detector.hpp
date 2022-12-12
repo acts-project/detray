@@ -241,8 +241,8 @@ auto create_telescope_detector(
             ctx, traj, vol, surfaces, masks, materials, transforms, pl_config);
     }
 
-    det.add_objects_per_volume(ctx, vol, surfaces, masks, materials,
-                               transforms);
+    det.add_objects_per_volume(ctx, vol, surfaces, masks, transforms,
+                               materials);
 
     return det;
 }

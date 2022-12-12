@@ -12,12 +12,6 @@
 
 namespace detray {
 
-namespace {
-
-using point2 = __plugin::point2<detray::scalar>;
-
-}  // anonymous namespace
-
 /** Struct that assigns the center of gravity to a rectangular bin */
 struct center_of_gravity_rectangle {
     /** Call operator to the struct, allows to chain several chain operators
@@ -30,10 +24,11 @@ struct center_of_gravity_rectangle {
      *
      * @return whether this should be associated
      */
-    bool operator()(const std::vector<point2> &bin_contour,
-                    const std::vector<point2> &surface_contour) {
+    template <typename point2_t>
+    bool operator()(const std::vector<point2_t> &bin_contour,
+                    const std::vector<point2_t> &surface_contour) {
         // Check if centre of gravity is inside bin
-        point2 cgs = {0., 0.};
+        point2_t cgs = {0., 0.};
         for (const auto &svtx : surface_contour) {
             cgs = cgs + svtx;
         }
@@ -68,10 +63,11 @@ struct center_of_gravity_generic {
      *
      * @return whether this should be associated
      */
-    bool operator()(const std::vector<point2> &bin_contour,
-                    const std::vector<point2> &surface_contour) {
+    template <typename point2_t>
+    bool operator()(const std::vector<point2_t> &bin_contour,
+                    const std::vector<point2_t> &surface_contour) {
         // Check if centre of gravity is inside bin
-        point2 cgs = {0., 0.};
+        point2_t cgs = {0., 0.};
         for (const auto &svtx : surface_contour) {
             cgs = cgs + svtx;
         }
@@ -105,11 +101,12 @@ struct edges_intersect_generic {
      *
      * @return whether this should be associated
      */
-    bool operator()(const std::vector<point2> &bin_contour,
-                    const std::vector<point2> &surface_contour) {
+    template <typename point2_t>
+    bool operator()(const std::vector<point2_t> &bin_contour,
+                    const std::vector<point2_t> &surface_contour) {
 
-        auto intersect = [](const point2 &pi, const point2 &pj,
-                            const point2 &pk, const point2 &pl) -> bool {
+        auto intersect = [](const point2_t &pi, const point2_t &pj,
+                            const point2_t &pk, const point2_t &pl) -> bool {
             scalar d = (pj[0] - pi[0]) * (pl[1] - pk[1]) -
                        (pj[1] - pi[1]) * (pl[0] - pk[0]);
 

@@ -8,11 +8,12 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detector_kernel.hpp"
+#include "detray/core/detail/detector_kernel.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/tools/volume_builder.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
@@ -39,9 +40,12 @@ namespace detray {
 /// @tparam container_t type collection of the underlying containers
 /// @tparam source_link the surface source link
 template <typename metadata, template <typename> class bfield_t = covfie::field,
-          typename container_t = host_container_types,
-          typename source_link = dindex>
+          typename container_t = host_container_types>
 class detector {
+
+    // Allow the building of the detector containers
+    friend class volume_builder_interface<
+        detector<metadata, bfield_t, container_t>>;
 
     public:
     /// Algebra types
@@ -102,8 +106,7 @@ class detector {
     /// The surface takes a mask (defines the local coordinates and the surface
     /// extent), its material, a link to an element in the transform container
     /// to define its placement and a source link to the object it represents.
-    using surface_type =
-        surface<mask_link, material_link, transform_link, source_link>;
+    using surface_type = typename metadata::surface_type;
 
     using surface_container = vector_type<surface_type>;
     /// Volume type
@@ -207,7 +210,7 @@ class detector {
     /// @return the volume by @param position - const access
     DETRAY_HOST_DEVICE
     inline auto volume_by_pos(const point3 &p) const -> const volume_type & {
-        // Replace grid: only one entry per bin
+        // Grid with replace-populator: only one entry per bin
         dindex volume_index = *_volume_finder.search(p);
         return _volumes[volume_index];
     }
@@ -242,12 +245,10 @@ class detector {
     DETRAY_HOST_DEVICE
     inline auto mask_store() -> mask_container & { return _masks; }
 
-    /// Add pre-built mask store
-    ///
-    /// @param masks the conatiner for surface masks
+    /// Append a new mask store to the detector
     DETRAY_HOST
-    inline void add_mask_store(mask_container &&msks) {
-        _masks = std::move(msks);
+    inline void append_masks(mask_container &&new_masks) {
+        _masks.append(std::move(new_masks));
     }
 
     /// @return all materials in the geometry - const access
@@ -259,6 +260,12 @@ class detector {
     /// @return all materials in the geometry - non-const access
     DETRAY_HOST_DEVICE
     inline auto material_store() -> material_container & { return _materials; }
+
+    /// Append a new material store to the detector
+    DETRAY_HOST
+    inline void append_materials(material_container &&new_materials) {
+        _materials.append(std::move(new_materials));
+    }
 
     /// Get all transform in an index range from the detector - const
     ///
@@ -277,12 +284,10 @@ class detector {
         return _transforms;
     }
 
-    /// Add pre-built transform store
-    ///
-    /// @param transf the constianer for surface transforms
+    /// Append a new transform store to the detector
     DETRAY_HOST
-    inline auto add_transform_store(transform_container &&transf) -> void {
-        _transforms = std::move(transf);
+    inline void append_transforms(transform_container &&new_transforms) {
+        _transforms.append(std::move(new_transforms));
     }
 
     /// Get all available data from the detector without std::tie
@@ -308,7 +313,6 @@ class detector {
     /// @param vol is the target volume
     /// @param surfaces_per_vol is the surface vector per volume
     /// @param masks_per_vol is the mask container per volume
-    /// @param materials_per_vol is the material container per volume
     /// @param trfs_per_vol is the transform vector per volume
     ///
     /// @note can throw an exception if input data is inconsistent
@@ -317,7 +321,6 @@ class detector {
     auto add_objects_per_volume(
         const geometry_context ctx, volume_type &vol,
         surface_container &surfaces_per_vol, mask_container &masks_per_vol,
-        material_container &materials_per_vol,
         transform_container &trfs_per_vol) noexcept(false) -> void {
 
         // Append transforms
@@ -327,8 +330,6 @@ class detector {
         // Update mask, material and transform index of surfaces
         for (auto &sf : surfaces_per_vol) {
             _masks.template call<detail::mask_index_update>(sf.mask(), sf);
-            _materials.template call<detail::material_index_update>(
-                sf.material(), sf);
             sf.update_transform(trf_offset);
         }
 
@@ -343,11 +344,40 @@ class detector {
 
         // Append mask and material container
         _masks.append(std::move(masks_per_vol));
-        _materials.append(std::move(materials_per_vol));
 
         // Update max objects per volume
         _n_max_objects_per_volume =
             std::max(_n_max_objects_per_volume, vol.n_objects());
+    }
+
+    /// Add a new full set of detector components (e.g. transforms or volumes)
+    /// according to given geometry_context.
+    ///
+    /// @param ctx is the geometry_context of the call
+    /// @param vol is the target volume
+    /// @param surfaces_per_vol is the surface vector per volume
+    /// @param masks_per_vol is the mask container per volume
+    /// @param materials_per_vol is the material container per volume
+    /// @param trfs_per_vol is the transform vector per volume
+    ///
+    /// @note can throw an exception if input data is inconsistent
+    // TODO: Provide volume builder structure separate from the detector
+    DETRAY_HOST
+    auto add_objects_per_volume(
+        const geometry_context ctx, volume_type &vol,
+        surface_container &surfaces_per_vol, mask_container &masks_per_vol,
+        transform_container &trfs_per_vol,
+        material_container &materials_per_vol) noexcept(false) -> void {
+
+        // Update material index of surfaces
+        for (auto &sf : surfaces_per_vol) {
+            _materials.template call<detail::material_index_update>(
+                sf.material(), sf);
+        }
+        _materials.append(std::move(materials_per_vol));
+
+        add_objects_per_volume(ctx, vol, surfaces_per_vol, masks_per_vol,
+                               trfs_per_vol);
     }
 
     /// Add the volume grid - move semantics
@@ -518,10 +548,9 @@ struct detector_view {
 ///
 /// @param detector the detector to be tranferred
 template <typename detector_registry, template <typename> class bfield_t,
-          typename container_t, typename source_link>
-inline detector_view<
-    detector<detector_registry, bfield_t, container_t, source_link>>
-get_data(detector<detector_registry, bfield_t, container_t, source_link> &det) {
+          typename container_t>
+inline detector_view<detector<detector_registry, bfield_t, container_t>>
+get_data(detector<detector_registry, bfield_t, container_t> &det) {
     return {det};
 }
 

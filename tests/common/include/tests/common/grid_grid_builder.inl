@@ -8,7 +8,9 @@
 #include <gtest/gtest.h>
 
 // Detray include(s)
+#include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/detectors/detector_metadata.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
@@ -29,6 +31,8 @@ using point3 = __plugin::point3<scalar>;
 using vector3 = __plugin::vector3<scalar>;
 
 __plugin::transform3<scalar> Identity{};
+
+using test_detector_t = detector<detector_registry::toy_detector>;
 
 }  // anonymous namespace
 
@@ -125,23 +129,21 @@ TEST(grid, grid_factory) {
 /// Unittest: Test the grid builder
 TEST(grid, grid_builder) {
 
-    // surface grid definition: bin-content: std::array<dindex, 9>
+    // cylinder grid type of the toy detector
     using cyl_grid_t =
         grid<coordinate_axes<cylinder2D<>::axes<>, false, host_container_types>,
-             dindex, simple_serializer, replacer>;
+             test_detector_t::surface_type, simple_serializer,
+             regular_attacher<9>>;
 
-    // cyl_grid_t bla = grid_factory_type<cyl_grid_t>{};
-
-    auto gbuilder = grid_builder<void, cyl_grid_t>{};
+    auto gbuilder = grid_builder<test_detector_t, cyl_grid_t,
+                                 detray::detail::bin_associator>{};
 
     // The cylinder portals are at the end of the surface range by construction
     const auto cyl_mask = mask<cylinder2D<>>{0UL, 10.f, -500.f, 500.f};
-
-    // approximate binning for the barrel sensors
     std::size_t n_phi_bins{5UL}, n_z_bins{4UL};
 
     // Build empty grid
-    gbuilder.init(cyl_mask, {n_phi_bins, n_z_bins});
+    gbuilder.init_grid(cyl_mask, {n_phi_bins, n_z_bins});
     auto cyl_grid = gbuilder();
 
     const auto& cyl_axis_z = cyl_grid.template get_axis<label::e_cyl_z>();
@@ -153,4 +155,44 @@ TEST(grid, grid_builder) {
                 std::numeric_limits<scalar>::epsilon());
     EXPECT_NEAR(cyl_axis_z.span()[1], 500.f,
                 std::numeric_limits<scalar>::epsilon());
+}
+
+/// Integration test: grid builder as volume builder decorator
+TEST(grid, decorator_grid_builder) {
+
+    vecmem::host_memory_resource host_mr;
+
+    // cylinder grid type of the toy detector
+    using cyl_grid_t =
+        grid<coordinate_axes<cylinder2D<>::axes<>, false, host_container_types>,
+             test_detector_t::surface_type, simple_serializer,
+             regular_attacher<9>>;
+
+    test_detector_t d(host_mr);
+
+    auto vbuilder = std::make_unique<volume_builder<test_detector_t>>();
+    auto gbuilder =
+        grid_builder<test_detector_t, cyl_grid_t>{std::move(vbuilder)};
+
+    // The cylinder portals are at the end of the surface range by construction
+    const auto cyl_mask = mask<cylinder2D<>>{0UL, 10.f, -500.f, 500.f};
+    std::size_t n_phi_bins{5UL}, n_z_bins{4UL};
+
+    // Build empty grid
+    gbuilder.init_grid(cyl_mask, {n_phi_bins, n_z_bins});
+
+    EXPECT_TRUE(d.volumes().size() == 0);
+
+    // Now init the volume
+    gbuilder.init_vol(d, volume_id::e_cylinder,
+                      {0., 10., -5., 5., -M_PI, M_PI});
+
+    const auto& vol = d.volumes().back();
+    EXPECT_TRUE(d.volumes().size() == 1);
+    EXPECT_EQ(vol.index(), 0);
+    EXPECT_EQ(vol.id(), volume_id::e_cylinder);
+
+    const auto& cyl_axis_z = gbuilder().template get_axis<label::e_cyl_z>();
+    EXPECT_EQ(cyl_axis_z.label(), label::e_cyl_z);
+    EXPECT_EQ(cyl_axis_z.nbins(), 4UL);
 }

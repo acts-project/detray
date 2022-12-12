@@ -216,8 +216,8 @@ void create_cyl_volume(
                      transforms, inner_r, outer_r, upper_z, volume_links[3],
                      vacuum<scalar>(), 0. * unit<scalar>::mm);
 
-    det.add_objects_per_volume(ctx, cyl_volume, surfaces, masks, materials,
-                               transforms);
+    det.add_objects_per_volume(ctx, cyl_volume, surfaces, masks, transforms,
+                               materials);
 }
 
 /** Helper function that creates a layer of rectangular barrel modules.
@@ -338,7 +338,7 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
 
     using cyl_grid_t =
         typename detector_t::sf_finder_container::template get_type<grid_id>;
-    auto gbuilder = grid_builder<geo_obj_ids, cyl_grid_t>{};
+    auto gbuilder = grid_builder<detector_t, cyl_grid_t, detail::fill_by_pos>{};
 
     // The cylinder portals are at the end of the surface range by construction
     const auto portal_link = vol.template obj_link<geo_obj_ids::e_portal>();
@@ -353,8 +353,8 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
     std::size_t n_z_bins{cfg.m_binning.second};
 
     // Add new grid to the detector
-    gbuilder.init(cyl_mask, {n_phi_bins, n_z_bins});
-    gbuilder.fill(detail::fill_by_pos{}, det, vol, ctx);
+    gbuilder.init_grid(cyl_mask, {n_phi_bins, n_z_bins});
+    gbuilder.fill_grid(det, vol, ctx);
 
     det.sf_finder_store().template push_back<grid_id>(gbuilder());
     vol.set_sf_finder(grid_id,
@@ -380,7 +380,8 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
 
     using disc_grid_t =
         typename detector_t::sf_finder_container::template get_type<grid_id>;
-    auto gbuilder = grid_builder<geo_obj_ids, disc_grid_t>{};
+    auto gbuilder =
+        grid_builder<detector_t, disc_grid_t, detray::detail::fill_by_pos>{};
 
     // The cylinder portals are at the end of the surface range by construction
     auto portal_link = vol.template obj_link<geo_obj_ids::e_portal>();
@@ -389,9 +390,9 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
         det.mask_store().template get<disc_id>().at(portal_mask_idx);
 
     // Add new grid to the detector
-    gbuilder.init(disc_mask,
-                  {cfg.disc_binning.size(), cfg.disc_binning.front()});
-    gbuilder.fill(detail::fill_by_pos{}, det, vol, ctx);
+    gbuilder.init_grid(disc_mask,
+                       {cfg.disc_binning.size(), cfg.disc_binning.front()});
+    gbuilder.fill_grid(det, vol, ctx);
 
     det.sf_finder_store().template push_back<grid_id>(gbuilder());
     vol.set_sf_finder(grid_id,
@@ -658,8 +659,8 @@ inline void add_beampipe(
                      beampipe_vol_size.first, beampipe_vol_size.second, max_z,
                      volume_link, vacuum<scalar>(), 0. * unit<scalar>::mm);
 
-    det.add_objects_per_volume(ctx, beampipe, surfaces, masks, materials,
-                               transforms);
+    det.add_objects_per_volume(ctx, beampipe, surfaces, masks, transforms,
+                               materials);
 }
 
 /** Helper method for creating a connecting gap volume between endcap and barrel
@@ -734,8 +735,8 @@ inline void add_endcap_barrel_connection(
                          0. * unit<scalar>::mm);
     }
 
-    det.add_objects_per_volume(ctx, connector_gap, surfaces, masks, materials,
-                               transforms);
+    det.add_objects_per_volume(ctx, connector_gap, surfaces, masks, transforms,
+                               materials);
 }
 
 /** Helper method for creating one of the two endcaps.
