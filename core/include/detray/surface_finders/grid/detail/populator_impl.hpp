@@ -24,19 +24,28 @@ namespace detray {
 /// the entry type of an content is determined by the grid.
 template <typename content_t, template <typename> class view_t,
           typename T = void>
-struct bin_base {
-    content_t m_content{};
+class bin_base {
+
+    public:
     using content_type = content_t;
     using view_type = view_t<content_t>;
     using const_view_type = view_t<const content_t>;
 
-    /// @returns the content that a bin stores
-    DETRAY_HOST_DEVICE
-    auto view() const -> const_view_type { return const_view_type(m_content); }
+    bin_base() = default;
 
-    /// Access to the bin content
-    DETRAY_HOST_DEVICE
-    auto view() -> view_type { return view_type(m_content); }
+    bin_base(const content_t &bin_content) : m_content{bin_content} {}
+
+    /// @returns the view on the bin content - const
+    template <typename... Args>
+    DETRAY_HOST_DEVICE auto view(Args &&... args) const -> const_view_type {
+        return const_view_type(m_content, args...);
+    }
+
+    /// @returns the view on the bin content
+    template <typename... Args>
+    DETRAY_HOST_DEVICE auto view(Args &&... args) -> view_type {
+        return view_type(m_content, args...);
+    }
 
     /// @returns the bin content - const
     DETRAY_HOST_DEVICE
@@ -53,11 +62,14 @@ struct bin_base {
     /// Insert a @param new_content into the backend storage - copy
     DETRAY_HOST_DEVICE
     void insert(const content_t &new_content) { m_content = new_content; }
+
+    protected:
+    content_t m_content{};
 };
 
 /// @brief default implementation of an element in the grid backend storage
 template <typename content_t, template <typename> class view_t>
-struct bin
+class bin
     : public bin_base<
           content_t, view_t,
           typename std::enable_if_t<std::is_standard_layout_v<content_t>>> {};
@@ -99,6 +111,11 @@ struct replacer {
         return storage[gbin].view();
     }
 
+    template <typename bin_storage_t>
+    DETRAY_HOST_DEVICE auto view(bin_storage_t &storage, const dindex gbin) {
+        return storage[gbin].view();
+    }
+
     /// @returns an initialized bin in the backend storage
     template <typename content_t>
     DETRAY_HOST_DEVICE static constexpr auto init(
@@ -106,6 +123,41 @@ struct replacer {
         -> bin_type<content_t> {
         return {{content}};
     }
+};
+
+/// @brief bin type for bins that hold a collection of entries.
+///
+/// Keeps an additional counter to track the number of entries per bin.
+template <typename content_t>
+class ranged_bin
+    : public bin_base<
+          content_t, detray::ranges::subrange,
+          typename std::enable_if_t<std::is_standard_layout_v<content_t>>> {
+
+    public:
+    using base_type = bin_base<
+        content_t, detray::ranges::subrange,
+        typename std::enable_if_t<std::is_standard_layout_v<content_t>>>;
+    using content_type = content_t;
+    using view_type = detray::ranges::subrange<content_t>;
+    using const_view_type = detray::ranges::subrange<const content_t>;
+
+    ranged_bin() = default;
+
+    ranged_bin(const content_t &bin_content, const dindex size)
+        : base_type{bin_content}, n_elements{size} {}
+
+    constexpr std::size_t n_entries() { return n_elements; }
+    constexpr std::size_t n_entries() const { return n_elements; }
+
+    constexpr void push_back(
+        const typename content_t::value_type &entry) noexcept {
+        this->m_content.at(n_elements) = entry;
+        ++n_elements;
+    }
+
+    protected:
+    std::size_t n_elements{0};
 };
 
 /// A complete populator that adds elements to a bin content which contains an
@@ -125,7 +177,7 @@ struct completer {
     static constexpr bool do_sort = kSORT;
 
     template <typename entry_t>
-    using bin_type = bin<array_t<entry_t, kDIM>, detray::ranges::subrange>;
+    using bin_type = ranged_bin<array_t<entry_t, kDIM>>;
 
     /// Complete the bin content with a new entry - copy
     ///
@@ -135,11 +187,10 @@ struct completer {
     template <typename bin_storage_t, typename entry_t>
     DETRAY_HOST_DEVICE void operator()(bin_storage_t &storage,
                                        const dindex gbin,
-                                       const entry_t entry) const {
-        for (entry_t &stored_entry : storage[gbin].content()) {
-            if (stored_entry == detail::invalid_value<entry_t>()) {
-                stored_entry = entry;
-            }
+                                       const entry_t &entry) const noexcept {
+        for (std::size_t i{storage[gbin].n_entries()};
+             i < storage[gbin].content().size(); ++i) {
+            storage[gbin].push_back(entry);
         }
     }
 
@@ -152,6 +203,11 @@ struct completer {
     template <typename bin_storage_t>
     DETRAY_HOST_DEVICE decltype(auto) view(const bin_storage_t &storage,
                                            const dindex gbin) const {
+        return storage[gbin].view(dindex_range{0, storage[gbin].n_entries()});
+    }
+
+    template <typename bin_storage_t>
+    DETRAY_HOST_DEVICE auto view(bin_storage_t &storage, const dindex gbin) {
         return storage[gbin].view();
     }
 
@@ -167,8 +223,9 @@ struct completer {
 
         // The first entry always exists
         stored[0] = entry;
+        std::size_t n_elem = entry == detail::invalid_value<entry_t>() ? 0 : 1;
 
-        return {{stored}};
+        return {{stored}, n_elem};
     }
 };
 
@@ -189,7 +246,7 @@ struct regular_attacher {
     static constexpr bool do_sort = kSORT;
 
     template <typename entry_t>
-    using bin_type = bin<array_t<entry_t, kDIM>, detray::ranges::subrange>;
+    using bin_type = ranged_bin<array_t<entry_t, kDIM>>;
 
     /// Append a new entry to the bin - forwarding
     ///
@@ -200,13 +257,7 @@ struct regular_attacher {
     DETRAY_HOST_DEVICE void operator()(bin_storage_t &storage,
                                        const dindex gbin,
                                        entry_t &&entry) const {
-        for (auto &stored : storage[gbin].content()) {
-            if (stored ==
-                detail::invalid_value<std::remove_reference_t<entry_t>>()) {
-                stored = std::forward<entry_t>(entry);
-                break;
-            }
-        }
+        storage[gbin].push_back(entry);
     }
 
     /// Fetch a bin from a storage element in the backend storage - const
@@ -218,6 +269,11 @@ struct regular_attacher {
     template <typename bin_storage_t>
     DETRAY_HOST_DEVICE auto view(const bin_storage_t &storage,
                                  const dindex gbin) const {
+        return storage[gbin].view(dindex_range{0, storage[gbin].n_entries()});
+    }
+
+    template <typename bin_storage_t>
+    DETRAY_HOST_DEVICE auto view(bin_storage_t &storage, const dindex gbin) {
         return storage[gbin].view();
     }
 
@@ -233,8 +289,9 @@ struct regular_attacher {
 
         // The first element always exists
         stored[0] = entry;
+        std::size_t n_elem = entry == detail::invalid_value<entry_t>() ? 0 : 1;
 
-        return {{stored}};
+        return {{stored}, n_elem};
     }
 };
 

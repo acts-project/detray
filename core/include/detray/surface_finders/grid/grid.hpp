@@ -178,10 +178,16 @@ class grid {
         return at(m_serializer(m_axes, mbin));
     }
 
+    /// @param gbin the multi-index of bins over all axes - const
+    DETRAY_HOST_DEVICE
+    auto at(const dindex gbin) const {
+        return m_populator.view(*(data().bin_data()), gbin + data().offset());
+    }
+
     /// @param gbin the multi-index of bins over all axes
     DETRAY_HOST_DEVICE
-    auto at(dindex gbin) const {
-        return m_populator.view(*(data().bin_data()), gbin + data().offset());
+    auto at(const dindex gbin) {
+        return m_populator.view(*(m_data.bin_data()), gbin + data().offset());
     }
     /// @}
 

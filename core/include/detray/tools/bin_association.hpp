@@ -8,51 +8,48 @@
 
 #pragma once
 
-#include <array>
-#include <tuple>
-#include <vector>
-
+// Project include(s)
 #include "detray/tools/associator.hpp"
 #include "detray/tools/generators.hpp"
 #include "detray/utils/ranges.hpp"
 
+// System include(s)
+#include <array>
+#include <vector>
+
 namespace detray {
 
-/** Run the bin association of surfaces (via their contour)
- *  - to a given grid.
- *
- * @param context is the context to win which the association is done
- * @param detector is the detector to which the grid belongs
- * @param volume is the volume to which the surfaces belong
- * @param grid is the grid that will be filled
- * @param tolerance is the bin_tolerance in the two local coordinates
- * @param absolute_tolerance is an indicator if the tolerance is to be
- *        taken absolute or relative
- */
-template <typename context_t, typename detector_t, typename volume_t,
-          typename grid_t>
+/// Run the bin association of surfaces (via their contour) to a given 2D grid.
+///
+/// @param context is the context to win which the association is done
+/// @param surfaces a range of detector surfaces
+/// @param transforms the transforms that belong to the surfaces
+/// @param surface_masks the masks that belong to the surfaces
+/// @param grid either a cylinder or disc grid to be filled
+/// @param tolerance is the bin_tolerance in the two local coordinates
+/// @param absolute_tolerance is an indicator if the tolerance is to be
+///        taken absolute or relative
+template <typename context_t, typename surface_container_t,
+          typename transform_container_t, typename mask_container_t,
+          typename grid_t, std::enable_if_t<grid_t::Dim == 2, bool> = true>
 static inline void bin_association(const context_t & /*context*/,
-                                   const detector_t &detector,
-                                   const volume_t &volume, grid_t &grid,
+                                   const surface_container_t &surfaces,
+                                   const transform_container_t &transforms,
+                                   const mask_container_t &surface_masks,
+                                   grid_t &grid,
                                    const std::array<scalar, 2> &bin_tolerance,
                                    bool absolute_tolerance = true) {
 
-    using point2_t = typename detector_t::point2;
-    using point3_t = typename detector_t::point3;
-
-    // Get surfaces, transforms and masks
-    const auto &dc = detector.data();
-    const auto &surface_masks = detector.mask_store();
-
-    const auto &bounds = volume.bounds();
-    bool is_cylinder =
-        std::abs(bounds[1] - bounds[0]) < std::abs(bounds[3] - bounds[2]);
+    using transform_t = typename transform_container_t::value_type;
+    using point2_t = typename transform_t::point2;
+    using point3_t = typename transform_t::point3;
 
     const auto &axis_0 = grid.template get_axis<0>();
     const auto &axis_1 = grid.template get_axis<1>();
 
     // Disk type bin association
-    if (not is_cylinder) {
+    if constexpr (std::is_same_v<typename grid_t::local_frame,
+                                 polar2<transform_t>>) {
         // Run with two different associators: center of gravity and edge
         // intersection
         center_of_gravity_generic cgs_assoc;
@@ -81,8 +78,7 @@ static inline void bin_association(const context_t & /*context*/,
                         phi_borders[0] - phi_add, phi_borders[1] + phi_add);
 
                 // Run through the surfaces and associate them by contour
-                for (auto [isf, sf] :
-                     detray::views::enumerate(dc.surfaces, volume)) {
+                for (auto sf : surfaces) {
 
                     // Add only sensitive surfaces to the grid
                     if (sf.is_portal()) {
@@ -90,7 +86,7 @@ static inline void bin_association(const context_t & /*context*/,
                     }
 
                     // Unroll the mask container and generate vertices
-                    const auto &transform = dc.transforms[sf.transform()];
+                    const auto &transform = transforms[sf.transform()];
 
                     auto vertices_per_masks =
                         surface_masks
@@ -111,8 +107,7 @@ static inline void bin_association(const context_t & /*context*/,
                             // The association has worked
                             if (cgs_assoc(bin_contour, surface_contour) or
                                 edges_assoc(bin_contour, surface_contour)) {
-                                dindex bin_index = isf;
-                                grid.populate({bin_0, bin_1}, bin_index);
+                                grid.populate({bin_0, bin_1}, sf);
                                 break;
                             }
                         }
@@ -120,7 +115,8 @@ static inline void bin_association(const context_t & /*context*/,
                 }
             }
         }
-    } else {
+    } else if constexpr (std::is_same_v<typename grid_t::local_frame,
+                                        cylindrical2<transform_t>>) {
 
         center_of_gravity_rectangle cgs_assoc;
         edges_intersect_generic edges_assoc;
@@ -155,8 +151,7 @@ static inline void bin_association(const context_t & /*context*/,
                                                      p3_bin};
 
                 // Loop over the surfaces within a volume
-                for (auto [isf, sf] :
-                     detray::views::enumerate(dc.surfaces, volume)) {
+                for (auto sf : surfaces) {
 
                     // Add only sensitive surfaces to the grid
                     if (sf.is_portal()) {
@@ -164,7 +159,7 @@ static inline void bin_association(const context_t & /*context*/,
                     }
 
                     // Unroll the mask container and generate vertices
-                    const auto &transform = dc.transforms[sf.transform()];
+                    const auto &transform = transforms[sf.transform()];
 
                     auto vertices_per_masks =
                         surface_masks
@@ -234,8 +229,7 @@ static inline void bin_association(const context_t & /*context*/,
 
                             // Register if associated
                             if (associated) {
-                                dindex bin_index = isf;
-                                grid.populate({bin_0, bin_1}, bin_index);
+                                grid.populate({bin_0, bin_1}, sf);
                                 break;
                             }
                         }

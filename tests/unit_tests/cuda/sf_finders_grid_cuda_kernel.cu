@@ -93,8 +93,7 @@ void grid_replace_ci_test(host_grid2_replace_ci::view_type grid_view,
 //----------------------------------------------------
 
 // cuda kernel for grid_complete_test
-/*__global__ void grid_complete_kernel(host_grid2_complete::view_type grid_view)
-{
+__global__ void grid_complete_kernel(host_grid2_complete::view_type grid_view) {
 
     // Let's try building the grid object
     device_grid2_complete g2_device(grid_view);
@@ -193,7 +192,7 @@ void grid_attach_read_test(const_host_grid2_attach::view_type grid_view,
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}*/
+}
 
 //---------------------------------------
 //  test function for collection of grids

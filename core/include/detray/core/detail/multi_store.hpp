@@ -55,6 +55,8 @@ class multi_store {
     using value_types = type_registry<ID, detail::get_value_t<Ts>...>;
     template <ID id>
     using get_type = typename value_types::template get_type<id>::type;
+    template <typename T>
+    using get_id = typename value_types::template get_index<T>;
     /// @}
 
     /// Underlying tuple container that can handle vecmem views
