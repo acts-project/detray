@@ -25,6 +25,22 @@ using point3 = __plugin::point3<scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<scalar>;
 
+// This tests the density effect data correction
+TEST(density_effect_data, density_effect_data) {
+    // Check the default constructor of density effect data
+    detail::density_effect_data<scalar> D{};
+
+    EXPECT_FLOAT_EQ(D.get_A_density(), std::numeric_limits<scalar>::epsilon());
+    EXPECT_FLOAT_EQ(D.get_M_density(), std::numeric_limits<scalar>::epsilon());
+    EXPECT_FLOAT_EQ(D.get_X0_density(), std::numeric_limits<scalar>::epsilon());
+    EXPECT_FLOAT_EQ(D.get_X1_density(), std::numeric_limits<scalar>::epsilon());
+    EXPECT_FLOAT_EQ(D.get_mean_excitation_energy(),
+                    std::numeric_limits<scalar>::epsilon());
+    EXPECT_FLOAT_EQ(D.get_C_density(), std::numeric_limits<scalar>::epsilon());
+    EXPECT_FLOAT_EQ(D.get_delta0_density(),
+                    std::numeric_limits<scalar>::epsilon());
+}
+
 // This tests the material functionalities
 TEST(materials, material) {
     // vacuum
