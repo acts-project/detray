@@ -51,6 +51,13 @@ class populator {
         return m_populator_impl.view(storage, gbin);
     }
 
+    /// Fetch a bin entry from the grid backend storage
+    template <typename serialized_storage>
+    DETRAY_HOST_DEVICE auto view(serialized_storage &storage,
+                                 const dindex gbin) {
+        return m_populator_impl.view(storage, gbin);
+    }
+
     /// @returns a default initialized bin entry
     template <typename entry_t>
     DETRAY_HOST_DEVICE static constexpr auto init() {

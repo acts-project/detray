@@ -49,17 +49,19 @@ using rod = material_rod<detray::scalar>;
 /// @{
 
 // surface grid definition: bin-content: std::array<dindex, 9>
-template <typename grid_shape_t, typename container_t>
-using surface_grid_t = grid<coordinate_axes<grid_shape_t, false, container_t>,
-                            dindex, simple_serializer, regular_attacher<9>>;
+template <typename grid_shape_t, typename bin_entry_t, typename container_t>
+using surface_grid_t =
+    grid<coordinate_axes<grid_shape_t, false, container_t>, bin_entry_t,
+         simple_serializer, regular_attacher<9>>;
 
 // cylindrical grid for the barrel layers
-template <typename container_t>
-using cylinder_sf_grid = surface_grid_t<cylinder2D<>::axes<>, container_t>;
+template <typename bin_entry_t, typename container_t>
+using cylinder_sf_grid =
+    surface_grid_t<cylinder2D<>::axes<>, bin_entry_t, container_t>;
 
 // disc grid for the endcap layers
-template <typename container_t>
-using disc_sf_grid = surface_grid_t<ring2D<>::axes<>, container_t>;
+template <typename bin_entry_t, typename container_t>
+using disc_sf_grid = surface_grid_t<ring2D<>::axes<>, bin_entry_t, container_t>;
 
 /// @}
 
@@ -124,6 +126,14 @@ struct full_metadata {
     using material_store = regular_multi_store<material_ids, empty_context,
                                                tuple_t, vector_t, slab, rod>;
 
+    /// Surface type used for sensitives, passives and portals
+    using transform_link = typename transform_store<>::link_type;
+    using mask_link = typename mask_store<>::single_link;
+    using material_link = typename material_store<>::single_link;
+    using source_link = dindex;
+    using surface_type =
+        surface<mask_link, material_link, transform_link, source_link>;
+
     /// Surface finders
     enum class sf_finder_ids {
         e_brute_force = 0,    // test all surfaces in a volume (brute force)
@@ -135,10 +145,10 @@ struct full_metadata {
     /// How to store and link surface grids
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using surface_finder_store =
-        multi_store<sf_finder_ids, empty_context, tuple_t, brute_force_finder,
-                    grid_collection<disc_sf_grid<container_t>>,
-                    grid_collection<cylinder_sf_grid<container_t>>>;
+    using surface_finder_store = multi_store<
+        sf_finder_ids, empty_context, tuple_t, brute_force_finder,
+        grid_collection<disc_sf_grid<surface_type, container_t>>,
+        grid_collection<cylinder_sf_grid<surface_type, container_t>>>;
 
     /// Volume grid
     template <typename container_t = host_container_types>
@@ -206,6 +216,14 @@ struct toy_metadata {
     using material_store = regular_multi_store<material_ids, empty_context,
                                                tuple_t, vector_t, slab>;
 
+    /// Surface type used for sensitives, passives and portals
+    using transform_link = typename transform_store<>::link_type;
+    using mask_link = typename mask_store<>::single_link;
+    using material_link = typename material_store<>::single_link;
+    using source_link = dindex;
+    using surface_type =
+        surface<mask_link, material_link, transform_link, source_link>;
+
     /// Surface finders
     enum class sf_finder_ids {
         e_brute_force = 0,    // test all surfaces in a volume (brute force)
@@ -217,10 +235,10 @@ struct toy_metadata {
     /// How to store and link surface grids
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using surface_finder_store =
-        multi_store<sf_finder_ids, empty_context, tuple_t, brute_force_finder,
-                    grid_collection<disc_sf_grid<container_t>>,
-                    grid_collection<cylinder_sf_grid<container_t>>>;
+    using surface_finder_store = multi_store<
+        sf_finder_ids, empty_context, tuple_t, brute_force_finder,
+        grid_collection<disc_sf_grid<surface_type, container_t>>,
+        grid_collection<cylinder_sf_grid<surface_type, container_t>>>;
 
     /// Volume grid
     template <typename container_t = host_container_types>
@@ -283,6 +301,14 @@ struct telescope_metadata {
               template <typename...> class vector_t = dvector>
     using material_store = regular_multi_store<material_ids, empty_context,
                                                tuple_t, vector_t, slab>;
+
+    /// Surface type used for sensitives, passives and portals
+    using transform_link = typename transform_store<>::link_type;
+    using mask_link = typename mask_store<>::single_link;
+    using material_link = typename material_store<>::single_link;
+    using source_link = dindex;
+    using surface_type =
+        surface<mask_link, material_link, transform_link, source_link>;
 
     /// Surface finders
     enum class sf_finder_ids {

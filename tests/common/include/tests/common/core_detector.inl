@@ -7,9 +7,9 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/core/detector_kernel.hpp"
 #include "detray/detectors/detector_metadata.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/tools/volume_builder.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -69,5 +69,29 @@ TEST(detector, detector_kernel) {
 
     auto &v =
         d.new_volume(volume_id::e_cylinder, {0., 10., -5., 5., -M_PI, M_PI});
-    d.add_objects_per_volume(ctx0, v, surfaces, masks, materials, trfs);
+    d.add_objects_per_volume(ctx0, v, surfaces, masks, trfs, materials);
+}
+
+// This tests the construction of a detector class
+TEST(detector, volume_builder) {
+
+    using namespace detray;
+
+    vecmem::host_memory_resource host_mr;
+
+    using detector_t =
+        detector<detector_registry::default_detector, covfie::field>;
+
+    detector_t d(host_mr);
+
+    EXPECT_TRUE(d.volumes().size() == 0);
+
+    volume_builder<detector_t> vbuilder{};
+    vbuilder.init_vol(d, volume_id::e_cylinder,
+                      {0., 10., -5., 5., -M_PI, M_PI});
+    const auto &vol = d.volumes().back();
+
+    EXPECT_TRUE(d.volumes().size() == 1);
+    EXPECT_EQ(vol.index(), 0);
+    EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 }
