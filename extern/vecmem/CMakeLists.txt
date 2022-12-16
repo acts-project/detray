@@ -18,7 +18,7 @@ message( STATUS "Building VecMem as part of the Detray project" )
 
 # Declare where to get VecMem from.
 set( DETRAY_VECMEM_SOURCE
-   "URL;https://github.com/acts-project/vecmem/archive/refs/tags/v0.10.0.tar.gz;URL_MD5;712888e704d2e4c915ac1f25f28da467"
+"URL;https://github.com/acts-project/vecmem/archive/refs/tags/v0.21.0.tar.gz;URL_MD5;ab361d4ca2b26f673956e81f2cdd4c56"
    CACHE STRING "Source for VecMem, when built as part of this project" )
 mark_as_advanced( DETRAY_VECMEM_SOURCE )
 FetchContent_Declare( VecMem ${DETRAY_VECMEM_SOURCE} )
