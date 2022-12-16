@@ -13,6 +13,7 @@ set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (host) C++ standard to use" )
 set( CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL "Disable (host) C++ extensions" )
 set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
 set( CMAKE_CUDA_EXTENSIONS FALSE CACHE BOOL "Disable (CUDA) C++ extensions" )
+set( CMAKE_SYCL_STANDARD 17 CACHE STRING "The (SYCL) C++ standard to use" )
 
 # CMake include(s).
 include( CMakeDependentOption )
@@ -53,6 +54,7 @@ option( DETRAY_VC_PLUGIN "Build Vc based math plugin" ON )
 option( DETRAY_IO_CSV "Build CSV IO module" ON )
 option( DETRAY_IO_JSON "Build JSON IO module" ON)
 option( DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
+option( DETRAY_BUILD_SYCL "Build the SYCL sources included in traccc" OFF )
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
 option( DETRAY_BUILD_TESTING "Build the (unit) tests of Detray"
