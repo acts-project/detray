@@ -20,12 +20,12 @@ if(DETRAY_EIGEN_PLUGIN)
  
  foreach(algebra ${algebras})
     # Unit tests for the selected algebra.
-    detray_add_test(${algebra}_cuda
+    detray_add_test(${algebra}_sycl
        "propagator.sycl" "propagator_kernel.hpp"
        "propagator_kernel.sycl"
        LINK_LIBRARIES GTest::gtest_main vecmem::sycl detray_tests_common
        detray::${algebra})
-    target_compile_definitions(detray_test_${algebra}_cuda
+    target_compile_definitions(detray_test_${algebra}_sycl
        PRIVATE ${algebra}=${algebra})
  endforeach()
  

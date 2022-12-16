@@ -80,6 +80,8 @@ if( DETRAY_SETUP_VECMEM )
       find_package( vecmem REQUIRED )
    else()
       add_subdirectory( extern/vecmem )
+      # Make the "VecMem language code" available for the whole project.
+      include( "${VECMEM_LANGUAGE_DIR}/vecmem-check-language.cmake" )
    endif()
 endif()
 

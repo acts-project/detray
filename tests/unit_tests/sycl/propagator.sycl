@@ -55,7 +55,7 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
     /**
      * Host propagation
      */
-    /*
+
     // Create RK stepper
     rk_stepper_type s;
     // Create navigator
@@ -96,12 +96,11 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
         host_positions.push_back(insp_state._positions);
         host_jac_transports.push_back(insp_state._jac_transports);
     }
-    */
 
     /**
      * Device propagation
      */
-    /*
+
     // Get detector data
     auto det_data = get_data(det);
 
@@ -136,6 +135,7 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
                     path_lengths_buffer, positions_buffer,
                     jac_transports_buffer);
 
+    /*
     vecmem::jagged_vector<scalar> device_path_lengths(&shared_mr);
     vecmem::jagged_vector<vector3> device_positions(&shared_mr);
     vecmem::jagged_vector<free_matrix> device_jac_transports(&shared_mr);
