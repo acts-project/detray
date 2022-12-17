@@ -140,7 +140,7 @@ void enumerate_test(detector_view<detector_host_t> det_data,
 
     constexpr int thread_dim = WARP_SIZE * 2;
 
-    int block_dim = surfaces_data.m_size / thread_dim + 1;
+    int block_dim = surfaces_data.size() / thread_dim + 1;
 
     // run the test kernel
     enumerate_test_kernel<<<block_dim, thread_dim>>>(det_data, surfaces_data);

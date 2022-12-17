@@ -223,7 +223,7 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     // Check if the initialization work well
     // Non-zero starting size not working yet so initial argument for sizes is
     // ignored (acts-projects/vecmem#95)
-    auto& ptr = g2_buffer._buffer.m_ptr;
+    const auto& ptr = g2_buffer._buffer.host_ptr();
     EXPECT_EQ(ptr[0].size(), 0);
     EXPECT_EQ(ptr[1].size(), 0);
     EXPECT_EQ(ptr[2].size(), 0);
@@ -267,7 +267,7 @@ TEST(grids_cuda, grid2_buffer_attach_populator2) {
     copy.setup(g2_buffer._buffer);
 
     // Check if the initialization works well
-    auto& ptr = g2_buffer._buffer.m_ptr;
+    const auto& ptr = g2_buffer._buffer.host_ptr();
     EXPECT_EQ(ptr[0].size(), 1);
     EXPECT_EQ(ptr[1].size(), 2);
     EXPECT_EQ(ptr[2].size(), 3);
