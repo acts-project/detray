@@ -33,6 +33,9 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/calculate1DimNdRange.hpp"
+#include "detray/utils/get_queue.hpp"
+#include "detray/utils/queue_wrapper.hpp"
 
 using namespace detray;
 
@@ -136,6 +139,7 @@ void propagator_test(
     vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
     vecmem::data::jagged_vector_view<scalar> &path_lengths_data,
     vecmem::data::jagged_vector_view<vector3> &positions_data,
-    vecmem::data::jagged_vector_view<free_matrix> &jac_transports_data);
+    vecmem::data::jagged_vector_view<free_matrix> &jac_transports_data,
+    sycl::queue_wrapper queue);
 
 }  // namespace detray

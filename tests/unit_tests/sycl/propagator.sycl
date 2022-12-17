@@ -13,10 +13,27 @@
 #include "propagator_kernel.hpp"
 #include "vecmem/utils/sycl/copy.hpp"
 
+// Simple asynchronous handler function
+auto handle_async_error = [](::sycl::exception_list elist) {
+    for (auto& e : elist) {
+        try {
+            std::rethrow_exception(e);
+        } catch (::sycl::exception& e) {
+            std::cout << "ASYNC EXCEPTION!!\n";
+            std::cout << e.what() << "\n";
+        }
+    }
+};
+
 class SyclPropagatorWithRkStepper
     : public ::testing::TestWithParam<__plugin::vector3<scalar>> {};
 
 TEST_P(SyclPropagatorWithRkStepper, propagator) {
+
+    // Creating SYCL queue object
+    ::sycl::queue q(handle_async_error);
+    std::cout << "Running Seeding on device: "
+              << q.get_device().get_info<::sycl::info::device::name>() << "\n";
 
     // Helper object for performing memory copies.
     vecmem::copy copy;
@@ -133,7 +150,7 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
     // Run the propagator test for GPU device
     propagator_test(det_data, tracks_data, candidates_buffer,
                     path_lengths_buffer, positions_buffer,
-                    jac_transports_buffer);
+                    jac_transports_buffer, &q);
 
     /*
     vecmem::jagged_vector<scalar> device_path_lengths(&shared_mr);
