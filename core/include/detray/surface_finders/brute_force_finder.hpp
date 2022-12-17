@@ -19,6 +19,10 @@ namespace detray {
 
 /// Does nothing
 struct brute_force_view : public detail::dbase_view {
+    brute_force_view() = default;
+    brute_force_view(
+        std::_Head_base<0, detray::brute_force_view, false> /*base*/) {}
+
     bool m_view = true;
 };
 
