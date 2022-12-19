@@ -1,0 +1,50 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2022 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
+#include <gtest/gtest.h>
+
+#include <vecmem/memory/sycl/shared_memory_resource.hpp>
+
+#include "detector_kernel.hpp"
+
+// Simple asynchronous handler function
+auto handle_async_error = [](::sycl::exception_list elist) {
+    for (auto& e : elist) {
+        try {
+            std::rethrow_exception(e);
+        } catch (::sycl::exception& e) {
+            std::cout << "ASYNC EXCEPTION!!\n";
+            std::cout << e.what() << "\n";
+        }
+    }
+};
+
+TEST(detector, telescope_detector) {
+
+    // Creating SYCL queue object
+    ::sycl::queue q(handle_async_error);
+    std::cout << "Testing on device: "
+              << q.get_device().get_info<::sycl::info::device::name>() << "\n";
+
+    // VecMem memory resource(s)
+    vecmem::sycl::shared_memory_resource shared_mr;
+
+    // Build from given module positions
+    std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
+                                     300., 350, 400,  450., 500.};
+
+    // Build telescope detector with unbounded planes
+    constexpr bool rectangular = false;
+
+    auto det = create_telescope_detector<rectangular>(shared_mr, positions);
+
+    auto det_data = get_data(det);
+
+    detray::sycl::queue_wrapper queue(&q);
+
+    detector_test(det_data, queue);
+}

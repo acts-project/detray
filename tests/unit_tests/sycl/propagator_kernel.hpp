@@ -132,7 +132,7 @@ using propagator_device_type =
 
 /// test function for propagator with single state
 void propagator_test(
-    detector_view<detector_host_type> &det_data,
+    detector_view<detector_host_type> det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> &tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
     vecmem::data::jagged_vector_view<scalar> &path_lengths_data,

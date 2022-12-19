@@ -57,6 +57,23 @@ class single_store {
     /// Copy construct from element types
     constexpr explicit single_store(const T &arg) : m_container(arg) {}
 
+    DETRAY_HOST explicit single_store(vecmem::memory_resource &resource)
+        : m_container(&resource) {}
+
+    template <typename C = container_t<T>,
+              std::enable_if_t<std::is_same_v<C, std::vector<T>>, bool> = true>
+    DETRAY_HOST explicit single_store(vecmem::memory_resource &resource,
+                                      const T &arg)
+        : m_container(&resource, arg) {}
+
+    template <typename container_view_t,
+              std::enable_if_t<
+                  !std::is_base_of_v<vecmem::memory_resource, container_view_t>,
+                  bool> = true>
+    DETRAY_HOST_DEVICE single_store(container_view_t &view)
+        : m_container(view) {}
+
+    /*
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource,
@@ -79,6 +96,7 @@ class single_store {
                                bool> = true>
     DETRAY_HOST_DEVICE single_store(container_view_t &view)
         : m_container(view) {}
+    */
 
     /// @returns a pointer to the underlying container - const
     DETRAY_HOST_DEVICE
