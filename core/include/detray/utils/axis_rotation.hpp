@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/matrix_helper.hpp"
 
@@ -27,7 +28,7 @@ struct axis_rotation {
 
     DETRAY_HOST_DEVICE
     axis_rotation(const vector3& axis, const scalar_type theta) {
-        scalar_type cos_theta = std::cos(theta);
+        scalar_type cos_theta = math_ns::cos(theta);
 
         matrix_type<3, 3> I = matrix_operator().template identity<3, 3>();
         matrix_type<3, 3> axis_cross = mat_helper().cross_matrix(axis);

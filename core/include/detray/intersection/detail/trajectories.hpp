@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/matrix_helper.hpp"
@@ -188,7 +189,7 @@ class helix : public free_track_parameters<transform3_t> {
         point3 ret = free_track_parameters_type::pos();
         ret = ret + _delta / _K * (_K * s - std::sin(_K * s)) * _h0;
         ret = ret + std::sin(_K * s) / _K * _t0;
-        ret = ret + _alpha / _K * (1 - std::cos(_K * s)) * _n0;
+        ret = ret + _alpha / _K * (1 - math_ns::cos(_K * s)) * _n0;
 
         return ret;
     }
@@ -204,8 +205,8 @@ class helix : public free_track_parameters<transform3_t> {
 
         vector3 ret{0, 0, 0};
 
-        ret = ret + _delta * (1 - std::cos(_K * s)) * _h0;
-        ret = ret + std::cos(_K * s) * _t0;
+        ret = ret + _delta * (1 - math_ns::cos(_K * s)) * _h0;
+        ret = ret + math_ns::cos(_K * s) * _t0;
         ret = ret + _alpha * std::sin(_K * s) * _n0;
 
         return ret;
@@ -245,15 +246,15 @@ class helix : public free_track_parameters<transform3_t> {
                           mat_helper().column_wise_multiply(
                               matrix_operator().transpose(H0), _h0);
 
-        drdt = drdt + (std::cos(_K * s) - 1) / _K *
+        drdt = drdt + (math_ns::cos(_K * s) - 1) / _K *
                           mat_helper().column_wise_cross(I33, _h0);
 
         matrix_operator().set_block(ret, drdt, e_free_pos0, e_free_dir0);
 
         // Get dtdt
         auto dtdt = Z33;
-        dtdt = dtdt + std::cos(_K * s) * I33;
-        dtdt = dtdt + (1 - std::cos(_K * s)) *
+        dtdt = dtdt + math_ns::cos(_K * s) * I33;
+        dtdt = dtdt + (1 - math_ns::cos(_K * s)) *
                           mat_helper().column_wise_multiply(
                               matrix_operator().transpose(H0), _h0);
         dtdt =

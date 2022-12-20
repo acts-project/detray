@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "detray/definitions/math.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -73,7 +74,7 @@ dvector<point3_t> vertices(
         // y = m*x
         //
         scalar_t m = std::tan(phi);
-        point2_t dir = {std::cos(phi), std::sin(phi)};
+        point2_t dir = {math_ns::cos(phi), std::sin(phi)};
         scalar_t x1 =
             (O_x + O_y * m -
              std::sqrt(-std::pow(O_x, 2) * std::pow(m, 2) + 2 * O_x * O_y * m -
@@ -107,15 +108,15 @@ dvector<point3_t> vertices(
     dvector<point3_t> annulus_vertices;
     annulus_vertices.reserve(inner_phi.size() + outer_phi.size());
     for (auto iphi : inner_phi) {
-        annulus_vertices.push_back(point3_t{min_r * std::cos(iphi) + origin_x,
-                                            min_r * std::sin(iphi) + origin_y,
-                                            0.});
+        annulus_vertices.push_back(
+            point3_t{min_r * math_ns::cos(iphi) + origin_x,
+                     min_r * std::sin(iphi) + origin_y, 0.});
     }
 
     for (auto ophi : outer_phi) {
-        annulus_vertices.push_back(point3_t{max_r * std::cos(ophi) + origin_x,
-                                            max_r * std::sin(ophi) + origin_y,
-                                            0.});
+        annulus_vertices.push_back(
+            point3_t{max_r * math_ns::cos(ophi) + origin_x,
+                     max_r * std::sin(ophi) + origin_y, 0.});
     }
 
     return annulus_vertices;
@@ -258,9 +259,9 @@ std::vector<point2_t> r_phi_polygon(scalar_t rmin, scalar_t rmax,
     std::vector<point2_t> r_phi_poly;
     r_phi_poly.reserve(2 * nsegments + 2);
 
-    scalar_t cos_min_phi = std::cos(phimin);
+    scalar_t cos_min_phi = math_ns::cos(phimin);
     scalar_t sin_min_phi = std::sin(phimin);
-    scalar_t cos_max_phi = std::cos(phimax);
+    scalar_t cos_max_phi = math_ns::cos(phimax);
     scalar_t sin_max_phi = std::sin(phimax);
 
     // @TODO add phi generators

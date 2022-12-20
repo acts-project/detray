@@ -7,6 +7,8 @@
 
 #pragma once
 
+namespace detray {
+
 // SYCL include(s).
 #if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
 #include <CL/sycl.hpp>
@@ -21,3 +23,5 @@ namespace math_ns = cl::sycl;
 #else
 namespace math_ns = std;
 #endif  // SYCL
+
+}  // namespace detray

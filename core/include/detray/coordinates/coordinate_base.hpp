@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_stepper.hpp"
@@ -124,9 +125,9 @@ struct coordinate_base {
         const scalar_type phi =
             matrix_operator().element(bound_vec, e_bound_phi, 0);
 
-        const scalar_type cos_theta = std::cos(theta);
+        const scalar_type cos_theta = math_ns::cos(theta);
         const scalar_type sin_theta = std::sin(theta);
-        const scalar_type cos_phi = std::cos(phi);
+        const scalar_type cos_phi = math_ns::cos(phi);
         const scalar_type sin_phi = std::sin(phi);
 
         // Global position and direction
@@ -179,9 +180,9 @@ struct coordinate_base {
         const scalar_type theta = getter::theta(dir);
         const scalar_type phi = getter::phi(dir);
 
-        const scalar_type cos_theta = std::cos(theta);
+        const scalar_type cos_theta = math_ns::cos(theta);
         const scalar_type sin_theta = std::sin(theta);
-        const scalar_type cos_phi = std::cos(phi);
+        const scalar_type cos_phi = math_ns::cos(phi);
         const scalar_type sin_phi = std::sin(phi);
 
         // Set d(loc0, loc1)/d(x,y,z)

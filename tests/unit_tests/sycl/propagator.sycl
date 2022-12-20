@@ -150,10 +150,12 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
     detray::sycl::queue_wrapper queue(&q);
 
     // Run the propagator test for GPU device
-    /*
+
     propagator_test(det_data, tracks_data, candidates_buffer,
                     path_lengths_buffer, positions_buffer,
                     jac_transports_buffer, queue);
+
+    /*
 
     vecmem::jagged_vector<scalar> device_path_lengths(&shared_mr);
     vecmem::jagged_vector<vector3> device_positions(&shared_mr);

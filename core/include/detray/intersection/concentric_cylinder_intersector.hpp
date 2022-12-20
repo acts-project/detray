@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/coordinates/cylindrical2.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
@@ -124,7 +125,7 @@ struct concentric_cylinder_intersector {
 
                 // Get incidence angle
                 const scalar_type phi{is.p2[0] / mask[mask_t::shape::e_r]};
-                const vector3 normal = {std::cos(phi), std::sin(phi), 0};
+                const vector3 normal = {math_ns::cos(phi), std::sin(phi), 0};
                 is.cos_incidence_angle = vector::dot(rd, normal);
             }
         }

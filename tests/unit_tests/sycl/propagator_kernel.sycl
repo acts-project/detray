@@ -9,12 +9,6 @@
 
 namespace detray {
 
-::sycl::queue &get_queue(detray::sycl::queue_wrapper &queue) {
-
-    assert(queue.queue() != nullptr);
-    return *(reinterpret_cast<::sycl::queue *>(queue.queue()));
-}
-
 namespace kernels {
 class propagate;
 }  // namespace kernels
@@ -36,8 +30,8 @@ void propagator_test(
     const auto ndrange = ::sycl::nd_range<1>{::sycl::range<1>(num * localSize),
                                              ::sycl::range<1>(localSize)};
 
-    get_queue(queue)
-        .submit([&](::sycl::handler &h) {
+    reinterpret_cast<::sycl::queue *>(queue.queue())
+        ->submit([&](::sycl::handler &h) {
             h.parallel_for<kernels::propagate>(ndrange, [det_data, tracks_data,
                                                          candidates_data,
                                                          path_lengths_data,
@@ -58,6 +52,8 @@ void propagator_test(
                     jac_transports_data);
 
                 unsigned int gid = item.get_global_linear_id();
+
+                // printf("hi \n");
 
                 if (gid >= tracks.size()) {
                     return;
@@ -99,7 +95,11 @@ void propagator_test(
                         constrainted_step_size);
 
                 // Run propagation
-                p.propagate(state, actor_states);
+                float b = 3.;
+                float a = cl::sycl::cos(b);
+
+                // printf("%f \n", a);
+                // p.propagate(state, actor_states);
             });
         })
         .wait_and_throw();

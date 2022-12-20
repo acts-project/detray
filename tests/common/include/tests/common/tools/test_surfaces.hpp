@@ -11,6 +11,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/definitions/indexing.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
@@ -161,7 +162,7 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
                            transforms.size() + transform_offset);
 
         scalar z_addon = (iphi % 2) ? -stagger_z : stagger_z;
-        scalar cos_phi = std::cos(phi);
+        scalar cos_phi = math_ns::cos(phi);
         scalar sin_phi = std::sin(phi);
         point3 p = {r * cos_phi, r * sin_phi, pos_z + z_addon};
         vector3 z = {0., 0., 1.};
@@ -279,9 +280,9 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
             }
             // Finally create the transform
             scalar r_addon = (iz % 2) ? -stagger_r : stagger_r;
-            point3 p = {(r + r_addon) * std::cos(phi),
+            point3 p = {(r + r_addon) * math_ns::cos(phi),
                         (r + r_addon) * std::sin(phi), pos_z};
-            vector3 z = {std::cos(phi + tilt_phi), std::sin(phi + tilt_phi),
+            vector3 z = {math_ns::cos(phi + tilt_phi), std::sin(phi + tilt_phi),
                          0.};
             vector3 x = {z[1], -z[0], 0.};
             transforms.push_back(transform3(p, z, x));

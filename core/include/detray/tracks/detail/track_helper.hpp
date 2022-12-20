@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 
@@ -84,8 +85,8 @@ struct track_helper {
             matrix_operator().element(bound_vec, e_bound_theta, 0);
         const auto sinTheta = std::sin(theta);
 
-        return {std::cos(phi) * sinTheta, std::sin(phi) * sinTheta,
-                std::cos(theta)};
+        return {math_ns::cos(phi) * sinTheta, std::sin(phi) * sinTheta,
+                math_ns::cos(theta)};
     }
 };
 

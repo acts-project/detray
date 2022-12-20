@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/coordinates/polar2.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
@@ -165,7 +166,7 @@ class annulus2D {
 
         const scalar_t r_mod2{shift_r * shift_r + loc_p[0] * loc_p[0] +
                               scalar_t{2} * shift_r * loc_p[0] *
-                                  std::cos(phi_strp - shift_phi)};
+                                  math_ns::cos(phi_strp - shift_phi)};
 
         // Apply tolerances
         const scalar_t minR_tol{bounds[e_min_r] - tol};
