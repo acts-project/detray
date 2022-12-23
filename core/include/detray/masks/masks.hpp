@@ -22,7 +22,10 @@
 #include "detray/masks/unmasked.hpp"
 
 // System include(s)
+#include <algorithm>
+#include <cassert>
 #include <sstream>
+#include <vector>
 
 namespace detray {
 
@@ -64,9 +67,19 @@ class mask {
     /// Default constructor
     constexpr mask() = default;
 
+    /// Constructor from single mask boundary values
     template <typename... Args>
     DETRAY_HOST_DEVICE explicit mask(const links_type& link, Args&&... args)
         : _values({{std::forward<Args>(args)...}}), _volume_link(link) {}
+
+    /// Constructor from mask boundary vector
+    DETRAY_HOST mask(const std::vector<scalar_type>& values,
+                     const links_type& link)
+        : _volume_link(link) {
+        assert(values.size() == boundaries::e_size &&
+               " Given number of boundaries does not match mask shape.");
+        std::copy(std::cbegin(values), std::cend(values), std::begin(_values));
+    }
 
     /// Assignment operator from an array, convenience function
     ///

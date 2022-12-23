@@ -158,6 +158,22 @@ class multi_store {
             .empty();
     }
 
+    /// Removes and destructs all elements in a specific collection.
+    template <ID id>
+    DETRAY_HOST void clear(const context_type & /*ctx*/) {
+        detail::get<value_types::to_index(id)>(m_tuple_container).clear();
+    }
+
+    /// Removes and destructs all elements in the container.
+    template <std::size_t current_idx = 0>
+    DETRAY_HOST void clear_all(const context_type &ctx = {}) {
+        clear<value_types::to_id(current_idx)>(ctx);
+
+        if constexpr (current_idx < sizeof...(Ts) - 1) {
+            clear_all<current_idx + 1>(ctx);
+        }
+    }
+
     /// Reserve memory of size @param n for a collection given by @tparam id
     template <ID id>
     DETRAY_HOST void reserve(std::size_t n, const context_type & /*ctx*/) {

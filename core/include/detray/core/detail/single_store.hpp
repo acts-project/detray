@@ -156,6 +156,11 @@ class single_store {
         return m_container.at(i);
     }
 
+    /// Removes and destructs all elements in the container.
+    DETRAY_HOST void clear(const context_type & /*ctx*/) {
+        m_container.clear();
+    }
+
     /// Reserve memory of size @param n for a collection given by @tparam id
     DETRAY_HOST void reserve(std::size_t n, const context_type & /*ctx*/) {
         m_container.reserve(n);

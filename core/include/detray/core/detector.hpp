@@ -237,6 +237,13 @@ class detector {
         return _surfaces[sfidx];
     }
 
+    /// Append new surfaces to the detector
+    DETRAY_HOST
+    inline void append_surfaces(surface_container &&new_surfaces) {
+        _surfaces.insert(_surfaces.end(), new_surfaces.begin(),
+                         new_surfaces.end());
+    }
+
     /// @return all surface/portal masks in the geometry - const access
     DETRAY_HOST_DEVICE
     inline auto mask_store() const -> const mask_container & { return _masks; }
@@ -286,8 +293,9 @@ class detector {
 
     /// Append a new transform store to the detector
     DETRAY_HOST
-    inline void append_transforms(transform_container &&new_transforms) {
-        _transforms.append(std::move(new_transforms));
+    inline void append_transforms(transform_container &&new_transforms,
+                                  const geometry_context ctx = {}) {
+        _transforms.append(std::move(new_transforms), ctx);
     }
 
     /// Get all available data from the detector without std::tie
@@ -312,13 +320,14 @@ class detector {
     /// @param ctx is the geometry_context of the call
     /// @param vol is the target volume
     /// @param surfaces_per_vol is the surface vector per volume
+    ///                         (either portals, sensitives or passives)
     /// @param masks_per_vol is the mask container per volume
     /// @param trfs_per_vol is the transform vector per volume
     ///
     /// @note can throw an exception if input data is inconsistent
     // TODO: Provide volume builder structure separate from the detector
-    DETRAY_HOST
-    auto add_objects_per_volume(
+    template <geo_obj_ids surface_id = geo_obj_ids::e_portal>
+    DETRAY_HOST auto add_objects_per_volume(
         const geometry_context ctx, volume_type &vol,
         surface_container &surfaces_per_vol, mask_container &masks_per_vol,
         transform_container &trfs_per_vol) noexcept(false) -> void {
@@ -340,7 +349,8 @@ class detector {
                          surfaces_per_vol.end());
 
         // Update the surface range per volume
-        vol.update_obj_link({sf_offset, _surfaces.size()});
+        vol.template update_obj_link<surface_id>(sf_offset,
+                                                 surfaces_per_vol.size());
 
         // Append mask and material container
         _masks.append(std::move(masks_per_vol));
@@ -413,8 +423,17 @@ class detector {
         return _sf_finders;
     }
 
-    /// @returns the maximum number of surfaces (sensitive + portal) in all
-    /// volumes.
+    /// @brief Updates the maximum number of surfaces (sensitive + passive +
+    /// portal) over all volumes.
+    DETRAY_HOST_DEVICE
+    inline auto update_n_max_objects_per_volume(std::size_t n_surfaces)
+        -> void {
+        _n_max_objects_per_volume =
+            std::max(_n_max_objects_per_volume, n_surfaces);
+    }
+
+    /// @returns the maximum number of surfaces (sensitive + passive + portal)
+    /// over all volumes.
     DETRAY_HOST_DEVICE
     inline auto get_n_max_objects_per_volume() const -> dindex {
         return _n_max_objects_per_volume;

@@ -39,6 +39,10 @@ class volume_builder_interface {
     DETRAY_HOST
     virtual auto get_vol_index() -> dindex = 0;
 
+    /// @returns reading access to the volume
+    DETRAY_HOST
+    virtual auto operator()() -> const typename detector_t::volume_type & = 0;
+
     /// @brief Adds a volume and all of its contents to a detector
     DETRAY_HOST
     virtual auto build(detector_t &det,
@@ -96,6 +100,11 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     }
 
     DETRAY_HOST
+    auto operator()() -> const typename detector_t::volume_type & override {
+        return m_builder->operator()();
+    }
+
+    DETRAY_HOST
     auto get_vol_index() -> dindex override {
         return m_builder->get_vol_index();
     }
@@ -133,35 +142,7 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     std::unique_ptr<volume_builder_interface<detector_t>> m_builder;
 };
 
-/// @brief How to generate surfaces with their corresponding masks and
-/// transforms.
-///
-/// Can be hard coded surface generation or json reader.
-template <typename detector_t>
-class surface_factory_interface {
-    public:
-    DETRAY_HOST
-    virtual auto operator()(
-        dindex volume, typename detector_t::surface_container &surfaces,
-        typename detector_t::transform_container &transforms,
-        typename detector_t::mask_container &masks,
-        typename detector_t::geometry_context ctx = {}) -> dindex_range = 0;
-};
-
 namespace detail {
-
-/// A functor to update the mask index in surface objects
-struct mask_index_update {
-    using output_type = bool;
-
-    template <typename group_t, typename index_t, typename surface_t>
-    DETRAY_HOST inline output_type operator()(const group_t &group,
-                                              const index_t & /*index*/,
-                                              surface_t &sf) const {
-        sf.update_mask(group.size());
-        return true;
-    }
-};
 
 /// A functor to update the material index in surface objects
 struct material_index_update {

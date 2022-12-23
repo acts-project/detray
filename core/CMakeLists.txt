@@ -105,9 +105,11 @@ detray_add_library( detray_core core
    "include/detray/tools/associator.hpp"
    "include/detray/tools/bin_association.hpp"
    "include/detray/tools/generators.hpp"
-   "include/detray/tool/grid_builder.hpp"
-   "include/detray/tool/grid_factory.hpp"
+   "include/detray/tools/grid_builder.hpp"
+   "include/detray/tools/grid_factory.hpp"
    "include/detray/tools/local_object_finder.hpp"
+   "include/detray/tools/surface_factory.hpp"
+   "include/detray/tools/surface_factory_interface.hpp"
    "include/detray/tools/volume_builder.hpp"
    "include/detray/tools/volume_builder_interface.hpp"
    # tracks include(s)
