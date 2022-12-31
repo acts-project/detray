@@ -142,7 +142,7 @@ class surface_factory_interface {
     public:
     DETRAY_HOST
     virtual auto operator()(
-        dindex volume, typename detector_t::surface_container &surfaces,
+        dindex volume, typename detector_t::surface_container_t &surfaces,
         typename detector_t::transform_container &transforms,
         typename detector_t::mask_container &masks,
         typename detector_t::geometry_context ctx = {}) -> dindex_range = 0;
@@ -152,27 +152,23 @@ namespace detail {
 
 /// A functor to update the mask index in surface objects
 struct mask_index_update {
-    using output_type = bool;
 
     template <typename group_t, typename index_t, typename surface_t>
-    DETRAY_HOST inline output_type operator()(const group_t &group,
-                                              const index_t & /*index*/,
-                                              surface_t &sf) const {
+    DETRAY_HOST inline void operator()(const group_t &group,
+                                       const index_t & /*index*/,
+                                       surface_t &sf) const {
         sf.update_mask(group.size());
-        return true;
     }
 };
 
 /// A functor to update the material index in surface objects
 struct material_index_update {
-    using output_type = bool;
 
     template <typename group_t, typename index_t, typename surface_t>
-    DETRAY_HOST inline output_type operator()(const group_t &group,
-                                              const index_t & /*index*/,
-                                              surface_t &sf) const {
+    DETRAY_HOST inline void operator()(const group_t &group,
+                                       const index_t & /*index*/,
+                                       surface_t &sf) const {
         sf.update_material(group.size());
-        return true;
     }
 };
 

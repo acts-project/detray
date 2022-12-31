@@ -34,18 +34,15 @@ namespace {
 /// Functor that writes grid entries from the surface finder
 /// container to file
 struct grid_writer {
-    using output_type = bool;
 
-    template <
-        typename grid_group_t, typename grid_index_t, typename grid_entry_t,
-        typename writer_t,
-        std::enable_if_t<not std::is_same_v<typename grid_group_t::value_type,
-                                            brute_force_finder>,
-                         bool> = true>
-    inline output_type operator()(const grid_group_t &grid_group,
-                                  const grid_index_t &grid_idx,
-                                  grid_entry_t &csv_ge,
-                                  writer_t &sge_writer) const {
+    template <typename grid_group_t, typename grid_index_t,
+              typename grid_entry_t, typename writer_t,
+              std::enable_if_t<
+                  not std::is_same_v<typename grid_group_t::grid_type, void>,
+                  bool> = true>
+    inline void operator()(const grid_group_t &grid_group,
+                           const grid_index_t &grid_idx, grid_entry_t &csv_ge,
+                           writer_t &sge_writer) const {
 
         const auto &grid = grid_group.at(grid_idx);
 
@@ -61,22 +58,18 @@ struct grid_writer {
                 }
             }
         }
-
-        return true;
     }
 
     /// Call for the brute force type (do nothing)
     template <typename grid_group_t, typename grid_index_t,
               typename grid_entry_t, typename writer_t,
-              std::enable_if_t<std::is_same_v<typename grid_group_t::value_type,
-                                              brute_force_finder>,
-                               bool> = true>
-    inline output_type operator()(const grid_group_t & /*grid_group*/,
-                                  const grid_index_t & /*grid_idx*/,
-                                  const grid_entry_t & /*csv_ge*/,
-                                  writer_t & /*sge_writer*/) {
-        return true;
-    }
+              std::enable_if_t<
+                  not std::is_same_v<typename grid_group_t::grid_type, void>,
+                  bool> = true>
+    inline void operator()(const grid_group_t & /*grid_group*/,
+                           const grid_index_t & /*grid_idx*/,
+                           const grid_entry_t & /*csv_ge*/,
+                           writer_t & /*sge_writer*/) {}
 };
 
 }  // anonymous namespace

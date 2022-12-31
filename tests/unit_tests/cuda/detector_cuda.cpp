@@ -115,8 +115,7 @@ TEST(detector_cuda, enumerate) {
     vecmem::jagged_vector<surface_t> surfaces_host(volumes.size(), &mng_mr);
 
     for (unsigned int i = 0; i < volumes.size(); i++) {
-        for (const auto [obj_idx, obj] : detray::views::enumerate(
-                 detector.surfaces(), detector.volume_by_index(i))) {
+        for (const auto& obj : detector.surfaces(detector.volume_by_index(i))) {
             surfaces_host[i].push_back(obj);
         }
     }

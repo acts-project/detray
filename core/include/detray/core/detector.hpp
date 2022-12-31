@@ -95,11 +95,11 @@ class detector {
 
     /// Surface Finders: structures that enable neigborhood searches in the
     /// detector geometry during navigation. Can be different in each volume
-    using sf_finder_container =
+    using surface_container =
         typename metadata::template surface_finder_store<tuple_type,
                                                          container_t>;
-    using sf_finders = typename sf_finder_container::value_types;
-    using sf_finder_link = typename sf_finder_container::single_link;
+    using sf_finders = typename surface_container::value_types;
+    using sf_finder_link = typename surface_container::single_link;
 
     // TODO: Move to the following to volume builder
 
@@ -108,12 +108,11 @@ class detector {
     /// to define its placement and a source link to the object it represents.
     using surface_type = typename metadata::surface_type;
 
-    using surface_container = vector_type<surface_type>;
+    using surface_container_t = vector_type<surface_type>;
     /// Volume type
     using geo_obj_ids = typename metadata::geo_objects;
     using volume_type =
-        detector_volume<geo_obj_ids, typename metadata::object_link_type,
-                        sf_finder_link, scalar_type>;
+        detector_volume<geo_obj_ids, sf_finder_link, scalar_type>;
 
     /// Volume finder definition: Make volume index available from track
     /// position
@@ -127,11 +126,10 @@ class detector {
     DETRAY_HOST
     detector(vecmem::memory_resource &resource, bfield_type &&field)
         : _volumes(&resource),
-          _surfaces(&resource),
           _transforms(resource),
           _masks(resource),
           _materials(resource),
-          _sf_finders(resource),
+          _surfaces(resource),
           _volume_finder(resource),
           _resource(&resource),
           _bfield(field) {}
@@ -141,11 +139,10 @@ class detector {
     DETRAY_HOST
     detector(vecmem::memory_resource &resource)
         : _volumes(&resource),
-          _surfaces(&resource),
           _transforms(resource),
           _masks(resource),
           _materials(resource),
-          _sf_finders(resource),
+          _surfaces(resource),
           _volume_finder(resource),
           _resource(&resource),
           _bfield(typename bfield_type::backend_t::configuration_t{0.f, 0.f,
@@ -158,11 +155,10 @@ class detector {
                                bool> = true>
     DETRAY_HOST_DEVICE detector(detector_data_type &det_data)
         : _volumes(det_data._volumes_data),
-          _surfaces(det_data._surfaces_data),
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
           _materials(det_data._materials_data),
-          _sf_finders(det_data._sf_finder_data),
+          _surfaces(det_data._sf_finder_data),
           _volume_finder(det_data._volume_finder_data),
           _bfield(det_data._bfield_view) {}
 
@@ -175,11 +171,10 @@ class detector {
     DETRAY_HOST
     volume_type &new_volume(
         const volume_id id, const array_type<scalar, 6> &bounds,
-        typename volume_type::sf_finder_link_type srf_finder_link = {
-            sf_finders::id::e_default, dindex_invalid}) {
+        typename volume_type::link_type::index_type srf_finder_link = {}) {
         volume_type &cvolume = _volumes.emplace_back(id, bounds);
         cvolume.set_index(_volumes.size() - 1);
-        cvolume.set_sf_finder(srf_finder_link);
+        cvolume.set_link(srf_finder_link);
 
         return cvolume;
     }
@@ -215,26 +210,43 @@ class detector {
         return _volumes[volume_index];
     }
 
-    /// @return all surfaces - const access
+    /// @returns access to the surface finder container
     DETRAY_HOST_DEVICE
-    inline auto surfaces() const -> const surface_container & {
+    inline auto surface_store() const -> const surface_container & {
         return _surfaces;
     }
 
-    /// @return all surfaces - non-const access
+    /// @returns access to the surface finder container
     DETRAY_HOST_DEVICE
-    inline auto surfaces() -> surface_container & { return _surfaces; }
+    inline auto surface_store() -> surface_container & { return _surfaces; }
 
-    /// @return a surface by index - const access
+    /// @returns all surfaces - const
     DETRAY_HOST_DEVICE
-    inline auto surface_by_index(dindex sfidx) const -> const surface_type & {
-        return _surfaces[sfidx];
+    inline const auto &surfaces() const {
+        return _surfaces.template get<sf_finders::id::e_brute_force>().all();
     }
 
-    /// @return a surface by index - non-const access
+    /// @returns all surfaces - non-const
     DETRAY_HOST_DEVICE
-    inline auto surface_by_index(dindex sfidx) -> surface_type & {
-        return _surfaces[sfidx];
+    inline auto &surfaces() {
+        return _surfaces.template get<sf_finders::id::e_brute_force>().all();
+    }
+
+    /// @returns a surface by index - const
+    // TODO: Implement surface barcode
+    DETRAY_HOST_DEVICE
+    constexpr auto surfaces(dindex sf_index) const -> const surface_type & {
+        return _surfaces.template get<sf_finders::id::e_brute_force>()
+            .all()[sf_index];
+    }
+
+    /// @returns surfaces of a given type (@tparam sf_id) by volume - const
+    template <geo_obj_ids sf_id = geo_obj_ids::e_portal>
+    DETRAY_HOST_DEVICE constexpr auto surfaces(const volume_type &v) const {
+        std::size_t coll_idx{v.template link<sf_id>().index()};
+        const auto sf_coll =
+            _surfaces.template get<sf_finders::id::e_brute_force>()[coll_idx];
+        return sf_coll.all();
     }
 
     /// @return all surface/portal masks in the geometry - const access
@@ -286,24 +298,9 @@ class detector {
 
     /// Append a new transform store to the detector
     DETRAY_HOST
-    inline void append_transforms(transform_container &&new_transforms) {
-        _transforms.append(std::move(new_transforms));
-    }
-
-    /// Get all available data from the detector without std::tie
-    ///
-    /// @param ctx The context of the call
-    ///
-    /// @return a struct that contains references to all relevant containers.
-    DETRAY_HOST_DEVICE
-    auto data(const geometry_context & /*ctx*/ = {}) const {
-        struct data_core {
-            const dvector<volume_type> &volumes;
-            const transform_container &transforms;
-            const mask_container &masks;
-            const surface_container &surfaces;
-        };
-        return data_core{_volumes, _transforms, _masks, _surfaces};
+    inline void append_transforms(transform_container &&new_transforms,
+                                  const geometry_context ctx = {}) {
+        _transforms.append(std::move(new_transforms), ctx);
     }
 
     /// Add a new full set of detector components (e.g. transforms or volumes)
@@ -312,42 +309,48 @@ class detector {
     /// @param ctx is the geometry_context of the call
     /// @param vol is the target volume
     /// @param surfaces_per_vol is the surface vector per volume
+    ///                         (either portals, sensitives or passives)
     /// @param masks_per_vol is the mask container per volume
     /// @param trfs_per_vol is the transform vector per volume
     ///
     /// @note can throw an exception if input data is inconsistent
     // TODO: Provide volume builder structure separate from the detector
-    DETRAY_HOST
-    auto add_objects_per_volume(
+    template <geo_obj_ids surface_id = geo_obj_ids::e_portal>
+    DETRAY_HOST auto add_objects_per_volume(
         const geometry_context ctx, volume_type &vol,
-        surface_container &surfaces_per_vol, mask_container &masks_per_vol,
+        surface_container_t &surfaces_per_vol, mask_container &masks_per_vol,
         transform_container &trfs_per_vol) noexcept(false) -> void {
 
         // Append transforms
         const auto trf_offset = _transforms.size(ctx);
         _transforms.append(std::move(trfs_per_vol), ctx);
 
-        // Update mask, material and transform index of surfaces
+        // Update mask, material and transform index of surfaces and set a
+        // unique barcode (index of surface in container)
+        dindex sf_offset{_surfaces.template get<sf_finders::id::e_brute_force>()
+                             .all()
+                             .size()};
         for (auto &sf : surfaces_per_vol) {
-            _masks.template call<detail::mask_index_update>(sf.mask(), sf);
+            _masks.template visit<detail::mask_index_update>(sf.mask(), sf);
             sf.update_transform(trf_offset);
+            sf.set_barcode(sf_offset++);
         }
 
-        // Append surfaces
-        const auto sf_offset = _surfaces.size();
-        _surfaces.reserve(sf_offset + surfaces_per_vol.size());
-        _surfaces.insert(_surfaces.end(), surfaces_per_vol.begin(),
-                         surfaces_per_vol.end());
+        // Append surfaces to base surface collection
+        _surfaces.template push_back<sf_finders::id::e_brute_force>(
+            surfaces_per_vol);
 
         // Update the surface range per volume
-        vol.update_obj_link({sf_offset, _surfaces.size()});
+        vol.template set_link<surface_id>(
+            sf_finders::id::e_brute_force,
+            _surfaces.template size<sf_finders::id::e_brute_force>() - 1);
 
         // Append mask and material container
         _masks.append(std::move(masks_per_vol));
 
         // Update max objects per volume
         _n_max_objects_per_volume =
-            std::max(_n_max_objects_per_volume, vol.n_objects());
+            std::max(_n_max_objects_per_volume, surfaces_per_vol.size());
     }
 
     /// Add a new full set of detector components (e.g. transforms or volumes)
@@ -365,13 +368,13 @@ class detector {
     DETRAY_HOST
     auto add_objects_per_volume(
         const geometry_context ctx, volume_type &vol,
-        surface_container &surfaces_per_vol, mask_container &masks_per_vol,
+        surface_container_t &surfaces_per_vol, mask_container &masks_per_vol,
         transform_container &trfs_per_vol,
         material_container &materials_per_vol) noexcept(false) -> void {
 
         // Update material index of surfaces
         for (auto &sf : surfaces_per_vol) {
-            _materials.template call<detail::material_index_update>(
+            _materials.template visit<detail::material_index_update>(
                 sf.material(), sf);
         }
         _materials.append(std::move(materials_per_vol));
@@ -400,21 +403,17 @@ class detector {
         return _volume_finder;
     }
 
-    /// @returns access to the surface finder container - non-const access
-    // TODO: remove once possible
+    /// @brief Updates the maximum number of surfaces (sensitive + passive +
+    /// portal) over all volumes.
     DETRAY_HOST_DEVICE
-    inline auto sf_finder_store() -> sf_finder_container & {
-        return _sf_finders;
+    inline auto update_n_max_objects_per_volume(std::size_t n_surfaces)
+        -> void {
+        _n_max_objects_per_volume =
+            std::max(_n_max_objects_per_volume, n_surfaces);
     }
 
-    /// @returns access to the surface finder container
-    DETRAY_HOST_DEVICE
-    inline auto sf_finder_store() const -> const sf_finder_container & {
-        return _sf_finders;
-    }
-
-    /// @returns the maximum number of surfaces (sensitive + portal) in all
-    /// volumes.
+    /// @returns the maximum number of surfaces (sensitive + passive + portal)
+    /// over all volumes.
     DETRAY_HOST_DEVICE
     inline auto get_n_max_objects_per_volume() const -> dindex {
         return _n_max_objects_per_volume;
@@ -426,9 +425,9 @@ class detector {
     DETRAY_HOST_DEVICE
     inline point2 global_to_local(const dindex sf_idx, const point3 &pos,
                                   const vector3 &dir) const {
-        const auto &sf = surface_by_index(sf_idx);
+        const auto &sf = *(surfaces().begin() + sf_idx);
         const auto ret =
-            _masks.template call<detail::global_to_local<transform3>>(
+            _masks.template visit<detail::global_to_local<transform3>>(
                 sf.mask(), _transforms[sf.transform()], pos, dir);
         return ret;
     }
@@ -455,7 +454,7 @@ class detector {
                << v.template n_objects<geo_obj_ids::e_portal>() << " portals "
                << std::endl;
 
-            ss << "                 " << _sf_finders.n_collections()
+            ss << "                 " << _surfaces.n_collections()
                << " surface finders " << std::endl;
 
             if (v.sf_finder_index() != dindex_invalid) {
@@ -485,9 +484,6 @@ class detector {
     /// Contains the detector sub-volumes.
     vector_type<volume_type> _volumes;
 
-    /// All surfaces (sensitive and portal) in the geometry in contiguous memory
-    surface_container _surfaces;
-
     /// Keeps all of the transform data in contiguous memory
     transform_container _transforms;
 
@@ -498,7 +494,7 @@ class detector {
     material_container _materials;
 
     /// All surface finder data structures that are used in the detector volumes
-    sf_finder_container _sf_finders;
+    surface_container _surfaces;
 
     /// Search structure for volumes
     volume_finder _volume_finder;
@@ -522,7 +518,6 @@ struct detector_view {
 
     detector_view(detector_type &det)
         : _volumes_data(vecmem::get_data(det.volumes())),
-          _surfaces_data(vecmem::get_data(det.surfaces())),
           _masks_data(get_data(det.mask_store())),
           _materials_data(get_data(det.material_store())),
           _transforms_data(get_data(det.transform_store())),
@@ -533,17 +528,15 @@ struct detector_view {
     // members
     vecmem::data::vector_view<typename detector_type::volume_type>
         _volumes_data;
-    vecmem::data::vector_view<typename detector_type::surface_type>
-        _surfaces_data;
     typename detector_type::mask_container::view_type _masks_data;
     typename detector_type::material_container::view_type _materials_data;
     typename detector_type::transform_container::view_type _transforms_data;
-    typename detector_type::sf_finder_container::view_type _sf_finder_data;
+    typename detector_type::surface_container::view_type _sf_finder_data;
     typename detector_type::volume_finder::view_type _volume_finder_data;
     typename detector_type::bfield_type::view_t _bfield_view;
 };
 
-/// stand alone function for that @returns the detector data for transfer to
+/// Stand-alone function that @returns the detector data for transfer to
 /// device.
 ///
 /// @param detector the detector to be tranferred

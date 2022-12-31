@@ -128,8 +128,7 @@ __global__ void enumerate_test_kernel(
     auto& vol = detector.volume_by_index(gid);
 
     // Push_back surfaces to the surface vector
-    for (const auto [obj_idx, obj] :
-         detray::views::enumerate(detector.surfaces(), vol)) {
+    for (const auto& obj : detector.surfaces(vol)) {
         surfaces.push_back(obj);
     }
 }

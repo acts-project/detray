@@ -478,24 +478,26 @@ class navigator {
         navigation.clear();
         navigation._heartbeat = true;
         // Get the max number of candidates & run them through the kernel
-        detail::call_reserve(navigation.candidates(), volume.n_objects());
+        // detail::call_reserve(navigation.candidates(), volume.n_objects());
+        // TODO: switch to fixed size buffer
+        detail::call_reserve(navigation.candidates(), 20u);
 
         // Loop over all indexed objects in volume, intersect and fill
         // @todo - will come from the local object finder
         const auto &tf_store = det->transform_store();
         const auto &mask_store = det->mask_store();
 
-        for (const auto [obj_idx, obj] : find_surfaces(det, volume, track)) {
+        for (const auto &obj : find_surfaces(det, volume, track)) {
 
             std::size_t count =
-                mask_store.template call<intersection_initialize>(
+                mask_store.template visit<intersection_initialize>(
                     obj.mask(), navigation.candidates(), detail::ray(track),
                     obj, tf_store);
 
             // TODO: Do NOT use index but use other member variable
             for (std::size_t i = navigation.candidates().size() - count;
                  i < navigation.candidates().size(); i++) {
-                navigation.candidates()[i].index = obj_idx;
+                navigation.candidates()[i].index = obj.barcode();
             }
         }
 
@@ -738,8 +740,8 @@ class navigator {
         const dindex obj_idx = candidate.index;
 
         const auto &mask_store = det->mask_store();
-        const auto &sf = det->surface_by_index(obj_idx);
-        candidate = mask_store.template call<intersection_update>(
+        const auto &sf = det->surfaces(obj_idx);
+        candidate = mask_store.template visit<intersection_update>(
             sf.mask(), detail::ray(track), sf, det->transform_store());
 
         candidate.index = obj_idx;
@@ -764,12 +766,12 @@ class navigator {
 
         // Return an index range for now
         dindex_range neighborhood =
-            sf_finders.template call<neighborhood_getter>(
+            sf_finders.template visit<neighborhood_getter>(
                 volume.sf_finder_link(), *det, volume, track);
 
         // Enumerate the surfaces that are close to the track position
         return detray::views::enumerate(det->surfaces(), neighborhood);*/
-        return detray::views::enumerate(det->surfaces(), volume);
+        return det->surfaces(volume);
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:

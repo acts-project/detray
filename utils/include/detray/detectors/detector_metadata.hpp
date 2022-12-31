@@ -146,7 +146,8 @@ struct full_metadata {
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
     using surface_finder_store = multi_store<
-        sf_finder_ids, empty_context, tuple_t, brute_force_finder,
+        sf_finder_ids, empty_context, tuple_t,
+        brute_force_collection<surface_type, container_t>,
         grid_collection<disc_sf_grid<surface_type, container_t>>,
         grid_collection<cylinder_sf_grid<surface_type, container_t>>>;
 
@@ -171,10 +172,10 @@ struct toy_metadata {
     /// If they share the same index value here, they will be added into the
     /// same container range without any sorting guarantees
     enum geo_objects : std::size_t {
-        e_sensitive = 0,
+        e_sensitive = 1,
         e_portal = 0,
-        e_passive = 0,
-        e_size = 1,
+        e_passive = 1,
+        e_size = 2,
         e_all = e_size,
     };
 
@@ -236,7 +237,8 @@ struct toy_metadata {
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
     using surface_finder_store = multi_store<
-        sf_finder_ids, empty_context, tuple_t, brute_force_finder,
+        sf_finder_ids, empty_context, tuple_t,
+        brute_force_collection<surface_type, container_t>,
         grid_collection<disc_sf_grid<surface_type, container_t>>,
         grid_collection<cylinder_sf_grid<surface_type, container_t>>>;
 
@@ -320,7 +322,8 @@ struct telescope_metadata {
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
     using surface_finder_store =
-        multi_store<sf_finder_ids, empty_context, tuple_t, brute_force_finder>;
+        multi_store<sf_finder_ids, empty_context, tuple_t,
+                    brute_force_collection<surface_type, container_t>>;
 
     /// Volume grid
     template <typename container_t = host_container_types>

@@ -12,6 +12,7 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/geometry/barcode.hpp"
 
 namespace detray {
 
@@ -93,6 +94,24 @@ class surface {
                 _sf_id == rhs._sf_id);
     }
 
+    /// Sets a new surface barcode
+    DETRAY_HOST_DEVICE
+    auto set_barcode(const geometry::barcode bcd) -> void { _barcode = bcd; }
+
+    /// @returns the surface barcode
+    DETRAY_HOST_DEVICE
+    constexpr auto barcode() const -> const geometry::barcode & {
+        return _barcode;
+    }
+
+    /// Sets a new surface id (portal/passive/sensitive)
+    DETRAY_HOST_DEVICE
+    auto set_id(const surface_id new_id) -> void { _sf_id = new_id; }
+
+    /// @returns the surface id (sensitive, passive or portal)
+    DETRAY_HOST_DEVICE
+    constexpr auto id() const -> surface_id { return _sf_id; }
+
     /// Update the transform index
     ///
     /// @param offset update the position when move into new collection
@@ -145,14 +164,6 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr auto source() const -> const source_link & { return _src; }
 
-    /// Sets a new surface id
-    DETRAY_HOST_DEVICE
-    auto set_id(const surface_id new_id) -> void { _sf_id = new_id; }
-
-    /// @returns the surface id (sensitive, ppassive or portal)
-    DETRAY_HOST_DEVICE
-    constexpr auto id() const -> surface_id { return _sf_id; }
-
     /// @returns true if the surface is a senstive detector module.
     DETRAY_HOST_DEVICE
     constexpr auto is_sensitive() const -> bool {
@@ -172,6 +183,7 @@ class surface {
     }
 
     private:
+    geometry::barcode _barcode{dindex_invalid};
     transform_link_t _trf{};
     mask_link _mask{};
     material_link _material{};

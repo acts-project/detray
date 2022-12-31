@@ -20,6 +20,7 @@ struct parameter_transporter : actor {
 
     struct state {};
 
+    /// Mask store visitor
     struct kernel {
 
         /// @name Type definitions for the struct
@@ -53,11 +54,9 @@ struct parameter_transporter : actor {
 
         /// @}
 
-        using output_type = bool;
-
         template <typename mask_group_t, typename index_t,
                   typename propagator_state_t>
-        DETRAY_HOST_DEVICE inline output_type operator()(
+        DETRAY_HOST_DEVICE inline void operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3_type& trf3, propagator_state_t& propagation) {
 
@@ -123,8 +122,6 @@ struct parameter_transporter : actor {
 
             // Calculate surface-to-surface covariance transport
             stepping._bound_params.set_covariance(new_cov);
-
-            return true;
         }
     };
 
@@ -144,9 +141,9 @@ struct parameter_transporter : actor {
             const auto& is = navigation.current();
 
             // Surface
-            const auto& surface = det->surface_by_index(is->index);
+            const auto& surface = det->surfaces(is->index);
 
-            mask_store.template call<kernel>(
+            mask_store.template visit<kernel>(
                 surface.mask(), trf_store[surface.transform()], propagation);
         }
     }

@@ -33,7 +33,6 @@ struct concentric_cylinder_intersector {
     using vector3 = typename transform3_t::vector3;
     using ray_type = detail::ray<transform3_t>;
     using intersection_type = line_plane_intersection;
-    using output_type = std::array<intersection_type, 1>;
 
     /** Operator function to find intersections between ray and concentric
      * cylinder mask
@@ -54,12 +53,12 @@ struct concentric_cylinder_intersector {
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
                                         cylindrical2<transform3_t>>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline output_type operator()(
+    DETRAY_HOST_DEVICE inline std::array<intersection_type, 1> operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t & /*trf*/,
         const scalar_type mask_tolerance = 0.,
         const scalar_type overstep_tolerance = 0.) const {
 
-        output_type ret;
+        std::array<intersection_type, 1> ret;
 
         const scalar_type r{mask[0]};
         // Two points on the line, thes are in the cylinder frame

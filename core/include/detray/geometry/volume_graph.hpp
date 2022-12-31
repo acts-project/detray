@@ -6,15 +6,18 @@
  */
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/indexing.hpp"
+#include "detray/utils/ranges.hpp"
+#include "detray/utils/type_traits.hpp"
+
+// System include(s)
 #include <cstddef>
 #include <iterator>
 #include <queue>
 #include <sstream>
 #include <string>
 #include <utility>
-
-#include "detray/definitions/indexing.hpp"
-#include "detray/utils/ranges.hpp"
 
 namespace detray {
 
@@ -35,9 +38,6 @@ struct void_actor {
 /// @brief Uses the geometry implementations to walk through their graph-like
 /// structure breadth first.
 ///
-/// This class provides a graph algorithm that walk along the volumes of a given
-/// geomtery and uses the portals to check reachability between the volumes.
-///
 /// @tparam detector_t the type of geometry we want to walk along.
 /// @tparam node_inspector the type of inspection to perform when a node is
 ///         visited
@@ -52,7 +52,7 @@ class volume_graph {
     public:
     using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_container_t = vector_t<typename detector_t::volume_type>;
-    using surface_container_t = vector_t<typename detector_t::surface_type>;
+    using surface_container_t = typename detector_t::surface_container;
     using mask_container_t = typename detector_t::mask_container;
 
     /// @brief Builds a graph node from the detector collections on the fly.
@@ -65,7 +65,7 @@ class volume_graph {
         : public detray::ranges::view_interface<node_generator> {
 
         /// A node in the graph has an index (volume index) and a collction of
-        /// edge that belong to it (mask link of every surface in the volume).
+        /// edges that belong to it (mask link of every surface in the volume).
         /// One mask link is a half edge in the graph.
         struct node {
 
@@ -73,8 +73,13 @@ class volume_graph {
             node(const typename detector_t::volume_type &volume,
                  const surface_container_t &surfaces)
                 : _idx(volume.index()) {
-                for (const auto &sf :
-                     detray::ranges::subrange(surfaces, volume)) {
+                std::size_t coll_idx{
+                    volume.template link<geo_obj_ids::e_portal>().index()};
+
+                const auto sf_finder = surfaces.template get<
+                    detector_t::sf_finders::id::e_brute_force>()[coll_idx];
+
+                for (const auto &sf : sf_finder.all()) {
                     _half_edges.push_back(sf.mask());
                 }
             }
@@ -262,7 +267,7 @@ class volume_graph {
                        const mask_link_t mask_link = {})
             : _masks(masks), _volume_id(volume_id), _mask_link{mask_link} {
             _edges =
-                _masks.template call<edges_builder>(_mask_link, _volume_id);
+                _masks.template visit<edges_builder>(_mask_link, _volume_id);
         }
 
         /// @returns begging of graph edges container
@@ -278,7 +283,7 @@ class volume_graph {
             _mask_link = mask_link;
             _edges.clear();
             _edges =
-                _masks.template call<edges_builder>(_mask_link, _volume_id);
+                _masks.template visit<edges_builder>(_mask_link, _volume_id);
 
             return *this;
         }
@@ -304,7 +309,7 @@ class volume_graph {
     /// surfaces which are needed to index the correct masks and the
     /// masks that link to volumes and become graph edges.
     volume_graph(const detector_t &det)
-        : _nodes(det.volumes(), det.surfaces()),
+        : _nodes(det.volumes(), det.surface_store()),
           _edges(det.mask_store()),
           _adj_matrix{0} {
         build();
@@ -410,7 +415,7 @@ class volume_graph {
     /// Root node is always at zero.
     void build() {
         // Leave space for the world volume (links to dindex_invalid)
-        const std::size_t dim = n_nodes() + 1;
+        const std::size_t dim{n_nodes() + 1};
         _adj_matrix.resize(dim * dim);
 
         for (const auto &n : _nodes) {

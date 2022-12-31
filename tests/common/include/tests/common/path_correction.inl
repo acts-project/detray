@@ -80,7 +80,7 @@ using detector_type = detector<registry_type, covfie::field>;
 using mask_container = typename detector_type::mask_container;
 using material_container = typename detector_type::material_container;
 using transform3 = typename detector_type::transform3;
-using surface_type = typename detector_type::surface_container::value_type;
+using surface_type = typename detector_type::surface_container_t::value_type;
 using mask_link_type = typename surface_type::mask_link;
 using material_link_type = typename surface_type::material_link;
 using mag_field_t = detector_type::bfield_type;
@@ -123,7 +123,7 @@ TEST(path_correction, cartesian) {
     // Add a volume
     det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
 
-    typename detector_type::surface_container surfaces(&env::resource);
+    typename detector_type::surface_container_t surfaces(&env::resource);
     typename detector_type::transform_container transforms(env::resource);
     typename detector_type::mask_container masks(env::resource);
     typename detector_type::material_container materials(env::resource);
@@ -265,7 +265,7 @@ TEST(path_correction, polar) {
     // Add a volume
     det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
 
-    typename detector_type::surface_container surfaces(&env::resource);
+    typename detector_type::surface_container_t surfaces(&env::resource);
     typename detector_type::transform_container transforms(env::resource);
     typename detector_type::mask_container masks(env::resource);
     typename detector_type::material_container materials(env::resource);
@@ -393,7 +393,7 @@ TEST(path_correction, cylindrical) {
     // Add a volume
     det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
 
-    typename detector_type::surface_container surfaces(&env::resource);
+    typename detector_type::surface_container_t surfaces(&env::resource);
     typename detector_type::transform_container transforms(env::resource);
     typename detector_type::mask_container masks(env::resource);
     typename detector_type::material_container materials(env::resource);

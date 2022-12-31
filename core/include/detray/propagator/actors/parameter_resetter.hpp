@@ -22,6 +22,7 @@ struct parameter_resetter : actor {
 
     struct state {};
 
+    /// Mask store visitor
     struct kernel {
 
         /// @name Type definitions for the struct
@@ -32,11 +33,9 @@ struct parameter_resetter : actor {
 
         /// @}
 
-        using output_type = bool;
-
         template <typename mask_group_t, typename index_t,
                   typename stepper_state_t>
-        DETRAY_HOST_DEVICE inline output_type operator()(
+        DETRAY_HOST_DEVICE inline void operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3_t& trf3, stepper_state_t& stepping) const {
 
@@ -58,8 +57,6 @@ struct parameter_resetter : actor {
 
             // Reset jacobian transport to identity matrix
             matrix_operator().set_identity(stepping._jac_transport);
-
-            return true;
         }
     };
 
@@ -81,12 +78,12 @@ struct parameter_resetter : actor {
             const auto& is = navigation.current();
 
             // Surface
-            const auto& surface = det->surface_by_index(is->index);
+            const auto& surface = det->surfaces(is->index);
 
             // Set surface link
             stepping._bound_params.set_surface_link(is->index);
 
-            mask_store.template call<kernel>(
+            mask_store.template visit<kernel>(
                 surface.mask(), trf_store[surface.transform()], stepping);
         }
     }

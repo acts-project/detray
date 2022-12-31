@@ -30,7 +30,6 @@ struct plane_intersector {
     using vector3 = typename transform3_t::vector3;
     using ray_type = detail::ray<transform3_t>;
     using intersection_type = line_plane_intersection;
-    using output_type = std::array<intersection_type, 1>;
 
     /** Operator function to find intersections between ray and planar mask
      *
@@ -49,12 +48,12 @@ struct plane_intersector {
         typename mask_t,
         std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline output_type operator()(
+    DETRAY_HOST_DEVICE inline std::array<intersection_type, 1> operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
         const scalar_type mask_tolerance = 0,
         const scalar_type overstep_tolerance = 0.) const {
 
-        output_type ret;
+        std::array<intersection_type, 1> ret;
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
