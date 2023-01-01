@@ -327,7 +327,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
  * @param resource vecmem memory resource
  * @param cfg config struct for module creation
  */
-template <typename detector_t, typename config_t>
+/*template <typename detector_t, typename config_t>
 inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
                               typename detector_t::volume_type &vol,
                               detector_t &det, const config_t &cfg) {
@@ -357,7 +357,7 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
     det.surface_store().template push_back<grid_id>(gbuilder());
     // vol.set_link(grid_id,
     //                   det.surface_store().template size<grid_id>() - 1);
-}
+}*/
 
 /** Helper function that creates a surface grid of trapezoidal endcap modules.
  *
@@ -366,7 +366,7 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
  * @param resource vecmem memory resource
  * @param cfg config struct for module creation
  */
-template <typename detector_t, typename config_t>
+/*template <typename detector_t, typename config_t>
 inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
                           typename detector_t::volume_type &vol,
                           detector_t &det, const config_t &cfg) {
@@ -394,7 +394,7 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
     det.surface_store().template push_back<grid_id>(gbuilder());
     // vol.set_link(grid_id,
     //                   det.surface_store().template size<grid_id>() - 1);
-}
+}*/
 
 /** Helper method for positioning of modules in an endcap ring
  *
@@ -824,7 +824,7 @@ void add_endcap_detector(
                               cfg.side * (vol_size_itr + cfg.side * i)->first,
                               cfg.side * (vol_size_itr + cfg.side * i)->second,
                               volume_links_vec[i], m_factory);
-            add_disc_grid(ctx, det.volumes().back(), det, cfg);
+            // add_disc_grid(ctx, det.volumes().back(), det, cfg);
         }
     }
 }

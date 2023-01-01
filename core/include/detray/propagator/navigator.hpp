@@ -483,11 +483,6 @@ class navigator {
         // @TODO: switch to fixed size buffer
         detail::call_reserve(navigation.candidates(), 20u);
 
-        // Loop over all indexed objects in volume, intersect and fill
-        // @todo - will come from the local object finder
-        const auto &tf_store = det->transform_store();
-        const auto &mask_store = det->mask_store();
-
         // Search for neighboring surfaces and fill candidates into cache
         fill_candidates(det, volume, track, navigation.candidates());
 
@@ -744,33 +739,30 @@ class navigator {
     /// @param track the track information
     ///
     /// @returns an iterable over the detector surface container
-    template <std::size_t I = volume_type::object_id::e_size, typename track_t,
-              typename cache_t>
+    template <int I = static_cast<int>(volume_type::object_id::e_size) - 1,
+              typename track_t, typename cache_t>
     DETRAY_HOST_DEVICE inline void fill_candidates(const detector_type *det,
                                                    const volume_type &volume,
                                                    const track_t &track,
                                                    cache_t &candidates) const {
-        // Gain access to all surface finders in the detector
-        /*const auto &sf_finders = det->sf_finder_store();
+        const auto &surfaces = det->surface_store();
+        const auto &link{volume.template link<
+            static_cast<typename volume_type::object_id>(I)>()};
 
-        // Return an index range for now
-        dindex_range neighborhood =
-            sf_finders.template visit<neighborhood_getter>(
-                volume.sf_finder_link(), *det, volume, track);
+        // Only run the query, if object type is contained in volume
+        if (detail::get<1>(link) != dindex_invalid) {
+            for (const auto &obj : surfaces.template visit<neighborhood_getter>(
+                     link, *det, volume, track)) {
 
-        // Enumerate the surfaces that are close to the track position
-        return detray::views::enumerate(det->surfaces(), neighborhood);*/
-        for (const auto &obj : det->surfaces(volume)) {
-
-            std::size_t count =
                 det->mask_store().template visit<intersection_initialize>(
                     obj.mask(), candidates, detail::ray(track), obj,
                     det->transform_store());
+            }
         }
         // Check the next surface type
-        // if constexpr (I > 0) {
-        //    return fill_candidates<I - 1>(det, volume, track, candidates);
-        // }
+        if constexpr (I > 0) {
+            return fill_candidates<I - 1>(det, volume, track, candidates);
+        }
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:
