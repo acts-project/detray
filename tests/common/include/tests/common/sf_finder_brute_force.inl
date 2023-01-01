@@ -42,7 +42,6 @@ TEST(accelerator, brute_force_collection) {
     auto surfaces2 = planes_along_direction(distances2, direction);
     auto surfaces3 = planes_along_direction(distances3, direction);
 
-    vecmem::host_memory_resource host_mr{};
     brute_force_collection<typename decltype(surfaces1)::value_type>
         sf_collection(&host_mr);
 
