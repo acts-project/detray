@@ -128,9 +128,9 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     constexpr std::size_t n_edc_layers{7};
     vecmem::host_memory_resource host_mr;
 
-    using b_field_t = decltype(create_toy_geometry(
-        std::declval<vecmem::host_memory_resource &>(), n_brl_layers,
-        n_edc_layers))::bfield_type;
+    using b_field_t = decltype(
+        create_toy_geometry(std::declval<vecmem::host_memory_resource &>(),
+                            n_brl_layers, n_edc_layers))::bfield_type;
 
     const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
                     2. * unit<scalar>::T};

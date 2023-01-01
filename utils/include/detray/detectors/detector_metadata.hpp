@@ -137,20 +137,23 @@ struct full_metadata {
 
     /// Surface finders
     enum class sf_finder_ids {
-        e_brute_force = 0,    // test all surfaces in a volume (brute force)
-        e_disc_grid = 1,      // barrel
-        e_cylinder_grid = 2,  // endcap
+        e_brute_force = 0,  // test all surfaces in a volume (brute force)
+        // e_disc_grid = 1,      // barrel
+        // e_cylinder_grid = 2,  // endcap
         e_default = e_brute_force,
     };
 
     /// How to store and link surface grids
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using surface_finder_store = multi_store<
-        sf_finder_ids, empty_context, tuple_t,
-        brute_force_collection<surface_type, container_t>,
-        grid_collection<disc_sf_grid<surface_type, container_t>>,
-        grid_collection<cylinder_sf_grid<surface_type, container_t>>>;
+    using surface_finder_store = multi_store<sf_finder_ids, empty_context,
+                                             tuple_t,
+                                             brute_force_collection<
+                                                 surface_type, container_t> /*,
+                           grid_collection<disc_sf_grid<surface_type,
+                           container_t>>,
+                           grid_collection<cylinder_sf_grid<surface_type,
+                           container_t>>*/>;
 
     /// Volume grid
     template <typename container_t = host_container_types>

@@ -75,7 +75,7 @@ struct surface_targeter : actor {
 using vector2 = __plugin::vector2<scalar>;
 using vector3 = __plugin::vector3<scalar>;
 using matrix_operator = standard_matrix_operator<scalar>;
-using registry_type = detector_registry::toy_detector;
+using registry_type = detector_registry::default_detector;
 using detector_type = detector<registry_type, covfie::field>;
 using mask_container = typename detector_type::mask_container;
 using material_container = typename detector_type::material_container;
@@ -259,7 +259,7 @@ TEST(path_correction, polar) {
     detector_type det(env::resource);
 
     // Mask and material ID
-    constexpr auto mask_id = registry_type::mask_ids::e_portal_ring2;
+    constexpr auto mask_id = registry_type::mask_ids::e_ring2;
     constexpr auto material_id = registry_type::material_ids::e_slab;
 
     // Add a volume
