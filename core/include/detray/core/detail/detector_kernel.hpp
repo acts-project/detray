@@ -16,8 +16,9 @@ namespace detray::detail {
 /// A functor to retrieve a single surface from an accelerator
 struct get_surface {
     template <typename collection_t, typename index_t>
-    DETRAY_HOST_DEVICE inline auto operator()(
-        const collection_t& sf_finder, const index_t& index, const dindex sf_idx) const {
+    DETRAY_HOST_DEVICE inline auto operator()(const collection_t& sf_finder,
+                                              const index_t& index,
+                                              const dindex sf_idx) const {
 
         return sf_finder[index].at(sf_idx);
     }
@@ -31,9 +32,11 @@ struct global_to_local {
     using vector3 = typename algebra_t::vector3;
 
     template <typename mask_group_t, typename index_t>
-    DETRAY_HOST_DEVICE inline auto operator()(
-        const mask_group_t& mask_group, const index_t& index,
-        const algebra_t& trf3, const point3& pos, const vector3& dir) const {
+    DETRAY_HOST_DEVICE inline auto operator()(const mask_group_t& mask_group,
+                                              const index_t& index,
+                                              const algebra_t& trf3,
+                                              const point3& pos,
+                                              const vector3& dir) const {
 
         return mask_group[index].to_local_frame(trf3, pos, dir);
     }

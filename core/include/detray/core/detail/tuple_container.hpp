@@ -45,7 +45,7 @@ class tuple_container {
     constexpr tuple_container() = default;
 
     /// Copy construct from element types
-    constexpr explicit tuple_container(const Ts &...args) : _tuple(args...) {}
+    constexpr explicit tuple_container(const Ts &... args) : _tuple(args...) {}
 
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
@@ -61,7 +61,7 @@ class tuple_container {
         typename T = tuple_t<Ts...>,
         std::enable_if_t<std::is_same_v<T, std::tuple<Ts...>>, bool> = true>
     DETRAY_HOST explicit tuple_container(allocator_t &resource,
-                                         const Ts &...args)
+                                         const Ts &... args)
         : _tuple(std::allocator_arg, resource, args...) {}
 
     /// Construct from the container @param view type. Mainly used device-side.
@@ -118,7 +118,7 @@ class tuple_container {
     /// type, regardless the input tuple element type).
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE decltype(auto) visit(const std::size_t idx,
-                                            Args &&...As) const {
+                                            Args &&... As) const {
 
         return visit<functor_t>(idx, std::make_index_sequence<sizeof...(Ts)>{},
                                 std::forward<Args>(As)...);
@@ -164,7 +164,7 @@ class tuple_container {
         functor_t, const detail::tuple_element_t<0, tuple_type> &, Args...>
     visit(const std::size_t idx,
           std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
-          Args &&...As) const {
+          Args &&... As) const {
 
         // Check if the first tuple index is matched to the target ID
         if (idx == first_idx) {

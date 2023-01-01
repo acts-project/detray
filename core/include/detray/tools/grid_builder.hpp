@@ -63,7 +63,7 @@ class grid_builder : public volume_decorator<detector_t> {
     DETRAY_HOST void fill_grid(
         const detector_t &det, const volume_type &vol,
         const typename detector_t::geometry_context ctx = {},
-        const bin_filler_t bin_filler = {}, Args &&.../*args*/) {
+        const bin_filler_t bin_filler = {}, Args &&... /*args*/) {
         bin_filler(m_grid, det, vol, ctx);
     }
 
