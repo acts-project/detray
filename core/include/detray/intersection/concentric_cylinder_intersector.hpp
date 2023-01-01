@@ -119,7 +119,7 @@ struct concentric_cylinder_intersector {
                 is.direction = vector::dot(is.p3, rd) > scalar_type{0.}
                                    ? intersection::direction::e_along
                                    : intersection::direction::e_opposite;
-                is.link = mask.volume_link();
+                is.volume_link = mask.volume_link();
 
                 // Get incidence angle
                 const scalar_type phi{is.p2[0] / mask[mask_t::shape::e_r]};

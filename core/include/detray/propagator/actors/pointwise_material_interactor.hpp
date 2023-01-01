@@ -115,8 +115,8 @@ struct pointwise_material_interactor : actor {
         if (navigation.is_on_module()) {
 
             const auto &is = *navigation.current();
-            auto det = navigation.detector();
-            const auto &surface = det->surfaces(is.index);
+            const auto *det = navigation.detector();
+            const auto &surface = det->surfaces(is.barcode);
             const auto &mat_store = det->material_store();
 
             auto succeed = mat_store.template visit<kernel>(

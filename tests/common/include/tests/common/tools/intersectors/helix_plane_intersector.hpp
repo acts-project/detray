@@ -101,7 +101,7 @@ struct helix_plane_intersector {
         is.direction = vector::dot(st, h.dir(s)) > scalar{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
-        is.link = mask.volume_link();
+        is.volume_link = mask.volume_link();
 
         return ret;
     }

@@ -70,7 +70,7 @@ struct particle_gun {
                 if (sfi.status == intersection::status::e_inside &&
                     sfi.direction == intersection::direction::e_along) {
                     // Volume the candidate belongs to
-                    sfi.index = sf.barcode();
+                    sfi.barcode = sf.barcode();
                     intersection_record.emplace_back(volume.index(), sfi);
                 }
             }

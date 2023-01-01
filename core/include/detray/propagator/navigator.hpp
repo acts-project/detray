@@ -13,6 +13,7 @@
 #include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/geometry/barcode.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
@@ -231,7 +232,7 @@ class navigator {
 
         /// @returns the next object the navigator indends to reach
         DETRAY_HOST_DEVICE
-        inline auto next_object() const -> dindex { return _next->index; }
+        inline auto next_object() const -> dindex { return _next->barcode; }
 
         /// @returns current navigation status - const
         DETRAY_HOST_DEVICE
@@ -411,7 +412,7 @@ class navigator {
         /// @param trust_lvl current truct level of next target state
         DETRAY_HOST_DEVICE
         inline void set_state(const navigation::status status,
-                              const dindex obj_idx,
+                              const geometry::barcode obj_idx,
                               const navigation::trust_level trust_lvl) {
             _object_index = obj_idx;
             _trust_level = trust_lvl;
@@ -437,7 +438,7 @@ class navigator {
         inspector_type _inspector;
 
         /// Index of an object (module/portal) if is reached, otherwise invalid
-        dindex _object_index = dindex_invalid;
+        geometry::barcode _object_index = dindex_invalid;
 
         /// The navigation status
         navigation::status _status = navigation::status::e_unknown;
@@ -479,7 +480,7 @@ class navigator {
         navigation._heartbeat = true;
         // Get the max number of candidates & run them through the kernel
         // detail::call_reserve(navigation.candidates(), volume.n_objects());
-        // TODO: switch to fixed size buffer
+        // @TODO: switch to fixed size buffer
         detail::call_reserve(navigation.candidates(), 20u);
 
         // Loop over all indexed objects in volume, intersect and fill
@@ -487,19 +488,8 @@ class navigator {
         const auto &tf_store = det->transform_store();
         const auto &mask_store = det->mask_store();
 
-        for (const auto &obj : find_surfaces(det, volume, track)) {
-
-            std::size_t count =
-                mask_store.template visit<intersection_initialize>(
-                    obj.mask(), navigation.candidates(), detail::ray(track),
-                    obj, tf_store);
-
-            // TODO: Do NOT use index but use other member variable
-            for (std::size_t i = navigation.candidates().size() - count;
-                 i < navigation.candidates().size(); i++) {
-                navigation.candidates()[i].index = obj.barcode();
-            }
-        }
+        // Search for neighboring surfaces and fill candidates into cache
+        fill_candidates(det, volume, track, navigation.candidates());
 
         // Sort all candidates and pick the closest one
         detail::sequential_sort(navigation.candidates().begin(),
@@ -548,7 +538,7 @@ class navigator {
         // Otherwise: did we run into a portal?
         if (navigation.status() == navigation::status::e_on_portal) {
             // Set volume index to the next volume provided by the portal
-            navigation.set_volume(navigation.current()->link);
+            navigation.set_volume(navigation.current()->volume_link);
 
             // Navigation reached the end of the detector world
             if (navigation.volume() == dindex_invalid) {
@@ -706,10 +696,10 @@ class navigator {
             propagation._stepping.release_step();
             // Update state accordingly
             navigation.set_state(
-                navigation.volume() != navigation.current()->link
+                navigation.volume() != navigation.current()->volume_link
                     ? navigation::status::e_on_portal
                     : navigation::status::e_on_module,
-                navigation.current()->index, navigation::trust_level::e_full);
+                navigation.current()->barcode, navigation::trust_level::e_full);
         } else {
             // Otherwise the track is moving towards a surface
             navigation.set_state(navigation::status::e_towards_object,
@@ -736,15 +726,12 @@ class navigator {
     DETRAY_HOST_DEVICE inline bool update_candidate(
         intersection_type &candidate, const track_t &track,
         const detector_type *det) const {
-        // Remember the surface this candidate belongs to
-        const dindex obj_idx = candidate.index;
 
         const auto &mask_store = det->mask_store();
-        const auto &sf = det->surfaces(obj_idx);
+        const auto &sf = det->surfaces(candidate.barcode);
         candidate = mask_store.template visit<intersection_update>(
             sf.mask(), detail::ray(track), sf, det->transform_store());
 
-        candidate.index = obj_idx;
         // Check whether this candidate is reachable by the track
         return candidate.status == intersection::status::e_inside and
                candidate.path >= track.overstep_tolerance();
@@ -757,10 +744,12 @@ class navigator {
     /// @param track the track information
     ///
     /// @returns an iterable over the detector surface container
-    template <typename track_t>
-    DETRAY_HOST_DEVICE inline auto find_surfaces(
-        const detector_type *det, const volume_type &volume,
-        const track_t & /*track*/) const {
+    template <std::size_t I = volume_type::object_id::e_size, typename track_t,
+              typename cache_t>
+    DETRAY_HOST_DEVICE inline void fill_candidates(const detector_type *det,
+                                                   const volume_type &volume,
+                                                   const track_t &track,
+                                                   cache_t &candidates) const {
         // Gain access to all surface finders in the detector
         /*const auto &sf_finders = det->sf_finder_store();
 
@@ -771,7 +760,17 @@ class navigator {
 
         // Enumerate the surfaces that are close to the track position
         return detray::views::enumerate(det->surfaces(), neighborhood);*/
-        return det->surfaces(volume);
+        for (const auto &obj : det->surfaces(volume)) {
+
+            std::size_t count =
+                det->mask_store().template visit<intersection_initialize>(
+                    obj.mask(), candidates, detail::ray(track), obj,
+                    det->transform_store());
+        }
+        // Check the next surface type
+        // if constexpr (I > 0) {
+        //    return fill_candidates<I - 1>(det, volume, track, candidates);
+        // }
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:

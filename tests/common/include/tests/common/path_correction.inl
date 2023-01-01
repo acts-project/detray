@@ -37,7 +37,7 @@ struct surface_targeter : actor {
         dindex _target_surface_index = dindex_invalid;
     };
 
-    /// Enforces thepath limit on a stepper state
+    /// Enforces the path limit on a stepper state
     ///
     /// @param abrt_state contains the path limit
     /// @param prop_state state of the propagation
@@ -54,7 +54,7 @@ struct surface_targeter : actor {
         stepping.set_constraint(residual);
 
         typename propagator_state_t::navigator_state_type::intersection_t is;
-        is.index = actor_state._target_surface_index;
+        is.barcode = actor_state._target_surface_index;
         is.path = residual;
         auto &candidates = navigation.candidates();
         candidates.clear();

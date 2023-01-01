@@ -128,7 +128,7 @@ struct line_intersector {
         is.direction = is.path > overstep_tolerance
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
-        is.link = mask.volume_link();
+        is.volume_link = mask.volume_link();
 
         // Get incidence angle
         is.cos_incidence_angle = std::abs(zd);

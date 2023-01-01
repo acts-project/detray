@@ -12,6 +12,7 @@
 #include "detray/core/detail/single_store.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"

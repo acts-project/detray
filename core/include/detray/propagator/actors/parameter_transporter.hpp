@@ -133,15 +133,12 @@ struct parameter_transporter : actor {
         // Do covariance transport when the track is on surface
         if (navigation.is_on_module()) {
 
-            auto det = navigation.detector();
+            const auto* det = navigation.detector();
             const auto& trf_store = det->transform_store();
             const auto& mask_store = det->mask_store();
 
-            // Intersection
-            const auto& is = navigation.current();
-
             // Surface
-            const auto& surface = det->surfaces(is->index);
+            const auto& surface = det->surfaces(navigation.current_object());
 
             mask_store.template visit<kernel>(
                 surface.mask(), trf_store[surface.transform()], propagation);

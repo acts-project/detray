@@ -27,9 +27,10 @@ TEST(utils, tuple_helpers) {
     // std::tuple test
     auto s_tuple = detail::make_tuple<std::tuple>(
         2.0f, -3L, std::string("std::tuple"), 4UL);
-    static_assert(std::is_same_v<std::tuple<float, long, std::string, unsigned long>,
-                                 decltype(s_tuple)>,
-                  "detail::make_tuple failed for std::tuple");
+    static_assert(
+        std::is_same_v<std::tuple<float, long, std::string, unsigned long>,
+                       decltype(s_tuple)>,
+        "detail::make_tuple failed for std::tuple");
 
     static_assert(std::is_same_v<detail::tuple_element_t<2, decltype(s_tuple)>,
                                  std::string>,
@@ -50,13 +51,14 @@ TEST(utils, tuple_helpers) {
     // thrust::tuple test
     auto t_tuple = detail::make_tuple<thrust::tuple>(
         1.0f, 2UL, std::string("thrust::tuple"));
-    static_assert(std::is_same_v<thrust::tuple<float, unsigned long, std::string>,
-                                 decltype(t_tuple)>,
-                  "detail::make_tuple failed for thrust::tuple");
-
     static_assert(
-        std::is_same_v<detail::tuple_element_t<1, decltype(t_tuple)>, unsigned long>,
-        "detail::tuple_element retrieval failed for thrust::tuple");
+        std::is_same_v<thrust::tuple<float, unsigned long, std::string>,
+                       decltype(t_tuple)>,
+        "detail::make_tuple failed for thrust::tuple");
+
+    static_assert(std::is_same_v<detail::tuple_element_t<1, decltype(t_tuple)>,
+                                 unsigned long>,
+                  "detail::tuple_element retrieval failed for thrust::tuple");
 
     const auto t_tuple_size = detail::tuple_size_v<decltype(t_tuple)>;
     EXPECT_EQ(t_tuple_size, 3UL);

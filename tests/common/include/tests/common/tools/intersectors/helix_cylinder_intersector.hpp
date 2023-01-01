@@ -121,7 +121,7 @@ struct helix_cylinder_intersector {
         is.direction = vector::dot(is.p3, h.dir(s)) > scalar_type{0.}
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
-        is.link = mask.volume_link();
+        is.volume_link = mask.volume_link();
 
         return ret;
     }
