@@ -158,7 +158,7 @@ class detector {
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
           _materials(det_data._materials_data),
-          _surfaces(det_data._sf_finder_data),
+          _surfaces(det_data._surface_data),
           _volume_finder(det_data._volume_finder_data),
           _bfield(det_data._bfield_view) {}
 
@@ -521,7 +521,7 @@ struct detector_view {
           _masks_data(get_data(det.mask_store())),
           _materials_data(get_data(det.material_store())),
           _transforms_data(get_data(det.transform_store())),
-          _sf_finder_data(get_data(det.sf_finder_store())),
+          _surface_data(get_data(det.surface_store())),
           _volume_finder_data(get_data(det.volume_search_grid())),
           _bfield_view(det.get_bfield()) {}
 
@@ -531,7 +531,7 @@ struct detector_view {
     typename detector_type::mask_container::view_type _masks_data;
     typename detector_type::material_container::view_type _materials_data;
     typename detector_type::transform_container::view_type _transforms_data;
-    typename detector_type::surface_container::view_type _sf_finder_data;
+    typename detector_type::surface_container::view_type _surface_data;
     typename detector_type::volume_finder::view_type _volume_finder_data;
     typename detector_type::bfield_type::view_t _bfield_view;
 };

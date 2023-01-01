@@ -102,40 +102,6 @@ class detector_volume {
     DETRAY_HOST
     constexpr auto set_index(const dindex index) -> void { _index = index; }
 
-    /// set surface finder during detector building
-    /*DETRAY_HOST
-    constexpr auto set_sf_finder(const link_t &link) -> void {
-        _sf_finder_links[ID::e_sensitive] = link;
-    }
-
-    /// set surface finder during detector building
-    DETRAY_HOST
-    constexpr auto set_sf_finder(
-        const typename link_t::id_type id,
-        const typename link_t::index_type index) -> void {
-        _sf_finder_links[ID::e_sensitive] = link_t{id, index};
-    }
-
-    /// @return the surface finder link associated with the volume
-    DETRAY_HOST_DEVICE
-    constexpr auto sf_finder_link() const -> const link_type & {
-        return _sf_finder_links[ID::e_sensitive];
-    }
-
-    /// @return the type of surface finder associated with the volume
-    DETRAY_HOST_DEVICE
-    constexpr auto sf_finder_type() const ->
-        typename link_t::id_type {
-        return detail::get<0>(_sf_finder_links[ID::e_sensitive]);
-    }
-
-    /// @return the index of the surface finder associated with volume
-    DETRAY_HOST_DEVICE
-    constexpr auto sf_finder_index() const ->
-        typename link_t::index_type {
-        return detail::get<1>(_sf_finder_links[ID::e_sensitive]);
-    }*/
-
     /// @return link of a type of object - const access.
     template <ID obj_id = ID::e_sensitive>
     DETRAY_HOST_DEVICE constexpr auto link() const -> const link_t & {
