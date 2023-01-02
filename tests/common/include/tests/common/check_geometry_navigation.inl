@@ -99,20 +99,21 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0; i < obj_tracer.object_trace.size(); ++i) {
-            if (obj_tracer[i].barcode != intersection_trace[i].second.barcode) {
+            if (obj_tracer[i].barcode.index() !=
+                intersection_trace[i].second.barcode.index()) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
-                if (obj_tracer[i].barcode ==
-                        intersection_trace[i + 1].second.barcode and
-                    obj_tracer[i + 1].barcode ==
-                        intersection_trace[i].second.barcode) {
+                if (obj_tracer[i].barcode.index() ==
+                        intersection_trace[i + 1].second.barcode.index() and
+                    obj_tracer[i + 1].barcode.index() ==
+                        intersection_trace[i].second.barcode.index()) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].barcode,
-                      intersection_trace[i].second.barcode)
+            EXPECT_EQ(obj_tracer[i].barcode.index(),
+                      intersection_trace[i].second.barcode.index())
                 << debug_printer.to_string() << debug_stream.str();
         }
     }
@@ -128,9 +129,9 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     constexpr std::size_t n_edc_layers{7};
     vecmem::host_memory_resource host_mr;
 
-    using b_field_t = decltype(
-        create_toy_geometry(std::declval<vecmem::host_memory_resource &>(),
-                            n_brl_layers, n_edc_layers))::bfield_type;
+    using b_field_t = decltype(create_toy_geometry(
+        std::declval<vecmem::host_memory_resource &>(), n_brl_layers,
+        n_edc_layers))::bfield_type;
 
     const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
                     2. * unit<scalar>::T};
@@ -200,20 +201,22 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0; i < obj_tracer.object_trace.size(); ++i) {
-            if (obj_tracer[i].barcode != intersection_trace[i].second.barcode) {
-                // Intersection record at portal bound might be flipped
-                // (the portals overlap completely)
-                if (obj_tracer[i].barcode ==
-                        intersection_trace[i + 1].second.barcode and
-                    obj_tracer[i + 1].barcode ==
-                        intersection_trace[i].second.barcode) {
+            if (obj_tracer[i].barcode.index() !=
+                intersection_trace[i].second.barcode.index()) {
+                // Intersection record at portal bound might be flipped during
+                // sorting (the portals overlap completely)
+                if (obj_tracer[i].barcode.index() ==
+                        intersection_trace[i + 1].second.barcode.index() and
+                    obj_tracer[i + 1].barcode.index() ==
+                        intersection_trace[i].second.barcode.index()) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
             EXPECT_EQ(obj_tracer[i].barcode,
-                      intersection_trace[i].second.barcode);
+                      intersection_trace[i].second.barcode)
+                << "error at surface: " << obj_tracer[i].barcode;
         }
     }
 }

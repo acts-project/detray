@@ -64,7 +64,7 @@ planes_along_direction(const dvector<scalar> &distances, vector3 direction) {
         surfaces.emplace_back(std::move(trf), std::move(mask_link),
                               std::move(material_link), 0, false,
                               surface_id::e_sensitive);
-        surfaces.back().set_barcode(idx);
+        surfaces.back().set_index(idx);
     }
     return surfaces;
 }

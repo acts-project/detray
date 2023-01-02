@@ -79,12 +79,16 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     ASSERT_TRUE(nav_state.is_complete()) << debug_printer.to_string();
 
     // Sequence of surface ids we expect to see
-    const std::vector<geometry::barcode> sf_sequence = {0, 1, 2, 3, 4, 5,
-                                                        6, 7, 8, 9, 10};
+    const std::vector<dindex> sf_sequence = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     // Check the surfaces that have been visited by the navigation
     EXPECT_EQ(obj_tracer.object_trace.size(), sf_sequence.size());
     for (size_t i = 0; i < sf_sequence.size(); ++i) {
-        const auto &candidate = obj_tracer.object_trace[i];
-        EXPECT_TRUE(candidate.barcode == sf_sequence[i]);
+        const auto candidate = obj_tracer.object_trace[i];
+        auto bcd = geometry::barcode{sf_sequence[i]};
+        bcd.set_volume(0UL);
+        bcd.set_id((i == 0 or i == 10) ? surface_id::e_portal
+                                       : surface_id::e_sensitive);
+        EXPECT_TRUE(candidate.barcode == bcd)
+            << "error at intersection on surface: " << candidate.barcode;
     }
 }

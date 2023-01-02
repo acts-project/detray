@@ -54,7 +54,7 @@ struct surface_targeter : actor {
         stepping.set_constraint(residual);
 
         typename propagator_state_t::navigator_state_type::intersection_t is;
-        is.barcode = actor_state._target_surface_index;
+        is.barcode = geometry::barcode{actor_state._target_surface_index};
         is.path = residual;
         auto &candidates = navigation.candidates();
         candidates.clear();
@@ -185,8 +185,8 @@ TEST(path_correction, cartesian) {
     getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
-                                                          bound_cov);
+    const bound_track_parameters<transform3> bound_param0(
+        geometry::barcode{0}, bound_vector, bound_cov);
 
     // Path length per turn
     scalar S = 2. * getter::perp(mom) / getter::norm(env::B) * M_PI;
@@ -327,8 +327,8 @@ TEST(path_correction, polar) {
     getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
-                                                          bound_cov);
+    const bound_track_parameters<transform3> bound_param0(
+        geometry::barcode{0}, bound_vector, bound_cov);
 
     // Path length per turn
     scalar S = 2. * getter::perp(mom) / getter::norm(env::B) * M_PI;
@@ -456,8 +456,8 @@ TEST(path_correction, cylindrical) {
     getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
-                                                          bound_cov);
+    const bound_track_parameters<transform3> bound_param0(
+        geometry::barcode{0}, bound_vector, bound_cov);
 
     // Path length per turn
     scalar S = 2. * getter::perp(mom) / getter::norm(env::B) * M_PI;

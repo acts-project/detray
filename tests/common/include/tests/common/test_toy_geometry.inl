@@ -169,7 +169,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                                  const dvector<dindex>&& volume_links) {
         for (dindex pti = range[0]; pti < range[1]; ++pti) {
             EXPECT_EQ(sf_itr->volume(), vol_index);
-            EXPECT_EQ(sf_itr->barcode(), pti);
+            EXPECT_EQ(sf_itr->id(), surface_id::e_portal);
+            EXPECT_EQ(sf_itr->index(), pti);
             EXPECT_EQ(sf_itr->transform(), trf_index);
             EXPECT_EQ(sf_itr->mask(), mask_link);
             const auto volume_link =
@@ -205,7 +206,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                                  const dvector<dindex>&& volume_links) {
         for (dindex pti = range[0]; pti < range[1]; ++pti) {
             EXPECT_EQ(sf_itr->volume(), vol_index);
-            EXPECT_EQ(sf_itr->barcode(), pti);
+            EXPECT_FALSE(sf_itr->id() == surface_id::e_portal);
+            EXPECT_EQ(sf_itr->index(), pti);
             EXPECT_EQ(sf_itr->transform(), trf_index);
             EXPECT_EQ(sf_itr->mask(), mask_index);
             EXPECT_EQ(sf_itr->material(), material_index);

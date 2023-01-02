@@ -160,7 +160,7 @@ inline auto trace_intersections(const record_container &intersection_records,
         const typename record_container::value_type &entry;
 
         // getter
-        inline auto &object_id() const { return entry.second.barcode; }
+        inline auto object_id() const { return entry.second.barcode.index(); }
         inline auto &inters() const { return entry.second; }
         inline auto &volume_id() const { return entry.first; }
         inline auto &volume_link() const { return entry.second.volume_link; }

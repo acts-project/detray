@@ -70,8 +70,8 @@ TEST(line_stepper, covariance_transport) {
     getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
 
     // Bound track parameter
-    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
-                                                          bound_cov);
+    const bound_track_parameters<transform3> bound_param0(
+        geometry::barcode{0}, bound_vector, bound_cov);
 
     // Actors
     parameter_transporter<transform3>::state bound_updater{};
@@ -90,8 +90,11 @@ TEST(line_stepper, covariance_transport) {
     // const auto bound_vec1 = bound_param1.vector();
 
     // Check if the track reaches the final surface
-    EXPECT_EQ(bound_param0.surface_link(), 0);
-    EXPECT_EQ(bound_param1.surface_link(), 5);
+    EXPECT_EQ(bound_param0.surface_link().volume(), dindex_invalid);
+    EXPECT_EQ(bound_param0.surface_link().index(), 0UL);
+    EXPECT_EQ(bound_param1.surface_link().volume(), 0UL);
+    EXPECT_EQ(bound_param1.surface_link().id(), surface_id::e_sensitive);
+    EXPECT_EQ(bound_param1.surface_link().index(), 5UL);
 
     const auto bound_cov0 = bound_param0.covariance();
     const auto bound_cov1 = bound_param1.covariance();
@@ -107,7 +110,6 @@ TEST(line_stepper, covariance_transport) {
     // Check covaraince
     for (std::size_t i = 0; i < e_bound_size; i++) {
         for (std::size_t j = 0; j < e_bound_size; j++) {
-
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
                         matrix_operator().element(bound_cov1, i, j), epsilon);
         }

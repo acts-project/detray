@@ -209,7 +209,7 @@ struct print_inspector : actor {
                            << navigation.volume();
         }
 
-        if (navigation.current_object() == dindex_invalid) {
+        if (navigation.current_object().index() == dindex_invalid) {
             printer.stream << "surface: " << std::setw(14) << "invalid";
         } else {
             printer.stream << "surface: " << std::setw(14)
@@ -222,7 +222,5 @@ struct print_inspector : actor {
 };
 
 }  // namespace propagation
-
-namespace step {}  // namespace step
 
 }  // namespace detray

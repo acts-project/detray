@@ -228,11 +228,15 @@ class navigator {
         /// @returns current object the navigator is on (might be invalid if
         /// between objects) - const
         DETRAY_HOST_DEVICE
-        inline auto current_object() const -> dindex { return _object_index; }
+        inline auto current_object() const -> geometry::barcode {
+            return _object_index;
+        }
 
         /// @returns the next object the navigator indends to reach
         DETRAY_HOST_DEVICE
-        inline auto next_object() const -> dindex { return _next->barcode; }
+        inline auto next_object() const -> geometry::barcode {
+            return _next->barcode;
+        }
 
         /// @returns current navigation status - const
         DETRAY_HOST_DEVICE
@@ -411,9 +415,9 @@ class navigator {
         /// @param obj_idx current object (invalid if not on object)
         /// @param trust_lvl current truct level of next target state
         DETRAY_HOST_DEVICE
-        inline void set_state(const navigation::status status,
-                              const geometry::barcode obj_idx,
-                              const navigation::trust_level trust_lvl) {
+        constexpr void set_state(const navigation::status status,
+                                 const geometry::barcode obj_idx,
+                                 const navigation::trust_level trust_lvl) {
             _object_index = obj_idx;
             _trust_level = trust_lvl;
             _status = status;
@@ -438,7 +442,7 @@ class navigator {
         inspector_type _inspector;
 
         /// Index of an object (module/portal) if is reached, otherwise invalid
-        geometry::barcode _object_index = dindex_invalid;
+        geometry::barcode _object_index{dindex_invalid};
 
         /// The navigation status
         navigation::status _status = navigation::status::e_unknown;
@@ -589,7 +593,7 @@ class navigator {
             // Update next candidate: If not reachable, 'high trust' is broken
             if (not update_candidate(*navigation.next(), track, det)) {
                 navigation.set_state(navigation::status::e_unknown,
-                                     dindex_invalid,
+                                     geometry::barcode{dindex_invalid},
                                      navigation::trust_level::e_no_trust);
                 return;
             }
@@ -698,7 +702,7 @@ class navigator {
         } else {
             // Otherwise the track is moving towards a surface
             navigation.set_state(navigation::status::e_towards_object,
-                                 dindex_invalid,
+                                 geometry::barcode{dindex_invalid},
                                  navigation::trust_level::e_full);
         }
         // Generally happens when after an update no next candidate in the
