@@ -59,9 +59,7 @@ class surface {
           _material(std::move(material)),
           _src(std::move(src)) {
 
-        m_barcode = geometry::barcode{dindex_invalid};
-        m_barcode.set_volume(volume);
-        m_barcode.set_id(sf_id);
+        m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
     }
 
     /// Constructor with full arguments - copy semantics
@@ -76,9 +74,7 @@ class surface {
                       const material_link &material, const dindex volume,
                       const source_link &src, surface_id sf_id)
         : _trf(trf), _mask(mask), _material(material), _src(src) {
-        m_barcode = geometry::barcode{dindex_invalid};
-        m_barcode.set_volume(volume);
-        m_barcode.set_id(sf_id);
+        m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
     }
 
     /// Portal vs module decision must be made explicitly
@@ -184,13 +180,11 @@ class surface {
     }
 
     private:
-    geometry::barcode m_barcode{dindex_invalid};
+    geometry::barcode m_barcode{};
     transform_link_t _trf{};
     mask_link _mask{};
     material_link _material{};
-    // dindex _volume{dindex_invalid};
     source_link_t _src{};
-    // surface_id _sf_id = surface_id::e_sensitive;
 };
 
 }  // namespace detray

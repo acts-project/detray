@@ -71,7 +71,7 @@ TEST(line_stepper, covariance_transport) {
 
     // Bound track parameter
     const bound_track_parameters<transform3> bound_param0(
-        geometry::barcode{0}, bound_vector, bound_cov);
+        geometry::barcode{}.set_index(0UL), bound_vector, bound_cov);
 
     // Actors
     parameter_transporter<transform3>::state bound_updater{};
@@ -90,7 +90,7 @@ TEST(line_stepper, covariance_transport) {
     // const auto bound_vec1 = bound_param1.vector();
 
     // Check if the track reaches the final surface
-    EXPECT_EQ(bound_param0.surface_link().volume(), dindex_invalid);
+    EXPECT_EQ(bound_param0.surface_link().volume(), 255UL);
     EXPECT_EQ(bound_param0.surface_link().index(), 0UL);
     EXPECT_EQ(bound_param1.surface_link().volume(), 0UL);
     EXPECT_EQ(bound_param1.surface_link().id(), surface_id::e_sensitive);

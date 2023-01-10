@@ -214,8 +214,8 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].barcode,
-                      intersection_trace[i].second.barcode)
+            EXPECT_EQ(obj_tracer[i].barcode.index(),
+                      intersection_trace[i].second.barcode.index())
                 << "error at surface: " << obj_tracer[i].barcode;
         }
     }

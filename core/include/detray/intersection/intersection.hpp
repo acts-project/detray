@@ -104,7 +104,7 @@ struct line_plane_intersection {
         std::stringstream out_stream;
         scalar r{getter::perp(p3)};
         out_stream << "dist:" << path << " [r:" << r << ", z:" << p3[2]
-                   << "], (sf index:" << barcode.index()
+                   << "], (suface:" << barcode
                    << ", links to vol:" << volume_link << ")";
         switch (status) {
             case intersection::status::e_outside:

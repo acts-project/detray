@@ -8,10 +8,12 @@
 #pragma once
 
 // Project include(s).
+#include <iostream>
+
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/propagator/navigator.hpp"
 #include "detray/tracks/tracks.hpp"
-
 namespace detray {
 
 /// Templated propagator class, using a stepper and a navigator object in

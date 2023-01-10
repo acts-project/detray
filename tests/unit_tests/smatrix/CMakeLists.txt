@@ -22,6 +22,7 @@ detray_add_test( smatrix
    "smatrix_cylinder_intersection.cpp"
    "smatrix_cylinder.cpp"
    "smatrix_detector.cpp"
+   "smatrix_geometry_barcode.cpp"
    "smatrix_geometry_volume_graph.cpp"
    "smatrix_geometry_linking.cpp"
    "smatrix_geometry_navigation.cpp"

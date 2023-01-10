@@ -113,7 +113,7 @@ class navigator {
     /// towards the navigation. The navigator is responsible for updating the
     /// elements  in the state's cache with every navigation call, establishing
     /// 'full trust' again.
-    class state {
+    class state : public detray::ranges::view_interface<state> {
         friend class navigator;
 
         using candidate_itr_t =
@@ -139,6 +139,22 @@ class navigator {
         DETRAY_HOST_DEVICE state(const detector_type &det,
                                  vector_type<intersection_type> candidates)
             : _detector(&det), _candidates(candidates) {}
+
+        /// @return start position of valid candidate range.
+        DETRAY_HOST_DEVICE
+        constexpr auto begin() -> candidate_itr_t { return _next; }
+
+        /// @return start position of the valid candidate range - const
+        DETRAY_HOST_DEVICE
+        constexpr auto begin() const -> const_candidate_itr_t { return _next; }
+
+        /// @return sentinel of the valid candidate range.
+        DETRAY_HOST_DEVICE
+        constexpr auto end() -> candidate_itr_t { return _last; }
+
+        /// @return sentinel of the valid candidate range.
+        DETRAY_HOST_DEVICE
+        constexpr auto end() const -> const_candidate_itr_t { return _last; }
 
         /// @returns a pointer of detector
         DETRAY_HOST_DEVICE
@@ -186,11 +202,11 @@ class navigator {
             return _candidates;
         }
 
-        /// @returns numer of currently cached candidates - const
+        /// @returns numer of currently cached (reachable) candidates - const
         DETRAY_HOST_DEVICE
         inline auto n_candidates() const ->
             typename std::iterator_traits<candidate_itr_t>::difference_type {
-            return std::distance(_candidates.begin(), _last);
+            return std::distance(_next, _last);
         }
 
         /// @returns current/previous object that was reached
@@ -313,8 +329,7 @@ class navigator {
         /// Helper method to check if a kernel is exhausted - const
         DETRAY_HOST_DEVICE
         inline auto is_exhausted() const -> bool {
-            return std::distance(static_cast<const_candidate_itr_t>(_next),
-                                 _last) <= 0;
+            return std::distance(_next, _last) <= 0;
         }
 
         /// @returns flag that indicates whether navigation was successful
@@ -436,13 +451,13 @@ class navigator {
         candidate_itr_t _next = _candidates.end();
 
         /// The last reachable candidate
-        const_candidate_itr_t _last = _candidates.end();
+        candidate_itr_t _last = _candidates.end();
 
         /// The inspector type of this navigation engine
         inspector_type _inspector;
 
         /// Index of an object (module/portal) if is reached, otherwise invalid
-        geometry::barcode _object_index{dindex_invalid};
+        geometry::barcode _object_index{};
 
         /// The navigation status
         navigation::status _status = navigation::status::e_unknown;
@@ -593,7 +608,7 @@ class navigator {
             // Update next candidate: If not reachable, 'high trust' is broken
             if (not update_candidate(*navigation.next(), track, det)) {
                 navigation.set_state(navigation::status::e_unknown,
-                                     geometry::barcode{dindex_invalid},
+                                     geometry::barcode{},
                                      navigation::trust_level::e_no_trust);
                 return;
             }
@@ -631,7 +646,7 @@ class navigator {
         // - do this when your navigation state is stale, but not invalid
         if (navigation.trust_level() == navigation::trust_level::e_fair) {
 
-            for (auto &candidate : navigation.candidates()) {
+            for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable
                 if (not update_candidate(candidate, track, det)) {
                     // Forcefully set dist to numeric max for sorting
@@ -639,8 +654,7 @@ class navigator {
                 }
             }
             // Sort again
-            detail::sequential_sort(navigation.candidates().begin(),
-                                    navigation.candidates().end());
+            detail::sequential_sort(navigation.begin(), navigation.end());
             // Take the nearest candidate first
             navigation.set_next(navigation.candidates().begin());
             // Ignore unreachable elements (needed to determine exhaustion)
@@ -691,8 +705,6 @@ class navigator {
             // called once the cache has been updated to a full trust state).
             // Might lead to exhausted cache.
             ++navigation.next();
-            // Release actor constraints
-            propagation._stepping.release_step();
             // Update state accordingly
             navigation.set_state(
                 navigation.volume() != navigation.current()->volume_link
@@ -702,7 +714,7 @@ class navigator {
         } else {
             // Otherwise the track is moving towards a surface
             navigation.set_state(navigation::status::e_towards_object,
-                                 geometry::barcode{dindex_invalid},
+                                 geometry::barcode{},
                                  navigation::trust_level::e_full);
         }
         // Generally happens when after an update no next candidate in the
@@ -726,6 +738,9 @@ class navigator {
         intersection_type &candidate, const track_t &track,
         const detector_type *det) const {
 
+        if (candidate.barcode.is_invalid()) {
+            return false;
+        }
         const auto &mask_store = det->mask_store();
         const auto &sf = det->surfaces(candidate.barcode);
         candidate = mask_store.template visit<intersection_update>(

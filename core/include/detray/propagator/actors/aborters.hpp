@@ -1,18 +1,19 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-// detray definitions
-#include <climits>
-
+// Project include(s)
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
+
+// System include(s)
+#include <climits>
 
 namespace detray {
 

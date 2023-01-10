@@ -45,7 +45,7 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     bound_track_parameters()
-        : m_barcode(dindex_invalid),
+        : m_barcode(),
           m_vector(matrix_operator().template zero<e_bound_size, 1>()),
           m_covariance(
               matrix_operator().template zero<e_bound_size, e_bound_size>()) {}

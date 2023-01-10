@@ -84,8 +84,8 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     EXPECT_EQ(obj_tracer.object_trace.size(), sf_sequence.size());
     for (size_t i = 0; i < sf_sequence.size(); ++i) {
         const auto candidate = obj_tracer.object_trace[i];
-        auto bcd = geometry::barcode{sf_sequence[i]};
-        bcd.set_volume(0UL);
+        auto bcd = geometry::barcode{};
+        bcd.set_volume(0UL).set_index(sf_sequence[i]);
         bcd.set_id((i == 0 or i == 10) ? surface_id::e_portal
                                        : surface_id::e_sensitive);
         EXPECT_TRUE(candidate.barcode == bcd)

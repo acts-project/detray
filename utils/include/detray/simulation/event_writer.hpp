@@ -117,7 +117,7 @@ struct event_writer : actor {
             auto det = navigation.detector();
             const auto& mask_store = det->mask_store();
             const auto& surface =
-                det->surfaces(geometry::barcode(hit.geometry_id));
+                det->surfaces(geometry::barcode().set_index(hit.geometry_id));
 
             const auto local = mask_store.template visit<measurement_kernel>(
                 surface.mask(), bound_params, writer_state.m_meas_smearer);

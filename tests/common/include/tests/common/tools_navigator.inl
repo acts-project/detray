@@ -36,11 +36,12 @@ inline void check_towards_surface(state_t &state, dindex vol_id,
                                   std::size_t n_candidates, dindex next_id) {
     ASSERT_EQ(state.status(), navigation::status::e_towards_object);
     ASSERT_EQ(state.volume(), vol_id);
-    ASSERT_EQ(state.n_candidates(), n_candidates);
+    ASSERT_EQ(state.candidates().size(), n_candidates);
     // If we are towards some object, we have no current one (even if we are
     // geometrically still there)
-    ASSERT_EQ(state.current_object().volume(), dindex_invalid);
-    ASSERT_EQ(state.current_object().index(), dindex_invalid);
+    ASSERT_EQ(state.current_object().volume(), 255UL);
+    ASSERT_EQ(state.current_object().id(), static_cast<surface_id>(15UL));
+    ASSERT_EQ(state.current_object().extra(), 255UL);
     // the portal is still the next object, since we did not step
     ASSERT_EQ(state.next_object().index(), next_id);
     ASSERT_TRUE((state.trust_level() == navigation::trust_level::e_full) or
@@ -58,8 +59,8 @@ inline void check_on_surface(state_t &state, dindex vol_id,
                 state.status() == navigation::status::e_on_portal);
     // Points towards next candidate
     ASSERT_TRUE(std::abs(state()) > state.tolerance());
-    // ASSERT_EQ(state.volume(), vol_id);
-    ASSERT_EQ(state.n_candidates(), n_candidates);
+    ASSERT_EQ(state.volume(), vol_id);
+    ASSERT_EQ(state.candidates().size(), n_candidates);
     ASSERT_EQ(state.current_object().volume(), vol_id);
     ASSERT_EQ(state.current_object().index(), current_id);
     // points to the next surface now
@@ -144,6 +145,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_EQ(navigation.volume(), 0u);
     // No surface candidates
     ASSERT_EQ(navigation.n_candidates(), 0u);
+    ASSERT_EQ(navigation.candidates().size(), 0u);
     // You can not trust the state
     ASSERT_EQ(navigation.trust_level(), trust_level::e_no_trust);
     // The status is unkown

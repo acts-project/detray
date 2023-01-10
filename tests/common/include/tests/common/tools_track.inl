@@ -58,8 +58,8 @@ TEST(tools, bound_track_parameters) {
     typename bound_track_parameters<transform3>::covariance_type bound_cov1 =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
-    bound_track_parameters<transform3> bound_param1(geometry::barcode{sf_idx1},
-                                                    bound_vec1, bound_cov1);
+    bound_track_parameters<transform3> bound_param1(
+        geometry::barcode{}.set_index(sf_idx1), bound_vec1, bound_cov1);
 
     // second track
     dindex sf_idx2 = 1;
@@ -75,10 +75,10 @@ TEST(tools, bound_track_parameters) {
     typename bound_track_parameters<transform3>::covariance_type bound_cov2 =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
-    bound_track_parameters<transform3> bound_param2(geometry::barcode{sf_idx2},
-                                                    bound_vec2, bound_cov2);
-    bound_track_parameters<transform3> bound_param3(geometry::barcode{sf_idx2},
-                                                    bound_vec2, bound_cov2);
+    bound_track_parameters<transform3> bound_param2(
+        geometry::barcode{}.set_index(sf_idx2), bound_vec2, bound_cov2);
+    bound_track_parameters<transform3> bound_param3(
+        geometry::barcode{}.set_index(sf_idx2), bound_vec2, bound_cov2);
 
     /// Check the elements
 

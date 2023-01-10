@@ -22,6 +22,7 @@ detray_add_test( array
    "array_cylinder_intersection.cpp"
    "array_cylinder.cpp"
    "array_detector.cpp"
+   "array_geometry_barcode.cpp"
    "array_geometry_volume_graph.cpp"
    "array_geometry_linking.cpp"
    "array_geometry_navigation.cpp" 

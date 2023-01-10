@@ -95,8 +95,8 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
 
     // Compare
     for (std::size_t i = 0; i < z_tel_det1.surfaces().size(); ++i) {
-        geometry::barcode bcd{i};
-        bcd.set_volume(0UL);
+        geometry::barcode bcd{};
+        bcd.set_volume(0UL).set_index(i);
         bcd.set_id((i == 0 or i == z_tel_det1.surfaces().size() - 1)
                        ? surface_id::e_portal
                        : surface_id::e_sensitive);

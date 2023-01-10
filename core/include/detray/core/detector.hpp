@@ -233,7 +233,6 @@ class detector {
     }
 
     /// @returns a surface by index - const
-    // TODO: Implement surface barcode
     DETRAY_HOST_DEVICE
     constexpr auto surfaces(geometry::barcode bcd) const
         -> const surface_type & {

@@ -47,6 +47,9 @@ struct aggregate_inspector {
     decltype(auto) get() {
         return std::get<inspector_t>(_inspectors);
     }
+
+    /// @returns a string representation of the gathered information
+    std::string to_string() {}
 };
 
 namespace navigation {
@@ -158,7 +161,11 @@ struct print_inspector {
     }
 
     /// @returns a string representation of the gathered information
-    std::string to_string() { return debug_stream.str(); }
+    std::string to_string() {
+        std::string output(debug_stream.str());
+        debug_stream.clear();
+        return output;
+    }
 };
 
 }  // namespace navigation
