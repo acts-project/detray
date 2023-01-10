@@ -45,6 +45,13 @@ class single_view
     DETRAY_HOST_DEVICE constexpr single_view(std::in_place_t, Args&&... args)
         : m_value{std::in_place, std::forward<Args>(args)...} {}
 
+    /// Copy constructor
+    DETRAY_HOST_DEVICE
+    constexpr single_view(const single_view& other) : m_value{other.m_value} {}
+
+    /// Default destructor
+    DETRAY_HOST_DEVICE ~single_view() {}
+
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
     single_view& operator=(const single_view& other) {

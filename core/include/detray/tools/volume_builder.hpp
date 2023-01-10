@@ -42,7 +42,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         det.volumes().emplace_back(id, bounds);
         m_volume = &(det.volumes().back());
         m_volume->set_index(det.volumes().size() - 1);
-        m_volume->set_sf_finder(detector_t::sf_finders::id::e_default, 0);
+        m_volume->set_link(detector_t::sf_finders::id::e_default, 0);
     };
 
     DETRAY_HOST
@@ -62,33 +62,30 @@ class volume_builder : public volume_builder_interface<detector_t> {
     void add_portals(
         std::shared_ptr<surface_factory_interface<detector_t>> pt_factory,
         typename detector_t::geometry_context ctx = {}) override {
-        dindex_range pt_range{(*pt_factory)(m_volume->index(), m_surfaces,
-                                            m_transforms, m_masks, ctx)};
-        m_volume->template update_obj_link<geo_obj_ids::e_portal>(pt_range);
+        (*pt_factory)(m_volume->index(), m_surfaces, m_transforms, m_masks,
+                      ctx);
     }
 
     DETRAY_HOST
     void add_sensitives(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
-        dindex_range sf_range{(*sf_factory)(m_volume->index(), m_surfaces,
-                                            m_transforms, m_masks, ctx)};
-        m_volume->template update_obj_link<geo_obj_ids::e_sensitive>(sf_range);
+        (*sf_factory)(m_volume->index(), m_surfaces, m_transforms, m_masks,
+                      ctx);
     }
 
     DETRAY_HOST
     void add_passives(
         std::shared_ptr<surface_factory_interface<detector_t>> ps_factory,
         typename detector_t::geometry_context ctx = {}) override {
-        dindex_range ps_range{(*ps_factory)(m_volume->index(), m_surfaces,
-                                            m_transforms, m_masks, ctx)};
-        m_volume->template update_obj_link<geo_obj_ids::e_passive>(ps_range);
+        (*ps_factory)(m_volume->index(), m_surfaces, m_transforms, m_masks,
+                      ctx);
     }
 
     protected:
     typename detector_t::volume_type* m_volume{};
 
-    typename detector_t::surface_container m_surfaces{};
+    typename detector_t::surface_container_t m_surfaces{};
     typename detector_t::transform_container m_transforms{};
     typename detector_t::mask_container m_masks{};
 };

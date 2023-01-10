@@ -27,9 +27,16 @@ class empty_view : public detray::ranges::view_interface<empty_view<value_t>> {
     /// Default constructor
     constexpr empty_view() = default;
 
+    /// Copy constructor
+    DETRAY_HOST_DEVICE
+    constexpr empty_view(const empty_view&) {}
+
+    /// Default destructor
+    DETRAY_HOST_DEVICE ~empty_view() {}
+
     /// Copy assignment operator - does nothing
     DETRAY_HOST_DEVICE
-    empty_view& operator=(const empty_view&){};
+    constexpr empty_view& operator=(const empty_view&){};
 
     /// @returns @c nullptr
     DETRAY_HOST_DEVICE

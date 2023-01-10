@@ -47,25 +47,26 @@ using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 /** This method creates a number (distances.size()) planes along a direction
  */
 dvector<surface<plane_mask_link_t, plane_material_link_t, transform3>>
-planes_along_direction(dvector<scalar> distances, vector3 direction) {
+planes_along_direction(const dvector<scalar> &distances, vector3 direction) {
     // Rotation matrix
     vector3 z = direction;
     vector3 x = normalize(vector3{0, -z[2], z[1]});
 
     dvector<surface<plane_mask_link_t, plane_material_link_t, transform3>>
-        return_surfaces;
-    return_surfaces.reserve(distances.size());
+        surfaces;
+    surfaces.reserve(distances.size());
     for (const auto [idx, d] : detray::views::enumerate(distances)) {
         vector3 t = d * direction;
         transform3 trf(t, z, x);
         plane_mask_link_t mask_link{plane_mask_ids::e_plane_rectangle2, idx};
         plane_material_link_t material_link{plane_material_ids::e_plane_slab,
                                             0};
-        return_surfaces.emplace_back(std::move(trf), std::move(mask_link),
-                                     std::move(material_link), 0, false,
-                                     surface_id::e_sensitive);
+        surfaces.emplace_back(std::move(trf), std::move(mask_link),
+                              std::move(material_link), 0, false,
+                              surface_id::e_sensitive);
+        surfaces.back().set_barcode(idx);
     }
-    return return_surfaces;
+    return surfaces;
 }
 
 using cylinder_point2 = __plugin::point2<detray::scalar>;

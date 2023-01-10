@@ -61,6 +61,14 @@ struct join_view
         : m_begins{detray::ranges::cbegin(ranges)...},
           m_ends{detray::ranges::cend(ranges)...} {}
 
+    /// Copy constructor
+    DETRAY_HOST_DEVICE
+    constexpr join_view(const join_view &other)
+        : m_begins{other.m_begins}, m_ends{other.m_ends} {}
+
+    /// Default destructor
+    DETRAY_HOST_DEVICE ~join_view() {}
+
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
     join_view &operator=(const join_view &other) {

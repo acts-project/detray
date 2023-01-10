@@ -46,7 +46,9 @@ class grid_collection<
     public:
     using grid_type =
         detray::grid<multi_axis_t, value_t, serializer_t, populator_t>;
-    using const_grid_type = const grid_type;
+    using const_grid_type =
+        const detray::grid<const multi_axis_t, const value_t, serializer_t,
+                           populator_t>;
     using value_type = grid_type;
     using size_type = dindex;
 
@@ -138,11 +140,11 @@ class grid_collection<
 
     /// Create grid from container pointers - const
     DETRAY_HOST_DEVICE
-    auto operator[](const size_type i) const -> grid_type {
+    auto operator[](const size_type i) const -> const_grid_type {
         const size_type axes_offset{grid_type::Dim * i};
-        return grid_type(&m_bins,
-                         multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
-                         m_offsets[i]);
+        return const_grid_type(
+            &m_bins, multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
+            m_offsets[i]);
     }
 
     /// Create grid from container pointers - non-const

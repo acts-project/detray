@@ -50,12 +50,11 @@ struct helix_inspector : actor {
 
     // Kernel to get a free position at the last surface
     struct kernel {
-        using output_type = free_vector;
 
         template <typename mask_group_t, typename index_t,
                   typename transform_store_t, typename surface_t,
                   typename stepper_state_t>
-        DETRAY_HOST_DEVICE inline output_type operator()(
+        DETRAY_HOST_DEVICE inline free_vector operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform_store_t& trf_store, const surface_t& surface,
             const stepper_state_t& stepping) {
@@ -90,15 +89,14 @@ struct helix_inspector : actor {
         }
 
         const auto& det = navigation.detector();
-        const auto& surface_container = det->surfaces();
         const auto& trf_store = det->transform_store();
         const auto& mask_store = det->mask_store();
 
         // Surface
         const auto& surface =
-            surface_container[stepping._bound_params.surface_link()];
+            det->surfaces(stepping._bound_params.surface_link());
 
-        const auto free_vec = mask_store.template call<kernel>(
+        const auto free_vec = mask_store.template visit<kernel>(
             surface.mask(), trf_store, surface, stepping);
 
         const auto last_pos =

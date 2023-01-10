@@ -112,6 +112,14 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
                                            deduced_incr_t &&end)
         : m_start{start}, m_end{end - 1} {}
 
+    /// Copy constructor
+    DETRAY_HOST_DEVICE
+    constexpr iota_view(const iota_view &other)
+        : m_start{other.m_start}, m_end{other.m_end} {}
+
+    /// Default destructor
+    DETRAY_HOST_DEVICE ~iota_view() {}
+
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
     iota_view &operator=(const iota_view &other) {

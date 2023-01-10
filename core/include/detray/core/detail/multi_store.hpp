@@ -167,7 +167,7 @@ class multi_store {
     /// Add a new element to a collection
     ///
     /// @tparam ID is the id of the collection
-    /// @tparam Args are the types of the constructor arguments
+    /// @tparam T The element to be added to the collection
     ///
     /// @param args is the list of constructor arguments
     ///
@@ -267,9 +267,8 @@ class multi_store {
     ///
     /// @return the functor output
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE typename functor_t::output_type call(const ID id,
-                                                            Args &&... args) {
-        return m_tuple_container.template call<functor_t>(
+    DETRAY_HOST_DEVICE decltype(auto) visit(const ID id, Args &&... args) {
+        return m_tuple_container.template visit<functor_t>(
             static_cast<size_type>(id), std::forward<Args>(args)...);
     }
 
@@ -284,9 +283,9 @@ class multi_store {
     ///
     /// @return the functor output
     template <typename functor_t, typename link_t, typename... Args>
-    DETRAY_HOST_DEVICE typename functor_t::output_type call(
-        const link_t link, Args &&... args) const {
-        return m_tuple_container.template call<functor_t>(
+    DETRAY_HOST_DEVICE decltype(auto) visit(const link_t link,
+                                            Args &&... args) const {
+        return m_tuple_container.template visit<functor_t>(
             value_types::to_index(detail::get<0>(link)), detail::get<1>(link),
             std::forward<Args>(args)...);
     }

@@ -37,7 +37,7 @@ TEST(detector, detector_kernel) {
     detector_t::geometry_context ctx0{};
 
     detector_t::transform_container trfs;
-    detector_t::surface_container surfaces = {};
+    detector_t::surface_container_t surfaces = {};
     detector_t::mask_container masks(host_mr);
     detector_t::material_container materials(host_mr);
 

@@ -228,7 +228,7 @@ auto create_telescope_detector(
     typename detector_t::volume_type &vol = det.volume_by_index(0);
 
     // Add module surfaces to volume
-    typename detector_t::surface_container surfaces(&resource);
+    typename detector_t::surface_container_t surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);

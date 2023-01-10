@@ -24,10 +24,8 @@
 using namespace detray;
 
 struct test_func {
-    using output_type = std::size_t;
-
     template <typename container_t>
-    output_type operator()(const container_t& coll, const int /*index*/) {
+    auto operator()(const container_t& coll, const int /*index*/) {
         return coll.size();
     }
 };
@@ -141,7 +139,7 @@ TEST(container, vector_multi_type_store) {
     EXPECT_FLOAT_EQ(vector_store.get<2>()[3], 7.6);
 
     // call functor
-    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(0, 0)), 5UL);
-    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(1, 0)), 3UL);
-    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(2, 0)), 4UL);
+    EXPECT_EQ(vector_store.visit<test_func>(std::make_pair(0, 0)), 5UL);
+    EXPECT_EQ(vector_store.visit<test_func>(std::make_pair(1, 0)), 3UL);
+    EXPECT_EQ(vector_store.visit<test_func>(std::make_pair(2, 0)), 4UL);
 }
