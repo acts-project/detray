@@ -33,7 +33,7 @@ namespace detray {
 /// @param start_volume where the ray started
 ///
 /// @return true if the volumes indices form a connected chain.
-template <bool check_sorted_trace = true,
+template <dindex invalid_value = dindex_invalid, bool check_sorted_trace = true,
           typename entry_type = std::pair<dindex, dindex>>
 inline bool check_connectivity(
     std::vector<std::pair<entry_type, entry_type>> trace,
@@ -118,7 +118,7 @@ inline bool check_connectivity(
 
     // There are unconnected elements left (we didn't leave world before
     // termination)
-    if (on_volume != dindex_invalid) {
+    if (on_volume != invalid_value) {
         std::cerr << "\n<<<<<<<<<<<<<<< ERROR while checking volume trace"
                   << std::endl;
         std::cerr << "Didn't leave world or unconnected elements left in trace:"
@@ -146,7 +146,7 @@ inline bool check_connectivity(
 ///
 /// @return a set of volume connections that were found by portal intersection
 ///         of a ray.
-template <typename record_container>
+template <dindex invalid_value = dindex_invalid, typename record_container>
 inline auto trace_intersections(const record_container &intersection_records,
                                 dindex start_volume = 0) {
     // obj id and obj mother volume
@@ -301,8 +301,8 @@ inline auto trace_intersections(const record_container &intersection_records,
 ///
 /// @return an adjacency list from the traced ray scan of a given geometry.
 template <
-    typename portal_trace_type, typename module_trace_type,
-    typename entry_type = std::pair<dindex, dindex>,
+    dindex invalid_value = dindex_invalid, typename portal_trace_type,
+    typename module_trace_type, typename entry_type = std::pair<dindex, dindex>,
     std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
                                     std::pair<entry_type, entry_type>>,
                      bool> = true,
@@ -338,7 +338,7 @@ inline auto build_adjacency(
             obj_hashes.insert(pt_index_1);
         }
         // Assume the return link for now (filter out portal that leaves world)
-        if (vol_index_2 != dindex_invalid) {
+        if (vol_index_2 != invalid_value) {
             if (obj_hashes.find(pt_index_2) == obj_hashes.end()) {
                 adj_list[vol_index_2][vol_index_1]++;
                 obj_hashes.insert(pt_index_2);
@@ -361,8 +361,8 @@ inline auto build_adjacency(
 ///
 /// @return an adjacency list from the traced ray scan of a given geometry.
 template <
-    typename portal_trace_type, typename module_trace_type,
-    typename entry_type = std::pair<dindex, dindex>,
+    dindex invalid_value = dindex_invalid, typename portal_trace_type,
+    typename module_trace_type, typename entry_type = std::pair<dindex, dindex>,
     std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
                                     std::pair<entry_type, entry_type>>,
                      bool> = true,
@@ -398,7 +398,7 @@ inline auto build_adjacency(const portal_trace_type &portal_trace,
             dindex mat_elem_vol1;
             // Assume the return link for now (filtering out portals that leave
             // world)
-            if (vol_index_2 != dindex_invalid) {
+            if (vol_index_2 != invalid_value) {
                 mat_elem_vol1 = dim * vol_index_1 + vol_index_2;
 
                 if (obj_hashes.find(pt_index_2) == obj_hashes.end()) {

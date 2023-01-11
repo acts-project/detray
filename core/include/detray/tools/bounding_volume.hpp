@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/intersection/intersection.hpp"
 #include "detray/masks/masks.hpp"
 
 // System include(s)
@@ -101,8 +102,9 @@ class axis_aligned_bounding_volume {
                 max_z = max_point[2] > max_z ? max_point[2] : max_z;
             }
         }
-        m_mask = mask<shape>{box_id,      min_x - env, min_y - env, min_z - env,
-                             max_x + env, max_y + env, max_z + env};
+        m_mask = mask<shape, std::size_t>{box_id,      min_x - env, min_y - env,
+                                          min_z - env, max_x + env, max_y + env,
+                                          max_z + env};
     }
 
     /// Subscript operator @returns a single box boundary.
@@ -117,7 +119,9 @@ class axis_aligned_bounding_volume {
 
     /// @returns the bounds of the box, depending on its shape
     DETRAY_HOST_DEVICE
-    constexpr auto bounds() const -> const mask<shape>& { return m_mask; }
+    constexpr auto bounds() const -> const mask<shape, std::size_t>& {
+        return m_mask;
+    }
 
     /// @returns the minimum bounds of the volume in local coordinates
     template <typename point_t>
@@ -308,7 +312,8 @@ class axis_aligned_bounding_volume {
         const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
         static_assert(std::is_same_v<shape, cuboid3D<>>,
                       "aabbs are only implemented in cuboid shape for now");
-        return m_mask.intersector()(ray, m_mask, t);
+        return m_mask.template intersector<intersection2D<bool, algebra_t>>()(
+            ray, m_mask, t);
     }
 
     /// @TODO: Overlapping aabbs
@@ -333,7 +338,7 @@ class axis_aligned_bounding_volume {
 
     private:
     /// Keeps the box boundary values and id
-    mask<shape> m_mask;
+    mask<shape, std::size_t> m_mask;
 };
 
 template <typename shape_t, typename scalar_t = scalar>

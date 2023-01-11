@@ -16,24 +16,26 @@
 #include "detray/utils/quadratic_equation.hpp"
 
 // System include(s)
-#include <cmath>
 #include <type_traits>
 
 namespace detray {
 
 /// A functor to find intersections between trajectory and concentric cylinder
 /// mask
-template <typename transform3_t>
+template <typename intersection_t>
 struct concentric_cylinder_intersector {
 
     /// linear algebra types
     /// @{
-    using scalar_type = typename transform3_t::scalar_type;
-    using point3 = typename transform3_t::point3;
-    using point2 = typename transform3_t::point2;
-    using vector3 = typename transform3_t::vector3;
+    using transform3_type = typename intersection_t::transform3_type;
+    using scalar_type = typename transform3_type::scalar_type;
+    using point3 = typename transform3_type::point3;
+    using point2 = typename transform3_type::point2;
+    using vector3 = typename transform3_type::vector3;
     /// @}
-    using ray_type = detail::ray<transform3_t>;
+
+    using intersection_type = intersection_t;
+    using ray_type = detail::ray<transform3_type>;
 
     /// Operator function to find intersections between ray and concentric
     /// cylinder mask
@@ -51,14 +53,12 @@ struct concentric_cylinder_intersector {
     template <
         typename mask_t, typename surface_t,
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
-                                        cylindrical2<transform3_t>>,
+                                        cylindrical2<transform3_type>>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline intersection2D<surface_t, transform3_t>
-    operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
-               const transform3_t & /*trf*/,
-               const scalar_type mask_tolerance = 0.f) const {
-
-        using intersection_t = intersection2D<surface_t, transform3_t>;
+    DETRAY_HOST_DEVICE inline intersection_t operator()(
+        const ray_type &ray, const surface_t &sf, const mask_t &mask,
+        const transform3_type & /*trf*/,
+        const scalar_type mask_tolerance = 0.f) const {
 
         intersection_t is;
 
@@ -104,24 +104,31 @@ struct concentric_cylinder_intersector {
                            ? 1u
                            : 0u);
             if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance) {
-                is.p3 = candidates[cindex];
-                is.path = t01[cindex];
 
-                const scalar_type phi{getter::phi(is.p3)};
-                is.p2 = point2{r * phi, is.p3[2]};
+                const point3 p3 = candidates[cindex];
+                const scalar_type phi{getter::phi(p3)};
+                is.p2 = {r * phi, p3[2]};
+
+                is.path = t01[cindex];
                 // In this case, the point has to be in cylinder3 coordinates
                 // for the r-check
                 if constexpr (mask_t::shape::check_radius) {
-                    is.status = mask.is_inside(is.p3, mask_tolerance);
+                    is.status = mask.is_inside(p3, mask_tolerance);
                 } else {
                     is.status = mask.is_inside(is.p2, mask_tolerance);
+                }
+
+                if constexpr (std::is_same_v<intersection_t,
+                                             intersection2D_point<
+                                                 surface_t, transform3_type>>) {
+                    is.p3 = p3;
                 }
 
                 // prepare some additional information in case the intersection
                 // is valid
                 if (is.status == intersection::status::e_inside) {
                     is.surface = sf;
-                    is.direction = std::signbit(is.path)
+                    is.direction = detail::signbit(is.path)
                                        ? intersection::direction::e_opposite
                                        : intersection::direction::e_along;
                     is.volume_link = mask.volume_link();
@@ -148,11 +155,11 @@ struct concentric_cylinder_intersector {
     template <
         typename mask_t, typename surface_t,
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
-                                        cylindrical2<transform3_t>>,
+                                        cylindrical2<transform3_type>>,
                          bool> = true>
     DETRAY_HOST_DEVICE inline void update(
-        const ray_type &ray, intersection2D<surface_t, transform3_t> &sfi,
-        const mask_t &mask, const transform3_t &trf,
+        const ray_type &ray, intersection_t &sfi, const mask_t &mask,
+        const transform3_type &trf,
         const scalar_type mask_tolerance = 0.f) const {
         sfi = this->operator()(ray, sfi.surface, mask, trf, mask_tolerance)[0];
     }

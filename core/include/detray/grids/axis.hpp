@@ -455,7 +455,7 @@ struct irregular {
     /** Constructor with vecmem memory resource - rvalue **/
     DETRAY_HOST irregular(vector_t<scalar> &&bins,
                           vecmem::memory_resource &resource)
-        : n_bins(bins.size() - 1u),
+        : n_bins(static_cast<dindex>(bins.size()) - 1u),
           min(bins[0]),
           max(bins[n_bins]),
           boundaries(bins, &resource) {}
@@ -463,7 +463,7 @@ struct irregular {
     /** Constructor with vecmem memory resource - lvalue **/
     DETRAY_HOST irregular(const vector_t<scalar> &bins,
                           vecmem::memory_resource &resource)
-        : n_bins(bins.size() - 1u),
+        : n_bins(static_cast<dindex>(bins.size()) - 1u),
           min(bins[0]),
           max(bins[n_bins]),
           boundaries(bins, &resource) {}

@@ -256,7 +256,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
             // The status is: exited
             ASSERT_EQ(navigation.status(), status::e_on_target);
             // Switch to next volume leads out of the detector world -> exit
-            ASSERT_EQ(navigation.volume(), dindex_invalid);
+            ASSERT_TRUE(is_invalid_value(navigation.volume()));
             // We know we went out of the detector
             ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
         } else {

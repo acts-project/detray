@@ -30,15 +30,18 @@ namespace detail {
 ///
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
-template <typename transform3_t>
-struct helix_cylinder_intersector : public cylinder_intersector<transform3_t> {
+/// @note Don't use for low p_t tracks!
+template <typename intersection_t>
+struct helix_cylinder_intersector
+    : public cylinder_intersector<intersection_t> {
 
-    using scalar_type = typename transform3_t::scalar_type;
-    using matrix_operator = typename transform3_t::matrix_actor;
-    using point2 = typename transform3_t::point2;
-    using point3 = typename transform3_t::point3;
-    using vector3 = typename transform3_t::vector3;
-    using helix_type = detail::helix<transform3_t>;
+    using transform3_type = typename intersection_t::transform3_type;
+    using scalar_type = typename transform3_type::scalar_type;
+    using matrix_operator = typename transform3_type::matrix_actor;
+    using point2 = typename transform3_type::point2;
+    using point3 = typename transform3_type::point3;
+    using vector3 = typename transform3_type::vector3;
+    using helix_type = detail::helix<transform3_type>;
 
     /// Operator function to find intersections between helix and cylinder mask
     ///
@@ -52,13 +55,11 @@ struct helix_cylinder_intersector : public cylinder_intersector<transform3_t> {
     ///
     /// @return the intersection
     template <typename mask_t, typename surface_t>
-    DETRAY_HOST_DEVICE inline std::array<
-        intersection2D<surface_t, transform3_t>, 2>
-    operator()(const helix_type &h, surface_t sf, const mask_t &mask,
-               const transform3_t &trf,
-               const scalar_type mask_tolerance = 0.f) const {
+    DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
+        const helix_type &h, const surface_t &sf, const mask_t &mask,
+        const transform3_type &trf,
+        const scalar_type mask_tolerance = 0.f) const {
 
-        using intersection_t = intersection2D<surface_t, transform3_t>;
         std::array<intersection_t, 2> ret;
 
         // Guard against inifinite loops
@@ -89,8 +90,9 @@ struct helix_cylinder_intersector : public cylinder_intersector<transform3_t> {
         std::array<scalar_type, 2> paths{default_s, default_s};
 
         // try to guess good starting path by calculating the intersection path
-        // of the helix tangential with the cylinder
-        detail::ray<transform3_t> t{h.pos(), h.time(), h_dir, h.charge()};
+        // of the helix tangential with the cylinder. This only has a chance
+        // of working for tracks with reasonably high p_T !
+        detail::ray<transform3_type> t{h.pos(), h.time(), h_dir, h.charge()};
         const auto qe = this->solve_intersection(t, mask, trf);
 
         // Note: the default path length might be smaller than either solution
@@ -107,8 +109,8 @@ struct helix_cylinder_intersector : public cylinder_intersector<transform3_t> {
 
         // Obtain both possible solutions by looping over the (different)
         // starting positions
-        unsigned int n_runs = std::abs(paths[0] - paths[1]) < tol ? 1 : 2;
-        for (unsigned int i{0}; i < n_runs; ++i) {
+        unsigned int n_runs = std::abs(paths[0] - paths[1]) < tol ? 1u : 2u;
+        for (unsigned int i = 0u; i < n_runs; ++i) {
 
             scalar_type &s = paths[i];
             intersection_t &is = ret[i];
@@ -118,7 +120,7 @@ struct helix_cylinder_intersector : public cylinder_intersector<transform3_t> {
 
             // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
             // Run the iteration on s
-            std::size_t n_tries{0};
+            std::size_t n_tries{0u};
             while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
 
                 // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
@@ -140,6 +142,7 @@ struct helix_cylinder_intersector : public cylinder_intersector<transform3_t> {
                 return ret;
             }
 
+            // Build intersection struct from helix parameters
             is.path = s;
             is.p3 = h.pos(s);
 
@@ -184,14 +187,14 @@ struct helix_cylinder_intersector : public cylinder_intersector<transform3_t> {
 }  // namespace detail
 
 /// Specialization of the @c helix_intersector for 2D cylindrical surfaces
-template <typename transform3_t, typename mask_t>
+template <typename intersection_t, typename mask_t>
 struct helix_intersector<
-    transform3_t, mask_t,
-    std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
-                                    cylindrical2<transform3_t>>,
-                     void>>
-    : public detail::helix_cylinder_intersector<transform3_t> {
-    using intersector_impl = detail::helix_cylinder_intersector<transform3_t>;
+    intersection_t, mask_t,
+    std::enable_if_t<
+        std::is_same_v<typename mask_t::measurement_frame_type,
+                       cylindrical2<typename intersection_t::transform3_type>>,
+        void>> : public detail::helix_cylinder_intersector<intersection_t> {
+    using intersector_impl = detail::helix_cylinder_intersector<intersection_t>;
 
     using scalar_type = typename intersector_impl::scalar_type;
     using matrix_operator = typename intersector_impl::matrix_operator;

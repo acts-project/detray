@@ -73,8 +73,8 @@ class cylinder2D {
         typename measurement_frame_type<algebra_t>::point2;
 
     /// Underlying surface geometry: cylindrical
-    template <typename algebra_t>
-    using intersector_type = intersector_t<algebra_t>;
+    template <typename intersection_t>
+    using intersector_type = intersector_t<intersection_t>;
 
     /// Behaviour of the two local axes (circular in r_phi, linear in z)
     template <
@@ -119,7 +119,7 @@ class cylinder2D {
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         if constexpr (kRadialCheck) {
-            return (std::abs(loc_p[0] - bounds[e_r]) <= 10.f * tol and
+            return (std::abs(loc_p[0] - bounds[e_r]) <= tol and
                     bounds[e_n_half_z] - tol <= loc_p[2] and
                     loc_p[2] <= bounds[e_p_half_z] + tol);
         } else {

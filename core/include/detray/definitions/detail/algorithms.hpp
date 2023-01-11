@@ -27,21 +27,6 @@
 
 namespace detray::detail {
 
-/// Composes a floating point value with the magnitude of @param mag and the
-/// sign of @param sgn
-template <typename scalar_t>
-DETRAY_HOST_DEVICE inline scalar_t copysign(scalar_t mag, scalar_t sgn) {
-#if defined(__CUDACC__)
-    if constexpr (std::is_same_v<scalar_t, float>) {
-        return copysignf(mag, sgn);
-    } else {
-        return copysign(mag, sgn);
-    }
-#elif !defined(__CUDACC__)
-    return std::copysign(mag, sgn);
-#endif
-}
-
 /// @brief sequential (single thread) sort function
 template <class RandomIt>
 DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last) {
@@ -54,13 +39,13 @@ DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last) {
 }
 
 /// @brief sequential sort for host/devcie (single thread) - custom comparison
-template <class RandomIt, class Compare>
+template <class RandomIt, class Predicate>
 DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last,
-                                               Compare&& comp) {
+                                               Predicate&& comp) {
 #if defined(__CUDACC__)
-    thrust::sort(thrust::seq, first, last, comp);
+    thrust::sort(thrust::seq, first, last, std::forward<Predicate>(comp));
 #elif !defined(__CUDACC__)
-    std::sort(first, last, std::forward<Compare>(comp));
+    std::sort(first, last, std::forward<Predicate>(comp));
 #endif
 }
 

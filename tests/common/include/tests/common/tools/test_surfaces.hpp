@@ -158,14 +158,14 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
                    static_cast<scalar>(iphi) * step_phi};
 
         // Populate the grids
+        dindex transform_idx{static_cast<dindex>(transforms.size()) +
+                             transform_offset};
         ec_grid_inner.populate(cylinder_point2{volume_inner_r * phi, pos_z},
-                               transforms.size() + transform_offset);
+                               transform_idx + 0u);
         ec_grid_outer.populate(cylinder_point2{volume_outer_r * phi, pos_z},
-                               transforms.size() + transform_offset);
-        ec_grid_n.populate(disc_point2{r, phi},
-                           transforms.size() + transform_offset);
-        ec_grid_p.populate(disc_point2{r, phi},
-                           transforms.size() + transform_offset);
+                               transform_idx + 0u);
+        ec_grid_n.populate(disc_point2{r, phi}, transform_idx + 0u);
+        ec_grid_p.populate(disc_point2{r, phi}, transform_idx + 0u);
 
         scalar z_addon = (iphi % 2u) ? -stagger_z : stagger_z;
         scalar cos_phi = std::cos(phi);
@@ -270,19 +270,19 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
             scalar phi{-constant<scalar>::pi +
                        static_cast<scalar>(iphi) * step_phi};
             // Populate the grids
+            dindex transform_idx{static_cast<dindex>(transforms.size()) +
+                                 transform_offset};
             barrel_grid_inner.populate(
                 cylinder_point2{volume_inner_r * phi, pos_z},
-                transforms.size() + transform_offset);
+                transform_idx + 0u);
             barrel_grid_outer.populate(
                 cylinder_point2{volume_outer_r * phi, pos_z},
-                transforms.size() + transform_offset);
+                transform_idx + 0u);
             if (iz == 0u) {
-                barrel_grid_n.populate(disc_point2{r, phi},
-                                       transforms.size() + transform_offset);
+                barrel_grid_n.populate(disc_point2{r, phi}, transform_idx + 0u);
             }
             if (iz == n_z - 1u) {
-                barrel_grid_p.populate(disc_point2{r, phi},
-                                       transforms.size() + transform_offset);
+                barrel_grid_p.populate(disc_point2{r, phi}, transform_idx + 0u);
             }
             // Finally create the transform
             scalar r_addon = (iz % 2u) ? -stagger_r : stagger_r;

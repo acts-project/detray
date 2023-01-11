@@ -51,8 +51,8 @@ TEST(ALGEBRA_PLUGIN, surface) {
 
     mask_link_t mask_id{mask_ids::e_unmasked, 0u};
     material_link_t material_id{material_ids::e_slab, 0u};
-    surface_t s(std::move(trf), mask_id, material_id, dindex_invalid, false,
-                surface_id::e_sensitive);
+    surface_t s(std::move(trf), mask_id, material_id, dindex_invalid,
+                dindex_invalid, surface_id::e_sensitive);
 }
 
 // This tests the construction of a intresection
@@ -60,26 +60,22 @@ TEST(ALGEBRA_PLUGIN, intersection) {
 
     using intersection_t = intersection2D<surface_t, transform3>;
 
-    intersection_t i0 = {
-        intersection::status::e_outside,
-        intersection::direction::e_along,
-        2.f,
-        1.f,
-        1u,
-        surface_t{},
-        point3{0.3f, 0.5f, 0.7f},
-        point2{0.2f, 0.4f},
-    };
+    intersection_t i0 = {surface_t{},
+                         point2{0.2f, 0.4f},
+                         2.f,
+                         1.f,
+                         1u,
+                         intersection::status::e_outside,
+                         intersection::direction::e_along};
 
     intersection_t i1 = {
-        intersection::status::e_inside,
-        intersection::direction::e_opposite,
+        surface_t{},
+        point2{0.2f, 0.4f},
         1.7f,
         -1.f,
         0u,
-        surface_t{},
-        point3{0.2f, 0.3f, 0.f},
-        point2{0.2f, 0.4f},
+        intersection::status::e_inside,
+        intersection::direction::e_opposite,
     };
 
     intersection_t invalid;
@@ -90,5 +86,5 @@ TEST(ALGEBRA_PLUGIN, intersection) {
 
     ASSERT_NEAR(intersections[0].path, 1.7f, tol);
     ASSERT_NEAR(intersections[1].path, 2.f, tol);
-    ASSERT_TRUE(std::isinf(intersections[2].path));
+    ASSERT_TRUE(is_invalid_value(intersections[2].path));
 }

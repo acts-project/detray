@@ -36,10 +36,13 @@ struct particle_gun {
     ///         intersections of the surfaces that were encountered.
     template <typename detector_t, typename trajectory_t>
     DETRAY_HOST_DEVICE inline static auto shoot_particle(
-        const detector_t &detector, const trajectory_t &traj) {
+        const detector_t &detector, const trajectory_t &traj,
+        typename detector_t::scalar_type mask_tolerance =
+            1.f * unit<typename detector_t::scalar_type>::um) {
 
-        using intersection_t = intersection2D<typename detector_t::surface_type,
-                                              typename detector_t::transform3>;
+        using intersection_t =
+            intersection2D_point<typename detector_t::surface_type,
+                                 typename detector_t::transform3>;
 
         std::vector<std::pair<dindex, intersection_t>> intersection_record;
 
@@ -62,12 +65,12 @@ struct particle_gun {
                 // Retrieve candidate(s) from the surface
                 mask_store.template visit<intersection_kernel_t>(
                     sf.mask(), intersections, traj, sf, tf_store,
-                    1.f * unit<typename detector_t::scalar_type>::um);
+                    mask_tolerance);
                 // Candidate is invalid if it lies in the opposite direction
                 for (auto &sfi : intersections) {
                     if (sfi.direction == intersection::direction::e_along) {
-                        // Volume the candidate belongs to
                         sfi.surface = sf;
+                        // Volume the candidate belongs to
                         intersection_record.emplace_back(volume.index(), sfi);
                     }
                 }

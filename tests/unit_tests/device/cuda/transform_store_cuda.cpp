@@ -63,7 +63,7 @@ TEST(transform_store_cuda, transform_store) {
     ASSERT_EQ(static_store.size(ctx0), 5u);
 
     // Compare the transform operation results
-    std::size_t n_transforms = static_store.size(ctx0);
+    dindex n_transforms = static_store.size(ctx0);
 
     // Fill input vector
     vecmem::vector<point3> input(&mng_mr);

@@ -39,8 +39,8 @@ TEST(grids_cuda, grid2_replace_populator) {
                           test::point3<detray::scalar>{0.f, 0.f, 0.f});
 
     // pre-check
-    for (std::size_t i_x = 0u; i_x < xaxis.bins(); i_x++) {
-        for (std::size_t i_y = 0u; i_y < yaxis.bins(); i_y++) {
+    for (unsigned int i_x = 0u; i_x < xaxis.bins(); i_x++) {
+        for (unsigned int i_y = 0u; i_y < yaxis.bins(); i_y++) {
 
             const auto& data = g2.bin(i_x, i_y);
 
@@ -55,8 +55,8 @@ TEST(grids_cuda, grid2_replace_populator) {
     grid_replace_test(g2_data);
 
     // post-check
-    for (std::size_t i_x = 0u; i_x < xaxis.bins(); i_x++) {
-        for (std::size_t i_y = 0u; i_y < yaxis.bins(); i_y++) {
+    for (unsigned int i_x = 0u; i_x < xaxis.bins(); i_x++) {
+        for (unsigned int i_y = 0u; i_y < yaxis.bins(); i_y++) {
             auto bin_id = static_cast<detray::scalar>(i_x + i_y * xaxis.bins());
             const auto& data = g2.bin(i_x, i_y);
 
@@ -85,8 +85,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
                              test::point3<detray::scalar>{0.f, 0.f, 0.f});
 
     // pre-check
-    for (std::size_t i_x = 0u; i_x < caxis.bins(); i_x++) {
-        for (std::size_t i_y = 0u; i_y < iaxis.bins(); i_y++) {
+    for (unsigned int i_x = 0u; i_x < caxis.bins(); i_x++) {
+        for (unsigned int i_y = 0u; i_y < iaxis.bins(); i_y++) {
 
             const auto& data = g2.bin(i_x, i_y);
 
@@ -101,8 +101,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     grid_replace_ci_test(g2_data);
 
     // post-check
-    for (std::size_t i_x = 0u; i_x < caxis.bins(); i_x++) {
-        for (std::size_t i_y = 0u; i_y < iaxis.bins(); i_y++) {
+    for (unsigned int i_x = 0u; i_x < caxis.bins(); i_x++) {
+        for (unsigned int i_y = 0u; i_y < iaxis.bins(); i_y++) {
             auto y_interval = iaxis.boundaries[i_y + 1] - iaxis.boundaries[i_y];
             auto bin_id = static_cast<detray::scalar>(i_x + i_y * caxis.bins());
 
@@ -130,8 +130,8 @@ TEST(grids_cuda, grid2_complete_populator) {
                            test::point3<detray::scalar>{0.f, 0.f, 0.f});
 
     // pre-check
-    for (std::size_t i_x = 0u; i_x < xaxis.bins(); i_x++) {
-        for (std::size_t i_y = 0u; i_y < yaxis.bins(); i_y++) {
+    for (unsigned int i_x = 0u; i_x < xaxis.bins(); i_x++) {
+        for (unsigned int i_y = 0u; i_y < yaxis.bins(); i_y++) {
 
             const auto& data = g2.bin(i_x, i_y);
 
@@ -153,12 +153,12 @@ TEST(grids_cuda, grid2_complete_populator) {
         (yaxis.max - yaxis.min) / static_cast<detray::scalar>(yaxis.n_bins);
 
     // post-check
-    for (std::size_t i_y = 0u; i_y < yaxis.bins(); i_y++) {
-        for (std::size_t i_x = 0u; i_x < xaxis.bins(); i_x++) {
+    for (unsigned int i_y = 0u; i_y < yaxis.bins(); i_y++) {
+        for (unsigned int i_x = 0u; i_x < xaxis.bins(); i_x++) {
 
             const auto& data = g2.bin(i_x, i_y);
 
-            for (std::size_t i_p = 0u; i_p < data.size(); i_p++) {
+            for (unsigned int i_p = 0u; i_p < data.size(); i_p++) {
                 auto& pt = data[i_p];
 
                 auto bin_id = i_x + i_y * xaxis.bins();
@@ -191,10 +191,10 @@ TEST(grids_cuda, grid2_attach_populator) {
     host_grid2_attach g2(xaxis, yaxis, mng_mr,
                          test::point3<detray::scalar>{0.f, 0.f, 0.f});
 
-    for (std::size_t i_y = 0u; i_y < yaxis.bins(); i_y++) {
-        for (std::size_t i_x = 0u; i_x < xaxis.bins(); i_x++) {
+    for (unsigned int i_y = 0u; i_y < yaxis.bins(); i_y++) {
+        for (unsigned int i_x = 0u; i_x < xaxis.bins(); i_x++) {
 
-            for (std::size_t i_p = 0; i_p < 100; i_p++) {
+            for (unsigned int i_p = 0u; i_p < 100u; i_p++) {
 
                 auto bin_id = i_x + i_y * xaxis.bins();
                 auto gid = static_cast<detray::scalar>(i_p + bin_id * 100u);

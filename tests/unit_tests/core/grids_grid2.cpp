@@ -57,7 +57,7 @@ TEST(grids, grid2_replace_populator) {
             for (unsigned int ib1 = 0; ib1 < 10u; ++ib1) {
                 p = {-4.5f + static_cast<scalar>(ib0),
                      -4.5f + static_cast<scalar>(ib1)};
-                g2.populate(p, counter);
+                g2.populate(p, counter + 0u);
                 EXPECT_EQ(g2.bin(p), counter++);
             }
         }

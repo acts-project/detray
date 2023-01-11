@@ -66,9 +66,9 @@ class surface_factory final
     /// @returns the current number of surfaces that will be built by this
     /// factory
     DETRAY_HOST
-    auto size() const -> std::size_t {
+    auto size() const -> dindex {
         check();
-        return m_components.size();
+        return static_cast<dindex>(m_components.size());
     }
 
     /// @returns the mask boundaries currently held by the factory
@@ -97,7 +97,7 @@ class surface_factory final
         assert(bounds.size() == mask_shape_t::boundaries::e_size);
 
         if constexpr (sf_id != surface_id::e_portal) {
-            if (size() == 0) {
+            if (size() == 0u) {
                 *m_volume_link = vlink;
             } else {
                 assert(*m_volume_link == vlink);
@@ -116,7 +116,8 @@ class surface_factory final
     auto add_components(sf_data_collection &&surface_data)
         -> std::shared_ptr<surface_factory<detector_t, mask_shape_t, mask_id,
                                            sf_id, volume_link_t>> {
-        const std::size_t n_surfaces{size() + surface_data.size()};
+        const auto n_surfaces{
+            static_cast<dindex>(size() + surface_data.size())};
 
         m_transforms.reserve(n_surfaces);
         m_components.reserve(n_surfaces);
@@ -167,10 +168,10 @@ class surface_factory final
         // The material will be added in a later step
         constexpr auto no_material = surface_t::material_id::e_none;
         // In case the surfaces container is prefilled with other surfaces
-        std::size_t surfaces_offset = surfaces.size();
+        dindex surfaces_offset = static_cast<dindex>(surfaces.size());
 
         // Nothing to construct
-        if (size() == 0UL) {
+        if (size() == 0u) {
             return {surfaces_offset, surfaces_offset};
         }
 
@@ -189,14 +190,14 @@ class surface_factory final
             }
 
             // Add surface with all links set (relative to the given containers)
-            mask_link_t mask_link{mask_id, masks.template size<mask_id>() - 1};
+            mask_link_t mask_link{mask_id, masks.template size<mask_id>() - 1u};
             material_link_t material_link{no_material, dindex_invalid};
-            surfaces.emplace_back(transforms.size(ctx) - 1, mask_link,
+            surfaces.emplace_back(transforms.size(ctx) - 1u, mask_link,
                                   material_link, volume.index(), dindex_invalid,
                                   sf_id);
         }
 
-        return {surfaces_offset, surfaces.size()};
+        return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }
 
     private:

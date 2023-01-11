@@ -91,6 +91,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     using detector_t = decltype(toy_det);
     using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_t = typename detector_t::volume_type;
+    using nav_link_t = typename detector_t::surface_type::navigation_link;
     using geo_context_t = typename detector_t::geometry_context;
     using mask_ids = typename detector_t::masks::id;
     using mask_link_t = typename detector_t::surface_type::mask_link;
@@ -116,7 +117,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
         material_slab<scalar>(silicon_tml<scalar>(), 0.15f * unit<scalar>::mm);
 
     // Link to outer world (leaving detector)
-    const dindex leaving_world = dindex_invalid;
+    constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 20u);
