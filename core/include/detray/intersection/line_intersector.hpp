@@ -70,7 +70,7 @@ struct line_intersector {
         // Projection of line to track direction
         const scalar_type zd{vector::dot(_z, _d)};
 
-        const scalar_type denom{scalar_type{1.} - (zd * zd)};
+        const scalar_type denom{1.f - (zd * zd)};
 
         // Case for wire is parallel to track
         if (denom < scalar_type{1e-5}) {
@@ -78,7 +78,7 @@ struct line_intersector {
         }
 
         // vector from track position to line center
-        const vector3 t2l = _t - _p;
+        const auto t2l = _t - _p;
 
         // t2l projection on line direction
         const scalar_type t2l_on_line{vector::dot(t2l, _z)};
@@ -87,8 +87,7 @@ struct line_intersector {
         const scalar_type t2l_on_track{vector::dot(t2l, _d)};
 
         // path length to the point of closest approach on the track
-        const scalar_type A{scalar_type{1.} / denom *
-                            (t2l_on_track - t2l_on_line * zd)};
+        const scalar_type A{1.f / denom * (t2l_on_track - t2l_on_line * zd)};
 
         // distance to the point of closest approarch on the
         // line from line center
@@ -114,24 +113,24 @@ struct line_intersector {
             // Right: -1
             // Left: 1
             const auto r = vector::cross(_z, _d);
-            const scalar_type sign{vector::dot(r, t2l) > scalar_type{0.}
-                                       ? scalar_type{-1.}
-                                       : scalar_type{1.}};
-
-            is.p2[0] = sign * getter::perp(loc3D);
+            is.p2[0] = -std::copysign(getter::perp(loc3D), vector::dot(r, t2l));
         } else {
             is.p2 = mask.to_local_frame(trf, is.p3, _d);
             is.status = mask.is_inside(is.p2, mask_tolerance);
         }
-        is.p2[1] = B;
+        // prepare some additional information in case the intersection
+        // is valid
+        if (is.status == intersection::status::e_inside) {
+            is.p2[1] = B;
 
-        is.direction = is.path > overstep_tolerance
-                           ? intersection::direction::e_along
-                           : intersection::direction::e_opposite;
-        is.volume_link = mask.volume_link();
+            is.direction = is.path > overstep_tolerance
+                               ? intersection::direction::e_along
+                               : intersection::direction::e_opposite;
+            is.volume_link = mask.volume_link();
 
-        // Get incidence angle
-        is.cos_incidence_angle = std::abs(zd);
+            // Get incidence angle
+            is.cos_incidence_angle = std::abs(zd);
+        }
 
         return ret;
     }
