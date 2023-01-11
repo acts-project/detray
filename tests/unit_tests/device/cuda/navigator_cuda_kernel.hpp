@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -29,13 +29,16 @@
 using namespace detray;
 
 using transform3 = __plugin::transform3<scalar>;
-using intersection_t = line_plane_intersection;
 
 // some useful type declarations
 using detector_host_t = detector<detector_registry::toy_detector, covfie::field,
                                  host_container_types>;
 using detector_device_t = detector<detector_registry::toy_detector,
                                    covfie::field_view, device_container_types>;
+
+using intersection_t =
+    intersection2D<typename detector_device_t::surface_type, transform3>;
+
 using navigator_host_t = navigator<detector_host_t>;
 using navigator_device_t = navigator<detector_device_t>;
 using stepper_t = line_stepper<transform3>;

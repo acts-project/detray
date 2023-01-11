@@ -9,15 +9,13 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/geometry/barcode.hpp"
 
 // System include(s)
 #include <cmath>
 #include <limits>
-#include <sstream>
+#include <ostream>
 
 namespace detray {
 
@@ -32,10 +30,10 @@ enum class direction {
 
 /// Intersection status: outside, missed, inside, hit ( w/o maks status)
 enum class status {
-    e_outside = -1,  //!< surface hit but outside
-    e_missed = 0,    //!< surface missed
-    e_hit = 1,       //!< surface hit but status not checked
-    e_inside = 2     //!< surface hit and inside confirmed
+    e_outside = -1,   //!< surface hit but outside
+    e_missed = 0,     //!< surface missed
+    e_undefined = 1,  //!< surface hit but status not checked
+    e_inside = 2      //!< surface hit and inside confirmed
 };
 
 }  // namespace intersection
@@ -44,82 +42,84 @@ enum class status {
 ///
 /// @tparam point3 is the type of global intsersection vector
 /// @tparam point2 is the type of the local intersection vector
-struct line_plane_intersection {
+template <typename surface_handle_t,
+          typename algebra_t = __plugin::transform3<detray::scalar>>
+struct intersection2D {
 
-    using point3 = __plugin::point3<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
-    using point2 = __plugin::point2<scalar>;
-
-    /// Distance between track and candidate
-    scalar path{std::numeric_limits<scalar>::infinity()};
-    point3 p3{std::numeric_limits<scalar>::infinity(),
-              std::numeric_limits<scalar>::infinity(),
-              std::numeric_limits<scalar>::infinity()};
-
-    /// Local position of the intersection on the surface
-    point2 p2{std::numeric_limits<scalar>::infinity(),
-              std::numeric_limits<scalar>::infinity()};
+    using scalar_t = typename algebra_t::scalar_type;
+    using point3 = typename algebra_t::point3;
+    using point2 = typename algebra_t::point2;
 
     /// Result of the intersection
-    intersection::status status{intersection::status::e_missed};
+    intersection::status status{intersection::status::e_undefined};
 
     /// Direction of the intersection with respect to the track
     intersection::direction direction{intersection::direction::e_undefined};
 
-    /// Mask index
-    dindex mask_index{dindex_invalid};
+    /// Distance between track and candidate
+    scalar_t path{std::numeric_limits<scalar_t>::infinity()};
 
-    /// Primitive this intersection belongs to
-    geometry::barcode barcode{};
+    /// cosine of incidence angle
+    scalar_t cos_incidence_angle{std::numeric_limits<scalar_t>::infinity()};
 
-    /// Navigation information
+    /// Navigation information (next volume to go to)
     dindex volume_link{dindex_invalid};
 
-    // cosine of incidence angle
-    scalar cos_incidence_angle{1.f};
+    /// Handle of the surface this intersection belongs to
+    surface_handle_t surface{};
+
+    /// Intersection point in global 3D cartesian coordinate frame
+    point3 p3{std::numeric_limits<scalar_t>::infinity(),
+              std::numeric_limits<scalar_t>::infinity(),
+              std::numeric_limits<scalar_t>::infinity()};
+
+    /// Local position of the intersection on the surface
+    point2 p2{std::numeric_limits<scalar_t>::infinity(),
+              std::numeric_limits<scalar_t>::infinity()};
 
     /// @param rhs is the right hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator<(const line_plane_intersection &rhs) const {
+    bool operator<(const intersection2D &rhs) const {
         return (std::abs(path) < std::abs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator>(const line_plane_intersection &rhs) const {
+    bool operator>(const intersection2D &rhs) const {
         return (std::abs(path) > std::abs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator==(const line_plane_intersection &rhs) const {
+    bool operator==(const intersection2D &rhs) const {
         return std::abs(path - rhs.path) <
-               std::numeric_limits<scalar>::epsilon();
+               std::numeric_limits<scalar_t>::epsilon();
     }
 
     /// Transform to a string for output debugging
     DETRAY_HOST
-    std::string to_string() const {
-        std::stringstream out_stream;
-        scalar r{getter::perp(p3)};
-        out_stream << "dist:" << path << " [r:" << r << ", z:" << p3[2]
-                   << "], (suface: " << barcode << ", links: vol "
-                   << volume_link << ")";
-        switch (status) {
+    friend std::ostream &operator<<(std::ostream &out_stream,
+                                    const intersection2D &is) {
+        scalar_t r{getter::perp(is.p3)};
+        out_stream << "dist:" << is.path << " [glob: r:" << r
+                   << ", z:" << is.p3[2] << " | loc: " << is.p2[0] << ", "
+                   << is.p2[1] << "], (sf index:" << is.surface.barcode()
+                   << ", links to vol:" << is.volume_link << ")";
+        switch (is.status) {
             case intersection::status::e_outside:
                 out_stream << ", status: outside";
                 break;
             case intersection::status::e_missed:
                 out_stream << ", status: missed";
                 break;
-            case intersection::status::e_hit:
-                out_stream << ", status: hit";
+            case intersection::status::e_undefined:
+                out_stream << ", status: undefined";
                 break;
             case intersection::status::e_inside:
                 out_stream << ", status: inside";
                 break;
         };
-        switch (direction) {
+        switch (is.direction) {
             case intersection::direction::e_undefined:
                 out_stream << ", direction: undefined";
                 break;
@@ -131,7 +131,7 @@ struct line_plane_intersection {
                 break;
         };
         out_stream << std::endl;
-        return out_stream.str();
+        return out_stream;
     }
 };
 

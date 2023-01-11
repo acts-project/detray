@@ -13,6 +13,7 @@
 #include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
@@ -98,12 +99,15 @@ template <typename detector_t,
 class navigator {
 
     public:
-    using intersection_type = line_plane_intersection;
     using inspector_type = inspector_t;
     using detector_type = detector_t;
+    using scalar_type = typename detector_t::scalar_type;
     using volume_type = typename detector_t::volume_type;
     template <typename T>
     using vector_type = typename detector_t::template vector_type<T>;
+    using intersection_type =
+        intersection2D<typename detector_type::surface_type,
+                       typename detector_type::transform3>;
 
     /// A navigation state object used to cache the information of the
     /// current navigation stream.
@@ -115,6 +119,9 @@ class navigator {
     /// 'full trust' again.
     class state : public detray::ranges::view_interface<state> {
         friend class navigator;
+        // Allow the filling/updateing of candidates
+        friend struct intersection_initialize;
+        friend struct intersection_update;
 
         using candidate_itr_t =
             typename vector_type<intersection_type>::iterator;
@@ -163,7 +170,7 @@ class navigator {
         /// Scalar representation of the navigation state,
         /// @returns distance to next
         DETRAY_HOST_DEVICE
-        scalar operator()() const { return _next->path; }
+        scalar_type operator()() const { return _next->path; }
 
         /// @returns currently cached candidates - const
         DETRAY_HOST_DEVICE
@@ -219,7 +226,7 @@ class navigator {
         /// @returns the next object the navigator indends to reach
         DETRAY_HOST_DEVICE
         inline auto next_object() const -> geometry::barcode {
-            return _next->barcode;
+            return _next->surface.barcode();
         }
 
         /// @returns current navigation status - const
@@ -240,11 +247,15 @@ class navigator {
 
         /// @returns tolerance to determine if we are on object - const
         DETRAY_HOST_DEVICE
-        inline auto tolerance() const -> scalar { return _on_object_tolerance; }
+        inline auto tolerance() const -> scalar_type {
+            return _on_object_tolerance;
+        }
 
         /// Adjust the on-object tolerance
         DETRAY_HOST_DEVICE
-        inline void set_tolerance(scalar tol) { _on_object_tolerance = tol; }
+        inline void set_tolerance(scalar_type tol) {
+            _on_object_tolerance = tol;
+        }
 
         /// @returns navigation trust level - const
         DETRAY_HOST_DEVICE
@@ -363,7 +374,7 @@ class navigator {
         DETRAY_HOST_DEVICE inline auto is_reachable(
             const intersection_type &candidate, track_t &track) const -> bool {
             return candidate.status == intersection::status::e_inside and
-                   candidate.path < std::numeric_limits<scalar>::max() and
+                   candidate.path < std::numeric_limits<scalar_type>::max() and
                    candidate.path >= track.overstep_tolerance();
         }
 
@@ -444,7 +455,7 @@ class navigator {
         navigation::direction _direction = navigation::direction::e_forward;
 
         /// The on object tolerance - permille
-        scalar _on_object_tolerance{1e-3f};
+        scalar_type _on_object_tolerance{1e-3f};
 
         /// The navigation trust level determines how this states cache is to
         /// be updated in the current navigation call
@@ -633,7 +644,7 @@ class navigator {
                 // Disregard this candidate if it is not reachable
                 if (not update_candidate(candidate, track, det)) {
                     // Forcefully set dist to numeric max for sorting
-                    candidate.path = std::numeric_limits<scalar>::max();
+                    candidate.path = std::numeric_limits<scalar_type>::max();
                 }
             }
             // Sort again
@@ -693,7 +704,8 @@ class navigator {
                 navigation.volume() != navigation.current()->volume_link
                     ? navigation::status::e_on_portal
                     : navigation::status::e_on_module,
-                navigation.current()->barcode, navigation::trust_level::e_full);
+                navigation.current()->surface.barcode(),
+                navigation::trust_level::e_full);
         } else {
             // Otherwise the track is moving towards a surface
             navigation.set_state(navigation::status::e_towards_object,
@@ -721,17 +733,15 @@ class navigator {
         intersection_type &candidate, const track_t &track,
         const detector_type *det) const {
 
-        if (candidate.barcode.is_invalid()) {
+        if (candidate.surface.barcode().is_invalid()) {
             return false;
         }
         const auto &mask_store = det->mask_store();
-        const auto &sf = det->surfaces(candidate.barcode);
-        candidate = mask_store.template visit<intersection_update>(
-            sf.mask(), detail::ray(track), sf, det->transform_store());
 
         // Check whether this candidate is reachable by the track
-        return candidate.status == intersection::status::e_inside and
-               candidate.path >= track.overstep_tolerance();
+        return mask_store.template visit<intersection_update>(
+            candidate.surface.mask(), detail::ray(track), candidate,
+            det->transform_store(), 1.f * unit<scalar_type>::um);
     }
 
     /// @brief Fill the candidates cache from scratch.
@@ -765,7 +775,7 @@ class navigator {
 
                 det->mask_store().template visit<intersection_initialize>(
                     sf.mask(), candidates, detail::ray(track), sf,
-                    det->transform_store());
+                    det->transform_store(), 1.f * unit<scalar_type>::um);
             }
         }
         // Check the next surface type
@@ -783,7 +793,7 @@ class navigator {
         vector_type<intersection_type> &candidates) const {
         // Depends on previous invalidation of unreachable candidates!
         auto not_reachable = [](intersection_type &candidate) {
-            return candidate.path == std::numeric_limits<scalar>::max();
+            return candidate.path == std::numeric_limits<scalar_type>::max();
         };
 
         return detail::find_if(candidates.begin(), candidates.end(),
@@ -796,13 +806,15 @@ class navigator {
 // candidates size allocation. With the local navigation, the size can be
 // restricted to much smaller value
 template <typename detector_t>
-DETRAY_HOST vecmem::data::jagged_vector_buffer<line_plane_intersection>
+DETRAY_HOST vecmem::data::jagged_vector_buffer<intersection2D<
+    typename detector_t::surface_type, typename detector_t::transform3>>
 create_candidates_buffer(
     const detector_t &det, const std::size_t n_tracks,
     vecmem::memory_resource &device_resource,
     vecmem::memory_resource *host_access_resource = nullptr) {
     // Build the buffer from capacities, device and host accessible resources
-    return vecmem::data::jagged_vector_buffer<line_plane_intersection>(
+    return vecmem::data::jagged_vector_buffer<intersection2D<
+        typename detector_t::surface_type, typename detector_t::transform3>>(
         std::vector<std::size_t>(n_tracks, det.n_max_candidates()),
         device_resource, host_access_resource,
         vecmem::data::buffer_type::resizable);

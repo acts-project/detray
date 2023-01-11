@@ -43,12 +43,14 @@ namespace detray {
 
 // Type declarations
 using transform3 = __plugin::transform3<scalar>;
-using intersection_t = line_plane_intersection;
 using detector_host_type = detector<detector_registry::toy_detector,
                                     covfie::field, host_container_types>;
 using detector_device_type =
     detector<detector_registry::toy_detector, covfie::field_view,
              device_container_types>;
+
+using intersection_t =
+    intersection2D<typename detector_device_type::surface_type, transform3>;
 
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;

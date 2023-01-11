@@ -29,8 +29,10 @@ using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 using point2 = __plugin::point2<scalar>;
 using line_intersector_type = line_intersector<transform3>;
+using intersection_t = intersection2D<dindex, transform3>;
 
 constexpr scalar tol{1e-5f};
+constexpr dindex sf_handle = std::numeric_limits<dindex>::max();
 
 // Test simplest case
 TEST(tools, line_intersector_case1) {
@@ -51,10 +53,10 @@ TEST(tools, line_intersector_case1) {
     const mask<line<>> ln{0u, 10.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
-    std::vector<line_intersector_type::intersection_type> is(3u);
-    is[0] = line_intersector_type()(detail::ray(trks[0]), ln, tf)[0];
-    is[1] = line_intersector_type()(detail::ray(trks[1]), ln, tf)[0];
-    is[2] = line_intersector_type()(detail::ray(trks[2]), ln, tf)[0];
+    std::vector<intersection_t> is(3u);
+    is[0] = line_intersector_type()(detail::ray(trks[0]), sf_handle, ln, tf);
+    is[1] = line_intersector_type()(detail::ray(trks[1]), sf_handle, ln, tf);
+    is[2] = line_intersector_type()(detail::ray(trks[2]), sf_handle, ln, tf);
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
     EXPECT_EQ(is[0].path, 1.f);
@@ -96,8 +98,8 @@ TEST(tools, line_intersector_case2) {
     const mask<line<>> ln{0u, 10.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
-    const line_intersector_type::intersection_type is =
-        line_intersector_type()(detail::ray<transform3>(trk), ln, tf)[0];
+    const intersection_t is = line_intersector_type()(
+        detail::ray<transform3>(trk), sf_handle, ln, tf);
 
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_NEAR(is.path, 2.f, tol);
@@ -148,10 +150,10 @@ TEST(tools, line_intersector_square_scope) {
         0u, 1.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
-    std::vector<line_plane_intersection> is;
+    std::vector<intersection_t> is;
     for (const auto& trk : trks) {
-        is.push_back(line_intersector_type()(detail::ray<transform3>(trk), ln,
-                                             tf, 1e-5f)[0]);
+        is.push_back(line_intersector_type()(detail::ray<transform3>(trk),
+                                             sf_handle, ln, tf, 1e-5f));
     }
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);

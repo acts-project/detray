@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -14,6 +14,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
+#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unmasked.hpp"
@@ -39,7 +40,9 @@ using volume_link_type = dindex;
 using rectangle = mask<rectangle2D<>, volume_link_type>;
 using trapezoid = mask<trapezoid2D<>, volume_link_type>;
 using annulus = mask<annulus2D<>, volume_link_type>;
-using cylinder = mask<cylinder2D<>, volume_link_type>;
+using cylinder = mask<cylinder2D<true>, volume_link_type>;
+using cylinder_portal =
+    mask<cylinder2D<false, cylinder_portal_intersector>, volume_link_type>;
 using disc = mask<ring2D<>, volume_link_type>;
 using unbounded_plane = mask<unmasked, volume_link_type>;
 using lines = mask<line<>, volume_link_type>;
@@ -104,9 +107,9 @@ struct full_metadata {
         e_trapezoid2 = 1,
         e_annulus2 = 2,
         e_cylinder2 = 3,
-        e_portal_cylinder2 = 3,  // no distinction from surface cylinder
-        e_ring2 = 4,
-        e_portal_ring2 = 4,
+        e_portal_cylinder2 = 4,
+        e_ring2 = 5,
+        e_portal_ring2 = 5,
     };
 
     /// How to store and link masks
@@ -114,7 +117,8 @@ struct full_metadata {
               template <typename...> class vector_t = dvector>
     using mask_store =
         regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
-                            rectangle, trapezoid, annulus, cylinder, disc>;
+                            rectangle, trapezoid, annulus, cylinder,
+                            cylinder_portal, disc>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
@@ -210,7 +214,7 @@ struct toy_metadata {
               template <typename...> class vector_t = dvector>
     using mask_store =
         regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
-                            rectangle, trapezoid, cylinder, disc>;
+                            rectangle, trapezoid, cylinder_portal, disc>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)

@@ -24,19 +24,15 @@
 #include "tests/common/tools/particle_gun.hpp"
 
 using namespace detray;
-
-namespace {
 using namespace navigation;
 
-using object_tracer_t =
-    object_tracer<dvector, status::e_on_module, status::e_on_portal>;
-using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
+namespace {
+
+using transform3_t = __plugin::transform3<scalar>;
+using ray_type = detail::ray<transform3_t>;
+using free_track_parameters_type = free_track_parameters<transform3_t>;
 
 }  // anonymous namespace
-
-using transform3_type = __plugin::transform3<scalar>;
-using ray_type = detail::ray<transform3_type>;
-using free_track_parameters_type = free_track_parameters<transform3_type>;
 
 /// This test runs intersection with all portals of the toy detector with a ray
 /// and then compares the intersection trace with a straight line navigation.
@@ -49,9 +45,16 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Straight line navigation
-    using navigator_t = navigator<decltype(det), inspector_t>;
+    using detector_t = decltype(det);
+    using intersection_t =
+        intersection2D<typename detector_t::surface_type, transform3_t>;
+    using object_tracer_t =
+        object_tracer<intersection_t, dvector, status::e_on_module,
+                      status::e_on_portal>;
+    using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
+    using navigator_t = navigator<detector_t, inspector_t>;
     using stepper_t =
-        line_stepper<transform3_type, unconstrained_step, always_init>;
+        line_stepper<transform3_t, unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
@@ -92,28 +95,27 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
             debug_stream << "-------Intersection trace\n"
                          << "ray gun: "
                          << "\tvol id: " << intersection_trace[intr_idx].first
-                         << ", "
-                         << intersection_trace[intr_idx].second.to_string();
-            debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
+                         << ", " << intersection_trace[intr_idx].second;
+            debug_stream << "navig.: " << obj_tracer[intr_idx];
         }
 
         // Check every single recorded intersection
         for (std::size_t i = 0u; i < obj_tracer.object_trace.size(); ++i) {
-            if (obj_tracer[i].barcode.index() !=
-                intersection_trace[i].second.barcode.index()) {
+            if (obj_tracer[i].surface.barcode() !=
+                intersection_trace[i].second.surface.barcode()) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
-                if (obj_tracer[i].barcode.index() ==
-                        intersection_trace[i + 1u].second.barcode.index() and
-                    obj_tracer[i + 1u].barcode.index() ==
-                        intersection_trace[i].second.barcode.index()) {
+                if (obj_tracer[i].surface.barcode() ==
+                        intersection_trace[i + 1u].second.surface.barcode() and
+                    obj_tracer[i + 1u].surface.barcode() ==
+                        intersection_trace[i].second.surface.barcode()) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].barcode.index(),
-                      intersection_trace[i].second.barcode.index())
+            EXPECT_EQ(obj_tracer[i].surface.barcode(),
+                      intersection_trace[i].second.surface.barcode())
                 << debug_printer.to_string() << debug_stream.str();
         }
     }
@@ -142,9 +144,17 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
         n_brl_layers, n_edc_layers);
 
     // Runge-Kutta based navigation
-    using navigator_t = navigator<decltype(det), inspector_t>;
-    using stepper_t = rk_stepper<b_field_t::view_t, transform3_type,
-                                 unconstrained_step, always_init>;
+    using detector_t = decltype(det);
+    using intersection_t =
+        intersection2D<typename detector_t::surface_type, transform3_t>;
+    using object_tracer_t =
+        object_tracer<intersection_t, dvector, status::e_on_module,
+                      status::e_on_portal>;
+    using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
+    using navigator_t = navigator<detector_t, inspector_t>;
+    using constraints_t = unconstrained_step;
+    using stepper_t =
+        rk_stepper<b_field_t::view_t, transform3_t, constraints_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
@@ -158,11 +168,14 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Overstepping
-    constexpr scalar overstep_tol{-7.f * unit<scalar>::um};
+    constexpr scalar overstep_tol{-100.f * unit<scalar>::um};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : uniform_track_generator<free_track_parameters_type>(
-             theta_steps, phi_steps, ori, p_mag)) {
+    std::size_t n_tracks{0u};
+    auto trk_state_generator =
+        uniform_track_generator<free_track_parameters_type>(
+            theta_steps, phi_steps, ori, p_mag);
+    for (auto track : trk_state_generator) {
         // Prepare for overstepping in the presence of b fields
         track.set_overstep_tolerance(overstep_tol);
 
@@ -190,33 +203,37 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
             debug_stream << "-------Intersection trace\n"
                          << "helix gun: "
                          << "\tvol id: " << intersection_trace[intr_idx].first
-                         << ", "
-                         << intersection_trace[intr_idx].second.to_string();
-            debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
+                         << ", " << intersection_trace[intr_idx].second
+                         << std::endl;
+            debug_stream << "navig.: " << obj_tracer[intr_idx] << std::endl;
         }
 
         // Compare intersection records
-        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size())
+        std::size_t n_inters_nav{obj_tracer.object_trace.size()};
+        EXPECT_EQ(n_inters_nav, intersection_trace.size())
             << debug_printer.to_string() << debug_stream.str();
 
         // Check every single recorded intersection
-        for (std::size_t i = 0u; i < obj_tracer.object_trace.size(); ++i) {
-            if (obj_tracer[i].barcode.index() !=
-                intersection_trace[i].second.barcode.index()) {
-                // Intersection record at portal bound might be flipped during
-                // sorting (the portals overlap completely)
-                if (obj_tracer[i].barcode.index() ==
-                        intersection_trace[i + 1u].second.barcode.index() and
-                    obj_tracer[i + 1u].barcode.index() ==
-                        intersection_trace[i].second.barcode.index()) {
+        for (std::size_t i = 0u; i < n_inters_nav; ++i) {
+            if (obj_tracer[i].surface.barcode() !=
+                intersection_trace[i].second.surface.barcode()) {
+                // Intersection record at portal bound might be flipped
+                // (the portals overlap completely)
+                if (obj_tracer[i].surface.barcode() ==
+                        intersection_trace[i + 1u].second.surface.barcode() and
+                    obj_tracer[i + 1u].surface.barcode() ==
+                        intersection_trace[i].second.surface.barcode()) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].barcode.index(),
-                      intersection_trace[i].second.barcode.index())
-                << "error at surface: " << obj_tracer[i].barcode;
+            EXPECT_EQ(obj_tracer[i].surface.barcode(),
+                      intersection_trace[i].second.surface.barcode())
+                << " intersection: " << i << "/" << n_inters_nav
+                << " on track: " << n_tracks << "/"
+                << trk_state_generator.size();
         }
+        ++n_tracks;
     }
 }

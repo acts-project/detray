@@ -18,12 +18,18 @@
 // GTest include(s)
 #include <gtest/gtest.h>
 
+// System include(s)
+#include <limits>
+
 using namespace detray;
 
 using point2 = __plugin::point2<scalar>;
 using point3 = __plugin::point3<scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<scalar>;
+using intersection_t = intersection2D<dindex, transform3>;
+
+constexpr dindex sf_handle = std::numeric_limits<dindex>::max();
 
 constexpr scalar tol{1e-7f};
 constexpr scalar epsilon{std::numeric_limits<scalar>::epsilon()};
@@ -126,7 +132,7 @@ TEST(materials, material_slab) {
     constexpr material_slab<scalar> slab(oxygen_gas<scalar>(),
                                          2.f * unit<scalar>::mm);
 
-    line_plane_intersection is;
+    intersection_t is;
     is.cos_incidence_angle = 0.3f;
 
     EXPECT_NEAR(slab.path_segment(is), 2.f * unit<scalar>::mm / 0.3f, tol);
@@ -158,8 +164,8 @@ TEST(materials, material_rod) {
     const mask<line<>> ln{0u, 1.f * unit<scalar>::mm,
                           std::numeric_limits<scalar>::infinity()};
 
-    line_plane_intersection is =
-        line_intersector<transform3>()(detail::ray<transform3>(trk), ln, tf)[0];
+    intersection_t is = line_intersector<transform3>()(
+        detail::ray<transform3>(trk), sf_handle, ln, tf);
 
     EXPECT_NEAR(rod.path_segment(is), 2.f * std::sqrt(10.f - 10.f / 36.f),
                 1e-5f);
