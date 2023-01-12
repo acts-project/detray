@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,22 +9,13 @@
 
 // Project include(s).
 #include "detray/tools/bin_association.hpp"
+#include "detray/tools/bin_fillers.hpp"
 #include "detray/tools/grid_factory.hpp"
 #include "detray/tools/surface_factory_interface.hpp"
 #include "detray/tools/volume_builder.hpp"
 #include "detray/tools/volume_builder_interface.hpp"
 
-// System include(s)
-#include <cassert>
-
 namespace detray {
-
-// Forward declare default type
-namespace detail {
-
-struct fill_by_pos;
-
-}  // namespace detail
 
 /// @brief Build a grid of a certain shape.
 ///
@@ -61,14 +52,15 @@ class grid_builder final : public volume_decorator<detector_t> {
                   typename grid_t::axes_type::binnings{});
     }
 
-    /// Fill grid using a bin filling strategy @tparam bin_filler_t .
+    /// Fill grid from existing volume using a bin filling strategy
+    /// @tparam bin_filler_t .
     /// This can also be called without a volume builder
     template <typename volume_type, typename... Args>
     DETRAY_HOST void fill_grid(
         const detector_t &det, const volume_type &vol,
         const typename detector_t::geometry_context ctx = {},
-        const bin_filler_t bin_filler = {}, Args &&... /*args*/) {
-        bin_filler(m_grid, det, vol, ctx);
+        const bin_filler_t bin_filler = {}, Args &&... args) {
+        bin_filler(m_grid, det, vol, ctx, args...);
     }
 
     /// Overwrite, to add the sensitives to the grid, instead of the surface vec
@@ -177,7 +169,7 @@ template <typename detector_t,
           typename grid_shape_t, typename value_t,
           template <std::size_t> class serializer_t, typename populator_impl_t,
           n_axis::bounds e_bounds = n_axis::bounds::e_closed,
-          typename algebra_t = __plugin::transform3<detray::scalar>,
+          typename algebra_t = typename detector_t::transform3,
           template <typename, typename> class... binning_ts>
 using grid_builder_type = grid_builder<
     detector_t,
@@ -187,81 +179,5 @@ using grid_builder_type = grid_builder<
             typename grid_shape_t::template axes<e_bounds, binning_ts...>, true,
             host_container_types, algebra_t>>,
     grid_factory_t<value_t, serializer_t, populator_impl_t, algebra_t>>;
-
-namespace detail {
-
-/// Fill a grid surface finder by bin association.
-///
-/// @param grid the grid that should be added
-/// @param det the detector from which to get the surface placements
-/// @param vol the volume the surface finder should be added to
-/// @param ctx the geometry context
-struct bin_associator {
-
-    template <typename detector_t, typename volume_type, typename grid_t>
-    DETRAY_HOST auto operator()(
-        grid_t &grid, detector_t &det, const volume_type &vol,
-        const typename detector_t::geometry_context ctx = {}) const -> void {
-        // Fill the volumes surfaces into the grid
-        this->operator()(grid, detray::ranges::subrange(det.surfaces(), vol),
-                         det.mask_store(), det.transform_store(), ctx);
-    }
-
-    template <typename grid_t, typename surface_container,
-              typename mask_container, typename transform_container>
-    DETRAY_HOST auto operator()(
-        grid_t &grid, const surface_container &surfaces,
-        const transform_container &transforms, const mask_container &masks,
-        const typename transform_container::context_type ctx = {}) const
-        -> void {
-        // Fill the surfaces into the grid
-        bin_association(ctx, surfaces, transforms, masks, grid, {0.1, 0.1},
-                        false);
-    }
-};
-
-/// Fill a surface grid using the surface translation.
-///
-/// @param grid the grid that should be added
-/// @param det the detector from which to get the surface placements
-/// @param vol the volume the surface finder should be added to
-/// @param ctx the geometry context
-struct fill_by_pos {
-
-    template <typename detector_t, typename volume_type, typename grid_t>
-    DETRAY_HOST auto operator()(
-        grid_t &grid, const detector_t &det, const volume_type &vol,
-        const typename detector_t::geometry_context ctx = {}) const -> void {
-        this->operator()(grid, detray::ranges::subrange(det.surfaces(), vol),
-                         det.transform_store(), det.mask_store(), ctx);
-    }
-
-    template <typename grid_t, typename surface_container,
-              typename mask_container, typename transform_container>
-    DETRAY_HOST auto operator()(
-        grid_t &grid, const surface_container &surfaces,
-        const transform_container &transforms, const mask_container & /*masks*/,
-        const typename transform_container::context_type /*ctx*/ = {}) const
-        -> void {
-
-        // Fill the volumes surfaces into the grid
-        for (const auto &[idx, sf] : detray::views::enumerate(surfaces)) {
-            // TODO: Remove. Temporary solution for the toy geometry creation
-            if (sf.is_portal()) {
-                continue;
-            }
-            // no portals in grids allowed
-            assert(not sf.is_portal());
-
-            const auto &sf_trf = transforms[sf.transform()];
-            const auto &t = sf_trf.translation();
-            const auto loc_pos = grid.global_to_local(
-                __plugin::transform3<detray::scalar>{}, t, t);
-            grid.populate(loc_pos, sf);
-        }
-    }
-};
-
-}  // namespace detail
 
 }  // namespace detray
