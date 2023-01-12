@@ -160,6 +160,7 @@ class detector_volume {
     /// @note the id has to match the number of index linkss in the volume.
     template <ID obj_id = ID::e_all>
     DETRAY_HOST_DEVICE constexpr auto n_objects() const -> std::size_t {
+        // All surface ranges are required to be contigous
         if constexpr (obj_id == ID::e_all) {
             return detail::get<1>(
                        detail::get<obj_link_type::size() - 1>(_obj_links)) -
@@ -190,6 +191,32 @@ class detector_volume {
             assert(detail::get<1>(rg) == detail::get<0>(other));
             detail::get<1>(rg) = detail::get<1>(other);
         }
+    }
+
+    /// Set or update the index into a geometry container identified by the
+    /// obj_id.
+    ///
+    /// @note There is no check of overlapping index ranges between the object
+    /// types. Use with care!
+    ///
+    /// @param shift shift of the surface range in a larger container.
+    /// @param n_surfaces the number of surfaces in this range.
+    template <ID obj_id = ID::e_sensitive,
+              std::enable_if_t<obj_id != ID::e_all, bool> = true>
+    DETRAY_HOST auto update_obj_link(std::size_t shift,
+                                     std::size_t n_surfaces = 0) noexcept
+        -> void {
+        auto &rg = obj_link<obj_id>();
+        // Range not set yet - initialize
+        constexpr typename obj_link_type::index_type empty{};
+        if (rg == empty) {
+            std::get<0>(rg) = shift;
+            std::get<1>(rg) = shift + n_surfaces;
+            return;
+        }
+        // Update
+        detail::get<0>(rg) += shift;
+        detail::get<1>(rg) += shift;
     }
 
     /// @return all links in the volume.

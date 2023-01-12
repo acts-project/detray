@@ -118,6 +118,7 @@ struct full_metadata {
     enum class material_ids {
         e_slab = 0,
         e_rod = 1,
+        e_none = 2,
     };
 
     /// How to store and link materials
@@ -208,6 +209,7 @@ struct toy_metadata {
     /// to a type!)
     enum class material_ids {
         e_slab = 0,
+        e_none = 1,
     };
 
     /// How to store and link materials
@@ -294,6 +296,7 @@ struct telescope_metadata {
     /// to a type!)
     enum class material_ids {
         e_slab = 0,
+        e_none = 1,
     };
 
     /// How to store and link materials
