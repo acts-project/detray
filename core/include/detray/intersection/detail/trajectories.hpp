@@ -187,8 +187,8 @@ class helix : public free_track_parameters<transform3_t> {
         }
 
         point3 ret = free_track_parameters_type::pos();
-        ret = ret + _delta / _K * (_K * s - std::sin(_K * s)) * _h0;
-        ret = ret + std::sin(_K * s) / _K * _t0;
+        ret = ret + _delta / _K * (_K * s - math_ns::sin(_K * s)) * _h0;
+        ret = ret + math_ns::sin(_K * s) / _K * _t0;
         ret = ret + _alpha / _K * (1 - math_ns::cos(_K * s)) * _n0;
 
         return ret;
@@ -207,7 +207,7 @@ class helix : public free_track_parameters<transform3_t> {
 
         ret = ret + _delta * (1 - math_ns::cos(_K * s)) * _h0;
         ret = ret + math_ns::cos(_K * s) * _t0;
-        ret = ret + _alpha * std::sin(_K * s) * _n0;
+        ret = ret + _alpha * math_ns::sin(_K * s) * _n0;
 
         return ret;
     }
@@ -239,10 +239,10 @@ class helix : public free_track_parameters<transform3_t> {
         // Get drdt
         auto drdt = Z33;
 
-        drdt = drdt + std::sin(_K * s) / _K * I33;
+        drdt = drdt + math_ns::sin(_K * s) / _K * I33;
 
         const auto H0 = mat_helper().column_wise_multiply(I33, _h0);
-        drdt = drdt + (_K * s - std::sin(_K * s)) / _K *
+        drdt = drdt + (_K * s - math_ns::sin(_K * s)) / _K *
                           mat_helper().column_wise_multiply(
                               matrix_operator().transpose(H0), _h0);
 
@@ -257,8 +257,8 @@ class helix : public free_track_parameters<transform3_t> {
         dtdt = dtdt + (1 - math_ns::cos(_K * s)) *
                           mat_helper().column_wise_multiply(
                               matrix_operator().transpose(H0), _h0);
-        dtdt =
-            dtdt - std::sin(_K * s) * mat_helper().column_wise_cross(I33, _h0);
+        dtdt = dtdt -
+               math_ns::sin(_K * s) * mat_helper().column_wise_cross(I33, _h0);
 
         matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 

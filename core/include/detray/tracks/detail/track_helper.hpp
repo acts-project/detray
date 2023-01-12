@@ -83,9 +83,9 @@ struct track_helper {
         const auto& phi = matrix_operator().element(bound_vec, e_bound_phi, 0);
         const auto& theta =
             matrix_operator().element(bound_vec, e_bound_theta, 0);
-        const auto sinTheta = std::sin(theta);
+        const auto sinTheta = math_ns::sin(theta);
 
-        return {math_ns::cos(phi) * sinTheta, std::sin(phi) * sinTheta,
+        return {math_ns::cos(phi) * sinTheta, math_ns::sin(phi) * sinTheta,
                 math_ns::cos(theta)};
     }
 };

@@ -79,7 +79,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         const scalar_type r = mask[0];
         const scalar_type phi = p[0] / r;
         const scalar_type x = r * math_ns::cos(phi);
-        const scalar_type y = r * std::sin(phi);
+        const scalar_type y = r * math_ns::sin(phi);
         const scalar_type z = p[1];
 
         return trf.point_to_global(point3{x, y, z});
@@ -93,7 +93,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         const point2 local2 = this->global_to_local(trf3, pos, dir);
         const scalar_type r = mask[0];
         const scalar_type phi = local2[0] / r;
-        const vector3 local_normal{math_ns::cos(phi), std::sin(phi), 0};
+        const vector3 local_normal{math_ns::cos(phi), math_ns::sin(phi), 0};
 
         // normal vector in local coordinate
         return trf3.rotation() * local_normal;

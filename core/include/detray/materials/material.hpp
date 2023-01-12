@@ -8,6 +8,7 @@
 #pragma once
 
 /// Detray include(s)
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/materials/detail/density_effect_data.hpp"
@@ -91,7 +92,7 @@ struct material {
         // use approximative computation as defined in ATL-SOFT-PUB-2008-003
         if (m_density == detail::density_effect_data<scalar_type>{}) {
             return scalar_type(16 * unit<scalar_type>::eV) *
-                   std::pow(m_z, scalar_type(0.9));
+                   math_ns::pow(m_z, scalar_type(0.9));
         } else {
             return m_density.get_mean_excitation_energy();
         }

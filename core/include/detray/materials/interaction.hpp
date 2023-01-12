@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
@@ -47,8 +48,8 @@ struct interaction {
         // total energy loss instead of an energy loss per length. the required
         // modification only change the prefactor which becomes identical to the
         // prefactor epsilon for the most probable value.
-        const auto running =
-            std::log(u / I) + std::log(wmax / I) - 2. * rq.m_beta2 - 2. * dhalf;
+        const auto running = math_ns::log(u / I) + math_ns::log(wmax / I) -
+                             2. * rq.m_beta2 - 2. * dhalf;
         return eps * running;
     }
 
@@ -71,7 +72,7 @@ struct interaction {
         const auto dhalf = rq.compute_delta_half(mat.get_material());
         const auto t = rq.compute_mass_term(rq.Me);
         // uses RPP2018 eq. 33.11
-        const auto running = std::log(t / I) + std::log(eps / I) +
+        const auto running = math_ns::log(t / I) + math_ns::log(eps / I) +
                              scalar_type(0.2) - rq.m_beta2 -
                              scalar_type(2.) * dhalf;
         return eps * running;
@@ -166,7 +167,7 @@ struct interaction {
         // log((x/X0) * (q²/beta²)) = log((sqrt(x/X0) * (q/beta))²)
         //                          = 2 * log(sqrt(x/X0) * (q/beta))
         return 13.6 * unit<scalar_type>::MeV * momentumInv * t *
-               (1.0 + 0.038 * 2. * std::log(t));
+               (1.0 + 0.038 * 2. * math_ns::log(t));
     }
 
     /// Multiple scattering theta0 for electrons.
@@ -176,7 +177,7 @@ struct interaction {
         // TODO add source paper/ resource
         const scalar_type t = std::sqrt(xOverX0 * q2OverBeta2);
         return 17.5 * unit<scalar_type>::MeV * momentumInv * t *
-               (1.0 + 0.125 * std::log10(10.0 * xOverX0));
+               (1.0 + 0.125 * math_ns::log10(10.0 * xOverX0));
     }
 
     /// Convert Landau full-width-half-maximum to an equivalent Gaussian sigma,
@@ -189,7 +190,7 @@ struct interaction {
     /// @todo: Add a unit test for this function
     DETRAY_HOST_DEVICE scalar_type
     convert_landau_fwhm_to_gaussian_sigma(const scalar_type fwhm) const {
-        return fwhm / (2 * std::sqrt(2 * std::log(2.0)));
+        return fwhm / (2 * std::sqrt(2 * math_ns::log(2.0)));
     }
 };
 

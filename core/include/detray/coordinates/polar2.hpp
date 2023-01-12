@@ -81,7 +81,7 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const transform3_t &trf, const mask_t & /*mask*/, const point2 &p,
         const vector3 & /*d*/) const {
         const scalar_type x = p[0] * math_ns::cos(p[1]);
-        const scalar_type y = p[0] * std::sin(p[1]);
+        const scalar_type y = p[0] * math_ns::sin(p[1]);
 
         return trf.point_to_global(point3{x, y, 0.});
     }
@@ -120,7 +120,7 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const scalar_type lphi = local2[1];
 
         const scalar_type lcos_phi = math_ns::cos(lphi);
-        const scalar_type lsin_phi = std::sin(lphi);
+        const scalar_type lsin_phi = math_ns::sin(lphi);
 
         // reference matrix
         const auto frame = reference_frame(trf3, mask, pos, dir);
@@ -160,7 +160,7 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const scalar_type lphi = local[1];
 
         const scalar_type lcos_phi = math_ns::cos(lphi);
-        const scalar_type lsin_phi = std::sin(lphi);
+        const scalar_type lsin_phi = math_ns::sin(lphi);
 
         // reference matrix
         const auto frame = reference_frame(trf3, mask, pos, dir);

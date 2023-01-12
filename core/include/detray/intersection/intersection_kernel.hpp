@@ -48,7 +48,7 @@ struct intersection_initialize {
         const transform_container_t &contextual_transforms,
         const scalar mask_tolerance = 0.) const {
 
-        int count = 0;
+        std::size_t count = 0;
 
         const auto &ctf = contextual_transforms[surface.transform()];
 

@@ -125,7 +125,8 @@ struct concentric_cylinder_intersector {
 
                 // Get incidence angle
                 const scalar_type phi{is.p2[0] / mask[mask_t::shape::e_r]};
-                const vector3 normal = {math_ns::cos(phi), std::sin(phi), 0};
+                const vector3 normal = {math_ns::cos(phi), math_ns::sin(phi),
+                                        0};
                 is.cos_incidence_angle = vector::dot(rd, normal);
             }
         }
