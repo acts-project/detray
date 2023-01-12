@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -72,12 +72,12 @@ class ray {
 
     private:
     /// origin of ray
-    point3 _pos{0., 0., 0.};
+    point3 _pos{0.f, 0.f, 0.f};
     /// direction of ray
-    vector3 _dir{0., 0., 1.};
+    vector3 _dir{0.f, 0.f, 1.f};
 
     /// Overstep tolerance on a geometry surface
-    scalar_type _overstep_tolerance{-1e-4};
+    scalar_type _overstep_tolerance{-1e-4f};
 };
 
 /// @brief describes a helical trajectory in a given B-field.
@@ -147,8 +147,8 @@ class helix : public free_track_parameters<transform3_t> {
         _delta = vector::dot(_h0, _t0);
 
         // Path length scaler
-        _K =
-            -1. * free_track_parameters_type::qop() * getter::norm(*_mag_field);
+        _K = -1.f * free_track_parameters_type::qop() *
+             getter::norm(*_mag_field);
 
         // Get longitudinal momentum parallel to B field
         scalar_type pz = vector::dot(free_track_parameters_type::mom(), _h0);
@@ -160,7 +160,7 @@ class helix : public free_track_parameters<transform3_t> {
         _R = getter::norm(pT) / getter::norm(*_mag_field);
 
         // Handle the case of pT ~ 0
-        if (getter::norm(pT) < 1e-6) {
+        if (getter::norm(pT) < 1e-6f) {
             _vz_over_vt = std::numeric_limits<scalar_type>::infinity();
         } else {
             // Get vz over vt in new coordinate
@@ -202,7 +202,7 @@ class helix : public free_track_parameters<transform3_t> {
             return free_track_parameters_type::dir();
         }
 
-        vector3 ret{0, 0, 0};
+        vector3 ret{0.f, 0.f, 0.f};
 
         ret = ret + _delta * (1 - std::cos(_K * s)) * _h0;
         ret = ret + std::cos(_K * s) * _t0;
@@ -253,7 +253,7 @@ class helix : public free_track_parameters<transform3_t> {
         // Get dtdt
         auto dtdt = Z33;
         dtdt = dtdt + std::cos(_K * s) * I33;
-        dtdt = dtdt + (1 - std::cos(_K * s)) *
+        dtdt = dtdt + (1.f - std::cos(_K * s)) *
                           mat_helper().column_wise_multiply(
                               matrix_operator().transpose(H0), _h0);
         dtdt =
@@ -262,7 +262,7 @@ class helix : public free_track_parameters<transform3_t> {
         matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
         // Get drdl
-        vector3 drdl = 1 / free_track_parameters_type::qop() *
+        vector3 drdl = 1.f / free_track_parameters_type::qop() *
                        (s * this->dir(s) + free_track_parameters_type::pos() -
                         this->pos(s));
 
@@ -275,8 +275,8 @@ class helix : public free_track_parameters<transform3_t> {
         matrix_operator().set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
 
         // 3x3 and 7x7 element is 1 (Maybe?)
-        matrix_operator().element(ret, e_free_time, e_free_time) = 1;
-        matrix_operator().element(ret, e_free_qoverp, e_free_qoverp) = 1;
+        matrix_operator().element(ret, e_free_time, e_free_time) = 1.f;
+        matrix_operator().element(ret, e_free_qoverp, e_free_qoverp) = 1.f;
 
         return ret;
     }

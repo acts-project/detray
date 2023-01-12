@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -26,11 +26,13 @@ namespace detray {
 template <typename transform3_t>
 struct concentric_cylinder_intersector {
 
-    /// Transformation matching this struct
+    /// linear algebra types
+    /// @{
     using scalar_type = typename transform3_t::scalar_type;
     using point3 = typename transform3_t::point3;
     using point2 = typename transform3_t::point2;
     using vector3 = typename transform3_t::vector3;
+    /// @}
     using ray_type = detail::ray<transform3_t>;
     using intersection_type = line_plane_intersection;
 
@@ -68,7 +70,7 @@ struct concentric_cylinder_intersector {
         const point3 l1 = ro + rd;
 
         // swap coorinates x/y for numerical stability
-        const bool swap_x_y = std::abs(rd[0]) < scalar_type{1e-3};
+        const bool swap_x_y = std::abs(rd[0]) < 1e-3f;
 
         std::size_t _x = swap_x_y ? 1 : 0;
         std::size_t _y = swap_x_y ? 0 : 1;

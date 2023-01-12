@@ -193,7 +193,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     stepper.step(propagation);
     navigation.set_high_trust();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_high);
-    ASSERT_TRUE(nav.update(propagation));
+    ASSERT_TRUE(nav.update(propagation)) << navigation.inspector().to_string();
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
 
     //

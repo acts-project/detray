@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -20,32 +20,32 @@
 
 namespace detray {
 
-/** A functor to find intersections between trajectory and cylinder mask
- */
+/// A functor to find intersections between a ray and a 2D cylinder mask
 template <typename transform3_t>
 struct cylinder_intersector {
 
-    /// Transformation matching this struct
+    /// linear algebra types
+    /// @{
     using scalar_type = typename transform3_t::scalar_type;
-    using point2 = typename transform3_t::point2;
     using point3 = typename transform3_t::point3;
+    using point2 = typename transform3_t::point2;
     using vector3 = typename transform3_t::vector3;
+    /// @}
     using ray_type = detail::ray<transform3_t>;
     using intersection_type = line_plane_intersection;
 
-    /** Operator function to find intersections between ray and cylinder mask
-     *
-     * @tparam mask_t is the input mask type
-     * @tparam transform_t is the input transform type
-     *
-     * @param ray is the input ray trajectory
-     * @param mask is the input mask
-     * @param trf is the transform
-     * @param mask_tolerance is the tolerance for mask edges
-     * @param overstep_tolerance is the tolerance for track overstepping
-     *
-     * @return the intersection
-     */
+    /// Operator function to find intersections between ray and cylinder mask
+    ///
+    /// @tparam mask_t is the input mask type
+    /// @tparam transform_t is the input transform type
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param mask is the input mask
+    /// @param trf is the transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tolerance is the tolerance for track overstepping
+    ///
+    /// @return the intersection
     template <
         typename mask_t,
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
@@ -54,9 +54,9 @@ struct cylinder_intersector {
     DETRAY_HOST_DEVICE inline std::array<intersection_type, 2> operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
         const scalar_type mask_tolerance = 0.f,
-        const scalar_type overstep_tolerance = 0.f) const {
+        const scalar_type /*overstep_tolerance*/ = 0.f) const {
 
-        std::array<intersection_type, 2> ret;
+        std::array<intersection_type, 2> is;
 
         const scalar_type r{mask[mask_t::shape::e_r]};
         const auto &m = trf.matrix();
@@ -74,42 +74,39 @@ struct cylinder_intersector {
 
         detail::quadratic_equation<scalar_type> qe{a, b, c};
 
-        if (qe.solutions() > 0) {
-            const scalar_type t{(qe.smaller() > overstep_tolerance)
-                                    ? qe.smaller()
-                                    : qe.larger()};
+        // One or both of these solutions might be invalid
+        is[0].path = qe.smaller();
+        is[1].path = qe.larger();
 
-            if (t > overstep_tolerance) {
-                intersection_type &is = ret[0];
-                is.path = t;
-                is.p3 = ro + is.path * rd;
-                // In this case, the point has to be in cylinder3 coordinates
-                // for the r-check
-                if constexpr (mask_t::shape::check_radius) {
-                    const auto loc3D = mask.to_local_frame(trf, is.p3);
-                    is.status = mask.is_inside(loc3D, mask_tolerance);
-                    is.p2 = {loc3D[0] * loc3D[1], loc3D[2]};
-                } else {
-                    is.p2 = mask.to_local_frame(trf, is.p3);
-                    is.status = mask.is_inside(is.p2, mask_tolerance);
-                }
-                // prepare some additional information in case the intersection
-                // is valid
-                if (is.status == intersection::status::e_inside) {
-                    is.direction = vector::dot(is.p3, rd) > 0.f
-                                       ? intersection::direction::e_along
-                                       : intersection::direction::e_opposite;
-                    is.volume_link = mask.volume_link();
+        // Only loop over valid solutions
+        for (int i{0}; i < qe.solutions(); ++i) {
+            is[i].p3 = ro + is[i].path * rd;
+            // In this case, the point has to be in cylinder3 coordinates
+            // for the r-check
+            if constexpr (mask_t::shape::check_radius) {
+                const auto loc3D = mask.to_local_frame(trf, is[i].p3);
+                is[i].status = mask.is_inside(loc3D, mask_tolerance);
+                is[i].p2 = {loc3D[0] * loc3D[1], loc3D[2]};
+            } else {
+                is[i].p2 = mask.to_local_frame(trf, is[i].p3);
+                is[i].status = mask.is_inside(is[i].p2, mask_tolerance);
+            }
+            // prepare some additional information in case the intersection
+            // is valid
+            if (is[i].status == intersection::status::e_inside) {
+                is[i].direction = vector::dot(is[i].p3, rd) > 0.f
+                                      ? intersection::direction::e_along
+                                      : intersection::direction::e_opposite;
+                is[i].volume_link = mask.volume_link();
 
-                    // Get incidence angle
-                    const scalar_type phi{is.p2[0] / r};
-                    const vector3 normal = {std::cos(phi), std::sin(phi), 0.f};
-                    is.cos_incidence_angle = vector::dot(rd, normal);
-                }
+                // Get incidence angle
+                const scalar_type phi{is[i].p2[0] / r};
+                const vector3 normal = {std::cos(phi), std::sin(phi), 0.f};
+                is[i].cos_incidence_angle = vector::dot(rd, normal);
             }
         }
 
-        return ret;
+        return is;
     }
 };
 

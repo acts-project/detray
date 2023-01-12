@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "tests/common/tools/intersectors/helix_intersector.hpp"
 
 // System include(s)
 #include <cmath>
@@ -18,6 +19,8 @@
 #include <type_traits>
 
 namespace detray {
+
+namespace detail {
 
 /// @brief Intersection implementation for cylinder surfaces using helical
 /// trajectories.
@@ -83,10 +86,9 @@ struct helix_cylinder_intersector {
             // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
             const vector3 crp = vector::cross(h.pos(s) - sc, sz);
             const scalar_type denom{
-                scalar_type{2.} *
-                vector::dot(crp, vector::cross(h.dir(s), sz))};
+                2.f * vector::dot(crp, vector::cross(h.dir(s), sz))};
             // No intersection can be found if dividing by zero
-            if (denom == scalar_type{0.}) {
+            if (denom == 0.f) {
                 return ret;
             }
             // x_n+1 = x_n - f(s) / f'(s)
@@ -125,6 +127,27 @@ struct helix_cylinder_intersector {
 
         return ret;
     }
+};
+
+}  // namespace detail
+
+/// Specialization of the @c helix_intersector for 2D cylindrical surfaces
+template <typename transform3_t, typename mask_t>
+struct helix_intersector<
+    transform3_t, mask_t,
+    std::enable_if_t<std::is_same_v<typename mask_t::shape::
+                                        template intersector_type<transform3_t>,
+                                    cylinder_intersector<transform3_t>>,
+                     void>>
+    : public detail::helix_cylinder_intersector<transform3_t> {
+    using intersector_impl = detail::helix_cylinder_intersector<transform3_t>;
+
+    using scalar_type = typename intersector_impl::scalar_type;
+    using matrix_operator = typename intersector_impl::matrix_operator;
+    using point3 = typename intersector_impl::point3;
+    using vector3 = typename intersector_impl::vector3;
+    using helix_type = typename intersector_impl::helix_type;
+    using intersection_type = typename intersector_impl::intersection_type;
 };
 
 }  // namespace detray

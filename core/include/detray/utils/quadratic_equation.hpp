@@ -7,7 +7,6 @@
 #pragma once
 
 // Project include(s)
-// #include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)

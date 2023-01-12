@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -116,7 +116,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
     const detail::helix<transform3> h({pos, 0, mom, -1}, &B);
 
     // The same test but bound to local frame
-    helix_plane_intersector<transform3> pi;
+    detail::helix_plane_intersector<transform3> pi;
     mask<unmasked> unmasked_bound{};
     const auto hit_bound = pi(h, unmasked_bound, shifted)[0];
 

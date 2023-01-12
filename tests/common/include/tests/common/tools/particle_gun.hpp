@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,6 +17,7 @@
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
+
 namespace detray {
 
 /// @brief struct that holds functionality to shoot a parametrzed particle
@@ -45,34 +46,37 @@ struct particle_gun {
             detail::helix<typename trajectory_t::transform3_type>;
 
         // Loop over all surfaces in the detector
-
         const auto &mask_store = detector.mask_store();
         const auto &tf_store = detector.transform_store();
+
+        std::vector<intersection_type> intersections{};
 
         for (const auto &volume : detector.volumes()) {
             for (const auto &sf : detector.surfaces(volume)) {
 
-                // Retrieve candidate from the surface
-                // NOTE: Change to interection_initialize
-                intersection_type sfi;
+                // Retrieve candidate(s) from the surface
                 if constexpr (std::is_same_v<trajectory_t, helix_type>) {
-                    sfi = mask_store.template visit<helix_intersection_update>(
-                        sf.mask(), traj, sf, tf_store, 1e-4);
+                    mask_store.template visit<helix_intersection_initialize>(
+                        sf.mask(), intersections, traj, sf, tf_store, 1e-4);
                 } else {
-                    sfi = mask_store.template visit<intersection_update>(
-                        sf.mask(), traj, sf, tf_store);
+                    mask_store.template visit<intersection_initialize>(
+                        sf.mask(), intersections, traj, sf, tf_store);
                 }
                 // Candidate is invalid if it oversteps too far (this is neg!)
-                if (sfi.path < traj.overstep_tolerance()) {
+                if (intersections.empty() or
+                    intersections[0].path < traj.overstep_tolerance()) {
                     continue;
                 }
                 // Accept if inside
-                if (sfi.status == intersection::status::e_inside &&
-                    sfi.direction == intersection::direction::e_along) {
+                if (intersections[0].status == intersection::status::e_inside &&
+                    intersections[0].direction ==
+                        intersection::direction::e_along) {
                     // Volume the candidate belongs to
-                    sfi.barcode = sf.barcode();
-                    intersection_record.emplace_back(volume.index(), sfi);
+                    intersections[0].barcode = sf.barcode();
+                    intersection_record.emplace_back(volume.index(),
+                                                     intersections[0]);
                 }
+                intersections.clear();
             }
         }
 

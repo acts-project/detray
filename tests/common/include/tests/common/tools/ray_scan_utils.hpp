@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -199,9 +199,8 @@ inline auto trace_intersections(const record_container &intersection_records,
         }
 
         record_stream << current_rec.volume_id() << "\t"
-                      << current_rec.inters().to_string();
-        record_stream << next_rec.volume_id() << "\t"
-                      << next_rec.inters().to_string();
+                      << current_rec.inters();
+        record_stream << next_rec.volume_id() << "\t" << next_rec.inters();
 
         // Is this doublet connected via a valid portal intersection?
         const bool is_valid =
@@ -252,8 +251,7 @@ inline auto trace_intersections(const record_container &intersection_records,
 
             std::cerr << "-----\nINFO: Ray terminated at portal x-ing "
                       << (rec + 1) / 2 << ":\n"
-                      << current_rec.inters().to_string() << " <-> "
-                      << next_rec.inters().to_string();
+                      << current_rec.inters() << " <-> " << next_rec.inters();
 
             record rec_front{intersection_records.front()};
             record rec_back{intersection_records.back()};

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,7 +15,7 @@
 // System include(s)
 #include <climits>
 #include <cmath>
-#include <sstream>
+#include <ostream>
 
 namespace detray {
 
@@ -100,13 +100,13 @@ struct line_plane_intersection {
 
     /// Transform to a string for output debugging
     DETRAY_HOST
-    std::string to_string() const {
-        std::stringstream out_stream;
-        scalar r{getter::perp(p3)};
-        out_stream << "dist:" << path << " [r:" << r << ", z:" << p3[2]
-                   << "], (sf index:" << barcode
-                   << ", links to vol:" << volume_link << ")";
-        switch (status) {
+    friend std::ostream &operator<<(std::ostream &out_stream,
+                                    const line_plane_intersection &is) {
+        scalar r{getter::perp(is.p3)};
+        out_stream << "dist:" << is.path << " [r:" << r << ", z:" << is.p3[2]
+                   << "], (sf index:" << is.barcode
+                   << ", links to vol:" << is.volume_link << ")";
+        switch (is.status) {
             case intersection::status::e_outside:
                 out_stream << ", status: outside";
                 break;
@@ -120,7 +120,7 @@ struct line_plane_intersection {
                 out_stream << ", status: inside";
                 break;
         };
-        switch (direction) {
+        switch (is.direction) {
             case intersection::direction::e_undefined:
                 out_stream << ", direction: undefined";
                 break;
@@ -132,7 +132,7 @@ struct line_plane_intersection {
                 break;
         };
         out_stream << std::endl;
-        return out_stream.str();
+        return out_stream;
     }
 };
 

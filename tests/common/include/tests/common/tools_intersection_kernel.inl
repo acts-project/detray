@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -181,14 +181,17 @@ TEST(tools, intersection_kernel_helix) {
     const point3 expected_annulus{0.03, 0.03, 30.};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
+    std::vector<line_plane_intersection> sfi_helix{};
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
-        const auto sfi_helix = mask_store.visit<helix_intersection_update>(
-            surface.mask(), h, surface, transform_store);
+        mask_store.visit<helix_intersection_initialize>(
+            surface.mask(), sfi_helix, h, surface, transform_store);
 
-        ASSERT_NEAR(sfi_helix.p3[0], expected_points[sf_idx][0], 1e-7);
-        ASSERT_NEAR(sfi_helix.p3[1], expected_points[sf_idx][1], 1e-7);
-        ASSERT_NEAR(sfi_helix.p3[2], expected_points[sf_idx][2], 1e-7);
+        ASSERT_NEAR(sfi_helix[0].p3[0], expected_points[sf_idx][0], 1e-7);
+        ASSERT_NEAR(sfi_helix[0].p3[1], expected_points[sf_idx][1], 1e-7);
+        ASSERT_NEAR(sfi_helix[0].p3[2], expected_points[sf_idx][2], 1e-7);
+
+        sfi_helix.clear();
     }
 }

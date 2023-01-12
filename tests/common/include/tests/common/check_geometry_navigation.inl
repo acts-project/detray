@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -92,9 +92,8 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
             debug_stream << "-------Intersection trace\n"
                          << "ray gun: "
                          << "\tvol id: " << intersection_trace[intr_idx].first
-                         << ", "
-                         << intersection_trace[intr_idx].second.to_string();
-            debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
+                         << ", " << intersection_trace[intr_idx].second;
+            debug_stream << "navig.: " << obj_tracer[intr_idx];
         }
 
         // Check every single recorded intersection
@@ -128,9 +127,9 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     constexpr std::size_t n_edc_layers{7};
     vecmem::host_memory_resource host_mr;
 
-    using b_field_t = decltype(
-        create_toy_geometry(std::declval<vecmem::host_memory_resource &>(),
-                            n_brl_layers, n_edc_layers))::bfield_type;
+    using b_field_t = decltype(create_toy_geometry(
+        std::declval<vecmem::host_memory_resource &>(), n_brl_layers,
+        n_edc_layers))::bfield_type;
 
     const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
                     2. * unit<scalar>::T};
@@ -189,9 +188,8 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
             debug_stream << "-------Intersection trace\n"
                          << "helix gun: "
                          << "\tvol id: " << intersection_trace[intr_idx].first
-                         << ", "
-                         << intersection_trace[intr_idx].second.to_string();
-            debug_stream << "navig.: " << obj_tracer[intr_idx].to_string();
+                         << ", " << intersection_trace[intr_idx].second;
+            debug_stream << "navig.: " << obj_tracer[intr_idx];
         }
 
         // Compare intersection records

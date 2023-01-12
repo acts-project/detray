@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,13 +11,15 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/utils/quadratic_equation.hpp"
+#include "tests/common/tools/intersectors/helix_intersector.hpp"
 
 // System include(s)
 #include <cmath>
 #include <type_traits>
 
 namespace detray {
+
+namespace detail {
 
 /// @brief Intersection implementation for helical trajectories with planar
 /// surfaces.
@@ -66,8 +68,8 @@ struct helix_plane_intersector {
         const point3 st = getter::vector<3>(sm, 0, 3);
 
         // Starting point on the helix for the Newton iteration
-        scalar s{getter::norm(sn) - scalar{0.1}};
-        scalar s_prev{s - scalar{0.1}};
+        scalar s{getter::norm(sn) - 0.1f};
+        scalar s_prev{s - 0.1f};
 
         // f(s) = sn * (h.pos(s) - st) == 0
         // Run the iteration on s
@@ -98,13 +100,35 @@ struct helix_plane_intersector {
         is.p2 = mask.to_local_frame(trf, is.p3, h.dir(s));
 
         is.status = mask.is_inside(is.p2, mask_tolerance);
-        is.direction = vector::dot(st, h.dir(s)) > scalar{0.}
+        is.direction = vector::dot(st, h.dir(s)) > 0.f
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
         is.volume_link = mask.volume_link();
 
         return ret;
     }
+};
+
+}  // namespace detail
+
+/// Specialization of the @c helix_intersector for planar surfaces
+template <typename transform3_t, typename mask_t>
+struct helix_intersector<
+    transform3_t, mask_t,
+    std::enable_if_t<std::is_same_v<typename mask_t::shape::
+                                        template intersector_type<transform3_t>,
+                                    plane_intersector<transform3_t>>,
+                     void>>
+    : public detail::helix_plane_intersector<transform3_t> {
+
+    using intersector_impl = detail::helix_plane_intersector<transform3_t>;
+
+    using scalar_type = typename intersector_impl::scalar_type;
+    using matrix_operator = typename intersector_impl::matrix_operator;
+    using point3 = typename intersector_impl::point3;
+    using vector3 = typename intersector_impl::vector3;
+    using helix_type = typename intersector_impl::helix_type;
+    using intersection_type = typename intersector_impl::intersection_type;
 };
 
 }  // namespace detray

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -20,19 +20,21 @@
 
 namespace detray {
 
-/// @brief A functor to find intersections between a straight line and a 
+/// @brief A functor to find intersections between a straight line and a
 /// cylindrical portal surface.
 ///
-/// With the way the navigation works, only the closest one of the two possible 
+/// With the way the navigation works, only the closest one of the two possible
 /// intersection points is needed in the case of a cylinderical portal surface.
 template <typename transform3_t>
 struct cylinder_portal_intersector {
 
-    /// Transformation matching this struct
+    /// linear algebra types
+    /// @{
     using scalar_type = typename transform3_t::scalar_type;
-    using point2 = typename transform3_t::point2;
     using point3 = typename transform3_t::point3;
+    using point2 = typename transform3_t::point2;
     using vector3 = typename transform3_t::vector3;
+    /// @}
     using ray_type = detail::ray<transform3_t>;
     using intersection_type = line_plane_intersection;
 
@@ -71,15 +73,16 @@ struct cylinder_portal_intersector {
         const auto pc_cross_sz = vector::cross(ro - sc, sz);
         const auto rd_cross_sz = vector::cross(rd, sz);
         const scalar_type a{vector::dot(rd_cross_sz, rd_cross_sz)};
-        const scalar_type b{2.f *
-                            vector::dot(rd_cross_sz, pc_cross_sz)};
+        const scalar_type b{2.f * vector::dot(rd_cross_sz, pc_cross_sz)};
         const scalar_type c{vector::dot(pc_cross_sz, pc_cross_sz) - (r * r)};
 
         detail::quadratic_equation<scalar_type> qe{a, b, c};
 
         if (qe.solutions > 0) {
-            const scalar_type t{(qe.smaller() > overstep_tolerance) ? qe.smaller()
-                                                              : qe.larger()};
+            // Find the first valid intersection
+            const scalar_type t{(qe.smaller() > overstep_tolerance)
+                                    ? qe.smaller()
+                                    : qe.larger()};
 
             if (t > overstep_tolerance) {
                 intersection_type &is = ret[0];
@@ -99,8 +102,8 @@ struct cylinder_portal_intersector {
                 // is valid
                 if (is.status == intersection::status::e_inside) {
                     is.direction = vector::dot(is.p3, rd) > 0.f
-                                    ? intersection::direction::e_along
-                                    : intersection::direction::e_opposite;
+                                       ? intersection::direction::e_along
+                                       : intersection::direction::e_opposite;
                     is.volume_link = mask.volume_link();
 
                     // Get incidence angle
