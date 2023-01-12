@@ -56,13 +56,13 @@ class dmulti_view_helper<false, view_ts...> {};
 /// member constructors.
 template <typename... view_ts>
 struct dmulti_view_helper<true, view_ts...> : public dbase_view {
-    std::tuple<std::remove_reference_t<std::remove_cv_t<view_ts>>...> m_view;
+    thrust::tuple<std::remove_reference_t<std::remove_cv_t<view_ts>>...> m_view;
 
     dmulti_view_helper() = default;
 
     /// Tie multiple views together
     DETRAY_HOST
-    dmulti_view_helper(view_ts&&... views) { m_view = std::tie(views...); }
+    dmulti_view_helper(view_ts&&... views) { m_view = thrust::tie(views...); }
 };
 
 /// Helper trait to determine if a type can be interpreted as a (composite)
