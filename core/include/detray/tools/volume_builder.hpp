@@ -17,6 +17,13 @@
 
 namespace detray {
 
+namespace detail {
+
+/// A functor to update the mask index in surface objects
+struct mask_index_update;
+
+}  // namespace detail
+
 /// @brief Provides basic functionality to build detector volumes
 template <typename detector_t>
 class volume_builder : public volume_builder_interface<detector_t> {
@@ -46,15 +53,22 @@ class volume_builder : public volume_builder_interface<detector_t> {
     };
 
     DETRAY_HOST
-    virtual auto get_vol_index() -> dindex override {
-        return m_volume->index();
+    auto get_vol_index() -> dindex override { return m_volume->index(); }
+
+    DETRAY_HOST
+    auto operator()() -> const typename detector_t::volume_type& override {
+        return *m_volume;
     }
 
     DETRAY_HOST
     auto build(detector_t& det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type* override {
-        det.add_objects_per_volume(ctx, *m_volume, m_surfaces, m_masks,
-                                   m_transforms);
+        add_objects_per_volume(ctx, det);
+        m_surfaces.clear();
+        m_transforms.clear(ctx);
+        m_masks.clear_all();
+
+        // Pass to decorator builders
         return m_volume;
     }
 
@@ -62,8 +76,8 @@ class volume_builder : public volume_builder_interface<detector_t> {
     void add_portals(
         std::shared_ptr<surface_factory_interface<detector_t>> pt_factory,
         typename detector_t::geometry_context ctx = {}) override {
-        dindex_range pt_range{(*pt_factory)(m_volume->index(), m_surfaces,
-                                            m_transforms, m_masks, ctx)};
+        dindex_range pt_range{
+            (*pt_factory)(*m_volume, m_surfaces, m_transforms, m_masks, ctx)};
         m_volume->template update_obj_link<geo_obj_ids::e_portal>(pt_range);
     }
 
@@ -71,8 +85,8 @@ class volume_builder : public volume_builder_interface<detector_t> {
     void add_sensitives(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
-        dindex_range sf_range{(*sf_factory)(m_volume->index(), m_surfaces,
-                                            m_transforms, m_masks, ctx)};
+        dindex_range sf_range{
+            (*sf_factory)(*m_volume, m_surfaces, m_transforms, m_masks, ctx)};
         m_volume->template update_obj_link<geo_obj_ids::e_sensitive>(sf_range);
     }
 
@@ -80,17 +94,71 @@ class volume_builder : public volume_builder_interface<detector_t> {
     void add_passives(
         std::shared_ptr<surface_factory_interface<detector_t>> ps_factory,
         typename detector_t::geometry_context ctx = {}) override {
-        dindex_range ps_range{(*ps_factory)(m_volume->index(), m_surfaces,
-                                            m_transforms, m_masks, ctx)};
+        dindex_range ps_range{
+            (*ps_factory)(*m_volume, m_surfaces, m_transforms, m_masks, ctx)};
         m_volume->template update_obj_link<geo_obj_ids::e_passive>(ps_range);
     }
 
     protected:
+    /// Add a new full set of detector components (e.g. transforms or volumes)
+    /// according to given geometry_context.
+    ///
+    /// @param ctx is the geometry_context of the call
+    /// @param det is the detector instance that the volume should be added to
+    ///
+    /// @note can throw an exception if input data is inconsistent
+    template <geo_obj_ids surface_id = geo_obj_ids::e_portal>
+    DETRAY_HOST auto add_objects_per_volume(
+        const typename detector_t::geometry_context ctx,
+        detector_t& det) noexcept(false) -> void {
+
+        // Append transforms
+        const auto trf_offset = det.transform_store().size(ctx);
+        det.append_transforms(std::move(m_transforms), ctx);
+
+        // Update mask and transform index of surfaces
+        for (auto& sf : m_surfaces) {
+            det.mask_store().template call<detail::mask_index_update>(sf.mask(),
+                                                                      sf);
+            sf.update_transform(trf_offset);
+        }
+
+        // Append surfaces
+        const auto sf_offset = det.surfaces().size();
+        det.append_surfaces(std::move(m_surfaces));
+
+        // Update the surface range per volume
+        m_volume->template update_obj_link<surface_id>(sf_offset,
+                                                       m_surfaces.size());
+        // Append masks
+        det.append_masks(std::move(m_masks));
+
+        // Update max objects per volume
+        det.update_n_max_objects_per_volume(m_surfaces.size());
+    }
+
     typename detector_t::volume_type* m_volume{};
 
     typename detector_t::surface_container m_surfaces{};
     typename detector_t::transform_container m_transforms{};
     typename detector_t::mask_container m_masks{};
 };
+
+namespace detail {
+
+/// A functor to update the mask index in surface objects
+struct mask_index_update {
+    using output_type = bool;
+
+    template <typename group_t, typename index_t, typename surface_t>
+    DETRAY_HOST inline output_type operator()(const group_t& group,
+                                              const index_t& /*index*/,
+                                              surface_t& sf) const {
+        sf.update_mask(group.size());
+        return true;
+    }
+};
+
+}  // namespace detail
 
 }  // namespace detray

@@ -10,8 +10,12 @@
 // Project include(s).
 #include "detray/tools/bin_association.hpp"
 #include "detray/tools/grid_factory.hpp"
+#include "detray/tools/surface_factory_interface.hpp"
 #include "detray/tools/volume_builder.hpp"
 #include "detray/tools/volume_builder_interface.hpp"
+
+// System include(s)
+#include <cassert>
 
 namespace detray {
 
@@ -29,7 +33,7 @@ struct fill_by_pos;
 template <typename detector_t, typename grid_t,
           typename bin_filler_t = detail::fill_by_pos,
           typename grid_factory_t = grid_factory_type<grid_t>>
-class grid_builder : public volume_decorator<detector_t> {
+class grid_builder final : public volume_decorator<detector_t> {
 
     public:
     using scalar_type = typename detector_t::scalar_type;
@@ -41,7 +45,7 @@ class grid_builder : public volume_decorator<detector_t> {
         : volume_decorator<detector_t>(std::move(vol_builder)) {}
 
     /// Should the passive surfaces be added to the grid ?
-    void add_passives(bool is_add_passive = true) {
+    void set_add_passives(bool is_add_passive = true) {
         m_add_passives = is_add_passive;
     }
 
@@ -67,24 +71,13 @@ class grid_builder : public volume_decorator<detector_t> {
         bin_filler(m_grid, det, vol, ctx);
     }
 
-    /// Fill grid using a bin filling strategy @tparam bin_filler_t .
-    /// This can also be called without a volume builder
-    DETRAY_HOST
-    void fill_grid(
-        std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
-        typename detector_t::geometry_context ctx = {},
-        const bin_filler_t bin_filler = {}) {
-        (*sf_factory)(volume_decorator<detector_t>::get_vol_index(), m_surfaces,
-                      m_transforms, m_masks, ctx);
-        bin_filler(m_grid, m_surfaces, m_transforms, m_masks, ctx);
-    }
-
     /// Overwrite, to add the sensitives to the grid, instead of the surface vec
     DETRAY_HOST
     void add_sensitives(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
-        fill_grid(std::move(sf_factory), ctx);
+        (*sf_factory)(volume_decorator<detector_t>::operator()(), m_surfaces,
+                      m_transforms, m_masks, ctx);
     }
 
     /// Overwrite, to add the passives to the grid, instead of the surface vec
@@ -93,7 +86,8 @@ class grid_builder : public volume_decorator<detector_t> {
         std::shared_ptr<surface_factory_interface<detector_t>> ps_factory,
         typename detector_t::geometry_context ctx = {}) override {
         if (m_add_passives) {
-            fill_grid(std::move(ps_factory), ctx);
+            (*ps_factory)(volume_decorator<detector_t>::operator()(),
+                          m_surfaces, m_transforms, m_masks, ctx);
         } else {
             volume_decorator<detector_t>::add_passives(std::move(ps_factory),
                                                        ctx);
@@ -107,6 +101,7 @@ class grid_builder : public volume_decorator<detector_t> {
         // Add the surfaces (portals and/or passives) that are owned by the vol
         typename detector_t::volume_type *vol_ptr =
             volume_decorator<detector_t>::build(det, ctx);
+        m_bin_filler(m_grid, m_surfaces, m_transforms, m_masks, ctx);
 
         // Add the surafes that were filled into the grid directly to the
         // detector and update their links
@@ -125,9 +120,8 @@ class grid_builder : public volume_decorator<detector_t> {
 
         // Add the grid to the detector and link it to its volume
         constexpr auto gid{detector_t::sf_finders::template get_id<grid_t>()};
+        vol_ptr->set_sf_finder(gid, det.sf_finder_store().template size<gid>());
         det.sf_finder_store().template push_back<gid>(m_grid);
-        vol_ptr->set_sf_finder(gid,
-                               det.sf_finder_store().template size<gid>() - 1);
 
         return vol_ptr;
     }
@@ -252,9 +246,13 @@ struct fill_by_pos {
 
         // Fill the volumes surfaces into the grid
         for (const auto &[idx, sf] : detray::views::enumerate(surfaces)) {
+            // TODO: Remove. Temporary solution for the toy geometry creation
             if (sf.is_portal()) {
                 continue;
             }
+            // no portals in grids allowed
+            assert(not sf.is_portal());
+
             const auto &sf_trf = transforms[sf.transform()];
             const auto &t = sf_trf.translation();
             const auto loc_pos = grid.global_to_local(

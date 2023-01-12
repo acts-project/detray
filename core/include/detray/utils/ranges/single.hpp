@@ -40,6 +40,12 @@ class single_view
     DETRAY_HOST_DEVICE constexpr explicit single_view(value_t&& value)
         : m_value{std::move(value)} {}
 
+    /// Copy constructors
+    constexpr single_view(const single_view& other) = default;
+
+    /// Move constructor for the single view
+    constexpr single_view(single_view&& other) = default;
+
     /// Construct value in place from @param args
     template <class... Args>
     DETRAY_HOST_DEVICE constexpr single_view(std::in_place_t, Args&&... args)
