@@ -99,7 +99,7 @@ void propagator_test(
                 // float a = cl::sycl::cos(b);
 
                 // printf("%f \n", a);
-                // p.propagate(state, actor_states);
+                p.propagate(state, actor_states);
             });
         })
         .wait_and_throw();
