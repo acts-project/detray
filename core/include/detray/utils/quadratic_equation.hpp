@@ -7,7 +7,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/algorithms.hpp"
+// #include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
@@ -35,24 +35,31 @@ class quadratic_equation {
     constexpr quadratic_equation(
         const scalar_t a, const scalar_t b, const scalar_t c,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) {
-        const scalar_t discriminant{b * b - 4.f * a * c};
-        // If there is more than one solution, then a != 0 and q != 0
-        if (discriminant > tol) {
-            m_solutions = 2;
-            const scalar_t q{-0.5f *
-                             (b + std::copysign(std::sqrt(discriminant), b))};
-            m_values = {q / a, c / q};
-            // Sort the two solutions
-            if (m_values[0] > m_values[1]) {
-                m_values = {m_values[1], m_values[0]};
-            }
-        }
-        // Only one solution
-        else if (discriminant >= 0.f) {
+        // linear case
+        if (std::abs(a) <= tol) {
             m_solutions = 1;
-            m_values[0] = (std::abs(a) <= tol) ? c / b : -0.5f * b / a;
+            m_values[0] = -c / b;
+        } else {
+            const scalar_t discriminant{b * b - 4.f * a * c};
+            // If there is more than one solution, then a != 0 and q != 0
+            if (discriminant > tol) {
+                m_solutions = 2;
+                const scalar_t q{
+                    -0.5f * (b + std::copysign(std::sqrt(discriminant), b))};
+                m_values = {q / a, c / q};
+                // Sort the two solutions
+                if (m_values[0] > m_values[1]) {
+                    m_values = {m_values[1], m_values[0]};
+                }
+            }
+            // Only one solution and a != 0
+            else if (discriminant >= 0.f) {
+                m_solutions = 1;
+                m_values[0] = -0.5f * b / a;
+            }
+            // discriminant < 0 is not allowed, since all solutions should be
+            // real
         }
-        // discriminant < 0 is not allowed, since all solutions should be real
     }
 
     /// Getters for the solution(s)
