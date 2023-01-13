@@ -48,7 +48,7 @@ build_sycl:
   script:
       - git clone $CLONE_URL src
       - git -C src checkout $HEAD_SHA
-      - source .github/ci_setup.sh SYCL
+      - source src/.github/ci_setup.sh SYCL
       - >
         cmake -S src -B build 
         -DCMAKE_BUILD_TYPE=Release
