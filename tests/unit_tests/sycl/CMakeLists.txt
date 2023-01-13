@@ -11,12 +11,8 @@ include(detray-compiler-options-sycl)
 enable_language(SYCL)
 
 # make unit tests for multiple algebras
-# Currently vc and smatrix is not supported
+# Currently eigen, vc and smatrix is not supported
 set(algebras "array")
-
-if(DETRAY_EIGEN_PLUGIN)
-   list(APPEND algebras "eigen")
-endif()
 
 foreach(algebra ${algebras})
    # Unit tests for the selected algebra.
