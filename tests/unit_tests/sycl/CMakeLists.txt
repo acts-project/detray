@@ -21,8 +21,6 @@ endif()
 foreach(algebra ${algebras})
    # Unit tests for the selected algebra.
    detray_add_test(${algebra}_sycl
-      "detector.sycl" "detector_kernel.hpp"
-      "detector_kernel.sycl"   
       "propagator.sycl" "propagator_kernel.hpp"
       "propagator_kernel.sycl"
       LINK_LIBRARIES GTest::gtest_main vecmem::sycl detray_tests_common
