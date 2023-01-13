@@ -11,7 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s).
-#include <bits/stdc++.h>
+#include <algorithm>
 
 namespace detray {
 
