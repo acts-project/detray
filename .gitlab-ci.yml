@@ -69,6 +69,7 @@ test_sycl:
   needs: 
     - build_sycl
   script:
+    - source src/.github/ci_setup.sh SYCL
     - cd build
     - nvidia-smi
     - ctest --output-on-failure -R ".*sycl.*"
