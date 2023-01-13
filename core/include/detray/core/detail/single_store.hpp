@@ -73,31 +73,6 @@ class single_store {
     DETRAY_HOST_DEVICE single_store(container_view_t &view)
         : m_container(view) {}
 
-    /*
-    /// Construct with a specific vecmem memory resource @param resource
-    /// (host-side only)
-    template <typename allocator_t = vecmem::memory_resource,
-              std::enable_if_t<not detail::is_device_view_v<allocator_t>,
-                               bool> = true>
-    DETRAY_HOST explicit single_store(allocator_t &resource)
-        : m_container(&resource) {}
-
-    /// Copy Construct with a specific (vecmem) memory resource @param resource
-    /// (host-side only)
-    template <typename allocator_t = vecmem::memory_resource,
-              typename C = container_t<T>,
-              std::enable_if_t<std::is_same_v<C, std::vector<T>>, bool> = true>
-    DETRAY_HOST explicit single_store(allocator_t &resource, const T &arg)
-        : m_container(&resource, arg) {}
-
-    /// Construct from the container @param view . Mainly used device-side.
-    template <typename container_view_t,
-              std::enable_if_t<detail::is_device_view_v<container_view_t>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE single_store(container_view_t &view)
-        : m_container(view) {}
-    */
-
     /// @returns a pointer to the underlying container - const
     DETRAY_HOST_DEVICE
     constexpr auto data() const noexcept -> const base_type * {
