@@ -8,6 +8,7 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/sort.hpp"
 
 // Thrust include(s)
 #if defined(__CUDACC__)
@@ -29,7 +30,9 @@ template <class RandomIt>
 DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last) {
 #if defined(__CUDACC__)
     thrust::sort(thrust::seq, first, last);
-#elif !defined(__CUDACC__)
+#elif defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+    insertion_sort(first, last);
+#else
     std::sort(first, last);
 #endif
 }

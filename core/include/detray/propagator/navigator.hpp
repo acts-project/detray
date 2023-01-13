@@ -500,10 +500,8 @@ class navigator {
         }
 
         // Sort all candidates and pick the closest one
-        /*
         detail::sequential_sort(navigation.candidates().begin(),
                                 navigation.candidates().end());
-        */
 
         navigation.set_next(navigation.candidates().begin());
         // No unreachable candidates in cache after local navigation
@@ -651,10 +649,8 @@ class navigator {
                 }
             }
             // Sort again
-            /*
             detail::sequential_sort(navigation.candidates().begin(),
                                     navigation.candidates().end());
-            */
 
             // Take the nearest candidate first
             navigation.set_next(navigation.candidates().begin());

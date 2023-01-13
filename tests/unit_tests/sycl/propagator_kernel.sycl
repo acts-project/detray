@@ -53,8 +53,6 @@ void propagator_test(
 
                 unsigned int gid = item.get_global_linear_id();
 
-                // printf("hi \n");
-
                 if (gid >= tracks.size()) {
                     return;
                 }
@@ -94,11 +92,6 @@ void propagator_test(
                     .template set_constraint<step::constraint::e_accuracy>(
                         constrainted_step_size);
 
-                // Run propagation
-                // float b = 3.;
-                // float a = cl::sycl::cos(b);
-
-                // printf("%f \n", a);
                 p.propagate(state, actor_states);
             });
         })

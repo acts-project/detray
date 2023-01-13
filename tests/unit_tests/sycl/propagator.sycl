@@ -155,8 +155,6 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
                     path_lengths_buffer, positions_buffer,
                     jac_transports_buffer, queue);
 
-    /*
-
     vecmem::jagged_vector<scalar> device_path_lengths(&shared_mr);
     vecmem::jagged_vector<vector3> device_positions(&shared_mr);
     vecmem::jagged_vector<free_matrix> device_jac_transports(&shared_mr);
@@ -168,7 +166,6 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
     // Compare the positions
     for (unsigned int i = 0; i < host_positions.size(); i++) {
         ASSERT_TRUE(host_positions[i].size() > 0);
-
         for (unsigned int j = 0; j < host_positions[i].size(); j++) {
 
             auto host_pl = host_path_lengths[i][j];
@@ -211,7 +208,6 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
             }
         }
     }
-    */
 }
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation1, SyclPropagatorWithRkStepper,
