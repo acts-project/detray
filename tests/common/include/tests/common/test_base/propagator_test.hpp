@@ -17,9 +17,7 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #endif
 
-#include <covfie/core/field.hpp>
-#include <covfie/core/field_view.hpp>
-
+// Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -33,12 +31,19 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "queue_wrapper.hpp"
 
-using namespace detray;
+// Covfie include(s).
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
 
-using intersection_t = line_plane_intersection;
+// GTest include(s).
+#include <gtest/gtest.h>
+
+namespace detray {
+
+// Type declarations
 using transform3 = __plugin::transform3<scalar>;
+using intersection_t = line_plane_intersection;
 using detector_host_type = detector<detector_registry::toy_detector,
                                     covfie::field, host_container_types>;
 using detector_device_type =
@@ -54,23 +59,22 @@ using rk_stepper_type =
     rk_stepper<field_type::view_t, transform3, constraints_t>;
 
 using matrix_operator = standard_matrix_operator<scalar>;
-using free_matrix = typename free_track_parameters<transform3>::covariance_type;
+using free_track_parameters_type = free_track_parameters<transform3>;
+using free_matrix = typename free_track_parameters_type::covariance_type;
 
-// detector configuration
-constexpr std::size_t n_brl_layers{4};
-constexpr std::size_t n_edc_layers{3};
+// Detector configuration
+static constexpr std::size_t n_brl_layers{4};
+static constexpr std::size_t n_edc_layers{3};
 
-// geomery navigation configurations
-constexpr unsigned int theta_steps{10};
-constexpr unsigned int phi_steps{10};
+// Geomery navigation configurations
+static constexpr unsigned int theta_steps{10};
+static constexpr unsigned int phi_steps{10};
 
-constexpr scalar rk_tolerance{1e-4};
-constexpr scalar overstep_tolerance{-3 * unit<scalar>::um};
-constexpr scalar constrainted_step_size{2. * unit<scalar>::mm};
-constexpr scalar is_close{1e-4};
-constexpr scalar path_limit{2 * unit<scalar>::m};
-
-namespace detray {
+static constexpr scalar rk_tolerance{1e-4};
+static constexpr scalar overstep_tolerance{-3 * unit<scalar>::um};
+static constexpr scalar constrainted_step_size{2. * unit<scalar>::mm};
+static constexpr scalar is_close{1e-4};
+static constexpr scalar path_limit{2 * unit<scalar>::m};
 
 template <template <typename...> class vector_t>
 struct track_inspector : actor {
@@ -129,15 +133,5 @@ using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain_host_t>;
 using propagator_device_type =
     propagator<rk_stepper_type, navigator_device_type, actor_chain_device_t>;
-
-/// test function for propagator with single state
-void propagator_test(
-    detector_view<detector_host_type> det_data,
-    vecmem::data::vector_view<free_track_parameters<transform3>> &tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
-    vecmem::data::jagged_vector_view<scalar> &path_lengths_data,
-    vecmem::data::jagged_vector_view<vector3> &positions_data,
-    vecmem::data::jagged_vector_view<free_matrix> &jac_transports_data,
-    sycl::queue_wrapper queue);
 
 }  // namespace detray

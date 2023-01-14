@@ -11,10 +11,6 @@ add_subdirectory ( cpu )
 add_subdirectory( covfie )
 
 # Set up all of the "device" tests.
-if( DETRAY_BUILD_CUDA )
-   add_subdirectory( cuda )
-endif()
-
-if( DETRAY_BUILD_SYCL )
-   add_subdirectory( sycl )
+if( DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL )
+   add_subdirectory( device )
 endif()

@@ -1,58 +1,43 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2022 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #include <gtest/gtest.h>
 
-#include <vecmem/memory/sycl/device_memory_resource.hpp>
-#include <vecmem/memory/sycl/shared_memory_resource.hpp>
+#include <vecmem/memory/cuda/device_memory_resource.hpp>
+#include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
-#include "propagator_kernel.hpp"
-#include "vecmem/utils/sycl/copy.hpp"
+#include "propagator_cuda_kernel.hpp"
+#include "vecmem/utils/cuda/copy.hpp"
 
-// Simple asynchronous handler function
-auto handle_async_error = [](::sycl::exception_list elist) {
-    for (auto& e : elist) {
-        try {
-            std::rethrow_exception(e);
-        } catch (::sycl::exception& e) {
-            std::cout << "ASYNC EXCEPTION!!\n";
-            std::cout << e.what() << "\n";
-        }
-    }
-};
+using namespace detray;
 
-class SyclPropagatorWithRkStepper
+class CudaPropagatorWithRkStepper
     : public ::testing::TestWithParam<__plugin::vector3<scalar>> {};
 
-TEST_P(SyclPropagatorWithRkStepper, propagator) {
-
-    // Creating SYCL queue object
-    ::sycl::queue q(handle_async_error);
-    std::cout << "Running Seeding on device: "
-              << q.get_device().get_info<::sycl::info::device::name>() << "\n";
+TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
     // Helper object for performing memory copies.
     vecmem::copy copy;
 
     // VecMem memory resource(s)
-    vecmem::sycl::shared_memory_resource shared_mr;
+    vecmem::cuda::managed_memory_resource mng_mr;
 
     // Set the magnetic field
     const vector3 B = GetParam();
 
     // Create the toy geometry
     detector_host_type det = create_toy_geometry<host_container_types>(
-        shared_mr,
+        mng_mr,
         field_type(field_type::backend_t::configuration_t{B[0], B[1], B[2]}),
         n_brl_layers, n_edc_layers);
 
     // Create the vector of initial track parameters
-    vecmem::vector<free_track_parameters<transform3>> tracks_host(&shared_mr);
-    vecmem::vector<free_track_parameters<transform3>> tracks_device(&shared_mr);
+    vecmem::vector<free_track_parameters<transform3>> tracks_host(&mng_mr);
+    vecmem::vector<free_track_parameters<transform3>> tracks_device(&mng_mr);
 
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
@@ -81,14 +66,14 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
     propagator_host_type p(std::move(s), std::move(n));
 
     // Create vector for track recording
-    vecmem::jagged_vector<scalar> host_path_lengths(&shared_mr);
-    vecmem::jagged_vector<vector3> host_positions(&shared_mr);
-    vecmem::jagged_vector<free_matrix> host_jac_transports(&shared_mr);
+    vecmem::jagged_vector<scalar> host_path_lengths(&mng_mr);
+    vecmem::jagged_vector<vector3> host_positions(&mng_mr);
+    vecmem::jagged_vector<free_matrix> host_jac_transports(&mng_mr);
 
-    for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
+    for (const auto& trk : tracks_host) {
 
         // Create the propagator state
-        inspector_host_t::state insp_state{shared_mr};
+        inspector_host_t::state insp_state{mng_mr};
         pathlimit_aborter::state pathlimit_state{path_limit};
         parameter_transporter<transform3>::state transporter_state{};
         pointwise_material_interactor<transform3>::state interactor_state{};
@@ -97,8 +82,7 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
             thrust::tie(insp_state, pathlimit_state, transporter_state,
                         interactor_state, resetter_state);
 
-        propagator_host_type::state state(tracks_host[i], det.get_bfield(),
-                                          det);
+        propagator_host_type::state state(trk, det.get_bfield(), det);
 
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
             constrainted_step_size);
@@ -126,7 +110,7 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
 
     // Create navigator candidates buffer
     auto candidates_buffer =
-        create_candidates_buffer(det, theta_steps * phi_steps, shared_mr);
+        create_candidates_buffer(det, theta_steps * phi_steps, mng_mr);
     copy.setup(candidates_buffer);
 
     // Create vector buffer for track recording
@@ -137,27 +121,24 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
     }
 
     vecmem::data::jagged_vector_buffer<scalar> path_lengths_buffer(
-        sizes, capacities, shared_mr);
+        sizes, capacities, mng_mr);
     vecmem::data::jagged_vector_buffer<vector3> positions_buffer(
-        sizes, capacities, shared_mr);
+        sizes, capacities, mng_mr);
     vecmem::data::jagged_vector_buffer<free_matrix> jac_transports_buffer(
-        sizes, capacities, shared_mr);
+        sizes, capacities, mng_mr);
 
     copy.setup(path_lengths_buffer);
     copy.setup(positions_buffer);
     copy.setup(jac_transports_buffer);
 
-    detray::sycl::queue_wrapper queue(&q);
-
     // Run the propagator test for GPU device
-
     propagator_test(det_data, tracks_data, candidates_buffer,
                     path_lengths_buffer, positions_buffer,
-                    jac_transports_buffer, queue);
+                    jac_transports_buffer);
 
-    vecmem::jagged_vector<scalar> device_path_lengths(&shared_mr);
-    vecmem::jagged_vector<vector3> device_positions(&shared_mr);
-    vecmem::jagged_vector<free_matrix> device_jac_transports(&shared_mr);
+    vecmem::jagged_vector<scalar> device_path_lengths(&mng_mr);
+    vecmem::jagged_vector<vector3> device_positions(&mng_mr);
+    vecmem::jagged_vector<free_matrix> device_jac_transports(&mng_mr);
 
     copy(path_lengths_buffer, device_path_lengths);
     copy(positions_buffer, device_positions);
@@ -166,6 +147,7 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
     // Compare the positions
     for (unsigned int i = 0; i < host_positions.size(); i++) {
         ASSERT_TRUE(host_positions[i].size() > 0);
+
         for (unsigned int j = 0; j < host_positions[i].size(); j++) {
 
             auto host_pl = host_path_lengths[i][j];
@@ -210,22 +192,22 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
     }
 }
 
-INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation1, SyclPropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation1, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
                              0. * unit<scalar>::T, 0. * unit<scalar>::T,
                              2. * unit<scalar>::T}));
 
-INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation2, SyclPropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation2, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
                              0. * unit<scalar>::T, 1. * unit<scalar>::T,
                              1. * unit<scalar>::T}));
 
-INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation3, SyclPropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation3, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
                              1. * unit<scalar>::T, 0. * unit<scalar>::T,
                              1. * unit<scalar>::T}));
 
-INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation4, SyclPropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation4, CudaPropagatorWithRkStepper,
                          ::testing::Values(__plugin::vector3<scalar>{
                              1. * unit<scalar>::T, 1. * unit<scalar>::T,
                              1. * unit<scalar>::T}));
