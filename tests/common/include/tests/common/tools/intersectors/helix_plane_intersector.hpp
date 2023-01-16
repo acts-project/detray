@@ -34,7 +34,6 @@ struct helix_plane_intersector {
     using point3 = typename transform3_t::point3;
     using vector3 = typename transform3_t::vector3;
     using helix_type = detail::helix<transform3_t>;
-    using intersection_type = line_plane_intersection;
 
     /// Operator function to find intersections between helix and planar mask
     ///
@@ -48,17 +47,19 @@ struct helix_plane_intersector {
     /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersection
-    template <typename mask_t>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type, 2> operator()(
-        const helix_type &h, const mask_t &mask, const transform3_t &trf,
-        const scalar mask_tolerance = 0) const {
+    template <typename mask_t, typename surface_t>
+    DETRAY_HOST_DEVICE inline std::array<
+        line_plane_intersection<surface_t, transform3_t>, 1>
+    operator()(const helix_type &h, surface_t sf, const mask_t &mask,
+               const transform3_t &trf, const scalar mask_tolerance = 0) const {
 
-        std::array<intersection_type, 2> ret;
+        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
+        std::array<intersection_t, 1> ret;
 
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{100};
         // Tolerance for convergence
-        constexpr scalar tol{1e-3};
+        constexpr scalar tol{1e-3f};
 
         // Get the surface info
         const auto &sm = trf.matrix();
@@ -92,18 +93,26 @@ struct helix_plane_intersector {
         }
 
         // Build intersection struct from helix parameter s
-        intersection_type &is = ret[0];
+        intersection_t &is = ret[0];
         const point3 helix_pos = h.pos(s);
 
         is.path = getter::norm(helix_pos);
+        if (is.path < h.overstep_tolerance()) {
+            return ret;
+        }
+
         is.p3 = helix_pos;
         is.p2 = mask.to_local_frame(trf, is.p3, h.dir(s));
-
         is.status = mask.is_inside(is.p2, mask_tolerance);
-        is.direction = vector::dot(st, h.dir(s)) > 0.f
-                           ? intersection::direction::e_along
-                           : intersection::direction::e_opposite;
-        is.volume_link = mask.volume_link();
+
+        // Compute some additional information if the intersection is valid
+        if (is.status == intersection::status::e_inside) {
+            is.surface = sf;
+            is.direction = std::signbit(vector::dot(st, h.dir(s)))
+                               ? intersection::direction::e_opposite
+                               : intersection::direction::e_along;
+            is.volume_link = mask.volume_link();
+        }
 
         return ret;
     }
@@ -128,7 +137,6 @@ struct helix_intersector<
     using point3 = typename intersector_impl::point3;
     using vector3 = typename intersector_impl::vector3;
     using helix_type = typename intersector_impl::helix_type;
-    using intersection_type = typename intersector_impl::intersection_type;
 };
 
 }  // namespace detray

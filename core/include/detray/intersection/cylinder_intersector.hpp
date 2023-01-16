@@ -32,9 +32,8 @@ struct cylinder_intersector {
     using vector3 = typename transform3_t::vector3;
     /// @}
     using ray_type = detail::ray<transform3_t>;
-    using intersection_type = line_plane_intersection;
 
-    /// Operator function to find intersections between ray and cylinder mask
+    /// Operator function to find intersections between a ray and a 2D cylinder
     ///
     /// @tparam mask_t is the input mask type
     /// @tparam transform_t is the input transform type
@@ -45,19 +44,51 @@ struct cylinder_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     /// @param overstep_tolerance is the tolerance for track overstepping
     ///
-    /// @return the intersection
+    /// @return the intersections.
     template <
-        typename mask_t,
+        typename mask_t, typename surface_t,
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
                                         cylindrical2<transform3_t>>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type, 2> operator()(
-        const ray_type &ray, const mask_t &mask, const transform3_t &trf,
-        const scalar_type mask_tolerance = 0.f,
-        const scalar_type /*overstep_tolerance*/ = 0.f) const {
+    DETRAY_HOST_DEVICE inline std::array<
+        line_plane_intersection<surface_t, transform3_t>, 2>
+    operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
+               const transform3_t &trf,
+               const scalar_type mask_tolerance = 0.f) const {
 
-        std::array<intersection_type, 2> is;
+        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
 
+        // One or both of these solutions might be invalid
+        const auto qe = solve_intersection(ray, mask, trf);
+
+        std::array<intersection_t, 2> ret;
+        switch (qe.solutions()) {
+            case 2:
+                ret[1] = build_candidate<intersection_t>(
+                    ray, mask, trf, qe.larger(), mask_tolerance);
+                ret[1].surface = sf;
+            case 1:
+                ret[0] = build_candidate<intersection_t>(
+                    ray, mask, trf, qe.smaller(), mask_tolerance);
+                ret[0].surface = sf;
+                break;
+            case 0:
+                ret[0].status = intersection::status::e_missed;
+                ret[1].status = intersection::status::e_missed;
+        };
+
+        return ret;
+    }
+
+    protected:
+    /// Calculates the distance to the (two) intersection points on the
+    /// cylinder in global coordinates
+    ///
+    /// @returns a quadratic equation object that contains the solution(s).
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline detail::quadratic_equation<scalar_type>
+    solve_intersection(const ray_type &ray, const mask_t &mask,
+                       const transform3_t &trf) const {
         const scalar_type r{mask[mask_t::shape::e_r]};
         const auto &m = trf.matrix();
         const vector3 sz = getter::vector<3>(m, 0, 2);
@@ -72,38 +103,56 @@ struct cylinder_intersector {
         const scalar_type b{2.f * vector::dot(rd_cross_sz, pc_cross_sz)};
         const scalar_type c{vector::dot(pc_cross_sz, pc_cross_sz) - (r * r)};
 
-        detail::quadratic_equation<scalar_type> qe{a, b, c};
+        return detail::quadratic_equation<scalar_type>{a, b, c};
+    }
 
-        // One or both of these solutions might be invalid
-        is[0].path = qe.smaller();
-        is[1].path = qe.larger();
+    /// From the intersection path, construct an intersection candidate and
+    /// chack it against the surface boundaries (mask).
+    ///
+    /// @returns the intersection candidate.
+    template <typename intersection_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline intersection_t build_candidate(
+        const ray_type &ray, const mask_t &mask, const transform3_t &trf,
+        const scalar_type path, const scalar_type mask_tolerance = 0.f) const {
 
-        // Only loop over valid solutions
-        for (int i{0}; i < qe.solutions(); ++i) {
-            is[i].p3 = ro + is[i].path * rd;
-            // In this case, the point has to be in cylinder3 coordinates
-            // for the r-check
+        intersection_t is;
+
+        // Construct the candidate only when needed
+        if (path >= ray.overstep_tolerance()) {
+
+            const point3 &ro = ray.pos();
+            const vector3 &rd = ray.dir();
+
+            is.path = path;
+            is.p3 = ro + is.path * rd;
+
+            // The point has to be in cylinder3 coordinates for the r-check
             if constexpr (mask_t::shape::check_radius) {
-                const auto loc3D = mask.to_local_frame(trf, is[i].p3);
-                is[i].status = mask.is_inside(loc3D, mask_tolerance);
-                is[i].p2 = {loc3D[0] * loc3D[1], loc3D[2]};
+                const auto loc3D = mask.to_local_frame(trf, is.p3);
+                is.status = mask.is_inside(loc3D, mask_tolerance);
+                // Go from local to measurement frame
+                is.p2 = point2{loc3D[0] * loc3D[1], loc3D[2]};
             } else {
-                is[i].p2 = mask.to_local_frame(trf, is[i].p3);
-                is[i].status = mask.is_inside(is[i].p2, mask_tolerance);
+                // local frame and measurement frame are identical
+                is.p2 = mask.to_local_frame(trf, is.p3);
+                is.status = mask.is_inside(is.p2, mask_tolerance);
             }
+
             // prepare some additional information in case the intersection
             // is valid
-            if (is[i].status == intersection::status::e_inside) {
-                is[i].direction = vector::dot(is[i].p3, rd) > 0.f
-                                      ? intersection::direction::e_along
-                                      : intersection::direction::e_opposite;
-                is[i].volume_link = mask.volume_link();
+            if (is.status == intersection::status::e_inside) {
+                is.direction = std::signbit(is.path)
+                                   ? intersection::direction::e_opposite
+                                   : intersection::direction::e_along;
+                is.volume_link = mask.volume_link();
 
                 // Get incidence angle
-                const scalar_type phi{is[i].p2[0] / r};
+                const scalar_type phi{is.p2[0] / mask[mask_t::shape::e_r]};
                 const vector3 normal = {std::cos(phi), std::sin(phi), 0.f};
-                is[i].cos_incidence_angle = vector::dot(rd, normal);
+                is.cos_incidence_angle = vector::dot(rd, normal);
             }
+        } else {
+            is.status = intersection::status::e_missed;
         }
 
         return is;

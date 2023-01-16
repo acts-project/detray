@@ -24,9 +24,6 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
-using transform3_type = __plugin::transform3<scalar>;
 
 enum mask_ids : unsigned int {
     e_rectangle2 = 0,
@@ -53,11 +50,15 @@ using mask_link_t = typename mask_container_t::single_link;
 using material_link_t = dtyped_index<material_ids, dindex>;
 
 using transform_container_t = single_store<__plugin::transform3<scalar>>;
+using transform3_t = typename transform_container_t::value_type;
 using transform_link_t = dindex;
 
 /// The Surface definition:
 using surface_t = surface<mask_link_t, material_link_t, transform_link_t>;
 using surface_container_t = dvector<surface_t>;
+
+using vector3 = typename transform3_t::vector3;
+using point3 = typename transform3_t::point3;
 
 constexpr const float epsilon = 1e-3;
 
@@ -96,7 +97,7 @@ TEST(tools, intersection_kernel_ray) {
 
     const point3 pos{0., 0., 0.};
     const vector3 mom{0.01, 0.01, 10.};
-    const free_track_parameters<transform3_type> track(pos, 0, mom, -1);
+    const free_track_parameters<transform3_t> track(pos, 0, mom, -1);
 
     // Validation data
     const point3 expected_rectangle{0.01, 0.01, 10.};
@@ -107,7 +108,7 @@ TEST(tools, intersection_kernel_ray) {
         expected_rectangle, expected_trapezoid, expected_annulus};
 
     // Initialize kernel
-    std::vector<line_plane_intersection> sfi_init;
+    std::vector<line_plane_intersection<surface_t, transform3_t>> sfi_init;
 
     for (const auto& surface : surfaces) {
         mask_store.visit<intersection_initialize>(surface.mask(), sfi_init,
@@ -116,7 +117,7 @@ TEST(tools, intersection_kernel_ray) {
     }
 
     // Update kernel
-    std::vector<line_plane_intersection> sfi_update;
+    std::vector<line_plane_intersection<surface_t, transform3_t>> sfi_update;
 
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
         const auto sfi = mask_store.visit<intersection_update>(
@@ -173,7 +174,7 @@ TEST(tools, intersection_kernel_helix) {
     const vector3 mom{0.01, 0.01, 10.};
     const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
                     epsilon * unit<scalar>::T};
-    const detail::helix<transform3_type> h({pos, 0, mom, -1}, &B);
+    const detail::helix<transform3_t> h({pos, 0, mom, -1}, &B);
 
     // Validation data
     const point3 expected_rectangle{0.01, 0.01, 10.};
@@ -181,7 +182,7 @@ TEST(tools, intersection_kernel_helix) {
     const point3 expected_annulus{0.03, 0.03, 30.};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
-    std::vector<line_plane_intersection> sfi_helix{};
+    std::vector<line_plane_intersection<surface_t, transform3_t>> sfi_helix{};
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {

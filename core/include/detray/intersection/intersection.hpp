@@ -30,10 +30,10 @@ enum class direction {
 
 /// Intersection status: outside, missed, inside, hit ( w/o maks status)
 enum class status {
-    e_outside = -1,  //!< surface hit but outside
-    e_missed = 0,    //!< surface missed
-    e_hit = 1,       //!< surface hit but status not checked
-    e_inside = 2     //!< surface hit and inside confirmed
+    e_outside = -1,   //!< surface hit but outside
+    e_missed = 0,     //!< surface missed
+    e_undefined = 1,  //!< surface hit but status not checked
+    e_inside = 2      //!< surface hit and inside confirmed
 };
 
 }  // namespace intersection
@@ -42,42 +42,40 @@ enum class status {
 ///
 /// @tparam point3 is the type of global intsersection vector
 /// @tparam point2 is the type of the local intersection vector
+template <typename surface_handle_t,
+          typename algebra_t = __plugin::transform3<detray::scalar>>
 struct line_plane_intersection {
 
-    using point3 = __plugin::point3<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
-    using point2 = __plugin::point2<scalar>;
-
-    /// Distance between track and candidate
-    scalar path{std::numeric_limits<scalar>::infinity()};
-    point3 p3{std::numeric_limits<scalar>::infinity(),
-              std::numeric_limits<scalar>::infinity(),
-              std::numeric_limits<scalar>::infinity()};
-
-    /// Local position of the intersection on the surface
-    point2 p2{std::numeric_limits<scalar>::infinity(),
-              std::numeric_limits<scalar>::infinity()};
+    using scalar_t = typename algebra_t::scalar_type;
+    using point3 = typename algebra_t::point3;
+    using point2 = typename algebra_t::point2;
 
     /// Result of the intersection
-    intersection::status status{intersection::status::e_missed};
+    intersection::status status{intersection::status::e_undefined};
 
     /// Direction of the intersection with respect to the track
     intersection::direction direction{intersection::direction::e_undefined};
 
-    /// Mask index
-    dindex mask_index{dindex_invalid};
+    /// Distance between track and candidate
+    scalar_t path{std::numeric_limits<scalar_t>::infinity()};
 
-    /// Primitive this intersection belongs to
-    geometry::barcode barcode{};
+    /// cosine of incidence angle
+    scalar_t cos_incidence_angle{std::numeric_limits<scalar_t>::infinity()};
 
-    /// Navigation information
+    /// Navigation information (next volume to go to)
     dindex volume_link{dindex_invalid};
 
-    /// Surface id for this intersection (sensitive, portal, passive)
-    surface_id sf_id{surface_id::e_sensitive};
+    /// Handle of the surface this intersection belongs to
+    surface_handle_t surface{};
 
-    // cosine of incidence angle
-    scalar cos_incidence_angle{1.f};
+    /// Intersection point in global 3D cartesian coordinate frame
+    point3 p3{std::numeric_limits<scalar_t>::infinity(),
+              std::numeric_limits<scalar_t>::infinity(),
+              std::numeric_limits<scalar_t>::infinity()};
+
+    /// Local position of the intersection on the surface
+    point2 p2{std::numeric_limits<scalar_t>::infinity(),
+              std::numeric_limits<scalar_t>::infinity()};
 
     /// @param rhs is the right hand side intersection for comparison
     DETRAY_HOST_DEVICE
@@ -95,16 +93,16 @@ struct line_plane_intersection {
     DETRAY_HOST_DEVICE
     bool operator==(const line_plane_intersection &rhs) const {
         return std::abs(path - rhs.path) <
-               std::numeric_limits<scalar>::epsilon();
+               std::numeric_limits<scalar_t>::epsilon();
     }
 
     /// Transform to a string for output debugging
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const line_plane_intersection &is) {
-        scalar r{getter::perp(is.p3)};
+        scalar_t r{getter::perp(is.p3)};
         out_stream << "dist:" << is.path << " [r:" << r << ", z:" << is.p3[2]
-                   << "], (sf index:" << is.barcode
+                   << "], (sf index:" << is.surface.barcode()
                    << ", links to vol:" << is.volume_link << ")";
         switch (is.status) {
             case intersection::status::e_outside:
@@ -113,8 +111,8 @@ struct line_plane_intersection {
             case intersection::status::e_missed:
                 out_stream << ", status: missed";
                 break;
-            case intersection::status::e_hit:
-                out_stream << ", status: hit";
+            case intersection::status::e_undefined:
+                out_stream << ", status: undefined";
                 break;
             case intersection::status::e_inside:
                 out_stream << ", status: inside";

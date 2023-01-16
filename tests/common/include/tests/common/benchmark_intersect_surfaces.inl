@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -70,7 +70,7 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
             for (const auto &plane : planes) {
                 auto pi = rect.intersector();
-                auto is = pi(ray, rect, plane.transform())[0];
+                auto is = pi(ray, plane, rect, plane.transform())[0];
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
@@ -108,7 +108,7 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
     mask_link_t mask_link{mask_ids::e_cylinder2, 0};
     material_link_t material_link{material_ids::e_slab, 0};
-    plane_surface plain(transform3(), mask_link, material_link, 0, false,
+    plane_surface plane(transform3(), mask_link, material_link, 0, false,
                         surface_id::e_sensitive);
 
     const point3 ori = {0., 0., 0.};
@@ -136,7 +136,7 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
                 for (const auto &cylinder : cylinders) {
                     auto ci = cylinder.intersector();
-                    auto is = ci(ray, cylinder, plain.transform())[0];
+                    auto is = ci(ray, plane, cylinder, plane.transform())[0];
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);
@@ -175,7 +175,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
     mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0};
     material_link_t material_link{material_ids::e_slab, 0};
-    plane_surface plain(transform3(), mask_link, material_link, 0, false,
+    plane_surface plane(transform3(), mask_link, material_link, 0, false,
                         surface_id::e_sensitive);
 
     const point3 ori = {0., 0., 0.};
@@ -200,7 +200,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
                 for (const auto &cylinder : cylinders) {
                     auto cci = cylinder.intersector();
-                    auto is = cci(ray, cylinder, plain.transform())[0];
+                    auto is = cci(ray, plane, cylinder, plane.transform())[0];
 
                     benchmark::DoNotOptimize(sfhit);
                     benchmark::DoNotOptimize(sfmiss);

@@ -16,9 +16,7 @@
 #include <climits>
 #include <cmath>
 
-namespace detray {
-
-namespace detail {
+namespace detray::detail {
 
 /// @brief describes a straight-line trajectory
 template <typename transform3_t>
@@ -69,6 +67,12 @@ class ray {
     /// @returns overstep tolerance to comply with track interface
     DETRAY_HOST_DEVICE
     scalar_type overstep_tolerance() const { return _overstep_tolerance; }
+
+    /// Sets overstep tolerance to comply with track interface
+    DETRAY_HOST_DEVICE
+    void set_overstep_tolerance(const scalar_type tolerance) {
+        _overstep_tolerance = tolerance;
+    }
 
     private:
     /// origin of ray
@@ -309,6 +313,4 @@ class helix : public free_track_parameters<transform3_t> {
     scalar_type _vz_over_vt;
 };
 
-}  // namespace detail
-
-}  // namespace detray
+}  // namespace detray::detail

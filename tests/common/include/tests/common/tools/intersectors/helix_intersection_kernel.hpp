@@ -54,11 +54,9 @@ struct helix_intersection_initialize {
              detray::ranges::subrange(mask_group, mask_range)) {
 
             auto sfi = std::move(helix_intersector<transform3_t, mask_t>()(
-                traj, mask, ctf, mask_tolerance));
+                traj, surface, mask, ctf, mask_tolerance));
 
-            if (sfi[0].status == intersection::status::e_inside and
-                sfi[0].path >= traj.overstep_tolerance()) {
-                sfi[0].barcode = surface.barcode();
+            if (sfi[0].status == intersection::status::e_inside) {
                 is_container.push_back(sfi[0]);
             }
         }

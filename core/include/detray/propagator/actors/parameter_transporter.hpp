@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -65,7 +65,7 @@ struct parameter_transporter : actor {
 
             // Mask
             const auto& mask = mask_group[index];
-            auto local_coordinate = mask.local_frame();
+            auto local_coordinate = mask.measurement_frame();
 
             // Free vector
             const auto& free_vec = stepping().vector();
@@ -138,7 +138,7 @@ struct parameter_transporter : actor {
             const auto& mask_store = det->mask_store();
 
             // Surface
-            const auto& surface = det->surfaces(navigation.current_object());
+            const auto& surface = navigation.current()->surface;
 
             mask_store.template visit<kernel>(
                 surface.mask(), trf_store[surface.transform()], propagation);

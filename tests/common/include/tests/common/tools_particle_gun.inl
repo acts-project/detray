@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -39,8 +39,11 @@ TEST(tools, particle_gun) {
     const point3 ori{0., 0., 0.};
 
     // Record ray tracing
-    std::vector<std::vector<std::pair<dindex, particle_gun::intersection_type>>>
-        expected;
+    using detector_t = decltype(toy_det);
+    using intersection_t =
+        line_plane_intersection<typename detector_t::surface_type,
+                                typename detector_t::transform3>;
+    std::vector<std::vector<std::pair<dindex, intersection_t>>> expected;
     //  Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray :
          uniform_track_generator<detail::ray<transform3_type>>(

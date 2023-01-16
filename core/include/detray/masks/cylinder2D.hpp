@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -64,6 +64,12 @@ class cylinder2D {
         std::conditional_t<kRadialCheck,
                            typename local_frame_type<algebra_t>::point3,
                            typename local_frame_type<algebra_t>::point2>;
+    /// Local coordinate frame for boundary checks
+    /*template <typename algebra_t>
+    using local_frame_type = cylindrical2<algebra_t>;
+    /// Local point type for boundary checks (2D or 3D)
+    template <typename algebra_t>
+    using loc_point_type = typename local_frame_type<algebra_t>::point2;*/
 
     /// Measurement frame
     template <typename algebra_t>

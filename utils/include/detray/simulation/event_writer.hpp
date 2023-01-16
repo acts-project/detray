@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -89,7 +89,7 @@ struct event_writer : actor {
 
         // triggered only for sensitive surfaces
         if (navigation.is_on_module() &&
-            navigation.current()->sf_id == surface_id::e_sensitive) {
+            navigation.current()->surface.id() == surface_id::e_sensitive) {
 
             // Write hits
             csv_hit hit;

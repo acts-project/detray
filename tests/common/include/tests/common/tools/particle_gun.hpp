@@ -7,16 +7,16 @@
 
 #pragma once
 
-// system include
-#include <cmath>
-#include <type_traits>
-
-// detray include(s)
+// Project include(s)
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
+
+// System include(s)
+#include <cmath>
+#include <type_traits>
 
 namespace detray {
 
@@ -25,8 +25,6 @@ namespace detray {
 ///
 /// Records intersections with every detector surface along the trajectory.
 struct particle_gun {
-
-    using intersection_type = line_plane_intersection;
 
     /// Intersect all surfaces in a detector with a given ray.
     ///
@@ -40,28 +38,31 @@ struct particle_gun {
     DETRAY_HOST_DEVICE inline static auto shoot_particle(
         const detector_t &detector, const trajectory_t &traj) {
 
-        std::vector<std::pair<dindex, intersection_type>> intersection_record;
+        using intersection_t =
+            line_plane_intersection<typename detector_t::surface_type,
+                                    typename detector_t::transform3>;
+
+        std::vector<std::pair<dindex, intersection_t>> intersection_record;
 
         using helix_type =
             detail::helix<typename trajectory_t::transform3_type>;
+
+        using intersection_kernel_t =
+            std::conditional_t<std::is_same_v<trajectory_t, helix_type>,
+                               helix_intersection_initialize,
+                               intersection_initialize>;
 
         // Loop over all surfaces in the detector
         const auto &mask_store = detector.mask_store();
         const auto &tf_store = detector.transform_store();
 
-        std::vector<intersection_type> intersections{};
+        std::vector<intersection_t> intersections{};
 
         for (const auto &volume : detector.volumes()) {
             for (const auto &sf : detector.surfaces(volume)) {
-
                 // Retrieve candidate(s) from the surface
-                if constexpr (std::is_same_v<trajectory_t, helix_type>) {
-                    mask_store.template visit<helix_intersection_initialize>(
-                        sf.mask(), intersections, traj, sf, tf_store, 1e-4);
-                } else {
-                    mask_store.template visit<intersection_initialize>(
-                        sf.mask(), intersections, traj, sf, tf_store);
-                }
+                mask_store.template visit<intersection_kernel_t>(
+                    sf.mask(), intersections, traj, sf, tf_store, 1e-4);
                 // Candidate is invalid if it oversteps too far (this is neg!)
                 if (intersections.empty() or
                     intersections[0].path < traj.overstep_tolerance()) {
@@ -72,7 +73,7 @@ struct particle_gun {
                     intersections[0].direction ==
                         intersection::direction::e_along) {
                     // Volume the candidate belongs to
-                    intersections[0].barcode = sf.barcode();
+                    intersections[0].surface = sf;
                     intersection_record.emplace_back(volume.index(),
                                                      intersections[0]);
                 }
@@ -81,8 +82,8 @@ struct particle_gun {
         }
 
         // Sort intersections by distance to origin of the trajectory
-        auto sort_path = [&](std::pair<dindex, intersection_type> a,
-                             std::pair<dindex, intersection_type> b) -> bool {
+        auto sort_path = [&](std::pair<dindex, intersection_t> a,
+                             std::pair<dindex, intersection_t> b) -> bool {
             return (a.second < b.second);
         };
         std::sort(intersection_record.begin(), intersection_record.end(),

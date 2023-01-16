@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -98,12 +98,14 @@ template <typename detector_t,
 class navigator {
 
     public:
-    using intersection_type = line_plane_intersection;
     using inspector_type = inspector_t;
     using detector_type = detector_t;
     using volume_type = typename detector_t::volume_type;
     template <typename T>
     using vector_type = typename detector_t::template vector_type<T>;
+    using intersection_type =
+        line_plane_intersection<typename detector_type::surface_type,
+                                typename detector_type::transform3>;
 
     /// A navigation state object used to cache the information of the
     /// current navigation stream.
@@ -232,7 +234,9 @@ class navigator {
 
         /// @returns the next object the navigator indends to reach
         DETRAY_HOST_DEVICE
-        inline auto next_object() const -> dindex { return _next->barcode; }
+        inline auto next_object() const -> dindex {
+            return _next->surface.barcode();
+        }
 
         /// @returns current navigation status - const
         DETRAY_HOST_DEVICE
@@ -694,7 +698,8 @@ class navigator {
                 navigation.volume() != navigation.current()->volume_link
                     ? navigation::status::e_on_portal
                     : navigation::status::e_on_module,
-                navigation.current()->barcode, navigation::trust_level::e_full);
+                navigation.current()->surface.barcode(),
+                navigation::trust_level::e_full);
         } else {
             // Otherwise the track is moving towards a surface
             navigation.set_state(navigation::status::e_towards_object,
@@ -723,7 +728,7 @@ class navigator {
         const detector_type *det) const {
 
         const auto &mask_store = det->mask_store();
-        const auto &sf = det->surfaces(candidate.barcode);
+        const auto &sf = candidate.surface;
         candidate = mask_store.template visit<intersection_update>(
             sf.mask(), detail::ray(track), sf, det->transform_store());
 
@@ -787,12 +792,14 @@ class navigator {
 // candidates size allocation. With the local navigation, the size can be
 // restricted to much smaller value
 template <typename detector_t>
-DETRAY_HOST vecmem::data::jagged_vector_buffer<line_plane_intersection>
+DETRAY_HOST vecmem::data::jagged_vector_buffer<line_plane_intersection<
+    typename detector_t::surface_type, typename detector_t::transform3>>
 create_candidates_buffer(
     const detector_t &det, const unsigned int n_tracks,
     vecmem::memory_resource &device_resource,
     vecmem::memory_resource *host_access_resource = nullptr) {
-    return vecmem::data::jagged_vector_buffer<line_plane_intersection>(
+    return vecmem::data::jagged_vector_buffer<line_plane_intersection<
+        typename detector_t::surface_type, typename detector_t::transform3>>(
         std::vector<std::size_t>(n_tracks, 0),
         std::vector<std::size_t>(n_tracks, det.get_n_max_objects_per_volume()),
         device_resource, host_access_resource);

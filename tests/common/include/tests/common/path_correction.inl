@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -54,7 +54,7 @@ struct surface_targeter : actor {
         stepping.set_constraint(residual);
 
         typename propagator_state_t::navigator_state_type::intersection_t is;
-        is.barcode = actor_state._target_surface_index;
+        is.surface.set_barcode(actor_state._target_surface_index);
         is.path = residual;
         auto &candidates = navigation.candidates();
         candidates.clear();

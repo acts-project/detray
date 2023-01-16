@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -62,10 +62,11 @@ struct pointwise_material_interactor : actor {
         using state = typename pointwise_material_interactor::state;
 
         template <typename material_group_t, typename index_t,
-                  typename stepper_state_t>
+                  typename surface_t, typename stepper_state_t>
         DETRAY_HOST_DEVICE inline bool operator()(
             const material_group_t &material_group,
-            const index_t &material_range, const line_plane_intersection &is,
+            const index_t &material_range,
+            const line_plane_intersection<surface_t, transform3_type> &is,
             state &s, const stepper_state_t &stepping) const {
 
             const scalar qop = stepping().qop();
@@ -116,11 +117,10 @@ struct pointwise_material_interactor : actor {
 
             const auto &is = *navigation.current();
             const auto *det = navigation.detector();
-            const auto &surface = det->surfaces(is.barcode);
             const auto &mat_store = det->material_store();
 
             auto succeed = mat_store.template visit<kernel>(
-                surface.material(), is, interactor_state, stepping);
+                is.surface.material(), is, interactor_state, stepping);
 
             if (succeed) {
 

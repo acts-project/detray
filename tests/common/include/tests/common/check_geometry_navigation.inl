@@ -24,19 +24,15 @@
 #include "tests/common/tools/particle_gun.hpp"
 
 using namespace detray;
-
-namespace {
 using namespace navigation;
 
-using object_tracer_t =
-    object_tracer<dvector, status::e_on_module, status::e_on_portal>;
-using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
+namespace {
+
+using transform3_t = __plugin::transform3<scalar>;
+using ray_type = detail::ray<transform3_t>;
+using free_track_parameters_type = free_track_parameters<transform3_t>;
 
 }  // anonymous namespace
-
-using transform3_type = __plugin::transform3<scalar>;
-using ray_type = detail::ray<transform3_type>;
-using free_track_parameters_type = free_track_parameters<transform3_type>;
 
 /// This test runs intersection with all portals of the toy detector with a ray
 /// and then compares the intersection trace with a straight line navigation.
@@ -49,9 +45,17 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Straight line navigation
-    using navigator_t = navigator<decltype(det), inspector_t>;
+    using detector_t = decltype(det);
+    using intersection_t =
+        line_plane_intersection<typename detector_t::surface_type,
+                                transform3_t>;
+    using object_tracer_t =
+        object_tracer<intersection_t, dvector, status::e_on_module,
+                      status::e_on_portal>;
+    using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
+    using navigator_t = navigator<detector_t, inspector_t>;
     using stepper_t =
-        line_stepper<transform3_type, unconstrained_step, always_init>;
+        line_stepper<transform3_t, unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
@@ -98,20 +102,21 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0; i < obj_tracer.object_trace.size(); ++i) {
-            if (obj_tracer[i].barcode != intersection_trace[i].second.barcode) {
+            if (obj_tracer[i].surface.barcode() !=
+                intersection_trace[i].second.surface.barcode()) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
-                if (obj_tracer[i].barcode ==
-                        intersection_trace[i + 1].second.barcode and
-                    obj_tracer[i + 1].barcode ==
-                        intersection_trace[i].second.barcode) {
+                if (obj_tracer[i].surface.barcode() ==
+                        intersection_trace[i + 1].second.surface.barcode() and
+                    obj_tracer[i + 1].surface.barcode() ==
+                        intersection_trace[i].second.surface.barcode()) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].barcode,
-                      intersection_trace[i].second.barcode)
+            EXPECT_EQ(obj_tracer[i].surface.barcode(),
+                      intersection_trace[i].second.surface.barcode())
                 << debug_printer.to_string() << debug_stream.str();
         }
     }
@@ -140,8 +145,16 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
         n_brl_layers, n_edc_layers);
 
     // Runge-Kutta based navigation
-    using navigator_t = navigator<decltype(det), inspector_t>;
-    using stepper_t = rk_stepper<b_field_t::view_t, transform3_type,
+    using detector_t = decltype(det);
+    using intersection_t =
+        line_plane_intersection<typename detector_t::surface_type,
+                                transform3_t>;
+    using object_tracer_t =
+        object_tracer<intersection_t, dvector, status::e_on_module,
+                      status::e_on_portal>;
+    using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
+    using navigator_t = navigator<detector_t, inspector_t>;
+    using stepper_t = rk_stepper<b_field_t::view_t, transform3_t,
                                  unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
@@ -198,20 +211,21 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0; i < obj_tracer.object_trace.size(); ++i) {
-            if (obj_tracer[i].barcode != intersection_trace[i].second.barcode) {
+            if (obj_tracer[i].surface.barcode() !=
+                intersection_trace[i].second.surface.barcode()) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
-                if (obj_tracer[i].barcode ==
-                        intersection_trace[i + 1].second.barcode and
-                    obj_tracer[i + 1].barcode ==
-                        intersection_trace[i].second.barcode) {
+                if (obj_tracer[i].surface.barcode() ==
+                        intersection_trace[i + 1].second.surface.barcode() and
+                    obj_tracer[i + 1].surface.barcode() ==
+                        intersection_trace[i].second.surface.barcode()) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].barcode,
-                      intersection_trace[i].second.barcode);
+            EXPECT_EQ(obj_tracer[i].surface.barcode(),
+                      intersection_trace[i].second.surface.barcode());
         }
     }
 }

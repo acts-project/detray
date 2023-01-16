@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -28,7 +28,6 @@ struct plane_intersector {
     using point3 = typename transform3_t::point3;
     using vector3 = typename transform3_t::vector3;
     using ray_type = detail::ray<transform3_t>;
-    using intersection_type = line_plane_intersection;
 
     /// Operator function to find intersections between ray and planar mask
     ///
@@ -43,15 +42,18 @@ struct plane_intersector {
     ///
     /// @return the intersection
     template <
-        typename mask_t,
+        typename mask_t, typename surface_t,
         std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type, 1> operator()(
-        const ray_type &ray, const mask_t &mask, const transform3_t &trf,
-        const scalar_type mask_tolerance = 0.f,
-        const scalar_type overstep_tolerance = 0.f) const {
+    DETRAY_HOST_DEVICE inline std::array<
+        line_plane_intersection<surface_t, transform3_t>, 1>
+    operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
+               const transform3_t &trf,
+               const scalar_type mask_tolerance = 0.f) const {
 
-        std::array<intersection_type, 1> ret;
+        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
+        std::array<intersection_t, 1> ret;
+        intersection_t &is = ret[0];
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
@@ -63,23 +65,33 @@ struct plane_intersector {
         const vector3 &rd = ray.dir();
         const scalar_type denom = vector::dot(rd, sn);
         if (denom != 0.f) {
-            intersection_type &is = ret[0];
             is.path = vector::dot(sn, st - ro) / denom;
+
+            // Intersection is not valid for navigation - return early
+            if (is.path < ray.overstep_tolerance()) {
+                return ret;
+            }
+
+            is.surface = sf;
             is.p3 = ro + is.path * rd;
             is.p2 = mask.to_local_frame(trf, is.p3, ray.dir());
             is.status = mask.is_inside(is.p2, mask_tolerance);
+
             // prepare some additional information in case the intersection
             // is valid
             if (is.status == intersection::status::e_inside) {
-                is.direction = is.path > overstep_tolerance
-                                   ? intersection::direction::e_along
-                                   : intersection::direction::e_opposite;
+                is.direction = std::signbit(is.path)
+                                   ? intersection::direction::e_opposite
+                                   : intersection::direction::e_along;
                 is.volume_link = mask.volume_link();
 
                 // Get incidene angle
                 is.cos_incidence_angle = std::abs(denom);
             }
+        } else {
+            is.status = intersection::status::e_missed;
         }
+
         return ret;
     }
 };

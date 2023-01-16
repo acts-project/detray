@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -42,7 +42,7 @@ struct parameter_resetter : actor {
             // Note: How is it possible with "range"???
             const auto& mask = mask_group[index];
 
-            auto local_coordinate = mask.local_frame();
+            auto local_coordinate = mask.measurement_frame();
 
             // Reset the free vector
             stepping().set_vector(local_coordinate.bound_to_free_vector(
@@ -75,7 +75,7 @@ struct parameter_resetter : actor {
             const auto& mask_store = det->mask_store();
 
             // Surface
-            const auto& surface = det->surfaces(navigation.current_object());
+            const auto& surface = navigation.current()->surface;
 
             // Set surface link
             stepping._bound_params.set_surface_link(

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -47,7 +47,7 @@ struct cylindrical3 final : public coordinate_base<cylindrical3, transform3_t> {
      * local 3D cylindrical point */
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
-                                  const vector3 & /*d*/) const {
+                                  const vector3 & /*d*/ = {}) const {
         const auto local3 = trf.point_to_local(p);
         return this->operator()(local3);
     }

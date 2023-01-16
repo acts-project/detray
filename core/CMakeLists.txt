@@ -49,6 +49,7 @@ detray_add_library( detray_core core
    # intersection include(s)
    "include/detray/intersection/concentric_cylinder_intersector.hpp"
    "include/detray/intersection/cylinder_intersector.hpp"
+   "include/detray/intersection/cylinder_portal_intersector.hpp"
    "include/detray/intersection/detail/trajectories.hpp"
    "include/detray/intersection/intersection_kernel.hpp"
    "include/detray/intersection/intersection.hpp"
@@ -70,9 +71,9 @@ detray_add_library( detray_core core
    "include/detray/materials/detail/relativistic_quantities.hpp"
    "include/detray/materials/interaction.hpp"
    "include/detray/materials/material.hpp"
-   "include/detray/materials/material_rod.hpp"   
-   "include/detray/materials/material_slab.hpp"   
-   "include/detray/materials/mixture.hpp" 
+   "include/detray/materials/material_rod.hpp"
+   "include/detray/materials/material_slab.hpp"
+   "include/detray/materials/mixture.hpp"
    "include/detray/materials/predefined_materials.hpp"
    # propagator include(s)
    "include/detray/propagator/actors/aborters.hpp"
@@ -136,4 +137,4 @@ detray_add_library( detray_core core
    "include/detray/utils/tuple_helpers.hpp"
    "include/detray/utils/type_registry.hpp"
    "include/detray/utils/type_traits.hpp" )
-target_link_libraries( detray_core INTERFACE detray_io vecmem::core detray::Thrust)
+target_link_libraries(detray_core INTERFACE detray_io vecmem::core detray::Thrust)

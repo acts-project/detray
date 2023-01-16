@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 // Project include(s)
+#include "detray/geometry/surface.hpp"
 #include "detray/intersection/concentric_cylinder_intersector.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -31,12 +32,16 @@ using vector3 = __plugin::vector3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using ray_t = detray::detail::ray<transform3_t>;
 using helix_t = detray::detail::helix<transform3_t>;
+using surface_handle_t = dindex;
 
 constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
 constexpr scalar epsilon = 1e-5f;
 
 constexpr scalar r{4.f};
 constexpr scalar hz{10.f};
+
+// dummy surface
+constexpr surface_handle_t sf_handle{};
 
 }  // anonymous namespace
 
@@ -49,11 +54,13 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // Test ray
     const point3 ori = {3.f, 2.f, 5.f};
     const point3 dir = {1.f, 0.f, 0.f};
-    const ray_t ray(ori, 0.f, dir, 0.f);
+    ray_t ray(ori, 0.f, dir, 0.f);
+    // Set an infinite overstep tolerance, so that no solution is optimized away
+    ray.set_overstep_tolerance(-not_defined);
 
-    // Intersect
+    // Intersect:
     mask<cylinder2D<>, unsigned int, transform3_t> cylinder{0u, r, -hz, hz};
-    const auto hits_bound = ci(ray, cylinder, shifted);
+    const auto hits_bound = ci(ray, sf_handle, cylinder, shifted, epsilon);
 
     // first intersection lies behind the track
     EXPECT_TRUE(hits_bound[0].status == intersection::status::e_inside);
@@ -89,11 +96,14 @@ TEST(ALGEBRA_PLUGIN, cylinder_incidence_angle) {
     // Test ray
     const point3 ori = {0.f, 1.f, 0.f};
     const point3 dir = {1.f, 0.f, 0.f};
-    const ray_t ray(ori, 0.f, dir, 0.f);
+    ray_t ray(ori, 0.f, dir, 0.f);
+    // Set an infinite overstep tolerance, so that no solution is optimized away
+    ray.set_overstep_tolerance(-not_defined);
 
-    // Intersect
+    // Intersect: Set an infinite overstep tolerance, so that no solution is
+    // optimized away
     mask<cylinder2D<>, unsigned int, transform3_t> cylinder{0u, r, -hz, hz};
-    const auto hits_bound = ci(ray, cylinder, identity);
+    const auto hits_bound = ci(ray, sf_handle, cylinder, identity, epsilon);
 
     ASSERT_NEAR(hits_bound[0].cos_incidence_angle, -std::sqrt(15.f) / 4.f,
                 epsilon);
@@ -117,8 +127,10 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     concentric_cylinder_intersector<transform3_t> cci;
 
     // Intersect
-    const auto hits_cylinrical = ci(ray, cylinder, identity);
-    const auto hits_cocylindrical = cci(ray, cylinder, identity);
+    const auto hits_cylinrical =
+        ci(ray, sf_handle, cylinder, identity, epsilon);
+    const auto hits_cocylindrical =
+        cci(ray, sf_handle, cylinder, identity, epsilon);
 
     ASSERT_TRUE(hits_cylinrical[1].status == intersection::status::e_inside);
     ASSERT_TRUE(hits_cocylindrical[0].status == intersection::status::e_inside);
@@ -159,7 +171,7 @@ TEST(ALGEBRA_PLUGIN, helix_cylinder_intersector) {
     mask<cylinder2D<false, detail::helix_cylinder_intersector>, unsigned int,
          transform3_t>
         cylinder{0u, r, -hz, hz};
-    const auto hits_bound = hi(h, cylinder, shifted);
+    const auto hits_bound = hi(h, sf_handle, cylinder, shifted, epsilon);
 
     // No magnetic field, so the solutions must be the same as for a ray
     ASSERT_TRUE(hits_bound[0].status == intersection::status::e_inside);
@@ -170,5 +182,5 @@ TEST(ALGEBRA_PLUGIN, helix_cylinder_intersector) {
                 hits_bound[0].p2[1] != not_defined);
     EXPECT_NEAR(hits_bound[0].p2[0], 0.f, epsilon);
     EXPECT_NEAR(hits_bound[0].p2[1], -5.f, epsilon);
-    EXPECT_NEAR(hits_bound[0].cos_incidence_angle, 1.f, epsilon);
+    EXPECT_TRUE(std::isinf(hits_bound[0].cos_incidence_angle));
 }

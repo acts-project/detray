@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -18,12 +18,18 @@
 // GTest include(s)
 #include <gtest/gtest.h>
 
+// System include(s)
+#include <limits>
+
 using namespace detray;
 
 using point2 = __plugin::point2<scalar>;
 using point3 = __plugin::point3<scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<scalar>;
+using intersection_t = line_plane_intersection<dindex, transform3>;
+
+constexpr dindex sf_handle = std::numeric_limits<dindex>::max();
 
 // This tests the density effect data correction
 TEST(density_effect_data, density_effect_data) {
@@ -138,7 +144,7 @@ TEST(materials, material_slab) {
     material_slab<scalar> slab(oxygen_gas<scalar>(),
                                scalar(2) * scalar(unit<scalar>::mm));
 
-    line_plane_intersection is;
+    intersection_t is;
     is.cos_incidence_angle = scalar(0.3);
 
     EXPECT_FLOAT_EQ(slab.path_segment(is),
@@ -171,8 +177,8 @@ TEST(materials, material_rod) {
     const mask<line<>> ln{0UL, static_cast<scalar>(1. * unit<scalar>::mm),
                           std::numeric_limits<scalar>::infinity()};
 
-    line_plane_intersection is =
-        line_intersector<transform3>()(detail::ray<transform3>(trk), ln, tf)[0];
+    intersection_t is = line_intersector<transform3>()(
+        detail::ray<transform3>(trk), sf_handle, ln, tf)[0];
 
     EXPECT_NEAR(rod.path_segment(is),
                 scalar(2.) * std::sqrt(1. - 1. / 36) * std::sqrt(10), 1e-5);

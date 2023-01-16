@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -35,6 +35,7 @@ using namespace detray;
 
 using transform3 = __plugin::transform3<scalar>;
 using matrix_operator = typename transform3::matrix_actor;
+using sf_handle_t = dindex;
 
 // Test class for MUON energy loss with Bethe function
 // Input tuple: < material / energy / expected output from
@@ -50,7 +51,8 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
     interaction<scalar> I;
 
     // intersection with a zero incidence angle
-    line_plane_intersection is;
+    line_plane_intersection<sf_handle_t, transform3> is;
+    is.cos_incidence_angle = 1.f;
 
     // H2 liquid with a unit thickness
     material_slab<scalar> slab(std::get<0>(GetParam()), 1 * unit<scalar>::cm);
@@ -166,7 +168,8 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     interaction<scalar> I;
 
     // intersection with a zero incidence angle
-    line_plane_intersection is;
+    line_plane_intersection<sf_handle_t, transform3> is;
+    is.cos_incidence_angle = 1.f;
 
     // H2 liquid with a unit thickness
     material_slab<scalar> slab(std::get<0>(GetParam()),
@@ -293,7 +296,9 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     interaction<scalar> I;
 
     // intersection with a zero incidence angle
-    line_plane_intersection is;
+    line_plane_intersection<typename decltype(det)::surface_type, transform3>
+        is;
+    is.cos_incidence_angle = 1.f;
 
     // Same material used for default telescope detector
     material_slab<scalar> slab(mat, thickness);

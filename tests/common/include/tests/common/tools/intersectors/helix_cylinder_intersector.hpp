@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
@@ -37,8 +38,6 @@ struct helix_cylinder_intersector {
     using vector3 = typename transform3_t::vector3;
     using helix_type = detail::helix<transform3_t>;
 
-    using intersection_type = line_plane_intersection;
-
     /// Operator function to find intersections between helix and cylinder mask
     ///
     /// @tparam mask_t is the input mask type
@@ -51,17 +50,20 @@ struct helix_cylinder_intersector {
     /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersection
-    template <typename mask_t>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type, 2> operator()(
-        const helix_type &h, const mask_t &mask, const transform3_t &trf,
-        const scalar_type mask_tolerance = 0) const {
+    template <typename mask_t, typename surface_t>
+    DETRAY_HOST_DEVICE inline std::array<
+        line_plane_intersection<surface_t, transform3_t>, 2>
+    operator()(const helix_type &h, surface_t sf, const mask_t &mask,
+               const transform3_t &trf,
+               const scalar_type mask_tolerance = 0) const {
 
-        std::array<intersection_type, 2> ret;
+        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
+        std::array<intersection_t, 2> ret;
 
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{100};
         // Tolerance for convergence
-        constexpr scalar_type tol{1e-3};
+        constexpr scalar_type tol{1e-3f};
 
         // Get the surface placement
         const auto &sm = trf.matrix();
@@ -76,7 +78,7 @@ struct helix_cylinder_intersector {
         // Helix path length parameter
         scalar_type s{r * getter::perp(h.dir(tol))};
         // Path length in the previous iteration step
-        scalar_type s_prev{s - scalar{0.1}};
+        scalar_type s_prev{s - 0.1f};
 
         // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
         // Run the iteration on s
@@ -103,10 +105,13 @@ struct helix_cylinder_intersector {
         }
 
         // Build intersection struct from helix parameter s
-        intersection_type &is = ret[0];
+        intersection_t &is = ret[0];
         const point3 helix_pos = h.pos(s);
 
         is.path = getter::norm(helix_pos);
+        if (is.path < h.overstep_tolerance()) {
+            return ret;
+        }
         is.p3 = helix_pos;
         is.p2 = mask.to_local_frame(trf, is.p3, h.dir(s));
         is.status = mask.is_inside(is.p2, mask_tolerance);
@@ -115,15 +120,19 @@ struct helix_cylinder_intersector {
         const scalar_type radial_pos{getter::perp(trf.point_to_local(is.p3))};
         const bool r_check =
             std::abs(r - radial_pos) <
-            mask_tolerance + 5 * std::numeric_limits<scalar_type>::epsilon();
+            mask_tolerance + 5.f * std::numeric_limits<scalar_type>::epsilon();
         if (not r_check) {
             is.status = intersection::status::e_outside;
         }
 
-        is.direction = vector::dot(is.p3, h.dir(s)) > scalar_type{0.}
-                           ? intersection::direction::e_along
-                           : intersection::direction::e_opposite;
-        is.volume_link = mask.volume_link();
+        // Compute some additional information if the intersection is valid
+        if (is.status == intersection::status::e_inside) {
+            is.surface = sf;
+            is.direction = std::signbit(vector::dot(is.p3, h.dir(s)))
+                               ? intersection::direction::e_opposite
+                               : intersection::direction::e_along;
+            is.volume_link = mask.volume_link();
+        }
 
         return ret;
     }
@@ -135,9 +144,8 @@ struct helix_cylinder_intersector {
 template <typename transform3_t, typename mask_t>
 struct helix_intersector<
     transform3_t, mask_t,
-    std::enable_if_t<std::is_same_v<typename mask_t::shape::
-                                        template intersector_type<transform3_t>,
-                                    cylinder_intersector<transform3_t>>,
+    std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
+                                    cylindrical2<transform3_t>>,
                      void>>
     : public detail::helix_cylinder_intersector<transform3_t> {
     using intersector_impl = detail::helix_cylinder_intersector<transform3_t>;
@@ -147,7 +155,6 @@ struct helix_intersector<
     using point3 = typename intersector_impl::point3;
     using vector3 = typename intersector_impl::vector3;
     using helix_type = typename intersector_impl::helix_type;
-    using intersection_type = typename intersector_impl::intersection_type;
 };
 
 }  // namespace detray

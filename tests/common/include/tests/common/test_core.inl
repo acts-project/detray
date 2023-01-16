@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -37,6 +37,7 @@ enum material_ids : unsigned int {
 
 using mask_link_t = dtyped_index<mask_ids, dindex>;
 using material_link_t = dtyped_index<material_ids, dindex>;
+using surface_t = surface<mask_link_t, material_link_t, transform3>;
 
 constexpr scalar epsilon = std::numeric_limits<scalar>::epsilon();
 
@@ -50,29 +51,44 @@ TEST(ALGEBRA_PLUGIN, surface) {
 
     mask_link_t mask_id{mask_ids::e_unmasked, 0};
     material_link_t material_id{material_ids::e_slab, 0};
-    surface<mask_link_t, material_link_t, transform3> s(
-        std::move(trf), mask_id, material_id, -1, false,
-        surface_id::e_sensitive);
+    surface_t s(std::move(trf), mask_id, material_id, -1, false,
+                surface_id::e_sensitive);
 }
 
 // This tests the construction of a intresection
 TEST(ALGEBRA_PLUGIN, intersection) {
 
-    using intersection_t = line_plane_intersection;
+    using intersection_t = line_plane_intersection<surface_t, transform3>;
 
-    intersection_t i0 = {2., point3{0.3, 0.5, 0.7}, point2{0.2, 0.4},
-                         intersection::status::e_hit};
+    intersection_t i0 = {
+        intersection::status::e_outside,
+        intersection::direction::e_along,
+        2.f,
+        1.f,
+        1UL,
+        surface_t{},
+        point3{0.3f, 0.5f, 0.7f},
+        point2{0.2f, 0.4f},
+    };
 
-    intersection_t i1 = {1.7, point3{0.2, 0.3, 0.}, point2{0.2, 0.4},
-                         intersection::status::e_inside};
+    intersection_t i1 = {
+        intersection::status::e_inside,
+        intersection::direction::e_opposite,
+        1.7f,
+        -1.f,
+        0UL,
+        surface_t{},
+        point3{0.2f, 0.3f, 0.f},
+        point2{0.2f, 0.4f},
+    };
 
     intersection_t invalid;
-    ASSERT_TRUE(invalid.status == intersection::status::e_missed);
+    ASSERT_TRUE(invalid.status == intersection::status::e_undefined);
 
     dvector<intersection_t> intersections = {invalid, i0, i1};
     std::sort(intersections.begin(), intersections.end());
 
-    ASSERT_NEAR(intersections[0].path, 1.7, epsilon);
-    ASSERT_NEAR(intersections[1].path, 2, epsilon);
+    ASSERT_NEAR(intersections[0].path, 1.7f, epsilon);
+    ASSERT_NEAR(intersections[1].path, 2.f, epsilon);
     ASSERT_TRUE(std::isinf(intersections[2].path));
 }

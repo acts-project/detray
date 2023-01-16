@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -29,7 +29,6 @@ struct line_intersector {
     using point3 = typename transform3_t::point3;
     using vector3 = typename transform3_t::vector3;
     using ray_type = detail::ray<transform3_t>;
-    using intersection_type = line_plane_intersection;
 
     /** Operator function to find intersections between ray and line mask
      *
@@ -44,16 +43,19 @@ struct line_intersector {
      * @return the intersection
      */
     template <
-        typename mask_t,
+        typename mask_t, typename surface_t,
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
                                         line2<transform3_t>>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type, 1> operator()(
-        const ray_type &ray, const mask_t &mask, const transform3_t &trf,
-        const scalar_type mask_tolerance = 0,
-        const scalar_type overstep_tolerance = 0.) const {
+    DETRAY_HOST_DEVICE inline std::array<
+        line_plane_intersection<surface_t, transform3_t>, 1>
+    operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
+               const transform3_t &trf,
+               const scalar_type mask_tolerance = 0.f) const {
 
-        std::array<intersection_type, 1> ret;
+        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
+        std::array<intersection_t, 1> ret;
+        intersection_t &is = ret[0];
 
         // line direction
         const vector3 _z = getter::vector<3>(trf.matrix(), 0, 2);
@@ -73,7 +75,8 @@ struct line_intersector {
         const scalar_type denom{1.f - (zd * zd)};
 
         // Case for wire is parallel to track
-        if (denom < scalar_type{1e-5}) {
+        if (denom < 1e-5f) {
+            is.status = intersection::status::e_missed;
             return ret;
         }
 
@@ -89,15 +92,18 @@ struct line_intersector {
         // path length to the point of closest approach on the track
         const scalar_type A{1.f / denom * (t2l_on_track - t2l_on_line * zd)};
 
+        is.path = A;
+        // Intersection is not valid for navigation - return early
+        if (is.path < ray.overstep_tolerance()) {
+            return ret;
+        }
+
         // distance to the point of closest approarch on the
         // line from line center
         const scalar_type B{zd * A - t2l_on_line};
 
         // point of closest approach on the track
         const vector3 m = _p + _d * A;
-
-        intersection_type &is = ret[0];
-        is.path = A;
         is.p3 = m;
 
         // For the radial cross section, the calculation does not need to be
@@ -115,17 +121,19 @@ struct line_intersector {
             const auto r = vector::cross(_z, _d);
             is.p2[0] = -std::copysign(getter::perp(loc3D), vector::dot(r, t2l));
         } else {
+            // local frame and measurement frame are identical
             is.p2 = mask.to_local_frame(trf, is.p3, _d);
             is.status = mask.is_inside(is.p2, mask_tolerance);
         }
+
         // prepare some additional information in case the intersection
         // is valid
         if (is.status == intersection::status::e_inside) {
             is.p2[1] = B;
-
-            is.direction = is.path > overstep_tolerance
-                               ? intersection::direction::e_along
-                               : intersection::direction::e_opposite;
+            is.surface = sf;
+            is.direction = std::signbit(is.path)
+                               ? intersection::direction::e_opposite
+                               : intersection::direction::e_along;
             is.volume_link = mask.volume_link();
 
             // Get incidence angle

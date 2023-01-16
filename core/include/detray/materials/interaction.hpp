@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -23,11 +23,11 @@ struct interaction {
     using relativistic_quantities =
         detail::relativistic_quantities<scalar_type>;
 
-    template <typename material_t>
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(
-        const line_plane_intersection& is, const material_t& mat,
-        const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const line_plane_intersection<surface_t, algebra_t>& is,
+        const material_t& mat, const int /*pdg*/, const scalar_type m,
+        const scalar_type qOverP, const scalar_type q) const {
 
         // return early in case of vacuum or zero thickness
         if (not mat) {
@@ -52,11 +52,11 @@ struct interaction {
         return eps * running;
     }
 
-    template <typename material_t>
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau(
-        const line_plane_intersection& is, const material_t& mat,
-        const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const line_plane_intersection<surface_t, algebra_t>& is,
+        const material_t& mat, const int /*pdg*/, const scalar_type m,
+        const scalar_type qOverP, const scalar_type q) const {
 
         // return early in case of vacuum or zero thickness
         if (not mat) {
@@ -77,11 +77,11 @@ struct interaction {
         return eps * running;
     }
 
-    template <typename material_t>
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_fwhm(
-        const line_plane_intersection& is, const material_t& mat,
-        const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const line_plane_intersection<surface_t, algebra_t>& is,
+        const material_t& mat, const int /*pdg*/, const scalar_type m,
+        const scalar_type qOverP, const scalar_type q) const {
         const auto Ne = mat.get_material().molar_electron_density();
         const auto path_segment = mat.path_segment(is);
         const relativistic_quantities rq(m, qOverP, q);
@@ -90,11 +90,11 @@ struct interaction {
         return scalar_type(4.) * rq.compute_epsilon(Ne, path_segment);
     }
 
-    template <typename material_t>
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma_QOverP(
-        const line_plane_intersection& is, const material_t& mat, const int pdg,
-        const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const line_plane_intersection<surface_t, algebra_t>& is,
+        const material_t& mat, const int pdg, const scalar_type m,
+        const scalar_type qOverP, const scalar_type q) const {
 
         // return early in case of vacuum or zero thickness
         if (not mat) {
@@ -124,11 +124,11 @@ struct interaction {
         return std::sqrt(rq.m_q2OverBeta2) * pInv * pInv * sigmaE;
     }
 
-    template <typename material_t>
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_multiple_scattering_theta0(
-        const line_plane_intersection& is, const material_t& mat, const int pdg,
-        const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const line_plane_intersection<surface_t, algebra_t>& is,
+        const material_t& mat, const int pdg, const scalar_type m,
+        const scalar_type qOverP, const scalar_type q) const {
         // return early in case of vacuum or zero thickness
         if (not mat) {
             return scalar_type(0.);

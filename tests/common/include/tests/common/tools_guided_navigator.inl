@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -24,14 +24,14 @@
 TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
     using namespace navigation;
-    using transform3_type = __plugin::transform3<scalar>;
+    using transform3_t = __plugin::transform3<scalar>;
 
     vecmem::host_memory_resource host_mr;
 
     // Use unbounded surfaces
     constexpr bool unbounded = true;
 
-    detail::ray<transform3_type> default_trk({0, 0, 0}, 0, {0, 0, 1}, -1);
+    detail::ray<transform3_t> default_trk({0, 0, 0}, 0, {0, 0, 1}, -1);
 
     // Module positions along z-axis
     const std::vector<scalar> positions = {0.,  10., 20., 30., 40., 50.,
@@ -41,14 +41,19 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
         create_telescope_detector<unbounded>(host_mr, positions, default_trk);
 
     // Inspectors are optional, of course
+    using detector_t = decltype(telescope_det);
+    using intersection_t =
+        line_plane_intersection<typename detector_t::surface_type,
+                                transform3_t>;
     using object_tracer_t =
-        object_tracer<dvector, status::e_on_portal, status::e_on_module>;
+        object_tracer<intersection_t, dvector, status::e_on_portal,
+                      status::e_on_module>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using b_field_t = decltype(telescope_det)::bfield_type;
+    using b_field_t = detector_t::bfield_type;
     using runge_kutta_stepper =
-        rk_stepper<b_field_t::view_t, transform3_type, unconstrained_step,
+        rk_stepper<b_field_t::view_t, transform3_t, unconstrained_step,
                    guided_navigation>;
-    using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
+    using guided_navigator = navigator<detector_t, inspector_t>;
     using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
     using propagator_t =
         propagator<runge_kutta_stepper, guided_navigator, actor_chain_t>;
@@ -56,7 +61,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     // track must point into the direction of the telescope
     const point3 pos{0., 0., 0.};
     const vector3 mom{0., 0., 1.};
-    free_track_parameters<transform3_type> track(pos, 0, mom, -1);
+    free_track_parameters<transform3_t> track(pos, 0, mom, -1);
     const vector3 B{0, 0, 1 * unit<scalar>::T};
     const b_field_t b_field(
         b_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
@@ -85,6 +90,6 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     EXPECT_EQ(obj_tracer.object_trace.size(), sf_sequence.size());
     for (size_t i = 0; i < sf_sequence.size(); ++i) {
         const auto &candidate = obj_tracer.object_trace[i];
-        EXPECT_TRUE(candidate.barcode == sf_sequence[i]);
+        EXPECT_TRUE(candidate.surface.barcode() == sf_sequence[i]);
     }
 }

@@ -20,9 +20,8 @@
 
 namespace detray {
 
-/** A functor to find intersections between trajectory and concentric cylinder
- * mask
- */
+/// A functor to find intersections between trajectory and concentric cylinder
+/// mask
 template <typename transform3_t>
 struct concentric_cylinder_intersector {
 
@@ -34,33 +33,34 @@ struct concentric_cylinder_intersector {
     using vector3 = typename transform3_t::vector3;
     /// @}
     using ray_type = detail::ray<transform3_t>;
-    using intersection_type = line_plane_intersection;
 
-    /** Operator function to find intersections between ray and concentric
-     * cylinder mask
-     *
-     * @tparam mask_t is the input mask type
-     * @tparam transform_t is the input transform type
-     *
-     * @param ray is the input ray trajectory
-     * @param mask is the input mask
-     * @param trf is the transform
-     * @param mask_tolerance is the tolerance for mask edges
-     * @param overstep_tolerance is the tolerance for track overstepping
-     *
-     * @return the intersection
-     */
+    /// Operator function to find intersections between ray and concentric
+    /// cylinder mask
+    ///
+    /// @tparam mask_t is the input mask type
+    /// @tparam transform_t is the input transform type
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param mask is the input mask
+    /// @param trf is the transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tolerance is the tolerance for track overstepping
+    ///
+    /// @return the intersection
     template <
-        typename mask_t,
+        typename mask_t, typename surface_t,
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
                                         cylindrical2<transform3_t>>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline std::array<intersection_type, 1> operator()(
-        const ray_type &ray, const mask_t &mask, const transform3_t & /*trf*/,
-        const scalar_type mask_tolerance = 0.f,
-        const scalar_type overstep_tolerance = 0.f) const {
+    DETRAY_HOST_DEVICE inline std::array<
+        line_plane_intersection<surface_t, transform3_t>, 1>
+    operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
+               const transform3_t & /*trf*/,
+               const scalar_type mask_tolerance = 0.f) const {
 
-        std::array<intersection_type, 1> ret;
+        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
+
+        std::array<intersection_t, 1> ret;
 
         const scalar_type r{mask[mask_t::shape::e_r]};
         // Two points on the line, these are in the cylinder frame
@@ -81,6 +81,7 @@ struct concentric_cylinder_intersector {
                                                    d * d - r * r};
 
         if (qe.solutions() > 0) {
+            const scalar_type overstep_tolerance{ray.overstep_tolerance()};
             std::array<point3, 2> candidates;
             std::array<scalar_type, 2> t01 = {0.f, 0.f};
 
@@ -103,7 +104,7 @@ struct concentric_cylinder_intersector {
                            ? 1
                            : 0);
             if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance) {
-                intersection_type &is = ret[0];
+                intersection_t &is = ret[0];
                 is.p3 = candidates[cindex];
                 is.path = t01[cindex];
 
@@ -116,12 +117,13 @@ struct concentric_cylinder_intersector {
                 } else {
                     is.status = mask.is_inside(is.p2, mask_tolerance);
                 }
+
                 // prepare some additional information in case the intersection
                 // is valid
                 if (is.status == intersection::status::e_inside) {
-                    is.direction = vector::dot(is.p3, rd) > 0.f
-                                       ? intersection::direction::e_along
-                                       : intersection::direction::e_opposite;
+                    is.direction = std::signbit(is.path)
+                                       ? intersection::direction::e_opposite
+                                       : intersection::direction::e_along;
                     is.volume_link = mask.volume_link();
 
                     // Get incidence angle
