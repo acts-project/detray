@@ -7,14 +7,12 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/geometry/barcode.hpp"
 
 // System include(s)
-#include <climits>
 #include <cmath>
+#include <limits>
 #include <ostream>
 
 namespace detray {
@@ -101,8 +99,9 @@ struct line_plane_intersection {
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const line_plane_intersection &is) {
         scalar_t r{getter::perp(is.p3)};
-        out_stream << "dist:" << is.path << " [r:" << r << ", z:" << is.p3[2]
-                   << "], (sf index:" << is.surface.barcode()
+        out_stream << "dist:" << is.path << " [glob: r:" << r
+                   << ", z:" << is.p3[2] << " | loc: " << is.p2[0] << ", "
+                   << is.p2[1] << "], (sf index:" << is.surface.barcode()
                    << ", links to vol:" << is.volume_link << ")";
         switch (is.status) {
             case intersection::status::e_outside:

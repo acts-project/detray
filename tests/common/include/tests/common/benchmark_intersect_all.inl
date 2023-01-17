@@ -45,6 +45,9 @@ vecmem::host_memory_resource host_mr;
 auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
 using detector_t = decltype(d);
+using intersection_t =
+    line_plane_intersection<typename detector_t::surface_type,
+                            typename detector_t::transform3>;
 
 using detray_context = detector_t::geometry_context;
 detray_context geo_context;
@@ -69,6 +72,8 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
 
     for (auto _ : state) {
         point3<detray::scalar> pos{0., 0., 0.};
+        std::vector<intersection_t> intersections{};
+        std::size_t n_surfaces{0};
 
         // Iterate through uniformly distributed momentum directions
         for (const auto track :
@@ -80,25 +85,29 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                 // Loop over all surfaces in volume
                 for (const auto &sf : d.surfaces(v)) {
 
-                    auto sfi = masks.template visit<intersection_update>(
-                        sf.mask(), detail::ray(track), sf, transforms);
+                    masks.template visit<intersection_initialize>(
+                        sf.mask(), intersections, detail::ray(track), sf,
+                        transforms);
 
-                    benchmark::DoNotOptimize(hits);
-                    benchmark::DoNotOptimize(missed);
-                    if (sfi.status == intersection::status::e_inside) {
-                        /* state.PauseTiming();
-                        if (stream_file)
-                        {
+                    ++n_surfaces;
+
+                    /* state.PauseTiming();
+                    if (stream_file) {
+                        for (const auto& sfi : intersections) {
                             hit_out << sfi.p3[0] << "," << sfi.p3[1] << ","
-                        << sfi.p3[2]
-                        << "\n";
+                                                 << sfi.p3[2] << "\n";
                         }
-                        state.ResumeTiming();*/
-                        ++hits;
-                    } else {
-                        ++missed;
                     }
+                    state.ResumeTiming();*/
                 }
+                benchmark::DoNotOptimize(hits);
+                benchmark::DoNotOptimize(missed);
+
+                hits += intersections.size();
+                missed += n_surfaces - intersections.size();
+
+                n_surfaces = 0;
+                intersections.clear();
             }
         }
     }

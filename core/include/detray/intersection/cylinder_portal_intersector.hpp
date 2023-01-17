@@ -41,13 +41,13 @@ struct cylinder_portal_intersector : public cylinder_intersector<transform3_t> {
     /// Operator function to find intersections between ray and cylinder mask
     ///
     /// @tparam mask_t is the input mask type
-    /// @tparam transform_t is the input transform type
+    /// @tparam surface_t is the type of surface handle
     ///
     /// @param ray is the input ray trajectory
-    /// @param mask is the input mask
-    /// @param trf is the transform
+    /// @param sf the surface handle the mask is associated with
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the closest intersection
     template <
@@ -55,14 +55,13 @@ struct cylinder_portal_intersector : public cylinder_intersector<transform3_t> {
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
                                         cylindrical2<transform3_t>>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline std::array<
-        line_plane_intersection<surface_t, transform3_t>, 1>
+    DETRAY_HOST_DEVICE inline line_plane_intersection<surface_t, transform3_t>
     operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
                const transform3_t &trf,
                const scalar_type mask_tolerance = 0.f) const {
 
         using intersection_t = line_plane_intersection<surface_t, transform3_t>;
-        std::array<intersection_t, 1> ret;
+        intersection_t is;
 
         // Intersecting the cylinder from the inside yield one intersection
         // along the direction of the track and one behind it
@@ -75,14 +74,37 @@ struct cylinder_portal_intersector : public cylinder_intersector<transform3_t> {
             const scalar_type t{(qe.smaller() > ray.overstep_tolerance())
                                     ? qe.smaller()
                                     : qe.larger()};
-            ret[0] = this->template build_candidate<intersection_t>(
+            is = this->template build_candidate<intersection_t>(
                 ray, mask, trf, t, mask_tolerance);
-            ret[0].surface = sf;
+            is.surface = sf;
         } else {
-            ret[0].status = intersection::status::e_missed;
+            is.status = intersection::status::e_missed;
         }
 
-        return ret;
+        return is;
+    }
+
+    /// Operator function to find intersections between a ray and a 2D cylinder
+    ///
+    /// @tparam mask_t is the input mask type
+    /// @tparam surface_t is the type of surface handle
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param sfi the intersection to be updated
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    template <
+        typename mask_t, typename surface_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
+                                        cylindrical2<transform3_t>>,
+                         bool> = true>
+    DETRAY_HOST_DEVICE inline void update(
+        const ray_type &ray,
+        line_plane_intersection<surface_t, transform3_t> &sfi,
+        const mask_t &mask, const transform3_t &trf,
+        const scalar_type mask_tolerance = 0.f) const {
+        sfi = this->operator()(ray, sfi.surface, mask, trf, mask_tolerance);
     }
 };
 

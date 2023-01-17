@@ -11,6 +11,7 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/concentric_cylinder_intersector.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
+#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
@@ -111,8 +112,50 @@ TEST(ALGEBRA_PLUGIN, cylinder_incidence_angle) {
                 epsilon);
 }
 
+// This checks the solution of a ray-cylinder portal intersection against
+// those obtained from the general cylinder intersector.
+TEST(ALGEBRA_PLUGIN, cylinder_portal) {
+    // Test ray
+    const point3 ori = {1.f, 0.5f, 1.f};
+    const point3 dir = vector::normalize(vector3{1.f, 1.f, 1.f});
+    const ray_t ray(ori, 0.f, dir, 0.f);
+
+    // Create a concentric cylinder and test intersection
+    const transform3_t identity{};
+    mask<cylinder2D<>, unsigned int, transform3_t> cylinder{0u, r, -hz, hz};
+
+    cylinder_intersector<transform3_t> ci;
+    cylinder_portal_intersector<transform3_t> cpi;
+
+    // Intersect
+    const auto hits_cylinrical =
+        ci(ray, sf_handle, cylinder, identity, epsilon);
+    const auto hit_cocylindrical =
+        cpi(ray, sf_handle, cylinder, identity, epsilon);
+
+    ASSERT_TRUE(hits_cylinrical[1].status == intersection::status::e_inside);
+    ASSERT_TRUE(hit_cocylindrical.status == intersection::status::e_inside);
+    ASSERT_TRUE(hits_cylinrical[1].direction ==
+                intersection::direction::e_along);
+    ASSERT_TRUE(hit_cocylindrical.direction ==
+                intersection::direction::e_along);
+
+    EXPECT_NEAR(getter::perp(hits_cylinrical[1].p3), r, epsilon);
+    EXPECT_NEAR(getter::perp(hit_cocylindrical.p3), r, epsilon);
+
+    EXPECT_NEAR(hits_cylinrical[1].p3[0], hit_cocylindrical.p3[0], epsilon);
+    EXPECT_NEAR(hits_cylinrical[1].p3[1], hit_cocylindrical.p3[1], epsilon);
+    EXPECT_NEAR(hits_cylinrical[1].p3[2], hit_cocylindrical.p3[2], epsilon);
+    ASSERT_TRUE(hits_cylinrical[1].p2[0] != not_defined &&
+                hits_cylinrical[1].p2[1] != not_defined);
+    ASSERT_TRUE(hit_cocylindrical.p2[0] != not_defined &&
+                hit_cocylindrical.p2[1] != not_defined);
+    EXPECT_NEAR(hits_cylinrical[1].p2[0], hit_cocylindrical.p2[0], epsilon);
+    EXPECT_NEAR(hits_cylinrical[1].p2[1], hit_cocylindrical.p2[1], epsilon);
+}
+
 // This checks the solution of a ray-concentric cylinder intersection against
-// those obtained from the portal cylinder intersector.
+// those obtained from the general cylinder intersector.
 TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     // Test ray
     const point3 ori = {1.f, 0.5f, 1.f};
@@ -129,28 +172,28 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     // Intersect
     const auto hits_cylinrical =
         ci(ray, sf_handle, cylinder, identity, epsilon);
-    const auto hits_cocylindrical =
+    const auto hit_cocylindrical =
         cci(ray, sf_handle, cylinder, identity, epsilon);
 
     ASSERT_TRUE(hits_cylinrical[1].status == intersection::status::e_inside);
-    ASSERT_TRUE(hits_cocylindrical[0].status == intersection::status::e_inside);
+    ASSERT_TRUE(hit_cocylindrical.status == intersection::status::e_inside);
     ASSERT_TRUE(hits_cylinrical[1].direction ==
                 intersection::direction::e_along);
-    ASSERT_TRUE(hits_cocylindrical[0].direction ==
+    ASSERT_TRUE(hit_cocylindrical.direction ==
                 intersection::direction::e_along);
 
     EXPECT_NEAR(getter::perp(hits_cylinrical[1].p3), r, epsilon);
-    EXPECT_NEAR(getter::perp(hits_cocylindrical[0].p3), r, epsilon);
+    EXPECT_NEAR(getter::perp(hit_cocylindrical.p3), r, epsilon);
 
-    EXPECT_NEAR(hits_cylinrical[1].p3[0], hits_cocylindrical[0].p3[0], epsilon);
-    EXPECT_NEAR(hits_cylinrical[1].p3[1], hits_cocylindrical[0].p3[1], epsilon);
-    EXPECT_NEAR(hits_cylinrical[1].p3[2], hits_cocylindrical[0].p3[2], epsilon);
+    EXPECT_NEAR(hits_cylinrical[1].p3[0], hit_cocylindrical.p3[0], epsilon);
+    EXPECT_NEAR(hits_cylinrical[1].p3[1], hit_cocylindrical.p3[1], epsilon);
+    EXPECT_NEAR(hits_cylinrical[1].p3[2], hit_cocylindrical.p3[2], epsilon);
     ASSERT_TRUE(hits_cylinrical[1].p2[0] != not_defined &&
                 hits_cylinrical[1].p2[1] != not_defined);
-    ASSERT_TRUE(hits_cocylindrical[0].p2[0] != not_defined &&
-                hits_cocylindrical[0].p2[1] != not_defined);
-    EXPECT_NEAR(hits_cylinrical[1].p2[0], hits_cocylindrical[0].p2[0], epsilon);
-    EXPECT_NEAR(hits_cylinrical[1].p2[1], hits_cocylindrical[0].p2[1], epsilon);
+    ASSERT_TRUE(hit_cocylindrical.p2[0] != not_defined &&
+                hit_cocylindrical.p2[1] != not_defined);
+    EXPECT_NEAR(hits_cylinrical[1].p2[0], hit_cocylindrical.p2[0], epsilon);
+    EXPECT_NEAR(hits_cylinrical[1].p2[1], hit_cocylindrical.p2[1], epsilon);
 }
 
 // This checks the closest solution of a helix-cylinder intersection

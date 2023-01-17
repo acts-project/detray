@@ -36,13 +36,13 @@ struct cylinder_intersector {
     /// Operator function to find intersections between a ray and a 2D cylinder
     ///
     /// @tparam mask_t is the input mask type
-    /// @tparam transform_t is the input transform type
+    /// @tparam surface_t is the type of surface handle
     ///
     /// @param ray is the input ray trajectory
-    /// @param mask is the input mask
-    /// @param trf is the transform
+    /// @param sf the surface handle the mask is associated with
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersections.
     template <
@@ -67,6 +67,10 @@ struct cylinder_intersector {
                 ret[1] = build_candidate<intersection_t>(
                     ray, mask, trf, qe.larger(), mask_tolerance);
                 ret[1].surface = sf;
+                // If there are two solutions, reuse the case for a single
+                // solution to setup the intersection with the smaller path
+                // in ret[0]
+                [[fallthrough]];
             case 1:
                 ret[0] = build_candidate<intersection_t>(
                     ray, mask, trf, qe.smaller(), mask_tolerance);
@@ -77,12 +81,51 @@ struct cylinder_intersector {
                 ret[1].status = intersection::status::e_missed;
         };
 
+        // Even if there are two geometrically valid solutions, the smaller one
+        // might not be passed on if it is below the overstepping tolerance:
+        // see 'build_candidate'
         return ret;
+    }
+
+    /// Operator function to find intersections between a ray and a 2D cylinder
+    ///
+    /// @tparam mask_t is the input mask type
+    /// @tparam surface_t is the type of surface handle
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param sfi the intersection to be updated
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    template <
+        typename mask_t, typename surface_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
+                                        cylindrical2<transform3_t>>,
+                         bool> = true>
+    DETRAY_HOST_DEVICE inline void update(
+        const ray_type &ray,
+        line_plane_intersection<surface_t, transform3_t> &sfi,
+        const mask_t &mask, const transform3_t &trf,
+        const scalar_type mask_tolerance = 0.f) const {
+
+        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
+
+        // One or both of these solutions might be invalid
+        const auto qe = solve_intersection(ray, mask, trf);
+
+        switch (qe.solutions()) {
+            case 1:
+                sfi = build_candidate<intersection_t>(
+                    ray, mask, trf, qe.smaller(), mask_tolerance);
+                break;
+            case 0:
+                sfi.status = intersection::status::e_missed;
+        };
     }
 
     protected:
     /// Calculates the distance to the (two) intersection points on the
-    /// cylinder in global coordinates
+    /// cylinder in global coordinates.
     ///
     /// @returns a quadratic equation object that contains the solution(s).
     template <typename mask_t>
@@ -107,9 +150,11 @@ struct cylinder_intersector {
     }
 
     /// From the intersection path, construct an intersection candidate and
-    /// chack it against the surface boundaries (mask).
+    /// check it against the surface boundaries (mask).
     ///
-    /// @returns the intersection candidate.
+    /// @returns the intersection candidate. Might be (partially) uninitialized
+    /// if the overstepping tolerance is not met or the intersection lies
+    /// outside of the mask.
     template <typename intersection_t, typename mask_t>
     DETRAY_HOST_DEVICE inline intersection_t build_candidate(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
@@ -134,7 +179,7 @@ struct cylinder_intersector {
                 is.p2 = point2{loc3D[0] * loc3D[1], loc3D[2]};
             } else {
                 // local frame and measurement frame are identical
-                is.p2 = mask.to_local_frame(trf, is.p3);
+                is.p2 = mask.to_measurement_frame(trf, is.p3);
                 is.status = mask.is_inside(is.p2, mask_tolerance);
             }
 

@@ -178,7 +178,7 @@ TEST(materials, material_rod) {
                           std::numeric_limits<scalar>::infinity()};
 
     intersection_t is = line_intersector<transform3>()(
-        detail::ray<transform3>(trk), sf_handle, ln, tf)[0];
+        detail::ray<transform3>(trk), sf_handle, ln, tf);
 
     EXPECT_NEAR(rod.path_segment(is),
                 scalar(2.) * std::sqrt(1. - 1. / 36) * std::sqrt(10), 1e-5);

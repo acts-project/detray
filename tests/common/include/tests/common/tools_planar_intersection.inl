@@ -45,7 +45,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
     // The same test but bound to local frame
     plane_intersector<transform3> pi;
     mask<unmasked> unmasked_bound{};
-    const auto hit_bound = pi(r, sf_handle, unmasked_bound, shifted)[0];
+    const auto hit_bound = pi(r, sf_handle, unmasked_bound, shifted);
 
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
@@ -60,7 +60,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
 
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D<>> rect_for_inside{0UL, 3.f, 3.f};
-    const auto hit_bound_inside = pi(r, sf_handle, rect_for_inside, shifted)[0];
+    const auto hit_bound_inside = pi(r, sf_handle, rect_for_inside, shifted);
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound_inside.p3[0], 2., epsilon);
@@ -72,8 +72,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
 
     // The same test but bound to local frame & masked - outside
     mask<rectangle2D<>> rect_for_outside{0UL, 0.5f, 3.5f};
-    const auto hit_bound_outside =
-        pi(r, sf_handle, rect_for_outside, shifted)[0];
+    const auto hit_bound_outside = pi(r, sf_handle, rect_for_outside, shifted);
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound_outside.p3[0], 2., epsilon);
@@ -103,7 +102,7 @@ TEST(ALGEBRA_PLUGIN, plane_incidence_angle) {
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D<>> rect{0UL, 3.f, 3.f};
 
-    const auto is = pi(r, sf_handle, rect, rotated)[0];
+    const auto is = pi(r, sf_handle, rect, rotated);
 
     ASSERT_NEAR(is.cos_incidence_angle, std::cos(M_PI / 4), epsilon);
 }

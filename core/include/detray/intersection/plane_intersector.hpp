@@ -32,28 +32,26 @@ struct plane_intersector {
     /// Operator function to find intersections between ray and planar mask
     ///
     /// @tparam mask_t is the input mask type
-    /// @tparam transform_t is the input transform type
+    /// @tparam surface_t is the type of surface handle
     ///
     /// @param ray is the input ray trajectory
-    /// @param mask is the input mask
-    /// @param trf is the transform
+    /// @param sf the surface handle the mask is associated with
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersection
     template <
         typename mask_t, typename surface_t,
         std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline std::array<
-        line_plane_intersection<surface_t, transform3_t>, 1>
+    DETRAY_HOST_DEVICE inline line_plane_intersection<surface_t, transform3_t>
     operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
                const transform3_t &trf,
                const scalar_type mask_tolerance = 0.f) const {
 
         using intersection_t = line_plane_intersection<surface_t, transform3_t>;
-        std::array<intersection_t, 1> ret;
-        intersection_t &is = ret[0];
+        intersection_t is;
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
@@ -69,7 +67,7 @@ struct plane_intersector {
 
             // Intersection is not valid for navigation - return early
             if (is.path < ray.overstep_tolerance()) {
-                return ret;
+                return is;
             }
 
             is.surface = sf;
@@ -92,7 +90,30 @@ struct plane_intersector {
             is.status = intersection::status::e_missed;
         }
 
-        return ret;
+        return is;
+    }
+
+    /// Operator function to updtae an intersections between a ray and a planar
+    /// surface.
+    ///
+    /// @tparam mask_t is the input mask type
+    /// @tparam surface_t is the type of surface handle
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param sfi the intersection to be updated
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    template <
+        typename mask_t, typename surface_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
+                         bool> = true>
+    DETRAY_HOST_DEVICE inline void update(
+        const ray_type &ray,
+        line_plane_intersection<surface_t, transform3_t> &sfi,
+        const mask_t &mask, const transform3_t &trf,
+        const scalar_type mask_tolerance = 0.f) const {
+        sfi = this->operator()(ray, sfi.surface, mask, trf, mask_tolerance);
     }
 };
 

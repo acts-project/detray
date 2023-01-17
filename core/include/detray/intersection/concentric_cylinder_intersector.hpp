@@ -38,13 +38,13 @@ struct concentric_cylinder_intersector {
     /// cylinder mask
     ///
     /// @tparam mask_t is the input mask type
-    /// @tparam transform_t is the input transform type
+    /// @tparam surface_t is the type of surface handle
     ///
     /// @param ray is the input ray trajectory
-    /// @param mask is the input mask
-    /// @param trf is the transform
+    /// @param sf the surface handle the mask is associated with
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersection
     template <
@@ -52,15 +52,14 @@ struct concentric_cylinder_intersector {
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
                                         cylindrical2<transform3_t>>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline std::array<
-        line_plane_intersection<surface_t, transform3_t>, 1>
+    DETRAY_HOST_DEVICE inline line_plane_intersection<surface_t, transform3_t>
     operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
                const transform3_t & /*trf*/,
                const scalar_type mask_tolerance = 0.f) const {
 
         using intersection_t = line_plane_intersection<surface_t, transform3_t>;
 
-        std::array<intersection_t, 1> ret;
+        intersection_t is;
 
         const scalar_type r{mask[mask_t::shape::e_r]};
         // Two points on the line, these are in the cylinder frame
@@ -104,7 +103,6 @@ struct concentric_cylinder_intersector {
                            ? 1
                            : 0);
             if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance) {
-                intersection_t &is = ret[0];
                 is.p3 = candidates[cindex];
                 is.path = t01[cindex];
 
@@ -121,6 +119,7 @@ struct concentric_cylinder_intersector {
                 // prepare some additional information in case the intersection
                 // is valid
                 if (is.status == intersection::status::e_inside) {
+                    is.surface = sf;
                     is.direction = std::signbit(is.path)
                                        ? intersection::direction::e_opposite
                                        : intersection::direction::e_along;
@@ -132,7 +131,30 @@ struct concentric_cylinder_intersector {
                 }
             }
         }
-        return ret;
+        return is;
+    }
+
+    /// Operator function to find intersections between a ray and a 2D cylinder
+    ///
+    /// @tparam mask_t is the input mask type
+    /// @tparam surface_t is the type of surface handle
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param sfi the intersection to be updated
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    template <
+        typename mask_t, typename surface_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
+                                        cylindrical2<transform3_t>>,
+                         bool> = true>
+    DETRAY_HOST_DEVICE inline void update(
+        const ray_type &ray,
+        line_plane_intersection<surface_t, transform3_t> &sfi,
+        const mask_t &mask, const transform3_t &trf,
+        const scalar_type mask_tolerance = 0.f) const {
+        sfi = this->operator()(ray, sfi.surface, mask, trf, mask_tolerance)[0];
     }
 };
 

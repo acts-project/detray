@@ -728,13 +728,11 @@ class navigator {
         const detector_type *det) const {
 
         const auto &mask_store = det->mask_store();
-        const auto &sf = candidate.surface;
-        candidate = mask_store.template visit<intersection_update>(
-            sf.mask(), detail::ray(track), sf, det->transform_store());
 
         // Check whether this candidate is reachable by the track
-        return candidate.status == intersection::status::e_inside and
-               candidate.path >= track.overstep_tolerance();
+        return mask_store.template visit<intersection_update>(
+            candidate.surface.mask(), detail::ray(track), candidate,
+            det->transform_store());
     }
 
     /// Helper method that performs the neighborhood lookup

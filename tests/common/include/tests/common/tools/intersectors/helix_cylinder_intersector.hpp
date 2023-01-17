@@ -113,16 +113,29 @@ struct helix_cylinder_intersector {
             return ret;
         }
         is.p3 = helix_pos;
-        is.p2 = mask.to_local_frame(trf, is.p3, h.dir(s));
-        is.status = mask.is_inside(is.p2, mask_tolerance);
 
-        // Additionally check radial position for Newton solution
-        const scalar_type radial_pos{getter::perp(trf.point_to_local(is.p3))};
-        const bool r_check =
-            std::abs(r - radial_pos) <
-            mask_tolerance + 5.f * std::numeric_limits<scalar_type>::epsilon();
-        if (not r_check) {
-            is.status = intersection::status::e_outside;
+        // In case the local geometry frame is 3D
+        if constexpr (mask_t::shape::check_radius) {
+            const auto loc3D = mask.to_local_frame(trf, is.p3);
+            is.status = mask.is_inside(loc3D, mask_tolerance);
+            // Go from local to measurement frame
+            is.p2 = point2{loc3D[0] * loc3D[1], loc3D[2]};
+        } else {
+            // local frame and measurement frame are identical
+            is.p2 = mask.to_measurement_frame(trf, is.p3);
+            is.status = mask.is_inside(is.p2, mask_tolerance);
+
+            // Perform the r-check for Newton solution even if it is not
+            // required by the mask's shape
+            const scalar_type radial_pos{
+                getter::perp(trf.point_to_local(is.p3))};
+            const bool r_check =
+                std::abs(r - radial_pos) <
+                mask_tolerance +
+                    5.f * std::numeric_limits<scalar_type>::epsilon();
+            if (not r_check) {
+                is.status = intersection::status::e_outside;
+            }
         }
 
         // Compute some additional information if the intersection is valid

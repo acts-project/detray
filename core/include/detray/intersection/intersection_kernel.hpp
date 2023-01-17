@@ -42,7 +42,7 @@ struct intersection_initialize {
         is_container_t &is_container, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.) const {
+        const scalar mask_tolerance = 0.f) const {
 
         const auto &ctf = contextual_transforms[surface.transform()];
 
@@ -60,11 +60,10 @@ struct intersection_initialize {
 
     private:
     template <typename is_container_t>
-    bool place_in_collection(
-        std::array<typename is_container_t::value_type, 1> &&is,
-        is_container_t &intersections) const {
-        if (is[0].status == intersection::status::e_inside) {
-            intersections.push_back(is[0]);
+    bool place_in_collection(typename is_container_t::value_type &&sfi,
+                             is_container_t &intersections) const {
+        if (sfi.status == intersection::status::e_inside) {
+            intersections.push_back(sfi);
             return true;
         } else {
             return false;
@@ -73,14 +72,13 @@ struct intersection_initialize {
 
     template <typename is_container_t>
     bool place_in_collection(
-        std::array<typename is_container_t::value_type, 2> &&is,
+        std::array<typename is_container_t::value_type, 2> &&solutions,
         is_container_t &intersections) const {
         bool is_valid = false;
-        if (is[0].status == intersection::status::e_inside) {
-            intersections.push_back(is[0]);
-            is_valid = true;
-            if (is[1].status == intersection::status::e_inside) {
-                intersections.push_back(is[1]);
+        for (auto &sfi : solutions) {
+            if (sfi.status == intersection::status::e_inside) {
+                intersections.push_back(sfi);
+                is_valid = true;
             }
         }
         return is_valid;
@@ -109,47 +107,28 @@ struct intersection_update {
     ///
     /// @return the intersection
     template <typename mask_group_t, typename mask_range_t, typename traj_t,
-              typename surface_t, typename transform_container_t>
-    DETRAY_HOST_DEVICE inline line_plane_intersection<
-        surface_t, typename transform_container_t::value_type>
-    operator()(const mask_group_t &mask_group, const mask_range_t &mask_range,
-               const traj_t &traj, const surface_t &surface,
-               const transform_container_t &contextual_transforms,
-               const scalar mask_tolerance = 0.) const {
+              typename intersection_t, typename transform_container_t>
+    DETRAY_HOST_DEVICE inline bool operator()(
+        const mask_group_t &mask_group, const mask_range_t &mask_range,
+        const traj_t &traj, intersection_t &sfi,
+        const transform_container_t &contextual_transforms,
+        const scalar mask_tolerance = 0.f) const {
 
-        const auto &ctf = contextual_transforms[surface.transform()];
+        const auto &ctf = contextual_transforms[sfi.surface.transform()];
 
         // Run over the masks that belong to the surface
         for (const auto &mask :
              detray::ranges::subrange(mask_group, mask_range)) {
 
-            auto sfi =
-                mask.intersector()(traj, surface, mask, ctf, mask_tolerance);
-            if (sfi[0].status == intersection::status::e_inside) {
-                return sfi[0];
+            mask.intersector().update(traj, sfi, mask, ctf, mask_tolerance);
+
+            if (sfi.status == intersection::status::e_inside) {
+                return true;
             }
         }
 
-        // return null object if the intersection is not valid anymore
-        return {};
+        return false;
     }
-
-    private:
-    /*template<typename is_container_t, typename surface_t>
-    line_plane_intersection update(std::array<typename
-    is_container_t::value_type, 1> &&is, const surface_t &surface) const { if
-    (sfi[0].status == intersection::status::e_inside) { sfi[0].surface =
-    surface; return sfi[0];
-        }
-    }
-
-    template<typename is_container_t, typename surface_t>
-    line_plane_intersection update(std::array<typename
-    is_container_t::value_type, 2> &&is, const surface_t &surface) const { if
-    (sfi[0].status == intersection::status::e_inside) { sfi[0].surface =
-    surface; return sfi[0];
-        }
-    }*/
 };
 
 }  // namespace detray
