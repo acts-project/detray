@@ -48,13 +48,12 @@ class geometry_writer : public writer_interface<detector_t> {
                                            const std::string_view det_name) {
         geo_header_payload header_data;
 
-        header_data.version = detail::get_detray_version();
-        header_data.detector = det_name;
-        header_data.tag = tag;
-        header_data.date = detail::get_current_date();
+        header_data.common = base_type::serialize(det_name, tag);
 
-        header_data.n_volumes = det.volumes().size();
-        header_data.n_surfaces = det.n_surfaces();
+        header_data.sub_header.emplace();
+        auto& geo_sub_header = header_data.sub_header.value();
+        geo_sub_header.n_volumes = det.volumes().size();
+        geo_sub_header.n_surfaces = det.n_surfaces();
 
         return header_data;
     }

@@ -31,14 +31,19 @@ using transform3 = test::transform3;
 using vector3 = test::vector3;
 using intersection_t = intersection2D<surface_descriptor<>, transform3>;
 
+namespace {
+
 constexpr scalar tol{1e-7f};
+constexpr auto max_val{std::numeric_limits<scalar>::max()};
+
+}  // anonymous namespace
 
 // This tests the material functionalities
 GTEST_TEST(detray_materials, material) {
     // vacuum
     constexpr vacuum<scalar> vac;
-    EXPECT_TRUE(std::isinf(vac.X0()));
-    EXPECT_TRUE(std::isinf(vac.L0()));
+    EXPECT_EQ(vac.X0(), max_val);
+    EXPECT_EQ(vac.L0(), max_val);
     EXPECT_EQ(vac.Ar(), scalar{0});
     EXPECT_EQ(vac.Z(), scalar{0});
     EXPECT_EQ(vac.molar_density(), scalar{0});

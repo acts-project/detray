@@ -9,11 +9,14 @@
 
 // Project include(s)
 #include "detray/io/common/io_interface.hpp"
+#include "detray/tools/detector_builder.hpp"
+#include "detray/tools/volume_builder.hpp"
 
 // System include(s)
 #include <algorithm>
 #include <cassert>
 #include <ios>
+#include <map>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -93,33 +96,35 @@ class detector_component_readers final {
               std::enable_if_t<std::is_base_of_v<reader_interface<detector_t>,
                                                  reader_t<detector_t>>,
                                bool> = true>
-    void add() {
-        add(std::make_unique<reader_t<detector_t>>());
+    void add(const std::string& file_name) {
+        add(std::make_unique<reader_t<detector_t>>(), file_name);
     }
 
     /// Attach an existing reader via @param w_ptr to the readers
-    void add(reader_ptr_t&& w_ptr) { m_readers.push_back(std::move(w_ptr)); }
+    void add(reader_ptr_t&& w_ptr, const std::string& file_name) {
+        m_readers[file_name] = std::move(w_ptr);
+    }
 
     /// Reads the full detector into @param det by calling the readers, while
     /// using the name map @param names for to write the volume names.
-    virtual void read(const detector_t& det,
-                      typename detector_t::name_map& names,
-                      const std::vector<std::string>& file_names) {
+    virtual void read(detector_builder<typename detector_t::metadata,
+                                       volume_builder>& det_builder,
+                      typename detector_t::name_map& names) {
+
         // We have to at least read a geometry
         assert(m_readers.size() != 0u &&
                "No readers registered! Need at least a geometry reader");
 
-        // Call the read method on all optional readers
-        std::for_each(m_readers.begin(), m_readers.end(),
-                      [det, names, file_names](reader_ptr_t& reader) {
-                          reader->read(det, names, file_names[0]);
-                      });
+        // Call the read method on all readers
+        for (const auto& [file_name, reader] : m_readers) {
+            reader->read(det_builder, names, file_name);
+        }
     }
 
     private:
     /// The readers registered for the detector: geoemtry (mandatory!) plus
     /// e.g. material, grids...)
-    std::vector<reader_ptr_t> m_readers;
+    std::map<std::string, reader_ptr_t> m_readers;
 };
 
 }  // namespace detray::detail

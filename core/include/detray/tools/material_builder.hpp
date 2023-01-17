@@ -45,9 +45,7 @@ class material_builder final : public volume_decorator<detector_t> {
         typename detector_t::geometry_context ctx = {}) override {
 
         // If the factory also holds surface data, call base volume builder
-        if (pt_factory->size() != 0u) {
-            volume_decorator<detector_t>::add_portals(pt_factory, ctx);
-        }
+        volume_decorator<detector_t>::add_portals(pt_factory, ctx);
 
         // Add material
         auto mat_factory =
@@ -63,9 +61,9 @@ class material_builder final : public volume_decorator<detector_t> {
     void add_sensitives(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
-        if (sf_factory->size() != 0u) {
-            volume_decorator<detector_t>::add_sensitives(sf_factory, ctx);
-        }
+
+        // If the factory also holds surface data, call base volume builder
+        volume_decorator<detector_t>::add_sensitives(sf_factory, ctx);
 
         // Add material
         auto mat_factory =
@@ -81,9 +79,9 @@ class material_builder final : public volume_decorator<detector_t> {
     void add_passives(
         std::shared_ptr<surface_factory_interface<detector_t>> ps_factory,
         typename detector_t::geometry_context ctx = {}) override {
-        if (ps_factory->size() != 0u) {
-            volume_decorator<detector_t>::add_passives(ps_factory, ctx);
-        }
+
+        // If the factory also holds surface data, call base volume builder
+        volume_decorator<detector_t>::add_passives(ps_factory, ctx);
 
         // Add material
         auto mat_factory =
@@ -100,6 +98,8 @@ class material_builder final : public volume_decorator<detector_t> {
     DETRAY_HOST
     auto build(detector_t &det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type * override {
+        // This builder is only called on a homogeneous material description
+        using mat_types = typename detector_t::material_container::value_types;
 
         const auto &material = det.material_store();
 
@@ -109,9 +109,12 @@ class material_builder final : public volume_decorator<detector_t> {
             if (sf.material().id() == material_id::e_slab) {
                 sf.update_material(
                     material.template size<material_id::e_slab>());
-            } else {
-                sf.update_material(
-                    material.template size<material_id::e_rod>());
+            }
+            if constexpr (mat_types::n_types == 2u) {
+                if (sf.material().id() == material_id::e_rod) {
+                    sf.update_material(
+                        material.template size<material_id::e_rod>());
+                }
             }
         }
 

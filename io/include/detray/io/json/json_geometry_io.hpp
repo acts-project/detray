@@ -11,6 +11,7 @@
 #include "detray/io/common/payloads.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_algebra_io.hpp"
+#include "detray/io/json/json_header_io.hpp"
 
 // System include(s)
 #include <array>
@@ -23,21 +24,25 @@
 namespace detray {
 
 void to_json(nlohmann::ordered_json& j, const geo_header_payload& h) {
-    j["version"] = h.version;
-    j["detector"] = h.detector;
-    j["date"] = h.date;
-    j["tag"] = h.tag;
-    j["volume_count"] = h.n_volumes;
-    j["surface_count"] = h.n_surfaces;
+    j["common"] = h.common;
+
+    if (h.sub_header.has_value()) {
+        const auto& geo_sub_header = h.sub_header.value();
+        j["volume_count"] = geo_sub_header.n_volumes;
+        j["surface_count"] = geo_sub_header.n_surfaces;
+    }
 }
 
 void from_json(const nlohmann::ordered_json& j, geo_header_payload& h) {
-    h.version = j["version"];
-    h.detector = j["detector"];
-    h.date = j["date"];
-    h.tag = j["tag"];
-    h.n_volumes = j["volume_count"];
-    h.n_surfaces = j["surface_count"];
+    h.common = j["common"];
+
+    if (j.find("volume_count") != j.end() and
+        j.find("surface_count") != j.end()) {
+        h.sub_header.emplace();
+        auto& geo_sub_header = h.sub_header.value();
+        geo_sub_header.n_volumes = j["volume_count"];
+        geo_sub_header.n_surfaces = j["surface_count"];
+    }
 }
 
 void to_json(nlohmann::ordered_json& j, const single_link_payload& so) {

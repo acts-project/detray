@@ -9,9 +9,12 @@
 
 // Project include(s)
 #include "detray/io/common/detail/file_handle.hpp"
+#include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/geometry_reader.hpp"
+#include "detray/io/common/homogeneous_material_reader.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_serializers.hpp"
+#include "detray/tools/detector_builder.hpp"
 
 // System include(s)
 #include <ios>
@@ -19,6 +22,30 @@
 #include <string>
 
 namespace detray {
+
+/// @brief Function that reads the common header part of a file
+common_header_payload read_json_header(const std::string& file_name) {
+
+    // Read json file
+    io::detail::file_handle file{file_name,
+                                 std::ios_base::in | std::ios_base::binary};
+    nlohmann::json in_json;
+    *file >> in_json;
+
+    // Reads the header from file
+    header_payload<> h = in_json["header"];
+
+    // Need only the common part here
+    const common_header_payload& header = h.common;
+
+    if (header.tag < detail::minimal_io_version) {
+        std::cout
+            << "WARNING: File was generated with a different detray version"
+            << std::endl;
+    }
+
+    return header;
+}
 
 /// @brief Class that adds json functionality to common reader types.
 ///
@@ -39,7 +66,9 @@ class json_reader final : public common_reader_t<detector_t> {
     json_reader() : base_reader(".json") {}
 
     /// Writes the geometry to file with a given name
-    virtual void read(detector_t& det, typename detector_t::name_map& name_map,
+    virtual void read(detector_builder<typename detector_t::metadata,
+                                       volume_builder>& det_builder,
+                      typename detector_t::name_map& name_map,
                       const std::string& file_name) override {
 
         // Read json from file
@@ -48,12 +77,17 @@ class json_reader final : public common_reader_t<detector_t> {
         *file >> in_json;
 
         // Reads the data from file and returns the corresponding io payloads
-        base_reader::deserialize(det, name_map, in_json["data"]);
+        base_reader::deserialize(det_builder, name_map, in_json["data"]);
     }
 };
 
-/// Write the tracking geometry to file in json format
+/// Reads the tracking geometry from file in json format
 template <typename detector_t>
 using json_geometry_reader = json_reader<detector_t, geometry_reader>;
+
+/// Reads a homogeneous material descritption from file in json format
+template <typename detector_t>
+using json_homogeneous_material_reader =
+    json_reader<detector_t, homogeneous_material_reader>;
 
 }  // namespace detray

@@ -7,9 +7,15 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/io/common/detail/utils.hpp"
+#include "detray/io/common/payloads.hpp"
+#include "detray/tools/detector_builder.hpp"
+
 // System include(s)
 #include <ios>
 #include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -30,8 +36,9 @@ class reader_interface {
     /// Reads the respective detector component from file. Since the detector
     /// does not keep the volume names, the name map is also passed and
     /// filled.
-    virtual void read(detector_t&, typename detector_t::name_map&,
-                      const std::string&) = 0;
+    virtual void read(
+        detector_builder<typename detector_t::metadata, volume_builder>&,
+        typename detector_t::name_map&, const std::string&) = 0;
 
     protected:
     /// Extension that matches the file format of the respective reader
@@ -59,6 +66,21 @@ class writer_interface {
                               const std::ios_base::openmode) = 0;
 
     protected:
+    /// Serialize the common header information using the detector name
+    /// @param det_name and the file tag @param tag that describes the data file
+    /// content
+    static common_header_payload serialize(const std::string_view det_name,
+                                           const std::string_view tag) {
+        common_header_payload header_data;
+
+        header_data.version = detail::get_detray_version();
+        header_data.detector = det_name;
+        header_data.tag = tag;
+        header_data.date = detail::get_current_date();
+
+        return header_data;
+    }
+
     /// Extension that matches the file format of the respective writer
     std::string m_file_extension;
 };

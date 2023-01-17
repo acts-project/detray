@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
+#include "detray/masks/unmasked.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/tools/surface_factory.hpp"
 #include "detray/utils/ranges.hpp"
@@ -79,16 +80,22 @@ class material_data {
 template <typename detector_t>
 class material_factory final : public factory_decorator<detector_t> {
 
+    using mask_id = typename detector_t::masks::id;
+    using material_id = typename detector_t::materials::id;
+
     using base_factory = factory_decorator<detector_t>;
+    using placeholder_factory_t =
+        surface_factory<detector_t, unmasked, static_cast<mask_id>(0),
+                        surface_id::e_passive>;
 
     public:
-    using material_id = typename detector_t::materials::id;
     using scalar_type = typename detector_t::scalar_type;
 
-    /// Factory with surfaces potentially already filled.
+    /// Factory with surfaces potentially already filled or empty placeholder
+    /// that will not be used.
     DETRAY_HOST
     material_factory(std::unique_ptr<surface_factory_interface<detector_t>>
-                         sf_factory = nullptr)
+                         sf_factory = std::make_unique<placeholder_factory_t>())
         : base_factory(std::move(sf_factory)) {}
 
     /// @returns the number of material that will be built by the factory
@@ -167,6 +174,8 @@ class material_factory final : public factory_decorator<detector_t> {
     auto operator()(typename detector_t::surface_container_t &surfaces,
                     typename detector_t::material_container &materials) const {
 
+        // This builder is only called on a homogeneous material description
+        using mat_types = typename detector_t::material_container::value_types;
         using link_t = typename detector_t::surface_type::material_link;
 
         // Check that the surfaces were set up correctly
@@ -187,9 +196,13 @@ class material_factory final : public factory_decorator<detector_t> {
                 n = materials.template size<material_id::e_slab>();
                 materials.template emplace_back<material_id::e_slab>({}, mat,
                                                                      t);
-            } else {
-                n = materials.template size<material_id::e_rod>();
-                materials.template emplace_back<material_id::e_rod>({}, mat, t);
+            }
+            if constexpr (mat_types::n_types == 2u) {
+                if (m_links.at(sf_idx) == material_id::e_rod) {
+                    n = materials.template size<material_id::e_rod>();
+                    materials.template emplace_back<material_id::e_rod>({}, mat,
+                                                                        t);
+                }
             }
 
             // Set the initial surface material link (will be updated when

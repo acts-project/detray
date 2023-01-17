@@ -24,6 +24,18 @@
 /// @c single_link_payload
 namespace detray {
 
+/// @brief a payload for common information
+struct common_header_payload {
+    std::string version, detector, tag, date;
+};
+
+/// @brief a payload for common and extra information
+template <typename sub_header_payload_t = bool>
+struct header_payload {
+    common_header_payload common;
+    std::optional<sub_header_payload_t> sub_header;
+};
+
 /// @brief A payload for a single object link
 struct single_link_payload {
     std::size_t link;
@@ -32,11 +44,13 @@ struct single_link_payload {
 /// Geometry payloads
 /// @{
 
-/// @brief a payload for the geometry file header
-struct geo_header_payload {
-    std::string version, detector, tag, date;
+/// @brief a payload for the geometry specific part of the file header
+struct geo_sub_header_payload {
     std::size_t n_volumes, n_surfaces;
 };
+
+/// @brief a payload for the geometry file header
+using geo_header_payload = header_payload<geo_sub_header_payload>;
 
 /// @brief A payload for an affine transformation in homogeneous coordinates
 struct transform_payload {
@@ -95,18 +109,21 @@ struct volume_payload {
 /// Material payloads
 /// @{
 
-/// @brief a payload for the simple material file header
-struct homogeneous_material_header_payload {
-    std::string version, detector, tag, date;
+/// @brief a payload for the material specific part of the file header
+struct homogeneous_material_sub_header_payload {
     std::size_t n_slabs, n_rods;
 };
+
+/// @brief a payload for the homogeneous material file header
+using homogeneous_material_header_payload =
+    header_payload<homogeneous_material_sub_header_payload>;
 
 /// @brief A payload object for a material parametrization
 struct material_payload {
     std::array<real_io, 7u> params;
 };
 
-/// @brief A payload object for a material slab
+/// @brief A payload object for a material slab/rod
 struct material_slab_payload {
     using material_type = io::detail::material_type;
     material_type type = material_type::unknown;
@@ -115,10 +132,16 @@ struct material_slab_payload {
     material_payload mat;
 };
 
-/// @brief A payload for a simple detector material description
-struct detector_homogeneous_material_payload {
+/// @brief A payload object for the material contained in a volume
+struct material_volume_payload {
+    std::size_t index;
     std::vector<material_slab_payload> mat_slabs = {};
     std::optional<std::vector<material_slab_payload>> mat_rods;
+};
+
+/// @brief A payload for the homogeneous material description of a detector
+struct detector_homogeneous_material_payload {
+    std::vector<material_volume_payload> volumes = {};
 };
 
 /// @}
