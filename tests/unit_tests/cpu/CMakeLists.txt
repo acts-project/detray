@@ -66,6 +66,7 @@ macro( detray_add_cpu_test algebra )
       "tools_helix_trajectory.cpp"
       "tools_intersection_kernel.cpp"
       "tools_line_intersection.cpp"
+      "tools_material_builder.cpp"
       "tools_matrix_helper.cpp"
       "tools_navigator.cpp"
       "tools_particle_gun.cpp"
