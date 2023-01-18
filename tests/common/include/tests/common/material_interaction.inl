@@ -51,7 +51,7 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
     interaction<scalar> I;
 
     // intersection with a zero incidence angle
-    line_plane_intersection<sf_handle_t, transform3> is;
+    intersection2D<sf_handle_t, transform3> is;
     is.cos_incidence_angle = 1.f;
 
     // H2 liquid with a unit thickness
@@ -168,7 +168,7 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     interaction<scalar> I;
 
     // intersection with a zero incidence angle
-    line_plane_intersection<sf_handle_t, transform3> is;
+    intersection2D<sf_handle_t, transform3> is;
     is.cos_incidence_angle = 1.f;
 
     // H2 liquid with a unit thickness
@@ -296,8 +296,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     interaction<scalar> I;
 
     // intersection with a zero incidence angle
-    line_plane_intersection<typename decltype(det)::surface_type, transform3>
-        is;
+    intersection2D<typename decltype(det)::surface_type, transform3> is;
     is.cos_incidence_angle = 1.f;
 
     // Same material used for default telescope detector

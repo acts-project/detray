@@ -104,8 +104,8 @@ class navigator {
     template <typename T>
     using vector_type = typename detector_t::template vector_type<T>;
     using intersection_type =
-        line_plane_intersection<typename detector_type::surface_type,
-                                typename detector_type::transform3>;
+        intersection2D<typename detector_type::surface_type,
+                       typename detector_type::transform3>;
 
     /// A navigation state object used to cache the information of the
     /// current navigation stream.
@@ -790,13 +790,13 @@ class navigator {
 // candidates size allocation. With the local navigation, the size can be
 // restricted to much smaller value
 template <typename detector_t>
-DETRAY_HOST vecmem::data::jagged_vector_buffer<line_plane_intersection<
+DETRAY_HOST vecmem::data::jagged_vector_buffer<intersection2D<
     typename detector_t::surface_type, typename detector_t::transform3>>
 create_candidates_buffer(
     const detector_t &det, const unsigned int n_tracks,
     vecmem::memory_resource &device_resource,
     vecmem::memory_resource *host_access_resource = nullptr) {
-    return vecmem::data::jagged_vector_buffer<line_plane_intersection<
+    return vecmem::data::jagged_vector_buffer<intersection2D<
         typename detector_t::surface_type, typename detector_t::transform3>>(
         std::vector<std::size_t>(n_tracks, 0),
         std::vector<std::size_t>(n_tracks, det.get_n_max_objects_per_volume()),

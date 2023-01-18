@@ -45,9 +45,8 @@ vecmem::host_memory_resource host_mr;
 auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
 using detector_t = decltype(d);
-using intersection_t =
-    line_plane_intersection<typename detector_t::surface_type,
-                            typename detector_t::transform3>;
+using intersection_t = intersection2D<typename detector_t::surface_type,
+                                      typename detector_t::transform3>;
 
 using detray_context = detector_t::geometry_context;
 detray_context geo_context;

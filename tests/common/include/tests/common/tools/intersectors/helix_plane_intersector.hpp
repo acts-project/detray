@@ -49,11 +49,11 @@ struct helix_plane_intersector {
     /// @return the intersection
     template <typename mask_t, typename surface_t>
     DETRAY_HOST_DEVICE inline std::array<
-        line_plane_intersection<surface_t, transform3_t>, 1>
+        intersection2D<surface_t, transform3_t>, 1>
     operator()(const helix_type &h, surface_t sf, const mask_t &mask,
                const transform3_t &trf, const scalar mask_tolerance = 0) const {
 
-        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
+        using intersection_t = intersection2D<surface_t, transform3_t>;
         std::array<intersection_t, 1> ret;
 
         // Guard against inifinite loops

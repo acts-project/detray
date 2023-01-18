@@ -55,8 +55,8 @@ struct propagator {
         using detector_type = typename navigator_t::detector_type;
         using navigator_state_type = typename navigator_t::state;
         using intersection_t =
-            line_plane_intersection<typename detector_type::surface_type,
-                                    typename detector_type::transform3>;
+            intersection2D<typename detector_type::surface_type,
+                           typename detector_type::transform3>;
 
         /// Construct the propagation state.
         ///

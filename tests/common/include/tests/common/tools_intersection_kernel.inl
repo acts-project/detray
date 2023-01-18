@@ -142,7 +142,7 @@ TEST(tools, intersection_kernel_ray) {
         expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
 
     // Initialize kernel
-    std::vector<line_plane_intersection<surface_t, transform3_t>> sfi_init;
+    std::vector<intersection2D<surface_t, transform3_t>> sfi_init;
 
     for (const auto &surface : surfaces) {
         mask_store.visit<intersection_initialize>(surface.mask(), sfi_init,
@@ -162,7 +162,7 @@ TEST(tools, intersection_kernel_ray) {
     }
 
     // Update kernel
-    /*std::vector<line_plane_intersection<surface_t, transform3_t>> sfi_update;
+    /*std::vector<intersection2D<surface_t, transform3_t>> sfi_update;
     sfi_update.resize(5);
 
     for (const auto [idx, surface] : detray::views::enumerate(surfaces)) {
@@ -233,7 +233,7 @@ TEST(tools, intersection_kernel_helix) {
     const point3 expected_annulus{0.03, 0.03, 30.};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
-    std::vector<line_plane_intersection<surface_t, transform3_t>> sfi_helix{};
+    std::vector<intersection2D<surface_t, transform3_t>> sfi_helix{};
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {

@@ -29,7 +29,7 @@ using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 using point2 = __plugin::point2<scalar>;
 using line_intersector_type = line_intersector<transform3>;
-using intersection_t = line_plane_intersection<dindex, transform3>;
+using intersection_t = intersection2D<dindex, transform3>;
 
 constexpr scalar tolerance = 1e-5;
 constexpr dindex sf_handle = std::numeric_limits<dindex>::max();

@@ -42,7 +42,7 @@ enum class status {
 /// @tparam point2 is the type of the local intersection vector
 template <typename surface_handle_t,
           typename algebra_t = __plugin::transform3<detray::scalar>>
-struct line_plane_intersection {
+struct intersection2D {
 
     using scalar_t = typename algebra_t::scalar_type;
     using point3 = typename algebra_t::point3;
@@ -77,19 +77,19 @@ struct line_plane_intersection {
 
     /// @param rhs is the right hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator<(const line_plane_intersection &rhs) const {
+    bool operator<(const intersection2D &rhs) const {
         return (std::abs(path) < std::abs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator>(const line_plane_intersection &rhs) const {
+    bool operator>(const intersection2D &rhs) const {
         return (std::abs(path) > std::abs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator==(const line_plane_intersection &rhs) const {
+    bool operator==(const intersection2D &rhs) const {
         return std::abs(path - rhs.path) <
                std::numeric_limits<scalar_t>::epsilon();
     }
@@ -97,7 +97,7 @@ struct line_plane_intersection {
     /// Transform to a string for output debugging
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &out_stream,
-                                    const line_plane_intersection &is) {
+                                    const intersection2D &is) {
         scalar_t r{getter::perp(is.p3)};
         out_stream << "dist:" << is.path << " [glob: r:" << r
                    << ", z:" << is.p3[2] << " | loc: " << is.p2[0] << ", "

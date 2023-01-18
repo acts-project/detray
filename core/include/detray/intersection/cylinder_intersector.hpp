@@ -51,12 +51,12 @@ struct cylinder_intersector {
                                         cylindrical2<transform3_t>>,
                          bool> = true>
     DETRAY_HOST_DEVICE inline std::array<
-        line_plane_intersection<surface_t, transform3_t>, 2>
+        intersection2D<surface_t, transform3_t>, 2>
     operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
                const transform3_t &trf,
                const scalar_type mask_tolerance = 0.f) const {
 
-        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
+        using intersection_t = intersection2D<surface_t, transform3_t>;
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
@@ -103,12 +103,11 @@ struct cylinder_intersector {
                                         cylindrical2<transform3_t>>,
                          bool> = true>
     DETRAY_HOST_DEVICE inline void update(
-        const ray_type &ray,
-        line_plane_intersection<surface_t, transform3_t> &sfi,
+        const ray_type &ray, intersection2D<surface_t, transform3_t> &sfi,
         const mask_t &mask, const transform3_t &trf,
         const scalar_type mask_tolerance = 0.f) const {
 
-        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
+        using intersection_t = intersection2D<surface_t, transform3_t>;
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);

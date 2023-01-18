@@ -38,9 +38,8 @@ struct particle_gun {
     DETRAY_HOST_DEVICE inline static auto shoot_particle(
         const detector_t &detector, const trajectory_t &traj) {
 
-        using intersection_t =
-            line_plane_intersection<typename detector_t::surface_type,
-                                    typename detector_t::transform3>;
+        using intersection_t = intersection2D<typename detector_t::surface_type,
+                                              typename detector_t::transform3>;
 
         std::vector<std::pair<dindex, intersection_t>> intersection_record;
 

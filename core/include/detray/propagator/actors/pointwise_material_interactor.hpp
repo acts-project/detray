@@ -66,8 +66,8 @@ struct pointwise_material_interactor : actor {
         DETRAY_HOST_DEVICE inline bool operator()(
             const material_group_t &material_group,
             const index_t &material_range,
-            const line_plane_intersection<surface_t, transform3_type> &is,
-            state &s, const stepper_state_t &stepping) const {
+            const intersection2D<surface_t, transform3_type> &is, state &s,
+            const stepper_state_t &stepping) const {
 
             const scalar qop = stepping().qop();
             const scalar charge = stepping().charge();

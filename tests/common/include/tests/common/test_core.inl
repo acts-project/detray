@@ -58,7 +58,7 @@ TEST(ALGEBRA_PLUGIN, surface) {
 // This tests the construction of a intresection
 TEST(ALGEBRA_PLUGIN, intersection) {
 
-    using intersection_t = line_plane_intersection<surface_t, transform3>;
+    using intersection_t = intersection2D<surface_t, transform3>;
 
     intersection_t i0 = {
         intersection::status::e_outside,

@@ -43,8 +43,7 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     // Inspectors are optional, of course
     using detector_t = decltype(telescope_det);
     using intersection_t =
-        line_plane_intersection<typename detector_t::surface_type,
-                                transform3_t>;
+        intersection2D<typename detector_t::surface_type, transform3_t>;
     using object_tracer_t =
         object_tracer<intersection_t, dvector, status::e_on_portal,
                       status::e_on_module>;

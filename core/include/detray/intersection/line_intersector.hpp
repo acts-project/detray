@@ -46,12 +46,12 @@ struct line_intersector {
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
                                         line2<transform3_t>>,
                          bool> = true>
-    DETRAY_HOST_DEVICE inline line_plane_intersection<surface_t, transform3_t>
+    DETRAY_HOST_DEVICE inline intersection2D<surface_t, transform3_t>
     operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
                const transform3_t &trf,
                const scalar_type mask_tolerance = 0.f) const {
 
-        using intersection_t = line_plane_intersection<surface_t, transform3_t>;
+        using intersection_t = intersection2D<surface_t, transform3_t>;
         intersection_t is;
 
         // line direction
@@ -156,8 +156,7 @@ struct line_intersector {
                                         line2<transform3_t>>,
                          bool> = true>
     DETRAY_HOST_DEVICE inline void update(
-        const ray_type &ray,
-        line_plane_intersection<surface_t, transform3_t> &sfi,
+        const ray_type &ray, intersection2D<surface_t, transform3_t> &sfi,
         const mask_t &mask, const transform3_t &trf,
         const scalar_type mask_tolerance = 0.f) const {
         sfi = this->operator()(ray, sfi.surface, mask, trf, mask_tolerance);
