@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s)
+#include <iostream>
+
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
@@ -42,7 +44,7 @@ struct helix_intersection_initialize {
         is_container_t &is_container, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.) const {
+        const scalar mask_tolerance = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
         using transform3_t = typename transform_container_t::value_type;
@@ -53,13 +55,40 @@ struct helix_intersection_initialize {
         for (const auto &mask :
              detray::ranges::subrange(mask_group, mask_range)) {
 
-            auto sfi = std::move(helix_intersector<transform3_t, mask_t>()(
-                traj, surface, mask, ctf, mask_tolerance));
+            if (place_in_collection(
+                    helix_intersector<transform3_t, mask_t>()(
+                        traj, surface, mask, ctf, mask_tolerance),
+                    is_container)) {
+                return;
+            };
+        }
+    }
 
-            if (sfi[0].status == intersection::status::e_inside) {
-                is_container.push_back(sfi[0]);
+    private:
+    template <typename is_container_t>
+    DETRAY_HOST_DEVICE bool place_in_collection(
+        typename is_container_t::value_type &&sfi,
+        is_container_t &intersections) const {
+        if (sfi.status == intersection::status::e_inside) {
+            intersections.push_back(sfi);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    template <typename is_container_t>
+    DETRAY_HOST_DEVICE bool place_in_collection(
+        std::array<typename is_container_t::value_type, 2> &&solutions,
+        is_container_t &intersections) const {
+        bool is_valid = false;
+        for (auto &sfi : solutions) {
+            if (sfi.status == intersection::status::e_inside) {
+                intersections.push_back(sfi);
+                is_valid = true;
             }
         }
+        return is_valid;
     }
 };
 

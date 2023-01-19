@@ -217,13 +217,29 @@ TEST(ALGEBRA_PLUGIN, helix_cylinder_intersector) {
     const auto hits_bound = hi(h, sf_handle, cylinder, shifted, epsilon);
 
     // No magnetic field, so the solutions must be the same as for a ray
-    ASSERT_TRUE(hits_bound[0].status == intersection::status::e_inside);
-    EXPECT_NEAR(hits_bound[0].p3[0], 7.f, epsilon);
+
+    // second intersection lies in front of the track
+    EXPECT_TRUE(hits_bound[0].status == intersection::status::e_inside);
+    EXPECT_TRUE(hits_bound[0].direction == intersection::direction::e_opposite);
+    EXPECT_NEAR(hits_bound[0].p3[0], -1.f, epsilon);
     EXPECT_NEAR(hits_bound[0].p3[1], 2.f, epsilon);
     EXPECT_NEAR(hits_bound[0].p3[2], 5.f, epsilon);
     ASSERT_TRUE(hits_bound[0].p2[0] != not_defined &&
                 hits_bound[0].p2[1] != not_defined);
-    EXPECT_NEAR(hits_bound[0].p2[0], 0.f, epsilon);
+    // p2[0] = r * phi : 180deg in the opposite direction with r = 4
+    EXPECT_NEAR(hits_bound[0].p2[0], 4.f * M_PI, epsilon);
     EXPECT_NEAR(hits_bound[0].p2[1], -5.f, epsilon);
     EXPECT_TRUE(std::isinf(hits_bound[0].cos_incidence_angle));
+
+    // first intersection lies behind the track
+    EXPECT_TRUE(hits_bound[1].status == intersection::status::e_inside);
+    EXPECT_TRUE(hits_bound[1].direction == intersection::direction::e_along);
+    EXPECT_NEAR(hits_bound[1].p3[0], 7.f, epsilon);
+    EXPECT_NEAR(hits_bound[1].p3[1], 2.f, epsilon);
+    EXPECT_NEAR(hits_bound[1].p3[2], 5.f, epsilon);
+    ASSERT_TRUE(hits_bound[1].p2[0] != not_defined &&
+                hits_bound[1].p2[1] != not_defined);
+    EXPECT_NEAR(hits_bound[1].p2[0], 0.f, epsilon);
+    EXPECT_NEAR(hits_bound[1].p2[1], -5., epsilon);
+    EXPECT_TRUE(std::isinf(hits_bound[1].cos_incidence_angle));
 }

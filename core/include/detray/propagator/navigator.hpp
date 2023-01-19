@@ -13,6 +13,7 @@
 #include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
@@ -100,6 +101,7 @@ class navigator {
     public:
     using inspector_type = inspector_t;
     using detector_type = detector_t;
+    using scalar_type = typename detector_t::scalar_type;
     using volume_type = typename detector_t::volume_type;
     template <typename T>
     using vector_type = typename detector_t::template vector_type<T>;
@@ -117,6 +119,9 @@ class navigator {
     /// 'full trust' again.
     class state {
         friend class navigator;
+        // Allow the filling/updateing of candidates
+        friend class intersection_initialize;
+        friend class intersection_update;
 
         using candidate_itr_t =
             typename vector_type<intersection_type>::iterator;
@@ -149,7 +154,7 @@ class navigator {
         /// Scalar representation of the navigation state,
         /// @returns distance to next
         DETRAY_HOST_DEVICE
-        scalar operator()() const { return _next->path; }
+        scalar_type operator()() const { return _next->path; }
 
         DETRAY_HOST_DEVICE
         inline void set_unknown() { _status = navigation::status::e_unknown; }
@@ -256,11 +261,15 @@ class navigator {
 
         /// @returns tolerance to determine if we are on object - const
         DETRAY_HOST_DEVICE
-        inline auto tolerance() const -> scalar { return _on_object_tolerance; }
+        inline auto tolerance() const -> scalar_type {
+            return _on_object_tolerance;
+        }
 
         /// Adjust the on-object tolerance
         DETRAY_HOST_DEVICE
-        inline void set_tolerance(scalar tol) { _on_object_tolerance = tol; }
+        inline void set_tolerance(scalar_type tol) {
+            _on_object_tolerance = tol;
+        }
 
         /// @returns navigation trust level - const
         DETRAY_HOST_DEVICE
@@ -373,7 +382,7 @@ class navigator {
         DETRAY_HOST_DEVICE inline auto is_reachable(
             const intersection_type &candidate, track_t &track) const -> bool {
             return candidate.status == intersection::status::e_inside and
-                   candidate.path < std::numeric_limits<scalar>::max() and
+                   candidate.path < std::numeric_limits<scalar_type>::max() and
                    candidate.path >= track.overstep_tolerance();
         }
 
@@ -451,7 +460,7 @@ class navigator {
         navigation::direction _direction = navigation::direction::e_forward;
 
         /// The on object tolerance - permille
-        scalar _on_object_tolerance = 1e-3;
+        scalar_type _on_object_tolerance = 1e-3;
 
         /// The navigation trust level determines how this states cache is to
         /// be updated in the current navigation call
@@ -635,7 +644,7 @@ class navigator {
                 // Disregard this candidate if it is not reachable
                 if (not update_candidate(candidate, track, det)) {
                     // Forcefully set dist to numeric max for sorting
-                    candidate.path = std::numeric_limits<scalar>::max();
+                    candidate.path = std::numeric_limits<scalar_type>::max();
                 }
             }
             // Sort again
@@ -732,7 +741,7 @@ class navigator {
         // Check whether this candidate is reachable by the track
         return mask_store.template visit<intersection_update>(
             candidate.surface.mask(), detail::ray(track), candidate,
-            det->transform_store());
+            det->transform_store(), 1.f * unit<scalar_type>::um);
     }
 
     /// Helper method that performs the neighborhood lookup
@@ -759,7 +768,7 @@ class navigator {
 
                 det->mask_store().template visit<intersection_initialize>(
                     obj.mask(), candidates, detail::ray(track), obj,
-                    det->transform_store());
+                    det->transform_store(), 1.f * unit<scalar_type>::um);
             }
         }
         // Check the next surface type
@@ -777,7 +786,7 @@ class navigator {
     DETRAY_HOST_DEVICE inline auto find_invalid(cache_t &candidates) const {
         // Depends on previous invalidation of unreachable candidates!
         auto not_reachable = [](intersection_type &candidate) {
-            return candidate.path == std::numeric_limits<scalar>::max();
+            return candidate.path == std::numeric_limits<scalar_type>::max();
         };
 
         return detail::find_if(candidates.begin(), candidates.end(),

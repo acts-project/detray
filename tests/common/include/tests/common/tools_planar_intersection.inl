@@ -122,7 +122,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
     // The same test but bound to local frame
     detail::helix_plane_intersector<transform3> pi;
     mask<unmasked> unmasked_bound{};
-    const auto hit_bound = pi(h, sf_handle, unmasked_bound, shifted)[0];
+    const auto hit_bound = pi(h, sf_handle, unmasked_bound, shifted);
 
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
@@ -137,7 +137,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
 
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D<>> rect_for_inside{0UL, 3.f, 3.f};
-    const auto hit_bound_inside = pi(h, sf_handle, rect_for_inside, shifted)[0];
+    const auto hit_bound_inside = pi(h, sf_handle, rect_for_inside, shifted);
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound_inside.p3[0], 2., epsilon);
@@ -149,8 +149,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_helix) {
 
     // The same test but bound to local frame & masked - outside
     mask<rectangle2D<>> rect_for_outside{0UL, 0.5f, 3.5f};
-    const auto hit_bound_outside =
-        pi(h, sf_handle, rect_for_outside, shifted)[0];
+    const auto hit_bound_outside = pi(h, sf_handle, rect_for_outside, shifted);
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
     // Global intersection information - unchanged
     ASSERT_NEAR(hit_bound_outside.p3[0], 2., epsilon);

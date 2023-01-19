@@ -60,8 +60,9 @@ struct intersection_initialize {
 
     private:
     template <typename is_container_t>
-    bool place_in_collection(typename is_container_t::value_type &&sfi,
-                             is_container_t &intersections) const {
+    DETRAY_HOST_DEVICE bool place_in_collection(
+        typename is_container_t::value_type &&sfi,
+        is_container_t &intersections) const {
         if (sfi.status == intersection::status::e_inside) {
             intersections.push_back(sfi);
             return true;
@@ -71,7 +72,7 @@ struct intersection_initialize {
     }
 
     template <typename is_container_t>
-    bool place_in_collection(
+    DETRAY_HOST_DEVICE bool place_in_collection(
         std::array<typename is_container_t::value_type, 2> &&solutions,
         is_container_t &intersections) const {
         bool is_valid = false;

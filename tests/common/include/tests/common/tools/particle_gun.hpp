@@ -61,20 +61,15 @@ struct particle_gun {
             for (const auto &sf : detector.surfaces(volume)) {
                 // Retrieve candidate(s) from the surface
                 mask_store.template visit<intersection_kernel_t>(
-                    sf.mask(), intersections, traj, sf, tf_store, 1e-4);
-                // Candidate is invalid if it oversteps too far (this is neg!)
-                if (intersections.empty() or
-                    intersections[0].path < traj.overstep_tolerance()) {
-                    continue;
-                }
-                // Accept if inside
-                if (intersections[0].status == intersection::status::e_inside &&
-                    intersections[0].direction ==
-                        intersection::direction::e_along) {
-                    // Volume the candidate belongs to
-                    intersections[0].surface = sf;
-                    intersection_record.emplace_back(volume.index(),
-                                                     intersections[0]);
+                    sf.mask(), intersections, traj, sf, tf_store,
+                    1.f * unit<typename detector_t::scalar_type>::um);
+                // Candidate is invalid if it lies in the opposite direction
+                for (auto &sfi : intersections) {
+                    if (sfi.direction == intersection::direction::e_along) {
+                        // Volume the candidate belongs to
+                        sfi.surface = sf;
+                        intersection_record.emplace_back(volume.index(), sfi);
+                    }
                 }
                 intersections.clear();
             }

@@ -48,18 +48,18 @@ struct helix_plane_intersector {
     ///
     /// @return the intersection
     template <typename mask_t, typename surface_t>
-    DETRAY_HOST_DEVICE inline std::array<
-        intersection2D<surface_t, transform3_t>, 1>
+    DETRAY_HOST_DEVICE inline intersection2D<surface_t, transform3_t>
     operator()(const helix_type &h, surface_t sf, const mask_t &mask,
-               const transform3_t &trf, const scalar mask_tolerance = 0) const {
+               const transform3_t &trf,
+               const scalar_type mask_tolerance = 0.f) const {
 
         using intersection_t = intersection2D<surface_t, transform3_t>;
-        std::array<intersection_t, 1> ret;
+        intersection_t sfi;
 
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{100};
         // Tolerance for convergence
-        constexpr scalar tol{1e-3f};
+        constexpr scalar_type tol{1e-4f};
 
         // Get the surface info
         const auto &sm = trf.matrix();
@@ -69,18 +69,18 @@ struct helix_plane_intersector {
         const point3 st = getter::vector<3>(sm, 0, 3);
 
         // Starting point on the helix for the Newton iteration
-        scalar s{getter::norm(sn) - 0.1f};
-        scalar s_prev{s - 0.1f};
+        scalar_type s{0.95f * getter::norm(st)};
+        scalar_type s_prev{0.9f * s};
 
         // f(s) = sn * (h.pos(s) - st) == 0
         // Run the iteration on s
         std::size_t n_tries{0};
         while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
             // f'(s) = sn * h.dir(s)
-            const scalar denom{vector::dot(sn, h.dir(s))};
+            const scalar_type denom{vector::dot(sn, h.dir(s))};
             // No intersection can be found if dividing by zero
             if (denom == 0.) {
-                return ret;
+                return sfi;
             }
             // x_n+1 = x_n - f(s) / f'(s)
             s_prev = s;
@@ -89,32 +89,31 @@ struct helix_plane_intersector {
         }
         // No intersection found within max number of trials
         if (n_tries == max_n_tries) {
-            return ret;
+            return sfi;
         }
 
-        // Build intersection struct from helix parameter s
-        intersection_t &is = ret[0];
+        // Build intersection struct from helix parameters
         const point3 helix_pos = h.pos(s);
 
-        is.path = getter::norm(helix_pos);
-        if (is.path < h.overstep_tolerance()) {
-            return ret;
+        sfi.path = getter::norm(helix_pos);
+        if (sfi.path < h.overstep_tolerance()) {
+            return sfi;
         }
 
-        is.p3 = helix_pos;
-        is.p2 = mask.to_local_frame(trf, is.p3, h.dir(s));
-        is.status = mask.is_inside(is.p2, mask_tolerance);
+        sfi.p3 = helix_pos;
+        sfi.p2 = mask.to_local_frame(trf, sfi.p3, h.dir(s));
+        sfi.status = mask.is_inside(sfi.p2, mask_tolerance);
 
         // Compute some additional information if the intersection is valid
-        if (is.status == intersection::status::e_inside) {
-            is.surface = sf;
-            is.direction = std::signbit(vector::dot(st, h.dir(s)))
-                               ? intersection::direction::e_opposite
-                               : intersection::direction::e_along;
-            is.volume_link = mask.volume_link();
+        if (sfi.status == intersection::status::e_inside) {
+            sfi.surface = sf;
+            sfi.direction = std::signbit(vector::dot(st, h.dir(s)))
+                                ? intersection::direction::e_opposite
+                                : intersection::direction::e_along;
+            sfi.volume_link = mask.volume_link();
         }
 
-        return ret;
+        return sfi;
     }
 };
 

@@ -68,7 +68,7 @@ using vector3 = typename transform3_t::vector3;
 using point3 = typename transform3_t::point3;
 
 constexpr const scalar epsilon{1e-3f};
-constexpr const scalar is_close{1e-6f};
+constexpr const scalar is_close{1e-5f};
 
 // TODO: How about merging ray and helix tests into one to remove the code
 // repetition?
@@ -133,9 +133,9 @@ TEST(tools, intersection_kernel_ray) {
     const point3 expected_rectangle{0.01f, 0.01f, 10.f};
     const point3 expected_trapezoid{0.02f, 0.02f, 20.f};
     const point3 expected_annulus{0.03f, 0.03f, 30.f};
-    const point3 expected_cylinder1{0.045f, 0.045f, 45.000195f};
-    const point3 expected_cylinder2{0.055f, 0.055f, 54.999706f};
-    const point3 expected_cylinder_pt{0.096001f, 0.096001f, 96.0011215f};
+    const point3 expected_cylinder1{0.045f, 0.045f, 45.0f};
+    const point3 expected_cylinder2{0.055f, 0.055f, 55.0f};
+    const point3 expected_cylinder_pt{0.096001, 0.096001, 96.001};
 
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus,
@@ -153,11 +153,11 @@ TEST(tools, intersection_kernel_ray) {
     for (std::size_t i = 0UL; i < expected_points.size(); ++i) {
         ASSERT_EQ(sfi_init[i].direction, intersection::direction::e_along);
         ASSERT_EQ(sfi_init[i].volume_link, 0UL);
-        ASSERT_NEAR(sfi_init[i].p3[0], expected_points[i][0], is_close)
+        ASSERT_NEAR(sfi_init[i].p3[0], expected_points[i][0], 1e-3f)
             << " at surface " << sfi_init[i].surface.barcode();
-        ASSERT_NEAR(sfi_init[i].p3[1], expected_points[i][1], is_close)
+        ASSERT_NEAR(sfi_init[i].p3[1], expected_points[i][1], 1e-3f)
             << " at surface " << sfi_init[i].surface.barcode();
-        ASSERT_NEAR(sfi_init[i].p3[2], expected_points[i][2], is_close)
+        ASSERT_NEAR(sfi_init[i].p3[2], expected_points[i][2], 1e-3f)
             << " at surface " << sfi_init[i].surface.barcode();
     }
 

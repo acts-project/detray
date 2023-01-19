@@ -192,7 +192,7 @@ class helix : public free_track_parameters<transform3_t> {
         point3 ret = free_track_parameters_type::pos();
         ret = ret + _delta / _K * (_K * s - std::sin(_K * s)) * _h0;
         ret = ret + std::sin(_K * s) / _K * _t0;
-        ret = ret + _alpha / _K * (1 - std::cos(_K * s)) * _n0;
+        ret = ret + _alpha / _K * (1.f - std::cos(_K * s)) * _n0;
 
         return ret;
     }
@@ -249,7 +249,7 @@ class helix : public free_track_parameters<transform3_t> {
                           mat_helper().column_wise_multiply(
                               matrix_operator().transpose(H0), _h0);
 
-        drdt = drdt + (std::cos(_K * s) - 1) / _K *
+        drdt = drdt + (std::cos(_K * s) - 1.f) / _K *
                           mat_helper().column_wise_cross(I33, _h0);
 
         matrix_operator().set_block(ret, drdt, e_free_pos0, e_free_dir0);

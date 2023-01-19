@@ -128,15 +128,15 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
     // Detector configuration
     constexpr std::size_t n_brl_layers{4};
-    constexpr std::size_t n_edc_layers{7};
+    constexpr std::size_t n_edc_layers{3};
     vecmem::host_memory_resource host_mr;
 
     using b_field_t = decltype(create_toy_geometry(
         std::declval<vecmem::host_memory_resource &>(), n_brl_layers,
         n_edc_layers))::bfield_type;
 
-    const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
-                    2. * unit<scalar>::T};
+    const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+                    2.f * unit<scalar>::T};
 
     auto det = create_toy_geometry(
         host_mr,
@@ -152,26 +152,31 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
                       status::e_on_portal>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using navigator_t = navigator<detector_t, inspector_t>;
-    using stepper_t = rk_stepper<b_field_t::view_t, transform3_t,
-                                 unconstrained_step, always_init>;
+    using constraints_t = constrained_step<>;
+    using stepper_t =
+        rk_stepper<b_field_t::view_t, transform3_t, constraints_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
     propagator_t prop(stepper_t{}, navigator_t{});
 
-    constexpr std::size_t theta_steps{10};
-    constexpr std::size_t phi_steps{10};
+    constexpr std::size_t theta_steps{20};
+    constexpr std::size_t phi_steps{20};
 
     // det.volume_by_pos(ori).index();
-    const point3 ori{0., 0., 0.};
-    const scalar p_mag{10. * unit<scalar>::GeV};
+    const point3 ori{0.f, 0.f, 0.f};
+    const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Overstepping
-    constexpr scalar overstep_tol{-7. * unit<scalar>::um};
+    constexpr scalar overstep_tol{-7.f * unit<scalar>::um};
+    const scalar step_constr{5. * unit<scalar>::mm};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : uniform_track_generator<free_track_parameters_type>(
-             theta_steps, phi_steps, ori, p_mag)) {
+    std::size_t n_tracks{0};
+    auto trk_state_generator =
+        uniform_track_generator<free_track_parameters_type>(
+            theta_steps, phi_steps, ori, p_mag);
+    for (auto track : trk_state_generator) {
         // Prepare for overstepping in the presence of b fields
         track.set_overstep_tolerance(overstep_tol);
 
@@ -185,6 +190,8 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
         // Now follow that helix with the same track and check, if we find
         // the same volumes and distances along the way
         propagator_t::state propagation(track, det.get_bfield(), det);
+        propagation._stepping
+            .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
         // Retrieve navigation information
         auto &inspector = propagation._navigation.inspector();
@@ -199,16 +206,18 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
             debug_stream << "-------Intersection trace\n"
                          << "helix gun: "
                          << "\tvol id: " << intersection_trace[intr_idx].first
-                         << ", " << intersection_trace[intr_idx].second;
-            debug_stream << "navig.: " << obj_tracer[intr_idx];
+                         << ", " << intersection_trace[intr_idx].second
+                         << std::endl;
+            debug_stream << "navig.: " << obj_tracer[intr_idx] << std::endl;
         }
 
         // Compare intersection records
-        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size())
+        std::size_t n_inters_nav{obj_tracer.object_trace.size()};
+        EXPECT_EQ(n_inters_nav, intersection_trace.size())
             << debug_printer.to_string() << debug_stream.str();
 
         // Check every single recorded intersection
-        for (std::size_t i = 0; i < obj_tracer.object_trace.size(); ++i) {
+        for (std::size_t i = 0; i < n_inters_nav; ++i) {
             if (obj_tracer[i].surface.barcode() !=
                 intersection_trace[i].second.surface.barcode()) {
                 // Intersection record at portal bound might be flipped
@@ -223,7 +232,11 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
                 }
             }
             EXPECT_EQ(obj_tracer[i].surface.barcode(),
-                      intersection_trace[i].second.surface.barcode());
+                      intersection_trace[i].second.surface.barcode())
+                << " intersection: " << i << "/" << n_inters_nav
+                << " on track: " << n_tracks << "/"
+                << trk_state_generator.size();
         }
+        ++n_tracks;
     }
 }

@@ -23,10 +23,13 @@ namespace detray {
 template <typename transform3_t>
 struct line_intersector {
 
-    /// Transformation matching this struct
+    /// linear algebra types
+    /// @{
     using scalar_type = typename transform3_t::scalar_type;
     using point3 = typename transform3_t::point3;
+    using point2 = typename transform3_t::point2;
     using vector3 = typename transform3_t::vector3;
+    /// @}
     using ray_type = detail::ray<transform3_t>;
 
     /// Operator function to find intersections between ray and line mask
