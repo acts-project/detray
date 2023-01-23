@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/eigen_definitions.hpp"
-#include "tests/common/line_stepper.inl"
+#include "tests/common/path_correction.inl"
