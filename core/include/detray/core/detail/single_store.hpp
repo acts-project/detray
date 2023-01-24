@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -57,26 +57,19 @@ class single_store {
     /// Copy construct from element types
     constexpr explicit single_store(const T &arg) : m_container(arg) {}
 
-    /// Construct with a specific vecmem memory resource @param resource
-    /// (host-side only)
-    template <typename allocator_t = vecmem::memory_resource,
-              std::enable_if_t<not detail::is_device_view_v<allocator_t>,
-                               bool> = true>
-    DETRAY_HOST explicit single_store(allocator_t &resource)
+    DETRAY_HOST explicit single_store(vecmem::memory_resource &resource)
         : m_container(&resource) {}
 
-    /// Copy Construct with a specific (vecmem) memory resource @param resource
-    /// (host-side only)
-    template <typename allocator_t = vecmem::memory_resource,
-              typename C = container_t<T>,
+    template <typename C = container_t<T>,
               std::enable_if_t<std::is_same_v<C, std::vector<T>>, bool> = true>
-    DETRAY_HOST explicit single_store(allocator_t &resource, const T &arg)
+    DETRAY_HOST explicit single_store(vecmem::memory_resource &resource,
+                                      const T &arg)
         : m_container(&resource, arg) {}
 
-    /// Construct from the container @param view . Mainly used device-side.
     template <typename container_view_t,
-              std::enable_if_t<detail::is_device_view_v<container_view_t>,
-                               bool> = true>
+              std::enable_if_t<
+                  !std::is_base_of_v<vecmem::memory_resource, container_view_t>,
+                  bool> = true>
     DETRAY_HOST_DEVICE single_store(container_view_t &view)
         : m_container(view) {}
 

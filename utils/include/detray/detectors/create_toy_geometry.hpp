@@ -12,6 +12,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_metadata.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/definitions/math.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -283,7 +284,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
             // calculate the current phi value
             scalar m_phi{min_phi + phiBin * phi_step};
             m_centers.push_back(
-                point3{m_r * std::cos(m_phi), m_r * std::sin(m_phi), m_z});
+                point3{m_r * math_ns::cos(m_phi), m_r * std::sin(m_phi), m_z});
         }
     }
 
@@ -309,11 +310,11 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
         // The local phi
         scalar m_phi{algebra::getter::phi(m_center)};
         // Local z axis is the normal vector
-        vector3 m_local_z{std::cos(m_phi + cfg.m_tilt_phi),
+        vector3 m_local_z{math_ns::cos(m_phi + cfg.m_tilt_phi),
                           std::sin(m_phi + cfg.m_tilt_phi), 0.};
         // Local x axis the normal to local y,z
         vector3 m_local_x{-std::sin(m_phi + cfg.m_tilt_phi),
-                          std::cos(m_phi + cfg.m_tilt_phi), 0.};
+                          math_ns::cos(m_phi + cfg.m_tilt_phi), 0.};
 
         // Create the module transform
         transforms.emplace_back(ctx, m_center, m_local_z, m_local_x);
@@ -440,7 +441,7 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
         scalar rz{iphi % 2 ? z - scalar{0.5} * phi_stagger
                            : z + scalar{0.5} * phi_stagger};
         r_positions.push_back(
-            vector3{radius * std::cos(phi), radius * std::sin(phi), rz + rzs});
+            vector3{radius * math_ns::cos(phi), radius * std::sin(phi), rz + rzs});
     }
     return r_positions;
 }
@@ -558,7 +559,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             // the center position of the modules
             point3 m_center{static_cast<scalar>(cfg.side) * m_position};
             // the rotation matrix of the module
-            vector3 m_local_y{std::cos(m_phi), std::sin(m_phi), 0.};
+            vector3 m_local_y{math_ns::cos(m_phi), std::sin(m_phi), 0.};
             // take different axis to have the same readout direction
             vector3 m_local_z{0., 0., cfg.side * scalar{1.}};
             vector3 m_local_x = algebra::vector::cross(m_local_y, m_local_z);

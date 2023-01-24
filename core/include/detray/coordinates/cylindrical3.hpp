@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/coordinates/coordinate_base.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
@@ -58,8 +59,8 @@ struct cylindrical3 final : public coordinate_base<cylindrical3, transform3_t> {
     DETRAY_HOST_DEVICE inline point3 local_to_global(
         const transform3_t &trf, const mask_t & /*mask*/, const point3 &p,
         const vector3 & /*d*/) const {
-        const scalar_type x = p[0] * std::cos(p[1]);
-        const scalar_type y = p[0] * std::sin(p[1]);
+        const scalar_type x = p[0] * math_ns::cos(p[1]);
+        const scalar_type y = p[0] * math_ns::sin(p[1]);
 
         return trf.point_to_global(point3{x, y, p[2]});
     }

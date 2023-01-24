@@ -1,6 +1,6 @@
 /** Algebra plugins library, part of the ACTS project
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 
@@ -82,10 +83,10 @@ struct track_helper {
         const auto& phi = matrix_operator().element(bound_vec, e_bound_phi, 0);
         const auto& theta =
             matrix_operator().element(bound_vec, e_bound_theta, 0);
-        const auto sinTheta = std::sin(theta);
+        const auto sinTheta = math_ns::sin(theta);
 
-        return {std::cos(phi) * sinTheta, std::sin(phi) * sinTheta,
-                std::cos(theta)};
+        return {math_ns::cos(phi) * sinTheta, math_ns::sin(phi) * sinTheta,
+                math_ns::cos(theta)};
     }
 };
 

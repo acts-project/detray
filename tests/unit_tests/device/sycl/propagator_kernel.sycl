@@ -1,0 +1,101 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2023 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
+#include "propagator_kernel.hpp"
+
+namespace detray {
+
+namespace kernels {
+class propagate;
+}  // namespace kernels
+
+/// test function for propagator with single state
+void propagator_test(
+    detector_view<detector_host_type> det_data,
+    vecmem::data::vector_view<free_track_parameters<transform3>> &tracks_data,
+    vecmem::data::jagged_vector_view<intersection_t> &candidates_data,
+    vecmem::data::jagged_vector_view<scalar> &path_lengths_data,
+    vecmem::data::jagged_vector_view<vector3> &positions_data,
+    vecmem::data::jagged_vector_view<free_matrix> &jac_transports_data,
+    detray::sycl::queue_wrapper queue) {
+
+    unsigned int localSize = 64;
+    unsigned int globalSize = theta_steps * phi_steps;
+
+    const auto num = (globalSize + localSize - 1) / localSize;
+    const auto ndrange = ::sycl::nd_range<1>{::sycl::range<1>(num * localSize),
+                                             ::sycl::range<1>(localSize)};
+
+    reinterpret_cast<::sycl::queue *>(queue.queue())
+        ->submit([&](::sycl::handler &h) {
+            h.parallel_for<kernels::propagate>(ndrange, [det_data, tracks_data,
+                                                         candidates_data,
+                                                         path_lengths_data,
+                                                         positions_data,
+                                                         jac_transports_data](
+                                                            ::sycl::nd_item<1>
+                                                                item) {
+                detector_device_type det(det_data);
+
+                vecmem::device_vector<free_track_parameters<transform3>> tracks(
+                    tracks_data);
+                vecmem::jagged_device_vector<intersection_t> candidates(
+                    candidates_data);
+                vecmem::jagged_device_vector<scalar> path_lengths(
+                    path_lengths_data);
+                vecmem::jagged_device_vector<vector3> positions(positions_data);
+                vecmem::jagged_device_vector<free_matrix> jac_transports(
+                    jac_transports_data);
+
+                unsigned int gid = item.get_global_linear_id();
+
+                if (gid >= tracks.size()) {
+                    return;
+                }
+
+                detector_device_type::bfield_type B_field = det.get_bfield();
+
+                // Create RK stepper
+                rk_stepper_type s;
+
+                // Create navigator
+                navigator_device_type n;
+
+                // Create propagator
+                propagator_device_type p(std::move(s), std::move(n));
+
+                // Create actor states
+                inspector_device_t::state insp_state(path_lengths.at(gid),
+                                                     positions.at(gid),
+                                                     jac_transports.at(gid));
+                pathlimit_aborter::state aborter_state{path_limit};
+                parameter_transporter<transform3>::state transporter_state{};
+                pointwise_material_interactor<transform3>::state
+                    interactor_state{};
+                parameter_resetter<transform3>::state resetter_state{};
+
+                // Create the actor states
+                auto actor_states =
+                    thrust::tie(insp_state, aborter_state, transporter_state,
+                                interactor_state, resetter_state);
+                // Create the propagator state
+                propagator_device_type::state state(tracks[gid], B_field, det,
+                                                    candidates.at(gid));
+
+                state._stepping.set_tolerance(rk_tolerance);
+
+                state._stepping
+                    .template set_constraint<step::constraint::e_accuracy>(
+                        constrainted_step_size);
+
+                p.propagate(state, actor_states);
+            });
+        })
+        .wait_and_throw();
+}
+
+}  // namespace detray

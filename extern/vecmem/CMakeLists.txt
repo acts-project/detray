@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2022 CERN for the benefit of the ACTS project
+# (c) 2021-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -18,7 +18,7 @@ message( STATUS "Building VecMem as part of the Detray project" )
 
 # Declare where to get VecMem from.
 set( DETRAY_VECMEM_SOURCE
-"URL;https://github.com/acts-project/vecmem/archive/refs/tags/v0.21.0.tar.gz;URL_MD5;ab361d4ca2b26f673956e81f2cdd4c56"
+   "URL;https://github.com/acts-project/vecmem/archive/refs/tags/v0.21.0.tar.gz;URL_MD5;ab361d4ca2b26f673956e81f2cdd4c56"
    CACHE STRING "Source for VecMem, when built as part of this project" )
 mark_as_advanced( DETRAY_VECMEM_SOURCE )
 FetchContent_Declare( VecMem ${DETRAY_VECMEM_SOURCE} )

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,6 +8,7 @@
 #pragma once
 
 /// Detray include(s)
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/materials/material.hpp"
@@ -134,8 +135,8 @@ struct relativistic_quantities {
             // pre-factor according to RPP2019 table 33.1
             const scalar_type plasmaEnergy =
                 PlasmaEnergyScale * std::sqrt(molar_electron_density);
-            return std::log(m_betaGamma) +
-                   std::log(plasmaEnergy / mean_exitation_energy) - 0.5f;
+            return math_ns::log(m_betaGamma) +
+                   math_ns::log(plasmaEnergy / mean_exitation_energy) - 0.5f;
         }
         // When the denstiy effect data is provided (RPP2018 eq. 33.7)
         else {
@@ -145,7 +146,7 @@ struct relativistic_quantities {
             const scalar_type x0den = density.get_X0_density();
             const scalar_type x1den = density.get_X1_density();
 
-            const scalar_type x = std::log10(m_betaGamma);
+            const scalar_type x = math_ns::log10(m_betaGamma);
 
             scalar_type delta;
 
@@ -155,9 +156,9 @@ struct relativistic_quantities {
                 delta = 0.0;
 
             } else {
-                delta = scalar_type(2.) * std::log(10.) * x - cden;
+                delta = scalar_type(2.) * math_ns::log(10.) * x - cden;
                 if (x < x1den)
-                    delta += aden * std::pow((x1den - x), mden);
+                    delta += aden * math_ns::pow((x1den - x), mden);
             }
 
             return delta / scalar_type(2.);

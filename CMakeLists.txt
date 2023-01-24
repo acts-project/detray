@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2022 CERN for the benefit of the ACTS project
+# (c) 2021-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -13,6 +13,7 @@ set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (host) C++ standard to use" )
 set( CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL "Disable (host) C++ extensions" )
 set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
 set( CMAKE_CUDA_EXTENSIONS FALSE CACHE BOOL "Disable (CUDA) C++ extensions" )
+set( CMAKE_SYCL_STANDARD 17 CACHE STRING "The (SYCL) C++ standard to use" )
 
 # CMake include(s).
 include( CMakeDependentOption )
@@ -53,6 +54,7 @@ option( DETRAY_VC_PLUGIN "Build Vc based math plugin" ON )
 option( DETRAY_IO_CSV "Build CSV IO module" ON )
 option( DETRAY_IO_JSON "Build JSON IO module" ON)
 option( DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
+option( DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF )
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
 option( DETRAY_BUILD_TESTING "Build the (unit) tests of Detray"
@@ -78,6 +80,8 @@ if( DETRAY_SETUP_VECMEM )
       find_package( vecmem REQUIRED )
    else()
       add_subdirectory( extern/vecmem )
+      # Make the "VecMem language code" available for the whole project.
+      include( "${VECMEM_LANGUAGE_DIR}/vecmem-check-language.cmake" )
    endif()
 endif()
 

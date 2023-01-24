@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/utils/ranges/ranges.hpp"
+#include "detray/definitions/math.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -114,8 +115,8 @@ class uniform_track_generator
         DETRAY_HOST_DEVICE
         track_t operator*() const {
             // Momentum direction from angles
-            vector3 mom{std::cos(m_phi) * std::sin(m_theta),
-                        std::sin(m_phi) * std::sin(m_theta), std::cos(m_theta)};
+            vector3 mom{math_ns::cos(m_phi) * std::sin(m_theta),
+                        std::sin(m_phi) * std::sin(m_theta), math_ns::cos(m_theta)};
             // Magnitude of momentum
             vector::normalize(mom);
             mom = m_mom_mag * mom;
@@ -324,8 +325,8 @@ class random_track_generator
         DETRAY_HOST_DEVICE
         track_t operator*() const {
             // Momentum direction from angles
-            vector3 mom{std::cos(m_phi) * std::sin(m_theta),
-                        std::sin(m_phi) * std::sin(m_theta), std::cos(m_theta)};
+            vector3 mom{math_ns::cos(m_phi) * std::sin(m_theta),
+                        std::sin(m_phi) * std::sin(m_theta), math_ns::cos(m_theta)};
             // Magnitude of momentum
             vector::normalize(mom);
             mom = m_mom_mag * mom;
