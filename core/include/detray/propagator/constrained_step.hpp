@@ -78,9 +78,9 @@ struct constrained_step {
     DETRAY_HOST_DEVICE scalar
     size(const step::direction dir = step::direction::e_forward) const {
         if constexpr (type == step::constraint::e_all) {
-            return dir * min();
+            return static_cast<scalar>(dir) * min();
         } else {
-            return dir * _constraints[type];
+            return static_cast<scalar>(dir) * _constraints[type];
         }
     }
 
