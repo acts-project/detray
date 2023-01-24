@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -21,7 +21,7 @@ struct measurement_smearer {
     measurement_smearer(measurement_smearer<scalar_t>& smearer)
         : stddev(smearer.stddev), generator(smearer.generator) {}
 
-    void set_seed(const std::size_t sd) { generator.seed(sd); }
+    void set_seed(const unsigned int sd) { generator.seed(sd); }
 
     std::array<scalar_t, 2> stddev;
     std::random_device rd{};

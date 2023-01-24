@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -43,7 +43,7 @@ struct event_writer : actor {
         std::size_t m_hit_count = 0;
         smearer_t m_meas_smearer;
 
-        void set_seed(const std::size_t sd) { m_meas_smearer.set_seed(sd); }
+        void set_seed(const unsigned int sd) { m_meas_smearer.set_seed(sd); }
 
         void write_particle(const free_track_parameters<transform3_t>& track) {
             particle_id++;

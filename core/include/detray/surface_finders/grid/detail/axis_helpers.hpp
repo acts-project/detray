@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -79,7 +79,7 @@ struct multi_axis_data {
 
     /// @returns pointer to the data for one particular @param i axis
     DETRAY_HOST_DEVICE
-    auto axis_data(const dindex i) const -> const dindex_range * {
+    auto axis_data(const unsigned int i) const -> const dindex_range * {
         return &(m_axes_data[i]);
     }
 
@@ -117,7 +117,7 @@ struct multi_axis_view {
     /// Contains all bin edges for all the axes
     const vector_type<scalar_t> *m_edges{nullptr};
     /// Offset for this multi-axis into the global container
-    dindex m_offset{0};
+    unsigned int m_offset{0};
 
     /// Default constructor (no concrete memory access)
     multi_axis_view() = default;
@@ -129,7 +129,8 @@ struct multi_axis_view {
     /// @param offset in the axes data and bin edges collections pointed to
     DETRAY_HOST_DEVICE
     multi_axis_view(const vector_type<dindex_range> *axes_data_ptr,
-                    const vector_type<scalar_t> *edges_ptr, const dindex offset)
+                    const vector_type<scalar_t> *edges_ptr,
+                    const unsigned int offset)
         : m_axes_data(axes_data_ptr), m_edges(edges_ptr), m_offset{offset} {}
 
     /// @returns pointer to all(!) of the axes data - const
@@ -145,7 +146,7 @@ struct multi_axis_view {
 
     /// @returns pointer to the data for one particular @param i axis
     DETRAY_HOST_DEVICE
-    auto axis_data(const dindex i) const -> const dindex_range * {
+    auto axis_data(const unsigned i) const -> const dindex_range * {
         return &((*m_axes_data)[m_offset + i]);
     }
 

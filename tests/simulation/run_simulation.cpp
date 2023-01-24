@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -45,7 +45,7 @@ int main() {
     measurement_smearer<scalar> smearer(100 * unit<scalar>::um,
                                         100 * unit<scalar>::um);
 
-    std::size_t n_events = 2;
+    unsigned int n_events = 2;
     auto sim = simulator(n_events, detector, generator, smearer);
 
     sim.run();

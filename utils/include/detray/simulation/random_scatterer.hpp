@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -33,9 +33,9 @@ struct random_scatterer : actor {
         /// Constructor with seed
         ///
         /// @param sd the seed number
-        state(const std::size_t sd = 0) { generator.seed(sd); }
+        state(const unsigned int sd = 0) { generator.seed(sd); }
 
-        void set_seed(const std::size_t sd) { generator.seed(sd); }
+        void set_seed(const unsigned int sd) { generator.seed(sd); }
     };
 
     /// Observes a material interactor state @param interactor_state

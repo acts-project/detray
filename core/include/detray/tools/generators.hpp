@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -230,7 +230,7 @@ struct vertexer {
     /// @return a jagged vector of points of the mask vertices (one per maks)
     template <typename mask_group_t, typename mask_range_t>
     output_type operator()(const mask_group_t &masks, const mask_range_t &range,
-                           dindex n_segments = 1) {
+                           unsigned int n_segments = 1) {
         output_type mask_vertices = {};
         for (auto i : detray::views::iota(range)) {
             const auto &mask = masks[i];
