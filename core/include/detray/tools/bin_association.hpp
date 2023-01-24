@@ -1,7 +1,7 @@
 
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -229,7 +229,7 @@ static inline void bin_association(const context_t & /*context*/,
 
                             // Register if associated
                             if (associated) {
-                                grid.populate({bin_0, bin_1}, sf);
+                                grid.populate({{bin_0, bin_1}}, sf);
                                 break;
                             }
                         }

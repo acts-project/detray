@@ -258,8 +258,8 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     // Create the module centers
 
     // surface grid bins
-    int n_phi_bins = cfg.m_binning.first;
-    int n_z_bins = cfg.m_binning.second;
+    std::size_t n_phi_bins = cfg.m_binning.first;
+    std::size_t n_z_bins = cfg.m_binning.second;
     // module positions
     detray::dvector<point3> m_centers;
     m_centers.reserve(n_phi_bins * n_z_bins);
@@ -411,7 +411,7 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
  * @return a vector of the module positions in a ring
  */
 inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
-                                  scalar phi_sub_stagger, int n_phi_bins) {
+                                  scalar phi_sub_stagger, std::size_t n_phi_bins) {
     // create and fill the positions
     std::vector<vector3> r_positions;
     r_positions.reserve(n_phi_bins);
@@ -627,7 +627,10 @@ inline void add_beampipe(
 
     // negative endcap portals
     dindex link = beampipe_idx;
-    for (int i = vol_sizes.size() - 1; i >= 0; --i) {
+
+    int v_size = static_cast<int>(vol_sizes.size());
+
+    for (int i = v_size - 1; i >= 0; --i) {
         volume_link = ++link;
         add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
                              transforms, edc_inner_r, -vol_sizes[i].second,
@@ -683,7 +686,7 @@ template <typename detector_t>
 inline void add_endcap_barrel_connection(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx, const int side,
-    const unsigned int n_brl_layers, const dindex beampipe_idx,
+    const std::size_t n_brl_layers, const dindex beampipe_idx,
     const std::vector<std::pair<scalar, scalar>> &brl_lay_sizes,
     const scalar edc_inner_r, const scalar edc_outer_r,
     const scalar gap_lower_z, const scalar gap_upper_z, dindex brl_vol_idx,
@@ -849,7 +852,7 @@ template <typename empty_vol_factory, typename brl_module_factory,
           typename detector_t, typename config_t>
 void add_barrel_detector(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::geometry_context &ctx, const unsigned int n_layers,
+    typename detector_t::geometry_context &ctx, const std::size_t n_layers,
     dindex beampipe_idx, const scalar brl_half_z,
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions,

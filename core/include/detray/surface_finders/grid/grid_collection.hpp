@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -139,7 +139,8 @@ class grid_collection<
     /// Create grid from container pointers - const
     DETRAY_HOST_DEVICE
     auto operator[](const size_type i) const -> grid_type {
-        const size_type axes_offset{grid_type::Dim * i};
+        const unsigned int axes_offset =
+            static_cast<unsigned int>(grid_type::Dim * i);
         return grid_type(&m_bins,
                          multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
                          m_offsets[i]);
@@ -148,7 +149,8 @@ class grid_collection<
     /// Create grid from container pointers - non-const
     DETRAY_HOST_DEVICE
     auto operator[](const size_type i) -> grid_type {
-        const size_type axes_offset{grid_type::Dim * i};
+        const unsigned int axes_offset =
+            static_cast<unsigned int>(grid_type::Dim * i);
         return grid_type(&m_bins,
                          multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
                          m_offsets[i]);

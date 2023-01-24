@@ -381,7 +381,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     scalar ref_phi_var(0);
     scalar ref_theta_var(0);
 
-    for (std::size_t i = 0; i < n_samples; i++) {
+    for (unsigned int i = 0; i < n_samples; i++) {
 
         propagation::print_inspector::state print_insp_state{};
         pathlimit_aborter::state aborter_state{};

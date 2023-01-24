@@ -798,7 +798,7 @@ class navigator {
 template <typename detector_t>
 DETRAY_HOST vecmem::data::jagged_vector_buffer<line_plane_intersection>
 create_candidates_buffer(
-    const detector_t &det, const unsigned int n_tracks,
+    const detector_t &det, const std::size_t n_tracks,
     vecmem::memory_resource &device_resource,
     vecmem::memory_resource *host_access_resource = nullptr) {
     return vecmem::data::jagged_vector_buffer<line_plane_intersection>(

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -227,7 +227,8 @@ class multi_axis {
     /// Constructor from externally owned data containers.
     DETRAY_HOST_DEVICE
     multi_axis(const vector_type<dindex_range> *axes_data_ptr,
-               const vector_type<scalar_type> *edges_ptr, dindex offset = 0)
+               const vector_type<scalar_type> *edges_ptr,
+               unsigned int offset = 0)
         : m_data(axes_data_ptr, edges_ptr, offset) {}
 
     /// Device-side construction from a vecmem based view type
