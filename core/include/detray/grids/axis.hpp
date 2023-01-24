@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -517,9 +517,9 @@ struct irregular {
                        const array_t<dindex, 2> &nhood = {0u, 0u}) const {
 
         dindex ibin = bin(v);
-        int bins = boundaries.size() - 1;
-        int ibinmin = ibin - static_cast<int>(nhood[0]);
-        int ibinmax = ibin + static_cast<int>(nhood[1]);
+        int bins = static_cast<int>(boundaries.size() - 1);
+        int ibinmin = static_cast<int>(ibin - nhood[0]);
+        int ibinmax = static_cast<int>(ibin + nhood[1]);
         dindex min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0;
         dindex max_bin = (ibinmax < static_cast<int>(bins))
                              ? static_cast<dindex>(ibinmax)

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -29,7 +29,7 @@ constexpr std::size_t n_brl_layers = 4;
 constexpr std::size_t n_edc_layers = 7;
 
 void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
-                 const unsigned int theta_steps, const unsigned int phi_steps) {
+                 const std::size_t theta_steps, const std::size_t phi_steps) {
     // Set origin position of tracks
     const point3 ori{0., 0., 0.};
     const scalar mom_mag = 10. * unit<scalar>::GeV;

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -49,7 +49,7 @@ struct simulator {
     using propagator_type =
         propagator<stepper_type, navigator_type, actor_chain_type>;
 
-    simulator(std::size_t events, const detector_t& det,
+    simulator(unsigned int events, const detector_t& det,
               track_generator_t& track_gen, smearer_t& smearer,
               const std::string directory = "")
         : m_events(events),
@@ -63,7 +63,7 @@ struct simulator {
 
     void run() {
 
-        for (std::size_t event_id = 0; event_id < m_events; event_id++) {
+        for (unsigned int event_id = 0; event_id < m_events; event_id++) {
             typename event_writer<transform3, smearer_t>::state writer(
                 event_id, m_smearer, m_directory);
 
@@ -97,7 +97,7 @@ struct simulator {
 
     private:
     config m_cfg;
-    std::size_t m_events = 0;
+    unsigned int m_events = 0;
     std::string m_directory = "";
     std::unique_ptr<detector_t> m_detector;
     track_generator_t m_track_generator;

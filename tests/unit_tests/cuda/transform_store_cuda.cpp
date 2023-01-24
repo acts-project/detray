@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -63,7 +63,7 @@ TEST(transform_store_cuda, transform_store) {
     ASSERT_EQ(static_store.size(ctx0), 5u);
 
     // Compare the transform operation results
-    unsigned int n_transforms = static_store.size(ctx0);
+    std::size_t n_transforms = static_store.size(ctx0);
 
     // Fill input vector
     vecmem::vector<point3> input(&mng_mr);
