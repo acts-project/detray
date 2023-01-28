@@ -11,8 +11,6 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // Vecmem include(s)
-#include <vecmem/containers/device_vector.hpp>
-#include <vecmem/containers/jagged_device_vector.hpp>
 #include <vecmem/containers/jagged_vector.hpp>
 #include <vecmem/containers/vector.hpp>
 
@@ -47,7 +45,6 @@ template <template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector,
           template <typename, typename> class map_t = dmap>
 struct container_types {
-
     template <typename T>
     using vector_type = vector_t<T>;
 

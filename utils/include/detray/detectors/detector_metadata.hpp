@@ -106,8 +106,6 @@ struct full_metadata {
         e_portal_ring2 = 4,
     };
 
-    using context_type = empty_context;
-
     /// How to store and link masks
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
