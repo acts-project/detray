@@ -53,9 +53,6 @@ class detector {
         detector<metadata, bfield_t, container_t>>;
 
     public:
-    using detector_registry = metadata;
-    using container_type = container_t;
-
     /// Algebra types
     /// @TODO: scalar as a template parameter
     using scalar_type = scalar;
