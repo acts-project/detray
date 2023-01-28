@@ -23,8 +23,8 @@ using host_store_type =
                         float, double>;
 
 using device_store_type =
-    regular_multi_store<int, empty_context, thrust::tuple,
-                        vecmem::device_vector, std::size_t, float, double>;
+    regular_multi_store<int, empty_context, dtuple, vecmem::device_vector,
+                        std::size_t, float, double>;
 
 void get_sum(typename host_store_type::view_type store_view,
              vecmem::data::vector_view<double> sum_data);
