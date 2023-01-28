@@ -11,6 +11,8 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // Vecmem include(s)
+#include <vecmem/containers/device_vector.hpp>
+#include <vecmem/containers/jagged_device_vector.hpp>
 #include <vecmem/containers/jagged_vector.hpp>
 #include <vecmem/containers/vector.hpp>
 
@@ -38,6 +40,15 @@ using dmap = std::map<key_t, value_t>;
 template <class... types>
 using dtuple = std::tuple<types...>;
 
+template <template <typename...> class, template <typename...> class>
+struct is_same_vector : std::false_type {};
+
+template <template <typename...> class T>
+struct is_same_vector<T, T> : std::true_type {};
+
+template <template <typename...> class T, template <typename...> class U>
+inline constexpr bool is_same_vector_v = is_same_vector<T, U>::value;
+
 /// @brief Bundle container type definitions
 template <template <typename...> class vector_t = dvector,
           template <typename...> class tuple_t = dtuple,
@@ -45,6 +56,14 @@ template <template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector,
           template <typename, typename> class map_t = dmap>
 struct container_types {
+
+    static_assert((is_same_vector<vector_t, dvector>::value &&
+                   is_same_vector<jagged_vector_t, djagged_vector>::value) ||
+                      (is_same_vector<vector_t, vecmem::device_vector>::value &&
+                       is_same_vector<jagged_vector_t,
+                                      vecmem::jagged_device_vector>::value),
+                  "The vector type should be defined as vecmem vector");
+
     template <typename T>
     using vector_type = vector_t<T>;
 

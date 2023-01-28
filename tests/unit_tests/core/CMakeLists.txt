@@ -13,6 +13,7 @@ detray_add_test( core
    "thrust_tuple.cpp"
    "tools_hash_tree.cpp"
    "tuple_helpers.cpp"
+   "type_traits.cpp"
    "utils_local_object_finder.cpp"
    "utils_ranges.cpp"
    "utils_quadratic_equation.cpp"
