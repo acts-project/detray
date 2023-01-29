@@ -8,16 +8,14 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/definitions/units.hpp"
 
 // System include(s)
 #include <array>
 #include <cmath>
 #include <iostream>
 
-namespace detray {
+namespace detray::texture {
 
 /// @brief holds rgb and alpha values for color shading
 ///
@@ -33,7 +31,9 @@ struct color {
     DETRAY_HOST_DEVICE
     constexpr color(const data_t r, const data_t g, const data_t b,
                     const data_t alpha)
-        : m_data{r, g, b, alpha} {}
+        : m_data{static_cast<data_t>(r % 255u), static_cast<data_t>(g % 255u),
+                 static_cast<data_t>(b % 255u),
+                 static_cast<data_t>(alpha % 255u)} {}
 
     /// Equality operator: Only considers exact match
     DETRAY_HOST_DEVICE
@@ -86,4 +86,4 @@ constexpr color<data_t> operator+(const color<data_t>& left,
     return new_color;
 }
 
-}  // namespace detray
+}  // namespace detray::texture

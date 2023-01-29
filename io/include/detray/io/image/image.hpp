@@ -9,7 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/tracer/color.hpp"
+#include "detray/tracer/texture/color.hpp"
 
 // System include(s).
 #include <iostream>
@@ -17,7 +17,10 @@
 
 namespace detray::io {
 
+template <typename depth = uint8_t>
 class raw_image {
+
+    using color_t = texture::color<depth>;
 
     public:
     /// Default constructor
@@ -26,7 +29,7 @@ class raw_image {
     /// Construct from image @param hight and @param width in pixels
     DETRAY_HOST_DEVICE
     raw_image(const unsigned long hight, const unsigned long width,
-              const color<> c = {})
+              const color_t c = {})
         : m_hight{hight}, m_width{width}, m_data{hight * width, c} {}
 
     /// @returns image hight in pixels
@@ -43,11 +46,11 @@ class raw_image {
 
     /// @returns the pixel data
     DETRAY_HOST_DEVICE
-    constexpr const std::vector<color<>>& pixel_data() const { return m_data; }
+    constexpr const std::vector<color_t>& pixel_data() const { return m_data; }
 
     /// @returns the pixel data
     DETRAY_HOST_DEVICE
-    constexpr std::vector<color<>>& pixel_data() { return m_data; }
+    constexpr std::vector<color_t>& pixel_data() { return m_data; }
 
     private:
     /// Image size in pixels
@@ -55,7 +58,7 @@ class raw_image {
     unsigned long m_width{100u};
 
     /// Pixel data
-    std::vector<color<>> m_data{m_hight * m_width, color{}};
+    std::vector<color_t> m_data{m_hight * m_width, color_t{}};
 };
 
 }  // namespace detray::io

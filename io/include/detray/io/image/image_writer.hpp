@@ -18,6 +18,7 @@
 namespace detray::io {
 
 /// @brief Abstract base class for image writers
+template <typename color_depth = uint8_t>
 class image_writer {
 
     public:
@@ -27,7 +28,7 @@ class image_writer {
     /// File gets created with a @param name and @param extension
     image_writer(const std::string &name = "",
                  const std::string &extension = "img") {
-        // default name
+        // Default name
         std::string file_name{
             name.empty() ? "graphic_" + std::to_string(n_files) : name};
 
@@ -42,7 +43,7 @@ class image_writer {
     virtual ~image_writer() { m_file.close(); }
 
     /// Writes an image to disk
-    virtual void write(const raw_image &im) = 0;
+    virtual void write(const raw_image<color_depth> &im) = 0;
 
     protected:
     /// Output file handle
@@ -53,6 +54,7 @@ class image_writer {
     static unsigned int n_files;
 };
 
-unsigned int image_writer::n_files{0u};
+template <typename color_depth>
+unsigned int image_writer<color_depth>::n_files{0u};
 
 }  // namespace detray::io
