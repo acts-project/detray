@@ -18,6 +18,13 @@ namespace detray {
 // Define scalar type
 using scalar = DETRAY_CUSTOM_SCALARTYPE;
 
+/// Define affine transformation types
+/// @{
+using transform3D = algebra::eigen::transform3<scalar>;
+using point3D = algebra::eigen::point3<scalar>;
+using vector3D = algebra::eigen::vector3<scalar>;
+/// @}
+
 // Define namespace(s)
 namespace getter = algebra::getter;
 namespace vector = algebra::vector;

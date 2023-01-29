@@ -46,21 +46,26 @@ inline void write_test_image(io::raw_image<color_depth>& im) {
     }
 }
 
-/// Render a rectangle
-template <typename color_depth>
-inline void render_rectangle(io::raw_image<color_depth>& im) {
+/// Render a shape
+template <typename shape_t, typename color_depth>
+inline void render_single_shape(io::raw_image<color_depth>& im,
+                                const mask<shape_t>& m) {
 
-    using intersector_t = single_shape<mask<rectangle2D<>>>;
+    // using intersector_t = single_shape<mask<rectangle2D<>>>;
+    using intersector_t = single_shape<mask<shape_t>>;
     using colorizer_t = colorizer<>;
     using renderer_t = composite_actor<dtuple, intersector_t, colorizer_t>;
     // The full pipeline
     using pipeline_t = rendering_pipeline<dtuple, renderer_t>;
 
-    mask<rectangle2D<>> rect{0u, 5.f, 8.f};
+    vector3D x{1.0f, 0.0f, 0.0f};
+    vector3D z{0.0f, 0.0f, 1.f};
+    vector3D t{5.0f, 5.0f, 30.0f};
+    transform3D trf{t, z, x};
 
-    const point3D lower_left_corner{-2.0f, -1.0f, -1.0f};
-    const point3D horizontal{4.0f, 0.0f, 0.0f};
-    const point3D vertical{0.0f, 2.0f, 0.0f};
+    const point3D lower_left_corner{-10.0f, -5.0f, -5.0f};
+    const point3D horizontal{20.0f, 0.0f, 0.0f};
+    const point3D vertical{0.0f, 10.0f, 0.0f};
     const point3D origin{0.0f, 0.0f, 0.0f};
 
     // Iterate through pixel matrix
@@ -70,8 +75,8 @@ inline void render_rectangle(io::raw_image<color_depth>& im) {
             const float u{i_x / im.width()};
             const float v{i_y / im.height()};
 
-            intersector_t::state geo(
-                rect, origin,
+            typename intersector_t::state geo(
+                m, trf, origin,
                 lower_left_corner + u * horizontal + v * vertical);
             colorizer_t::state col(i_x, i_y);
             auto pipeline_state = std::tie(geo, col);
@@ -97,12 +102,32 @@ int main() {
     constexpr texture::color<> blue{0u, 0u, 139u, 0u};
     constexpr texture::color<> purple{red + blue};
 
-    io::raw_image<> out_im{200u, 100u};
-    // write_test_image(out_im);
-    render_rectangle(out_im);
+    io::ppm_writer<> ppm{};
 
-    io::ppm_writer ppm("test");
-    ppm.write(out_im);
+    // write a test image
+    io::raw_image<> image{1000u, 500u};
+    write_test_image(image);
+    ppm.write(image, "test");
+
+    // render a rectangle mask
+    mask<rectangle2D<>> rect{0u, 12.f, 20.f};
+    render_single_shape(image, rect);
+    ppm.write(image, "rectangle");
+
+    // render a trapezoid mask
+    mask<trapezoid2D<>> trpz{0u, 10.f, 30.f, 20.f, 1.f / 40.f};
+    render_single_shape(image, trpz);
+    ppm.write(image, "trapezoid");
+
+    // render a ring mask
+    mask<ring2D<>> ring{0u, 12.f, 20.f};
+    render_single_shape(image, ring);
+    ppm.write(image, "ring");
+
+    // render an annulus mask
+    mask<annulus2D<>> ann2{0u, 5.f, 13.0f, 0.74195f, 1.33970f, -2.f, 2.f, 0.f};
+    render_single_shape(image, ann2);
+    ppm.write(image, "annulus");
 
     return EXIT_SUCCESS;
 }

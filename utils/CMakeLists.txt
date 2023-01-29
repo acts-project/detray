@@ -13,7 +13,8 @@ file( GLOB _detray_utils_public_headers
    "include/detray/detectors/*.hpp"
    "include/detray/simulation/event_generator/*.hpp"
    "include/detray/simulation/*.hpp"
-   "include/detray/tracer/*.hpp" )
+   "include/detray/tracer/renderer/*.hpp"
+   "include/detray/tracer/texture/*.hpp" )
 detray_add_library( detray_utils utils
     ${_detray_utils_public_headers} )
 target_link_libraries( detray_utils

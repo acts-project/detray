@@ -8,8 +8,10 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/propagator/base_actor.hpp"
 #include "detray/tracer/texture/color.hpp"
 #include "detray/tracer/texture/pixel.hpp"
 
@@ -24,7 +26,7 @@ constexpr texture::color<> purple{red + blue};
 
 /// Calculates the color of a pixel. Starting point of the shader pipeline
 template <typename pixel_coord_t = uint, typename color_depth = uint8_t>
-struct colorizer : detray::actor {
+struct colorizer : public detray::actor {
 
     struct state {
 
@@ -43,7 +45,7 @@ struct colorizer : detray::actor {
         } else {
             vector3D dir = vector::normalize(intr_state.m_ray.dir());
             point3D p1{1.0f, 1.0f, 1.0f};
-            point3D p2{0.5f, 0.7f, 1.0f};
+            point3D p2{0.85f, 0.85f, 1.0f};
             const scalar t{0.5f * dir[1] + 1.0f};
             point3D tmp = 255.99f * ((1.0f - t) * p1 + t * p2);
 
