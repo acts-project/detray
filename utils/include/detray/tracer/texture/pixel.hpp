@@ -21,7 +21,7 @@ namespace detail {
 /// @brief holds rgb and alpha values for color shading
 ///
 /// @tparam data_t how to store the rgb data: single color or soa
-template <uint D = 2, typename data_t = ulong, typename depth = uint8_t>
+template <uint D, typename data_t = uint, typename depth = uint8_t>
 struct pixelD {
 
     using color_t = texture::color<depth>;
@@ -35,7 +35,7 @@ struct pixelD {
     /// and @param alpha values
     DETRAY_HOST_DEVICE
     constexpr pixelD(const std::array<data_t, D>& coord, const color_t& c)
-        : m_coord{coord}, m_color{c} {}
+        : m_color{c}, m_coord{coord} {}
 
     /// Equality operator: Only considers exact match
     DETRAY_HOST_DEVICE
@@ -80,7 +80,7 @@ struct pixelD {
 template <uint D, typename data_t, typename depth>
 std::ostream& operator<<(std::ostream& os, const pixelD<D, data_t, depth>& px) {
     return os << "pix: " << static_cast<uint>(px[0]) << ", "
-              << static_cast<uint>(px[1]) << ", color: " << px.color();
+              << static_cast<uint>(px[1]) << ", " << px.color();
 }
 
 template <uint D, typename data_t, typename depth>
@@ -99,10 +99,10 @@ constexpr pixelD<D, data_t, depth> operator+(
 
 }  // namespace detail
 
-template <typename data_t = ulong, typename depth = uint8_t>
+template <typename data_t = uint, typename depth = uint8_t>
 using pixel = detail::pixelD<2, data_t, depth>;
 
-template <typename data_t = ulong, typename depth = uint8_t>
+template <typename data_t = uint, typename depth = uint8_t>
 using voxel = detail::pixelD<3, data_t, depth>;
 
 }  // namespace detray::texture

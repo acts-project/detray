@@ -27,7 +27,7 @@ class ppm_writer final : public image_writer<color_depth> {
     /// Writes the image to disk as a ppm file
     void write(const raw_image<color_depth> &im) override {
         // ppm file header
-        this->m_file << "P3\n" << im.width() << " " << im.hight() << "\n255\n";
+        this->m_file << "P3\n" << im.width() << " " << im.height() << "\n255\n";
 
         // Image data
         for (const auto &px : im.pixel_data()) {

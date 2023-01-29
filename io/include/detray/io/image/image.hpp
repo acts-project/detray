@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/tracer/texture/color.hpp"
+#include "detray/tracer/texture/pixel.hpp"
 
 // System include(s).
 #include <iostream>
@@ -26,23 +27,23 @@ class raw_image {
     /// Default constructor
     constexpr raw_image() = default;
 
-    /// Construct from image @param hight and @param width in pixels
+    /// Construct from image @param height and @param width in pixels
     DETRAY_HOST_DEVICE
-    raw_image(const unsigned long hight, const unsigned long width,
+    raw_image(const unsigned int width, const unsigned int height,
               const color_t c = {})
-        : m_hight{hight}, m_width{width}, m_data{hight * width, c} {}
-
-    /// @returns image hight in pixels
-    DETRAY_HOST_DEVICE
-    constexpr unsigned long hight() const { return m_hight; }
+        : m_width{width}, m_height{height}, m_data{height * width, c} {}
 
     /// @returns image width in pixels
     DETRAY_HOST_DEVICE
     constexpr unsigned long width() const { return m_width; }
 
+    /// @returns image height in pixels
+    DETRAY_HOST_DEVICE
+    constexpr unsigned long height() const { return m_height; }
+
     /// @returns number of pixels
     DETRAY_HOST_DEVICE
-    constexpr unsigned long n_pixels() const { return m_hight * m_width; }
+    constexpr unsigned long n_pixels() const { return m_height * m_width; }
 
     /// @returns the pixel data
     DETRAY_HOST_DEVICE
@@ -52,13 +53,26 @@ class raw_image {
     DETRAY_HOST_DEVICE
     constexpr std::vector<color_t>& pixel_data() { return m_data; }
 
+    /// Set a particular pixel in the image
+    DETRAY_HOST_DEVICE
+    constexpr void set_pixel(uint x, uint y, color_t c) {
+        std::size_t px_idx{x + m_width * y};
+        m_data.at(px_idx) = c;
+    }
+
+    /// Set a particular pixel in the image to @param px
+    DETRAY_HOST_DEVICE
+    constexpr void set_pixel(texture::pixel<unsigned int, color_t>& px) {
+        set_pixel(px[0], px[1], px.color());
+    }
+
     private:
     /// Image size in pixels
-    unsigned long m_hight{100u};
     unsigned long m_width{100u};
+    unsigned long m_height{100u};
 
     /// Pixel data
-    std::vector<color_t> m_data{m_hight * m_width, color_t{}};
+    std::vector<color_t> m_data{m_height * m_width, color_t{}};
 };
 
 }  // namespace detray::io
