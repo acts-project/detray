@@ -12,7 +12,8 @@ file( GLOB _detray_utils_public_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
    "include/detray/detectors/*.hpp"
    "include/detray/simulation/event_generator/*.hpp"
-   "include/detray/simulation/*.hpp" )
+   "include/detray/simulation/*.hpp"
+   "include/detray/tracer/*.hpp" )
 detray_add_library( detray_utils utils
     ${_detray_utils_public_headers} )
 target_link_libraries( detray_utils
