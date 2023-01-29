@@ -9,10 +9,10 @@
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
 
 // Project include(s).
-#include "detray/masks/masks.hpp"
-#include "detray/tracer/color.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/io/image/ppm_writer.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/tracer/color.hpp"
 
 // System include(s)
 #include <iostream>
@@ -21,11 +21,13 @@ using namespace detray;
 
 int main() {
 
-    constexpr color<> red{139.f, 0.f, 0.f, 0.f};
+    constexpr color<> red{139u, 0u, 0u, 0u};
+    constexpr color<> blue{0u, 0u, 139u, 0u};
+    constexpr color<> purple{red + blue};
 
-    image out_im{100u, 100u, red};
+    io::raw_image out_im{100u, 100u, purple};
 
-    ppm_writer ppm("all_red");
+    io::ppm_writer ppm("test");
     ppm.write(out_im);
 
     return 0;

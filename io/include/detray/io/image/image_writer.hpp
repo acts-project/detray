@@ -8,14 +8,14 @@
 #pragma once
 
 // Project include(s).
-#include "detray/io/image/image.hpp"
+#include "detray/io/image/raw_image.hpp"
 
 // System include(s).
 #include <fstream>
 #include <iostream>
 #include <string>
 
-namespace detray {
+namespace detray::io {
 
 /// @brief Abstract base class for image writers
 class image_writer {
@@ -42,7 +42,7 @@ class image_writer {
     virtual ~image_writer() { m_file.close(); }
 
     /// Writes an image to disk
-    virtual void write(const image &im) = 0;
+    virtual void write(const raw_image &im) = 0;
 
     protected:
     /// Output file handle
@@ -55,4 +55,4 @@ class image_writer {
 
 unsigned int image_writer::n_files{0u};
 
-}  // namespace detray
+}  // namespace detray::io

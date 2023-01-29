@@ -10,7 +10,7 @@
 // Project include(s).
 #include "detray/io/image/image_writer.hpp"
 
-namespace detray {
+namespace detray::io {
 
 /// @brief This class is a file writer for the ppm format
 class ppm_writer final : public image_writer {
@@ -23,15 +23,17 @@ class ppm_writer final : public image_writer {
     ppm_writer(const std::string &name = "") : image_writer(name, "ppm") {}
 
     /// Writes the image to disk as a ppm file
-    void write(const image &im) override {
+    void write(const raw_image &im) override {
         // ppm file header
         m_file << "P3\n" << im.width() << " " << im.hight() << "\n255\n";
 
         // Image data
         for (const auto &px : im.pixel_data()) {
-            m_file << px[0] << " " << px[1] << " " << px[2] << std::endl;
+            m_file << static_cast<uint>(px[0]) << " "
+                   << static_cast<uint>(px[1]) << " "
+                   << static_cast<uint>(px[2]) << std::endl;
         }
     };
 };
 
-}  // namespace detray
+}  // namespace detray::io
