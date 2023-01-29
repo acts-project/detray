@@ -12,11 +12,12 @@ file( GLOB _detray_io_public_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
    "include/detray/io/common/*.hpp"
    "include/detray/io/csv/*.hpp"
+   "include/detray/io/image/*.hpp"
    "include/detray/io/json/*.hpp" )
 detray_add_library( detray_io io
    ${_detray_io_public_headers} )
 target_link_libraries( detray_io INTERFACE
-   dfelibs::dfelibs nlohmann_json::nlohmann_json vecmem::core detray::core )
+   dfelibs::dfelibs nlohmann_json::nlohmann_json vecmem::core detray::core detray::utils)
 
 # Set up libraries using particular algebra plugins.
 detray_add_library( detray_io_array io_array )

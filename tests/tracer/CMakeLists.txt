@@ -6,4 +6,4 @@
 
 detray_add_executable(run_tracer
    "trace_rectangle.cpp"
-   LINK_LIBRARIES detray_tests_common detray::vc_array)
+   LINK_LIBRARIES detray_algebra_vc detray::test detray::io detray::utils)
