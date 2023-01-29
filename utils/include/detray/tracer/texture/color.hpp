@@ -31,9 +31,9 @@ struct color {
     DETRAY_HOST_DEVICE
     constexpr color(const data_t r, const data_t g, const data_t b,
                     const data_t alpha)
-        : m_data{static_cast<data_t>(r % 255u), static_cast<data_t>(g % 255u),
-                 static_cast<data_t>(b % 255u),
-                 static_cast<data_t>(alpha % 255u)} {}
+        : m_data{static_cast<data_t>(r % 256u), static_cast<data_t>(g % 256u),
+                 static_cast<data_t>(b % 256u),
+                 static_cast<data_t>(alpha % 256u)} {}
 
     /// Equality operator: Only considers exact match
     DETRAY_HOST_DEVICE
@@ -78,10 +78,10 @@ constexpr color<data_t> operator+(const color<data_t>& left,
                                   const color<data_t>& right) {
     color<data_t> new_color;
 
-    new_color[0] = static_cast<data_t>((left[0] + right[0]) % 255u);
-    new_color[1] = static_cast<data_t>((left[1] + right[1]) % 255u);
-    new_color[2] = static_cast<data_t>((left[2] + right[2]) % 255u);
-    new_color[3] = static_cast<data_t>((left[3] + right[3]) % 255u);
+    new_color[0] = static_cast<data_t>((left[0] + right[0]) % 256u);
+    new_color[1] = static_cast<data_t>((left[1] + right[1]) % 256u);
+    new_color[2] = static_cast<data_t>((left[2] + right[2]) % 256u);
+    new_color[3] = static_cast<data_t>((left[3] + right[3]) % 256u);
 
     return new_color;
 }

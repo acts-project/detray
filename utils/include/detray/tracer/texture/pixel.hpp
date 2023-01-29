@@ -31,8 +31,12 @@ struct pixelD {
     /// Default constructor
     constexpr pixelD() = default;
 
-    /// Construct from colors @param r (red), @param g (green), @param b (blue)
-    /// and @param alpha values
+    /// Construct from ist coordinates @param coord
+    DETRAY_HOST_DEVICE
+    constexpr pixelD(const std::array<data_t, D>& coord)
+        : m_color{}, m_coord{coord} {}
+
+    /// Construct from its coordinates @param coord and a color @param c
     DETRAY_HOST_DEVICE
     constexpr pixelD(const std::array<data_t, D>& coord, const color_t& c)
         : m_color{c}, m_coord{coord} {}
