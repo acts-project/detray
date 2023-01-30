@@ -12,15 +12,16 @@
 #include "detray/tracer/texture/color.hpp"
 
 // System include(s)
+#include <array>
 #include <iostream>
 
 namespace detray::texture {
 
 namespace detail {
 
-/// @brief holds rgb and alpha values for color shading
+/// @brief holds pixel coordinates and its color.
 ///
-/// @tparam data_t how to store the rgb data: single color or soa
+/// @tparam data_t how to store the pixel data.
 template <uint D, typename data_t = uint, typename depth = uint8_t>
 struct pixelD {
 
@@ -47,19 +48,19 @@ struct pixelD {
         return (m_coord == other.m_coord) and (m_color == other.m_color);
     }
 
-    /// Subscript operator @returns a color data point - const
+    /// Subscript operator @returns the pixel coordinates - const
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator[](const std::size_t i) const {
         return m_coord[i];
     }
 
-    /// Subscript operator @returns a color data point - non-const
+    /// Subscript operator @returns the pixel coordinates - non-const
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator[](const std::size_t i) {
         return m_coord[i];
     }
 
-    /// @returns the color of the pixel - non-const
+    /// @returns the color of the pixel
     DETRAY_HOST_DEVICE
     constexpr const color_t& color() const { return m_color; }
 

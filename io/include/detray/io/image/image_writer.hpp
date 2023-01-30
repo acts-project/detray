@@ -19,6 +19,8 @@
 
 namespace detray::io {
 
+namespace detail {
+
 /// Wrapper around a file stream for an image file
 class file_handle final {
 
@@ -57,6 +59,8 @@ class file_handle final {
 };
 
 unsigned int file_handle::n_files{0u};
+
+}  // namespace detail
 
 /// @brief Abstract base class for image writers
 template <typename color_depth = uint8_t>

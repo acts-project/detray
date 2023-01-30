@@ -7,17 +7,17 @@
 
 #pragma once
 
-// Project include(s).
+// Project include(s)
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/tracer/texture/color.hpp"
 #include "detray/tracer/texture/pixel.hpp"
 
-// System include(s).
-#include <iostream>
+// System include(s)
 #include <vector>
 
 namespace detray::io {
 
+/// @brief Contains the color for every pixel in the image, no compression
 template <typename depth = uint8_t>
 class raw_image {
 
@@ -55,14 +55,14 @@ class raw_image {
 
     /// Set a particular pixel in the image
     DETRAY_HOST_DEVICE
-    constexpr void set_pixel(uint x, uint y, color_t c) {
+    constexpr void set_pixel(const uint x, const uint y, const color_t c) {
         std::size_t px_idx{x + m_width * y};
         m_data.at(px_idx) = c;
     }
 
     /// Set a particular pixel in the image to @param px
     DETRAY_HOST_DEVICE
-    constexpr void set_pixel(texture::pixel<unsigned int, depth>& px) {
+    constexpr void set_pixel(const texture::pixel<unsigned int, depth>& px) {
         set_pixel(px[0], px[1], px.color());
     }
 

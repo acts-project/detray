@@ -13,9 +13,6 @@
 #include "detray/tracer/renderer/intersector.hpp"
 #include "detray/tracer/renderer/single_shape.hpp"
 
-// System include(s)
-#include <iostream>
-
 namespace detray {
 
 template <template <typename...> class tuple_t = dtuple, typename... shaders_t>

@@ -24,7 +24,7 @@ class ppm_writer final : public image_writer<color_depth> {
     void write(const raw_image<color_depth> &im,
                const std::string &name) override {
         // Create a new file
-        file_handle file{name, this->m_file_extension};
+        detail::file_handle file{name, this->m_file_extension};
 
         // ppm file header
         *file << "P3\n" << im.width() << " " << im.height() << "\n255\n";
