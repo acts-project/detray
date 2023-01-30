@@ -29,6 +29,11 @@
 
 namespace detray {
 
+/// @brief Forward declaration of a detector view type
+template <typename metadata, template <typename> class bfield_t,
+          typename container_t>
+struct detector_view;
+
 /// @brief The detector definition.
 ///
 /// This class is a heavily templated container aggregation, that owns all data
@@ -49,6 +54,7 @@ class detector {
 
     public:
     /// Algebra types
+    /// @TODO: scalar as a template parameter
     using scalar_type = scalar;
 
     using point3 = __plugin::point3<scalar_type>;
@@ -119,6 +125,9 @@ class detector {
     /// position
     using volume_finder =
         typename metadata::template volume_finder<container_t>;
+
+    using detector_view_type =
+        detector_view<metadata, covfie::field, host_container_types>;
 
     detector() = delete;
 
@@ -536,8 +545,11 @@ class detector {
 };
 
 /// @brief A static inplementation of detector data for device
-template <typename detector_type>
+template <typename metadata, template <typename> class bfield_t,
+          typename container_t>
 struct detector_view {
+
+    using detector_type = detector<metadata, bfield_t, container_t>;
 
     detector_view(detector_type &det)
         : _volumes_data(vecmem::get_data(det.volumes())),
@@ -566,10 +578,10 @@ struct detector_view {
 /// device.
 ///
 /// @param detector the detector to be tranferred
-template <typename detector_registry, template <typename> class bfield_t,
+template <typename metadata, template <typename> class bfield_t,
           typename container_t>
-inline detector_view<detector<detector_registry, bfield_t, container_t>>
-get_data(detector<detector_registry, bfield_t, container_t> &det) {
+inline detector_view<metadata, bfield_t, container_t> get_data(
+    detector<metadata, bfield_t, container_t> &det) {
     return {det};
 }
 

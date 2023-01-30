@@ -48,7 +48,7 @@ using disc_t = typename mask_defs::template get_type<disc_id>::type;
 using cylinder_t = typename mask_defs::template get_type<cylinder_id>::type;
 
 /// declaration of a test function for detector
-void detector_test(detector_view<detector_host_t> det_data,
+void detector_test(typename detector_host_t::detector_view_type det_data,
                    vecmem::data::vector_view<volume_t> volumes_data,
                    vecmem::data::vector_view<surface_t> surfaces_data,
                    vecmem::data::vector_view<transform_t> transforms_data,
@@ -57,7 +57,7 @@ void detector_test(detector_view<detector_host_t> det_data,
                    vecmem::data::vector_view<cylinder_t> cylinders_data);
 
 // declaration of a test function for volume enumeration
-void enumerate_test(detector_view<detector_host_t> det_data,
+void enumerate_test(typename detector_host_t::detector_view_type det_data,
                     vecmem::data::jagged_vector_view<surface_t> surfaces_data);
 
 }  // namespace detray
