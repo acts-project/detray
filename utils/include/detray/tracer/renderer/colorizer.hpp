@@ -15,21 +15,58 @@
 #include "detray/tracer/texture/color.hpp"
 #include "detray/tracer/texture/pixel.hpp"
 
-// System include(s)
-#include <iostream>
-
 namespace detray {
+
+// namespace texture {
 
 constexpr texture::color<> red{139u, 0u, 0u, 0u};
 constexpr texture::color<> blue{0u, 0u, 139u, 0u};
 constexpr texture::color<> purple{red + blue};
 
+/// @brief Image background class tag
+struct image_background {};
+
+/// @brief Single color image background
+template <typename color_depth>
+struct plain_background : public image_background {
+
+    using color_t = texture::color<color_depth>;
+
+    static constexpr color_t color = red;
+
+    constexpr color_t operator()(const detray::detail::ray<transform3D> &) {
+        return color;
+    }
+};
+
+/// @brief Gradient background as described in
+template <typename color_depth>
+struct gradient_background : public image_background {
+
+    using color_t = texture::color<color_depth>;
+
+    constexpr color_t operator()(const detray::detail::ray<transform3D> &ray) {
+        vector3D dir = vector::normalize(ray.dir());
+        point3D p1{1.0f, 1.0f, 1.0f};
+        point3D p2{0.85f, 0.85f, 1.0f};
+        const scalar t{0.5f * dir[1] + 1.0f};
+        point3D p3 = 255.99f * ((1.0f - t) * p1 + t * p2);
+
+        return {
+            static_cast<color_depth>(p3[0]), static_cast<color_depth>(p3[1]),
+            static_cast<color_depth>(p3[2]), static_cast<color_depth>(255u)};
+    }
+};
+
+//} // namespace texture
+
 /// Calculates the color of a pixel. Starting point of the shader pipeline
-template <typename pixel_coord_t = uint, typename color_depth = uint8_t>
+template <template <typename> class image_background_t = plain_background,
+          typename color_depth = uint8_t, typename pixel_coord_t = uint>
 struct colorizer : public detray::actor {
 
     struct state {
-
+        /// Construct the pixel for the current ray
         state(const pixel_coord_t x, const pixel_coord_t y) : m_pixel{{x, y}} {}
         /// The resulting pixel
         texture::pixel<pixel_coord_t, color_depth> m_pixel;
@@ -39,20 +76,15 @@ struct colorizer : public detray::actor {
     template <typename scene_handle_t, typename intersector_state_t>
     DETRAY_HOST_DEVICE void operator()(state &st,
                                        intersector_state_t &intr_state,
-                                       const scene_handle_t & /*geo*/) const {
+                                       const scene_handle_t &sc) const {
         if (intr_state.m_is_inside) {
             st.m_pixel.set_color(red);
+            // ready surface specific shaders
+            // ...
         } else {
-            vector3D dir = vector::normalize(intr_state.m_ray.dir());
-            point3D p1{1.0f, 1.0f, 1.0f};
-            point3D p2{0.85f, 0.85f, 1.0f};
-            const scalar t{0.5f * dir[1] + 1.0f};
-            point3D tmp = 255.99f * ((1.0f - t) * p1 + t * p2);
-
-            st.m_pixel.set_color({static_cast<color_depth>(tmp[0]),
-                                  static_cast<color_depth>(tmp[1]),
-                                  static_cast<color_depth>(tmp[2]),
-                                  static_cast<color_depth>(255u)});
+            st.m_pixel.set_color(image_background_t<color_depth>{}(sc.ray()));
+            // break early
+            // ...
         }
     }
 };

@@ -13,6 +13,8 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/materials/material_rod.hpp"
+#include "detray/materials/material_slab.hpp"
 #include "detray/propagator/base_actor.hpp"
 
 // System include(s)
@@ -21,29 +23,39 @@
 namespace detray {
 
 /// Calculates the color of a pixel. Starting point of the shader pipeline
-template <typename mask_t>
+template <typename mask_t, typename material_t = material_slab<scalar>>
 struct single_shape : detray::actor {
 
     using intersection_t = intersection2D<surface<>>;
 
+    struct global_state {
+
+        /// Construct from surface data:
+        DETRAY_HOST_DEVICE
+        global_state(const transform3D &trf, const mask_t &mask,
+                     const material_t &mat)
+            : m_trf{trf}, m_mask{mask}, m_material{mat} {}
+
+        /// Threadsafe interface
+        /// @{
+        const transform3D &transform() const { return m_trf; }
+        const mask_t &mask() const { return m_mask; }
+        const material_t &material() const { return m_material; }
+        /// @}
+
+        /// The surface descriptor
+        transform3D m_trf;
+        mask_t m_mask;
+        material_t m_material;
+    };
+
     struct state {
 
         DETRAY_HOST_DEVICE
-        state(const mask_t &mask, const transform3D &trf, const point3D &ori,
-              const vector3D &dir, scalar min = 0.f,
-              scalar max = std::numeric_limits<scalar>::infinity())
-            : m_mask{mask},
-              m_transform{trf},
-              m_ray{ori, 0.f, dir, 0.f},
-              m_interval{min, max} {}
+        state(const scalar min = 0.f,
+              const scalar max = std::numeric_limits<scalar>::infinity())
+            : m_interval{min, max} {}
 
-        /// The shape to be rendered
-        mask_t m_mask;
-        /// The shape to be rendered
-        transform3D m_transform;
-        /// The input ray into the scene
-        detail::ray<transform3D> m_ray;
-        /// Interval in which ray intersections are being considered
         std::array<scalar, 2> m_interval;
         /// Resulting intersection
         std::array<intersection_t, 2> m_intersections;
@@ -54,14 +66,22 @@ struct single_shape : detray::actor {
     /// Intersect the ray with the mask. The closest intersection is in front of
     /// the @c m_intersections container
     template <typename scene_handle_t>
-    DETRAY_HOST_DEVICE void operator()(state &st,
-                                       const scene_handle_t & /*geo*/) const {
-        st.m_is_inside = place_in_collection(
-            st.m_mask.template intersector<intersection_t>()(st.m_ray, surface<>{}, st.m_mask, st.m_transform),
-            st.m_intersections);
+    DETRAY_HOST_DEVICE void operator()(state &loc_st,
+                                       const scene_handle_t &sc) const {
+        // In this special case, the geometry will be this actor's global_state
+        const global_state &geo = sc.geometry();
+
+        // Perform the intersection
+        loc_st.m_is_inside = place_in_collection(
+            geo.mask().template intersector<intersection_t>()(sc.ray(), surface<>{}, geo.mask(), geo.transform()),
+            loc_st.m_intersections);
     }
 
     private:
+    /// Places the single solution of a ray-surface intersection @param sfi
+    /// in the given container @param intersections, if the surfaces was hit.
+    ///
+    /// @returns @c true if the intersection was is valid.
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
         typename is_container_t::value_type &&sfi,
@@ -74,6 +94,10 @@ struct single_shape : detray::actor {
         }
     }
 
+    /// Places all of those solutions of a ray-surface intersection @param sfi
+    /// in the given container @param intersections, that hit the surface
+    ///
+    /// @returns @c true if at least one valid intersection solution was found.
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
         std::array<typename is_container_t::value_type, 2> &&solutions,

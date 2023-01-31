@@ -21,8 +21,8 @@ using scalar = DETRAY_CUSTOM_SCALARTYPE;
 /// Define affine transformation types
 /// @{
 using transform3D = algebra::array::transform3<scalar>;
-using point3D = algebra::array::point3<scalar>;
-using vector3D = algebra::array::vector3<scalar>;
+using point3D = transform3D::point3;
+using vector3D = transform3D::vector3;
 /// @}
 
 // Define namespace(s)
