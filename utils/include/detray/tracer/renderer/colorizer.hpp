@@ -12,35 +12,33 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/tracer/definitions/colors.hpp"
 #include "detray/tracer/texture/color.hpp"
+#include "detray/tracer/texture/detail/material_color_helper.hpp"
 #include "detray/tracer/texture/pixel.hpp"
 
 namespace detray {
 
 // namespace texture {
 
-constexpr texture::color<> red{139u, 0u, 0u, 0u};
-constexpr texture::color<> blue{0u, 0u, 139u, 0u};
-constexpr texture::color<> purple{red + blue};
-
 /// @brief Image background class tag
 struct image_background {};
 
 /// @brief Single color image background
-template <typename color_depth>
+template <typename color_depth = uint8_t>
 struct plain_background : public image_background {
 
     using color_t = texture::color<color_depth>;
 
-    static constexpr color_t color = red;
-
     constexpr color_t operator()(const detray::detail::ray<transform3D> &) {
-        return color;
+        return m_color;
     }
+
+    color_t m_color = texture::white<color_depth>;
 };
 
 /// @brief Gradient background as described in
-template <typename color_depth>
+template <typename color_depth = uint8_t>
 struct gradient_background : public image_background {
 
     using color_t = texture::color<color_depth>;
@@ -65,6 +63,8 @@ template <template <typename> class image_background_t = plain_background,
           typename color_depth = uint8_t, typename pixel_coord_t = uint>
 struct colorizer : public detray::actor {
 
+    using color_t = texture::color<color_depth>;
+
     struct state {
         /// Construct the pixel for the current ray
         state(const pixel_coord_t x, const pixel_coord_t y) : m_pixel{{x, y}} {}
@@ -78,7 +78,9 @@ struct colorizer : public detray::actor {
                                        intersector_state_t &intr_state,
                                        const scene_handle_t &sc) const {
         if (intr_state.m_is_inside) {
-            st.m_pixel.set_color(red);
+            st.m_pixel.set_color(
+                texture::detail::material_color_helper<color_depth>(
+                    intr_state.material()));
             // ready surface specific shaders
             // ...
         } else {

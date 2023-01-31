@@ -30,10 +30,17 @@ struct color {
     /// and @param alpha values
     DETRAY_HOST_DEVICE
     constexpr color(const data_t r, const data_t g, const data_t b,
-                    const data_t alpha)
+                    const data_t alpha = {255u})
         : m_data{static_cast<data_t>(r % 256u), static_cast<data_t>(g % 256u),
                  static_cast<data_t>(b % 256u),
                  static_cast<data_t>(alpha % 256u)} {}
+
+    /// Construct from hex @param hex and @param alpha value
+    /*DETRAY_HOST_DEVICE
+    constexpr color(const data_t hex, const data_t alpha = {255u})
+        : m_data{static_cast<data_t>(__builtin_ctz(256u)hex % 256u),
+    static_cast<data_t>(g % 256u), static_cast<data_t>(b % 256u),
+                 static_cast<data_t>(alpha % 256u)} {}*/
 
     /// Equality operator: Only considers exact match
     DETRAY_HOST_DEVICE

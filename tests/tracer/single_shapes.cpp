@@ -50,7 +50,7 @@ inline void write_test_image(io::raw_image<color_depth> &im) {
 
 /// Render a shape
 template <typename color_depth, typename shape_t, typename material_t,
-          template <typename> class im_background_t = gradient_background>
+          template <typename> class im_background_t = plain_background>
 inline void render_single_shape(io::raw_image<color_depth> &im,
                                 const detray::mask<shape_t> &mask,
                                 const transform3D &trf, const material_t &mat) {
@@ -126,27 +126,25 @@ int main() {
     vector3D t{5.0f, 5.0f, 30.0f};
     const transform3D trf{t, z, x};
 
-    const silicon_tml<scalar> sf_mat{};
-
     // render a rectangle mask
     const mask<rectangle2D<>> rect{0u, 12.f, 20.f};
-    render_single_shape(image, rect, trf, sf_mat);
+    render_single_shape(image, rect, trf, beryllium<scalar>{});
     ppm.write(image, "rectangle");
 
     // render a trapezoid mask
     const mask<trapezoid2D<>> trpz{0u, 10.f, 30.f, 20.f, 1.f / 40.f};
-    render_single_shape<>(image, trpz, trf, sf_mat);
+    render_single_shape<>(image, trpz, trf, aluminium<scalar>{});
     ppm.write(image, "trapezoid");
 
     // render a ring mask
     const mask<ring2D<>> ring{0u, 12.f, 20.f};
-    render_single_shape<>(image, ring, trf, sf_mat);
+    render_single_shape<>(image, ring, trf, gold<scalar>{});
     ppm.write(image, "ring");
 
     // render an annulus mask
     const mask<annulus2D<>> ann2{0u,       5.f,  13.0f, 0.74195f,
                                  1.33970f, -2.f, 2.f,   0.f};
-    render_single_shape<>(image, ann2, trf, sf_mat);
+    render_single_shape<>(image, ann2, trf, silicon<scalar>{});
     ppm.write(image, "annulus");
 
     return EXIT_SUCCESS;

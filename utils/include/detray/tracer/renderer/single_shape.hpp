@@ -19,6 +19,7 @@
 
 // System include(s)
 #include <limits>
+#include <memory>
 
 namespace detray {
 
@@ -56,10 +57,14 @@ struct single_shape : detray::actor {
               const scalar max = std::numeric_limits<scalar>::infinity())
             : m_interval{min, max} {}
 
+        const material_t &material() const { return *m_material; }
+
         std::array<scalar, 2> m_interval;
         /// Resulting intersection
         std::array<intersection_t, 2> m_intersections;
-        /// Flag to the obseving colorizer
+        /// Pointer to the material of the surface
+        const material_t *m_material;
+        /// Flag to the obseving colorizer/shaders that the surface was hit
         bool m_is_inside = false;
     };
 
@@ -75,6 +80,9 @@ struct single_shape : detray::actor {
         loc_st.m_is_inside = place_in_collection(
             geo.mask().template intersector<intersection_t>()(sc.ray(), surface<>{}, geo.mask(), geo.transform()),
             loc_st.m_intersections);
+        if (loc_st.m_is_inside) {
+            loc_st.m_material = std::addressof(geo.material());
+        }
     }
 
     private:
