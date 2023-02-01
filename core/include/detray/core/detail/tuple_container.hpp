@@ -21,9 +21,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace detray {
-
-namespace detail {
+namespace detray::detail {
 
 /// @brief detray tuple wrapper.
 ///
@@ -211,6 +209,4 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
 }
 /// @}
 
-}  // namespace detail
-
-}  // namespace detray
+}  // namespace detray::detail

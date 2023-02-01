@@ -149,6 +149,12 @@ template <typename T>
 struct detail::is_device_view<vecmem::data::vector_view<T>, void>
     : public std::true_type {};
 
+/// Specialization of 'is view' for constant @c vecmem::data::vector_view
+/// containers
+template <typename T>
+struct detail::is_device_view<const vecmem::data::vector_view<T>, void>
+    : public std::true_type {};
+
 /// Specialization of the view getter for @c vecmem::vector
 template <typename T>
 struct detail::get_view<vecmem::vector<T>, void> : public std::true_type {
@@ -169,6 +175,12 @@ using djagged_vector_view = vecmem::data::jagged_vector_view<T>;
 /// containers
 template <typename T>
 struct detail::is_device_view<vecmem::data::jagged_vector_view<T>, void>
+    : public std::true_type {};
+
+/// Specialization of 'is view' for constant @c vecmem::data::jagged_vector_view
+/// containers
+template <typename T>
+struct detail::is_device_view<const vecmem::data::jagged_vector_view<T>, void>
     : public std::true_type {};
 
 /// Specialization of the view getter for @c vecmem::jagged_vector
