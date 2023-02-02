@@ -19,7 +19,6 @@
 #include "detray/masks/ring2D.hpp"
 #include "detray/masks/single3D.hpp"
 #include "detray/masks/trapezoid2D.hpp"
-#include "detray/masks/unmasked.hpp"
 
 // System include(s)
 #include <algorithm>
