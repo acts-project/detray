@@ -72,6 +72,11 @@ struct unit {
     /// Magnetic field, native unit GeV/(e*mm)
     static constexpr scalar_t T{
         0.000299792458};  // equivalent to c in appropriate SI units
+
+    // Angles, native unit radian
+    static constexpr scalar_t mrad{1e-3};
+    static constexpr scalar_t rad{1.0};
+    static constexpr scalar_t degree{0.017453292519943295};  // pi / 180
 };
 
 /// Physical constants
