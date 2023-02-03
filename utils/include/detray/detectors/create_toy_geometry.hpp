@@ -9,10 +9,10 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_metadata.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/definitions/math.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -411,7 +411,8 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
  * @return a vector of the module positions in a ring
  */
 inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
-                                  scalar phi_sub_stagger, std::size_t n_phi_bins) {
+                                  scalar phi_sub_stagger,
+                                  std::size_t n_phi_bins) {
     // create and fill the positions
     std::vector<vector3> r_positions;
     r_positions.reserve(n_phi_bins);
@@ -440,8 +441,8 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
         // main z position depending on phi bin
         scalar rz{iphi % 2 ? z - scalar{0.5} * phi_stagger
                            : z + scalar{0.5} * phi_stagger};
-        r_positions.push_back(
-            vector3{radius * math_ns::cos(phi), radius * std::sin(phi), rz + rzs});
+        r_positions.push_back(vector3{radius * math_ns::cos(phi),
+                                      radius * std::sin(phi), rz + rzs});
     }
     return r_positions;
 }

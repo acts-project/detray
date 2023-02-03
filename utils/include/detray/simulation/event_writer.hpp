@@ -123,7 +123,7 @@ struct event_writer : actor {
                 surface.mask(), bound_params, writer_state.m_meas_smearer);
 
             meas.measurement_id = writer_state.m_hit_count;
-            meas.geometry_id = hit.geometry_id;            
+            meas.geometry_id = hit.geometry_id;
             meas.local_key = "unknown";
             meas.local0 = local[0];
             meas.local1 = local[1];
