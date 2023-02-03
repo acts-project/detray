@@ -93,7 +93,7 @@ TEST(check_simulation, toy_geometry) {
                                         170 * unit<scalar>::um);
 
     const unsigned int n_events = 10;
-    auto sim = simulator(n_events, detector, generator, smearer);
+    auto sim = simulator(n_events, detector, std::move(generator), smearer);
 
     // Do the simulation
     sim.run();
@@ -232,7 +232,7 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
 
     unsigned int n_events = 1000;
 
-    auto sim = simulator(n_events, detector, generator, smearer);
+    auto sim = simulator(n_events, detector, std::move(generator), smearer);
 
     // Run simulation
     sim.run();

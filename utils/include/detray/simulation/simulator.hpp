@@ -19,6 +19,9 @@
 #include "detray/simulation/event_writer.hpp"
 #include "detray/simulation/random_scatterer.hpp"
 
+// System include(s).
+#include <memory>
+
 namespace detray {
 
 template <typename detector_t, typename track_generator_t, typename smearer_t>
@@ -50,12 +53,13 @@ struct simulator {
         propagator<stepper_type, navigator_type, actor_chain_type>;
 
     simulator(unsigned int events, const detector_t& det,
-              track_generator_t& track_gen, smearer_t& smearer,
+              track_generator_t&& track_gen, smearer_t& smearer,
               const std::string directory = "")
         : m_events(events),
           m_directory(directory),
           m_detector(std::make_unique<detector_t>(det)),
-          m_track_generator(track_gen),
+          m_track_generator(
+              std::make_unique<track_generator_t>(std::move(track_gen))),
           m_smearer(smearer) {}
 
     config& get_config() { return m_cfg; }
@@ -73,7 +77,7 @@ struct simulator {
             auto actor_states = std::tie(m_transporter, m_interactor,
                                          m_scatterer, m_resetter, writer);
 
-            for (auto track : m_track_generator) {
+            for (auto track : *m_track_generator.get()) {
 
                 writer.write_particle(track);
 
@@ -99,7 +103,7 @@ struct simulator {
     unsigned int m_events = 0;
     std::string m_directory = "";
     std::unique_ptr<detector_t> m_detector;
-    track_generator_t& m_track_generator;
+    std::unique_ptr<track_generator_t> m_track_generator;
     smearer_t m_smearer;
 
     /// Actor states
