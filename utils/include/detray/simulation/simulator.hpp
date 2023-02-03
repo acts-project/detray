@@ -55,9 +55,8 @@ struct simulator {
         : m_events(events),
           m_directory(directory),
           m_detector(std::make_unique<detector_t>(det)),
-          m_smearer(smearer) {
-        m_track_generator = track_gen;
-    }
+          m_track_generator(track_gen),
+          m_smearer(smearer) {}
 
     config& get_config() { return m_cfg; }
 
@@ -100,7 +99,7 @@ struct simulator {
     unsigned int m_events = 0;
     std::string m_directory = "";
     std::unique_ptr<detector_t> m_detector;
-    track_generator_t m_track_generator;
+    track_generator_t& m_track_generator;
     smearer_t m_smearer;
 
     /// Actor states

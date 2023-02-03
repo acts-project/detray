@@ -273,7 +273,7 @@ class random_track_generator
         using reference = track_t &;
         using iterator_category = detray::ranges::input_iterator_tag;
 
-        iterator() = delete;
+        constexpr iterator() = delete;
 
         DETRAY_HOST_DEVICE
         iterator(generator_t &rand_gen, std::size_t n_tracks,
@@ -367,7 +367,7 @@ class random_track_generator
     using iterator_t = iterator;
 
     /// Default constructor
-    random_track_generator() = default;
+    constexpr random_track_generator() = default;
 
     /// Paramtetrized constructor for fine-grained configurations
     ///
