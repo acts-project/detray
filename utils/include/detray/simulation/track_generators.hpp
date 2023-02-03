@@ -192,6 +192,10 @@ class uniform_track_generator
         return *this;
     }
 
+    /// Move constructor
+    uniform_track_generator(uniform_track_generator &&other)
+        : m_begin(std::move(other.m_begin)), m_end(std::move(other.m_end)) {}
+
     /// @returns the generator in initial state: Default values reflect the
     /// first phi angle iteration.
     DETRAY_HOST_DEVICE
