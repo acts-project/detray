@@ -64,6 +64,10 @@ TEST(check_simulation, measurement_smearer) {
 
 TEST(check_simulation, toy_geometry) {
 
+    // Use deterministic random number generator for testing
+    using normal_gen_t =
+        random_numbers<scalar, std::normal_distribution<scalar>, std::seed_seq>;
+
     // Create geometry
     vecmem::host_memory_resource host_mr;
 
@@ -77,18 +81,19 @@ TEST(check_simulation, toy_geometry) {
         b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}));
 
     // Create track generator
-    constexpr unsigned int theta_steps{50};
-    constexpr unsigned int phi_steps{50};
+    constexpr unsigned int n_tracks = 2500;
     const vector3 ori{0, 0, 0};
-    auto generator = uniform_track_generator<free_track_parameters<transform3>>(
-        theta_steps, phi_steps, ori, 1 * unit<scalar>::GeV);
+
+    auto generator =
+        random_track_generator<free_track_parameters<transform3>, normal_gen_t>(
+            n_tracks, ori, 1 * unit<scalar>::GeV);
 
     // Create smearer
     measurement_smearer<scalar> smearer(67 * unit<scalar>::um,
                                         170 * unit<scalar>::um);
 
     const unsigned int n_events = 10;
-    auto sim = simulator(n_events, detector, generator, smearer);
+    auto sim = simulator(n_events, detector, std::move(generator), smearer);
 
     // Do the simulation
     sim.run();
@@ -110,7 +115,7 @@ TEST(check_simulation, toy_geometry) {
             particles.push_back(io_particle);
         }
 
-        ASSERT_EQ(particles.size(), theta_steps * phi_steps);
+        ASSERT_EQ(particles.size(), n_tracks);
 
         // Check hit & measurement data
         const auto io_hits_file = get_event_filename(i_event, "-hits.csv");
@@ -227,7 +232,7 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
 
     unsigned int n_events = 1000;
 
-    auto sim = simulator(n_events, detector, generator, smearer);
+    auto sim = simulator(n_events, detector, std::move(generator), smearer);
 
     // Run simulation
     sim.run();

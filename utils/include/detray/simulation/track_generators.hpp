@@ -192,6 +192,10 @@ class uniform_track_generator
         return *this;
     }
 
+    /// Move constructor
+    uniform_track_generator(uniform_track_generator &&other)
+        : m_begin(std::move(other.m_begin)), m_end(std::move(other.m_end)) {}
+
     /// @returns the generator in initial state: Default values reflect the
     /// first phi angle iteration.
     DETRAY_HOST_DEVICE
@@ -214,6 +218,9 @@ template <typename scalar_t = scalar,
           typename generator_t = std::random_device,
           typename engine_t = std::mt19937>
 struct random_numbers {
+
+    random_numbers(random_numbers &&other) : engine(std::move(other.engine)) {}
+
     generator_t gen;
     engine_t engine;
 
@@ -273,7 +280,7 @@ class random_track_generator
         using reference = track_t &;
         using iterator_category = detray::ranges::input_iterator_tag;
 
-        iterator() = delete;
+        constexpr iterator() = delete;
 
         DETRAY_HOST_DEVICE
         iterator(generator_t &rand_gen, std::size_t n_tracks,
@@ -367,7 +374,13 @@ class random_track_generator
     using iterator_t = iterator;
 
     /// Default constructor
-    random_track_generator() = default;
+    constexpr random_track_generator() = default;
+
+    /// Move constructor
+    random_track_generator(random_track_generator &&other)
+        : m_gen(std::move(other.m_gen)),
+          m_begin(std::move(other.m_begin)),
+          m_end(std::move(other.m_end)) {}
 
     /// Paramtetrized constructor for fine-grained configurations
     ///
