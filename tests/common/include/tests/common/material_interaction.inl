@@ -9,6 +9,8 @@
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/masks/unbounded.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -209,6 +211,9 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
 
     vecmem::host_memory_resource host_mr;
 
+    // Use unbounded rectangle surfaces
+    mask<unbounded<rectangle2D<>>> rectangle{0u, 20.f * unit<scalar>::mm,
+                                             20.f * unit<scalar>::mm};
     // Build from given module positions
     detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
@@ -217,9 +222,8 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     const auto mat = silicon_tml<scalar>();
     constexpr scalar thickness{0.17f * unit<scalar>::cm};
 
-    const auto det = create_telescope_detector(
-        host_mr, positions, traj, 20.f * unit<scalar>::mm,
-        20.f * unit<scalar>::mm, mat, thickness);
+    const auto det = create_telescope_detector(host_mr, rectangle, positions,
+                                               mat, thickness, traj);
 
     using navigator_t = navigator<decltype(det)>;
     using constraints_t = constrained_step<>;
@@ -328,19 +332,20 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
 TEST(material_interaction, telescope_geometry_scattering_angle) {
     vecmem::host_memory_resource host_mr;
 
+    // Use unbounded rectangle surfaces
+    mask<unbounded<rectangle2D<>>> rectangle{0u, 20.f * unit<scalar>::mm,
+                                             20.f * unit<scalar>::mm};
+
     // Build from given module positions
     detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f, 1000.f * unit<scalar>::cm,
                                      2000.f * unit<scalar>::cm};
 
     const auto mat = silicon_tml<scalar>();
-    constexpr scalar thickness{500.f * unit<scalar>::cm};
-    // Use unbounded surfaces
-    constexpr bool unbounded = true;
+    const scalar thickness = 500.f * unit<scalar>::cm;
 
-    const auto det = create_telescope_detector<unbounded>(
-        host_mr, positions, traj, 2000.f * unit<scalar>::mm,
-        2000.f * unit<scalar>::mm, mat, thickness);
+    const auto det = create_telescope_detector(host_mr, rectangle, positions,
+                                               mat, thickness, traj);
 
     using navigator_t = navigator<decltype(det)>;
     using constraints_t = constrained_step<>;
