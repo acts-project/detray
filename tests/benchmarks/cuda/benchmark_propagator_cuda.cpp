@@ -84,9 +84,9 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
             propagator_host_type::state p_state(track, det.get_bfield(), det);
 
             // Run propagation
-            if (opt == propagate_option::e_unsync) {
+            if constexpr (opt == propagate_option::e_unsync) {
                 p.propagate(p_state, actor_states);
-            } else if (opt == propagate_option::e_sync) {
+            } else if constexpr (opt == propagate_option::e_sync) {
                 p.propagate_sync(p_state, actor_states);
             }
         }
