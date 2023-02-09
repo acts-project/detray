@@ -42,7 +42,7 @@ class trapezoid2D {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_half_length_0 = 0u,
         e_half_length_1 = 1u,
         e_half_length_2 = 2u,

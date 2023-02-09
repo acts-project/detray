@@ -60,12 +60,25 @@ struct cuboid_intersector {
         // const auto* min = new (box.values().data()) point3();
         // const auto* max = new (box.values().data() + 3) point3();
 
-        // scalar_t tmin{0.f}, tmax{std::numeric_limits<scalar_t>::infinity()};
+        scalar_t tmin{0.f}, tmax{std::numeric_limits<scalar_t>::infinity()};
 
-        const point3 tmin = (min - ro) * inv_dir;
-        const point3 tmax = (max - ro) * inv_dir;
+        const point3 t1 = (min - ro) * inv_dir;
+        const point3 t2 = (max - ro) * inv_dir;
 
-        return true;
+        // Find tmin and tmax, which define the sement of the ray that 
+        // intersects the box
+        for (unsigned int i{0u}; i < 3u; ++i) {
+            if (t1[i] > t2[i]) {
+                tmin = t2[i] < tmin ? tmin : t2[i];
+                tmax = t1[i] > tmax ? tmax : t1[i];
+            }
+            else {
+                tmin = t1[i] < tmin ? tmin : t1[i];
+                tmax = t2[i] > tmax ? tmax : t2[i];
+            }
+        }
+
+        return tmin < tmax;
     }
 };
 

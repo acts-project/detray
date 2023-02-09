@@ -57,7 +57,7 @@ class annulus2D {
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
     /// Names for the mask boundary values
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_min_r = 0u,
         e_max_r = 1u,
         e_min_phi_rel = 2u,

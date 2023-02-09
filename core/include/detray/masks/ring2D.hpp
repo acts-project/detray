@@ -40,7 +40,7 @@ class ring2D {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_inner_r = 0u,
         e_outer_r = 1u,
         e_size = 2u,

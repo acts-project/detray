@@ -29,7 +29,7 @@ class unmasked {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{2u};
 
-    enum boundaries : std::size_t { e_size = 1u };
+    enum boundaries : unsigned int { e_size = 1u };
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>

@@ -57,12 +57,12 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     using namespace detray;
 
     // Use unbounded rectangle surfaces
-    mask<unbounded<rectangle2D<>>> rectangle{0u, 20.f * unit<scalar>::mm,
-                                             20.f * unit<scalar>::mm};
+    mask<rectangle2D<>> rectangle{0u, 20.f * unit<scalar>::mm,
+                                  20.f * unit<scalar>::mm};
 
     using b_field_t = decltype(create_telescope_detector(
         std::declval<vecmem::host_memory_resource &>(),
-        std::declval<mask<unbounded<rectangle2D<>>> &>(),
+        std::declval<mask<rectangle2D<>> &>(),
         std::declval<std::vector<scalar> &>()))::bfield_type;
     using rk_stepper_t = rk_stepper<b_field_t::view_t, transform3>;
     using inspector_t = navigation::print_inspector;

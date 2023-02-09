@@ -39,7 +39,7 @@ class rectangle2D {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_half_x = 0u,
         e_half_y = 1u,
         e_size = 2u,

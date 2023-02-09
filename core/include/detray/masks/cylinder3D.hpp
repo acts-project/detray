@@ -33,7 +33,7 @@ class cylinder3D {
     /// The measurement dimension (not allowed)
     inline static constexpr const unsigned int meas_dim{0u};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_min_r = 0u,
         e_max_r = 1u,
         e_min_phi = 2u,

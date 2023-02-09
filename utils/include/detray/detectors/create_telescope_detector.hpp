@@ -143,7 +143,7 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
 
     auto volume_idx = volume.index();
     constexpr auto slab_id = material_link_type::id_type::e_slab;
-    constexpr typename mask_container_t::ids mask_id{0};
+    constexpr typename mask_container_t::ids mask_id{0u};
 
     // Create the module centers
     const std::vector<module_placement> m_placements =
@@ -292,7 +292,7 @@ auto create_telescope_detector(
 /// @param tel_length the total length of the steps by the stepper
 template <typename mask_t = mask<rectangle2D<>>,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          typename container_t = host_container_types, typename... Args>
+          typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource,
     covfie::field<
@@ -306,8 +306,8 @@ auto create_telescope_detector(
     // Generate equidistant positions
     std::vector<scalar> distances = {};
     scalar pos = 0.f;
-    scalar dist = n_surfaces > 0u ? tel_length / (n_surfaces - 1) : 0.f;
-    for (std::size_t i = 0; i < n_surfaces; ++i) {
+    scalar dist{n_surfaces > 1u ? tel_length / static_cast<scalar>(n_surfaces - 1u) : 0.f};
+    for (std::size_t i = 0u; i < n_surfaces; ++i) {
         distances.push_back(pos);
         pos += dist;
     }

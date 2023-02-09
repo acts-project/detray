@@ -32,7 +32,7 @@ class unbounded {
     template <typename algebra_t>
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
-    /// Local point type (2D)
+    /// Local point type
     template <typename algebra_t>
     using loc_point_type = typename shape::template loc_point_type<algebra_t>;
 
@@ -40,7 +40,7 @@ class unbounded {
     template <typename algebra_t>
     using measurement_frame_type =
         typename shape::template measurement_frame_type<algebra_t>;
-    /// Local measurement point (2D)
+    /// Local measurement point
     template <typename algebra_t>
     using measurement_point_type =
         typename shape::template measurement_point_type<algebra_t>;
@@ -66,7 +66,7 @@ class unbounded {
 
     template <typename param_t>
     DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        param_t& param, const typename param_t::point2& offset = {0.f, 0.f}) const {
         return param.local() + offset;
     }
 };

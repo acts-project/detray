@@ -40,7 +40,7 @@ class single3D {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_lower = 0u,
         e_upper = 1u,
         e_size = 2u,

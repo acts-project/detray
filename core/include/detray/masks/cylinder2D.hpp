@@ -46,7 +46,7 @@ class cylinder2D {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_r = 0u,
         e_n_half_z = 1u,
         e_p_half_z = 2u,

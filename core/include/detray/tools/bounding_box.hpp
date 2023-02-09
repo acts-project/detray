@@ -48,8 +48,12 @@ class axis_aligned_bounding_box {
     DETRAY_HOST_DEVICE explicit constexpr axis_aligned_bounding_box(
         const mask<shape, link_t, algebra_t, array_t>& mask,
         unsigned int box_id, const scalar_t envelope = 1.01f) {
+        // Make sure the box is actually 'bounding'
+        assert(envelope > (1.f + std::numeric_limits<scalar_t>::epsilon()));
+        // Set this instances id
         m_mask.volume_link() = box_id;
-        for (uint i{0u}; i < shape::boundaries::e_size; ++i) {
+        // Apply the envelope to the boundary values, which can be negative
+        for (unsigned int i{0u}; i < shape::boundaries::e_size; ++i) {
             m_mask[i] = mask[i] * envelope;
         }
     }

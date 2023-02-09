@@ -49,7 +49,7 @@ class line {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_cross_section = 0u,
         e_half_z = 1u,
         e_size = 2u

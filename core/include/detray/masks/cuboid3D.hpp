@@ -35,7 +35,7 @@ class cuboid3D {
     /// The measurement dimension (not allowed)
     inline static constexpr const unsigned int meas_dim{0u};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_min_x = 0u,
         e_max_x = 1u,
         e_min_y = 2u,
