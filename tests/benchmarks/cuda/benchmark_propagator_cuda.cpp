@@ -41,6 +41,7 @@ void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
     }
 }
 
+template <propagate_option opt>
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create the toy geometry
@@ -84,11 +85,16 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
             propagator_host_type::state p_state(track, det.get_bfield(), det);
 
             // Run propagation
-            p.propagate(p_state, actor_states);
+            if constexpr (opt == propagate_option::e_unsync) {
+                p.propagate(p_state, actor_states);
+            } else if constexpr (opt == propagate_option::e_sync) {
+                p.propagate_sync(p_state, actor_states);
+            }
         }
     }
 }
 
+template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
@@ -121,11 +127,25 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         copy.setup(candidates_buffer);
 
         // Run the propagator test for GPU device
-        propagator_benchmark(det_data, tracks_data, candidates_buffer);
+        propagator_benchmark(det_data, tracks_data, candidates_buffer, opt);
     }
 }
 
-BENCHMARK(BM_PROPAGATOR_CPU)->RangeMultiplier(2)->Range(8, 256);
-BENCHMARK(BM_PROPAGATOR_CUDA)->RangeMultiplier(2)->Range(8, 256);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, propagate_option::e_unsync)
+    ->Name("CPU unsync propagation")
+    ->RangeMultiplier(2)
+    ->Range(8, 256);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, propagate_option::e_sync)
+    ->Name("CPU sync propagation")
+    ->RangeMultiplier(2)
+    ->Range(8, 256);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CUDA, propagate_option::e_unsync)
+    ->Name("CUDA unsync propagation")
+    ->RangeMultiplier(2)
+    ->Range(8, 256);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CUDA, propagate_option::e_sync)
+    ->Name("CUDA sync propagation")
+    ->RangeMultiplier(2)
+    ->Range(8, 256);
 
 BENCHMARK_MAIN();

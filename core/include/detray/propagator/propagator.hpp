@@ -112,8 +112,10 @@ struct propagator {
     /// all registered actors.
     ///
     /// @tparam state_t is the propagation state type
+    /// @tparam actor_state_t is the actor state type
     ///
     /// @param propagation the state of a propagation flow
+    /// @param actor_states the actor state
     ///
     /// @return propagation success.
     template <typename state_t, typename actor_states_t = actor_chain<>::state>
@@ -137,6 +139,57 @@ struct propagator {
 
             // Run all registered actors/aborters after update
             run_actors(actor_states, propagation);
+        }
+
+        // Pass on the whether the propagation was successful
+        return propagation._navigation.is_complete();
+    }
+
+    /// Propagate method with two while loops. In the CPU, propagate and
+    /// propagate_sync() should be equivalent to each other. In the SIMT level
+    /// (e.g. GPU), the instruction of threads in the same warp is synchornized
+    /// after the internal while loop.
+    ///
+    /// @tparam state_t is the propagation state type
+    /// @tparam actor_state_t is the actor state type
+    ///
+    /// @param propagation the state of a propagation flow
+    /// @param actor_states the actor state
+    ///
+    /// @return propagation success.
+    template <typename state_t, typename actor_states_t = actor_chain<>::state>
+    DETRAY_HOST_DEVICE bool propagate_sync(state_t &propagation,
+                                           actor_states_t &&actor_states = {}) {
+
+        // Initialize the navigation
+        propagation._heartbeat = _navigator.init(propagation);
+
+        // Run all registered actors/aborters after init
+        run_actors(actor_states, propagation);
+
+        while (propagation._heartbeat) {
+
+            while (propagation._heartbeat) {
+
+                // Take the step
+                propagation._heartbeat &= _stepper.step(propagation);
+
+                // And check the status
+                propagation._heartbeat &= _navigator.update(propagation);
+
+                // If the track is on a sensitive surface, break the loop to
+                // synchornize the threads
+                if (propagation._navigation.is_on_sensitive()) {
+                    break;
+                } else {
+                    run_actors(actor_states, propagation);
+                }
+            }
+
+            // Synchornized actor
+            if (propagation._heartbeat) {
+                run_actors(actor_states, propagation);
+            }
         }
 
         // Pass on the whether the propagation was successful

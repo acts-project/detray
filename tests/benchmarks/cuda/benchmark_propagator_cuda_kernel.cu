@@ -13,7 +13,8 @@ namespace detray {
 __global__ void propagator_benchmark_kernel(
     typename detector_host_type::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t> candidates_data) {
+    vecmem::data::jagged_vector_view<intersection_t> candidates_data,
+    const propagate_option opt) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -47,20 +48,25 @@ __global__ void propagator_benchmark_kernel(
                                           candidates.at(gid));
 
     // Run propagation
-    p.propagate(p_state, actor_states);
+    if (opt == propagate_option::e_unsync) {
+        p.propagate(p_state, actor_states);
+    } else if (opt == propagate_option::e_sync) {
+        p.propagate_sync(p_state, actor_states);
+    }
 }
 
 void propagator_benchmark(
     typename detector_host_type::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data) {
+    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
+    const propagate_option opt) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;
     int block_dim = static_cast<int>(tracks_data.size()) / thread_dim + 1;
 
     // run the test kernel
     propagator_benchmark_kernel<<<block_dim, thread_dim>>>(
-        det_data, tracks_data, candidates_data);
+        det_data, tracks_data, candidates_data, opt);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

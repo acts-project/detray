@@ -38,7 +38,10 @@ constexpr scalar path_limit{5.f * unit<scalar>::cm};
 struct helix_inspector : actor {
 
     /// Keeps the state of a helix gun to calculate track positions
-    struct state {};
+    struct state {
+        // navigation status for every step
+        std::vector<navigation::status> _nav_status;
+    };
 
     using matrix_operator = standard_matrix_operator<scalar>;
     using size_type = typename matrix_operator::size_ty;
@@ -74,15 +77,16 @@ struct helix_inspector : actor {
     /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        const state& /*inspector_state*/,
-        const propagator_state_t& prop_state) const {
+        state& inspector_state, const propagator_state_t& prop_state) const {
+
+        const auto& navigation = prop_state._navigation;
+        const auto& stepping = prop_state._stepping;
+
+        inspector_state._nav_status.push_back(navigation.status());
 
         if (prop_state.param_type() == parameter_type::e_free) {
             return;
         }
-
-        const auto& navigation = prop_state._navigation;
-        const auto& stepping = prop_state._stepping;
 
         // Nothing has happened yet (first call of actor chain)
         if (stepping.path_length() < tol || stepping._s < tol) {
@@ -232,6 +236,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         auto actor_states =
             std::tie(helix_insp_state, print_insp_state, unlimted_aborter_state,
                      transporter_state, interactor_state, resetter_state);
+        auto sync_actor_states =
+            std::tie(helix_insp_state, print_insp_state, unlimted_aborter_state,
+                     transporter_state, interactor_state, resetter_state);
         auto lim_actor_states = std::tie(
             helix_insp_state, lim_print_insp_state, pathlimit_aborter_state,
             transporter_state, interactor_state, resetter_state);
@@ -262,6 +269,15 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
             << "path length: " << lim_state._stepping.path_length()
             << ", path limit: " << path_limit << std::endl;
         //<< state._navigation.inspector().to_string() << std::endl;
+
+        // Compare the navigation status vector between propagate and
+        // propagate_sync function
+        const auto nav_status =
+            std::get<helix_inspector::state&>(actor_states)._nav_status;
+        const auto sync_nav_status =
+            std::get<helix_inspector::state&>(sync_actor_states)._nav_status;
+        ASSERT_TRUE(nav_status.size() > 0);
+        ASSERT_TRUE(nav_status == sync_nav_status);
     }
 }
 

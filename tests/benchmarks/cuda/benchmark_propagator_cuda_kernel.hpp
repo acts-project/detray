@@ -57,12 +57,18 @@ using propagator_host_type =
 using propagator_device_type =
     propagator<rk_stepper_type, navigator_device_type, actor_chain_t>;
 
+enum class propagate_option {
+    e_unsync = 0,
+    e_sync = 1,
+};
+
 namespace detray {
 
 /// test function for propagator with single state
 void propagator_benchmark(
     typename detector_host_type::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data);
+    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
+    const propagate_option opt);
 
 }  // namespace detray
